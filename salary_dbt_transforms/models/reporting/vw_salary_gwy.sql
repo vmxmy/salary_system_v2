@@ -26,7 +26,7 @@ SELECT
     salary_civil_servant_normative_allowance AS "公务员规范性津贴补贴",
     salary_probation_salary AS "见习试用期工资",
     salary_salary_step AS "薪级工资",
-    deduct_self_pension_contribution AS "个人缴养老保险费",
+    deduct_self_pension_contribution AS "养老保险个人",
     deduct_self_medical_contribution AS "个人缴医疗保险费",
     deduct_self_annuity_contribution AS "个人缴职业年金",
     deduct_self_housing_fund_contribution AS "个人缴住房公积金",
@@ -47,7 +47,6 @@ SELECT
     job_attr_annual_fixed_salary_amount AS "固定薪酬全年应发数",
     salary_one_time_deduction AS "一次性补扣发",
     salary_basic_performance_bonus_deduction AS "基础绩效奖补扣发",
-    salary_basic_performance_deduction AS "基础绩效补扣发",
     salary_reward_performance_deduction AS "奖励绩效补扣发",
     salary_monthly_basic_performance AS "月基础绩效",
     salary_monthly_reward_performance AS "月奖励绩效",
@@ -72,9 +71,11 @@ SELECT
     contrib_employer_housing_fund_contribution AS "单位缴住房公积金",
     contrib_employer_unemployment_contribution AS "单位缴失业保险费",
     contrib_employer_critical_illness_contribution AS "大病医疗单位缴纳",
-    other_remarks AS "备注",
+    contrib_employer_injury_contribution AS "工伤保险单位缴费",
+
+    remarks AS "备注",
     created_at AS "创建时间",
     updated_at AS "更新时间",
     calc_xiaoji AS "小计"
 FROM {{ ref('view_level1_calculations') }}
-WHERE establishment_type_name = '公务员' 
+WHERE establishment_type_name = '公务员'

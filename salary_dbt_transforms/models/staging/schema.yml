@@ -3,38 +3,183 @@ version: 2
 sources:
   - name: public # 源数据的 schema 名称
     schema: public # 确保这个 schema 与你的数据库匹配
-    description: "Source schema containing raw data loaded by Airbyte."
+    description: "Source schema containing raw staging data for salaries."
     tables:
       - name: raw_salary_data_staging # 源表名
-        description: "Raw salary data loaded from CSV via Airbyte. All columns initially TEXT."
+        description: "Restructured staging table for salary data, loaded via backend importer."
         columns:
-          - name: id_card_number
-            description: "Employee ID card number."
+          # Identifiers
+          - name: _staging_id # New PK
+            description: "Serial primary key for the staging table row."
+            tests:
+              - unique
+              - not_null
+          - name: id_card_number # Type changed to VARCHAR
+            description: "Employee ID card number (VARCHAR)."
+            tests:
+              - not_null # Assuming ID card is always required
           - name: employee_name
             description: "Employee name."
+            tests:
+              - not_null # Assuming name is always required
+          - name: employee_type_key # Renamed from establishment_type_name
+            description: "Key identifying the type of employment (e.g., gwy, sy, cg). Derived during import."
           - name: pay_period_identifier
             description: "Pay period identifier (YYYY-MM format)."
-          - name: establishment_type_name
-            description: "Name of the establishment type (e.g., 公务员, 事业)."
-          # 列出其他关键或需要描述的列...
-          # Example job attribute:
-          - name: job_attr_人员身份
+            tests:
+              - not_null # Assuming pay period is always required
+          
+          # Job Attributes (Renamed)
+          - name: personnel_identity
             description: "Job attribute: Personnel identity."
-          # Example salary component:
-          - name: salary_岗位工资
-            description: "Salary component: Post wage."
-          # Example deduction:
-          - name: deduct_个人缴医疗保险费
-            description: "Deduction: Personal medical insurance contribution."
-          # Example contribution:
-          - name: contrib_单位缴养老保险费
+          - name: personnel_rank
+            description: "Job attribute: Personnel rank."
+          - name: post_category
+            description: "Job attribute: Post category."
+          - name: ref_official_post_salary_level
+            description: "Job attribute: Reference official post salary level."
+          - name: ref_official_salary_step
+            description: "Job attribute: Reference official salary step."
+          - name: salary_level
+            description: "Job attribute: Salary level."
+          - name: salary_grade
+            description: "Job attribute: Salary grade."
+          - name: annual_fixed_salary_amount
+            description: "Job attribute: Annual fixed salary amount."
+
+          # Salary Components (Renamed, type changed to NUMERIC(15,2))
+          - name: one_time_deduction
+            description: "Salary component: One-time deduction."
+          - name: basic_performance_bonus_deduction
+            description: "Salary component: Basic performance bonus deduction."
+          - name: position_or_technical_salary
+            description: "Salary component: Position or technical salary."
+          - name: rank_or_post_grade_salary
+            description: "Salary component: Rank or post/grade salary."
+          - name: reform_1993_reserved_subsidy
+            description: "Salary component: 1993 reform reserved subsidy."
+          - name: only_child_parents_reward
+            description: "Salary component: Only child parents reward."
+          - name: post_position_allowance
+            description: "Salary component: Post/position allowance."
+          - name: civil_servant_normative_allowance
+            description: "Salary component: Civil servant normative allowance."
+          - name: transportation_allowance
+            description: "Salary component: Transportation allowance."
+          - name: basic_performance_bonus
+            description: "Salary component: Basic performance bonus."
+          - name: probation_salary
+            description: "Salary component: Probation salary."
+          - name: petition_worker_post_allowance
+            description: "Salary component: Petition worker post allowance."
+          - name: reward_performance_deduction
+            description: "Salary component: Reward performance deduction."
+          - name: post_salary
+            description: "Salary component: Post salary."
+          - name: salary_step
+            description: "Salary component: Salary step."
+          - name: monthly_basic_performance
+            description: "Salary component: Monthly basic performance."
+          - name: monthly_reward_performance
+            description: "Salary component: Monthly reward performance."
+          - name: basic_salary
+            description: "Salary component: Basic salary."
+          - name: performance_salary
+            description: "Salary component: Performance salary."
+          - name: other_allowance
+            description: "Salary component: Other allowance."
+          - name: salary_backpay
+            description: "Salary component: Salary backpay."
+          - name: allowance
+            description: "Salary component: Allowance."
+          - name: quarterly_performance_bonus
+            description: "Salary component: Quarterly performance bonus."
+          - name: subsidy
+            description: "Salary component: Subsidy."
+          - name: petition_post_allowance
+            description: "Salary component: Petition post allowance."
+          - name: total_deduction_adjustment
+            description: "Salary component: Total deduction adjustment."
+          - name: living_allowance
+            description: "Salary component: Living allowance."
+          - name: salary_step_backpay_total
+            description: "Salary component: Salary step backpay total."
+          - name: total_backpay_amount
+            description: "Salary component: Total backpay amount."
+          - name: basic_performance_salary # Added
+            description: "Salary component: Basic performance salary (new)."
+          - name: incentive_performance_salary # Added
+            description: "Salary component: Incentive performance salary (new)."
+
+          # Deductions (Renamed, type changed to NUMERIC(15,2))
+          - name: self_pension_contribution
+            description: "Deduction: Self pension contribution."
+          - name: self_medical_contribution
+            description: "Deduction: Self medical contribution."
+          - name: self_annuity_contribution
+            description: "Deduction: Self annuity contribution."
+          - name: self_housing_fund_contribution
+            description: "Deduction: Self housing fund contribution."
+          - name: self_unemployment_contribution
+            description: "Deduction: Self unemployment contribution."
+          - name: individual_income_tax
+            description: "Deduction: Individual income tax."
+          - name: other_deductions
+            description: "Deduction: Other deductions."
+          - name: social_insurance_adjustment
+            description: "Deduction: Social insurance adjustment."
+          - name: housing_fund_adjustment
+            description: "Deduction: Housing fund adjustment."
+          - name: tax_adjustment
+            description: "Deduction: Tax adjustment."
+          - name: self_injury_contribution # Added
+            description: "Deduction: Self injury insurance contribution (new)."
+
+          # Contributions (Renamed, type changed to NUMERIC(15,2))
+          - name: employer_pension_contribution
             description: "Contribution: Employer pension contribution."
-          # Example base:
-          - name: base_住房公积金缴费基数
-            description: "Base: Housing fund contribution base."
-          # Example metadata:
-          - name: _airbyte_source_file
-            description: "Source filename from Airbyte."
+          - name: employer_medical_contribution
+            description: "Contribution: Employer medical contribution."
+          - name: employer_annuity_contribution
+            description: "Contribution: Employer annuity contribution."
+          - name: employer_housing_fund_contribution
+            description: "Contribution: Employer housing fund contribution."
+          - name: employer_unemployment_contribution
+            description: "Contribution: Employer unemployment contribution."
+          - name: employer_critical_illness_contribution
+            description: "Contribution: Employer critical illness contribution."
+          - name: employer_injury_contribution # Added
+            description: "Contribution: Employer injury insurance contribution (new)."
+
+          # Other fields
+          - name: remarks # Renamed from other_remarks
+            description: "General remarks."
+          - name: bank_account_number # Added
+            description: "Bank account number."
+          - name: bank_branch_name # Added
+            description: "Bank branch name."
+          - name: employment_start_date # Added
+            description: "Date employee started employment."
+          - name: employment_status # Added
+            description: "Current employment status."
+          - name: organization_name # Added
+            description: "Name of the employing organization/unit (potentially redundant with joins)."
+          - name: department_name # Added
+            description: "Name of the department (potentially redundant with joins)."
+          
+          # Metadata columns (Added)
+          - name: _row_number
+            description: "Original row number from the source Excel file."
+          - name: _validation_status
+            description: "Status of backend validation (e.g., pending, success, failed)."
+          - name: _validation_errors
+            description: "JSONB field containing details of any validation errors."
+          - name: _source_filename
+            description: "Name of the source Excel file."
+          - name: _import_timestamp
+            description: "Timestamp when the record was imported."
+          - name: _import_batch_id
+            description: "UUID identifying the import batch."
 
       - name: employees # 新增 employees 表定义
         description: "Source table containing employee information."
@@ -89,3 +234,97 @@ sources:
               - not_null
           - name: name
             description: "Name of the establishment type (e.g., 公务员, 事业)." 
+
+# Define the staging model structure (Optional but good practice)
+models:
+  - name: stg_raw_salary_data
+    description: "Staging model for raw salary data after initial selection, renaming, and aliasing."
+    columns:
+      - name: salary_staging_id # Aliased from _staging_id
+        description: "Unique ID for the staging row."
+        tests:
+          - unique
+          - not_null
+      - name: id_card_number
+        description: "Employee ID card number."
+        tests:
+          - not_null
+      - name: employee_name
+        description: "Employee name."
+      - name: employee_type_key
+        description: "Key identifying the employment type."
+      - name: pay_period_identifier
+        description: "Pay period (YYYY-MM)."
+        tests:
+          - not_null
+      # Add other selected and renamed columns here with descriptions/tests
+      - name: basic_salary 
+        description: "Basic salary component."
+      - name: post_salary
+        description: "Post salary component."
+      - name: self_pension_contribution
+        description: "Deduction: Self pension contribution."
+      - name: employer_pension_contribution
+        description: "Contribution: Employer pension contribution."
+      - name: import_batch_id # Aliased from _import_batch_id
+        description: "UUID identifying the import batch."
+      - name: source_filename
+        description: "Name of the source Excel file."
+      - name: validation_status
+        description: "Import validation status."
+      # ... Add ALL other columns selected in stg_raw_salary_data.sql
+
+  # Add definitions for other staging models if needed (stg_employees, etc.)
+  - name: stg_employees
+    description: "Staging model for employee dimension data."
+    columns:
+      - name: employee_id
+        description: "Surrogate key for the employee."
+        tests:
+          - unique
+          - not_null
+      - name: id_card_number
+        description: "Employee ID card number."
+        tests:
+          - unique # Ensure uniqueness in the staging layer too
+      - name: employee_name
+        description: "Employee's full name."
+      - name: department_id
+        description: "Foreign key to departments."
+      # ... other employee columns
+
+  - name: stg_departments
+    description: "Staging model for department dimension data."
+    columns:
+      - name: department_id
+        description: "Surrogate key for the department."
+        tests:
+          - unique
+          - not_null
+      - name: department_name
+        description: "Name of the department."
+      - name: unit_id
+        description: "Foreign key to units."
+      # ... other department columns
+
+  - name: stg_establishment_types
+    description: "Staging model for establishment type dimension data."
+    columns:
+      - name: establishment_type_id
+        description: "Surrogate key for the establishment type."
+        tests:
+          - unique
+          - not_null
+      - name: establishment_type_name
+        description: "Name of the establishment type."
+
+  - name: stg_units
+    description: "Staging model for unit dimension data."
+    columns:
+      - name: unit_id
+        description: "Surrogate key for the unit."
+        tests:
+          - unique
+          - not_null
+      - name: unit_name
+        description: "Name of the unit." 

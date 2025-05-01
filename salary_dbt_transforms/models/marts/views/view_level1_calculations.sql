@@ -36,7 +36,6 @@ calculations AS (
                  COALESCE(salary_transportation_allowance, 0) +
                  COALESCE(salary_basic_performance_bonus, 0)
             WHEN '事业' THEN
-                 COALESCE(salary_basic_performance_deduction, 0) +
                  COALESCE(salary_reward_performance_deduction, 0) +
                  COALESCE(salary_post_salary, 0) +
                  COALESCE(salary_salary_step, 0) +

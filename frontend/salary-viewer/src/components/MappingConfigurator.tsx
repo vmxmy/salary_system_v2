@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Checkbox, Spin, Alert, message, Popconfirm, Typography, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
+import type { TableProps, TablePaginationConfig } from 'antd';
 import apiClient from '../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -50,6 +51,8 @@ const MappingConfigurator: React.FC = () => {
     const [form] = Form.useForm<FormValues>();
     const [isSaving, setIsSaving] = useState<boolean>(false); // Loading state for save button
     const [searchTerm, setSearchTerm] = useState<string>(''); // <-- Add search term state
+    const [currentPage, setCurrentPage] = useState<number>(1); // Added for pagination
+    const [pageSize, setPageSize] = useState<number>(15);     // Added for pagination
     // --- State for Modal and Form --- END
 
     const fetchData = useCallback(async () => {
@@ -166,20 +169,14 @@ const MappingConfigurator: React.FC = () => {
             dataIndex: 'source_name',
             key: 'source_name',
             sorter: (a, b) => a.source_name.localeCompare(b.source_name),
-            filteredValue: searchTerm ? [searchTerm] : null,
-            onFilter: (value, record) => {
-                const term = String(value).toLowerCase();
-                return (
-                    record.source_name.toLowerCase().includes(term) ||
-                    record.target_name.toLowerCase().includes(term)
-                );
-            },
+            filteredValue: null,
         },
         {
             title: t('mappingConfigurator.table.colTargetName'),
             dataIndex: 'target_name',
             key: 'target_name',
             sorter: (a, b) => a.target_name.localeCompare(b.target_name),
+            filteredValue: null,
         },
         {
             title: t('mappingConfigurator.table.colIsIntermediate'),
@@ -196,6 +193,7 @@ const MappingConfigurator: React.FC = () => {
                 { text: t('mappingConfigurator.table.filterNo'), value: false },
             ],
             onFilter: (value, record) => record.is_intermediate === value,
+            filteredValue: null,
         },
         {
             title: t('mappingConfigurator.table.colIsFinal'),
@@ -212,18 +210,21 @@ const MappingConfigurator: React.FC = () => {
                 { text: t('mappingConfigurator.table.filterNo'), value: false },
             ],
             onFilter: (value, record) => record.is_final === value,
+            filteredValue: null,
         },
         {
             title: t('mappingConfigurator.table.colDescription'),
             dataIndex: 'description',
             key: 'description',
             ellipsis: true,
+            filteredValue: null,
         },
         {
             title: t('mappingConfigurator.table.colDataType'),
             dataIndex: 'data_type',
             key: 'data_type',
             width: 100,
+            filteredValue: null,
         },
         {
             title: t('mappingConfigurator.table.colAction'),
@@ -231,6 +232,7 @@ const MappingConfigurator: React.FC = () => {
             width: 150,
             align: 'center',
             fixed: 'right',
+            filteredValue: null,
             render: (_, record) => (
                 <Space size="middle">
                     <Button 
@@ -291,6 +293,12 @@ const MappingConfigurator: React.FC = () => {
     });
     // --- Filter Logic --- END
 
+    // Added handler for Table changes (pagination, filters, sorter)
+    const handleTableChange = (page: number, pageSize: number) => {
+        setCurrentPage(page);
+        setPageSize(pageSize);
+    };
+
     return (
         <div>
             <style>
@@ -330,7 +338,14 @@ const MappingConfigurator: React.FC = () => {
                         columns={columns}
                         dataSource={filteredMappings}
                         rowKey="source_name"
-                        pagination={{ pageSize: 15, showSizeChanger: true, showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} 条` }}
+                        pagination={{
+                            current: currentPage,
+                            pageSize: pageSize,
+                            onChange: handleTableChange,
+                            pageSizeOptions: ['15', '30', '50', '100'],
+                            showSizeChanger: true,
+                            showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} 条`,
+                        }}
                         scroll={{ x: 'max-content' }}
                         bordered
                         size="small"

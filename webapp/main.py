@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body # Add Body
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response # Add Response
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, Field # <-- Add Field
+from typing import List, Optional, Dict, Any
 import os
+import json # Added import
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session # Added Session import
 from datetime import datetime, timezone, timedelta
@@ -20,6 +21,7 @@ from . import file_converter
 import logging
 import subprocess
 from fastapi.middleware.cors import CORSMiddleware
+import traceback # Import traceback for detailed error logging
 
 # Import new modules
 from . import auth, models_db, schemas, models # Added models
@@ -341,54 +343,107 @@ class SalaryRecord(BaseModel):
     employee_id: int
     pay_period_identifier: str
     establishment_type_id: Optional[int] = None
-    
+
     # Employee Info
     employee_name: Optional[str] = None
     id_card_number: Optional[str] = None
-    
+
     # Dimension Attributes
     department_name: Optional[str] = None
     unit_name: Optional[str] = None
     establishment_type_name: Optional[str] = None
-    
-    # Job Attributes (Example subset - ADD ALL NEEDED FROM VIEW)
+
+    # Job Attributes (Expanded to include all from view_base_data)
     job_attr_personnel_identity: Optional[str] = None
     job_attr_personnel_rank: Optional[str] = None
     job_attr_post_category: Optional[str] = None
-    # ... add other job attributes
-    
-    # Salary Components (Example subset - ADD ALL NEEDED FROM VIEW)
+    job_attr_ref_official_post_salary_level: Optional[str] = None
+    job_attr_ref_official_salary_step: Optional[str] = None
+    job_attr_salary_level: Optional[str] = None
+    job_attr_salary_grade: Optional[str] = None
+    job_attr_annual_fixed_salary_amount: Optional[float] = None
+
+    # Salary Components (Expanded to include all from view_base_data)
+    salary_one_time_deduction: Optional[float] = None
+    salary_basic_performance_bonus_deduction: Optional[float] = None
+    salary_basic_performance_deduction: Optional[float] = None
+    salary_incentive_performance_salary: Optional[float] = None
+    salary_position_or_technical_salary: Optional[float] = None
+    salary_rank_or_post_grade_salary: Optional[float] = None
+    salary_reform_1993_reserved_subsidy: Optional[float] = None
+    salary_only_child_parents_reward: Optional[float] = None
+    salary_post_position_allowance: Optional[float] = None
+    salary_civil_servant_normative_allowance: Optional[float] = None
+    salary_transportation_allowance: Optional[float] = None
+    salary_basic_performance_bonus: Optional[float] = None
+    salary_probation_salary: Optional[float] = None
+    salary_petition_worker_post_allowance: Optional[float] = None
+    salary_reward_performance_deduction: Optional[float] = None
     salary_post_salary: Optional[float] = None
     salary_salary_step: Optional[float] = None
+    salary_monthly_basic_performance: Optional[float] = None
+    salary_monthly_reward_performance: Optional[float] = None
     salary_basic_salary: Optional[float] = None
-    salary_performance_salary: Optional[float] = None # Example
-    # ... add many other salary components
-    
-    # Deductions (Example subset - ADD ALL NEEDED FROM VIEW)
+    salary_basic_performance_salary: Optional[float] = None
+    salary_performance_salary: Optional[float] = None
+    salary_other_allowance: Optional[float] = None
+    salary_salary_backpay: Optional[float] = None
+    salary_allowance: Optional[float] = None
+    salary_quarterly_performance_bonus: Optional[float] = None
+    salary_subsidy: Optional[float] = None
+    salary_petition_post_allowance: Optional[float] = None
+    salary_total_deduction_adjustment: Optional[float] = None
+    salary_living_allowance: Optional[float] = None
+    salary_salary_step_backpay_total: Optional[float] = None
+    salary_total_backpay_amount: Optional[float] = None
+
+    # Personal Deductions (Expanded to include all from view_base_data)
     deduct_self_pension_contribution: Optional[float] = None
     deduct_self_medical_contribution: Optional[float] = None
-    deduct_individual_income_tax: Optional[float] = None # Example
-    # ... add other deductions
-    
-    # Contributions (Example subset - ADD ALL NEEDED FROM VIEW)
+    deduct_self_annuity_contribution: Optional[float] = None
+    deduct_self_housing_fund_contribution: Optional[float] = None
+    deduct_self_unemployment_contribution: Optional[float] = None
+    deduct_individual_income_tax: Optional[float] = None
+    deduct_other_deductions: Optional[float] = None
+    deduct_social_insurance_adjustment: Optional[float] = None
+    deduct_housing_fund_adjustment: Optional[float] = None
+    deduct_tax_adjustment: Optional[float] = None
+    # Assuming self_injury_contribution was also extracted, add if needed
+    # deduct_self_injury_contribution: Optional[float] = None 
+
+    # Company Contributions (Expanded to include all from view_base_data)
     contrib_employer_pension_contribution: Optional[float] = None
     contrib_employer_medical_contribution: Optional[float] = None
-    # ... add other contributions
-    
-    # Calculated Totals (Example subset - ADD ALL NEEDED FROM VIEW)
+    contrib_employer_annuity_contribution: Optional[float] = None
+    contrib_employer_housing_fund_contribution: Optional[float] = None
+    contrib_employer_unemployment_contribution: Optional[float] = None
+    contrib_employer_critical_illness_contribution: Optional[float] = None
+    contrib_employer_injury_contribution: Optional[float] = None
+
+    # Other fields from view_base_data
+    remarks: Optional[str] = None # Renamed from other_remarks based on dbt model
+    # created_at and updated_at are already present
+
+    # Calculated Totals (Added missing ones)
+    calc_xiaoji: Optional[float] = None
+    calc_personal_deductions: Optional[float] = None
     calc_total_payable: Optional[float] = None
     calc_net_pay: Optional[float] = None
 
-    # Other fields
-    other_remarks: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    # Metadata fields (Include if needed by frontend, typically not)
+    # salary_staging_id: Optional[uuid.UUID] = None # From salary_records.sql
+    # source_row_number: Optional[int] = None # From salary_records.sql
+    # validation_status: Optional[str] = None # From salary_records.sql
+    # validation_errors: Optional[Dict] = None # From salary_records.sql
+    # source_filename: Optional[str] = None # From salary_records.sql
+    # import_timestamp: Optional[datetime] = None # From salary_records.sql
+    # import_batch_id: Optional[uuid.UUID] = None # From salary_records.sql
+
+    created_at: Optional[datetime] = None # Already present
+    updated_at: Optional[datetime] = None # Already present
 
     class Config:
-        # If reading directly from RealDictCursor, orm_mode/from_attributes might not be strictly needed
-        # but doesn't hurt.
-        # orm_mode = True # Use orm_mode=True for Pydantic v1 or from_attributes=True for v2
-        from_attributes = True 
+        from_attributes = True
 
 # Paginated response for salary data
 class PaginatedSalaryResponse(BaseModel):
@@ -949,8 +1004,10 @@ async def get_salary_data(
 
     # Start building the query using SQLAlchemy Core or ORM if possible.
     # For complex dynamic queries, text() is often easier initially.
+    # --- MODIFIED: Query the correct dbt model/table --- START
     base_query = "SELECT * FROM public.view_level1_calculations WHERE 1=1" # Corrected view name
     count_query = "SELECT COUNT(*) FROM public.view_level1_calculations WHERE 1=1" # Corrected view name
+    # --- MODIFIED: Query the correct dbt model/table --- END
     params = {}
     count_params = {}
     # param_index = 1 # Not needed for named parameters
@@ -1165,255 +1222,102 @@ async def get_converter_page():
 
 # --- File Conversion Endpoint --- # New Section
 
-@app.post("/api/convert/excel-to-csv", response_class=FileResponse, tags=["File Conversion"])
-async def convert_excel_to_csv(
-    background_tasks: BackgroundTasks, 
+@app.post("/api/convert/excel-to-csv", tags=["File Conversion"]) # Keep endpoint name for now, change response model later if needed
+async def process_salary_excel_import( # Renamed function for clarity
+    background_tasks: BackgroundTasks, # Keep if needed for other background tasks eventually
     file: UploadFile = File(...),
-    pay_period: str = Query(..., regex=r"^\d{4}-\d{2}$", description="Pay period in YYYY-MM format"),
-    import_to_db: bool = Query(False, description="Set to true to import the generated CSV into the staging table."),
-    # Change conn to db: Session
+    pay_period: str = Query(..., regex=r"^\d{4}-\d{2}$", description="Pay period in YYYY-MM format"), # <-- RE-ADD pay_period parameter with validation
     db: Session = Depends(get_db),
-    # Replace Basic Auth with JWT Auth (Super Admin or Data Admin)
     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"])) 
 ):
     """
-    Receives an Excel file, converts it, optionally imports the result to the staging table,
-    and returns the generated CSV file.
-    Uses SQLAlchemy Session for DB interactions where possible, retaining psycopg2 COPY for performance.
+    Handles the Excel file upload, processing via file_converter, and database interaction.
+    Includes explicit commit/rollback handling.
     """
-    temp_dir = None
-    temp_excel_path = None
-    temp_csv_path = None
-    df_final_renamed = None
+    upload_id = str(uuid.uuid4())
+    filename = file.filename if file.filename else "unknown_file"
+    logger.info(f"Starting processing for upload_id: {upload_id}, filename: {filename}, pay_period: {pay_period}")
 
+    # Use a temporary file to handle the upload stream efficiently
     try:
-        # 1. Save uploaded Excel to a temporary file
-        temp_dir = tempfile.mkdtemp(prefix="salary_upload_")
-        temp_excel_filename = f"{uuid.uuid4()}_{file.filename}"
-        temp_excel_path = os.path.join(temp_dir, temp_excel_filename)
-        logger.info(f"Saving uploaded file to temporary path: {temp_excel_path}")
-        with open(temp_excel_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        logger.info("File saved successfully.")
+        # SpooledTemporaryFile handles large files better by spilling to disk
+        with tempfile.SpooledTemporaryFile(max_size=10*1024*1024) as temp_file:
+            shutil.copyfileobj(file.file, temp_file)
+            temp_file.seek(0) # Reset file pointer to the beginning
 
-        # 2. Process Excel to Intermediate DataFrame using file_converter
-        logger.info(f"Processing Excel to intermediate DataFrame for period: {pay_period}")
-        df_intermediate = file_converter.process_excel_to_dataframe(temp_excel_path, pay_period)
-        
-        if df_intermediate is None:
-            logger.error("file_converter.process_excel_to_dataframe returned None. Processing failed.")
-            raise HTTPException(status_code=400, detail="Failed to process Excel file. Check logs for details.")
-        
-        logger.info(f"Intermediate DataFrame processed. Rows: {len(df_intermediate)}, Columns: {df_intermediate.columns.tolist()}")
-
-        # 3. Ensure Intermediate DataFrame Structure (Match original script's output before rename)
-        logger.info("Ensuring intermediate DataFrame structure...")
-        present_columns = df_intermediate.columns.tolist()
-        final_intermediate_columns = []
-        added_cols = []
-        missing_cols = []
-        
-        for col in EXPECTED_INTERMEDIATE_COLUMNS:
-            if col in present_columns:
-                final_intermediate_columns.append(col)
-            else:
-                df_intermediate[col] = None # Add missing column with None/NaN
-                final_intermediate_columns.append(col)
-                missing_cols.append(col)
-                added_cols.append(col)
-                logger.warning(f"Expected intermediate column '{col}' was missing. Added with None.")
-        
-        try:
-            df_intermediate_structured = df_intermediate[final_intermediate_columns].copy()
-            logger.info(f"Intermediate DataFrame structured. Missing columns added: {missing_cols}. Final intermediate columns: {df_intermediate_structured.columns.tolist()}")
-        except KeyError as e:
-            logger.error(f"KeyError during intermediate column reindexing: {e}. This shouldn't happen if missing columns were added.", exc_info=True)
-            raise HTTPException(status_code=500, detail="Internal error structuring intermediate data.")
-
-        # 4. Rename Headers to Final English Names using DB mapping (Pass db Session)
-        logger.info(f"Renaming intermediate headers using DB mapping...")
-        df_final_renamed = file_converter.rename_dataframe_headers(df_intermediate_structured, db)
-        logger.info(f"Final header renaming complete. Initial columns: {df_final_renamed.columns.tolist()}")
-
-        # --- Add Step 4.5: Reindex DataFrame to match FINAL_EXPECTED_COLUMNS --- START
-        logger.info(f"Reindexing final DataFrame to match FINAL_EXPECTED_COLUMNS...")
-        df_final_output = pd.DataFrame()
-        missing_final_cols = []
-        try:
-            # Ensure all expected final columns exist, add if missing 
-            for col in FINAL_EXPECTED_COLUMNS:
-                 if col not in df_final_renamed.columns:
-                      logger.warning(f"Final expected column '{col}' missing after rename. Adding as None.")
-                      df_final_renamed[col] = None
-                      missing_final_cols.append(col)
-            # Select and reorder columns exactly as defined
-            df_final_output = df_final_renamed[FINAL_EXPECTED_COLUMNS].copy()
-            logger.info(f"Final DataFrame reindexed successfully. Missing columns added: {missing_final_cols}. Final output columns: {df_final_output.columns.tolist()}")
-        except KeyError as e:
-             logger.error(f"KeyError during final column selection: {e}. Columns available after rename: {df_final_renamed.columns.tolist()}", exc_info=True)
-             # This indicates a mismatch between FINAL_EXPECTED_COLUMNS and what rename produced/DB mapping has
-             raise HTTPException(status_code=500, detail=f"Internal error preparing final CSV structure: missing key {e}. Check FINAL_EXPECTED_COLUMNS definition.")
-        # --- Add Step 4.5 --- END
-
-        # --- Add Step 4.6: Generate _airbyte_raw_id --- START
-        try:
-            df_final_output['_airbyte_raw_id'] = [str(uuid.uuid4()) for _ in range(len(df_final_output))]
-            logger.info(f"Added '_airbyte_raw_id' column with generated UUIDs. Final columns: {df_final_output.columns.tolist()}")
-        except Exception as uuid_err:
-            logger.error(f"Error generating UUIDs for '_airbyte_raw_id': {uuid_err}", exc_info=True)
-            # Decide if this is critical. If _airbyte_raw_id is required for import, raise.
-            raise HTTPException(status_code=500, detail="Failed to generate required internal IDs.")
-        # --- Add Step 4.6 --- END
-        
-        # --- Add Step 4.7: Generate _airbyte_extracted_at --- START
-        try:
-            now_utc = datetime.now(timezone.utc)
-            df_final_output['_airbyte_extracted_at'] = now_utc 
-            logger.info(f"Added '_airbyte_extracted_at' column with value: {now_utc.isoformat()}. Final columns: {df_final_output.columns.tolist()}")
-        except Exception as ts_err:
-            logger.error(f"Error generating timestamp for '_airbyte_extracted_at': {ts_err}", exc_info=True)
-            # If this timestamp is required for import, raise.
-            raise HTTPException(status_code=500, detail="Failed to generate required timestamp.")
-        # --- Add Step 4.7 --- END
-
-        # --- Add Step 4.8: Generate _airbyte_meta --- START
-        try:
-            df_final_output['_airbyte_meta'] = '{}' # Assign empty JSON object as string
-            logger.info(f"Added '_airbyte_meta' column with default value: '{{}}'. Final columns: {df_final_output.columns.tolist()}")
-        except Exception as meta_err:
-            logger.error(f"Error assigning default value for '_airbyte_meta': {meta_err}", exc_info=True)
-            # Decide if this is critical. If required, raise.
-            raise HTTPException(status_code=500, detail="Failed to prepare required metadata column.")
-        # --- Add Step 4.8 --- END
-
-        # --- Add Step 4.9: Deduplicate DataFrame --- START
-        logger.info(f"DataFrame shape before deduplication: {df_final_output.shape}")
-        # Define columns to check for duplicates within the same pay period
-        duplicate_check_cols = ['id_card_number', 'pay_period_identifier']
-        try:
-            # Drop duplicates based on the defined columns, keeping the first occurrence
-            df_final_output.drop_duplicates(subset=duplicate_check_cols, keep='first', inplace=True)
-            logger.info(f"DataFrame shape after deduplication on {duplicate_check_cols}: {df_final_output.shape}")
-        except KeyError as e:
-            logger.error(f"Error during deduplication: One of the key columns {duplicate_check_cols} not found. Columns: {df_final_output.columns.tolist()}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Internal error preparing data: Missing key column for deduplication.")
-        except Exception as dedup_err:
-            logger.error(f"Unexpected error during DataFrame deduplication: {dedup_err}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Internal error during data deduplication.")
-        # --- Add Step 4.9: Deduplicate DataFrame --- END
-
-        # 5. Save Final DataFrame to a temporary CSV file
-        temp_csv_filename = f"converted_{pay_period}_{uuid.uuid4()}.csv"
-        temp_csv_path = os.path.join(temp_dir, temp_csv_filename)
-        logger.info(f"Saving reindexed final data to temporary CSV: {temp_csv_path}")
-        # Save the reindexed dataframe
-        df_final_output.to_csv(temp_csv_path, index=False, encoding='utf-8-sig') 
-        logger.info("Final CSV saved successfully.")
-
-        # --- Database Import Logic --- START
-        import_status = "skipped" # Default status if import is not requested
-        import_message = ""
-
-        if import_to_db:
-            logger.info(f"Import to DB requested. Attempting to import {temp_csv_path} to public.raw_salary_data_staging")
+            # Process the file using the converter module
+            # Pass the file-like object (temp_file) directly
+            overall_result = file_converter.process_excel_file(
+                file_stream=temp_file,
+                upload_id=upload_id,
+                db=db, # Pass the session from Depends(get_db)
+                pay_period=pay_period
+            )
             
-            copy_columns = ", ".join(FINAL_EXPECTED_COLUMNS) 
-            copy_sql = f"COPY public.raw_salary_data_staging ({copy_columns}) FROM STDIN WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',', NULL '')"
-            # Use named parameter for delete
-            delete_sql = text("DELETE FROM public.raw_salary_data_staging WHERE pay_period_identifier = :pay_period;")
-            delete_params = {'pay_period': pay_period}
-            
-            raw_conn = None # Initialize raw_conn
-            try:
-                # --- Delete existing data for the period using Session --- START
-                logger.info(f"Attempting to delete existing records for pay period {pay_period} from staging table using Session...")
-                delete_result = db.execute(delete_sql, delete_params)
-                logger.info(f"Deleted {delete_result.rowcount} existing records for pay period {pay_period}.")
-                # --- Delete existing data for the period --- END
-                
-                # --- Copy new data using raw connection --- START
-                logger.info(f"Getting raw DBAPI connection for COPY operation...")
-                # Get the underlying DBAPI connection from the Session
-                raw_conn = db.connection().connection 
-                logger.info(f"Executing COPY command: {copy_sql[:200]}... using raw cursor") 
-                with open(temp_csv_path, 'r', encoding='utf-8-sig') as csv_file:
-                    # Use the raw connection's cursor for copy_expert
-                    with raw_conn.cursor() as cur: 
-                        cur.copy_expert(sql=copy_sql, file=csv_file)
-                        row_count = cur.rowcount 
-                # --- Copy new data --- END
-                
-                db.commit() # Commit the transaction via the Session
-                import_status = "success"
-                import_message = f"Successfully imported {row_count if row_count >= 0 else 'unknown number of'} rows into raw_salary_data_staging."
-                logger.info(import_message)
+            # --- Explicit Commit Attempt --- START ---
+            # After processing, try to commit the main session
+            logger.info(f"Processing completed for upload_id: {upload_id}. Attempting explicit commit.")
+            db.commit() 
+            logger.info(f"Explicit commit successful for upload_id: {upload_id}.")
+            # --- Explicit Commit Attempt --- END ---
 
-                # --- Trigger dbt Run using Helper Function --- START ---
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                dbt_project_path = os.path.abspath(os.path.join(current_dir, '../salary_dbt_transforms'))
-                _trigger_dbt_build_if_project_valid(background_tasks, dbt_project_path)
-                # --- Trigger dbt Run using Helper Function --- END ---
-
-            except psycopg2.Error as import_err:
-                conn.rollback() 
-                logger.error(f"Database error during CSV import: {import_err}", exc_info=True)
-                import_status = "failed"
-                # Extract a cleaner error message if possible
-                error_first_line = str(import_err).split('\n')[0] # Get first line of error
-                import_message = f"Database import failed: {error_first_line}" # Use the extracted line
-            except Exception as e:
-                conn.rollback() 
-                logger.error(f"Unexpected error during CSV import process: {e}", exc_info=True)
-                import_status = "failed"
-                import_message = f"Unexpected error during import: {str(e)}"
-        # --- Database Import Logic --- END
-
-        # Schedule temporary directory cleanup *only* after successful CSV save (and import attempt)
-        background_tasks.add_task(shutil.rmtree, temp_dir)
-        logger.info(f"Scheduled cleanup for temporary directory: {temp_dir}")
-
-        # Prepare custom headers for the response
-        response_headers = {
-            # Add import status headers ONLY if import was attempted
-            **( { 
-                "X-Import-Status": import_status,
-                "X-Import-Message": import_message.encode('utf-8').decode('latin-1') # Basic encoding for header
-              } if import_to_db else {} ),
-            # Ensure Content-Disposition is set correctly by FileResponse itself usually,
-            # but you could override if needed.
-        }
-
-        # Return the temporary CSV file as a response, regardless of import success/failure
-        return FileResponse(
-            path=temp_csv_path, 
-            media_type='text/csv', 
-            filename=f"salary_record_{pay_period.replace('-','')}.csv",
-            headers=response_headers # Add custom headers
+    except SQLAlchemyError as db_err: # Catch potential commit errors
+        logger.error(f"Database error during processing or commit for {upload_id}: {db_err}", exc_info=True)
+        db.rollback() # Rollback on error
+        logger.info(f"Database transaction rolled back due to error for {upload_id}.")
+        # Return a more specific error response
+        raise HTTPException(
+             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+             detail=f"Database processing error for {filename}: {db_err}"
         )
-
-    except HTTPException as http_exc: 
-        if temp_dir and os.path.exists(temp_dir):
-            try:
-                shutil.rmtree(temp_dir)
-                logger.warning(f"Cleaned up temp directory {temp_dir} due to HTTPException.")
-            except Exception as cleanup_err:
-                logger.error(f"Error cleaning up temp directory {temp_dir} after HTTPException: {cleanup_err}")
-        raise http_exc
+    except HTTPException as http_err: # Re-raise HTTPExceptions
+        # No rollback needed here usually as it might be a validation error before DB ops
+        logger.warning(f"HTTPException during processing for {upload_id}: {http_err.detail}")
+        raise http_err 
     except Exception as e:
-        logger.error(f"An unexpected error occurred in convert_excel_to_csv: {e}", exc_info=True)
-        if temp_dir and os.path.exists(temp_dir):
-            try:
-                shutil.rmtree(temp_dir)
-                logger.warning(f"Cleaned up temp directory {temp_dir} due to unexpected error.")
-            except Exception as cleanup_err:
-                logger.error(f"Error cleaning up temp directory {temp_dir} after unexpected error: {cleanup_err}")
-        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+        logger.error(f"Unexpected error during file processing for {upload_id}, {filename}: {e}", exc_info=True)
+        # Attempt rollback in case of unexpected errors during processing that might affect DB state
+        try:
+            db.rollback()
+            logger.info(f"Database transaction rolled back due to unexpected error for {upload_id}.")
+        except Exception as rollback_err:
+            logger.error(f"Failed to rollback transaction for {upload_id} after unexpected error: {rollback_err}", exc_info=True)
+            
+        raise HTTPException(
+             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+             detail=f"An unexpected error occurred processing {filename}."
+        )
     finally:
-        # Ensure the database connection provided by Depends is closed by FastAPI
-        # We don't close conn manually here if obtained via Depends
-        # Ensure the uploaded file handle is closed 
-        if hasattr(file, 'file') and not file.file.closed:
+        # Ensure the uploaded file resource is closed
+        # This is crucial for releasing file descriptors
+        if file and hasattr(file, 'file') and hasattr(file.file, 'close'):
             file.file.close()
+            logger.info(f"Closed file object for {filename} (Upload ID: {upload_id})")
+            
+    logger.info(f"Processing completed for upload_id: {upload_id}. Result: {overall_result}")
+    return overall_result # Return the results from the file converter
+
+
+@app.get("/api/config/mappings", response_model=FieldMappingListResponse, tags=["Configuration"]) # Original position
+async def get_all_field_mappings(
+    # Change conn to db: Session
+    db: Session = Depends(get_db),
+    # Replace Basic Auth with JWT Auth (Super Admin only)
+    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
+):
+    """Retrieves all field mappings from the database."""
+    # Use SQLAlchemy ORM query
+    try:
+        mappings_query = select(models_db.SalaryFieldMapping) # Assuming your ORM model is SalaryFieldMapping
+        result = db.execute(mappings_query)
+        mappings = result.scalars().all()
+        return FieldMappingListResponse(data=mappings)
+    except SQLAlchemyError as e:
+        logger.error(f"Database error fetching field mappings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Database error occurred")
+    except Exception as e: # Corrected indentation
+        logger.error(f"Unexpected error fetching field mappings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 # --- Config Management Endpoints --- START
 @app.get("/api/config/mappings", response_model=FieldMappingListResponse, tags=["Configuration"])
@@ -1434,7 +1338,7 @@ async def get_all_field_mappings(
     except sa_exc.SQLAlchemyError as e: # Use SQLAlchemy exceptions
         logger.error(f"Database query error for field mappings: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve field mappings.")
-    except Exception as e:
+    except Exception as e: # Corrected indentation for this block
         logger.error(f"An unexpected error occurred fetching field mappings: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="An internal server error occurred.")
     # No finally block needed, session managed by Depends
@@ -1822,97 +1726,81 @@ async def update_employee(
     # Replace Basic Auth with JWT Auth (Super Admin or Data Admin)
     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"])) 
 ):
-    """Updates an existing employee's details using SQLAlchemy Session."""
-    # Get fields to update from the Pydantic model, excluding unset fields
-    update_data = employee_update.model_dump(exclude_unset=True)
+    """Updates an existing employee record."""
+    logger.info(f"Received request to update employee ID: {employee_id} by user {current_user.username}")
 
-    if not update_data:
-        raise HTTPException(status_code=400, detail="没有提供要更新的字段。")
+    # Start transaction
+    db.begin()
+    try: # Line ~1679
+        # Get existing employee
+        # Use a more robust query builder approach
+        stmt = select(models_db.Employee).where(models_db.Employee.id == employee_id)
+        db_employee = db.execute(stmt).scalar_one_or_none()
 
-    # Check for existence first using Session (optional but good practice)
-    existing_employee = db.get(models.Employee, employee_id)
-    if not existing_employee:
-         raise HTTPException(status_code=404, detail="未找到该员工。")
+        if db_employee is None:
+            db.rollback()
+            logger.warning(f"Employee with ID {employee_id} not found for update.")
+            raise HTTPException(status_code=404, detail="Employee not found")
 
-    # Construct SET clause dynamically using named parameters (:key)
-    set_parts = []
-    params = {}
-    for key, value in update_data.items():
-        # Validate field names against EmployeeUpdate model fields
-        if key in EmployeeUpdate.model_fields: # Check if key is a valid field for update
-            set_parts.append(f"{key} = :{key}") 
-            params[key] = value
-        else:
-            logger.warning(f"Attempted to update invalid or non-updatable field: {key}")
-            # Ignore invalid fields
+        # Check for ID card uniqueness if it's being updated
+        if employee_update.id_card_number and employee_update.id_card_number != db_employee.id_card_number:
+            id_check_stmt = select(models_db.Employee).where(
+                models_db.Employee.id_card_number == employee_update.id_card_number,
+                models_db.Employee.id != employee_id # Exclude the current employee
+            )
+            existing_id_card = db.execute(id_check_stmt).scalar_one_or_none()
+            if existing_id_card:
+                db.rollback()
+                logger.warning(f"Attempted to update employee {employee_id} with duplicate ID card: {employee_update.id_card_number}")
+                raise HTTPException(status_code=400, detail="ID card number already exists for another employee")
 
-    if not set_parts:
-         raise HTTPException(status_code=400, detail="没有有效的字段可更新。")
-
-    # Add updated_at timestamp automatically
-    set_clause = ", ".join(set_parts) + ", updated_at = CURRENT_TIMESTAMP"
-    # Use named parameter :employee_id for WHERE clause
-    update_query = text(f"UPDATE employees SET {set_clause} WHERE id = :employee_id RETURNING id")
-    params['employee_id'] = employee_id
-
-    # Query to fetch the full updated record including related names
-    final_query = text("""
-        SELECT
-            e.id, e.name, e.id_card_number, e.department_id, e.employee_unique_id, 
-            e.bank_account_number, e.bank_name, e.establishment_type_id, 
-            e.created_at, e.updated_at,
-            d.name as department_name,
-            u.name as unit_name,
-            et.name as establishment_type_name
-        FROM employees e
-        LEFT JOIN departments d ON e.department_id = d.id
-        LEFT JOIN units u ON d.unit_id = u.id
-        LEFT JOIN establishment_types et ON e.establishment_type_id = et.id
-        WHERE e.id = :employee_id
-    """)
-    final_params = {"employee_id": employee_id}
-
-    try:
-        logger.debug(f"Executing update query with params: {params}")
-        update_result = db.execute(update_query, params)
-        updated_id_row = update_result.fetchone() # Check if RETURNING worked
-
-        if not updated_id_row:
-            db.rollback() # Should not happen if existence check passed
-            raise HTTPException(status_code=500, detail="更新员工信息失败 (无法确认更新)。")
-
-        # Fetch the full updated record with related names
-        final_result = db.execute(final_query, final_params)
-        full_updated_employee = final_result.mappings().fetchone()
-
-        db.commit()
-        logger.info(f"Successfully updated employee ID: {employee_id}")
-        return full_updated_employee
-
-    except sa_exc.IntegrityError as e:
-        db.rollback()
-        logger.error(f"Unique constraint violation during employee update: {e}", exc_info=True)
-        detail = "更新失败：违反了唯一性约束（例如，身份证号或工号已存在）。"
-        if 'uq_employees_id_card_number' in str(e):
-             detail = "更新失败：该身份证号已被其他员工使用。"
-        elif 'uq_employees_employee_unique_id' in str(e):
-            detail = "更新失败：该工号已被其他员工使用。"
-        # Add check for FK violations if needed
-        elif 'employees_department_id_fkey' in str(e):
-            detail = f"更新失败：指定的部门 ID 不存在。"
-        elif 'employees_establishment_type_id_fkey' in str(e):
-            detail = f"更新失败：指定的编制类型 ID 不存在。"
-        raise HTTPException(status_code=409, detail=detail) # 409 Conflict
+        # Update model instance
+        update_data = employee_update.model_dump(exclude_unset=True)
+        # --- INDENTED BLOCK START ---
+        for key, value in update_data.items():
+            setattr(db_employee, key, value)
         
-    except sa_exc.SQLAlchemyError as e:
+        # Update timestamp
+        db_employee.updated_at = datetime.now(timezone.utc) # Use timezone aware datetime
+
+        db.add(db_employee) # Add the updated object to the session
+        db.commit() # Commit changes
+        db.refresh(db_employee) # Refresh to get updated state (like updated_at)
+
+        logger.info(f"Successfully updated employee ID: {employee_id}")
+
+        # --- Populate response model --- START
+        # Fetch related names after successful update
+        dept_name = db.query(models_db.Department.name).filter(models_db.Department.id == db_employee.department_id).scalar() if db_employee.department_id else None
+        unit_name = None
+        if dept_name:
+            unit_id = db.query(models_db.Department.unit_id).filter(models_db.Department.id == db_employee.department_id).scalar()
+            if unit_id:
+                unit_name = db.query(models_db.Unit.name).filter(models_db.Unit.id == unit_id).scalar()
+        
+        estab_type_name = db.query(models_db.EstablishmentType.name).filter(models_db.EstablishmentType.id == db_employee.establishment_type_id).scalar() if db_employee.establishment_type_id else None
+        
+        # Create the response object
+        response_data = EmployeeResponse.model_validate(db_employee) # Use model_validate for Pydantic v2
+        response_data.department_name = dept_name
+        response_data.unit_name = unit_name
+        response_data.establishment_type_name = estab_type_name
+        # --- Populate response model --- END
+
+        return response_data
+        # --- INDENTED BLOCK END ---
+
+    except SQLAlchemyError as e: # ~Line 1736 - Keep this indentation aligned with try
+        db.rollback() # Rollback on error
+        logger.error(f"Database error updating employee {employee_id}: {e}", exc_info=True)
+        # Check for specific constraint violations if needed
+        if isinstance(e, sa_exc.IntegrityError):
+            raise HTTPException(status_code=400, detail=f"Data integrity error: {e.orig}")
+        raise HTTPException(status_code=500, detail="Database error during update.")
+    except Exception as e:       # ~Line 1743 - Keep this indentation aligned with try
         db.rollback()
-        logger.error(f"Error updating employee {employee_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="更新员工信息时发生数据库错误。")
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Unexpected error updating employee {employee_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="更新员工信息时发生内部错误。")
-    # No finally block needed
+        logger.exception(f"Unexpected error updating employee {employee_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during update.")
 
 @app.delete("/api/employees/{employee_id}", status_code=204, tags=["Employees"])
 async def delete_employee(
@@ -2043,3 +1931,50 @@ if __name__ == "__main__":
 
     print(f"Starting Uvicorn server directly on http://{host}:{port} with reload={reload}...")
     uvicorn.run("webapp.main:app", host=host, port=port, reload=reload)
+
+# === NEW DEBUGGING ENDPOINT ===
+@app.get("/api/debug/field-config/{employee_type_key}", 
+         response_model=List[Dict[str, Any]], # Return a list of row dictionaries
+         tags=["Debugging"], 
+         summary="Fetch raw field config from DB for a type key")
+async def debug_get_field_config(
+    employee_type_key: str, 
+    db: Session = Depends(get_db)
+):
+    """Debug endpoint to directly query the field configuration for a given employee type key."""
+    # Corrected query to use field_db_name
+    query = text("""
+        SELECT
+            etfr.employee_type_key,
+            etfr.field_db_name,      -- Corrected column name
+            etfr.is_required,
+            sfm.source_name,
+            sfm.target_name          -- Also select target_name from sfm
+        FROM public.employee_type_field_rules etfr
+        JOIN public.salary_field_mappings sfm ON etfr.field_db_name = sfm.target_name -- Corrected join condition
+        WHERE etfr.employee_type_key = :employee_type_key;
+    """)
+    params = {"employee_type_key": employee_type_key}
+    logger.info(f"[DEBUG] Executing query for field config of type: {employee_type_key}")
+    try:
+        result = db.execute(query, params)
+        rows = result.mappings().all()
+        logger.info(f"[DEBUG] Found {len(rows)} config rows for type '{employee_type_key}'.")
+        if not rows:
+            # Return empty list if no rows found
+            return [] 
+        # Convert RowMapping objects to plain dicts for the response
+        # Pydantic should handle this with response_model, but being explicit is safe
+        return [dict(row) for row in rows] 
+    except SQLAlchemyError as e:
+        logger.error(f"[DEBUG] Database error fetching field config for '{employee_type_key}': {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Database error querying field config for {employee_type_key}: {e}"
+        )
+    except Exception as e:
+        logger.error(f"[DEBUG] Unexpected error fetching field config for '{employee_type_key}': {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Unexpected error querying field config for {employee_type_key}: {e}"
+        )

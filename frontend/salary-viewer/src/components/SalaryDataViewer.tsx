@@ -70,57 +70,110 @@ const SalaryDataViewer: React.FC = () => {
     const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
 
     // Define table columns with explicit type and use t()
+    // EXPANDED COLUMNS DEFINITION
     const columns: TableColumnsType<SalaryRecord> = [
+        // Identifiers
         { title: t('dataViewer.table.colId'), dataIndex: 'employee_id', key: 'employee_id', fixed: 'left', width: 80, sorter: (a, b) => a.employee_id - b.employee_id },
-        { title: t('dataViewer.table.colName'), dataIndex: 'employee_name', key: 'employee_name', fixed: 'left', width: 120, sorter: true },
         { title: t('dataViewer.table.colPayPeriod'), dataIndex: 'pay_period_identifier', key: 'pay_period_identifier', width: 120, sorter: true },
+        // Employee Info
+        { title: t('dataViewer.table.colName'), dataIndex: 'employee_name', key: 'employee_name', fixed: 'left', width: 120, sorter: true },
         { title: t('dataViewer.table.colIdCard'), dataIndex: 'id_card_number', key: 'id_card_number', width: 180 },
+        // Dimension Attributes
         { title: t('dataViewer.table.colDepartment'), dataIndex: 'department_name', key: 'department_name', width: 150, sorter: true },
         { title: t('dataViewer.table.colUnit'), dataIndex: 'unit_name', key: 'unit_name', width: 150, sorter: true },
         {
             title: t('dataViewer.table.colEstablishment'),
             dataIndex: 'establishment_type_name',
             key: 'establishment_type_name',
-            width: 180,
+            width: 120, // Adjusted width
             sorter: true,
             render: (value: string | null | undefined) => {
                 if (!value) return '-';
-                
                 let color = 'default';
-                
                 switch (value) {
-                    case '公务员':
-                        color = 'blue';
-                        break;
-                    case '参公':
-                        color = 'green';
-                        break;
-                    case '事业':
-                        color = 'purple';
-                        break;
-                    case '专技':
-                        color = 'cyan';
-                        break;
-                    case '专项':
-                        color = 'gold';
-                        break;
-                    case '区聘':
-                        color = 'orange';
-                        break;
-                    case '原投服':
-                        color = 'magenta';
-                        break;
-                    default:
-                        color = 'default';
-                        break;
+                    case '公务员': color = 'blue'; break;
+                    case '参公': color = 'green'; break;
+                    case '事业': color = 'purple'; break;
+                    case '专技': color = 'cyan'; break;
+                    case '专项': color = 'gold'; break;
+                    case '区聘': color = 'orange'; break;
+                    case '原投服': color = 'magenta'; break;
+                    default: color = 'default'; break;
                 }
-
                 return <Tag color={color}>{value}</Tag>;
             }
         },
+        // Job Attributes
+        { title: t('dataViewer.table.colPersonnelIdentity'), dataIndex: 'job_attr_personnel_identity', key: 'job_attr_personnel_identity', width: 120 },
+        { title: t('dataViewer.table.colPersonnelRank'), dataIndex: 'job_attr_personnel_rank', key: 'job_attr_personnel_rank', width: 120 },
+        { title: t('dataViewer.table.colPostCategory'), dataIndex: 'job_attr_post_category', key: 'job_attr_post_category', width: 120 },
+        { title: t('dataViewer.table.colOfficialPostSalaryLevel'), dataIndex: 'job_attr_ref_official_post_salary_level', key: 'job_attr_ref_official_post_salary_level', width: 150 },
+        { title: t('dataViewer.table.colOfficialSalaryStep'), dataIndex: 'job_attr_ref_official_salary_step', key: 'job_attr_ref_official_salary_step', width: 150 },
+        { title: t('dataViewer.table.colSalaryLevel'), dataIndex: 'job_attr_salary_level', key: 'job_attr_salary_level', width: 120 },
+        { title: t('dataViewer.table.colSalaryGrade'), dataIndex: 'job_attr_salary_grade', key: 'job_attr_salary_grade', width: 120 },
+        { title: t('dataViewer.table.colAnnualFixedSalary'), dataIndex: 'job_attr_annual_fixed_salary_amount', key: 'job_attr_annual_fixed_salary_amount', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        // Salary Components
+        { title: t('dataViewer.table.colOneTimeDeduction'), dataIndex: 'salary_one_time_deduction', key: 'salary_one_time_deduction', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colBasicPerfBonusDeduct'), dataIndex: 'salary_basic_performance_bonus_deduction', key: 'salary_basic_performance_bonus_deduction', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colBasicPerfDeduct'), dataIndex: 'salary_basic_performance_deduction', key: 'salary_basic_performance_deduction', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colIncentivePerfSalary'), dataIndex: 'salary_incentive_performance_salary', key: 'salary_incentive_performance_salary', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colPositionTechSalary'), dataIndex: 'salary_position_or_technical_salary', key: 'salary_position_or_technical_salary', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colRankPostGradeSalary'), dataIndex: 'salary_rank_or_post_grade_salary', key: 'salary_rank_or_post_grade_salary', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colReservedSubsidy1993'), dataIndex: 'salary_reform_1993_reserved_subsidy', key: 'salary_reform_1993_reserved_subsidy', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colOnlyChildReward'), dataIndex: 'salary_only_child_parents_reward', key: 'salary_only_child_parents_reward', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colPostPositionAllowance'), dataIndex: 'salary_post_position_allowance', key: 'salary_post_position_allowance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colCivilServantNormAllowance'), dataIndex: 'salary_civil_servant_normative_allowance', key: 'salary_civil_servant_normative_allowance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colTransportationAllowance'), dataIndex: 'salary_transportation_allowance', key: 'salary_transportation_allowance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colBasicPerfBonus'), dataIndex: 'salary_basic_performance_bonus', key: 'salary_basic_performance_bonus', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colProbationSalary'), dataIndex: 'salary_probation_salary', key: 'salary_probation_salary', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colPetitionWorkerPostAllowance'), dataIndex: 'salary_petition_worker_post_allowance', key: 'salary_petition_worker_post_allowance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colRewardPerfDeduct'), dataIndex: 'salary_reward_performance_deduction', key: 'salary_reward_performance_deduction', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
         { title: t('dataViewer.table.colPostSalary'), dataIndex: 'salary_post_salary', key: 'salary_post_salary', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colSalaryStep'), dataIndex: 'salary_salary_step', key: 'salary_salary_step', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colMonthlyBasicPerf'), dataIndex: 'salary_monthly_basic_performance', key: 'salary_monthly_basic_performance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colMonthlyRewardPerf'), dataIndex: 'salary_monthly_reward_performance', key: 'salary_monthly_reward_performance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colBasicSalary'), dataIndex: 'salary_basic_salary', key: 'salary_basic_salary', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colBasicPerfSalary'), dataIndex: 'salary_basic_performance_salary', key: 'salary_basic_performance_salary', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colPerformanceSalary'), dataIndex: 'salary_performance_salary', key: 'salary_performance_salary', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colOtherAllowance'), dataIndex: 'salary_other_allowance', key: 'salary_other_allowance', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colSalaryBackpay'), dataIndex: 'salary_salary_backpay', key: 'salary_salary_backpay', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colAllowance'), dataIndex: 'salary_allowance', key: 'salary_allowance', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colQuarterlyPerfBonus'), dataIndex: 'salary_quarterly_performance_bonus', key: 'salary_quarterly_performance_bonus', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colSubsidy'), dataIndex: 'salary_subsidy', key: 'salary_subsidy', width: 120, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colPetitionPostAllowance'), dataIndex: 'salary_petition_post_allowance', key: 'salary_petition_post_allowance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colTotalDeductAdjust'), dataIndex: 'salary_total_deduction_adjustment', key: 'salary_total_deduction_adjustment', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colLivingAllowance'), dataIndex: 'salary_living_allowance', key: 'salary_living_allowance', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colSalaryStepBackpayTotal'), dataIndex: 'salary_salary_step_backpay_total', key: 'salary_salary_step_backpay_total', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colTotalBackpayAmount'), dataIndex: 'salary_total_backpay_amount', key: 'salary_total_backpay_amount', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        // Personal Deductions
         { title: t('dataViewer.table.colPensionSelf'), dataIndex: 'deduct_self_pension_contribution', key: 'deduct_self_pension_contribution', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colMedicalSelf'), dataIndex: 'deduct_self_medical_contribution', key: 'deduct_self_medical_contribution', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colAnnuitySelf'), dataIndex: 'deduct_self_annuity_contribution', key: 'deduct_self_annuity_contribution', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colHousingFundSelf'), dataIndex: 'deduct_self_housing_fund_contribution', key: 'deduct_self_housing_fund_contribution', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colUnemploymentSelf'), dataIndex: 'deduct_self_unemployment_contribution', key: 'deduct_self_unemployment_contribution', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colIndividualTax'), dataIndex: 'deduct_individual_income_tax', key: 'deduct_individual_income_tax', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colOtherDeductions'), dataIndex: 'deduct_other_deductions', key: 'deduct_other_deductions', width: 130, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colSocialInsuranceAdjust'), dataIndex: 'deduct_social_insurance_adjustment', key: 'deduct_social_insurance_adjustment', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colHousingFundAdjust'), dataIndex: 'deduct_housing_fund_adjustment', key: 'deduct_housing_fund_adjustment', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colTaxAdjust'), dataIndex: 'deduct_tax_adjustment', key: 'deduct_tax_adjustment', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        // Company Contributions
+        { title: t('dataViewer.table.colPensionEmployer'), dataIndex: 'contrib_employer_pension_contribution', key: 'contrib_employer_pension_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colMedicalEmployer'), dataIndex: 'contrib_employer_medical_contribution', key: 'contrib_employer_medical_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colAnnuityEmployer'), dataIndex: 'contrib_employer_annuity_contribution', key: 'contrib_employer_annuity_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colHousingFundEmployer'), dataIndex: 'contrib_employer_housing_fund_contribution', key: 'contrib_employer_housing_fund_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colUnemploymentEmployer'), dataIndex: 'contrib_employer_unemployment_contribution', key: 'contrib_employer_unemployment_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colCriticalIllnessEmployer'), dataIndex: 'contrib_employer_critical_illness_contribution', key: 'contrib_employer_critical_illness_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        { title: t('dataViewer.table.colInjuryEmployer'), dataIndex: 'contrib_employer_injury_contribution', key: 'contrib_employer_injury_contribution', width: 150, align: 'right', render: (val) => val?.toFixed(2) },
+        // Other fields
+        { title: t('dataViewer.table.colRemarks'), dataIndex: 'remarks', key: 'remarks', width: 200 },
+        // Calculated Totals
+        { title: t('dataViewer.table.colXiaoJi'), dataIndex: 'calc_xiaoji', key: 'calc_xiaoji', width: 120, align: 'right', render: (val) => val?.toFixed(2), sorter: true },
+        { title: t('dataViewer.table.colPersonalDeductions'), dataIndex: 'calc_personal_deductions', key: 'calc_personal_deductions', width: 120, align: 'right', render: (val) => val?.toFixed(2), sorter: true },
+        { title: t('dataViewer.table.colTotalPayable'), dataIndex: 'calc_total_payable', key: 'calc_total_payable', width: 120, align: 'right', render: (val) => val?.toFixed(2), sorter: true },
         { title: t('dataViewer.table.colNetPay'), dataIndex: 'calc_net_pay', key: 'calc_net_pay', width: 120, fixed: 'right', align: 'right', render: (val) => val?.toFixed(2), sorter: true },
+        // Timestamps
+        { title: t('dataViewer.table.colCreatedAt'), dataIndex: 'created_at', key: 'created_at', width: 170, sorter: true, render: (val) => val ? new Date(val).toLocaleString() : '-' },
+        { title: t('dataViewer.table.colUpdatedAt'), dataIndex: 'updated_at', key: 'updated_at', width: 170, sorter: true, render: (val) => val ? new Date(val).toLocaleString() : '-' },
     ];
 
     // Function to fetch data from API

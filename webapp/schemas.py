@@ -82,6 +82,11 @@ class UserResponse(UserInDBBase):
 class UserListResponse(BaseModel):
     data: List[UserResponse]
     total: int 
+    email: EmailStr
+    role: RoleResponse
+
+    class Config:
+        from_attributes = True # Replaced orm_mode
 
 # --- Password Update Schema ---
 class PasswordUpdate(BaseModel):
@@ -122,7 +127,7 @@ class ReportLinkResponse(ReportLinkBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ReportLinkListResponse(BaseModel):
     """报表链接列表响应模型"""
@@ -138,7 +143,7 @@ class ActiveReportLinkResponse(BaseModel):
     display_order: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Pydantic Model for Salary Record (Used in get_salary_data) --- START
 # TODO: Define this more precisely based on view_level1_calculations columns

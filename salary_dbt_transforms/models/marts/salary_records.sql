@@ -17,180 +17,113 @@ stg_emp AS (
 stg_et AS (
     SELECT 
         establishment_type_id,
-        establishment_type_name
+        establishment_type_name,
+        employee_type_key
     FROM {{ ref('stg_establishment_types') }}
 ),
 
-joined AS (
+-- Renamed 'joined' to 'final' and select all columns directly
+final AS (
     SELECT
         emp.employee_id,
         sal.pay_period_identifier,
         et.establishment_type_id,
         
-        -- Select all individual columns from stg_salary needed for JSONB objects
-        -- Job Attributes
-        sal.job_attr_personnel_identity,
-        sal.job_attr_personnel_rank,
-        sal.job_attr_post_category,
-        sal.job_attr_ref_official_post_salary_level,
-        sal.job_attr_ref_official_salary_step,
-        sal.job_attr_salary_level,
-        sal.job_attr_salary_grade,
-        sal.job_attr_annual_fixed_salary_amount,
+        -- Select all individual columns from stg_salary, ensuring correct types
+        -- Job Attributes (Assuming TEXT or compatible types from staging)
+        sal.personnel_identity, 
+        sal.personnel_rank, 
+        sal.post_category, 
+        sal.ref_official_post_salary_level, 
+        sal.ref_official_salary_step, 
+        sal.salary_level, 
+        sal.salary_grade, 
+        -- Keep numeric types as they are (assuming NUMERIC(15,2) from staging)
+        sal.annual_fixed_salary_amount, 
         
-        -- Salary Components
-        sal.salary_one_time_deduction,
-        sal.salary_basic_performance_bonus_deduction,
-        sal.salary_position_or_technical_salary,
-        sal.salary_rank_or_post_grade_salary,
-        sal.salary_reform_1993_reserved_subsidy,
-        sal.salary_only_child_parents_reward,
-        sal.salary_post_position_allowance,
-        sal.salary_civil_servant_normative_allowance,
-        sal.salary_transportation_allowance,
-        sal.salary_basic_performance_bonus,
-        sal.salary_probation_salary,
-        sal.salary_petition_worker_post_allowance, 
-        sal.salary_reward_performance_deduction,
-        sal.salary_post_salary,
-        sal.salary_salary_step,
-        sal.salary_monthly_basic_performance,
-        sal.salary_monthly_reward_performance,
-        sal.salary_basic_salary,
-        sal.salary_performance_salary,
-        sal.salary_other_allowance,
-        sal.salary_salary_backpay,
-        sal.salary_allowance,
-        -- sal.salary_q1_q3_performance_bonus, -- Ensure old field is removed/commented
-        sal.salary_quarterly_performance_bonus, -- Ensure new field is added
-        sal.salary_subsidy,
-        sal.salary_petition_post_allowance, 
-        sal.salary_total_deduction_adjustment,
-        sal.salary_living_allowance,
-        sal.salary_salary_step_backpay_total,
-        sal.salary_total_backpay_amount, -- Add new field to select
+        -- Salary Components (Keep numeric types)
+        sal.one_time_deduction, 
+        sal.basic_performance_bonus_deduction, 
+        sal.position_or_technical_salary, 
+        sal.rank_or_post_grade_salary, 
+        sal.reform_1993_reserved_subsidy, 
+        sal.only_child_parents_reward, 
+        sal.post_position_allowance, 
+        sal.civil_servant_normative_allowance, 
+        sal.transportation_allowance, 
+        sal.basic_performance_bonus, 
+        sal.probation_salary, 
+        sal.petition_worker_post_allowance,  
+        sal.reward_performance_deduction, 
+        sal.post_salary, 
+        sal.salary_step, 
+        sal.monthly_basic_performance, 
+        sal.monthly_reward_performance, 
+        sal.basic_salary, 
+        sal.performance_salary, 
+        sal.other_allowance, 
+        sal.salary_backpay, 
+        sal.allowance, 
+        sal.quarterly_performance_bonus, 
+        sal.subsidy, 
+        sal.petition_post_allowance,  
+        sal.total_deduction_adjustment, 
+        sal.living_allowance, 
+        sal.salary_step_backpay_total, 
+        sal.total_backpay_amount, 
+        sal.basic_performance_salary,
+        sal.incentive_performance_salary,
         
-        -- Deductions
-        sal.deduct_self_pension_contribution,
-        sal.deduct_self_medical_contribution,
-        sal.deduct_self_annuity_contribution,
-        sal.deduct_self_housing_fund_contribution,
-        sal.deduct_self_unemployment_contribution,
-        sal.deduct_individual_income_tax,
-        sal.deduct_other_deductions,
-        sal.deduct_social_insurance_adjustment,
-        sal.deduct_housing_fund_adjustment,
-        sal.deduct_tax_adjustment,
+        -- Deductions (Keep numeric types)
+        sal.self_pension_contribution, 
+        sal.self_medical_contribution, 
+        sal.self_annuity_contribution, 
+        sal.self_housing_fund_contribution, 
+        sal.self_unemployment_contribution, 
+        sal.individual_income_tax, 
+        sal.other_deductions, 
+        sal.social_insurance_adjustment, 
+        sal.housing_fund_adjustment, 
+        sal.tax_adjustment, 
+        sal.self_injury_contribution,
         
-        -- Contributions
-        sal.contrib_employer_pension_contribution,
-        sal.contrib_employer_medical_contribution,
-        sal.contrib_employer_annuity_contribution,
-        sal.contrib_employer_housing_fund_contribution,
-        sal.contrib_employer_unemployment_contribution,
-        sal.contrib_employer_critical_illness_contribution,
+        -- Contributions (Keep numeric types)
+        sal.employer_pension_contribution, 
+        sal.employer_medical_contribution, 
+        sal.employer_annuity_contribution, 
+        sal.employer_housing_fund_contribution, 
+        sal.employer_unemployment_contribution, 
+        sal.employer_critical_illness_contribution, 
+        sal.employer_injury_contribution,
 
-        -- Other
-        sal.other_remarks,
+        -- Other (Keep original types)
+        sal.remarks, 
+        sal.bank_account_number,
+        sal.bank_branch_name,
+        sal.employment_start_date, 
+        sal.employment_status,
+        sal.organization_name,
+        sal.department_name,
 
-        -- Airbyte metadata (optional, can be used for incremental logic later)
-        sal._airbyte_extracted_at
+        -- Metadata columns (Keep original types)
+        sal.salary_staging_id, 
+        sal.source_row_number,
+        sal.validation_status,
+        sal.validation_errors,
+        sal.source_filename,
+        sal.import_timestamp,
+        sal.import_batch_id,
+
+        -- Add creation/update timestamps
+        {{ dbt.current_timestamp() }} AS created_at,
+        {{ dbt.current_timestamp() }} AS updated_at
 
     FROM stg_salary sal
     LEFT JOIN stg_emp emp 
-      -- Ensure the join key (id_card_number) is cleaned and reliable in both staging models
       ON sal.id_card_number = emp.id_card_number 
     LEFT JOIN stg_et et
-      -- Join on name, ensure names are consistent and clean in both staging models
-      ON sal.establishment_type_name = et.establishment_type_name 
-),
-
-final AS (
-    SELECT
-        employee_id,
-        pay_period_identifier,
-        establishment_type_id,
-
-        -- Construct JSONB objects
-        jsonb_build_object(
-            'personnel_identity', job_attr_personnel_identity,
-            'personnel_rank', job_attr_personnel_rank,
-            'post_category', job_attr_post_category,
-            'ref_official_post_salary_level', job_attr_ref_official_post_salary_level,
-            'ref_official_salary_step', job_attr_ref_official_salary_step,
-            'salary_level', job_attr_salary_level,
-            'salary_grade', job_attr_salary_grade,
-            'annual_fixed_salary_amount', job_attr_annual_fixed_salary_amount
-        ) AS job_attributes,
-
-        jsonb_build_object(
-            'one_time_deduction', salary_one_time_deduction,
-            'basic_performance_bonus_deduction', salary_basic_performance_bonus_deduction,
-            'position_or_technical_salary', salary_position_or_technical_salary,
-            'rank_or_post_grade_salary', salary_rank_or_post_grade_salary,
-            'reform_1993_reserved_subsidy', salary_reform_1993_reserved_subsidy,
-            'only_child_parents_reward', salary_only_child_parents_reward,
-            'post_position_allowance', salary_post_position_allowance,
-            'civil_servant_normative_allowance', salary_civil_servant_normative_allowance,
-            'transportation_allowance', salary_transportation_allowance,
-            'basic_performance_bonus', salary_basic_performance_bonus,
-            'probation_salary', salary_probation_salary,
-            'petition_worker_post_allowance', salary_petition_worker_post_allowance, 
-            'reward_performance_deduction', salary_reward_performance_deduction,
-            'post_salary', salary_post_salary,
-            'salary_step', salary_salary_step,
-            'monthly_basic_performance', salary_monthly_basic_performance,
-            'monthly_reward_performance', salary_monthly_reward_performance,
-            'basic_salary', salary_basic_salary,
-            'performance_salary', salary_performance_salary,
-            'other_allowance', salary_other_allowance,
-            'salary_backpay', salary_salary_backpay,
-            'allowance', salary_allowance,
-            -- 'q1_q3_performance_bonus', salary_q1_q3_performance_bonus, -- Ensure old key is removed/commented
-            'quarterly_performance_bonus', salary_quarterly_performance_bonus, -- Ensure new key and value are added
-            'subsidy', salary_subsidy,
-            'petition_post_allowance', salary_petition_post_allowance, 
-            'total_deduction_adjustment', salary_total_deduction_adjustment,
-            'living_allowance', salary_living_allowance,
-            'salary_step_backpay_total', salary_salary_step_backpay_total,
-            'total_backpay_amount', salary_total_backpay_amount -- Add new key-value pair
-        ) AS salary_components,
-
-        jsonb_build_object(
-            'self_pension_contribution', deduct_self_pension_contribution,
-            'self_medical_contribution', deduct_self_medical_contribution,
-            'self_annuity_contribution', deduct_self_annuity_contribution,
-            'self_housing_fund_contribution', deduct_self_housing_fund_contribution,
-            'self_unemployment_contribution', deduct_self_unemployment_contribution,
-            'individual_income_tax', deduct_individual_income_tax,
-            'other_deductions', deduct_other_deductions,
-            'social_insurance_adjustment', deduct_social_insurance_adjustment,
-            'housing_fund_adjustment', deduct_housing_fund_adjustment,
-            'tax_adjustment', deduct_tax_adjustment
-        ) AS personal_deductions,
-
-        jsonb_build_object(
-            'employer_pension_contribution', contrib_employer_pension_contribution,
-            'employer_medical_contribution', contrib_employer_medical_contribution,
-            'employer_annuity_contribution', contrib_employer_annuity_contribution,
-            'employer_housing_fund_contribution', contrib_employer_housing_fund_contribution,
-            'employer_unemployment_contribution', contrib_employer_unemployment_contribution,
-            'employer_critical_illness_contribution', contrib_employer_critical_illness_contribution
-        ) AS company_contributions,
-
-        other_remarks, -- Include other_remarks if it's a column in the final table
-
-        -- Add audit timestamps
-        -- Requires dbt_utils package: add 'dbt-utils' to packages.yml and run 'dbt deps' -- DEPRECATED for dbt >= v1.0
-        -- Use dbt.current_timestamp() instead
-        {{ dbt.current_timestamp() }} AS created_at,
-        {{ dbt.current_timestamp() }} AS updated_at
-        -- _airbyte_extracted_at -- Include if needed for incremental loads or tracking
-
-    FROM joined
-
-    -- Handle cases where employee might not be found in stg_employees
-    -- WHERE employee_id IS NOT NULL -- Uncomment if you only want records with a matched employee
+      ON sal.employee_type_key = et.employee_type_key 
 )
 
+-- Final SELECT simply takes all columns from the prepared CTE
 SELECT * FROM final 
