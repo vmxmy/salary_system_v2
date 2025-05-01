@@ -1,0 +1,424 @@
+{
+  "app": {
+    "sidebarTitle": "工资管理系统",
+    "sidebarTitleCollapsed": "系统",
+    "logoutButton": "退出登录",
+    "footerText": "工资管理系统前端 ©{{year}} 使用 Ant Design 和 Vite 创建"
+  },
+  "menu": {
+    "dataManagement": "数据管理",
+    "dataViewer": "薪酬记录",
+    "employeeManagement": "员工管理",
+    "departmentManagement": "部门管理",
+    "reportManagement": "报表管理",
+    "reports": "报表查看",
+    "reportLinksManagement": "报表链接管理",
+    "monthlySalaryReport": "月度工资报表",
+    "fileConverter": "文件转换器",
+    "dataImport": "数据导入",
+    "configuration": "配置",
+    "fieldMappings": "字段映射",
+    "user": "User",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "breadcrumb": {
+    "home": "首页",
+    "dataManagement": "数据管理",
+    "dataViewer": "薪酬记录",
+    "employeeManagement": "员工管理",
+    "departmentManagement": "部门管理",
+    "reports": "报表查看",
+    "reports/monthly-salary": "月度工资报表",
+    "fileConverter": "文件转换器",
+    "dataImport": "数据导入",
+    "configuration": "配置",
+    "fieldMappings": "字段映射",
+    "profile": "Profile",
+    "reportLinksManagement": "报表链接管理",
+    "viewReport": "查看报表"
+  },
+  "auth": {
+    "loginTitle": "登录",
+    "formTitle": "管理员登录",
+    "usernamePlaceholder": "请输入用户名！",
+    "usernameRequired": "请输入用户名！",
+    "passwordPlaceholder": "请输入密码！",
+    "passwordRequired": "请输入密码！",
+    "loginButton": "登录",
+    "logout": "退出登录",
+    "loginFailedGeneric": "登录失败，请检查用户名或密码。",
+    "rememberMe": "记住我",
+    "forgotPassword": "忘记密码?",
+    "noAccount": "没有账户？",
+    "registerLink": "现在注册",
+    "registerTitle": "注册新用户",
+    "emailLabel": "电子邮箱",
+    "emailRequired": "请输入有效的电子邮箱！",
+    "passwordConfirmLabel": "确认密码",
+    "passwordConfirmRequired": "请再次输入密码！",
+    "passwordsDontMatch": "两次输入的密码不一致！",
+    "registerButton": "注册",
+    "registerSuccess": "注册成功！您现在可以登录了。",
+    "registerFailed": "注册失败：{{error}}",
+    "registerNow": "立即注册"
+  },
+  "common": {
+    "loading": "加载中...",
+    "yes": "是",
+    "no": "否",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "back": "返回",
+    "search": "搜索",
+    "submit": "提交",
+    "reset": "重置",
+    "ok": "确定",
+    "confirm": "确认",
+    "success": "成功",
+    "error": "错误",
+    "warning": "警告",
+    "info": "信息",
+    "notFound": "未找到",
+    "totalItems": "共 {total} 条",
+    "colActions": "操作",
+    "saveFailed": "保存失败",
+    "noChanges": "未检测到更改",
+    "pagination": {
+      "showTotal": "{{rangeStart}}-{{rangeEnd}} / 共 {{total}} 条"
+    },
+    "allOption": "全部",
+    "actions": "操作"
+  },
+  "dataViewer": {
+    "title": "薪酬记录",
+    "filters": {
+      "payPeriodLabel": "发薪周期",
+      "payPeriodPlaceholder": "选择月份",
+      "employeeNameLabel": "员工姓名",
+      "employeeNamePlaceholder": "输入姓名",
+      "departmentLabel": "部门",
+      "departmentPlaceholder": "选择部门",
+      "unitLabel": "单位",
+      "unitPlaceholder": "选择单位",
+      "establishmentLabel": "编制",
+      "establishmentPlaceholder": "选择类型",
+      "allOption": "全部"
+    },
+    "buttons": {
+      "search": "搜索",
+      "reset": "重置"
+    },
+    "table": {
+      "colId": "ID",
+      "colName": "姓名",
+      "colPayPeriod": "发薪周期",
+      "colIdCard": "身份证号",
+      "colDepartment": "部门",
+      "colUnit": "单位",
+      "colEstablishment": "编制",
+      "colPostSalary": "岗位工资",
+      "colPensionSelf": "养老保险(个人)",
+      "colNetPay": "实发工资"
+    },
+    "errors": {
+      "fetchFailed": "获取数据失败",
+      "filterOptionsFailed": "加载筛选选项失败，请尝试刷新。"
+    }
+  },
+  "fileConverter": {
+    "title": "Excel 转 CSV 转换器",
+    "selectPayPeriod": "选择发薪周期",
+    "selectExcelButton": "选择 Excel 文件",
+    "importCheckboxLabel": "导入到数据库",
+    "startButton": "开始转换",
+    "convertingButton": "转换中...",
+    "spinTip": "处理文件中...",
+    "errorAlertTitle": "错误",
+    "validation": {
+      "noPayPeriod": "请选择发薪周期。",
+      "noFileSelected": "请选择要上传的 Excel 文件。",
+      "invalidFileObject": "无法访问所选文件，请尝试重新选择。",
+      "notExcelFile": "{{fileName}} 不是 Excel 文件 (.xlsx 或 .xls)"
+    },
+    "messages": {
+      "baseError": "文件转换失败。",
+      "parseError": "解析服务器错误响应失败。",
+      "convertSuccessBase": "文件已转换，下载已开始。",
+      "importSuccess": "文件已转换，下载已开始。{{importMsg}} 数据库导入成功。",
+      "importFailed": "文件已转换，下载已开始。导入失败: {{importMsg}} 未知原因。",
+      "importUnknownStatus": "文件已转换，下载已开始。导入状态: {{status}}。",
+      "importDetailFailed": "数据库导入失败。详情: {{importMsg}} 请查看后端日志。"
+    }
+  },
+  "mappingConfigurator": {
+    "addButton": "添加映射",
+    "searchPlaceholder": "搜索来源/目标名称",
+    "table": {
+      "colSourceName": "来源名称",
+      "colTargetName": "目标名称",
+      "colIsIntermediate": "是中间值",
+      "colIsFinal": "是最终值",
+      "colDescription": "描述",
+      "colDataType": "数据类型",
+      "colAction": "操作",
+      "renderYes": "是",
+      "renderNo": "否",
+      "renderNA": "不适用",
+      "filterYes": "是",
+      "filterNo": "否",
+      "actionEdit": "编辑",
+      "actionDelete": "删除"
+    },
+    "deleteConfirm": {
+      "title": "确定要删除此映射吗？",
+      "okText": "是",
+      "cancelText": "否"
+    },
+    "modal": {
+      "addTitle": "添加新映射",
+      "editTitle": "编辑映射 - {{sourceName}}",
+      "okText": "保存",
+      "cancelText": "取消",
+      "fieldSourceName": "来源名称",
+      "fieldTargetName": "目标名称",
+      "fieldIsIntermediate": "是中间值",
+      "fieldIsFinal": "是最终值",
+      "fieldDescription": "描述",
+      "fieldDataType": "数据类型",
+      "validation": {
+        "sourceRequired": "来源名称是必填项",
+        "targetRequired": "目标名称是必填项"
+      }
+    },
+    "messages": {
+      "loadFailed": "加载映射失败",
+      "updateSuccess": "映射更新成功！",
+      "createSuccess": "映射创建成功！",
+      "saveFailed": "保存映射失败",
+      "deleteSuccess": "映射 '{{sourceName}}' 删除成功。",
+      "deleteFailed": "删除映射失败"
+    }
+  },
+  "employeeManager": {
+    "title": "员工管理",
+    "addButton": "添加员工",
+    "filters": {
+      "nameLabel": "姓名",
+      "namePlaceholder": "输入姓名",
+      "employeeIdLabel": "工号",
+      "employeeIdPlaceholder": "输入工号",
+      "departmentLabel": "部门",
+      "departmentPlaceholder": "选择部门",
+      "establishmentLabel": "编制",
+      "establishmentPlaceholder": "选择编制类型",
+      "allOption": "全部"
+    },
+    "buttons": {
+      "search": "搜索",
+      "reset": "重置"
+    },
+    "table": {
+      "colId": "ID",
+      "colName": "姓名",
+      "colEmployeeId": "工号",
+      "colDepartment": "部门",
+      "colUnit": "单位",
+      "colEstablishment": "编制",
+      "colIdCard": "身份证号",
+      "colBankAccount": "银行账号",
+      "colBankName": "开户行名称",
+      "colAction": "操作",
+      "renderNA": "-"
+    },
+    "actions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "confirm": "确认删除",
+      "cancel": "取消"
+    },
+    "deleteConfirm": {
+      "title": "确认删除",
+      "content": "确定要删除该员工信息吗？此操作无法撤销。",
+      "okText": "确认删除",
+      "cancelText": "取消"
+    },
+    "editModal": {
+      "title": "编辑员工信息"
+    },
+    "createModal": {
+      "title": "创建新员工"
+    },
+    "messages": {
+      "loadError": "无法加载员工数据，请稍后重试。",
+      "invalidDataFormat": "收到的员工数据格式不正确。",
+      "updateSuccess": "员工信息更新成功！",
+      "updateFailed": "更新失败：{{errorDetails}}",
+      "deleteSuccess": "员工删除成功！",
+      "deleteFailed": "删除失败：{{errorDetails}}",
+      "createSuccess": "员工创建成功！",
+      "createFailed": "创建失败：{{errorDetails}}",
+      "createFailedDuplicate": "创建失败：可能存在重复的身份证号或工号。"
+    },
+    "modals": {
+      "deleteConfirmTitle": "确认删除员工 '{{name}}'",
+      "deleteConfirmContent": "此操作无法撤销。您确定要继续吗？"
+    }
+  },
+  "employeeForm": {
+    "labels": {
+      "name": "姓名",
+      "employeeId": "工号",
+      "idCard": "身份证号",
+      "department": "部门",
+      "establishment": "编制",
+      "bankAccount": "银行账号",
+      "bankName": "开户行"
+    },
+    "placeholders": {
+      "department": "选择部门",
+      "establishment": "选择编制类型"
+    },
+    "validation": {
+      "nameRequired": "请输入员工姓名",
+      "idCardRequired": "请输入身份证号",
+      "departmentRequired": "请选择部门"
+    },
+    "buttons": {
+      "cancel": "取消",
+      "submit": "提交"
+    }
+  },
+  "departmentManager": {
+    "mainTitle": "单位与部门管理",
+    "tabUnits": "单位管理",
+    "tabDepartments": "部门管理",
+    "searchPlaceholder": "输入名称搜索",
+    "unitTable": {
+      "searchPlaceholder": "搜索单位名称...",
+      "addButton": "添加单位",
+      "colName": "单位名称",
+      "colDescription": "描述"
+    },
+    "deptTable": {
+      "searchPlaceholder": "搜索部门名称...",
+      "addButton": "添加部门",
+      "filterUnitPlaceholder": "筛选单位...",
+      "colName": "部门名称",
+      "colUnit": "所属单位",
+      "colDescription": "描述"
+    },
+    "modal": {
+      "addUnitTitle": "添加新单位",
+      "editUnitTitle": "编辑单位",
+      "addDeptTitle": "添加新部门",
+      "editDeptTitle": "编辑部门",
+      "fieldUnitName": "单位名称",
+      "fieldDeptName": "部门名称",
+      "fieldDescription": "描述",
+      "fieldParentUnit": "所属单位",
+      "deptUnitPlaceholder": "请选择所属单位",
+      "validation": {
+        "unitNameRequired": "请输入单位名称。",
+        "deptNameRequired": "请输入部门名称。",
+        "unitRequired": "请选择所属单位。"
+      }
+    },
+    "deleteConfirm": {
+      "unitTitle": "确认删除单位？",
+      "unitContent": "删除单位将同时删除其下所有部门，确定吗？",
+      "deptTitle": "确认删除部门？",
+      "deptContent": "确定要删除这个部门吗？"
+    },
+    "errors": {
+      "loadUnitsFailed": "加载单位列表失败。",
+      "loadDeptsFailed": "加载部门列表失败。",
+      "loadUnitOptionsFailed": "加载单位选项失败。",
+      "deleteUnitFailed": "删除单位失败。",
+      "deleteDeptFailed": "删除部门失败。"
+    },
+    "messages": {
+      "unitCreateSuccess": "单位创建成功。",
+      "unitUpdateSuccess": "单位更新成功。",
+      "deptCreateSuccess": "部门创建成功。",
+      "deptUpdateSuccess": "部门更新成功。",
+      "unitDeleteSuccess": "单位删除成功。",
+      "deptDeleteSuccess": "部门删除成功。"
+    }
+  },
+  "reports": {
+    "placeholderWarning": "请在 {{componentName}} 文件中更新报表 URL。",
+    "selectPayPeriodLabel": "选择工资期间：",
+    "selectPayPeriodPlaceholder": "请选择期间"
+  },
+  "userMenu": {
+    "profile": "个人资料",
+    "logout": "退出登录"
+  },
+  "userProfilePage": {
+    "title": "个人资料",
+    "updateSuccess": "个人资料更新成功！",
+    "updateFailed": "更新失败：{{error}}",
+    "currentPasswordLabel": "当前密码",
+    "newPasswordLabel": "新密码",
+    "confirmNewPasswordLabel": "确认新密码",
+    "changePasswordButton": "修改密码",
+    "updateProfileButton": "更新资料",
+    "passwordUpdateSuccess": "密码修改成功！",
+    "passwordUpdateFailed": "密码修改失败：{{error}}",
+    "passwordRequired": "请输入密码（更新时必填）",
+    "newPasswordRequired": "请输入新密码",
+    "passwordMinLength": "密码长度至少为 {{minLength}} 位",
+    "confirmPasswordRequired": "请确认新密码",
+    "passwordsDontMatch": "新密码与确认密码不匹配！",
+    "passwordMismatch": "两次输入的密码不一致！",
+    "updateEmailLabel": "更新邮箱",
+    "emailRequired": "请输入有效的电子邮箱！",
+    "emailUpdateSuccess": "邮箱更新成功！",
+    "usernameLabel": "用户名"
+  },
+  "reportLinks": {
+    "manager": "报表链接管理",
+    "list": "报表链接列表",
+    "create": "创建报表链接",
+    "edit": "编辑报表链接",
+    "delete": "删除报表链接",
+    "name": "报表名称",
+    "url": "链接地址",
+    "description": "描述",
+    "category": "分类",
+    "isActive": "是否启用",
+    "displayOrder": "显示顺序",
+    "requireRole": "所需角色",
+    "test": "测试",
+    "nameRequired": "请输入报表名称",
+    "urlRequired": "请输入链接地址",
+    "addNew": "添加新报表",
+    "createSuccess": "创建报表链接成功",
+    "updateSuccess": "更新报表链接成功",
+    "deleteSuccess": "删除报表链接成功",
+    "loadError": "加载报表链接失败",
+    "saveError": "保存报表链接失败",
+    "deleteError": "删除报表链接失败",
+    "confirmDelete": "确定要删除这个报表链接吗？"
+  },
+  "reportViewer": {
+    "noReportIdError": "未提供报表ID",
+    "fetchError": "获取报表链接失败",
+    "reportNotFound": "报表不存在"
+  },
+  "sidebar": {
+    "systemTitle": "工资信息管理系统",
+    "dashboard": "仪表盘",
+    "employees": "员工管理",
+    "departments": "部门管理",
+    "salaryData": "工资数据",
+    "reports": "报表查看",
+    "files": "文件管理",
+    "reportLinks": "报表管理",
+    "noReports": "暂无报表"
+  }
+} 

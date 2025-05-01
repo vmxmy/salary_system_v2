@@ -1,0 +1,91 @@
+version: 2
+
+sources:
+  - name: public # 源数据的 schema 名称
+    schema: public # 确保这个 schema 与你的数据库匹配
+    description: "Source schema containing raw data loaded by Airbyte."
+    tables:
+      - name: raw_salary_data_staging # 源表名
+        description: "Raw salary data loaded from CSV via Airbyte. All columns initially TEXT."
+        columns:
+          - name: id_card_number
+            description: "Employee ID card number."
+          - name: employee_name
+            description: "Employee name."
+          - name: pay_period_identifier
+            description: "Pay period identifier (YYYY-MM format)."
+          - name: establishment_type_name
+            description: "Name of the establishment type (e.g., 公务员, 事业)."
+          # 列出其他关键或需要描述的列...
+          # Example job attribute:
+          - name: job_attr_人员身份
+            description: "Job attribute: Personnel identity."
+          # Example salary component:
+          - name: salary_岗位工资
+            description: "Salary component: Post wage."
+          # Example deduction:
+          - name: deduct_个人缴医疗保险费
+            description: "Deduction: Personal medical insurance contribution."
+          # Example contribution:
+          - name: contrib_单位缴养老保险费
+            description: "Contribution: Employer pension contribution."
+          # Example base:
+          - name: base_住房公积金缴费基数
+            description: "Base: Housing fund contribution base."
+          # Example metadata:
+          - name: _airbyte_source_file
+            description: "Source filename from Airbyte."
+
+      - name: employees # 新增 employees 表定义
+        description: "Source table containing employee information."
+        columns:
+          - name: id
+            description: "Unique identifier for the employee (Primary Key)."
+            tests:
+              - unique
+              - not_null
+          - name: id_card_number
+            description: "Employee ID card number, used for joining with salary data."
+            tests:
+              - unique # Assuming ID card number is unique per employee
+              # - not_null # Add if appropriate
+          - name: name
+            description: "Employee's full name."
+          - name: department_id
+            description: "Identifier for the department the employee belongs to (Foreign Key)."
+          # Add descriptions for other relevant columns if needed
+
+      - name: units
+        description: "Source table containing unit information."
+        columns:
+          - name: id
+            description: "Primary key for units."
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: "Name of the unit."
+
+      - name: departments
+        description: "Source table containing department information."
+        columns:
+          - name: id
+            description: "Primary key for departments."
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: "Name of the department."
+          - name: unit_id
+            description: "Foreign key linking to the units table."
+
+      - name: establishment_types
+        description: "Source table containing establishment type information."
+        columns:
+          - name: id
+            description: "Primary key for establishment types."
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: "Name of the establishment type (e.g., 公务员, 事业)." 
