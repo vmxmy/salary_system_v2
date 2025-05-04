@@ -128,13 +128,8 @@ apiClient.interceptors.response.use(
     console.error('API Response Interceptor Error:', error.response || error.message || error);
     if (error.response && error.response.status === 401) {
         console.warn('Received 401 Unauthorized. Clearing token and logging out.');
-        alert('会话无效或已过期，请重新登录。'); // Session invalid or expired, please log in again.
-        // Clear the invalid/expired token
         clearAuthToken();
-        // Trigger logout/redirect. This event can be listened to in AuthContext or App.tsx
-        // Using window.location might be simpler if direct navigation is acceptable
-        // window.location.href = '/login';
-        window.dispatchEvent(new Event('auth-error-logout')); // Use event for potentially better handling in React context
+        window.location.href = '/login';
     }
     return Promise.reject(error);
   }

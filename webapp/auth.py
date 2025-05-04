@@ -61,7 +61,8 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[mod
     user = models_db.get_user_by_username_orm(db, username=username)
     if not user:
         return None
-    if not verify_password(password, user.hashed_password):
+    # 获取hashed_password的值而不是Column对象
+    if not verify_password(password, str(user.hashed_password)):
         return None
     # Return the ORM User object itself. The caller (/token endpoint)
     # will extract necessary fields (username, role.name, email) for the token.
@@ -83,11 +84,11 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        username: str = payload.get("sub", "")  # 提供默认值避免None
+        if not username:  # 检查空字符串
             raise credentials_exception
         # Role from token is mainly for initial check/logging, primary source is DB
-        # token_role: str = payload.get("role") 
+        token_role: Optional[str] = payload.get("role")  # 正确标注类型
     except JWTError:
         raise credentials_exception
 
@@ -105,11 +106,11 @@ async def get_current_user(
     if not current_user.is_active:
          raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
 
-    # Optional: Check if token role matches current DB role 
-    # (using the validated UserResponse object)
-    if current_user.role.name != payload.get('role'):
-        print(f"Warning: Token role '{payload.get('role')}' differs from DB role '{current_user.role.name}' for user '{current_user.username}'")
-        # Depending on security policy, you might raise credentials_exception here
+    # 添加对role和role.name的空值检查
+    if current_user.role is not None and token_role is not None:
+        if current_user.role.name != token_role:
+            print(f"Warning: Token role '{token_role}' differs from DB role '{current_user.role.name}' for user '{current_user.username}'")
+            # Depending on security policy, you might raise credentials_exception here
 
     return current_user
 
@@ -117,6 +118,13 @@ async def get_current_user(
 def require_role(allowed_roles: List[str]):
     """Dependency factory that checks if the current user has one of the allowed roles."""
     async def role_checker(current_user: schemas.UserResponse = Depends(get_current_user)) -> schemas.UserResponse:
+        # 添加role为None的检查
+        if current_user.role is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User has no role assigned. Requires one of: {allowed_roles}"
+            )
+        
         if current_user.role.name not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

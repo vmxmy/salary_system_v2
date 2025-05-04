@@ -10,24 +10,35 @@
     "dataViewer": "Salary Records",
     "employeeManagement": "Employee Management",
     "departmentManagement": "Department Management",
-    "configuration": "Configuration",
-    "fieldMappings": "Field Mappings",
-    "fileConverter": "File Converter",
     "reportManagement": "Report Management",
-    "monthlySalaryReport": "Monthly Salary Report"
+    "reports": "Reports",
+    "reportLinksManagement": "Report Links",
+    "monthlySalaryReport": "Monthly Salary Report",
+    "fileConverter": "Import EXCEL",
+    "dataImport": "Data Import",
+    "configuration": "Configuration",
+    "fieldMappings": "Field Mapping Management",
+    "userManager": "User Management",
+    "user": "User",
+    "profile": "Profile",
+    "logout": "Logout"
   },
   "breadcrumb": {
     "home": "Home",
-    "dataViewer": "Salary Records",
-    "converter": "File Converter",
     "dataManagement": "Data Management",
-    "config": "Configuration",
-    "fieldMappings": "Field Mappings",
+    "dataViewer": "Salary Records",
     "employeeManagement": "Employee Management",
     "departmentManagement": "Department Management",
-    "fileConverter": "File Converter",
-    "reports": "Report Management",
-    "reports/monthly-salary": "Monthly Salary Report"
+    "reports": "Reports",
+    "reports/monthly-salary": "Monthly Salary Report",
+    "fileConverter": "Import EXCEL",
+    "dataImport": "Data Import",
+    "configuration": "Configuration",
+    "fieldMappings": "Field Mapping Management",
+    "userManager": "User Management",
+    "profile": "Profile",
+    "reportLinksManagement": "Report Links",
+    "viewReport": "View Report"
   },
   "auth": {
     "loginTitle": "Login",
@@ -54,15 +65,32 @@
     "registerFailed": "Registration failed: {{error}}"
   },
   "common": {
+    "loading": "Loading...",
+    "yes": "Yes",
+    "no": "No",
     "save": "Save",
     "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "search": "Search",
+    "submit": "Submit",
+    "reset": "Reset",
+    "ok": "OK",
     "confirm": "Confirm",
+    "success": "Success",
     "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "notFound": "Not Found",
+    "totalItems": "Total {total} items",
     "colActions": "Actions",
     "saveFailed": "Save failed",
     "noChanges": "No changes detected",
-    "search": "Search",
-    "reset": "Reset",
+    "pagination": {
+      "showTotal": "{{rangeStart}}-{{rangeEnd}} of {{total}} items"
+    },
     "allOption": "All"
   },
   "dataViewer": {
@@ -105,7 +133,7 @@
     }
   },
   "fileConverter": {
-    "title": "Excel to CSV Converter",
+    "title": "EXCEL Data Import",
     "selectPayPeriod": "Select Pay Period",
     "selectExcelButton": "Select Excel File",
     "importCheckboxLabel": "Import to Database",
@@ -149,7 +177,7 @@
       "actionDelete": "Delete"
     },
     "deleteConfirm": {
-      "title": "Are you sure delete this mapping?",
+      "title": "Are you sure you want to delete this mapping?",
       "okText": "Yes",
       "cancelText": "No"
     },
@@ -211,7 +239,9 @@
     },
     "actions": {
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "confirm": "Confirm Delete",
+      "cancel": "Cancel"
     },
     "deleteConfirm": {
       "title": "Confirm Delete",
@@ -235,6 +265,10 @@
       "createSuccess": "Employee created successfully!",
       "createFailed": "Creation failed: {{errorDetails}}",
       "createFailedDuplicate": "Creation failed: Possible duplicate ID card or employee ID."
+    },
+    "modals": {
+        "deleteConfirmTitle": "Confirm delete employee '{{name}}'",
+        "deleteConfirmContent": "This action cannot be undone. Are you sure you want to continue?"
     }
   },
   "employeeForm": {
@@ -268,6 +302,42 @@
     "tabUnits": "Manage Units",
     "tabDepartments": "Manage Departments",
     "searchPlaceholder": "Enter name to search",
+    "unitTable": {
+      "searchPlaceholder": "Search Unit Name...",
+      "addButton": "Add Unit",
+      "colName": "Unit Name",
+      "colDescription": "Description"
+    },
+    "deptTable": {
+      "searchPlaceholder": "Search Department Name...",
+      "addButton": "Add Department",
+      "filterUnitPlaceholder": "Filter by Unit...",
+      "colName": "Department Name",
+      "colUnit": "Parent Unit",
+      "colDescription": "Description"
+    },
+    "modal": {
+      "addUnitTitle": "Add New Unit",
+      "editUnitTitle": "Edit Unit",
+      "addDeptTitle": "Add New Department",
+      "editDeptTitle": "Edit Department",
+      "fieldUnitName": "Unit Name",
+      "fieldDeptName": "Department Name",
+      "fieldDescription": "Description",
+      "fieldParentUnit": "Parent Unit",
+      "deptUnitPlaceholder": "Please select parent unit",
+      "validation": {
+        "unitNameRequired": "Unit name is required.",
+        "deptNameRequired": "Department name is required.",
+        "unitRequired": "Parent unit is required."
+      }
+    },
+    "deleteConfirm": {
+      "unitTitle": "Confirm Delete Unit?",
+      "unitContent": "Deleting this unit will also delete all its departments. Are you sure?",
+      "deptTitle": "Confirm Delete Department?",
+      "deptContent": "Are you sure you want to delete this department?"
+    },
     "errors": {
       "loadUnitsFailed": "Failed to load units.",
       "loadDeptsFailed": "Failed to load departments.",
@@ -282,27 +352,6 @@
       "deptUpdateSuccess": "Department updated successfully.",
       "unitDeleteSuccess": "Unit deleted successfully.",
       "deptDeleteSuccess": "Department deleted successfully."
-    },
-    "modal": {
-      "addUnitTitle": "Add New Unit",
-      "editUnitTitle": "Edit Unit",
-      "addDeptTitle": "Add New Department",
-      "editDeptTitle": "Edit Department",
-      "fieldUnitName": "Unit Name",
-      "fieldDeptName": "Department Name",
-      "fieldDescription": "Description",
-      "fieldParentUnit": "Parent Unit",
-      "validation": {
-        "unitNameRequired": "Unit name is required.",
-        "deptNameRequired": "Department name is required.",
-        "unitRequired": "Parent unit is required."
-      }
-    },
-    "deleteConfirm": {
-      "unitTitle": "Confirm Delete Unit?",
-      "unitContent": "Deleting this unit will also delete all its departments. Are you sure?",
-      "deptTitle": "Confirm Delete Department?",
-      "deptContent": "Are you sure you want to delete this department?"
     }
   },
   "reports": {
@@ -330,7 +379,7 @@
     "newPasswordLabel": "New Password",
     "newPasswordPlaceholder": "Enter new password",
     "newPasswordRequired": "Please enter a new password",
-    "newPasswordMinLength": "Password must be at least 8 characters long",
+    "newPasswordMinLength": "Password must be at least {{minLength}} characters long",
     "confirmPasswordLabel": "Confirm New Password",
     "confirmPasswordPlaceholder": "Confirm new password",
     "confirmPasswordRequired": "Please confirm your new password",
@@ -342,5 +391,115 @@
     "passwordChangeError": "Password change failed",
     "emailUpdateSuccess": "Email updated successfully!",
     "loadingProfile": "Loading user information..."
+  },
+  "reportLinks": {
+    "manager": "Report Link Management",
+    "list": "Report Link List",
+    "create": "Create Report Link",
+    "edit": "Edit Report Link",
+    "delete": "Delete Report Link",
+    "name": "Report Name",
+    "url": "Link URL",
+    "description": "Description",
+    "category": "Category",
+    "isActive": "Is Active",
+    "displayOrder": "Display Order",
+    "requireRole": "Required Role",
+    "test": "Test",
+    "nameRequired": "Please enter report name",
+    "urlRequired": "Please enter link URL",
+    "addNew": "Add New Report",
+    "createSuccess": "Report link created successfully",
+    "updateSuccess": "Report link updated successfully",
+    "deleteSuccess": "Report link deleted successfully",
+    "loadError": "Failed to load report links",
+    "saveError": "Failed to save report link",
+    "deleteError": "Failed to delete report link",
+    "confirmDelete": "Are you sure you want to delete this report link?"
+  },
+  "reportViewer": {
+    "noReportIdError": "Report ID not provided",
+    "fetchError": "Failed to fetch report link",
+    "reportNotFound": "Report not found"
+  },
+  "sidebar": {
+    "systemTitle": "Salary System",
+    "dashboard": "Dashboard",
+    "employees": "Employees",
+    "departments": "Departments",
+    "salaryData": "Salary Data",
+    "reports": "Reports",
+    "files": "Files",
+    "reportLinks": "Report Links",
+    "noReports": "No reports available"
+  },
+  "tabs": {
+    "fieldMapping": "All Field Mappings",
+    "rules": "Employee Type Field Rules"
+  },
+  "userManager": {
+    "title": "User Management",
+    "addButton": "Add User",
+    "searchPlaceholder": "Search Username or Email",
+    "table": {
+      "colUsername": "Username",
+      "colEmail": "Email",
+      "colRole": "Role",
+      "colStatus": "Status",
+      "colActions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "roles": {
+        "superAdmin": "Super Admin",
+        "regularUser": "Regular User"
+    },
+    "actions": {
+        "editNotImplemented": "Edit action for user {{id}} not implemented yet.",
+        "deleteNotImplemented": "Delete action for user {{id}} not implemented yet."
+    },
+    "errors": {
+        "loadFailed": "Failed to load users.",
+        "loadRolesFailed": "Failed to load roles.",
+        "updateFailed": "Failed to update user",
+        "createFailed": "Failed to create user",
+        "deleteFailed": "Failed to delete user"
+    },
+    "messages": {
+        "updateSuccess": "User updated successfully!",
+        "createSuccess": "User created successfully!",
+        "deleteSuccess": "User deleted successfully!"
+    },
+    "modal": {
+        "editTitle": "Edit User - {{username}}",
+        "addTitle": "Add New User"
+    },
+    "form": {
+        "username": "Username",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "role": "Role",
+        "status": "Status"
+    },
+    "validation": {
+        "usernameRequired": "Please input the username!",
+        "emailRequired": "Please input the email!",
+        "emailInvalid": "Please enter a valid email address!",
+        "passwordRequired": "Please input the password!",
+        "passwordMinLength": "Password must be at least 8 characters!",
+        "confirmPasswordRequired": "Please confirm your password!",
+        "passwordsDontMatch": "The two passwords that you entered do not match!",
+        "roleRequired": "Please select a role!"
+    },
+    "placeholders": {
+        "selectRole": "Select a role"
+    },
+    "deleteConfirm": {
+        "title": "Confirm Delete",
+        "content": "Are you sure you want to delete user {{username}}? This action cannot be undone."
+    }
   }
 }

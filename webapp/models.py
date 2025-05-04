@@ -127,3 +127,16 @@ class ReportLink(Base):
     
     def __repr__(self):
         return f"<ReportLink(id={self.id}, name='{self.name}')>" 
+
+# --- Define EmployeeTypeFieldRule Model ---
+class EmployeeTypeFieldRule(Base):
+    __tablename__ = 'employee_type_field_rules'
+
+    rule_id = Column(Integer, primary_key=True, index=True)
+    employee_type_key = Column(String(50), nullable=False, index=True)
+    field_db_name = Column(String(255), nullable=False, index=True)
+    is_required = Column(Boolean, nullable=False, default=False)
+
+    __table_args__ = (
+        UniqueConstraint('employee_type_key', 'field_db_name', name='uq_type_field'),
+    ) 

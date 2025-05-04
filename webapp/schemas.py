@@ -81,9 +81,7 @@ class UserResponse(UserInDBBase):
 # Response model for listing users with pagination
 class UserListResponse(BaseModel):
     data: List[UserResponse]
-    total: int 
-    email: EmailStr
-    role: RoleResponse
+    total: int
 
     class Config:
         from_attributes = True # Replaced orm_mode
@@ -365,5 +363,32 @@ class PaginatedSalaryResponse(BaseModel):
     data: List[SalaryRecord]
     total: int
 # --- Pydantic Model for Salary Record --- END ---
+
+# --- Pydantic Model for EmployeeTypeFieldRule ---
+class EmployeeTypeFieldRuleBase(BaseModel):
+    employee_type_key: str
+    field_db_name: str
+    is_required: bool = False
+
+class EmployeeTypeFieldRuleCreate(EmployeeTypeFieldRuleBase):
+    pass
+
+class EmployeeTypeFieldRuleUpdate(BaseModel):
+    employee_type_key: Optional[str] = None
+    field_db_name: Optional[str] = None
+    is_required: Optional[bool] = None
+
+class EmployeeTypeFieldRuleInDB(EmployeeTypeFieldRuleBase):
+    rule_id: int
+
+    class Config:
+        from_attributes = True
+
+class EmployeeTypeFieldRuleResponse(EmployeeTypeFieldRuleInDB):
+    pass
+
+class EmployeeTypeFieldRuleListResponse(BaseModel):
+    data: List[EmployeeTypeFieldRuleResponse]
+    total: int
 
 # --- NEWLY MOVED SCHEMAS --- END --- 

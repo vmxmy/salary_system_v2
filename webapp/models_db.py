@@ -1,9 +1,20 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, Union
 import logging
 from fastapi import HTTPException, status
 from datetime import datetime, timezone
+
+# TODO: 代码迁移说明
+# ============================
+# 本文件正在从直接使用psycopg2迁移到SQLAlchemy ORM
+# - 带有_orm后缀的函数是新的SQLAlchemy ORM版本
+# - 无后缀的函数是旧的psycopg2直接连接版本
+# 在迁移完成后，应该:
+# 1. 删除所有旧版psycopg2函数
+# 2. 将_orm后缀函数重命名为无后缀版本
+# 3. 更新所有引用这些函数的代码
+# ============================
 
 # Import SQLAlchemy components
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -236,8 +247,8 @@ def update_user_password_orm(db: Session, user_id: int, new_hashed_password: str
             # User not found
             return False
             
-        # Update the password
-        db_user.hashed_password = new_hashed_password
+        # Update the password - 修复类型问题
+        setattr(db_user, 'hashed_password', new_hashed_password)  # 使用setattr而不是直接赋值
         # Manually set updated_at if needed
         # db_user.updated_at = datetime.now(timezone.utc)
         
@@ -455,29 +466,43 @@ def delete_employee_orm(db: Session, employee_id: int) -> bool:
 
 def create_unit_orm(db: Session, unit: schemas.UnitCreate) -> models.Unit:
     """
-    Creates a new unit using SQLAlchemy ORM.
-    Handles potential IntegrityErrors (e.g., duplicate name).
+    Creates a new unit with the given data using SQLAlchemy ORM.
+    Checks for duplicate name.
+    Returns the created Unit ORM object or raises HTTPException.
     """
-    try:
-        # Create the ORM model instance from the Pydantic schema
-        db_unit = models.Unit(**unit.model_dump()) # Use model_dump() for Pydantic v2
-        
-        db.add(db_unit)
-        db.commit()
-        db.refresh(db_unit) # Refresh to get DB-generated values like ID, created_at
-        return db_unit
-    except IntegrityError:
-        db.rollback() # Rollback the transaction on error
+    # Check for duplicate unit name
+    existing_unit = db.query(models.Unit).filter(models.Unit.name == unit.name).first()
+    if existing_unit:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Unit with name '{unit.name}' already exists."
         )
-    except Exception as e:
+        
+    # Create Unit instance
+    db_unit = models.Unit(
+        name=unit.name,
+        description=unit.description
+    )
+    
+    try:
+        db.add(db_unit)
+        db.commit()
+        db.refresh(db_unit)
+        return db_unit
+    except IntegrityError as e:
         db.rollback()
-        logger.error(f"Error creating unit '{unit.name}' with ORM: {e}", exc_info=True)
+        logger.error(f"Integrity error creating unit: {e}")
+        # Convert to HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Database integrity error creating unit: {e}"
+        )
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error creating unit: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An internal server error occurred while creating the unit."
+            detail="Database error occurred while creating unit."
         )
 
 def get_unit_by_id_orm(db: Session, unit_id: int) -> Optional[models.Unit]:
@@ -521,105 +546,119 @@ def get_units_orm(
         logger.error(f"SQLAlchemy error fetching units list: {e}")
         return [], 0 # Return empty list and zero count on error
 
-def update_unit_orm(
-    db: Session, 
-    unit_id: int, 
-    unit_update: schemas.UnitUpdate
-) -> Optional[models.Unit]:
+def update_unit_orm(db: Session, unit_id: int, unit_update: schemas.UnitUpdate) -> Optional[models.Unit]:
     """
-    Updates an existing unit using SQLAlchemy ORM.
-    Handles potential IntegrityErrors (e.g., duplicate name).
-    Returns the updated Unit ORM object or None if not found.
+    Updates an existing unit by ID.
+    Returns the updated Unit ORM object, or None if not found.
+    Raises HTTPException on conflict.
     """
-    db_unit = db.get(models.Unit, unit_id) # Use db.get for PK lookup
+    # Get the existing unit
+    db_unit = get_unit_by_id_orm(db, unit_id)
     if not db_unit:
-        return None # Not found
-
-    update_data = unit_update.model_dump(exclude_unset=True)
-
-    # Check for duplicate name if name is being updated
-    if 'name' in update_data and update_data['name'] != db_unit.name:
-        existing_unit = db.query(models.Unit).filter(
-            models.Unit.name == update_data['name'],
-            models.Unit.id != unit_id # Exclude the current unit
-        ).first()
-        if existing_unit:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Unit with name '{update_data['name']}' already exists."
-            )
-            
-    # Update the object's attributes
-    for key, value in update_data.items():
-        setattr(db_unit, key, value)
+        return None # Unit not found
         
-    # Manually update timestamp if needed
-    # db_unit.updated_at = datetime.now(timezone.utc)
-
+    # Update fields that are present in the request
+    update_data = unit_update.dict(exclude_unset=True) # Only take fields that were provided
+    for key, value in update_data.items():
+        # Check for name uniqueness if name is being changed
+        if key == 'name' and value != db_unit.name:
+            existing = db.query(models.Unit).filter(models.Unit.name == value).first()
+            if existing:
+                # Raise an exception for duplicate name
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Unit with name '{value}' already exists."
+                )
+        
+        # Set the attribute
+        setattr(db_unit, key, value)
+    
+    # Update timestamp would happen automatically if using onupdate in model
+    
     try:
+        db.add(db_unit)
         db.commit()
         db.refresh(db_unit)
         return db_unit
-    except IntegrityError: # Catch potential race condition on unique name
+    except IntegrityError as e:
         db.rollback()
+        logger.error(f"Integrity error updating unit {unit_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Unit name update conflict. Name '{update_data.get('name', db_unit.name)}' might already exist (race condition)."
+            detail=f"Database integrity error updating unit: {e}"
         )
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"SQLAlchemy error updating unit {unit_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error during unit update."
-        )
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Unexpected error updating unit {unit_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during unit update."
+            detail=f"Database error occurred while updating unit {unit_id}."
         )
 
 def delete_unit_orm(db: Session, unit_id: int) -> bool:
     """
-    Deletes a unit by ID using ORM, ensuring it has no associated departments.
-    Returns True if deleted successfully.
-    Raises HTTPException 404 if not found, 409 if departments exist, 500 on other errors.
+    Deletes a unit by ID.
+    Returns True if the unit was deleted, False if not found.
+    Raises HTTPException on constraint violation.
     """
-    db_unit = db.get(models.Unit, unit_id)
+    # Check if the unit exists
+    db_unit = get_unit_by_id_orm(db, unit_id)
     if not db_unit:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Unit with ID {unit_id} not found.")
-        # Return False # Or raise 404
-
-    # Check for associated departments before deleting
-    department_count = db.query(func.count(models.Department.id)).filter(models.Department.unit_id == unit_id).scalar()
-    
-    if department_count > 0:
+        # Unit not found
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Cannot delete unit '{db_unit.name}' (ID: {unit_id}) because it contains {department_count} department(s). Delete or reassign departments first."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Unit with ID {unit_id} not found."
         )
-
+    
     try:
         db.delete(db_unit)
         db.commit()
         return True
+    except IntegrityError as e:
+        db.rollback()
+        # Check if the error is because the unit has dependent departments
+        logger.error(f"Integrity error deleting unit {unit_id}, likely due to foreign key constraint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot delete unit with ID {unit_id} because it has associated departments or other records."
+        )
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"SQLAlchemy error deleting unit {unit_id}: {e}")
-        # This might indicate other FK constraints or DB issues
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error during unit deletion."
+            detail=f"Database error occurred while deleting unit {unit_id}."
         )
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Unexpected error deleting unit {unit_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during unit deletion."
-        )
+        
+def get_departments_by_unit_id_orm(db: Session, unit_id: int) -> List[models.Department]:
+    """
+    获取指定单位的所有部门列表
+    Returns a list of Department ORM objects for the given unit_id.
+    """
+    try:
+        # Query departments for the specified unit_id
+        departments = db.query(models.Department).filter(
+            models.Department.unit_id == unit_id
+        ).order_by(models.Department.name).all()
+        
+        return departments
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error fetching departments for unit {unit_id}: {e}")
+        return [] # Return empty list on error
+
+def get_all_unit_names_orm(db: Session) -> List[str]:
+    """
+    获取所有单位名称列表，用于下拉框等场景
+    Returns a list of unit names.
+    """
+    try:
+        # Query only the name field from Unit model
+        unit_names = db.query(models.Unit.name).order_by(models.Unit.name).all()
+        # Extract names from result tuples
+        return [name[0] for name in unit_names if name[0]]
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error fetching all unit names: {e}")
+        return [] # Return empty list on error
 
 # --- ORM Functions for Unit Management --- END
 
@@ -753,6 +792,22 @@ def get_departments_orm(
     except SQLAlchemyError as e:
         logger.error(f"SQLAlchemy error fetching departments list: {e}")
         return [], 0 # Return empty list and zero count on error
+
+def count_employees_by_department_id_orm(db: Session, department_id: int) -> int:
+    """
+    计算指定部门下的员工数量
+    Returns the count of employees associated with the given department ID.
+    """
+    try:
+        # 使用SQLAlchemy的func.count计算员工数量
+        count = db.query(func.count(models.Employee.id)).filter(
+            models.Employee.department_id == department_id
+        ).scalar()
+        
+        return count or 0  # 确保返回整数，即使结果为None
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error counting employees for department {department_id}: {e}")
+        return 0  # 出错时返回0
 
 def update_department_orm(
     db: Session,
@@ -982,7 +1037,8 @@ def get_salary_data_orm(
         
         # Convert Row objects to dictionaries
         # ._mapping gives access to the column-keyed dictionary
-        salary_data_list = [row._mapping for row in data_result.fetchall()]
+        # 修复类型问题：将RowMapping转换为Dict[str, Any]
+        salary_data_list = [dict(row._mapping) for row in data_result.fetchall()]
         
         return salary_data_list, total_count
 

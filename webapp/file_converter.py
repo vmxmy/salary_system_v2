@@ -411,7 +411,7 @@ def check_employee_existence(df: pd.DataFrame, field_config: Dict[str, Any], db:
 
 # --- Main Processing Function ---
 
-def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_period: str) -> Dict[str, Any]:
+def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_period: str, filename: Optional[str] = None) -> Dict[str, Any]:
     """
     Processes the uploaded Excel file stream:
     1. Determines sheet type using DB mapping.
@@ -436,8 +436,19 @@ def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_
     try:
         # Read the entire file content into memory first
         file_content = file_stream.read()
-        # Use BytesIO for pandas, as SpooledTemporaryFile might not be seekable
-        excel_file = pd.ExcelFile(BytesIO(file_content))
+        # 自动判断engine
+        engine = None
+        if filename:
+            if filename.lower().endswith('.xlsx'):
+                engine = 'openpyxl'
+            elif filename.lower().endswith('.xls'):
+                engine = 'xlrd'
+        try:
+            excel_file = pd.ExcelFile(BytesIO(file_content), engine=engine)
+        except Exception as e:
+            logger.error(f"Excel文件读取失败: {e}", exc_info=True)
+            overall_result["message"] = f"处理失败：无法读取Excel文件 ({e})"
+            return overall_result
         sheet_mappings = get_sheet_name_mapping(db)
     except ValueError as config_err: # Catch errors from get_sheet_name_mapping
          logger.error(f"Failed to load initial configuration: {config_err}", exc_info=True)
@@ -459,7 +470,7 @@ def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_
 
         try:
             # 1. Determine Employee Type Key
-            employee_type_key = determine_employee_type_key(sheet_name, sheet_mappings)
+            employee_type_key = determine_employee_type_key(str(sheet_name), sheet_mappings)
             if not employee_type_key:
                 sheet_result["message"] = "无法识别的工作表类型 (未在数据库中映射)"
                 sheets_skipped += 1

@@ -21,6 +21,7 @@ import UserProfilePage from './pages/UserProfilePage';
 import ReportLinkManager from './components/ReportLinkManager';
 import ReportViewer from './components/ReportViewer';
 import reportLinksApi from './services/reportLinksApi';
+import UserManager from './components/UserManager';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -164,6 +165,7 @@ const MainLayout: React.FC = () => {
             label: t('menu.configuration'),
             children: [
                     { key: '/config/mappings', label: <Link to="/config/mappings">{t('menu.fieldMappings')}</Link> },
+                    { key: '/config/users', label: <Link to="/config/users">{t('menu.userManager')}</Link> },
                     // Conditionally add Report Links Management as a child
                     ...(isAdmin ? [{
                         key: '/report-links',
@@ -278,6 +280,7 @@ const MainLayout: React.FC = () => {
                         <Route path="/viewer" element={<ProtectedRoute><SalaryDataViewer /></ProtectedRoute>} />
                         <Route path="/data-import/converter" element={<ProtectedRoute><FileConverter /></ProtectedRoute>} />
                         <Route path="/config/mappings" element={<ProtectedRoute><MappingConfigurator /></ProtectedRoute>} />
+                        <Route path="/config/users" element={<ProtectedRoute><UserManager /></ProtectedRoute>} />
                         <Route path="/reports/monthly-salary" element={<ProtectedRoute><MonthlySalaryReport /></ProtectedRoute>} />
                         <Route path="/admin/employees" element={<ProtectedRoute><EmployeeManager /></ProtectedRoute>} />
                         <Route path="/admin/departments" element={<ProtectedRoute><DepartmentManager /></ProtectedRoute>} />

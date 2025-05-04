@@ -66,14 +66,18 @@ async def get_active_report_links(
         user_role_name = current_user.role.name if current_user.role else None
         
         filtered_links = [
-            link for link in report_links 
+            link
+            for link in report_links
             # Correct: Check if report requires no role OR if user's role matches the required role
-            if not link.require_role or (user_role_name and link.require_role == user_role_name)
+            if (
+                (role := getattr(link, "require_role", None)) in (None, "")
+                or (user_role_name and role == user_role_name)
+            )
         ]
         
         return filtered_links
     except Exception as e:
-        logger.error(f"获取活跃报表链接时发生错误: {e}", exc_info=True) # Add exc_info for more details
+        logger.error(f"获取活跃报表链接时发生错误: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="获取活跃报表链接时发生服务器错误"
