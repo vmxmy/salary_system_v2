@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Response
+from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 import logging
 import sqlalchemy.exc as sa_exc
@@ -10,7 +10,9 @@ from ..database import get_db
 from ..pydantic_models import FieldMappingBase, FieldMappingCreate, FieldMappingUpdate, FieldMappingInDB, FieldMappingListResponse
 from ..schemas import (
     EmployeeTypeFieldRuleBase, EmployeeTypeFieldRuleCreate, EmployeeTypeFieldRuleUpdate,
-    EmployeeTypeFieldRuleResponse, EmployeeTypeFieldRuleListResponse
+    EmployeeTypeFieldRuleResponse, EmployeeTypeFieldRuleListResponse,
+    SheetNameMappingBase, SheetNameMappingCreate, SheetNameMappingUpdate, 
+    SheetNameMappingResponse, SheetNameMappingListResponse 
 )
 
 # 配置logger
@@ -27,7 +29,7 @@ async def get_all_field_mappings(
     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
 ):
     """Fetches all field mapping records from the database using SQLAlchemy Session."""
-    query = text("SELECT id, source_name, target_name, is_intermediate, is_final, description, data_type FROM public.salary_field_mappings ORDER BY source_name;")
+    query = text("SELECT id, source_name, target_name, is_intermediate, is_final, description, data_type FROM core.salary_field_mappings ORDER BY source_name;")
     try:
         result = db.execute(query)
         mappings = result.mappings().all()
@@ -35,10 +37,10 @@ async def get_all_field_mappings(
         return {"data": mappings}
     except sa_exc.SQLAlchemyError as e:
         logger.error(f"Database query error for field mappings: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve field mappings.")
-    except Exception as e:
-        logger.error(f"An unexpected error occurred fetching field mappings: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch field mappings from database."
+        ) from e
 
 @router.post("/mappings", response_model=FieldMappingInDB, status_code=201)
 async def create_field_mapping(
@@ -48,7 +50,7 @@ async def create_field_mapping(
 ):
     """Creates a new field mapping record using SQLAlchemy Session."""
     query = text("""
-        INSERT INTO public.salary_field_mappings 
+        INSERT INTO core.salary_field_mappings 
         (source_name, target_name, is_intermediate, is_final, description, data_type)
         VALUES (:source_name, :target_name, :is_intermediate, :is_final, :description, :data_type)
         RETURNING source_name, target_name, is_intermediate, is_final, description, data_type;
@@ -100,7 +102,7 @@ async def update_field_mapping(
         raise HTTPException(status_code=400, detail="No fields provided for update.")
     set_clause = ", ".join([f"{key} = :{key}" for key in update_fields])
     query = text(f"""
-        UPDATE public.salary_field_mappings
+        UPDATE core.salary_field_mappings
         SET {set_clause}
         WHERE id = :id
         RETURNING id, source_name, target_name, is_intermediate, is_final, description, data_type;
@@ -136,7 +138,7 @@ async def delete_field_mapping(
     db: Session = Depends(get_db),
     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
 ):
-    query = text("DELETE FROM public.salary_field_mappings WHERE id = :id RETURNING id;")
+    query = text("DELETE FROM core.salary_field_mappings WHERE id = :id RETURNING id;")
     params = {"id": id}
     try:
         result = db.execute(query, params)
@@ -158,19 +160,40 @@ async def delete_field_mapping(
 # --- EmployeeTypeFieldRule CRUD API ---
 @router.get("/employee-type-field-rules", response_model=EmployeeTypeFieldRuleListResponse)
 async def get_all_employee_type_field_rules(
+    employee_type_key: Optional[str] = Query(None, description="Filter by employee type key"),
+    field_db_name: Optional[str] = Query(None, description="Filter by field database name (case-insensitive partial match)"),
     db: Session = Depends(get_db),
     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"]))
 ):
-    """Fetch all employee_type_field_rules records."""
-    query = text("""
+    """Fetch employee_type_field_rules records, with optional filtering."""
+    params = {}
+    where_clauses = []
+
+    base_query = """
         SELECT rule_id, employee_type_key, field_db_name, is_required
-        FROM public.employee_type_field_rules
-        ORDER BY employee_type_key, field_db_name;
-    """)
+        FROM core.employee_type_field_rules
+    """
+
+    if employee_type_key:
+        where_clauses.append("employee_type_key = :employee_type_key")
+        params["employee_type_key"] = employee_type_key
+    if field_db_name:
+        # 使用 ILIKE 进行不区分大小写的模糊匹配
+        where_clauses.append("field_db_name ILIKE :field_db_name")
+        params["field_db_name"] = f"%{field_db_name}%" # 添加通配符
+
+    if where_clauses:
+        query_string = f"{base_query} WHERE {' AND '.join(where_clauses)}"
+    else:
+        query_string = base_query
+
+    query_string += " ORDER BY employee_type_key, field_db_name;" # 添加排序
+
     try:
-        result = db.execute(query)
+        result = db.execute(text(query_string), params) # Pass params to execute
         rules = result.mappings().all()
-        logger.info(f"Found {len(rules)} employee_type_field_rules.")
+        logger.info(f"Found {len(rules)} employee_type_field_rules matching filters.")
+        # Note: total now reflects the filtered count
         return {"data": rules, "total": len(rules)}
     except sa_exc.SQLAlchemyError as e:
         logger.error(f"Database query error for employee_type_field_rules: {e}", exc_info=True)
@@ -187,7 +210,7 @@ async def create_employee_type_field_rule(
 ):
     """Create a new employee_type_field_rule record."""
     query = text("""
-        INSERT INTO public.employee_type_field_rules
+        INSERT INTO core.employee_type_field_rules
         (employee_type_key, field_db_name, is_required)
         VALUES (:employee_type_key, :field_db_name, :is_required)
         RETURNING rule_id, employee_type_key, field_db_name, is_required;
@@ -229,7 +252,7 @@ async def update_employee_type_field_rule(
         raise HTTPException(status_code=400, detail="No fields provided for update.")
     set_clause = ", ".join([f"{key} = :{key}" for key in update_fields])
     query = text(f"""
-        UPDATE public.employee_type_field_rules
+        UPDATE core.employee_type_field_rules
         SET {set_clause}
         WHERE rule_id = :rule_id
         RETURNING rule_id, employee_type_key, field_db_name, is_required;
@@ -265,7 +288,8 @@ async def delete_employee_type_field_rule(
     db: Session = Depends(get_db),
     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"]))
 ):
-    query = text("DELETE FROM public.employee_type_field_rules WHERE rule_id = :rule_id RETURNING rule_id;")
+    """Deletes an employee_type_field_rule record."""
+    query = text("DELETE FROM core.employee_type_field_rules WHERE rule_id = :rule_id RETURNING rule_id;")
     params = {"rule_id": rule_id}
     try:
         result = db.execute(query, params)
@@ -274,7 +298,7 @@ async def delete_employee_type_field_rule(
             raise HTTPException(status_code=404, detail=f"Rule with rule_id '{rule_id}' not found.")
         db.commit()
         logger.info(f"Deleted employee_type_field_rule with rule_id: {rule_id}")
-        return
+        return # Return None for 204 No Content
     except sa_exc.SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Database query error deleting employee_type_field_rule: {e}", exc_info=True)
@@ -282,4 +306,83 @@ async def delete_employee_type_field_rule(
     except Exception as e:
         db.rollback()
         logger.error(f"Unexpected error deleting employee_type_field_rule: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal server error occurred.") 
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+# --- EmployeeTypeFieldRule CRUD API --- END ---
+
+# --- SheetNameMapping CRUD API --- START ---
+
+@router.get("/sheet-mappings", response_model=schemas.SheetNameMappingListResponse)
+async def get_all_sheet_mappings(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) # Protect endpoint
+):
+    """Fetches all sheet name mappings with pagination."""
+    try:
+        mappings = models_db.get_sheet_mappings(db, skip=skip, limit=limit)
+        # Return structured response
+        # Assuming get_sheet_mappings returns only the list for now
+        # TODO: Update get_sheet_mappings in models_db to return total count if real pagination is needed
+        total_count = len(mappings) # Placeholder for total count
+        return {"data": mappings, "total": total_count}
+    except Exception as e:
+        logger.error(f"Error fetching sheet mappings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve sheet mappings.")
+
+@router.post("/sheet-mappings", response_model=schemas.SheetNameMappingResponse, status_code=201)
+async def create_new_sheet_mapping(
+    mapping_data: schemas.SheetNameMappingCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
+):
+    """Creates a new sheet name mapping."""
+    try:
+        # create_sheet_mapping handles exceptions and returns ORM model
+        created_mapping = models_db.create_sheet_mapping(db, mapping_data)
+        return created_mapping # FastAPI handles conversion
+    except HTTPException as http_exc:
+        raise http_exc # Re-raise exceptions from DB layer (e.g., 409 Conflict)
+    except Exception as e:
+        logger.error(f"Unexpected error creating sheet mapping: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+@router.put("/sheet-mappings/{sheet_name}", response_model=schemas.SheetNameMappingResponse)
+async def update_existing_sheet_mapping(
+    sheet_name: str, # Get sheet_name from path
+    mapping_update: schemas.SheetNameMappingUpdate,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
+):
+    """Updates an existing sheet name mapping identified by sheet_name."""
+    try:
+        updated_mapping = models_db.update_sheet_mapping(db, sheet_name, mapping_update)
+        if updated_mapping is None:
+            raise HTTPException(status_code=404, detail=f"Sheet mapping '{sheet_name}' not found.")
+        return updated_mapping # FastAPI handles conversion
+    except HTTPException as http_exc:
+        raise http_exc # Re-raise exceptions from DB layer
+    except Exception as e:
+        logger.error(f"Unexpected error updating sheet mapping '{sheet_name}': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+@router.delete("/sheet-mappings/{sheet_name}", status_code=204)
+async def delete_existing_sheet_mapping(
+    sheet_name: str, # Get sheet_name from path
+    db: Session = Depends(get_db),
+    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
+):
+    """Deletes a sheet name mapping by sheet_name."""
+    try:
+        deleted = models_db.delete_sheet_mapping(db, sheet_name)
+        if not deleted:
+            raise HTTPException(status_code=404, detail=f"Sheet mapping '{sheet_name}' not found.")
+        return Response(status_code=status.HTTP_204_NO_CONTENT) # Return explicit 204
+    except HTTPException as http_exc:
+        raise http_exc # Re-raise exceptions from DB layer
+    except Exception as e:
+        logger.error(f"Unexpected error deleting sheet mapping '{sheet_name}': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+# --- SheetNameMapping CRUD API --- END --- 

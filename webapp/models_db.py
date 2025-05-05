@@ -17,9 +17,11 @@ from datetime import datetime, timezone
 # ============================
 
 # Import SQLAlchemy components
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, joinedload, selectinload, relationship
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from sqlalchemy import func, or_, and_, text, Column, String, Integer
+from sqlalchemy import func, or_, and_, text, Column, String, Integer, BigInteger, UniqueConstraint, ForeignKey, TIMESTAMP, Identity, Text, Numeric, Boolean
+# We need JSONB specific type for PostgreSQL
+from sqlalchemy.dialects.postgresql import JSONB
 
 # Assuming schemas.py defines the Pydantic models like UserCreate, UserUpdate, RoleCreate etc.
 from . import schemas
@@ -55,10 +57,10 @@ def get_roles(db: Session) -> List[models.Role]:
         logger.error(f"SQLAlchemy error fetching all roles: {e}")
         return []
 
-# --- User DB Operations (Partially Refactored) ---
+# --- User DB Operations (Final ORM Versions) ---
 
-def get_user_by_username_orm(db: Session, username: str) -> Optional[models.User]:
-    """(ORM Version) Fetches a user by username using SQLAlchemy ORM, joining the role.
+def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
+    """Fetches a user by username using SQLAlchemy ORM, joining the role.
        Returns the User ORM object or None.
     """
     try:
@@ -68,8 +70,8 @@ def get_user_by_username_orm(db: Session, username: str) -> Optional[models.User
         logger.error(f"SQLAlchemy error fetching user by username {username}: {e}")
         return None
 
-def get_users_orm(db: Session, skip: int = 0, limit: int = 100) -> Tuple[List[models.User], int]:
-    """(ORM Version) Fetches a paginated list of users with their role information using SQLAlchemy ORM.
+def get_users(db: Session, skip: int = 0, limit: int = 100) -> Tuple[List[models.User], int]:
+    """Fetches a paginated list of users with their role information using SQLAlchemy ORM.
        Returns a tuple: (list of User ORM objects, total user count).
     """
     try:
@@ -88,8 +90,8 @@ def get_users_orm(db: Session, skip: int = 0, limit: int = 100) -> Tuple[List[mo
         logger.error(f"SQLAlchemy error fetching users list: {e}")
         return [], 0
 
-def get_user_by_id_orm(db: Session, user_id: int) -> Optional[models.User]:
-    """(ORM Version) Fetches a single user by ID using SQLAlchemy ORM, joining the role.
+def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
+    """Fetches a single user by ID using SQLAlchemy ORM, joining the role.
        Returns the User ORM object or None if not found.
     """
     try:
@@ -99,8 +101,8 @@ def get_user_by_id_orm(db: Session, user_id: int) -> Optional[models.User]:
         logger.error(f"SQLAlchemy error fetching user by ID {user_id}: {e}")
         return None
 
-def create_user_orm(db: Session, user: schemas.UserCreate, hashed_password: str) -> models.User:
-    """(ORM Version) Creates a new user in the database using SQLAlchemy ORM.
+def create_user(db: Session, user: schemas.UserCreate, hashed_password: str) -> models.User:
+    """Creates a new user in the database using SQLAlchemy ORM.
     Handles potential IntegrityErrors (username/email unique constraints).
     Returns the newly created User ORM object.
     Raises HTTPException on errors.
@@ -138,8 +140,8 @@ def create_user_orm(db: Session, user: schemas.UserCreate, hashed_password: str)
         logger.error(f"Unexpected error creating user {user.username}: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred during user creation.") from e
 
-def update_user_orm(db: Session, user_id: int, user_update: schemas.UserUpdate, hashed_password: Optional[str] = None) -> models.User:
-    """(ORM Version) Updates a user's information in the database using SQLAlchemy ORM.
+def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate, hashed_password: Optional[str] = None) -> models.User:
+    """Updates a user's information in the database using SQLAlchemy ORM.
     Handles potential IntegrityErrors and checks if the user exists.
     Returns the updated User ORM object.
     Raises HTTPException on errors.
@@ -194,8 +196,8 @@ def update_user_orm(db: Session, user_id: int, user_update: schemas.UserUpdate, 
         logger.error(f"Unexpected error updating user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred during user update.") from e
 
-def delete_user_orm(db: Session, user_id: int) -> bool:
-    """(ORM Version) Deletes a user from the database using SQLAlchemy ORM.
+def delete_user(db: Session, user_id: int) -> bool:
+    """Deletes a user from the database using SQLAlchemy ORM.
     Returns True if deletion was successful, False if user not found.
     Raises HTTPException on database errors.
     """
@@ -222,8 +224,8 @@ def delete_user_orm(db: Session, user_id: int) -> bool:
         logger.error(f"Unexpected error deleting user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred during user deletion.") from e
 
-def get_user_hashed_password_orm(db: Session, user_id: int) -> Optional[str]:
-    """(ORM Version) Fetches only the hashed password for a given user ID."""
+def get_user_hashed_password(db: Session, user_id: int) -> Optional[str]:
+    """Fetches only the hashed password for a given user ID."""
     try:
         # Select only the hashed_password column for efficiency
         hashed_password = db.query(models.User.hashed_password).filter(models.User.id == user_id).scalar()
@@ -234,8 +236,8 @@ def get_user_hashed_password_orm(db: Session, user_id: int) -> Optional[str]:
         # Returning None is consistent with the old function if the query fails
         return None
 
-def update_user_password_orm(db: Session, user_id: int, new_hashed_password: str) -> bool:
-    """(ORM Version) Updates a user's password in the database using SQLAlchemy ORM.
+def update_user_password(db: Session, user_id: int, new_hashed_password: str) -> bool:
+    """Updates a user's password in the database using SQLAlchemy ORM.
     Returns True if successful, False if user not found.
     Raises HTTPException on database errors.
     """
@@ -266,14 +268,14 @@ def update_user_password_orm(db: Session, user_id: int, new_hashed_password: str
 
 # --- NEW Employee Management ORM Functions --- START ---
 
-def get_employee_by_id_orm(db: Session, employee_id: int) -> Optional[models.Employee]:
+def get_employee_by_id(db: Session, employee_id: int) -> Optional[models.Employee]:
     """Fetches a single employee by ID using ORM, eager loading related data."""
     return db.query(models.Employee).options(
         joinedload(models.Employee.department).joinedload(models.Department.unit), # Load department -> unit
         joinedload(models.Employee.establishment_type) # Load establishment type
     ).filter(models.Employee.id == employee_id).first()
 
-def create_employee_orm(db: Session, employee: schemas.EmployeeCreate) -> models.Employee:
+def create_employee(db: Session, employee: schemas.EmployeeCreate) -> models.Employee:
     """Creates a new employee record using ORM, checking uniqueness constraints."""
     # 1. Check for uniqueness
     existing_by_id_card = db.query(models.Employee).filter(models.Employee.id_card_number == employee.id_card_number).first()
@@ -311,7 +313,7 @@ def create_employee_orm(db: Session, employee: schemas.EmployeeCreate) -> models
         # Eager load relationships for the response AFTER the commit
         # This is one way; alternatively, query again with options if needed
         # However, for a consistent response, querying again might be better:
-        # return get_employee_by_id_orm(db, db_employee.id) # Query again to get loaded object
+        # return get_employee_by_id(db, db_employee.id) # Query again to get loaded object
         return db_employee # Return the created object (relationships might be lazy loaded)
     
     except IntegrityError as e:
@@ -337,7 +339,7 @@ def create_employee_orm(db: Session, employee: schemas.EmployeeCreate) -> models
         logger.error(f"Unexpected error creating employee: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error creating employee.")
 
-def get_employees_orm(
+def get_employees(
     db: Session, 
     skip: int = 0, 
     limit: int = 100, 
@@ -371,13 +373,13 @@ def get_employees_orm(
 
     return employees, total_count
 
-def update_employee_orm(
+def update_employee(
     db: Session, 
     employee_id: int, 
     employee_update: schemas.EmployeeUpdate
 ) -> Optional[models.Employee]:
     """Updates an existing employee using ORM, checking uniqueness constraints on update."""
-    db_employee = get_employee_by_id_orm(db, employee_id) # Reuse get function to fetch with loaded relations
+    db_employee = get_employee_by_id(db, employee_id) # Updated internal call
     if not db_employee:
         return None # Indicate not found
 
@@ -414,8 +416,7 @@ def update_employee_orm(
         db.commit()
         db.refresh(db_employee)
         # Query again to ensure relationships are loaded correctly after update
-        # Refresh might not reload relationships perfectly in all cases
-        return get_employee_by_id_orm(db, employee_id) 
+        return get_employee_by_id(db, employee_id) # Updated internal call
     except IntegrityError as e:
         db.rollback()
         logger.error(f"Integrity error updating employee {employee_id}: {e}", exc_info=True)
@@ -435,7 +436,7 @@ def update_employee_orm(
         logger.error(f"Unexpected error updating employee {employee_id}: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error updating employee.")
 
-def delete_employee_orm(db: Session, employee_id: int) -> bool:
+def delete_employee(db: Session, employee_id: int) -> bool:
     """Deletes an employee by ID using ORM."""
     db_employee = db.get(models.Employee, employee_id) # Use db.get for simple PK lookup
     if not db_employee:
@@ -464,7 +465,7 @@ def delete_employee_orm(db: Session, employee_id: int) -> bool:
 
 # --- ORM Functions for Unit Management --- START ---
 
-def create_unit_orm(db: Session, unit: schemas.UnitCreate) -> models.Unit:
+def create_unit(db: Session, unit: schemas.UnitCreate) -> models.Unit:
     """
     Creates a new unit with the given data using SQLAlchemy ORM.
     Checks for duplicate name.
@@ -505,7 +506,7 @@ def create_unit_orm(db: Session, unit: schemas.UnitCreate) -> models.Unit:
             detail="Database error occurred while creating unit."
         )
 
-def get_unit_by_id_orm(db: Session, unit_id: int) -> Optional[models.Unit]:
+def get_unit_by_id(db: Session, unit_id: int) -> Optional[models.Unit]:
     """Fetches a unit by its ID using SQLAlchemy ORM."""
     try:
         # Use db.get for efficient primary key lookup
@@ -516,7 +517,7 @@ def get_unit_by_id_orm(db: Session, unit_id: int) -> Optional[models.Unit]:
         # or return None if the session is in a bad state.
         return None
 
-def get_units_orm(
+def get_units(
     db: Session, 
     search: Optional[str] = None, 
     skip: int = 0, 
@@ -546,14 +547,14 @@ def get_units_orm(
         logger.error(f"SQLAlchemy error fetching units list: {e}")
         return [], 0 # Return empty list and zero count on error
 
-def update_unit_orm(db: Session, unit_id: int, unit_update: schemas.UnitUpdate) -> Optional[models.Unit]:
+def update_unit(db: Session, unit_id: int, unit_update: schemas.UnitUpdate) -> Optional[models.Unit]:
     """
     Updates an existing unit by ID.
     Returns the updated Unit ORM object, or None if not found.
     Raises HTTPException on conflict.
     """
     # Get the existing unit
-    db_unit = get_unit_by_id_orm(db, unit_id)
+    db_unit = get_unit_by_id(db, unit_id)
     if not db_unit:
         return None # Unit not found
         
@@ -595,14 +596,14 @@ def update_unit_orm(db: Session, unit_id: int, unit_update: schemas.UnitUpdate) 
             detail=f"Database error occurred while updating unit {unit_id}."
         )
 
-def delete_unit_orm(db: Session, unit_id: int) -> bool:
+def delete_unit(db: Session, unit_id: int) -> bool:
     """
     Deletes a unit by ID.
     Returns True if the unit was deleted, False if not found.
     Raises HTTPException on constraint violation.
     """
     # Check if the unit exists
-    db_unit = get_unit_by_id_orm(db, unit_id)
+    db_unit = get_unit_by_id(db, unit_id)
     if not db_unit:
         # Unit not found
         raise HTTPException(
@@ -630,7 +631,7 @@ def delete_unit_orm(db: Session, unit_id: int) -> bool:
             detail=f"Database error occurred while deleting unit {unit_id}."
         )
         
-def get_departments_by_unit_id_orm(db: Session, unit_id: int) -> List[models.Department]:
+def get_departments_by_unit_id(db: Session, unit_id: int) -> List[models.Department]:
     """
     获取指定单位的所有部门列表
     Returns a list of Department ORM objects for the given unit_id.
@@ -646,7 +647,7 @@ def get_departments_by_unit_id_orm(db: Session, unit_id: int) -> List[models.Dep
         logger.error(f"SQLAlchemy error fetching departments for unit {unit_id}: {e}")
         return [] # Return empty list on error
 
-def get_all_unit_names_orm(db: Session) -> List[str]:
+def get_all_unit_names(db: Session) -> List[str]:
     """
     获取所有单位名称列表，用于下拉框等场景
     Returns a list of unit names.
@@ -663,7 +664,7 @@ def get_all_unit_names_orm(db: Session) -> List[str]:
 # --- ORM Functions for Unit Management --- END
 
 # --- ORM Functions for Department Management --- START
-def create_department_orm(db: Session, department: schemas.DepartmentCreate) -> models.Department:
+def create_department(db: Session, department: schemas.DepartmentCreate) -> models.Department:
     """
     Creates a new department using SQLAlchemy ORM.
     Checks for unit existence and duplicate name within the unit.
@@ -671,7 +672,7 @@ def create_department_orm(db: Session, department: schemas.DepartmentCreate) -> 
     Raises HTTPException on errors.
     """
     # 1. Check if the parent unit exists
-    parent_unit = get_unit_by_id_orm(db, department.unit_id) # Reuse existing ORM function
+    parent_unit = get_unit_by_id(db, department.unit_id) # Reuse existing ORM function
     if not parent_unit:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -744,7 +745,7 @@ def create_department_orm(db: Session, department: schemas.DepartmentCreate) -> 
             detail="An unexpected error occurred during department creation."
         )
 
-def get_department_by_id_orm(db: Session, department_id: int) -> Optional[models.Department]:
+def get_department_by_id(db: Session, department_id: int) -> Optional[models.Department]:
     """
     Fetches a single department by ID using ORM, eager loading the related unit.
     Returns the Department ORM object or None if not found.
@@ -758,7 +759,7 @@ def get_department_by_id_orm(db: Session, department_id: int) -> Optional[models
         logger.error(f"SQLAlchemy error fetching department by ID {department_id}: {e}")
         return None
 
-def get_departments_orm(
+def get_departments(
     db: Session,
     unit_id: Optional[int] = None,
     search: Optional[str] = None,
@@ -793,7 +794,7 @@ def get_departments_orm(
         logger.error(f"SQLAlchemy error fetching departments list: {e}")
         return [], 0 # Return empty list and zero count on error
 
-def count_employees_by_department_id_orm(db: Session, department_id: int) -> int:
+def count_employees_by_department_id(db: Session, department_id: int) -> int:
     """
     计算指定部门下的员工数量
     Returns the count of employees associated with the given department ID.
@@ -809,7 +810,7 @@ def count_employees_by_department_id_orm(db: Session, department_id: int) -> int
         logger.error(f"SQLAlchemy error counting employees for department {department_id}: {e}")
         return 0  # 出错时返回0
 
-def update_department_orm(
+def update_department(
     db: Session,
     department_id: int,
     department_update: schemas.DepartmentUpdate
@@ -821,7 +822,7 @@ def update_department_orm(
     Raises HTTPException on errors.
     """
     # Fetch the department, ensuring the unit is loaded for checks and response
-    db_department = get_department_by_id_orm(db, department_id) # Reuse existing function
+    db_department = get_department_by_id(db, department_id) # Reuse existing function
     if not db_department:
         return None # Not found
 
@@ -853,7 +854,7 @@ def update_department_orm(
         db.commit()
         db.refresh(db_department)
         # Re-fetch with unit loaded to ensure consistent response format
-        return get_department_by_id_orm(db, department_id)
+        return get_department_by_id(db, department_id)
         
     except IntegrityError as e: # Catch potential race condition on unique constraint
         db.rollback()
@@ -884,7 +885,7 @@ def update_department_orm(
             detail="An unexpected error occurred during department update."
         )
 
-def delete_department_orm(db: Session, department_id: int) -> bool:
+def delete_department(db: Session, department_id: int) -> bool:
     """
     Deletes a department by ID using ORM, ensuring it has no associated employees.
     Returns True if deleted successfully.
@@ -925,7 +926,7 @@ def delete_department_orm(db: Session, department_id: int) -> bool:
 # --- ORM Functions for Department Management --- END
 
 # --- ORM Functions for Establishment Type Management --- START
-def get_establishment_types_orm(db: Session) -> List[models.EstablishmentType]:
+def get_establishment_types(db: Session) -> List[models.EstablishmentType]:
     """
     Fetches all establishment types from the database using SQLAlchemy ORM,
     ordered by name.
@@ -941,7 +942,7 @@ def get_establishment_types_orm(db: Session) -> List[models.EstablishmentType]:
 # --- ORM Functions for Establishment Type Management --- END
 
 # --- ORM Functions for Salary Data --- START
-def get_distinct_pay_periods_orm(db: Session) -> List[str]:
+def get_distinct_pay_periods(db: Session) -> List[str]:
     """
     Fetches a list of unique, non-null pay periods (YYYY-MM) from the 
     raw_salary_data_staging table using a raw SQL query via SQLAlchemy session.
@@ -951,7 +952,7 @@ def get_distinct_pay_periods_orm(db: Session) -> List[str]:
         # Use text() for raw SQL execution through the session
         query = text("""
             SELECT DISTINCT pay_period_identifier 
-            FROM public.raw_salary_data_staging 
+            FROM staging.raw_salary_data_staging 
             WHERE pay_period_identifier IS NOT NULL
             ORDER BY pay_period_identifier DESC;
         """)
@@ -971,7 +972,7 @@ def get_distinct_pay_periods_orm(db: Session) -> List[str]:
         logger.error(f"Unexpected error fetching distinct pay periods: {e}", exc_info=True)
         return []
 
-def get_salary_data_orm(
+def get_salary_data(
     db: Session, 
     limit: int = 100, 
     skip: int = 0, # Renamed from offset to match common ORM/API patterns
@@ -988,7 +989,8 @@ def get_salary_data_orm(
     """
     params = {}
     filters = []
-    base_query = "FROM public.view_level1_calculations"
+    # Updated base_query to point to the analytics schema
+    base_query = "FROM analytics.view_level1_calculations" 
     
     # Build WHERE clause dynamically
     if pay_period:
@@ -1014,6 +1016,7 @@ def get_salary_data_orm(
     # Count query
     # Pass params without limit/skip for count
     count_params = params.copy()
+    # Updated count_sql to point to the analytics schema
     count_sql = text(f"SELECT COUNT(*) AS total {base_query} {where_clause}")
 
     # Data query
@@ -1021,6 +1024,7 @@ def get_salary_data_orm(
     data_params = params.copy()
     data_params['limit'] = limit
     data_params['skip'] = skip
+    # Updated data_sql to point to the analytics schema
     data_sql = text(f"""
         SELECT * {base_query} {where_clause} 
         ORDER BY employee_id, pay_period_identifier 
@@ -1127,240 +1131,99 @@ def delete_report_link(db: Session, report_link_id: int) -> bool:
     
 # --- ORM Functions for Report Link Management --- END
 
-# --- Keep old psycopg2 version for now if other parts still depend on it --- 
-def get_user_by_username(conn, username: str) -> Optional[Dict[str, Any]]:
-    """(Old psycopg2 Version) Fetches a user by username, including hashed password, email, and role info."""
+# --- ORM Functions for Sheet Name Mapping --- START ---
+
+def get_sheet_mappings(db: Session, skip: int = 0, limit: int = 100) -> List[models.SheetNameMapping]:
+    """Fetches a list of sheet name mappings using ORM."""
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Join with roles to get role name directly
-            query = """
-                SELECT u.id, u.username, u.email, u.hashed_password, u.role_id, u.is_active, u.created_at, u.updated_at, r.name as role_name
-                FROM users u
-                JOIN roles r ON u.role_id = r.id
-                WHERE u.username = %s
-            """
-            cur.execute(query, (username,))
-            user = cur.fetchone()
-            return user
-    except psycopg2.Error as e:
-        logger.error(f"Database error fetching user by username {username}: {e}")
-        conn.rollback()
+        return db.query(models.SheetNameMapping).order_by(models.SheetNameMapping.sheet_name).offset(skip).limit(limit).all()
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error fetching sheet mappings: {e}", exc_info=True)
+        return []
+
+def get_sheet_mapping_by_name(db: Session, sheet_name: str) -> Optional[models.SheetNameMapping]:
+    """Fetches a single sheet name mapping by its name (PK)."""
+    try:
+        # Use db.get for primary key lookup
+        return db.get(models.SheetNameMapping, sheet_name)
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error fetching sheet mapping by name '{sheet_name}': {e}", exc_info=True)
         return None
 
-def get_user_by_id(conn, user_id: int) -> Optional[Dict[str, Any]]:
-    """Fetches a user by ID, including email and role info."""
+def create_sheet_mapping(db: Session, mapping: schemas.SheetNameMappingCreate) -> models.SheetNameMapping:
+    """Creates a new sheet name mapping."""
+    db_mapping = models.SheetNameMapping(**mapping.model_dump())
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            query = """
-                SELECT 
-                    u.id, u.username, u.email, u.role_id, u.is_active, u.created_at, u.updated_at, 
-                    r.id as role_id_join, r.name as role_name, r.description as role_description
-                FROM users u
-                JOIN roles r ON u.role_id = r.id
-                WHERE u.id = %s
-            """
-            cur.execute(query, (user_id,))
-            user_data = cur.fetchone()
-            if user_data:
-                 # Structure the role data as nested dictionary for UserResponse schema
-                 user_data['role'] = {
-                     'id': user_data.pop('role_id_join'), # Use the joined role_id
-                     'name': user_data.pop('role_name'),
-                     'description': user_data.pop('role_description')
-                 }
-                 # Ensure the main role_id field expected by UserInDBBase is still there
-                 # (though redundant now with nested role, schema expects it)
-                 # user_data['role_id'] = user_data['role']['id'] # This is already present from the SELECT u.role_id
-            return user_data
-    except psycopg2.Error as e:
-        logger.error(f"Database error fetching user by ID {user_id}: {e}")
-        conn.rollback()
+        db.add(db_mapping)
+        db.commit()
+        db.refresh(db_mapping)
+        return db_mapping
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Integrity error creating sheet mapping for '{mapping.sheet_name}': {e}", exc_info=True)
+        if "sheet_name_mappings_pkey" in str(e):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Sheet name '{mapping.sheet_name}' already exists.")
+        elif "fk_mapping_employee_type_key" in str(e):
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid employee_type_key '{mapping.employee_type_key}'.")
+        else:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Database integrity error.")
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error creating sheet mapping: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error creating sheet mapping.")
+
+def update_sheet_mapping(db: Session, sheet_name: str, mapping_update: schemas.SheetNameMappingUpdate) -> Optional[models.SheetNameMapping]:
+    """Updates an existing sheet name mapping."""
+    db_mapping = get_sheet_mapping_by_name(db, sheet_name)
+    if not db_mapping:
         return None
 
-def create_user(conn, user: schemas.UserCreate, hashed_password: str) -> Optional[Dict[str, Any]]:
-    """Creates a new user in the database, including the email."""
+    update_data = mapping_update.model_dump(exclude_unset=True)
+    if not update_data:
+         return db_mapping # Nothing to update
+         
+    for key, value in update_data.items():
+        setattr(db_mapping, key, value)
+        
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            query = """
-                INSERT INTO users (username, email, hashed_password, role_id, is_active)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING id;
-            """
-            # Pass email from the schema
-            cur.execute(query, (user.username, user.email, hashed_password, user.role_id, user.is_active))
-            new_user_id_row = cur.fetchone()
-            conn.commit() # Commit after successful insert
+        db.commit()
+        db.refresh(db_mapping)
+        return db_mapping
+    except IntegrityError as e: # Handle potential FK violation on employee_type_key update
+        db.rollback()
+        logger.error(f"Integrity error updating sheet mapping '{sheet_name}': {e}", exc_info=True)
+        if "fk_mapping_employee_type_key" in str(e):
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid employee_type_key provided for update.")
+        else:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Database integrity error during update.")
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error updating sheet mapping '{sheet_name}': {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error updating sheet mapping.")
 
-            if new_user_id_row:
-                # Fetch the newly created user with role details for response
-                return get_user_by_id(conn, new_user_id_row['id'])
-            else:
-                conn.rollback() # Should not happen if RETURNING id works, but safe
-                logger.error(f"Failed to retrieve ID for newly created user {user.username}")
-                return None
-    except psycopg2.IntegrityError as e:
-        logger.error(f"Database integrity error creating user {user.username} or email {user.email}: {e}")
-        conn.rollback()
-        detail = "An integrity constraint was violated." 
-        if "users_username_key" in str(e):
-            detail = f"Username '{user.username}' already exists."
-        elif "uq_users_email" in str(e): # Check for the email constraint name
-            detail = f"Email '{user.email}' is already registered."
-        # Raise HTTPException here instead of returning None for clearer API response
-        raise HTTPException(status_code=409, detail=detail) from e
-    except psycopg2.Error as e:
-        logger.error(f"Database error creating user {user.username}: {e}")
-        conn.rollback()
-        # Raise HTTPException instead of returning None
-        raise HTTPException(status_code=500, detail="Database error during user creation.") from e
-
-def get_users(conn, skip: int = 0, limit: int = 100) -> Tuple[List[Dict[str, Any]], int]:
-    """Fetches a paginated list of users with their email and role information."""
-    users_list = []
-    total_count = 0
-    try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Get total count
-            cur.execute("SELECT COUNT(*) FROM users")
-            total_count = cur.fetchone()['count']
-
-            # Get paginated users with role info
-            query = """
-                SELECT 
-                    u.id, u.username, u.email, u.role_id, u.is_active, u.created_at, u.updated_at, 
-                    r.id as role_id_join, r.name as role_name, r.description as role_description
-                FROM users u
-                JOIN roles r ON u.role_id = r.id
-                ORDER BY u.id
-                LIMIT %s OFFSET %s
-            """
-            cur.execute(query, (limit, skip))
-            results = cur.fetchall()
-            for row in results:
-                 # Structure the role data as nested dictionary
-                 row['role'] = {
-                     'id': row.pop('role_id_join'),
-                     'name': row.pop('role_name'),
-                     'description': row.pop('role_description')
-                 }
-                 # Ensure the main role_id field expected by UserInDBBase is still there
-                 # row['role_id'] = row['role']['id'] # Already present in select
-                 users_list.append(row)
-
-        return users_list, total_count
-    except psycopg2.Error as e:
-        logger.error(f"Database error fetching users list: {e}")
-        conn.rollback()
-        return [], 0
-
-def update_user(conn, user_id: int, user_update: schemas.UserUpdate, hashed_password: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    """(Old psycopg2 Version) Updates a user's information in the database, including email."""
-    # Use model_dump for Pydantic v2
-    fields_to_update = user_update.model_dump(exclude_unset=True) 
-
-    if hashed_password:
-        fields_to_update['hashed_password'] = hashed_password
-    elif 'password' in fields_to_update:
-        # If password is None or empty string in the update model, don't update it.
-        # Ensure 'password' itself is not added to the fields to update DB.
-        del fields_to_update['password']
-
-    if not fields_to_update:
-        # No fields to update, return current user data
-        # Use existing function which now includes email and role
-        return get_user_by_id(conn, user_id) 
-
-    # Prepare SET clause and values for the query
-    set_clause = ", ".join([f"{key} = %({key})s" for key in fields_to_update.keys()])
-    values = {**fields_to_update, 'user_id': user_id} # Use named placeholders
-
-    query = f"""
-        UPDATE users
-        SET {set_clause}, updated_at = CURRENT_TIMESTAMP
-        WHERE id = %(user_id)s
-        RETURNING id;
-    """
-
-    try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(query, values)
-            updated_user_id_row = cur.fetchone()
-            if not updated_user_id_row:
-                conn.rollback() # User not found
-                logger.warning(f"Attempted to update non-existent user with ID: {user_id}")
-                # Raise not found error instead of returning None
-                raise HTTPException(status_code=404, detail="User not found")
-            
-            conn.commit()
-            # Fetch the updated user details including role and email
-            return get_user_by_id(conn, user_id) 
-    except psycopg2.IntegrityError as e:
-         logger.error(f"Database integrity error updating user {user_id}: {e}")
-         conn.rollback()
-         detail = "Update failed due to integrity constraint." 
-         if "users_username_key" in str(e):
-             detail = f"Username '{user_update.username}' is already registered by another user."
-         elif "uq_users_email" in str(e): # Check for email constraint
-             detail = f"Email '{user_update.email}' is already registered by another user."
-         raise HTTPException(status_code=409, detail=detail) from e
-    except psycopg2.Error as e:
-        logger.error(f"Database error updating user {user_id}: {e}")
-        conn.rollback()
-        # Raise HTTPException instead of returning None
-        raise HTTPException(status_code=500, detail="Database error during user update.") from e
-
-def delete_user(conn, user_id: int) -> bool:
-    """(Old psycopg2 Version) Deletes a user from the database."""
-    try:
-        with conn.cursor() as cur: # No RealDictCursor needed, just rowcount
-            cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
-            deleted_rows = cur.rowcount
-            conn.commit()
-            return deleted_rows > 0
-    except psycopg2.Error as e:
-        logger.error(f"Database error deleting user {user_id}: {e}")
-        conn.rollback()
+def delete_sheet_mapping(db: Session, sheet_name: str) -> bool:
+    """Deletes a sheet name mapping."""
+    db_mapping = get_sheet_mapping_by_name(db, sheet_name)
+    if not db_mapping:
         return False
-
-def get_user_hashed_password(conn, user_id: int) -> Optional[str]:
-    """(Old psycopg2 Version) Fetches only the hashed password for a given user ID."""
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT hashed_password FROM users WHERE id = %s", (user_id,))
-            result = cur.fetchone()
-            return result[0] if result else None
-    except psycopg2.Error as e:
-        logger.error(f"Database error fetching hashed password for user {user_id}: {e}")
-        conn.rollback()
-        return None
+        db.delete(db_mapping)
+        db.commit()
+        return True
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error deleting sheet mapping '{sheet_name}': {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error deleting sheet mapping.")
 
-def update_user_password(conn, user_id: int, new_hashed_password: str) -> bool:
-    """(Old psycopg2 Version) Updates a user's password in the database."""
-    try:
-        with conn.cursor() as cur:
-            cur.execute("UPDATE users SET hashed_password = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s", (new_hashed_password, user_id))
-            updated_rows = cur.rowcount
-            conn.commit()
-            return updated_rows > 0
-    except psycopg2.Error as e:
-        logger.error(f"Database error updating password for user {user_id}: {e}")
-        conn.rollback()
-        return False
+# --- ORM Functions for Sheet Name Mapping --- END ---
 
-# --- Helper to get DB connection (example, likely exists in main.py already) ---
-# You should ideally reuse the connection logic from your main FastAPI app (e.g., Depends(get_db_connection))
-# This is just a placeholder representation.
-
-# def get_db_connection():
-#     conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-#     try:
-#         yield conn
-#     finally:
-#         conn.close() 
+# --- REMOVED Old psycopg2 Functions ---
+# ... existing code ... 
 
 # +++ Raw Salary Data Staging Model (Minimal) +++ START
 class RawSalaryDataStaging(Base):
     __tablename__ = "raw_salary_data_staging"
+    __table_args__ = {'schema': 'staging'} # Added schema
     # Assuming an 'id' column exists, add it if needed for other operations
     id = Column(Integer, primary_key=True, index=True) # Added primary key
     pay_period_identifier = Column(String, index=True) # Add index for performance
@@ -1369,6 +1232,10 @@ class RawSalaryDataStaging(Base):
     # ... etc
 
 # +++ Raw Salary Data Staging Model (Minimal) +++ END
+
+# --- Calculation Rule Engine Models Removed (Moved to models.py) ---
+
+# --- Calculated Salary Record Model Removed (Moved to models.py) ---
 
 # --- ORM CRUD Functions for Units --- START
 # ... existing code ... 

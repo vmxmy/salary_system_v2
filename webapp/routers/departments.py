@@ -9,6 +9,7 @@ from ..schemas import (
     DepartmentListResponse, DepartmentInfo
 )
 from pydantic import BaseModel
+import typing
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ async def update_department_endpoint(
     """Updates a specific department."""
     logger.info(f"User {current_user.username} attempting to update department ID: {department_id} with data: {department_update.model_dump(exclude_unset=True)}")
     try:
-        department = models_db.update_department_orm(db, department_id, department_update)
+        department = models_db.update_department(db, department_id, department_update)
         if not department:
             logger.warning(f"Department with ID {department_id} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Department with ID {department_id} not found.")
@@ -88,7 +89,7 @@ async def delete_department_endpoint(
     """Deletes a department, returning 204 No Content on success."""
     logger.info(f"User {current_user.username} attempting to delete department ID: {department_id}")
     try:
-        deleted = models_db.delete_department_orm(db, department_id)
+        deleted = models_db.delete_department(db, department_id)
         if not deleted:
             logger.warning(f"Department with ID {department_id} not found for deletion.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Department with ID {department_id} not found.")
@@ -117,8 +118,8 @@ async def get_departments(
     """Fetches a paginated list of departments with optional filtering."""
     offset = (page - 1) * page_size
     try:
-        departments, total = models_db.get_departments_orm(
-            db, 
+        departments, total = models_db.get_departments(
+            db=db,
             unit_id=unit_id,
             search=search,
             skip=offset,
@@ -143,7 +144,7 @@ async def get_department(
 ):
     """Retrieves a single department by ID."""
     try:
-        department = models_db.get_department_by_id_orm(db, department_id)
+        department = models_db.get_department_by_id(db, department_id)
         if not department:
             raise HTTPException(status_code=404, detail=f"Department with ID {department_id} not found")
         return orm_to_pydantic(department, Department)
@@ -162,7 +163,7 @@ async def create_department_endpoint(
 ):
     """Creates a new department."""
     try:
-        created_department = models_db.create_department_orm(db, department)
+        created_department = models_db.create_department(db, department)
         return orm_to_pydantic(created_department, Department)
     except HTTPException as http_exc:
         # Re-raise HTTP exceptions from the DB layer
@@ -179,7 +180,7 @@ async def get_simple_departments_list(
     """Gets a simple list of departments (ID and name only) for dropdowns."""
     try:
         # 获取部门列表
-        departments, _ = models_db.get_departments_orm(db, limit=1000)
+        departments, _ = models_db.get_departments(db, limit=1000)
         
         # 使用orm_to_pydantic函数转换
         result = []
@@ -194,3 +195,13 @@ async def get_simple_departments_list(
     except Exception as e:
         logger.error(f"Error fetching departments list: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching departments list: {str(e)}")
+
+@router.get("/all", response_model=List[DepartmentInfo])
+async def get_all_departments(
+    db: Session = Depends(get_db)
+):
+    """Fetches all departments (simplified list for dropdowns)."""
+    # Call the renamed ORM function
+    departments, _ = models_db.get_departments(db, limit=1000) # Get a large number for dropdown
+    # Use typing.cast to satisfy linter
+    return [schemas.DepartmentInfo(id=typing.cast(int, dept.id), name=typing.cast(str, dept.name)) for dept in departments]

@@ -3,7 +3,8 @@
     "sidebarTitle": "工资管理系统",
     "sidebarTitleCollapsed": "系统",
     "logoutButton": "退出登录",
-    "footerText": "工资管理系统前端 ©{{year}} 使用 Ant Design 和 Vite 创建"
+    "footerText": "工资管理系统前端 ©{{year}} 使用 Ant Design 和 Vite 创建",
+    "title": "高新区工资信息管理系统"
   },
   "menu": {
     "dataManagement": "数据管理",
@@ -21,7 +22,11 @@
     "userManager": "用户账号管理",
     "user": "User",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "formulaManagement": "公式管理",
+    "ruleManagement": "规则管理",
+    "dashboard": "仪表盘",
+    "sheetMappings": "Sheet 映射"
   },
   "breadcrumb": {
     "home": "首页",
@@ -38,7 +43,10 @@
     "userManager": "用户账号管理",
     "profile": "Profile",
     "reportLinksManagement": "报表链接管理",
-    "viewReport": "查看报表"
+    "viewReport": "查看报表",
+    "formulaManagement": "公式管理",
+    "ruleManagement": "规则管理",
+    "sheetMappings": "Sheet 映射"
   },
   "auth": {
     "loginTitle": "登录",
@@ -93,7 +101,29 @@
       "showTotal": "{{rangeStart}}-{{rangeEnd}} / 共 {{total}} 条"
     },
     "allOption": "全部",
-    "actions": "操作"
+    "actions": "操作",
+    "confirmDelete": {
+      "title": "确认删除",
+      "contentFormula": "您确定要删除此公式吗？此操作无法撤销。",
+      "contentRule": "您确定要删除此规则吗？"
+    },
+    "table": {
+      "columns": {
+        "id": "编号",
+        "name": "名称",
+        "description": "描述",
+        "expression": "表达式",
+        "createdAt": "创建时间",
+        "updatedAt": "更新时间",
+        "action": "操作",
+        "priority": "优先级",
+        "targetField": "目标字段",
+        "actionType": "动作类型",
+        "actionDetail": "动作详情",
+        "conditions": "条件",
+        "active": "激活"
+      }
+    }
   },
   "dataViewer": {
     "title": "薪酬记录",
@@ -116,15 +146,76 @@
     },
     "table": {
       "colId": "ID",
-      "colName": "姓名",
       "colPayPeriod": "发薪周期",
+      "colName": "姓名",
       "colIdCard": "身份证号",
       "colDepartment": "部门",
       "colUnit": "单位",
       "colEstablishment": "编制",
+      "colPersonnelIdentity": "人员身份",
+      "colPersonnelRank": "人员职级",
+      "colPostCategory": "岗位类别",
+      "colOfficialPostSalaryLevel": "职务工资级别(参)",
+      "colOfficialSalaryStep": "工资档次(参)",
+      "colSalaryLevel": "薪级",
+      "colSalaryGrade": "岗位等级",
+      "colAnnualFixedSalary": "年固定薪总额",
+      "colOneTimeDeduction": "一次性扣款",
+      "colBasicPerfBonusDeduct": "基础绩效奖扣除",
+      "colBasicPerfDeduct": "基本绩效扣除",
+      "colIncentivePerfSalary": "奖励绩效工资",
+      "colPositionTechSalary": "岗位/技术工资",
+      "colRankPostGradeSalary": "级别/等级工资",
+      "colReservedSubsidy1993": "93工改保留补贴",
+      "colOnlyChildReward": "独生子女父母奖励",
+      "colPostPositionAllowance": "岗位津贴",
+      "colCivilServantNormAllowance": "公务员规范津贴",
+      "colTransportationAllowance": "交通补贴",
+      "colBasicPerfBonus": "基础绩效奖",
+      "colProbationSalary": "见习期工资",
+      "colPetitionWorkerPostAllowance": "信访人员岗位津贴",
+      "colRewardPerfDeduct": "奖励绩效扣除",
       "colPostSalary": "岗位工资",
+      "colSalaryStep": "薪级工资",
+      "colMonthlyBasicPerf": "月基础绩效",
+      "colMonthlyRewardPerf": "月奖励绩效",
+      "colBasicSalary": "基本工资",
+      "colBasicPerfSalary": "基础性绩效工资",
+      "colPerformanceSalary": "绩效工资",
+      "colOtherAllowance": "其他津贴",
+      "colSalaryBackpay": "补发工资",
+      "colAllowance": "津贴",
+      "colQuarterlyPerfBonus": "季度绩效奖",
+      "colSubsidy": "补贴",
+      "colPetitionPostAllowance": "信访岗位津贴",
+      "colTotalDeductAdjust": "扣款调整合计",
+      "colLivingAllowance": "生活补贴",
+      "colSalaryStepBackpayTotal": "薪级补发小计",
+      "colTotalBackpayAmount": "补发总额",
       "colPensionSelf": "养老保险(个人)",
-      "colNetPay": "实发工资"
+      "colMedicalSelf": "医疗保险(个人)",
+      "colAnnuitySelf": "职业年金(个人)",
+      "colHousingFundSelf": "公积金(个人)",
+      "colUnemploymentSelf": "失业保险(个人)",
+      "colIndividualTax": "个人所得税",
+      "colOtherDeductions": "其他扣款",
+      "colSocialInsuranceAdjust": "社保调整",
+      "colHousingFundAdjust": "公积金调整",
+      "colTaxAdjust": "个税调整",
+      "colPensionEmployer": "养老保险(单位)",
+      "colMedicalEmployer": "医疗保险(单位)",
+      "colAnnuityEmployer": "职业年金(单位)",
+      "colHousingFundEmployer": "公积金(单位)",
+      "colUnemploymentEmployer": "失业保险(单位)",
+      "colCriticalIllnessEmployer": "大病医疗(单位)",
+      "colInjuryEmployer": "工伤保险(单位)",
+      "colRemarks": "备注",
+      "colXiaoJi": "小计",
+      "colPersonalDeductions": "个人扣除项",
+      "colTotalPayable": "应发合计",
+      "colNetPay": "实发合计",
+      "colCreatedAt": "创建时间",
+      "colUpdatedAt": "更新时间"
     },
     "errors": {
       "fetchFailed": "获取数据失败",
@@ -234,7 +325,22 @@
       "colBankAccount": "银行账号",
       "colBankName": "开户行名称",
       "colAction": "操作",
-      "renderNA": "-"
+      "renderNA": "-",
+      "colGender": "性别",
+      "colEthnicity": "民族",
+      "colDob": "出生日期",
+      "colEducation": "文化程度",
+      "colWorkStartDate": "参加工作时间",
+      "colServiceInterruption": "工龄间断(年)",
+      "colContinuousService": "连续工龄(年)",
+      "colActualPosition": "实际任职",
+      "colActualPosStartDate": "实际任职时间",
+      "colPosLevelStartDate": "任职级时间",
+      "colEmploymentStatus": "状态",
+      "colRemarks": "备注",
+      "colCreatedAt": "创建时间",
+      "colUpdatedAt": "更新时间",
+      "colBankAcc": "银行账号"
     },
     "actions": {
       "edit": "编辑",
@@ -278,11 +384,25 @@
       "department": "部门",
       "establishment": "编制",
       "bankAccount": "银行账号",
-      "bankName": "开户行"
+      "bankName": "开户行",
+      "gender": "性别",
+      "ethnicity": "民族",
+      "dob": "出生日期",
+      "education": "文化程度",
+      "workStartDate": "参加工作时间",
+      "serviceInterruption": "工龄间断(年)",
+      "continuousService": "连续工龄(年)",
+      "actualPosition": "实际任职",
+      "actualPosStartDate": "实际任职时间",
+      "posLevelStartDate": "任职级时间",
+      "employmentStatus": "状态",
+      "remarks": "备注"
     },
     "placeholders": {
       "department": "选择部门",
-      "establishment": "选择编制类型"
+      "establishment": "选择编制类型",
+      "gender": "选择性别",
+      "employmentStatus": "选择状态"
     },
     "validation": {
       "nameRequired": "请输入员工姓名",
@@ -425,7 +545,8 @@
   },
   "tabs": {
     "fieldMapping": "全部字段映射",
-    "rules": "员工类型字段规则"
+    "rules": "员工类型字段规则",
+    "sheetMappings": "Sheet 映射"
   },
   "userManager": {
     "title": "用户账号管理",
@@ -491,5 +612,127 @@
         "title": "确认删除",
         "content": "确定要删除用户 {{username}} 吗？此操作无法撤销。"
     }
+  },
+  "config": {
+    "formulas": {
+      "title": "公式管理",
+      "createButton": "新建公式",
+      "modal": {
+        "title": {
+          "create": "新建公式",
+          "edit": "编辑公式"
+        },
+        "labels": {
+          "name": "名称",
+          "description": "描述",
+          "expression": "公式表达式"
+        },
+        "placeholders": {
+          "expression": "例如：context['basic_salary'] * 1.1 + context.get('bonus', 0)"
+        }
+      },
+      "validation": {
+        "nameRequired": "请输入公式名称！",
+        "expressionRequired": "请输入公式表达式！"
+      },
+      "messages": {
+        "loadFailed": "加载公式失败",
+        "saveFailed": "保存公式失败",
+        "deleteFailed": "删除公式失败。它可能正被规则使用。",
+        "createSuccess": "公式创建成功",
+        "updateSuccess": "公式更新成功",
+        "deleteSuccess": "公式删除成功"
+      }
+    },
+    "rules": {
+      "title": "计算规则管理",
+      "buttons": {
+        "add": "添加规则"
+      },
+      "table": {
+        "actionDetail": {
+          "formulaPrefix": "公式",
+          "valuePrefix": "值"
+        },
+        "conditionsCount": "{{count}} 个条件"
+      },
+      "modal": {
+        "titleAdd": "添加规则",
+        "titleEdit": "编辑规则"
+      },
+      "form": {
+        "name": {
+          "label": "规则名称",
+          "required": "请输入规则名称"
+        },
+        "priority": {
+          "label": "优先级",
+          "required": "请输入优先级"
+        },
+        "isActive": {
+          "label": "是否激活"
+        },
+        "description": {
+          "label": "描述"
+        },
+        "targetField": {
+          "label": "目标字段",
+          "required": "请输入目标字段的数据库名称",
+          "placeholder": "目标字段的数据库名称"
+        },
+        "actionType": {
+          "label": "动作类型",
+          "required": "请选择动作类型",
+          "options": {
+            "applyFormula": "应用公式",
+            "setFixedValue": "设置固定值"
+          }
+        },
+        "formula": {
+          "label": "选择公式",
+          "required": "请选择要应用的公式",
+          "placeholder": "搜索或选择公式"
+        },
+        "fixedValue": {
+          "label": "固定值",
+          "required": "请输入固定值",
+          "placeholder": "要设置的固定值"
+        },
+        "conditions": {
+          "title": "触发条件",
+          "contextField": {
+            "required": "请输入上下文/目标字段名",
+            "placeholder": "上下文/目标字段名"
+          },
+          "operator": {
+            "required": "请选择操作符",
+            "placeholder": "操作符"
+          },
+          "value": {
+            "required": "请输入比较值",
+            "placeholder": "比较值"
+          },
+          "addCondition": "添加条件"
+        }
+      },
+      "messages": {
+        "loadFailed": "加载规则列表失败",
+        "formulasLoadFailed": "加载公式列表失败",
+        "saveFailed": "保存规则失败",
+        "updateSuccess": "规则更新成功",
+        "createSuccess": "规则创建成功",
+        "deleteSuccess": "规则删除成功",
+        "deleteFailed": "删除规则失败"
+      }
+    }
+  },
+  "gender": {
+    "male": "男",
+    "female": "女",
+    "other": "其他"
+  },
+  "status": {
+    "active": "在职",
+    "inactive": "离职"
   }
 } 

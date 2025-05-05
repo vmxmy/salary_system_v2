@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # 创建路由器实例
 router = APIRouter(prefix="/api/employees", tags=["Employees"])
 
-@router.get("", response_model=EmployeeListResponse)
+@router.get("/", response_model=EmployeeListResponse)
 async def get_employees(
     # 分页参数
     page: int = Query(1, ge=1, description="Page number starting from 1"),
@@ -40,7 +40,7 @@ async def get_employees(
     
     try:
         # 调用ORM函数获取数据
-        employees, total = models_db.get_employees_orm(
+        employees, total = models_db.get_employees(
             db=db,
             skip=skip,
             limit=limit,
@@ -101,7 +101,7 @@ async def get_employee(
 ):
     """根据ID获取单个员工详情。"""
     try:
-        employee = models_db.get_employee_by_id_orm(db, employee_id)
+        employee = models_db.get_employee_by_id(db, employee_id)
         if not employee:
             raise HTTPException(status_code=404, detail="员工不存在")
             

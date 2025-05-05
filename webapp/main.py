@@ -40,6 +40,8 @@ from .routers.auth_management import router as auth_router
 from .routers.user_management import router as user_router
 from .routers.config_management import router as config_router
 from .routers.file_conversion import router as file_conversion_router
+from .routers.calculation_rules_admin import router as calculation_admin_router
+from .routers.salary_calculation import router as salary_calculation_router
 
 # 导入所有Pydantic模型
 from .pydantic_models import (
@@ -148,107 +150,53 @@ async def run_dbt_build(dbt_project_dir: str):
 # TODO: Review if these should be moved to models_db.py for better separation
 
 def create_unit(conn, unit: UnitCreate) -> dict:
-    """转发到models_db.create_unit_orm函数。"""
-    # 将Session作为参数传递
+    """转发到models_db.create_unit函数。"""
     db = conn
-    # 确保使用正确的schemas.UnitCreate类型
     from .schemas import UnitCreate as SchemasUnitCreate
-    # 创建正确类型的对象
     unit_obj = SchemasUnitCreate(**unit.dict())
-    result = models_db.create_unit_orm(db, unit_obj)
-    # 转换ORM模型为字典
+    # Call renamed function
+    result = models_db.create_unit(db, unit_obj)
     return result.__dict__
 
 def get_unit_by_id(conn, unit_id: int) -> Optional[dict]:
-    """转发到models_db.get_unit_by_id_orm函数。"""
+    """转发到models_db.get_unit_by_id函数。"""
     db = conn
-    result = models_db.get_unit_by_id_orm(db, unit_id)
+    # Call renamed function
+    result = models_db.get_unit_by_id(db, unit_id)
     if result is None:
         return None
     return result.__dict__
 
 def delete_unit(conn, unit_id: int) -> bool:
-    """转发到models_db.delete_unit_orm函数。"""
+    """转发到models_db.delete_unit函数。"""
     db = conn
-    return models_db.delete_unit_orm(db, unit_id)
+    # Call renamed function
+    return models_db.delete_unit(db, unit_id)
 
 def create_department(conn, department: DepartmentCreate) -> dict:
-    """转发到models_db.create_department_orm函数。"""
+    """转发到models_db.create_department函数。"""
     db = conn
-    # 确保使用正确的schemas.DepartmentCreate类型
     from .schemas import DepartmentCreate as SchemasDepartmentCreate
-    # 创建正确类型的对象
     dept_obj = SchemasDepartmentCreate(**department.dict())
-    result = models_db.create_department_orm(db, dept_obj)
+    # Call renamed function
+    result = models_db.create_department(db, dept_obj)
     return result.__dict__
 
 def delete_department(conn, department_id: int) -> bool:
-    """转发到models_db.delete_department_orm函数。"""
+    """转发到models_db.delete_department函数。"""
     db = conn
-    return models_db.delete_department_orm(db, department_id)
+    # Call renamed function
+    return models_db.delete_department(db, department_id)
 
-def get_units(conn, search: Optional[str], limit: int, offset: int) -> tuple[List[dict], int]:
-    """Fetches a paginated list of units with optional search."""
-    units_list = []
-    total_count = 0
-    base_query = "FROM public.units "
-    where_clauses = []
-    params = {}
-
-    if search:
-        where_clauses.append("name ILIKE %(search)s")
-        params['search'] = f"%{search}%"
-
-    where_sql = ""
-    if where_clauses:
-        where_sql = " WHERE " + " AND ".join(where_clauses)
-
-    count_query = f"SELECT COUNT(*) {base_query} {where_sql};"
-    data_query = f"SELECT id, name, description, created_at, updated_at {base_query} {where_sql} ORDER BY name LIMIT %(limit)s OFFSET %(offset)s;"
-    params['limit'] = limit
-    params['offset'] = offset
-
-    try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Get total count
-            cur.execute(count_query, params)
-            total_count = cur.fetchone()['count']
-            
-            # Get data
-            cur.execute(data_query, params)
-            units_list = cur.fetchall()
-            
-            # Convert datetime objects to ISO format strings or handle as needed by Pydantic
-            for unit in units_list:
-                if unit.get('created_at'):
-                    unit['created_at'] = unit['created_at'].isoformat()
-                if unit.get('updated_at'):
-                    unit['updated_at'] = unit['updated_at'].isoformat()
-                    
-    except psycopg2.Error as e:
-        logger.error(f"Database error fetching units: {e}", exc_info=True)
-        # Don't return None, raise an exception that FastAPI can handle
-        raise HTTPException(status_code=500, detail="数据库错误：无法获取单位列表。")
-    except Exception as e:
-        logger.error(f"Unexpected error fetching units: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="内部服务器错误：获取单位列表时发生意外。")
-
-    return units_list, total_count
-
-def update_unit(conn, unit_id: int, unit_update: UnitUpdate) -> Optional[dict]:
-    # // ... function body ...
-    pass
-
-def update_department(conn, department_id: int, department_update: DepartmentUpdate) -> Optional[dict]:
-    # // ... function body ...
-    pass
+# --- DELETE get_units, update_unit, update_department --- 
+# (These functions are likely unused placeholders or old code)
 
 # --- Endpoints start here --- 
 
 @app.get("/")
 async def read_root():
     """Root endpoint providing a welcome message."""
-    return {"message": "Welcome to the Salary System API"}
+    return {"message": "Welcome to the Salary Information Management System API"}
 
 # --- 以下端点已移至salary_data.py路由器 ---
 # @app.get("/api/salary_data/pay_periods", response_model=PayPeriodsResponse)
@@ -282,177 +230,13 @@ async def get_converter_page():
 
 # 该端点已迁移到file_conversion路由器中
 
-@app.delete("/api/config/mappings/{source_name}", status_code=204, tags=["Configuration"]) # 204 No Content on successful delete
-async def delete_field_mapping(
-    source_name: str,
-    # Change conn to db: Session
-    db: Session = Depends(get_db),
-    # Replace Basic Auth with JWT Auth (Super Admin only)
-    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin"])) 
-):
-    """Deletes a field mapping record by source_name using SQLAlchemy Session."""
-    # Use :source_name for named parameter
-    query = text("DELETE FROM public.salary_field_mappings WHERE source_name = :source_name RETURNING source_name;")
-    params = {"source_name": source_name}
-    try:
-        # Execute using db.execute
-        result = db.execute(query, params)
-        deleted_row = result.fetchone() # Check if a row was returned (meaning deleted)
-        
-        if not deleted_row:
-            # No need to rollback, just means the record wasn't found
-            raise HTTPException(status_code=404, detail=f"Mapping with source_name '{source_name}' not found.")
-            
-        db.commit() # Commit the deletion
-        logger.info(f"Deleted field mapping with source_name: {source_name}")
-        return # Return None for 204 response
-        
-    except sa_exc.SQLAlchemyError as e: # Catch SQLAlchemy errors
-        db.rollback()
-        logger.error(f"Database query error deleting field mapping: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to delete field mapping.")
-        
-    except Exception as e:
-        db.rollback()
-        logger.error(f"An unexpected error occurred deleting field mapping: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
-    # No finally block needed
+# --- DELETE Redundant delete_field_mapping endpoint --- 
+# (The @app.delete("/api/config/mappings/{source_name}"...) block is deleted)
 
 # --- Config Management Endpoints --- END
 
-# --- Employee Management Endpoints --- START
-@app.get("/api/employees", response_model=EmployeeListResponse, tags=["Employees"])
-async def get_employees(
-    # Change limit/offset to page/size to match frontend
-    page: int = Query(1, ge=1, description="Page number starting from 1"),
-    size: int = Query(10, ge=1, le=100, description="Number of items per page"),
-    # Filters
-    name: Optional[str] = Query(None, description="Filter by employee name (case-insensitive partial match)"),
-    department_id: Optional[int] = Query(None, description="Filter by department ID"),
-    employee_unique_id: Optional[str] = Query(None, description="Filter by employee unique ID (工号, exact match)"), # Added Filter
-    establishment_type_id: Optional[int] = Query(None, description="Filter by establishment type ID"), # Added Filter
-    db: Session = Depends(get_db), # Ensure db: Session is used
-    # Replace Basic Auth with JWT Auth (Super Admin or Data Admin)
-    current_user: schemas.UserResponse = Depends(auth.get_current_user) # Changed role check logic, now any logged-in user can view?
-):
-    """Fetches a paginated list of employees based on filters."""
-    logger.info(f"Fetching employees with page={page}, size={size}, name filter={name}, department_id={department_id}")
-
-    # Convert page/size to limit/offset
-    limit = size
-    skip = (page - 1) * size
-    
-    try:
-        # ORM: Use db.query to fetch employees with pagination and filtering
-        employees, total = models_db.get_employees_orm(
-            db=db,
-            skip=skip,
-            limit=limit,
-            name=name,
-            department_id=department_id,
-            employee_unique_id=employee_unique_id, # Pass new filter
-            establishment_type_id=establishment_type_id # Pass new filter
-        )
-        
-        # 正确处理关联数据
-        employees_data = []
-        for employee in employees:
-            # 创建基础数据字典
-            employee_dict = {
-                "id": employee.id,
-                "name": employee.name,
-                "id_card_number": employee.id_card_number,
-                "department_id": employee.department_id,
-                "employee_unique_id": employee.employee_unique_id,
-                "bank_account_number": employee.bank_account_number,
-                "bank_name": employee.bank_name,
-                "establishment_type_id": employee.establishment_type_id,
-                "created_at": employee.created_at,
-                "updated_at": employee.updated_at,
-                # 默认值
-                "department_name": None,
-                "unit_name": None,
-                "establishment_type_name": None
-            }
-            
-            # 添加关联数据
-            if employee.department:
-                employee_dict["department_name"] = employee.department.name
-                if employee.department.unit:
-                    employee_dict["unit_name"] = employee.department.unit.name
-            
-            if employee.establishment_type:
-                employee_dict["establishment_type_name"] = employee.establishment_type.name
-                
-            # 转换为Pydantic模型
-            employees_data.append(EmployeeResponse.model_validate(employee_dict))
-        
-        # Return the formatted response with pagination
-        return EmployeeListResponse(data=employees_data, total=total)
-
-    except sa_exc.SQLAlchemyError as e:
-        logger.error(f"Database error fetching employees: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Error fetching employees: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
-@app.get("/api/employees/{employee_id}", response_model=EmployeeResponse, tags=["Employees"])
-async def get_employee(
-    employee_id: int,
-    # Change conn to db: Session
-    db: Session = Depends(get_db),
-    # Replace Basic Auth with JWT Auth (Super Admin or Data Admin)
-    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"])) 
-):
-    """Fetches a single employee by their ID, including related names, using SQLAlchemy ORM."""
-    try:
-        # 使用ORM函数获取员工数据
-        employee = models_db.get_employee_by_id_orm(db, employee_id)
-        
-        if not employee:
-            raise HTTPException(status_code=404, detail=f"Employee with id {employee_id} not found.")
-            
-        # 创建基础数据字典
-        employee_dict = {
-            "id": employee.id,
-            "name": employee.name,
-            "id_card_number": employee.id_card_number,
-            "department_id": employee.department_id,
-            "employee_unique_id": employee.employee_unique_id,
-            "bank_account_number": employee.bank_account_number,
-            "bank_name": employee.bank_name,
-            "establishment_type_id": employee.establishment_type_id,
-            "created_at": employee.created_at,
-            "updated_at": employee.updated_at,
-            # 默认值
-            "department_name": None,
-            "unit_name": None,
-            "establishment_type_name": None
-        }
-        
-        # 添加关联数据
-        if employee.department:
-            employee_dict["department_name"] = employee.department.name
-            if employee.department.unit:
-                employee_dict["unit_name"] = employee.department.unit.name
-        
-        if employee.establishment_type:
-            employee_dict["establishment_type_name"] = employee.establishment_type.name
-            
-        # 转换为Pydantic模型
-        return EmployeeResponse.model_validate(employee_dict)
-        
-    except sa_exc.SQLAlchemyError as e: # Catch SQLAlchemy errors
-        logger.error(f"Database query error fetching employee {employee_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve employee details.")
-    except Exception as e:
-        logger.error(f"An unexpected error occurred fetching employee {employee_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
-
-    # No finally block needed
-
-# --- Employee Management Endpoints --- END
+# --- Employee Management Endpoints (REMOVED - Handled by employees.py router) ---
+# (The @app.get("/api/employees", ...) and @app.get("/api/employees/{employee_id}", ...) blocks are deleted)
 
 # --- Main Application Run Logic (for direct execution, e.g., debugging) ---
 if __name__ == "__main__":
@@ -547,18 +331,18 @@ async def debug_get_field_config(
     db: Session = Depends(get_db)
 ):
     """Debug endpoint to directly query the field configuration for a given employee type key."""
-    # Corrected query to use field_db_name
+    # Corrected query to use field_db_name and core schema
     query = text("""
         SELECT
             etfr.employee_type_key,
-            etfr.field_db_name,      -- Corrected column name
+            etfr.field_db_name,
             etfr.is_required,
             sfm.source_name,
-            sfm.target_name          -- Also select target_name from sfm
-        FROM public.employee_type_field_rules etfr
-        JOIN public.salary_field_mappings sfm ON etfr.field_db_name = sfm.target_name -- Corrected join condition
+            sfm.target_name
+        FROM core.employee_type_field_rules etfr 
+        JOIN core.salary_field_mappings sfm ON etfr.field_db_name = sfm.target_name 
         WHERE etfr.employee_type_key = :employee_type_key;
-    """)
+    """ )
     params = {"employee_type_key": employee_type_key}
     logger.info(f"[DEBUG] Executing query for field config of type: {employee_type_key}")
     try:
@@ -588,62 +372,81 @@ async def debug_get_field_config(
 # 1. 认证路由
 app.include_router(
     auth_router, 
-    prefix="",
+    prefix="", # Keep empty for root paths like /token
     tags=["Authentication"]
 )
 
 # 2. 用户管理路由
 app.include_router(
     user_router, 
-    prefix="/api",
+    prefix="", # Removed /api prefix, assuming /api/users is defined within user_router
     tags=["Users"]
 )
 
 # 3. 员工路由
 app.include_router(
     employees_router, 
-    prefix="/api",
+    prefix="", # Removed /api prefix, assuming /api/employees is defined within employees_router
     tags=["Employees"]
 )
 
 # 4. 单位路由
 app.include_router(
     units.router, 
-    prefix="/api",
+    prefix="", # Removed /api prefix, assuming /api/units is defined within units.router
     tags=["Units"]
 )
 
 # 5. 部门路由
 app.include_router(
     departments.router, 
-    prefix="/api",
+    prefix="", # Removed /api prefix, assuming /api/departments is defined within departments.router
     tags=["Departments"]
 )
 
 # 6. 报表链接路由
 app.include_router(
     report_links.router,
-    prefix="/api/report-links",
+    prefix="/api/report-links", # Keep specific prefix
     tags=["Report Links"]
 )
 
 # 7. 薪资数据路由
 app.include_router(
     salary_data_router,
-    prefix="",  # 已在路由器中定义了完整路径
+    prefix="",  # Keep empty as router defines /api/...
     tags=["Salary Data"]
 )
 
 # 8. 配置管理路由
 app.include_router(
     config_router,
-    prefix="/api/config",
+    prefix="/api/config", # Keep specific prefix
     tags=["Configuration"]
 )
 
 # 9. 文件转换路由
 app.include_router(
     file_conversion_router,
-    prefix="/api",
+    prefix="/api", # Changed prefix from '' to '/api'
     tags=["File Conversion"]
-        )
+)
+
+# 10. 计算引擎管理路由
+app.include_router(
+    calculation_admin_router, 
+    prefix="/api/v1", # Added /api/v1 prefix
+    tags=["Calculation Engine Admin"]
+)
+
+# 11. 工资计算路由
+app.include_router(
+    salary_calculation_router, 
+    prefix="/api/v1", # Added /api/v1 prefix (assuming it's part of v1)
+    tags=["Salary Calculation"]
+)
+
+# --- Removed API Routers with /api/v1 prefix --- 
+# (Removed api_v1_router definition and app.include_router(api_v1_router))
+
+# ... (rest of main.py, e.g., debug endpoint, uvicorn run block) ...

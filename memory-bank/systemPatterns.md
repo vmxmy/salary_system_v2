@@ -19,6 +19,38 @@
 *   **Unified View Management in dbt:** Core calculation views (`view_base_data`, `view_level1_calculations`, etc.) are managed as dbt models (materialized as views) to leverage dbt features (testing, docs, lineage) and resolve conflicts with schema management tools like Alembic.
 *   **Alembic for Schema Only:** Alembic's role is strictly limited to managing the evolution of base table schemas (CREATE TABLE, ALTER COLUMN, etc.), not view definitions.
 
+## API Endpoints (Key Examples)
+*   **Authentication:**
+    *   `POST /token`: Login (Basic Auth), returns JWT.
+*   **Employee Management:**
+    *   `GET /api/employees`: List employees (with filtering).
+    *   `POST /api/employees`: Create employee.
+    *   `PUT /api/employees/{id}`: Update employee.
+    *   `DELETE /api/employees/{id}`: Delete employee.
+    *   `GET /api/departments-list`: Get list of departments (for dropdowns).
+    *   `GET /api/establishment-types-list`: Get list of establishment types (for dropdowns).
+*   **User Management (Super Admin):**
+    *   `GET /api/users`: List users.
+    *   `POST /api/users`: Create user.
+    *   `GET /api/users/{id}`: Get specific user.
+    *   `PUT /api/users/{id}`: Update user (email, role, status).
+    *   `DELETE /api/users/{id}`: Delete user.
+    *   `GET /api/users/roles/list`: Get list of available roles.
+*   **Current User (/me):**
+    *   `GET /api/users/me`: Get current user details.
+    *   `PUT /api/users/me`: Update current user's email.
+    *   `PUT /api/users/me/password`: Change current user's password.
+*   **Configuration:**
+    *   `GET /api/config/mappings`: List field mappings.
+    *   `POST /api/config/mappings`: Create field mapping.
+    *   `PUT /api/config/mappings/{id}`: Update field mapping.
+    *   `DELETE /api/config/mappings/{id}`: Delete field mapping.
+    *   (Similar endpoints likely exist or are needed for Employee Type Field Rules)
+*   **Data Import:**
+    *   `POST /api/convert/excel-to-csv`: Upload Excel, convert, import to staging, trigger dbt.
+*   **Data Viewing:**
+    *   `GET /api/salary_data`: Get calculated salary records (from view) with filtering.
+
 ## 数据处理流程 (Data Processing Pipeline)
 
 This section details the step-by-step process of transforming raw salary data from Excel files into structured data ready for analysis and reporting.

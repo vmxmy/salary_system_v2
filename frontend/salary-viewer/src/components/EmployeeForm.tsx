@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Select, Button, Row, Col, Space } from 'antd';
+import { Form, Input, Select, Button, Row, Col, Space, DatePicker, InputNumber, Radio } from 'antd';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 // Replicate or import these interfaces (ideally import from a shared types file)
 interface Department {
@@ -33,6 +34,18 @@ interface EmployeeFormData {
     establishment_type_id?: number | null;
     bank_account_number?: string | null;
     bank_name?: string | null;
+    work_start_date?: dayjs.Dayjs | null;
+    employment_status?: string | null;
+    remarks?: string | null;
+    gender?: string | null;
+    ethnicity?: string | null;
+    date_of_birth?: dayjs.Dayjs | null;
+    education_level?: string | null;
+    service_interruption_years?: number | string | null;
+    continuous_service_years?: number | string | null;
+    actual_position?: string | null;
+    actual_position_start_date?: dayjs.Dayjs | null;
+    position_level_start_date?: dayjs.Dayjs | null;
 }
 
 const EmployeeForm: React.FC<EmployeeFormProps> = ({ 
@@ -50,16 +63,14 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
     useEffect(() => {
         if (initialValues) {
-            const formData: EmployeeFormData = {
-                name: initialValues.name ?? '',
-                id_card_number: initialValues.id_card_number ?? '',
-                employee_unique_id: initialValues.employee_unique_id ?? null,
-                department_id: initialValues.department_id ?? null,
-                establishment_type_id: initialValues.establishment_type_id ?? null,
-                bank_account_number: initialValues.bank_account_number ?? null,
-                bank_name: initialValues.bank_name ?? null,
+            const formData: Partial<EmployeeFormData> = {
+                ...initialValues,
+                date_of_birth: initialValues.date_of_birth ? dayjs(initialValues.date_of_birth) : null, 
+                work_start_date: initialValues.work_start_date ? dayjs(initialValues.work_start_date) : null,
+                actual_position_start_date: initialValues.actual_position_start_date ? dayjs(initialValues.actual_position_start_date) : null,
+                position_level_start_date: initialValues.position_level_start_date ? dayjs(initialValues.position_level_start_date) : null,
             };
-            console.log("Setting form initial values:", formData);
+            console.log("Setting form initial values (with Dayjs objects):", formData);
             form.setFieldsValue(formData);
         } else {
             form.resetFields();
@@ -67,8 +78,17 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     }, [initialValues, form]);
 
     const handleFinish = (values: EmployeeFormData) => {
-        console.log('Form finished with values:', values);
-        onSubmit(values);
+        const submitValues = {
+            ...values,
+            date_of_birth: values.date_of_birth ? values.date_of_birth.format('YYYY-MM-DD') : null,
+            work_start_date: values.work_start_date ? values.work_start_date.format('YYYY-MM-DD') : null,
+            actual_position_start_date: values.actual_position_start_date ? values.actual_position_start_date.format('YYYY-MM-DD') : null,
+            position_level_start_date: values.position_level_start_date ? values.position_level_start_date.format('YYYY-MM-DD') : null,
+            service_interruption_years: values.service_interruption_years != null ? Number(values.service_interruption_years) : null,
+            continuous_service_years: values.continuous_service_years != null ? Number(values.continuous_service_years) : null,
+        };
+        console.log('Submitting formatted values:', submitValues);
+        onSubmit(submitValues as EmployeeFormData);
     };
 
     return (
@@ -168,7 +188,124 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                         <Input id="bank_name" />
                     </Form.Item>
                 </Col>
+                <Col span={12}>
+                    <Form.Item
+                        name="gender"
+                        label={t('employeeForm.labels.gender')}
+                    >
+                        <Select id="gender" placeholder={t('employeeForm.placeholders.gender')} allowClear>
+                            <Select.Option value="男">{t('gender.male')}</Select.Option> 
+                            <Select.Option value="女">{t('gender.female')}</Select.Option>
+                            <Select.Option value="其他">{t('gender.other')}</Select.Option> 
+                        </Select>
+                    </Form.Item>
+                </Col>
             </Row>
+
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Form.Item
+                        name="ethnicity"
+                        label={t('employeeForm.labels.ethnicity')}
+                    >
+                        <Input id="ethnicity" />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item
+                        name="date_of_birth"
+                        label={t('employeeForm.labels.dob')}
+                    >
+                        <DatePicker id="date_of_birth" style={{ width: '100%' }} format="YYYY-MM-DD" />
+                    </Form.Item>
+                </Col>
+            </Row>
+
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Form.Item
+                        name="education_level"
+                        label={t('employeeForm.labels.education')}
+                    >
+                        <Input id="education_level" />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item
+                        name="work_start_date"
+                        label={t('employeeForm.labels.workStartDate')}
+                    >
+                        <DatePicker id="work_start_date" style={{ width: '100%' }} format="YYYY-MM-DD" />
+                    </Form.Item>
+                </Col>
+            </Row>
+            
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Form.Item
+                        name="service_interruption_years"
+                        label={t('employeeForm.labels.serviceInterruption')}
+                    >
+                        <InputNumber id="service_interruption_years" precision={2} style={{ width: '100%' }} />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item
+                        name="continuous_service_years"
+                        label={t('employeeForm.labels.continuousService')}
+                    >
+                        <InputNumber id="continuous_service_years" precision={2} style={{ width: '100%' }} />
+                    </Form.Item>
+                </Col>
+            </Row>
+
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Form.Item
+                        name="actual_position"
+                        label={t('employeeForm.labels.actualPosition')}
+                    >
+                        <Input id="actual_position" />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item
+                        name="actual_position_start_date"
+                        label={t('employeeForm.labels.actualPosStartDate')}
+                    >
+                        <DatePicker id="actual_position_start_date" style={{ width: '100%' }} format="YYYY-MM-DD" />
+                    </Form.Item>
+                </Col>
+            </Row>
+            
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Form.Item
+                        name="position_level_start_date"
+                        label={t('employeeForm.labels.posLevelStartDate')}
+                    >
+                        <DatePicker id="position_level_start_date" style={{ width: '100%' }} format="YYYY-MM-DD" />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                     <Form.Item
+                        name="employment_status"
+                        label={t('employeeForm.labels.employmentStatus')}
+                    >
+                        <Select id="employment_status" placeholder={t('employeeForm.placeholders.employmentStatus')} allowClear>
+                            <Select.Option value="在职">{t('status.active')}</Select.Option> 
+                            <Select.Option value="离职">{t('status.inactive')}</Select.Option>
+                        </Select>
+                    </Form.Item>
+                </Col>
+            </Row>
+
+            <Form.Item
+                name="remarks"
+                label={t('employeeForm.labels.remarks')}
+            >
+                <Input.TextArea id="remarks" rows={3} />
+            </Form.Item>
 
             <Form.Item style={{ textAlign: 'right', marginTop: '20px' }}>
                 <Space>

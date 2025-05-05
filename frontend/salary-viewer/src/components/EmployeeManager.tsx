@@ -49,43 +49,43 @@ interface EstablishmentType {
 // Update columns definition
 const getColumns = (showEditModal: (employee: Employee) => void, handleDelete: (id: number, name: string) => void, t: Function): ColumnsType<Employee> => [
   {
-    title: 'ID',
+    title: t('employeeManager.table.colId'), // Translate ID
     dataIndex: 'id',
     key: 'id',
     width: 80,
-    fixed: 'left', // Fix ID column
-    align: 'right', // Align ID right
+    fixed: 'left', 
+    align: 'right', 
   },
   {
-    title: '姓名',
+    title: t('employeeManager.table.colName'), // Translate Name
     dataIndex: 'name',
     key: 'name',
     width: 120,
-    fixed: 'left', // Fix Name column
+    fixed: 'left',
   },
   {
-    title: '工号',
+    title: t('employeeManager.table.colEmployeeId'), // Translate Employee ID
     dataIndex: 'employee_unique_id',
     key: 'employee_unique_id',
     width: 120,
-    render: (text?: string) => text || '-', // Handle null/undefined
+    render: (text?: string) => text || '-', 
   },
   {
-    title: '部门',
-    dataIndex: 'department_name', // Use department_name from API
+    title: t('employeeManager.table.colDepartment'), // Translate Department
+    dataIndex: 'department_name',
     key: 'department_name',
     width: 150,
-    render: (text?: string) => text || '-', // Handle null/undefined
+    render: (text?: string) => text || '-',
   },
   {
-    title: '单位',
+    title: t('employeeManager.table.colUnit'), // Translate Unit
     dataIndex: 'unit_name',
     key: 'unit_name',
     width: 180,
-    render: (text?: string) => text || '-', // Handle null/undefined
+    render: (text?: string) => text || '-',
   },
   {
-    title: '编制',
+    title: t('employeeManager.table.colEstablishment'), // Translate Establishment
     dataIndex: 'establishment_type_name',
     key: 'establishment_type_name',
     width: 180,
@@ -127,29 +127,138 @@ const getColumns = (showEditModal: (employee: Employee) => void, handleDelete: (
     }
   },
   {
-    title: '身份证号',
+    title: t('employeeManager.table.colIdCard'), // Translate ID Card No.
     dataIndex: 'id_card_number',
     key: 'id_card_number',
     width: 200,
   },
   {
-    title: '银行账号', // Added Column
+    title: t('employeeManager.table.colGender'), // Translate Gender
+    dataIndex: 'gender',
+    key: 'gender',
+    width: 80,
+    align: 'center',
+    render: (text?: string) => text || '-',
+  },
+  {
+    title: t('employeeManager.table.colEthnicity'), // Translate Ethnicity
+    dataIndex: 'ethnicity',
+    key: 'ethnicity',
+    width: 100,
+    render: (text?: string) => text || '-',
+  },
+  {
+    title: t('employeeManager.table.colDob'), // Translate Date of Birth
+    dataIndex: 'date_of_birth',
+    key: 'date_of_birth',
+    width: 120,
+    align: 'center',
+    render: (text?: string) => text ? new Date(text).toLocaleDateString() : '-', // Basic date formatting
+  },
+  {
+    title: t('employeeManager.table.colEducation'), // Translate Education Level
+    dataIndex: 'education_level',
+    key: 'education_level',
+    width: 120,
+    render: (text?: string) => text || '-',
+  },
+  {
+    title: t('employeeManager.table.colWorkStartDate'), // Translate Work Start Date
+    dataIndex: 'work_start_date',
+    key: 'work_start_date',
+    width: 120,
+    align: 'center',
+    render: (text?: string) => text ? new Date(text).toLocaleDateString() : '-',
+  },
+  {
+    title: t('employeeManager.table.colServiceInterruption'), // Translate Service Interruption Years
+    dataIndex: 'service_interruption_years',
+    key: 'service_interruption_years',
+    width: 100,
+    align: 'right',
+    render: (num?: number | string) => num != null ? Number(num).toFixed(2) : '-', // Format number
+  },
+  {
+    title: t('employeeManager.table.colContinuousService'), // Translate Continuous Service Years
+    dataIndex: 'continuous_service_years',
+    key: 'continuous_service_years',
+    width: 100,
+    align: 'right',
+    render: (num?: number | string) => num != null ? Number(num).toFixed(2) : '-', // Format number
+  },
+  {
+    title: t('employeeManager.table.colActualPosition'), // Translate Actual Position
+    dataIndex: 'actual_position',
+    key: 'actual_position',
+    width: 180,
+    render: (text?: string) => text || '-',
+  },
+  {
+    title: t('employeeManager.table.colActualPosStartDate'), // Translate Actual Position Start Date
+    dataIndex: 'actual_position_start_date',
+    key: 'actual_position_start_date',
+    width: 120,
+    align: 'center',
+    render: (text?: string) => text ? new Date(text).toLocaleDateString() : '-',
+  },
+  {
+    title: t('employeeManager.table.colPosLevelStartDate'), // Translate Position Level Start Date
+    dataIndex: 'position_level_start_date',
+    key: 'position_level_start_date',
+    width: 120,
+    align: 'center',
+    render: (text?: string) => text ? new Date(text).toLocaleDateString() : '-',
+  },
+  {
+    title: t('employeeManager.table.colEmploymentStatus'), // Translate Employment Status
+    dataIndex: 'employment_status',
+    key: 'employment_status',
+    width: 100,
+    align: 'center',
+    render: (status?: string) => status ? <Tag color={status === '在职' ? 'success' : 'warning'}>{status}</Tag> : '-',
+  },
+  {
+    title: t('employeeManager.table.colBankAcc'), // Translate Bank Account
     dataIndex: 'bank_account_number',
     key: 'bank_account_number',
     width: 200,
     render: (text?: string) => text || '-',
   },
   {
-    title: '开户行名称', // Added Column
+    title: t('employeeManager.table.colBankName'), // Translate Bank Name
     dataIndex: 'bank_name',
     key: 'bank_name',
-    width: 250, // Wider for longer bank names
+    width: 250, 
     render: (text?: string) => text || '-',
   },
   {
-    title: '操作',
+    title: t('employeeManager.table.colRemarks'), // Translate Remarks
+    dataIndex: 'remarks',
+    key: 'remarks',
+    width: 200,
+    ellipsis: true,
+    render: (text?: string) => text || '-',
+  },
+  {
+    title: t('employeeManager.table.colCreatedAt'), // Translate Created At
+    dataIndex: 'created_at',
+    key: 'created_at',
+    width: 160,
+    align: 'center',
+    render: (text?: string) => text ? new Date(text).toLocaleString() : '-',
+  },
+  {
+    title: t('employeeManager.table.colUpdatedAt'), // Translate Updated At
+    dataIndex: 'updated_at',
+    key: 'updated_at',
+    width: 160,
+    align: 'center',
+    render: (text?: string) => text ? new Date(text).toLocaleString() : '-',
+  },
+  {
+    title: t('employeeManager.table.colAction'),
     key: 'action',
-    fixed: 'right', // Fix Action column
+    fixed: 'right', 
     width: 120,
     render: (_: any, record: Employee) => (
       <Space size="middle">
@@ -206,7 +315,7 @@ const EmployeeManager: React.FC = () => {
   const [nameFilter, setNameFilter] = useState<string>('');
   const [employeeIdFilter, setEmployeeIdFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<number | undefined>(undefined);
-  const [establishmentTypeFilter, setEstablishmentTypeFilter] = useState<number | undefined>(undefined);
+  const [establishmentTypeFilter, setEstablishmentTypeFilter] = useState<number | string>('');
 
   // Store applied filters separately to avoid triggering reload on every keystroke
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
@@ -472,7 +581,7 @@ const EmployeeManager: React.FC = () => {
     setNameFilter('');
     setEmployeeIdFilter('');
     setDepartmentFilter(undefined);
-    setEstablishmentTypeFilter(undefined);
+    setEstablishmentTypeFilter('');
     const newFilters = {};
     setAppliedFilters(newFilters);
     // Trigger fetch with empty filters and reset to page 1
@@ -574,19 +683,22 @@ const EmployeeManager: React.FC = () => {
                 </Select>
             </Form.Item>
             <Form.Item label={t('employeeManager.filters.establishmentLabel')} htmlFor="employee_manager_establishment_filter"> 
-                <Select<number | undefined>
+                <Select<number | string>
                     id="employee_manager_establishment_filter" 
                     value={establishmentTypeFilter}
                     onChange={(value) => {
                         setEstablishmentTypeFilter(value);
-                        applyFilters({ ...appliedFilters, establishment_type_id: value });
+                        const filterApiValue = value === '' ? undefined : value;
+                        applyFilters({ ...appliedFilters, establishment_type_id: filterApiValue });
                     }}
                     loading={loadingEstablishmentTypes}
-                    allowClear // allowClear sets value to undefined
+                    allowClear
                     placeholder={t('employeeManager.filters.establishmentPlaceholder')}
                 >
-                    <Select.Option value={undefined}>{t('employeeManager.filters.allOption')}</Select.Option>
-                    {establishmentTypes.filter(et => et.id != null).map(et => (
+                    <Select.Option value="">{t('employeeManager.filters.allOption')}</Select.Option>
+                    {establishmentTypes
+                        .filter(et => typeof et.id === 'number' && et.id !== null && et.id !== undefined)
+                        .map(et => (
                         <Select.Option key={et.id} value={et.id}>
                             {et.name}
                         </Select.Option>

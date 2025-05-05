@@ -31,7 +31,8 @@
     *   API endpoints for Employee CRUD (`/api/employees`) including filtering.
     *   API endpoints for Department and Establishment Type lists (`/api/departments-list`, `/api/establishment-types-list`).
     *   API endpoints for Field Mapping CRUD (`/api/config/mappings`).
-    *   API endpoints for User CRUD and /me routes implemented (supports email update, password change).
+    *   API endpoints for User CRUD (`POST /api/users`, `GET /api/users`, `GET /api/users/{id}`, `PUT /api/users/{id}`, `DELETE /api/users/{id}`) and roles list (`GET /api/users/roles/list`) implemented.
+    *   **User Management routes refactored to use SQLAlchemy ORM functions (`get_users_orm`, `create_user_orm`, `update_user_orm`, `delete_user_orm`, etc.), resolving `psycopg2` related errors.**
     *   API endpoint for Excel to CSV conversion and optional DB import (`/api/convert/excel-to-csv`), including triggering `dbt build` in background.
 *   **Web Application Frontend (React/Vite/AntD in `salary_system/frontend/salary-viewer`):**
     *   Basic setup with routing (`App.tsx`).
@@ -42,6 +43,12 @@
         *   Create Employee Modal using `EmployeeForm.tsx`.
         *   Edit Employee Modal using `EmployeeForm.tsx` (correctly handles establishment type).
         *   Delete Employee confirmation and functionality.
+    *   **User Management component (`UserManager.tsx`) with:**
+        *   Table display (users, roles, status) with pagination, sorting, and filtering.
+        *   Combined Add/Edit modal with form validation (including password confirmation for add).
+        *   Delete confirmation (`Popconfirm`).
+        *   Backend API integration for viewing, adding, editing (email, role, status), and deleting users.
+        *   Resolved various frontend warnings (i18n keys, AntD static context, autocomplete).
 *   **Salary Record Viewing Module (Web App):**
     *   Backend API (`/api/salary_data`) provides filtered and paginated access to `view_level1_calculations`.
     *   Frontend component displays salary records in a table with pagination and filtering.

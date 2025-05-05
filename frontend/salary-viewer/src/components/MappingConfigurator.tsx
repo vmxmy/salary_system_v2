@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Checkbox, Spin, Alert, message, Popconfirm, Typography, Tag, Tabs } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, Checkbox, Spin, Alert, message, Popconfirm, Typography, Tag, Tabs, Select } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import type { TableProps, TablePaginationConfig } from 'antd';
 import apiClient from '../services/api';
 import { useTranslation } from 'react-i18next';
 import type { RowSelectionType } from 'antd/es/table/interface';
+import SheetMappingManager from './SheetMappingManager';
 
 const { TextArea } = Input;
 const { Title } = Typography;
@@ -90,18 +91,29 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
     const [selectedRuleKeys, setSelectedRuleKeys] = useState<React.Key[]>([]);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(20);
+    const [totalRules, setTotalRules] = useState<number>(0);
 
     // 加载规则
-    const fetchRules = useCallback(async () => {
+    const fetchRules = useCallback(async (typeKey?: string) => {
         setLoading(true);
         setError(null);
+        const params = new URLSearchParams();
+        if (typeKey) {
+            params.append('employee_type_key', typeKey);
+        }
+        const apiUrl = `/api/config/employee-type-field-rules?${params.toString()}`;
+        console.log("Fetching rules with URL:", apiUrl);
+
         try {
-            const res = await apiClient.get<{ data: EmployeeTypeFieldRule[] }>(
-                '/api/config/employee-type-field-rules'
+            const res = await apiClient.get<{ data: EmployeeTypeFieldRule[]; total: number }>(
+                apiUrl
             );
             setRules(res.data.data ? res.data.data.map(r => ({ ...r, employee_type_key: String(r.employee_type_key) })) : []);
+            setTotalRules(res.data.total || 0);
         } catch (err: any) {
             setError(err?.response?.data?.detail || err?.message || '加载失败');
+            setRules([]);
+            setTotalRules(0);
         } finally {
             setLoading(false);
         }
@@ -113,9 +125,13 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
             const res = await apiClient.get<EmployeeTypeOption[]>(
                 '/api/establishment-types-list'
             );
-            setEmployeeTypes(res.data || []);
+            console.log("Raw data from /api/establishment-types-list:", res.data);
+            const typesData = Array.isArray(res.data) ? res.data : [];
+            console.log("Setting employeeTypes state with:", typesData);
+            setEmployeeTypes(typesData);
         } catch (err) {
-            // 忽略错误
+            console.error("Failed to fetch employee types, setting empty array:", err);
+            setEmployeeTypes([]);
         }
     }, []);
 
@@ -130,10 +146,10 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        fetchRules();
+        fetchRules(filterType);
         fetchEmployeeTypes();
         fetchFieldMappings();
-    }, [fetchRules, fetchEmployeeTypes, fetchFieldMappings]);
+    }, [filterType, fetchRules, fetchEmployeeTypes, fetchFieldMappings]);
 
     // 新增/编辑弹窗
     const showModal = (rule: EmployeeTypeFieldRule | null = null) => {
@@ -170,7 +186,7 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
                 message.success('新增成功');
             }
             handleCancel();
-            fetchRules();
+            fetchRules(filterType);
         } catch (err: any) {
             setError(err?.response?.data?.detail || err?.message || '保存失败');
         } finally {
@@ -184,7 +200,7 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
         try {
             await apiClient.delete(`/api/config/employee-type-field-rules/${rule_id}`);
             message.success('删除成功');
-            fetchRules();
+            fetchRules(filterType);
         } catch (err: any) {
             setError(err?.response?.data?.detail || err?.message || '删除失败');
         } finally {
@@ -203,7 +219,7 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
             await Promise.all(deletePromises);
             message.success(`成功删除 ${selectedRuleKeys.length} 条规则`);
             setSelectedRuleKeys([]); // 清空选中
-            fetchRules(); // 刷新列表
+            fetchRules(filterType); // 刷新列表
         } catch (err: any) {
             setError(err?.response?.data?.detail || err?.message || '批量删除失败');
             message.error('批量删除失败');
@@ -211,6 +227,24 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
             setLoading(false);
         }
     };
+    // 新增：处理和去重 employeeTypes 以生成唯一的 filters
+    const uniqueEmployeeTypeFilters = React.useMemo(() => {
+        if (!employeeTypes || employeeTypes.length === 0) {
+            return [];
+        }
+        // 1. 过滤掉无效 key, 2. 使用 Map 按 key 去重
+        const uniqueMap = new Map(
+            employeeTypes
+                .filter(et => et.employee_type_key !== null && et.employee_type_key !== undefined && String(et.employee_type_key).trim() !== '')
+                .map(et => [String(et.employee_type_key), et])
+        );
+        // 3. 转换回 filters 格式
+        return Array.from(uniqueMap.values()).map(et => ({
+            text: et.name, // 使用去重后的 name
+            value: String(et.employee_type_key) // 确保 value 是唯一的 string key
+        }));
+    }, [employeeTypes]); // 依赖 employeeTypes state
+
     // 表格列
     const columns: TableColumnsType<EmployeeTypeFieldRule> = [
         {
@@ -219,10 +253,11 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
             key: 'employee_type_key',
             render: (key: string | number) => {
                 if (!employeeTypes || employeeTypes.length === 0) return key;
+                // Use original employeeTypes for display mapping
                 const found = employeeTypes.find(et => String(et.employee_type_key) === String(key));
                 return found ? found.name : key;
             },
-            filters: employeeTypes.map((et) => ({ text: et.name, value: String(et.employee_type_key) })),
+            filters: uniqueEmployeeTypeFilters, // Use the memoized unique filters
             onFilter: (value, record) => String(record.employee_type_key) === String(value),
         },
         {
@@ -265,8 +300,6 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
             ),
         },
     ];
-    // 过滤
-    const filteredRules = filterType ? rules.filter(r => String(r.employee_type_key) === String(filterType)) : rules;
 
     // 新增：规则表格 rowSelection 配置
     const ruleRowSelection = {
@@ -293,14 +326,22 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
                             <select
                                 style={{ width: 200 }}
                                 value={filterType || ''}
-                                onChange={e => setFilterType(e.target.value || undefined)}
+                                onChange={e => {
+                                    const selectedValue = e.target.value;
+                                    console.log("Select onChange - e.target.value:", selectedValue);
+                                    setFilterType(selectedValue || undefined);
+                                }}
                             >
                                 <option value="">全部</option>
-                                {employeeTypes.map((et, idx) => (
+                                {employeeTypes.map((et, idx) => {
+                                    // Added log to inspect value during render
+                                    console.log(`Rendering option: name=${et.name}, key=${et.employee_type_key}, typeof key=${typeof et.employee_type_key}`);
+                                    return (
                                     <option key={`${et.employee_type_key}-${idx}`} value={et.employee_type_key}>
                                         {et.name}
                                     </option>
-                                ))}
+                                    );
+                                })}
                             </select>
                         </Space.Compact>
                     </Space>
@@ -330,12 +371,12 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
                 <Spin spinning={loading}>
                     <Table
                         columns={columns}
-                        dataSource={filteredRules}
+                        dataSource={rules}
                         rowKey="rule_id"
                         pagination={{
                             current: currentPage,
                             pageSize: pageSize,
-                            total: filteredRules.length,
+                            total: totalRules,
                             showSizeChanger: true,
                             pageSizeOptions: ['10', '20', '50', '100'],
                             showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} 条`,
@@ -405,7 +446,7 @@ const MappingConfigurator: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>(''); // <-- Add search term state
     const [currentPage, setCurrentPage] = useState<number>(1); // Added for pagination
     const [pageSize, setPageSize] = useState<number>(15);     // Added for pagination
-    const [activeTab, setActiveTab] = useState<'mapping' | 'rules'>('mapping');
+    const [activeTab, setActiveTab] = useState<'mapping' | 'rules' | 'sheetMapping'>('mapping');
     const [selectedMappingKeys, setSelectedMappingKeys] = useState<React.Key[]>([]); // 新增：映射表格选中 key state
     // --- State for Modal and Form --- END
 
@@ -682,7 +723,7 @@ const MappingConfigurator: React.FC = () => {
         <div>
             <Tabs
                 activeKey={activeTab}
-                onChange={key => setActiveTab(key as 'mapping' | 'rules')}
+                onChange={key => setActiveTab(key as 'mapping' | 'rules' | 'sheetMapping')}
                 items={[
                     {
                         key: 'mapping',
@@ -829,6 +870,11 @@ const MappingConfigurator: React.FC = () => {
                         key: 'rules',
                         label: t('tabs.rules'),
                         children: <EmployeeTypeFieldRulesPage />
+                    },
+                    {
+                        key: 'sheetMapping',
+                        label: t('tabs.sheetMappings'),
+                        children: <SheetMappingManager />
                     }
                 ]}
             />

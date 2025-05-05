@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
@@ -15,6 +15,12 @@ from sqlalchemy.orm import Session
 from . import models_db, schemas, models
 from .database import get_db # <--- Use get_db
 # from .database import get_db, get_db_connection # Remove get_db_connection if no longer needed after this change
+
+# Import logging for added logging functionality
+import logging
+
+# Added logger instance
+logger = logging.getLogger(__name__)
 
 # Configuration (consider moving to a config module or reading from env more robustly)
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "default_secret_key_change_this") # Use a strong default ONLY for dev
@@ -57,9 +63,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]: # Return ORM User object
     """(ORM Version) Authenticates a user based on username and password."""
-    # Use the ORM version of the function
-    user = models_db.get_user_by_username_orm(db, username=username)
+    # Use the renamed ORM function
+    user = models_db.get_user_by_username(db, username=username)
     if not user:
+        logger.warning(f"Authentication failed: User '{username}' not found.")
         return None
     # 获取hashed_password的值而不是Column对象
     if not verify_password(password, str(user.hashed_password)):
@@ -93,7 +100,7 @@ async def get_current_user(
         raise credentials_exception
 
     # Fetch user details from DB using ORM
-    user_orm = models_db.get_user_by_username_orm(db, username=username)
+    user_orm = models_db.get_user_by_username(db, username=username)
     
     if user_orm is None:
         raise credentials_exception

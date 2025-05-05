@@ -1,100 +1,374 @@
 {
   "app": {
+    "title": "Salary Information Management System",
+    "footerText": "Salary Information Management System ©{{year}}",
     "sidebarTitle": "Salary System",
-    "sidebarTitleCollapsed": "SYS",
-    "logoutButton": "Logout",
-    "footerText": "Salary System Frontend ©{{year}} Created with Ant Design and Vite"
+    "sidebarTitleCollapsed": "Salary"
+  },
+  "loginPage": {
+    "title": "Login",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "loginButton": "Login",
+    "registerPrompt": "Don't have an account?",
+    "registerLink": "Register now",
+    "loginFailed": "Login failed",
+    "loginSuccess": "Login successful! Redirecting...",
+    "validation": {
+      "usernameRequired": "Please input your username!",
+      "passwordRequired": "Please input your password!"
+    },
+    "configManagement": "Config Management",
+    "reportManagement": "Report Management"
+  },
+  "registerPage": {
+    "title": "Create New Account",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Set your username",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Set password (min 8 chars)",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Enter password again",
+    "registerButton": "Register",
+    "backToLogin": "Back to Login",
+    "registrationSuccess": "Registration successful! Please log in.",
+    "registrationFailed": "Registration failed",
+    "validation": {
+      "usernameRequired": "Please input your username!",
+      "emailRequired": "Please input your email!",
+      "emailInvalid": "Please enter a valid email address!",
+      "passwordRequired": "Please input your password!",
+      "passwordMinLength": "Password must be at least 8 characters!",
+      "confirmRequired": "Please confirm your password!",
+      "passwordsDontMatch": "The two passwords that you entered do not match!"
+    }
+  },
+  "userProfile": {
+    "title": "User Profile",
+    "usernameLabel": "Username:",
+    "emailLabel": "Email:",
+    "currentPasswordLabel": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter new password (min 8 chars)",
+    "confirmNewPasswordLabel": "Confirm New Password",
+    "confirmNewPasswordPlaceholder": "Enter new password again",
+    "updatePasswordButton": "Update Password",
+    "updateSuccess": "Password updated successfully!",
+    "updateFailed": "Password update failed",
+    "validation": {
+      "currentPasswordRequired": "Please input your current password!",
+      "newPasswordRequired": "Please input your new password!",
+      "newPasswordMinLength": "New password must be at least 8 characters!",
+      "confirmRequired": "Please confirm your new password!",
+      "passwordsDontMatch": "The new passwords do not match!"
+    }
   },
   "menu": {
-    "dataManagement": "Data Management",
-    "dataViewer": "Salary Records",
+    "dashboard": "Dashboard",
+    "dataViewer": "Salary Data Viewer",
+    "fileConverter": "Excel Import & Processing",
+    "fieldMappings": "Field Mappings",
     "employeeManagement": "Employee Management",
-    "departmentManagement": "Department Management",
-    "reportManagement": "Report Management",
+    "departmentManagement": "Department/Unit Mgmt",
     "reports": "Reports",
-    "reportLinksManagement": "Report Links",
     "monthlySalaryReport": "Monthly Salary Report",
-    "fileConverter": "Import EXCEL",
-    "dataImport": "Data Import",
     "configuration": "Configuration",
-    "fieldMappings": "Field Mapping Management",
+    "dataManagement": "Data Management",
+    "dataImport": "Data Import",
     "userManager": "User Management",
-    "user": "User",
-    "profile": "Profile",
-    "logout": "Logout"
+    "reportLinksManagement": "Report Links Management",
+    "sheetMappings": "Sheet Mappings",
+    "formulaManagement": "Formula Management",
+    "ruleManagement": "Rule Management"
   },
   "breadcrumb": {
     "home": "Home",
-    "dataManagement": "Data Management",
-    "dataViewer": "Salary Records",
+    "dataViewer": "Salary Data Viewer",
+    "fileConverter": "Excel Import & Processing",
+    "fieldMappings": "Field Mappings",
     "employeeManagement": "Employee Management",
-    "departmentManagement": "Department Management",
+    "departmentManagement": "Department/Unit Management",
     "reports": "Reports",
-    "reports/monthly-salary": "Monthly Salary Report",
-    "fileConverter": "Import EXCEL",
-    "dataImport": "Data Import",
+    "viewReport": "View Report",
     "configuration": "Configuration",
-    "fieldMappings": "Field Mapping Management",
-    "userManager": "User Management",
-    "profile": "Profile",
-    "reportLinksManagement": "Report Links",
-    "viewReport": "View Report"
+    "dataImport": "Data Import",
+    "dataManagement": "Data Management",
+    "reportLinksManagement": "Report Links Management",
+    "profile": "User Profile",
+    "sheetMappings": "Sheet Mappings",
+    "formulaManagement": "Formula Management",
+    "ruleManagement": "Rule Management"
   },
-  "auth": {
-    "loginTitle": "Login",
-    "formTitle": "Admin Login",
-    "usernamePlaceholder": "Please enter username!",
-    "usernameRequired": "Please input your Username!",
-    "passwordPlaceholder": "Please enter password!",
-    "passwordRequired": "Please input your Password!",
-    "loginButton": "Log in",
-    "logout": "Logout",
-    "loginFailedGeneric": "Login failed. Please check username or password.",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password?",
-    "noAccount": "Don't have an account?",
-    "registerLink": "Register now",
-    "registerTitle": "Register New User",
-    "emailLabel": "Email Address",
-    "emailRequired": "Please enter a valid email address!",
-    "passwordConfirmLabel": "Confirm Password",
-    "passwordConfirmRequired": "Please confirm your password!",
-    "passwordsDontMatch": "The two passwords do not match!",
-    "registerButton": "Register",
-    "registerSuccess": "Registration successful! You can now log in.",
-    "registerFailed": "Registration failed: {{error}}"
+  "userMenu": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "salaryDataViewer": {
+    "title": "Salary Data Viewer",
+    "filters": {
+      "payPeriod": "Pay Period",
+      "employeeName": "Employee Name",
+      "department": "Department",
+      "unit": "Unit",
+      "establishmentType": "Establishment",
+      "placeholderSelect": "Select...",
+      "placeholderInput": "Enter..."
+    },
+    "columns": {
+      "employeeName": "Name",
+      "idCardNumber": "ID Card No.",
+      "payPeriod": "Pay Period",
+      "department": "Department",
+      "unit": "Unit",
+      "establishmentType": "Establishment",
+      "baseSalary": "Base Salary",
+      "positionSalary": "Position Salary",
+      "performanceSalary": "Performance",
+      "allowance": "Allowance",
+      "deduction": "Deduction",
+      "tax": "Tax",
+      "socialSecurity": "Social Sec.",
+      "housingFund": "Housing Fund",
+      "netSalary": "Net Salary"
+    },
+    "messages": {
+      "loading": "Loading data...",
+      "loadFailed": "Failed to load salary data",
+      "noData": "No salary data available"
+    }
+  },
+  "mappingConfigurator": {
+    "searchPlaceholder": "Search source or target name...",
+    "addButton": "Add Mapping",
+    "modal": {
+      "addTitle": "Add Field Mapping",
+      "editTitle": "Edit Field Mapping: {{sourceName}}",
+      "okText": "Save",
+      "cancelText": "Cancel",
+      "fieldSourceName": "Source Name (Excel Column)",
+      "fieldTargetName": "Target Name (DB Column)",
+      "fieldIsIntermediate": "Intermediate Field",
+      "fieldIsFinal": "Final Field",
+      "fieldDescription": "Description",
+      "fieldDataType": "Data Type (e.g., numeric, text)",
+      "validation": {
+        "sourceRequired": "Please enter source name!",
+        "targetRequired": "Please enter target name!"
+      }
+    },
+    "table": {
+      "colSourceName": "Source Name",
+      "colTargetName": "Target Name",
+      "colIsIntermediate": "Intermediate",
+      "colIsFinal": "Final",
+      "colDescription": "Description",
+      "colDataType": "Data Type",
+      "colAction": "Action",
+      "actionEdit": "Edit",
+      "actionDelete": "Delete",
+      "renderYes": "Yes",
+      "renderNo": "No",
+      "filterYes": "Yes",
+      "filterNo": "No"
+    },
+    "deleteConfirm": {
+      "title": "Confirm delete this mapping?",
+      "okText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "messages": {
+      "loadFailed": "Failed to load field mappings",
+      "saveFailed": "Failed to save mapping",
+      "createSuccess": "Field mapping created successfully!",
+      "updateSuccess": "Field mapping updated successfully!",
+      "deleteSuccess": "Field mapping deleted successfully!",
+      "deleteFailed": "Failed to delete field mapping"
+    }
+  },
+  "sheetMappingManager": {
+    "title": "Import Sheet Mapping Management",
+    "addButton": "Add Mapping",
+    "table": {
+      "colSheetName": "Sheet Name",
+      "colTypeKey": "Employee Type Key",
+      "colTargetTable": "Target Staging Table",
+      "colAction": "Action"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Confirm Delete?"
+    },
+    "modal": {
+      "editTitle": "Edit Mapping",
+      "addTitle": "Add New Mapping",
+      "form": {
+        "labelSheetName": "Sheet Name",
+        "labelTypeKey": "Employee Type Key",
+        "labelTargetTable": "Target Staging Table Name",
+        "placeholderSheetName": "e.g., Salary Details-Civil Servant",
+        "placeholderTypeKey": "Select or enter Key (e.g., gwy)",
+        "placeholderTargetTable": "e.g., raw_salary_data_staging",
+        "validation": {
+          "sheetNameRequired": "Please enter the Sheet Name from Excel",
+          "typeKeyRequired": "Please select or enter the Employee Type Key",
+          "targetTableRequired": "Please enter the target staging table name"
+        }
+      }
+    },
+    "messages": {
+      "updateSuccess": "Update successful",
+      "createSuccess": "Creation successful",
+      "deleteSuccess": "Deletion successful"
+    },
+    "errors": {
+      "saveFailed": "Save failed",
+      "deleteFailed": "Deletion failed",
+      "loadFailed": "Failed to load mappings"
+    }
+  },
+  "employeeManager": {
+    "title": "Employee Management",
+    "addButton": "Add Employee",
+    "filters": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Search by name",
+      "employeeIdLabel": "Employee ID",
+      "employeeIdPlaceholder": "Search by ID",
+      "departmentLabel": "Department",
+      "departmentPlaceholder": "Select department",
+      "establishmentLabel": "Establishment",
+      "establishmentPlaceholder": "Select type",
+      "allOption": "All"
+    },
+    "buttons": {
+      "search": "Search",
+      "reset": "Reset"
+    },
+    "table": {
+      "colId": "ID",
+      "colName": "Name",
+      "colEmployeeId": "Employee ID",
+      "colDepartment": "Department",
+      "colUnit": "Unit",
+      "colEstablishment": "Establishment",
+      "colIdCard": "ID Card No.",
+      "colBankAcc": "Bank Account",
+      "colBankName": "Bank Name",
+      "colAction": "Action",
+      "colGender": "Gender",
+      "colEthnicity": "Ethnicity",
+      "colDob": "Date of Birth",
+      "colEducation": "Education",
+      "colWorkStartDate": "Work Start",
+      "colServiceInterruption": "Svc Interruption (Yrs)",
+      "colContinuousService": "Continuous Svc (Yrs)",
+      "colActualPosition": "Actual Position",
+      "colActualPosStartDate": "Pos Start Date",
+      "colPosLevelStartDate": "Level Start Date",
+      "colEmploymentStatus": "Status",
+      "colRemarks": "Remarks",
+      "colCreatedAt": "Created At",
+      "colUpdatedAt": "Updated At"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "modals": {
+      "editTitle": "Edit Employee Information",
+      "createTitle": "Add New Employee",
+      "deleteConfirmTitle": "Confirm Delete Employee: {{name}}",
+      "deleteConfirmContent": "Are you sure you want to delete this employee? This action cannot be undone."
+    },
+    "messages": {
+      "invalidDataFormat": "Invalid employee data format received",
+      "loadError": "Failed to load employee data",
+      "updateSuccess": "Employee information updated successfully",
+      "updateFailed": "Failed to update employee information: {{errorDetails}}",
+      "deleteSuccess": "Employee '{{name}}' deleted successfully",
+      "deleteFailed": "Failed to delete employee '{{name}}'",
+      "createSuccess": "Employee created successfully",
+      "createFailed": "Failed to create employee: {{errorDetails}}",
+      "createFailedDuplicate": "Failed to create employee: Duplicate ID card number or employee ID."
+    }
+  },
+  "employeeForm": {
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter employee name",
+    "idCardLabel": "ID Card Number",
+    "idCardPlaceholder": "Enter 18-digit ID card number",
+    "employeeIdLabel": "Employee ID",
+    "employeeIdPlaceholder": "Enter employee ID (Optional)",
+    "departmentLabel": "Department",
+    "departmentPlaceholder": "Select department",
+    "establishmentLabel": "Establishment Type",
+    "establishmentPlaceholder": "Select establishment type",
+    "bankAccountLabel": "Bank Account Number",
+    "bankAccountPlaceholder": "Enter bank account number (Optional)",
+    "bankNameLabel": "Bank Name",
+    "bankNamePlaceholder": "Enter bank name (Optional)",
+    "submitButton": "Save",
+    "cancelButton": "Cancel",
+    "labels": {
+      "gender": "Gender",
+      "ethnicity": "Ethnicity",
+      "dob": "Date of Birth",
+      "education": "Education Level",
+      "workStartDate": "Work Start Date",
+      "serviceInterruption": "Svc Interruption (Yrs)",
+      "continuousService": "Continuous Svc (Yrs)",
+      "actualPosition": "Actual Position",
+      "actualPosStartDate": "Actual Pos Start Date",
+      "posLevelStartDate": "Pos Level Start Date",
+      "employmentStatus": "Employment Status",
+      "remarks": "Remarks"
+    },
+    "placeholders": {
+      "gender": "Select gender",
+      "employmentStatus": "Select status"
+    },
+    "validation": {
+      "nameRequired": "Please enter the name!",
+      "idCardRequired": "Please enter the ID card number!",
+      "idCardInvalid": "Please enter a valid 18-digit ID card number!",
+      "departmentRequired": "Please select a department!"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   },
   "common": {
     "loading": "Loading...",
-    "yes": "Yes",
-    "no": "No",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "add": "Add",
-    "back": "Back",
-    "search": "Search",
-    "submit": "Submit",
-    "reset": "Reset",
-    "ok": "OK",
-    "confirm": "Confirm",
-    "success": "Success",
     "error": "Error",
-    "warning": "Warning",
-    "info": "Info",
-    "notFound": "Not Found",
-    "totalItems": "Total {total} items",
-    "colActions": "Actions",
-    "saveFailed": "Save failed",
-    "noChanges": "No changes detected",
     "pagination": {
-      "showTotal": "{{rangeStart}}-{{rangeEnd}} of {{total}} items"
-    },
-    "allOption": "All"
+      "showTotal": "Showing {{rangeStart}}-{{rangeEnd}} of {{total}} items"
+    }
+  },
+  "tabs": {
+    "fieldMapping": "Field Mapping",
+    "rules": "Rules",
+    "sheetMappings": "Sheet Mappings"
   },
   "dataViewer": {
-    "title": "Salary Records",
+    "title": "Salary Data Viewer",
     "filters": {
       "payPeriodLabel": "Pay Period",
       "payPeriodPlaceholder": "Select month",
@@ -114,392 +388,80 @@
     },
     "table": {
       "colId": "ID",
-      "colName": "Name",
       "colPayPeriod": "Pay Period",
-      "colIdCard": "ID Card",
+      "colName": "Name",
+      "colIdCard": "ID Card No.",
       "colDepartment": "Department",
       "colUnit": "Unit",
       "colEstablishment": "Establishment",
+      "colPersonnelIdentity": "Personnel Identity",
+      "colPersonnelRank": "Personnel Rank",
+      "colPostCategory": "Post Category",
+      "colOfficialPostSalaryLevel": "Official Post Salary Level (Ref)",
+      "colOfficialSalaryStep": "Official Salary Step (Ref)",
+      "colSalaryLevel": "Salary Level",
+      "colSalaryGrade": "Salary Grade",
+      "colAnnualFixedSalary": "Annual Fixed Salary",
+      "colOneTimeDeduction": "One-Time Deduction",
+      "colBasicPerfBonusDeduct": "Basic Perf Bonus Deduct",
+      "colBasicPerfDeduct": "Basic Perf Deduct",
+      "colIncentivePerfSalary": "Incentive Perf Salary",
+      "colPositionTechSalary": "Position/Tech Salary",
+      "colRankPostGradeSalary": "Rank/Grade Salary",
+      "colReservedSubsidy1993": "Reserved Subsidy (1993)",
+      "colOnlyChildReward": "Only Child Reward",
+      "colPostPositionAllowance": "Post Position Allowance",
+      "colCivilServantNormAllowance": "Civil Servant Norm Allowance",
+      "colTransportationAllowance": "Transport Allowance",
+      "colBasicPerfBonus": "Basic Perf Bonus",
+      "colProbationSalary": "Probation Salary",
+      "colPetitionWorkerPostAllowance": "Petition Worker Post Allowance",
+      "colRewardPerfDeduct": "Reward Perf Deduct",
       "colPostSalary": "Post Salary",
+      "colSalaryStep": "Salary Step",
+      "colMonthlyBasicPerf": "Monthly Basic Perf",
+      "colMonthlyRewardPerf": "Monthly Reward Perf",
+      "colBasicSalary": "Basic Salary",
+      "colBasicPerfSalary": "Basic Perf Salary",
+      "colPerformanceSalary": "Performance Salary",
+      "colOtherAllowance": "Other Allowance",
+      "colSalaryBackpay": "Salary Backpay",
+      "colAllowance": "Allowance",
+      "colQuarterlyPerfBonus": "Quarterly Perf Bonus",
+      "colSubsidy": "Subsidy",
+      "colPetitionPostAllowance": "Petition Post Allowance",
+      "colTotalDeductAdjust": "Total Deduct Adjust",
+      "colLivingAllowance": "Living Allowance",
+      "colSalaryStepBackpayTotal": "Salary Step Backpay Total",
+      "colTotalBackpayAmount": "Total Backpay Amount",
       "colPensionSelf": "Pension (Self)",
-      "colNetPay": "Net Pay"
-    },
-    "pagination": {
-      "showTotal": "{{rangeStart}}-{{rangeEnd}} of {{total}} items"
+      "colMedicalSelf": "Medical (Self)",
+      "colAnnuitySelf": "Annuity (Self)",
+      "colHousingFundSelf": "Housing Fund (Self)",
+      "colUnemploymentSelf": "Unemployment (Self)",
+      "colIndividualTax": "Individual Tax",
+      "colOtherDeductions": "Other Deductions",
+      "colSocialInsuranceAdjust": "Social Insurance Adjust",
+      "colHousingFundAdjust": "Housing Fund Adjust",
+      "colTaxAdjust": "Tax Adjust",
+      "colPensionEmployer": "Pension (Employer)",
+      "colMedicalEmployer": "Medical (Employer)",
+      "colAnnuityEmployer": "Annuity (Employer)",
+      "colHousingFundEmployer": "Housing Fund (Employer)",
+      "colUnemploymentEmployer": "Unemployment (Employer)",
+      "colCriticalIllnessEmployer": "Critical Illness (Employer)",
+      "colInjuryEmployer": "Injury (Employer)",
+      "colRemarks": "Remarks",
+      "colXiaoJi": "Subtotal",
+      "colPersonalDeductions": "Personal Deductions",
+      "colTotalPayable": "Total Payable",
+      "colNetPay": "Net Pay",
+      "colCreatedAt": "Created At",
+      "colUpdatedAt": "Updated At"
     },
     "errors": {
       "fetchFailed": "Failed to fetch data",
-      "filterOptionsFailed": "Failed to load filter options. Please try refreshing."
-    }
-  },
-  "fileConverter": {
-    "title": "EXCEL Data Import",
-    "selectPayPeriod": "Select Pay Period",
-    "selectExcelButton": "Select Excel File",
-    "importCheckboxLabel": "Import to Database",
-    "startButton": "Start Conversion",
-    "convertingButton": "Converting...",
-    "spinTip": "Processing file...",
-    "errorAlertTitle": "Error",
-    "validation": {
-      "noPayPeriod": "Please select a Pay Period.",
-      "noFileSelected": "Please select an Excel file to upload.",
-      "invalidFileObject": "Could not access the selected file. Please try selecting it again.",
-      "notExcelFile": "{{fileName}} is not an Excel file (.xlsx or .xls)"
-    },
-    "messages": {
-      "baseError": "File conversion failed.",
-      "parseError": "Failed to parse error response from server.",
-      "convertSuccessBase": "File converted and download started.",
-      "importSuccess": "File converted, download started. {{importMsg}} Database import successful.",
-      "importFailed": "File converted, download started. Import failed: {{importMsg}} Unknown reason.",
-      "importUnknownStatus": "File converted, download started. Import status: {{status}}.",
-      "importDetailFailed": "Database import failed. Details: {{importMsg}} See backend logs."
-    }
-  },
-  "mappingConfigurator": {
-    "addButton": "Add Mapping",
-    "searchPlaceholder": "Search Source/Target Name",
-    "table": {
-      "colSourceName": "Source Name",
-      "colTargetName": "Target Name",
-      "colIsIntermediate": "Is Intermediate",
-      "colIsFinal": "Is Final",
-      "colDescription": "Description",
-      "colDataType": "Data Type",
-      "colAction": "Action",
-      "renderYes": "Yes",
-      "renderNo": "No",
-      "renderNA": "N/A",
-      "filterYes": "Yes",
-      "filterNo": "No",
-      "actionEdit": "Edit",
-      "actionDelete": "Delete"
-    },
-    "deleteConfirm": {
-      "title": "Are you sure you want to delete this mapping?",
-      "okText": "Yes",
-      "cancelText": "No"
-    },
-    "modal": {
-      "addTitle": "Add New Mapping",
-      "editTitle": "Edit Mapping - {{sourceName}}",
-      "okText": "Save",
-      "cancelText": "Cancel",
-      "fieldSourceName": "Source Name",
-      "fieldTargetName": "Target Name",
-      "fieldIsIntermediate": "Is Intermediate",
-      "fieldIsFinal": "Is Final",
-      "fieldDescription": "Description",
-      "fieldDataType": "Data Type",
-      "validation": {
-        "sourceRequired": "Source Name is required",
-        "targetRequired": "Target Name is required"
-      }
-    },
-    "messages": {
-      "loadFailed": "Failed to load mappings",
-      "updateSuccess": "Mapping updated successfully!",
-      "createSuccess": "Mapping created successfully!",
-      "saveFailed": "Failed to save mapping",
-      "deleteSuccess": "Mapping '{{sourceName}}' deleted successfully.",
-      "deleteFailed": "Failed to delete mapping"
-    }
-  },
-  "employeeManager": {
-    "title": "Employee Management",
-    "addButton": "Add Employee",
-    "filters": {
-      "nameLabel": "Name",
-      "namePlaceholder": "Enter Name",
-      "employeeIdLabel": "Employee ID",
-      "employeeIdPlaceholder": "Enter Employee ID",
-      "departmentLabel": "Department",
-      "departmentPlaceholder": "Select Department",
-      "establishmentLabel": "Establishment",
-      "establishmentPlaceholder": "Select Establishment Type",
-      "allOption": "All"
-    },
-    "buttons": {
-      "search": "Search",
-      "reset": "Reset"
-    },
-    "table": {
-      "colId": "ID",
-      "colName": "Name",
-      "colEmployeeId": "Employee ID",
-      "colDepartment": "Department",
-      "colUnit": "Unit",
-      "colEstablishment": "Establishment",
-      "colIdCard": "ID Card No.",
-      "colBankAccount": "Bank Account No.",
-      "colBankName": "Bank Name",
-      "colAction": "Action",
-      "renderNA": "-"
-    },
-    "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "confirm": "Confirm Delete",
-      "cancel": "Cancel"
-    },
-    "deleteConfirm": {
-      "title": "Confirm Delete",
-      "content": "Are you sure you want to delete this employee? This action cannot be undone.",
-      "okText": "Confirm Delete",
-      "cancelText": "Cancel"
-    },
-    "editModal": {
-      "title": "Edit Employee Information"
-    },
-    "createModal": {
-      "title": "Create New Employee"
-    },
-    "messages": {
-      "loadError": "Failed to load employee data. Please try again later.",
-      "invalidDataFormat": "Received employee data is not in the correct format.",
-      "updateSuccess": "Employee information updated successfully!",
-      "updateFailed": "Update failed: {{errorDetails}}",
-      "deleteSuccess": "Employee deleted successfully!",
-      "deleteFailed": "Delete failed: {{errorDetails}}",
-      "createSuccess": "Employee created successfully!",
-      "createFailed": "Creation failed: {{errorDetails}}",
-      "createFailedDuplicate": "Creation failed: Possible duplicate ID card or employee ID."
-    },
-    "modals": {
-        "deleteConfirmTitle": "Confirm delete employee '{{name}}'",
-        "deleteConfirmContent": "This action cannot be undone. Are you sure you want to continue?"
-    }
-  },
-  "employeeForm": {
-    "labels": {
-      "name": "Name",
-      "employeeId": "Employee ID",
-      "idCard": "ID Card No.",
-      "department": "Department",
-      "establishment": "Establishment",
-      "bankAccount": "Bank Account No.",
-      "bankName": "Bank Name"
-    },
-    "placeholders": {
-      "department": "Select Department",
-      "establishment": "Select Establishment Type"
-    },
-    "validation": {
-      "nameRequired": "Please enter employee name",
-      "idCardRequired": "Please enter ID card number",
-      "departmentRequired": "Please select department"
-    },
-    "buttons": {
-      "cancel": "Cancel",
-      "submit": "Submit"
-    }
-  },
-  "departmentManager": {
-    "title": "Department Management",
-    "placeholderText": "Department management functionality will be implemented here.",
-    "mainTitle": "Unit & Department Management",
-    "tabUnits": "Manage Units",
-    "tabDepartments": "Manage Departments",
-    "searchPlaceholder": "Enter name to search",
-    "unitTable": {
-      "searchPlaceholder": "Search Unit Name...",
-      "addButton": "Add Unit",
-      "colName": "Unit Name",
-      "colDescription": "Description"
-    },
-    "deptTable": {
-      "searchPlaceholder": "Search Department Name...",
-      "addButton": "Add Department",
-      "filterUnitPlaceholder": "Filter by Unit...",
-      "colName": "Department Name",
-      "colUnit": "Parent Unit",
-      "colDescription": "Description"
-    },
-    "modal": {
-      "addUnitTitle": "Add New Unit",
-      "editUnitTitle": "Edit Unit",
-      "addDeptTitle": "Add New Department",
-      "editDeptTitle": "Edit Department",
-      "fieldUnitName": "Unit Name",
-      "fieldDeptName": "Department Name",
-      "fieldDescription": "Description",
-      "fieldParentUnit": "Parent Unit",
-      "deptUnitPlaceholder": "Please select parent unit",
-      "validation": {
-        "unitNameRequired": "Unit name is required.",
-        "deptNameRequired": "Department name is required.",
-        "unitRequired": "Parent unit is required."
-      }
-    },
-    "deleteConfirm": {
-      "unitTitle": "Confirm Delete Unit?",
-      "unitContent": "Deleting this unit will also delete all its departments. Are you sure?",
-      "deptTitle": "Confirm Delete Department?",
-      "deptContent": "Are you sure you want to delete this department?"
-    },
-    "errors": {
-      "loadUnitsFailed": "Failed to load units.",
-      "loadDeptsFailed": "Failed to load departments.",
-      "loadUnitOptionsFailed": "Failed to load unit options.",
-      "deleteUnitFailed": "Failed to delete unit.",
-      "deleteDeptFailed": "Failed to delete department."
-    },
-    "messages": {
-      "unitCreateSuccess": "Unit created successfully.",
-      "unitUpdateSuccess": "Unit updated successfully.",
-      "deptCreateSuccess": "Department created successfully.",
-      "deptUpdateSuccess": "Department updated successfully.",
-      "unitDeleteSuccess": "Unit deleted successfully.",
-      "deptDeleteSuccess": "Department deleted successfully."
-    }
-  },
-  "reports": {
-    "placeholderWarning": "Please update the report URL in {{componentName}}.",
-    "selectPayPeriodLabel": "Select Pay Period:",
-    "selectPayPeriodPlaceholder": "Please select a period"
-  },
-  "userMenu": {
-    "profile": "My Profile",
-    "logout": "Logout"
-  },
-  "userProfilePage": {
-    "title": "User Profile",
-    "updateProfileTitle": "Update Profile",
-    "usernameLabel": "Username",
-    "emailLabel": "Email",
-    "emailPlaceholder": "Enter new email",
-    "emailRequired": "Please enter your email",
-    "emailInvalid": "Please enter a valid email address",
-    "updateProfileButton": "Update Profile",
-    "changePasswordTitle": "Change Password",
-    "currentPasswordLabel": "Current Password",
-    "currentPasswordPlaceholder": "Enter current password",
-    "currentPasswordRequired": "Please enter your current password",
-    "newPasswordLabel": "New Password",
-    "newPasswordPlaceholder": "Enter new password",
-    "newPasswordRequired": "Please enter a new password",
-    "newPasswordMinLength": "Password must be at least {{minLength}} characters long",
-    "confirmPasswordLabel": "Confirm New Password",
-    "confirmPasswordPlaceholder": "Confirm new password",
-    "confirmPasswordRequired": "Please confirm your new password",
-    "confirmPasswordMismatch": "The two passwords do not match",
-    "changePasswordButton": "Change Password",
-    "updateSuccess": "Update successful",
-    "updateError": "Update failed",
-    "passwordChangeSuccess": "Password changed successfully!",
-    "passwordChangeError": "Password change failed",
-    "emailUpdateSuccess": "Email updated successfully!",
-    "loadingProfile": "Loading user information..."
-  },
-  "reportLinks": {
-    "manager": "Report Link Management",
-    "list": "Report Link List",
-    "create": "Create Report Link",
-    "edit": "Edit Report Link",
-    "delete": "Delete Report Link",
-    "name": "Report Name",
-    "url": "Link URL",
-    "description": "Description",
-    "category": "Category",
-    "isActive": "Is Active",
-    "displayOrder": "Display Order",
-    "requireRole": "Required Role",
-    "test": "Test",
-    "nameRequired": "Please enter report name",
-    "urlRequired": "Please enter link URL",
-    "addNew": "Add New Report",
-    "createSuccess": "Report link created successfully",
-    "updateSuccess": "Report link updated successfully",
-    "deleteSuccess": "Report link deleted successfully",
-    "loadError": "Failed to load report links",
-    "saveError": "Failed to save report link",
-    "deleteError": "Failed to delete report link",
-    "confirmDelete": "Are you sure you want to delete this report link?"
-  },
-  "reportViewer": {
-    "noReportIdError": "Report ID not provided",
-    "fetchError": "Failed to fetch report link",
-    "reportNotFound": "Report not found"
-  },
-  "sidebar": {
-    "systemTitle": "Salary System",
-    "dashboard": "Dashboard",
-    "employees": "Employees",
-    "departments": "Departments",
-    "salaryData": "Salary Data",
-    "reports": "Reports",
-    "files": "Files",
-    "reportLinks": "Report Links",
-    "noReports": "No reports available"
-  },
-  "tabs": {
-    "fieldMapping": "All Field Mappings",
-    "rules": "Employee Type Field Rules"
-  },
-  "userManager": {
-    "title": "User Management",
-    "addButton": "Add User",
-    "searchPlaceholder": "Search Username or Email",
-    "table": {
-      "colUsername": "Username",
-      "colEmail": "Email",
-      "colRole": "Role",
-      "colStatus": "Status",
-      "colActions": "Actions"
-    },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
-    "roles": {
-        "superAdmin": "Super Admin",
-        "regularUser": "Regular User"
-    },
-    "actions": {
-        "editNotImplemented": "Edit action for user {{id}} not implemented yet.",
-        "deleteNotImplemented": "Delete action for user {{id}} not implemented yet."
-    },
-    "errors": {
-        "loadFailed": "Failed to load users.",
-        "loadRolesFailed": "Failed to load roles.",
-        "updateFailed": "Failed to update user",
-        "createFailed": "Failed to create user",
-        "deleteFailed": "Failed to delete user"
-    },
-    "messages": {
-        "updateSuccess": "User updated successfully!",
-        "createSuccess": "User created successfully!",
-        "deleteSuccess": "User deleted successfully!"
-    },
-    "modal": {
-        "editTitle": "Edit User - {{username}}",
-        "addTitle": "Add New User"
-    },
-    "form": {
-        "username": "Username",
-        "email": "Email",
-        "password": "Password",
-        "confirmPassword": "Confirm Password",
-        "role": "Role",
-        "status": "Status"
-    },
-    "validation": {
-        "usernameRequired": "Please input the username!",
-        "emailRequired": "Please input the email!",
-        "emailInvalid": "Please enter a valid email address!",
-        "passwordRequired": "Please input the password!",
-        "passwordMinLength": "Password must be at least 8 characters!",
-        "confirmPasswordRequired": "Please confirm your password!",
-        "passwordsDontMatch": "The two passwords that you entered do not match!",
-        "roleRequired": "Please select a role!"
-    },
-    "placeholders": {
-        "selectRole": "Select a role"
-    },
-    "deleteConfirm": {
-        "title": "Confirm Delete",
-        "content": "Are you sure you want to delete user {{username}}? This action cannot be undone."
+      "filterOptionsFailed": "Failed to load filter options, please try refreshing."
     }
   }
 }

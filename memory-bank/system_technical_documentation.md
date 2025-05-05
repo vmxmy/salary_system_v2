@@ -159,6 +159,15 @@ salary_system/frontend/salary-viewer/
 #### 3.2.3 配置与报表
 
 - **MappingConfigurator.tsx**：字段映射配置组件，管理字段映射信息
+- **UserManager.tsx**：(新增) 用户账号管理组件。提供以下功能：
+    - 使用 Ant Design 表格展示用户列表（ID, 用户名, 邮箱, 角色, 状态）。
+    - 支持分页、按列排序、按角色和状态筛选。
+    - 提供 "添加用户" 按钮，弹出模态框。
+    - 提供行内 "编辑" 按钮，弹出模态框预填用户信息。
+    - 提供行内 "删除" 按钮，通过 `Popconfirm` 弹窗进行二次确认。
+    - 添加用户模态框包含用户名、邮箱、密码、确认密码、角色选择、状态开关等字段及校验。
+    - 编辑用户模态框包含邮箱、角色选择、状态开关等字段及校验（用户名不可编辑）。
+    - 集成后端 API 进行用户数据的增删改查。
 - **MonthlySalaryReport.tsx**：月度薪资报表组件，展示报表数据
 - **JimuReportViewer.tsx**：Jimu报表查看组件，通过iframe嵌入Jimu报表
 - **ReportLinkManager.tsx**：(管理员) 报表链接管理组件，用于创建、编辑、删除和管理在侧边栏显示的报表链接。
@@ -189,6 +198,7 @@ salary_system/frontend/salary-viewer/
 ├── /reports/jimu              # Jimu报表集成页面
 +├── /report-links              # (管理员) 报表链接管理页面
 +├── /reports/:reportId         # 动态报表查看页面
++├── /config/users              # 用户账号管理
 └── /profile                   # 用户个人中心
 ```
 
@@ -232,9 +242,10 @@ salary_system/webapp/
 ├── requirements.txt       # Python依赖项
 ├── routers/               # 模块化的API路由
 │   ├── units.py           # 单位管理路由
-│   └── departments.py     # 部门管理路由
-+│   └── report_links.py    # 报表链接管理路由
-└── config/                # 配置文件
+│   ├── departments.py     # 部门管理路由
+│   ├── report_links.py    # 报表链接管理路由
++│   ├── user_management.py # 用户管理路由 (已切换至 ORM)
+│   └── config/            # 配置文件
 ```
 
 ### 4.2 核心功能模块
@@ -548,16 +559,17 @@ establishment_types <--1:N--> field_mappings
 
 #### 6.1.2 用户管理 (User Management)
 
-| 方法   | 端点                | 描述                        | 权限            | 参数                                  | 返回值                       |
-|--------|---------------------|----------------------------|----------------|---------------------------------------|----------------------------|
-| GET    | `/api/users/me`     | 获取当前用户信息            | 已认证用户     | 无                                    | 用户信息                     |
-| PUT    | `/api/users/me`     | 更新当前用户信息            | 已认证用户     | `email`, `username`等                | 更新后的用户信息             |
-| PUT    | `/api/users/password`| 修改密码                   | 已认证用户     | `current_password`, `new_password`   | 操作状态                     |
-| GET    | `/api/users/`       | 获取所有用户列表            | 管理员        | `skip`, `limit` (分页参数)            | 用户列表                     |
-| POST   | `/api/users/`       | 创建新用户                  | 管理员        | 用户信息                              | 新创建的用户信息             |
-| GET    | `/api/users/{id}`   | 获取指定用户信息            | 管理员        | `id` (路径参数)                      | 用户信息                     |
-| DELETE | `/api/users/{id}`   | 删除用户                    | 管理员        | `id` (路径参数)                      | 操作状态                     |
-| PUT    | `/api/users/{id}/roles`| 更新用户角色             | 管理员        | `id` (路径参数), `role_ids`          | 操作状态                     |
+| 方法   | 端点                   | 描述                        | 权限            | 主要请求体/参数                       | 主要返回值                   |
+|--------|------------------------|-----------------------------|-----------------|---------------------------------------|----------------------------|
+| GET    | `/api/users/me`        | 获取当前用户信息            | 已认证用户      | 无                                    | `UserResponse`             |
+| PUT    | `/api/users/me`        | 更新当前用户信息(邮箱)    | 已认证用户      | `UserUpdate` (仅 email)               | `UserResponse`             |
+| PUT    | `/api/users/me/password` | 修改当前用户密码            | 已认证用户      | `PasswordUpdate`                      | 204 No Content             |
+| GET    | `/api/users`           | 获取用户列表 (分页)         | Super Admin     | `skip`, `limit` (查询参数)            | `UserListResponse`         |
+| POST   | `/api/users`           | 创建新用户                  | Super Admin     | `UserCreate` (含 password, role_id) | `UserResponse`             |
+| GET    | `/api/users/{user_id}` | 获取指定用户信息            | Super Admin     | `user_id` (路径参数)                  | `UserResponse`             |
+| PUT    | `/api/users/{user_id}` | 更新指定用户信息          | Super Admin     | `user_id` (路径), `UserUpdate` (email, role_id, is_active) | `UserResponse` |
+| DELETE | `/api/users/{user_id}` | 删除指定用户                | Super Admin     | `user_id` (路径参数)                  | 204 No Content             |
+| GET    | `/api/users/roles/list`| 获取所有可用角色列表        | Super Admin     | 无                                    | `List[RoleResponse]`       |
 
 ### 6.2 员工与组织架构接口
 

@@ -1,8 +1,8 @@
 version: 2
 
 sources:
-  - name: public # 源数据的 schema 名称
-    schema: public # 确保这个 schema 与你的数据库匹配
+  - name: staging # 源数据的 schema 名称 (修改为 staging)
+    schema: staging # 确保这个 schema 与你的数据库匹配 (修改为 staging)
     description: "Source schema containing raw staging data for salaries."
     tables:
       - name: raw_salary_data_staging # 源表名
@@ -181,7 +181,11 @@ sources:
           - name: _import_batch_id
             description: "UUID identifying the import batch."
 
-      - name: employees # 新增 employees 表定义
+  - name: core # 新增 core source
+    schema: core # 指向 core schema
+    description: "Source schema containing core application data."
+    tables:
+      - name: employees # employees 表定义
         description: "Source table containing employee information."
         columns:
           - name: id

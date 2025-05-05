@@ -2,7 +2,7 @@
 
 *Detail the current work focus, recent changes, next steps, and active decisions.*
 
-**Current Focus:** Testing Dockerized Application, Debugging Initialization, and Preparing for Deployment
+**Current Focus:** Awaiting next instructions after completing User Management CRUD.
 
 **Recent Changes/Activity:**
 *   Project directory `salary_system` created.
@@ -85,26 +85,17 @@
     *   Successfully built frontend image: `registry.cn-hangzhou.aliyuncs.com/salary_system/salary-frontend:latest`.
     *   Successfully built backend image: `registry.cn-hangzhou.aliyuncs.com/salary_system/salary-backend:latest`.
     *   Pushed both images to Aliyun Container Registry (ACR).
+*   **Implemented User Management CRUD Functionality:**
+    *   Created frontend component `UserManager.tsx`.
+    *   Added table display for users with sorting, filtering (role, status), pagination.
+    *   Implemented combined Add/Edit modal with Form validation (username, email, role, status, password+confirm for add).
+    *   Implemented Delete functionality with `Popconfirm`.
+    *   Added internationalization for the UserManager component.
+    *   Resolved frontend warnings (AntD static context, autocomplete).
+    *   Refactored backend User Management routes (`GET /users`, `POST /users`, `PUT /users/{id}`, `DELETE /users/{id}`) in `user_management.py` to use corresponding SQLAlchemy ORM functions (`get_users_orm`, `create_user_orm`, `update_user_orm`, `delete_user_orm`) instead of old `psycopg2` functions, fixing `AttributeError: 'Session' object has no attribute 'cursor'` errors.
+    *   Fixed backend schema validation error for `GET /users` response by correcting the `UserListResponse` definition in `schemas.py`.
+*   Committed and pushed User Management feature changes to Git.
 
 **Next Steps:**
-1.  **Test Docker Compose Deployment:**
-    *   Navigate to `salary_system/docker/`.
-    *   Create a `.env` file from `.env.template` and populate necessary variables.
-    *   Run `docker compose up --build`.
-    *   Monitor logs for errors during startup, initialization, and runtime.
-2.  **Verify & Debug `init_app.py`:**
-    *   Check logs of the `backend-init` container.
-    *   Adjust imports and logic within `init_app.py` to match the actual backend codebase (database connection, models, user creation functions).
-    *   Ensure Alembic migrations run correctly within the container.
-    *   Verify the initial admin user is created.
-3.  **Test Application Functionality:**
-    *   Access the frontend in a browser.
-    *   Test login (especially with the initial admin user).
-    *   Test core features (employee management, data viewing, etc.).
-    *   Test data import/conversion API.
-    *   Test Jimu Reports integration (if configured and included in compose).
-4.  **Test Backup & Restore:**
-    *   Verify backups are being created in the `db_backups` volume.
-    *   Simulate a data loss scenario and attempt restoration using a backup file.
-5.  **Refine Configuration:** Adjust `.env` variables, Docker Compose settings, or application code based on testing results.
-6.  **Plan Production Deployment:** Based on successful testing, plan the deployment strategy for a production environment. 
+1.  Await user instructions for the next development task (e.g., further UI refinements, other modules, testing, deployment steps).
+# ... potential older next steps if relevant ... 

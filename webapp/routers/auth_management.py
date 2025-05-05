@@ -3,9 +3,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing import List
 from sqlalchemy.orm import Session
 from datetime import timedelta
+import logging
+import typing
 
 from .. import auth, models_db, schemas
 from ..database import get_db
+
+# Added logger instance
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -70,15 +75,25 @@ async def register_user(
 
     # 4. Call the database function to create the user
     try:
-        # models_db.create_user now handles integrity errors and raises HTTPException
-        created_user = models_db.create_user(db, user=user_create_data, hashed_password=hashed_password)
+        # Call the renamed ORM function
+        created_user = models_db.create_user(db=db, user=user_create_data, hashed_password=hashed_password) 
         if not created_user:
              # This case should ideally not be reached if create_user raises exceptions
              raise HTTPException(status_code=500, detail="Failed to create user after database operation.")
         
-        # Return the newly created user details (including the role)
-        # The response model UserResponse will format it correctly
-        return created_user 
+        # Fetch the user again with role details for the response
+        # (create_user_orm might already return this depending on its implementation)
+        # A separate fetch ensures consistency if create_user doesn't eager load.
+        # Ensure we pass the integer ID, using cast to satisfy linter
+        user_response = models_db.get_user_by_id(db, user_id=typing.cast(int, created_user.id))
+        if not user_response:
+             # This should ideally not happen if creation was successful
+             logger.error(f"Failed to fetch newly created user {created_user.id} for response.")
+             raise HTTPException(status_code=500, detail="Failed to retrieve user details after creation.")
+
+        # Convert the ORM model to Pydantic model for the response
+        # FastAPI handles this automatically if response_model is set correctly
+        return user_response
 
     except HTTPException as http_exc:
         # Re-raise HTTPExceptions raised by create_user (e.g., 409 Conflict)

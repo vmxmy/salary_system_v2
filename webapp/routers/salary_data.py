@@ -72,7 +72,7 @@ async def get_salary_data(
     """获取薪资数据，支持分页和各种过滤条件。"""
     try:
         # 使用ORM版本
-        items, total = models_db.get_salary_data_orm(
+        items, total = models_db.get_salary_data(
             db=db, 
             limit=limit, 
             skip=offset, 
@@ -114,22 +114,29 @@ async def get_establishment_types(
         logger.error(f"获取编制类型意外错误: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="发生意外服务器错误。")
 
-@router.get("/api/establishment-types-list", response_model=List[dict], tags=["Helper Lists"])
+@router.get("/api/establishment-types-list", response_model=List[schemas.EstablishmentTypeInfo], tags=["Helper Lists"])
 async def get_establishment_types_list(
     db: Session = Depends(get_db),
     current_user: schemas.UserResponse = Depends(auth.get_current_user)
 ):
-    """获取所有编制类型及其key和中文名的列表。"""
+    """获取所有编制类型及其key和中文名的列表 (ORM版本)。"""
     try:
-        # 查询 key 和 name
-        results = db.execute(text("SELECT employee_type_key, name FROM establishment_types ORDER BY name")).mappings().all()
-        logger.info(f"获取到{len(results)}个编制类型。")
-        return [dict(row) for row in results]
+        # 使用 ORM 查询, 添加 id 列
+        results = db.query(
+            models.EstablishmentType.id, # Added id column
+            models.EstablishmentType.employee_type_key,
+            models.EstablishmentType.name
+        ).order_by(models.EstablishmentType.name).all()
+
+        logger.info(f"获取到{len(results)}个编制类型 (ORM)。")
+        # Directly return the result; FastAPI handles Pydantic conversion
+        return results
+
     except sa_exc.SQLAlchemyError as e:
-        logger.error(f"获取编制类型列表数据库错误: {e}", exc_info=True)
+        logger.error(f"获取编制类型列表数据库错误 (ORM): {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="获取编制类型列表时发生数据库错误。")
     except Exception as e:
-        logger.error(f"获取编制类型列表意外错误: {e}", exc_info=True)
+        logger.error(f"获取编制类型列表意外错误 (ORM): {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="发生意外服务器错误。")
 
 # 辅助列表端点，放在这里因为它们与薪资数据相关

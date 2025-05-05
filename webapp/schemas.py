@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any, Literal, Union
 from datetime import datetime, date
+from pydantic import ConfigDict
+from decimal import Decimal # Import Decimal
 
 # --- Token Schemas ---
 
@@ -248,7 +250,9 @@ class EstablishmentTypeListResponse(BaseModel):
 # Simpler model for dropdowns/lists
 class EstablishmentTypeInfo(BaseModel):
     id: int
+    employee_type_key: str
     name: str
+
 # --- Pydantic Model for Establishment Type --- END ---
 
 # --- Pydantic Model for Employee --- START
@@ -258,10 +262,29 @@ class EmployeeBase(BaseModel):
     department_id: Optional[int] = None
     employee_unique_id: Optional[str] = None # Optional: 工号
     bank_account_number: Optional[str] = None
-    bank_name: Optional[str] = None
+    bank_name: Optional[str] = None # Renamed from bank_branch_name
     establishment_type_id: Optional[int] = None
+    work_start_date: Optional[date] = None # Renamed from employment_start_date
+    employment_status: Optional[str] = Field(default='在职')
+    remarks: Optional[str] = None
+    
+    # Added new fields (all optional in base/create/update)
+    gender: Optional[str] = None
+    ethnicity: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    education_level: Optional[str] = None
+    service_interruption_years: Optional[Decimal] = None 
+    continuous_service_years: Optional[Decimal] = None # Use Decimal for Numeric(4,2)
+    actual_position: Optional[str] = None
+    actual_position_start_date: Optional[date] = None
+    position_level_start_date: Optional[date] = None
 
 class EmployeeCreate(EmployeeBase):
+    # Ensure required fields for creation are enforced if needed
+    # Example: department_id and establishment_type_id might be required on create
+    # Remove redundant declarations, rely on base class and API validation
+    # department_id: int 
+    # establishment_type_id: int
     pass
 
 class EmployeeUpdate(BaseModel):
@@ -270,8 +293,22 @@ class EmployeeUpdate(BaseModel):
     department_id: Optional[int] = None
     employee_unique_id: Optional[str] = None
     bank_account_number: Optional[str] = None
-    bank_name: Optional[str] = None
+    bank_name: Optional[str] = None # Renamed from bank_branch_name
     establishment_type_id: Optional[int] = None
+    work_start_date: Optional[date] = None # Renamed from employment_start_date
+    employment_status: Optional[str] = None
+    remarks: Optional[str] = None
+
+    # Added new fields (all optional for update)
+    gender: Optional[str] = None
+    ethnicity: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    education_level: Optional[str] = None
+    service_interruption_years: Optional[Decimal] = None 
+    continuous_service_years: Optional[Decimal] = None # Use Decimal for Numeric(4,2)
+    actual_position: Optional[str] = None
+    actual_position_start_date: Optional[date] = None
+    position_level_start_date: Optional[date] = None
 
 class EmployeeInDBBase(EmployeeBase):
     id: int
@@ -286,6 +323,17 @@ class EmployeeResponse(EmployeeInDBBase):
     department_name: Optional[str] = None
     unit_name: Optional[str] = None
     establishment_type_name: Optional[str] = None
+    # Add new fields to response (all optional as DB columns are nullable)
+    work_start_date: Optional[date] = None # Renamed from employment_start_date
+    gender: Optional[str] = None
+    ethnicity: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    education_level: Optional[str] = None
+    service_interruption_years: Optional[Decimal] = None
+    continuous_service_years: Optional[Decimal] = None
+    actual_position: Optional[str] = None
+    actual_position_start_date: Optional[date] = None
+    position_level_start_date: Optional[date] = None
 
 # Used for listing Employees
 class EmployeeListResponse(BaseModel):
@@ -392,3 +440,168 @@ class EmployeeTypeFieldRuleListResponse(BaseModel):
     total: int
 
 # --- NEWLY MOVED SCHEMAS --- END --- 
+
+# --- Calculation Formula Schemas ---
+
+class CalculationFormulaBase(BaseModel):
+    name: str
+    expression: str
+    description: Optional[str] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={ "example": {
+            "name": "Standard Performance Bonus",
+            "expression": "salary_basic_salary * 0.1 + job_level_bonus",
+            "description": "Calculates the standard monthly performance bonus based on basic salary and job level."
+        }}
+    )
+
+class CalculationFormulaCreate(CalculationFormulaBase):
+    pass # Inherits all fields from Base
+
+class CalculationFormulaUpdate(BaseModel):
+    name: Optional[str] = None
+    expression: Optional[str] = None
+    description: Optional[str] = None
+    # Allow setting description to null explicitly
+    # description: Optional[Union[str, None]] = Field(None, description="Set to null to clear description")
+
+class CalculationFormulaResponse(CalculationFormulaBase):
+    formula_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True # Enable ORM mode
+    )
+
+# --- Calculation Rule Condition Schemas ---
+
+class CalculationRuleConditionBase(BaseModel):
+    source_field_db_name: str = Field(..., description="Field name in the context to check against (e.g., ctx_employee_type_key or a calculated field name)")
+    operator: str = Field(..., description="Comparison operator (e.g., '==', '>', 'is_null', 'in')")
+    comparison_value: str = Field(..., description="Value to compare against (as string). For 'in' operator, use comma-separated values.")
+
+class CalculationRuleConditionCreate(CalculationRuleConditionBase):
+    pass # No extra fields needed for creation
+
+class CalculationRuleConditionResponse(CalculationRuleConditionBase):
+    condition_id: int
+    # rule_id: int # Usually not needed in response as it's part of the parent rule
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+# --- Calculation Rule Schemas ---
+
+class CalculationRuleBase(BaseModel):
+    name: str = Field(..., description="User-friendly name for the rule.")
+    description: Optional[str] = None
+    target_field_db_name: str = Field(..., description="The database field name this rule calculates.")
+    action_type: str = Field(..., description="Action to perform ('APPLY_FORMULA' or 'SET_FIXED_VALUE')")
+    formula_id: Optional[int] = Field(None, description="ID of the formula to use if action_type is APPLY_FORMULA")
+    fixed_value: Optional[float] = Field(None, description="Fixed value to set if action_type is SET_FIXED_VALUE") # Assuming numeric
+    priority: int = Field(0, description="Execution priority (lower number runs first)")
+    is_active: bool = Field(True, description="Whether the rule is currently active")
+
+    # Add validation logic here if needed (e.g., using @model_validator)
+    # Example: ensure formula_id is set if action is APPLY_FORMULA, etc.
+
+class CalculationRuleCreate(CalculationRuleBase):
+    conditions: List[CalculationRuleConditionCreate] = Field([], description="List of conditions that must ALL be met for the rule to trigger.")
+
+class CalculationRuleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    target_field_db_name: Optional[str] = None
+    action_type: Optional[str] = None
+    formula_id: Optional[int] = None
+    fixed_value: Optional[float] = None # Assuming numeric
+    priority: Optional[int] = None
+    is_active: Optional[bool] = None
+    # Updating conditions is complex. Options:
+    # 1. Replace all: conditions: Optional[List[CalculationRuleConditionCreate]] = None
+    # 2. Separate endpoints for adding/removing/updating conditions (more RESTful)
+    # We'll start with option 1 (replace all) for simplicity in the PUT request.
+    conditions: Optional[List[CalculationRuleConditionCreate]] = None
+
+class CalculationRuleResponse(CalculationRuleBase):
+    rule_id: int
+    created_at: datetime
+    updated_at: datetime
+    conditions: List[CalculationRuleConditionResponse] = []
+    formula: Optional[CalculationFormulaResponse] = None # Optionally include full formula details
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+class CalculationRuleListResponse(BaseModel):
+    data: List[CalculationRuleResponse]
+    total: int
+
+# --- NEWLY MOVED SCHEMAS --- END --- 
+
+# --- Calculated Salary Record Schemas ---
+
+class CalculatedSalaryRecordBase(BaseModel):
+    employee_id: int
+    pay_period_identifier: str
+    calculated_data: Dict[str, Any] # The core calculated results
+    calculation_engine_version: Optional[str] = None
+    rules_applied_ids: Optional[List[int]] = None # Assuming list of rule IDs
+    # Maybe exclude source_data_snapshot from default response?
+    # source_data_snapshot: Optional[Dict[str, Any]] = None 
+
+class CalculatedSalaryRecordResponse(CalculatedSalaryRecordBase):
+    calculated_record_id: int
+    calculation_timestamp: datetime
+    # Add employee details if needed by joining in CRUD or endpoint
+    # employee_name: Optional[str] = None 
+
+    model_config = ConfigDict(
+        from_attributes=True # Enable ORM mode
+    )
+
+# Schema for the trigger endpoint's successful response (alternative)
+class CalculationTriggerResponse(BaseModel):
+    message: str = "Calculation successful"
+    record_id: int
+    timestamp: datetime
+    # Optionally include the calculated data itself
+    # calculated_data: Dict[str, Any]
+
+# --- NEWLY MOVED SCHEMAS --- END --- 
+
+# --- Pydantic Model for SheetNameMapping --- START ---
+class SheetNameMappingBase(BaseModel):
+    sheet_name: str = Field(..., description="Excel sheet name")
+    employee_type_key: str = Field(..., description="Corresponding employee type key (e.g., gwy, sy)")
+    target_staging_table: str = Field(..., description="Target staging table name (e.g., raw_salary_data_staging)")
+
+class SheetNameMappingCreate(SheetNameMappingBase):
+    pass # No extra fields for creation
+
+class SheetNameMappingUpdate(BaseModel):
+    # sheet_name is the identifier, usually not updatable
+    employee_type_key: Optional[str] = Field(None, description="Update employee type key")
+    target_staging_table: Optional[str] = Field(None, description="Update target staging table name")
+
+class SheetNameMappingResponse(SheetNameMappingBase):
+    # No extra fields needed for response if PK is sheet_name
+    # If an ID column were added later, it would go here.
+    
+    model_config = ConfigDict(
+        from_attributes=True # Enable ORM mode for reading from model instance
+    )
+
+class SheetNameMappingListResponse(BaseModel):
+    data: List[SheetNameMappingResponse]
+    # Add total if pagination is implemented
+    # total: int
+
+# --- Pydantic Model for SheetNameMapping --- END ---
+
+# --- Calculation Formula Schemas ---
+# ... rest of the file ...

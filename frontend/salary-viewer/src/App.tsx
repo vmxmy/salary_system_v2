@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Layout, Menu, Breadcrumb, Button, ConfigProvider, Dropdown, Space, theme as antdTheme, Avatar, App as AntApp } from 'antd';
 import type { ThemeConfig } from 'antd';
-import { FileExcelOutlined, UserOutlined, HomeOutlined, SettingOutlined, DatabaseOutlined, GlobalOutlined, BarChartOutlined, LogoutOutlined, UploadOutlined } from '@ant-design/icons';
+import { FileExcelOutlined, UserOutlined, HomeOutlined, SettingOutlined, DatabaseOutlined, GlobalOutlined, BarChartOutlined, LogoutOutlined, UploadOutlined, SwapOutlined, ExperimentOutlined, ControlOutlined } from '@ant-design/icons';
 import SalaryDataViewer from './components/SalaryDataViewer';
 import FileConverter from './components/FileConverter';
 import MappingConfigurator from './components/MappingConfigurator';
@@ -22,6 +22,8 @@ import ReportLinkManager from './components/ReportLinkManager';
 import ReportViewer from './components/ReportViewer';
 import reportLinksApi from './services/reportLinksApi';
 import UserManager from './components/UserManager';
+import FormulaConfigPage from './pages/config/FormulaConfigPage';
+import RuleConfigPage from './pages/config/RuleConfigPage';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -118,7 +120,7 @@ const MainLayout: React.FC = () => {
     ];
     // --- User Menu --- END
 
-    // --- Menu Items Definition --- Reordered & Updated with dynamic reports
+    // --- Menu Items Definition --- Updated with dynamic reports and new config pages
     const generateMenuItems = () => {
         const isAdmin = user && user.role === 'Super Admin';
         const reportLinksMenuItems = reportLinksLoading
@@ -158,18 +160,19 @@ const MainLayout: React.FC = () => {
                     { key: '/data-import/converter', icon: <FileExcelOutlined />, label: <Link to="/data-import/converter">{t('menu.fileConverter')}</Link> },
             ],
         },
-            // 4. Configuration Menu - Now includes conditional Report Links Management
+            // 4. Configuration Menu - Updated
         {
             key: '/config',
             icon: <SettingOutlined />,
             label: t('menu.configuration'),
             children: [
                     { key: '/config/mappings', label: <Link to="/config/mappings">{t('menu.fieldMappings')}</Link> },
+                    { key: '/config/formulas', label: <Link to="/config/formulas">{t('menu.formulaManagement')}</Link> },
+                    { key: '/config/rules', label: <Link to="/config/rules">{t('menu.ruleManagement')}</Link> },
                     { key: '/config/users', label: <Link to="/config/users">{t('menu.userManager')}</Link> },
                     // Conditionally add Report Links Management as a child
                     ...(isAdmin ? [{
                         key: '/report-links',
-                        // icon: <LinkOutlined />, // Optional: Use a more specific icon
                         label: <Link to="/report-links">{t('menu.reportLinksManagement')}</Link>,
                     }] : []),
             ],
@@ -190,6 +193,8 @@ const MainLayout: React.FC = () => {
         '/data-management': t('breadcrumb.dataManagement'),
         '/config': t('breadcrumb.configuration'),
         '/config/mappings': t('breadcrumb.fieldMappings'),
+        '/config/formulas': t('breadcrumb.formulaManagement'),
+        '/config/rules': t('breadcrumb.ruleManagement'),
         '/admin/employees': t('breadcrumb.employeeManagement'),
         '/admin/departments': t('breadcrumb.departmentManagement'),
         '/reports': t('breadcrumb.reports'),
@@ -275,21 +280,26 @@ const MainLayout: React.FC = () => {
                     </Space>
                 </Header>
                 <Content style={{ margin: '16px' }}>
-                    <Routes>
-                        <Route path="/" element={<Navigate to="/viewer" replace />} />
-                        <Route path="/viewer" element={<ProtectedRoute><SalaryDataViewer /></ProtectedRoute>} />
-                        <Route path="/data-import/converter" element={<ProtectedRoute><FileConverter /></ProtectedRoute>} />
-                        <Route path="/config/mappings" element={<ProtectedRoute><MappingConfigurator /></ProtectedRoute>} />
-                        <Route path="/config/users" element={<ProtectedRoute><UserManager /></ProtectedRoute>} />
-                        <Route path="/reports/monthly-salary" element={<ProtectedRoute><MonthlySalaryReport /></ProtectedRoute>} />
-                        <Route path="/admin/employees" element={<ProtectedRoute><EmployeeManager /></ProtectedRoute>} />
-                        <Route path="/admin/departments" element={<ProtectedRoute><DepartmentManager /></ProtectedRoute>} />
-                        <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/register" element={<RegisterPage />} />
-                        <Route path="/report-links" element={<ProtectedRoute><ReportLinkManager /></ProtectedRoute>} />
-                        <Route path="/reports/:reportId" element={<ProtectedRoute><ReportViewer /></ProtectedRoute>} />
-                    </Routes>
+                    <div style={{ padding: 24, background: '#fff', borderRadius: customTheme?.token?.borderRadius ?? 8, minHeight: 360 }}>
+                        <Routes>
+                            <Route path="/" element={<Navigate to="/viewer" replace />} />
+                            <Route path="/viewer" element={<ProtectedRoute><SalaryDataViewer /></ProtectedRoute>} />
+                            <Route path="/data-import/converter" element={<ProtectedRoute><FileConverter /></ProtectedRoute>} />
+                            <Route path="/config/mappings" element={<ProtectedRoute><MappingConfigurator /></ProtectedRoute>} />
+                            <Route path="/config/users" element={<ProtectedRoute><UserManager /></ProtectedRoute>} />
+                            <Route path="/reports/monthly-salary" element={<ProtectedRoute><MonthlySalaryReport /></ProtectedRoute>} />
+                            <Route path="/admin/employees" element={<ProtectedRoute><EmployeeManager /></ProtectedRoute>} />
+                            <Route path="/admin/departments" element={<ProtectedRoute><DepartmentManager /></ProtectedRoute>} />
+                            <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+                            <Route path="/login" element={<LoginPage />} />
+                            <Route path="/register" element={<RegisterPage />} />
+                            <Route path="/report-links" element={<ProtectedRoute><ReportLinkManager /></ProtectedRoute>} />
+                            <Route path="/reports/:reportId" element={<ProtectedRoute><ReportViewer /></ProtectedRoute>} />
+                            <Route path="/config/formulas" element={<ProtectedRoute><FormulaConfigPage /></ProtectedRoute>} />
+                            <Route path="/config/rules" element={<ProtectedRoute><RuleConfigPage /></ProtectedRoute>} />
+                            <Route path="*" element={<Navigate replace to="/viewer" />} />
+                        </Routes>
+                    </div>
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                     {t('app.footerText', { year: new Date().getFullYear() })}

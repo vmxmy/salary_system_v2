@@ -11,7 +11,7 @@ from ..schemas import UnitBase, UnitCreate, UnitUpdate, Unit, UnitListResponse
 logger = logging.getLogger(__name__) # Ensure logger is setup for this module
 
 router = APIRouter(
-    prefix="/units",
+    prefix="/api/units",
     tags=["Units"]
 )
 
@@ -26,8 +26,8 @@ async def create_unit_endpoint(
     """创建新单位，需要Super Admin或Data Admin权限"""
     logger.info(f"用户 {current_user.username} 创建了新单位 '{unit.name}'")
     try:
-        # Call the ORM function from models_db
-        created_unit = models_db.create_unit_orm(db=db, unit=unit)
+        # Call the renamed function
+        created_unit = models_db.create_unit(db=db, unit=unit)
         logger.info(f"Successfully created unit '{created_unit.name}' with ID {created_unit.id}")
         return created_unit
     except Exception as e:
@@ -49,7 +49,7 @@ async def get_units(
     offset = (page - 1) * page_size
     logger.info(f"User {current_user.username} fetching units. Filters: search='{search}', page={page}, size={page_size}")
     try:
-        units, total = models_db.get_units_orm(
+        units, total = models_db.get_units(
             db=db,
             search=search,
             skip=offset,
@@ -82,7 +82,7 @@ async def get_unit(
     """获取单个单位详情"""
     logger.info(f"User {current_user.username} attempting to fetch unit with ID: {unit_id}")
     try:
-        unit = models_db.get_unit_by_id_orm(db=db, unit_id=unit_id)
+        unit = models_db.get_unit_by_id(db=db, unit_id=unit_id)
         if unit is None:
             logger.warning(f"Unit with ID {unit_id} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Unit with ID {unit_id} not found.")
@@ -110,7 +110,7 @@ async def update_unit_endpoint(
     """更新单位信息，需要Super Admin或Data Admin权限"""
     logger.info(f"User {current_user.username} attempting to update unit ID: {unit_id} with data: {unit_update.model_dump(exclude_unset=True)}")
     try:
-        updated_unit = models_db.update_unit_orm(
+        updated_unit = models_db.update_unit(
             db=db, 
             unit_id=unit_id, 
             unit_update=unit_update
@@ -141,7 +141,7 @@ async def delete_unit_endpoint(
 ):
     """删除单位，需要Super Admin或Data Admin权限"""
     # 检查是否有部门关联到此单位
-    departments = models_db.get_departments_by_unit_id_orm(db, unit_id)
+    departments = models_db.get_departments_by_unit_id(db, unit_id)
     if departments and len(departments) > 0:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -151,7 +151,7 @@ async def delete_unit_endpoint(
     logger.info(f"User {current_user.username} attempting to delete unit ID: {unit_id}")
     try:
         # delete_unit_orm raises 404 or 409 if deletion cannot proceed
-        deleted = models_db.delete_unit_orm(db=db, unit_id=unit_id)
+        deleted = models_db.delete_unit(db=db, unit_id=unit_id)
         
         # If delete_unit_orm was modified to return False instead of raising 404, 
         # uncomment the following check:
@@ -181,7 +181,7 @@ async def get_unit_names(
     current_user: schemas.UserResponse = Depends(auth.get_current_user)
 ):
     """获取所有单位名称，用于下拉菜单等场景"""
-    names = models_db.get_all_unit_names_orm(db)
+    names = models_db.get_all_unit_names(db)
     return names
 
 # Endpoints for Units are now complete in this router file. 
