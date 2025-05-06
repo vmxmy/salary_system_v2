@@ -124,89 +124,87 @@ class SalaryRecord(Base):
     def __repr__(self):
         return f"<SalaryRecord(id={self.id}, employee_id={self.employee_id}, unit={self.unit_id}, dept={self.department_id}, period='{self.pay_period_start_date}-{self.pay_period_end_date}')>"
 
-class RawSalaryDataStaging(Base):
-    __tablename__ = 'raw_salary_data_staging'
-
-    # Using a simple auto-incrementing ID as primary key for simplicity,
-    # but can be removed or changed if needed (e.g., composite key).
-    _staging_id = Column(Integer, primary_key=True, autoincrement=True)
-
-    id_card_number = Column(String(18), index=True, nullable=True)
-    employee_name = Column(Text, nullable=True)
-    employee_unique_id = Column(Text, index=True, nullable=True)
-    establishment_type_name = Column(Text, nullable=True)
-    pay_period_identifier = Column(String(7), nullable=False, index=True) # Assuming 'YYYY-MM' format
-
-    # Job Attributes (assuming Text, adjust if numeric needed)
-    job_attr_人员身份 = Column(Text, nullable=True)
-    job_attr_人员职级 = Column(Text, nullable=True)
-    job_attr_岗位类别 = Column(Text, nullable=True)
-    job_attr_参照正编岗位工资级别 = Column(Text, nullable=True) # Might be Numeric?
-    job_attr_参照正编薪级工资级次 = Column(Text, nullable=True) # Might be Numeric?
-    job_attr_工资级别 = Column(Text, nullable=True) # Might be Numeric?
-    job_attr_工资档次 = Column(Text, nullable=True) # Might be Numeric?
-    job_attr_固定薪酬全年应发数 = Column(Numeric(12, 2), nullable=True)
-
-    # Salary Components
-    salary_一次性补扣发 = Column(Numeric(12, 2), nullable=True)
-    salary_基础绩效奖补扣发 = Column(Numeric(12, 2), nullable=True)
-    salary_职务技术等级工资 = Column(Numeric(12, 2), nullable=True)
-    salary_级别岗位级别工资 = Column(Numeric(12, 2), nullable=True)
-    salary_93年工改保留补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_独生子女父母奖励金 = Column(Numeric(12, 2), nullable=True)
-    salary_岗位职务补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_公务员规范性津贴补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_公务交通补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_基础绩效奖 = Column(Numeric(12, 2), nullable=True)
-    salary_见习试用期工资 = Column(Numeric(12, 2), nullable=True)
-    salary_信访工作人员岗位津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_奖励绩效补扣发 = Column(Numeric(12, 2), nullable=True)
-    salary_岗位工资 = Column(Numeric(12, 2), nullable=True)
-    salary_薪级工资 = Column(Numeric(12, 2), nullable=True)
-    salary_月基础绩效 = Column(Numeric(12, 2), nullable=True)
-    salary_月奖励绩效 = Column(Numeric(12, 2), nullable=True)
-    salary_基本工资 = Column(Numeric(12, 2), nullable=True)
-    salary_绩效工资 = Column(Numeric(12, 2), nullable=True)
-    salary_其他补助 = Column(Numeric(12, 2), nullable=True)
-    salary_补发工资 = Column(Numeric(12, 2), nullable=True)
-    salary_津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_季度绩效考核薪酬 = Column(Numeric(12, 2), nullable=True)
-    salary_补助 = Column(Numeric(12, 2), nullable=True)
-    salary_信访岗位津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_补扣发合计 = Column(Numeric(12, 2), nullable=True)
-    salary_生活津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_1季度3季度考核绩效奖 = Column(Numeric(12, 2), nullable=True)
-    salary_补发薪级合计 = Column(Numeric(12, 2), nullable=True)
-
-    # Deductions
-    deduct_个人缴养老保险费 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴职业年金 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴住房公积金 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴失业保险费 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人所得税 = Column(Numeric(12, 2), nullable=True)
-    deduct_其他扣款 = Column(Numeric(12, 2), nullable=True)
-    deduct_补扣退社保缴费 = Column(Numeric(12, 2), nullable=True)
-    deduct_补扣退公积金 = Column(Numeric(12, 2), nullable=True)
-    deduct_补扣个税 = Column(Numeric(12, 2), nullable=True)
-
-    # Contributions
-    contrib_单位缴养老保险费 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴职业年金 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴住房公积金 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴失业保险费 = Column(Numeric(12, 2), nullable=True)
-    contrib_大病医疗单位缴纳 = Column(Numeric(12, 2), nullable=True)
-
-    # Other
-    other_备注 = Column(Text, nullable=True)
-
-    # Airbyte Metadata (assuming these are added by Airbyte or similar process)
-    _airbyte_source_file = Column(Text, nullable=True)
-    _airbyte_source_sheet = Column(Text, nullable=True)
-
-    # Optional: Add import timestamp
-    _import_timestamp = Column(DateTime(timezone=True), server_default=func.now())
-
-    def __repr__(self):
-       return f"<RawSalaryDataStaging(period='{self.pay_period_identifier}', name='{self.employee_name}')>" 
+# class RawSalaryDataStaging(Base): # Definition moved to webapp/models.py
+#     __tablename__ = 'raw_salary_data_staging'
+#
+#     _staging_id = Column(Integer, primary_key=True, autoincrement=True)
+#
+#     id_card_number = Column(String(18), index=True, nullable=True)
+#     employee_name = Column(Text, nullable=True)
+#     employee_unique_id = Column(Text, index=True, nullable=True)
+#     establishment_type_name = Column(Text, nullable=True)
+#     pay_period_identifier = Column(String(7), nullable=False, index=True) # Assuming 'YYYY-MM' format
+#
+#     # Job Attributes (assuming Text, adjust if numeric needed)
+#     job_attr_人员身份 = Column(Text, nullable=True)
+#     job_attr_人员职级 = Column(Text, nullable=True)
+#     job_attr_岗位类别 = Column(Text, nullable=True)
+#     job_attr_参照正编岗位工资级别 = Column(Text, nullable=True) # Might be Numeric?
+#     job_attr_参照正编薪级工资级次 = Column(Text, nullable=True) # Might be Numeric?
+#     job_attr_工资级别 = Column(Text, nullable=True) # Might be Numeric?
+#     job_attr_工资档次 = Column(Text, nullable=True) # Might be Numeric?
+#     job_attr_固定薪酬全年应发数 = Column(Numeric(12, 2), nullable=True)
+#
+#     # Salary Components
+#     salary_一次性补扣发 = Column(Numeric(12, 2), nullable=True)
+#     salary_基础绩效奖补扣发 = Column(Numeric(12, 2), nullable=True)
+#     salary_职务技术等级工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_级别岗位级别工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_93年工改保留补贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_独生子女父母奖励金 = Column(Numeric(12, 2), nullable=True)
+#     salary_岗位职务补贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_公务员规范性津贴补贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_公务交通补贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_基础绩效奖 = Column(Numeric(12, 2), nullable=True)
+#     salary_见习试用期工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_信访工作人员岗位津贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_奖励绩效补扣发 = Column(Numeric(12, 2), nullable=True)
+#     salary_岗位工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_薪级工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_月基础绩效 = Column(Numeric(12, 2), nullable=True)
+#     salary_月奖励绩效 = Column(Numeric(12, 2), nullable=True)
+#     salary_基本工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_绩效工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_其他补助 = Column(Numeric(12, 2), nullable=True)
+#     salary_补发工资 = Column(Numeric(12, 2), nullable=True)
+#     salary_津贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_季度绩效考核薪酬 = Column(Numeric(12, 2), nullable=True)
+#     salary_补助 = Column(Numeric(12, 2), nullable=True)
+#     salary_信访岗位津贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_补扣发合计 = Column(Numeric(12, 2), nullable=True)
+#     salary_生活津贴 = Column(Numeric(12, 2), nullable=True)
+#     salary_1季度3季度考核绩效奖 = Column(Numeric(12, 2), nullable=True)
+#     salary_补发薪级合计 = Column(Numeric(12, 2), nullable=True)
+#
+#     # Deductions
+#     deduct_个人缴养老保险费 = Column(Numeric(12, 2), nullable=True)
+#     deduct_个人缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
+#     deduct_个人缴职业年金 = Column(Numeric(12, 2), nullable=True)
+#     deduct_个人缴住房公积金 = Column(Numeric(12, 2), nullable=True)
+#     deduct_个人缴失业保险费 = Column(Numeric(12, 2), nullable=True)
+#     deduct_个人所得税 = Column(Numeric(12, 2), nullable=True)
+#     deduct_其他扣款 = Column(Numeric(12, 2), nullable=True)
+#     deduct_补扣退社保缴费 = Column(Numeric(12, 2), nullable=True)
+#     deduct_补扣退公积金 = Column(Numeric(12, 2), nullable=True)
+#     deduct_补扣个税 = Column(Numeric(12, 2), nullable=True)
+#
+#     # Contributions
+#     contrib_单位缴养老保险费 = Column(Numeric(12, 2), nullable=True)
+#     contrib_单位缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
+#     contrib_单位缴职业年金 = Column(Numeric(12, 2), nullable=True)
+#     contrib_单位缴住房公积金 = Column(Numeric(12, 2), nullable=True)
+#     contrib_单位缴失业保险费 = Column(Numeric(12, 2), nullable=True)
+#     contrib_大病医疗单位缴纳 = Column(Numeric(12, 2), nullable=True)
+#
+#     # Other
+#     other_备注 = Column(Text, nullable=True)
+#
+#     # Airbyte Metadata (assuming these are added by Airbyte or similar process)
+#     _airbyte_source_file = Column(Text, nullable=True)
+#     _airbyte_source_sheet = Column(Text, nullable=True)
+#
+#     # Optional: Add import timestamp
+#     _import_timestamp = Column(DateTime(timezone=True), server_default=func.now())
+#
+#     def __repr__(self):
+#        return f"<RawSalaryDataStaging(period='{self.pay_period_identifier}', name='{self.employee_name}')>" 

@@ -52,10 +52,10 @@ services:
   backend-init:
     container_name: salary_backend_init
     build:
-      # Context is now the project root directory relative to this compose file
-      context: .. 
+      # Context is the project root directory relative to this compose file
+      context: ..
       # Dockerfile path relative to the new context
-      dockerfile: ./docker/backend/Dockerfile 
+      dockerfile: ./docker/backend/Dockerfile
     command: python /app/scripts/init_app.py # Command to run the init script
     environment:
       # Inherit necessary env vars for DB connection and admin creation
@@ -73,10 +73,10 @@ services:
   backend:
     container_name: salary_backend
     build:
-      # Context is now the project root directory relative to this compose file
-      context: .. 
+      # Context is the project root directory relative to this compose file
+      context: ..
       # Dockerfile path relative to the new context
-      dockerfile: ./docker/backend/Dockerfile 
+      dockerfile: ./docker/backend/Dockerfile
     volumes:
       # Optional: Mount code for development (remove for production)
       # - ../webapp:/app 
@@ -102,10 +102,10 @@ services:
   frontend:
     container_name: salary_frontend
     build:
-      # Context is now the project root directory relative to this compose file
-      context: .. 
+      # Context is the project root directory relative to this compose file
+      context: ..
       # Dockerfile path relative to the new context
-      dockerfile: ./docker/frontend/Dockerfile 
+      dockerfile: ./docker/frontend/Dockerfile
     volumes:
       # Mount the nginx config from the docker/frontend directory (path relative to compose file)
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf 
@@ -119,32 +119,25 @@ services:
       - salary-network
     restart: unless-stopped
 
-  jimu:
-    container_name: salary_jimu
-    # Option A: Use official image
-    # image: some/jimu-reports-image:latest
-    # Option B: Build custom image
-    build:
-      # Context is now the project root directory relative to this compose file
-      context: .. 
-      # Dockerfile path relative to the new context
-      dockerfile: ./docker/jimu/Dockerfile 
-    ports:
-      # Map host port from .env (default 8080) to container port 8080
-      - "${JIMU_HOST_PORT:-8080}:8080"
-    environment:
-      # Add environment variables needed by Jimu Reports
-      # Example: Database connection if needed
-      # JIMU_DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-salary_system}
-      # JIMU_DB_USER: ${POSTGRES_USER:-user}
-      # JIMU_DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
-    volumes:
-      - jimu_data:/path/to/jimu/persistent/data # Define volume if Jimu needs persistent storage
-    depends_on:
-      - db # Jimu might need the database
-    networks:
-      - salary-network
-    restart: unless-stopped
+#  jimu:
+#    container_name: salary_jimu
+#    # Option A: Use official image
+#    # image: some/jimu-reports-image:latest
+#    # Option B: Build custom image
+#    # build:
+#    #   # Context is the directory containing the Dockerfile relative to compose file
+#    #   context: ./jimu
+#    #   # Dockerfile directive removed, Docker finds Dockerfile in context
+#    ports:
+#      # Map host port from .env (default 8080) to container port 8080
+#      - "${JIMU_HOST_PORT:-8080}:8080"
+#    volumes:
+#      - jimu_data:/path/to/jimu/persistent/data # Define volume if Jimu needs persistent storage
+#    depends_on:
+#      - db # Jimu might need the database
+#    networks:
+#      - salary-network
+#    restart: unless-stopped
 
 volumes:
   postgres_data:

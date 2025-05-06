@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Source path is relative to the build context (project root)
 COPY webapp/ /app/
 
-# Copy the initialization script (adjust path if necessary)
+# Copy the initialization script
+# Source path is relative to the build context (project root)
 COPY webapp/scripts/init_app.py /app/scripts/init_app.py
 
 # Expose the port the app runs on

@@ -1,6 +1,6 @@
 # 高新区工资信息管理系统 - 技术文档
 
-*最后更新日期: 2024-06-07*
+*最后更新日期: 2024-07-29*
 
 ## 目录
 
@@ -152,13 +152,15 @@ salary_system/frontend/salary-viewer/
 #### 3.2.2 数据管理模块
 
 - **SalaryDataViewer.tsx**：工资数据查看组件，表格显示工资记录，支持分页和过滤
-- **EmployeeManager.tsx**：员工管理组件，用于创建、编辑、删除员工信息
+- **EmployeeManager.tsx**：员工管理组件，用于创建、编辑、删除员工信息。表格列已扩展，包含新增字段如性别、民族、出生日期等。
+- **EmployeeForm.tsx**：员工创建/编辑表单组件，包含所有员工字段的输入控件，包括新增的性别、民族、出生日期、学历、工龄、银行账户等。
 - **DepartmentManager.tsx**：部门管理组件，管理部门信息
 - **FileConverter.tsx**：Excel文件转换器组件，用于上传Excel并转换为CSV，可选导入数据库
 
 #### 3.2.3 配置与报表
 
-- **MappingConfigurator.tsx**：字段映射配置组件，管理字段映射信息
+- **MappingConfigurator.tsx**：字段映射配置组件。现在包含两个标签页 (Tabs): "字段映射" (原始功能) 和 "Sheet 映射" (管理 Excel Sheet 名称到目标暂存表的映射)。
+- **SheetMappingManager.tsx**: (已整合) Sheet 名称映射管理组件。提供表格显示现有映射、模态框进行添加/编辑 (Sheet 名称、目标暂存表)、删除功能，通过 API 与后端交互。现作为 `MappingConfigurator.tsx` 内的一个 Tab 实现。
 - **UserManager.tsx**：(新增) 用户账号管理组件。提供以下功能：
     - 使用 Ant Design 表格展示用户列表（ID, 用户名, 邮箱, 角色, 状态）。
     - 支持分页、按列排序、按角色和状态筛选。
@@ -209,6 +211,7 @@ salary_system/frontend/salary-viewer/
 - **i18n.ts**：国际化配置和初始化
 - **locales/en/translation.json**：英文翻译文件
 - **locales/zh/translation.json**：中文翻译文件
+- 已为用户管理、Sheet 映射、员工管理(新字段)等模块补充了必要的翻译键。
 
 ### 3.6 API服务调用
 
@@ -222,7 +225,8 @@ salary_system/frontend/salary-viewer/
 - 侧边栏导航菜单，根据用户角色动态显示。**新增**：包含一个动态的"报表"菜单项，其子项根据从后端获取的活动报表链接动态生成。管理员角色会额外看到"报表链接管理"菜单项。
 - 表格组件支持分页、排序和过滤功能
 - 模态对话框用于表单输入和确认操作
-+ **新增**：面包屑导航现在可以动态生成，正确显示当前所在的报表页面名称。
+- **新增**：面包屑导航现在可以动态生成，正确显示当前所在的报表页面名称。
+- **新增**：配置管理下的 `MappingConfigurator` 页面现在使用 Tabs 布局来整合字段映射和 Sheet 映射功能。
 
 ## 4. 后端功能
 
@@ -274,19 +278,28 @@ salary_system/webapp/
 
 #### 4.2.3 数据模型 (models.py, models_db.py)
 
-- SQLAlchemy ORM模型定义
+- SQLAlchemy ORM模型定义 (`models.py`)
 - 模型关系和约束
-- 数据库查询和操作函数
+- 数据库查询和操作函数 (`models_db.py`)
+
+**职责划分与命名约定:**
+- `webapp/models.py` 文件专门用于定义 SQLAlchemy 的 ORM 模型类。
+- `webapp/models_db.py` 文件包含使用 SQLAlchemy ORM 执行数据库 CRUD (创建、读取、更新、删除) 操作的函数。这些函数已移除 `_orm` 后缀以统一命名。
 
 主要模型:
 - `User` - 用户信息
 - `Role` - 用户角色
 - `Unit` - 单位信息
 - `Department` - 部门信息
-- `Employee` - 员工信息
+- `Employee` - 员工信息 (模型已扩展，包含性别、民族、出生日期等新字段)
 - `EstablishmentType` - 编制类型
 - `FieldMapping` - 字段映射配置
+- `SheetNameMapping` - (新增) Excel Sheet 名称到暂存表的映射
 - `SalaryRecord` - 薪资记录
+- `CalculationFormula` - (新增) 计算公式定义
+- `CalculationRule` - (新增) 计算规则定义
+- `CalculationRuleCondition` - (新增) 计算规则条件
+- `CalculatedSalaryRecord` - (新增) 计算后的工资记录
 
 #### 4.2.4 API模式 (schemas.py)
 
@@ -295,9 +308,11 @@ salary_system/webapp/
 - 数据转换和序列化
 
 主要模式:
-- 用户相关 (`UserCreate`, `UserResponse`, `Token`)
-- 员工相关 (`EmployeeCreate`, `EmployeeResponse`) 
+- 用户相关 (`UserCreate`, `UserResponse`, `Token`, `UserListResponse`, `RoleResponse`)
+- 员工相关 (`EmployeeCreate`, `EmployeeResponse`, `EmployeeUpdate`) (已更新以包含新字段)
 - 工资相关 (`SalaryRecord`, `PaginatedSalaryResponse`)
+- Sheet 映射相关 (`SheetNameMappingBase`, `SheetNameMappingCreate`, `SheetNameMappingUpdate`, `SheetNameMappingListResponse`)
+- 计算引擎相关 (`FormulaBase`, `FormulaCreate`, `FormulaUpdate`, `RuleBase`, `RuleCreate`, `RuleUpdate`, `ConditionBase`, `ConditionCreate`, `ConditionUpdate`, `CalculatedSalaryRecordResponse` 等)
 - 辅助数据 (`DepartmentInfo`, `EstablishmentTypeInfo`)
 
 #### 4.2.5 文件转换 (file_converter.py)
@@ -329,7 +344,10 @@ salary_system/webapp/
 - 部门和单位管理端点 (`/api/departments-*`, `/api/units-*`)
 - 工资数据端点 (`/api/salary_data/*`)
 - 配置管理端点 (`/api/config/*`)
+- 计算引擎管理端点 (`/api/v1/admin/calculation-engine/*`)
 - 数据导入和处理端点 (`/api/convert/*`, `/api/dbt/*`)
+
+**注意**: API 路由遵循标准化约定，具体见第6节描述。
 
 ### 4.4 数据转换与处理
 
@@ -427,19 +445,28 @@ salary_system/webapp/
 | 字段名             | 类型            | 约束               | 描述                    |
 |-------------------|-----------------|--------------------|-----------------------|
 | id                | UUID            | PK                 | 员工唯一标识           |
-| name              | VARCHAR(100)    | NOT NULL           | 员工姓名              |
-| employee_code     | VARCHAR(50)     | UNIQUE             | 工号                  |
-| id_number         | VARCHAR(18)     | UNIQUE             | 身份证号              |
-| gender            | VARCHAR(10)     |                    | 性别                  |
-| birth_date        | DATE            |                    | 出生日期              |
+| name              | TEXT            | NOT NULL           | 员工姓名              |
+| employee_code     | TEXT            | UNIQUE             | 工号                  |
+| id_number         | TEXT            | UNIQUE             | 身份证号              |
+| gender            | TEXT            |                    | 性别                  |
+| ethnicity         | TEXT            |                    | 民族                  |
+| date_of_birth     | DATE            |                    | 出生日期              |
+| education_level   | TEXT            |                    | 文化程度              |
 | department_id     | UUID            | FK(departments.id) | 部门ID                |
 | establishment_type_id | UUID        | FK(establishment_types.id) | 编制类型ID      |
-| position          | VARCHAR(100)    |                    | 职位                  |
-| job_title         | VARCHAR(100)    |                    | 职称                  |
-| join_date         | DATE            |                    | 入职日期              |
+| position          | TEXT            |                    | 职务                  |
+| job_title         | TEXT            |                    | 职称                  |
+| work_start_date   | DATE            |                    | 参加工作日期          |
+| service_interruption_years | INTEGER |                  | 工龄间断年限          |
+| actual_position   | TEXT            |                    | 实任职务              |
+| join_date         | DATE            |                    | 进入本单位日期        |
 | leave_date        | DATE            |                    | 离职日期              |
 | is_active         | BOOLEAN         | DEFAULT TRUE       | 是否在职              |
+| bank_name         | TEXT            |                    | 开户行名称            |
+| bank_account_number | TEXT          |                    | 银行账号              |
 | user_id           | UUID            | FK(users.id)       | 关联用户ID (可选)      |
+| created_at        | TIMESTAMP WITH TIME ZONE | DEFAULT now() | 创建时间             |
+| updated_at        | TIMESTAMP WITH TIME ZONE | DEFAULT now() | 更新时间             |
 
 ### 5.4 工资数据
 
@@ -475,11 +502,23 @@ salary_system/webapp/
 | id                  | UUID            | PK                 | 映射唯一标识           |
 | source_field        | VARCHAR(100)    | NOT NULL           | 源字段名称 (Excel中的列名) |
 | target_field        | VARCHAR(100)    | NOT NULL           | 目标字段名称 (数据库中的列名) |
-| establishment_type_id | UUID          | FK(establishment_types.id) | 适用的编制类型   |
+| establishment_type_id | UUID          | FK(establishment_types.id) | 适用的编制类型 (可选) | 
 | data_type           | VARCHAR(50)     |                    | 数据类型 (如NUMBER, TEXT) |
 | is_required         | BOOLEAN         | DEFAULT FALSE      | 是否必填              |
 | default_value       | TEXT            |                    | 默认值                |
 | is_active           | BOOLEAN         | DEFAULT TRUE       | 是否激活              |
+
+#### 5.5.2 sheet_name_mappings 表
+
+| 字段名               | 类型            | 约束               | 描述                    |
+|---------------------|-----------------|--------------------|-----------------------|
+| id                  | UUID            | PK                 | 映射唯一标识           |
+| source_sheet_name   | TEXT            | NOT NULL           | 源Sheet名称 (Excel中的Sheet名) |
+| target_staging_table| TEXT            | NOT NULL           | 目标暂存表名称 (数据库中的表名) |
+| description         | TEXT            |                    | 描述                  |
+| is_active           | BOOLEAN         | DEFAULT TRUE       | 是否激活              |
+| created_at          | TIMESTAMP WITH TIME ZONE | DEFAULT now() | 创建时间             |
+| updated_at          | TIMESTAMP WITH TIME ZONE | DEFAULT now() | 更新时间             |
 
 ### 5.6 系统审计
 
@@ -544,9 +583,71 @@ establishment_types <--1:N--> field_mappings
 | `created_at`  | TIMESTAMP     | 创建时间戳                                 |
 | `updated_at`  | TIMESTAMP     | 最后更新时间戳                             |
 
+### 5.x Calculation Engine 表
+
+#### 5.x.1 calculation_formulas 表
+
+| 字段名         | 类型      | 约束           | 描述                 |
+|----------------|-----------|----------------|----------------------|
+| id             | UUID      | PK             | 公式唯一标识         |
+| name           | TEXT      | NOT NULL       | 公式名称             |
+| expression     | TEXT      | NOT NULL       | 计算表达式           |
+| description    | TEXT      |                | 描述                 |
+| is_active      | BOOLEAN   | DEFAULT TRUE   | 是否激活             |
+| created_at     | TIMESTAMP | DEFAULT now()  | 创建时间             |
+| updated_at     | TIMESTAMP | DEFAULT now()  | 更新时间             |
+
+#### 5.x.2 calculation_rules 表
+
+| 字段名         | 类型      | 约束           | 描述                 |
+|----------------|-----------|----------------|----------------------|
+| id             | UUID      | PK             | 规则唯一标识         |
+| name           | TEXT      | NOT NULL       | 规则名称             |
+| target_field   | TEXT      | NOT NULL       | 目标计算字段         |
+| priority       | INTEGER   | NOT NULL       | 执行优先级 (数字越小越高) |
+| formula_id     | UUID      | FK(calculation_formulas.id) | 关联的计算公式ID |
+| description    | TEXT      |                | 描述                 |
+| is_active      | BOOLEAN   | DEFAULT TRUE   | 是否激活             |
+| created_at     | TIMESTAMP | DEFAULT now()  | 创建时间             |
+| updated_at     | TIMESTAMP | DEFAULT now()  | 更新时间             |
+
+#### 5.x.3 calculation_rule_conditions 表
+
+| 字段名         | 类型      | 约束           | 描述                 |
+|----------------|-----------|----------------|----------------------|
+| id             | UUID      | PK             | 条件唯一标识         |
+| rule_id        | UUID      | FK(calculation_rules.id) | 关联的规则ID       |
+| field_name     | TEXT      | NOT NULL       | 条件判断字段         |
+| operator       | TEXT      | NOT NULL       | 操作符 (如 =, !=, >, <, in) |
+| value          | TEXT      | NOT NULL       | 条件比较值           |
+| description    | TEXT      |                | 描述                 |
+| created_at     | TIMESTAMP | DEFAULT now()  | 创建时间             |
+| updated_at     | TIMESTAMP | DEFAULT now()  | 更新时间             |
+
+#### 5.x.4 calculated_salary_records 表
+
+| 字段名         | 类型      | 约束           | 描述                 |
+|----------------|-----------|----------------|----------------------|
+| id             | BIGINT    | PK, IDENTITY   | 记录唯一标识 (自增)   |
+| employee_id    | UUID      | FK(employees.id) | 员工ID             |
+| pay_period     | DATE      | NOT NULL       | 工资周期 (如 YYYY-MM-01) |
+| calculated_data| JSONB     | NOT NULL       | 计算结果 (JSON格式)  |
+| calculation_log| JSONB     |                | 计算过程日志 (可选)  |
+| created_at     | TIMESTAMP | DEFAULT now()  | 创建时间             |
+| updated_at     | TIMESTAMP | DEFAULT now()  | 更新时间             |
+
+### 5.y 数据库迁移
+
+系统使用 Alembic 工具来管理数据库模式的演变。通过生成迁移脚本来跟踪和应用数据库结构的变化。
+- **生成迁移脚本:** `alembic revision --autogenerate -m "Description of changes"`
+- **应用迁移:** `alembic upgrade head`
+- **处理冲突:** 在某些情况下，如果 Alembic 的历史记录与数据库实际状态不一致（例如手动更改了数据库结构），可能需要使用 `alembic stamp <revision_id>` 命令来同步 Alembic 的记录，然后再执行 `upgrade`。
+
 ## 6. API接口
 
 系统基于FastAPI构建了完整的RESTful API接口，以下列出主要接口。
+
+**API路由约定:** API 遵循标准化前缀约定。FastAPI 路由器 (e.g., in `webapp/routers/`) 通常定义完整的 API 路径前缀 (e.g., `/api/users`, `/api/config/mappings`, `/api/v1/admin/calculation-engine`)。主应用 (`webapp/main.py`) 在包含这些路由器时，会使用适当的顶级前缀 (e.g., `prefix="/api/v1"`) 或空前缀 (`prefix=""`) 以避免路径重复。
 
 ### 6.1 认证与用户管理接口
 
@@ -643,6 +744,16 @@ establishment_types <--1:N--> field_mappings
 | DELETE | `/api/field_mappings/{id}`| 删除字段映射            | 管理员        | `id` (路径参数)                      | 操作状态                     |
 | GET    | `/api/field_mappings/by-type/{establishment_type_id}`| 获取指定编制类型的字段映射 | 已认证用户 | `establishment_type_id` | 字段映射列表 |
 
+#### 6.4.x Sheet 映射 (Sheet Mappings)
+
+| 方法   | 端点                         | 描述                        | 权限            | 主要请求体/参数                 | 主要返回值                      |
+|--------|------------------------------|-----------------------------|-----------------|-----------------------------------|-------------------------------|
+| GET    | `/api/config/sheet-mappings` | 获取Sheet映射列表 (分页)    | 管理员          | `skip`, `limit` (查询参数)        | `SheetNameMappingListResponse`|
+| POST   | `/api/config/sheet-mappings` | 创建新Sheet映射             | 管理员          | `SheetNameMappingCreate`          | `SheetNameMapping`            |
+| GET    | `/api/config/sheet-mappings/{mapping_id}` | 获取指定Sheet映射信息     | 管理员          | `mapping_id` (路径参数)         | `SheetNameMapping`            |
+| PUT    | `/api/config/sheet-mappings/{mapping_id}` | 更新指定Sheet映射信息     | 管理员          | `mapping_id` (路径), `SheetNameMappingUpdate` | `SheetNameMapping` | 
+| DELETE | `/api/config/sheet-mappings/{mapping_id}` | 删除指定Sheet映射         | 管理员          | `mapping_id` (路径参数)         | 204 No Content                |
+
 #### 6.4.2 编制类型 (Establishment Types)
 
 | 方法   | 端点                | 描述                        | 权限            | 参数                                  | 返回值                       |
@@ -723,6 +834,39 @@ establishment_types <--1:N--> field_mappings
 +  - 响应: `ReportLinkRead`
 +- **DELETE `/{report_link_id}`**: (管理员) 删除一个报表链接。
 +  - 响应: `{ "message": "Report link deleted successfully" }`
+
+### 6.x 计算引擎管理接口 (Calculation Engine Admin)
+
+以下接口用于管理计算引擎的公式、规则和条件，通常需要管理员权限。
+
+#### 6.x.1 公式管理 (Formulas)
+
+| 方法   | 端点                                                 | 描述                        | 权限     | 主要请求体/参数     | 主要返回值         |
+|--------|------------------------------------------------------|-----------------------------|----------|-----------------------|--------------------|
+| GET    | `/api/v1/admin/calculation-engine/formulas`          | 获取计算公式列表 (分页)     | 管理员   | `skip`, `limit`     | `List[Formula]`    |
+| POST   | `/api/v1/admin/calculation-engine/formulas`          | 创建新计算公式              | 管理员   | `FormulaCreate`       | `Formula`          |
+| GET    | `/api/v1/admin/calculation-engine/formulas/{formula_id}` | 获取指定计算公式信息        | 管理员   | `formula_id` (路径) | `Formula`          |
+| PUT    | `/api/v1/admin/calculation-engine/formulas/{formula_id}` | 更新指定计算公式信息        | 管理员   | `formula_id` (路径), `FormulaUpdate` | `Formula` | 
+| DELETE | `/api/v1/admin/calculation-engine/formulas/{formula_id}` | 删除指定计算公式            | 管理员   | `formula_id` (路径) | 204 No Content     |
+
+#### 6.x.2 规则管理 (Rules)
+
+| 方法   | 端点                                               | 描述                        | 权限     | 主要请求体/参数   | 主要返回值       |
+|--------|----------------------------------------------------|-----------------------------|----------|---------------------|------------------|
+| GET    | `/api/v1/admin/calculation-engine/rules`           | 获取计算规则列表 (分页)     | 管理员   | `skip`, `limit`   | `List[Rule]`     |
+| POST   | `/api/v1/admin/calculation-engine/rules`           | 创建新计算规则              | 管理员   | `RuleCreate`        | `Rule`           |
+| GET    | `/api/v1/admin/calculation-engine/rules/{rule_id}`   | 获取指定计算规则信息        | 管理员   | `rule_id` (路径)  | `Rule`           |
+| PUT    | `/api/v1/admin/calculation-engine/rules/{rule_id}`   | 更新指定计算规则信息        | 管理员   | `rule_id` (路径), `RuleUpdate` | `Rule` | 
+| DELETE | `/api/v1/admin/calculation-engine/rules/{rule_id}`   | 删除指定计算规则            | 管理员   | `rule_id` (路径)  | 204 No Content   |
+
+#### 6.x.3 条件管理 (Conditions)
+
+| 方法   | 端点                                                     | 描述                          | 权限     | 主要请求体/参数       | 主要返回值         |
+|--------|----------------------------------------------------------|-------------------------------|----------|-------------------------|--------------------|
+| GET    | `/api/v1/admin/calculation-engine/rules/{rule_id}/conditions` | 获取指定规则的条件列表        | 管理员   | `rule_id` (路径)      | `List[Condition]`  |
+| POST   | `/api/v1/admin/calculation-engine/rules/{rule_id}/conditions` | 为指定规则创建新条件          | 管理员   | `rule_id` (路径), `ConditionCreate` | `Condition` | 
+| PUT    | `/api/v1/admin/calculation-engine/conditions/{condition_id}`  | 更新指定条件信息              | 管理员   | `condition_id` (路径), `ConditionUpdate` | `Condition` | 
+| DELETE | `/api/v1/admin/calculation-engine/conditions/{condition_id}`  | 删除指定条件                  | 管理员   | `condition_id` (路径) | 204 No Content     |
 
 ## 7. 数据流程
 
@@ -1470,7 +1614,7 @@ Jimu Reports 是一个开源的报表工具，提供丰富的报表设计和展�
 
 ---
 
-*文档最后更新时间：2024-06-07*
+*文档最后更新时间：2024-07-29*
 
 *文档维护人员：系统开发团队*
 

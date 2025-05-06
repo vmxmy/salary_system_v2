@@ -1,24 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message, Space, Typography, Pagination } from 'antd';
-import type { PaginationProps } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Table, Button, Modal, Form, Input/*, Spin, Alert*/, message, Space, Typography/*, Pagination*/ } from 'antd';
+// import type { /*PaginationProps,*/ TablePaginationConfig } from 'antd'; // PaginationProps unused
+import type { TablePaginationConfig } from 'antd'; // Keep only used type
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 // Assuming i18n setup exists
 import { useTranslation } from 'react-i18next';
-
-// Import API service and types
-import {
-    getFormulas,
-    createFormula,
-    updateFormula,
-    deleteFormula,
-    CalculationFormula,
-    CalculationFormulaCreate,
-    CalculationFormulaUpdate,
-    PaginatedResponse
-} from '../../services/calculationAdminService'; // Adjust path as needed
+// Correct import if calculationAdminService uses named exports
+import * as calculationAdminService from '../../services/calculationAdminService';
+import type { TableColumnsType } from 'antd';
+// Temporarily comment out type import if path is wrong or file doesn't exist yet
+// import { CalculationFormula, FormulaCreate, FormulaUpdate } from '../../types/calculationEngine';
 
 const { Title } = Typography;
 const { TextArea } = Input;
+
+// Define types locally for now if import fails
+interface CalculationFormula {
+    formula_id: number;
+    name: string;
+    description?: string | null;
+    formula_expression: string;
+    created_at: string;
+    updated_at: string;
+}
+interface FormulaCreate {
+    name: string;
+    description?: string | null;
+    formula_expression: string;
+}
+interface FormulaUpdate {
+    name?: string;
+    description?: string | null;
+    formula_expression?: string;
+}
 
 const FormulaConfigPage: React.FC = () => {
     const { t } = useTranslation(); // Initialize translation hook
@@ -27,53 +41,43 @@ const FormulaConfigPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [editingFormula, setEditingFormula] = useState<CalculationFormula | null>(null);
-    const [form] = Form.useForm<CalculationFormulaCreate | CalculationFormulaUpdate>();
-    const [pagination, setPagination] = useState<PaginationProps>({
+    const [pagination, setPagination] = useState<TablePaginationConfig>({
         current: 1,
-        pageSize: 10, // Default page size
+        pageSize: 10,
         total: 0,
         showSizeChanger: true,
         pageSizeOptions: ['10', '20', '50'],
     });
+    // const [error, setError] = useState<string | null>(null); // error unused
+    const [form] = Form.useForm<FormulaCreate | FormulaUpdate>();
 
-    // Function to fetch formulas
-    const fetchFormulas = async (currentPage: number = pagination.current ?? 1, currentPageSize: number = pagination.pageSize ?? 10) => {
+    const fetchFormulas = useCallback(async (page: number, pageSize: number) => {
         setLoading(true);
+        // setError(null);
         try {
-            // TODO: Adapt if backend supports pagination via skip/limit
-            const limit: number = currentPageSize; // Ensure limit is number
-            const skip = (currentPage - 1) * limit;
-            // For now, we fetch all and paginate client-side, assuming getFormulas returns all
-            const response = await getFormulas(); // Pass {skip, limit} if backend supports
-            setFormulas(response.items);
-            setPagination(prev => ({
-                ...prev,
-                current: currentPage,
-                pageSize: currentPageSize,
-                total: response.total, // Use total from response
-            }));
-        } catch (error) {
-            message.error(t('config.formulas.messages.loadFailed'));
-            console.error(error);
+            // Use named export for the API call
+            const response = await calculationAdminService.getFormulas({ // Pass params as object if needed
+                skip: (page - 1) * pageSize,
+                limit: pageSize
+            });
+            setFormulas(response.items); // Assuming response structure is { items: [], total: number }
+            setPagination(prev => ({ ...prev, current: page, pageSize: pageSize, total: response.total }));
+        } catch (err: any) { // Use 'any' or a more specific error type
+            // setError(err.message || 'Failed to fetch formulas');
+            console.error("Fetch error:", err.message || 'Failed to fetch formulas'); // Log error instead
+            message.error(t('formulaConfigPage.errors.fetch'));
         } finally {
             setLoading(false);
         }
-    };
+    }, [t]);
 
-    // Initial load
     useEffect(() => {
-        fetchFormulas();
-    }, []); // Empty dependency array means run once on mount
+        fetchFormulas(pagination.current ?? 1, pagination.pageSize ?? 10);
+    }, [fetchFormulas, pagination.current, pagination.pageSize]);
 
-    // Handle pagination change
-    const handleTableChange: PaginationProps['onChange'] = (page, pageSize) => {
-        // Currently fetches all, so pagination is client-side
-        // If backend paginates, call fetchFormulas(page, pageSize);
-         setPagination(prev => ({ ...prev, current: page, pageSize: pageSize }));
-         // Refetch if backend pagination is implemented
-         // fetchFormulas(page, pageSize);
+    const handleTableChange = (newPagination: TablePaginationConfig) => {
+        setPagination(prev => ({ ...prev, current: newPagination.current ?? 1, pageSize: newPagination.pageSize ?? 10 }));
     };
-
 
     // Modal handling
     const showModal = (formula: CalculationFormula | null = null) => {
@@ -100,11 +104,11 @@ const FormulaConfigPage: React.FC = () => {
 
             if (editingFormula) {
                 // Update existing formula
-                await updateFormula(editingFormula.formula_id, values);
+                await calculationAdminService.updateFormula(editingFormula.formula_id, values);
                 message.success(t('config.formulas.messages.updateSuccess'));
             } else {
                 // Create new formula
-                await createFormula(values as CalculationFormulaCreate);
+                await calculationAdminService.createFormula(values as FormulaCreate);
                 message.success(t('config.formulas.messages.createSuccess'));
             }
             setIsModalVisible(false);
@@ -129,7 +133,7 @@ const FormulaConfigPage: React.FC = () => {
             onOk: async () => {
                 try {
                     setLoading(true);
-                    await deleteFormula(id);
+                    await calculationAdminService.deleteFormula(id);
                     message.success(t('config.formulas.messages.deleteSuccess'));
                     fetchFormulas(pagination.current ?? 1, pagination.pageSize ?? 10); // Refresh list
                 } catch (error) {
@@ -143,7 +147,7 @@ const FormulaConfigPage: React.FC = () => {
     };
 
     // Table columns definition
-    const columns = [
+    const columns: TableColumnsType<CalculationFormula> = [
         { title: t('common.table.columns.id'), dataIndex: 'formula_id', key: 'formula_id', sorter: (a: CalculationFormula, b: CalculationFormula) => a.formula_id - b.formula_id },
         { title: t('common.table.columns.name'), dataIndex: 'name', key: 'name', sorter: (a: CalculationFormula, b: CalculationFormula) => a.name.localeCompare(b.name) },
         { title: t('common.table.columns.description'), dataIndex: 'description', key: 'description' },
@@ -162,13 +166,6 @@ const FormulaConfigPage: React.FC = () => {
         },
     ];
 
-    // Client-side pagination logic (if needed because backend doesn't paginate)
-    const paginatedData = formulas.slice(
-        ((pagination.current ?? 1) - 1) * (pagination.pageSize ?? 10),
-        ((pagination.current ?? 1) * (pagination.pageSize ?? 10))
-    );
-
-
     return (
         <div>
             <Title level={2}>{t('config.formulas.title')}</Title>
@@ -183,23 +180,19 @@ const FormulaConfigPage: React.FC = () => {
 
             <Table
                 columns={columns}
-                dataSource={formulas} // Use full list if backend paginates, else use paginatedData
+                dataSource={formulas}
                 rowKey="formula_id"
                 loading={loading}
-                pagination={{...pagination, onChange: handleTableChange}} // Use AntD pagination handler
-                // Remove pagination if using client-side slicing above
-                // pagination={false}
+                pagination={pagination}
+                onChange={handleTableChange}
             />
-            {/* Add Pagination component manually if using client-side slicing */}
-             {/* <Pagination {...pagination} onChange={handleTableChange} style={{ marginTop: 16, textAlign: 'right' }}/> */}
-
 
             <Modal
                 title={editingFormula ? t('config.formulas.modal.title.edit') : t('config.formulas.modal.title.create')}
                 open={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
-                confirmLoading={loading} // Show loading state on OK button
+                confirmLoading={loading}
                 width={720}
             >
                 <Form form={form} layout="vertical" name="formula_form">

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Checkbox, Spin, Alert, message, Popconfirm, Typography, Tag, Tabs, Select } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, Checkbox, Spin, Alert, message, Popconfirm, Typography, Tag, Tabs/*, Select*/ } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
-import type { TableProps, TablePaginationConfig } from 'antd';
+import type { /*TableProps,*/ TablePaginationConfig } from 'antd';
 import apiClient from '../services/api';
 import { useTranslation } from 'react-i18next';
-import type { RowSelectionType } from 'antd/es/table/interface';
+// import type { RowSelectionType } from 'antd/es/table/interface'; // Unused
 import SheetMappingManager from './SheetMappingManager';
 
 const { TextArea } = Input;
@@ -62,11 +62,11 @@ interface EmployeeTypeFieldRuleCreate {
     field_db_name: string;
     is_required: boolean;
 }
-interface EmployeeTypeFieldRuleUpdate {
-    employee_type_key?: string;
-    field_db_name?: string;
-    is_required?: boolean;
-}
+// interface EmployeeTypeFieldRuleUpdate { // Unused
+//     employee_type_key?: string;
+//     field_db_name?: string;
+//     is_required?: boolean;
+// }
 interface EmployeeTypeOption {
     employee_type_key: string;
     name: string;
@@ -77,7 +77,7 @@ interface FieldMappingOption {
 }
 
 const EmployeeTypeFieldRulesPage: React.FC = () => {
-    const { t } = useTranslation();
+    // const { t } = useTranslation(); // Unused in this sub-component
     const [rules, setRules] = useState<EmployeeTypeFieldRule[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -434,7 +434,7 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
 };
 
 const MappingConfigurator: React.FC = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation(); // Use t here
     const [mappings, setMappings] = useState<FieldMapping[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);

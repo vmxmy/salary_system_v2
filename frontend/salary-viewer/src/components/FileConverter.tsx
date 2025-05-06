@@ -7,7 +7,6 @@ import {
   Progress,
   Card,
   Spin,
-  Space,
   Modal,
   List,
   Tag,
@@ -15,10 +14,10 @@ import {
   DatePicker,
   Form,
 } from 'antd';
-import { UploadOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, CalendarOutlined } from '@ant-design/icons';
+import { UploadOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import apiClient from '../services/api';
 import { AxiosProgressEvent } from 'axios';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 
 const { Title, Paragraph } = Typography;
 

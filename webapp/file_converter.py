@@ -414,6 +414,165 @@ def check_employee_existence(df: pd.DataFrame, field_config: Dict[str, Any], db:
 
 # --- Main Processing Function (Restored Structure, Updated Schema for to_sql) ---
 
+def _consolidate_staging_data(db: Session, batch_id: str, pay_period: str):
+    """
+    合并给定批次ID和薪资周期的暂存表数据到 consolidated_data 表。
+    只有在所有暂存表导入成功后才应调用此函数。
+    """
+    logger.info(f"开始合并批次 {batch_id} (周期: {pay_period}) 的暂存数据...")
+
+    # 1. 定义源表和前缀
+    source_tables_config = {
+        'raw_annuity_staging': 'ann_',
+        'raw_housingfund_staging': 'hf_',
+        'raw_medical_staging': 'med_',
+        'raw_pension_staging': 'pen_',
+        'raw_salary_data_staging': 'sal_',
+        'raw_tax_staging': 'tax_'
+    }
+
+    # 核心键列 (不加前缀)
+    key_columns = ['employee_name', 'pay_period_identifier', 'id_card_number']
+
+    all_dfs = []
+    try:
+        # 2. & 3. 循环读取源表数据并重命名数据列
+        for table_name, prefix in source_tables_config.items():
+            logger.debug(f"正在读取暂存表: {table_name} (批次: {batch_id})")
+            # 构建查询以选择特定批次的数据
+            # 注意：需要确保每个暂存表都有 _import_batch_id 列
+            # 理论上所有这些表都应该有 pay_period_identifier，但我们这里主要靠 batch_id 关联
+            query = text(f'SELECT * FROM "{table_name}" WHERE "_import_batch_id" = :batch_id')
+            
+            try:
+                # 使用 db.connection() 获取底层连接
+                connection = db.connection()
+                df = pd.read_sql(query, connection, params={'batch_id': batch_id})
+            except Exception as read_err:
+                # 如果某个暂存表读取失败（例如表不存在或批次ID无效），可以选择记录警告并跳过，或者直接失败
+                # 这里选择记录警告并跳过，允许部分合并（如果适用）
+                logger.warning(f"读取暂存表 {table_name} 失败 (批次: {batch_id}): {read_err}", exc_info=True)
+                continue # 跳过这个表
+            
+            if df.empty:
+                logger.info(f"暂存表 {table_name} 在批次 {batch_id} 中没有数据，跳过合并。")
+                continue
+
+            # 规范化 employee_name
+            if 'employee_name' in df.columns:
+                 df['employee_name'] = df['employee_name'].apply(lambda x: normalize_whitespace(x) if isinstance(x, str) else x)
+            else:
+                logger.warning(f"暂存表 {table_name} 缺少 'employee_name' 列，无法参与合并。")
+                continue # 没有主键无法合并
+                
+            # 确保 pay_period_identifier 存在 (作为合并键)
+            if 'pay_period_identifier' not in df.columns:
+                # 如果确实需要，可以在这里基于传入的 pay_period 参数添加列
+                # df['pay_period_identifier'] = pay_period 
+                # 但更稳妥的是要求源表必须包含此列
+                logger.warning(f"暂存表 {table_name} 缺少 'pay_period_identifier' 列，无法参与合并。")
+                continue
+                
+            # 确保 id_card_number 列存在，如果不存在则添加空列，以便后续合并处理
+            if 'id_card_number' not in df.columns:
+                 df['id_card_number'] = None
+
+            # 找出需要加前缀的数据列 (排除键列和内部元数据列)
+            internal_meta_cols = ['_source_filename', '_row_number', '_import_timestamp', '_import_batch_id', '_validation_status', '_validation_errors']
+            # Also exclude the primary key of the staging table itself (e.g., _annuity_staging_id)
+            primary_key_col = f'_{table_name.replace("raw_", "")}_id' # Heuristic assumption
+            cols_to_exclude = set(key_columns + internal_meta_cols + [primary_key_col])
+            
+            data_columns = [col for col in df.columns if col not in cols_to_exclude]
+            rename_map = {col: f"{prefix}{col}" for col in data_columns}
+            
+            # 重命名列
+            df.rename(columns=rename_map, inplace=True)
+            
+            # 选择最终需要的列 (键列 + 重命名后的数据列)
+            final_columns = key_columns + list(rename_map.values())
+            # 确保所有需要的列都存在于DataFrame中（例如，id_card_number可能已添加）
+            df_final = df[[col for col in final_columns if col in df.columns]].copy()
+            
+            all_dfs.append(df_final)
+
+        if not all_dfs:
+            logger.warning(f"批次 {batch_id} 没有找到任何有效的暂存数据进行合并。")
+            return # 或者可以认为是一种成功，只是没有合并任何东西
+
+        # 4. 使用 outer merge 合并 DataFrames
+        logger.debug(f"开始合并 {len(all_dfs)} 个数据帧 (批次: {batch_id})")
+        merged_df = all_dfs[0]
+        for i in range(1, len(all_dfs)):
+            merged_df = pd.merge(
+                merged_df, 
+                all_dfs[i], 
+                on=['employee_name', 'pay_period_identifier'], 
+                how='outer',
+                suffixes=(f'_l{i-1}', f'_r{i}') # 使用动态后缀处理多重合并的 id_card_number 冲突
+            )
+            logger.debug(f"合并第 {i+1} 个数据帧后的大小: {merged_df.shape}")
+
+        # 5. 处理 id_card_number 冲突
+        id_cols = [col for col in merged_df.columns if col.startswith('id_card_number')]
+        if len(id_cols) > 1: # 只有当合并产生了多个id_card_number列时才处理
+            logger.debug(f"检测到多个id_card_number列: {id_cols}，进行合并...")
+            # 使用后向填充优先获取第一个非空值
+            merged_df['id_card_number'] = merged_df[id_cols].bfill(axis=1).iloc[:, 0]
+            # 删除原始带后缀的列
+            merged_df.drop(columns=id_cols, inplace=True)
+            logger.debug("id_card_number 列合并完成。")
+        elif len(id_cols) == 1 and id_cols[0] != 'id_card_number':
+            # 如果只有一个且名字不对（例如 id_card_number_l0），重命名它
+             merged_df.rename(columns={id_cols[0]: 'id_card_number'}, inplace=True)
+        elif 'id_card_number' not in merged_df.columns:
+             merged_df['id_card_number'] = None # 确保列存在
+
+        # 6. 添加元数据列
+        logger.debug(f"添加元数据列 (批次: {batch_id})")
+        merged_df['_import_batch_id'] = batch_id
+        # _consolidation_timestamp 会由数据库 default=func.now() 处理，无需在此添加
+
+        # 7. 将合并后的 DataFrame 写入 consolidated_data 表
+        target_table_name = models.ConsolidatedDataTable.__tablename__
+        logger.info(f"准备将 {len(merged_df)} 条合并记录写入表 '{target_table_name}' (批次: {batch_id})...")
+        
+        # 获取目标表的 SQLAlchemy 模型，以便 to_sql 知道列类型
+        # 注意：直接使用模型可能不适用于 to_sql 的 dtype 参数，但确保模型已定义
+        
+        # 清理数据类型，特别是 Pandas 可能推断错误的类型 (例如整数变浮点数)
+        # 可以在这里添加更具体的类型转换，或者依赖 to_sql 和数据库
+        merged_df = merged_df.where(pd.notnull(merged_df), None) # 将 NaN 替换为 None
+        
+        # 确保列顺序和类型与模型匹配（可选但推荐）
+        # mapper = inspect(models.ConsolidatedDataTable)
+        # model_columns = [c.key for c in mapper.columns]
+        # merged_df = merged_df.reindex(columns=model_columns, fill_value=None)
+
+        try:
+            # 使用 to_sql 写入。method='multi' 可以提高性能。
+            # dtype 参数可以帮助指定类型，但通常 SQLAlchemy engine 可以处理
+            # 使用 db.connection() 获取底层连接
+            connection = db.connection()
+            merged_df.to_sql(
+                name=target_table_name,
+                con=connection, # 使用 Connection 对象
+                if_exists='append', # 追加数据
+                index=False,
+                method='multi',
+                chunksize=1000 # 分块写入以优化内存使用
+            )
+            logger.info(f"成功将 {len(merged_df)} 条记录写入 '{target_table_name}' (批次: {batch_id})。")
+        except Exception as write_err:
+            logger.error(f"写入合并数据到 '{target_table_name}' 失败 (批次: {batch_id}): {write_err}", exc_info=True)
+            # 8. 错误处理：失败时抛出异常，以便事务回滚
+            raise Exception(f"合并数据写入数据库失败: {write_err}")
+            
+    except Exception as e:
+        logger.error(f"合并批次 {batch_id} 的暂存数据时发生意外错误: {e}", exc_info=True)
+        # 8. 错误处理：确保任何未捕获的异常也能触发回滚
+        raise Exception(f"合并暂存数据失败: {e}")
+
 def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_period: str, filename: Optional[str] = None) -> Dict[str, Any]:
     """
     Processes the uploaded Excel file stream:
@@ -669,19 +828,34 @@ def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_
         if sheet_result["status"] == "success": # Append success result if not already appended on error
              overall_result["sheet_results"].append(sheet_result)
 
-    # Set overall message based on results
-    if sheets_with_errors > 0:
-        overall_result["message"] = f"文件处理完成，但有 {sheets_with_errors} 个工作表出错。"
-    elif sheets_processed_successfully > 0:
-         overall_result["message"] = f"文件处理成功，共导入 {total_rows_written} 行数据。"
-         if sheets_skipped > 0:
-              overall_result["message"] += f" {sheets_skipped} 个工作表因无法识别类型而被跳过。"
-    elif sheets_skipped > 0:
-         overall_result["message"] = f"文件处理完成，但所有工作表因无法识别类型而被跳过。"
-    else:
-         overall_result["message"] = "文件处理完成，但没有找到可处理的工作表或数据。"
+    # --- Consolidation Step --- START ---
+    # 检查是否有任何工作表处理失败
+    has_fatal_error = any(result.get('status') == 'error' for result in overall_result["sheet_results"])
+    
+    if not has_fatal_error and overall_result["sheet_results"]: # 只有在没有致命错误且至少处理了一个工作表时才合并
+        logger.info(f"所有工作表初步处理完成，批次 {upload_id} 没有致命错误，尝试合并数据...")
+        try:
+            _consolidate_staging_data(db=db, batch_id=upload_id, pay_period=pay_period)
+            overall_result['consolidation_status'] = 'success'
+            overall_result['message'] = overall_result.get('message', '') + " 数据合并成功。"
+            logger.info(f"批次 {upload_id} 数据合并成功。")
+        except Exception as consolidation_err:
+            logger.error(f"合并批次 {upload_id} 数据失败: {consolidation_err}", exc_info=True)
+            # 将合并失败信息添加到结果中，但不覆盖原始的工作表处理信息
+            overall_result['consolidation_status'] = 'error'
+            overall_result['consolidation_error'] = f"数据合并步骤失败: {consolidation_err}"
+            overall_result['message'] = overall_result.get('message', '') + " 但数据合并步骤失败。"
+            # 注意：因为这里抛出了异常，所以路由器的 finally 块应该会回滚事务
+            raise Exception(f"数据合并失败: {consolidation_err}") # 重新抛出异常以确保事务回滚
+    elif has_fatal_error:
+         logger.warning(f"批次 {upload_id} 存在工作表处理错误，跳过数据合并步骤。")
+         overall_result['consolidation_status'] = 'skipped_due_to_errors'
+    else: # sheet_results is empty
+        logger.info(f"批次 {upload_id} 没有处理任何工作表，跳过数据合并步骤。")
+        overall_result['consolidation_status'] = 'skipped_no_sheets'
+    # --- Consolidation Step --- END ---
 
-    logger.info(f"Finished processing batch ID: {upload_id}. Overall result: {overall_result['message']}")
+    # Return final overall result including sheet details and consolidation status
     return overall_result
 
 # ... (Ensure necessary models are defined in models.py/models_db.py) ...

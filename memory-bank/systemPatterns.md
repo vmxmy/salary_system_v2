@@ -18,6 +18,9 @@
 *   Use of `field_mappings` table for frontend display consistency.
 *   **Unified View Management in dbt:** Core calculation views (`view_base_data`, `view_level1_calculations`, etc.) are managed as dbt models (materialized as views) to leverage dbt features (testing, docs, lineage) and resolve conflicts with schema management tools like Alembic.
 *   **Alembic for Schema Only:** Alembic's role is strictly limited to managing the evolution of base table schemas (CREATE TABLE, ALTER COLUMN, etc.), not view definitions.
+*   **Backend Model Structure:** SQLAlchemy model definitions reside in `webapp/models.py`, while ORM database operation functions (CRUD) are located in `webapp/models_db.py`. Function names in `models_db.py` do not use the `_orm` suffix.
+*   **API Routing Convention:** FastAPI routers (e.g., in `webapp/routers/`) define the full API path prefix (e.g., `/api/users`, `/api/config/mappings`, `/api/v1/admin/calculation-engine`). The main application (`webapp/main.py`) includes these routers using appropriate top-level prefixes (e.g., `prefix="/api/v1"`) or an empty prefix (`prefix=""`) if the router defines the complete path starting from `/api`.
+*   **Database Migration:** Alembic is used for managing PostgreSQL database schema migrations. Conflicts or inconsistencies between Alembic history and the actual database state are resolved using `alembic stamp` before applying new migrations with `alembic upgrade head`.
 
 ## API Endpoints (Key Examples)
 *   **Authentication:**
@@ -45,11 +48,21 @@
     *   `POST /api/config/mappings`: Create field mapping.
     *   `PUT /api/config/mappings/{id}`: Update field mapping.
     *   `DELETE /api/config/mappings/{id}`: Delete field mapping.
+    *   `GET /api/config/sheet-mappings`: List sheet name mappings.
+    *   `POST /api/config/sheet-mappings`: Create sheet name mapping.
+    *   `PUT /api/config/sheet-mappings/{id}`: Update sheet name mapping.
+    *   `DELETE /api/config/sheet-mappings/{id}`: Delete sheet name mapping.
     *   (Similar endpoints likely exist or are needed for Employee Type Field Rules)
 *   **Data Import:**
     *   `POST /api/convert/excel-to-csv`: Upload Excel, convert, import to staging, trigger dbt.
 *   **Data Viewing:**
     *   `GET /api/salary_data`: Get calculated salary records (from view) with filtering.
+*   **Admin - Calculation Engine:**
+    *   `GET /api/v1/admin/calculation-engine/formulas`: List calculation formulas.
+    *   `POST /api/v1/admin/calculation-engine/formulas`: Create calculation formula.
+    *   `PUT /api/v1/admin/calculation-engine/formulas/{formula_id}`: Update calculation formula.
+    *   `DELETE /api/v1/admin/calculation-engine/formulas/{formula_id}`: Delete calculation formula.
+    *   (Similar endpoints exist for Rules and Conditions)
 
 ## 数据处理流程 (Data Processing Pipeline)
 

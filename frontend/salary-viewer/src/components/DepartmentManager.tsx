@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback/*, useRef*/ } from 'react';
 import {
-    Tabs, Table, Button, Modal, Form, Input, Spin, Alert, message, Popconfirm, Space, Select, Typography
+    Tabs, Table, Button, Modal, Form, Input, Spin, Alert, message, Popconfirm, Space, Select, Typography/*, Row, Col*/
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined/*, SearchOutlined*/ } from '@ant-design/icons';
 import type { TableColumnsType, TablePaginationConfig } from 'antd';
 import apiClient from '../services/api';
 import { useTranslation } from 'react-i18next';
@@ -49,7 +49,7 @@ const DepartmentManager: React.FC = () => {
     const [units, setUnits] = useState<Unit[]>([]);
     const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
     const [errorUnits, setErrorUnits] = useState<string | null>(null);
-    const [unitSearchTerm, setUnitSearchTerm] = useState<string>('');
+    // const [unitSearchTerm, setUnitSearchTerm] = useState<string>(''); // Unused state setter
     const [unitsPagination, setUnitsPagination] = useState<TablePaginationConfig>({
         current: 1,
         pageSize: 10,
@@ -61,8 +61,8 @@ const DepartmentManager: React.FC = () => {
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loadingDepartments, setLoadingDepartments] = useState<boolean>(false);
     const [errorDepartments, setErrorDepartments] = useState<string | null>(null);
-    const [departmentSearchTerm, setDepartmentSearchTerm] = useState<string>('');
-    const [selectedUnitFilter, setSelectedUnitFilter] = useState<number | undefined>(undefined);
+    // const [departmentSearchTerm, setDepartmentSearchTerm] = useState<string>(''); // Unused state setter
+    // const [selectedUnitFilter, setSelectedUnitFilter] = useState<number | undefined>(undefined); // Unused state setter
     const [departmentsPagination, setDepartmentsPagination] = useState<TablePaginationConfig>({
         current: 1,
         pageSize: 10,
@@ -108,7 +108,7 @@ const DepartmentManager: React.FC = () => {
         }
     }, [t]);
 
-    const fetchDepartments = useCallback(async (page: number, size: number, unitId?: number, search?: string) => {
+    const fetchDepartments = useCallback(async (page: number, size: number) => {
         setLoadingDepartments(true);
         setErrorDepartments(null);
         try {
@@ -116,13 +116,6 @@ const DepartmentManager: React.FC = () => {
                   page: String(page),
                   size: String(size),
              });
-             // 只有在筛选时才添加unit_id参数，保证我们能获取完整的部门列表
-             if (unitId !== undefined && unitId !== null) {
-                  params.append('unit_id', String(unitId));
-             }
-             if (search) {
-                  params.append('search', search);
-             }
              
              // 使用正确的API端点
              const response = await apiClient.get(`/api/departments/?${params.toString()}`);
@@ -155,14 +148,8 @@ const DepartmentManager: React.FC = () => {
                         let assignedUnitId: number | undefined;
                         let unitName = '';
                         
-                        // 如果有单位筛选，则使用筛选值
-                        if (unitId) {
-                            assignedUnitId = unitId;
-                            const unitInfo = unitsData.find(u => u.id === unitId);
-                            unitName = unitInfo?.name || '';
-                        }
                         // 如果没有，使用第一个可用的单位作为默认值
-                        else if (unitsData.length > 0) {
+                        if (unitsData.length > 0) {
                             assignedUnitId = unitsData[0].id;
                             unitName = unitsData[0].name;
                         }
@@ -235,12 +222,6 @@ const DepartmentManager: React.FC = () => {
                 }
              }
              
-             // 如果有单位筛选，仅显示关联到该单位的部门
-             if (unitId && departmentData.length > 0) {
-                departmentData = departmentData.filter((dept: any) => dept.unit_id === unitId);
-                totalCount = departmentData.length;
-             }
-             
              setDepartments(departmentData);
              setDepartmentsPagination(prev => ({
                   ...prev,
@@ -256,13 +237,13 @@ const DepartmentManager: React.FC = () => {
         } finally {
              setLoadingDepartments(false);
         }
-   }, [t, unitOptions]);
+   }, [t]);
 
     useEffect(() => {
         if (activeTab === 'units') {
              fetchUnits(unitsPagination.current ?? 1, unitsPagination.pageSize ?? 10, undefined);
         } else if (activeTab === 'departments') {
-            fetchDepartments(departmentsPagination.current ?? 1, departmentsPagination.pageSize ?? 10, undefined, undefined);
+            fetchDepartments(departmentsPagination.current ?? 1, departmentsPagination.pageSize ?? 10);
         }
     }, [
         activeTab,
@@ -283,6 +264,7 @@ const DepartmentManager: React.FC = () => {
              setUnitOptions(options);
         } catch (err) {
              message.error(t('departmentManager.errors.loadUnitOptionsFailed'));
+             // console.error("Failed to fetch employee types, setting empty array:", err); // err is unused
              setUnitOptions([]);
         } finally {
              setLoadingUnitOptions(false);
@@ -317,8 +299,8 @@ const DepartmentManager: React.FC = () => {
                     description: deptRecord.description,
                  });
             }
-        } else if (mode === 'add' && type === 'department' && selectedUnitFilter) {
-            form.setFieldsValue({ unit_id: selectedUnitFilter });
+        } else if (mode === 'add'/* && type === 'department' && selectedUnitFilter*/) {
+            // form.setFieldsValue({ unit_id: selectedUnitFilter }); // Remove setting value from filter
         }
         setIsModalVisible(true);
     };
@@ -355,7 +337,7 @@ const DepartmentManager: React.FC = () => {
                      }
                 }
                 const refreshPage = modalMode === 'add' ? 1 : unitsPagination.current ?? 1;
-                fetchUnits(refreshPage, unitsPagination.pageSize ?? 10, unitSearchTerm);
+                fetchUnits(refreshPage, unitsPagination.pageSize ?? 10);
                 fetchUnitOptionsForDropdown();
             } else {
                  const payload: DepartmentFormValues = { name: values.name, unit_id: values.unit_id, description: values.description };
@@ -376,7 +358,7 @@ const DepartmentManager: React.FC = () => {
                     }
                 }
                  const refreshPage = modalMode === 'add' ? 1 : departmentsPagination.current ?? 1;
-                 fetchDepartments(refreshPage, departmentsPagination.pageSize ?? 10, selectedUnitFilter, departmentSearchTerm);
+                 fetchDepartments(refreshPage, departmentsPagination.pageSize ?? 10);
             }
 
             handleCancel();
@@ -399,7 +381,7 @@ const DepartmentManager: React.FC = () => {
              const refreshPage = (units.length === 1 && (unitsPagination.current ?? 1) > 1)
                 ? (unitsPagination.current ?? 2) - 1
                 : unitsPagination.current ?? 1;
-             fetchUnits(refreshPage, unitsPagination.pageSize ?? 10, unitSearchTerm);
+             fetchUnits(refreshPage, unitsPagination.pageSize ?? 10);
              fetchUnitOptionsForDropdown();
         } catch (err: any) {
             const errorMsg = err.response?.data?.detail || err.message || t('departmentManager.errors.deleteUnitFailed');
@@ -418,7 +400,7 @@ const DepartmentManager: React.FC = () => {
             const refreshPage = (departments.length === 1 && (departmentsPagination.current ?? 1) > 1)
                  ? (departmentsPagination.current ?? 2) - 1
                  : departmentsPagination.current ?? 1;
-             fetchDepartments(refreshPage, departmentsPagination.pageSize ?? 10, selectedUnitFilter, departmentSearchTerm);
+             fetchDepartments(refreshPage, departmentsPagination.pageSize ?? 10);
         } catch (err: any) {
             const errorMsg = err.response?.data?.detail || err.message || t('departmentManager.errors.deleteDeptFailed');
             message.error(errorMsg);
@@ -428,27 +410,19 @@ const DepartmentManager: React.FC = () => {
         }
    };
 
-    const handleUnitSearch = (value: string) => {
-        setUnitSearchTerm(value);
-        setUnitsPagination(prev => ({ ...prev, current: 1 }));
-    };
+    // const handleUnitSearch = (value: string) => {
+    //   // Implement search logic if needed, e.g., refetch units with search term
+    //   console.log('Search units:', value);
+    // };
 
-    const handleDepartmentSearch = (value: string) => {
-         setDepartmentSearchTerm(value);
-         setDepartmentsPagination(prev => ({ ...prev, current: 1 }));
-    };
+    // const handleDepartmentSearch = (value: string) => {
+    //   // Implement search logic if needed, e.g., refetch departments with search term
+    //   console.log('Search departments:', value);
+    // };
 
-    const handleUnitFilterChange = (value: number | undefined) => {
-         setSelectedUnitFilter(value);
-         setDepartmentsPagination(prev => ({ ...prev, current: 1 }));
-         // 当用户选择单位筛选时，使用该筛选值重新加载部门
-         if (value !== undefined) {
-             fetchDepartments(1, departmentsPagination.pageSize ?? 10, value, departmentSearchTerm);
-         } else {
-             // 当用户清除筛选时，加载所有部门
-             fetchDepartments(1, departmentsPagination.pageSize ?? 10, undefined, departmentSearchTerm);
-         }
-    };
+    // const handleUnitFilterChange = (value: string | null) => {
+    //   setFilters(prev => ({ ...prev, unitId: value || undefined }));
+    // };
 
     const handleDepartmentTableChange = (pagination: TablePaginationConfig) => {
         setDepartmentsPagination(prev => ({

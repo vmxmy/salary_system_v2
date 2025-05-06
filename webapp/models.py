@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, UniqueConstraint, Identity, Numeric, BigInteger, Date
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, UniqueConstraint, Identity, Numeric, BigInteger, Date, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP, JSONB
@@ -266,4 +266,453 @@ class CalculatedSalaryRecord(Base):
 
     # Relationship back to the employee (optional, but potentially useful)
     employee = relationship("Employee")
-# --- Calculated Salary Record Model --- END --- 
+# --- Calculated Salary Record Model --- END ---
+
+# 新增：合并后的数据表模型
+class ConsolidatedDataTable(Base):
+    __tablename__ = 'consolidated_data'
+    __table_args__ = (
+        UniqueConstraint('employee_name', 'pay_period_identifier', name='uq_consolidated_employee_period'),
+        # 可以考虑添加其他索引以提高查询性能，例如在 _import_batch_id 上
+        # Index('ix_consolidated_data_batch_id', '_import_batch_id'),
+        {'schema': 'staging'} # 将表移动到 staging schema
+    )
+
+    _consolidated_data_id = Column(Integer, Identity(start=1), primary_key=True)
+    employee_name = Column(String, nullable=False, index=True)
+    pay_period_identifier = Column(String, nullable=False, index=True)
+    id_card_number = Column(String, nullable=True, index=True) # 假设合并后可能存在 null
+
+    # --- Annuity Columns (ann_) ---
+    ann_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    ann_contribution_base = Column(Numeric(15, 2), nullable=True)
+    ann_employer_rate = Column(Numeric(5, 4), nullable=True)
+    ann_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    ann_employee_rate = Column(Numeric(5, 4), nullable=True)
+    ann_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Housing Fund Columns (hf_) ---
+    hf_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    hf_contribution_base = Column(Numeric(15, 2), nullable=True)
+    hf_employer_rate = Column(Numeric(5, 4), nullable=True)
+    hf_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    hf_employee_rate = Column(Numeric(5, 4), nullable=True)
+    hf_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Medical Columns (med_) ---
+    med_contribution_base_salary = Column(Numeric(15, 2), nullable=True) # Note: Same name as hf_, ann_ base salary? Clarify if needed. Assuming they can be distinct here.
+    med_contribution_base = Column(Numeric(15, 2), nullable=True)
+    med_employer_medical_rate = Column(Numeric(5, 4), nullable=True)
+    med_employer_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    med_employee_medical_rate = Column(Numeric(5, 4), nullable=True)
+    med_employee_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    med_employer_critical_illness_rate = Column(Numeric(5, 4), nullable=True)
+    med_employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True)
+    med_total_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    med_total_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Pension/Social Security Columns (pen_) ---
+    pen_pension_contribution_base = Column(Numeric(15, 2), nullable=True)
+    pen_pension_total_amount = Column(Numeric(15, 2), nullable=True)
+    pen_pension_employer_rate = Column(Numeric(5, 4), nullable=True)
+    pen_pension_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    pen_pension_employee_rate = Column(Numeric(5, 4), nullable=True)
+    pen_pension_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    pen_unemployment_contribution_base = Column(Numeric(15, 2), nullable=True)
+    pen_unemployment_total_amount = Column(Numeric(15, 2), nullable=True)
+    pen_unemployment_employer_rate = Column(Numeric(5, 4), nullable=True)
+    pen_unemployment_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    pen_unemployment_employee_rate = Column(Numeric(5, 4), nullable=True)
+    pen_unemployment_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    pen_injury_contribution_base = Column(Numeric(15, 2), nullable=True)
+    pen_injury_total_amount = Column(Numeric(15, 2), nullable=True)
+    pen_injury_employer_rate = Column(Numeric(5, 4), nullable=True)
+    pen_injury_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    pen_ss_total_employer_contribution = Column(Numeric(15, 2), nullable=True) # Social Security Totals
+    pen_ss_total_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Salary Data Columns (sal_) ---
+    sal_remarks = Column(Text, nullable=True)
+    sal_subsidy = Column(Numeric(15, 2), nullable=True)
+    sal_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_post_salary = Column(Numeric(15, 2), nullable=True)
+    sal_salary_step = Column(Numeric(15, 2), nullable=True) # Or Integer? Assuming Numeric for now
+    sal_basic_salary = Column(Numeric(15, 2), nullable=True)
+    sal_tax_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_salary_grade = Column(String, nullable=True)
+    sal_salary_level = Column(String, nullable=True)
+    sal_salary_backpay = Column(Numeric(15, 2), nullable=True)
+    sal_post_category = Column(String, nullable=True)
+    sal_other_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_other_deductions = Column(Numeric(15, 2), nullable=True)
+    sal_employee_type_key = Column(String, nullable=True)
+    sal_personnel_rank = Column(String, nullable=True)
+    sal_living_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_probation_salary = Column(Numeric(15, 2), nullable=True)
+    sal_one_time_deduction = Column(Numeric(15, 2), nullable=True)
+    sal_performance_salary = Column(Numeric(15, 2), nullable=True)
+    sal_personnel_identity = Column(String, nullable=True)
+    sal_total_backpay_amount = Column(Numeric(15, 2), nullable=True)
+    # Note: individual_income_tax also exists in tax_ table. Decide which one to keep or rename. Keeping sal_ for now.
+    sal_individual_income_tax = Column(Numeric(15, 2), nullable=True)
+    sal_housing_fund_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_basic_performance_bonus = Column(Numeric(15, 2), nullable=True)
+    sal_petition_post_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_post_position_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_transportation_allowance = Column(Numeric(15, 2), nullable=True)
+    # Note: Self contributions also exist in other tables (ann_, med_, pen_, hf_). Decide or rename. Keeping sal_ for now.
+    sal_self_annuity_contribution = Column(Numeric(15, 2), nullable=True)
+    sal_self_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    sal_self_pension_contribution = Column(Numeric(15, 2), nullable=True)
+    sal_monthly_basic_performance = Column(Numeric(15, 2), nullable=True)
+    sal_only_child_parents_reward = Column(Numeric(15, 2), nullable=True)
+    sal_rank_or_post_grade_salary = Column(Numeric(15, 2), nullable=True)
+    sal_salary_step_backpay_total = Column(Numeric(15, 2), nullable=True)
+    sal_ref_official_salary_step = Column(String, nullable=True)
+    sal_monthly_reward_performance = Column(Numeric(15, 2), nullable=True)
+    sal_total_deduction_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_social_insurance_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_quarterly_performance_bonus = Column(Numeric(15, 2), nullable=True)
+    sal_annual_fixed_salary_amount = Column(Numeric(15, 2), nullable=True)
+    sal_position_or_technical_salary = Column(Numeric(15, 2), nullable=True)
+    sal_reform_1993_reserved_subsidy = Column(Numeric(15, 2), nullable=True)
+    sal_reward_performance_deduction = Column(Numeric(15, 2), nullable=True)
+    # Note: Employer contributions also exist elsewhere. Keeping sal_ for now.
+    sal_employer_annuity_contribution = Column(Numeric(15, 2), nullable=True)
+    sal_employer_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    sal_employer_pension_contribution = Column(Numeric(15, 2), nullable=True)
+    sal_self_housing_fund_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with hf_?
+    sal_self_unemployment_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
+    sal_petition_worker_post_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_ref_official_post_salary_level = Column(String, nullable=True)
+    sal_basic_performance_bonus_deduction = Column(Numeric(15, 2), nullable=True)
+    sal_civil_servant_normative_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_employer_housing_fund_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with hf_?
+    sal_employer_unemployment_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
+    sal_employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with med_?
+    sal_bank_account_number = Column(Text, nullable=True) # Changed to Text from String
+    sal_bank_branch_name = Column(Text, nullable=True)
+    sal_employment_start_date = Column(Date, nullable=True)
+    sal_employment_status = Column(Text, nullable=True)
+    sal_organization_name = Column(Text, nullable=True)
+    sal_department_name = Column(Text, nullable=True)
+    sal_basic_performance_salary = Column(Numeric(15, 2), nullable=True)
+    sal_incentive_performance_salary = Column(Numeric(15, 2), nullable=True)
+    sal_self_injury_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
+    sal_employer_injury_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
+    sal_salary_position_or_post_wage = Column(Numeric(15, 2), nullable=True)
+    sal_salary_rank_or_step_wage = Column(Numeric(15, 2), nullable=True)
+    sal_is_leader = Column(Boolean, nullable=True)
+    sal_pay_period = Column(Date, nullable=True) # Duplicate concept with pay_period_identifier? Maybe store actual date here.
+
+    # --- Tax Columns (tax_) ---
+    tax_period_identifier = Column(String, nullable=True) # Duplicate with main key? Decide if needed.
+    tax_income_period_start = Column(Date, nullable=True)
+    tax_income_period_end = Column(Date, nullable=True)
+    tax_current_period_income = Column(Numeric(15, 2), nullable=True)
+    tax_current_period_tax_exempt_income = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_basic_pension = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_basic_medical = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_unemployment = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_housing_fund = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_child_edu_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_cont_edu_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_housing_loan_interest_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_housing_rent_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_support_elderly_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_infant_care_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_private_pension_cumulative = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_annuity = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_commercial_health_insurance = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_deferred_pension_insurance = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_other = Column(Numeric(15, 2), nullable=True)
+    tax_deduction_donations = Column(Numeric(15, 2), nullable=True)
+    tax_total_deductions_pre_tax = Column(Numeric(15, 2), nullable=True)
+    tax_reduction_amount = Column(Numeric(15, 2), nullable=True)
+    tax_standard_deduction = Column(Numeric(15, 2), nullable=True)
+    tax_calculated_income_tax = Column(Numeric(15, 2), nullable=True)
+    tax_remarks = Column(Text, nullable=True) # Duplicate concept with sal_remarks?
+
+    # --- Metadata Columns ---
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _consolidation_timestamp = Column(TIMESTAMP(timezone=True), default=func.now(), nullable=False) 
+
+# --- Staging Table for Raw Salary Data ---
+class RawSalaryDataStaging(Base):
+    __tablename__ = 'raw_salary_data_staging'
+    __table_args__ = ({'schema': 'staging'})
+
+    _staging_id = Column(Integer, Identity(start=1), primary_key=True)
+
+    # --- Core fields from original model ---
+    id_card_number = Column(String(18), index=True, nullable=True)
+    employee_name = Column(Text, nullable=True, index=True)
+    employee_unique_id = Column(Text, index=True, nullable=True)
+    establishment_type_name = Column(Text, nullable=True)
+    pay_period_identifier = Column(String(7), nullable=False, index=True) # Assuming 'YYYY-MM' format
+
+    # --- Job Attributes (from salary_system/models.py) ---
+    job_attr_人员身份 = Column(Text, nullable=True)
+    job_attr_人员职级 = Column(Text, nullable=True)
+    job_attr_岗位类别 = Column(Text, nullable=True)
+    job_attr_参照正编岗位工资级别 = Column(Text, nullable=True)
+    job_attr_参照正编薪级工资级次 = Column(Text, nullable=True)
+    job_attr_工资级别 = Column(Text, nullable=True)
+    job_attr_工资档次 = Column(Text, nullable=True)
+    job_attr_固定薪酬全年应发数 = Column(Numeric(12, 2), nullable=True)
+
+    # --- Salary Components (from salary_system/models.py) ---
+    salary_一次性补扣发 = Column(Numeric(12, 2), nullable=True)
+    salary_基础绩效奖补扣发 = Column(Numeric(12, 2), nullable=True)
+    salary_职务技术等级工资 = Column(Numeric(12, 2), nullable=True)
+    salary_级别岗位级别工资 = Column(Numeric(12, 2), nullable=True)
+    salary_93年工改保留补贴 = Column(Numeric(12, 2), nullable=True)
+    salary_独生子女父母奖励金 = Column(Numeric(12, 2), nullable=True)
+    salary_岗位职务补贴 = Column(Numeric(12, 2), nullable=True)
+    salary_公务员规范性津贴补贴 = Column(Numeric(12, 2), nullable=True)
+    salary_公务交通补贴 = Column(Numeric(12, 2), nullable=True)
+    salary_基础绩效奖 = Column(Numeric(12, 2), nullable=True)
+    salary_见习试用期工资 = Column(Numeric(12, 2), nullable=True)
+    salary_信访工作人员岗位津贴 = Column(Numeric(12, 2), nullable=True)
+    salary_奖励绩效补扣发 = Column(Numeric(12, 2), nullable=True)
+    salary_岗位工资 = Column(Numeric(12, 2), nullable=True)
+    salary_薪级工资 = Column(Numeric(12, 2), nullable=True)
+    salary_月基础绩效 = Column(Numeric(12, 2), nullable=True)
+    salary_月奖励绩效 = Column(Numeric(12, 2), nullable=True)
+    salary_基本工资 = Column(Numeric(12, 2), nullable=True)
+    salary_绩效工资 = Column(Numeric(12, 2), nullable=True)
+    salary_其他补助 = Column(Numeric(12, 2), nullable=True)
+    salary_补发工资 = Column(Numeric(12, 2), nullable=True)
+    salary_津贴 = Column(Numeric(12, 2), nullable=True)
+    salary_季度绩效考核薪酬 = Column(Numeric(12, 2), nullable=True)
+    salary_补助 = Column(Numeric(12, 2), nullable=True)
+    salary_信访岗位津贴 = Column(Numeric(12, 2), nullable=True) # Note: This might be a duplicate of salary_信访工作人员岗位津贴
+    salary_补扣发合计 = Column(Numeric(12, 2), nullable=True)
+    salary_生活津贴 = Column(Numeric(12, 2), nullable=True)
+    salary_1季度3季度考核绩效奖 = Column(Numeric(12, 2), nullable=True)
+    salary_补发薪级合计 = Column(Numeric(12, 2), nullable=True)
+
+    # --- Deductions (from salary_system/models.py) ---
+    deduct_个人缴养老保险费 = Column(Numeric(12, 2), nullable=True)
+    deduct_个人缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
+    deduct_个人缴职业年金 = Column(Numeric(12, 2), nullable=True)
+    deduct_个人缴住房公积金 = Column(Numeric(12, 2), nullable=True)
+    deduct_个人缴失业保险费 = Column(Numeric(12, 2), nullable=True)
+    deduct_个人所得税 = Column(Numeric(12, 2), nullable=True)
+    deduct_其他扣款 = Column(Numeric(12, 2), nullable=True)
+    deduct_补扣退社保缴费 = Column(Numeric(12, 2), nullable=True)
+    deduct_补扣退公积金 = Column(Numeric(12, 2), nullable=True)
+    deduct_补扣个税 = Column(Numeric(12, 2), nullable=True)
+
+    # --- Contributions (from salary_system/models.py) ---
+    contrib_单位缴养老保险费 = Column(Numeric(12, 2), nullable=True)
+    contrib_单位缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
+    contrib_单位缴职业年金 = Column(Numeric(12, 2), nullable=True)
+    contrib_单位缴住房公积金 = Column(Numeric(12, 2), nullable=True)
+    contrib_单位缴失业保险费 = Column(Numeric(12, 2), nullable=True)
+    contrib_大病医疗单位缴纳 = Column(Numeric(12, 2), nullable=True)
+
+    # --- Other (from salary_system/models.py) ---
+    other_备注 = Column(Text, nullable=True)
+
+    # --- Standardized Metadata Columns ---
+    _source_filename = Column(Text, nullable=True)
+    _source_sheet_name = Column(Text, nullable=True) # Previously _airbyte_source_sheet
+    _row_number = Column(Integer, nullable=True)
+    _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _validation_status = Column(String(50), default='pending', nullable=False)
+    _validation_errors = Column(JSONB, nullable=True)
+    employee_type_key = Column(String(50), nullable=True, index=True)
+
+    def __repr__(self):
+       return f"<RawSalaryDataStaging(id={self._staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>" 
+
+# --- Staging Table for Annuity Data ---
+class RawAnnuityStaging(Base):
+    __tablename__ = 'raw_annuity_staging'
+    __table_args__ = ({'schema': 'staging'})
+
+    _annuity_staging_id = Column(Integer, Identity(start=1), primary_key=True)
+
+    # --- Core Keys ---
+    id_card_number = Column(String, index=True, nullable=True)
+    pay_period_identifier = Column(String(7), nullable=False, index=True)
+    employee_name = Column(Text, nullable=True, index=True)
+
+    # --- Annuity Data Columns ---
+    annuity_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    annuity_contribution_base = Column(Numeric(15, 2), nullable=True)
+    annuity_employer_rate = Column(Numeric(5, 4), nullable=True)
+    annuity_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    annuity_employee_rate = Column(Numeric(5, 4), nullable=True)
+    annuity_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Standardized Metadata Columns ---
+    _source_filename = Column(Text, nullable=True)
+    _source_sheet_name = Column(Text, nullable=True)
+    _row_number = Column(Integer, nullable=True)
+    _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _validation_status = Column(String(50), default='pending', nullable=False)
+    _validation_errors = Column(JSONB, nullable=True)
+    employee_type_key = Column(String(50), nullable=True, index=True)
+
+# --- Staging Table for Housing Fund Data ---
+class RawHousingFundStaging(Base):
+    __tablename__ = 'raw_housingfund_staging'
+    __table_args__ = ({'schema': 'staging'})
+
+    _housingfund_staging_id = Column(Integer, Identity(start=1), primary_key=True)
+
+    # --- Core Keys ---
+    id_card_number = Column(String, index=True, nullable=True)
+    pay_period_identifier = Column(String(7), nullable=False, index=True)
+    employee_name = Column(Text, nullable=True, index=True)
+
+    # --- Housing Fund Data Columns ---
+    housingfund_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    housingfund_contribution_base = Column(Numeric(15, 2), nullable=True)
+    housingfund_employer_rate = Column(Numeric(5, 4), nullable=True)
+    housingfund_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    housingfund_employee_rate = Column(Numeric(5, 4), nullable=True)
+    housingfund_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Standardized Metadata Columns ---
+    _source_filename = Column(Text, nullable=True)
+    _source_sheet_name = Column(Text, nullable=True)
+    _row_number = Column(Integer, nullable=True)
+    _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _validation_status = Column(String(50), default='pending', nullable=False)
+    _validation_errors = Column(JSONB, nullable=True)
+    employee_type_key = Column(String(50), nullable=True, index=True)
+
+# --- Staging Table for Medical Data ---
+class RawMedicalStaging(Base):
+    __tablename__ = 'raw_medical_staging'
+    __table_args__ = ({'schema': 'staging'})
+
+    _medical_staging_id = Column(Integer, Identity(start=1), primary_key=True)
+
+    # --- Core Keys ---
+    id_card_number = Column(String, index=True, nullable=True)
+    pay_period_identifier = Column(String(7), nullable=False, index=True)
+    employee_name = Column(Text, nullable=True, index=True)
+
+    # --- Medical Data Columns (from initial list) ---
+    contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    contribution_base = Column(Numeric(15, 2), nullable=True)
+    employer_medical_rate = Column(Numeric(5, 4), nullable=True)
+    employer_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    employee_medical_rate = Column(Numeric(5, 4), nullable=True)
+    employee_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    # Inferring additional columns based on ConsolidatedDataTable.med_ prefix
+    employer_critical_illness_rate = Column(Numeric(5, 4), nullable=True)
+    employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True)
+    total_employer_contribution = Column(Numeric(15, 2), nullable=True) # Might be calculated later?
+    total_employee_contribution = Column(Numeric(15, 2), nullable=True) # Might be calculated later?
+
+    # --- Standardized Metadata Columns ---
+    _source_filename = Column(Text, nullable=True)
+    _source_sheet_name = Column(Text, nullable=True)
+    _row_number = Column(Integer, nullable=True)
+    _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _validation_status = Column(String(50), default='pending', nullable=False)
+    _validation_errors = Column(JSONB, nullable=True)
+    employee_type_key = Column(String(50), nullable=True, index=True)
+
+# --- Staging Table for Pension/Social Security Data ---
+class RawPensionStaging(Base):
+    __tablename__ = 'raw_pension_staging'
+    __table_args__ = ({'schema': 'staging'})
+
+    _pension_staging_id = Column(Integer, Identity(start=1), primary_key=True)
+
+    # --- Core Keys ---
+    id_card_number = Column(String, index=True, nullable=True)
+    pay_period_identifier = Column(String(7), nullable=False, index=True)
+    employee_name = Column(Text, nullable=True, index=True)
+
+    # --- Pension/SS Data Columns (inferred from ConsolidatedDataTable.pen_) ---
+    pension_contribution_base = Column(Numeric(15, 2), nullable=True)
+    pension_total_amount = Column(Numeric(15, 2), nullable=True)
+    pension_employer_rate = Column(Numeric(5, 4), nullable=True)
+    pension_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    pension_employee_rate = Column(Numeric(5, 4), nullable=True)
+    pension_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    unemployment_contribution_base = Column(Numeric(15, 2), nullable=True)
+    unemployment_total_amount = Column(Numeric(15, 2), nullable=True)
+    unemployment_employer_rate = Column(Numeric(5, 4), nullable=True)
+    unemployment_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    unemployment_employee_rate = Column(Numeric(5, 4), nullable=True)
+    unemployment_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    injury_contribution_base = Column(Numeric(15, 2), nullable=True)
+    injury_total_amount = Column(Numeric(15, 2), nullable=True)
+    injury_employer_rate = Column(Numeric(5, 4), nullable=True)
+    injury_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    ss_total_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    ss_total_employee_contribution = Column(Numeric(15, 2), nullable=True)
+
+    # --- Standardized Metadata Columns ---
+    _source_filename = Column(Text, nullable=True)
+    _source_sheet_name = Column(Text, nullable=True)
+    _row_number = Column(Integer, nullable=True)
+    _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _validation_status = Column(String(50), default='pending', nullable=False)
+    _validation_errors = Column(JSONB, nullable=True)
+    employee_type_key = Column(String(50), nullable=True, index=True)
+
+# --- Staging Table for Tax Data ---
+class RawTaxStaging(Base):
+    __tablename__ = 'raw_tax_staging'
+    __table_args__ = ({'schema': 'staging'})
+
+    _tax_staging_id = Column(Integer, Identity(start=1), primary_key=True)
+
+    # --- Core Keys ---
+    id_card_number = Column(String, index=True, nullable=True)
+    pay_period_identifier = Column(String(7), nullable=False, index=True)
+    employee_name = Column(Text, nullable=True, index=True)
+
+    # --- Tax Data Columns (inferred from ConsolidatedDataTable.tax_) ---
+    income_period_start = Column(Date, nullable=True)
+    income_period_end = Column(Date, nullable=True)
+    current_period_income = Column(Numeric(15, 2), nullable=True)
+    current_period_tax_exempt_income = Column(Numeric(15, 2), nullable=True)
+    deduction_basic_pension = Column(Numeric(15, 2), nullable=True)
+    deduction_basic_medical = Column(Numeric(15, 2), nullable=True)
+    deduction_unemployment = Column(Numeric(15, 2), nullable=True)
+    deduction_housing_fund = Column(Numeric(15, 2), nullable=True)
+    deduction_child_edu_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_cont_edu_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_housing_loan_interest_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_housing_rent_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_support_elderly_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_infant_care_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_private_pension_cumulative = Column(Numeric(15, 2), nullable=True)
+    deduction_annuity = Column(Numeric(15, 2), nullable=True)
+    deduction_commercial_health_insurance = Column(Numeric(15, 2), nullable=True)
+    deduction_deferred_pension_insurance = Column(Numeric(15, 2), nullable=True)
+    deduction_other = Column(Numeric(15, 2), nullable=True)
+    deduction_donations = Column(Numeric(15, 2), nullable=True)
+    total_deductions_pre_tax = Column(Numeric(15, 2), nullable=True)
+    reduction_amount = Column(Numeric(15, 2), nullable=True)
+    standard_deduction = Column(Numeric(15, 2), nullable=True)
+    calculated_income_tax = Column(Numeric(15, 2), nullable=True)
+    remarks = Column(Text, nullable=True)
+
+    # --- Standardized Metadata Columns ---
+    _source_filename = Column(Text, nullable=True)
+    _source_sheet_name = Column(Text, nullable=True)
+    _row_number = Column(Integer, nullable=True)
+    _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    _validation_status = Column(String(50), default='pending', nullable=False)
+    _validation_errors = Column(JSONB, nullable=True)
+    employee_type_key = Column(String(50), nullable=True, index=True)
+
+    def __repr__(self):
+        return f"<RawTaxStaging(id={self._tax_staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>" 

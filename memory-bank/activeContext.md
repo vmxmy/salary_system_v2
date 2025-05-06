@@ -2,7 +2,7 @@
 
 *Detail the current work focus, recent changes, next steps, and active decisions.*
 
-**Current Focus:** Awaiting next instructions after completing User Management CRUD.
+**Current Focus:** Completed recent feature additions (new employee fields, sheet mapping UI), backend refactoring, and Git push. Awaiting next instructions.
 
 **Recent Changes/Activity:**
 *   Project directory `salary_system` created.
@@ -95,7 +95,33 @@
     *   Refactored backend User Management routes (`GET /users`, `POST /users`, `PUT /users/{id}`, `DELETE /users/{id}`) in `user_management.py` to use corresponding SQLAlchemy ORM functions (`get_users_orm`, `create_user_orm`, `update_user_orm`, `delete_user_orm`) instead of old `psycopg2` functions, fixing `AttributeError: 'Session' object has no attribute 'cursor'` errors.
     *   Fixed backend schema validation error for `GET /users` response by correcting the `UserListResponse` definition in `schemas.py`.
 *   Committed and pushed User Management feature changes to Git.
+*   **Backend Model Refactoring:**
+    *   Separated SQLAlchemy model definitions (`CalculationFormula`, `CalculationRule`, etc.) into `webapp/models.py`.
+    *   Kept ORM database operation functions in `webapp/models_db.py`.
+    *   Updated imports across relevant files (`crud.py`, `core/calculation_engine.py`, `core/salary_writer.py`, routers).
+    *   Removed `_orm` suffix from function names in `models_db.py` and updated all call sites.
+*   **API Route Standardization:**
+    *   Resolved 404 errors by ensuring consistent API route prefixes. Routers now define full paths (e.g., `/api/config`, `/api/v1/admin/calculation-engine`), and `main.py` includes them with appropriate top-level prefixes or `prefix=""`.
+*   **Sheet Mapping Configuration:**
+    *   Added backend models (`SheetNameMapping` in `models.py`, Pydantic models in `schemas.py`).
+    *   Added backend ORM functions for CRUD in `models_db.py`.
+    *   Added backend API endpoints (`/api/config/sheet-mappings`) in `routers/config_management.py` for CRUD.
+    *   Fixed API response structure (`GET /api/config/sheet-mappings`) to return `{ data: [...], total: ... }`.
+    *   Fixed `ResponseValidationError` by adding missing `target_staging_table` field to both SQLAlchemy and Pydantic models.
+    *   Created frontend component (`SheetMappingManager.tsx`) with table, form, and API integration.
+    *   Initially added as a separate page, then integrated as a Tab within `MappingConfigurator.tsx`.
+*   **Employee Field Expansion:**
+    *   Added new fields (gender, ethnicity, date_of_birth, education_level, work_start_date, service_interruption_years, actual_position, bank_name, bank_account_number) to `core.employees` table.
+    *   Managed database schema changes using Alembic (`stamp` and `upgrade`), resolving initial migration conflicts.
+    *   Updated `Employee` SQLAlchemy model in `models.py` to match the final DB schema.
+    *   Updated `Employee*` Pydantic models in `schemas.py` to include new fields.
+    *   Updated frontend `EmployeeManager.tsx` table columns.
+    *   Updated frontend `EmployeeForm.tsx` with new input fields (Select, DatePicker, InputNumber) and validation.
+*   **Frontend Translation:**
+    *   Added missing translation keys for Sheet Mapping, Employee Manager, and Employee Form in `en/translation.json` and `zh/translation.json`.
+*   **Git Update & Push:**
+    *   Successfully added, committed, and pushed all recent changes to the `origin/main` branch on GitHub.
 
 **Next Steps:**
-1.  Await user instructions for the next development task (e.g., further UI refinements, other modules, testing, deployment steps).
+1.  Await user instructions for the next development task or focus area.
 # ... potential older next steps if relevant ... 

@@ -2,7 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Layout, Menu, Breadcrumb, Button, ConfigProvider, Dropdown, Space, theme as antdTheme, Avatar, App as AntApp } from 'antd';
 import type { ThemeConfig } from 'antd';
-import { FileExcelOutlined, UserOutlined, HomeOutlined, SettingOutlined, DatabaseOutlined, GlobalOutlined, BarChartOutlined, LogoutOutlined, UploadOutlined, SwapOutlined, ExperimentOutlined, ControlOutlined } from '@ant-design/icons';
+import {
+  // LaptopOutlined, // unused
+  // NotificationOutlined, // unused
+  UserOutlined,
+  HomeOutlined,
+  SettingOutlined,
+  UploadOutlined,
+  // FileTextOutlined, // unused
+  // TeamOutlined, // unused
+  // ApartmentOutlined, // unused
+  DatabaseOutlined,
+  // FormOutlined, // unused
+  // CalculatorOutlined, // unused
+  // TableOutlined, // unused
+  FileExcelOutlined,
+  GlobalOutlined,
+  BarChartOutlined,
+  LogoutOutlined,
+} from '@ant-design/icons';
 import SalaryDataViewer from './components/SalaryDataViewer';
 import FileConverter from './components/FileConverter';
 import MappingConfigurator from './components/MappingConfigurator';

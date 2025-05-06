@@ -76,6 +76,27 @@
     *   Frontend build issues (TypeScript TS6133, Node 16 crypto error) resolved.
     *   Frontend image (`salary-frontend:latest`) built and pushed to ACR (`registry.cn-hangzhou.aliyuncs.com/salary_system`).
     *   Backend image (`salary-backend:latest`) built and pushed to ACR (`registry.cn-hangzhou.aliyuncs.com/salary_system`).
+*   **User Management Module (Web App):**
+    *   Frontend component (`UserManager.tsx`) implemented with table, filtering, sorting, pagination, Add/Edit modal, Delete confirmation.
+    *   Backend API endpoints (`/api/users`, `/api/users/{id}`) implemented and refactored to use SQLAlchemy ORM, resolving previous errors.
+*   **Backend Model Refactoring:**
+    *   SQLAlchemy model definitions separated into `webapp/models.py`.
+    *   ORM database operation functions kept in `webapp/models_db.py`.
+    *   Removed `_orm` suffix from function names in `models_db.py` and updated call sites.
+*   **API Route Standardization:**
+    *   API route prefixes standardized across routers and `main.py` to resolve 404 errors.
+*   **Sheet Mapping Configuration Module (Web App):**
+    *   Backend API (`/api/config/sheet-mappings`) supports CRUD operations.
+    *   Fixed API response structure and schema validation errors.
+    *   Frontend component (`SheetMappingManager.tsx`) provides UI for managing sheet mappings.
+    *   Integrated Sheet Mapping UI as a Tab within the Mapping Configurator (`MappingConfigurator.tsx`).
+*   **Employee Field Expansion:**
+    *   New fields (gender, ethnicity, DOB, etc.) added to `core.employees` via Alembic migration.
+    *   SQLAlchemy (`models.py`) and Pydantic (`schemas.py`) models updated.
+    *   Frontend Employee Manager table (`EmployeeManager.tsx`) and Form (`EmployeeForm.tsx`) updated to display and edit new fields.
+*   **Frontend Translation Fixes:**
+    *   Missing keys added for User Management, Sheet Mapping, Employee Management in `en/translation.json` and `zh/translation.json`.
+*   **Git Push:** All recent changes successfully pushed to `origin/main`.
 
 **What's Left to Build:**
 *   **Docker Environment Testing & Debugging:**

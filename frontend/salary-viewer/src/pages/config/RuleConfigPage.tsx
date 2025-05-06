@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect/*, useCallback*/ } from 'react';
 import {
     Table, Button, Modal, Form, Input, Select, Switch, InputNumber,
-    message, Space, Typography, Checkbox, Tooltip, Tag, Row, Col
+    message, Space, Typography, Checkbox, Tooltip, Tag, Row, Col/*, Spin, Alert, Popconfirm*/
 } from 'antd';
-import type { PaginationProps } from 'antd';
+// import type { PaginationProps } from 'antd'; // unused
+import type { TablePaginationConfig } from 'antd'; // Use TablePaginationConfig
 import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined } from '@ant-design/icons';
 // Assuming i18n setup exists
 import { useTranslation } from 'react-i18next';
@@ -19,8 +20,7 @@ import {
     CalculationRuleCreate,
     CalculationRuleUpdate,
     CalculationFormula,
-    CalculationRuleConditionCreate,
-    PaginatedResponse
+    CalculationRuleConditionCreate
 } from '../../services/calculationAdminService'; // Adjust path as needed
 
 const { Title } = Typography;
@@ -50,25 +50,24 @@ const RuleConfigPage: React.FC = () => {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [editingRule, setEditingRule] = useState<CalculationRule | null>(null);
     const [form] = Form.useForm<CalculationRuleCreate | CalculationRuleUpdate>();
-    const [pagination, setPagination] = useState<PaginationProps>({
+    const [pagination, setPagination] = useState<TablePaginationConfig>({
         current: 1,
         pageSize: 10,
         total: 0,
         showSizeChanger: true,
         pageSizeOptions: ['10', '20', '50'],
     });
-    // Add state for filters if needed
-    // const [filters, setFilters] = useState({});
+    // const [filters, setFilters] = useState({}); // Unused filters state
 
     // --- Data Fetching ---
-    const fetchRules = async (currentPage = pagination.current ?? 1, currentPageSize = pagination.pageSize ?? 10, currentFilters = {}) => {
+    const fetchRules = async (currentPage = pagination.current ?? 1, currentPageSize = pagination.pageSize ?? 10/*, currentFilters = {}*/) => {
         setLoading(true);
         try {
             const limit = currentPageSize;
             const skip = (currentPage - 1) * limit;
-            const response = await getRules({ skip, limit, ...currentFilters });
+            const response = await getRules({ skip, limit/*, ...currentFilters */ });
             setRules(response.items);
-            setPagination(prev => ({
+            setPagination((prev: TablePaginationConfig) => ({
                 ...prev,
                 current: currentPage,
                 pageSize: currentPageSize,
@@ -102,7 +101,7 @@ const RuleConfigPage: React.FC = () => {
 
     // Handle pagination/filter change
     const handleTableChange = (
-        newPagination: PaginationProps,
+        newPagination: TablePaginationConfig, // Use TablePaginationConfig type
         // filters: Record<string, FilterValue | null>, // Add filters if implemented
         // sorter: SorterResult<CalculationRule> | SorterResult<CalculationRule>[], // Add sorter if implemented
     ) => {
@@ -116,8 +115,8 @@ const RuleConfigPage: React.FC = () => {
             // Prepare form values, especially conditions which are nested
             form.setFieldsValue({
                 ...rule,
-                // 'conditions' field in Form.List is handled separately
-                conditions: rule.conditions || [],
+                // Ensure conditions format matches Form.List expectation
+                conditions: (rule.conditions || []).map(cond => ({ ...cond }))
             });
         } else {
             form.resetFields();
@@ -140,8 +139,8 @@ const RuleConfigPage: React.FC = () => {
             const cleanedValues = {
                  ...values,
                  conditions: (values.conditions || []).filter(
-                     (cond: CalculationRuleConditionCreate) =>
-                         cond && cond.context_field_name && cond.operator && cond.comparison_value !== undefined
+                     (cond: CalculationRuleConditionCreate) => // Check for all required fields of a condition
+                         cond && cond.context_field_name && cond.operator && cond.comparison_value !== undefined && cond.comparison_value !== null && cond.comparison_value !== ''
                  ),
              };
 
@@ -188,6 +187,13 @@ const RuleConfigPage: React.FC = () => {
             },
         });
     };
+
+    // Placeholder function to resolve linter error
+    // const handleAddCondition = (rule: CalculationRule) => { // Unused
+    //   console.log("Add condition clicked for rule:", rule);
+    //   // TODO: Implement logic to add a condition, likely involves another modal or inline editing
+    //   message.info('Add condition functionality not yet implemented.');
+    // };
 
     // --- Table Columns ---
     const columns = [
@@ -249,6 +255,32 @@ const RuleConfigPage: React.FC = () => {
             ),
         },
     ];
+
+    // Render conditions in expanded row
+    // const expandedRowRender = (record: CalculationRule) => { // Unused
+    //     return (
+    //         <Space direction="vertical" style={{ width: '100%' }}>
+    //             <Typography.Text strong>{t('ruleConfigPage.conditions.title')}</Typography.Text>
+    //             {record.conditions?.length ? (
+    //                 record.conditions.map((condition: CalculationRuleCondition /*, index */) => (
+    //                     <Tag key={condition.condition_id}>
+    //                         {/* Use correct property names based on type definition */}
+    //                         {`${condition.context_field_name} ${condition.operator} ${condition.comparison_value}`}
+    //                     </Tag>
+    //                 ))
+    //             ) : (
+    //                 <Typography.Text type="secondary">{t('ruleConfigPage.conditions.none')}</Typography.Text>
+    //             )}
+    //             <Button
+    //                 size="small"
+    //                 icon={<PlusOutlined />}
+    //                 onClick={() => handleAddCondition(record)} // Call the defined function
+    //             >
+    //                 {t('ruleConfigPage.conditions.add')}
+    //             </Button>
+    //         </Space>
+    //     );
+    // };
 
     // --- Render Component ---
     return (
@@ -388,7 +420,7 @@ const RuleConfigPage: React.FC = () => {
                     <Form.List name="conditions">
                         {(fields, { add, remove }) => (
                             <>
-                                {fields.map(({ key, name, ...restField }, index) => (
+                                {fields.map(({ key, name, ...restField }) => (
                                     <Space key={key} style={{ display: 'flex', marginBottom: 8, border: '1px dashed #d9d9d9', padding: '10px' }} align="baseline">
                                         <Form.Item
                                             {...restField}

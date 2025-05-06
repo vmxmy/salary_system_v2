@@ -1,8 +1,8 @@
-"""Remove RawSalaryDataStaging model definition
+"""final_sync_check_after_fresh_creation
 
-Revision ID: 3d408b8ec864
-Revises: 0a931647af61
-Create Date: 2025-05-01 13:59:11.919822
+Revision ID: 4408fa950fc4
+Revises: 65e1e15b895f
+Create Date: 2025-05-06 23:02:50.074118
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '3d408b8ec864'
-down_revision: Union[str, None] = '0a931647af61'
+revision: str = '4408fa950fc4'
+down_revision: Union[str, None] = '65e1e15b895f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1217,25 +1217,21 @@ def delete_sheet_mapping(db: Session, sheet_name: str) -> bool:
 
 # --- ORM Functions for Sheet Name Mapping --- END ---
 
-# --- REMOVED Old psycopg2 Functions ---
-# ... existing code ... 
-
-# +++ Raw Salary Data Staging Model (Minimal) +++ START
-class RawSalaryDataStaging(Base):
-    __tablename__ = "raw_salary_data_staging"
-    __table_args__ = {'schema': 'staging'} # Added schema
-    # Assuming an 'id' column exists, add it if needed for other operations
-    id = Column(Integer, primary_key=True, index=True) # Added primary key
-    pay_period_identifier = Column(String, index=True) # Add index for performance
-    # Add other columns from FINAL_EXPECTED_COLUMNS if needed for ORM interaction
-    # e.g., id_card_number = Column(String, index=True)
-    # ... etc
-
-# +++ Raw Salary Data Staging Model (Minimal) +++ END
-
 # --- Calculation Rule Engine Models Removed (Moved to models.py) ---
 
 # --- Calculated Salary Record Model Removed (Moved to models.py) ---
+
+# # +++ Raw Salary Data Staging Model (Minimal) +++ START  <- Commenting out this section
+# class RawSalaryDataStaging(Base):
+#     __tablename__ = "raw_salary_data_staging"
+#     __table_args__ = {'schema': 'staging'} # Added schema
+#     # Assuming an 'id' column exists, add it if needed for other operations
+#     id = Column(Integer, primary_key=True, index=True) # Added primary key
+#     pay_period_identifier = Column(String, index=True) # Add index for performance
+#     # Add other columns from FINAL_EXPECTED_COLUMNS if needed for ORM interaction
+#     # e.g., id_card_number = Column(String, index=True)
+#     # ... etc
+# # +++ Raw Salary Data Staging Model (Minimal) +++ END
 
 # --- ORM CRUD Functions for Units --- START
 # ... existing code ... 
