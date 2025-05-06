@@ -11,6 +11,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from io import BytesIO
 import re # <-- Import re
 import typing # Ensure typing is imported
+import datetime # Added for timestamp
+import numpy as np # ADDED IMPORT
 
 # Import ORM models
 from . import models # Assuming models.py defines SheetNameMapping, SalaryFieldMapping, EmployeeTypeFieldRule, Employee
@@ -23,6 +25,24 @@ logger = logging.getLogger(__name__)
 class SheetMappingInfo(TypedDict):
     type_key: str
     target_table: Optional[str]
+
+# Special column renames for consolidation: (SourceModel, original_col_name) -> name_to_be_prefixed
+# This helps to avoid names like 'ann_annuity_contribution_base' and use 'ann_contribution_base' instead.
+SPECIAL_COLUMN_RENAMES_BEFORE_PREFIXING = {
+    (models.RawAnnuityStaging, "annuity_contribution_base_salary"): "contribution_base_salary",
+    (models.RawAnnuityStaging, "annuity_contribution_base"): "contribution_base",
+    (models.RawAnnuityStaging, "annuity_employer_rate"): "employer_rate",
+    (models.RawAnnuityStaging, "annuity_employer_contribution"): "employer_contribution",
+    (models.RawAnnuityStaging, "annuity_employee_rate"): "employee_rate",
+    (models.RawAnnuityStaging, "annuity_employee_contribution"): "employee_contribution",
+
+    (models.RawHousingFundStaging, "housingfund_contribution_base_salary"): "contribution_base_salary",
+    (models.RawHousingFundStaging, "housingfund_contribution_base"): "contribution_base",
+    (models.RawHousingFundStaging, "housingfund_employer_rate"): "employer_rate",
+    (models.RawHousingFundStaging, "housingfund_employer_contribution"): "employer_contribution",
+    (models.RawHousingFundStaging, "housingfund_employee_rate"): "employee_rate",
+    (models.RawHousingFundStaging, "housingfund_employee_contribution"): "employee_contribution",
+}
 
 # --- Database Configuration Fetching (ORM Versions) ---
 
@@ -308,7 +328,7 @@ def add_metadata(
     df['_import_batch_id'] = uuid.UUID(upload_id) # Ensure it's a UUID object
     df['employee_type_key'] = employee_type_key
     df['pay_period_identifier'] = pay_period
-    df['_import_timestamp'] = datetime.now(timezone.utc) # Use imported timezone
+    df['_import_timestamp'] = datetime.datetime.now(timezone.utc) # Use datetime.datetime.now
     df['_validation_status'] = validation_status
     df['_validation_errors'] = json.dumps(validation_errors, ensure_ascii=False) if validation_errors else None
     return df
@@ -421,7 +441,6 @@ def _consolidate_staging_data(db: Session, batch_id: str, pay_period: str):
     """
     logger.info(f"开始合并批次 {batch_id} (周期: {pay_period}) 的暂存数据...")
 
-    # 1. 定义源表和前缀
     source_tables_config = {
         'raw_annuity_staging': 'ann_',
         'raw_housingfund_staging': 'hf_',
@@ -430,78 +449,92 @@ def _consolidate_staging_data(db: Session, batch_id: str, pay_period: str):
         'raw_salary_data_staging': 'sal_',
         'raw_tax_staging': 'tax_'
     }
-
-    # 核心键列 (不加前缀)
     key_columns = ['employee_name', 'pay_period_identifier', 'id_card_number']
-
     all_dfs = []
+
     try:
-        # 2. & 3. 循环读取源表数据并重命名数据列
-        for table_name, prefix in source_tables_config.items():
-            logger.debug(f"正在读取暂存表: {table_name} (批次: {batch_id})")
-            # 构建查询以选择特定批次的数据
-            # 注意：需要确保每个暂存表都有 _import_batch_id 列
-            # 理论上所有这些表都应该有 pay_period_identifier，但我们这里主要靠 batch_id 关联
-            query = text(f'SELECT * FROM "{table_name}" WHERE "_import_batch_id" = :batch_id')
-            
+        connection_for_read = db.connection()
+        try:
+            current_search_path_df = pd.read_sql(text("SHOW search_path;"), connection_for_read)
+            if not current_search_path_df.empty:
+                current_search_path = current_search_path_df.iloc[0,0]
+                logger.debug(f"Consolidation: Current search_path: {current_search_path}")
+            else:
+                logger.warning("Consolidation: Could not determine search_path.")
+        except Exception as e_path:
+            logger.warning(f"Consolidation: Error determining search_path: {e_path}")
+
+        for table_name_str, prefix in source_tables_config.items():
+            qualified_table_name_for_sql = f'staging."{table_name_str}"'
+            qualified_table_name_log = f'staging.{table_name_str}'
+            logger.debug(f"Consolidation: Preparing to access table: {qualified_table_name_log} for batch {batch_id}")
+
+            # --- SQLAlchemy Core SELECT Test and Data Fetch --- 
+            df = pd.DataFrame() # Initialize an empty DataFrame
             try:
-                # 使用 db.connection() 获取底层连接
-                connection = db.connection()
-                df = pd.read_sql(query, connection, params={'batch_id': batch_id})
-            except Exception as read_err:
-                # 如果某个暂存表读取失败（例如表不存在或批次ID无效），可以选择记录警告并跳过，或者直接失败
-                # 这里选择记录警告并跳过，允许部分合并（如果适用）
-                logger.warning(f"读取暂存表 {table_name} 失败 (批次: {batch_id}): {read_err}", exc_info=True)
-                continue # 跳过这个表
+                stmt_exists = text(f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'staging' AND table_name = '{table_name_str}');")
+                table_exists_in_schema = db.execute(stmt_exists).scalar_one_or_none()
+                logger.debug(f"DEBUG SQLAlchemy Check: Table '{qualified_table_name_log}' exists in information_schema: {table_exists_in_schema}")
+
+                if table_exists_in_schema:
+                    query_str = f'SELECT * FROM {qualified_table_name_for_sql} WHERE "_import_batch_id" = :batch_id'
+                    logger.debug(f"Consolidation: Executing SQLAlchemy query: {query_str}")
+                    result = db.execute(text(query_str), {'batch_id': batch_id})
+                    rows = result.fetchall()
+                    column_names = list(result.keys())
+                    df = pd.DataFrame(rows, columns=column_names)
+                    logger.debug(f"Consolidation: Successfully fetched {len(df)} rows from {qualified_table_name_log} using SQLAlchemy execute.")
+                else:
+                    logger.warning(f"DEBUG SQLAlchemy Check: Table '{qualified_table_name_log}' NOT FOUND in information_schema by this session. Skipping.")
+                    continue # Skip this table if not found by information_schema query
+            
+            except Exception as e_sa_fetch:
+                logger.error(f"CRITICAL DEBUG SQLAlchemy Fetch: Failed to fetch data from {qualified_table_name_log} using SQLAlchemy. Error: {e_sa_fetch}", exc_info=True)
+                continue 
+            # --- END SQLAlchemy Core SELECT Test and Data Fetch ---
             
             if df.empty:
-                logger.info(f"暂存表 {table_name} 在批次 {batch_id} 中没有数据，跳过合并。")
+                logger.info(f"Consolidation: No data fetched from {qualified_table_name_log} for batch {batch_id}. Skipping.")
                 continue
 
-            # 规范化 employee_name
             if 'employee_name' in df.columns:
                  df['employee_name'] = df['employee_name'].apply(lambda x: normalize_whitespace(x) if isinstance(x, str) else x)
             else:
-                logger.warning(f"暂存表 {table_name} 缺少 'employee_name' 列，无法参与合并。")
-                continue # 没有主键无法合并
-                
-            # 确保 pay_period_identifier 存在 (作为合并键)
-            if 'pay_period_identifier' not in df.columns:
-                # 如果确实需要，可以在这里基于传入的 pay_period 参数添加列
-                # df['pay_period_identifier'] = pay_period 
-                # 但更稳妥的是要求源表必须包含此列
-                logger.warning(f"暂存表 {table_name} 缺少 'pay_period_identifier' 列，无法参与合并。")
+                logger.warning(f"Consolidation: {qualified_table_name_log} lacks 'employee_name'. Cannot merge.")
                 continue
                 
-            # 确保 id_card_number 列存在，如果不存在则添加空列，以便后续合并处理
+            if 'pay_period_identifier' not in df.columns:
+                logger.warning(f"Consolidation: {qualified_table_name_log} lacks 'pay_period_identifier'. Cannot merge.")
+                continue
+                
             if 'id_card_number' not in df.columns:
                  df['id_card_number'] = None
 
-            # 找出需要加前缀的数据列 (排除键列和内部元数据列)
-            internal_meta_cols = ['_source_filename', '_row_number', '_import_timestamp', '_import_batch_id', '_validation_status', '_validation_errors']
-            # Also exclude the primary key of the staging table itself (e.g., _annuity_staging_id)
-            primary_key_col = f'_{table_name.replace("raw_", "")}_id' # Heuristic assumption
-            cols_to_exclude = set(key_columns + internal_meta_cols + [primary_key_col])
-            
+            internal_meta_cols = ['_source_filename', '_source_sheet_name', '_row_number', '_import_timestamp', '_import_batch_id', '_validation_status', '_validation_errors']
+            pk_col_for_table = f'_{table_name_str.replace("raw_", "").replace("_staging", "")}_staging_id'
+            if table_name_str == 'raw_salary_data_staging':
+                pk_col_for_table = '_staging_id'
+
+            cols_to_exclude = set(key_columns + internal_meta_cols + [pk_col_for_table])
             data_columns = [col for col in df.columns if col not in cols_to_exclude]
+            
+            # Restore direct prefixing logic
             rename_map = {col: f"{prefix}{col}" for col in data_columns}
             
-            # 重命名列
             df.rename(columns=rename_map, inplace=True)
             
-            # 选择最终需要的列 (键列 + 重命名后的数据列)
-            final_columns = key_columns + list(rename_map.values())
-            # 确保所有需要的列都存在于DataFrame中（例如，id_card_number可能已添加）
-            df_final = df[[col for col in final_columns if col in df.columns]].copy()
-            
+            final_columns_for_this_df = [col for col in key_columns + list(rename_map.values()) if col in df.columns]
+            df_final = df[final_columns_for_this_df].copy()
             all_dfs.append(df_final)
 
         if not all_dfs:
-            logger.warning(f"批次 {batch_id} 没有找到任何有效的暂存数据进行合并。")
-            return # 或者可以认为是一种成功，只是没有合并任何东西
+            logger.warning(f"Consolidation: Batch {batch_id} - no valid staging data found to merge.")
+            # If no dataframes were successfully read and processed, there's nothing to write.
+            # The function can return here, or let it proceed to attempt to write an empty merged_df.
+            # Let's return to make it explicit. The caller expects an exception on failure to write.
+            return
 
-        # 4. 使用 outer merge 合并 DataFrames
-        logger.debug(f"开始合并 {len(all_dfs)} 个数据帧 (批次: {batch_id})")
+        logger.debug(f"Consolidation: Starting merge of {len(all_dfs)} dataframes for batch {batch_id}")
         merged_df = all_dfs[0]
         for i in range(1, len(all_dfs)):
             merged_df = pd.merge(
@@ -509,69 +542,251 @@ def _consolidate_staging_data(db: Session, batch_id: str, pay_period: str):
                 all_dfs[i], 
                 on=['employee_name', 'pay_period_identifier'], 
                 how='outer',
-                suffixes=(f'_l{i-1}', f'_r{i}') # 使用动态后缀处理多重合并的 id_card_number 冲突
+                suffixes=(f'_l{i-1}', f'_r{i}') 
             )
-            logger.debug(f"合并第 {i+1} 个数据帧后的大小: {merged_df.shape}")
+            logger.debug(f"Consolidation: Merged dataframe {i+1}, shape: {merged_df.shape}")
 
-        # 5. 处理 id_card_number 冲突
         id_cols = [col for col in merged_df.columns if col.startswith('id_card_number')]
-        if len(id_cols) > 1: # 只有当合并产生了多个id_card_number列时才处理
-            logger.debug(f"检测到多个id_card_number列: {id_cols}，进行合并...")
-            # 使用后向填充优先获取第一个非空值
+        if len(id_cols) > 1:
+            logger.debug(f"Consolidation: Multiple id_card_number columns found: {id_cols}. Merging...")
             merged_df['id_card_number'] = merged_df[id_cols].bfill(axis=1).iloc[:, 0]
-            # 删除原始带后缀的列
-            merged_df.drop(columns=id_cols, inplace=True)
-            logger.debug("id_card_number 列合并完成。")
+            merged_df.drop(columns=[col for col in id_cols if col != 'id_card_number'], inplace=True)
+            logger.debug("Consolidation: id_card_number columns merged.")
         elif len(id_cols) == 1 and id_cols[0] != 'id_card_number':
-            # 如果只有一个且名字不对（例如 id_card_number_l0），重命名它
              merged_df.rename(columns={id_cols[0]: 'id_card_number'}, inplace=True)
-        elif 'id_card_number' not in merged_df.columns:
-             merged_df['id_card_number'] = None # 确保列存在
+        elif 'id_card_number' not in merged_df.columns and not id_cols:
+             merged_df['id_card_number'] = None
 
-        # 6. 添加元数据列
-        logger.debug(f"添加元数据列 (批次: {batch_id})")
-        merged_df['_import_batch_id'] = batch_id
-        # _consolidation_timestamp 会由数据库 default=func.now() 处理，无需在此添加
+        logger.debug(f"Consolidation: Adding metadata for batch {batch_id}")
+        merged_df['_import_batch_id'] = uuid.UUID(batch_id) # Ensure UUID type
 
-        # 7. 将合并后的 DataFrame 写入 consolidated_data 表
+        # --- Data Cleaning for specific columns in merged_df ---
+        if 'sal_employment_start_date' in merged_df.columns:
+            logger.info(f"Consolidation: Cleaning sal_employment_start_date in merged_df. Original unique values (sample): {merged_df['sal_employment_start_date'].unique()[:20]}")
+            
+            # Step 1: Explicitly replace empty strings and pure whitespace strings with pd.NaT
+            # to ensure pd.to_datetime handles them as missing.
+            def clean_date_input(x):
+                if isinstance(x, str):
+                    if x.strip() == "":
+                        return None # CHANGED: Return None instead of pd.NaT for apply
+                return x
+            
+            merged_df['sal_employment_start_date'] = merged_df['sal_employment_start_date'].apply(clean_date_input)
+            logger.info(f"Consolidation: After pre-cleaning empty/whitespace strings for sal_employment_start_date. Sample unique: {merged_df['sal_employment_start_date'].unique()[:20]}")
+
+            # Step 2: Attempt to convert to datetime objects, coercing errors to NaT
+            merged_df['sal_employment_start_date'] = pd.to_datetime(merged_df['sal_employment_start_date'], errors='coerce')
+            logger.info(f"Consolidation: After pd.to_datetime for sal_employment_start_date. Sample unique (contains NaT for errors): {merged_df['sal_employment_start_date'].unique()[:20]}")
+
+            # Step 3: Convert valid datetime objects to date objects (YYYY-MM-DD), and NaT/None to None
+            merged_df['sal_employment_start_date'] = merged_df['sal_employment_start_date'].dt.date.where(merged_df['sal_employment_start_date'].notna(), None)
+            logger.info(f"Consolidation: Cleaned sal_employment_start_date. Final unique values (sample, None for errors): {merged_df['sal_employment_start_date'].unique()[:20]}")
+        else:
+            logger.warning("Consolidation: sal_employment_start_date not found in merged_df for cleaning.")
+
         target_table_name = models.ConsolidatedDataTable.__tablename__
-        logger.info(f"准备将 {len(merged_df)} 条合并记录写入表 '{target_table_name}' (批次: {batch_id})...")
-        
-        # 获取目标表的 SQLAlchemy 模型，以便 to_sql 知道列类型
-        # 注意：直接使用模型可能不适用于 to_sql 的 dtype 参数，但确保模型已定义
-        
-        # 清理数据类型，特别是 Pandas 可能推断错误的类型 (例如整数变浮点数)
-        # 可以在这里添加更具体的类型转换，或者依赖 to_sql 和数据库
-        merged_df = merged_df.where(pd.notnull(merged_df), None) # 将 NaN 替换为 None
-        
-        # 确保列顺序和类型与模型匹配（可选但推荐）
-        # mapper = inspect(models.ConsolidatedDataTable)
-        # model_columns = [c.key for c in mapper.columns]
-        # merged_df = merged_df.reindex(columns=model_columns, fill_value=None)
+        consolidated_schema = models.ConsolidatedDataTable.__table_args__[-1].get('schema')
 
+        if not consolidated_schema:
+            logger.error("CRITICAL: ConsolidatedDataTable model does not have schema defined in __table_args__!")
+            raise ValueError("ConsolidatedDataTable schema not defined in model.")
+
+        logger.info(f"Consolidation: Preparing to write {len(merged_df)} merged rows to {consolidated_schema}.{target_table_name} for batch {batch_id}.")
+        
+        # Ensure NaNs are converted to None for database compatibility
+        merged_df = merged_df.where(pd.notnull(merged_df), None)
+        
+        # Add _consolidation_timestamp to the actual DataFrame before writing
+        merged_df['_consolidation_timestamp'] = datetime.datetime.utcnow()
+
+        # Remove primary key if it was accidentally included in merged_df
+        consolidated_pk = '_consolidated_data_id' 
+        if consolidated_pk in merged_df.columns:
+            logger.debug(f"Consolidation: Dropping '{consolidated_pk}' from merged_df before schema check.")
+            merged_df = merged_df.drop(columns=[consolidated_pk])
+
+        # --- SQL-BASED SCHEMA COMPARISON --- START ---
         try:
-            # 使用 to_sql 写入。method='multi' 可以提高性能。
-            # dtype 参数可以帮助指定类型，但通常 SQLAlchemy engine 可以处理
-            # 使用 db.connection() 获取底层连接
-            connection = db.connection()
-            merged_df.to_sql(
-                name=target_table_name,
-                con=connection, # 使用 Connection 对象
-                if_exists='append', # 追加数据
-                index=False,
-                method='multi',
-                chunksize=1000 # 分块写入以优化内存使用
-            )
-            logger.info(f"成功将 {len(merged_df)} 条记录写入 '{target_table_name}' (批次: {batch_id})。")
-        except Exception as write_err:
-            logger.error(f"写入合并数据到 '{target_table_name}' 失败 (批次: {batch_id}): {write_err}", exc_info=True)
-            # 8. 错误处理：失败时抛出异常，以便事务回滚
-            raise Exception(f"合并数据写入数据库失败: {write_err}")
+            logger.info("Initiating SQL-based schema comparison for staging.consolidated_data.")
+            python_columns = set(merged_df.columns.tolist())
+            python_columns_lower = {col.lower() for col in python_columns}
+            
+            db_columns_query = text("SELECT column_name FROM information_schema.columns WHERE table_schema = 'staging' AND table_name = 'consolidated_data'")
+            result = db.execute(db_columns_query)
+            db_columns_raw = {row[0] for row in result.fetchall()}
+            db_columns_lower = {col.lower() for col in db_columns_raw}
+
+            unmatched_in_df_lower = python_columns_lower - db_columns_lower
+            unmatched_in_db_lower = db_columns_lower - python_columns_lower
+
+            if unmatched_in_df_lower:
+                # For more precise reporting, find original case for columns found in df but not db
+                unmatched_in_df_original_case = sorted([col for col in python_columns if col.lower() in unmatched_in_df_lower])
+                logger.error(f"SCHEMA MISMATCH: Columns in DataFrame (merged_df) but NOT in DB table 'staging.consolidated_data': {unmatched_in_df_original_case}")
+            else:
+                logger.info("SCHEMA CHECK: All columns in DataFrame (merged_df) appear to exist in DB table 'staging.consolidated_data' (case-insensitive).")
+
+            if unmatched_in_db_lower:
+                # For more precise reporting, find original case for columns found in db but not df
+                unmatched_in_db_original_case = sorted([col for col in db_columns_raw if col.lower() in unmatched_in_db_lower])
+                logger.warning(f"SCHEMA MISMATCH: Columns in DB table 'staging.consolidated_data' but NOT in DataFrame (merged_df): {unmatched_in_db_original_case}")
+            
+        except Exception as e_schema_check:
+            logger.error(f"Error during SQL-based schema comparison: {e_schema_check}", exc_info=True)
+            # Decide if this should be fatal. For now, just log and continue to insert attempt.
+        # --- SQL-BASED SCHEMA COMPARISON --- END ---
+
+        # --- Filter merged_df columns to match ConsolidatedDataTable model --- START ---
+        inspector = inspect(models.ConsolidatedDataTable)
+        model_columns = {c.key for c in inspector.columns} # 使用 c.key 获取属性名
+
+        # 找出 merged_df 中存在但模型中不存在的列
+        extra_cols_in_df = [col for col in merged_df.columns if col not in model_columns]
+        if extra_cols_in_df:
+            logger.info(f"Consolidation: Columns to be dropped from merged_df to match ConsolidatedDataTable model: {extra_cols_in_df}")
+            merged_df = merged_df.drop(columns=extra_cols_in_df, errors='ignore') # errors='ignore' 以防万一
+
+        # 确保模型中所有列都存在于df中，如果缺少则可能需要添加空列或记录警告
+        # _consolidated_data_id 是主键，通常不在df中，由数据库生成
+        # _consolidation_timestamp 和 _import_batch_id 是在写入前添加或已存在的元数据列，应在 model_columns 中
+        missing_cols_in_df = [m_col for m_col in model_columns 
+                                if m_col not in merged_df.columns and 
+                                m_col not in ['_consolidated_data_id']] 
+        if missing_cols_in_df:
+            logger.warning(f"Consolidation: Columns in ConsolidatedDataTable model but MISSING from merged_df (will be null if not set before insert): {missing_cols_in_df}")
+            # SQLAlchemy 应该会为模型中定义但 DataFrame 中没有的 nullable 列插入 NULL
+            # 如果有非 nullable 且没有默认值的列在这里缺失，插入会失败，这是期望的行为，说明数据准备有问题
+            # for missing_col in missing_cols_in_df:
+            #     merged_df[missing_col] = None # 通常不需要，除非有特殊处理
+        logger.info(f"Consolidation: merged_df columns after filtering to match model: {merged_df.columns.tolist()}")
+        # --- Filter merged_df columns to match ConsolidatedDataTable model --- END ---
+
+        # --- Final Preparation before writing to ConsolidatedDataTable --- START ---
+        if merged_df.empty:
+            logger.info(f"Consolidation: No data available after merging all sources for batch {batch_id}. Nothing to write.")
+            return # Exit if no data to consolidate
+
+        # Check for existing data for the pay_period before attempting to insert
+        existing_data_query = db.query(models.ConsolidatedDataTable.pay_period_identifier).filter(
+            models.ConsolidatedDataTable.pay_period_identifier == pay_period
+        ).limit(1)
+            
+        if db.execute(existing_data_query).scalar_one_or_none() is not None:
+            logger.warning(f"Consolidation: Data for pay period {pay_period} already exists. Import operation will be rejected.")
+            raise ValueError(f'薪资周期 {pay_period} 的数据已存在。请在"薪酬记录管理"界面删除现有记录后再尝试导入。')
+
+        # Add batch ID and consolidation timestamp
+        merged_df['_import_batch_id'] = batch_id
+
+        # --- NEW CHUNKED INSERT LOGIC --- START ---
+        if not merged_df.empty:
+            db_table_model = models.ConsolidatedDataTable
+            db_table = db_table_model.__table__ # Get the SQLAlchemy Table object
+            
+            chunk_size = 100000  # Effectively disable chunking for debugging by using a very large size
+            num_chunks = (len(merged_df) - 1) // chunk_size + 1
+            
+            logger.info(f"Consolidation: Starting chunked insert of {len(merged_df)} rows into {consolidated_schema}.{target_table_name} in {num_chunks} chunks of size {chunk_size}.")
+
+            for i, chunk_start in enumerate(range(0, len(merged_df), chunk_size)):
+                chunk = merged_df.iloc[chunk_start:chunk_start + chunk_size]
+
+                # --- ADD THIS LINE TO REPLACE NaT with None ---
+                chunk = chunk.replace({pd.NaT: None})
+                # --- END OF ADDED LINE ---
+
+                logger.info(f"Consolidation: Chunk {i+1}/{num_chunks} - Preparing to convert to dict. Columns: {list(chunk.columns)}")
+                
+                # Date cleaning for sal_employment_start_date (if it exists in the CHUNK)
+                if 'sal_employment_start_date' in chunk.columns:
+                    logger.info(f"Consolidation: Chunk {i+1}/{num_chunks} - sal_employment_start_date unique values before to_dict: {chunk['sal_employment_start_date'].unique()[:20]}")
+                    # logger.info(f"Consolidation: Chunk {i+1}/{num_chunks} - sal_employment_start_date dtypes: {pd.Series(list(chunk['sal_employment_start_date'].apply(type))).value_counts()}")
+                else:
+                    logger.warning(f"Consolidation: Chunk {i+1}/{num_chunks} - sal_employment_start_date NOT IN COLUMNS before to_dict.")
+
+                # Convert chunk to list of dictionaries
+                chunk_records = chunk.to_dict(orient='records')
+                
+                try:
+                    # We are within the main transaction managed by the calling router function.
+                    # db.execute will use the existing transaction.
+                    db.execute(db_table.insert().values(chunk_records))
+                    logger.info(f"Consolidation: Successfully inserted chunk {i+1}/{num_chunks} ({len(chunk)} rows) into {consolidated_schema}.{target_table_name}.")
+                except Exception as e_chunk_insert:
+                    logger.error(f"Consolidation: Error inserting chunk {i+1}/{num_chunks} ({len(chunk)} rows) into {consolidated_schema}.{target_table_name}. Error: {e_chunk_insert}", exc_info=True)
+                    logger.error(f"Data for failed chunk {i+1} (first 3 rows): \\n{chunk.head(3).to_string()}")
+                    # Re-raise the exception to be caught by the main try-except block of _consolidate_staging_data
+                    raise Exception(f"Failed to insert chunk {i+1} into {consolidated_schema}.{target_table_name}: {e_chunk_insert}")
+            
+            logger.info(f"Consolidation: Successfully wrote all {len(merged_df)} rows via chunked insert to {consolidated_schema}.{target_table_name} for batch {batch_id}.")
+        else:
+            logger.info(f"Consolidation: Merged DataFrame is empty for batch {batch_id}. Nothing to write to {consolidated_schema}.{target_table_name}.")
+        # --- NEW CHUNKED INSERT LOGIC --- END ---
             
     except Exception as e:
-        logger.error(f"合并批次 {batch_id} 的暂存数据时发生意外错误: {e}", exc_info=True)
-        # 8. 错误处理：确保任何未捕获的异常也能触发回滚
-        raise Exception(f"合并暂存数据失败: {e}")
+        logger.error(f"Consolidation: Error during staging data consolidation for batch {batch_id}: {e}", exc_info=True)
+        raise Exception(f"合并暂存数据失败: {e}") # Re-raise to ensure transaction rollback by router
+
+# --- Mapping for staging table primary keys ---
+# Used to drop the PK column before inserting, allowing the DB to generate it.
+PK_COLUMN_MAP = {
+    'raw_salary_data_staging': '_staging_id',
+    'raw_annuity_staging': '_annuity_staging_id',
+    'raw_housingfund_staging': '_housingfund_staging_id',
+    'raw_medical_staging': '_medical_staging_id',
+    'raw_pension_staging': '_pension_staging_id',
+    'raw_tax_staging': '_tax_staging_id',
+    # Note: consolidated_data is handled separately and usually built, not directly inserted like this.
+}
+
+def _write_dataframe_to_db(df: pd.DataFrame, table_name: str, db: Session, schema: str = 'staging'):
+    """Helper function to write DataFrame to the specified table, dropping PK if exists."""
+    # --- DEBUGGING START ---
+    logger.debug(f"_write_dataframe_to_db called for table: {schema}.{table_name}")
+    logger.debug(f"DataFrame columns on entry: {df.columns.tolist()}")
+    # --- DEBUGGING END ---
+
+    # --- Added logic to drop PK ---
+    pk_column = PK_COLUMN_MAP.get(table_name)
+    # --- DEBUGGING START ---
+    logger.debug(f"PK column from map for '{table_name}': {pk_column}")
+    # --- DEBUGGING END ---
+    df_to_write = df.copy() # Work on a copy
+    if pk_column and pk_column in df_to_write.columns:
+        # --- DEBUGGING START ---
+        logger.debug(f"Attempting to drop PK column '{pk_column}'...")
+        # --- DEBUGGING END ---
+        df_to_write = df_to_write.drop(columns=[pk_column])
+        # --- DEBUGGING START ---
+        logger.debug(f"Columns after attempting drop: {df_to_write.columns.tolist()}")
+        # --- DEBUGGING END ---
+    elif pk_column:
+        logger.debug(f"PK column '{pk_column}' found in map but not present in DataFrame columns: {df_to_write.columns.tolist()}")
+    else:
+        logger.debug(f"No PK column defined in map for table '{table_name}'.")
+    # --- End added logic ---
+
+    # Ensure connection is handled correctly within the session context
+    connection = None
+    try:
+        connection = db.connection()
+        # --- DEBUGGING START ---
+        logger.debug(f"Columns being passed to to_sql: {df_to_write.columns.tolist()}")
+        # --- DEBUGGING END ---
+        df_to_write.to_sql(
+            name=table_name,
+            con=connection,
+            schema=schema,
+            if_exists='append',
+            index=False,
+            method='multi',
+            chunksize=1000
+        )
+        logger.debug(f"Successfully wrote {len(df_to_write)} rows to {schema}.{table_name}")
+    except Exception as e:
+        logger.error(f"Error writing to table {schema}.{table_name}: {e}", exc_info=True)
+        raise e
 
 def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_period: str, filename: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -773,61 +988,75 @@ def process_excel_file(file_stream: IO[bytes], upload_id: str, db: Session, pay_
                 continue
 
             # 7. Write to Database
-            write_successful = False
             try:
-                # Use dynamic target_table_name and target_schema
-                logger.info(f"Attempting to write {len(final_df)} rows from sheet '{sheet_name}' to {target_schema}.{target_table_name}.")
-                logger.debug(f"DataFrame shape before to_sql for sheet '{sheet_name}': {final_df.shape}")
                 if final_df.empty:
                     logger.warning(f"DataFrame for sheet '{sheet_name}' is empty before writing. Skipping write.")
                     sheet_result["message"] = "处理成功，但工作表数据为空或不符合要求，未写入任何行"
-                    sheet_result["status"] = "success"
-                    sheets_processed_successfully += 1
+                    sheet_result["status"] = "success" # Or 'warning' depending on how you want to treat empty sheets
+                    # sheets_processed_successfully += 1 # only count if actual rows written
                 else:
-                    with db.begin_nested(): 
-                        logger.debug(f"Starting nested transaction for sheet '{sheet_name}'")
-                        final_df.to_sql(
-                            name=target_table_name, # Use dynamic name
-                            schema=target_schema, # Use dynamic schema
-                            con=db.connection(),
-                            if_exists='append',
-                            index=False,
-                            chunksize=500,
-                            method='multi'
-                        )
-                        logger.info(f"to_sql command executed successfully within transaction for sheet '{sheet_name}'.")
-                    logger.info(f"Nested transaction committed successfully for sheet '{sheet_name}'.")
-                    write_successful = True
-                    sheet_result["message"] = f"成功处理并导入 {len(final_df)} 行"
-                    sheet_result["status"] = "success"
-                    sheets_processed_successfully += 1
-                    total_rows_written += len(final_df)
-                    logger.info(f"Successfully wrote data from sheet '{sheet_name}'.")
+                    logger.info(f"Attempting to write {len(final_df)} rows from sheet '{sheet_name}' to {target_schema}.{target_table_name} via _write_dataframe_to_db.")
+                    _write_dataframe_to_db(df=final_df, table_name=target_table_name, db=db, schema=target_schema)
+                    
+                    # --- NEW: Transaction Health Check --- 
+                    try:
+                        db.flush() # Attempt to flush changes for this sheet to the DB connection buffer
+                        db.execute(text("SELECT 1")) # Execute a simple query to check if transaction is alive
+                        logger.info(f"DB flush and test query successful after writing sheet '{sheet_name}'. Transaction appears healthy.")
+                        # If flush and test query passed, then we can consider this sheet's write truly successful at this stage
+                        sheet_result["message"] = f"成功处理并导入 {len(final_df)} 行"
+                        sheet_result["status"] = "success"
+                        sheets_processed_successfully += 1
+                        total_rows_written += len(final_df)
+                        # logger.info(f"Successfully wrote data from sheet '{sheet_name}'.") # Logged inside _write_dataframe_to_db
+                    except Exception as post_write_check_err:
+                        logger.error(f"CRITICAL: Transaction ABORTED or flush failed AFTER writing sheet '{sheet_name}'. Error: {post_write_check_err}", exc_info=True)
+                        sheet_result["message"] = f"写入数据库后事务中止或刷新失败: {post_write_check_err}"
+                        sheet_result["status"] = "error"
+                        # sheets_with_errors incremented by the outer except block
+                        raise # Re-raise to be caught by the outer try-except in this loop iteration
+                    # --- END: Transaction Health Check ---
 
-            except SQLAlchemyError as db_write_err:
-                logger.error(f"Database write error for sheet '{sheet_name}': {db_write_err}", exc_info=True)
-                sheet_result["message"] = f"写入数据库时出错: {db_write_err}"
-                sheet_result["status"] = "error"
+            except Exception as sheet_write_err: # Catches errors from _write_dataframe_to_db or the new health check
+                # Ensure status is error if not already set by health check's re-raise
+                if sheet_result.get("status") != "error":
+                    logger.error(f"Error during DB write or post-write check for sheet '{sheet_name}': {sheet_write_err}", exc_info=True)
+                    sheet_result["message"] = f"写入或写入后检查时出错: {sheet_write_err}"
+                    sheet_result["status"] = "error"
+                
                 sheets_with_errors += 1
-                overall_result["sheet_results"].append(sheet_result)
-            except Exception as write_err:
-                logger.error(f"Unexpected error writing data for sheet '{sheet_name}': {write_err}", exc_info=True)
-                sheet_result["message"] = f"写入数据时发生意外错误: {write_err}"
-                sheet_result["status"] = "error"
-                sheets_with_errors += 1
-                overall_result["sheet_results"].append(sheet_result)
+                # The sheet_result is appended outside this try/except in the main loop to avoid duplicates
+                # However, if an exception occurs here, it will propagate up, and the router will rollback.
+                # The main loop needs to ensure this sheet_result (with error status) is the one added.
+                # Re-raise the exception to ensure the main processing loop for this sheet is aborted
+                # and the router-level transaction management handles rollback.
+                raise sheet_write_err
 
         except Exception as sheet_proc_err:
             logger.error(f"Unexpected error processing sheet '{sheet_name}': {sheet_proc_err}", exc_info=True)
-            sheet_result["message"] = f"处理工作表时发生意外错误: {sheet_proc_err}"
-            sheet_result["status"] = "error"
+            # Ensure status is error if not already set
+            if sheet_result.get("status") != "error":
+                sheet_result["message"] = f"处理工作表时发生意外错误: {sheet_proc_err}"
+                sheet_result["status"] = "error"
             sheets_with_errors += 1
-            if sheet_result not in overall_result["sheet_results"]:
-                 overall_result["sheet_results"].append(sheet_result)
+            # No re-raise here, just record the error and continue to next sheet, 
+            # but the has_fatal_error flag will prevent consolidation.
 
-        if sheet_result["status"] == "success": # Append success result if not already appended on error
-             overall_result["sheet_results"].append(sheet_result)
-
+        # Append sheet_result (it will have success or error status from above blocks)
+        # This logic should ensure only one result per sheet is added.
+        # Check if a result for this sheet (possibly an earlier error) already exists
+        existing_sr_index = -1
+        for idx, sr in enumerate(overall_result["sheet_results"]):
+            if sr['sheet'] == sheet_name:
+                existing_sr_index = idx
+                break
+        if existing_sr_index != -1:
+            # If an error was recorded, it should take precedence or be updated
+            if overall_result["sheet_results"][existing_sr_index].get("status") != "error" or sheet_result.get("status") == "error":
+                 overall_result["sheet_results"][existing_sr_index].update(sheet_result)
+        else:
+            overall_result["sheet_results"].append(sheet_result)
+    
     # --- Consolidation Step --- START ---
     # 检查是否有任何工作表处理失败
     has_fatal_error = any(result.get('status') == 'error' for result in overall_result["sheet_results"])

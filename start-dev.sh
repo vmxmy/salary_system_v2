@@ -4,12 +4,43 @@
 
 echo "Starting frontend and backend development servers..."
 
+# 创建一个临时脚本来使用zsh激活conda环境并运行后端
+if [ -f ".env" ]; then
+  source .env
+  if [ -n "$CONDA_ENV" ]; then
+    echo "Creating temporary script to activate Conda environment with zsh: $CONDA_ENV"
+
+    # 创建临时脚本
+    cat > temp_run_backend.sh << 'EOL'
+#!/usr/bin/env zsh
+# 获取conda环境名称
+CONDA_ENV=$1
+HOST=$2
+PORT=$3
+
+# 激活conda环境
+source ~/.zshrc
+conda activate $CONDA_ENV
+
+# 运行后端
+echo "Running backend with conda env: $CONDA_ENV"
+uvicorn webapp.main:app --reload --host $HOST --port $PORT --log-level debug > ../backend.log 2>&1
+EOL
+
+    # 使脚本可执行
+    chmod +x temp_run_backend.sh
+
+    # 设置后端命令为使用zsh运行临时脚本
+    export USE_ZSH_CONDA=true
+  fi
+fi
+
 # --- Load Backend Config from .env --- START ---
 ENV_FILE="webapp/.env"
 if [ -f "$ENV_FILE" ]; then
   echo "Loading backend configuration from $ENV_FILE..."
   # Use set -a to export all variables defined in the .env file
-  set -a 
+  set -a
   source "$ENV_FILE"
   set +a # Disable exporting variables
 else
@@ -45,12 +76,20 @@ fi
 # Define commands
 # Ensure you are in the project root when running this script
 # If your frontend uses yarn, change 'npm run dev' to 'yarn dev'
-FRONTEND_CMD="cd frontend/salary-viewer && npm run dev"
-# Use the loaded/defaulted variables for backend command
-BACKEND_CMD="uvicorn webapp.main:app --reload --host $UVICORN_HOST --port $UVICORN_PORT"
+FRONTEND_CMD="cd frontend/salary-viewer && npm run dev > ../../frontend.log 2>&1"
 
-echo "Starting Backend on: $UVICORN_HOST:$UVICORN_PORT"
-echo "Starting Frontend..."
+# 根据是否使用zsh来选择后端启动命令
+if [ "$USE_ZSH_CONDA" = true ]; then
+  # 使用临时脚本启动后端
+  BACKEND_CMD="./temp_run_backend.sh $CONDA_ENV $UVICORN_HOST $UVICORN_PORT"
+  echo "Starting Backend with zsh and conda env $CONDA_ENV on: $UVICORN_HOST:$UVICORN_PORT (with debug logging)"
+else
+  # 使用默认命令启动后端
+  BACKEND_CMD="uvicorn webapp.main:app --reload --host $UVICORN_HOST --port $UVICORN_PORT --log-level debug > backend.log 2>&1"
+  echo "Starting Backend on: $UVICORN_HOST:$UVICORN_PORT (with debug logging, output to backend.log)"
+fi
+
+echo "Starting Frontend (output to frontend.log)..."
 
 # Run concurrently
 # --kill-others attempts to kill other processes if one exits
@@ -65,4 +104,4 @@ else
   echo "Servers stopped."
 fi
 
-exit $EXIT_CODE 
+exit $EXIT_CODE

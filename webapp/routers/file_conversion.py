@@ -46,6 +46,17 @@ async def process_salary_excel_import(
         logger.info(f"成功处理文件: {upload_id}")
         return overall_result
 
+    except ValueError as ve:
+        # Check if it's our specific "data already exists" error from file_converter
+        if f"薪资周期 {pay_period} 的数据已存在" in str(ve):
+            logger.warning(f"重复数据导入尝试被拒绝 {upload_id} for pay period {pay_period}: {ve}")
+            db.rollback() # Ensure rollback for this specific path too
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(ve))
+        else:
+            # Handle other ValueErrors
+            logger.error(f"处理文件时发生值错误 {upload_id}, {filename}: {ve}", exc_info=True)
+            db.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"处理文件时发生无效值错误: {ve}")
     except SQLAlchemyError as db_err:
         logger.error(f"处理文件时发生数据库错误 {upload_id}: {db_err}", exc_info=True)
         db.rollback()

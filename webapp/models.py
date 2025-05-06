@@ -268,39 +268,39 @@ class CalculatedSalaryRecord(Base):
     employee = relationship("Employee")
 # --- Calculated Salary Record Model --- END ---
 
-# 新增：合并后的数据表模型
+# 新增：合并后的数据表模型 (Refactored with English Columns)
 class ConsolidatedDataTable(Base):
     __tablename__ = 'consolidated_data'
     __table_args__ = (
         UniqueConstraint('employee_name', 'pay_period_identifier', name='uq_consolidated_employee_period'),
-        # 可以考虑添加其他索引以提高查询性能，例如在 _import_batch_id 上
-        # Index('ix_consolidated_data_batch_id', '_import_batch_id'),
-        {'schema': 'staging'} # 将表移动到 staging schema
+        {'schema': 'staging'}
     )
 
     _consolidated_data_id = Column(Integer, Identity(start=1), primary_key=True)
     employee_name = Column(String, nullable=False, index=True)
     pay_period_identifier = Column(String, nullable=False, index=True)
-    id_card_number = Column(String, nullable=True, index=True) # 假设合并后可能存在 null
+    id_card_number = Column(String, nullable=True, index=True)
 
-    # --- Annuity Columns (ann_) ---
-    ann_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
-    ann_contribution_base = Column(Numeric(15, 2), nullable=True)
-    ann_employer_rate = Column(Numeric(5, 4), nullable=True)
-    ann_employer_contribution = Column(Numeric(15, 2), nullable=True)
-    ann_employee_rate = Column(Numeric(5, 4), nullable=True)
-    ann_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    # --- Columns from RawAnnuityStaging (prefix ann_) ---
+    ann_annuity_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    ann_annuity_contribution_base = Column(Numeric(15, 2), nullable=True)
+    ann_annuity_employer_rate = Column(Numeric(5, 4), nullable=True)
+    ann_annuity_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    ann_annuity_employee_rate = Column(Numeric(5, 4), nullable=True)
+    ann_annuity_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    ann_employee_type_key = Column(String(50), nullable=True)
 
-    # --- Housing Fund Columns (hf_) ---
-    hf_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
-    hf_contribution_base = Column(Numeric(15, 2), nullable=True)
-    hf_employer_rate = Column(Numeric(5, 4), nullable=True)
-    hf_employer_contribution = Column(Numeric(15, 2), nullable=True)
-    hf_employee_rate = Column(Numeric(5, 4), nullable=True)
-    hf_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    # --- Columns from RawHousingFundStaging (prefix hf_) ---
+    hf_housingfund_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
+    hf_housingfund_contribution_base = Column(Numeric(15, 2), nullable=True)
+    hf_housingfund_employer_rate = Column(Numeric(5, 4), nullable=True)
+    hf_housingfund_employer_contribution = Column(Numeric(15, 2), nullable=True)
+    hf_housingfund_employee_rate = Column(Numeric(5, 4), nullable=True)
+    hf_housingfund_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    hf_employee_type_key = Column(String(50), nullable=True)
 
-    # --- Medical Columns (med_) ---
-    med_contribution_base_salary = Column(Numeric(15, 2), nullable=True) # Note: Same name as hf_, ann_ base salary? Clarify if needed. Assuming they can be distinct here.
+    # --- Columns from RawMedicalStaging (prefix med_) ---
+    med_contribution_base_salary = Column(Numeric(15, 2), nullable=True)
     med_contribution_base = Column(Numeric(15, 2), nullable=True)
     med_employer_medical_rate = Column(Numeric(5, 4), nullable=True)
     med_employer_medical_contribution = Column(Numeric(15, 2), nullable=True)
@@ -310,8 +310,9 @@ class ConsolidatedDataTable(Base):
     med_employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True)
     med_total_employer_contribution = Column(Numeric(15, 2), nullable=True)
     med_total_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    med_employee_type_key = Column(String(50), nullable=True)
 
-    # --- Pension/Social Security Columns (pen_) ---
+    # --- Columns from RawPensionStaging (prefix pen_) ---
     pen_pension_contribution_base = Column(Numeric(15, 2), nullable=True)
     pen_pension_total_amount = Column(Numeric(15, 2), nullable=True)
     pen_pension_employer_rate = Column(Numeric(5, 4), nullable=True)
@@ -328,85 +329,79 @@ class ConsolidatedDataTable(Base):
     pen_injury_total_amount = Column(Numeric(15, 2), nullable=True)
     pen_injury_employer_rate = Column(Numeric(5, 4), nullable=True)
     pen_injury_employer_contribution = Column(Numeric(15, 2), nullable=True)
-    pen_ss_total_employer_contribution = Column(Numeric(15, 2), nullable=True) # Social Security Totals
+    pen_ss_total_employer_contribution = Column(Numeric(15, 2), nullable=True)
     pen_ss_total_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    pen_employee_type_key = Column(String(50), nullable=True)
 
-    # --- Salary Data Columns (sal_) ---
-    sal_remarks = Column(Text, nullable=True)
-    sal_subsidy = Column(Numeric(15, 2), nullable=True)
-    sal_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_post_salary = Column(Numeric(15, 2), nullable=True)
-    sal_salary_step = Column(Numeric(15, 2), nullable=True) # Or Integer? Assuming Numeric for now
-    sal_basic_salary = Column(Numeric(15, 2), nullable=True)
-    sal_tax_adjustment = Column(Numeric(15, 2), nullable=True)
-    sal_salary_grade = Column(String, nullable=True)
-    sal_salary_level = Column(String, nullable=True)
-    sal_salary_backpay = Column(Numeric(15, 2), nullable=True)
-    sal_post_category = Column(String, nullable=True)
-    sal_other_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_other_deductions = Column(Numeric(15, 2), nullable=True)
-    sal_employee_type_key = Column(String, nullable=True)
-    sal_personnel_rank = Column(String, nullable=True)
-    sal_living_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_probation_salary = Column(Numeric(15, 2), nullable=True)
-    sal_one_time_deduction = Column(Numeric(15, 2), nullable=True)
-    sal_performance_salary = Column(Numeric(15, 2), nullable=True)
-    sal_personnel_identity = Column(String, nullable=True)
-    sal_total_backpay_amount = Column(Numeric(15, 2), nullable=True)
-    # Note: individual_income_tax also exists in tax_ table. Decide which one to keep or rename. Keeping sal_ for now.
-    sal_individual_income_tax = Column(Numeric(15, 2), nullable=True)
-    sal_housing_fund_adjustment = Column(Numeric(15, 2), nullable=True)
-    sal_basic_performance_bonus = Column(Numeric(15, 2), nullable=True)
-    sal_petition_post_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_post_position_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_transportation_allowance = Column(Numeric(15, 2), nullable=True)
-    # Note: Self contributions also exist in other tables (ann_, med_, pen_, hf_). Decide or rename. Keeping sal_ for now.
-    sal_self_annuity_contribution = Column(Numeric(15, 2), nullable=True)
-    sal_self_medical_contribution = Column(Numeric(15, 2), nullable=True)
-    sal_self_pension_contribution = Column(Numeric(15, 2), nullable=True)
-    sal_monthly_basic_performance = Column(Numeric(15, 2), nullable=True)
-    sal_only_child_parents_reward = Column(Numeric(15, 2), nullable=True)
-    sal_rank_or_post_grade_salary = Column(Numeric(15, 2), nullable=True)
-    sal_salary_step_backpay_total = Column(Numeric(15, 2), nullable=True)
-    sal_ref_official_salary_step = Column(String, nullable=True)
-    sal_monthly_reward_performance = Column(Numeric(15, 2), nullable=True)
-    sal_total_deduction_adjustment = Column(Numeric(15, 2), nullable=True)
-    sal_social_insurance_adjustment = Column(Numeric(15, 2), nullable=True)
-    sal_quarterly_performance_bonus = Column(Numeric(15, 2), nullable=True)
-    sal_annual_fixed_salary_amount = Column(Numeric(15, 2), nullable=True)
-    sal_position_or_technical_salary = Column(Numeric(15, 2), nullable=True)
-    sal_reform_1993_reserved_subsidy = Column(Numeric(15, 2), nullable=True)
-    sal_reward_performance_deduction = Column(Numeric(15, 2), nullable=True)
-    # Note: Employer contributions also exist elsewhere. Keeping sal_ for now.
-    sal_employer_annuity_contribution = Column(Numeric(15, 2), nullable=True)
-    sal_employer_medical_contribution = Column(Numeric(15, 2), nullable=True)
-    sal_employer_pension_contribution = Column(Numeric(15, 2), nullable=True)
-    sal_self_housing_fund_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with hf_?
-    sal_self_unemployment_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
-    sal_petition_worker_post_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_ref_official_post_salary_level = Column(String, nullable=True)
-    sal_basic_performance_bonus_deduction = Column(Numeric(15, 2), nullable=True)
-    sal_civil_servant_normative_allowance = Column(Numeric(15, 2), nullable=True)
-    sal_employer_housing_fund_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with hf_?
-    sal_employer_unemployment_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
-    sal_employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with med_?
-    sal_bank_account_number = Column(Text, nullable=True) # Changed to Text from String
-    sal_bank_branch_name = Column(Text, nullable=True)
-    sal_employment_start_date = Column(Date, nullable=True)
+    # --- Columns from RawSalaryDataStaging (prefix sal_) ---
+    sal_employee_unique_id = Column(Text, nullable=True)
+    sal_establishment_type_name = Column(Text, nullable=True)
+    sal_bank_account_number = Column(Text, nullable=True)
+    sal_ref_official_post_salary_level = Column(Text, nullable=True)
     sal_employment_status = Column(Text, nullable=True)
+    sal_remarks = Column(Text, nullable=True)
     sal_organization_name = Column(Text, nullable=True)
     sal_department_name = Column(Text, nullable=True)
-    sal_basic_performance_salary = Column(Numeric(15, 2), nullable=True)
-    sal_incentive_performance_salary = Column(Numeric(15, 2), nullable=True)
-    sal_self_injury_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
-    sal_employer_injury_contribution = Column(Numeric(15, 2), nullable=True) # Duplicate concept with pen_?
-    sal_salary_position_or_post_wage = Column(Numeric(15, 2), nullable=True)
-    sal_salary_rank_or_step_wage = Column(Numeric(15, 2), nullable=True)
+    sal_personnel_rank = Column(Text, nullable=True)
+    sal_salary_level = Column(Text, nullable=True)
+    sal_salary_grade = Column(Text, nullable=True)
+    sal_social_insurance_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_housing_fund_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_employment_start_date = Column(Date, nullable=True)
+    sal_post_category = Column(Text, nullable=True)
+    sal_bank_branch_name = Column(Text, nullable=True)
+    sal_position_rank = Column(Text, nullable=True)
     sal_is_leader = Column(Boolean, nullable=True)
-    sal_pay_period = Column(Date, nullable=True) # Duplicate concept with pay_period_identifier? Maybe store actual date here.
+    sal_only_child_parents_reward = Column(Numeric(15, 2), nullable=True)
+    sal_ref_official_salary_step = Column(Text, nullable=True)
+    sal_annual_fixed_salary_amount = Column(Numeric(15, 2), nullable=True)
+    sal_one_time_deduction = Column(Numeric(15, 2), nullable=True)
+    sal_basic_performance_bonus_deduction = Column(Numeric(15, 2), nullable=True)
+    sal_reward_performance_deduction = Column(Numeric(15, 2), nullable=True)
+    sal_petition_post_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_post_position_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_rank_or_post_grade_salary = Column(Numeric(15, 2), nullable=True)
+    sal_individual_income_tax = Column(Numeric(15, 2), nullable=True)
+    sal_other_deductions = Column(Numeric(15, 2), nullable=True)
+    sal_quarterly_performance_bonus = Column(Numeric(15, 2), nullable=True)
+    sal_position_or_technical_salary = Column(Numeric(15, 2), nullable=True)
+    sal_salary_civil_servant_normative_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_salary_transportation_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_probation_salary = Column(Numeric(15, 2), nullable=True)
+    sal_reform_1993_reserved_subsidy = Column(Numeric(15, 2), nullable=True)
+    sal_monthly_basic_performance = Column(Numeric(15, 2), nullable=True)
+    sal_basic_performance_bonus = Column(Numeric(15, 2), nullable=True)
+    sal_position_or_post_wage = Column(Numeric(15, 2), nullable=True)
+    sal_rank_or_step_wage = Column(Numeric(15, 2), nullable=True)
+    sal_monthly_reward_performance = Column(Numeric(15, 2), nullable=True)
+    sal_gender = Column(Text, nullable=True)
+    sal_ethnicity = Column(Text, nullable=True)
+    sal_date_of_birth = Column(Date, nullable=True)
+    sal_education_level = Column(Text, nullable=True)
+    sal_service_interruption_years = Column(Numeric(15,2), nullable=True)
+    sal_continuous_service_years = Column(Numeric(15,2), nullable=True)
+    sal_actual_position = Column(Text, nullable=True)
+    sal_actual_position_start_date = Column(Date, nullable=True)
+    sal_position_level_start_date = Column(Date, nullable=True)
+    sal_basic_performance_salary = Column(Numeric(15, 2), nullable=True)
+    sal_post_salary = Column(Numeric(15, 2), nullable=True)
+    sal_salary_step = Column(Numeric(15, 2), nullable=True)
+    sal_basic_salary = Column(Numeric(15, 2), nullable=True)
+    sal_performance_salary = Column(Numeric(15, 2), nullable=True)
+    sal_other_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_salary_backpay = Column(Numeric(15, 2), nullable=True)
+    sal_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_subsidy = Column(Numeric(15, 2), nullable=True)
+    sal_total_deduction_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_living_allowance = Column(Numeric(15, 2), nullable=True)
+    sal_salary_step_backpay_total = Column(Numeric(15, 2), nullable=True)
+    sal_incentive_performance_salary = Column(Numeric(15, 2), nullable=True)
+    sal_total_backpay_amount = Column(Numeric(15, 2), nullable=True)
+    sal_tax_adjustment = Column(Numeric(15, 2), nullable=True)
+    sal_personnel_identity = Column(Text, nullable=True)
+    sal_employee_type_key = Column(String(50), nullable=True)
 
-    # --- Tax Columns (tax_) ---
-    tax_period_identifier = Column(String, nullable=True) # Duplicate with main key? Decide if needed.
+    # --- Columns from RawTaxStaging (prefix tax_) ---
     tax_income_period_start = Column(Date, nullable=True)
     tax_income_period_end = Column(Date, nullable=True)
     tax_current_period_income = Column(Numeric(15, 2), nullable=True)
@@ -431,102 +426,188 @@ class ConsolidatedDataTable(Base):
     tax_reduction_amount = Column(Numeric(15, 2), nullable=True)
     tax_standard_deduction = Column(Numeric(15, 2), nullable=True)
     tax_calculated_income_tax = Column(Numeric(15, 2), nullable=True)
-    tax_remarks = Column(Text, nullable=True) # Duplicate concept with sal_remarks?
+    tax_remarks = Column(Text, nullable=True)
+    tax_employee_type_key = Column(String(50), nullable=True)
 
-    # --- Metadata Columns ---
+    # --- Metadata Columns (already defined above, ensuring they are here) ---
     _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    _consolidation_timestamp = Column(TIMESTAMP(timezone=True), default=func.now(), nullable=False) 
+    _consolidation_timestamp = Column(TIMESTAMP(timezone=True), default=func.now(), nullable=False)
 
-# --- Staging Table for Raw Salary Data ---
+# --- Staging Table for Raw Salary Data (Refactored with English Columns) ---
 class RawSalaryDataStaging(Base):
     __tablename__ = 'raw_salary_data_staging'
     __table_args__ = ({'schema': 'staging'})
 
+    # --- Core Identity and Metadata Fields (Preserved/Ensured) ---
     _staging_id = Column(Integer, Identity(start=1), primary_key=True)
+    id_card_number = Column(String(18), index=True, nullable=True) # From sfm
+    employee_name = Column(Text, nullable=True, index=True) # From sfm (target_name: employee_name for source_name: 姓名)
+    pay_period_identifier = Column(String(7), nullable=False, index=True) # Core field
 
-    # --- Core fields from original model ---
-    id_card_number = Column(String(18), index=True, nullable=True)
-    employee_name = Column(Text, nullable=True, index=True)
-    employee_unique_id = Column(Text, index=True, nullable=True)
-    establishment_type_name = Column(Text, nullable=True)
-    pay_period_identifier = Column(String(7), nullable=False, index=True) # Assuming 'YYYY-MM' format
+    # Fields that might be directly in RawSalaryDataStaging or mapped via sfm.csv
+    employee_unique_id = Column(Text, index=True, nullable=True) # Assuming this is still desired, was in old model. Not in sfm.csv directly as a target_name for salary types.
+    establishment_type_name = Column(Text, nullable=True) # Assuming this is still desired. Not in sfm.csv directly.
+    
+    employee_type_key = Column(String(50), nullable=True, index=True) # Standard metadata
 
-    # --- Job Attributes (from salary_system/models.py) ---
-    job_attr_人员身份 = Column(Text, nullable=True)
-    job_attr_人员职级 = Column(Text, nullable=True)
-    job_attr_岗位类别 = Column(Text, nullable=True)
-    job_attr_参照正编岗位工资级别 = Column(Text, nullable=True)
-    job_attr_参照正编薪级工资级次 = Column(Text, nullable=True)
-    job_attr_工资级别 = Column(Text, nullable=True)
-    job_attr_工资档次 = Column(Text, nullable=True)
-    job_attr_固定薪酬全年应发数 = Column(Numeric(12, 2), nullable=True)
+    # --- English Column Names based on sfm.csv and relevant employee_type_field_rules ---
+    # Fields from sfm.csv with employee_type_key in ('gwy', 'sy', 'cg', 'ytf', 'qp', 'zx', 'zj')
+    # or generally applicable salary fields.
 
-    # --- Salary Components (from salary_system/models.py) ---
-    salary_一次性补扣发 = Column(Numeric(12, 2), nullable=True)
-    salary_基础绩效奖补扣发 = Column(Numeric(12, 2), nullable=True)
-    salary_职务技术等级工资 = Column(Numeric(12, 2), nullable=True)
-    salary_级别岗位级别工资 = Column(Numeric(12, 2), nullable=True)
-    salary_93年工改保留补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_独生子女父母奖励金 = Column(Numeric(12, 2), nullable=True)
-    salary_岗位职务补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_公务员规范性津贴补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_公务交通补贴 = Column(Numeric(12, 2), nullable=True)
-    salary_基础绩效奖 = Column(Numeric(12, 2), nullable=True)
-    salary_见习试用期工资 = Column(Numeric(12, 2), nullable=True)
-    salary_信访工作人员岗位津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_奖励绩效补扣发 = Column(Numeric(12, 2), nullable=True)
-    salary_岗位工资 = Column(Numeric(12, 2), nullable=True)
-    salary_薪级工资 = Column(Numeric(12, 2), nullable=True)
-    salary_月基础绩效 = Column(Numeric(12, 2), nullable=True)
-    salary_月奖励绩效 = Column(Numeric(12, 2), nullable=True)
-    salary_基本工资 = Column(Numeric(12, 2), nullable=True)
-    salary_绩效工资 = Column(Numeric(12, 2), nullable=True)
-    salary_其他补助 = Column(Numeric(12, 2), nullable=True)
-    salary_补发工资 = Column(Numeric(12, 2), nullable=True)
-    salary_津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_季度绩效考核薪酬 = Column(Numeric(12, 2), nullable=True)
-    salary_补助 = Column(Numeric(12, 2), nullable=True)
-    salary_信访岗位津贴 = Column(Numeric(12, 2), nullable=True) # Note: This might be a duplicate of salary_信访工作人员岗位津贴
-    salary_补扣发合计 = Column(Numeric(12, 2), nullable=True)
-    salary_生活津贴 = Column(Numeric(12, 2), nullable=True)
-    salary_1季度3季度考核绩效奖 = Column(Numeric(12, 2), nullable=True)
-    salary_补发薪级合计 = Column(Numeric(12, 2), nullable=True)
+    # target_name: bank_account_number, data_type: Text
+    bank_account_number = Column(Text, nullable=True)
+    # target_name: ref_official_post_salary_level, data_type: TEXT
+    ref_official_post_salary_level = Column(Text, nullable=True)
+    # target_name: employment_status, data_type: Text
+    employment_status = Column(Text, nullable=True)
+    # target_name: remarks, data_type: Text
+    remarks = Column(Text, nullable=True)
+    # target_name: organization_name, data_type: Text
+    organization_name = Column(Text, nullable=True)
+    # target_name: department_name, data_type: Text
+    department_name = Column(Text, nullable=True)
+    # target_name: personnel_rank, data_type: Text
+    personnel_rank = Column(Text, nullable=True)
+    # target_name: salary_level, data_type: TEXT
+    salary_level = Column(Text, nullable=True)
+    # target_name: salary_grade, data_type: TEXT
+    salary_grade = Column(Text, nullable=True)
+    # target_name: social_insurance_adjustment, data_type: NUMERIC(15, 2)
+    social_insurance_adjustment = Column(Numeric(15, 2), nullable=True)
+    # target_name: housing_fund_adjustment, data_type: NUMERIC(15, 2)
+    housing_fund_adjustment = Column(Numeric(15, 2), nullable=True)
+    # target_name: employer_pension_contribution, data_type: NUMERIC(15, 2)
+    employer_pension_contribution = Column(Numeric(15, 2), nullable=True)
+    # target_name: employer_medical_contribution, data_type: NUMERIC(15, 2)
+    employer_medical_contribution = Column(Numeric(15, 2), nullable=True)
+    # target_name: employer_annuity_contribution, data_type: NUMERIC(15, 2)
+    employer_annuity_contribution = Column(Numeric(15, 2), nullable=True)
+    # target_name: employer_housing_fund_contribution, data_type: NUMERIC(15, 2)
+    employer_housing_fund_contribution = Column(Numeric(15, 2), nullable=True)
+    # target_name: employer_injury_contribution, data_type: NUMERIC(15, 2) # from sfm (was also employer_injury_contribution)
+    employer_injury_contribution = Column(Numeric(15, 2), nullable=True)
+    # target_name: employment_start_date, data_type: DATE (also work_start_date)
+    employment_start_date = Column(Date, nullable=True)
+    # target_name: post_category, data_type: TEXT
+    post_category = Column(Text, nullable=True)
+    # target_name: bank_branch_name, data_type: TEXT
+    bank_branch_name = Column(Text, nullable=True)
+    # target_name: position_rank, data_type: TEXT
+    position_rank = Column(Text, nullable=True)
+    # target_name: is_leader, data_type: BOOLEAN
+    is_leader = Column(Boolean, nullable=True)
+    # target_name: only_child_parents_reward, data_type: NUMERIC(15, 2)
+    only_child_parents_reward = Column(Numeric(15, 2), nullable=True)
+    # target_name: ref_official_salary_step, data_type: NUMERIC(15, 2)
+    ref_official_salary_step = Column(Numeric(15, 2), nullable=True) # sfm says NUMERIC(15,2)
+    # target_name: annual_fixed_salary_amount, data_type: NUMERIC(15, 2)
+    annual_fixed_salary_amount = Column(Numeric(15, 2), nullable=True)
+    # target_name: one_time_deduction, data_type: NUMERIC(15, 2)
+    one_time_deduction = Column(Numeric(15, 2), nullable=True)
+    # target_name: basic_performance_bonus_deduction, data_type: NUMERIC(15, 2)
+    basic_performance_bonus_deduction = Column(Numeric(15, 2), nullable=True)
+    # target_name: basic_performance_deduction, data_type: NUMERIC(15, 2)
+    # basic_performance_deduction = Column(Numeric(15, 2), nullable=True) # Appears to be a duplicate concept with basic_performance_bonus_deduction, check sfm
+    # target_name: reward_performance_deduction, data_type: NUMERIC(15, 2)
+    reward_performance_deduction = Column(Numeric(15, 2), nullable=True)
+    # target_name: petition_post_allowance, data_type: NUMERIC(15, 2)
+    petition_post_allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: post_position_allowance, data_type: NUMERIC(15, 2)
+    post_position_allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: rank_or_post_grade_salary, data_type: NUMERIC(15, 2)
+    rank_or_post_grade_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: individual_income_tax, data_type: NUMERIC(15, 2)
+    individual_income_tax = Column(Numeric(15, 2), nullable=True)
+    # target_name: other_deductions, data_type: NUMERIC(15, 2)
+    other_deductions = Column(Numeric(15, 2), nullable=True)
+    # target_name: quarterly_assessment_salary, data_type: NUMERIC(15, 2)
+    quarterly_assessment_salary = Column(Numeric(15, 2), nullable=True) # from sfm (was quarterly_performance_bonus)
+    # target_name: position_or_technical_salary, data_type: NUMERIC(15, 2)
+    position_or_technical_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: salary_post_position_allowance, data_type: NUMERIC(15, 2) (This is a duplicate of post_position_allowance, using post_position_allowance)
+    # target_name: salary_petition_worker_post_allowance, data_type: NUMERIC(15, 2)
+    # salary_petition_worker_post_allowance = Column(Numeric(15, 2), nullable=True) # REMOVED as duplicate/obsolete of petition_post_allowance
+    # target_name: salary_civil_servant_normative_allowance, data_type: NUMERIC(15, 2)
+    salary_civil_servant_normative_allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: salary_transportation_allowance, data_type: NUMERIC(15, 2)
+    salary_transportation_allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: probation_salary, data_type: NUMERIC(15, 2)
+    probation_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: reform_1993_reserved_subsidy, data_type: NUMERIC(15, 2)
+    reform_1993_reserved_subsidy = Column(Numeric(15, 2), nullable=True)
+    # target_name: monthly_basic_performance, data_type: NUMERIC(15, 2)
+    monthly_basic_performance = Column(Numeric(15, 2), nullable=True)
+    # target_name: basic_performance_bonus, data_type: NUMERIC(15, 2)
+    basic_performance_bonus = Column(Numeric(15, 2), nullable=True)
+    # target_name: position_or_post_wage, data_type: NUMERIC(15, 2)
+    position_or_post_wage = Column(Numeric(15, 2), nullable=True)
+    # target_name: rank_or_step_wage, data_type: NUMERIC(15, 2)
+    rank_or_step_wage = Column(Numeric(15, 2), nullable=True)
+    # target_name: monthly_reward_performance, data_type: NUMERIC(15, 2)
+    monthly_reward_performance = Column(Numeric(15, 2), nullable=True)
+    # target_name: gender, data_type: text
+    gender = Column(Text, nullable=True) # sfm gender -> TEXT
+    # target_name: ethnicity, data_type: text
+    ethnicity = Column(Text, nullable=True) # sfm ethnicity -> TEXT
+    # target_name: date_of_birth, data_type: date
+    date_of_birth = Column(Date, nullable=True)
+    # target_name: education_level, data_type: text
+    education_level = Column(Text, nullable=True)
+    # target_name: service_interruption_years, data_type: numeric
+    service_interruption_years = Column(Numeric(15,2), nullable=True) # Assuming (15,2) for generic numeric
+    # target_name: continuous_service_years, data_type: numeric
+    continuous_service_years = Column(Numeric(15,2), nullable=True) # Assuming (15,2)
+    # target_name: actual_position, data_type: text
+    actual_position = Column(Text, nullable=True)
+    # target_name: actual_position_start_date, data_type: date
+    actual_position_start_date = Column(Date, nullable=True)
+    # target_name: position_level_start_date, data_type: date
+    position_level_start_date = Column(Date, nullable=True)
+    # target_name: basic_performance_salary, data_type: NUMERIC(15, 2)
+    basic_performance_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: post_salary, data_type: NUMERIC(15, 2)
+    post_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: salary_step, data_type: NUMERIC(15, 2)
+    salary_step = Column(Numeric(15, 2), nullable=True)
+    # target_name: basic_salary, data_type: NUMERIC(15, 2)
+    basic_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: performance_salary, data_type: NUMERIC(15, 2)
+    performance_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: other_allowance, data_type: NUMERIC(15, 2)
+    other_allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: salary_backpay, data_type: NUMERIC(15, 2)
+    salary_backpay = Column(Numeric(15, 2), nullable=True)
+    # target_name: allowance, data_type: NUMERIC(15, 2)
+    allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: subsidy, data_type: NUMERIC(15, 2)
+    subsidy = Column(Numeric(15, 2), nullable=True)
+    # target_name: total_deduction_adjustment, data_type: NUMERIC(15, 2)
+    total_deduction_adjustment = Column(Numeric(15, 2), nullable=True)
+    # target_name: living_allowance, data_type: NUMERIC(15, 2)
+    living_allowance = Column(Numeric(15, 2), nullable=True)
+    # target_name: salary_step_backpay_total, data_type: NUMERIC(15, 2)
+    salary_step_backpay_total = Column(Numeric(15, 2), nullable=True)
+    # target_name: incentive_performance_salary, data_type: NUMERIC(15, 2)
+    incentive_performance_salary = Column(Numeric(15, 2), nullable=True)
+    # target_name: total_backpay_amount, data_type: NUMERIC(15, 2)
+    total_backpay_amount = Column(Numeric(15, 2), nullable=True)
+    # target_name: tax_adjustment, data_type: NUMERIC(15, 2)
+    tax_adjustment = Column(Numeric(15, 2), nullable=True)
+    # target_name: personnel_identity, data_type: TEXT
+    personnel_identity = Column(Text, nullable=True)
 
-    # --- Deductions (from salary_system/models.py) ---
-    deduct_个人缴养老保险费 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴职业年金 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴住房公积金 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人缴失业保险费 = Column(Numeric(12, 2), nullable=True)
-    deduct_个人所得税 = Column(Numeric(12, 2), nullable=True)
-    deduct_其他扣款 = Column(Numeric(12, 2), nullable=True)
-    deduct_补扣退社保缴费 = Column(Numeric(12, 2), nullable=True)
-    deduct_补扣退公积金 = Column(Numeric(12, 2), nullable=True)
-    deduct_补扣个税 = Column(Numeric(12, 2), nullable=True)
-
-    # --- Contributions (from salary_system/models.py) ---
-    contrib_单位缴养老保险费 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴医疗保险费 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴职业年金 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴住房公积金 = Column(Numeric(12, 2), nullable=True)
-    contrib_单位缴失业保险费 = Column(Numeric(12, 2), nullable=True)
-    contrib_大病医疗单位缴纳 = Column(Numeric(12, 2), nullable=True)
-
-    # --- Other (from salary_system/models.py) ---
-    other_备注 = Column(Text, nullable=True)
-
-    # --- Standardized Metadata Columns ---
+    # --- Standardized Metadata Columns (Preserved/Ensured) ---
     _source_filename = Column(Text, nullable=True)
-    _source_sheet_name = Column(Text, nullable=True) # Previously _airbyte_source_sheet
+    _source_sheet_name = Column(Text, nullable=True)
     _row_number = Column(Integer, nullable=True)
     _import_timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     _import_batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     _validation_status = Column(String(50), default='pending', nullable=False)
     _validation_errors = Column(JSONB, nullable=True)
-    employee_type_key = Column(String(50), nullable=True, index=True)
+    # employee_type_key is already defined above as standard metadata
 
     def __repr__(self):
-       return f"<RawSalaryDataStaging(id={self._staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>" 
+        return f"<RawSalaryDataStaging(id={self._staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>"
 
 # --- Staging Table for Annuity Data ---
 class RawAnnuityStaging(Base):
