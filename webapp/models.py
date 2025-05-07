@@ -130,11 +130,11 @@ class Employee(Base):
 
 # --- Pydantic Model for Employee --- END ---
 
-# --- Add other ORM models below (e.g., ReportLink) --- 
+# --- Add other ORM models below (e.g., ReportLink) ---
 class ReportLink(Base):
     __tablename__ = "report_links"
     __table_args__ = {'schema': 'core'}
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)
     url = Column(Text, nullable=False)
@@ -145,9 +145,9 @@ class ReportLink(Base):
     require_role = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+
     def __repr__(self):
-        return f"<ReportLink(id={self.id}, name='{self.name}')>" 
+        return f"<ReportLink(id={self.id}, name='{self.name}')>"
 
 # --- Define EmployeeTypeFieldRule Model ---
 class EmployeeTypeFieldRule(Base):
@@ -162,7 +162,7 @@ class EmployeeTypeFieldRule(Base):
 
     # __table_args__ = (
     #     UniqueConstraint('employee_type_key', 'field_db_name', name='uq_type_field'),
-    # ) 
+    # )
 
 # --- Define SheetNameMapping Model --- START ---
 class SheetNameMapping(Base):
@@ -175,7 +175,7 @@ class SheetNameMapping(Base):
     sheet_name = Column(String, primary_key=True, index=True, nullable=False)
     employee_type_key = Column(String(50), nullable=False)
     # Added corresponding SQLAlchemy Column
-    target_staging_table = Column(String(255), nullable=True) 
+    target_staging_table = Column(String(255), nullable=True)
     # Add other columns if they exist in the table
 
 # --- Define SheetNameMapping Model --- END ---
@@ -229,7 +229,7 @@ class CalculationRule(Base):
 
     # Relationship to the formula used (if action_type is APPLY_FORMULA)
     formula = relationship("CalculationFormula", back_populates="rules")
-    
+
     # Relationship to the conditions for this rule
     conditions = relationship("CalculationRuleCondition", back_populates="rule", cascade="all, delete-orphan")
 
@@ -308,8 +308,8 @@ class ConsolidatedDataTable(Base):
     med_employee_medical_contribution = Column(Numeric(15, 2), nullable=True)
     med_employer_critical_illness_rate = Column(Numeric(5, 4), nullable=True)
     med_employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True)
-    med_total_employer_contribution = Column(Numeric(15, 2), nullable=True)
-    med_total_employee_contribution = Column(Numeric(15, 2), nullable=True)
+    med_medical_total_employer_contribution = Column(Numeric(15, 2), nullable=True) # Renamed from med_medic_total_employer_contribution
+    med_medical_total_employee_contribution = Column(Numeric(15, 2), nullable=True) # Renamed from med_medic_total_employee_contribution
     med_employee_type_key = Column(String(50), nullable=True)
 
     # --- Columns from RawPensionStaging (prefix pen_) ---
@@ -447,7 +447,7 @@ class RawSalaryDataStaging(Base):
     # Fields that might be directly in RawSalaryDataStaging or mapped via sfm.csv
     employee_unique_id = Column(Text, index=True, nullable=True) # Assuming this is still desired, was in old model. Not in sfm.csv directly as a target_name for salary types.
     establishment_type_name = Column(Text, nullable=True) # Assuming this is still desired. Not in sfm.csv directly.
-    
+
     employee_type_key = Column(String(50), nullable=True, index=True) # Standard metadata
 
     # --- English Column Names based on sfm.csv and relevant employee_type_field_rules ---
@@ -691,8 +691,8 @@ class RawMedicalStaging(Base):
     # Inferring additional columns based on ConsolidatedDataTable.med_ prefix
     employer_critical_illness_rate = Column(Numeric(5, 4), nullable=True)
     employer_critical_illness_contribution = Column(Numeric(15, 2), nullable=True)
-    total_employer_contribution = Column(Numeric(15, 2), nullable=True) # Might be calculated later?
-    total_employee_contribution = Column(Numeric(15, 2), nullable=True) # Might be calculated later?
+    medical_total_employer_contribution = Column(Numeric(15, 2), nullable=True) # Renamed from total_employer_contribution
+    medical_total_employee_contribution = Column(Numeric(15, 2), nullable=True) # Renamed from total_employee_contribution
 
     # --- Standardized Metadata Columns ---
     _source_filename = Column(Text, nullable=True)
@@ -796,4 +796,4 @@ class RawTaxStaging(Base):
     employee_type_key = Column(String(50), nullable=True, index=True)
 
     def __repr__(self):
-        return f"<RawTaxStaging(id={self._tax_staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>" 
+        return f"<RawTaxStaging(id={self._tax_staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>"
