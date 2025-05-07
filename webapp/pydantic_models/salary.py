@@ -4,97 +4,181 @@ from datetime import datetime
 
 
 class SalaryRecord(BaseModel):
-    """薪资记录模型，对应数据库view_level1_calculations视图"""
+    """薪资记录模型，对应数据库consolidated_data表的原始字段"""
     # 标识符
-    employee_id: int
-    pay_period_identifier: str
-    establishment_type_id: Optional[int] = None
-
-    # 员工信息
+    _consolidated_data_id: int
     employee_name: Optional[str] = None
+    pay_period_identifier: Optional[str] = None
     id_card_number: Optional[str] = None
-
-    # 维度属性
-    department_name: Optional[str] = None
-    unit_name: Optional[str] = None
-    establishment_type_name: Optional[str] = None
-
-    # 工作属性
-    job_attr_personnel_identity: Optional[str] = None
-    job_attr_personnel_rank: Optional[str] = None
-    job_attr_post_category: Optional[str] = None
-    job_attr_ref_official_post_salary_level: Optional[str] = None
-    job_attr_ref_official_salary_step: Optional[str] = None
-    job_attr_salary_level: Optional[str] = None
-    job_attr_salary_grade: Optional[str] = None
-    job_attr_annual_fixed_salary_amount: Optional[float] = None
-
-    # 薪资组成部分
-    salary_one_time_deduction: Optional[float] = None
-    salary_basic_performance_bonus_deduction: Optional[float] = None
-    salary_basic_performance_deduction: Optional[float] = None
-    salary_incentive_performance_salary: Optional[float] = None
-    salary_position_or_technical_salary: Optional[float] = None
-    salary_rank_or_post_grade_salary: Optional[float] = None
-    salary_reform_1993_reserved_subsidy: Optional[float] = None
-    salary_only_child_parents_reward: Optional[float] = None
-    salary_post_position_allowance: Optional[float] = None
-    salary_civil_servant_normative_allowance: Optional[float] = None
-    salary_transportation_allowance: Optional[float] = None
-    salary_basic_performance_bonus: Optional[float] = None
-    salary_probation_salary: Optional[float] = None
-    salary_petition_worker_post_allowance: Optional[float] = None
-    salary_reward_performance_deduction: Optional[float] = None
-    salary_post_salary: Optional[float] = None
-    salary_salary_step: Optional[float] = None
-    salary_monthly_basic_performance: Optional[float] = None
-    salary_monthly_reward_performance: Optional[float] = None
-    salary_basic_salary: Optional[float] = None
-    salary_basic_performance_salary: Optional[float] = None
-    salary_performance_salary: Optional[float] = None
-    salary_other_allowance: Optional[float] = None
-    salary_salary_backpay: Optional[float] = None
-    salary_allowance: Optional[float] = None
-    salary_quarterly_performance_bonus: Optional[float] = None
-    salary_subsidy: Optional[float] = None
-    salary_petition_post_allowance: Optional[float] = None
-    salary_total_deduction_adjustment: Optional[float] = None
-    salary_living_allowance: Optional[float] = None
-    salary_salary_step_backpay_total: Optional[float] = None
-    salary_total_backpay_amount: Optional[float] = None
-
-    # 个人扣除项
-    deduct_self_pension_contribution: Optional[float] = None
-    deduct_self_medical_contribution: Optional[float] = None
-    deduct_self_annuity_contribution: Optional[float] = None
-    deduct_self_housing_fund_contribution: Optional[float] = None
-    deduct_self_unemployment_contribution: Optional[float] = None
-    deduct_individual_income_tax: Optional[float] = None
-    deduct_other_deductions: Optional[float] = None
-    deduct_social_insurance_adjustment: Optional[float] = None
-    deduct_housing_fund_adjustment: Optional[float] = None
-    deduct_tax_adjustment: Optional[float] = None
-
-    # 公司缴纳部分
-    contrib_employer_pension_contribution: Optional[float] = None
-    contrib_employer_medical_contribution: Optional[float] = None
-    contrib_employer_annuity_contribution: Optional[float] = None
-    contrib_employer_housing_fund_contribution: Optional[float] = None
-    contrib_employer_unemployment_contribution: Optional[float] = None
-    contrib_employer_critical_illness_contribution: Optional[float] = None
-    contrib_employer_injury_contribution: Optional[float] = None
-
+    
+    # 年金相关字段
+    ann_annuity_contribution_base_salary: Optional[float] = None
+    ann_annuity_contribution_base: Optional[float] = None
+    ann_annuity_employer_rate: Optional[float] = None
+    ann_annuity_employer_contribution: Optional[float] = None
+    ann_annuity_employee_rate: Optional[float] = None
+    ann_annuity_employee_contribution: Optional[float] = None
+    ann_employee_type_key: Optional[str] = None
+    
+    # 住房公积金相关字段
+    hf_housingfund_contribution_base_salary: Optional[float] = None
+    hf_housingfund_contribution_base: Optional[float] = None
+    hf_housingfund_employer_rate: Optional[float] = None
+    hf_housingfund_employer_contribution: Optional[float] = None
+    hf_housingfund_employee_rate: Optional[float] = None
+    hf_housingfund_employee_contribution: Optional[float] = None
+    hf_employee_type_key: Optional[str] = None
+    
+    # 医疗保险相关字段
+    med_contribution_base_salary: Optional[float] = None
+    med_contribution_base: Optional[float] = None
+    med_employer_medical_rate: Optional[float] = None
+    med_employer_medical_contribution: Optional[float] = None
+    med_employee_medical_rate: Optional[float] = None
+    med_employee_medical_contribution: Optional[float] = None
+    med_employer_critical_illness_rate: Optional[float] = None
+    med_employer_critical_illness_contribution: Optional[float] = None
+    med_medical_total_employer_contribution: Optional[float] = None
+    med_medical_total_employee_contribution: Optional[float] = None
+    med_employee_type_key: Optional[str] = None
+    
+    # 养老保险相关字段
+    pen_pension_contribution_base: Optional[float] = None
+    pen_pension_total_amount: Optional[float] = None
+    pen_pension_employer_rate: Optional[float] = None
+    pen_pension_employer_contribution: Optional[float] = None
+    pen_pension_employee_rate: Optional[float] = None
+    pen_pension_employee_contribution: Optional[float] = None
+    pen_unemployment_contribution_base: Optional[float] = None
+    pen_unemployment_total_amount: Optional[float] = None
+    pen_unemployment_employer_rate: Optional[float] = None
+    pen_unemployment_employer_contribution: Optional[float] = None
+    pen_unemployment_employee_rate: Optional[float] = None
+    pen_unemployment_employee_contribution: Optional[float] = None
+    pen_injury_contribution_base: Optional[float] = None
+    pen_injury_total_amount: Optional[float] = None
+    pen_injury_employer_rate: Optional[float] = None
+    pen_injury_employer_contribution: Optional[float] = None
+    pen_ss_total_employer_contribution: Optional[float] = None
+    pen_ss_total_employee_contribution: Optional[float] = None
+    pen_employee_type_key: Optional[str] = None
+    
+    # 薪资相关字段
+    sal_remarks: Optional[str] = None
+    sal_subsidy: Optional[float] = None
+    sal_allowance: Optional[float] = None
+    sal_post_salary: Optional[float] = None
+    sal_salary_step: Optional[float] = None
+    sal_basic_salary: Optional[float] = None
+    sal_tax_adjustment: Optional[float] = None
+    sal_salary_grade: Optional[str] = None
+    sal_salary_level: Optional[str] = None
+    sal_salary_backpay: Optional[float] = None
+    sal_post_category: Optional[str] = None
+    sal_other_allowance: Optional[float] = None
+    sal_other_deductions: Optional[float] = None
+    sal_employee_type_key: Optional[str] = None
+    sal_personnel_rank: Optional[str] = None
+    sal_living_allowance: Optional[float] = None
+    sal_probation_salary: Optional[float] = None
+    sal_one_time_deduction: Optional[float] = None
+    sal_performance_salary: Optional[float] = None
+    sal_personnel_identity: Optional[str] = None
+    sal_total_backpay_amount: Optional[float] = None
+    sal_individual_income_tax: Optional[float] = None
+    sal_housing_fund_adjustment: Optional[float] = None
+    sal_basic_performance_bonus: Optional[float] = None
+    sal_petition_post_allowance: Optional[float] = None
+    sal_post_position_allowance: Optional[float] = None
+    sal_salary_transportation_allowance: Optional[float] = None
+    sal_self_annuity_contribution: Optional[float] = None
+    sal_self_medical_contribution: Optional[float] = None
+    sal_self_pension_contribution: Optional[float] = None
+    sal_monthly_basic_performance: Optional[float] = None
+    sal_only_child_parents_reward: Optional[float] = None
+    sal_rank_or_post_grade_salary: Optional[float] = None
+    sal_salary_step_backpay_total: Optional[float] = None
+    sal_ref_official_salary_step: Optional[str] = None
+    sal_monthly_reward_performance: Optional[float] = None
+    sal_total_deduction_adjustment: Optional[float] = None
+    sal_social_insurance_adjustment: Optional[float] = None
+    sal_quarterly_performance_bonus: Optional[float] = None
+    sal_annual_fixed_salary_amount: Optional[float] = None
+    sal_position_or_technical_salary: Optional[float] = None
+    sal_reform_1993_reserved_subsidy: Optional[float] = None
+    sal_reward_performance_deduction: Optional[float] = None
+    sal_employer_annuity_contribution: Optional[float] = None
+    sal_employer_medical_contribution: Optional[float] = None
+    sal_employer_pension_contribution: Optional[float] = None
+    sal_self_housing_fund_contribution: Optional[float] = None
+    sal_self_unemployment_contribution: Optional[float] = None
+    sal_petition_worker_post_allowance: Optional[float] = None
+    sal_ref_official_post_salary_level: Optional[str] = None
+    sal_basic_performance_bonus_deduction: Optional[float] = None
+    sal_salary_civil_servant_normative_allowance: Optional[float] = None
+    sal_employer_housing_fund_contribution: Optional[float] = None
+    sal_employer_unemployment_contribution: Optional[float] = None
+    sal_employer_critical_illness_contribution: Optional[float] = None
+    sal_bank_account_number: Optional[str] = None
+    sal_bank_branch_name: Optional[str] = None
+    sal_employment_start_date: Optional[datetime] = None
+    sal_employment_status: Optional[str] = None
+    sal_organization_name: Optional[str] = None
+    sal_department_name: Optional[str] = None
+    sal_basic_performance_salary: Optional[float] = None
+    sal_incentive_performance_salary: Optional[float] = None
+    sal_self_injury_contribution: Optional[float] = None
+    sal_employer_injury_contribution: Optional[float] = None
+    sal_position_or_post_wage: Optional[float] = None
+    sal_rank_or_step_wage: Optional[float] = None
+    sal_is_leader: Optional[bool] = None
+    sal_pay_period: Optional[str] = None
+    sal_employee_unique_id: Optional[str] = None
+    sal_establishment_type_name: Optional[str] = None
+    sal_position_rank: Optional[str] = None
+    sal_gender: Optional[str] = None
+    sal_ethnicity: Optional[str] = None
+    sal_date_of_birth: Optional[datetime] = None
+    sal_education_level: Optional[str] = None
+    sal_service_interruption_years: Optional[float] = None
+    sal_continuous_service_years: Optional[float] = None
+    sal_actual_position: Optional[str] = None
+    sal_actual_position_start_date: Optional[datetime] = None
+    sal_position_level_start_date: Optional[datetime] = None
+    
+    # 税务相关字段
+    tax_period_identifier: Optional[str] = None
+    tax_income_period_start: Optional[datetime] = None
+    tax_income_period_end: Optional[datetime] = None
+    tax_current_period_income: Optional[float] = None
+    tax_current_period_tax_exempt_income: Optional[float] = None
+    tax_deduction_basic_pension: Optional[float] = None
+    tax_deduction_basic_medical: Optional[float] = None
+    tax_deduction_unemployment: Optional[float] = None
+    tax_deduction_housing_fund: Optional[float] = None
+    tax_deduction_child_edu_cumulative: Optional[float] = None
+    tax_deduction_cont_edu_cumulative: Optional[float] = None
+    tax_deduction_housing_loan_interest_cumulative: Optional[float] = None
+    tax_deduction_housing_rent_cumulative: Optional[float] = None
+    tax_deduction_support_elderly_cumulative: Optional[float] = None
+    tax_deduction_infant_care_cumulative: Optional[float] = None
+    tax_deduction_private_pension_cumulative: Optional[float] = None
+    tax_deduction_annuity: Optional[float] = None
+    tax_deduction_commercial_health_insurance: Optional[float] = None
+    tax_deduction_deferred_pension_insurance: Optional[float] = None
+    tax_deduction_other: Optional[float] = None
+    tax_deduction_donations: Optional[float] = None
+    tax_total_deductions_pre_tax: Optional[float] = None
+    tax_reduction_amount: Optional[float] = None
+    tax_standard_deduction: Optional[float] = None
+    tax_calculated_income_tax: Optional[float] = None
+    tax_remarks: Optional[str] = None
+    tax_employee_type_key: Optional[str] = None
+    
     # 其他字段
-    remarks: Optional[str] = None
-
-    # 计算总额
-    calc_xiaoji: Optional[float] = None
-    calc_personal_deductions: Optional[float] = None
-    calc_total_payable: Optional[float] = None
-    calc_net_pay: Optional[float] = None
-
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    _import_batch_id: Optional[int] = None
+    _consolidation_timestamp: Optional[datetime] = None
+    
 
     class Config:
         from_attributes = True
@@ -143,4 +227,4 @@ class FieldMappingInDB(FieldMappingCreate):
 
 class FieldMappingListResponse(BaseModel):
     """字段映射列表响应"""
-    data: List[FieldMappingInDB] 
+    data: List[FieldMappingInDB]

@@ -178,5 +178,33 @@ export const fetchUnits = async (): Promise<string[]> => {
     }
 };
 
+/**
+ * Fetches the field definitions for salary data.
+ * These definitions are used to dynamically generate table columns.
+ */
+export interface SalaryFieldDefinition {
+    key: string;
+    dataIndex: string;
+    title: string;
+    group: string;
+    type: string;
+    sortable: boolean;
+    align?: 'left' | 'right' | 'center';
+    render?: string;
+    render_type?: string;
+    fixed?: 'left' | 'right';
+    width?: number;
+}
+
+export const fetchSalaryFieldDefinitions = async (): Promise<SalaryFieldDefinition[]> => {
+    try {
+        const response = await apiClient.get<SalaryFieldDefinition[]>('/api/salary_data/fields');
+        return response.data || [];
+    } catch (error) {
+        console.error("Failed to fetch salary field definitions:", error);
+        return [];
+    }
+};
+
 // Ensure the instance is exported as default
-export default apiClient; 
+export default apiClient;

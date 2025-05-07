@@ -77,14 +77,14 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> Tuple[List[models
     try:
         # Query for the paginated list of users, joining the role
         query = db.query(models.User).options(joinedload(models.User.role)).order_by(models.User.id)
-        
+
         # Get the paginated results
         users_list = query.offset(skip).limit(limit).all()
-        
+
         # Get the total count of users (without pagination constraints)
         # Note: If filtering is added later, the filter needs to be applied here too.
         total_count = db.query(func.count(models.User.id)).scalar() or 0
-        
+
         return users_list, total_count
     except SQLAlchemyError as e:
         logger.error(f"SQLAlchemy error fetching users list: {e}")
@@ -115,7 +115,7 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str) -> 
         role_id=user.role_id,
         is_active=user.is_active
     )
-    
+
     try:
         db.add(db_user)
         db.commit()
@@ -124,11 +124,11 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str) -> 
     except IntegrityError as e:
         db.rollback() # Rollback the session
         logger.error(f"Database integrity error creating user {user.username} or email {user.email}: {e}")
-        detail = "An integrity constraint was violated during user creation." 
+        detail = "An integrity constraint was violated during user creation."
         # Check common constraint names (these might vary based on your DB schema)
         if "users_username_key" in str(e) or "uq_users_username" in str(e):
             detail = f"Username '{user.username}' already exists."
-        elif "users_email_key" in str(e) or "uq_users_email" in str(e): 
+        elif "users_email_key" in str(e) or "uq_users_email" in str(e):
             detail = f"Email '{user.email}' is already registered."
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from e
     except SQLAlchemyError as e:
@@ -162,15 +162,15 @@ def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate, hash
     # Remove 'password' key if it exists (even if None) to avoid setting it directly
     if 'password' in update_data:
         del update_data['password']
-        
+
     if not update_data:
         # If no fields other than potentially password=None were provided, return the existing user
-        return db_user 
+        return db_user
 
     # Update the user object's attributes
     for key, value in update_data.items():
         setattr(db_user, key, value)
-        
+
     # Manually set updated_at if your model doesn't have server_default=func.now()
     # db_user.updated_at = datetime.now(timezone.utc)
 
@@ -204,16 +204,16 @@ def delete_user(db: Session, user_id: int) -> bool:
     try:
         # Find the user first
         db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        
+
         if not db_user:
             # User not found, deletion cannot proceed
-            return False 
-            
+            return False
+
         # Delete the user
         db.delete(db_user)
         db.commit()
         return True # Deletion successful
-        
+
     except SQLAlchemyError as e:
         db.rollback() # Rollback in case of error
         logger.error(f"SQLAlchemy error deleting user {user_id}: {e}")
@@ -244,19 +244,19 @@ def update_user_password(db: Session, user_id: int, new_hashed_password: str) ->
     try:
         # Find the user
         db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        
+
         if not db_user:
             # User not found
             return False
-            
+
         # Update the password - 修复类型问题
         setattr(db_user, 'hashed_password', new_hashed_password)  # 使用setattr而不是直接赋值
         # Manually set updated_at if needed
         # db_user.updated_at = datetime.now(timezone.utc)
-        
+
         db.commit()
         return True # Update successful
-        
+
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"SQLAlchemy error updating password for user {user_id}: {e}")
@@ -284,7 +284,7 @@ def create_employee(db: Session, employee: schemas.EmployeeCreate) -> models.Emp
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Employee with ID card number {employee.id_card_number} already exists."
         )
-    
+
     if employee.employee_unique_id:
         existing_by_unique_id = db.query(models.Employee).filter(models.Employee.employee_unique_id == employee.employee_unique_id).first()
         if existing_by_unique_id:
@@ -303,19 +303,19 @@ def create_employee(db: Session, employee: schemas.EmployeeCreate) -> models.Emp
         bank_name=employee.bank_name,
         establishment_type_id=employee.establishment_type_id
     )
-    
+
     # 3. Add, commit, refresh
     try:
         db.add(db_employee)
         db.commit()
         db.refresh(db_employee) # Get ID, created_at etc.
-        
+
         # Eager load relationships for the response AFTER the commit
         # This is one way; alternatively, query again with options if needed
         # However, for a consistent response, querying again might be better:
         # return get_employee_by_id(db, db_employee.id) # Query again to get loaded object
         return db_employee # Return the created object (relationships might be lazy loaded)
-    
+
     except IntegrityError as e:
         db.rollback()
         # Could be foreign key constraint (dept_id, est_type_id) or another race condition on unique keys
@@ -332,7 +332,7 @@ def create_employee(db: Session, employee: schemas.EmployeeCreate) -> models.Emp
                  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Employee with ID card number {employee.id_card_number} already exists (race condition)." )
              elif "uq_employees_employee_unique_id" in str(e).lower() and employee.employee_unique_id:
                  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Employee with unique ID {employee.employee_unique_id} already exists (race condition)." )
-        
+
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error creating employee.")
     except Exception as e:
         db.rollback()
@@ -340,12 +340,12 @@ def create_employee(db: Session, employee: schemas.EmployeeCreate) -> models.Emp
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error creating employee.")
 
 def get_employees(
-    db: Session, 
-    skip: int = 0, 
-    limit: int = 100, 
-    name: Optional[str] = None, 
-    department_id: Optional[int] = None, 
-    employee_unique_id: Optional[str] = None, 
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    name: Optional[str] = None,
+    department_id: Optional[int] = None,
+    employee_unique_id: Optional[str] = None,
     establishment_type_id: Optional[int] = None
 ) -> Tuple[List[models.Employee], int]:
     """Fetches a paginated list of employees using ORM, with filtering and eager loading."""
@@ -374,8 +374,8 @@ def get_employees(
     return employees, total_count
 
 def update_employee(
-    db: Session, 
-    employee_id: int, 
+    db: Session,
+    employee_id: int,
     employee_update: schemas.EmployeeUpdate
 ) -> Optional[models.Employee]:
     """Updates an existing employee using ORM, checking uniqueness constraints on update."""
@@ -429,7 +429,7 @@ def update_employee(
         elif "unique constraint" in str(e).lower():
              # This might indicate a race condition if pre-commit checks passed
              raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Unique constraint violation during update (e.g., ID card or unique ID)." )
-        
+
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error updating employee.")
     except Exception as e:
         db.rollback()
@@ -478,13 +478,13 @@ def create_unit(db: Session, unit: schemas.UnitCreate) -> models.Unit:
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Unit with name '{unit.name}' already exists."
         )
-        
+
     # Create Unit instance
     db_unit = models.Unit(
         name=unit.name,
         description=unit.description
     )
-    
+
     try:
         db.add(db_unit)
         db.commit()
@@ -518,9 +518,9 @@ def get_unit_by_id(db: Session, unit_id: int) -> Optional[models.Unit]:
         return None
 
 def get_units(
-    db: Session, 
-    search: Optional[str] = None, 
-    skip: int = 0, 
+    db: Session,
+    search: Optional[str] = None,
+    skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[models.Unit], int]:
     """
@@ -540,7 +540,7 @@ def get_units(
 
         # Apply ordering and pagination
         units_list = query.order_by(models.Unit.name).offset(skip).limit(limit).all()
-        
+
         return units_list, total_count
 
     except SQLAlchemyError as e:
@@ -557,7 +557,7 @@ def update_unit(db: Session, unit_id: int, unit_update: schemas.UnitUpdate) -> O
     db_unit = get_unit_by_id(db, unit_id)
     if not db_unit:
         return None # Unit not found
-        
+
     # Update fields that are present in the request
     update_data = unit_update.dict(exclude_unset=True) # Only take fields that were provided
     for key, value in update_data.items():
@@ -570,12 +570,12 @@ def update_unit(db: Session, unit_id: int, unit_update: schemas.UnitUpdate) -> O
                     status_code=status.HTTP_409_CONFLICT,
                     detail=f"Unit with name '{value}' already exists."
                 )
-        
+
         # Set the attribute
         setattr(db_unit, key, value)
-    
+
     # Update timestamp would happen automatically if using onupdate in model
-    
+
     try:
         db.add(db_unit)
         db.commit()
@@ -610,7 +610,7 @@ def delete_unit(db: Session, unit_id: int) -> bool:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Unit with ID {unit_id} not found."
         )
-    
+
     try:
         db.delete(db_unit)
         db.commit()
@@ -630,7 +630,7 @@ def delete_unit(db: Session, unit_id: int) -> bool:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error occurred while deleting unit {unit_id}."
         )
-        
+
 def get_departments_by_unit_id(db: Session, unit_id: int) -> List[models.Department]:
     """
     获取指定单位的所有部门列表
@@ -641,7 +641,7 @@ def get_departments_by_unit_id(db: Session, unit_id: int) -> List[models.Departm
         departments = db.query(models.Department).filter(
             models.Department.unit_id == unit_id
         ).order_by(models.Department.name).all()
-        
+
         return departments
     except SQLAlchemyError as e:
         logger.error(f"SQLAlchemy error fetching departments for unit {unit_id}: {e}")
@@ -696,24 +696,24 @@ def create_department(db: Session, department: schemas.DepartmentCreate) -> mode
         unit_id=department.unit_id,
         description=department.description
     )
-    
+
     try:
         db.add(db_department)
         db.commit()
         db.refresh(db_department)
-        
+
         # Eager load the unit relationship for the response
         # Query again with joinedload (safer for consistent response)
         created_dept_with_unit = db.query(models.Department).options(
             joinedload(models.Department.unit)
         ).filter(models.Department.id == db_department.id).first()
-        
+
         if not created_dept_with_unit:
              # Should not happen if refresh worked, but handle defensively
              logger.error(f"Failed to re-fetch created department {db_department.id} with unit.")
              # Return the basic object instead of failing the whole operation
              return db_department
-             
+
         return created_dept_with_unit
 
     except IntegrityError as e: # Catch potential FK issues or race conditions on unique constraints
@@ -787,7 +787,7 @@ def get_departments(
 
         # Apply ordering and pagination
         departments_list = query.order_by(models.Department.name).offset(skip).limit(limit).all()
-        
+
         return departments_list, total_count
 
     except SQLAlchemyError as e:
@@ -804,7 +804,7 @@ def count_employees_by_department_id(db: Session, department_id: int) -> int:
         count = db.query(func.count(models.Employee.id)).filter(
             models.Employee.department_id == department_id
         ).scalar()
-        
+
         return count or 0  # 确保返回整数，即使结果为None
     except SQLAlchemyError as e:
         logger.error(f"SQLAlchemy error counting employees for department {department_id}: {e}")
@@ -846,7 +846,7 @@ def update_department(
     # Update the object's attributes
     for key, value in update_data.items():
         setattr(db_department, key, value)
-        
+
     # Manually update timestamp if needed
     # db_department.updated_at = datetime.now(timezone.utc)
 
@@ -855,7 +855,7 @@ def update_department(
         db.refresh(db_department)
         # Re-fetch with unit loaded to ensure consistent response format
         return get_department_by_id(db, department_id)
-        
+
     except IntegrityError as e: # Catch potential race condition on unique constraint
         db.rollback()
         logger.error(f"Integrity error updating department {department_id}: {e}", exc_info=True)
@@ -897,7 +897,7 @@ def delete_department(db: Session, department_id: int) -> bool:
 
     # Check for associated employees before deleting
     employee_count = db.query(func.count(models.Employee.id)).filter(models.Employee.department_id == department_id).scalar()
-    
+
     if employee_count > 0:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -944,24 +944,24 @@ def get_establishment_types(db: Session) -> List[models.EstablishmentType]:
 # --- ORM Functions for Salary Data --- START
 def get_distinct_pay_periods(db: Session) -> List[str]:
     """
-    Fetches a list of unique, non-null pay periods (YYYY-MM) from the 
-    raw_salary_data_staging table using a raw SQL query via SQLAlchemy session.
+    Fetches a list of unique, non-null pay periods (YYYY-MM) from the
+    consolidated_data table using a raw SQL query via SQLAlchemy session.
     Returns a list of strings, ordered descending.
     """
     try:
         # Use text() for raw SQL execution through the session
         query = text("""
-            SELECT DISTINCT pay_period_identifier 
-            FROM staging.raw_salary_data_staging 
+            SELECT DISTINCT pay_period_identifier
+            FROM staging.consolidated_data
             WHERE pay_period_identifier IS NOT NULL
             ORDER BY pay_period_identifier DESC;
         """)
-        
+
         result = db.execute(query)
-        
+
         # Fetch all results and extract the first element (pay_period_identifier)
         periods_list = [row[0] for row in result.fetchall()]
-        
+
         return periods_list
 
     except SQLAlchemyError as e:
@@ -973,8 +973,8 @@ def get_distinct_pay_periods(db: Session) -> List[str]:
         return []
 
 def get_salary_data(
-    db: Session, 
-    limit: int = 100, 
+    db: Session,
+    limit: int = 100,
     skip: int = 0, # Renamed from offset to match common ORM/API patterns
     pay_period: Optional[str] = None,
     employee_name: Optional[str] = None,
@@ -983,15 +983,15 @@ def get_salary_data(
     establishment_type_name: Optional[str] = None,
 ) -> Tuple[List[Dict[str, Any]], int]: # Return List of Dicts for easier Pydantic conversion
     """
-    Fetches salary data from the view_level1_calculations using raw SQL 
+    Fetches salary data from the consolidated_data table using raw SQL
     via SQLAlchemy session, with filtering and pagination.
     Returns a tuple: (list of salary records as dictionaries, total count).
     """
     params = {}
     filters = []
-    # Updated base_query to point to the analytics schema
-    base_query = "FROM analytics.view_level1_calculations" 
-    
+    # Updated base_query to point to the staging schema and consolidated_data table
+    base_query = "FROM staging.consolidated_data"
+
     # Build WHERE clause dynamically
     if pay_period:
         filters.append("pay_period_identifier = :pay_period")
@@ -1000,13 +1000,13 @@ def get_salary_data(
         filters.append("employee_name ILIKE :employee_name")
         params['employee_name'] = f"%{employee_name}%"
     if department_name:
-        filters.append("department_name = :department_name")
+        filters.append("sal_department_name = :department_name")
         params['department_name'] = department_name
     if unit_name:
-        filters.append("unit_name = :unit_name")
+        filters.append("sal_organization_name = :unit_name")
         params['unit_name'] = unit_name
     if establishment_type_name:
-        filters.append("establishment_type_name = :establishment_type_name")
+        filters.append("sal_establishment_type_name = :establishment_type_name")
         params['establishment_type_name'] = establishment_type_name
 
     where_clause = ""
@@ -1016,7 +1016,7 @@ def get_salary_data(
     # Count query
     # Pass params without limit/skip for count
     count_params = params.copy()
-    # Updated count_sql to point to the analytics schema
+    # Updated count_sql to point to the staging schema
     count_sql = text(f"SELECT COUNT(*) AS total {base_query} {where_clause}")
 
     # Data query
@@ -1024,10 +1024,169 @@ def get_salary_data(
     data_params = params.copy()
     data_params['limit'] = limit
     data_params['skip'] = skip
-    # Updated data_sql to point to the analytics schema
+    # Updated data_sql to point to the staging schema
     data_sql = text(f"""
-        SELECT * {base_query} {where_clause} 
-        ORDER BY employee_id, pay_period_identifier 
+        SELECT
+            _consolidated_data_id,
+            employee_name,
+            pay_period_identifier,
+            id_card_number,
+            ann_annuity_contribution_base_salary,
+            ann_annuity_contribution_base,
+            ann_annuity_employer_rate,
+            ann_annuity_employer_contribution,
+            ann_annuity_employee_rate,
+            ann_annuity_employee_contribution,
+            hf_housingfund_contribution_base_salary,
+            hf_housingfund_contribution_base,
+            hf_housingfund_employer_rate,
+            hf_housingfund_employer_contribution,
+            hf_housingfund_employee_rate,
+            hf_housingfund_employee_contribution,
+            med_contribution_base_salary,
+            med_contribution_base,
+            med_employer_medical_rate,
+            med_employer_medical_contribution,
+            med_employee_medical_rate,
+            med_employee_medical_contribution,
+            med_employer_critical_illness_rate,
+            med_employer_critical_illness_contribution,
+            med_medical_total_employer_contribution,
+            med_medical_total_employee_contribution,
+            pen_pension_contribution_base,
+            pen_pension_total_amount,
+            pen_pension_employer_rate,
+            pen_pension_employer_contribution,
+            pen_pension_employee_rate,
+            pen_pension_employee_contribution,
+            pen_unemployment_contribution_base,
+            pen_unemployment_total_amount,
+            pen_unemployment_employer_rate,
+            pen_unemployment_employer_contribution,
+            pen_unemployment_employee_rate,
+            pen_unemployment_employee_contribution,
+            pen_injury_contribution_base,
+            pen_injury_total_amount,
+            pen_injury_employer_rate,
+            pen_injury_employer_contribution,
+            pen_ss_total_employer_contribution,
+            pen_ss_total_employee_contribution,
+            sal_remarks,
+            sal_subsidy,
+            sal_allowance,
+            sal_post_salary,
+            sal_salary_step,
+            sal_basic_salary,
+            sal_tax_adjustment,
+            sal_salary_grade,
+            sal_salary_level,
+            sal_salary_backpay,
+            sal_post_category,
+            sal_other_allowance,
+            sal_other_deductions,
+            sal_employee_type_key,
+            sal_personnel_rank,
+            sal_living_allowance,
+            sal_probation_salary,
+            sal_one_time_deduction,
+            sal_performance_salary,
+            sal_personnel_identity,
+            sal_total_backpay_amount,
+            sal_individual_income_tax,
+            sal_housing_fund_adjustment,
+            sal_basic_performance_bonus,
+            sal_petition_post_allowance,
+            sal_post_position_allowance,
+            sal_salary_transportation_allowance,
+            sal_self_annuity_contribution,
+            sal_self_medical_contribution,
+            sal_self_pension_contribution,
+            sal_monthly_basic_performance,
+            sal_only_child_parents_reward,
+            sal_rank_or_post_grade_salary,
+            sal_salary_step_backpay_total,
+            sal_ref_official_salary_step,
+            sal_monthly_reward_performance,
+            sal_total_deduction_adjustment,
+            sal_social_insurance_adjustment,
+            sal_quarterly_performance_bonus,
+            sal_annual_fixed_salary_amount,
+            sal_position_or_technical_salary,
+            sal_reform_1993_reserved_subsidy,
+            sal_reward_performance_deduction,
+            sal_employer_annuity_contribution,
+            sal_employer_medical_contribution,
+            sal_employer_pension_contribution,
+            sal_self_housing_fund_contribution,
+            sal_self_unemployment_contribution,
+            sal_petition_worker_post_allowance,
+            sal_ref_official_post_salary_level,
+            sal_basic_performance_bonus_deduction,
+            sal_salary_civil_servant_normative_allowance,
+            sal_employer_housing_fund_contribution,
+            sal_employer_unemployment_contribution,
+            sal_employer_critical_illness_contribution,
+            sal_bank_account_number,
+            sal_bank_branch_name,
+            sal_employment_start_date,
+            sal_employment_status,
+            sal_organization_name,
+            sal_department_name,
+            sal_basic_performance_salary,
+            sal_incentive_performance_salary,
+            sal_self_injury_contribution,
+            sal_employer_injury_contribution,
+            sal_position_or_post_wage,
+            sal_rank_or_step_wage,
+            sal_is_leader,
+            sal_pay_period,
+            tax_period_identifier,
+            tax_income_period_start,
+            tax_income_period_end,
+            tax_current_period_income,
+            tax_current_period_tax_exempt_income,
+            tax_deduction_basic_pension,
+            tax_deduction_basic_medical,
+            tax_deduction_unemployment,
+            tax_deduction_housing_fund,
+            tax_deduction_child_edu_cumulative,
+            tax_deduction_cont_edu_cumulative,
+            tax_deduction_housing_loan_interest_cumulative,
+            tax_deduction_housing_rent_cumulative,
+            tax_deduction_support_elderly_cumulative,
+            tax_deduction_infant_care_cumulative,
+            tax_deduction_private_pension_cumulative,
+            tax_deduction_annuity,
+            tax_deduction_commercial_health_insurance,
+            tax_deduction_deferred_pension_insurance,
+            tax_deduction_other,
+            tax_deduction_donations,
+            tax_total_deductions_pre_tax,
+            tax_reduction_amount,
+            tax_standard_deduction,
+            tax_calculated_income_tax,
+            tax_remarks,
+            _import_batch_id,
+            _consolidation_timestamp,
+            ann_employee_type_key,
+            hf_employee_type_key,
+            med_employee_type_key,
+            pen_employee_type_key,
+            sal_employee_unique_id,
+            sal_establishment_type_name,
+            tax_employee_type_key,
+            sal_position_rank,
+            sal_gender,
+            sal_ethnicity,
+            sal_date_of_birth,
+            sal_education_level,
+            sal_service_interruption_years,
+            sal_continuous_service_years,
+            sal_actual_position,
+            sal_actual_position_start_date,
+            sal_position_level_start_date
+        {base_query} {where_clause}
+        ORDER BY _consolidated_data_id, pay_period_identifier
         LIMIT :limit OFFSET :skip
     """)
 
@@ -1035,15 +1194,15 @@ def get_salary_data(
         # Execute count query
         total_result = db.execute(count_sql, count_params).scalar_one_or_none() # Use scalar_one_or_none for safety
         total_count = total_result if total_result is not None else 0
-        
+
         # Execute data query
         data_result = db.execute(data_sql, data_params)
-        
+
         # Convert Row objects to dictionaries
         # ._mapping gives access to the column-keyed dictionary
         # 修复类型问题：将RowMapping转换为Dict[str, Any]
         salary_data_list = [dict(row._mapping) for row in data_result.fetchall()]
-        
+
         return salary_data_list, total_count
 
     except SQLAlchemyError as e:
@@ -1073,28 +1232,28 @@ def create_report_link(db: Session, report_link: schemas.ReportLinkCreate) -> mo
     return db_report_link
 
 def get_report_links(
-    db: Session, 
-    skip: int = 0, 
-    limit: int = 100, 
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
     active_only: bool = False,
     category: Optional[str] = None
 ) -> Tuple[List[models.ReportLink], int]:
     """获取报表链接列表，支持分页和过滤"""
     query = db.query(models.ReportLink)
-    
+
     if active_only:
         query = query.filter(models.ReportLink.is_active == True)
-        
+
     if category:
         query = query.filter(models.ReportLink.category == category)
-    
+
     # 获取总数
     total_count = query.count()
-    
+
     # 添加排序和分页
     query = query.order_by(models.ReportLink.display_order, models.ReportLink.name)
     query = query.offset(skip).limit(limit)
-    
+
     return query.all(), total_count
 
 def get_report_link_by_id(db: Session, report_link_id: int) -> Optional[models.ReportLink]:
@@ -1102,19 +1261,19 @@ def get_report_link_by_id(db: Session, report_link_id: int) -> Optional[models.R
     return db.query(models.ReportLink).filter(models.ReportLink.id == report_link_id).first()
 
 def update_report_link(
-    db: Session, 
-    report_link_id: int, 
+    db: Session,
+    report_link_id: int,
     report_link_update: schemas.ReportLinkUpdate
 ) -> Optional[models.ReportLink]:
     """更新报表链接"""
     db_report_link = get_report_link_by_id(db, report_link_id)
     if not db_report_link:
         return None
-        
+
     update_data = report_link_update.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_report_link, key, value)
-        
+
     db.commit()
     db.refresh(db_report_link)
     return db_report_link
@@ -1124,11 +1283,11 @@ def delete_report_link(db: Session, report_link_id: int) -> bool:
     db_report_link = get_report_link_by_id(db, report_link_id)
     if not db_report_link:
         return False
-        
+
     db.delete(db_report_link)
     db.commit()
     return True
-    
+
 # --- ORM Functions for Report Link Management --- END
 
 # --- ORM Functions for Sheet Name Mapping --- START ---
@@ -1181,10 +1340,10 @@ def update_sheet_mapping(db: Session, sheet_name: str, mapping_update: schemas.S
     update_data = mapping_update.model_dump(exclude_unset=True)
     if not update_data:
          return db_mapping # Nothing to update
-         
+
     for key, value in update_data.items():
         setattr(db_mapping, key, value)
-        
+
     try:
         db.commit()
         db.refresh(db_mapping)
@@ -1234,4 +1393,4 @@ def delete_sheet_mapping(db: Session, sheet_name: str) -> bool:
 # # +++ Raw Salary Data Staging Model (Minimal) +++ END
 
 # --- ORM CRUD Functions for Units --- START
-# ... existing code ... 
+# ... existing code ...

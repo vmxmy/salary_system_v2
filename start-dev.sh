@@ -94,10 +94,31 @@ echo "Starting Frontend (output to frontend.log)..."
 # Run concurrently
 # --kill-others attempts to kill other processes if one exits
 # --names adds prefixes to the log output (e.g., "[FRONTEND]", "[BACKEND]")
-concurrently --kill-others --names "FRONTEND,BACKEND" "$FRONTEND_CMD" "$BACKEND_CMD"
+concurrently --kill-others --names "FRONTEND,BACKEND" "$FRONTEND_CMD" "$BACKEND_CMD" &
+CONCURRENTLY_PID=$!
 
-# Check the exit code of concurrently
+# 等待一段时间，让服务器启动
+echo "Waiting for servers to start..."
+sleep 5
+
+# 开始 tail 后端日志
+echo "Starting to tail backend logs (Press Ctrl+C to stop)..."
+if [ "$USE_ZSH_CONDA" = true ]; then
+  # 如果使用 zsh 和 conda，日志在项目根目录的上一级
+  tail -f ../backend.log &
+else
+  # 默认情况下，日志在项目根目录
+  tail -f backend.log &
+fi
+TAIL_PID=$!
+
+# 等待 concurrently 进程结束
+wait $CONCURRENTLY_PID
 EXIT_CODE=$?
+
+# 杀死 tail 进程
+kill $TAIL_PID 2>/dev/null
+
 if [ $EXIT_CODE -ne 0 ]; then
   echo "One or both of the servers failed to start or exited unexpectedly (Exit Code: $EXIT_CODE)."
 else
