@@ -1,16 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Form, Input, Select, Button, Spin, Alert, Space, DatePicker, Tag } from 'antd';
+import { Table, Form, Input, Button, Spin, Alert, Space, DatePicker, Tag, App } from 'antd';
 import { ClearOutlined } from '@ant-design/icons';
 import apiClient, {
-    fetchEstablishmentTypes,
-    fetchDepartments,
-    fetchUnits,
     fetchSalaryFieldDefinitions,
     SalaryFieldDefinition
 } from '../services/api';
 import type { TableProps, TablePaginationConfig, TableColumnsType } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
+
+// 导入自定义组件
+import TableToolbar from './table/TableToolbar';
+import ColumnSettingsDrawer, { ColumnConfig } from './table/ColumnSettingsDrawer';
+import AdvancedFilterDrawer, { FilterGroup } from './table/AdvancedFilterDrawer';
+import TableLayoutManager from './table/TableLayoutManager';
+import ExportTableModal from './table/ExportTableModal';
+
+// 导入工具函数
+import {
+    convertColumnsToConfig,
+    convertConfigToColumns,
+    applyFilters,
+    loadTableSetting,
+    saveTableSetting
+} from '../utils/tableUtils';
 
 // Define the interface for the salary record (should match backend Pydantic model)
 interface SalaryRecord {
@@ -223,6 +236,7 @@ const SalaryDataViewer: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const { t } = useTranslation();
+    const { message } = App.useApp(); // 使用 App.useApp() 钩子获取 message 实例
     const [form] = Form.useForm<RawFilterValues>();
     const [tableFilters, setTableFilters] = useState<FilterParams>({});
     const [pagination, setPagination] = useState<TablePaginationConfig>({
@@ -232,14 +246,18 @@ const SalaryDataViewer: React.FC = () => {
         showSizeChanger: true,
         showTotal: (total, range) => t('common.pagination.showTotal', { rangeStart: range[0], rangeEnd: range[1], total }),
     });
-    const [establishmentTypes, setEstablishmentTypes] = useState<string[]>([]);
-    const [loadingTypes, setLoadingTypes] = useState<boolean>(false);
-    const [departments, setDepartments] = useState<string[]>([]);
-    const [loadingDepartments, setLoadingDepartments] = useState<boolean>(false);
-    const [units, setUnits] = useState<string[]>([]);
-    const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
+    // 移除了未使用的状态变量
     const [fieldDefinitions, setFieldDefinitions] = useState<SalaryFieldDefinition[]>([]);
-    const [loadingFields, setLoadingFields] = useState<boolean>(false);
+
+    // 新增状态
+    const [columnSettingsVisible, setColumnSettingsVisible] = useState<boolean>(false);
+    const [advancedFilterVisible, setAdvancedFilterVisible] = useState<boolean>(false);
+    const [tableLayoutVisible, setTableLayoutVisible] = useState<boolean>(false);
+    const [exportModalVisible, setExportModalVisible] = useState<boolean>(false);
+    const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>([]);
+    const [advancedFilters, setAdvancedFilters] = useState<FilterGroup[]>([]);
+    const [filteredData, setFilteredData] = useState<SalaryRecord[]>([]);
+    const [currentLayoutId, setCurrentLayoutId] = useState<string | undefined>(undefined);
 
     // 动态生成表格列
     const generateColumns = (): TableColumnsType<SalaryRecord> => {
@@ -305,7 +323,45 @@ const SalaryDataViewer: React.FC = () => {
     };
 
     // 生成表格列
-    const columns = generateColumns();
+    const columns = columnConfigs.length > 0
+        ? convertConfigToColumns(columnConfigs)
+        : generateColumns();
+
+    // 初始化列配置
+    useEffect(() => {
+        if (fieldDefinitions.length > 0 && columnConfigs.length === 0) {
+            // 尝试从localStorage加载列配置
+            const savedConfigs = loadTableSetting<ColumnConfig[]>('salaryTable_columnConfigs', []);
+
+            if (savedConfigs.length > 0) {
+                // 验证保存的配置是否与当前字段定义匹配
+                const currentKeys = fieldDefinitions.map(field => field.key);
+                const savedKeys = savedConfigs.map(config => config.key);
+
+                // 如果有新增字段或删除字段，重新生成配置
+                if (!currentKeys.every(key => savedKeys.includes(key)) ||
+                    !savedKeys.every(key => currentKeys.includes(key))) {
+                    const newConfigs = convertColumnsToConfig(generateColumns());
+                    setColumnConfigs(newConfigs);
+                } else {
+                    setColumnConfigs(savedConfigs);
+                }
+            } else {
+                // 没有保存的配置，生成新的
+                const newConfigs = convertColumnsToConfig(generateColumns());
+                setColumnConfigs(newConfigs);
+            }
+        }
+    }, [fieldDefinitions]);
+
+    // 应用高级筛选
+    useEffect(() => {
+        if (advancedFilters.length > 0) {
+            setFilteredData(applyFilters(data, advancedFilters));
+        } else {
+            setFilteredData(data);
+        }
+    }, [data, advancedFilters]);
 
     // Function to fetch data from API
     const fetchData = useCallback(async () => {
@@ -357,42 +413,20 @@ const SalaryDataViewer: React.FC = () => {
     // Effect to fetch all dropdown data and field definitions on mount
     useEffect(() => {
         const loadDropdownData = async () => {
-            console.log("Fetching all dropdown data...");
-            setLoadingTypes(true);
-            setLoadingDepartments(true);
-            setLoadingUnits(true);
-            setLoadingFields(true);
-
+            console.log("Fetching field definitions...");
             try {
-                // Fetch all in parallel
-                const [types, depts, unitsData, fields] = await Promise.all([
-                    fetchEstablishmentTypes(),
-                    fetchDepartments(),
-                    fetchUnits(),
-                    fetchSalaryFieldDefinitions()
-                ]);
-                setEstablishmentTypes(types);
-                setDepartments(depts);
-                setUnits(unitsData);
+                // 只获取字段定义
+                const fields = await fetchSalaryFieldDefinitions();
                 setFieldDefinitions(fields);
-                console.log("Dropdown data and field definitions loaded:", {
-                    types,
-                    depts,
-                    units: unitsData,
+                console.log("Field definitions loaded:", {
                     fieldCount: fields.length
                 });
             } catch (error) {
-                console.error("Failed to load dropdown data or field definitions:", error);
+                console.error("Failed to load field definitions:", error);
                 setError(t('dataViewer.errors.filterOptionsFailed'));
-                setEstablishmentTypes([]);
-                setDepartments([]);
-                setUnits([]);
                 setFieldDefinitions([]);
             } finally {
-                setLoadingTypes(false);
-                setLoadingDepartments(false);
-                setLoadingUnits(false);
-                setLoadingFields(false);
+                // 移除了未使用的状态更新
             }
         };
 
@@ -409,17 +443,7 @@ const SalaryDataViewer: React.FC = () => {
         updateFilterAndResetPage({ pay_period: date ? date.format('YYYY-MM') : undefined });
     };
 
-    const handleDepartmentChange = (value: string) => {
-        updateFilterAndResetPage({ sal_department_name: value === '' ? undefined : value });
-    };
-
-    const handleUnitChange = (value: string) => {
-        updateFilterAndResetPage({ sal_organization_name: value === '' ? undefined : value });
-    };
-
-    const handleEstablishmentChange = (value: string) => {
-        updateFilterAndResetPage({ sal_establishment_type_name: value === '' ? undefined : value });
-    };
+    // 移除了未使用的处理函数
 
     const handleNameSearch = () => {
         const nameValue = form.getFieldValue('employee_name');
@@ -506,81 +530,6 @@ const SalaryDataViewer: React.FC = () => {
                             onPressEnter={handleNameSearch}
                         />
                     </Form.Item>
-                    <Form.Item
-                        label={t('dataViewer.filters.departmentLabel')}
-                        style={{ margin: 0 }}
-                        htmlFor="department_filter"
-                        name="sal_department_name" // Added name attribute
-                    >
-                        <Select
-                            id="department_filter"
-                            style={{ width: 160 }}
-                            placeholder={t('dataViewer.filters.departmentPlaceholder')}
-                            onChange={handleDepartmentChange}
-                            loading={loadingDepartments}
-                            allowClear
-                            showSearch
-                            optionFilterProp="children"
-                            filterOption={(input, option) =>
-                                (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                            }
-                        >
-                            <Select.Option key="all-dept-option" value="">{t('common.allOption')}</Select.Option>
-                            {departments.map((dept, index) => (
-                                <Select.Option key={dept || `dept-${index}`} value={dept}>{dept}</Select.Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item
-                        label={t('dataViewer.filters.unitLabel')}
-                        style={{ margin: 0 }}
-                        htmlFor="unit_filter"
-                        name="sal_organization_name" // Added name attribute
-                    >
-                        <Select
-                            id="unit_filter"
-                            style={{ width: 160 }}
-                            placeholder={t('dataViewer.filters.unitPlaceholder')}
-                            onChange={handleUnitChange}
-                            loading={loadingUnits}
-                            allowClear
-                            showSearch
-                            optionFilterProp="children"
-                            filterOption={(input, option) =>
-                                (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                            }
-                        >
-                            <Select.Option key="all-unit-option" value="">{t('common.allOption')}</Select.Option>
-                            {units.map((unit, index) => (
-                                <Select.Option key={unit || `unit-${index}`} value={unit}>{unit}</Select.Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item
-                        label={t('dataViewer.filters.establishmentLabel')}
-                        style={{ margin: 0 }}
-                        htmlFor="establishment_type_filter"
-                        name="sal_establishment_type_name" // Added name attribute
-                    >
-                        <Select
-                            id="establishment_type_filter"
-                            style={{ width: 160 }}
-                            placeholder={t('dataViewer.filters.establishmentPlaceholder')}
-                            onChange={handleEstablishmentChange}
-                            loading={loadingTypes}
-                            allowClear
-                            showSearch
-                            optionFilterProp="children"
-                            filterOption={(input, option) =>
-                                (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                            }
-                        >
-                            <Select.Option key="all-establishment-option" value="">{t('common.allOption')}</Select.Option>
-                            {establishmentTypes.map((type, index) => (
-                                <Select.Option key={type || `type-${index}`} value={type}>{type}</Select.Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
                     <Space>
                         <Button
                             type="primary"
@@ -598,17 +547,27 @@ const SalaryDataViewer: React.FC = () => {
                 </Space>
             </Form>
 
+            {/* 工具栏 */}
+            <TableToolbar
+                onColumnSettingsClick={() => setColumnSettingsVisible(true)}
+                onAdvancedFilterClick={() => setAdvancedFilterVisible(true)}
+                onSaveLayoutClick={() => setTableLayoutVisible(true)}
+                onExportClick={() => setExportModalVisible(true)}
+                onRefreshClick={fetchData}
+                loading={loading}
+            />
+
             {error && <Alert message="Error" description={error} type="error" showIcon closable onClose={() => setError(null)} style={{ marginBottom: 16 }}/>}
 
             <Spin spinning={loading}>
                 <Table
                     columns={columns}
                     rowKey={(record) => {
-                        const id = record._consolidated_data_id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                        const id = record._consolidated_data_id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
                         const period = record.pay_period_identifier || 'no-period';
                         return `${id}-${period}`;
                     }}
-                    dataSource={data}
+                    dataSource={advancedFilters.length > 0 ? filteredData : data}
                     pagination={pagination}
                     loading={loading}
                     onChange={handleTableChange}
@@ -619,6 +578,85 @@ const SalaryDataViewer: React.FC = () => {
                     sticky
                 />
             </Spin>
+
+            {/* 列设置抽屉 */}
+            <ColumnSettingsDrawer
+                open={columnSettingsVisible}
+                onClose={() => setColumnSettingsVisible(false)}
+                columns={generateColumns()}
+                onColumnsChange={(newColumns) => {
+                    setColumnConfigs(newColumns);
+                    saveTableSetting('salaryTable_columnConfigs', newColumns);
+                    message.success(t('columnSettings.saveSuccess'));
+                }}
+                defaultVisibleKeys={columnConfigs.filter(col => col.visible).map(col => col.key)}
+                currentColumnConfigs={columnConfigs}
+            />
+
+            {/* 高级筛选抽屉 */}
+            <AdvancedFilterDrawer
+                open={advancedFilterVisible}
+                onClose={() => setAdvancedFilterVisible(false)}
+                columns={generateColumns()}
+                onApplyFilter={(groups) => {
+                    setAdvancedFilters(groups);
+                    message.success(t('advancedFilter.applySuccess'));
+                }}
+                initialConditions={advancedFilters}
+            />
+
+            {/* 表格布局管理器 */}
+            <TableLayoutManager
+                open={tableLayoutVisible}
+                onClose={() => setTableLayoutVisible(false)}
+                onSaveLayout={(name) => {
+                    message.success(t('tableLayout.saveSuccess', { name }));
+                }}
+                onLoadLayout={(layout) => {
+                    setColumnConfigs(layout.columns);
+
+                    // 处理筛选条件，兼容旧版本格式
+                    if (layout.filters && layout.filters.length > 0) {
+                        if ('conditions' in layout.filters[0]) {
+                            // 新格式：FilterGroup[]
+                            setAdvancedFilters(layout.filters as FilterGroup[]);
+                        } else {
+                            // 旧格式：FilterCondition[]，转换为一个组
+                            const group: FilterGroup = {
+                                id: `group-${Date.now()}`,
+                                conditions: layout.filters as any
+                            };
+                            setAdvancedFilters([group]);
+                        }
+                    } else {
+                        setAdvancedFilters([]);
+                    }
+
+                    // 保存当前加载的布局ID
+                    setCurrentLayoutId(layout.id);
+
+                    saveTableSetting('salaryTable_columnConfigs', layout.columns);
+                    message.success(t('tableLayout.loadSuccess', { name: layout.name }));
+                }}
+                onUpdateLayout={(layout) => {
+                    // 更新布局后，保存列配置
+                    saveTableSetting('salaryTable_columnConfigs', layout.columns);
+                    message.success(t('tableLayout.updateSuccess', { name: layout.name }));
+                }}
+                tableId="salaryTable"
+                currentColumns={columnConfigs}
+                currentFilters={advancedFilters}
+                currentLayoutId={currentLayoutId}
+            />
+
+            {/* 导出表格模态框 */}
+            <ExportTableModal
+                open={exportModalVisible}
+                onClose={() => setExportModalVisible(false)}
+                columns={columnConfigs}
+                data={advancedFilters.length > 0 ? filteredData : data}
+                fileName="salary-data-export"
+            />
         </Space>
     );
 };
