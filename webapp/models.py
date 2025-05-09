@@ -797,3 +797,26 @@ class RawTaxStaging(Base):
 
     def __repr__(self):
         return f"<RawTaxStaging(id={self._tax_staging_id}, period='{self.pay_period_identifier}', name='{self.employee_name}')>"
+
+
+# --- 用户表格配置模型 ---
+class UserTableConfig(Base):
+    __tablename__ = 'user_table_configs'
+    __table_args__ = (
+        UniqueConstraint('user_id', 'table_id', 'config_type', 'name', name='uq_user_table_config'),
+        {'schema': 'core'}
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('core.users.id', ondelete='CASCADE'), nullable=False, index=True)
+    table_id = Column(String(50), nullable=False, index=True)
+    config_type = Column(String(20), nullable=False)  # 'LAYOUT' 或 'FILTER'
+    name = Column(String(100), nullable=False)
+    config_data = Column(JSONB, nullable=False)
+    is_default = Column(Boolean, default=False)
+    is_shared = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # 关联到用户
+    user = relationship("User")

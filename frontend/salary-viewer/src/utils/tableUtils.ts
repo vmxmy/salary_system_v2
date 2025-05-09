@@ -42,42 +42,94 @@ export const convertColumnsToConfig = (columns: TableColumnsType<any>): ColumnCo
  * @returns 是否匹配
  */
 const applyCondition = (record: any, condition: FilterCondition): boolean => {
-  const { field, operator, value } = condition;
+  try {
+    const { field, operator, value } = condition;
 
-  // 如果字段不存在或值为空，则跳过此条件
-  if (!field || value === undefined || value === null || value === '') {
-    return true;
-  }
+    // 调试日志
+    console.log('Applying condition:', { field, operator, value });
 
-  const recordValue = record[field];
-
-  // 如果记录值为空，根据操作符决定是否匹配
-  if (recordValue === undefined || recordValue === null) {
-    return operator === 'neq'; // 只有不等于操作符会匹配空值
-  }
-
-  // 根据操作符进行比较
-  switch (operator) {
-    case 'eq':
-      return recordValue === value;
-    case 'neq':
-      return recordValue !== value;
-    case 'gt':
-      return recordValue > value;
-    case 'gte':
-      return recordValue >= value;
-    case 'lt':
-      return recordValue < value;
-    case 'lte':
-      return recordValue <= value;
-    case 'contains':
-      return String(recordValue).toLowerCase().includes(String(value).toLowerCase());
-    case 'startsWith':
-      return String(recordValue).toLowerCase().startsWith(String(value).toLowerCase());
-    case 'endsWith':
-      return String(recordValue).toLowerCase().endsWith(String(value).toLowerCase());
-    default:
+    // 如果字段不存在或值为空，则跳过此条件
+    if (!field || value === undefined || value === null || value === '') {
+      console.log('Skipping condition due to empty field or value');
       return true;
+    }
+
+    const recordValue = record[field];
+    console.log('Record value:', recordValue);
+
+    // 如果记录值为空，根据操作符决定是否匹配
+    if (recordValue === undefined || recordValue === null) {
+      const result = operator === 'neq'; // 只有不等于操作符会匹配空值
+      console.log('Record value is empty, result:', result);
+      return result;
+    }
+
+    // 处理字符串值，去除前导和尾随空格
+    const normalizedRecordValue = typeof recordValue === 'string' ? recordValue.trim() : recordValue;
+    const normalizedValue = typeof value === 'string' ? value.trim() : value;
+
+    console.log('Normalized values for comparison:', {
+      normalizedRecordValue,
+      normalizedValue,
+      recordValueType: typeof recordValue,
+      valueType: typeof value
+    });
+
+    // 根据操作符进行比较
+    let result = false;
+    switch (operator) {
+      case 'eq':
+        if (typeof normalizedRecordValue === 'string' && typeof normalizedValue === 'string') {
+          // 字符串比较时忽略前导和尾随空格
+          result = normalizedRecordValue === normalizedValue;
+        } else {
+          // 非字符串类型使用普通比较
+          result = String(normalizedRecordValue) === String(normalizedValue);
+        }
+        break;
+      case 'neq':
+        if (typeof normalizedRecordValue === 'string' && typeof normalizedValue === 'string') {
+          // 字符串比较时忽略前导和尾随空格
+          result = normalizedRecordValue !== normalizedValue;
+        } else {
+          // 非字符串类型使用普通比较
+          result = String(normalizedRecordValue) !== String(normalizedValue);
+        }
+        break;
+      case 'gt':
+        result = Number(normalizedRecordValue) > Number(normalizedValue);
+        break;
+      case 'gte':
+        result = Number(normalizedRecordValue) >= Number(normalizedValue);
+        break;
+      case 'lt':
+        result = Number(normalizedRecordValue) < Number(normalizedValue);
+        break;
+      case 'lte':
+        result = Number(normalizedRecordValue) <= Number(normalizedValue);
+        break;
+      case 'contains':
+        // 字符串包含比较时忽略大小写
+        result = String(normalizedRecordValue).toLowerCase().includes(String(normalizedValue).toLowerCase());
+        break;
+      case 'startsWith':
+        // 字符串开头比较时忽略大小写
+        result = String(normalizedRecordValue).toLowerCase().startsWith(String(normalizedValue).toLowerCase());
+        break;
+      case 'endsWith':
+        // 字符串结尾比较时忽略大小写
+        result = String(normalizedRecordValue).toLowerCase().endsWith(String(normalizedValue).toLowerCase());
+        break;
+      default:
+        result = true;
+        break;
+    }
+
+    console.log('Condition result:', result);
+    return result;
+  } catch (error) {
+    console.error('Error applying condition:', condition, error);
+    return true; // 出错时默认通过筛选
   }
 };
 
@@ -88,27 +140,71 @@ const applyCondition = (record: any, condition: FilterCondition): boolean => {
  * @returns 筛选后的数据
  */
 export const applyFilters = (data: any[], groups: FilterGroup[] | FilterCondition[]): any[] => {
-  if (!groups || groups.length === 0) {
-    return data;
-  }
+  try {
+    console.log('Applying filters with groups:', groups);
 
-  // 兼容旧版本的筛选条件格式
-  if ('field' in groups[0]) {
-    // 旧格式：FilterCondition[]
-    const conditions = groups as FilterCondition[];
-    return data.filter(record => {
-      return conditions.every(condition => applyCondition(record, condition));
-    });
-  }
+    if (!groups || groups.length === 0) {
+      console.log('No filter groups, returning all data');
+      return data;
+    }
 
-  // 新格式：FilterGroup[]
-  return data.filter(record => {
-    // 组之间使用OR逻辑，只要有一个组匹配就返回true
-    return (groups as FilterGroup[]).some(group => {
-      // 组内条件使用AND逻辑，所有条件都必须匹配
-      return group.conditions.every(condition => applyCondition(record, condition));
+    // 检查groups是否是有效的数组
+    if (!Array.isArray(groups)) {
+      console.error('Invalid filter groups format, not an array:', groups);
+      return data;
+    }
+
+    // 兼容旧版本的筛选条件格式
+    if (groups.length > 0 && 'field' in groups[0]) {
+      console.log('Using old format (FilterCondition[])');
+      // 旧格式：FilterCondition[]
+      const conditions = groups as FilterCondition[];
+      const result = data.filter(record => {
+        return conditions.every(condition => {
+          const matches = applyCondition(record, condition);
+          return matches;
+        });
+      });
+      console.log(`Filtered data: ${result.length} of ${data.length} records`);
+      return result;
+    }
+
+    // 新格式：FilterGroup[]
+    console.log('Using new format (FilterGroup[])');
+    const typedGroups = groups as FilterGroup[];
+
+    // 验证每个组是否有有效的conditions数组
+    const validGroups = typedGroups.filter(group => {
+      if (!group || !group.conditions || !Array.isArray(group.conditions)) {
+        console.error('Invalid filter group, missing conditions array:', group);
+        return false;
+      }
+      return true;
     });
-  });
+
+    if (validGroups.length === 0) {
+      console.error('No valid filter groups found');
+      return data;
+    }
+
+    const result = data.filter(record => {
+      // 组之间使用OR逻辑，只要有一个组匹配就返回true
+      return validGroups.some(group => {
+        // 组内条件使用AND逻辑，所有条件都必须匹配
+        const groupMatches = group.conditions.every(condition => {
+          const matches = applyCondition(record, condition);
+          return matches;
+        });
+        return groupMatches;
+      });
+    });
+
+    console.log(`Filtered data: ${result.length} of ${data.length} records`);
+    return result;
+  } catch (error) {
+    console.error('Error applying filters:', error);
+    return data; // 出错时返回原始数据
+  }
 };
 
 /**
@@ -214,4 +310,16 @@ export const loadTableSetting = <T>(key: string, defaultValue: T): T => {
  */
 export const generateUniqueId = (): string => {
   return `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+};
+
+/**
+ * 规范化筛选条件值，去除字符串值的前导和尾随空格
+ * @param value 原始值
+ * @returns 规范化后的值
+ */
+export const normalizeFilterValue = (value: any): any => {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+  return value;
 };

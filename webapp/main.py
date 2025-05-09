@@ -42,6 +42,7 @@ from .routers.config_management import router as config_router
 from .routers.file_conversion import router as file_conversion_router
 from .routers.calculation_rules_admin import router as calculation_admin_router
 from .routers.salary_calculation import router as salary_calculation_router
+from .routers.table_configs import router as table_configs_router
 
 # 导入所有Pydantic模型
 from .pydantic_models import (
@@ -446,7 +447,14 @@ app.include_router(
     tags=["Salary Calculation"]
 )
 
-# --- Removed API Routers with /api/v1 prefix --- 
+# 12. 表格配置路由
+app.include_router(
+    table_configs_router,
+    prefix="",  # 移除重复的前缀，因为路由文件中已经定义了前缀
+    tags=["Table Configurations"]
+)
+
+# --- Removed API Routers with /api/v1 prefix ---
 # (Removed api_v1_router definition and app.include_router(api_v1_router))
 
 # ... (rest of main.py, e.g., debug endpoint, uvicorn run block) ...

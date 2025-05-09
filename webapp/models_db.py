@@ -1393,4 +1393,183 @@ def delete_sheet_mapping(db: Session, sheet_name: str) -> bool:
 # # +++ Raw Salary Data Staging Model (Minimal) +++ END
 
 # --- ORM CRUD Functions for Units --- START
+
+# --- ORM CRUD Functions for User Table Configs --- START
+
+def create_table_config(db: Session, user_id: int, table_id: str, config_type: str,
+                       name: str, config_data: dict, is_default: bool = False,
+                       is_shared: bool = False) -> models.UserTableConfig:
+    """创建表格配置"""
+    # 如果设置为默认，先将同类型的其他配置设为非默认
+    if is_default:
+        db.query(models.UserTableConfig).filter(
+            models.UserTableConfig.user_id == user_id,
+            models.UserTableConfig.table_id == table_id,
+            models.UserTableConfig.config_type == config_type,
+            models.UserTableConfig.is_default == True
+        ).update({"is_default": False})
+
+    # 创建新配置
+    db_config = models.UserTableConfig(
+        user_id=user_id,
+        table_id=table_id,
+        config_type=config_type,
+        name=name,
+        config_data=config_data,
+        is_default=is_default,
+        is_shared=is_shared
+    )
+
+    try:
+        db.add(db_config)
+        db.commit()
+        db.refresh(db_config)
+
+        # 手动将日期时间字段转换为字符串
+        if hasattr(db_config, 'created_at') and db_config.created_at:
+            db_config.created_at = db_config.created_at.isoformat()
+        if hasattr(db_config, 'updated_at') and db_config.updated_at:
+            db_config.updated_at = db_config.updated_at.isoformat()
+
+        return db_config
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Integrity error creating table config: {e}", exc_info=True)
+        if "uq_user_table_config" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"配置名称 '{name}' 已存在于同一表格和类型下"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="数据库完整性错误"
+            )
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error creating table config: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="创建配置时发生数据库错误"
+        )
+
+def get_table_config(db: Session, config_id: int) -> Optional[models.UserTableConfig]:
+    """获取单个表格配置"""
+    try:
+        return db.query(models.UserTableConfig).filter(
+            models.UserTableConfig.id == config_id
+        ).first()
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error fetching table config {config_id}: {e}", exc_info=True)
+        return None
+
+def get_table_configs(db: Session, user_id: int, table_id: str, config_type: str) -> List[models.UserTableConfig]:
+    """获取用户的表格配置列表"""
+    try:
+        # 获取用户自己的配置和其他用户共享的配置
+        configs = db.query(models.UserTableConfig).filter(
+            ((models.UserTableConfig.user_id == user_id) |
+             (models.UserTableConfig.is_shared == True)),
+            models.UserTableConfig.table_id == table_id,
+            models.UserTableConfig.config_type == config_type
+        ).order_by(
+            models.UserTableConfig.is_default.desc(),
+            models.UserTableConfig.updated_at.desc()
+        ).all()
+
+        # 手动将日期时间字段转换为字符串
+        for config in configs:
+            if hasattr(config, 'created_at') and config.created_at:
+                config.created_at = config.created_at.isoformat()
+            if hasattr(config, 'updated_at') and config.updated_at:
+                config.updated_at = config.updated_at.isoformat()
+
+        return configs
+    except SQLAlchemyError as e:
+        logger.error(f"SQLAlchemy error fetching table configs: {e}", exc_info=True)
+        return []
+
+def update_table_config(db: Session, config_id: int, user_id: int, config_data: dict = None,
+                       name: str = None, is_default: bool = None, is_shared: bool = None) -> Optional[models.UserTableConfig]:
+    """更新表格配置"""
+    # 获取配置
+    db_config = db.query(models.UserTableConfig).filter(
+        models.UserTableConfig.id == config_id,
+        models.UserTableConfig.user_id == user_id  # 确保只能更新自己的配置
+    ).first()
+
+    if not db_config:
+        return None
+
+    # 更新字段
+    if config_data is not None:
+        db_config.config_data = config_data
+    if name is not None:
+        db_config.name = name
+    if is_shared is not None:
+        db_config.is_shared = is_shared
+
+    # 处理默认配置
+    if is_default is not None and is_default != db_config.is_default:
+        if is_default:
+            # 将同类型的其他配置设为非默认
+            db.query(models.UserTableConfig).filter(
+                models.UserTableConfig.user_id == user_id,
+                models.UserTableConfig.table_id == db_config.table_id,
+                models.UserTableConfig.config_type == db_config.config_type,
+                models.UserTableConfig.id != config_id,
+                models.UserTableConfig.is_default == True
+            ).update({"is_default": False})
+        db_config.is_default = is_default
+
+    try:
+        db.commit()
+        db.refresh(db_config)
+
+        # 手动将日期时间字段转换为字符串
+        if hasattr(db_config, 'created_at') and db_config.created_at:
+            db_config.created_at = db_config.created_at.isoformat()
+        if hasattr(db_config, 'updated_at') and db_config.updated_at:
+            db_config.updated_at = db_config.updated_at.isoformat()
+
+        return db_config
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Integrity error updating table config {config_id}: {e}", exc_info=True)
+        if "uq_user_table_config" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"配置名称已存在于同一表格和类型下"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="数据库完整性错误"
+            )
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error updating table config {config_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="更新配置时发生数据库错误"
+        )
+
+def delete_table_config(db: Session, config_id: int, user_id: int) -> bool:
+    """删除表格配置"""
+    try:
+        result = db.query(models.UserTableConfig).filter(
+            models.UserTableConfig.id == config_id,
+            models.UserTableConfig.user_id == user_id  # 确保只能删除自己的配置
+        ).delete()
+        db.commit()
+        return result > 0
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error deleting table config {config_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="删除配置时发生数据库错误"
+        )
+
+# --- ORM CRUD Functions for User Table Configs --- END
 # ... existing code ...
