@@ -221,6 +221,8 @@
       "_consolidated_data_id": "合并数据ID",
       "employee_name": "员工姓名",
       "pay_period_identifier": "发薪周期标识",
+      "noData": "暂无数据",
+      "noFilteredData": "没有符合筛选条件的数据",
       "id_card_number": "身份证号",
       "ann_annuity_contribution_base_salary": "年金缴费基数工资",
       "ann_annuity_contribution_base": "年金缴费基数",
