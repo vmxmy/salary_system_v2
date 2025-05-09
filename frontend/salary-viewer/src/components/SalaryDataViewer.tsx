@@ -260,6 +260,7 @@ const SalaryDataViewer: React.FC = () => {
     const [advancedFilterVisible, setAdvancedFilterVisible] = useState<boolean>(false);
     const [tableLayoutVisible, setTableLayoutVisible] = useState<boolean>(false);
     const [exportModalVisible, setExportModalVisible] = useState<boolean>(false);
+    const [exportFormat, setExportFormat] = useState<'excel' | 'csv'>('excel');
     const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>([]);
     const [advancedFilters, setAdvancedFilters] = useState<FilterGroup[]>([]);
     const [filteredData, setFilteredData] = useState<SalaryRecord[]>([]);
@@ -975,7 +976,11 @@ const SalaryDataViewer: React.FC = () => {
                 onColumnSettingsClick={() => setColumnSettingsVisible(true)}
                 onAdvancedFilterClick={() => setAdvancedFilterVisible(true)}
                 onSaveLayoutClick={() => setTableLayoutVisible(true)}
-                onExportClick={() => setExportModalVisible(true)}
+                onExportClick={(format) => {
+                    console.log('Export format selected:', format);
+                    setExportFormat(format || 'excel');
+                    setExportModalVisible(true);
+                }}
                 onRefreshClick={fetchData}
                 loading={loading}
             />
@@ -1221,6 +1226,7 @@ const SalaryDataViewer: React.FC = () => {
                 columns={columnConfigs}
                 data={advancedFilters.length > 0 ? filteredData : data}
                 fileName={generateExportFileName()}
+                defaultFormat={exportFormat}
             />
         </Space>
     );

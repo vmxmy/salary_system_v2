@@ -1,11 +1,13 @@
 import React from 'react';
-import { Space, Button, Tooltip, Tag, Typography } from 'antd';
+import { Space, Button, Tooltip, Tag, Typography, Dropdown, Menu } from 'antd';
 import {
   SettingOutlined,
   FilterOutlined,
   SaveOutlined,
   DownloadOutlined,
   ReloadOutlined,
+  DownOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +17,7 @@ export interface TableToolbarProps {
   onColumnSettingsClick: () => void;
   onAdvancedFilterClick: () => void;
   onSaveLayoutClick: () => void;
-  onExportClick: () => void;
+  onExportClick: (format?: 'excel' | 'csv') => void;
   onRefreshClick: () => void;
   loading?: boolean;
   currentLayoutName?: string; // 当前布局名称
@@ -38,26 +40,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
   return (
     <div style={{ marginBottom: 16 }}>
       <Space>
-        <Tooltip title={t('tableToolbar.columnSettings')}>
-          <Button
-            icon={<SettingOutlined />}
-            onClick={onColumnSettingsClick}
-            disabled={loading}
-          >
-            {t('tableToolbar.columns')}
-          </Button>
-        </Tooltip>
-
-        <Tooltip title={t('tableToolbar.advancedFilter')}>
-          <Button
-            icon={<FilterOutlined />}
-            onClick={onAdvancedFilterClick}
-            disabled={loading}
-          >
-            {t('tableToolbar.filter')}
-          </Button>
-        </Tooltip>
-
+        {/* 表格布局 */}
         <Tooltip title={t('tableToolbar.saveLayout')}>
           <Button
             icon={<SaveOutlined />}
@@ -68,16 +51,59 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
           </Button>
         </Tooltip>
 
-        <Tooltip title={t('tableToolbar.export')}>
-          <Button
-            icon={<DownloadOutlined />}
-            onClick={onExportClick}
-            disabled={loading}
-          >
-            {t('tableToolbar.export')}
+        {/* 导出 ▼ */}
+        <Dropdown menu={{
+          items: [
+            {
+              key: 'excel',
+              label: 'Excel (.xlsx)',
+              onClick: () => {
+                console.log('Exporting as Excel');
+                onExportClick('excel');
+              },
+            },
+            {
+              key: 'csv',
+              label: 'CSV (.csv)',
+              onClick: () => {
+                console.log('Exporting as CSV');
+                onExportClick('csv');
+              },
+            },
+          ]
+        }} trigger={['click']} disabled={loading}>
+          <Button>
+            <Space>
+              <DownloadOutlined />
+              {t('tableToolbar.export')}
+              <DownOutlined />
+            </Space>
           </Button>
-        </Tooltip>
+        </Dropdown>
 
+        {/* 视图组件 [列设置 | 高级筛选] */}
+        <Space.Compact>
+          <Tooltip title={t('tableToolbar.columnSettings')}>
+            <Button
+              icon={<SettingOutlined />}
+              onClick={onColumnSettingsClick}
+              disabled={loading}
+            >
+              {t('tableToolbar.columns')}
+            </Button>
+          </Tooltip>
+          <Tooltip title={t('tableToolbar.advancedFilter')}>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={onAdvancedFilterClick}
+              disabled={loading}
+            >
+              {t('tableToolbar.filter')}
+            </Button>
+          </Tooltip>
+        </Space.Compact>
+
+        {/* 刷新 */}
         <Tooltip title={t('tableToolbar.refresh')}>
           <Button
             icon={<ReloadOutlined />}

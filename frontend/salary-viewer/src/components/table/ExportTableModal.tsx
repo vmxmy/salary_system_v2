@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Radio, Checkbox, Button, Space, Typography, App } from 'antd';
 import { DownloadOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ interface ExportTableModalProps {
   columns: ColumnConfig[];
   data: any[];
   fileName?: string;
+  defaultFormat?: 'excel' | 'csv';
 }
 
 type ExportFormat = 'csv' | 'excel';
@@ -28,10 +29,17 @@ const ExportTableModal: React.FC<ExportTableModalProps> = ({
   columns,
   data,
   fileName = 'table-export',
+  defaultFormat = 'excel',
 }) => {
   const { t } = useTranslation();
   const { message } = App.useApp(); // 使用 App.useApp() 钩子获取 message 实例
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('excel');
+  const [exportFormat, setExportFormat] = useState<ExportFormat>(defaultFormat);
+
+  // 当 defaultFormat 变化时更新 exportFormat
+  useEffect(() => {
+    console.log('Default format changed to:', defaultFormat);
+    setExportFormat(defaultFormat);
+  }, [defaultFormat]);
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<string[]>(
     columns.filter(col => col.visible).map(col => col.key)
   );
@@ -178,17 +186,17 @@ const ExportTableModal: React.FC<ExportTableModalProps> = ({
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         {/* 导出格式选择 */}
         <div>
-          <Title level={5}>{t('exportTable.format')}</Title>
-          <RadioGroup value={exportFormat} onChange={handleFormatChange}>
+          <Typography.Title level={5}>{t('exportTable.format')}</Typography.Title>
+          <Radio.Group value={exportFormat} onChange={handleFormatChange}>
             <Radio value="excel">Excel (.xlsx)</Radio>
             <Radio value="csv">CSV (.csv)</Radio>
-          </RadioGroup>
+          </Radio.Group>
         </div>
 
         {/* 列选择 */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <Title level={5}>{t('exportTable.selectColumns')}</Title>
+            <Typography.Title level={5}>{t('exportTable.selectColumns')}</Typography.Title>
             <Checkbox
               onChange={handleSelectAll}
               checked={selectedColumnKeys.length === columns.length}
@@ -198,7 +206,7 @@ const ExportTableModal: React.FC<ExportTableModalProps> = ({
             </Checkbox>
           </div>
 
-          <CheckboxGroup
+          <Checkbox.Group
             options={columns.map(col => ({
               label: typeof col.title === 'string' ? col.title : col.key,
               value: col.key,
@@ -209,9 +217,9 @@ const ExportTableModal: React.FC<ExportTableModalProps> = ({
         </div>
 
         {/* 导出提示 */}
-        <Text type="secondary">
+        <Typography.Text type="secondary">
           {t('exportTable.exportNote')}
-        </Text>
+        </Typography.Text>
       </Space>
     </Modal>
   );
