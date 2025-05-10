@@ -4,14 +4,16 @@
 
 ### 1.1 技术栈
 
-- **核心框架**: React 18+ (使用Vite构建)
-- **UI组件库**: Ant Design
-- **语言**: TypeScript
-- **状态管理**: React Context API
-- **路由**: React Router v6
+- **核心框架**: React 19+ (使用Vite 6构建)
+- **UI组件库**: Ant Design 5.24+
+- **语言**: TypeScript 5.7+
+- **状态管理**: Redux Toolkit + React Context API
+- **路由**: React Router v7
 - **国际化**: i18next
 - **HTTP客户端**: Axios
 - **报表集成**: JimuReport
+- **拖拽功能**: @dnd-kit
+- **表格导出**: xlsx
 
 ### 1.2 项目结构
 
@@ -36,7 +38,10 @@ frontend/salary-viewer/src/
 
 ```mermaid
 graph TD
-    App --> AuthProvider
+    App --> Provider[Redux Provider]
+    Provider --> ConfigProvider[Ant ConfigProvider]
+    ConfigProvider --> AntApp[Ant App]
+    AntApp --> AuthProvider
     AuthProvider --> BrowserRouter
     BrowserRouter --> AppRoutes
     AppRoutes --> LoginPage
@@ -54,7 +59,7 @@ graph TD
     Routes --> ReportViewer
     Routes --> FormulaConfigPage
     Routes --> RuleConfigPage
-    
+
     SalaryDataViewer --> TableToolbar
     SalaryDataViewer --> ColumnSettingsDrawer
     SalaryDataViewer --> AdvancedFilterDrawer
@@ -183,6 +188,11 @@ ReportLinkManager用于管理报表链接，支持添加、编辑和删除报表
 
 ### 6.1 全局状态
 
+- **Redux Store**: 使用Redux Toolkit管理全局状态
+  - 提供集中式状态管理
+  - 支持异步操作和中间件
+  - 使用切片(slices)组织状态逻辑
+
 - **AuthContext**: 管理用户认证状态
   - 提供用户信息、认证状态、登录和登出方法
   - 使用localStorage持久化JWT令牌
@@ -192,11 +202,14 @@ ReportLinkManager用于管理报表链接，支持添加、编辑和删除报表
 - **useState**: 用于管理组件内部状态
 - **useEffect**: 用于处理副作用，如数据获取、订阅和DOM操作
 - **useCallback**: 用于优化性能，避免不必要的函数重新创建
+- **useSelector**: 从Redux store中选择状态
+- **useDispatch**: 分发Redux actions
 
 ### 6.3 状态持久化
 
 - **localStorage**: 用于持久化用户认证状态和表格配置
 - **服务器存储**: 表格布局和筛选方案可以保存到服务器
+- **Redux Persist**: 可选用于持久化Redux状态
 
 ## 7. 国际化实现
 
@@ -234,6 +247,8 @@ ReportLinkManager用于管理报表链接，支持添加、编辑和删除报表
 - **tableConfigsApi.ts**: 表格配置相关API
 - **reportLinksApi.ts**: 报表链接相关API
 - **calculationAdminService.ts**: 计算规则管理相关API
+- **emailConfigApi.ts**: 邮件服务器配置相关API
+- **emailSenderApi.ts**: 邮件发送任务和日志相关API
 
 ### 8.3 API调用规范
 
@@ -258,25 +273,76 @@ ReportLinkManager用于管理报表链接，支持添加、编辑和删除报表
 - `/admin/departments`: 部门管理
 - `/profile`: 用户个人资料
 - `/report-links`: 报表链接管理
+- `/reports/monthly-salary`: 月度工资报表
 - `/reports/:reportId`: 报表查看器
+- `/email-config`: 邮件服务器配置
+- `/email-sender`: 工资单邮件发送服务
 
 ### 9.2 路由保护
 
 - 使用ProtectedRoute组件保护需要认证的路由
 - 未认证用户自动重定向到登录页面
 
-## 10. 性能优化
+## 10. 邮件发送功能
 
-### 10.1 已实现的优化
+### 10.1 工资单邮件发送
+
+工资单邮件发送功能允许管理员向员工发送个性化的工资单邮件。
+
+#### 主要组件
+
+- **SendPayslipPage**: 工资单邮件发送页面，包含邮件服务器选择、发送范围配置和任务监控
+- **EmailServerSelector**: 邮件服务器选择组件，支持选择默认服务器
+- **PayslipEmailForm**: 工资单邮件配置表单，包含主题模板、内容模板和筛选条件
+- **TaskMonitoringArea**: 任务监控区域，显示当前任务状态和历史任务
+- **TaskDetailsViewer**: 任务详情查看器，显示任务详情和邮件发送日志
+
+#### 邮件发送日志功能
+
+- 支持查看每个邮件发送任务的详细日志
+- 日志表格显示收件人姓名、收件人邮箱、主题、发送状态、发送时间和错误信息
+- 支持分页加载日志数据
+- 使用Redux管理日志数据状态
+- 从邮件主题中提取收件人姓名，提高用户体验
+
+#### 数据流
+
+```mermaid
+graph TD
+    SendPayslipPage -- 创建发送任务 --> emailSenderApi.sendPayslips
+    SendPayslipPage -- 获取任务列表 --> emailSenderApi.getEmailSendingTaskHistory
+    TaskDetailsViewer -- 获取任务详情 --> emailSenderApi.getEmailSendingTaskDetail
+    TaskDetailsViewer -- 获取邮件日志 --> emailSenderApi.getEmailLogsForTask
+    TaskMonitoringArea -- 轮询任务状态 --> emailSenderApi.getEmailSendingTaskStatus
+```
+
+### 10.2 状态管理
+
+邮件发送功能使用Redux管理状态，主要包括：
+
+- **emailSenderSlice**: 管理邮件发送任务和日志的状态
+  - `taskHistory`: 任务历史列表
+  - `currentTaskDetail`: 当前选中任务的详情
+  - `currentTaskLogs`: 当前任务的邮件发送日志
+  - `taskHistoryStatus`: 任务历史加载状态
+  - `taskDetailStatus`: 任务详情加载状态
+  - `taskLogsStatus`: 任务日志加载状态
+
+## 11. 性能优化
+
+### 11.1 已实现的优化
 
 - 使用React.memo减少不必要的重渲染
 - 使用useCallback和useMemo缓存函数和计算结果
 - 表格数据本地分页减少服务器请求
 - 按需加载组件(如TableLayoutManager)
+- 使用Redux Toolkit优化状态管理
+- 表格布局配置服务器存储与本地缓存结合
 
-### 10.2 潜在优化点
+### 11.2 潜在优化点
 
 - 实现虚拟滚动处理大量数据
 - 使用React.lazy和Suspense实现代码分割
 - 优化大型表格的渲染性能
 - 实现数据缓存减少重复请求
+- 使用Web Workers处理大量数据计算

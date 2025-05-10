@@ -1,4 +1,4 @@
-# 后端架构文档
+# 高新区工资信息管理系统 - 后端架构文档
 
 ## 1. 概述
 
@@ -7,13 +7,14 @@
 ## 2. 技术栈
 
 - **框架**: FastAPI
-- **语言**: Python
-- **数据库**: PostgreSQL
-- **ORM**: SQLAlchemy
+- **语言**: Python 3.10+
+- **数据库**: PostgreSQL 14+
+- **ORM**: SQLAlchemy 2.0+
 - **认证**: JWT (JSON Web Token)
 - **密码哈希**: Passlib (bcrypt)
 - **数据转换**: Pandas (用于文件转换)
 - **数据转换工具**: dbt (用于数据模型转换和构建)
+- **环境管理**: Conda
 
 ## 3. 目录结构 (`webapp/`)
 
@@ -68,6 +69,8 @@ API端点通过 `webapp/routers/` 目录下的各个模块进行组织。`main.p
 - `/api/table-configs`: 表格配置管理。
 - `/api/dbt/trigger-run`: 手动触发dbt构建。
 - `/api/debug/field-config/{employee_type_key}`: 调试端点，获取字段配置。
+- `/api/email-configs`: 邮件服务器配置管理。
+- `/api/email-tasks`: 邮件发送任务管理。
 
 FastAPI自动生成OpenAPI文档，可通过 `/docs` (Swagger UI) 和 `/redoc` (ReDoc) 访问。
 
@@ -105,6 +108,7 @@ FastAPI自动生成OpenAPI文档，可通过 `/docs` (Swagger UI) 和 `/redoc` (
 - 应用中广泛使用 `try...except` 块捕获数据库错误 (`SQLAlchemyError`, `IntegrityError`) 和其他潜在异常。
 - 捕获到的错误通常会转换为 `fastapi.HTTPException` 并返回给客户端，包含适当的状态码和详细信息。
 - 使用Python的 `logging` 模块记录错误和关键事件。
+- 对于关键操作，使用事务确保数据一致性，在出错时回滚。
 
 ## 9. 核心业务逻辑 (工资计算)
 
@@ -127,6 +131,20 @@ FastAPI自动生成符合OpenAPI规范的交互式API文档：
 
 这些文档详细列出了所有API端点、参数、响应模型、认证要求等。
 
-## 11. 总结
+## 11. 邮件服务
 
-后端架构采用标准的FastAPI项目结构，通过路由器组织API，使用SQLAlchemy ORM访问PostgreSQL数据库。核心业务逻辑（工资计算）通过可配置的规则引擎实现，提高了系统的灵活性。认证授权机制基于JWT和角色控制。异常处理通过捕获并返回HTTPException实现。dbt用于数据整合和转换。
+- **邮件服务器配置**: 通过 `core.email_server_configs` 表存储SMTP服务器配置，支持多个服务器配置。
+- **密码加密**: 使用Fernet对称加密存储SMTP服务器密码，确保安全性。
+- **邮件发送任务**: 通过 `core.email_sending_tasks` 表管理邮件发送任务，支持批量发送和模板替换。
+- **邮件日志**: 通过 `core.email_logs` 表记录邮件发送历史，包括发送状态和错误信息。
+  - 日志记录字段包括：发送者邮箱、收件人邮箱列表、主题、内容、发送状态、发送时间、错误信息等
+  - 支持通过任务UUID查询特定任务的邮件发送日志
+  - 提供分页API接口，支持按时间倒序排列
+  - 支持从邮件主题中提取收件人姓名，便于前端展示
+- **后台任务**: 使用FastAPI的BackgroundTasks处理邮件发送，避免阻塞API响应。
+- **邮件模板**: 支持使用变量替换的邮件模板，如 `{pay_period}` 和 `{employee_name}`。
+- **错误处理**: 完善的错误处理机制，记录发送失败原因，支持跳过无邮箱的员工。
+
+## 12. 总结
+
+后端架构采用标准的FastAPI项目结构，通过路由器组织API，使用SQLAlchemy ORM访问PostgreSQL数据库。核心业务逻辑（工资计算）通过可配置的规则引擎实现，提高了系统的灵活性。认证授权机制基于JWT和角色控制。异常处理通过捕获并返回HTTPException实现。dbt用于数据整合和转换。系统还提供了邮件服务功能，支持工资条发送等业务场景。
