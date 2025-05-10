@@ -40,9 +40,21 @@ const ExportTableModal: React.FC<ExportTableModalProps> = ({
     console.log('Default format changed to:', defaultFormat);
     setExportFormat(defaultFormat);
   }, [defaultFormat]);
+
+  // 初始化选中的列
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<string[]>(
     columns.filter(col => col.visible).map(col => col.key)
   );
+
+  // 当模态框打开或列配置变化时，自动选中当前报表布局中可见的列
+  useEffect(() => {
+    if (open) {
+      console.log('Export modal opened, updating selected columns');
+      const visibleColumns = columns.filter(col => col.visible).map(col => col.key);
+      setSelectedColumnKeys(visibleColumns);
+    }
+  }, [open, columns]);
+
   const [loading, setLoading] = useState(false);
 
   // 处理导出格式变更

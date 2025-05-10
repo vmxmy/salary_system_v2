@@ -1,5 +1,5 @@
 import React from 'react';
-import { Space, Button, Tooltip, Tag, Typography, Dropdown, Menu } from 'antd';
+import { Space, Button, Tooltip, Tag, Typography, Dropdown } from 'antd';
 import {
   SettingOutlined,
   FilterOutlined,
@@ -8,6 +8,8 @@ import {
   ReloadOutlined,
   DownOutlined,
   AppstoreOutlined,
+  DragOutlined,
+  ColumnHeightOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -19,6 +21,10 @@ export interface TableToolbarProps {
   onSaveLayoutClick: () => void;
   onExportClick: (format?: 'excel' | 'csv') => void;
   onRefreshClick: () => void;
+  onToggleDraggable?: () => void; // 切换行拖拽排序功能
+  isDraggable?: boolean; // 是否启用行拖拽排序
+  onToggleColumnDraggable?: () => void; // 切换列拖拽排序功能
+  isColumnDraggable?: boolean; // 是否启用列拖拽排序
   loading?: boolean;
   currentLayoutName?: string; // 当前布局名称
 }
@@ -32,6 +38,10 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
   onSaveLayoutClick,
   onExportClick,
   onRefreshClick,
+  onToggleDraggable,
+  isDraggable = false,
+  onToggleColumnDraggable,
+  isColumnDraggable = false,
   loading = false,
   currentLayoutName,
 }) => {
@@ -40,12 +50,13 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
   return (
     <div style={{ marginBottom: 16 }}>
       <Space>
-        {/* 表格布局 */}
+        {/* 表格布局 - 设置为主要按钮样式 */}
         <Tooltip title={t('tableToolbar.saveLayout')}>
           <Button
             icon={<SaveOutlined />}
             onClick={onSaveLayoutClick}
             disabled={loading}
+            type="primary"
           >
             {t('tableToolbar.saveLayout')}
           </Button>
@@ -81,7 +92,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
           </Button>
         </Dropdown>
 
-        {/* 视图组件 [列设置 | 高级筛选] */}
+        {/* 视图组件 [列设置 | 列排序 | 高级筛选] */}
         <Space.Compact>
           <Tooltip title={t('tableToolbar.columnSettings')}>
             <Button
@@ -92,6 +103,21 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
               {t('tableToolbar.columns')}
             </Button>
           </Tooltip>
+
+          {/* 列拖拽排序 - 移到列设置旁边 */}
+          {onToggleColumnDraggable && (
+            <Tooltip title={t('tableToolbar.toggleColumnDraggable')}>
+              <Button
+                icon={<ColumnHeightOutlined />}
+                onClick={onToggleColumnDraggable}
+                disabled={loading}
+                type={isColumnDraggable ? 'primary' : 'default'}
+              >
+                {t('tableToolbar.columnDragSort')}
+              </Button>
+            </Tooltip>
+          )}
+
           <Tooltip title={t('tableToolbar.advancedFilter')}>
             <Button
               icon={<FilterOutlined />}

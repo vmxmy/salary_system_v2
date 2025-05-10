@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Fragment } from 'react';
 import { Table, Form, Input, Button, Spin, Alert, Space, DatePicker, Tag, App, Typography } from 'antd';
-import { ClearOutlined } from '@ant-design/icons';
+import { ClearOutlined, MenuOutlined } from '@ant-design/icons';
 import apiClient, {
     fetchSalaryFieldDefinitions,
     SalaryFieldDefinition
@@ -8,6 +8,10 @@ import apiClient, {
 import type { TablePaginationConfig, TableColumnsType } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { DndContext, PointerSensor, closestCenter, useSensors, useSensor } from '@dnd-kit/core';
+import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { DraggableWrapper, DraggableRow } from './table/DraggableComponents';
+import DraggableHeaderCell from './table/DraggableColumnHeader';
 
 // 导入自定义组件
 import TableToolbar from './table/TableToolbar';
@@ -267,14 +271,36 @@ const SalaryDataViewer: React.FC = () => {
     const [currentLayoutId, setCurrentLayoutId] = useState<string | undefined>(undefined);
     const [currentLayoutName, setCurrentLayoutName] = useState<string>(t('tableLayout.defaultLayoutName'));
 
+    // 拖拽排序相关状态
+    const [isDraggable, setIsDraggable] = useState<boolean>(false);
+    const [isColumnDraggable, setIsColumnDraggable] = useState<boolean>(false);
+
+    // 字段值映射，用于生成筛选选项
+    const [fieldValueMap, setFieldValueMap] = useState<Map<string, Set<string>>>(new Map());
+
     // 动态生成表格列
     const generateColumns = (): TableColumnsType<SalaryRecord> => {
         console.log('Generating columns with fieldDefinitions:', fieldDefinitions.length);
+
+        // 如果启用了拖拽，添加拖拽手柄列
+        const columns: TableColumnsType<SalaryRecord> = [];
+
+        if (isDraggable) {
+            columns.push({
+                title: '',
+                dataIndex: 'dragHandle',
+                key: 'dragHandle',
+                width: 30,
+                fixed: 'left',
+                render: () => <MenuOutlined style={{ cursor: 'grab', color: '#999' }} />,
+            });
+        }
 
         if (fieldDefinitions.length === 0) {
             console.log('No field definitions available, returning basic columns');
             // 如果还没有获取到字段定义，返回一个基本的列定义
             return [
+                ...(isDraggable ? columns : []),
                 { title: t('dataViewer.table.colId'), dataIndex: '_consolidated_data_id', key: '_consolidated_data_id', fixed: 'left', width: 80 },
                 { title: t('dataViewer.table.colName'), dataIndex: 'employee_name', key: 'employee_name', fixed: 'left', width: 120 },
                 { title: t('dataViewer.table.colNetPay'), dataIndex: 'calc_net_pay', key: 'calc_net_pay', width: 120, fixed: 'right', align: 'right' }
@@ -324,13 +350,81 @@ const SalaryDataViewer: React.FC = () => {
             console.log(`Showing all ${fieldDefinitions.length} columns, including those with no data`);
         }
 
-        return columnsToShow.map(field => {
+        // 获取筛选选项的辅助函数
+        const getFilterOptions = (dataIndex: string): { text: string, value: string }[] => {
+            if (data.length === 0) {
+                console.log(`No data available for filter options on ${dataIndex}`);
+                // 为了测试，返回一些硬编码的选项
+                if (dataIndex === 'establishment_type' || dataIndex.includes('establishment')) {
+                    return [
+                        { text: 'gwy', value: 'gwy' },
+                        { text: 'cg', value: 'cg' },
+                        { text: 'sy', value: 'sy' },
+                        { text: 'qp', value: 'qp' },
+                        { text: 'ytf', value: 'ytf' }
+                    ];
+                } else if (dataIndex === 'employee_type' || dataIndex.includes('employee_type')) {
+                    return [
+                        { text: 'gwy', value: 'gwy' },
+                        { text: 'cg', value: 'cg' },
+                        { text: 'sy', value: 'sy' },
+                        { text: 'qp', value: 'qp' },
+                        { text: 'ytf', value: 'ytf' }
+                    ];
+                } else if (dataIndex === 'position_type' || dataIndex.includes('position_type')) {
+                    return [
+                        { text: '管理', value: '管理' },
+                        { text: '专业技术', value: '专业技术' },
+                        { text: '工勤', value: '工勤' }
+                    ];
+                } else if (dataIndex === 'position_level' || dataIndex.includes('position_level')) {
+                    return [
+                        { text: '科级', value: '科级' },
+                        { text: '科员', value: '科员' },
+                        { text: '办事员', value: '办事员' }
+                    ];
+                }
+                return [];
+            }
+
+            // 从数据中提取唯一值
+            const uniqueValues = new Set<string>();
+            let valueCount = 0;
+
+            data.forEach(record => {
+                const value = (record as any)[dataIndex];
+                if (value !== null && value !== undefined && value !== '') {
+                    uniqueValues.add(value);
+                    valueCount++;
+                }
+            });
+
+            console.log(`Found ${uniqueValues.size} unique values for ${dataIndex} from ${valueCount} non-empty values`);
+
+            // 如果唯一值太多（超过50个），可能是员工姓名或ID等不适合筛选的字段
+            if (uniqueValues.size > 50) {
+                console.log(`Too many unique values (${uniqueValues.size}) for ${dataIndex}, not suitable for filtering`);
+                return [];
+            }
+
+            // 转换为筛选选项格式
+            return Array.from(uniqueValues)
+                .sort()
+                .map(value => ({ text: value, value }));
+        };
+
+        const generatedColumns = columnsToShow.map(field => {
             const column: any = {
                 title: t(`dataViewer.table.${field.key}`, field.title), // 尝试使用翻译，如果没有则使用默认标题
                 dataIndex: field.dataIndex,
                 key: field.key,
                 width: field.width,
-                sorter: field.sortable
+                // 只为编制类型字段添加排序功能
+                sorter: field.dataIndex === 'establishment_type' ||
+                        field.dataIndex === 'sal_establishment_type_name' ||
+                        field.dataIndex === 'establishment_type_name' ||
+                        (field.key && (field.key.includes('establishment_type') ||
+                                      field.key === 'establishment_type')) ? field.sortable : false
             };
 
             // 设置对齐方式
@@ -341,6 +435,109 @@ const SalaryDataViewer: React.FC = () => {
             // 设置固定列
             if (field.fixed) {
                 column.fixed = field.fixed;
+            }
+
+            // 为特定字段添加筛选功能
+            const filterableFields = [
+                // 主要字段名
+                'establishment_type',  // 编制类型
+                'employee_type',       // 人员身份
+                'position_type',       // 岗位类别
+                'position_level',      // 职务级别
+                'job_title',           // 职务名称
+
+                // 备用字段名（带前缀）
+                'sal_establishment_type_name',
+                'sal_employee_type_name',
+                'sal_employee_type_key',
+                'sal_position_type_name',
+                'sal_position_level_name',
+                'sal_job_title_name',
+
+                // 更多可能的变体
+                'establishment_type_name',
+                'employee_type_name',
+                'position_type_name',
+                'position_level_name',
+                'job_level'
+            ];
+
+            // 只为编制类型字段添加筛选功能
+            const shouldHaveFilter = field.dataIndex === 'establishment_type' ||
+                                    field.dataIndex === 'sal_establishment_type_name' ||
+                                    field.dataIndex === 'establishment_type_name' ||
+                                    (field.key && (field.key.includes('establishment_type') ||
+                                                  field.key === 'establishment_type'));
+
+            if (shouldHaveFilter) {
+                console.log(`Adding filter to field: ${field.key} (${field.dataIndex})`);
+
+                // 从字段值映射中获取筛选选项
+                let filterOptions: { text: string, value: string }[] = [];
+
+                // 尝试从 fieldValueMap 中获取实际数据的唯一值
+                if (fieldValueMap.size > 0) {
+                    // 检查当前字段是否在 fieldValueMap 中
+                    if (fieldValueMap.has(field.dataIndex)) {
+                        const uniqueValues = fieldValueMap.get(field.dataIndex);
+                        if (uniqueValues && uniqueValues.size > 0) {
+                            filterOptions = Array.from(uniqueValues)
+                                .sort()
+                                .map(value => ({ text: value, value }));
+                            console.log(`Using ${filterOptions.length} actual values for ${field.dataIndex} filter`);
+                        }
+                    } else {
+                        // 尝试查找相关字段
+                        const relatedFields = Array.from(fieldValueMap.keys()).filter(key =>
+                            key.includes(field.dataIndex) ||
+                            field.dataIndex.includes(key) ||
+                            (field.key && key.includes(field.key)) ||
+                            (field.key && field.key.includes(key))
+                        );
+
+                        if (relatedFields.length > 0) {
+                            // 使用第一个相关字段的值
+                            const relatedField = relatedFields[0];
+                            const uniqueValues = fieldValueMap.get(relatedField);
+                            if (uniqueValues && uniqueValues.size > 0) {
+                                filterOptions = Array.from(uniqueValues)
+                                    .sort()
+                                    .map(value => ({ text: value, value }));
+                                console.log(`Using ${filterOptions.length} values from related field ${relatedField} for ${field.dataIndex} filter`);
+                            }
+                        }
+                    }
+                }
+
+                // 如果没有从 fieldValueMap 中获取到值，则使用 getFilterOptions 函数
+                if (filterOptions.length === 0) {
+                    filterOptions = getFilterOptions(field.dataIndex);
+                    console.log(`Using getFilterOptions for ${field.dataIndex} filter, got ${filterOptions.length} options`);
+                }
+
+                // 确保有筛选选项
+                if (filterOptions.length === 0) {
+                    filterOptions = [{ text: '加载中...', value: 'loading' }];
+                }
+
+                // 添加筛选功能
+                column.filters = filterOptions;
+                column.onFilter = (value: string, record: any) => {
+                    if (value === 'loading') return true;
+                    const recordValue = record[field.dataIndex];
+                    return recordValue === value;
+                };
+                column.filterMultiple = true; // 允许多选
+                column.filterSearch = true;   // 允许搜索筛选项
+
+                // 添加排序功能 - 只为编制类型字段添加
+                if (!column.sorter) {
+                    column.sorter = (a: any, b: any) => {
+                        const valueA = a[field.dataIndex] || '';
+                        const valueB = b[field.dataIndex] || '';
+                        return valueA.localeCompare(valueB);
+                    };
+                }
             }
 
             // 设置渲染函数
@@ -368,14 +565,44 @@ const SalaryDataViewer: React.FC = () => {
 
             return column;
         });
+
+        // 如果启用了拖拽，添加拖拽手柄列
+        return [
+            ...(isDraggable ? columns : []),
+            ...generatedColumns
+        ];
     };
+
+    // 在组件加载后，打印数据样本
+    useEffect(() => {
+        if (data.length > 0) {
+            console.log('First record sample:', data[0]);
+            console.log('Available fields in data:', Object.keys(data[0]));
+        }
+    }, [data]);
 
     // 生成表格列 - 确保至少显示一些列
     const columns = (() => {
         // 如果有列配置，使用它
         if (columnConfigs.length > 0) {
             console.log(`Using column configs: ${columnConfigs.length} columns`);
-            return convertConfigToColumns(columnConfigs);
+            const cols = convertConfigToColumns(columnConfigs);
+
+            // 如果启用了列拖拽排序，为每个列添加自定义标题渲染
+            if (isColumnDraggable) {
+                return cols.map((col, index) => ({
+                    ...col,
+                    title: (
+                        <DraggableHeaderCell
+                            title={col.title}
+                            id={col.key as string}
+                            index={index}
+                        />
+                    )
+                }));
+            }
+
+            return cols;
         }
 
         // 否则生成列
@@ -754,6 +981,107 @@ const SalaryDataViewer: React.FC = () => {
         }
     }, [data, advancedFilters]);
 
+    // 配置拖拽传感器
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // 需要移动8像素才会触发拖拽
+            },
+        })
+    );
+
+    // 处理拖拽结束事件
+    const handleDragEnd = useCallback((event: any) => {
+        const { active, over } = event;
+
+        if (active.id !== over.id) {
+            setData((prevData) => {
+                const activeIndex = prevData.findIndex(item =>
+                    `${item._consolidated_data_id}-${item.pay_period_identifier || 'no-period'}` === active.id
+                );
+                const overIndex = prevData.findIndex(item =>
+                    `${item._consolidated_data_id}-${item.pay_period_identifier || 'no-period'}` === over.id
+                );
+
+                const newData = arrayMove(prevData, activeIndex, overIndex);
+
+                // 如果有高级筛选，也需要更新筛选后的数据
+                if (advancedFilters.length > 0) {
+                    const newFilteredData = arrayMove(filteredData, activeIndex, overIndex);
+                    setFilteredData(newFilteredData);
+                }
+
+                message.success(t('dataViewer.dragSort.success'));
+                return newData;
+            });
+        }
+    }, [filteredData, advancedFilters.length, message, t]);
+
+    // 处理表格变化事件（排序、筛选、分页）
+    const handleTableChange = useCallback((pagination: TablePaginationConfig, filters: Record<string, React.Key[] | null>, sorter: any, extra: any) => {
+        console.log('Table change:', { pagination, filters, sorter, extra });
+
+        // 更新分页
+        setPagination(prev => ({
+            ...prev,
+            current: pagination.current || 1,
+            pageSize: pagination.pageSize || 10
+        }));
+
+        // 记录筛选和排序状态，以便在需要时恢复
+        if (extra.action === 'filter' || extra.action === 'sort') {
+            console.log(`${extra.action} applied to column:`, extra.currentDataSource.length);
+        }
+    }, []);
+
+    // 切换行拖拽模式
+    const toggleDraggable = useCallback(() => {
+        setIsDraggable(prev => !prev);
+        // 如果启用行拖拽，则禁用列拖拽
+        if (!isDraggable) {
+            setIsColumnDraggable(false);
+        }
+        message.info(
+            !isDraggable
+                ? t('dataViewer.dragSort.enabled')
+                : t('dataViewer.dragSort.disabled')
+        );
+    }, [isDraggable, message, t]);
+
+    // 切换列拖拽模式
+    const toggleColumnDraggable = useCallback(() => {
+        setIsColumnDraggable(prev => !prev);
+        // 如果启用列拖拽，则禁用行拖拽
+        if (!isColumnDraggable) {
+            setIsDraggable(false);
+        }
+        message.info(
+            !isColumnDraggable
+                ? t('dataViewer.dragSort.columnEnabled')
+                : t('dataViewer.dragSort.columnDisabled')
+        );
+    }, [isColumnDraggable, message, t]);
+
+    // 处理列拖拽结束事件
+    const handleColumnDragEnd = useCallback((event: any) => {
+        const { active, over } = event;
+
+        if (active.id !== over.id) {
+            setColumnConfigs((prevColumns) => {
+                const activeIndex = prevColumns.findIndex(col => col.key === active.id);
+                const overIndex = prevColumns.findIndex(col => col.key === over.id);
+
+                const newColumns = arrayMove(prevColumns, activeIndex, overIndex);
+
+                // 保存新的列顺序到本地存储
+                saveTableSetting('salaryTable_columnConfigs', newColumns);
+
+                message.success(t('dataViewer.dragSort.columnSuccess'));
+                return newColumns;
+            });
+        }
+    }, [message, t]);
+
     // 生成导出文件名（布局名称+当前时间戳，精确到秒）
     const generateExportFileName = () => {
         const now = new Date();
@@ -801,6 +1129,51 @@ const SalaryDataViewer: React.FC = () => {
 
             const allRecords = response.data.data || [];
             setData(allRecords);
+
+            // 分析数据中的筛选字段
+            if (allRecords.length > 0) {
+                console.log("Analyzing filter fields from all records...");
+
+                // 检查所有可能的筛选字段
+                const allPossibleFields = [
+                    // 编制类型相关字段
+                    'establishment_type', 'sal_establishment_type_name', 'establishment_type_name',
+                    // 人员身份相关字段
+                    'employee_type', 'sal_employee_type_name', 'employee_type_name', 'sal_employee_type_key',
+                    // 岗位类别相关字段
+                    'position_type', 'sal_position_type_name', 'position_type_name',
+                    // 职务级别相关字段
+                    'position_level', 'sal_position_level_name', 'position_level_name', 'job_level',
+                    // 职务名称相关字段
+                    'job_title', 'sal_job_title_name'
+                ];
+
+                // 检查哪些字段实际存在于数据中
+                const firstRecord = allRecords[0];
+                const existingFields = allPossibleFields.filter(field => field in firstRecord);
+                console.log('Fields available for filtering:', existingFields);
+
+                // 为每个存在的字段分析唯一值
+                const fieldValueMap = new Map<string, Set<string>>();
+
+                existingFields.forEach(field => {
+                    const uniqueValues = new Set<string>();
+
+                    // 遍历所有记录，收集唯一值
+                    allRecords.forEach(record => {
+                        const value = (record as any)[field];
+                        if (value !== null && value !== undefined && value !== '') {
+                            uniqueValues.add(value);
+                        }
+                    });
+
+                    fieldValueMap.set(field, uniqueValues);
+                    console.log(`Field ${field} has ${uniqueValues.size} unique values:`, Array.from(uniqueValues));
+                });
+
+                // 保存字段值映射，以便在生成列时使用
+                setFieldValueMap(fieldValueMap);
+            }
 
             // 如果有高级筛选条件，立即应用
             if (advancedFilters.length > 0) {
@@ -982,252 +1355,388 @@ const SalaryDataViewer: React.FC = () => {
                     setExportModalVisible(true);
                 }}
                 onRefreshClick={fetchData}
+                onToggleColumnDraggable={toggleColumnDraggable}
+                isColumnDraggable={isColumnDraggable}
                 loading={loading}
             />
 
             {error && <Alert message="Error" description={error} type="error" showIcon closable onClose={() => setError(null)} style={{ marginBottom: 16 }}/>}
 
-            <Spin spinning={loading}>
-                <Table
-                    columns={columns}
-                    rowKey={(record) => {
-                        const id = record._consolidated_data_id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-                        const period = record.pay_period_identifier || 'no-period';
-                        return `${id}-${period}`;
+            <Fragment>
+                <Spin spinning={loading}>
+                    {isColumnDraggable ? (
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleColumnDragEnd}
+                        >
+                            <SortableContext
+                                items={columnConfigs.map(col => col.key)}
+                                strategy={horizontalListSortingStrategy}
+                            >
+                                <Table
+                                    columns={columns}
+                                    rowKey={(record) => {
+                                        const id = record._consolidated_data_id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                                        const period = record.pay_period_identifier || 'no-period';
+                                        return `${id}-${period}`;
+                                    }}
+                                    dataSource={advancedFilters.length > 0 ? filteredData : data}
+                                    pagination={{
+                                        ...pagination,
+                                        total: advancedFilters.length > 0 ? filteredData.length : data.length
+                                    }}
+                                    onChange={handleTableChange}
+                                    loading={loading}
+                                    scroll={{ x: 'max-content', y: 600 }}
+                                    bordered
+                                    size="small"
+                                    className="zebra-striped-table"
+                                    sticky
+                                    locale={{
+                                        emptyText: advancedFilters.length > 0
+                                            ? t('dataViewer.table.noFilteredData')
+                                            : t('dataViewer.table.noData')
+                                    }}
+                                    title={() => (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '12px 8px',
+                                            borderBottom: '1px solid #e8e8e8',
+                                            backgroundColor: '#fafafa'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                {currentLayoutName && (
+                                                    <Typography.Title level={3} style={{
+                                                        margin: 0,
+                                                        fontSize: '22px',
+                                                        fontWeight: 'bold',
+                                                        color: '#1677ff'
+                                                    }}>
+                                                        {currentLayoutName}
+                                                    </Typography.Title>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <Typography.Text type="secondary" style={{ fontSize: '14px' }}>
+                                                    {t('common.pagination.showTotal')
+                                                        .replace('{rangeStart}', '1')
+                                                        .replace('{rangeEnd}', Math.min(pagination.pageSize || 10, (advancedFilters.length > 0 ? filteredData.length : data.length)).toString())
+                                                        .replace('{total}', (advancedFilters.length > 0 ? filteredData.length : data.length).toString())}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                    )}
+                                />
+                            </SortableContext>
+                        </DndContext>
+                    ) : isDraggable ? (
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <Table
+                                columns={columns}
+                                rowKey={(record) => {
+                                    const id = record._consolidated_data_id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                                    const period = record.pay_period_identifier || 'no-period';
+                                    return `${id}-${period}`;
+                                }}
+                                dataSource={advancedFilters.length > 0 ? filteredData : data}
+                                // 使用本地分页
+                                pagination={{
+                                    ...pagination,
+                                    // 确保分页控件显示正确的总记录数
+                                    total: advancedFilters.length > 0 ? filteredData.length : data.length
+                                }}
+                                onChange={handleTableChange}
+                                loading={loading}
+                                scroll={{ x: 'max-content', y: 600 }}
+                                bordered
+                                size="small"
+                                className="zebra-striped-table"
+                                sticky
+                                // 添加空数据提示
+                                locale={{
+                                    emptyText: advancedFilters.length > 0
+                                        ? t('dataViewer.table.noFilteredData')
+                                        : t('dataViewer.table.noData')
+                                }}
+                                components={{
+                                    body: {
+                                        wrapper: DraggableWrapper,
+                                        row: DraggableRow,
+                                    },
+                                }}
+                                // 添加表格标题行，显示当前布局配置名称
+                                title={() => (
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '12px 8px',
+                                        borderBottom: '1px solid #e8e8e8',
+                                        backgroundColor: '#fafafa'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            {currentLayoutName && (
+                                                <Typography.Title level={3} style={{
+                                                    margin: 0,
+                                                    fontSize: '22px',
+                                                    fontWeight: 'bold',
+                                                    color: '#1677ff' // 使用蓝色，与 Ant Design 主题色一致
+                                                }}>
+                                                    {currentLayoutName}
+                                                </Typography.Title>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <Typography.Text type="secondary" style={{ fontSize: '14px' }}>
+                                                {t('common.pagination.showTotal')
+                                                    .replace('{rangeStart}', '1')
+                                                    .replace('{rangeEnd}', Math.min(pagination.pageSize || 10, (advancedFilters.length > 0 ? filteredData.length : data.length)).toString())
+                                                    .replace('{total}', (advancedFilters.length > 0 ? filteredData.length : data.length).toString())}
+                                            </Typography.Text>
+                                        </div>
+                                    </div>
+                                )}
+                            />
+                        </DndContext>
+                    ) : (
+                        <Table
+                            columns={columns}
+                            rowKey={(record) => {
+                                const id = record._consolidated_data_id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                                const period = record.pay_period_identifier || 'no-period';
+                                return `${id}-${period}`;
+                            }}
+                            dataSource={advancedFilters.length > 0 ? filteredData : data}
+                            // 使用本地分页
+                            pagination={{
+                                ...pagination,
+                                // 确保分页控件显示正确的总记录数
+                                total: advancedFilters.length > 0 ? filteredData.length : data.length
+                            }}
+                            onChange={handleTableChange}
+                            loading={loading}
+                            scroll={{ x: 'max-content', y: 600 }}
+                            bordered
+                            size="small"
+                            className="zebra-striped-table"
+                            sticky
+                            // 添加空数据提示
+                            locale={{
+                                emptyText: advancedFilters.length > 0
+                                    ? t('dataViewer.table.noFilteredData')
+                                    : t('dataViewer.table.noData')
+                            }}
+                            // 添加表格标题行，显示当前布局配置名称
+                            title={() => (
+                                <div style={{
+                                    display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '12px 8px',
+                                borderBottom: '1px solid #e8e8e8',
+                                backgroundColor: '#fafafa'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    {currentLayoutName && (
+                                        <Typography.Title level={3} style={{
+                                            margin: 0,
+                                            fontSize: '22px',
+                                            fontWeight: 'bold',
+                                            color: '#1677ff' // 使用蓝色，与 Ant Design 主题色一致
+                                        }}>
+                                            {currentLayoutName}
+                                        </Typography.Title>
+                                    )}
+                                </div>
+                                <div>
+                                    <Typography.Text type="secondary" style={{ fontSize: '14px' }}>
+                                        {t('common.pagination.showTotal')
+                                            .replace('{rangeStart}', '1')
+                                            .replace('{rangeEnd}', Math.min(pagination.pageSize || 10, (advancedFilters.length > 0 ? filteredData.length : data.length)).toString())
+                                            .replace('{total}', (advancedFilters.length > 0 ? filteredData.length : data.length).toString())}
+                                    </Typography.Text>
+                                </div>
+                            </div>
+                        )}
+                    />
+                    )}
+                </Spin>
+
+                {/* 列设置抽屉 */}
+                <ColumnSettingsDrawer
+                    open={columnSettingsVisible}
+                    onClose={() => setColumnSettingsVisible(false)}
+                    columns={generateColumns()}
+                    onColumnsChange={(newColumns) => {
+                        setColumnConfigs(newColumns);
+                        saveTableSetting('salaryTable_columnConfigs', newColumns);
+                        message.success(t('columnSettings.saveSuccess'));
                     }}
-                    dataSource={advancedFilters.length > 0 ? filteredData : data}
-                    // 使用本地分页
-                    pagination={{
-                        ...pagination,
-                        // 本地分页处理
-                        onChange: (page, pageSize) => {
-                            console.log('Pagination changed to page', page, 'size', pageSize);
+                    defaultVisibleKeys={columnConfigs.filter(col => col.visible).map(col => col.key)}
+                    currentColumnConfigs={columnConfigs}
+                />
+                {/* 高级筛选抽屉 */}
+                <AdvancedFilterDrawer
+                    open={advancedFilterVisible}
+                    onClose={() => setAdvancedFilterVisible(false)}
+                    columns={generateColumns()}
+                    tableId="salaryTable"
+                    onApplyFilter={(groups) => {
+                        console.log('SalaryDataViewer - Received filter groups:', JSON.stringify(groups, null, 2));
+
+                        // 保存筛选条件
+                        setAdvancedFilters(groups);
+
+                        // 立即应用筛选并更新分页
+                        if (groups.length > 0) {
+                            // 确保数据已加载
+                            if (data.length === 0) {
+                                message.warning(t('advancedFilter.noDataToFilter'));
+                                return;
+                            }
+
+                            // 应用筛选条件
+                            console.log('Applying filters to', data.length, 'records');
+                            const filtered = applyFilters(data, groups);
+                            console.log('Filter result:', filtered.length, 'records matched');
+
+                            // 如果筛选结果为0，显示警告
+                            if (filtered.length === 0) {
+                                message.warning(t('advancedFilter.noMatchingRecords'));
+                            }
+
+                            setFilteredData(filtered);
+
+                            // 更新分页信息
                             setPagination(prev => ({
                                 ...prev,
-                                current: page,
-                                pageSize: pageSize
+                                current: 1, // 重置到第一页
+                                total: filtered.length // 使用筛选后的记录数
                             }));
-                        },
-                        // 确保分页控件显示正确的总记录数
-                        total: advancedFilters.length > 0 ? filteredData.length : data.length
+
+                            // 使用模板字符串直接构建消息，避免翻译占位符问题
+                            const successMsg = t('advancedFilter.applySuccess').replace('{count}', filtered.length.toString());
+                            message.success(successMsg);
+                        } else {
+                            // 没有筛选条件，恢复显示全部数据
+                            setFilteredData(data);
+                            setPagination(prev => ({
+                                ...prev,
+                                total: data.length
+                            }));
+
+                            message.success(t('advancedFilter.cleared'));
+                        }
                     }}
-                    // 移除原来的onChange处理器，因为我们现在使用本地分页
-                    // onChange={handleTableChange}
-                    loading={loading}
-                    scroll={{ x: 'max-content', y: 600 }}
-                    bordered
-                    size="small"
-                    className="zebra-striped-table"
-                    sticky
-                    // 添加空数据提示
-                    locale={{
-                        emptyText: advancedFilters.length > 0
-                            ? t('dataViewer.table.noFilteredData')
-                            : t('dataViewer.table.noData')
-                    }}
-                    // 添加表格标题行，显示当前布局配置名称
-                    title={() => (
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '12px 8px',
-                            borderBottom: '1px solid #e8e8e8',
-                            backgroundColor: '#fafafa'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                {currentLayoutName && (
-                                    <Typography.Title level={3} style={{
-                                        margin: 0,
-                                        fontSize: '22px',
-                                        fontWeight: 'bold',
-                                        color: '#1677ff' // 使用蓝色，与 Ant Design 主题色一致
-                                    }}>
-                                        {currentLayoutName}
-                                    </Typography.Title>
-                                )}
-                            </div>
-                            <div>
-                                <Typography.Text type="secondary" style={{ fontSize: '14px' }}>
-                                    {t('common.pagination.showTotal')
-                                        .replace('{rangeStart}', '1')
-                                        .replace('{rangeEnd}', Math.min(pagination.pageSize || 10, (advancedFilters.length > 0 ? filteredData.length : data.length)).toString())
-                                        .replace('{total}', (advancedFilters.length > 0 ? filteredData.length : data.length).toString())}
-                                </Typography.Text>
-                            </div>
-                        </div>
-                    )}
+                    initialConditions={advancedFilters}
                 />
-            </Spin>
 
-            {/* 列设置抽屉 */}
-            <ColumnSettingsDrawer
-                open={columnSettingsVisible}
-                onClose={() => setColumnSettingsVisible(false)}
-                columns={generateColumns()}
-                onColumnsChange={(newColumns) => {
-                    setColumnConfigs(newColumns);
-                    saveTableSetting('salaryTable_columnConfigs', newColumns);
-                    message.success(t('columnSettings.saveSuccess'));
-                }}
-                defaultVisibleKeys={columnConfigs.filter(col => col.visible).map(col => col.key)}
-                currentColumnConfigs={columnConfigs}
-            />
+                {/* 表格布局管理器 */}
+                <TableLayoutManager
+                    open={tableLayoutVisible}
+                    onClose={() => setTableLayoutVisible(false)}
+                    onSaveLayout={(name) => {
+                        // 创建一个新的布局对象
+                        const newLayout = {
+                            id: `local-${Date.now()}`,
+                            name: name,
+                            columns: columnConfigs,
+                            filters: advancedFilters,
+                            createdAt: new Date().toISOString(),
+                            isServerStored: false
+                        };
 
-            {/* 高级筛选抽屉 */}
-            <AdvancedFilterDrawer
-                open={advancedFilterVisible}
-                onClose={() => setAdvancedFilterVisible(false)}
-                columns={generateColumns()}
-                tableId="salaryTable"
-                onApplyFilter={(groups) => {
-                    console.log('SalaryDataViewer - Received filter groups:', JSON.stringify(groups, null, 2));
-
-                    // 保存筛选条件
-                    setAdvancedFilters(groups);
-
-                    // 立即应用筛选并更新分页
-                    if (groups.length > 0) {
-                        // 确保数据已加载
-                        if (data.length === 0) {
-                            message.warning(t('advancedFilter.noDataToFilter'));
-                            return;
-                        }
-
-                        // 应用筛选条件
-                        console.log('Applying filters to', data.length, 'records');
-                        const filtered = applyFilters(data, groups);
-                        console.log('Filter result:', filtered.length, 'records matched');
-
-                        // 如果筛选结果为0，显示警告
-                        if (filtered.length === 0) {
-                            message.warning(t('advancedFilter.noMatchingRecords'));
-                        }
-
-                        setFilteredData(filtered);
-
-                        // 更新分页信息
-                        setPagination(prev => ({
-                            ...prev,
-                            current: 1, // 重置到第一页
-                            total: filtered.length // 使用筛选后的记录数
-                        }));
+                        // 保存到本地存储
+                        saveTableSetting(`salaryTable_layout_${name}`, newLayout);
 
                         // 使用模板字符串直接构建消息，避免翻译占位符问题
-                        const successMsg = t('advancedFilter.applySuccess').replace('{count}', filtered.length.toString());
+                        const successMsg = t('tableLayout.saveSuccess').replace('{name}', name);
                         message.success(successMsg);
-                    } else {
-                        // 没有筛选条件，恢复显示全部数据
-                        setFilteredData(data);
-                        setPagination(prev => ({
-                            ...prev,
-                            total: data.length
-                        }));
+                    }}
+                    onLoadLayout={(layout) => {
+                        console.log('SalaryDataViewer - Loading layout:', layout);
 
-                        message.success(t('advancedFilter.cleared'));
-                    }
-                }}
-                initialConditions={advancedFilters}
-            />
+                        // 检查布局是否有有效的列配置
+                        if (!layout.columns || layout.columns.length === 0) {
+                            console.warn('Layout has empty columns, generating default columns');
 
-            {/* 表格布局管理器 */}
-            <TableLayoutManager
-                open={tableLayoutVisible}
-                onClose={() => setTableLayoutVisible(false)}
-                onSaveLayout={(name) => {
-                    // 创建一个新的布局对象
-                    const newLayout = {
-                        id: `local-${Date.now()}`,
-                        name: name,
-                        columns: columnConfigs,
-                        filters: advancedFilters,
-                        createdAt: new Date().toISOString(),
-                        isServerStored: false
-                    };
+                            // 生成默认列配置
+                            const defaultColumns = convertColumnsToConfig(generateColumns());
+                            setColumnConfigs(defaultColumns);
 
-                    // 保存到本地存储
-                    saveTableSetting(`salaryTable_layout_${name}`, newLayout);
+                            // 更新布局中的列配置
+                            layout.columns = defaultColumns;
 
-                    // 使用模板字符串直接构建消息，避免翻译占位符问题
-                    const successMsg = t('tableLayout.saveSuccess').replace('{name}', name);
-                    message.success(successMsg);
-                }}
-                onLoadLayout={(layout) => {
-                    console.log('SalaryDataViewer - Loading layout:', layout);
-
-                    // 检查布局是否有有效的列配置
-                    if (!layout.columns || layout.columns.length === 0) {
-                        console.warn('Layout has empty columns, generating default columns');
-
-                        // 生成默认列配置
-                        const defaultColumns = convertColumnsToConfig(generateColumns());
-                        setColumnConfigs(defaultColumns);
-
-                        // 更新布局中的列配置
-                        layout.columns = defaultColumns;
-
-                        message.warning(t('tableLayout.generatedDefaultColumns'));
-                    } else {
-                        setColumnConfigs(layout.columns);
-                    }
-
-                    // 处理筛选条件，兼容旧版本格式
-                    if (layout.filters && layout.filters.length > 0) {
-                        console.log('Processing filters from layout:', layout.filters);
-
-                        if (layout.filters.length > 0 && 'conditions' in layout.filters[0]) {
-                            // 新格式：FilterGroup[]
-                            console.log('Using new format (FilterGroup[])');
-                            setAdvancedFilters(layout.filters as FilterGroup[]);
+                            message.warning(t('tableLayout.generatedDefaultColumns'));
                         } else {
-                            // 旧格式：FilterCondition[]，转换为一个组
-                            console.log('Using old format (FilterCondition[]), converting to group');
-                            const group: FilterGroup = {
-                                id: `group-${Date.now()}`,
-                                conditions: layout.filters as any
-                            };
-                            setAdvancedFilters([group]);
+                            setColumnConfigs(layout.columns);
                         }
-                    } else {
-                        console.log('No filters in layout, clearing filters');
-                        setAdvancedFilters([]);
-                    }
 
-                    // 保存当前加载的布局ID和名称
-                    setCurrentLayoutId(layout.id);
-                    setCurrentLayoutName(layout.name);
+                        // 处理筛选条件，兼容旧版本格式
+                        if (layout.filters && layout.filters.length > 0) {
+                            console.log('Processing filters from layout:', layout.filters);
 
-                    // 保存到本地存储
-                    saveTableSetting('salaryTable_columnConfigs', layout.columns);
+                            if (layout.filters.length > 0 && 'conditions' in layout.filters[0]) {
+                                // 新格式：FilterGroup[]
+                                console.log('Using new format (FilterGroup[])');
+                                setAdvancedFilters(layout.filters as FilterGroup[]);
+                            } else {
+                                // 旧格式：FilterCondition[]，转换为一个组
+                                console.log('Using old format (FilterCondition[]), converting to group');
+                                const group: FilterGroup = {
+                                    id: `group-${Date.now()}`,
+                                    conditions: layout.filters as any
+                                };
+                                setAdvancedFilters([group]);
+                            }
+                        } else {
+                            console.log('No filters in layout, clearing filters');
+                            setAdvancedFilters([]);
+                        }
 
-                    // 使用模板字符串直接构建消息，避免翻译占位符问题
-                    const successMsg = t('tableLayout.loadSuccess').replace('{name}', layout.name);
-                    message.success(successMsg);
-                }}
-                onUpdateLayout={(layout) => {
-                    console.log('Updated layout:', layout);
-                    // 更新布局后，保存列配置和布局名称
-                    saveTableSetting('salaryTable_columnConfigs', layout.columns);
-                    setCurrentLayoutName(layout.name);
-                    // 使用模板字符串直接构建消息，避免翻译占位符问题
-                    const successMsg = t('tableLayout.updateSuccess').replace('{name}', layout.name);
-                    message.success(successMsg);
-                }}
-                tableId="salaryTable"
-                currentColumns={columnConfigs}
-                currentFilters={advancedFilters}
-                currentLayoutId={currentLayoutId}
-            />
+                        // 保存当前加载的布局ID和名称
+                        setCurrentLayoutId(layout.id);
+                        setCurrentLayoutName(layout.name);
 
-            {/* 导出表格模态框 */}
-            <ExportTableModal
-                open={exportModalVisible}
-                onClose={() => setExportModalVisible(false)}
-                columns={columnConfigs}
-                data={advancedFilters.length > 0 ? filteredData : data}
-                fileName={generateExportFileName()}
-                defaultFormat={exportFormat}
-            />
+                        // 保存到本地存储
+                        saveTableSetting('salaryTable_columnConfigs', layout.columns);
+
+                        // 使用模板字符串直接构建消息，避免翻译占位符问题
+                        const successMsg = t('tableLayout.loadSuccess').replace('{name}', layout.name);
+                        message.success(successMsg);
+                    }}
+                    onUpdateLayout={(layout) => {
+                        console.log('Updated layout:', layout);
+                        // 更新布局后，保存列配置和布局名称
+                        saveTableSetting('salaryTable_columnConfigs', layout.columns);
+                        setCurrentLayoutName(layout.name);
+                        // 使用模板字符串直接构建消息，避免翻译占位符问题
+                        const successMsg = t('tableLayout.updateSuccess').replace('{name}', layout.name);
+                        message.success(successMsg);
+                    }}
+                    tableId="salaryTable"
+                    currentColumns={columnConfigs}
+                    currentFilters={advancedFilters}
+                    currentLayoutId={currentLayoutId}
+                />
+
+                {/* 导出表格模态框 */}
+                <ExportTableModal
+                    open={exportModalVisible}
+                    onClose={() => setExportModalVisible(false)}
+                    columns={columnConfigs}
+                    data={advancedFilters.length > 0 ? filteredData : data}
+                    fileName={generateExportFileName()}
+                    defaultFormat={exportFormat}
+                />
+            </Fragment>
         </Space>
     );
 };
