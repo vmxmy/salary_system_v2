@@ -26,7 +26,10 @@
     "formulaManagement": "公式管理",
     "ruleManagement": "规则管理",
     "dashboard": "仪表盘",
-    "sheetMappings": "Sheet 映射"
+    "sheetMappings": "Sheet 映射",
+    "emailServerConfig": "邮件服务器配置",
+    "emailServices": "邮件服务",
+    "sendPayslip": "发送工资单"
   },
   "breadcrumb": {
     "home": "首页",
@@ -46,7 +49,10 @@
     "viewReport": "查看报表",
     "formulaManagement": "公式管理",
     "ruleManagement": "规则管理",
-    "sheetMappings": "Sheet 映射"
+    "sheetMappings": "Sheet 映射",
+    "emailServerConfig": "邮件服务器配置",
+    "emailServices": "邮件服务",
+    "sendPayslip": "发送工资单"
   },
   "auth": {
     "loginTitle": "登录",
@@ -145,6 +151,14 @@
     "buttons": {
       "search": "搜索",
       "reset": "重置"
+    },
+    "dragSort": {
+      "enabled": "已启用行拖拽排序模式，可通过拖动行左侧的图标进行排序",
+      "disabled": "已禁用行拖拽排序模式",
+      "success": "行排序成功",
+      "columnEnabled": "已启用列拖拽排序模式，可通过拖动列头进行排序",
+      "columnDisabled": "已禁用列拖拽排序模式",
+      "columnSuccess": "列排序成功"
     },
     "table": {
       "colId": "ID",
@@ -483,6 +497,7 @@
       "colDepartment": "部门",
       "colUnit": "单位",
       "colEstablishment": "编制",
+      "colEmail": "电子邮箱",
       "colIdCard": "身份证号",
       "colBankAccount": "银行账号",
       "colBankName": "开户行名称",
@@ -714,7 +729,11 @@
     "saveLayout": "报表布局",
     "export": "导出",
     "refresh": "刷新",
-    "currentLayout": "当前布局"
+    "currentLayout": "当前布局",
+    "toggleDraggable": "切换行拖拽排序",
+    "dragSort": "行排序",
+    "toggleColumnDraggable": "切换列拖拽排序",
+    "columnDragSort": "列排序"
   },
 
   "columnSettings": {
@@ -1034,5 +1053,63 @@
   "status": {
     "active": "在职",
     "inactive": "离职"
+  },
+  "emailConfigManager": {
+    "title": "邮件服务器配置管理",
+    "buttons": {
+      "addConfig": "添加配置",
+      "testConnection": "测试连接"
+    },
+    "columns": {
+      "name": "配置名称",
+      "host": "服务器地址",
+      "port": "端口",
+      "useTls": "使用TLS",
+      "useSsl": "使用SSL",
+      "username": "用户名",
+      "senderAddress": "发送方邮箱",
+      "isDefault": "默认配置",
+      "actions": "操作"
+    },
+    "modal": {
+      "addTitle": "添加邮件服务器配置",
+      "editTitle": "编辑邮件服务器配置"
+    },
+    "form": {
+      "name": "配置名称",
+      "host": "服务器地址",
+      "port": "端口号",
+      "useTls": "使用TLS加密",
+      "useSsl": "使用SSL加密",
+      "username": "邮箱用户名",
+      "password": "邮箱密码",
+      "passwordHelp": "仅在需要更新密码时填写",
+      "senderAddress": "发送方邮箱地址",
+      "isDefault": "设为默认邮箱服务器"
+    },
+    "validation": {
+      "nameRequired": "请输入配置名称",
+      "hostRequired": "请输入服务器地址",
+      "portRequired": "请输入有效的端口号 (1-65535)",
+      "usernameRequired": "请输入邮箱用户名",
+      "passwordRequired": "请输入邮箱密码",
+      "senderAddressRequired": "请输入发送方邮箱地址",
+      "senderAddressInvalid": "请输入有效的邮箱地址格式"
+    },
+    "messages": {
+      "fetchFailed": "获取邮件配置列表失败",
+      "deleteSuccess": "配置删除成功",
+      "deleteFailed": "配置删除失败",
+      "updateSuccess": "配置更新成功",
+      "createSuccess": "配置创建成功",
+      "validationFailed": "表单验证失败，请检查输入",
+      "testSuccess": "连接测试成功: {{message}}",
+      "testFailed": "连接测试失败: {{message}}",
+      "testError": "连接测试时发生错误"
+    },
+    "confirmations": {
+      "deleteTitle": "确认删除配置",
+      "deleteDescription": "您确定要删除配置 '{{name}}' 吗？此操作无法撤销。"
+    }
   }
 }

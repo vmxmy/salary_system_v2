@@ -16,10 +16,11 @@
 ```mermaid
 graph TD
     subgraph 前端
-        A[React 18] --> B[Ant Design]
+        A[React 19] --> B[Ant Design 5]
         A --> C[i18next]
         A --> D[Axios]
-        A --> E[Vite]
+        A --> E[Vite 6]
+        A --> R[Redux Toolkit]
     end
 
     subgraph 后端
@@ -42,18 +43,20 @@ graph TD
 
 ### 前端技术栈
 
-- 框架: React 18 + TypeScript
-- 构建工具: Vite
-- UI组件库: Ant Design
-- 状态管理: Context API
+- 框架: React 19 + TypeScript 5.7+
+- 构建工具: Vite 6.3+
+- UI组件库: Ant Design 5.24+
+- 状态管理: Redux Toolkit + Context API
 - 国际化: i18next
 - HTTP客户端: Axios
+- 拖拽功能: @dnd-kit
+- 表格导出: xlsx
 
 ### 后端技术栈
 
 - 框架: FastAPI
 - 数据库: PostgreSQL 14+
-- ORM: SQLAlchemy
+- ORM: SQLAlchemy 2.0+
 - 数据转换: dbt + Pandas
 - 认证: JWT
 - API文档: OpenAPI/Swagger
@@ -97,6 +100,7 @@ sequenceDiagram
 | 工资数据 | JWT | HTTPS | /api/salary_data | 分页查询支持 |
 | 计算规则 | JWT+角色 | HTTPS | /api/v1/calculation-rules | 需要管理员权限 |
 | 文件转换 | JWT | HTTPS | /api/file-conversion | 支持Excel/CSV |
+| 表格配置 | JWT | HTTPS | /api/table-configs | 表格布局管理 |
 
 ## 6. 技术决策记录
 

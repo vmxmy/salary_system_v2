@@ -4,6 +4,23 @@ from datetime import datetime, date
 from pydantic import ConfigDict
 from decimal import Decimal # Import Decimal
 
+# --- Email Server Config Schemas (Imported) ---
+from .pydantic_models.email_config import (
+    EmailServerConfigBase,
+    EmailServerConfigCreate,
+    EmailServerConfigUpdate,
+    EmailServerConfigResponse,
+    EmailServerConfigListResponse
+)
+
+# --- Email Sender Schemas (Imported - if needed directly via schemas.py) ---
+# from .pydantic_models.email_sender import (
+#     PayslipEmailRequest,
+#     PayslipEmailRecipient,
+#     EmailLogResponse,
+#     EmailLogListResponse
+# )
+
 # --- Token Schemas ---
 
 class Token(BaseModel):

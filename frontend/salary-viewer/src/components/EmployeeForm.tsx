@@ -46,6 +46,7 @@ interface EmployeeFormData {
     actual_position?: string | null;
     actual_position_start_date?: dayjs.Dayjs | null;
     position_level_start_date?: dayjs.Dayjs | null;
+    email?: string | null;
 }
 
 const EmployeeForm: React.FC<EmployeeFormProps> = ({
@@ -133,6 +134,20 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 </Row>
 
                 <Row gutter={16}>
+                    <Col span={8}>
+                        <Form.Item
+                            name="email"
+                            label={t('employeeForm.labels.email')}
+                            rules={[
+                                {
+                                    type: 'email',
+                                    message: t('employeeForm.validation.emailInvalid'),
+                                },
+                            ]}
+                        >
+                            <Input id="email" />
+                        </Form.Item>
+                    </Col>
                     <Col span={8}>
                         <Form.Item
                             name="gender"

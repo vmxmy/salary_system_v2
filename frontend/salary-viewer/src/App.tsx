@@ -42,6 +42,13 @@ import reportLinksApi from './services/reportLinksApi';
 import UserManager from './components/UserManager';
 import FormulaConfigPage from './pages/config/FormulaConfigPage';
 import RuleConfigPage from './pages/config/RuleConfigPage';
+import EmailConfigManager from './components/EmailConfigManager'; // Added
+import SendPayslipPage from './pages/EmailServices/SendPayslipPage'; // Placeholder for the new page
+import { MailOutlined } from '@ant-design/icons'; // Added for new menu
+
+// Redux Store
+import { Provider } from 'react-redux';
+import { store } from './store'; // Import the Redux store
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -187,12 +194,22 @@ const MainLayout: React.FC = () => {
                     { key: '/config/mappings', label: <Link to="/config/mappings">{t('menu.fieldMappings')}</Link> },
                     { key: '/config/formulas', label: <Link to="/config/formulas">{t('menu.formulaManagement')}</Link> },
                     { key: '/config/rules', label: <Link to="/config/rules">{t('menu.ruleManagement')}</Link> },
+                    { key: '/config/email-server', label: <Link to="/config/email-server">{t('menu.emailServerConfig')}</Link> }, // Added
                     { key: '/config/users', label: <Link to="/config/users">{t('menu.userManager')}</Link> },
                     // Conditionally add Report Links Management as a child
                     ...(isAdmin ? [{
                         key: '/report-links',
                         label: <Link to="/report-links">{t('menu.reportLinksManagement')}</Link>,
                     }] : []),
+            ],
+        },
+        // 5. Email Services Menu - Added
+        {
+            key: '/email-services',
+            icon: <MailOutlined />,
+            label: t('menu.emailServices'),
+            children: [
+                { key: '/email-services/send-payslip', label: <Link to="/email-services/send-payslip">{t('menu.sendPayslip')}</Link> },
             ],
         },
     ];
@@ -213,9 +230,12 @@ const MainLayout: React.FC = () => {
         '/config/mappings': t('breadcrumb.fieldMappings'),
         '/config/formulas': t('breadcrumb.formulaManagement'),
         '/config/rules': t('breadcrumb.ruleManagement'),
+        '/config/email-server': t('breadcrumb.emailServerConfig'), // Added
         '/admin/employees': t('breadcrumb.employeeManagement'),
         '/admin/departments': t('breadcrumb.departmentManagement'),
         '/reports': t('breadcrumb.reports'),
+        '/email-services': t('breadcrumb.emailServices'), // Added
+        '/email-services/send-payslip': t('breadcrumb.sendPayslip'), // Added
         '/report-links': t('menu.reportLinksManagement'),
         '/profile': t('breadcrumb.profile'),
     };
@@ -257,6 +277,7 @@ const MainLayout: React.FC = () => {
     const openKeys = currentPath.startsWith('/config') ? ['/config']
                      : currentPath.startsWith('/reports') || currentPath.startsWith('/report-links') ? ['/reports']
                      : currentPath.startsWith('/data-import') ? ['/data-import']
+                     : currentPath.startsWith('/email-services') ? ['/email-services'] // Added
                      : currentPath.startsWith('/data-management') ||
                        currentPath.startsWith('/viewer') ||
                        currentPath.startsWith('/admin/employees') ||
@@ -315,6 +336,8 @@ const MainLayout: React.FC = () => {
                             <Route path="/reports/:reportId" element={<ProtectedRoute><ReportViewer /></ProtectedRoute>} />
                             <Route path="/config/formulas" element={<ProtectedRoute><FormulaConfigPage /></ProtectedRoute>} />
                             <Route path="/config/rules" element={<ProtectedRoute><RuleConfigPage /></ProtectedRoute>} />
+                            <Route path="/config/email-server" element={<ProtectedRoute><EmailConfigManager /></ProtectedRoute>} />
+                            <Route path="/email-services/send-payslip" element={<ProtectedRoute><SendPayslipPage /></ProtectedRoute>} />
                             <Route path="*" element={<Navigate replace to="/viewer" />} />
                         </Routes>
                     </div>
@@ -334,15 +357,17 @@ function App() {
     const antdLocale = i18n.language === 'zh' ? zhCN : enUS;
 
     return (
-        <ConfigProvider locale={antdLocale} theme={customTheme}>
-            <AntApp>
-                <AuthProvider>
-                    <BrowserRouter>
-                        <AppRoutes />
-                    </BrowserRouter>
-                </AuthProvider>
-            </AntApp>
-        </ConfigProvider>
+        <Provider store={store}> {/* Wrap with Redux Provider */}
+            <ConfigProvider locale={antdLocale} theme={customTheme}>
+                <AntApp>
+                    <AuthProvider>
+                        <BrowserRouter>
+                            <AppRoutes />
+                        </BrowserRouter>
+                    </AuthProvider>
+                </AntApp>
+            </ConfigProvider>
+        </Provider>
     );
 }
 

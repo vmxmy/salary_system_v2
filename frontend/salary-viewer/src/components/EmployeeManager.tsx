@@ -31,6 +31,7 @@ interface Employee {
   bank_name?: string; // Added
   establishment_type_id?: number; // Added
   establishment_type_name?: string; // Added
+  email?: string; // Added for email display
   // position: string; // Removed
 }
 
@@ -125,6 +126,14 @@ const getColumns = (showEditModal: (employee: Employee) => void, handleDelete: (
 
         return <Tag color={color}>{value}</Tag>;
     }
+  },
+  {
+    title: t('employeeManager.table.colEmail'), // Translate Email
+    dataIndex: 'email',
+    key: 'email',
+    width: 220,
+    ellipsis: true,
+    render: (text?: string) => text || '-',
   },
   {
     title: t('employeeManager.table.colIdCard'), // Translate ID Card No.

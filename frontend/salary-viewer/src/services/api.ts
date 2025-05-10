@@ -100,6 +100,8 @@ export const clearCredentials = () => {
 // Request interceptor to add JWT Bearer token
 apiClient.interceptors.request.use(
   (config) => {
+    const requestTimestamp = new Date().toISOString();
+    console.log(`[API Interceptor - Request] ${requestTimestamp} - URL: ${config.url}`, config); // Log request
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -112,7 +114,8 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('API Request Interceptor Error:', error);
+    const errorTimestamp = new Date().toISOString();
+    console.error(`[API Interceptor - Request Error] ${errorTimestamp} - URL: ${error.config?.url}`, error); // Log request error
     return Promise.reject(error);
   }
 );
@@ -120,12 +123,13 @@ apiClient.interceptors.request.use(
 // Response interceptor to handle 401 errors (Unauthorized)
 apiClient.interceptors.response.use(
   (response) => {
-    // Any status code that lie within the range of 2xx cause this function to trigger
+    const responseTimestamp = new Date().toISOString();
+    console.log(`[API Interceptor - Response] ${responseTimestamp} - URL: ${response.config.url} - Status: ${response.status}`, response); // Log response
     return response;
   },
   (error) => {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    console.error('API Response Interceptor Error:', error.response || error.message || error);
+    const errorTimestamp = new Date().toISOString();
+    console.error(`[API Interceptor - Response Error] ${errorTimestamp} - URL: ${error.config?.url} - Status: ${error.response?.status}`, error.response || error.message || error); // Log response error
     if (error.response && error.response.status === 401) {
         console.warn('Received 401 Unauthorized. Clearing token and logging out.');
         clearAuthToken();
@@ -142,6 +146,7 @@ apiClient.interceptors.response.use(
  */
 export const fetchEstablishmentTypes = async (): Promise<string[]> => {
     try {
+        // 使用连字符而非下划线，与后端保持一致
         const response = await apiClient.get<string[]>('/api/establishment-types');
         return response.data || []; // Return data or empty array on failure
     } catch (error) {
@@ -158,10 +163,10 @@ export const fetchEstablishmentTypes = async (): Promise<string[]> => {
 export const fetchDepartments = async (): Promise<string[]> => {
     try {
         const response = await apiClient.get<string[]>('/api/departments');
-        return response.data || []; 
+        return response.data || [];
     } catch (error) {
         console.error("Failed to fetch departments:", error);
-        return []; 
+        return [];
     }
 };
 
@@ -171,10 +176,10 @@ export const fetchDepartments = async (): Promise<string[]> => {
 export const fetchUnits = async (): Promise<string[]> => {
     try {
         const response = await apiClient.get<string[]>('/api/units');
-        return response.data || []; 
+        return response.data || [];
     } catch (error) {
         console.error("Failed to fetch units:", error);
-        return []; 
+        return [];
     }
 };
 
@@ -204,7 +209,103 @@ export const fetchSalaryFieldDefinitions = async (): Promise<SalaryFieldDefiniti
         console.error("Failed to fetch salary field definitions:", error);
         return [];
     }
-};
+  };
 
-// Ensure the instance is exported as default
-export default apiClient;
+  // --- Email Server Configuration API Calls ---
+
+  // Define interfaces for EmailConfig data based on Pydantic models
+  export interface EmailConfigCreateData {
+    server_name: string;
+    host: string;
+    port: number;
+    use_tls: boolean;
+    use_ssl: boolean;
+    username: string;
+    password: string;
+    sender_email: string;
+    is_default: boolean;
+  }
+
+  export interface EmailConfigUpdateData extends Partial<EmailConfigCreateData> {}
+
+  export interface EmailConfigResponse {
+    id: number;
+    server_name: string;
+    host: string;
+    port: number;
+    use_tls: boolean;
+    use_ssl: boolean;
+    username: string;
+    sender_email: string;
+    is_default: boolean;
+    created_at: string;
+    updated_at: string;
+    // password will not be in response
+  }
+
+  interface EmailTestResponse {
+      success: boolean;
+      message: string;
+  }
+
+  export const getEmailConfigs = async (): Promise<EmailConfigResponse[]> => {
+    try {
+      const response = await apiClient.get<{ data: EmailConfigResponse[], total: number }>('/api/email-configs');
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Failed to fetch email configs:", error);
+      throw error; // Re-throw to be handled by caller
+    }
+  };
+
+  export const createEmailConfig = async (configData: EmailConfigCreateData): Promise<EmailConfigResponse> => {
+    try {
+      const response = await apiClient.post<EmailConfigResponse>('/api/email-configs', configData);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to create email config:", error);
+      throw error;
+    }
+  };
+
+  export const updateEmailConfig = async (id: number, configData: EmailConfigUpdateData): Promise<EmailConfigResponse> => {
+    try {
+      const response = await apiClient.put<EmailConfigResponse>(`/api/email-configs/${id}`, configData);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update email config ${id}:`, error);
+      throw error;
+    }
+  };
+
+  export const deleteEmailConfig = async (id: number): Promise<void> => {
+    try {
+      await apiClient.delete(`/api/email-configs/${id}`);
+    } catch (error) {
+      console.error(`Failed to delete email config ${id}:`, error);
+      throw error;
+    }
+  };
+
+  export const testEmailConfig = async (id: number): Promise<EmailTestResponse> => {
+    const callTimestamp = new Date().toISOString();
+    console.log(`[api.ts - testEmailConfig START] ${callTimestamp} - Testing config ID: ${id}`);
+    try {
+      const postTimestamp = new Date().toISOString();
+      console.log(`[api.ts - testEmailConfig PRE-POST] ${postTimestamp} - About to POST for ID: ${id} to URL: /api/email-configs/${id}/test`);
+      const response = await apiClient.post<EmailTestResponse>(`/api/email-configs/${id}/test`);
+      const responseTimestamp = new Date().toISOString();
+      console.log(`[api.ts - testEmailConfig POST-SUCCESS] ${responseTimestamp} - Successfully received response for ID: ${id}`, response.data);
+      return response.data;
+    } catch (error) {
+      const errorTimestamp = new Date().toISOString();
+      console.error(`[api.ts - testEmailConfig POST-ERROR] ${errorTimestamp} - Failed to test email config ${id}:`, error);
+      return { success: false, message: `Failed to test configuration: ${error instanceof Error ? error.message : String(error)}` };
+    } finally {
+      const finallyTimestamp = new Date().toISOString();
+      console.log(`[api.ts - testEmailConfig FINALLY] ${finallyTimestamp} - Finished testing attempt for ID: ${id}`);
+    }
+  };
+
+  // Ensure the instance is exported as default
+  export default apiClient;

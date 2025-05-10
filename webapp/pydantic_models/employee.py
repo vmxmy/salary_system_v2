@@ -13,6 +13,7 @@ class EmployeeBase(BaseModel):
     bank_account_number: Optional[str] = None # Added
     bank_name: Optional[str] = None # Added
     establishment_type_id: Optional[int] = None # Added HERE
+    email: Optional[str] = None
 
 class EmployeeCreate(EmployeeBase):
     """用于创建新员工的模型"""
@@ -27,6 +28,7 @@ class EmployeeUpdate(BaseModel):
     bank_account_number: Optional[str] = None # Added
     bank_name: Optional[str] = None # Added
     establishment_type_id: Optional[int] = None # Added for editing establishment
+    email: Optional[str] = None
 
 class EmployeeInDBBase(EmployeeBase):
     """数据库中的员工模型，包含ID和时间戳"""
@@ -45,6 +47,7 @@ class EmployeeResponse(EmployeeInDBBase):
     unit_name: Optional[str] = None
     # establishment_type_id is inherited from EmployeeInDBBase -> EmployeeBase
     establishment_type_name: Optional[str] = None # Added: Name corresponding to establishment_type_id
+    email: Optional[str] = None
 
 class EmployeeListResponse(BaseModel):
     """员工列表响应模型，包含分页信息"""

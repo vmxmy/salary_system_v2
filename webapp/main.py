@@ -43,14 +43,16 @@ from .routers.file_conversion import router as file_conversion_router
 from .routers.calculation_rules_admin import router as calculation_admin_router
 from .routers.salary_calculation import router as salary_calculation_router
 from .routers.table_configs import router as table_configs_router
+from .routers.email_config import router as email_config_router
+from .routers.email_sender import router as email_sender_router # Added email_sender_router
 
 # 导入所有Pydantic模型
 from .pydantic_models import (
     # 员工模型
-    EmployeeBase, EmployeeCreate, EmployeeUpdate, EmployeeInDBBase, 
+    EmployeeBase, EmployeeCreate, EmployeeUpdate, EmployeeInDBBase,
     EmployeeResponse, EmployeeListResponse,
     # 部门模型
-    DepartmentBase, DepartmentCreate, DepartmentUpdate, Department, 
+    DepartmentBase, DepartmentCreate, DepartmentUpdate, Department,
     DepartmentListResponse, DepartmentInfo,
     # 单位模型
     UnitBase, UnitCreate, UnitUpdate, Unit, UnitListResponse,
@@ -64,7 +66,7 @@ from .pydantic_models import (
 # - GET /api/salary_data/pay_periods
 # - GET /api/salary_data
 # - GET /api/establishment-types
-# - GET /api/establishment-types-list 
+# - GET /api/establishment-types-list
 # - GET /api/departments
 # - GET /api/units
 # - GET /api/departments-list
@@ -76,8 +78,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    expose_headers=["Content-Length"],
+    max_age=600,  # 预检请求缓存10分钟
 )
 
 # 数据库连接
@@ -112,24 +116,24 @@ async def run_dbt_build(dbt_project_dir: str):
     """Runs 'dbt build' in the specified dbt project directory as a background task."""
     logger.info(f"[DBT Background Task] Starting dbt build for project: {dbt_project_dir}")
     try:
-        command = ['dbt', 'build'] 
+        command = ['dbt', 'build']
         logger.info(f"[DBT Background Task] Executing command: {' '.join(command)} in {dbt_project_dir}")
-        
+
         result = subprocess.run(
             command,
-            cwd=dbt_project_dir, 
-            capture_output=True, 
-            text=True,           
-            check=False,         
-            env=os.environ.copy() 
+            cwd=dbt_project_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+            env=os.environ.copy()
         )
-        
+
         log_output = f"dbt stdout:\n{result.stdout}\ndbt stderr:\n{result.stderr}"
         if result.returncode == 0:
             logger.info(f"[DBT Background Task] dbt build completed successfully in {dbt_project_dir}.\n{log_output}")
         else:
             logger.error(f"[DBT Background Task] dbt build failed with return code {result.returncode} in {dbt_project_dir}.\n{log_output}")
-            
+
     except FileNotFoundError:
         logger.error(f"[DBT Background Task] dbt command not found. Ensure dbt is installed and in PATH for the FastAPI process.")
     except Exception as e:
@@ -189,10 +193,10 @@ def delete_department(conn, department_id: int) -> bool:
     # Call renamed function
     return models_db.delete_department(db, department_id)
 
-# --- DELETE get_units, update_unit, update_department --- 
+# --- DELETE get_units, update_unit, update_department ---
 # (These functions are likely unused placeholders or old code)
 
-# --- Endpoints start here --- 
+# --- Endpoints start here ---
 
 @app.get("/")
 async def read_root():
@@ -231,7 +235,7 @@ async def get_converter_page():
 
 # 该端点已迁移到file_conversion路由器中
 
-# --- DELETE Redundant delete_field_mapping endpoint --- 
+# --- DELETE Redundant delete_field_mapping endpoint ---
 # (The @app.delete("/api/config/mappings/{source_name}"...) block is deleted)
 
 # --- Config Management Endpoints --- END
@@ -245,10 +249,10 @@ if __name__ == "__main__":
     logger.info("Starting Uvicorn server for Salary System API...")
     # Use environment variables for host/port if available, otherwise default
     host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", "8080")) 
+    port = int(os.getenv("PORT", "8080"))
     reload = os.getenv("RELOAD", "true").lower() == "true"
-    
-    uvicorn.run("main:app", host=host, port=port, reload=reload) 
+
+    uvicorn.run("main:app", host=host, port=port, reload=reload)
 
 # --- Helper Function to Trigger dbt Build --- START ---
 def _trigger_dbt_build_if_project_valid(background_tasks: BackgroundTasks, dbt_project_dir: str) -> bool:
@@ -323,12 +327,12 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host=host, port=port, reload=reload)
 
 # === NEW DEBUGGING ENDPOINT ===
-@app.get("/api/debug/field-config/{employee_type_key}", 
+@app.get("/api/debug/field-config/{employee_type_key}",
          response_model=List[Dict[str, Any]], # Return a list of row dictionaries
-         tags=["Debugging"], 
+         tags=["Debugging"],
          summary="Fetch raw field config from DB for a type key")
 async def debug_get_field_config(
-    employee_type_key: str, 
+    employee_type_key: str,
     db: Session = Depends(get_db)
 ):
     """Debug endpoint to directly query the field configuration for a given employee type key."""
@@ -340,8 +344,8 @@ async def debug_get_field_config(
             etfr.is_required,
             sfm.source_name,
             sfm.target_name
-        FROM core.employee_type_field_rules etfr 
-        JOIN core.salary_field_mappings sfm ON etfr.field_db_name = sfm.target_name 
+        FROM core.employee_type_field_rules etfr
+        JOIN core.salary_field_mappings sfm ON etfr.field_db_name = sfm.target_name
         WHERE etfr.employee_type_key = :employee_type_key;
     """ )
     params = {"employee_type_key": employee_type_key}
@@ -352,55 +356,55 @@ async def debug_get_field_config(
         logger.info(f"[DEBUG] Found {len(rows)} config rows for type '{employee_type_key}'.")
         if not rows:
             # Return empty list if no rows found
-            return [] 
+            return []
         # Convert RowMapping objects to plain dicts for the response
         # Pydantic should handle this with response_model, but being explicit is safe
-        return [dict(row) for row in rows] 
+        return [dict(row) for row in rows]
     except SQLAlchemyError as e:
         logger.error(f"[DEBUG] Database error fetching field config for '{employee_type_key}': {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail=f"Database error querying field config for {employee_type_key}: {e}"
         )
     except Exception as e:
         logger.error(f"[DEBUG] Unexpected error fetching field config for '{employee_type_key}': {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail=f"Unexpected error querying field config for {employee_type_key}: {e}"
         )
 
 # 注册路由
 # 1. 认证路由
 app.include_router(
-    auth_router, 
+    auth_router,
     prefix="", # Keep empty for root paths like /token
     tags=["Authentication"]
 )
 
 # 2. 用户管理路由
 app.include_router(
-    user_router, 
+    user_router,
     prefix="", # Removed /api prefix, assuming /api/users is defined within user_router
     tags=["Users"]
 )
 
 # 3. 员工路由
 app.include_router(
-    employees_router, 
+    employees_router,
     prefix="", # Removed /api prefix, assuming /api/employees is defined within employees_router
     tags=["Employees"]
 )
 
 # 4. 单位路由
 app.include_router(
-    units.router, 
+    units.router,
     prefix="", # Removed /api prefix, assuming /api/units is defined within units.router
     tags=["Units"]
 )
 
 # 5. 部门路由
 app.include_router(
-    departments.router, 
+    departments.router,
     prefix="", # Removed /api prefix, assuming /api/departments is defined within departments.router
     tags=["Departments"]
 )
@@ -435,14 +439,14 @@ app.include_router(
 
 # 10. 计算引擎管理路由
 app.include_router(
-    calculation_admin_router, 
+    calculation_admin_router,
     prefix="/api/v1", # Added /api/v1 prefix
     tags=["Calculation Engine Admin"]
 )
 
 # 11. 工资计算路由
 app.include_router(
-    salary_calculation_router, 
+    salary_calculation_router,
     prefix="/api/v1", # Added /api/v1 prefix (assuming it's part of v1)
     tags=["Salary Calculation"]
 )
@@ -452,6 +456,20 @@ app.include_router(
     table_configs_router,
     prefix="",  # 移除重复的前缀，因为路由文件中已经定义了前缀
     tags=["Table Configurations"]
+)
+
+# 13. 邮件服务器配置路由
+app.include_router(
+    email_config_router,
+    # prefix="/api/email-configs" # Prefix is defined in the router itself
+    tags=["Email Server Configurations"]
+)
+
+# 14. 邮件发送路由
+app.include_router(
+    email_sender_router,
+    # prefix="/api/email-sender" # Prefix is defined in the router itself
+    tags=["Email Sender"]
 )
 
 # --- Removed API Routers with /api/v1 prefix ---

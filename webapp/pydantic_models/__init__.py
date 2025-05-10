@@ -42,6 +42,24 @@ from .salary import (
     FieldMappingListResponse
 )
 
+# 导出邮件服务器配置模型
+from .email_config import (
+    EmailServerConfigBase,
+    EmailServerConfigCreate,
+    EmailServerConfigUpdate,
+    EmailServerConfigResponse,
+    EmailServerConfigListResponse
+)
+
+# 导出邮件发送者模型 (如果需要从 schemas 访问)
+# from .email_sender import (
+#     PayslipEmailRequest,
+#     PayslipEmailRecipient,
+#     EmailLogResponse,
+#     EmailLogListResponse
+# )
+
+
 # 将来可以添加其他模型的导出
 # from .user import ...
 # from .department import ...

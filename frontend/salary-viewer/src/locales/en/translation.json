@@ -85,7 +85,10 @@
     "reportLinksManagement": "Report Links Management",
     "sheetMappings": "Sheet Mappings",
     "formulaManagement": "Formula Management",
-    "ruleManagement": "Rule Management"
+    "ruleManagement": "Rule Management",
+    "emailServerConfig": "Email Server Config",
+    "emailServices": "Email Services",
+    "sendPayslip": "Send Payslip"
   },
   "breadcrumb": {
     "home": "Home",
@@ -103,7 +106,10 @@
     "profile": "User Profile",
     "sheetMappings": "Sheet Mappings",
     "formulaManagement": "Formula Management",
-    "ruleManagement": "Rule Management"
+    "ruleManagement": "Rule Management",
+    "emailServerConfig": "Email Server Config",
+    "emailServices": "Email Services",
+    "sendPayslip": "Send Payslip"
   },
   "userMenu": {
     "profile": "Profile",
@@ -261,6 +267,7 @@
       "colDepartment": "Department",
       "colUnit": "Unit",
       "colEstablishment": "Establishment",
+      "colEmail": "Email",
       "colIdCard": "ID Card No.",
       "colBankAcc": "Bank Account",
       "colBankName": "Bank Name",
@@ -620,5 +627,59 @@
     "exportFailed": "Export failed",
     "selectColumnsWarning": "Please select at least one column to export",
     "exportNote": "Note: Only data on the current page will be exported. To export all data, adjust the page size first."
+  },
+  "emailConfigManager": {
+    "title": "Email Server Configuration Management",
+    "buttons": {
+      "addConfig": "Add Configuration",
+      "testConnection": "Test Connection"
+    },
+    "columns": {
+      "name": "Config Name",
+      "host": "Server Host",
+      "port": "Port",
+      "useSsl": "Use SSL/TLS",
+      "username": "Username",
+      "senderAddress": "Sender Email",
+      "isDefault": "Is Default",
+      "actions": "Actions"
+    },
+    "modal": {
+      "addTitle": "Add Email Server Configuration",
+      "editTitle": "Edit Email Server Configuration"
+    },
+    "form": {
+      "name": "Configuration Name",
+      "host": "Server Host",
+      "port": "Port Number",
+      "useSsl": "Use SSL/TLS Encryption",
+      "username": "Email Username",
+      "password": "Email Password",
+      "passwordHelp": "Fill only if you want to update the password.",
+      "senderAddress": "Sender Email Address",
+      "isDefault": "Set as Default Configuration"
+    },
+    "validation": {
+      "nameRequired": "Please enter the configuration name.",
+      "hostRequired": "Please enter the server host.",
+      "portRequired": "Please enter a valid port number (1-65535).",
+      "senderAddressRequired": "Please enter the sender email address.",
+      "senderAddressInvalid": "Please enter a valid email address format."
+    },
+    "messages": {
+      "fetchFailed": "Failed to fetch email configurations.",
+      "deleteSuccess": "Configuration deleted successfully.",
+      "deleteFailed": "Failed to delete configuration.",
+      "updateSuccess": "Configuration updated successfully.",
+      "createSuccess": "Configuration created successfully.",
+      "validationFailed": "Form validation failed. Please check your input.",
+      "testSuccess": "Connection test successful: {{message}}",
+      "testFailed": "Connection test failed: {{message}}",
+      "testError": "An error occurred while testing the connection."
+    },
+    "confirmations": {
+      "deleteTitle": "Confirm Delete Configuration",
+      "deleteDescription": "Are you sure you want to delete the configuration '{{name}}'? This action cannot be undone."
+    }
   }
 }

@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from cryptography.fernet import Fernet # For symmetric encryption
 # import psycopg2 # No longer needed directly here if refactored
 
 # Import SQLAlchemy Session and ORM Models if needed for type hints
@@ -30,6 +31,28 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 3
 if SECRET_KEY == "default_secret_key_change_this":
     print("WARNING: Using default JWT_SECRET_KEY. Please set a strong secret key in your .env file.")
 
+# Fernet Key for Email Server Password Encryption
+# IMPORTANT: This key MUST be kept secret and consistent across application instances.
+# It's best to set this as an environment variable.
+EMAIL_CFG_FERNET_KEY_ENV_VAR = "EMAIL_CFG_FERNET_KEY"
+_fernet_key = os.getenv(EMAIL_CFG_FERNET_KEY_ENV_VAR)
+if not _fernet_key:
+    print(f"WARNING: Environment variable {EMAIL_CFG_FERNET_KEY_ENV_VAR} for email config encryption is not set.")
+    print("Using a fixed development key. For production, generate a key once and set it as an environment variable.")
+    # 使用固定的开发密钥 - 注意：这只适用于开发环境，生产环境应该使用环境变量
+    _fernet_key = "2aJmWSBM9jAqez6XRJ4Xhkv5DohIfl4b5UNchy0YR44="
+    # In a real app, you might want to halt or have a more robust way to handle this.
+    # For now, we'll proceed with the fixed key for development.
+
+try:
+    fernet_cipher = Fernet(_fernet_key.encode()) # Encode string key back to bytes for Fernet
+except Exception as e:
+    logger.error(f"Failed to initialize Fernet cipher with key from {EMAIL_CFG_FERNET_KEY_ENV_VAR}. Ensure it's a valid Fernet key. Error: {e}")
+    # Fallback or error handling if key is invalid
+    print(f"CRITICAL: Could not initialize Fernet cipher. Email password encryption/decryption will fail. Ensure {EMAIL_CFG_FERNET_KEY_ENV_VAR} is a valid Fernet key.")
+    # fernet_cipher = None # Or raise an exception to halt startup
+
+
 # Password Hashing Context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -45,6 +68,31 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Hashes a plain password."""
     return pwd_context.hash(password)
+
+# --- Symmetric Encryption/Decryption Utilities (for Email Server Passwords) ---
+
+def encrypt_data(plain_text: str) -> Optional[str]:
+    """Encrypts data using Fernet."""
+    if not fernet_cipher:
+        logger.error("Fernet cipher is not initialized. Cannot encrypt data.")
+        # Potentially raise an error or return a specific indicator
+        raise ValueError("Fernet cipher not initialized. Cannot encrypt.")
+    try:
+        return fernet_cipher.encrypt(plain_text.encode()).decode()
+    except Exception as e:
+        logger.error(f"Error encrypting data: {e}", exc_info=True)
+        return None # Or raise
+
+def decrypt_data(encrypted_text: str) -> Optional[str]:
+    """Decrypts data using Fernet."""
+    if not fernet_cipher:
+        logger.error("Fernet cipher is not initialized. Cannot decrypt data.")
+        raise ValueError("Fernet cipher not initialized. Cannot decrypt.")
+    try:
+        return fernet_cipher.decrypt(encrypted_text.encode()).decode()
+    except Exception as e: # Includes InvalidToken
+        logger.error(f"Error decrypting data (possibly invalid token or key): {e}", exc_info=True)
+        return None # Or raise
 
 # --- JWT Utilities ---
 
@@ -77,8 +125,8 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[mod
 
 # --- FastAPI Dependencies (Refactored get_current_user) ---
 
-async def get_current_user( 
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme), 
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     # conn = Depends(get_db_connection) # <-- Remove old dependency
     db: Session = Depends(get_db) # <--- Use new ORM Session dependency
 ) -> schemas.UserResponse: # Keep returning UserResponse as expected by Depends
@@ -101,7 +149,7 @@ async def get_current_user(
 
     # Fetch user details from DB using ORM
     user_orm = models_db.get_user_by_username(db, username=username)
-    
+
     if user_orm is None:
         raise credentials_exception
 
@@ -131,11 +179,11 @@ def require_role(allowed_roles: List[str]):
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"User has no role assigned. Requires one of: {allowed_roles}"
             )
-        
+
         if current_user.role.name not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"User role '{current_user.role.name}' is not authorized for this operation. Requires one of: {allowed_roles}"
             )
         return current_user
-    return role_checker 
+    return role_checker

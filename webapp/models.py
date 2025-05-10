@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Foreign
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP, JSONB
+import uuid
 
 # Import the Base class from database.py
 from .database import Base
@@ -111,6 +112,7 @@ class Employee(Base):
     remarks = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    email = Column(String, nullable=True, index=True) # Added email field
 
     # Added new fields
     gender = Column(String(10), nullable=True)
@@ -127,10 +129,78 @@ class Employee(Base):
     department = relationship("Department", back_populates="employees")
     establishment_type = relationship("EstablishmentType", back_populates="employees")
     calculated_salaries = relationship("CalculatedSalaryRecord", back_populates="employee")
+    sent_emails = relationship("EmailLog", back_populates="sender_employee") # Relationship to EmailLog
 
 # --- Pydantic Model for Employee --- END ---
 
 # --- Add other ORM models below (e.g., ReportLink) ---
+
+class EmailServerConfig(Base):
+    __tablename__ = 'email_server_configs'
+    __table_args__ = {'schema': 'core'}
+
+    id = Column(Integer, primary_key=True, index=True)
+    server_name = Column(String(255), unique=True, nullable=False)
+    host = Column(String(255), nullable=False)
+    port = Column(Integer, nullable=False)
+    use_tls = Column(Boolean, default=True)
+    use_ssl = Column(Boolean, default=False)
+    username = Column(String(255), nullable=False)
+    # Store encrypted password
+    encrypted_password = Column(Text, nullable=False) # Stores Fernet encrypted password
+    encryption_method = Column(String(50), default="fernet", nullable=False) # Explicitly Fernet
+    sender_email = Column(String(255), nullable=False)
+    is_default = Column(Boolean, default=False, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+class EmailLog(Base):
+    __tablename__ = 'email_logs'
+    __table_args__ = {'schema': 'core'}
+
+    id = Column(Integer, primary_key=True, index=True)
+    sender_email = Column(String(255), nullable=False)
+    recipient_emails = Column(JSONB, nullable=False) # Store list of recipients
+    subject = Column(String(500), nullable=False)
+    body = Column(Text, nullable=True)
+    status = Column(String(50), nullable=False) # e.g., 'sent', 'failed', 'pending'
+    sent_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    error_message = Column(Text, nullable=True)
+    # Optional: Link to employee if applicable
+    sender_employee_id = Column(Integer, ForeignKey('core.employees.id'), nullable=True)
+
+    # New field added here
+    task_uuid = Column(UUID(as_uuid=True), nullable=True, index=True)
+
+    sender_employee = relationship("Employee", back_populates="sent_emails")
+
+# New Model for Email Sending Tasks
+class EmailSendingTask(Base):
+    __tablename__ = "email_sending_tasks"
+    __table_args__ = {"schema": "core"}
+
+    task_uuid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    pay_period = Column(String(50), nullable=False, index=True)
+    email_config_id = Column(Integer, ForeignKey("core.email_server_configs.id"), nullable=False)
+    filters_applied = Column(JSONB, nullable=True)
+    subject_template = Column(Text, nullable=True)
+    requested_by_user_id = Column(Integer, ForeignKey("core.users.id"), nullable=True, index=True) # Added index=True to match Alembic
+    status = Column(String(50), nullable=False, default='queued', index=True)
+    total_employees_matched = Column(Integer, default=0, nullable=True) # Changed to nullable=True to match Alembic (server_default handles non-null at DB)
+    total_sent_successfully = Column(Integer, default=0, nullable=True) # Changed to nullable=True
+    total_failed = Column(Integer, default=0, nullable=True)          # Changed to nullable=True
+    total_skipped = Column(Integer, default=0, nullable=True)           # Changed to nullable=True
+    started_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    completed_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    last_error_message = Column(Text, nullable=True)
+
+    # Relationships (optional, define if needed for easy ORM access)
+    email_server_config = relationship("EmailServerConfig") # Assuming EmailServerConfig model exists and is imported
+    requested_by_user = relationship("User") # Assuming User model exists
+
+    # To query related email logs, you would typically do:
+    # db.query(EmailLog).filter(EmailLog.task_uuid == a_task.task_uuid).all()
+
 class ReportLink(Base):
     __tablename__ = "report_links"
     __table_args__ = {'schema': 'core'}

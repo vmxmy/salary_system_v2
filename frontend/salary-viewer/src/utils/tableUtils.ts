@@ -8,15 +8,122 @@ import { FilterCondition, FilterGroup } from '../components/table/AdvancedFilter
  * @returns Ant Design表格列
  */
 export const convertConfigToColumns = (columns: ColumnConfig[]): TableColumnsType<any> => {
+  // 需要添加筛选功能的字段
+  const filterableFields = [
+    // 主要字段名
+    'establishment_type',  // 编制类型
+    'employee_type',       // 人员身份
+    'position_type',       // 岗位类别
+    'position_level',      // 职务级别
+    'job_title',           // 职务名称
+
+    // 备用字段名（带前缀）
+    'sal_establishment_type_name',
+    'sal_employee_type_name',
+    'sal_employee_type_key',
+    'sal_position_type_name',
+    'sal_position_level_name',
+    'sal_job_title_name',
+
+    // 更多可能的变体
+    'establishment_type_name',
+    'employee_type_name',
+    'position_type_name',
+    'position_level_name',
+    'job_level'
+  ];
+
   return columns
     .filter(col => col.visible)
-    .map(col => ({
-      key: col.key,
-      dataIndex: col.dataIndex || col.key,
-      title: col.title,
-      fixed: col.fixed,
-      width: col.width,
-    }));
+    .map(col => {
+      const column: any = {
+        key: col.key,
+        dataIndex: col.dataIndex || col.key,
+        title: col.title,
+        fixed: col.fixed,
+        width: col.width,
+      };
+
+      // 只为编制类型字段添加筛选功能
+      const shouldHaveFilter = (col.dataIndex === 'establishment_type' ||
+                              col.dataIndex === 'sal_establishment_type_name' ||
+                              col.dataIndex === 'establishment_type_name' ||
+                              (col.key && (col.key.includes('establishment_type') ||
+                                          col.key === 'establishment_type')));
+
+      if (shouldHaveFilter) {
+        console.log(`Adding filter to column from config: ${col.key}`);
+
+        // 根据字段名称添加不同的筛选选项
+        let filterOptions: { text: string, value: string }[] = [];
+
+        // 编制类型
+        if (col.dataIndex === 'establishment_type' || col.key.includes('establishment')) {
+          filterOptions = [
+            { text: 'gwy', value: 'gwy' },
+            { text: 'cg', value: 'cg' },
+            { text: 'sy', value: 'sy' },
+            { text: 'qp', value: 'qp' },
+            { text: 'ytf', value: 'ytf' }
+          ];
+        }
+        // 人员身份
+        else if (col.dataIndex === 'employee_type' || col.key.includes('employee')) {
+          filterOptions = [
+            { text: 'gwy', value: 'gwy' },
+            { text: 'cg', value: 'cg' },
+            { text: 'sy', value: 'sy' },
+            { text: 'qp', value: 'qp' },
+            { text: 'ytf', value: 'ytf' }
+          ];
+        }
+        // 岗位类别
+        else if (col.dataIndex === 'position_type' || col.key.includes('position_type')) {
+          filterOptions = [
+            { text: '管理', value: '管理' },
+            { text: '专业技术', value: '专业技术' },
+            { text: '工勤', value: '工勤' }
+          ];
+        }
+        // 职务级别
+        else if (col.dataIndex === 'position_level' || col.key.includes('position_level')) {
+          filterOptions = [
+            { text: '科级', value: '科级' },
+            { text: '科员', value: '科员' },
+            { text: '办事员', value: '办事员' },
+            { text: '一级主任科员', value: '一级主任科员' },
+            { text: '二级主任科员', value: '二级主任科员' },
+            { text: '三级主任科员', value: '三级主任科员' },
+            { text: '四级主任科员', value: '四级主任科员' },
+            { text: '一级科员', value: '一级科员' },
+            { text: '二级科员', value: '二级科员' }
+          ];
+        }
+        // 默认选项
+        else {
+          filterOptions = [{ text: '加载中...', value: 'loading' }];
+        }
+
+        // 添加筛选功能
+        column.filters = filterOptions;
+        column.onFilter = (value: string, record: any) => {
+          if (value === 'loading') return true;
+          const recordValue = record[col.dataIndex || col.key];
+          return recordValue === value;
+        };
+        column.filterMultiple = true;
+        column.filterSearch = true;
+
+        // 添加排序功能 - 只为编制类型字段添加
+        column.sorter = (a: any, b: any) => {
+          const valueA = a[col.dataIndex || col.key] || '';
+          const valueB = b[col.dataIndex || col.key] || '';
+          return valueA.localeCompare(valueB);
+        };
+      }
+
+      return column;
+    });
 };
 
 /**

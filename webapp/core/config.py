@@ -34,7 +34,9 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "*",  # 允许所有源，仅用于开发环境，生产环境应该指定具体的源
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        # 移除通配符"*"，因为它与allow_credentials=True不兼容
     ]
 
     # 文件上传设置
