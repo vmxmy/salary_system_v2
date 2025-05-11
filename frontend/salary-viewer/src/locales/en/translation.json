@@ -628,6 +628,15 @@
     "selectColumnsWarning": "Please select at least one column to export",
     "exportNote": "Note: Only data on the current page will be exported. To export all data, adjust the page size first."
   },
+  "charts": {
+    "salaryByType": {
+      "title": "Salary Total by Establishment Type",
+      "xAxisLabel": "Pay Period",
+      "yAxisLabel": "Salary Total",
+      "typeLabel": "Establishment Type",
+      "noData": "No data available"
+    }
+  },
   "emailConfigManager": {
     "title": "Email Server Configuration Management",
     "buttons": {

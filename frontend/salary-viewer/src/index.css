@@ -67,26 +67,4 @@ button:focus-visible {
   }
 }
 
-/* 自定义卡片样式 */
-.custom-card {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
 
-.custom-card .ant-card-head {
-  background-color: #f5f5f5;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  border-radius: 8px 8px 0 0;
-}
-
-.custom-card .ant-typography {
-  margin-bottom: 0;
-}
-
-/* 表单版块样式 */
-.custom-card .ant-form-item-label > label {
-  font-weight: 500;
-  color: #333;
-}

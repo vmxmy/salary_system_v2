@@ -48,8 +48,8 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      <Space>
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <Space size="middle">
         {/* 表格布局 - 设置为主要按钮样式 */}
         <Tooltip title={t('tableToolbar.saveLayout')}>
           <Button
@@ -61,36 +61,6 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             {t('tableToolbar.saveLayout')}
           </Button>
         </Tooltip>
-
-        {/* 导出 ▼ */}
-        <Dropdown menu={{
-          items: [
-            {
-              key: 'excel',
-              label: 'Excel (.xlsx)',
-              onClick: () => {
-                console.log('Exporting as Excel');
-                onExportClick('excel');
-              },
-            },
-            {
-              key: 'csv',
-              label: 'CSV (.csv)',
-              onClick: () => {
-                console.log('Exporting as CSV');
-                onExportClick('csv');
-              },
-            },
-          ]
-        }} trigger={['click']} disabled={loading}>
-          <Button>
-            <Space>
-              <DownloadOutlined />
-              {t('tableToolbar.export')}
-              <DownOutlined />
-            </Space>
-          </Button>
-        </Dropdown>
 
         {/* 视图组件 [列设置 | 列排序 | 高级筛选] */}
         <Space.Compact>
@@ -128,6 +98,36 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             </Button>
           </Tooltip>
         </Space.Compact>
+
+        {/* 导出 ▼ */}
+        <Dropdown menu={{
+          items: [
+            {
+              key: 'excel',
+              label: 'Excel (.xlsx)',
+              onClick: () => {
+                console.log('Exporting as Excel');
+                onExportClick('excel');
+              },
+            },
+            {
+              key: 'csv',
+              label: 'CSV (.csv)',
+              onClick: () => {
+                console.log('Exporting as CSV');
+                onExportClick('csv');
+              },
+            },
+          ]
+        }} trigger={['click']} disabled={loading}>
+          <Button>
+            <Space>
+              <DownloadOutlined />
+              {t('tableToolbar.export')}
+              <DownOutlined />
+            </Space>
+          </Button>
+        </Dropdown>
 
         {/* 刷新 */}
         <Tooltip title={t('tableToolbar.refresh')}>

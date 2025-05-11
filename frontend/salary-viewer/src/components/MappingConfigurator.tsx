@@ -269,7 +269,7 @@ const EmployeeTypeFieldRulesPage: React.FC = () => {
                 if (mapping) {
                     return mapping.source_name;
                 } else {
-                    return <span style={{ color: 'red', fontWeight: 600 }} title={`未映射到中文名，原字段：${db}`}>未映射</span>;
+                    return <span style={{ fontWeight: 600 }} title={`未映射到中文名，原字段：${db}`}>未映射</span>;
                 }
             },
         },

@@ -207,7 +207,7 @@ const TaskDetailsViewer: React.FC<TaskDetailsViewerProps> = ({ selectedTaskUuid 
         { key: '10', label: '发送失败数', children: taskDetail.total_failed },
         { key: '11', label: '跳过发送数', children: taskDetail.total_skipped },
         { key: '12', label: '最后错误信息', children: <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: '更多' }}>{taskDetail.last_error_message || '无'}</Paragraph>, span: 2 },
-        { key: '13', label: '筛选条件', children: <pre style={{ maxHeight: '100px', overflowY: 'auto', background: '#f5f5f5', padding: '8px' }}>{JSON.stringify(taskDetail.filters_applied, null, 2)}</pre>, span: 3 },
+        { key: '13', label: '筛选条件', children: <pre style={{ maxHeight: '100px', overflowY: 'auto', padding: '8px' }}>{JSON.stringify(taskDetail.filters_applied, null, 2)}</pre>, span: 3 },
         { key: '14', label: '邮件主题模板', children: <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: '更多' }}>{taskDetail.subject_template}</Paragraph>, span: 3 },
     ];
 

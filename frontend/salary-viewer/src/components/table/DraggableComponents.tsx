@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { MenuOutlined } from '@ant-design/icons';
 
 // 拖拽手柄组件
-export const DragHandle = () => <MenuOutlined style={{ cursor: 'grab', color: '#999' }} />;
+export const DragHandle = () => <MenuOutlined style={{ cursor: 'grab' }} />;
 
 // 可拖拽的表格包装器
 export const DraggableWrapper = (props: any) => {

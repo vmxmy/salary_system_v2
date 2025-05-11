@@ -421,7 +421,7 @@ const RuleConfigPage: React.FC = () => {
                         {(fields, { add, remove }) => (
                             <>
                                 {fields.map(({ key, name, ...restField }) => (
-                                    <Space key={key} style={{ display: 'flex', marginBottom: 8, border: '1px dashed #d9d9d9', padding: '10px' }} align="baseline">
+                                    <Space key={key} style={{ display: 'flex', marginBottom: 8, padding: '10px' }} align="baseline">
                                         <Form.Item
                                             {...restField}
                                             name={[name, 'context_field_name']}
@@ -446,7 +446,7 @@ const RuleConfigPage: React.FC = () => {
                                         >
                                             <Input placeholder={t('config.rules.form.conditions.value.placeholder')} />
                                         </Form.Item>
-                                        <MinusCircleOutlined onClick={() => remove(name)} style={{ color: 'red' }}/>
+                                        <MinusCircleOutlined onClick={() => remove(name)} />
                                     </Space>
                                 ))}
                                 <Form.Item>

@@ -178,7 +178,7 @@ const EmailSenderForm: React.FC = () => {
                             <Select placeholder="选择邮件服务器">
                                 {Array.isArray(emailServerConfigOptions) && emailServerConfigOptions.filter(config => config && config.id != null).map((config: EmailServerConfigOption) => (
                                     <Option key={config.id} value={config.id}>
-                                        {config.server_name} ({config.sender_email}) {config.is_default && <span style={{ color: '#1890ff' }}>[默认]</span>}
+                                        {config.server_name} ({config.sender_email}) {config.is_default && <span>[默认]</span>}
                                     </Option>
                                 ))}
                             </Select>

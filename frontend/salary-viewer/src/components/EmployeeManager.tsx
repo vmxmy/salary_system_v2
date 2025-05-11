@@ -797,7 +797,7 @@ const EmployeeManager: React.FC = () => {
 
         {/* --- NEW Declarative Delete Confirmation Modal --- */}
         <Modal
-            title={<Space><ExclamationCircleOutlined style={{ color: '#faad14' }} />{t('employeeManager.modals.deleteConfirmTitle', { name: employeeToDelete?.name || '' })}</Space>}
+            title={<Space><ExclamationCircleOutlined />{t('employeeManager.modals.deleteConfirmTitle', { name: employeeToDelete?.name || '' })}</Space>}
             open={isDeleteConfirmVisible}
             onOk={executeDelete} // Calls the function with API logic
             onCancel={handleDeleteCancel} // Closes the modal

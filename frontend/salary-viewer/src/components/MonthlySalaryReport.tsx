@@ -84,7 +84,7 @@ const MonthlySalaryReport: React.FC = () => {
                 <Alert message={t('common.error')} description={fetchError} type="error" showIcon style={{ marginBottom: 16 }}/>
             )}
 
-            <div style={{ flexGrow: 1, border: '1px solid #d9d9d9' }}> {/* Added border for iframe container */}
+            <div style={{ flexGrow: 1 }}> {/* Added border for iframe container */}
                 {iframeSrc ? (
                     <iframe
                         src={iframeSrc}

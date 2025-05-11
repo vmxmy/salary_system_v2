@@ -21,6 +21,7 @@ import {
   BarChartOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
+import DifyChatbot from './components/common/DifyChatbot';
 import SalaryDataViewer from './components/SalaryDataViewer';
 import FileConverter from './components/FileConverter';
 import MappingConfigurator from './components/MappingConfigurator';
@@ -59,31 +60,31 @@ interface MenuItem {
 }
 
 // --- Define Custom Theme --- START
-const customTheme: ThemeConfig = {
-    token: {
-        colorPrimary: '#008080', // Teal
-        borderRadius: 8, // Softer corners for Modern & Clean
-        // To use a custom font like 'Inter' or 'Nunito Sans',
-        // 1. Ensure the font is loaded in your project (e.g., via CSS import in index.css or App.tsx)
-        // 2. Set the fontFamily token below:
-        fontFamily: '"Inter", sans-serif', // Set modern font
-        colorBorder: '#f0f0f0', // Softer borders
-    },
-    components: {
-        Table: {
-            headerBg: '#fafafa', // Neutral light grey header
-            headerColor: 'rgba(0, 0, 0, 0.88)', // Default dark text
-        },
-        // Adjust hover states based on primary color
-        // You might need to refine these further based on visual testing
-        // Button: {
-        //     colorPrimaryBgHover: '#006d6d', // Darker teal for button hover background
-        //     colorTextLightSolid: '#ffffff', // Ensure text on primary button is white
-        // },
-    },
-    // Algorithm can be used for dark mode, etc. Not needed for basic token overrides.
-    // algorithm: antdTheme.defaultAlgorithm,
-};
+// const customTheme: ThemeConfig = {
+//     token: {
+//         colorPrimary: '#1677ff', // Ant Design Default Blue
+//         borderRadius: 8, // Softer corners for Modern & Clean
+//         // To use a custom font like 'Inter' or 'Nunito Sans',
+//         // 1. Ensure the font is loaded in your project (e.g., via CSS import in index.css or App.tsx)
+//         // 2. Set the fontFamily token below:
+//         fontFamily: '"Inter", sans-serif', // Set modern font
+//         colorBorder: '#f0f0f0', // Softer borders
+//     },
+//     components: {
+//         // Table: {
+//         //     headerBg: '#fafafa', // Neutral light grey header
+//         //     headerColor: 'rgba(0, 0, 0, 0.88)', // Default dark text
+//         // },
+//         // Adjust hover states based on primary color
+//         // You might need to refine these further based on visual testing
+//         // Button: {
+//         //     colorPrimaryBgHover: '#006d6d', // Darker teal for button hover background
+//         //     colorTextLightSolid: '#ffffff', // Ensure text on primary button is white
+//         // },
+//     },
+//     // Algorithm can be used for dark mode, etc. Not needed for basic token overrides.
+//     // algorithm: antdTheme.defaultAlgorithm,
+// };
 // --- Define Custom Theme --- END
 
 // Component for the main layout after login
@@ -250,11 +251,11 @@ const MainLayout: React.FC = () => {
         if (url.startsWith('/reports/') && pathSnippets.length > 1 && index === 1) {
             const reportId = parseInt(snippet);
             const report = reportLinks.find(link => link.id === reportId);
-            titleText = report ? report.name : t('breadcrumb.viewReport'); 
+            titleText = report ? report.name : t('breadcrumb.viewReport');
             // Override: Always make the specific report title non-linkable in this structure
-            isLink = false; 
+            isLink = false;
         }
-        
+
         if (titleText) {
              acc.push({
                 key: url,
@@ -267,7 +268,7 @@ const MainLayout: React.FC = () => {
     const breadcrumbItems = [
         {
             key: 'home',
-            title: <Link to="/"><HomeOutlined /> {t('breadcrumb.home')}</Link>, 
+            title: <Link to="/"><HomeOutlined /> {t('breadcrumb.home')}</Link>,
         },
         ...dynamicBreadcrumbItems,
     ];
@@ -287,29 +288,29 @@ const MainLayout: React.FC = () => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
-                <div className="logo" style={{ height: '32px', margin: '16px', background: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', color: 'white', lineHeight: '32px' }}>
-                   {collapsed ? t('app.sidebarTitleCollapsed') : t('app.sidebarTitle')} 
+            <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} className="custom-light-sider" theme="light">
+                <div className="logo" style={{ height: '32px', margin: '16px', textAlign: 'center', lineHeight: '32px' }}>
+                   {collapsed ? t('app.sidebarTitleCollapsed') : t('app.sidebarTitle')}
                 </div>
-                 <Menu 
-                    theme="dark" 
-                    selectedKeys={[currentPath]} 
-                    defaultOpenKeys={openKeys} 
-                    mode="inline" 
-                    items={menuItems} 
+                 <Menu
+                    theme="light"
+                    selectedKeys={[currentPath]}
+                    defaultOpenKeys={openKeys}
+                    mode="inline"
+                    items={menuItems}
                  />
             </Sider>
             <Layout className="site-layout">
                 <Header style={{ padding: '0 16px', background: antdTheme.useToken().token.colorBgContainer, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                    <Breadcrumb items={breadcrumbItems} style={{ margin: '0' }} />
                     <Space>
-                         <Dropdown menu={{ items: languageMenuItems, onClick: ({ key }) => handleLanguageChange(key) }} placement="bottomRight"> 
+                         <Dropdown menu={{ items: languageMenuItems, onClick: ({ key }) => handleLanguageChange(key) }} placement="bottomRight">
                             <Button type="text" icon={<GlobalOutlined />}>
                                 {i18n.language === 'zh' ? '中文' : 'English'}
                             </Button>
                         </Dropdown>
                         {user && (
-                             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight"> 
+                             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                                 <a onClick={e => e.preventDefault()} style={{ display: 'flex', alignItems: 'center' }}>
                                     <Avatar size="small" icon={<UserOutlined />} style={{ marginRight: 8 }} />
                                     {user.username}
@@ -319,7 +320,7 @@ const MainLayout: React.FC = () => {
                     </Space>
                 </Header>
                 <Content style={{ margin: '16px' }}>
-                    <div style={{ padding: 24, background: '#fff', borderRadius: customTheme?.token?.borderRadius ?? 8, minHeight: 360 }}>
+                    <div style={{ padding: 24, borderRadius: 6, minHeight: 360 }}>
                         <Routes>
                             <Route path="/" element={<Navigate to="/viewer" replace />} />
                             <Route path="/viewer" element={<ProtectedRoute><SalaryDataViewer /></ProtectedRoute>} />
@@ -353,16 +354,18 @@ const MainLayout: React.FC = () => {
 // Root App Component
 function App() {
     // Only destructure i18n as t is not used in this scope
-    const { i18n } = useTranslation(); 
+    const { i18n } = useTranslation();
     const antdLocale = i18n.language === 'zh' ? zhCN : enUS;
 
     return (
         <Provider store={store}> {/* Wrap with Redux Provider */}
-            <ConfigProvider locale={antdLocale} theme={customTheme}>
+            <ConfigProvider locale={antdLocale}>
                 <AntApp>
                     <AuthProvider>
                         <BrowserRouter>
                             <AppRoutes />
+                            {/* Add Dify Chatbot component */}
+                            <DifyChatbot />
                         </BrowserRouter>
                     </AuthProvider>
                 </AntApp>

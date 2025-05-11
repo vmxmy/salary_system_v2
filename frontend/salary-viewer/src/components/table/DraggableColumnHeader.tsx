@@ -14,14 +14,13 @@ export const DraggableHeaderCell: React.FC<DraggableHeaderCellProps> = ({ title,
     id,
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     cursor: 'move',
     transform: CSS.Transform.toString(transform ? { ...transform, scaleX: 1 } : null),
     transition,
-    ...(isDragging ? { 
-      position: 'relative', 
-      zIndex: 9999, 
-      background: '#fafafa', 
+    ...(isDragging ? {
+      position: 'relative' as 'relative',
+      zIndex: 9999,
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
       opacity: 0.8,
     } : {}),
@@ -36,7 +35,7 @@ export const DraggableHeaderCell: React.FC<DraggableHeaderCellProps> = ({ title,
       {...attributes}
       {...listeners}
     >
-      <MenuOutlined style={{ marginRight: 8, color: '#999' }} />
+      <MenuOutlined style={{ marginRight: 8 }} />
       {title}
     </div>
   );

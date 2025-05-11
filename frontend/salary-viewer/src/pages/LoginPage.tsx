@@ -31,7 +31,7 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f0f2f5' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
             <Spin spinning={loading}>
                 <Card style={{ width: 400 }}>
                     <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>

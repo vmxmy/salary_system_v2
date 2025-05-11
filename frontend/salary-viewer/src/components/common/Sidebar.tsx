@@ -91,8 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         left: 0,
       }}
     >
-      <div className="logo" style={{ height: '32px', margin: '16px', background: 'rgba(255, 255, 255, 0.3)' }}>
-        {!collapsed && <Text strong style={{ color: 'white', marginLeft: '8px' }}>{t('sidebar.systemTitle')}</Text>}
+      <div className="logo" style={{ height: '32px', margin: '16px' }}>
+        {!collapsed && <Text strong style={{ marginLeft: '8px' }}>{t('sidebar.systemTitle')}</Text>}
       </div>
       <Menu 
         theme="dark" 

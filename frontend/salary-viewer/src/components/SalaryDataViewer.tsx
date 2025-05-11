@@ -6,6 +6,7 @@ import apiClient, {
     SalaryFieldDefinition
 } from '../services/api';
 import type { TablePaginationConfig, TableColumnsType } from 'antd';
+import type { SorterResult, FilterValue } from 'antd/es/table/interface';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { DndContext, PointerSensor, closestCenter, useSensors, useSensor } from '@dnd-kit/core';
@@ -19,6 +20,7 @@ import ColumnSettingsDrawer, { ColumnConfig } from './table/ColumnSettingsDrawer
 import AdvancedFilterDrawer, { FilterGroup } from './table/AdvancedFilterDrawer';
 import TableLayoutManager from './table/TableLayoutManager';
 import ExportTableModal from './table/ExportTableModal';
+import SalaryByTypeChart from './charts/SalaryByTypeChart';
 
 // 导入工具函数
 import {
@@ -292,7 +294,7 @@ const SalaryDataViewer: React.FC = () => {
                 key: 'dragHandle',
                 width: 30,
                 fixed: 'left',
-                render: () => <MenuOutlined style={{ cursor: 'grab', color: '#999' }} />,
+                render: () => <MenuOutlined style={{ cursor: 'grab' }} />,
             });
         }
 
@@ -414,11 +416,22 @@ const SalaryDataViewer: React.FC = () => {
         };
 
         const generatedColumns = columnsToShow.map(field => {
+            const titleText = t(`dataViewer.table.${field.key}`, field.title);
+            let estimatedWidth = field.width;
+            if (!estimatedWidth && typeof titleText === 'string') {
+                // 估算宽度：每个中文字符约15px，英文字符约8px，加上一些padding
+                let charWidth = 0;
+                for (let i = 0; i < titleText.length; i++) {
+                    charWidth += titleText.charCodeAt(i) > 255 ? 15 : 8;
+                }
+                estimatedWidth = charWidth + 32; // 32px for padding and potential sort icon
+            }
+
             const column: any = {
-                title: t(`dataViewer.table.${field.key}`, field.title), // 尝试使用翻译，如果没有则使用默认标题
+                title: titleText,
                 dataIndex: field.dataIndex,
                 key: field.key,
-                width: field.width,
+                width: estimatedWidth,
                 // 只为编制类型字段添加排序功能
                 sorter: field.dataIndex === 'establishment_type' ||
                         field.dataIndex === 'sal_establishment_type_name' ||
@@ -438,29 +451,30 @@ const SalaryDataViewer: React.FC = () => {
             }
 
             // 为特定字段添加筛选功能
-            const filterableFields = [
-                // 主要字段名
-                'establishment_type',  // 编制类型
-                'employee_type',       // 人员身份
-                'position_type',       // 岗位类别
-                'position_level',      // 职务级别
-                'job_title',           // 职务名称
-
-                // 备用字段名（带前缀）
-                'sal_establishment_type_name',
-                'sal_employee_type_name',
-                'sal_employee_type_key',
-                'sal_position_type_name',
-                'sal_position_level_name',
-                'sal_job_title_name',
-
-                // 更多可能的变体
-                'establishment_type_name',
-                'employee_type_name',
-                'position_type_name',
-                'position_level_name',
-                'job_level'
-            ];
+            // 定义可筛选字段列表（仅供参考，实际使用shouldHaveFilter判断）
+            // const filterableFields = [
+            //     // 主要字段名
+            //     'establishment_type',  // 编制类型
+            //     'employee_type',       // 人员身份
+            //     'position_type',       // 岗位类别
+            //     'position_level',      // 职务级别
+            //     'job_title',           // 职务名称
+            //
+            //     // 备用字段名（带前缀）
+            //     'sal_establishment_type_name',
+            //     'sal_employee_type_name',
+            //     'sal_employee_type_key',
+            //     'sal_position_type_name',
+            //     'sal_position_level_name',
+            //     'sal_job_title_name',
+            //
+            //     // 更多可能的变体
+            //     'establishment_type_name',
+            //     'employee_type_name',
+            //     'position_type_name',
+            //     'position_level_name',
+            //     'job_level'
+            // ];
 
             // 只为编制类型字段添加筛选功能
             const shouldHaveFilter = field.dataIndex === 'establishment_type' ||
@@ -594,7 +608,7 @@ const SalaryDataViewer: React.FC = () => {
                     ...col,
                     title: (
                         <DraggableHeaderCell
-                            title={col.title}
+                            title={typeof col.title === 'function' ? col.title({}) : col.title}
                             id={col.key as string}
                             index={index}
                         />
@@ -1018,7 +1032,7 @@ const SalaryDataViewer: React.FC = () => {
     }, [filteredData, advancedFilters.length, message, t]);
 
     // 处理表格变化事件（排序、筛选、分页）
-    const handleTableChange = useCallback((pagination: TablePaginationConfig, filters: Record<string, React.Key[] | null>, sorter: any, extra: any) => {
+    const handleTableChange = useCallback((pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<SalaryRecord> | SorterResult<SalaryRecord>[], extra: { currentDataSource: SalaryRecord[], action: 'paginate' | 'sort' | 'filter' }) => {
         console.log('Table change:', { pagination, filters, sorter, extra });
 
         // 更新分页
@@ -1034,19 +1048,19 @@ const SalaryDataViewer: React.FC = () => {
         }
     }, []);
 
-    // 切换行拖拽模式
-    const toggleDraggable = useCallback(() => {
-        setIsDraggable(prev => !prev);
-        // 如果启用行拖拽，则禁用列拖拽
-        if (!isDraggable) {
-            setIsColumnDraggable(false);
-        }
-        message.info(
-            !isDraggable
-                ? t('dataViewer.dragSort.enabled')
-                : t('dataViewer.dragSort.disabled')
-        );
-    }, [isDraggable, message, t]);
+    // 切换行拖拽模式 - 当前未使用，但保留以备将来使用
+    // const toggleDraggable = useCallback(() => {
+    //     setIsDraggable(prev => !prev);
+    //     // 如果启用行拖拽，则禁用列拖拽
+    //     if (!isDraggable) {
+    //         setIsColumnDraggable(false);
+    //     }
+    //     message.info(
+    //         !isDraggable
+    //             ? t('dataViewer.dragSort.enabled')
+    //             : t('dataViewer.dragSort.disabled')
+    //     );
+    // }, [isDraggable, message, t]);
 
     // 切换列拖拽模式
     const toggleColumnDraggable = useCallback(() => {
@@ -1289,76 +1303,91 @@ const SalaryDataViewer: React.FC = () => {
                 `}
             </style>
 
-            <h2>{t('dataViewer.title')}</h2>
+            <Typography.Title level={2} style={{ marginBottom: 24 }}>{t('dataViewer.title')}</Typography.Title>
 
-            {/* Filter Form Implementation - Use Space for layout */}
-            <Form
-                form={form}
-                layout="inline"
-                style={{ marginBottom: 16 }}
-            >
-                <Space wrap size="middle">
-                    <Form.Item
-                        label={t('dataViewer.filters.payPeriodLabel')}
-                        style={{ margin: 0 }}
-                        htmlFor="pay_period_filter"
-                        name="pay_period" // Added name attribute
-                    >
-                        <DatePicker
-                            id="pay_period_filter"
-                            picker="month"
-                            format="YYYY-MM"
-                            style={{ width: 140 }}
-                            placeholder={t('dataViewer.filters.payPeriodPlaceholder')}
-                            onChange={handlePayPeriodChange}
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label={t('dataViewer.filters.employeeNameLabel')}
-                        style={{ margin: 0 }}
-                        htmlFor="employee_name_filter"
-                        name="employee_name" // Added name attribute
-                    >
-                        <Input
-                            id="employee_name_filter"
-                            placeholder={t('dataViewer.filters.employeeNamePlaceholder')}
-                            style={{ width: 160 }}
-                            allowClear
-                            onPressEnter={handleNameSearch}
-                        />
-                    </Form.Item>
-                    <Space>
-                        <Button
-                            type="primary"
-                            onClick={handleNameSearch}
-                        >
-                            {t('common.search')}
-                        </Button>
-                        <Button
-                            onClick={resetFilters}
-                            icon={<ClearOutlined />}
-                        >
-                            {t('common.reset')}
-                        </Button>
-                    </Space>
-                </Space>
-            </Form>
+            {/* 图表区块 */}
+            <SalaryByTypeChart data={data} loading={loading} />
 
-            {/* 工具栏 */}
-            <TableToolbar
-                onColumnSettingsClick={() => setColumnSettingsVisible(true)}
-                onAdvancedFilterClick={() => setAdvancedFilterVisible(true)}
-                onSaveLayoutClick={() => setTableLayoutVisible(true)}
-                onExportClick={(format) => {
-                    console.log('Export format selected:', format);
-                    setExportFormat(format || 'excel');
-                    setExportModalVisible(true);
-                }}
-                onRefreshClick={fetchData}
-                onToggleColumnDraggable={toggleColumnDraggable}
-                isColumnDraggable={isColumnDraggable}
-                loading={loading}
-            />
+            {/* 统一的表格控制区块 */}
+            <div style={{
+                border: '1px solid #f0f0f0',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#fafafa',
+                marginBottom: '16px'
+            }}>
+                {/* 上部分：筛选表单 */}
+                <div style={{ marginBottom: '16px', borderBottom: '1px dashed #e8e8e8', paddingBottom: '16px' }}>
+                    <Form
+                        form={form}
+                        layout="inline"
+                    >
+                        <Space wrap size="middle">
+                            <Form.Item
+                                label={t('dataViewer.filters.payPeriodLabel')}
+                                style={{ margin: 0 }}
+                                htmlFor="pay_period_filter"
+                                name="pay_period"
+                            >
+                                <DatePicker
+                                    id="pay_period_filter"
+                                    picker="month"
+                                    format="YYYY-MM"
+                                    style={{ width: 140 }}
+                                    placeholder={t('dataViewer.filters.payPeriodPlaceholder')}
+                                    onChange={handlePayPeriodChange}
+                                />
+                            </Form.Item>
+                            <Form.Item
+                                label={t('dataViewer.filters.employeeNameLabel')}
+                                style={{ margin: 0 }}
+                                htmlFor="employee_name_filter"
+                                name="employee_name"
+                            >
+                                <Input
+                                    id="employee_name_filter"
+                                    placeholder={t('dataViewer.filters.employeeNamePlaceholder')}
+                                    style={{ width: 160 }}
+                                    allowClear
+                                    onPressEnter={handleNameSearch}
+                                />
+                            </Form.Item>
+                            <Space>
+                                <Button
+                                    type="primary"
+                                    onClick={handleNameSearch}
+                                >
+                                    {t('common.search')}
+                                </Button>
+                                <Button
+                                    onClick={resetFilters}
+                                    icon={<ClearOutlined />}
+                                >
+                                    {t('common.reset')}
+                                </Button>
+                            </Space>
+                        </Space>
+                    </Form>
+                </div>
+
+                {/* 工具栏 */}
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <TableToolbar
+                        onColumnSettingsClick={() => setColumnSettingsVisible(true)}
+                        onAdvancedFilterClick={() => setAdvancedFilterVisible(true)}
+                        onSaveLayoutClick={() => setTableLayoutVisible(true)}
+                        onExportClick={(format) => {
+                            console.log('Export format selected:', format);
+                            setExportFormat(format || 'excel');
+                            setExportModalVisible(true);
+                        }}
+                        onRefreshClick={fetchData}
+                        onToggleColumnDraggable={toggleColumnDraggable}
+                        isColumnDraggable={isColumnDraggable}
+                        loading={loading}
+                    />
+                </div>
+            </div>
 
             {error && <Alert message="Error" description={error} type="error" showIcon closable onClose={() => setError(null)} style={{ marginBottom: 16 }}/>}
 
@@ -1412,8 +1441,7 @@ const SalaryDataViewer: React.FC = () => {
                                                     <Typography.Title level={3} style={{
                                                         margin: 0,
                                                         fontSize: '22px',
-                                                        fontWeight: 'bold',
-                                                        color: '#1677ff'
+                                                        fontWeight: 'bold'
                                                     }}>
                                                         {currentLayoutName}
                                                     </Typography.Title>
@@ -1486,8 +1514,7 @@ const SalaryDataViewer: React.FC = () => {
                                                 <Typography.Title level={3} style={{
                                                     margin: 0,
                                                     fontSize: '22px',
-                                                    fontWeight: 'bold',
-                                                    color: '#1677ff' // 使用蓝色，与 Ant Design 主题色一致
+                                                    fontWeight: 'bold' // 使用蓝色，与 Ant Design 主题色一致
                                                 }}>
                                                     {currentLayoutName}
                                                 </Typography.Title>
@@ -1548,8 +1575,7 @@ const SalaryDataViewer: React.FC = () => {
                                         <Typography.Title level={3} style={{
                                             margin: 0,
                                             fontSize: '22px',
-                                            fontWeight: 'bold',
-                                            color: '#1677ff' // 使用蓝色，与 Ant Design 主题色一致
+                                            fontWeight: 'bold' // 使用蓝色，与 Ant Design 主题色一致
                                         }}>
                                             {currentLayoutName}
                                         </Typography.Title>

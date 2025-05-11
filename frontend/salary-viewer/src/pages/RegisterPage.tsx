@@ -52,7 +52,7 @@ const RegisterPage: React.FC = () => {
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #d9d9d9', borderRadius: '4px' }}>
+        <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', borderRadius: '4px' }}>
             <Title level={2} style={{ textAlign: 'center' }}>{t('registerPage.title')}</Title>
             <Form
                 form={form}

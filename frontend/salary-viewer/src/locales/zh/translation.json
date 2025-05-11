@@ -657,6 +657,15 @@
     "profile": "个人资料",
     "logout": "退出登录"
   },
+  "charts": {
+    "salaryByType": {
+      "title": "各编制类型工资总额统计",
+      "xAxisLabel": "薪酬周期",
+      "yAxisLabel": "工资总额",
+      "typeLabel": "编制类型",
+      "noData": "暂无数据"
+    }
+  },
   "userProfilePage": {
     "title": "个人资料",
     "updateSuccess": "个人资料更新成功！",

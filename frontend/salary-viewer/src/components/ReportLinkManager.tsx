@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, InputNumber, Space, message, Popconfirm, Select } from 'antd';
+import { Table, Button, Modal, Form, Input, Switch, InputNumber, Space, message, Popconfirm, Select, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import reportLinksApi from '../services/reportLinksApi';
@@ -165,7 +165,8 @@ const ReportLinkManager: React.FC = () => {
   ];
 
   return (
-    <div className="report-link-manager">
+    <div className="report-link-manager" style={{ padding: 24 }}> {/* Added padding for consistency */}
+      <Typography.Title level={2} style={{ marginBottom: 24 }}>{t('menu.reportLinksManagement')}</Typography.Title>
       <div style={{ marginBottom: 16 }}>
         <Button 
           type="primary" 

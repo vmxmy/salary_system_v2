@@ -102,7 +102,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             <Card
                 title={<Typography.Title level={4} style={{ margin: 0 }}>个人信息</Typography.Title>}
                 style={{ marginBottom: 24 }}
-                className="custom-card"
             >
                 <Row gutter={16}>
                     <Col span={8}>
@@ -194,7 +193,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             <Card
                 title={<Typography.Title level={4} style={{ margin: 0 }}>银行账户信息</Typography.Title>}
                 style={{ marginBottom: 24 }}
-                className="custom-card"
             >
                 <Row gutter={16}>
                     <Col span={12}>
@@ -220,7 +218,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             <Card
                 title={<Typography.Title level={4} style={{ margin: 0 }}>工作信息</Typography.Title>}
                 style={{ marginBottom: 24 }}
-                className="custom-card"
             >
                 <Row gutter={16}>
                     <Col span={8}>

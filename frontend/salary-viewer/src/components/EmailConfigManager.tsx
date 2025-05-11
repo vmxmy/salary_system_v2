@@ -256,7 +256,7 @@ const EmailConfigManager: React.FC = () => {
                         onConfirm={() => handleDelete(record.id)}
                         okText={t('common.yes')}
                         cancelText={t('common.no')}
-                        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+                        icon={<QuestionCircleOutlined />}
                     >
                         <Button icon={<DeleteOutlined />} danger>
                             {t('common.delete')}

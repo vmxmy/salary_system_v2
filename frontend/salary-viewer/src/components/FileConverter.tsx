@@ -165,7 +165,7 @@ const FileConverter: React.FC = () => {
                   description={item.message}
               />
               {item.details && Object.keys(item.details).length > 0 && (
-                <div style={{ marginLeft: '20px', marginTop: '5px', fontSize: '0.9em', color: 'grey', borderLeft: '2px solid #eee', paddingLeft: '10px' }}>
+                <div>
                   {item.details.missing_required && item.details.missing_required.length > 0 && (
                     <p><strong>缺少必需列:</strong> {item.details.missing_required.join(', ')}</p>
                   )}
@@ -183,7 +183,9 @@ const FileConverter: React.FC = () => {
 
 
   return (
-    <Card title="工资数据导入" variant="borderless">
+    <>
+      <Typography.Title level={2} style={{ marginBottom: 24 }}>工资数据导入</Typography.Title>
+      <Card variant="borderless">
       <Paragraph>
         请选择包含工资明细的 Excel 文件 (.xlsx 或 .xls) 进行处理和导入。
         系统将自动验证数据、映射字段并将其导入到暂存表中。
@@ -262,7 +264,8 @@ const FileConverter: React.FC = () => {
              )}
        </Modal>
 
-    </Card>
+      </Card>
+    </>
   );
 };
 

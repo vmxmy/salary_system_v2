@@ -73,7 +73,7 @@ const ReportViewer: React.FC = () => {
         <h2>{reportLink.name}</h2>
       </Space>
 
-      <div style={{ flexGrow: 1, border: '1px solid #d9d9d9' }}>
+      <div style={{ flexGrow: 1 }}>
         <iframe
           src={reportLink.url}
           title={reportLink.name}
