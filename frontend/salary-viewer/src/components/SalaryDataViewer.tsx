@@ -20,7 +20,7 @@ import ColumnSettingsDrawer, { ColumnConfig } from './table/ColumnSettingsDrawer
 import AdvancedFilterDrawer, { FilterGroup } from './table/AdvancedFilterDrawer';
 import TableLayoutManager from './table/TableLayoutManager';
 import ExportTableModal from './table/ExportTableModal';
-import SalaryByTypeChart from './charts/SalaryByTypeChart';
+// SalaryByTypeChart组件已移除
 
 // 导入工具函数
 import {
@@ -1305,8 +1305,7 @@ const SalaryDataViewer: React.FC = () => {
 
             <Typography.Title level={2} style={{ marginBottom: 24 }}>{t('dataViewer.title')}</Typography.Title>
 
-            {/* 图表区块 */}
-            <SalaryByTypeChart data={data} loading={loading} />
+            {/* 图表区块已移除 */}
 
             {/* 统一的表格控制区块 */}
             <div style={{

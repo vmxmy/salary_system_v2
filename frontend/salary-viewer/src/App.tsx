@@ -22,6 +22,8 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import DifyChatbot from './components/common/DifyChatbot';
+import DifyChatbotEmbed from './components/common/DifyChatbotEmbed';
+import DifyChatbotSimple from './components/common/DifyChatbotSimple';
 import SalaryDataViewer from './components/SalaryDataViewer';
 import FileConverter from './components/FileConverter';
 import MappingConfigurator from './components/MappingConfigurator';
@@ -346,6 +348,8 @@ const MainLayout: React.FC = () => {
                 <Footer style={{ textAlign: 'center' }}>
                     {t('app.footerText', { year: new Date().getFullYear() })}
                 </Footer>
+                {/* 在主布局中添加Dify聊天机器人，确保只在用户登录后加载 */}
+                <DifyChatbotSimple />
             </Layout>
         </Layout>
     );
@@ -364,8 +368,7 @@ function App() {
                     <AuthProvider>
                         <BrowserRouter>
                             <AppRoutes />
-                            {/* Add Dify Chatbot component */}
-                            <DifyChatbot />
+                            {/* Dify聊天机器人组件已移至MainLayout中 */}
                         </BrowserRouter>
                     </AuthProvider>
                 </AntApp>
