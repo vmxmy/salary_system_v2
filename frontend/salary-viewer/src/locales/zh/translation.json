@@ -115,6 +115,14 @@
       "contentFormula": "您确定要删除此公式吗？此操作无法撤销。",
       "contentRule": "您确定要删除此规则吗？"
     },
+    "tour": {
+      "guide": "功能引导",
+      "startTour": "开始引导",
+      "next": "下一步",
+      "previous": "上一步",
+      "finish": "完成",
+      "skip": "跳过"
+    },
     "table": {
       "columns": {
         "id": "编号",
@@ -1120,5 +1128,14 @@
       "deleteTitle": "确认删除配置",
       "deleteDescription": "您确定要删除配置 '{{name}}' 吗？此操作无法撤销。"
     }
+  },
+  "tourManager": {
+    "title": "功能引导管理",
+    "availableTours": "可用引导",
+    "autoStart": "自动启动引导",
+    "autoStartHint": "启用后，首次访问页面时将自动显示引导",
+    "completed": "已完成",
+    "reset": "重置",
+    "resetAll": "重置所有引导"
   }
 }

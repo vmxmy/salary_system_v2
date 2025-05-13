@@ -22,6 +22,16 @@ PORT=$3
 source ~/.zshrc
 conda activate $CONDA_ENV
 
+# 提示用户确认是否运行初始化脚本
+echo "是否要运行数据库初始化脚本？这将检查数据库状态，如果需要，将创建表和管理员账户。"
+read -p "运行初始化脚本？(y/n): " confirm
+if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+  echo "Running database initialization with conda env: $CONDA_ENV"
+  python -c "from webapp.scripts.init_app import initialize_database; initialize_database()" || echo "Database initialization failed, but continuing..."
+else
+  echo "跳过数据库初始化..."
+fi
+
 # 运行后端
 echo "Running backend with conda env: $CONDA_ENV"
 uvicorn webapp.main:app --reload --host $HOST --port $PORT --log-level debug > ../backend.log 2>&1
@@ -35,22 +45,31 @@ EOL
   fi
 fi
 
-# --- Load Backend Config from .env --- START ---
-ENV_FILE="webapp/.env"
-if [ -f "$ENV_FILE" ]; then
-  echo "Loading backend configuration from $ENV_FILE..."
+# --- Load Config from .env --- START ---
+ROOT_ENV_FILE=".env"
+WEBAPP_ENV_FILE="webapp/.env"
+
+# 首先尝试加载根目录的.env文件
+if [ -f "$ROOT_ENV_FILE" ]; then
+  echo "Loading configuration from $ROOT_ENV_FILE..."
   # Use set -a to export all variables defined in the .env file
   set -a
-  source "$ENV_FILE"
+  source "$ROOT_ENV_FILE"
   set +a # Disable exporting variables
+elif [ -f "$WEBAPP_ENV_FILE" ]; then
+  # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
+  echo "Loading backend configuration from $WEBAPP_ENV_FILE..."
+  set -a
+  source "$WEBAPP_ENV_FILE"
+  set +a
 else
-  echo "Warning: $ENV_FILE not found. Using default host/port for backend."
+  echo "Warning: Neither $ROOT_ENV_FILE nor $WEBAPP_ENV_FILE found. Using default host/port for backend."
 fi
 
 # Set defaults if variables are not defined in .env or .env doesn't exist
 UVICORN_HOST=${UVICORN_HOST:-"0.0.0.0"} # Default to 0.0.0.0 if not set
 UVICORN_PORT=${UVICORN_PORT:-8080}     # Default to 8080 if not set
-# --- Load Backend Config from .env --- END ---
+# --- Load Config from .env --- END ---
 
 # Check if concurrently is installed globally
 if ! npm list -g concurrently --depth=0 | grep concurrently > /dev/null; then
@@ -84,6 +103,16 @@ if [ "$USE_ZSH_CONDA" = true ]; then
   BACKEND_CMD="./temp_run_backend.sh $CONDA_ENV $UVICORN_HOST $UVICORN_PORT"
   echo "Starting Backend with zsh and conda env $CONDA_ENV on: $UVICORN_HOST:$UVICORN_PORT (with debug logging)"
 else
+  # 提示用户确认是否运行初始化脚本
+  echo "是否要运行数据库初始化脚本？这将检查数据库状态，如果需要，将创建表和管理员账户。"
+  read -p "运行初始化脚本？(y/n): " confirm
+  if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    echo "Running database initialization..."
+    python -c "from webapp.scripts.init_app import initialize_database; initialize_database()" || echo "Database initialization failed, but continuing..."
+  else
+    echo "跳过数据库初始化..."
+  fi
+
   # 使用默认命令启动后端
   BACKEND_CMD="uvicorn webapp.main:app --reload --host $UVICORN_HOST --port $UVICORN_PORT --log-level debug > backend.log 2>&1"
   echo "Starting Backend on: $UVICORN_HOST:$UVICORN_PORT (with debug logging, output to backend.log)"

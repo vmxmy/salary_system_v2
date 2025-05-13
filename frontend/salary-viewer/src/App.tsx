@@ -20,6 +20,7 @@ import {
   GlobalOutlined,
   BarChartOutlined,
   LogoutOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import DifyChatbot from './components/common/DifyChatbot';
 import DifyChatbotEmbed from './components/common/DifyChatbotEmbed';
@@ -48,6 +49,8 @@ import RuleConfigPage from './pages/config/RuleConfigPage';
 import EmailConfigManager from './components/EmailConfigManager'; // Added
 import SendPayslipPage from './pages/EmailServices/SendPayslipPage'; // Placeholder for the new page
 import { MailOutlined } from '@ant-design/icons'; // Added for new menu
+import { TourProvider } from './context/TourContext'; // 引入 TourProvider
+import TourManager from './components/common/TourManager'; // 引入 TourManager
 
 // Redux Store
 import { Provider } from 'react-redux';
@@ -97,6 +100,7 @@ const MainLayout: React.FC = () => {
     const { user, logout } = useAuth();
     const [reportLinks, setReportLinks] = useState<any[]>([]);
     const [reportLinksLoading, setReportLinksLoading] = useState(false);
+    const [tourManagerVisible, setTourManagerVisible] = useState(false);
 
     // Fetch active report links on component mount
     useEffect(() => {
@@ -306,7 +310,15 @@ const MainLayout: React.FC = () => {
                 <Header style={{ padding: '0 16px', background: antdTheme.useToken().token.colorBgContainer, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                    <Breadcrumb items={breadcrumbItems} style={{ margin: '0' }} />
                     <Space>
-                         <Dropdown menu={{ items: languageMenuItems, onClick: ({ key }) => handleLanguageChange(key) }} placement="bottomRight">
+                        {/* 添加引导按钮 */}
+                        <Button
+                            type="text"
+                            icon={<QuestionCircleOutlined />}
+                            onClick={() => setTourManagerVisible(true)}
+                        >
+                            {t('common.tour.guide', '功能引导')}
+                        </Button>
+                        <Dropdown menu={{ items: languageMenuItems, onClick: ({ key }) => handleLanguageChange(key) }} placement="bottomRight">
                             <Button type="text" icon={<GlobalOutlined />}>
                                 {i18n.language === 'zh' ? '中文' : 'English'}
                             </Button>
@@ -350,6 +362,12 @@ const MainLayout: React.FC = () => {
                 </Footer>
                 {/* 在主布局中添加Dify聊天机器人，确保只在用户登录后加载 */}
                 <DifyChatbotSimple />
+
+                {/* 添加引导管理器 */}
+                <TourManager
+                    visible={tourManagerVisible}
+                    onClose={() => setTourManagerVisible(false)}
+                />
             </Layout>
         </Layout>
     );
@@ -366,10 +384,12 @@ function App() {
             <ConfigProvider locale={antdLocale}>
                 <AntApp>
                     <AuthProvider>
-                        <BrowserRouter>
-                            <AppRoutes />
-                            {/* Dify聊天机器人组件已移至MainLayout中 */}
-                        </BrowserRouter>
+                        <TourProvider> {/* 添加 TourProvider */}
+                            <BrowserRouter>
+                                <AppRoutes />
+                                {/* Dify聊天机器人组件已移至MainLayout中 */}
+                            </BrowserRouter>
+                        </TourProvider>
                     </AuthProvider>
                 </AntApp>
             </ConfigProvider>

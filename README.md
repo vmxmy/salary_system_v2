@@ -46,6 +46,7 @@
 1. 克隆仓库
 ```bash
 git clone https://github.com/vmxmy/salary_system.git
+cd salary_system
 ```
 
 2. 创建并激活 conda 环境
@@ -56,7 +57,10 @@ conda activate lightweight-salary-system
 
 3. 安装依赖
 ```bash
-pip install -r requirements.txt
+pip install -r webapp/requirements.txt
+cd frontend/salary-viewer
+npm install
+cd ../..
 ```
 
 4. 设置数据库
@@ -71,6 +75,50 @@ alembic upgrade head
 5. 启动开发服务器
 ```bash
 ./start-dev.sh
+```
+
+## 拉取代码后启动服务步骤
+
+如果您已经克隆过仓库，并且想要拉取最新代码并启动服务，请按照以下步骤操作：
+
+1. 拉取最新代码
+```bash
+cd /path/to/salary_system
+git pull
+```
+
+2. 激活 conda 环境
+```bash
+conda activate lightweight-salary-system
+```
+
+3. 更新依赖（如果有更新）
+```bash
+pip install -r webapp/requirements.txt
+cd frontend/salary-viewer
+npm install
+cd ../..
+```
+
+4. 运行数据库迁移（如果有新的迁移）
+```bash
+alembic upgrade head
+```
+
+5. 启动服务
+```bash
+./start-dev.sh
+```
+
+服务启动后：
+- 后端服务将运行在 http://localhost:8080
+- 前端服务将运行在 http://localhost:5173
+- 后端日志将自动显示在终端中
+- 前端日志保存在 frontend.log 文件中
+
+如需停止服务，可以按 Ctrl+C 或运行：
+```bash
+./stop-dev.sh
 ```
 
 ## 数据库迁移

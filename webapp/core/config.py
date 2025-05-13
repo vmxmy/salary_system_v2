@@ -36,6 +36,9 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://localhost:8080",
         "http://127.0.0.1:8080",
+        "http://172.28.97.217:5173",  # 添加您的IP地址和端口
+        "http://salary.ziikoo.com",   # 添加域名
+        "https://salary.ziikoo.com",  # 添加HTTPS版本
         # 移除通配符"*"，因为它与allow_credentials=True不兼容
     ]
 

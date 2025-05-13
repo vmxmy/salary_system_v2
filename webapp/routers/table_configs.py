@@ -51,7 +51,7 @@ class TableConfigResponse(TableConfigBase):
     config_data: dict  # 添加 config_data 字段
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         json_encoders = {
             datetime.datetime: lambda v: v.isoformat()
         }

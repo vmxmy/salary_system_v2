@@ -38,22 +38,31 @@ EOL
   fi
 fi
 
-# --- Load Backend Config from .env --- START ---
-ENV_FILE="webapp/.env"
-if [ -f "$ENV_FILE" ]; then
-  echo "Loading backend configuration from $ENV_FILE..."
+# --- Load Config from .env --- START ---
+ROOT_ENV_FILE=".env"
+WEBAPP_ENV_FILE="webapp/.env"
+
+# 首先尝试加载根目录的.env文件
+if [ -f "$ROOT_ENV_FILE" ]; then
+  echo "Loading configuration from $ROOT_ENV_FILE..."
   # Use set -a to export all variables defined in the .env file
   set -a
-  source "$ENV_FILE"
+  source "$ROOT_ENV_FILE"
   set +a # Disable exporting variables
+elif [ -f "$WEBAPP_ENV_FILE" ]; then
+  # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
+  echo "Loading backend configuration from $WEBAPP_ENV_FILE..."
+  set -a
+  source "$WEBAPP_ENV_FILE"
+  set +a
 else
-  echo "Warning: $ENV_FILE not found. Using default host/port for backend."
+  echo "Warning: Neither $ROOT_ENV_FILE nor $WEBAPP_ENV_FILE found. Using default host/port for backend."
 fi
 
 # Set defaults if variables are not defined in .env or .env doesn't exist
 UVICORN_HOST=${UVICORN_HOST:-"0.0.0.0"} # Default to 0.0.0.0 if not set
 UVICORN_PORT=${UVICORN_PORT:-8080}     # Default to 8080 if not set
-# --- Load Backend Config from .env --- END ---
+# --- Load Config from .env --- END ---
 
 # Check if concurrently is installed globally
 if ! npm list -g concurrently --depth=0 | grep concurrently > /dev/null; then
@@ -135,4 +144,4 @@ else
   echo "Servers stopped (CLEAN MODE)."
 fi
 
-exit $EXIT_CODE 
+exit $EXIT_CODE

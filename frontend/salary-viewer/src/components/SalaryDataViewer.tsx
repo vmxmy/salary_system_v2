@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, Fragment } from 'react';
 import { Table, Form, Input, Button, Spin, Alert, Space, DatePicker, Tag, App, Typography } from 'antd';
-import { ClearOutlined, MenuOutlined } from '@ant-design/icons';
+import { ClearOutlined, MenuOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import apiClient, {
     fetchSalaryFieldDefinitions,
     SalaryFieldDefinition
@@ -21,6 +21,12 @@ import AdvancedFilterDrawer, { FilterGroup } from './table/AdvancedFilterDrawer'
 import TableLayoutManager from './table/TableLayoutManager';
 import ExportTableModal from './table/ExportTableModal';
 // SalaryByTypeChart组件已移除
+
+// 导入引导组件
+import TourGuide from './common/TourGuide';
+import TourButton from './common/TourButton';
+import { useTour } from '../context/TourContext';
+import { SALARY_DATA_VIEWER_TOUR } from '../tours';
 
 // 导入工具函数
 import {
@@ -280,6 +286,23 @@ const SalaryDataViewer: React.FC = () => {
     // 字段值映射，用于生成筛选选项
     const [fieldValueMap, setFieldValueMap] = useState<Map<string, Set<string>>>(new Map());
 
+    // 引导相关状态
+    const { isTourCompleted, resetTour } = useTour();
+    const [tourVisible, setTourVisible] = useState<boolean>(false);
+
+    // 检查是否应该显示引导
+    useEffect(() => {
+        // 如果用户未完成引导，则显示引导
+        const shouldShowTour = !isTourCompleted(SALARY_DATA_VIEWER_TOUR.id);
+        if (shouldShowTour) {
+            // 延迟显示引导，确保页面已完全加载
+            const timer = setTimeout(() => {
+                setTourVisible(true);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [isTourCompleted]);
+
     // 动态生成表格列
     const generateColumns = (): TableColumnsType<SalaryRecord> => {
         console.log('Generating columns with fieldDefinitions:', fieldDefinitions.length);
@@ -299,14 +322,98 @@ const SalaryDataViewer: React.FC = () => {
         }
 
         if (fieldDefinitions.length === 0) {
-            console.log('No field definitions available, returning basic columns');
-            // 如果还没有获取到字段定义，返回一个基本的列定义
-            return [
-                ...(isDraggable ? columns : []),
-                { title: t('dataViewer.table.colId'), dataIndex: '_consolidated_data_id', key: '_consolidated_data_id', fixed: 'left', width: 80 },
-                { title: t('dataViewer.table.colName'), dataIndex: 'employee_name', key: 'employee_name', fixed: 'left', width: 120 },
-                { title: t('dataViewer.table.colNetPay'), dataIndex: 'calc_net_pay', key: 'calc_net_pay', width: 120, fixed: 'right', align: 'right' }
-            ];
+            console.log('No field definitions available, attempting to generate columns from data');
+
+            // 如果有数据，从数据中提取字段生成列
+            if (data.length > 0) {
+                const firstRecord = data[0];
+                const dataColumns = Object.keys(firstRecord).map(key => {
+                    // 为一些特殊字段设置固定位置和宽度
+                    let fixed: 'left' | 'right' | undefined = undefined;
+                    let width = 120;
+                    let align: 'left' | 'right' | 'center' | undefined = undefined;
+
+                    // 尝试为一些常见字段提供中文标题
+                    let title = '';
+                    if (key === '_consolidated_data_id') {
+                        title = 'ID';
+                        fixed = 'left';
+                        width = 80;
+                    } else if (key === 'employee_name') {
+                        title = '姓名';
+                        fixed = 'left';
+                        width = 120;
+                    } else if (key === 'calc_net_pay') {
+                        title = '实发合计';
+                        fixed = 'right';
+                        width = 120;
+                        align = 'right';
+                    } else if (key === 'pay_period_identifier') {
+                        title = '工资期间';
+                    } else if (key === 'sal_department_name') {
+                        title = '部门';
+                    } else if (key === 'sal_organization_name') {
+                        title = '单位';
+                    } else if (key === 'sal_establishment_type_name') {
+                        title = '编制类型';
+                    } else if (key === 'sal_employee_type_key') {
+                        title = '人员身份';
+                    } else if (key === 'sal_position_rank') {
+                        title = '职务级别';
+                    } else if (key === 'sal_basic_salary') {
+                        title = '基本工资';
+                        align = 'right';
+                    } else if (key === 'sal_post_salary') {
+                        title = '岗位工资';
+                        align = 'right';
+                    } else if (key === 'sal_allowance') {
+                        title = '津贴';
+                        align = 'right';
+                    } else if (key === 'sal_subsidy') {
+                        title = '补贴';
+                        align = 'right';
+                    } else if (key === 'sal_performance_salary') {
+                        title = '绩效工资';
+                        align = 'right';
+                    } else if (key === 'sal_individual_income_tax') {
+                        title = '个人所得税';
+                        align = 'right';
+                    } else if (key === 'calc_xiaoji') {
+                        title = '小计';
+                        align = 'right';
+                    } else if (key === 'calc_personal_deductions') {
+                        title = '个人扣除';
+                        align = 'right';
+                    } else if (key === 'calc_total_payable') {
+                        title = '应发合计';
+                        align = 'right';
+                    } else if (key.startsWith('calc_') || key.includes('amount') || key.includes('salary') || key.includes('pay')) {
+                        title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        align = 'right';
+                    } else {
+                        title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    }
+
+                    return {
+                        title: title,
+                        dataIndex: key,
+                        key: key,
+                        fixed: fixed,
+                        width: width,
+                        align: align
+                    };
+                });
+
+                console.log(`Generated ${dataColumns.length} columns from data`);
+                return [
+                    ...(isDraggable ? columns : []),
+                    ...dataColumns
+                ];
+            }
+
+            // 如果没有数据也没有字段定义，返回空数组，让表格自动处理
+            console.log('No data or field definitions available, returning empty columns array');
+            return isDraggable ? columns : [];
         }
 
         console.log('Data records available for filtering columns:', data.length);
@@ -676,8 +783,8 @@ const SalaryDataViewer: React.FC = () => {
 
                 console.log('Columns from config_data:', columns.length);
 
-                // 检查列配置是否为空或者列数量太少（少于10列）
-                if (columns.length < 10) {
+                // 检查列配置是否为空
+                if (columns.length === 0) { // 只有在完全没有列配置时才生成
                     console.log('Default layout has too few columns, generating default columns and updating server layout');
                     console.log('Default layout details:', JSON.stringify(defaultLayout, null, 2));
 
@@ -695,68 +802,107 @@ const SalaryDataViewer: React.FC = () => {
                         }));
                         console.log(`Generated ${columns.length} columns from field definitions`);
                     } else {
-                        console.warn('字段定义尚未加载，使用基本列配置');
-                        // 提供基本的列配置
-                        columns = [
-                            {
-                                key: '_consolidated_data_id',
-                                title: 'ID',
-                                visible: true,
-                                fixed: 'left' as 'left',
-                                width: 80,
-                                dataIndex: '_consolidated_data_id'
-                            },
-                            {
-                                key: 'employee_name',
-                                title: '姓名',
-                                visible: true,
-                                fixed: 'left' as 'left',
-                                width: 120,
-                                dataIndex: 'employee_name'
-                            },
-                            {
-                                key: 'calc_net_pay',
-                                title: '实发合计',
-                                visible: true,
-                                fixed: 'right' as 'right',
-                                width: 120,
-                                dataIndex: 'calc_net_pay'
-                            }
-                        ] as ColumnConfig[];
+                        console.warn('字段定义尚未加载，尝试从数据中生成列配置');
+                        // 尝试从数据中生成列配置
+                        if (data.length > 0) {
+                            const firstRecord = data[0];
+                            columns = Object.keys(firstRecord).map(key => {
+                                // 为一些特殊字段设置固定位置和宽度
+                                let fixed: 'left' | 'right' | undefined = undefined;
+                                let width = 120;
+                                let align: 'left' | 'right' | 'center' | undefined = undefined;
+
+                                // 尝试为一些常见字段提供中文标题
+                                let title = '';
+                                if (key === '_consolidated_data_id') {
+                                    title = 'ID';
+                                    fixed = 'left';
+                                    width = 80;
+                                } else if (key === 'employee_name') {
+                                    title = '姓名';
+                                    fixed = 'left';
+                                    width = 120;
+                                } else if (key === 'calc_net_pay') {
+                                    title = '实发合计';
+                                    fixed = 'right';
+                                    width = 120;
+                                    align = 'right';
+                                } else if (key === 'pay_period_identifier') {
+                                    title = '工资期间';
+                                } else if (key === 'sal_department_name') {
+                                    title = '部门';
+                                } else if (key === 'sal_organization_name') {
+                                    title = '单位';
+                                } else if (key === 'sal_establishment_type_name') {
+                                    title = '编制类型';
+                                } else if (key === 'sal_employee_type_key') {
+                                    title = '人员身份';
+                                } else if (key === 'sal_position_rank') {
+                                    title = '职务级别';
+                                } else if (key === 'sal_basic_salary') {
+                                    title = '基本工资';
+                                    align = 'right';
+                                } else if (key === 'sal_post_salary') {
+                                    title = '岗位工资';
+                                    align = 'right';
+                                } else if (key === 'sal_allowance') {
+                                    title = '津贴';
+                                    align = 'right';
+                                } else if (key === 'sal_subsidy') {
+                                    title = '补贴';
+                                    align = 'right';
+                                } else if (key === 'sal_performance_salary') {
+                                    title = '绩效工资';
+                                    align = 'right';
+                                } else if (key === 'sal_individual_income_tax') {
+                                    title = '个人所得税';
+                                    align = 'right';
+                                } else if (key === 'calc_xiaoji') {
+                                    title = '小计';
+                                    align = 'right';
+                                } else if (key === 'calc_personal_deductions') {
+                                    title = '个人扣除';
+                                    align = 'right';
+                                } else if (key === 'calc_total_payable') {
+                                    title = '应发合计';
+                                    align = 'right';
+                                } else if (key.startsWith('calc_') || key.includes('amount') || key.includes('salary') || key.includes('pay')) {
+                                    title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    align = 'right';
+                                } else {
+                                    title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                }
+
+                                return {
+                                    key: key,
+                                    title: title,
+                                    visible: true,
+                                    fixed: fixed,
+                                    width: width,
+                                    dataIndex: key,
+                                    align: align
+                                };
+                            }) as ColumnConfig[];
+
+                            console.log(`从数据中生成了 ${columns.length} 个列配置`);
+                        } else {
+                            console.warn('没有数据可用，返回空列配置');
+                            // 返回空数组，让表格自动处理
+                            columns = [];
+                        }
                     }
 
                     console.log('Generated columns count:', columns.length);
 
                     // 确保生成了至少一些列
                     if (columns.length === 0) {
-                        console.warn('无法生成列配置，使用基本列配置');
-                        // 提供基本的列配置
-                        columns = [
-                            {
-                                key: '_consolidated_data_id',
-                                title: 'ID',
-                                visible: true,
-                                fixed: 'left' as 'left',
-                                width: 80,
-                                dataIndex: '_consolidated_data_id'
-                            },
-                            {
-                                key: 'employee_name',
-                                title: '姓名',
-                                visible: true,
-                                fixed: 'left' as 'left',
-                                width: 120,
-                                dataIndex: 'employee_name'
-                            },
-                            {
-                                key: 'calc_net_pay',
-                                title: '实发合计',
-                                visible: true,
-                                fixed: 'right' as 'right',
-                                width: 120,
-                                dataIndex: 'calc_net_pay'
-                            }
-                        ] as ColumnConfig[];
+                        console.warn('无法从字段定义或数据生成列配置，尝试从SalaryRecord接口生成');
+
+                        // 如果无法从字段定义或数据生成列配置，返回空数组
+                        console.warn('无法从字段定义或数据生成列配置，返回空列配置');
+                        columns = [];
+
+                        console.log(`从默认字段列表生成了 ${columns.length} 个列配置`);
                     }
 
                     // 更新服务器端默认布局
@@ -764,6 +910,14 @@ const SalaryDataViewer: React.FC = () => {
                         console.log('Attempting to update server layout with ID:', defaultLayout.id);
                         const result = await updateServerDefaultLayout(defaultLayout.id, columns, filters);
                         console.log('Server default layout update result:', result);
+
+                        // 如果更新成功，但返回了新的布局ID（说明创建了新布局而不是更新了旧布局）
+                        if (result && result.id !== defaultLayout.id) {
+                            console.log(`Layout ID changed from ${defaultLayout.id} to ${result.id}`);
+                            // 更新当前布局ID
+                            setCurrentLayoutId(`server-${result.id}`);
+                            setCurrentLayoutName(result.name);
+                        }
                     } catch (updateError) {
                         console.error('Failed to update server default layout:', updateError);
                         // 即使更新失败，也继续使用生成的列配置
@@ -805,8 +959,48 @@ const SalaryDataViewer: React.FC = () => {
                 // 如果没有默认布局，创建一个新的默认布局
                 console.log('No default layout found, creating a new one');
 
-                // 生成默认列 - 使用所有字段定义
+                // 强制从数据中生成所有列
                 let defaultColumns;
+
+                // 首先尝试从数据中生成所有列
+                if (data.length > 0) {
+                    console.log('从数据中生成所有列');
+                    const firstRecord = data[0];
+                    defaultColumns = Object.keys(firstRecord).map(key => {
+                        // 为一些特殊字段设置固定位置和宽度
+                        let fixed: 'left' | 'right' | undefined = undefined;
+                        let width = 120;
+                        let align: 'left' | 'right' | 'center' | undefined = undefined;
+
+                        if (key === '_consolidated_data_id') {
+                            fixed = 'left';
+                            width = 80;
+                        } else if (key === 'employee_name') {
+                            fixed = 'left';
+                            width = 120;
+                        } else if (key === 'calc_net_pay') {
+                            fixed = 'right';
+                            width = 120;
+                            align = 'right';
+                        } else if (key.startsWith('calc_') || key.includes('amount') || key.includes('salary') || key.includes('pay')) {
+                            align = 'right';
+                        }
+
+                        return {
+                            key: key,
+                            title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                            visible: true,
+                            fixed: fixed,
+                            width: width,
+                            dataIndex: key,
+                            align: align
+                        };
+                    }) as ColumnConfig[];
+
+                    console.log(`从数据中生成了 ${defaultColumns?.length || 0} 个列配置`);
+                }
+
+                // 如果从数据中生成失败，再尝试使用字段定义
                 if (fieldDefinitions.length > 0) {
                     // 使用所有字段定义生成列配置，与本地布局配置使用相同的方式
                     defaultColumns = fieldDefinitions.map(field => ({
@@ -819,34 +1013,94 @@ const SalaryDataViewer: React.FC = () => {
                     }));
                     console.log(`Generated ${defaultColumns.length} columns from field definitions`);
                 } else {
-                    console.warn('字段定义尚未加载，使用基本列配置');
-                    // 提供基本的列配置
-                    defaultColumns = [
-                        {
-                            key: '_consolidated_data_id',
-                            title: 'ID',
-                            visible: true,
-                            fixed: 'left',
-                            width: 80,
-                            dataIndex: '_consolidated_data_id'
-                        },
-                        {
-                            key: 'employee_name',
-                            title: '姓名',
-                            visible: true,
-                            fixed: 'left' as 'left',
-                            width: 120,
-                            dataIndex: 'employee_name'
-                        },
-                        {
-                            key: 'calc_net_pay',
-                            title: '实发合计',
-                            visible: true,
-                            fixed: 'right' as 'right',
-                            width: 120,
-                            dataIndex: 'calc_net_pay'
-                        }
-                    ] as ColumnConfig[];
+                    console.warn('字段定义尚未加载，尝试从数据中生成列配置');
+                    // 尝试从数据中生成列配置
+                    if (data.length > 0) {
+                        const firstRecord = data[0];
+                        defaultColumns = Object.keys(firstRecord).map(key => {
+                            // 为一些特殊字段设置固定位置和宽度
+                            let fixed: 'left' | 'right' | undefined = undefined;
+                            let width = 120;
+                            let align: 'left' | 'right' | 'center' | undefined = undefined;
+
+                            // 尝试为一些常见字段提供中文标题
+                            let title = '';
+                            if (key === '_consolidated_data_id') {
+                                title = 'ID';
+                                fixed = 'left';
+                                width = 80;
+                            } else if (key === 'employee_name') {
+                                title = '姓名';
+                                fixed = 'left';
+                                width = 120;
+                            } else if (key === 'calc_net_pay') {
+                                title = '实发合计';
+                                fixed = 'right';
+                                width = 120;
+                                align = 'right';
+                            } else if (key === 'pay_period_identifier') {
+                                title = '工资期间';
+                            } else if (key === 'sal_department_name') {
+                                title = '部门';
+                            } else if (key === 'sal_organization_name') {
+                                title = '单位';
+                            } else if (key === 'sal_establishment_type_name') {
+                                title = '编制类型';
+                            } else if (key === 'sal_employee_type_key') {
+                                title = '人员身份';
+                            } else if (key === 'sal_position_rank') {
+                                title = '职务级别';
+                            } else if (key === 'sal_basic_salary') {
+                                title = '基本工资';
+                                align = 'right';
+                            } else if (key === 'sal_post_salary') {
+                                title = '岗位工资';
+                                align = 'right';
+                            } else if (key === 'sal_allowance') {
+                                title = '津贴';
+                                align = 'right';
+                            } else if (key === 'sal_subsidy') {
+                                title = '补贴';
+                                align = 'right';
+                            } else if (key === 'sal_performance_salary') {
+                                title = '绩效工资';
+                                align = 'right';
+                            } else if (key === 'sal_individual_income_tax') {
+                                title = '个人所得税';
+                                align = 'right';
+                            } else if (key === 'calc_xiaoji') {
+                                title = '小计';
+                                align = 'right';
+                            } else if (key === 'calc_personal_deductions') {
+                                title = '个人扣除';
+                                align = 'right';
+                            } else if (key === 'calc_total_payable') {
+                                title = '应发合计';
+                                align = 'right';
+                            } else if (key.startsWith('calc_') || key.includes('amount') || key.includes('salary') || key.includes('pay')) {
+                                title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                align = 'right';
+                            } else {
+                                title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            }
+
+                            return {
+                                key: key,
+                                title: title,
+                                visible: true,
+                                fixed: fixed,
+                                width: width,
+                                dataIndex: key,
+                                align: align
+                            };
+                        }) as ColumnConfig[];
+
+                        console.log(`从数据中生成了 ${defaultColumns.length} 个列配置`);
+                    } else {
+                        console.warn('没有数据可用，返回空列配置');
+                        // 返回空数组，让表格自动处理
+                        defaultColumns = [];
+                    }
                 }
 
                 console.log('Generated default columns count:', defaultColumns.length);
@@ -902,17 +1156,47 @@ const SalaryDataViewer: React.FC = () => {
     const updateServerDefaultLayout = async (layoutId: number, columns: ColumnConfig[], filters: any[]) => {
         try {
             console.log(`Updating server layout ${layoutId} with ${columns.length} columns`);
-            const { updateTableLayout } = await import('../services/tableConfigsApi');
+            const { updateTableLayout, createTableLayout } = await import('../services/tableConfigsApi');
 
-            const result = await updateTableLayout(layoutId, {
-                config_data: {
-                    columns: columns,
-                    filters: filters
+            try {
+                // 尝试更新布局
+                const result = await updateTableLayout(layoutId, {
+                    config_data: {
+                        columns: columns,
+                        filters: filters
+                    }
+                });
+
+                if (result) {
+                    console.log('Update layout API response:', result);
+                    return result;
+                } else {
+                    throw new Error('Update returned null');
                 }
-            });
+            } catch (updateError: any) {
+                // 如果更新失败（404错误），则创建新布局
+                if (updateError.response?.status === 404) {
+                    console.log(`Layout ${layoutId} not found, creating a new default layout`);
 
-            console.log('Update layout API response:', result);
-            return result;
+                    // 创建新的默认布局
+                    const newLayout = await createTableLayout({
+                        table_id: 'salaryTable',
+                        name: '默认布局',
+                        config_data: {
+                            columns: columns,
+                            filters: filters
+                        },
+                        is_default: true,
+                        is_shared: true
+                    });
+
+                    console.log('Created new default layout:', newLayout);
+                    return newLayout;
+                } else {
+                    // 其他错误，继续抛出
+                    throw updateError;
+                }
+            }
         } catch (error) {
             console.error('Error in updateServerDefaultLayout function:', error);
             throw error;
@@ -938,17 +1222,36 @@ const SalaryDataViewer: React.FC = () => {
                         const currentKeys = fieldDefinitions.map(field => field.key);
                         const savedKeys = savedConfigs.map(config => config.key);
 
-                        // 如果有新增字段或删除字段，重新生成配置
+                        // 如果有新增字段或删除字段，直接使用字段定义
                         if (!currentKeys.every(key => savedKeys.includes(key)) ||
                             !savedKeys.every(key => currentKeys.includes(key))) {
-                            const newConfigs = convertColumnsToConfig(generateColumns());
+                            // 直接使用字段定义生成列配置
+                            const newConfigs = fieldDefinitions.map(field => ({
+                                key: field.key,
+                                title: field.title,
+                                visible: true,
+                                fixed: field.fixed,
+                                width: field.width || 120,
+                                dataIndex: field.dataIndex,
+                                align: field.align
+                            })) as ColumnConfig[];
+
                             setColumnConfigs(newConfigs);
                         } else {
                             setColumnConfigs(savedConfigs);
                         }
                     } else {
-                        // 没有保存的配置，生成新的
-                        const newConfigs = convertColumnsToConfig(generateColumns());
+                        // 没有保存的配置，直接使用字段定义
+                        const newConfigs = fieldDefinitions.map(field => ({
+                            key: field.key,
+                            title: field.title,
+                            visible: true,
+                            fixed: field.fixed,
+                            width: field.width || 120,
+                            dataIndex: field.dataIndex,
+                            align: field.align
+                        })) as ColumnConfig[];
+
                         setColumnConfigs(newConfigs);
                     }
                 }
@@ -1231,6 +1534,11 @@ const SalaryDataViewer: React.FC = () => {
         const loadDropdownData = async () => {
             console.log("Fetching field definitions...");
             try {
+                // 清除localStorage中的列配置缓存，确保重新生成
+                localStorage.removeItem('salaryTable_columnConfigs');
+                localStorage.removeItem('salaryTable_currentLayout');
+                console.log("清除了本地存储的列配置缓存");
+
                 // 只获取字段定义
                 const fields = await fetchSalaryFieldDefinitions();
                 console.log("Field definitions raw data:", fields.slice(0, 3)); // 只显示前3个字段，避免日志过长
@@ -1303,7 +1611,20 @@ const SalaryDataViewer: React.FC = () => {
                 `}
             </style>
 
-            <Typography.Title level={2} style={{ marginBottom: 24 }}>{t('dataViewer.title')}</Typography.Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <Typography.Title level={2} style={{ margin: 0 }}>{t('dataViewer.title')}</Typography.Title>
+
+                {/* 添加引导按钮 */}
+                <TourButton
+                    tourId={SALARY_DATA_VIEWER_TOUR.id}
+                    onClick={() => {
+                        resetTour(SALARY_DATA_VIEWER_TOUR.id);
+                        setTourVisible(true);
+                    }}
+                    type="default"
+                    icon={<QuestionCircleOutlined />}
+                />
+            </div>
 
             {/* 图表区块已移除 */}
 
@@ -1371,20 +1692,22 @@ const SalaryDataViewer: React.FC = () => {
 
                 {/* 工具栏 */}
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <TableToolbar
-                        onColumnSettingsClick={() => setColumnSettingsVisible(true)}
-                        onAdvancedFilterClick={() => setAdvancedFilterVisible(true)}
-                        onSaveLayoutClick={() => setTableLayoutVisible(true)}
-                        onExportClick={(format) => {
-                            console.log('Export format selected:', format);
-                            setExportFormat(format || 'excel');
-                            setExportModalVisible(true);
-                        }}
-                        onRefreshClick={fetchData}
-                        onToggleColumnDraggable={toggleColumnDraggable}
-                        isColumnDraggable={isColumnDraggable}
-                        loading={loading}
-                    />
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <TableToolbar
+                            onColumnSettingsClick={() => setColumnSettingsVisible(true)}
+                            onAdvancedFilterClick={() => setAdvancedFilterVisible(true)}
+                            onSaveLayoutClick={() => setTableLayoutVisible(true)}
+                            onExportClick={(format) => {
+                                console.log('Export format selected:', format);
+                                setExportFormat(format || 'excel');
+                                setExportModalVisible(true);
+                            }}
+                            onRefreshClick={fetchData}
+                            onToggleColumnDraggable={toggleColumnDraggable}
+                            isColumnDraggable={isColumnDraggable}
+                            loading={loading}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -1690,16 +2013,101 @@ const SalaryDataViewer: React.FC = () => {
 
                         // 检查布局是否有有效的列配置
                         if (!layout.columns || layout.columns.length === 0) {
-                            console.warn('Layout has empty columns, generating default columns');
+                            console.warn('Layout has empty columns, using data fields directly');
 
-                            // 生成默认列配置
-                            const defaultColumns = convertColumnsToConfig(generateColumns());
-                            setColumnConfigs(defaultColumns);
+                            // 直接使用数据中的所有字段
+                            if (data.length > 0) {
+                                const firstRecord = data[0];
+                                const allColumns = Object.keys(firstRecord).map(key => {
+                                    // 为一些特殊字段设置固定位置和宽度
+                                    let fixed: 'left' | 'right' | undefined = undefined;
+                                    let width = 120;
+                                    let align: 'left' | 'right' | 'center' | undefined = undefined;
 
-                            // 更新布局中的列配置
-                            layout.columns = defaultColumns;
+                                    // 尝试为一些常见字段提供中文标题
+                                    let title = '';
+                                    if (key === '_consolidated_data_id') {
+                                        title = 'ID';
+                                        fixed = 'left';
+                                        width = 80;
+                                    } else if (key === 'employee_name') {
+                                        title = '姓名';
+                                        fixed = 'left';
+                                        width = 120;
+                                    } else if (key === 'calc_net_pay') {
+                                        title = '实发合计';
+                                        fixed = 'right';
+                                        width = 120;
+                                        align = 'right';
+                                    } else if (key === 'pay_period_identifier') {
+                                        title = '工资期间';
+                                    } else if (key === 'sal_department_name') {
+                                        title = '部门';
+                                    } else if (key === 'sal_organization_name') {
+                                        title = '单位';
+                                    } else if (key === 'sal_establishment_type_name') {
+                                        title = '编制类型';
+                                    } else if (key === 'sal_employee_type_key') {
+                                        title = '人员身份';
+                                    } else if (key === 'sal_position_rank') {
+                                        title = '职务级别';
+                                    } else if (key === 'sal_basic_salary') {
+                                        title = '基本工资';
+                                        align = 'right';
+                                    } else if (key === 'sal_post_salary') {
+                                        title = '岗位工资';
+                                        align = 'right';
+                                    } else if (key === 'sal_allowance') {
+                                        title = '津贴';
+                                        align = 'right';
+                                    } else if (key === 'sal_subsidy') {
+                                        title = '补贴';
+                                        align = 'right';
+                                    } else if (key === 'sal_performance_salary') {
+                                        title = '绩效工资';
+                                        align = 'right';
+                                    } else if (key === 'sal_individual_income_tax') {
+                                        title = '个人所得税';
+                                        align = 'right';
+                                    } else if (key === 'calc_xiaoji') {
+                                        title = '小计';
+                                        align = 'right';
+                                    } else if (key === 'calc_personal_deductions') {
+                                        title = '个人扣除';
+                                        align = 'right';
+                                    } else if (key === 'calc_total_payable') {
+                                        title = '应发合计';
+                                        align = 'right';
+                                    } else if (key.startsWith('calc_') || key.includes('amount') || key.includes('salary') || key.includes('pay')) {
+                                        title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                        align = 'right';
+                                    } else {
+                                        title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    }
 
-                            message.warning(t('tableLayout.generatedDefaultColumns'));
+                                    return {
+                                        key: key,
+                                        title: title,
+                                        visible: true,
+                                        fixed: fixed,
+                                        width: width,
+                                        dataIndex: key,
+                                        align: align
+                                    };
+                                }) as ColumnConfig[];
+
+                                setColumnConfigs(allColumns);
+
+                                // 更新布局中的列配置
+                                layout.columns = allColumns;
+
+                                message.info('直接使用数据字段显示表格');
+                            } else {
+                                // 如果没有数据，使用空列配置
+                                setColumnConfigs([]);
+                                layout.columns = [];
+                                message.warning('没有数据可用，请先加载数据');
+                            }
                         } else {
                             setColumnConfigs(layout.columns);
                         }
@@ -1760,6 +2168,15 @@ const SalaryDataViewer: React.FC = () => {
                     data={advancedFilters.length > 0 ? filteredData : data}
                     fileName={generateExportFileName()}
                     defaultFormat={exportFormat}
+                />
+
+                {/* 添加引导组件 */}
+                <TourGuide
+                    tourId={SALARY_DATA_VIEWER_TOUR.id}
+                    steps={SALARY_DATA_VIEWER_TOUR.steps}
+                    autoStart={true}
+                    forceShow={tourVisible}
+                    onFinish={() => setTourVisible(false)}
                 />
             </Fragment>
         </Space>

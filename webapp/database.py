@@ -6,8 +6,14 @@ from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
 # Load environment variables
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-load_dotenv(dotenv_path=dotenv_path)
+# 首先尝试加载项目根目录的.env文件
+root_dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+if os.path.exists(root_dotenv_path):
+    load_dotenv(dotenv_path=root_dotenv_path)
+else:
+    # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
+    webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+    load_dotenv(dotenv_path=webapp_dotenv_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 logger = logging.getLogger(__name__)

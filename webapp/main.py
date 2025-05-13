@@ -85,13 +85,40 @@ app.add_middleware(
 )
 
 # 数据库连接
-load_dotenv()  # 从.env文件加载环境变量
+# 首先尝试加载项目根目录的.env文件
+root_dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+if os.path.exists(root_dotenv_path):
+    load_dotenv(dotenv_path=root_dotenv_path)
+else:
+    # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
+    webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+    load_dotenv(dotenv_path=webapp_dotenv_path)
 
 DATABASE_URL = settings.DATABASE_URL  # 从配置获取
 if not DATABASE_URL:
     logger.critical("DATABASE_URL environment variable not set!")
-    # Decide how to handle this - raise error, exit, use default? For now, let it fail later.
-    DATABASE_URL = "postgresql://user:password@host:port/dbname" # Placeholder
+    # 尝试从各个组件构建连接字符串
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5432")
+    DB_NAME = os.getenv("DB_NAME", "salary_system")
+    DB_USER = os.getenv("DB_USER", "postgres")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
+
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    logger.info(f"DATABASE_URL not set, constructed from components: {DB_HOST}:{DB_PORT}/{DB_NAME}")
+
+# 在应用启动时初始化数据库（如果AUTO_INIT_DB环境变量设置为true）
+AUTO_INIT_DB = os.getenv("AUTO_INIT_DB", "false").lower() == "true"
+if AUTO_INIT_DB:
+    logger.info("AUTO_INIT_DB设置为true，尝试自动初始化数据库...")
+    from .scripts.init_app import initialize_database
+    try:
+        initialize_database()
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+        # 不中断应用启动，但记录错误
+else:
+    logger.info("AUTO_INIT_DB未设置为true，跳过自动数据库初始化。如需自动初始化，请设置环境变量AUTO_INIT_DB=true")
 
 # --- Column Definitions --- START
 # 注意: 列定义已迁移到数据库配置表 (salary_field_mappings)
@@ -315,9 +342,16 @@ if __name__ == "__main__":
     import os
     from dotenv import load_dotenv
 
-    # Load .env from the webapp directory relative to main.py
-    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-    load_dotenv(dotenv_path=dotenv_path)
+    # 首先尝试加载项目根目录的.env文件
+    root_dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(root_dotenv_path):
+        load_dotenv(dotenv_path=root_dotenv_path)
+        print(f"Loaded environment variables from {root_dotenv_path}")
+    else:
+        # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
+        webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+        load_dotenv(dotenv_path=webapp_dotenv_path)
+        print(f"Loaded environment variables from {webapp_dotenv_path}")
 
     host = os.getenv("UVICORN_HOST", "0.0.0.0")
     port = int(os.getenv("UVICORN_PORT", 8080))

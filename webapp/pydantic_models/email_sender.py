@@ -54,7 +54,7 @@ class EmailSendingTaskBase(BaseModel):
     last_error_message: Optional[str] = None
 
     class Config:
-        orm_mode = True # Enable ORM mode to work with SQLAlchemy models
+        from_attributes = True # Enable ORM mode to work with SQLAlchemy models
         json_encoders = {
             datetime: lambda dt: dt.isoformat() if dt else None,
             uuid.UUID: lambda u: str(u) if u else None
@@ -78,7 +78,7 @@ class EmailSendingTaskHistoryItem(BaseModel):
     requested_by_user_id: Optional[int] = None # Consider adding username later if needed
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         json_encoders = {
             datetime: lambda dt: dt.isoformat() if dt else None,
             uuid.UUID: lambda u: str(u) if u else None
@@ -102,7 +102,7 @@ class EmailLogResponse(BaseModel):
     sender_employee_id: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         json_encoders = {
             datetime: lambda dt: dt.isoformat() if dt else None,
             uuid.UUID: lambda u: str(u) if u else None

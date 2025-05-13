@@ -57,6 +57,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             onClick={onSaveLayoutClick}
             disabled={loading}
             type="primary"
+            data-tour="table-layout-button"
           >
             {t('tableToolbar.saveLayout')}
           </Button>
@@ -69,6 +70,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
               icon={<SettingOutlined />}
               onClick={onColumnSettingsClick}
               disabled={loading}
+              data-tour="column-settings-button"
             >
               {t('tableToolbar.columns')}
             </Button>
@@ -93,6 +95,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
               icon={<FilterOutlined />}
               onClick={onAdvancedFilterClick}
               disabled={loading}
+              data-tour="advanced-filter-button"
             >
               {t('tableToolbar.filter')}
             </Button>
@@ -120,7 +123,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             },
           ]
         }} trigger={['click']} disabled={loading}>
-          <Button>
+          <Button data-tour="export-button">
             <Space>
               <DownloadOutlined />
               {t('tableToolbar.export')}
@@ -135,6 +138,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             icon={<ReloadOutlined />}
             onClick={onRefreshClick}
             loading={loading}
+            data-tour="refresh-button"
           >
             {t('tableToolbar.refresh')}
           </Button>
