@@ -1,0 +1,334 @@
+# 人事工资管理系统前端架构设计 (基于 Vite + React + Ant Design)
+
+## 目录
+1. [技术栈选择说明](#1-技术栈选择说明)
+2. [项目结构](#2-项目结构-src)
+3. [组件结构](#3-组件结构)
+4. [路由与权限控制](#4-路由与权限控制)
+5. [状态管理](#5-状态管理)
+6. [API 集成](#6-api-集成)
+7. [环境变量配置](#7-环境变量配置)
+8. [样式管理](#8-样式管理)
+9. [Vite 构建流程](#9-vite-构建流程)
+10. [数据可视化与图表组件](#10-数据可视化与图表组件)
+11. [表格组件高级功能](#11-表格组件高级功能)
+12. [引导式功能实现](#12-引导式功能实现)
+13. [侧边栏交互优化](#13-侧边栏交互优化)
+14. [性能优化指南](#14-性能优化指南)
+15. [错误处理与日志](#15-错误处理与日志)
+16. [安全性考虑](#16-安全性考虑)
+17. [测试策略](#17-测试策略)
+18. [部署与构建流程](#18-部署与构建流程)
+19. [代码规范与最佳实践](#19-代码规范与最佳实践)
+20. [国际化实现](#20-国际化实现)
+21. [支持不同角色的功能需求](#21-支持不同角色的功能需求)
+
+## 1. 技术栈选择说明
+
+* **Vite**: 作为现代前端构建工具，提供极快的开发服务器启动速度和构建性能，支持热模块替换 (HMR)，优化开发体验。
+* **React**: 作为声明式、组件化的 JavaScript 库，适合构建复杂的用户界面。其组件化思想天然契合我们将 UI 拆分为可复用部分的需要。
+* **TypeScript**: 提供静态类型检查，增强代码可维护性和开发体验。
+* **Ant Design**: 一套企业级 UI 组件库，提供丰富、高质量的开箱即用组件，能够大幅提升开发效率，并确保界面的一致性和专业性。它也提供了主题定制能力，以满足可能的品牌化需求。
+* **Redux Toolkit**: 用于全局状态管理，提供了规范化的状态管理模式，包含 Immer (简化不可变更新)、RTK Query (简化 API 数据管理和缓存) 等工具。
+* **React Router**: 用于前端路由管理，支持嵌套路由和动态路由。
+* **Axios**: 用于 HTTP 请求，支持拦截器、请求取消等高级功能。
+* **@ant-design/charts**: 用于数据可视化，提供丰富的图表类型和配置选项。
+* **@dnd-kit**: 用于拖拽功能，支持表格列拖拽排序等交互。
+* **xlsx**: 用于表格导出，支持导出为 Excel 和 CSV 格式。
+
+## 2. 项目结构 (/src)
+
+清晰的项目结构是可维护性的基础。我们建议采用以下结构：
+
+```
+src/
+├── api/             # API 服务层：封装所有后端 API 调用
+│   ├── index.ts     # API 服务入口
+│   ├── auth.ts      # 认证相关 API
+│   ├── employees.ts # 员工相关 API
+│   ├── payroll.ts   # 工资相关 API
+│   ├── config.ts    # 配置相关 API
+│   └── types.ts     # API 请求和响应的数据类型定义
+├── assets/          # 静态资源（图片、字体等）
+├── components/      # 可复用 UI 组件
+│   ├── common/      # 通用基础组件 (例如: LoadingSpinner, ErrorMessage)
+│   ├── layout/      # 布局相关组件 (例如: Header, Footer, Sidebar)
+│   ├── business/    # 业务相关通用组件 (例如: EmployeeSelect, DepartmentTree)
+│   ├── charts/      # 图表相关组件 (例如: SalaryBarChart, PayrollDistributionChart)
+│   └── index.ts     # 组件导出
+├── config/          # 应用配置
+│   ├── index.ts     # 配置入口
+│   ├── api.ts       # API 地址等配置
+│   └── roles.ts     # 角色和权限映射配置
+├── hooks/           # 自定义 React Hooks
+│   ├── useAuth.ts   # 认证状态 Hook
+│   ├── useApi.ts    # 封装 API 调用的 Hook (可选，或在 api 层处理)
+│   ├── usePermissions.ts # 权限检查 Hook
+│   └── useConfig.ts # 全局配置 Hook
+├── layouts/         # 应用布局组件 (例如: MainLayout, AuthLayout)
+├── pages/           # 页面组件，对应不同的路由
+│   ├── Auth/        # 认证相关页面 (Login, Register等)
+│   ├── Dashboard/   # 仪表盘页面
+│   ├── Employees/   # 员工管理页面
+│   │   ├── index.tsx # 员工列表页
+│   │   └── Detail.tsx # 员工详情页
+│   ├── Payroll/     # 工资管理页面
+│   │   ├── index.tsx # 工资周期/批次列表
+│   │   ├── RunDetail.tsx # 工资计算批次详情
+│   │   └── PayslipDetail.tsx # 工资单详情
+│   ├── Leave/       # 假期管理页面
+│   │   ├── index.tsx # 假期申请列表
+│   │   └── RequestForm.tsx # 假期申请表单
+│   ├── Admin/       # 系统管理页面 (权限、配置等)
+│   │   ├── Users/
+│   │   ├── Roles/
+│   │   └── Config/
+│   └── index.ts     # 页面导出
+├── router/          # 路由配置
+│   ├── index.tsx    # 路由配置入口
+│   ├── routes.ts    # 路由定义 (包含权限信息)
+│   └── ProtectedRoute.tsx # 权限路由守卫
+├── store/           # 状态管理 (使用 Redux Toolkit)
+│   ├── index.ts     # store 配置
+│   ├── slices/      # Redux 切片
+│   │   ├── authSlice.ts # 认证状态切片
+│   │   ├── userSlice.ts # 用户信息切片
+│   │   └── ...
+│   └── hooks.ts     # Redux hooks (useAppDispatch, useAppSelector)
+├── styles/          # 全局样式或 Ant Design 主题定制
+│   ├── index.less   # 或 .css/.scss
+│   └── theme.less   # Ant Design 主题变量覆盖
+├── utils/           # 通用工具函数
+│   ├── index.ts
+│   ├── formatters.ts # 数据格式化工具
+│   ├── validators.ts # 数据验证工具
+│   └── charts.ts    # 图表数据处理工具
+├── App.tsx          # 应用根组件
+└── main.tsx         # 应用入口
+```
+
+## 3. 组件结构
+
+采用组件化思想，将 UI 拆分为独立、可复用的组件。可以参考 Atomic Design 或更简单的分类：
+
+* **通用基础组件** (components/common): 无业务逻辑，纯 UI 组件，如按钮、图标、加载动画等（大部分由 Ant Design 提供）。
+* **布局组件** (components/layout): 负责页面整体布局，如页头、侧边栏、内容区域等。
+* **业务通用组件** (components/business): 包含特定业务逻辑，但在多个页面中使用，如员工选择器（从 API 获取员工列表并提供选择功能）、部门树形选择器等。
+* **图表组件** (components/charts): 负责数据可视化，如薪酬分布柱状图、部门工资对比图等。
+* **页面组件** (pages/): 组合通用组件和业务通用组件，构成完整的页面视图。
+
+**Ant Design 的使用**: 直接在组件中使用 Ant Design 提供的组件，并通过 props 进行配置。对于需要全局覆盖的样式或主题，在 styles/theme.less 中进行定制。
+
+## 4. 路由与权限控制
+
+使用 react-router-dom 进行前端路由管理。权限控制是关键部分，需要根据用户角色动态地决定用户可以访问哪些页面和看到哪些 UI 元素。
+
+* **路由定义** (router/routes.ts): 定义所有路由及其路径、对应的页面组件，并为需要权限控制的路由添加元信息（例如 requiredRoles: ['admin', 'hr']）。
+* **路由守卫** (router/ProtectedRoute.tsx): 创建一个高阶组件或元素，包裹需要权限的路由。在渲染前检查用户是否已认证，以及是否拥有访问该路由所需的角色或权限。如果没有，重定向到登录页或无权限提示页。
+* **菜单生成**: 根据用户的实际角色和路由定义中的权限信息，动态生成侧边栏或顶部的导航菜单。用户看不到他们无权访问的菜单项。
+
+## 5. 状态管理
+
+使用 Redux Toolkit 进行全局状态管理，结合 Context API 进行局部状态管理。
+
+* **全局状态**: 使用 Redux Toolkit 管理需要在多个组件间共享的状态，如：
+  * 用户认证状态 (是否登录，JWT Token等)
+  * 当前登录用户信息和角色/权限列表
+  * 全局通用的配置数据（如查找值列表，可以在应用启动时加载并存储）
+  * 其他需要在组件间共享的状态
+
+* **局部状态**: 使用 React 的 useState 和 useReducer 管理组件内部状态，如：
+  * 表单状态
+  * UI 状态（如模态框是否显示）
+  * 临时数据（如分页状态）
+
+* **状态管理最佳实践**:
+  * 使用 Redux Toolkit 的 createSlice 创建状态切片
+  * 使用 createAsyncThunk 处理异步操作
+  * 使用 useAppSelector 和 useAppDispatch 钩子访问状态和派发动作
+  * 避免在组件中直接修改状态，而是通过派发动作来修改状态
+
+## 6. API 集成
+
+创建一个专门的 API 服务层，负责所有与后端 API 的交互。
+
+* 使用 axios 进行 HTTP 请求。
+* 封装 API 调用，将请求参数和响应数据进行类型定义 (api/types.ts)。
+* 在 API 服务层处理通用的请求逻辑，例如：
+   * 在请求头中携带认证 Token。
+   * 处理通用的错误响应（例如，收到 401 状态码时重定向到登录页）。
+   * 数据格式化（例如，将后端返回的 snake_case 转换为前端常用的 camelCase）。
+* 页面或组件通过调用 API 服务层的方法来获取或提交数据，而不是直接进行 HTTP 请求。
+
+**API 命名规范**:
+* 统一使用连字符(kebab-case)作为 URL 路径中的分隔符，如 `/v2/salary-data`
+* 在前端代码中，使用驼峰命名(camelCase)作为变量名和函数名
+* 在 API 请求和响应处理中，添加转换逻辑，处理后端可能使用的下划线命名(snake_case)
+
+## 7. 环境变量配置
+
+使用环境变量配置不同环境（开发、测试、生产）的参数，如 API 地址、Dify 聊天机器人配置等。
+
+* **环境变量文件**:
+  * `.env`: 默认环境变量，适用于所有环境
+  * `.env.development`: 开发环境变量，仅在开发环境生效
+  * `.env.production`: 生产环境变量，仅在生产环境生效
+
+* **环境变量命名规范**:
+  * 所有环境变量以 `VITE_` 开头，以便 Vite 能够识别和注入
+  * 使用大写字母和下划线命名，如 `VITE_API_BASE_URL`
+
+* **关键环境变量**:
+  * `VITE_API_BASE_URL`: API 基础地址
+  * `VITE_DATABASE_URL`: 数据库连接地址（仅用于开发环境）
+  * `VITE_DIFY_TOKEN`: Dify 聊天机器人 Token
+  * `VITE_DIFY_BASE_URL`: Dify 聊天机器人基础地址
+  * `VITE_ALLOWED_HOSTS`: 允许的域名列表，用于 CORS 配置
+
+* **在代码中使用环境变量**:
+  ```typescript
+  // config/api.ts
+  export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  export const DIFY_TOKEN = import.meta.env.VITE_DIFY_TOKEN;
+  export const DIFY_BASE_URL = import.meta.env.VITE_DIFY_BASE_URL;
+  ```
+
+## 8. 样式管理
+
+主要依赖 Ant Design 提供的样式。
+
+* **主题定制**: 通过修改 Ant Design 的 Less 变量文件 (styles/theme.less) 来定制主题颜色、字体、圆角等，以符合品牌风格。
+* **组件样式**: 大部分样式通过 Ant Design 组件的 props 或内联样式、CSS Modules 来实现局部覆盖。
+* **全局样式**: 少量全局样式定义在 styles/index.less 或 index.css 中。
+
+## 9. Vite 构建流程
+
+Vite 负责开发服务器和生产环境构建。
+
+* **开发**: `vite` 命令启动开发服务器，提供 HMR。
+* **构建**: `vite build` 命令生成优化的生产环境静态资源。
+* **配置**: `vite.config.ts` 文件用于配置别名、代理、插件等。
+
+## 10. 数据可视化与图表组件
+
+使用 @ant-design/charts 实现数据可视化，特别是在薪酬记录页面顶部添加柱状图表，显示每月不同编制类型的工资总和。
+
+* **图表组件结构**:
+  ```
+  components/charts/
+  ├── SalaryBarChart.tsx      # 薪酬柱状图组件
+  ├── PayrollDistributionChart.tsx # 工资分布图组件
+  ├── DepartmentComparisonChart.tsx # 部门工资对比图组件
+  └── ChartUtils.ts           # 图表工具函数
+  ```
+
+* **薪酬柱状图实现示例**:
+  ```tsx
+  // components/charts/SalaryBarChart.tsx
+  import React, { useEffect, useState } from 'react';
+  import { Column } from '@ant-design/charts';
+  import { Spin } from 'antd';
+  import apiClient from '../../services/api';
+  
+  interface SalaryBarChartProps {
+    payPeriod?: string; // 格式: YYYY-MM
+  }
+  
+  const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ payPeriod }) => {
+    const [data, setData] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    
+    useEffect(() => {
+      if (!payPeriod) return;
+      
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          // 获取按编制类型分组的工资总和
+          const response = await apiClient.get(`/v2/salary-data/summary-by-type?pay_period=${payPeriod}`);
+          
+          // 转换数据格式以适应图表组件
+          const chartData = response.data.map((item: any) => ({
+            type: item.establishment_type_name || '未知',
+            value: item.total_salary,
+          }));
+          
+          setData(chartData);
+        } catch (error) {
+          console.error('获取薪酬数据失败:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchData();
+    }, [payPeriod]);
+    
+    const config = {
+      data,
+      xField: 'type',
+      yField: 'value',
+      label: {
+        position: 'middle',
+        style: {
+          fill: '#FFFFFF',
+          opacity: 0.6,
+        },
+      },
+      meta: {
+        type: { alias: '编制类型' },
+        value: { alias: '工资总额', formatter: (v: number) => `¥${v.toLocaleString()}` },
+      },
+      color: ['#1890ff', '#13c2c2', '#52c41a', '#faad14'],
+    };
+    
+    return (
+      <div style={{ height: 300, marginBottom: 24 }}>
+        {loading ? (
+          <Spin tip="加载中..." style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }} />
+        ) : (
+          data.length > 0 ? (
+            <Column {...config} />
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#999' }}>
+              暂无数据
+            </div>
+          )
+        )}
+      </div>
+    );
+  };
+  
+  export default SalaryBarChart;
+  ```
+
+* **在薪酬记录页面中使用图表组件**:
+  ```tsx
+  // components/SalaryDataViewer/index.tsx
+  import React from 'react';
+  import { Space } from 'antd';
+  import { useSalaryContext } from './SalaryContext';
+  import SalaryBarChart from '../charts/SalaryBarChart';
+  import SalaryTable from './SalaryTable';
+  import SalaryFilters from './SalaryFilters';
+  // ... 其他导入
+  
+  const SalaryDataViewerContent: React.FC = () => {
+    const { tableFilters } = useSalaryContext();
+    
+    return (
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        {/* 添加薪酬柱状图 */}
+        <SalaryBarChart payPeriod={tableFilters.pay_period} />
+        
+        {/* 筛选表单 */}
+        <SalaryFilters />
+        
+        {/* 表格组件 */}
+        <SalaryTable />
+        
+        {/* ... 其他组件 */}
+      </Space>
+    );
+  };
+  ```

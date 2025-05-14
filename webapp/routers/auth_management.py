@@ -20,7 +20,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     Handles the OAuth2 password flow to authenticate a user and issue a JWT token.
     Now includes email in the token payload.
     """
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger("auth_debug")
     user = auth.authenticate_user(db, form_data.username, form_data.password)
+    logger.debug(f"[DEBUG] 登录用户名: {form_data.username}, user: {user}")
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

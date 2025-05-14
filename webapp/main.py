@@ -1,4 +1,15 @@
+import sys
+print("==== sys.path ====", sys.path)
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response
+import bcrypt
+from webapp.auth import get_password_hash
+print("admin hash:", get_password_hash("admin"))
+print("==== bcrypt module path:", bcrypt.__file__)
+print("==== has __about__:", hasattr(bcrypt, "__about__"))
+if hasattr(bcrypt, "__about__"):
+    print("==== bcrypt.__about__:", bcrypt.__about__)
+else:
+    print("==== dir(bcrypt):", dir(bcrypt))
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Sequence
