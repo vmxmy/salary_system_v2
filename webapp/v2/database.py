@@ -16,9 +16,14 @@ DATABASE_URL_V2 = os.getenv("DATABASE_URL_V2")
 logger = logging.getLogger(__name__)
 
 if not DATABASE_URL_V2:
-    error_msg = "DATABASE_URL_V2 environment variable not set! Cannot establish DB connection."
-    logger.critical(error_msg)
-    raise ValueError(error_msg)
+    logger.warning("DATABASE_URL_V2 environment variable not set. Using hardcoded default for script execution.")
+    DATABASE_URL_V2 = "postgresql://postgres:810705@localhost:5432/salary_system_v2" # Hardcoded fallback
+    # Optionally, you might still want to raise an error if even the fallback is not suitable for production
+    # For a script like init_admin.py, this fallback might be acceptable for local development/testing.
+    if not DATABASE_URL_V2: # Should not happen with a hardcoded value unless it's empty
+        error_msg = "DATABASE_URL_V2 is still not set even after fallback! Cannot establish DB connection."
+        logger.critical(error_msg)
+        raise ValueError(error_msg)
 
 # 创建SQLAlchemy引擎
 engine_v2 = create_engine(DATABASE_URL_V2, pool_pre_ping=True)

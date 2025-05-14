@@ -59,9 +59,9 @@ API_ENDPOINTS = {
                 "first_name": "John",
                 "last_name": "Doe",
                 "hire_date": "2023-01-01",
-                "status_lookup_value_id": 1,
+                "status_lookup_value_id": 21, # Updated ID for 'ACTIVE' status
                 "date_of_birth": "1990-01-01",
-                "gender_lookup_value_id": 1,
+                "gender_lookup_value_id": 18, # Updated ID for 'MALE' gender
                 "id_number": "123456789",
                 "nationality": "中国",
                 "email": "john.doe@example.com",
@@ -165,9 +165,9 @@ API_ENDPOINTS = {
             "url": "/v2/lookup/types",
             "description": "创建查找类型",
             "data": {
-                "code": "GENDER_TEST_2",
-                "name": "性别测试2",
-                "description": "性别测试描述2"
+                "code": "GENDER_TEST_2_AUTO",
+                "name": "性别测试2_AUTO",
+                "description": "性别测试描述2_AUTO"
             }
         },
         "GET_VALUES": {
@@ -184,10 +184,10 @@ API_ENDPOINTS = {
             "url": "/v2/lookup/values",
             "description": "创建查找值",
             "data": {
-                "lookup_type_id": 1,
-                "code": "M_TEST_2",
-                "name": "男测试2",
-                "description": "男性测试描述2",
+                "lookup_type_id": 15, # Updated ID for 'GENDER' type
+                "code": "M_TEST_2_AUTO",
+                "name": "男测试2_AUTO",
+                "description": "男性测试描述2_AUTO",
                 "sort_order": 0,
                 "is_active": True
             }
@@ -209,9 +209,9 @@ API_ENDPOINTS = {
             "url": "/v2/config/parameters",
             "description": "创建系统参数",
             "data": {
-                "key": "DEFAULT_LANGUAGE_TEST_2",
+                "key": "DEFAULT_LANGUAGE_TEST_2_AUTO",
                 "value": "zh-CN",
-                "description": "默认语言测试2"
+                "description": "默认语言测试2_AUTO"
             }
         },
         "GET_COMPONENTS": {
@@ -246,11 +246,11 @@ API_ENDPOINTS = {
             "url": "/v2/payroll-periods",
             "description": "创建工资周期",
             "data": {
-                "name": "2023-02-TEST",
-                "start_date": "2023-02-01",
-                "end_date": "2023-02-28",
-                "pay_date": "2023-03-05",
-                "frequency_lookup_value_id": 1
+                "name": "2099-12-TEST_AUTO",
+                "start_date": "2099-12-01",
+                "end_date": "2099-12-31",
+                "pay_date": "2100-01-05", # Pay date in the following month
+                "frequency_lookup_value_id": 23 # Updated ID for 'MONTHLY' frequency
             }
         },
         "GET_RUNS": {
@@ -280,7 +280,7 @@ API_ENDPOINTS = {
             "url": "/v2/users",
             "description": "创建用户",
             "data": {
-                "username": "testuser3",
+                "username": "testuser3_AUTO",
                 "password": "password123",
                 "employee_id": None,
                 "is_active": True
@@ -307,6 +307,7 @@ class APITester:
         self.token = None
         self.session = requests.Session()
         self.results = []
+        self.errors_422 = [] # 用于存储422错误的详情
 
     def login(self):
         """获取JWT令牌"""
@@ -382,21 +383,36 @@ class APITester:
         if data:
             print(f"请求数据: {json.dumps(data, ensure_ascii=False)}")
         print(f"请求头: {json.dumps({k: v if k != 'Authorization' else '***' for k, v in headers.items()}, ensure_ascii=False)}")
+        
+        # 确保data在POST/PUT时是字典，以便requests库正确处理为json
+        actual_data_to_send = None
+        if method in ["POST", "PUT"] and data:
+            if isinstance(data, str):
+                try:
+                    actual_data_to_send = json.loads(data)
+                except json.JSONDecodeError:
+                    print(f"{Fore.RED}警告: 请求数据无法解析为JSON，将按原样发送: {data}{Style.RESET_ALL}")
+                    actual_data_to_send = data # 或者可以选择抛出错误
+            else:
+                actual_data_to_send = data # 假设已经是字典
 
         start_time = time.time()
+        response = None # 初始化 response
         try:
             if method == "GET":
-                response = self.session.get(url, params=params, headers=headers)
+                response = self.session.get(url, params=params, headers=headers, timeout=10) # 添加超时
             elif method == "POST":
-                response = self.session.post(url, json=data, headers=headers)
+                response = self.session.post(url, json=actual_data_to_send, headers=headers, timeout=10) # 添加超时
             elif method == "PUT":
-                response = self.session.put(url, json=data, headers=headers)
+                response = self.session.put(url, json=actual_data_to_send, headers=headers, timeout=10) # 添加超时
             elif method == "DELETE":
-                response = self.session.delete(url, headers=headers)
+                response = self.session.delete(url, headers=headers, timeout=10) # 添加超时
             else:
                 raise ValueError(f"不支持的HTTP方法: {method}")
-
+            
             elapsed_time = time.time() - start_time
+            # DEBUG行已移除
+
 
             # 打印响应头信息
             if response.status_code >= 300:
@@ -442,7 +458,7 @@ class APITester:
             "elapsed_time": elapsed_time
         }
 
-        if response:
+        if response is not None: # Check if response object itself exists
             result["status_code"] = response.status_code
             try:
                 result["response"] = response.json()
@@ -454,13 +470,41 @@ class APITester:
             print(f"{status_color}状态码: {response.status_code}{Style.RESET_ALL}")
             print(f"响应时间: {elapsed_time:.4f}秒")
 
-            # 打印响应内容（格式化JSON）
+            # 打印响应内容
+            print("响应内容:")
             try:
-                print("响应内容:")
-                formatted_json = json.dumps(response.json(), indent=2, ensure_ascii=False)
-                print(formatted_json)
-            except:
-                print(f"响应内容: {response.text}")
+                response_data = response.json() # 尝试解析JSON
+                if response.status_code == 422:
+                    # 对于422错误，尝试提取更具体的错误信息
+                    error_detail_message = None
+                    detail_content = response_data.get("detail")
+
+                    if isinstance(detail_content, dict):
+                        error_detail_message = detail_content.get("details")
+                    elif isinstance(detail_content, str):
+                        error_detail_message = detail_content
+                    elif isinstance(detail_content, list):
+                        error_detail_message = json.dumps(detail_content, ensure_ascii=False)
+
+                    if error_detail_message:
+                        print(f"{Fore.YELLOW}捕获到 422 错误详情: {error_detail_message}{Style.RESET_ALL}")
+                        self.errors_422.append({ # 存储422错误详情
+                            "endpoint": endpoint,
+                            "method": method,
+                            "description": description,
+                            "details": error_detail_message
+                        })
+                        print(f"{Fore.YELLOW}完整 422 响应:{Style.RESET_ALL}")
+                        print(json.dumps(response_data, indent=2, ensure_ascii=False))
+                    else:
+                        print(json.dumps(response_data, indent=2, ensure_ascii=False))
+                else:
+                    print(json.dumps(response_data, indent=2, ensure_ascii=False))
+            except json.JSONDecodeError:
+                print(f"Raw响应内容 (非JSON): {response.text}")
+            except Exception as e:
+                print(f"{Fore.RED}解析或打印响应时发生错误: {str(e)}{Style.RESET_ALL}")
+                print(f"Raw响应内容: {response.text}")
         else:
             result["status_code"] = None
             result["response"] = None
@@ -595,6 +639,18 @@ class APITester:
             for i, test in enumerate(skipped_tests_info, 1):
                 print(f"{i}. {test}")
 
+        # 打印所有422错误的汇总详情到控制台
+        if self.errors_422:
+            print(f"\n{Fore.YELLOW}--- 422 Unprocessable Entity 错误详情汇总 ---{Style.RESET_ALL}")
+            error_details_table_console = []
+            for err in self.errors_422:
+                error_details_table_console.append([
+                    f"{err['method']} {err['endpoint']}",
+                    err.get('description', 'N/A'),
+                    err['details']
+                ])
+            print(tabulate(error_details_table_console, headers=["请求", "描述", "错误详情"], tablefmt="grid"))
+
         # 返回测试摘要字符串
         return summary
 
@@ -609,7 +665,8 @@ class APITester:
             "base_url": self.base_url,
             "total_tests": len(self.results),
             "passed_tests": sum(1 for r in self.results if r["status_code"] and 200 <= r["status_code"] < 300),
-            "results": self.results
+            "results": self.results,
+            "errors_422_details": self.errors_422 # 添加422错误详情到JSON报告
         }
 
         if output_file:
