@@ -46,6 +46,16 @@ from .routers.table_configs import router as table_configs_router
 from .routers.email_config import router as email_config_router
 from .routers.email_sender import router as email_sender_router # Added email_sender_router
 
+# Import v2 API routers
+from .v2.routers import employees_router as v2_employees_router
+from .v2.routers import departments_router as v2_departments_router
+from .v2.routers import job_titles_router as v2_job_titles_router
+from .v2.routers import lookup_router as v2_lookup_router
+from .v2.routers import config_router as v2_config_router
+from .v2.routers import payroll_router as v2_payroll_router
+from .v2.routers import security_router as v2_security_router
+from .v2.routers import auth_router as v2_auth_router
+
 # 导入所有Pydantic模型
 from .pydantic_models import (
     # 员工模型
@@ -506,7 +516,54 @@ app.include_router(
     tags=["Email Sender"]
 )
 
+# 15. v2 API路由
+# 员工路由
+app.include_router(
+    v2_employees_router,
+    tags=["v2 API"]
+)
+
+# 部门路由
+app.include_router(
+    v2_departments_router,
+    tags=["v2 API"]
+)
+
+# 职位路由
+app.include_router(
+    v2_job_titles_router,
+    tags=["v2 API"]
+)
+
+# 查找值路由
+app.include_router(
+    v2_lookup_router,
+    tags=["v2 API"]
+)
+
+# 配置路由
+app.include_router(
+    v2_config_router,
+    tags=["v2 API"]
+)
+
+# 工资路由
+app.include_router(
+    v2_payroll_router,
+    tags=["v2 API"]
+)
+
+# 安全路由
+app.include_router(
+    v2_security_router,
+    tags=["v2 API"]
+)
+
+# 认证路由
+app.include_router(
+    v2_auth_router,
+    tags=["v2 API"]
+)
+
 # --- Removed API Routers with /api/v1 prefix ---
 # (Removed api_v1_router definition and app.include_router(api_v1_router))
-
-# ... (rest of main.py, e.g., debug endpoint, uvicorn run block) ...

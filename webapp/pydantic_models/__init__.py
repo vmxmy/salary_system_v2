@@ -39,7 +39,8 @@ from .salary import (
     FieldMappingCreate,
     FieldMappingUpdate,
     FieldMappingInDB,
-    FieldMappingListResponse
+    FieldMappingListResponse,
+    SalaryRecordUpdate
 )
 
 # 导出邮件服务器配置模型

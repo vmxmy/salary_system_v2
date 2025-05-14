@@ -139,7 +139,47 @@ alembic downgrade -1
 alembic history
 ```
 
+### 多数据库迁移
+
+系统支持同时在多个数据库上运行迁移。有两种方式可以实现：
+
+#### 方法1：使用环境变量
+
+通过设置`ALEMBIC_DATABASE_URL`环境变量来指定目标数据库：
+
+```bash
+# 在第一个数据库上运行迁移
+ALEMBIC_DATABASE_URL=postgresql://user1:pass1@host1/db1 alembic upgrade head
+
+# 在第二个数据库上运行迁移
+ALEMBIC_DATABASE_URL=postgresql://user2:pass2@host2/db2 alembic upgrade head
+```
+
+#### 方法2：使用辅助脚本
+
+使用`scripts/multi_db_migrate.py`脚本可以同时在多个数据库上运行相同的迁移命令：
+
+```bash
+# 在多个数据库上应用所有迁移
+python scripts/multi_db_migrate.py --command upgrade --target head --db-urls "postgresql://user1:pass1@host1/db1" "postgresql://user2:pass2@host2/db2"
+
+# 在多个数据库上创建新的迁移文件
+python scripts/multi_db_migrate.py --command revision --message "新的迁移" --autogenerate --db-urls "postgresql://user1:pass1@host1/db1"
+
+# 在多个数据库上回滚到上一个版本
+python scripts/multi_db_migrate.py --command downgrade --target -1 --db-urls "postgresql://user1:pass1@host1/db1" "postgresql://user2:pass2@host2/db2"
+```
+
+注意：创建迁移文件时，通常只需要针对一个数据库运行，因为迁移文件是通用的，可以应用到多个数据库。
+
 ## 最近更新
+
+### 2025-05-10
+
+- 添加了多数据库迁移支持，可以同时在多个数据库上运行迁移
+  - 支持通过环境变量指定目标数据库
+  - 提供了辅助脚本`scripts/multi_db_migrate.py`，简化多数据库迁移操作
+- 更新了文档，添加了多数据库迁移的使用说明
 
 ### 2025-05-07
 

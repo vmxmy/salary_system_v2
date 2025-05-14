@@ -28,6 +28,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from . import schemas
 from . import models
 from .database import Base
+# 导入SalaryRecordUpdate类型
+from .pydantic_models import SalaryRecordUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -1248,6 +1250,76 @@ def get_salary_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while fetching salary data."
         ) from e
+
+def update_salary_record(
+    db: Session,
+    record_id: int,
+    record_update: SalaryRecordUpdate
+) -> Optional[Dict[str, Any]]:
+    """
+    更新薪资记录
+
+    Args:
+        db: 数据库会话
+        record_id: 薪资记录ID (_consolidated_data_id)
+        record_update: 更新的薪资数据
+
+    Returns:
+        更新后的薪资记录字典，如果记录不存在则返回None
+    """
+    try:
+        # 获取要更新的字段
+        update_data = record_update.model_dump(exclude_unset=True)
+        if not update_data:
+            logger.warning(f"No data provided for salary record update (ID: {record_id})")
+            return None
+
+        # 构建SET子句
+        set_clauses = []
+        params = {"record_id": record_id}
+
+        for key, value in update_data.items():
+            set_clauses.append(f"{key} = :{key}")
+            params[key] = value
+
+        set_clause = ", ".join(set_clauses)
+
+        # 构建更新SQL
+        update_sql = text(f"""
+            UPDATE staging.consolidated_data
+            SET {set_clause}
+            WHERE _consolidated_data_id = :record_id
+            RETURNING *
+        """)
+
+        # 执行更新
+        result = db.execute(update_sql, params)
+        db.commit()
+
+        # 获取更新后的记录
+        updated_record = result.mappings().first()
+
+        if not updated_record:
+            logger.warning(f"Salary record with ID {record_id} not found")
+            return None
+
+        # 转换为字典并返回
+        return dict(updated_record)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"SQLAlchemy error updating salary record {record_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error updating salary record: {str(e)}"
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Unexpected error updating salary record {record_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error updating salary record: {str(e)}"
+        )
 
 # --- ORM Functions for Salary Data --- END
 

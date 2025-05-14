@@ -1,11 +1,23 @@
 import os  # Add os import for path manipulation
 import sys # Add sys import for path manipulation
 from logging.config import fileConfig
+from dotenv import load_dotenv
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+# 加载环境变量
+# 首先尝试加载项目根目录的.env文件
+root_dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
+if os.path.exists(root_dotenv_path):
+    load_dotenv(dotenv_path=root_dotenv_path)
+else:
+    # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
+    webapp_dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'webapp', '.env'))
+    if os.path.exists(webapp_dotenv_path):
+        load_dotenv(dotenv_path=webapp_dotenv_path)
 
 # This line assumes your models.py is directly inside salary_system
 # Adjust the path if your project structure is different
@@ -70,12 +82,12 @@ def include_object(object, name, type_, reflected, compare_to):
             qualified_name_in_metadata = f"{table_schema}.{table_name}"
         else:
             qualified_name_in_metadata = table_name
-            
+
         # Check against the keys of target_metadata.tables
         # target_metadata.tables contains Table objects, keyed by name (or schema.name)
         # However, the printout of target_metadata.tables.items() shows schema.name as keys for non-default schema
         # Let's ensure we are checking correctly.
-        # The `name` argument to include_object is the simple name. 
+        # The `name` argument to include_object is the simple name.
         # The `object.fullname` gives schema.name if schema is present.
 
         # Fallback: if qualified_name_in_metadata based on object.schema/object.name fails, try with `name` directly if schema is None.
@@ -93,7 +105,7 @@ def include_object(object, name, type_, reflected, compare_to):
             # if name == 'your_problematic_table_name': # Add this for specific table debugging
             #    print(f"DEBUG target_metadata.tables keys: {list(target_metadata.tables.keys())}")
             return False
-            
+
     elif type_ == "schema":
         # Only include schemas if they are part of our models (e.g., a table is defined in that schema)
         # This prevents Alembic from trying to create schemas that are only in the DB but not in models.
@@ -104,7 +116,7 @@ def include_object(object, name, type_, reflected, compare_to):
         else:
             print(f"DEBUG include_object: EXCLUDING schema '{name}' (not referenced by any model)")
             return False
-        
+
     # For other types like sequences, foreign keys, indexes, etc.
     # print(f"DEBUG include_object: EXCLUDING object '{name}' of type '{type_}' for now.")
     return False # Be restrictive for non-table/non-schema types for now
@@ -122,7 +134,10 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # 从环境变量获取数据库URL，如果没有设置则使用配置文件中的URL
+    url = os.getenv("ALEMBIC_DATABASE_URL", config.get_main_option("sqlalchemy.url"))
+    print(f"--- Alembic env.py (offline): Using database URL: {url} ---")
+
     context.configure(
         url=url,
         target_metadata=target_metadata, # Ensure Base.metadata is used
@@ -145,6 +160,15 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # 从环境变量获取数据库URL
+    alembic_database_url = os.getenv("ALEMBIC_DATABASE_URL")
+
+    # 如果设置了环境变量，则覆盖配置文件中的URL
+    if alembic_database_url:
+        # 动态设置配置中的数据库URL
+        config.set_main_option("sqlalchemy.url", alembic_database_url)
+        print(f"--- Alembic env.py: Using database URL from environment variable: {alembic_database_url} ---")
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -158,7 +182,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata, # Ensure Base.metadata is used
             # Add these arguments for autogenerate filtering and comparison
             include_object=include_object,

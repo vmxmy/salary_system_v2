@@ -10,7 +10,7 @@ class SalaryRecord(BaseModel):
     employee_name: Optional[str] = None
     pay_period_identifier: Optional[str] = None
     id_card_number: Optional[str] = None
-    
+
     # 年金相关字段
     ann_annuity_contribution_base_salary: Optional[float] = None
     ann_annuity_contribution_base: Optional[float] = None
@@ -19,7 +19,7 @@ class SalaryRecord(BaseModel):
     ann_annuity_employee_rate: Optional[float] = None
     ann_annuity_employee_contribution: Optional[float] = None
     ann_employee_type_key: Optional[str] = None
-    
+
     # 住房公积金相关字段
     hf_housingfund_contribution_base_salary: Optional[float] = None
     hf_housingfund_contribution_base: Optional[float] = None
@@ -28,7 +28,7 @@ class SalaryRecord(BaseModel):
     hf_housingfund_employee_rate: Optional[float] = None
     hf_housingfund_employee_contribution: Optional[float] = None
     hf_employee_type_key: Optional[str] = None
-    
+
     # 医疗保险相关字段
     med_contribution_base_salary: Optional[float] = None
     med_contribution_base: Optional[float] = None
@@ -41,7 +41,7 @@ class SalaryRecord(BaseModel):
     med_medical_total_employer_contribution: Optional[float] = None
     med_medical_total_employee_contribution: Optional[float] = None
     med_employee_type_key: Optional[str] = None
-    
+
     # 养老保险相关字段
     pen_pension_contribution_base: Optional[float] = None
     pen_pension_total_amount: Optional[float] = None
@@ -62,7 +62,7 @@ class SalaryRecord(BaseModel):
     pen_ss_total_employer_contribution: Optional[float] = None
     pen_ss_total_employee_contribution: Optional[float] = None
     pen_employee_type_key: Optional[str] = None
-    
+
     # 薪资相关字段
     sal_remarks: Optional[str] = None
     sal_subsidy: Optional[float] = None
@@ -145,7 +145,7 @@ class SalaryRecord(BaseModel):
     sal_actual_position: Optional[str] = None
     sal_actual_position_start_date: Optional[datetime] = None
     sal_position_level_start_date: Optional[datetime] = None
-    
+
     # 税务相关字段
     tax_period_identifier: Optional[str] = None
     tax_income_period_start: Optional[datetime] = None
@@ -174,11 +174,11 @@ class SalaryRecord(BaseModel):
     tax_calculated_income_tax: Optional[float] = None
     tax_remarks: Optional[str] = None
     tax_employee_type_key: Optional[str] = None
-    
+
     # 其他字段
     _import_batch_id: Optional[int] = None
     _consolidation_timestamp: Optional[datetime] = None
-    
+
 
     class Config:
         from_attributes = True
@@ -228,3 +228,51 @@ class FieldMappingInDB(FieldMappingCreate):
 class FieldMappingListResponse(BaseModel):
     """字段映射列表响应"""
     data: List[FieldMappingInDB]
+
+
+class SalaryRecordUpdate(BaseModel):
+    """用于更新薪资记录的模型，只包含可编辑字段"""
+    # 薪资相关字段（可编辑）
+    sal_remarks: Optional[str] = None
+    sal_subsidy: Optional[float] = None
+    sal_allowance: Optional[float] = None
+    sal_post_salary: Optional[float] = None
+    sal_salary_step: Optional[float] = None
+    sal_basic_salary: Optional[float] = None
+    sal_tax_adjustment: Optional[float] = None
+    sal_salary_grade: Optional[str] = None
+    sal_salary_level: Optional[str] = None
+    sal_salary_backpay: Optional[float] = None
+    sal_post_category: Optional[str] = None
+    sal_other_allowance: Optional[float] = None
+    sal_other_deductions: Optional[float] = None
+    sal_living_allowance: Optional[float] = None
+    sal_probation_salary: Optional[float] = None
+    sal_one_time_deduction: Optional[float] = None
+    sal_performance_salary: Optional[float] = None
+    sal_basic_performance_bonus: Optional[float] = None
+    sal_petition_post_allowance: Optional[float] = None
+    sal_post_position_allowance: Optional[float] = None
+    sal_salary_transportation_allowance: Optional[float] = None
+    sal_monthly_basic_performance: Optional[float] = None
+    sal_only_child_parents_reward: Optional[float] = None
+    sal_rank_or_post_grade_salary: Optional[float] = None
+    sal_salary_step_backpay_total: Optional[float] = None
+    sal_monthly_reward_performance: Optional[float] = None
+    sal_total_deduction_adjustment: Optional[float] = None
+    sal_social_insurance_adjustment: Optional[float] = None
+    sal_quarterly_performance_bonus: Optional[float] = None
+    sal_annual_fixed_salary_amount: Optional[float] = None
+    sal_position_or_technical_salary: Optional[float] = None
+    sal_reform_1993_reserved_subsidy: Optional[float] = None
+    sal_reward_performance_deduction: Optional[float] = None
+    sal_basic_performance_salary: Optional[float] = None
+    sal_incentive_performance_salary: Optional[float] = None
+    sal_position_or_post_wage: Optional[float] = None
+    sal_rank_or_step_wage: Optional[float] = None
+
+    # 备注字段
+    tax_remarks: Optional[str] = None
+
+    class Config:
+        from_attributes = True

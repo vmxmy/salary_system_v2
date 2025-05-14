@@ -307,5 +307,68 @@ export const fetchSalaryFieldDefinitions = async (): Promise<SalaryFieldDefiniti
     }
   };
 
+  // --- Salary Data API Calls ---
+
+  // Define interface for salary record update
+  export interface SalaryRecordUpdateData {
+    // 薪资相关字段（可编辑）
+    sal_remarks?: string;
+    sal_subsidy?: number;
+    sal_allowance?: number;
+    sal_post_salary?: number;
+    sal_salary_step?: number;
+    sal_basic_salary?: number;
+    sal_tax_adjustment?: number;
+    sal_salary_grade?: string;
+    sal_salary_level?: string;
+    sal_salary_backpay?: number;
+    sal_post_category?: string;
+    sal_other_allowance?: number;
+    sal_other_deductions?: number;
+    sal_living_allowance?: number;
+    sal_probation_salary?: number;
+    sal_one_time_deduction?: number;
+    sal_performance_salary?: number;
+    sal_basic_performance_bonus?: number;
+    sal_petition_post_allowance?: number;
+    sal_post_position_allowance?: number;
+    sal_salary_transportation_allowance?: number;
+    sal_monthly_basic_performance?: number;
+    sal_only_child_parents_reward?: number;
+    sal_rank_or_post_grade_salary?: number;
+    sal_salary_step_backpay_total?: number;
+    sal_monthly_reward_performance?: number;
+    sal_total_deduction_adjustment?: number;
+    sal_social_insurance_adjustment?: number;
+    sal_quarterly_performance_bonus?: number;
+    sal_annual_fixed_salary_amount?: number;
+    sal_position_or_technical_salary?: number;
+    sal_reform_1993_reserved_subsidy?: number;
+    sal_reward_performance_deduction?: number;
+    sal_basic_performance_salary?: number;
+    sal_incentive_performance_salary?: number;
+    sal_position_or_post_wage?: number;
+    sal_rank_or_step_wage?: number;
+
+    // 备注字段
+    tax_remarks?: string;
+  }
+
+  /**
+   * 更新薪资记录
+   * @param recordId 薪资记录ID
+   * @param updateData 更新数据
+   * @returns 更新后的薪资记录
+   */
+  export const updateSalaryRecord = async (recordId: number, updateData: SalaryRecordUpdateData): Promise<any> => {
+    try {
+      const response = await apiClient.put(`/api/salary_data/${recordId}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update salary record ${recordId}:`, error);
+      throw error;
+    }
+  };
+
   // Ensure the instance is exported as default
   export default apiClient;

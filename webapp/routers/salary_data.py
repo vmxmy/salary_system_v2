@@ -11,7 +11,7 @@ from ..database import get_db
 # 导入新的pydantic模型
 from ..pydantic_models import (
     SalaryRecord, PaginatedSalaryResponse, PayPeriodsResponse,
-    EstablishmentTypeInfo
+    EstablishmentTypeInfo, SalaryRecordUpdate
 )
 
 # 配置logger
@@ -190,7 +190,7 @@ async def get_salary_data_fields(
             field_type = str(field)
             if "Optional" in field_type:
                 field_type = field_type.replace("Optional[", "").replace("]", "")
-            
+
             # 根据字段名称确定字段分组
             field_group = "其他"
             if field_name.startswith("employee_") or field_name in ["id_card_number"]:
@@ -209,7 +209,7 @@ async def get_salary_data_fields(
                 field_group = "计算总额"
             elif field_name in ["created_at", "updated_at"]:
                 field_group = "时间戳"
-            
+
             # 创建字段定义
             field_def = {
                 "key": field_name,
@@ -222,19 +222,19 @@ async def get_salary_data_fields(
                                           "calc_personal_deductions", "calc_total_payable",
                                           "calc_net_pay", "created_at", "updated_at"]
             }
-            
+
             # 为数值类型添加对齐方式
             if "float" in field_type or "int" in field_type:
                 field_def["align"] = "right"
                 if "float" in field_type:
                     field_def["render"] = "toFixed(2)"  # 前端渲染提示
-            
+
             # 特殊字段处理
             if field_name == "employee_id" or field_name == "employee_name":
                 field_def["fixed"] = "left"
             elif field_name == "calc_net_pay":
                 field_def["fixed"] = "right"
-            
+
             # 设置宽度
             if field_name in ["employee_id"]:
                 field_def["width"] = 80
@@ -252,9 +252,9 @@ async def get_salary_data_fields(
                 field_def["render_type"] = "datetime"  # 日期时间渲染
             elif "float" in field_type:
                 field_def["width"] = 120
-            
+
             fields.append(field_def)
-        
+
         return fields
     except Exception as e:
         logger.error(f"获取薪酬数据字段定义错误: {e}", exc_info=True)
@@ -280,3 +280,47 @@ async def get_departments_list(
     except Exception as e:
         logger.error(f"获取部门列表意外错误: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="发生意外服务器错误。")
+
+
+@router.put("/api/salary_data/{record_id}", response_model=SalaryRecord, tags=["Salary Data"])
+async def update_salary_record(
+    record_id: int,
+    record_update: SalaryRecordUpdate,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"]))
+):
+    """
+    更新薪资记录
+
+    需要Super Admin或Data Admin权限
+    只能更新薪资相关字段，不能更新员工基本信息和社保缴纳信息
+    """
+    try:
+        logger.info(f"User {current_user.username} attempting to update salary record ID: {record_id}")
+
+        # 调用models_db中的更新函数
+        updated_record = models_db.update_salary_record(
+            db=db,
+            record_id=record_id,
+            record_update=record_update
+        )
+
+        if not updated_record:
+            logger.warning(f"Salary record with ID {record_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"薪资记录 ID {record_id} 不存在"
+            )
+
+        # 转换为Pydantic模型并返回
+        return SalaryRecord.model_validate(updated_record)
+
+    except HTTPException as e:
+        # 重新抛出HTTP异常
+        raise e
+    except Exception as e:
+        logger.error(f"Error updating salary record {record_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"更新薪资记录时发生错误: {str(e)}"
+        )

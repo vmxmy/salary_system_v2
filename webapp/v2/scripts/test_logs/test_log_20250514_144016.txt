@@ -1,0 +1,219 @@
+[0;36m开始综合测试...[0m
+时间: 2025年 5月14日 星期三 14时40分16秒 CST
+数据库URL: postgresql://postgres:810705@localhost:5432/salary_system_v2
+API基础URL: http://localhost:8080
+API用户名: admin
+API密码: ********
+测试分类: '所有分类'
+日志文件: test_logs/test_log_20250514_144016.txt
+
+[0;36m=== 步骤1: 测试数据库连接 ===[0m
+使用提供的数据库连接字符串: postgresql://postgres:810705@localhost:5432/salary_system_v2
+尝试连接数据库...
+数据库连接成功!
+测试查询数据库版本...
+数据库版本: PostgreSQL 17.4 (Debian 17.4-1.pgdg120+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+
+测试查询security.users表...
+security.users表存在
+
+查询security.users表结构...
+表结构:
+  id (bigint, 非空)
+  username (character varying, 非空)
+  password_hash (character varying, 非空)
+  employee_id (bigint, 可空)
+  is_active (boolean, 非空)
+  created_at (timestamp with time zone, 非空)
+
+查询security.users表数据...
+找到2条记录:
+  ID: 1, 用户名: admin, 是否激活: True
+  ID: 2, 用户名: testuser, 是否激活: True
+
+测试查询security.roles表...
+security.roles表存在
+
+查询security.roles表数据...
+找到1条记录:
+  ID: 1, 代码: SUPER_ADMIN, 名称: Super Admin
+
+测试查询security.user_roles表...
+security.user_roles表存在
+
+查询security.user_roles表数据...
+找到1条记录:
+  用户ID: 1, 角色ID: 1
+
+数据库连接测试完成
+[0;32m✓ 数据库连接测试通过[0m
+
+[0;36m=== 步骤2: 测试后端服务状态 ===[0m
+测试后端服务状态...
+服务器URL: http://localhost:8080
+响应状态码: 200
+响应时间: 0.01秒
+✓ 服务器正在运行
+服务器信息: {
+  "message": "Welcome to the Salary Information Management System API"
+}
+
+测试API文档端点...
+响应状态码: 200
+✓ API文档可访问
+
+测试v2 API端点...
+响应状态码: 403
+⚠ v2 API端点不可访问
+[0;32m✓ 后端服务状态测试通过[0m
+
+[0;36m=== 步骤3: 测试API接口 ===[0m
+开始综合测试...
+
+=== 步骤1: 测试数据库连接 ===
+数据库URL: postgresql://postgres:810705@localhost:5432/salary_system_v2
+连接参数: host=localhost, port=5432, dbname=salary_system_v2, user=postgres
+✓ 成功连接到数据库 (0.01秒)
+✓ 安全模式表存在: permissions, roles, users
+✓ 管理员用户存在
+⚠ SUPER_ADMIN角色不存在
+
+=== 步骤2: 测试后端服务状态 ===
+服务器URL: http://localhost:8080
+✓ 服务器正在运行，响应时间: 0.00秒
+服务器信息: {
+  "message": "Welcome to the Salary Information Management System API"
+}
+
+=== 步骤3: 测试认证接口 ===
+认证URL: http://localhost:8080/v2/token
+用户名: admin
+密码: *****
+响应状态码: 500
+响应JSON: {
+  "detail": {
+    "error": {
+      "code": 500,
+      "message": "Internal Server Error",
+      "details": "(psycopg2.errors.UndefinedTable) relation \"security.users\" does not exist\nLINE 2: FROM security.users \n             ^\n\n[SQL: SELECT security.users.id AS security_users_id, security.users.username AS security_users_username, security.users.password_hash AS security_users_password_hash, security.users.employee_id AS security_users_employee_id, security.users.is_active AS security_users_is_active, security.users.created_at AS security_users_created_at \nFROM security.users \nWHERE security.users.username = %(username_1)s \n LIMIT %(param_1)s]\n[parameters: {'username_1': 'admin', 'param_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+    }
+  }
+}
+✗ 登录失败: 500 - 服务器内部错误，请检查服务器日志
+响应内容: {"detail":{"error":{"code":500,"message":"Internal Server Error","details":"(psycopg2.errors.UndefinedTable) relation \"security.users\" does not exist\nLINE 2: FROM security.users \n             ^\n\n[SQL: SELECT security.users.id AS security_users_id, security.users.username AS security_users_username, security.users.password_hash AS security_users_password_hash, security.users.employee_id AS security_users_employee_id, security.users.is_active AS security_users_is_active, security.users.created_at AS security_users_created_at \nFROM security.users \nWHERE security.users.username = %(username_1)s \n LIMIT %(param_1)s]\n[parameters: {'username_1': 'admin', 'param_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/f405)"}}}
+⚠ 认证失败，将继续测试不需要认证的API端点
+
+=== 步骤4: 测试API端点 ===
+
+测试分类: employees
+
+测试: GET /v2/employees
+描述: 获取员工列表
+请求URL: http://localhost:8080/v2/employees
+状态码: 403
+响应时间: 0.0021秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试分类: departments
+
+测试: GET /v2/departments
+描述: 获取部门列表
+请求URL: http://localhost:8080/v2/departments
+状态码: 403
+响应时间: 0.0019秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试分类: job_titles
+
+测试: GET /v2/job-titles
+描述: 获取职位列表
+请求URL: http://localhost:8080/v2/job-titles
+状态码: 403
+响应时间: 0.0024秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试分类: lookup
+
+测试: GET /v2/lookup/types
+描述: 获取查找类型列表
+请求URL: http://localhost:8080/v2/lookup/types
+状态码: 403
+响应时间: 0.0014秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试分类: config
+
+测试: GET /v2/config/parameters
+描述: 获取系统参数列表
+请求URL: http://localhost:8080/v2/config/parameters
+状态码: 403
+响应时间: 0.0016秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试分类: payroll
+
+测试: GET /v2/payroll-periods
+描述: 获取工资周期列表
+请求URL: http://localhost:8080/v2/payroll-periods
+状态码: 403
+响应时间: 0.0028秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试: GET /v2/payroll-entries
+描述: 获取工资明细列表
+请求URL: http://localhost:8080/v2/payroll-entries
+状态码: 403
+响应时间: 0.0031秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+测试分类: security
+
+测试: GET /v2/permissions
+描述: 获取权限列表
+请求URL: http://localhost:8080/v2/permissions
+状态码: 403
+响应时间: 0.0020秒
+响应内容:
+{
+  "detail": "Not authenticated"
+}
+
+API测试摘要:
+总测试数: 8
+通过测试: 0
+失败测试: 8
+通过率: 0.00%
+
+综合测试结果:
+数据库连接: 成功
+后端服务状态: 正常
+认证接口: 失败
+API端点测试: 全部失败
+[0;31m✗ API测试失败[0m
+
+[0;36m综合测试结果:[0m
+数据库连接: [0;32m通过[0m
+后端服务状态: [0;32m通过[0m
+API测试: [0;31m失败[0m
+[0;31m部分测试失败![0m
