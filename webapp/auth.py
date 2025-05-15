@@ -13,9 +13,10 @@ from cryptography.fernet import Fernet # For symmetric encryption
 from sqlalchemy.orm import Session
 
 # Import schemas, models_db, and the new get_db dependency
-from . import models_db, schemas, models
+# from . import models_db # This was causing the issue by importing the wrong get_user_by_username
+from . import schemas, models # models is likely webapp.models (ORM definitions)
 from .database import get_db # <--- Use get_db
-# from .database import get_db, get_db_connection # Remove get_db_connection if no longer needed after this change
+from .v2.crud import security as v2_crud_security # <--- ADDED: Specific import for v2 CRUD operations
 
 # Import logging for added logging functionality
 import logging
@@ -111,13 +112,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]: # Return ORM User object
     """(ORM Version) Authenticates a user based on username and password."""
-    # Use the renamed ORM function
-    user = models_db.get_user_by_username(db, username=username)
+    # Use the renamed ORM function from v2_crud_security
+    user = v2_crud_security.get_user_by_username(db, username=username) # <--- MODIFIED: Use v2_crud_security
     if not user:
         logger.warning(f"Authentication failed: User '{username}' not found.")
         return None
     # 获取hashed_password的值而不是Column对象
-    if not verify_password(password, str(user.hashed_password)):
+    if not verify_password(password, str(user.password_hash)): # password_hash is the attribute in ORM model
         return None
     # Return the ORM User object itself. The caller (/token endpoint)
     # will extract necessary fields (username, role.name, email) for the token.
@@ -148,7 +149,7 @@ async def get_current_user(
         raise credentials_exception
 
     # Fetch user details from DB using ORM
-    user_orm = models_db.get_user_by_username(db, username=username)
+    user_orm = v2_crud_security.get_user_by_username(db, username=username) # <--- MODIFIED: Use v2_crud_security
 
     if user_orm is None:
         raise credentials_exception
@@ -161,11 +162,17 @@ async def get_current_user(
     if not current_user.is_active:
          raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
 
-    # 添加对role和role.name的空值检查
-    if current_user.role is not None and token_role is not None:
-        if current_user.role.name != token_role:
-            print(f"Warning: Token role '{token_role}' differs from DB role '{current_user.role.name}' for user '{current_user.username}'")
+    # MODIFIED: Adjust role comparison for a list of roles
+    if token_role is not None and current_user.roles:
+        user_role_names = [r.name for r in current_user.roles if r and r.name] # Get names of all assigned roles
+        if not user_role_names: # Handles case where roles list might be empty or roles have no name
+             if token_role: # If token has a role but user has no roles in DB
+                print(f"Warning: Token role '{token_role}' present, but user '{current_user.username}' has no roles assigned in DB.")
+        elif token_role not in user_role_names:
+            print(f"Warning: Token role '{token_role}' not found in user's DB roles: {user_role_names} for user '{current_user.username}'")
             # Depending on security policy, you might raise credentials_exception here
+    elif token_role is not None and not current_user.roles:
+        print(f"Warning: Token role '{token_role}' present, but user '{current_user.username}' has no roles assigned in DB (roles list is empty).")
 
     return current_user
 
@@ -173,17 +180,20 @@ async def get_current_user(
 def require_role(allowed_roles: List[str]):
     """Dependency factory that checks if the current user has one of the allowed roles."""
     async def role_checker(current_user: schemas.UserResponse = Depends(get_current_user)) -> schemas.UserResponse:
-        # 添加role为None的检查
-        if current_user.role is None:
+        if not current_user.roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"User has no role assigned. Requires one of: {allowed_roles}"
+                detail=f"User has no roles assigned. Requires one of: {allowed_roles}"
             )
 
-        if current_user.role.name not in allowed_roles:
+        # Check if the user has any of the allowed role codes
+        user_has_allowed_role = any(role.code in allowed_roles for role in current_user.roles if role and hasattr(role, 'code') and role.code)
+
+        if not user_has_allowed_role:
+            current_role_codes = [r.code for r in current_user.roles if r and hasattr(r, 'code') and r.code]
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"User role '{current_user.role.name}' is not authorized for this operation. Requires one of: {allowed_roles}"
+                detail=f"User role codes {current_role_codes} are not authorized for this operation. Requires one of: {allowed_roles}"
             )
         return current_user
     return role_checker

@@ -38,7 +38,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     # --- Include email in the token payload --- START
     token_data = {
         "sub": user.username,
-        "role": user.role.name,
+        "role": user.roles[0].name if user.roles else None, # Access the first role's name if roles exist
         "email": user.email  # Add the email field here
     }
     # --- Include email in the token payload --- END

@@ -13,7 +13,7 @@ logger = logging.getLogger("auth_debug")
 
 from ..database import get_db_v2
 from ..crud import security as crud
-from ..pydantic_models.security import User
+from ..pydantic_models.security import User as PydanticUser, TokenResponseWithFullUser
 from ...auth import create_access_token, verify_password, ACCESS_TOKEN_EXPIRE_MINUTES
 from ..utils import create_error_response
 
@@ -23,7 +23,7 @@ router = APIRouter(
 )
 
 
-@router.post("/token")
+@router.post("/token", response_model=TokenResponseWithFullUser)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db_v2)
@@ -62,12 +62,12 @@ async def login_for_access_token(
         
         # 获取用户角色
         roles = [role.name for role in user.roles] if user.roles else [] # Ensure user.roles is not None
-        role = roles[0] if roles else None
+        first_role_name = roles[0] if roles else None # Renamed for clarity, as it's used for token_data
         
         # 创建令牌数据
         token_data = {
             "sub": user.username,
-            "role": role
+            "role": first_role_name # JWT token still contains the first role name for simplicity or specific checks
         }
         
         # 创建访问令牌
@@ -76,13 +76,13 @@ async def login_for_access_token(
             expires_delta=access_token_expires
         )
         
-        # 返回令牌及用户ID
+        # 返回令牌及完整的用户信息
+        # The 'user' ORM object (user) is already populated with roles and permissions due to eager loading in CRUD
+        # Pydantic will automatically convert it based on TokenResponseWithFullUser and nested PydanticUser model
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user_id": user.id,  # 新增用户数字ID
-            "username": user.username, # (可选) 显式返回用户名
-            "role": role # (可选) 显式返回角色
+            "user": user # Pass the ORM user object; Pydantic will handle serialization
         }
     except HTTPException:
         raise

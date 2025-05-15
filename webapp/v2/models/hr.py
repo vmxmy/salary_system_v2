@@ -23,6 +23,11 @@ class Employee(BaseV2):
     nationality = Column(String(100), nullable=True)
     hire_date = Column(Date, nullable=False)
     status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='RESTRICT'), nullable=False)
+    employment_type_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='SET NULL'), nullable=True)
+    education_level_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='SET NULL'), nullable=True)
+    marital_status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='SET NULL'), nullable=True)
+    political_status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='SET NULL'), nullable=True)
+    contract_type_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='SET NULL'), nullable=True)
     email = Column(String(100), nullable=True)
     phone_number = Column(String(50), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
@@ -31,6 +36,11 @@ class Employee(BaseV2):
     # Relationships
     gender = relationship("LookupValue", foreign_keys=[gender_lookup_value_id])
     status = relationship("LookupValue", foreign_keys=[status_lookup_value_id])
+    employment_type = relationship("LookupValue", foreign_keys=[employment_type_lookup_value_id])
+    education_level = relationship("LookupValue", foreign_keys=[education_level_lookup_value_id])
+    marital_status = relationship("LookupValue", foreign_keys=[marital_status_lookup_value_id])
+    political_status = relationship("LookupValue", foreign_keys=[political_status_lookup_value_id])
+    contract_type = relationship("LookupValue", foreign_keys=[contract_type_lookup_value_id])
     job_history = relationship("EmployeeJobHistory", back_populates="employee", foreign_keys="[EmployeeJobHistory.employee_id]")
     contracts = relationship("EmployeeContract", back_populates="employee")
     compensation_history = relationship("EmployeeCompensationHistory", back_populates="employee")
@@ -67,11 +77,14 @@ class JobTitle(BaseV2):
     code = Column(String(50), nullable=False, unique=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
+    parent_job_title_id = Column(BigInteger, ForeignKey('hr.job_titles.id', ondelete='SET NULL'), nullable=True)
     effective_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
     is_active = Column(Boolean, nullable=False, server_default='TRUE')
 
     # Relationships
+    parent_job_title = relationship("JobTitle", remote_side=[id], back_populates="child_job_titles")
+    child_job_titles = relationship("JobTitle", back_populates="parent_job_title")
     job_history = relationship("EmployeeJobHistory", back_populates="job_title")
 
 

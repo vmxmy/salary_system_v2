@@ -229,30 +229,30 @@ Vite 负责开发服务器和生产环境构建。
   import { Column } from '@ant-design/charts';
   import { Spin } from 'antd';
   import apiClient from '../../services/api';
-  
+
   interface SalaryBarChartProps {
     payPeriod?: string; // 格式: YYYY-MM
   }
-  
+
   const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ payPeriod }) => {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    
+
     useEffect(() => {
       if (!payPeriod) return;
-      
+
       const fetchData = async () => {
         setLoading(true);
         try {
           // 获取按编制类型分组的工资总和
           const response = await apiClient.get(`/v2/salary-data/summary-by-type?pay_period=${payPeriod}`);
-          
+
           // 转换数据格式以适应图表组件
           const chartData = response.data.map((item: any) => ({
             type: item.establishment_type_name || '未知',
             value: item.total_salary,
           }));
-          
+
           setData(chartData);
         } catch (error) {
           console.error('获取薪酬数据失败:', error);
@@ -260,10 +260,10 @@ Vite 负责开发服务器和生产环境构建。
           setLoading(false);
         }
       };
-      
+
       fetchData();
     }, [payPeriod]);
-    
+
     const config = {
       data,
       xField: 'type',
@@ -281,11 +281,17 @@ Vite 负责开发服务器和生产环境构建。
       },
       color: ['#1890ff', '#13c2c2', '#52c41a', '#faad14'],
     };
-    
+
     return (
       <div style={{ height: 300, marginBottom: 24 }}>
         {loading ? (
-          <Spin tip="加载中..." style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <Spin>
+              <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>
+                加载中...
+              </div>
+            </Spin>
+          </div>
         ) : (
           data.length > 0 ? (
             <Column {...config} />
@@ -298,7 +304,7 @@ Vite 负责开发服务器和生产环境构建。
       </div>
     );
   };
-  
+
   export default SalaryBarChart;
   ```
 
@@ -312,21 +318,21 @@ Vite 负责开发服务器和生产环境构建。
   import SalaryTable from './SalaryTable';
   import SalaryFilters from './SalaryFilters';
   // ... 其他导入
-  
+
   const SalaryDataViewerContent: React.FC = () => {
     const { tableFilters } = useSalaryContext();
-    
+
     return (
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         {/* 添加薪酬柱状图 */}
         <SalaryBarChart payPeriod={tableFilters.pay_period} />
-        
+
         {/* 筛选表单 */}
         <SalaryFilters />
-        
+
         {/* 表格组件 */}
         <SalaryTable />
-        
+
         {/* ... 其他组件 */}
       </Space>
     );

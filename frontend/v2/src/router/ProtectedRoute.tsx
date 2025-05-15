@@ -1,64 +1,114 @@
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore'; // 导入认证 store
-import type { Role } from '../api/types'; // 导入 Role 类型
-import MainLayout from '../layouts/MainLayout'; // 新增导入
-import { Spin } from 'antd'; // 导入 Spin 组件用于加载指示
+import { Navigate, useLocation } from 'react-router-dom'; // Removed Outlet, as children will handle it
+import { useAuthStore } from '../store/authStore'; // Correctly imported
+import { usePermissions } from '../hooks/usePermissions'; // Correctly imported
+// import MainLayout from '../layouts/MainLayout'; // MainLayout will be handled by routes.tsx
+import { Spin } from 'antd';
 
 interface ProtectedRouteProps {
-  allowedRoles?: Role['code'][] | string[]; // 允许的角色代码列表，例如 ['admin', 'hr_manager']
-  // children?: React.ReactNode; // children prop is not directly used when MainLayout is the primary child
+  children: React.ReactNode; // Added children prop
+  allowedRoles?: string[]; // Keep for direct role checks if needed, or rely on usePermissions.hasRole
+  requiredPermissions?: string[];
+  permissionMatchMode?: 'all' | 'any';
+  // renderMainLayout?: boolean; // Removed renderMainLayout prop
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
-  const authToken = useAuthStore((state) => state.authToken);
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const isLoadingUser = useAuthStore((state) => state.isLoadingUser);
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children, // Destructure children
+  allowedRoles,
+  requiredPermissions,
+  permissionMatchMode = 'all', // Default to 'all' if not specified
+  // renderMainLayout = true, // Removed from destructuring
+}) => {
   const location = useLocation();
 
-  const isAuthenticated = !!authToken;
+  // Subscribe to necessary state slices from authStore
+  const isAuthenticated = useAuthStore((state) => !!state.authToken); // More direct way to check auth based on token presence
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const isLoadingUser = useAuthStore((state) => state.isLoadingUser);
+  // Check if userRoleCodes array has been initialized (is not null)
+  const rbacDataInitialized = useAuthStore((state) => state.userRoleCodes !== null && state.userPermissions !== null);
 
-  if (isLoadingUser && !currentUser) {
-    // 如果正在加载用户信息（通常在 token 存在但用户信息尚未获取时）
-    // 显示一个全局加载指示器
+  const { 
+    userRoleCodes, // Get for logging, actual check uses hasAnyRole
+    hasAnyRole, 
+    hasAllPermissions, 
+    hasAnyPermission,
+    hasRole // Ensure hasRole is destructured if used directly for SUPER_ADMIN check later
+  } = usePermissions(); // This hook internally subscribes to userRoleCodes and userPermissions
+  
+  // Log initial data for debugging
+  console.log('[ProtectedRoute] Debug Info:');
+  console.log('[ProtectedRoute] Current Location:', location.pathname);
+  console.log('[ProtectedRoute] IsAuthenticated:', isAuthenticated);
+  console.log('[ProtectedRoute] CurrentUser from store:', JSON.stringify(currentUser, null, 2));
+  const rawRoleCodesFromStore = useAuthStore((state) => state.userRoleCodes);
+  const rawPermissionsFromStore = useAuthStore((state) => state.userPermissions);
+  console.log('[ProtectedRoute] Raw userRoleCodes from authStore state:', rawRoleCodesFromStore);
+  console.log('[ProtectedRoute] Raw userPermissions from authStore state:', rawPermissionsFromStore);
+  console.log('[ProtectedRoute] RoleCodes from usePermissions hook:', userRoleCodes);
+  console.log('[ProtectedRoute] Route allowedRoles:', allowedRoles);
+  console.log('[ProtectedRoute] Route requiredPermissions:', requiredPermissions);
+  console.log('[ProtectedRoute] Route permissionMatchMode:', permissionMatchMode);
+
+  // Loading condition: 
+  // 1. isLoadingUser is true (actively fetching user details).
+  // 2. OR, user is authenticated (token exists), but either currentUser is not yet set OR rbacData (role codes/permissions) hasn't been initialized.
+  // This second part catches the state where initializeAuth has started a fetch, isLoadingUser might even become false briefly 
+  // before user object and derived RBAC states are fully populated.
+  if (isLoadingUser || (isAuthenticated && (!currentUser || !rbacDataInitialized))) {
+    console.log(`ProtectedRoute: Waiting for user data. isLoadingUser: ${isLoadingUser}, isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}, rbacDataInitialized: ${rbacDataInitialized}`);
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Spin size="large" tip="加载用户信息中..." fullscreen />
-      </div>
+      <Spin size="large" tip="加载用户信息中..." fullscreen />
     );
   }
 
-  if (!isAuthenticated) {
-    // 用户未认证 (没有 token)，重定向到登录页
+  // Authentication Check: If, after loading attempts, user is still not authenticated (no token) 
+  // OR if authenticated but currentUser object is missing (should not happen if loading logic is correct, but as a safeguard).
+  if (!isAuthenticated || !currentUser) {
+    console.log(`ProtectedRoute: Authentication check failed post-loading. isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}. Redirecting to login.`);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 用户已认证 (有 token)，但可能仍在等待 currentUser 数据首次加载完成，或者已经加载了
-  // 如果 currentUser 仍然为 null 但 isLoadingUser 为 false，表示获取用户信息失败或用户不存在
-  // 这种情况可能也应该重定向或显示错误，但暂时先依赖下面的角色检查
-  // 如果 !currentUser && !isLoadingUser 且有 authToken，这可能是个问题状态
+  // At this point, isAuthenticated is true, and currentUser is available.
+  // userRoleCodes and userPermissions used by usePermissions() hook should be up-to-date from the store.
 
+  // Role Check
   if (allowedRoles && allowedRoles.length > 0) {
-    if (!currentUser) {
-      // 如果需要角色检查，但用户信息（包含角色）尚未加载或加载失败，
-      // 这可能表示一个不一致的状态或正在等待用户数据。避免直接判为无权限。
-      // 如果 isLoadingUser 已经是 false，则表示获取用户信息失败或用户无角色。
-      // 这种情况下，视为无权限可能是合理的，或者显示特定错误页面。
-      // 为简单起见，如果用户已认证但无法获取用户信息（包含角色），暂时视为无权限。
-      // 更复杂的处理可能需要检查 fetchUserError 状态。
-      console.warn('ProtectedRoute: User is authenticated but currentUser data is not available for role check.');
-      return <Navigate to="/unauthorized" state={{ from: location }} replace />;
-    }
-    const userRoles = currentUser.roles?.map(role => role.code).filter(Boolean) as string[] || [];
-    const hasRequiredRole = allowedRoles.some(roleCode => userRoles.includes(roleCode!));
-    
-    if (!hasRequiredRole) {
+    if (!hasAnyRole(allowedRoles)) {
+      console.log(`ProtectedRoute: Role check failed. User roles codes from usePermissions hook: ${userRoleCodes?.join(', ') || '[No role codes from hook]'}. Required: ${allowedRoles.join(', ')}`);
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
   }
 
-  // 用户已认证，（如果需要）具有所需角色，并且用户信息已加载或不需要角色检查
-  return <MainLayout />;
+  // Permission Check
+  if (requiredPermissions && requiredPermissions.length > 0) {
+    const currentPermissionsFromHook = usePermissions().userPermissions; // Re-access for clarity, or rely on one from initial destructuring
+    // It's crucial that usePermissions hook provides up-to-date userPermissions array here
+    // Let's check if the permissions array from the hook is non-empty if permissions are required
+    if (!currentPermissionsFromHook || currentPermissionsFromHook.length === 0 && requiredPermissions.length > 0) {
+        // This case handles if user has NO permissions at all, but some are required.
+        console.log(`ProtectedRoute: Permission check failed. User has no permissions processed by hook (currentPermissionsFromHook is ${currentPermissionsFromHook ? '[]' : 'null/undefined'}). Required: ${requiredPermissions.join(', ')}`);
+        return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    }
+    
+    let userHasRequiredPermissions = false;
+    if (permissionMatchMode === 'any') {
+      userHasRequiredPermissions = hasAnyPermission(requiredPermissions);
+    } else { // Default is 'all'
+      userHasRequiredPermissions = hasAllPermissions(requiredPermissions);
+    }
+
+    if (!userHasRequiredPermissions) {
+      console.log(`ProtectedRoute: Permission check failed. Mode: ${permissionMatchMode}. User permissions from hook: ${currentPermissionsFromHook?.join(', ') || '[No permissions from hook]'}. Required: ${requiredPermissions.join(', ')}`);
+      return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    }
+  }
+
+  // If all checks pass, render the children that were passed to this component.
+  return <>{children}</>; 
+  // Removed conditional rendering of MainLayout or Outlet directly.
+  // The children prop will now contain what needs to be rendered (e.g. <MainLayout><Outlet /></MainLayout> or just <Outlet />)
 };
 
 export default ProtectedRoute; 

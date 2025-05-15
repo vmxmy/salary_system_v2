@@ -1,75 +1,52 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+// 主样式文件 - 导入所有样式模块
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+// 1. 导入主题变量
+@import './theme.less';
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+// 2. 导入全局样式
+@import './global.less';
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+// 3. 导入布局样式
+@import './layout.less';
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
+// 4. 导入组件样式
+@import './components.less';
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+// 5. 导入工具类
+@import './utilities.less';
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
+// 根元素样式
 #root {
   display: flex;
   flex-direction: column;
-  /* align-items: center; */
-  /* justify-content: center; */
   min-height: 100vh;
   width: 100%;
+}
+
+// 自定义全局样式
+.custom-light-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+// 页面过渡动画
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
 }

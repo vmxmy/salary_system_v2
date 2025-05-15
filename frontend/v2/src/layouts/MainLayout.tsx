@@ -10,8 +10,17 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   HomeOutlined,
+  SafetyOutlined,
+  UserSwitchOutlined,
+  ApartmentOutlined,
+  BranchesOutlined,
+  IdcardOutlined,
+  ControlOutlined,
+  UsergroupAddOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
+import { usePermissions } from '../hooks/usePermissions';
 // import routes from '../router/routes'; // 用于动态菜单和面包屑，后续实现
 // import { AppRouteObject } from '../router/routes'; // 类型导入
 
@@ -25,6 +34,12 @@ const breadcrumbNameMap: Record<string, string> = {
   '/admin/users': '用户管理',
   '/admin/roles': '角色管理',
   '/admin/config': '系统配置',
+  '/admin/organization': '组织架构',
+  '/admin/organization/departments': '部门管理',
+  '/admin/organization/job-titles': '职位管理',
+  '/admin/permissions': '权限管理',
+  '/hr': '人事管理',
+  '/hr/employees': '员工档案',
   // ...更多路径
 };
 
@@ -36,6 +51,7 @@ const MainLayout: React.FC = () => {
   const currentUser = useAuthStore((state) => state.currentUser);
   const logoutAction = useAuthStore((state) => state.logoutAction);
   const authToken = useAuthStore((state) => state.authToken);
+  const { hasPermission, hasRole } = usePermissions();
 
   useEffect(() => {
     // 初始加载或 token 变化时，如果没有用户信息且有 token，尝试获取
@@ -54,7 +70,7 @@ const MainLayout: React.FC = () => {
   const userMenuItems = [
     {
       key: 'profile',
-      label: <Link to="/employee/my-info">个人中心</Link>, // 假设有此路由
+      label: <Link to="/employee-info/my-info">个人中心</Link>, // Corrected from /employee/my-info based on routes.tsx
       icon: <UserOutlined />,
     },
     {
@@ -84,8 +100,74 @@ const MainLayout: React.FC = () => {
     ...extraBreadcrumbItems,
   ];
 
-  // 侧边栏菜单项 (静态示例，后续可改为动态生成)
-  // TODO: 根据用户角色动态生成菜单
+  // Dynamically build admin children based on permissions
+  const organizationChildren = [
+    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">部门管理</Link>, icon: <BranchesOutlined /> },
+    { key: '/admin/organization/job-titles', label: <Link to="/admin/organization/job-titles">职位管理</Link>, icon: <IdcardOutlined /> },
+  ];
+
+  // Define initial admin children, order matters for display. Organization is now a top-level item.
+  const adminChildren = [
+    { key: '/admin/users', label: <Link to="/admin/users">用户管理</Link>, icon: <TeamOutlined /> },
+    { key: '/admin/roles', label: <Link to="/admin/roles">角色管理</Link>, icon: <UserSwitchOutlined /> },
+    // Permissions will be inserted after roles if user is SUPER_ADMIN
+    // Organization item removed from here
+    { key: '/admin/config', label: <Link to="/admin/config">系统配置</Link>, icon: <ControlOutlined /> },
+  ];
+
+  // Conditionally add 'Permissions Management' for SUPER_ADMIN
+  // This ensures it's placed correctly, e.g., after 'Roles'
+  if (hasRole('SUPER_ADMIN')) {
+    const permissionsLink = {
+      key: '/admin/permissions',
+      label: <Link to="/admin/permissions">权限管理</Link>,
+      icon: <SafetyOutlined />,
+    };
+    const rolesIndex = adminChildren.findIndex(child => child.key === '/admin/roles');
+    if (rolesIndex !== -1) {
+      adminChildren.splice(rolesIndex + 1, 0, permissionsLink);
+    } else {
+      // Fallback if roles are not found (e.g. if adminChildren is empty or roles link is removed for some reason)
+      // Insert before config, or push to end. Let's push to end for simplicity as this is a fallback.
+      adminChildren.push(permissionsLink);
+    }
+  }
+
+  // Define the new top-level organization menu item
+  const organizationMenuItem = {
+    key: '/admin/organization', // Parent key for the menu group
+    label: '组织架构',
+    icon: <ApartmentOutlined />,
+    children: organizationChildren,
+  };
+
+  // HR Management Menu Item
+  const hrManagementChildren = [
+    {
+        key: '/hr/employees',
+        label: <Link to="/hr/employees">员工档案</Link>,
+        icon: <TeamOutlined />, // Using existing TeamOutlined for consistency or specific icon
+    },
+    {
+      label: <Link to="/hr/employees/create">创建员工</Link>,
+      key: '/hr/employees/create', 
+      path: '/hr/employees/create', // Restored path attribute
+      icon: <UserAddOutlined />,
+    },
+    // Future HR sub-modules like leave, payroll (if they become sub-items of HR top menu)
+    // { key: '/hr/leave', label: <Link to="/hr/leave">假勤管理</Link>, icon: <CalendarOutlined /> },
+  ];
+
+  const hrManagementMenuItem = {
+    key: '/hr',
+    label: '人事管理',
+    icon: <UsergroupAddOutlined />,
+    children: hrManagementChildren,
+    // Add permission check if HR menu itself should be conditional
+    // visible: hasPermission('hr_module:access') || hasRole(['HR_MANAGER', 'HR_SPECIALIST', 'SUPER_ADMIN'])
+  };
+
+  // 侧边栏菜单项
   const siderMenuItems = [
     {
       key: '/dashboard',
@@ -96,12 +178,11 @@ const MainLayout: React.FC = () => {
       key: '/admin',
       icon: <SettingOutlined />,
       label: '系统管理',
-      children: [
-        { key: '/admin/users', label: <Link to="/admin/users">用户管理</Link>, icon: <TeamOutlined /> },
-        { key: '/admin/roles', label: <Link to="/admin/roles">角色管理</Link> },
-      ],
+      children: adminChildren, // adminChildren no longer contains Organization
     },
-    // ...其他模块
+    organizationMenuItem, // Add Organization as a top-level menu item
+    hrManagementMenuItem, // Added HR Management Menu
+    // ...其他模块 (if any)
   ];
   
   // 获取当前选中的菜单项key
@@ -111,13 +192,15 @@ const MainLayout: React.FC = () => {
     // 优先完全匹配或子路径匹配
     for (const item of siderMenuItems) {
       if (item.key === currentPath) {
-        selectedKey = item.key;
+        selectedKey = item.key as string; // Assuming key is string
         break;
       }
-      if (item.children) {
+      // Check if children exists and is an array, and that item itself is an object
+      if (typeof item === 'object' && item !== null && 'children' in item && item.children && Array.isArray(item.children)) {
         for (const child of item.children) {
-          if (child.key === currentPath) {
-            selectedKey = child.key;
+          // Ensure child is an object with a key property
+          if (child && typeof child === 'object' && 'key' in child && child.key === currentPath) {
+            selectedKey = child.key as string; // Assuming key is string
             // 如果需要父菜单也高亮，可以考虑返回 item.key 或 child.key 的数组
             break;
           }
@@ -127,9 +210,13 @@ const MainLayout: React.FC = () => {
     }
     // 如果没有完全匹配的子菜单，尝试匹配父菜单
     if (!selectedKey) {
-        const matchedParent = siderMenuItems.find(item => item.key && currentPath.startsWith(item.key));
-        if (matchedParent && matchedParent.key) {
-            selectedKey = matchedParent.key;
+        // Ensure item is an object with a key property for find
+        const matchedParent = siderMenuItems.find(item => 
+            item && typeof item === 'object' && 'key' in item && item.key && 
+            typeof item.key === 'string' && currentPath.startsWith(item.key)
+        );
+        if (matchedParent && typeof matchedParent === 'object' && 'key' in matchedParent && matchedParent.key) {
+            selectedKey = matchedParent.key as string; // Assuming key is string
         }
     }
     return selectedKey ? [selectedKey] : ['/dashboard']; // 默认
@@ -138,8 +225,18 @@ const MainLayout: React.FC = () => {
   // 获取当前需要展开的父菜单项key
   const getDefaultOpenKeys = () => {
     const currentPath = location.pathname;
-    const openKey = siderMenuItems.find(item => item.children?.some(child => child.key === currentPath));
-    return openKey?.key ? [openKey.key] : [];
+    const openKeyItem = siderMenuItems.find(item => {
+      // Ensure item is an object with children array
+      if (typeof item === 'object' && item !== null && 'children' in item && item.children && Array.isArray(item.children)) {
+        // Ensure child is an object with a key property
+        return item.children.some(child => 
+            child && typeof child === 'object' && 'key' in child && child.key === currentPath
+        );
+      }
+      return false;
+    });
+    // Ensure openKeyItem is an object with a key property
+    return (openKeyItem && typeof openKeyItem === 'object' && 'key' in openKeyItem && openKeyItem.key) ? [openKeyItem.key as string] : []; // Assuming key is string
   };
 
 
@@ -180,7 +277,9 @@ const MainLayout: React.FC = () => {
         <Content style={{ margin: '0 16px' }}>
           <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />
           <div style={{ padding: 24, minHeight: 360, background: '#fff', borderRadius: '8px' }}>
-            <Outlet />
+            <React.Suspense fallback={<div className="page-loading-suspense">Loading page content...</div>}>
+              <Outlet />
+            </React.Suspense>
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>Salary Management System ©{new Date().getFullYear()} Created by AI Assistant</Footer>

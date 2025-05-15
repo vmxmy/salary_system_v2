@@ -1,58 +1,207 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Space, Form } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
-import type { ColumnType, Key } from 'antd/lib/table/interface';
-import { getRoles } from '../../api/roles'; // 修正导入 getRoles API 函数的路径
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Button, Input, Space, Typography, message, Tag, Form, Modal, Switch, Transfer } from 'antd';
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import type { InputRef } from 'antd';
+import type { ColumnType, ColumnsType } from 'antd/lib/table';
+import type { FilterConfirmProps } from 'antd/lib/table/interface';
+import { getRoles, createRole, updateRole, deleteRole } from '../../api/roles';
+import { getPermissions as apiGetPermissions } from '../../api/permissions';
+import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../api/types';
 
-// 模拟角色数据类型
-interface Role {
-  id: number;
-  code: string;
+const { Title } = Typography;
+
+// Correctly define DataIndex as a type alias for keyof Role
+type DataIndex = keyof Role;
+
+// Define a type for the form values to accurately reflect field types, esp. permission_ids as string[]
+interface RoleFormValues {
   name: string;
+  code: string;
+  permission_ids?: string[]; 
 }
 
 const RoleListPage: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
-  const [form] = Form.useForm();
+  const [searchedColumn, setSearchedColumn] = useState<DataIndex | '' >('');
+  const [form] = Form.useForm<RoleFormValues>(); // Use the dedicated form values type
 
-  // 模拟从后端加载数据
-  useEffect(() => {
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [modalLoading, setModalLoading] = useState<boolean>(false);
+
+  // Permissions states
+  const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
+  const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
+
+  const fetchRoles = async () => {
     setLoading(true);
-    // 模拟 API 调用
-    setTimeout(() => {
-      const mockRoles: Role[] = [
-        { id: 1, code: 'admin', name: '系统管理员' },
-        { id: 2, code: 'hr', name: '人力资源' },
-        { id: 3, code: 'finance', name: '财务' },
-        { id: 4, code: 'manager', name: '部门主管' },
-        { id: 5, code: 'employee', name: '普通员工' },
-      ];
-      setRoles(mockRoles);
-      setLoading(false);
-    }, 1000);
+    try {
+      const apiResponse = await getRoles(); 
+      setRoles(apiResponse.data || []); 
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+      message.error('加载角色列表失败');
+      setRoles([]); 
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRoles();
+    fetchAllPermissions();
   }, []);
 
-  const handleSearch = (selectedKeys: string[], confirm: () => void, dataIndex: string) => {
+  // Fetch all permissions
+  const fetchAllPermissions = async () => {
+    setLoadingPermissions(true);
+    try {
+      // getPermissions from api/permissions.ts is defined as: export const getPermissions = async (): Promise<Permission[]> => { ... return response.data.data; }
+      // This means it already extracts the Permission[] array.
+      const permissionsArray = await apiGetPermissions(); // No arguments needed
+      setAllPermissions(permissionsArray || []); // Directly use the returned array
+    } catch (error) {
+      console.error("Failed to fetch permissions:", error);
+      message.error('加载权限列表失败');
+      setAllPermissions([]);
+    }
+    setLoadingPermissions(false);
+  };
+
+  const searchInput = useRef<InputRef>(null);
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
     confirm();
     setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
+    setSearchedColumn(dataIndex); 
   };
 
   const handleReset = (clearFilters: () => void) => {
     clearFilters();
     setSearchText('');
+    setSearchedColumn(''); 
   };
 
-  const getColumnSearchProps = (dataIndex: keyof Role) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
-      <div style={{ padding: 8 }}>
+  // Modal Actions
+  const showCreateModal = () => {
+    setEditingRole(null);
+    form.resetFields(); 
+    // Explicitly set default values according to RoleFormValues
+    form.setFieldsValue({ name: '', code: '', permission_ids: [] });
+    setIsModalOpen(true);
+  };
+
+  const showEditModal = (role: Role) => {
+    setEditingRole(role);
+    const currentPermissionIdsAsStrings = (role.permissions || []).map(p => p.id.toString());
+    form.setFieldsValue({
+      name: role.name,
+      code: role.code,
+      permission_ids: currentPermissionIdsAsStrings,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+    setEditingRole(null);
+    form.resetFields();
+  };
+
+  const handleFormSubmit = async (values: RoleFormValues) => {
+    setModalLoading(true);
+    const submissionPermissionIds = (values.permission_ids || []).map(idStr => parseInt(idStr, 10));
+
+    try {
+      if (editingRole) {
+        const payload: UpdateRolePayload = { 
+          name: values.name !== editingRole.name ? values.name : undefined,
+          code: values.code !== editingRole.code ? values.code : undefined, 
+          permission_ids: submissionPermissionIds, 
+        };
+        const cleanedPayload = Object.fromEntries(
+          Object.entries(payload).filter(([_, v]) => v !== undefined)
+        ) as UpdateRolePayload;
+        
+        await updateRole(editingRole.id, cleanedPayload);
+        message.success('角色更新成功');
+      } else {
+        if (!values.name || !values.code) {
+          message.error('角色名称和代码是必填项。');
+          setModalLoading(false);
+          return;
+        }
+        const payload: CreateRolePayload = {
+          name: values.name,
+          code: values.code,
+          permission_ids: submissionPermissionIds,
+        };
+        await createRole(payload);
+        message.success('角色创建成功');
+      }
+      setIsModalOpen(false);
+      setEditingRole(null);
+      form.resetFields();
+      fetchRoles(); // Refresh the roles list
+    } catch (error: any) {
+      console.error("Role operation failed:", error);
+      
+      let errorToDisplay: string = editingRole ? '更新角色失败' : '创建角色失败'; // Default message
+
+      if (error.response?.data) {
+        const serverErrorData = error.response.data;
+        const detail = serverErrorData.detail;
+
+        if (typeof detail === 'string') {
+          errorToDisplay = detail;
+        } else if (typeof detail === 'object' && detail !== null) {
+          // Try to extract common error message patterns from object 'detail'
+          if (typeof detail.message === 'string') { // e.g. { message: "..." }
+            errorToDisplay = detail.message;
+          } else if (Array.isArray(detail) && detail.length > 0 && typeof detail[0].msg === 'string') { // FastAPI validation detail
+            errorToDisplay = detail[0].msg;
+          } else if (detail.error && typeof detail.error.message === 'string') { // e.g. { error: { message: "..."} }
+             errorToDisplay = detail.error.message;
+          } else if (typeof detail.error === 'string') { // e.g. { error: "..." }
+             errorToDisplay = detail.error;
+          }
+          // If detail is an object but no known message structure is found, the default message will be used.
+        } else if (serverErrorData.error) {
+           // Fallback to other common error structures if detail is not the primary source
+           if (typeof serverErrorData.error === 'string') {
+             errorToDisplay = serverErrorData.error;
+           } else if (typeof serverErrorData.error === 'object' && serverErrorData.error !== null && typeof serverErrorData.error.message === 'string') {
+             errorToDisplay = serverErrorData.error.message;
+           }
+        } else if (Array.isArray(serverErrorData.errors) && serverErrorData.errors.length > 0 && typeof serverErrorData.errors[0].message === 'string') {
+            // Handle cases like { errors: [{ field: "f", message: "m" }] }
+            errorToDisplay = serverErrorData.errors[0].message;
+        }
+
+        // For 500 errors, also log the full response data for easier debugging
+        if (error.response.status === 500) {
+          console.error("Server 500 error response data:", serverErrorData);
+        }
+      }
+      message.error(errorToDisplay);
+    }
+    setModalLoading(false);
+  };
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Role> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
-          placeholder={`搜索 ${dataIndex}`}
+          ref={searchInput}
+          placeholder={`搜索 ${String(dataIndex)}`}
           value={selectedKeys[0]}
-          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
           style={{ marginBottom: 8, display: 'block' }}
         />
@@ -73,52 +222,97 @@ const RoleListPage: React.FC = () => {
           >
             重置
           </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false });
+              setSearchText((selectedKeys as string[])[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            过滤
+          </Button>
+          <Button type="link" size="small" onClick={() => close()}>
+            关闭
+          </Button>
         </Space>
       </div>
     ),
     filterIcon: (filtered: boolean) => (
       <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    onFilterDropdownOpenChange: (visible: boolean) => {
-      if (visible) {
-        // setTimeout(() => searchInput.select(), 100);
+    onFilter: (value, record) => {
+      const recordValue = record[dataIndex];
+      if (recordValue !== undefined && recordValue !== null) { 
+        return recordValue.toString().toLowerCase().includes((value as string).toLowerCase());
+      }
+      return false;
+    },
+    filterDropdownProps: {
+      onOpenChange: (visible) => {
+        if (visible) {
+          setTimeout(() => searchInput.current?.select(), 100);
+        }
       }
     },
-    render: (text: string) =>
-      searchedColumn === dataIndex ? (
-        // <Highlighter
-        //   highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-        //   searchWords={[searchText]}
-        //   autoEscape
-        //   textToHighlight={text ? text.toString() : ''}
-        // />
-        text // 暂时不使用 Highlighter
-      ) : (
-        text
-      ),
   });
 
-  const columns: ColumnType<Role>[] = [
+  const handleDeleteRole = async (roleId: number) => {
+    try {
+      await deleteRole(roleId);
+      message.success('角色删除成功');
+      fetchRoles();
+    } catch (error: any) {
+      console.error("Failed to delete role:", error);
+      const errorMsg = error.response?.data?.detail || '删除角色失败';
+      message.error(errorMsg);
+    }
+  };
+
+  const columns: ColumnsType<Role> = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      sorter: (a, b) => a.id - b.id,
+    },
     {
       title: '角色代码',
       dataIndex: 'code',
       key: 'code',
       ...getColumnSearchProps('code'),
+      sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
       title: '角色名称',
       dataIndex: 'name',
       key: 'name',
       ...getColumnSearchProps('name'),
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: '操作',
       key: 'action',
+      width: 180,
       render: (_: any, record: Role) => (
         <Space size="middle">
-          <a>编辑</a> {/* TODO: Implement Edit Role */}
-          <a>删除</a> {/* TODO: Implement Delete Role */}
-          <a>管理权限</a> {/* TODO: Implement Manage Permissions */}
+          <Button type="link" icon={<EditOutlined />} onClick={() => showEditModal(record)}>编辑</Button>
+          <Button 
+            type="link" 
+            danger 
+            icon={<DeleteOutlined />} 
+            onClick={() => Modal.confirm({
+              title: '确认删除',
+              content: `确定要删除角色 "${record.name}"吗？此操作不可撤销。`,
+              okText: '删除',
+              okType: 'danger',
+              cancelText: '取消',
+              onOk: () => handleDeleteRole(record.id),
+            })}
+          >
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -126,26 +320,71 @@ const RoleListPage: React.FC = () => {
 
   return (
     <div>
-      <h2>角色管理</h2>
-      <div style={{ marginBottom: 16 }}>
-        <Form form={form} layout="inline">
-          <Form.Item label="角色代码/名称">
-            <Input placeholder="输入角色代码或名称" /> {/* TODO: Implement actual search input */}
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" icon={<SearchOutlined />}>
-              搜索
-            </Button>
-          </Form.Item>
-          <Form.Item>
-            <Button>重置</Button>
-          </Form.Item>
-        </Form>
-        <Button type="primary" style={{ marginTop: 16 }}>
-          新建角色 {/* TODO: Implement Create Role */}
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={4} style={{ marginBottom: 0 }}>角色管理</Title> 
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={showCreateModal}
+        >
+          新建角色
         </Button>
       </div>
-      <Table columns={columns} dataSource={roles} loading={loading} rowKey="id" />
+      <Table 
+        columns={columns}
+        dataSource={roles.map(role => ({ ...role, key: role.id }))} 
+        loading={loading} 
+        rowKey="id" 
+      />
+      <Modal
+        title={editingRole ? '编辑角色' : '新建角色'}
+        open={isModalOpen}
+        onOk={form.submit}
+        onCancel={handleModalCancel}
+        confirmLoading={modalLoading}
+        destroyOnHidden
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          name="roleForm"
+          onFinish={handleFormSubmit}
+        >
+          <Form.Item
+            name="name"
+            label="角色名称"
+            rules={[{ required: true, message: '请输入角色名称!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="code"
+            label="角色代码"
+            rules={[{ required: true, message: '请输入角色代码!' }]}
+          >
+            <Input disabled={!!editingRole} />
+          </Form.Item>
+          <Form.Item
+            name="permission_ids"
+            label="分配权限"
+          >
+            <Transfer
+              dataSource={allPermissions.map(p => ({
+                key: p.id.toString(),
+                title: p.code,
+                description: p.description || p.code,
+              }))}
+              render={item => `${item.title} (${item.description})`}
+              listStyle={{
+                width: '100%',
+                height: 300,
+              }}
+              disabled={loadingPermissions}
+              showSearch
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

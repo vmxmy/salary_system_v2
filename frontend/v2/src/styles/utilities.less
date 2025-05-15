@@ -1,0 +1,454 @@
+// 工具类样式
+@import './theme.less';
+
+// ===== 文本工具类 =====
+// 文本对齐
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-justify {
+  text-align: justify;
+}
+
+// 文本变换
+.text-lowercase {
+  text-transform: lowercase;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+// 文本样式
+.text-bold {
+  font-weight: 700;
+}
+
+.text-normal {
+  font-weight: 400;
+}
+
+.text-italic {
+  font-style: italic;
+}
+
+.text-underline {
+  text-decoration: underline;
+}
+
+.text-no-decoration {
+  text-decoration: none;
+}
+
+// 文本截断
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-break {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+// 文本颜色
+.text-primary {
+  color: @primary-color;
+}
+
+.text-success {
+  color: @success-color;
+}
+
+.text-warning {
+  color: @warning-color;
+}
+
+.text-danger {
+  color: @error-color;
+}
+
+.text-info {
+  color: @info-color;
+}
+
+.text-dark {
+  color: @heading-color;
+}
+
+.text-secondary {
+  color: @text-color-secondary;
+}
+
+.text-light {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.text-muted {
+  color: @disabled-color;
+}
+
+// 字体大小
+.text-xs {
+  font-size: @font-size-sm - 2px;
+}
+
+.text-sm {
+  font-size: @font-size-sm;
+}
+
+.text-base {
+  font-size: @font-size-base;
+}
+
+.text-lg {
+  font-size: @font-size-lg;
+}
+
+.text-xl {
+  font-size: @font-size-lg + 2px;
+}
+
+.text-2xl {
+  font-size: @font-size-lg + 4px;
+}
+
+// ===== 显示工具类 =====
+// 显示属性
+.d-none {
+  display: none;
+}
+
+.d-inline {
+  display: inline;
+}
+
+.d-inline-block {
+  display: inline-block;
+}
+
+.d-block {
+  display: block;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.d-inline-flex {
+  display: inline-flex;
+}
+
+.d-grid {
+  display: grid;
+}
+
+// 可见性
+.visible {
+  visibility: visible;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+// 溢出处理
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-visible {
+  overflow: visible;
+}
+
+.overflow-scroll {
+  overflow: scroll;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+// ===== Flex 布局工具类 =====
+// Flex 方向
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-column-reverse {
+  flex-direction: column-reverse;
+}
+
+// Flex 包裹
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.flex-wrap-reverse {
+  flex-wrap: wrap-reverse;
+}
+
+// 主轴对齐
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+// 交叉轴对齐
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-baseline {
+  align-items: baseline;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+// 自身对齐
+.self-start {
+  align-self: flex-start;
+}
+
+.self-end {
+  align-self: flex-end;
+}
+
+.self-center {
+  align-self: center;
+}
+
+.self-baseline {
+  align-self: baseline;
+}
+
+.self-stretch {
+  align-self: stretch;
+}
+
+// Flex 增长和收缩
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-initial {
+  flex: 0 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+.flex-grow-0 {
+  flex-grow: 0;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.flex-shrink-1 {
+  flex-shrink: 1;
+}
+
+// ===== 边框和阴影工具类 =====
+// 边框
+.border {
+  border: 1px solid @border-color-base;
+}
+
+.border-0 {
+  border: 0;
+}
+
+.border-top {
+  border-top: 1px solid @border-color-base;
+}
+
+.border-right {
+  border-right: 1px solid @border-color-base;
+}
+
+.border-bottom {
+  border-bottom: 1px solid @border-color-base;
+}
+
+.border-left {
+  border-left: 1px solid @border-color-base;
+}
+
+// 边框圆角
+.rounded {
+  border-radius: @border-radius-base;
+}
+
+.rounded-sm {
+  border-radius: @border-radius-sm;
+}
+
+.rounded-lg {
+  border-radius: @border-radius-lg;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.rounded-0 {
+  border-radius: 0;
+}
+
+// 阴影
+.shadow-none {
+  box-shadow: none;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow {
+  box-shadow: @shadow-1-down;
+}
+
+.shadow-md {
+  box-shadow: @shadow-2;
+}
+
+.shadow-lg {
+  box-shadow: @shadow-3;
+}
+
+// ===== 响应式工具类 =====
+// 响应式显示
+@media (max-width: @screen-xs) {
+  .hidden-xs {
+    display: none !important;
+  }
+}
+
+@media (min-width: @screen-sm) and (max-width: @screen-md - 1px) {
+  .hidden-sm {
+    display: none !important;
+  }
+}
+
+@media (min-width: @screen-md) and (max-width: @screen-lg - 1px) {
+  .hidden-md {
+    display: none !important;
+  }
+}
+
+@media (min-width: @screen-lg) and (max-width: @screen-xl - 1px) {
+  .hidden-lg {
+    display: none !important;
+  }
+}
+
+@media (min-width: @screen-xl) {
+  .hidden-xl {
+    display: none !important;
+  }
+}
+
+// 仅在特定屏幕显示
+.visible-xs {
+  @media (min-width: @screen-sm) {
+    display: none !important;
+  }
+}
+
+.visible-sm {
+  @media (max-width: @screen-xs), (min-width: @screen-md) {
+    display: none !important;
+  }
+}
+
+.visible-md {
+  @media (max-width: @screen-sm), (min-width: @screen-lg) {
+    display: none !important;
+  }
+}
+
+.visible-lg {
+  @media (max-width: @screen-md), (min-width: @screen-xl) {
+    display: none !important;
+  }
+}
+
+.visible-xl {
+  @media (max-width: @screen-lg) {
+    display: none !important;
+  }
+}

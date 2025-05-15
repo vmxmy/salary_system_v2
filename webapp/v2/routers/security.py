@@ -12,7 +12,7 @@ from ..pydantic_models.security import (
     UserCreate, UserUpdate, User, UserListResponse,
     RoleCreate, RoleUpdate, Role, RoleListResponse,
     PermissionCreate, PermissionUpdate, Permission, PermissionListResponse,
-    UserRoleCreate, RolePermissionCreate
+    UserRoleCreate, RolePermissionCreate, UserRoleAssignRequest
 )
 from ...auth import get_current_user, require_role
 from ..utils import create_error_response
@@ -32,7 +32,7 @@ async def get_users(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "User Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     获取用户列表，支持分页、搜索和过滤。
@@ -42,7 +42,7 @@ async def get_users(
     - **search**: 搜索关键字，可以匹配用户名
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
-    - 需要Super Admin或User Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 计算跳过的记录数
@@ -87,13 +87,13 @@ async def get_users(
 async def get_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "User Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     根据ID获取用户详情。
 
     - **user_id**: 用户ID
-    - 需要Super Admin或User Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 获取用户
@@ -129,12 +129,12 @@ async def get_user(
 async def create_user(
     user: UserCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     创建新用户。
 
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 创建用户
@@ -169,13 +169,13 @@ async def update_user(
     user_id: int,
     user: UserUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     更新用户信息。
 
     - **user_id**: 用户ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 更新用户
@@ -221,13 +221,13 @@ async def update_user(
 async def delete_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     删除用户。
 
     - **user_id**: 用户ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 删除用户
@@ -259,39 +259,44 @@ async def delete_user(
         )
 
 
-@router.post("/users/{user_id}/roles", status_code=status.HTTP_201_CREATED)
-async def assign_role_to_user(
+@router.post("/users/{user_id}/roles", response_model=Dict[str, User], status_code=status.HTTP_200_OK)
+async def assign_roles_to_user_endpoint(
     user_id: int,
-    role_id: int = Body(..., embed=True),
+    user_role_assign_request: UserRoleAssignRequest, 
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
-    为用户分配角色。
+    为指定用户分配角色列表，替换其现有所有角色。
 
     - **user_id**: 用户ID
-    - **role_id**: 角色ID
-    - 需要Super Admin角色
+    - 请求体包含 `role_ids: List[int]`
+    - 需要SUPER_ADMIN角色
     """
     try:
-        # 为用户分配角色
-        user_role = UserRoleCreate(user_id=user_id, role_id=role_id)
-        success = crud.assign_role_to_user(db, user_role)
-
-        # 返回204 No Content
-        return {"success": success}
+        updated_user = crud.assign_roles_to_user(db, user_id=user_id, role_ids=user_role_assign_request.role_ids)
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="Not Found",
+                    details=f"User with ID {user_id} not found"
+                )
+            )
+        return {"data": updated_user}
     except ValueError as e:
-        # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=create_error_response(
                 status_code=422,
-                message="Unprocessable Entity",
+                message="Unprocessable Entity", 
                 details=str(e)
             )
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
@@ -302,40 +307,33 @@ async def assign_role_to_user(
         )
 
 
-@router.delete("/users/{user_id}/roles/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def remove_role_from_user(
+@router.get("/users/{user_id}/roles", response_model=List[Role])
+async def get_user_roles(
     user_id: int,
-    role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
-    从用户中移除角色。
+    获取指定用户拥有的所有角色。
 
     - **user_id**: 用户ID
-    - **role_id**: 角色ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色 (可根据需求调整)
     """
     try:
-        # 从用户中移除角色
-        success = crud.remove_role_from_user(db, user_id, role_id)
-        if not success:
-            # 返回标准错误响应格式
+        db_user = crud.get_user(db, user_id=user_id)
+        if not db_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=create_error_response(
                     status_code=404,
                     message="Not Found",
-                    details=f"User role with user_id {user_id} and role_id {role_id} not found"
+                    details=f"User with ID {user_id} not found"
                 )
             )
-
-        # 返回204 No Content
-        return None
+        return db_user.roles
     except HTTPException:
         raise
     except Exception as e:
-        # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
@@ -444,12 +442,12 @@ async def get_role(
 async def create_role(
     role: RoleCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     创建新角色。
 
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 创建角色
@@ -484,13 +482,13 @@ async def update_role(
     role_id: int,
     role: RoleUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     更新角色信息。
 
     - **role_id**: 角色ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 更新角色
@@ -536,13 +534,13 @@ async def update_role(
 async def delete_role(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     删除角色。
 
     - **role_id**: 角色ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 删除角色
@@ -557,19 +555,8 @@ async def delete_role(
                     details=f"Role with ID {role_id} not found"
                 )
             )
-
         # 返回204 No Content
         return None
-    except ValueError as e:
-        # 返回标准错误响应格式
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=create_error_response(
-                status_code=409,
-                message="Conflict",
-                details=str(e)
-            )
-        )
     except HTTPException:
         raise
     except Exception as e:
@@ -589,14 +576,14 @@ async def assign_permission_to_role(
     role_id: int,
     permission_id: int = Body(..., embed=True),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     为角色分配权限。
 
     - **role_id**: 角色ID
     - **permission_id**: 权限ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 为角色分配权限
@@ -632,14 +619,14 @@ async def remove_permission_from_role(
     role_id: int,
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     从角色中移除权限。
 
     - **role_id**: 角色ID
     - **permission_id**: 权限ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 从角色中移除权限
@@ -661,6 +648,43 @@ async def remove_permission_from_role(
         raise
     except Exception as e:
         # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
+@router.get("/roles/{role_id}/permissions", response_model=List[Permission])
+async def get_role_permissions(
+    role_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(get_current_user) # 权限暂定，后续可根据需要调整
+):
+    """
+    获取指定角色所拥有的所有权限。
+
+    - **role_id**: 角色ID
+    - 任何登录用户均可访问 (可根据需要调整权限)
+    """
+    try:
+        db_role = crud.get_role(db, role_id=role_id)
+        if not db_role:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="Not Found",
+                    details=f"Role with ID {role_id} not found"
+                )
+            )
+        return db_role.permissions
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
@@ -769,12 +793,12 @@ async def get_permission(
 async def create_permission(
     permission: PermissionCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     创建新权限。
 
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 创建权限
@@ -809,13 +833,13 @@ async def update_permission(
     permission_id: int,
     permission: PermissionUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     更新权限信息。
 
     - **permission_id**: 权限ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 更新权限
@@ -861,13 +885,13 @@ async def update_permission(
 async def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     删除权限。
 
     - **permission_id**: 权限ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 删除权限

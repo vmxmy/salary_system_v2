@@ -1,0 +1,259 @@
+// 布局样式规范
+@import './theme.less';
+
+// ===== 页面布局 =====
+// 主布局容器
+.app-layout {
+  min-height: 100vh;
+  
+  // 侧边栏
+  .app-sider {
+    box-shadow: @shadow-1-right;
+    z-index: 10;
+    
+    // Logo 区域
+    .app-logo {
+      height: 64px;
+      padding: @spacing-md;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid @border-color-split;
+      
+      h1 {
+        color: @heading-color;
+        font-weight: 600;
+        font-size: @font-size-lg;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+  
+  // 头部
+  .app-header {
+    background-color: #fff;
+    padding: 0 @spacing-md;
+    box-shadow: @shadow-1-down;
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    
+    // 面包屑区域
+    .header-breadcrumb {
+      flex: 1;
+    }
+    
+    // 用户信息区域
+    .header-user-info {
+      display: flex;
+      align-items: center;
+      
+      .user-avatar {
+        margin-right: @spacing-sm;
+      }
+    }
+  }
+  
+  // 内容区域
+  .app-content {
+    padding: @spacing-lg;
+    background-color: #f0f2f5;
+    
+    // 内容容器
+    .content-container {
+      background-color: #fff;
+      padding: @spacing-lg;
+      border-radius: @border-radius-base;
+      min-height: 280px;
+    }
+  }
+  
+  // 页脚
+  .app-footer {
+    text-align: center;
+    padding: @spacing-md 0;
+    color: @text-color-secondary;
+    font-size: @font-size-sm;
+  }
+}
+
+// ===== 栅格系统扩展 =====
+// 响应式容器
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: @spacing-md;
+  padding-left: @spacing-md;
+  
+  // 响应式断点
+  @media (min-width: @screen-sm) {
+    max-width: 540px;
+  }
+  
+  @media (min-width: @screen-md) {
+    max-width: 720px;
+  }
+  
+  @media (min-width: @screen-lg) {
+    max-width: 960px;
+  }
+  
+  @media (min-width: @screen-xl) {
+    max-width: 1140px;
+  }
+  
+  @media (min-width: @screen-xxl) {
+    max-width: 1320px;
+  }
+  
+  // 流式容器
+  &.container-fluid {
+    max-width: none;
+  }
+}
+
+// 行间距
+.row-gap-sm {
+  row-gap: @spacing-sm;
+}
+
+.row-gap-md {
+  row-gap: @spacing-md;
+}
+
+.row-gap-lg {
+  row-gap: @spacing-lg;
+}
+
+// 列间距
+.col-gap-sm {
+  column-gap: @spacing-sm;
+}
+
+.col-gap-md {
+  column-gap: @spacing-md;
+}
+
+.col-gap-lg {
+  column-gap: @spacing-lg;
+}
+
+// ===== 间距系统 =====
+// Margin
+.generate-margin(@i) when (@i > 0) {
+  .generate-margin(@i - 1);
+  
+  // 所有方向
+  .m-@{i} {
+    margin: (@i * @spacing-unit);
+  }
+  
+  // 垂直方向
+  .my-@{i} {
+    margin-top: (@i * @spacing-unit);
+    margin-bottom: (@i * @spacing-unit);
+  }
+  
+  // 水平方向
+  .mx-@{i} {
+    margin-left: (@i * @spacing-unit);
+    margin-right: (@i * @spacing-unit);
+  }
+  
+  // 单个方向
+  .mt-@{i} {
+    margin-top: (@i * @spacing-unit);
+  }
+  
+  .mr-@{i} {
+    margin-right: (@i * @spacing-unit);
+  }
+  
+  .mb-@{i} {
+    margin-bottom: (@i * @spacing-unit);
+  }
+  
+  .ml-@{i} {
+    margin-left: (@i * @spacing-unit);
+  }
+}
+
+// Padding
+.generate-padding(@i) when (@i > 0) {
+  .generate-padding(@i - 1);
+  
+  // 所有方向
+  .p-@{i} {
+    padding: (@i * @spacing-unit);
+  }
+  
+  // 垂直方向
+  .py-@{i} {
+    padding-top: (@i * @spacing-unit);
+    padding-bottom: (@i * @spacing-unit);
+  }
+  
+  // 水平方向
+  .px-@{i} {
+    padding-left: (@i * @spacing-unit);
+    padding-right: (@i * @spacing-unit);
+  }
+  
+  // 单个方向
+  .pt-@{i} {
+    padding-top: (@i * @spacing-unit);
+  }
+  
+  .pr-@{i} {
+    padding-right: (@i * @spacing-unit);
+  }
+  
+  .pb-@{i} {
+    padding-bottom: (@i * @spacing-unit);
+  }
+  
+  .pl-@{i} {
+    padding-left: (@i * @spacing-unit);
+  }
+}
+
+// 生成间距类 (0-6)
+.generate-margin(6);
+.generate-padding(6);
+
+// 自动边距
+.m-auto {
+  margin: auto;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+.mr-auto {
+  margin-right: auto;
+}
+
+.mb-auto {
+  margin-bottom: auto;
+}
+
+.ml-auto {
+  margin-left: auto;
+}

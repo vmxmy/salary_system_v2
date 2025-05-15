@@ -50,7 +50,7 @@ const LoginPage: React.FC = () => {
   return (
     <Row justify="center" align="middle" style={{ minHeight: '100vh' /* Removed background: '#f0f2f5' */ }}>
       <Col xs={20} sm={16} md={12} lg={8} xl={6}>
-        <Card bordered={true} style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' /* Adjusted shadow */ }}>
+        <Card variant="outlined" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' /* Adjusted shadow */ }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             {/* Changed logo to a text placeholder */}
             <div style={{ 

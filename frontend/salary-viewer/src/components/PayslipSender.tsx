@@ -389,7 +389,13 @@ const PayslipSender: React.FC = () => {
                 </Form.Item>
             </Form>
 
-            {sending && <Spin tip={t('payslipSender.messages.sending')} />}
+            {sending && (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <Spin>
+                        <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>{t('payslipSender.messages.sending')}</div>
+                    </Spin>
+                </div>
+            )}
 
             {sendResult && (
                 <Alert

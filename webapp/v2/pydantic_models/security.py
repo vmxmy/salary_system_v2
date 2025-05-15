@@ -1,7 +1,7 @@
 """
 安全相关的Pydantic模型。
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -15,21 +15,30 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """创建用户模型"""
-    password: str = Field(..., description="User password (will be hashed)")
+    password: str = Field(..., min_length=6, description="用户密码")
 
 
 class UserUpdate(BaseModel):
     """更新用户模型"""
-    username: Optional[str] = Field(None, description="Unique username")
-    password: Optional[str] = Field(None, description="User password (will be hashed)")
-    employee_id: Optional[int] = Field(None, description="Optional link to an employee")
-    is_active: Optional[bool] = Field(None, description="Whether the user account is active")
+    username: Optional[str] = Field(None, min_length=3, max_length=50, description="用户名")
+    email: Optional[EmailStr] = Field(None, description="用户邮箱")
+    full_name: Optional[str] = Field(None, max_length=50, description="用户全名")
+    employee_id: Optional[str] = Field(None, max_length=20, description="工号")
+    department: Optional[str] = Field(None, max_length=100, description="所属部门")
+    position: Optional[str] = Field(None, max_length=100, description="职位")
+    description: Optional[str] = Field(None, max_length=255, description="用户描述")
+    is_active: Optional[bool] = None
+    password: Optional[str] = Field(None, min_length=6, description="新密码，仅在需要更改密码时提供")
+    role_ids: Optional[List[int]] = Field(None, description="角色ID列表，用于（重新）分配用户角色")
 
 
 class User(UserBase):
     """用户响应模型"""
     id: int = Field(..., description="Primary key")
     created_at: datetime = Field(..., description="User creation timestamp")
+    roles: List['Role'] = []
+    description: Optional[str] = Field(None, max_length=255, description="用户描述")
+    is_active: bool = True
 
     class Config:
         from_attributes = True
@@ -46,24 +55,29 @@ class UserListResponse(BaseModel):
 # Role Models
 class RoleBase(BaseModel):
     """角色基础模型"""
-    code: str = Field(..., description="Unique role code")
-    name: str = Field(..., description="Role name")
+    name: str = Field(..., min_length=1, max_length=50, description="角色名称")
+    code: str = Field(..., min_length=1, max_length=50, description="角色代码,唯一")
+    is_active: bool = True
 
 
 class RoleCreate(RoleBase):
     """创建角色模型"""
-    pass
+    permission_ids: Optional[List[int]] = None
 
 
 class RoleUpdate(BaseModel):
     """更新角色模型"""
-    code: Optional[str] = Field(None, description="Unique role code")
-    name: Optional[str] = Field(None, description="Role name")
+    name: Optional[str] = Field(None, min_length=1, max_length=50, description="角色名称")
+    code: Optional[str] = Field(None, min_length=1, max_length=50, description="角色代码,唯一")
+    is_active: Optional[bool] = None
+    permission_ids: Optional[List[int]] = None
 
 
 class Role(RoleBase):
     """角色响应模型"""
     id: int = Field(..., description="Primary key")
+    permissions: List['Permission'] = []
+    is_active: bool = True
 
     class Config:
         from_attributes = True
@@ -133,3 +147,29 @@ class RolePermissionBase(BaseModel):
 class RolePermissionCreate(RolePermissionBase):
     """创建角色权限关联模型"""
     pass
+
+
+# Token Response Model for /token endpoint
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+class TokenResponseWithFullUser(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: User # User model from this file, now includes roles and permissions
+
+
+# 新增：用于用户分配角色的请求体
+class UserRoleAssignRequest(BaseModel):
+    role_ids: List[int] = Field(..., description="要分配给用户的角色ID列表")
+
+
+# Ensure Role is defined before User, or use forward references correctly
+# Pydantic v2 automatically handles forward references for type hints in strings
+
+# If Role and User are in the same file and User refers to Role in a list,
+# and Role refers to Permission in a list, ensure all are defined or forward-referenced.
+
+Permission.model_rebuild()
+Role.model_rebuild()
+User.model_rebuild()

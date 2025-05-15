@@ -65,7 +65,15 @@ const UserProfilePage: React.FC = () => {
     };
 
     if (authLoading || !user) {
-        return <Spin tip="Loading user data..." />;
+        return (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Spin>
+                    <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>
+                        Loading user data...
+                    </div>
+                </Spin>
+            </div>
+        );
     }
 
     return (
@@ -102,12 +110,12 @@ const UserProfilePage: React.FC = () => {
                     <Spin spinning={loadingPassword}>
                         {errorPassword && <Alert message={errorPassword} type="error" showIcon closable onClose={() => setErrorPassword(null)} style={{ marginBottom: 16 }} />}
                         <Form form={passwordForm} layout="vertical" onFinish={handleChangePassword}>
-                            <Input 
-                                name="username" 
-                                type="text" 
-                                autoComplete="username" 
-                                defaultValue={user?.username} 
-                                style={{ display: 'none' }} 
+                            <Input
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                defaultValue={user?.username}
+                                style={{ display: 'none' }}
                             />
                             <Form.Item
                                 label={t('userProfilePage.currentPasswordLabel')}
@@ -157,4 +165,4 @@ const UserProfilePage: React.FC = () => {
     );
 };
 
-export default UserProfilePage; 
+export default UserProfilePage;

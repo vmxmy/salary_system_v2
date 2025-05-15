@@ -19,6 +19,7 @@ router = APIRouter(
 
 @router.get("/", response_model=JobTitleListResponse)
 async def get_job_titles(
+    parent_id: Optional[int] = None,
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
@@ -28,7 +29,8 @@ async def get_job_titles(
 ):
     """
     获取职位列表，支持分页、搜索和过滤。
-    
+
+    - **parent_id**: 父职位ID，用于获取特定职位的子职位
     - **is_active**: 是否激活，用于过滤激活或未激活的职位
     - **search**: 搜索关键字，可以匹配职位代码、名称或描述
     - **page**: 页码，从1开始
@@ -37,19 +39,20 @@ async def get_job_titles(
     try:
         # 计算跳过的记录数
         skip = (page - 1) * size
-        
+
         # 获取职位列表
         job_titles, total = crud.get_job_titles(
             db=db,
+            parent_id=parent_id,
             is_active=is_active,
             search=search,
             skip=skip,
             limit=size
         )
-        
+
         # 计算总页数
         total_pages = (total + size - 1) // size if total > 0 else 1
-        
+
         # 返回标准响应格式
         return {
             "data": job_titles,
@@ -80,7 +83,7 @@ async def get_job_title(
 ):
     """
     根据ID获取职位详情。
-    
+
     - **job_title_id**: 职位ID
     """
     try:
@@ -96,7 +99,7 @@ async def get_job_title(
                     details=f"Job title with ID {job_title_id} not found"
                 )
             )
-        
+
         # 返回标准响应格式
         return {"data": job_title}
     except HTTPException:
@@ -117,17 +120,17 @@ async def get_job_title(
 async def create_job_title(
     job_title: JobTitleCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "HR Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     创建新职位。
-    
-    - 需要Super Admin或HR Admin角色
+
+    - 需要 SUPER_ADMIN 角色
     """
     try:
         # 创建职位
         db_job_title = crud.create_job_title(db, job_title)
-        
+
         # 返回标准响应格式
         return {"data": db_job_title}
     except ValueError as e:
@@ -157,13 +160,13 @@ async def update_job_title(
     job_title_id: int,
     job_title: JobTitleUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "HR Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     更新职位信息。
-    
+
     - **job_title_id**: 职位ID
-    - 需要Super Admin或HR Admin角色
+    - 需要 SUPER_ADMIN 角色
     """
     try:
         # 更新职位
@@ -178,7 +181,7 @@ async def update_job_title(
                     details=f"Job title with ID {job_title_id} not found"
                 )
             )
-        
+
         # 返回标准响应格式
         return {"data": db_job_title}
     except ValueError as e:
@@ -209,13 +212,13 @@ async def update_job_title(
 async def delete_job_title(
     job_title_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     删除职位。
-    
+
     - **job_title_id**: 职位ID
-    - 需要Super Admin角色
+    - 需要 SUPER_ADMIN 角色
     """
     try:
         # 删除职位
@@ -230,7 +233,7 @@ async def delete_job_title(
                     details=f"Job title with ID {job_title_id} not found"
                 )
             )
-        
+
         # 返回204 No Content
         return None
     except ValueError as e:

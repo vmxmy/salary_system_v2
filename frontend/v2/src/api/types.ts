@@ -31,38 +31,80 @@ export interface ApiErrorResponse {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
-  expires_in?: number; // 可选
-  // user?: User; // 实际响应中不包含 user 对象，已移除
-  user_id?: number; // 新增：用户的数字ID (如果后端在 /token 响应中提供)
-  username?: string; // 新增：用户名 (如果后端在 /token 响应中提供)
-  role?: string; // 新增：用户角色 (如果后端在 /token 响应中提供)
+  user: User; // Contains the full User object with roles and permissions
+  // expires_in?: number; // Kept as optional or remove if not sent
+  // user_id, username, role (old fields) are now part of the nested user object
 }
 
 // 用户基本信息 (根据 /v2/users 端点和安全资源定义)
 export interface User {
-  id: string | number; // 假设有 id
+  id: number; // Changed from string | number
   username: string;
-  email?: string; // 可选
-  is_active?: boolean; // 可选
-  roles?: Role[]; // 假设用户关联角色
-  permissions?: string[]; // 或者直接关联权限字符串列表
-  // 其他员工相关信息可能来自 Employee 类型
-  employee_id?: string | number; // 如果用户关联到员工
+  employee_id?: number; // Changed from string | number
+  is_active: boolean; // No longer optional, assuming backend provides it
+  created_at: string; // Or Date, depending on how it's parsed. Kept as string for now.
+  roles: Role[];
+  // email and permissions (direct on user) are removed as per new backend model focused on User.roles -> Role.permissions
 }
 
 // 角色信息 (根据 /v2/roles 端点)
 export interface Role {
-  id: string | number;
-  name: string;
-  code?: string; // 角色代码，如 'admin', 'hr'
-  permissions?: Permission[]; // 假设角色关联权限对象
+  id: number; // Changed from string | number
+  code: string; // e.g., "sys_admin", "hr_manager"
+  name: string; // e.g., "System Administrator", "HR Manager"
+  permissions: Permission[];
 }
 
 // 权限信息 (根据 /v2/permissions 端点)
 export interface Permission {
-  id: string | number;
-  name: string; // 例如 "查看员工列表"
-  code?: string; // 权限代码，如 'employee:list', 'employee:create'
+  id: number; // Changed from string | number
+  code: string; // e.g., "employee:create", "payroll:view_all"
+  description?: string;
+}
+
+// Payload for creating a new permission
+export interface CreatePermissionPayload {
+  code: string;
+  description?: string;
+}
+
+// Payload for updating an existing permission
+export interface UpdatePermissionPayload {
+  code?: string;
+  description?: string;
+}
+
+// Payload for creating a new role
+export interface CreateRolePayload {
+  code: string;
+  name: string;
+  description?: string;
+  permission_ids?: number[];
+}
+
+// Payload for updating an existing role
+export interface UpdateRolePayload {
+  code?: string;
+  name?: string;
+  description?: string;
+  permission_ids?: number[];
+}
+
+// Payload for creating a new user
+export interface CreateUserPayload {
+  username: string;
+  password: string;
+  employee_id?: number;
+  role_ids?: number[];
+  is_active?: boolean; // Defaults to true on backend typically
+}
+
+// Payload for updating an existing user
+export interface UpdateUserPayload {
+  employee_id?: number;
+  is_active?: boolean;
+  role_ids?: number[]; // For updating roles directly, if supported/chosen over separate endpoint
+  // password?: string; // Password changes should be a separate, secure flow (e.g., reset password)
 }
 
 // 员工信息 (根据 /v2/employees 端点)
@@ -82,21 +124,73 @@ export interface Employee {
   // department?: Department; // 如果 API 会嵌套返回
 }
 
-// 部门信息 (根据 /v2/departments 端点)
-export interface Department {
-  id: string | number; // departmentId
-  name: string;
-  parent_id?: number | null;
-  // ...
+// General Paginated Response Structure (Ensure this or similar exists)
+export interface PaginatedMeta {
+  page: number;
+  size: number;
+  total: number;
+  totalPages: number;
 }
 
-// 职位信息 (根据 /v2/job-titles 端点)
-export interface JobTitle {
-  id: string | number; // jobTitleId
-  name: string;
-  description?: string;
-  // ...
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginatedMeta;
 }
+
+// Department Types
+export interface Department {
+  id: number;
+  code: string;
+  name: string;
+  parent_department_id?: number | null;
+  description?: string | null; // Ensure description is here
+  effective_date: string;
+  end_date?: string | null;
+  is_active: boolean;
+}
+
+export interface CreateDepartmentPayload {
+  code: string;
+  name: string;
+  parent_department_id?: number | null;
+  description?: string | null; // Add description here
+  effective_date: string;
+  end_date?: string | null;
+  is_active?: boolean;
+}
+
+export interface UpdateDepartmentPayload extends Partial<CreateDepartmentPayload> {
+  // id is not part of payload, it's a path parameter
+  // description is inherited if added to CreateDepartmentPayload and this extends Partial of it.
+}
+
+export interface DepartmentListResponse extends PaginatedResponse<Department> {}
+
+// JobTitle Types
+export interface JobTitle {
+  id: number;
+  code: string;
+  name: string;
+  description?: string | null;
+  parent_job_title_id?: number | null;
+  effective_date: string; // Consider using Date type
+  end_date?: string | null;   // Consider using Date type
+  is_active: boolean;
+}
+
+export interface CreateJobTitlePayload {
+  code: string;
+  name: string;
+  description?: string | null;
+  parent_job_title_id?: number | null;
+  effective_date: string;
+  end_date?: string | null;
+  is_active?: boolean;
+}
+
+export interface UpdateJobTitlePayload extends Partial<CreateJobTitlePayload> {}
+
+export interface JobTitleListResponse extends PaginatedResponse<JobTitle> {}
 
 // 查找类型 (根据 /v2/config/lookup-types)
 export interface LookupType {
@@ -118,4 +212,4 @@ export interface LookupValue {
   // lookup_type?: LookupType; // 如果 API 嵌套返回
 }
 
-// 可以继续添加其他 API 资源对应的类型... 
+// 可以继续添加其他 API 资源对应的类型...

@@ -251,7 +251,7 @@ async def delete_lookup_type(
 # LookupValue endpoints
 @router.get("/values", response_model=LookupValueListResponse)
 async def get_lookup_values(
-    lookup_type_id: Optional[int] = None,
+    type_code: Optional[str] = Query(None, description="Filter by lookup type code"),
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
@@ -262,20 +262,37 @@ async def get_lookup_values(
     """
     获取查找值列表，支持分页、搜索和过滤。
 
-    - **lookup_type_id**: 查找类型ID，用于过滤特定类型的查找值
+    - **type_code**: 查找类型代码，用于过滤特定类型的查找值
     - **is_active**: 是否激活，用于过滤激活或未激活的查找值
     - **search**: 搜索关键字，可以匹配代码、名称或描述
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
     """
     try:
+        resolved_lookup_type_id: Optional[int] = None
+        if type_code:
+            lookup_type_obj = crud.get_lookup_type_by_code(db, type_code)
+            if lookup_type_obj:
+                resolved_lookup_type_id = lookup_type_obj.id
+            else:
+                # type_code was given but not found, return empty list
+                return {
+                    "data": [],
+                    "meta": {
+                        "page": page,
+                        "size": size,
+                        "total": 0,
+                        "totalPages": 1 # Or 0 if preferred for no items
+                    }
+                }
+        
         # 计算跳过的记录数
         skip = (page - 1) * size
 
         # 获取查找值列表
         lookup_values, total = crud.get_lookup_values(
             db=db,
-            lookup_type_id=lookup_type_id,
+            lookup_type_id=resolved_lookup_type_id,
             is_active=is_active,
             search=search,
             skip=skip,

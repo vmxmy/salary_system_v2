@@ -120,12 +120,12 @@ async def get_department(
 async def create_department(
     department: DepartmentCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "HR Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     创建新部门。
     
-    - 需要Super Admin或HR Admin角色
+    - 需要 SUPER_ADMIN 角色
     """
     try:
         # 创建部门
@@ -160,13 +160,13 @@ async def update_department(
     department_id: int,
     department: DepartmentUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "HR Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     更新部门信息。
     
     - **department_id**: 部门ID
-    - 需要Super Admin或HR Admin角色
+    - 需要 SUPER_ADMIN 角色
     """
     try:
         # 更新部门
@@ -212,13 +212,13 @@ async def update_department(
 async def delete_department(
     department_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     删除部门。
     
     - **department_id**: 部门ID
-    - 需要Super Admin角色
+    - 需要 SUPER_ADMIN 角色
     """
     try:
         # 删除部门

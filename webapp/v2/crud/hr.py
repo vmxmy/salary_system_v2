@@ -386,6 +386,7 @@ def delete_department(db: Session, department_id: int) -> bool:
 # JobTitle CRUD
 def get_job_titles(
     db: Session,
+    parent_id: Optional[int] = None,
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
     skip: int = 0,
@@ -396,6 +397,7 @@ def get_job_titles(
 
     Args:
         db: 数据库会话
+        parent_id: 父职位ID
         is_active: 是否激活
         search: 搜索关键字
         skip: 跳过的记录数
@@ -407,6 +409,10 @@ def get_job_titles(
     query = db.query(JobTitle)
 
     # 应用过滤条件
+    if parent_id is not None:
+        query = query.filter(JobTitle.parent_job_title_id == parent_id)
+    # parent_id为None时，不加parent_job_title_id过滤，返回所有职位
+
     if is_active is not None:
         query = query.filter(JobTitle.is_active == is_active)
 
@@ -536,6 +542,11 @@ def delete_job_title(db: Session, job_title_id: int) -> bool:
     job_history_count = db.query(EmployeeJobHistory).filter(EmployeeJobHistory.job_title_id == job_title_id).count()
     if job_history_count > 0:
         raise ValueError(f"Cannot delete job title with ID {job_title_id} because it is referenced by {job_history_count} employee job history records")
+
+    # 检查是否有子职位引用了该职位
+    child_job_title_count = db.query(JobTitle).filter(JobTitle.parent_job_title_id == job_title_id).count()
+    if child_job_title_count > 0:
+        raise ValueError(f"Cannot delete job title with ID {job_title_id} because it has {child_job_title_count} child job titles")
 
     # 删除职位
     db.delete(db_job_title)

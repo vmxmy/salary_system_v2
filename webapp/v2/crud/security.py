@@ -1,7 +1,7 @@
 """
 安全相关的CRUD操作。
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, or_, and_
 from typing import List, Optional, Tuple, Dict, Any
 from passlib.context import CryptContext
@@ -35,25 +35,28 @@ def get_users(
     Returns:
         用户列表和总记录数
     """
-    query = db.query(User)
+    query = db.query(User).options(selectinload(User.roles).selectinload(Role.permissions))
 
-    # 应用过滤条件
     if is_active is not None:
         query = query.filter(User.is_active == is_active)
 
-    # 如果指定了角色ID，则需要通过用户角色关联表查询
     if role_id:
-        query = query.join(user_roles).filter(user_roles.c.role_id == role_id)
+        query = query.join(User.roles).filter(Role.id == role_id)
 
-    # 应用搜索过滤
     if search:
         search_term = f"%{search}%"
         query = query.filter(User.username.ilike(search_term))
 
-    # 获取总记录数
-    total = query.count()
+    total_query_for_count = db.query(User.id)
+    if is_active is not None:
+        total_query_for_count = total_query_for_count.filter(User.is_active == is_active)
+    if role_id:
+        total_query_for_count = total_query_for_count.join(User.roles).filter(Role.id == role_id)
+    if search:
+        total_query_for_count = total_query_for_count.filter(User.username.ilike(f"%{search}%"))
+    
+    total = total_query_for_count.distinct().count()
 
-    # 应用排序和分页
     query = query.order_by(User.username)
     query = query.offset(skip).limit(limit)
 
@@ -71,7 +74,7 @@ def get_user(db: Session, user_id: int) -> Optional[User]:
     Returns:
         用户对象，如果不存在则返回None
     """
-    return db.query(User).filter(User.id == user_id).first()
+    return db.query(User).options(selectinload(User.roles).selectinload(Role.permissions)).filter(User.id == user_id).first()
 
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
@@ -85,7 +88,7 @@ def get_user_by_username(db: Session, username: str) -> Optional[User]:
     Returns:
         用户对象，如果不存在则返回None
     """
-    return db.query(User).filter(User.username == username).first()
+    return db.query(User).options(selectinload(User.roles).selectinload(Role.permissions)).filter(User.username == username).first()
 
 
 def get_user_by_employee_id(db: Session, employee_id: int) -> Optional[User]:
@@ -99,7 +102,7 @@ def get_user_by_employee_id(db: Session, employee_id: int) -> Optional[User]:
     Returns:
         用户对象，如果不存在则返回None
     """
-    return db.query(User).filter(User.employee_id == employee_id).first()
+    return db.query(User).options(selectinload(User.roles).selectinload(Role.permissions)).filter(User.employee_id == employee_id).first()
 
 
 def create_user(db: Session, user: UserCreate) -> User:
@@ -113,18 +116,15 @@ def create_user(db: Session, user: UserCreate) -> User:
     Returns:
         创建的用户对象
     """
-    # 检查用户名是否已存在
     existing_username = get_user_by_username(db, user.username)
     if existing_username:
         raise ValueError(f"User with username '{user.username}' already exists")
 
-    # 如果提供了员工ID，检查是否已存在关联用户
     if user.employee_id:
         existing_employee = get_user_by_employee_id(db, user.employee_id)
         if existing_employee:
             raise ValueError(f"User with employee ID '{user.employee_id}' already exists")
 
-    # 创建新的用户
     user_data = user.model_dump(exclude={"password"})
     hashed_password = pwd_context.hash(user.password)
     db_user = User(**user_data, password_hash=hashed_password)
@@ -146,35 +146,45 @@ def update_user(db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
     Returns:
         更新后的用户对象，如果不存在则返回None
     """
-    # 获取要更新的用户
     db_user = get_user(db, user_id)
     if not db_user:
         return None
 
-    # 如果用户名发生变化，检查新用户名是否已存在
     if user.username is not None and user.username != db_user.username:
         existing = get_user_by_username(db, user.username)
         if existing:
             raise ValueError(f"User with username '{user.username}' already exists")
 
-    # 如果员工ID发生变化，检查新员工ID是否已存在关联用户
     if user.employee_id is not None and user.employee_id != db_user.employee_id:
-        existing = get_user_by_employee_id(db, user.employee_id)
-        if existing:
-            raise ValueError(f"User with employee ID '{user.employee_id}' already exists")
+        if db_user.employee_id is not None and str(db_user.employee_id) == user.employee_id:
+            pass
+        elif user.employee_id:
+            existing_employee_user = db.query(User).filter(User.employee_id == user.employee_id, User.id != user_id).first()
+            if existing_employee_user:
+                raise ValueError(f"User with employee ID '{user.employee_id}' already exists for another user.")
 
-    # 更新用户
-    update_data = user.model_dump(exclude_unset=True, exclude={"password"})
+    update_data = user.model_dump(exclude_unset=True, exclude={"password", "role_ids"})
     for key, value in update_data.items():
         setattr(db_user, key, value)
 
-    # 如果提供了密码，更新密码哈希
     if user.password:
         db_user.password_hash = pwd_context.hash(user.password)
 
+    if user.role_ids is not None:
+        if not user.role_ids:
+            db_user.roles = []
+        else:
+            roles = db.query(Role).filter(Role.id.in_(user.role_ids)).all()
+            if len(roles) != len(set(user.role_ids)):
+                found_db_ids = {r.id for r in roles}
+                missing_ids = set(user.role_ids) - found_db_ids
+                print(f"Warning: Invalid role ID(s) provided during user update for user {user_id}: {missing_ids}. Only valid roles will be assigned.")
+            db_user.roles = roles
+
     db.commit()
     db.refresh(db_user)
-    return db_user
+    updated_db_user_with_relations = get_user(db, user_id)
+    return updated_db_user_with_relations
 
 
 def delete_user(db: Session, user_id: int) -> bool:
@@ -188,15 +198,45 @@ def delete_user(db: Session, user_id: int) -> bool:
     Returns:
         是否成功删除
     """
-    # 获取要删除的用户
     db_user = get_user(db, user_id)
     if not db_user:
         return False
 
-    # 删除用户
     db.delete(db_user)
     db.commit()
     return True
+
+
+def assign_roles_to_user(db: Session, user_id: int, role_ids: List[int]) -> Optional[User]:
+    """
+    Assigns a list of roles to a user, replacing existing roles.
+
+    Args:
+        db: Database session.
+        user_id: The ID of the user to assign roles to.
+        role_ids: A list of role IDs to assign. If empty, all roles will be unassigned.
+
+    Returns:
+        The updated User object if found, otherwise None.
+        Raises ValueError if any provided role_id is invalid.
+    """
+    db_user = get_user(db, user_id)
+    if not db_user:
+        return None
+
+    if not role_ids:
+        db_user.roles = []
+    else:
+        roles = db.query(Role).filter(Role.id.in_(role_ids)).all()
+        if len(roles) != len(set(role_ids)):
+            found_db_ids = {r.id for r in roles}
+            missing_ids = set(role_ids) - found_db_ids
+            raise ValueError(f"Invalid role ID(s) provided: {missing_ids}")
+        db_user.roles = roles
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
 # Role CRUD
@@ -220,7 +260,6 @@ def get_roles(
     """
     query = db.query(Role)
 
-    # 应用搜索过滤
     if search:
         search_term = f"%{search}%"
         query = query.filter(
@@ -230,10 +269,8 @@ def get_roles(
             )
         )
 
-    # 获取总记录数
     total = query.count()
 
-    # 应用排序和分页
     query = query.order_by(Role.name)
     query = query.offset(skip).limit(limit)
 
@@ -251,12 +288,12 @@ def get_role(db: Session, role_id: int) -> Optional[Role]:
     Returns:
         角色对象，如果不存在则返回None
     """
-    return db.query(Role).filter(Role.id == role_id).first()
+    return db.query(Role).options(selectinload(Role.permissions)).filter(Role.id == role_id).first()
 
 
 def get_role_by_code(db: Session, code: str) -> Optional[Role]:
     """
-    根据代码获取角色。
+    根据角色代码获取角色。
 
     Args:
         db: 数据库会话
@@ -265,7 +302,7 @@ def get_role_by_code(db: Session, code: str) -> Optional[Role]:
     Returns:
         角色对象，如果不存在则返回None
     """
-    return db.query(Role).filter(Role.code == code).first()
+    return db.query(Role).options(selectinload(Role.permissions)).filter(Role.code == code).first()
 
 
 def create_role(db: Session, role: RoleCreate) -> Role:
@@ -279,13 +316,33 @@ def create_role(db: Session, role: RoleCreate) -> Role:
     Returns:
         创建的角色对象
     """
-    # 检查代码是否已存在
-    existing = get_role_by_code(db, role.code)
-    if existing:
+    existing_code = get_role_by_code(db, role.code)
+    if existing_code:
         raise ValueError(f"Role with code '{role.code}' already exists")
 
-    # 创建新的角色
-    db_role = Role(**role.model_dump())
+    existing_name = db.query(Role).filter(func.lower(Role.name) == func.lower(role.name)).first()
+    if existing_name:
+        raise ValueError(f"Role with name '{role.name}' already exists")
+    
+    role_data = role.model_dump(exclude={'permission_ids'})
+    # Explicitly pick fields for SQLAlchemy model to avoid passing unexpected arguments
+    db_role_init_data = {
+        "name": role_data["name"],  # name and code are required in RoleBase
+        "code": role_data["code"]
+    }
+    db_role = Role(**db_role_init_data)
+
+    if role.permission_ids is not None:
+        if role.permission_ids:
+            permissions = db.query(Permission).filter(Permission.id.in_(role.permission_ids)).all()
+            if len(permissions) != len(set(role.permission_ids)):
+                found_ids = {p.id for p in permissions}
+                missing_ids = set(role.permission_ids) - found_ids
+                raise ValueError(f"Invalid permission ID(s) provided: {missing_ids}")
+            db_role.permissions = permissions
+        else:
+            db_role.permissions = []
+
     db.add(db_role)
     db.commit()
     db.refresh(db_role)
@@ -304,22 +361,35 @@ def update_role(db: Session, role_id: int, role: RoleUpdate) -> Optional[Role]:
     Returns:
         更新后的角色对象，如果不存在则返回None
     """
-    # 获取要更新的角色
     db_role = get_role(db, role_id)
     if not db_role:
         return None
 
-    # 如果代码发生变化，检查新代码是否已存在
     if role.code is not None and role.code != db_role.code:
-        existing = get_role_by_code(db, role.code)
-        if existing:
+        existing_code = get_role_by_code(db, role.code)
+        if existing_code:
             raise ValueError(f"Role with code '{role.code}' already exists")
+    
+    if role.name is not None and role.name.lower() != db_role.name.lower():
+        existing_name = db.query(Role).filter(func.lower(Role.name) == func.lower(role.name), Role.id != role_id).first()
+        if existing_name:
+            raise ValueError(f"Role with name '{role.name}' already exists")
 
-    # 更新角色
-    update_data = role.model_dump(exclude_unset=True)
+    update_data = role.model_dump(exclude_unset=True, exclude={'permission_ids'})
     for key, value in update_data.items():
         setattr(db_role, key, value)
 
+    if role.permission_ids is not None:
+        if role.permission_ids:
+            permissions = db.query(Permission).filter(Permission.id.in_(role.permission_ids)).all()
+            if len(permissions) != len(set(role.permission_ids)):
+                found_ids = {p.id for p in permissions}
+                missing_ids = set(role.permission_ids) - found_ids
+                raise ValueError(f"Invalid permission ID(s) provided: {missing_ids}")
+            db_role.permissions = permissions
+        else:
+            db_role.permissions = []
+    
     db.commit()
     db.refresh(db_role)
     return db_role
@@ -336,12 +406,10 @@ def delete_role(db: Session, role_id: int) -> bool:
     Returns:
         是否成功删除
     """
-    # 获取要删除的角色
     db_role = get_role(db, role_id)
     if not db_role:
         return False
 
-    # 删除角色
     db.delete(db_role)
     db.commit()
     return True
@@ -368,7 +436,6 @@ def get_permissions(
     """
     query = db.query(Permission)
 
-    # 应用搜索过滤
     if search:
         search_term = f"%{search}%"
         query = query.filter(
@@ -378,10 +445,8 @@ def get_permissions(
             )
         )
 
-    # 获取总记录数
     total = query.count()
 
-    # 应用排序和分页
     query = query.order_by(Permission.code)
     query = query.offset(skip).limit(limit)
 
@@ -427,12 +492,10 @@ def create_permission(db: Session, permission: PermissionCreate) -> Permission:
     Returns:
         创建的权限对象
     """
-    # 检查代码是否已存在
     existing = get_permission_by_code(db, permission.code)
     if existing:
         raise ValueError(f"Permission with code '{permission.code}' already exists")
 
-    # 创建新的权限
     db_permission = Permission(**permission.model_dump())
     db.add(db_permission)
     db.commit()
@@ -452,18 +515,15 @@ def update_permission(db: Session, permission_id: int, permission: PermissionUpd
     Returns:
         更新后的权限对象，如果不存在则返回None
     """
-    # 获取要更新的权限
     db_permission = get_permission(db, permission_id)
     if not db_permission:
         return None
 
-    # 如果代码发生变化，检查新代码是否已存在
     if permission.code is not None and permission.code != db_permission.code:
         existing = get_permission_by_code(db, permission.code)
         if existing:
             raise ValueError(f"Permission with code '{permission.code}' already exists")
 
-    # 更新权限
     update_data = permission.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_permission, key, value)
@@ -484,12 +544,10 @@ def delete_permission(db: Session, permission_id: int) -> bool:
     Returns:
         是否成功删除
     """
-    # 获取要删除的权限
     db_permission = get_permission(db, permission_id)
     if not db_permission:
         return False
 
-    # 删除权限
     db.delete(db_permission)
     db.commit()
     return True

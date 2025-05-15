@@ -1,6 +1,8 @@
 import apiClient from './index';
 import type { LoginResponse, User } from './types'; // 假设 User 和 LoginResponse 类型已定义
 
+// const API_PATH_PREFIX = import.meta.env.VITE_API_PATH_PREFIX || '/api/v2'; // This line is removed
+
 // 定义登录凭据的类型
 export interface LoginCredentials {
   username: string;
@@ -27,8 +29,8 @@ export const login = async (credentials: LoginCredentials): Promise<LoginRespons
 export const getCurrentUser = async (userId: number): Promise<User> => {
     // 用户信息应通过 /v2/users/{userId} 端点获取
     // userId 通常在登录成功后从 /v2/token 响应中获得 (作为数字ID)，并存储在状态管理中
-    const response = await apiClient.get<User>(`/users/${userId}`); // 使用实际的数字用户ID
-    return response.data;
+    const response = await apiClient.get<{ data: User }>(`/users/${userId}`); // Expect a { data: User } structure
+    return response.data.data; // Extract the actual User object from the nested data property
 };
 
 // (可选) 登出函数

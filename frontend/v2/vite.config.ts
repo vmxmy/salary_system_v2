@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080', // 从环境变量读取后端服务地址，如果未设置则使用默认值
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080/v2', // 从环境变量读取后端服务地址，如果未设置则使用默认值
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去掉 /api
       },

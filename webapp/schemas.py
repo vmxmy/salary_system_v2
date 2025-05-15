@@ -36,6 +36,7 @@ class TokenData(BaseModel):
 
 class RoleBase(BaseModel):
     name: str = Field(..., max_length=50)
+    code: str = Field(..., max_length=50) # Added role code
     description: Optional[str] = None
 
 class RoleCreate(RoleBase):
@@ -51,9 +52,18 @@ class RoleInDBBase(RoleBase):
     class Config:
         from_attributes = True # Changed from orm_mode=True for Pydantic v2
 
+# Simplified Permission for RoleResponse, can be replaced by direct import if compatible
+class PermissionInRoleResponse(BaseModel):
+    id: int
+    code: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 # Response model for single role and list items
 class RoleResponse(RoleInDBBase):
-    pass # Inherits all fields
+    permissions: List[PermissionInRoleResponse] = [] # <--- MODIFIED: Add permissions list
 
 # Response model for list roles
 class RoleListResponse(BaseModel):
@@ -64,28 +74,32 @@ class RoleListResponse(BaseModel):
 
 class UserBase(BaseModel):
     username: str = Field(..., max_length=100)
-    email: EmailStr
+    email: Optional[EmailStr] = None # MODIFIED: Made email optional
     is_active: Optional[bool] = True
 
 class UserCreate(UserBase):
     password: str # Password needed only for creation
-    role_id: int # Role required for creation
+    # role_id: int # MODIFIED: Commented out/Removed role_id, roles assigned via separate endpoint
+    # If role_id is truly not needed for user creation anymore, it can be fully removed.
+    # For now, commenting out is safer to indicate it was considered.
 
 class UserRegister(BaseModel): # NEW Schema for registration
     username: str = Field(..., max_length=100)
     email: EmailStr
-    password: str = Field(..., min_length=8) # Add min length validation
+    password: Optional[str] = None # Allow password update
+    # role_id: Optional[int] = None # MODIFIED: Commented out/Removed role_id
+    is_active: Optional[bool] = None
 
 class UserUpdate(BaseModel): # All fields optional for update
     username: Optional[str] = Field(None, max_length=100)
     email: Optional[EmailStr] = None # ADDED optional email update
     password: Optional[str] = None # Allow password update
-    role_id: Optional[int] = None
+    # role_id: Optional[int] = None # MODIFIED: Commented out/Removed role_id
     is_active: Optional[bool] = None
 
 class UserInDBBase(UserBase):
     id: int
-    role_id: int
+    # role_id: int # MODIFIED: Removed role_id as User ORM has a 'roles' relationship (many-to-many)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     # hashed_password should NOT be included in API responses
@@ -95,7 +109,7 @@ class UserInDBBase(UserBase):
 
 # Response model used when getting user details or listing users
 class UserResponse(UserInDBBase):
-    role: Optional[RoleResponse] = None # Include role details in response
+    roles: List[RoleResponse] = [] # <--- MODIFIED: Replace single role with list of roles
 
 # Response model for listing users with pagination
 class UserListResponse(BaseModel):

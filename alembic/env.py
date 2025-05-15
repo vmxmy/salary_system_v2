@@ -134,8 +134,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    # 从环境变量获取数据库URL，如果没有设置则使用配置文件中的URL
-    url = os.getenv("ALEMBIC_DATABASE_URL", config.get_main_option("sqlalchemy.url"))
+    # 从环境变量获取数据库URL，优先使用DATABASE_URL_V2，如果没有设置则使用配置文件中的URL
+    url = os.getenv("DATABASE_URL_V2") or os.getenv("ALEMBIC_DATABASE_URL", config.get_main_option("sqlalchemy.url"))
     print(f"--- Alembic env.py (offline): Using database URL: {url} ---")
 
     context.configure(
@@ -160,8 +160,8 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    # 从环境变量获取数据库URL
-    alembic_database_url = os.getenv("ALEMBIC_DATABASE_URL")
+    # 从环境变量获取数据库URL，优先使用DATABASE_URL_V2
+    alembic_database_url = os.getenv("DATABASE_URL_V2") or os.getenv("ALEMBIC_DATABASE_URL")
 
     # 如果设置了环境变量，则覆盖配置文件中的URL
     if alembic_database_url:

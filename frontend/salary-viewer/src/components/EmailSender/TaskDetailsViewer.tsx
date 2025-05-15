@@ -187,7 +187,13 @@ const TaskDetailsViewer: React.FC<TaskDetailsViewerProps> = ({ selectedTaskUuid 
     }
 
     if (detailStatus === 'loading') {
-        return <Spin tip="正在加载任务详情..." style={{ display: 'block', marginTop: '20px' }} />;
+        return (
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <Spin>
+                    <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>正在加载任务详情...</div>
+                </Spin>
+            </div>
+        );
     }
 
     if (detailStatus === 'failed' || !taskDetail) {

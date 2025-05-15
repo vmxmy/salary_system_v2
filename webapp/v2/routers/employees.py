@@ -120,12 +120,12 @@ async def get_employee(
 async def create_employee(
     employee: EmployeeCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "HR Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN", "HR_ADMIN"]))
 ):
     """
     创建新员工。
     
-    - 需要Super Admin或HR Admin角色
+    - 需要SUPER_ADMIN或HR_ADMIN角色
     """
     try:
         # 创建员工
@@ -160,13 +160,13 @@ async def update_employee(
     employee_id: int,
     employee: EmployeeUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "HR Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN", "HR_ADMIN"]))
 ):
     """
     更新员工信息。
     
     - **employee_id**: 员工ID
-    - 需要Super Admin或HR Admin角色
+    - 需要SUPER_ADMIN或HR_ADMIN角色
     """
     try:
         # 更新员工
@@ -212,13 +212,13 @@ async def update_employee(
 async def delete_employee(
     employee_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_role(["SUPER_ADMIN"]))
 ):
     """
     删除员工。
     
     - **employee_id**: 员工ID
-    - 需要Super Admin角色
+    - 需要SUPER_ADMIN角色
     """
     try:
         # 删除员工

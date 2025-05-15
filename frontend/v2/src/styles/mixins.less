@@ -1,0 +1,209 @@
+// 混合函数 (Mixins)
+// 提供可重用的样式片段
+
+@import './theme.less';
+@import './variables.less';
+
+// ===== 文本混合 =====
+
+// 文本截断（单行）
+.text-truncate() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 文本截断（多行）
+.text-truncate-multiline(@lines: 2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: @lines;
+  -webkit-box-orient: vertical;
+}
+
+// 文本样式
+.text-style(@size: @font-size-base, @weight: normal, @color: @text-color) {
+  font-size: @size;
+  font-weight: @weight;
+  color: @color;
+}
+
+// 标题样式
+.heading-style(@size: @heading-4-size, @color: @heading-color) {
+  font-size: @size;
+  font-weight: 500;
+  color: @color;
+  line-height: 1.4;
+}
+
+// ===== 布局混合 =====
+
+// Flex 布局
+.flex(@direction: row, @justify: flex-start, @align: center, @wrap: nowrap) {
+  display: flex;
+  flex-direction: @direction;
+  justify-content: @justify;
+  align-items: @align;
+  flex-wrap: @wrap;
+}
+
+// 绝对定位
+.absolute(@top: auto, @right: auto, @bottom: auto, @left: auto) {
+  position: absolute;
+  top: @top;
+  right: @right;
+  bottom: @bottom;
+  left: @left;
+}
+
+// 固定定位
+.fixed(@top: auto, @right: auto, @bottom: auto, @left: auto) {
+  position: fixed;
+  top: @top;
+  right: @right;
+  bottom: @bottom;
+  left: @left;
+}
+
+// 居中定位
+.center-absolute() {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// 水平居中
+.center-horizontal() {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// ===== 边框和阴影 =====
+
+// 边框
+.border(@width: 1px, @style: solid, @color: @border-color-base) {
+  border: @width @style @color;
+}
+
+// 边框圆角
+.border-radius(@radius: @border-radius-base) {
+  border-radius: @radius;
+}
+
+// 阴影
+.box-shadow(@shadow: @shadow-1-down) {
+  box-shadow: @shadow;
+}
+
+// 卡片样式
+.card-style() {
+  background-color: #fff;
+  border-radius: @border-radius-base;
+  box-shadow: @shadow-1-down;
+  padding: @spacing-md;
+}
+
+// ===== 响应式混合 =====
+
+// 媒体查询 - 小屏幕
+.screen-xs() {
+  @media (max-width: @screen-xs) {
+    @content();
+  }
+}
+
+// 媒体查询 - 中小屏幕
+.screen-sm() {
+  @media (min-width: @screen-sm) {
+    @content();
+  }
+}
+
+// 媒体查询 - 中等屏幕
+.screen-md() {
+  @media (min-width: @screen-md) {
+    @content();
+  }
+}
+
+// 媒体查询 - 大屏幕
+.screen-lg() {
+  @media (min-width: @screen-lg) {
+    @content();
+  }
+}
+
+// 媒体查询 - 超大屏幕
+.screen-xl() {
+  @media (min-width: @screen-xl) {
+    @content();
+  }
+}
+
+// ===== 动画混合 =====
+
+// 过渡效果
+.transition(@property: all, @duration: 0.3s, @timing: ease-in-out, @delay: 0s) {
+  transition-property: @property;
+  transition-duration: @duration;
+  transition-timing-function: @timing;
+  transition-delay: @delay;
+}
+
+// 淡入动画
+.fade-in(@duration: 0.3s) {
+  animation: fadeIn @duration ease-in-out;
+}
+
+// 淡出动画
+.fade-out(@duration: 0.3s) {
+  animation: fadeOut @duration ease-in-out;
+}
+
+// ===== 其他混合 =====
+
+// 清除浮动
+.clearfix() {
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+// 禁用文本选择
+.no-select() {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+// 禁用点击
+.no-click() {
+  pointer-events: none;
+}
+
+// 滚动条样式
+.scrollbar(@width: 8px, @track-color: #f1f1f1, @thumb-color: #c1c1c1, @thumb-hover-color: #a8a8a8) {
+  &::-webkit-scrollbar {
+    width: @width;
+    height: @width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: @track-color;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: @thumb-color;
+    border-radius: 4px;
+    
+    &:hover {
+      background: @thumb-hover-color;
+    }
+  }
+}
