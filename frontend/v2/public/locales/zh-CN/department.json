@@ -1,0 +1,80 @@
+{
+    "title": "部门管理",
+    "button": {
+      "create_root_department": "新建根部门",
+      "add_child_department_tooltip": "添加子部门"
+    },
+    "table": {
+      "column": {
+        "id": "ID",
+        "code": "部门代码",
+        "name": "部门名称",
+        "parent_department_id": "上级部门ID",
+        "effective_date": "生效日期",
+        "is_active": "激活",
+        "actions": "操作",
+        "value_na_or_dash": "-"
+      }
+    },
+    "tooltip": {
+      "edit_department": "编辑部门",
+      "delete_department": "删除部门"
+    },
+    "popconfirm": {
+      "delete": {
+        "title": "确定删除此部门吗？",
+        "description": "删除部门也会删除其所有子部门，并可能影响关联员工。",
+        "ok_text": "是",
+        "cancel_text": "否"
+      }
+    },
+    "modal": {
+      "department_form": {
+        "title": {
+          "create": "新建部门",
+          "edit": "编辑部门"
+        },
+        "label": {
+          "code": "部门代码",
+          "name": "部门名称",
+          "parent_department": "上级部门",
+          "description": "描述",
+          "effective_date": "生效日期",
+          "end_date": "失效日期",
+          "is_active": "是否激活"
+        },
+        "validation": {
+          "code_required": "请输入部门代码!",
+          "name_required": "请输入部门名称!",
+          "effective_date_required": "请选择生效日期!"
+        },
+        "placeholder": {
+          "parent_department": "选择上级部门 (留空则为根部门)"
+        }
+      }
+    },
+    "message": {
+      "fetch_all_flat_error": "获取所有部门列表失败 (用于选择器)",
+      "fetch_list_error": "获取部门列表失败",
+      "update_success": "部门更新成功",
+      "create_success": "部门创建成功",
+      "operation_failed_prefix": "操作失败: ",
+      "error": {
+          "unknown": "未知错误",
+          "delete_in_use_or_has_children": "部门可能正在使用中或包含子部门"
+      },
+      "delete_success": "部门删除成功",
+      "delete_failed_prefix": "删除失败: ",
+      "create_failed_prefix": "创建部门失败: ",
+      "update_failed_prefix": "更新部门失败: ",
+      "fetch_list_failed_prefix": "加载部门列表失败: ",
+      "fetch_flat_list_failed_prefix": "加载扁平化部门列表失败: "
+    },
+    "treeselect": {
+      "no_data": "暂无部门数据。"
+    },
+    "error_page_level": {
+      "in_use_or_has_children": "部门可能正在使用中或包含子部门。",
+      "unknown": "未知错误。"
+    }
+  }

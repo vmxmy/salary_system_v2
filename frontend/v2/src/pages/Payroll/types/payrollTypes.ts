@@ -124,3 +124,20 @@ export interface ApiListResponse<T> {
   data: T[];
   meta: ApiListMeta;
 } 
+
+// Corresponds to the PayrollComponentDefinition Pydantic model/database table
+export interface PayrollComponentDefinition {
+  id: number;
+  code: string; // Unique code for the component, e.g., "BASIC_SALARY", "HOUSING_ALLOWANCE"
+  name: string; // Display name, e.g., "Basic Salary", "Housing Allowance"
+  type: 'EARNING' | 'DEDUCTION' | 'BENEFIT' | 'STATUTORY' | 'OTHER'; // Component type
+  data_type: 'numeric' | 'percentage' | 'boolean' | 'string'; // Data type of the component's value
+  is_fixed: boolean; // Is the value fixed system-wide or employee-specific/variable?
+  is_employee_specific: boolean; // Does this component apply to specific employees only?
+  is_enabled: boolean; // Is this component currently active/enabled?
+  sort_order?: number; // For ordering in UI if needed
+  description?: string; // Optional detailed description
+  calculation_logic?: string; // Optional: if there's specific logic tied to it (e.g., formula placeholder)
+  created_at?: string;
+  updated_at?: string;
+} 

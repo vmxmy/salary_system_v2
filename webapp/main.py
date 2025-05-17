@@ -54,21 +54,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Import modules - 使用相对导入
 from . import auth, models_db, schemas, models, file_converter
 from .database import get_db
-# from .routers import units # V1 Units router, commented out to prevent loading
 from .core.config import settings
-# from .routers import departments # V1 Departments router, commented out
-# from .routers import report_links # V1 Report Links router, commented out
-# from .routers.employees import router as employees_router # V1, to be commented out
-# from .routers.salary_data import router as salary_data_router # V1, to be commented out
-# from .routers.auth_management import router as auth_router # V1, to be commented out
-# from .routers.user_management import router as user_router # V1, to be commented out
-# from .routers.config_management import router as config_router # V1, to be commented out
-# from .routers.file_conversion import router as file_conversion_router # V1, to be commented out
-# from .routers.calculation_rules_admin import router as calculation_admin_router # V1, to be commented out
-# from .routers.salary_calculation import router as salary_calculation_router # V1, to be commented out
-# from .routers.table_configs import router as table_configs_router # V1, to be commented out
-# from .routers.email_config import router as email_config_router # V1, to be commented out
-# from .routers.email_sender import router as email_sender_router # V1, to be commented out
 
 # Import v2 API routers
 from .v2.routers import employees_router as v2_employees_router
@@ -215,44 +201,6 @@ async def run_dbt_build(dbt_project_dir: str):
 # IMPORTANT: Keep these definitions if they are used internally by endpoints
 # TODO: Review if these should be moved to models_db.py for better separation
 
-def create_unit(conn, unit: UnitCreate) -> dict:
-    """转发到models_db.create_unit函数。"""
-    db = conn
-    from .schemas import UnitCreate as SchemasUnitCreate
-    unit_obj = SchemasUnitCreate(**unit.dict())
-    # Call renamed function
-    result = models_db.create_unit(db, unit_obj)
-    return result.__dict__
-
-def get_unit_by_id(conn, unit_id: int) -> Optional[dict]:
-    """转发到models_db.get_unit_by_id函数。"""
-    db = conn
-    # Call renamed function
-    result = models_db.get_unit_by_id(db, unit_id)
-    if result is None:
-        return None
-    return result.__dict__
-
-def delete_unit(conn, unit_id: int) -> bool:
-    """转发到models_db.delete_unit函数。"""
-    db = conn
-    # Call renamed function
-    return models_db.delete_unit(db, unit_id)
-
-def create_department(conn, department: DepartmentCreate) -> dict:
-    """转发到models_db.create_department函数。"""
-    db = conn
-    from .schemas import DepartmentCreate as SchemasDepartmentCreate
-    dept_obj = SchemasDepartmentCreate(**department.dict())
-    # Call renamed function
-    result = models_db.create_department(db, dept_obj)
-    return result.__dict__
-
-def delete_department(conn, department_id: int) -> bool:
-    """转发到models_db.delete_department函数。"""
-    db = conn
-    # Call renamed function
-    return models_db.delete_department(db, department_id)
 
 # --- DELETE get_units, update_unit, update_department ---
 # (These functions are likely unused placeholders or old code)
@@ -441,154 +389,63 @@ async def debug_get_field_config(
             detail=f"Unexpected error querying field config for {employee_type_key}: {e}"
         )
 
-# 注册路由
-# 1. 认证路由
+# 注册路由 - 清理旧的注册，并使用新的方式
+
+# 删除所有旧的 app.include_router(...) 调用，从这里开始到文件几乎末尾
+# (下面的内容将被新的注册块替换)
 # app.include_router(
-#     auth_router,
-#     prefix="", # Keep empty for root paths like /token
-#     tags=["Authentication"]
+# v2_employees_router,
+# prefix="/api/v2",
+# tags=["Employees V2"]
+# )
+# ... (所有其他 /api/v2 和空 prefix 的路由注册都将被删除) ...
+# app.include_router(
+# v2_auth_router,
+# tags=["v2 API"]
 # )
 
-# 2. 用户管理路由
-# app.include_router(
-#     user_router,
-#     prefix="", # Removed /api prefix, assuming /api/users is defined within user_router
-#     tags=["Users"]
-# )
-
-# 3. 员工路由
-# app.include_router(
-#     employees_router,
-#     prefix="/api", # Removed: prevent old employees API from shadowing v2
-#     tags=["Employees"]
-# )
-
-# 4. 单位路由
-# app.include_router(
-#     units.router,
-#     prefix="", # Removed /api prefix, assuming /api/units is defined within units.router
-#     tags=["Units"]
-# )
-
-# 5. 部门路由
-# app.include_router(
-#     departments.router,
-#     prefix="", # Removed /api prefix, assuming /api/departments is defined within departments.router
-#     tags=["Departments"]
-# )
-
-# 6. 报表链接路由
-# app.include_router(
-#     report_links.router,
-#     prefix="/api/report-links", # Keep specific prefix
-#     tags=["Report Links"]
-# )
-
-# 7. 薪资数据路由
-# app.include_router(
-#     salary_data_router,
-#     prefix="",  # Keep empty as router defines /api/...
-#     tags=["Salary Data"]
-# )
-
-# 8. 配置管理路由
-# app.include_router(
-#     config_router,
-#     prefix="/api/config", # Keep specific prefix
-#     tags=["Configuration"]
-# )
-
-# 9. 文件转换路由
-# app.include_router(
-#     file_conversion_router,
-#     prefix="/api", # Changed prefix from '' to '/api'
-#     tags=["File Conversion"]
-# )
-
-# 10. 计算引擎管理路由
-# app.include_router(
-#     calculation_admin_router,
-#     prefix="/api/v1", # Added /api/v1 prefix
-#     tags=["Calculation Engine Admin"]
-# )
-
-# 11. 工资计算路由
-# app.include_router(
-#     salary_calculation_router,
-#     prefix="/api/v1", # Added /api/v1 prefix (assuming it's part of v1)
-#     tags=["Salary Calculation"]
-# )
-
-# 12. 表格配置路由
-# app.include_router(
-#     table_configs_router,
-#     prefix="",  # 移除重复的前缀，因为路由文件中已经定义了前缀
-#     tags=["Table Configurations"]
-# )
-
-# 13. 邮件服务器配置路由
-# app.include_router(
-#     email_config_router,
-#     # prefix="/api/email-configs" # Prefix is defined in the router itself
-#     tags=["Email Server Configurations"]
-# )
-
-# 14. 邮件发送路由
-# app.include_router(
-#     email_sender_router,
-#     # prefix="/api/email-sender" # Prefix is defined in the router itself
-#     tags=["Email Sender"]
-# )
-
-# 15. v2 API路由
-# 员工路由
-app.include_router(
-    v2_employees_router,
-    prefix="",
-    tags=["v2 API"]
-)
-
-# 部门路由
-app.include_router(
-    v2_departments_router,
-    tags=["v2 API"]
-)
-
-# 职位路由
-app.include_router(
-    v2_job_titles_router,
-    tags=["v2 API"]
-)
-
-# 查找值路由
-app.include_router(
-    v2_lookup_router,
-    tags=["v2 API"]
-)
-
-# 配置路由
-app.include_router(
-    v2_config_router,
-    tags=["v2 API"]
-)
-
-# 工资路由
-app.include_router(
-    v2_payroll_router,
-    tags=["v2 API"]
-)
-
-# 安全路由
-app.include_router(
-    v2_security_router,
-    tags=["v2 API"]
-)
-
-# 认证路由
+# 新的 V2 路由注册
 app.include_router(
     v2_auth_router,
-    tags=["v2 API"]
+    prefix=settings.API_V2_PREFIX,
+    tags=["Authentication"]
 )
+app.include_router(
+    v2_employees_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Employees"]
+)
+app.include_router(
+    v2_departments_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Departments"]
+)
+app.include_router(
+    v2_job_titles_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Job Titles"]
+)
+app.include_router(
+    v2_lookup_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Lookup"]
+)
+app.include_router(
+    v2_config_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Configuration"]
+)
+app.include_router(
+    v2_payroll_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Payroll"]
+)
+app.include_router(
+    v2_security_router, # 这个是 security.py 对应的路由器变量名
+    prefix=settings.API_V2_PREFIX,
+    tags=["Security"]
+)
+
 
 # --- Removed API Routers with /api/v1 prefix ---
 # (Removed api_v1_router definition and app.include_router(api_v1_router))

@@ -26,8 +26,8 @@ from fastapi.security import HTTPAuthorizationCredentials
 # ... (rest of old Test 11 code commented or removed)
 
 router = APIRouter(
-    prefix="/v2/employees",
-    tags=["v2 Employees"],
+    prefix="/employees",
+    tags=["Employees"],
 )
 
 

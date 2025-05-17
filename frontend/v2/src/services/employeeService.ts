@@ -133,51 +133,49 @@ export const employeeService = {
   // Generic function to fetch lookup values by type code
   async getLookupValues(lookupTypeCode: string): Promise<LookupValue[]> {
     try {
-      // The actual API endpoint might be /v2/lookup/values or similar.
-      // The query parameter for type might be 'type_code', 'code', 'type', etc.
-      // Adjust based on the actual API documentation for lookup values.
-      const response = await apiClient.get<LookupValue[]>(`/v2/lookup/values?type_code=${lookupTypeCode}`);
-      // It's possible the API returns a paginated response or a different structure.
-      // If so, an adapter might be needed here or the return type adjusted.
-      // For now, assuming it directly returns LookupValue[] based on the type_code filter.
-      return response.data;
+      // Expect a paginated-like response structure
+      const response = await apiClient.get<{ data: LookupValue[], meta?: any }>(`/lookup/values?type_code=${lookupTypeCode}`);
+      if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else {
+        console.warn(`Lookup data array for type_code ${lookupTypeCode} not found or not an array in response:`, response.data);
+        return []; 
+      }
     } catch (error) {
       console.error(`Error fetching lookup values for type_code ${lookupTypeCode}:`, error);
-      throw error; // Or return []
+      return []; 
     }
   },
 
   async getDepartmentsLookup(): Promise<Department[]> {
     try {
-      // Assuming the API for departments list might be paginated.
-      // For a simple lookup, we might want all departments, or the API might offer a non-paginated "lookup" version.
-      // If it's paginated like EmployeePageResult, we'd need to fetch all pages or use a specific lookup endpoint.
-      // For now, assuming /v2/departments returns Department[] directly or within a simpler structure for lookups.
-      // If it's DepartmentPageResult, then:
-      // const response = await apiClient.get<DepartmentPageResult>('/v2/departments?size=1000'); // Fetch a large size for lookup
-      // return response.data.data; // Access the inner data array
-      const response = await apiClient.get<Department[]>('/v2/departments'); // Simplified assumption for now
-      return response.data;
+      const response = await apiClient.get<{ data: Department[], meta?: any }>('/departments');
+      if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else {
+        console.warn('Departments lookup data array not found or not an array in response:', response.data);
+        return []; 
+      }
     } catch (error) {
       console.error('Error fetching departments lookup:', error);
-      throw error; // Or return []
+      return []; 
     }
   },
 
   // Renamed from getPositionsLookup to getJobTitlesLookup to match type JobTitle
   async getJobTitlesLookup(departmentId?: string): Promise<JobTitle[]> {
     try {
-      // API for job titles is /v2/job-titles/
-      // If departmentId filtering is needed, ensure API supports it via query param.
-      const queryString = departmentId ? buildQueryParams({ department_id: departmentId }) : ''; // Assuming API uses department_id
-      // Similar to departments, if this is paginated (e.g., JobTitlePageResult), adjust accordingly.
-      // const response = await apiClient.get<JobTitlePageResult>(`/v2/job-titles${queryString}`);
-      // return response.data.data;
-      const response = await apiClient.get<JobTitle[]>(`/v2/job-titles${queryString}`); // Simplified assumption
-      return response.data;
+      const queryString = departmentId ? buildQueryParams({ department_id: departmentId }) : '';
+      const response = await apiClient.get<{ data: JobTitle[], meta?: any }>(`/job-titles${queryString}`);
+      if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else {
+        console.warn('Job titles lookup data array not found or not an array in response:', response.data);
+        return []; 
+      }
     } catch (error) {
       console.error('Error fetching job titles lookup:', error);
-      throw error; // Or return []
+      return []; 
     }
   },
 

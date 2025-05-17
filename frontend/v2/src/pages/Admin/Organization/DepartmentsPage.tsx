@@ -68,7 +68,7 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
 };
 
 const DepartmentsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('department');
   const [departmentsTree, setDepartmentsTree] = useState<DepartmentPageItem[]>([]);
   const [allFlatDepartments, setAllFlatDepartments] = useState<Department[]>([]); // For parent selector
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -87,7 +87,7 @@ const DepartmentsPage: React.FC = () => {
       const flatData = await getAllDepartmentsFlat();
       setAllFlatDepartments(flatData);
     } catch (error) {
-      message.error(t('department_management_page.message.fetch_all_flat_error'));
+      message.error(t('message.fetch_all_flat_error'));
     }
   }, [t]);
 
@@ -112,7 +112,7 @@ const DepartmentsPage: React.FC = () => {
         pagination: { ...prev.pagination, total: response.meta.total },
       }));
     } catch (error) {
-      message.error(t('department_management_page.message.fetch_list_error'));
+      message.error(t('message.fetch_list_error'));
       console.error('Failed to fetch departments:', error);
     }
     setIsLoading(false);
@@ -180,18 +180,18 @@ const DepartmentsPage: React.FC = () => {
     try {
       if (editingDepartment) {
         await updateDepartment(editingDepartment.id, payload as UpdateDepartmentPayload);
-        message.success(t('department_management_page.message.update_success'));
+        message.success(t('message.update_success'));
       } else {
         await createDepartment(payload);
-        message.success(t('department_management_page.message.create_success'));
+        message.success(t('message.create_success'));
       }
       setIsModalOpen(false);
       setEditingDepartment(null);
       fetchData(); // Refresh tree
       fetchAllFlatDataForSelector(); // Refresh selector options
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('department_management_page.message.error.unknown');
-      message.error(`${t('department_management_page.message.operation_failed_prefix')}${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error.unknown');
+      message.error(`${t('message.operation_failed_prefix')}${errorMsg}`);
       console.error('Department operation failed:', error.response?.data || error);
     }
     setModalLoading(false);
@@ -200,12 +200,12 @@ const DepartmentsPage: React.FC = () => {
   const handleDeleteDepartment = async (id: number) => {
     try {
       await deleteDepartment(id);
-      message.success(t('department_management_page.message.delete_success'));
+      message.success(t('message.delete_success'));
       fetchData();
       fetchAllFlatDataForSelector();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('department_management_page.message.error.delete_in_use_or_has_children');
-      message.error(`${t('department_management_page.message.delete_failed_prefix')}${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error.delete_in_use_or_has_children');
+      message.error(`${t('message.delete_failed_prefix')}${errorMsg}`);
       console.error('Failed to delete department:', error.response?.data || error);
     }
   };
@@ -234,63 +234,94 @@ const DepartmentsPage: React.FC = () => {
 
   const columns: ColumnsType<DepartmentPageItem> = [
     {
-      title: t('department_management_page.table.column.id'),
+      title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
       rowScope: 'row' // 将ID列设置为行头
     },
     {
-      title: t('department_management_page.table.column.code'),
+      title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
       width: 150,
       onCell: sharedOnCell // 根部门时被合并
     },
     {
-      title: t('department_management_page.table.column.name'),
+      title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
       onCell: nameColumnOnCell // 根部门时合并代码列
     },
     {
-      title: t('department_management_page.table.column.parent_department_id'),
+      title: t('table.column.parent_department_id'),
       dataIndex: 'parent_department_id',
       key: 'parent_department_id',
       width: 120,
-      render: (id) => id || t('department_management_page.table.column.value_na_or_dash')
+      render: (id?: number) => id || t('table.column.value_na_or_dash'),
+      onCell: sharedOnCell // 根部门时被合并
     },
     {
-      title: t('department_management_page.table.column.effective_date'),
+      title: t('table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('department_management_page.table.column.value_na_or_dash')
+      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash')
     },
     {
-      title: t('department_management_page.table.column.is_active'),
+      title: t('table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
       render: (isActive: boolean) => <Switch checked={isActive} disabled />,
       width: 80
     },
     {
-      title: t('department_management_page.table.column.actions'),
+      title: t('table.column.actions'),
       key: 'action',
       width: 180,
       render: (_, record) => (
+        <>
+          {record.depth === 0 ? (
+            <Space size="small">
+              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_department')} />
+              <ActionButton actionType="add" onClick={() => showCreateModal(record.id)} tooltipTitle={t('button.add_child_department_tooltip')} />
+              <Popconfirm
+                title={t('popconfirm.delete.title')}
+                description={t('popconfirm.delete.description')}
+                onConfirm={() => handleDeleteDepartment(record.id)}
+                okText={t('popconfirm.delete.ok_text')}
+                cancelText={t('popconfirm.delete.cancel_text')}
+                disabled={record.children && record.children.length > 0} // Disable if has children
+              >
+                <ActionButton 
+                  actionType="delete" 
+                  danger 
+                  tooltipTitle={t('tooltip.delete_department')} 
+                  disabled={record.children && record.children.length > 0}
+                />
+              </Popconfirm>
+            </Space>
+          ) : (
         <Space size="small">
-          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('department_management_page.tooltip.edit_department')} />
+              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_department')} />
+              <ActionButton actionType="add" onClick={() => showCreateModal(record.id)} tooltipTitle={t('button.add_child_department_tooltip')} />
           <Popconfirm
-            title={t('department_management_page.popconfirm.delete.title')}
-            description={t('department_management_page.popconfirm.delete.description')}
+                title={t('popconfirm.delete.title')}
+                description={t('popconfirm.delete.description')}
             onConfirm={() => handleDeleteDepartment(record.id)}
-            okText={t('department_management_page.popconfirm.delete.ok_text')}
-            cancelText={t('department_management_page.popconfirm.delete.cancel_text')}
+                okText={t('popconfirm.delete.ok_text')}
+                cancelText={t('popconfirm.delete.cancel_text')}
+                disabled={record.children && record.children.length > 0} // Disable if has children
           >
-            <ActionButton actionType="delete" tooltipTitle={t('department_management_page.tooltip.delete_department')} danger/>
+                <ActionButton 
+                  actionType="delete" 
+                  danger 
+                  tooltipTitle={t('tooltip.delete_department')} 
+                  disabled={record.children && record.children.length > 0}
+                />
           </Popconfirm>
-          <Button size="small" icon={<PlusOutlined />} onClick={() => showCreateModal(record.id)} title={t('department_management_page.button.add_child_department_tooltip')} />
         </Space>
+          )}
+        </>
       ),
     },
   ];

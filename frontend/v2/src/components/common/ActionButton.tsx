@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button, Tooltip } from 'antd';
 import type { ButtonProps } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 interface ActionButtonProps extends ButtonProps {
-  actionType?: 'edit' | 'delete';
+  actionType?: 'edit' | 'delete' | 'add';
   tooltipTitle?: string;
   danger?: boolean;
 }
@@ -30,23 +30,43 @@ const StyledButton = styled(Button).attrs({ className: 'action-btn' })`
   }
 `;
 
+const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
+  ({ actionType, tooltipTitle, danger, ...rest }, ref) => {
+    let icon;
+    let defaultTooltip;
 
+    switch (actionType) {
+      case 'edit':
+        icon = <EditOutlined />;
+        defaultTooltip = '编辑';
+        break;
+      case 'delete':
+        icon = <DeleteOutlined />;
+        defaultTooltip = '删除';
+        break;
+      case 'add':
+        icon = <PlusOutlined />;
+        defaultTooltip = '添加';
+        break;
+      default:
+        break;
+    }
 
-const ActionButton: React.FC<ActionButtonProps> = ({ actionType, tooltipTitle, danger, ...rest }) => {
-  const icon = actionType === 'edit' ? <EditOutlined /> : <DeleteOutlined />;
-  const defaultTooltip = actionType === 'edit' ? '编辑' : '删除';
+    return (
+      <Tooltip title={tooltipTitle || defaultTooltip}>
+        <StyledButton
+          ref={ref}
+          icon={icon}
+          type="default"
+          size="small"
+          danger={danger}
+          {...rest}
+        />
+      </Tooltip>
+    );
+  }
+);
 
-  return (
-    <Tooltip title={tooltipTitle || defaultTooltip}>
-      <StyledButton
-        icon={icon}
-        type="default" // 使用 default 类型以应用描边样式
-        size="small" // 保持小尺寸
-        danger={danger}
-        {...rest}
-      />
-    </Tooltip>
-  );
-};
+ActionButton.displayName = 'ActionButton';
 
 export default ActionButton;

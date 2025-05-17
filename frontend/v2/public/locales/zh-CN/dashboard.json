@@ -1,0 +1,9 @@
+{
+    "title": "仪表盘",
+    "admin_actions": {
+      "panel_title_example": "管理员操作面板 (示例)",
+      "super_admin_action_example": "超级管理员专属操作 (示例)",
+      "create_user_example": "创建新用户 (需要 'user:create' 权限) (示例)",
+      "edit_config_example": "编辑系统配置 (需要 'config:edit' 权限或 'sys_admin' 角色) (示例)"
+    }
+  }

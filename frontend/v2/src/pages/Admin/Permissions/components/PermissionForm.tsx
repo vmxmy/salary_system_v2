@@ -18,7 +18,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({
   initialData, 
   isLoading 
 }) => {
-  const { t } = useTranslation(); // Initialized t function
+  const { t } = useTranslation('permission'); // Initialized t function
   const [form] = Form.useForm<CreatePermissionPayload | UpdatePermissionPayload>();
   const isEditing = !!initialData;
 
@@ -46,12 +46,12 @@ const PermissionForm: React.FC<PermissionFormProps> = ({
 
   return (
     <Modal
-      title={isEditing ? t('permission_form.title.edit') : t('permission_form.title.create')}
+      title={isEditing ? t('form.title.edit') : t('form.title.create')}
       open={visible} // Changed from visible to open for AntD v5 compatibility
       onCancel={onClose}
       footer={[
         <Button key="back" onClick={onClose} disabled={isLoading}>
-          {t('permission_form.button.cancel')}
+          {t('form.button.cancel')}
         </Button>,
         <Button 
           key="submit" 
@@ -59,7 +59,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({
           loading={isLoading} 
           onClick={() => form.submit()}
         >
-          {isEditing ? t('permission_form.button.save_changes') : t('permission_form.button.create')}
+          {isEditing ? t('form.button.save_changes') : t('form.button.create')}
         </Button>,
       ]}
       destroyOnHidden // Ensures form is reset when modal is closed and reopened for "create"
@@ -72,16 +72,16 @@ const PermissionForm: React.FC<PermissionFormProps> = ({
       >
         <Form.Item
           name="code"
-          label={t('permission_form.label.code')}
-          rules={[{ required: true, message: t('permission_form.validation.code_required') }]}
+          label={t('form.label.code')}
+          rules={[{ required: true, message: t('form.validation.code_required') }]}
         >
-          <Input placeholder={t('permission_form.placeholder.code')} />
+          <Input placeholder={t('form.placeholder.code')} />
         </Form.Item>
         <Form.Item
           name="description"
-          label={t('permission_form.label.description')}
+          label={t('form.label.description')}
         >
-          <Input.TextArea rows={3} placeholder={t('permission_form.placeholder.description')} />
+          <Input.TextArea rows={3} placeholder={t('form.placeholder.description')} />
         </Form.Item>
       </Form>
     </Modal>

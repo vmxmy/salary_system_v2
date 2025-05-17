@@ -18,8 +18,8 @@ from ...auth import create_access_token, verify_password, ACCESS_TOKEN_EXPIRE_MI
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="/v2",
-    tags=["v2 Authentication"],
+    prefix="/auth",
+    tags=["Authentication"],
 )
 
 

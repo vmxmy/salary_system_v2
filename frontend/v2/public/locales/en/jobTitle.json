@@ -1,0 +1,80 @@
+{
+  "title": "Job Title Management",
+  "button": {
+    "create_top_level": "Create Top Level Job Title",
+    "create_test_data": "Create Test Data",
+    "debug_data": "Debug Data"
+  },
+  "table": {
+    "column": {
+      "id": "ID",
+      "code": "Code",
+      "name": "Name",
+      "parent_id": "Parent Job Title ID",
+      "description": "Description",
+      "effective_date": "Effective Date",
+      "end_date": "End Date",
+      "active": "Active",
+      "actions": "Actions"
+    },
+    "cell_empty": "-"
+  },
+  "tooltip": {
+    "edit_job_title": "Edit Job Title",
+    "delete_job_title": "Delete Job Title",
+    "add_child_job_title": "Add Child Job Title"
+  },
+  "popconfirm": {
+    "delete_title": "Are you sure you want to delete this job title?",
+    "ok": "Yes",
+    "cancel": "No"
+  },
+  "modal": {
+    "title": {
+      "new_job_title": "New Job Title",
+      "edit_job_title": "Edit Job Title"
+    }
+  },
+  "form": {
+    "label": {
+      "code": "Job Title Code",
+      "name": "Job Title Name",
+      "description": "Description",
+      "parent_job_title": "Parent Job Title",
+      "effective_date": "Effective Date",
+      "end_date": "End Date",
+      "is_active": "Is Active"
+    },
+    "placeholder": {
+      "code": "Please enter job title code",
+      "name": "Please enter job title name",
+      "description": "Please enter job title description",
+      "parent_job_title": "Select parent job title (leave blank for top level)"
+    },
+    "validation": {
+      "code_required": "Please enter job title code",
+      "name_required": "Please enter job title name",
+      "effective_date_required": "Please select effective date"
+    }
+  },
+  "treeselect": {
+    "not_found": "No job title data available"
+  },
+  "message": {
+    "debug_data_logged": "Data has been logged to console",
+    "create_success": "Job title created successfully",
+    "create_failed": "Failed to create job title",
+    "update_success": "Job title updated successfully",
+    "update_failed": "Failed to update job title",
+    "delete_success": "Job title deleted successfully",
+    "delete_failed": "Failed to delete job title",
+    "delete_failed_has_children": "Delete failed: Job title may be in use or has child job titles",
+    "fetch_list_failed": "Failed to get job title list",
+    "test_data_create_success": "Test data created successfully",
+    "test_data_create_failed": "Failed to create test data",
+    "operation_failed_prefix": "Operation failed: ",
+    "delete_failed_prefix": "Delete failed: ",
+    "test_data_create_failed_prefix": "Failed to create test data: ",
+    "error_unknown": "Unknown error"
+  }
+}

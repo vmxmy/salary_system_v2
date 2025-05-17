@@ -1,0 +1,80 @@
+{
+    "title": "职位管理",
+    "button": {
+      "create_top_level": "新建顶级职位",
+      "create_test_data": "创建测试数据",
+      "debug_data": "调试数据"
+    },
+    "table": {
+      "column": {
+        "id": "ID",
+        "code": "代码",
+        "name": "名称",
+        "parent_id": "上级职位ID",
+        "description": "描述",
+        "effective_date": "生效日期",
+        "end_date": "失效日期",
+        "active": "激活",
+        "actions": "操作"
+      },
+      "cell_empty": "-"
+    },
+    "tooltip": {
+      "edit_job_title": "编辑职位",
+      "delete_job_title": "删除职位",
+      "add_child_job_title": "添加子职位"
+    },
+    "popconfirm": {
+      "delete_title": "确定删除此职位吗？",
+      "ok": "是",
+      "cancel": "否"
+    },
+    "modal": {
+      "title": {
+        "new_job_title": "新建职位",
+        "edit_job_title": "编辑职位"
+      }
+    },
+    "form": {
+      "label": {
+        "code": "职位代码",
+        "name": "职位名称",
+        "description": "描述",
+        "parent_job_title": "上级职位",
+        "effective_date": "生效日期",
+        "end_date": "失效日期",
+        "is_active": "是否激活"
+      },
+      "placeholder": {
+        "code": "请输入职位代码",
+        "name": "请输入职位名称",
+        "description": "请输入职位描述",
+        "parent_job_title": "选择上级职位 (留空则为顶级职位)"
+      },
+      "validation": {
+        "code_required": "请输入职位代码",
+        "name_required": "请输入职位名称",
+        "effective_date_required": "请选择生效日期"
+      }
+    },
+    "treeselect": {
+      "not_found": "暂无职位数据"
+    },
+    "message": {
+      "debug_data_logged": "数据已打印到控制台",
+      "create_success": "职位创建成功",
+      "create_failed": "职位创建失败",
+      "update_success": "职位更新成功",
+      "update_failed": "职位更新失败",
+      "delete_success": "职位删除成功",
+      "delete_failed": "职位删除失败",
+      "delete_failed_has_children": "删除失败：职位可能正在使用中或拥有子职位",
+      "fetch_list_failed": "获取职位列表失败",
+      "test_data_create_success": "测试数据创建成功",
+      "test_data_create_failed": "测试数据创建失败",
+      "operation_failed_prefix": "操作失败：",
+      "delete_failed_prefix": "删除失败：",
+      "test_data_create_failed_prefix": "测试数据创建失败：",
+      "error_unknown": "未知错误"
+    }
+  }

@@ -1,0 +1,59 @@
+{
+  "title": "Role Management",
+  "button": {
+    "create_role": "Create Role"
+  },
+  "table": {
+    "column": {
+      "id": "ID",
+      "code": "Role Code",
+      "name": "Role Name",
+      "actions": "Actions"
+    },
+    "search": {
+      "placeholder_prefix": "Search ",
+      "button_search": "Search",
+      "button_reset": "Reset",
+      "button_filter": "Filter",
+      "button_close": "Close"
+    }
+  },
+  "tooltip": {
+    "edit_role": "Edit Role",
+    "delete_role": "Delete Role"
+  },
+  "modal": {
+    "role_form": {
+      "title": {
+        "create": "Create Role",
+        "edit": "Edit Role"
+      },
+      "label": {
+        "name": "Role Name",
+        "code": "Role Code",
+        "permissions": "Assign Permissions"
+      },
+      "validation": {
+        "name_required": "Please enter role name!",
+        "code_required": "Please enter role code!"
+      }
+    },
+    "confirm_delete": {
+      "title": "Confirm Delete",
+      "content": "Are you sure you want to delete role \"{roleName}\"? This action cannot be undone.",
+      "ok_text": "Delete",
+      "cancel_text": "Cancel"
+    }
+  },
+  "message": {
+    "fetch_roles_error": "Failed to load role list",
+    "fetch_permissions_error": "Failed to load permission list",
+    "update_role_success": "Role updated successfully",
+    "update_role_error": "Failed to update role",
+    "create_role_success": "Role created successfully",
+    "create_role_error": "Failed to create role",
+    "create_role_error_name_code_required": "Role name and code are required.",
+    "delete_role_success": "Role deleted successfully",
+    "delete_role_error": "Failed to delete role"
+  }
+}

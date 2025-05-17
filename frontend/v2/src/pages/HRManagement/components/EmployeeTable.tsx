@@ -51,70 +51,70 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onEdit, // Added
   onViewDetails, // Added
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('employee');
   const { hasPermission } = usePermissions();
 
   const columns: ColumnsType<Employee> = [
     {
-      title: t('employee_table.column_full_name'),
+      title: t('list_page.table.column.full_name'),
       key: 'fullName',
       render: (_, record: Employee) => `${record.first_name || ''} ${record.last_name || ''}`.trim(),
     },
     {
-      title: t('employee_table.column_employee_code'),
+      title: t('list_page.table.column.employee_code'),
       dataIndex: 'employee_code',
       key: 'employee_code',
     },
     {
-      title: t('employee_table.column_gender'),
+      title: t('list_page.table.column.gender'),
       dataIndex: 'gender_lookup_value_id',
       key: 'gender',
       render: (genderId: number | undefined) => {
-        if (genderId === undefined || genderId === null) return t('employee_table.cell_empty');
-        return genderLookupMap.get(genderId) || t('employee_table.unknown_gender_param', { genderId });
+        if (genderId === undefined || genderId === null) return t('list_page.table.cell_empty');
+        return genderLookupMap.get(genderId) || t('list_page.table.unknown.gender_param', { genderId });
       },
     },
     {
-      title: t('employee_table.column_department'),
+      title: t('list_page.table.column.department'),
       dataIndex: 'department_id',
       key: 'department_id',
       render: (departmentId?: number) => {
-        if (departmentId === undefined || departmentId === null) return t('employee_table.cell_empty');
+        if (departmentId === undefined || departmentId === null) return t('list_page.table.cell_empty');
         return departmentLookupMap?.get(departmentId) || String(departmentId);
       },
     },
     {
-      title: t('employee_table.column_job_title'),
+      title: t('list_page.table.column.job_title'),
       dataIndex: 'job_title_id',
       key: 'job_title_id',
       render: (jobTitleId?: number) => {
-        if (jobTitleId === undefined || jobTitleId === null) return t('employee_table.cell_empty');
+        if (jobTitleId === undefined || jobTitleId === null) return t('list_page.table.cell_empty');
         return jobTitleLookupMap?.get(jobTitleId) || String(jobTitleId);
       },
     },
     {
-      title: t('employee_table.column_status'),
+      title: t('list_page.table.column.status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
       render: (statusId: number | undefined) => {
-        if (statusId === undefined || statusId === null) return <Tag>{t('employee_table.unknown_status_raw')}</Tag>;
-        const statusText = statusLookupMap.get(statusId) || t('employee_table.unknown_status_param', { statusId });
+        if (statusId === undefined || statusId === null) return <Tag>{t('list_page.table.unknown.status_raw')}</Tag>;
+        const statusText = statusLookupMap.get(statusId) || t('list_page.table.unknown.status_param', { statusId });
         let color = 'default';
         // Simplified color logic based on common statuses, can be expanded
         // Assumes statusLookupMap returns values that can be compared or are keys for translation
-        if (statusText.includes(t('employee_table.status_active_raw'))) color = 'green'; 
-        else if (statusText.includes(t('employee_table.status_inactive_raw'))) color = 'red';
-        else if (statusText.includes(t('employee_table.status_probation_raw'))) color = 'blue';
-        else if (statusText.includes(t('employee_table.status_on_leave_raw'))) color = 'orange';
+        if (statusText.includes(t('list_page.table.status_text.active'))) color = 'green'; 
+        else if (statusText.includes(t('list_page.table.status_text.inactive'))) color = 'red';
+        else if (statusText.includes(t('list_page.table.status_text.probation'))) color = 'blue';
+        else if (statusText.includes(t('list_page.table.status_text.on_leave'))) color = 'orange';
         return <Tag color={color}>{statusText}</Tag>; 
       },
     },
     {
-      title: t('employee_table.column_hire_date'),
+      title: t('list_page.table.column.hire_date'),
       dataIndex: 'hire_date',
       key: 'hire_date',
       render: (date: string | Dayjs | undefined) => {
-        if (!date) return t('employee_table.cell_empty');
+        if (!date) return t('list_page.table.cell_empty');
         // Check if it's a Dayjs object (has toLocaleDateString) or a string that needs parsing
         if (typeof date === 'string') {
           try {
@@ -135,19 +135,19 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
       },
     },
     {
-      title: t('employee_table.column_actions'),
+      title: t('list_page.table.column.actions'),
       key: 'action',
       render: (_, record: Employee) => (
         <Space size="middle">
           {hasPermission('P_EMPLOYEE_VIEW_DETAIL') && (
-            <Button type="link" onClick={() => onViewDetails(String(record.id))}>{t('employee_table.action_view_details')}</Button>
+            <Button type="link" onClick={() => onViewDetails(String(record.id))}>{t('list_page.table.action.view_details')}</Button>
           )}
           {hasPermission('P_EMPLOYEE_UPDATE') && (
-            <Button type="link" onClick={() => onEdit(String(record.id))}>{t('employee_table.action_edit')}</Button>
+            <Button type="link" onClick={() => onEdit(String(record.id))}>{t('list_page.table.action.edit')}</Button>
           )}
           {hasPermission('P_EMPLOYEE_DELETE') && (
             <Button type="link" danger onClick={() => onDelete(String(record.id))}>
-              {t('employee_table.action_delete')}
+              {t('list_page.table.action.delete')}
             </Button>
           )}
         </Space>

@@ -1,69 +1,74 @@
 import React from 'react';
 import { Descriptions, Tag, Spin } from 'antd';
 import type { Employee } from '../../types'; // Adjusted path
-import { EmploymentStatus, EmploymentType } from '../../types'; // Adjusted path
+import { EmploymentStatus } from '../../types'; // Removed EmploymentType as it will be handled by lookupMap
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
+import type { LookupMaps } from '../../../../hooks/useLookupMaps'; // + Import LookupMaps
 
 interface JobInfoTabProps {
   employee: Employee | null | undefined;
   loading?: boolean;
+  lookupMaps: LookupMaps | null; // + Add lookupMaps
 }
 
-const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading }) => {
+const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }) => { // + Add lookupMaps to destructuring
+  const { t } = useTranslation(['employee', 'common']);
+
   if (loading) {
     return (
       <Spin>
-        <div style={{ height: 200, padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>Loading job information...</div>
+        <div style={{ height: 200, padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>{t('employee:detail_page.job_info_tab.loading', 'Loading job information...')}</div>
       </Spin>
     );
   }
 
   if (!employee) {
-    return <p>No employee job data available.</p>;
+    return <p>{t('employee:detail_page.job_info_tab.no_data', 'No employee job data available.')}</p>;
   }
 
-  // Helper function to calculate seniority (example)
-  const calculateSeniority = (hireDate?: string, officialWorkStartDate?: string): string => {
-    const startDateToConsider = officialWorkStartDate || hireDate;
-    if (!startDateToConsider) return 'N/A';
-    const start = dayjs(startDateToConsider);
+  const naText = t('employee:detail_page.common_value.na', 'N/A');
+
+  const calculateSeniority = (hire_date?: string | dayjs.Dayjs): string => { // Renamed hireDate to hire_date
+    if (!hire_date) return naText;
+    const start = dayjs(hire_date);
     const now = dayjs();
     const years = now.diff(start, 'year');
-    start.add(years, 'year');
-    const months = now.diff(start, 'month');
-    return `${years} 年 ${months} 个月`;
+    const months = now.diff(start.add(years, 'year'), 'month'); // Corrected calculation for months
+    return `${years}${t('employee:detail_page.job_info_tab.seniority_year', ' 年 ')}${months}${t('employee:detail_page.job_info_tab.seniority_month', ' 个月')}`;
   };
 
-  const getEmploymentTypeText = (type?: EmploymentType) => {
-    if (!type) return 'N/A';
-    switch (type) {
-      case EmploymentType.FULL_TIME: return '全职';
-      case EmploymentType.PART_TIME: return '兼职';
-      case EmploymentType.CONTRACT: return '合同';
-      case EmploymentType.INTERN: return '实习';
-      default: return 'N/A';
-    }
-  };
+  const jobTitleText = employee.job_title_id !== undefined && employee.job_title_id !== null
+    ? lookupMaps?.jobTitleMap?.get(Number(employee.job_title_id)) || employee.job_title_name || String(employee.job_title_id)
+    : naText;
+
+  const departmentText = employee.department_id !== undefined && employee.department_id !== null
+    ? lookupMaps?.departmentMap?.get(Number(employee.department_id)) || employee.departmentName || String(employee.department_id)
+    : naText;
+
+  const employmentTypeText = employee.employment_type_lookup_value_id !== undefined && employee.employment_type_lookup_value_id !== null
+    ? lookupMaps?.employmentTypeMap?.get(Number(employee.employment_type_lookup_value_id)) || String(employee.employment_type_lookup_value_id)
+    : naText;
+  
+  const reportsToText = employee.reports_to_employee_id
+    ? t('employee:detail_page.job_info_tab.reports_to_id_prefix', { id: employee.reports_to_employee_id })
+    : naText;
+
+  // Removed getEmploymentTypeText as we are using lookupMaps
 
   return (
-    <Descriptions title="职位信息" bordered column={2} layout="vertical">
-      <Descriptions.Item label="部门">{employee.departmentName || 'N/A'}</Descriptions.Item>
-      <Descriptions.Item label="职位">{employee.positionName || 'N/A'}</Descriptions.Item>
+    <Descriptions title={t('employee:detail_page.tabs.job_info')} bordered column={2} layout="vertical">
+      <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_department')}>{departmentText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_current_job_title')}>{jobTitleText}</Descriptions.Item>
 
-      <Descriptions.Item label="直属经理">{employee.directManagerName || 'N/A'}</Descriptions.Item>
-      <Descriptions.Item label="工作地点">{employee.workLocation || 'N/A'}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_direct_manager')}>{reportsToText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_work_location')}>{employee.workLocation || naText}</Descriptions.Item>
+      
+      {/* Removed officialWorkStartDate and personnelIdentity as they don't exist in Employee type or are not shown in EmployeeDetailPage's placeholder */}
+      {/* Also removed hire_date and status as they are typically in BasicInfoTab */}
 
-      <Descriptions.Item label="入职日期">{employee.hireDate || 'N/A'}</Descriptions.Item>
-      <Descriptions.Item label="正式工作开始日期">{employee.officialWorkStartDate || 'N/A'}</Descriptions.Item>
-
-      <Descriptions.Item label="当前状态">
-        {employee.status ? <Tag color={employee.status === EmploymentStatus.ACTIVE ? 'green' : (employee.status === EmploymentStatus.ON_LEAVE ? 'orange' : 'volcano')}>{employee.status}</Tag> : 'N/A'}
-      </Descriptions.Item>
-      <Descriptions.Item label="雇佣类型">{getEmploymentTypeText(employee.employmentType) || 'N/A'}
-      </Descriptions.Item>
-
-      <Descriptions.Item label="工龄 (司龄)">{calculateSeniority(employee.hireDate, employee.officialWorkStartDate)}</Descriptions.Item>
-      <Descriptions.Item label="人员身份">{employee.personnelIdentity || 'N/A'}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_employment_type')}>{employmentTypeText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_seniority')}>{calculateSeniority(employee.hire_date)}</Descriptions.Item>
     </Descriptions>
   );
 };

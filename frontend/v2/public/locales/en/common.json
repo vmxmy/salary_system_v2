@@ -1,0 +1,150 @@
+{
+  "greeting": "Hello!",
+  "loading": "Loading page content...",
+  "permission_denied_action": "You don't have permission to perform this action.",
+  "role": {
+    "unknown": "Unknown role"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "na": "N/A",
+    "unknown_param": "Unknown status (ID: {statusId})",
+    "draft": "Draft",
+    "processing": "Processing",
+    "error": "Error"
+  },
+  "boolean": {
+    "true": "Yes",
+    "false": "No"
+  },
+  "button": {
+    "login": "Login",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "yes": "Yes",
+    "cancel": "Cancel",
+    "no": "No",
+    "save": "Save",
+    "save_changes": "Save changes",
+    "create": "Create",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "query": "Query",
+    "reset": "Reset",
+    "close": "Close",
+    "back_to_list": "Back to list",
+    "submit": "Submit",
+    "next_step": "Next",
+    "previous_step": "Previous",
+    "finish": "Finish",
+    "view_details": "View details",
+    "refresh": "Refresh"
+  },
+  "label": {
+    "username": "Username",
+    "password": "Password",
+    "remember_me": "Remember me",
+    "id": "ID",
+    "code": "Code",
+    "name": "Name",
+    "description": "Description",
+    "status": "Status",
+    "actions": "Actions",
+    "created_at": "Created at",
+    "updated_at": "Updated at",
+    "effective_date": "Effective date",
+    "end_date": "End date",
+    "remarks": "Remarks",
+    "notes": "Notes"
+  },
+  "placeholder": {
+    "select": "Please select",
+    "input": "Please input",
+    "search": "Please enter search content"
+  },
+  "tooltip": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "add_child": "Add child"
+  },
+  "message": {
+    "operation_success": "Operation succeeded",
+    "operation_failed": "Operation failed",
+    "operation_failed_prefix": "Operation failed: ",
+    "create_success_default": "Created successfully",
+    "update_success_default": "Updated successfully",
+    "delete_success_default": "Deleted successfully",
+    "create_failed_default": "Creation failed",
+    "update_failed_default": "Update failed",
+    "delete_failed_default": "Deletion failed",
+    "error_unknown": "Unknown error",
+    "error_default_retry": "Operation failed, please try again later.",
+    "data_loading_error": "Data loading failed",
+    "form_validation_error": "Form validation failed, please check inputs.",
+    "upload_success_param": "File {fileName} uploaded successfully.",
+    "upload_failed_param": "File {fileName} upload failed."
+  },
+  "modal": {
+    "confirm_delete": {
+      "title": "Confirm deletion",
+      "title_item": "Confirm deletion of {itemName}?",
+      "content": "This action cannot be undone.",
+      "content_item": "Are you sure to delete {itemName}? This action cannot be undone.",
+      "ok_text": "Confirm deletion",
+      "cancel_text": "Cancel"
+    },
+    "unsaved_changes": {
+      "title": "Unsaved changes",
+      "content": "You have unsaved changes, are you sure to leave?",
+      "ok_text": "Leave",
+      "cancel_text": "Stay"
+    }
+  },
+  "table": {
+    "empty_data": "No data",
+    "column_actions": "Actions",
+    "cell_empty": "-",
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items"
+  },
+  "currency": {
+    "symbol": "$"
+  },
+  "date": {
+    "to": "to"
+  },
+  "sider": {
+    "title": {
+      "full": "Salary Management System",
+      "collapsed": "SMS"
+    }
+  },
+  "footer": {
+    "system_name": "Salary Management System",
+    "created_by": "Created by AI Assistant"
+  },
+  "user_menu": {
+    "profile": "Profile",
+    "logout": "Logout",
+    "default_user_text": "User"
+  },
+  "page": {
+    "admin_config": {
+      "title_placeholder": "Configuration page (placeholder)"
+    }
+  },
+  "pagination": {
+    "previous_page": "Previous page",
+    "next_page": "Next page",
+    "page_info": "Page {{currentPage}} / {{totalPages}}"
+  },
+  "loading": {
+    "generic_loading_text": "Loading..."
+  },
+  "username_label": "Username",
+  "password_label": "Password",
+  "remember_me_checkbox": "Remember me",
+  "login_button": "Login"
+}

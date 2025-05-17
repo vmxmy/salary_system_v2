@@ -1,0 +1,262 @@
+{
+  "page_title": {
+    "management": "Payroll Management",
+    "calculation": "Payroll Calculation",
+    "periods": "Payroll Period Management",
+    "runs": "Payroll Calculation Runs",
+    "run_detail": "Calculation Run Detail"
+  },
+  "loading": {
+    "periods": "Loading payroll periods...",
+    "runs": "Loading payroll calculation runs..."
+  },
+  "status": {
+    "run": {
+      "draft": "Draft",
+      "processing": "Processing",
+      "pending_review": "Pending Review",
+      "approved": "Approved",
+      "approved_for_payment": "Approved for Payment",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "error": "Error"
+    },
+    "entry": {
+      "pending_calculation": "Pending Calculation",
+      "calculated": "Calculated",
+      "pending_confirmation": "Pending Confirmation",
+      "confirmed": "Confirmed",
+      "adjusted": "Adjusted",
+      "archived": "Archived",
+      "error": "Error"
+    },
+    "period": {
+        "draft": "Draft",
+        "active": "Active",
+        "closed": "Closed",
+        "archived": "Archived"
+    }
+  },
+  "periods_page": {
+    "title": "Payroll Period Management",
+    "button": {
+      "create_period": "Create New Payroll Period"
+    },
+    "error_fetch_periods": "Unable to fetch payroll period data",
+    "message": {
+      "update_success": "Payroll period updated successfully!",
+      "create_success": "Payroll period created successfully!",
+      "delete_success": "Payroll period deleted successfully!",
+      "update_failed": "Update failed",
+      "create_failed": "Create failed",
+      "delete_failed": "Delete failed"
+    },
+    "table": {
+      "column": {
+        "id": "ID",
+        "period_name": "Period Name",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
+    "tooltip": {
+      "edit_period": "Edit Payroll Period",
+      "delete_period": "Delete Payroll Period"
+    },
+    "popconfirm_delete": {
+      "title": "Confirm Delete",
+      "description": "Are you sure you want to delete payroll period \"{periodName}\"?",
+      "ok_text": "Confirm",
+      "cancel_text": "Cancel"
+    },
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
+    "modal_title": {
+        "create": "Create New Payroll Period",
+        "edit": "Edit Payroll Period"
+    },
+    "form": {
+      "label": {
+        "name": "Period Name",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "status": "Status"
+      },
+      "validation": {
+        "name_required": "Please enter period name!",
+        "start_date_required": "Please select start date!",
+        "end_date_required": "Please select end date!",
+        "end_date_before_start_date": "End date cannot be before start date!",
+        "status_required": "Please select status!"
+      },
+      "placeholder": {
+        "name": "e.g. July 2024 Payroll Period",
+        "status": "Select period status"
+      },
+      "button": {
+        "cancel": "Cancel",
+        "save_changes": "Save Changes",
+        "create_period": "Create Period"
+      }
+    }
+  },
+  "runs_page": {
+    "title": "Payroll Calculation Runs",
+    "button": {
+      "create_run": "Create New Calculation Run",
+      "mark_as_paid": "Mark as Paid",
+      "export_bank_file": "Export Bank File"
+    },
+    "error_fetch_runs": "Unable to fetch payroll calculation run data",
+    "message": {
+      "update_success": "Payroll calculation run updated successfully!",
+      "create_success": "Payroll calculation run created successfully!",
+      "delete_success": "Payroll calculation run deleted successfully!",
+      "mark_as_paid_success": "Calculation run #{runId} successfully marked as paid!",
+      "exporting_bank_file": "Exporting bank file (Run #{runId})...",
+      "export_bank_file_success": "Bank file (Run #{runId}) download started!",
+      "already_paid": "This calculation run is already marked as paid."
+    },
+    "error": {
+      "update_failed": "Failed to update calculation run",
+      "create_failed": "Failed to create calculation run",
+      "delete_failed": "Failed to delete calculation run",
+      "mark_as_paid_failed": "Failed to mark as paid",
+      "export_bank_file_failed_prefix": "Export bank file failed: ",
+      "export_bank_file_failed_default": "Export bank file failed"
+    },
+    "popconfirm": {
+      "delete_title": "Confirm Delete",
+      "delete_content": "Are you sure you want to delete this payroll calculation run? This action cannot be undone.",
+      "delete_ok_text": "Delete",
+      "delete_cancel_text": "Cancel",
+      "mark_as_paid_title": "Confirm Action",
+      "mark_as_paid_content": "Are you sure you want to mark calculation run #{runId} as paid?",
+      "mark_as_paid_ok_text": "Mark as Paid"
+    },
+    "default_bank_export_filename_prefix": "bank_export_run_",
+    "table": {
+      "column": {
+        "id": "ID",
+        "payroll_period": "Payroll Period",
+        "run_date": "Run Date",
+        "status": "Status",
+        "employee_count": "Employee Count",
+        "notes": "Notes",
+        "actions": "Actions"
+      },
+      "action_details": "Details"
+    },
+    "tooltip": {
+      "edit_run": "Edit Calculation Run",
+      "delete_run": "Delete Calculation Run"
+    },
+    "alert_error_prefix": "Error: ",
+    "alert_modal_error_prefix": "Operation failed: ",
+    "modal_title": {
+        "create": "Create New Payroll Calculation Run",
+        "edit": "Edit Payroll Calculation Run"
+    },
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
+    "form": {
+      "error":{
+          "load_periods_failed": "Unable to load payroll period list",
+          "load_periods_failed_with_message": "Unable to load payroll period list: {message}"
+      },
+      "label": {
+        "payroll_period": "Payroll Period",
+        "run_date": "Run Date",
+        "status_edit_mode": "Status",
+        "status_create_mode": "Initial Status",
+        "employee_ids": "Include Employee IDs (Optional, comma-separated)",
+        "notes": "Notes (Optional)"
+      },
+      "validation": {
+        "payroll_period_required": "Please select a payroll period!",
+        "run_date_required": "Please select a run date!",
+        "status_required": "Please select a status!"
+      },
+      "tooltip": {
+          "employee_ids": "Enter numeric employee IDs, separated by commas. E.g., 101,102,105"
+      },
+      "placeholder": {
+        "payroll_period": "Select a payroll period",
+        "status": "Select status",
+        "employee_ids": "e.g. 1, 2, 3, 4, 5\\nLeave blank to include all applicable employees within the selected payroll period (if backend supports this logic)",
+        "notes": "Any notes about this calculation"
+      },
+      "button": {
+        "cancel": "Cancel",
+        "save_changes": "Save Changes",
+        "create_run": "Create Calculation Run"
+      }
+    }
+  },
+  "run_detail_page": {
+    "title": "Calculation Run Details",
+    "error": {
+      "fetch_details": "Unable to fetch payroll calculation run details",
+      "invalid_run_id": "Invalid calculation run ID",
+      "no_run_id_provided": "No calculation run ID provided"
+    },
+    "spin_loading": "Loading...",
+    "alert": {
+      "error_prefix": "Error: ",
+      "not_found": "Payroll calculation run data not found."
+    },
+    "breadcrumb": {
+      "runs_management": "Payroll Calculation Runs Management",
+      "current_page": "Calculation Run Details (ID: {runId})"
+    },
+    "card_title": "Payroll Calculation Run Details: #{runId}",
+    "button_back_to_list": "Back to List",
+    "description": {
+      "id": "ID",
+      "payroll_period": "Payroll Period",
+      "run_date": "Run Date",
+      "status": "Status",
+      "employee_count": "Employee Count",
+      "created_by": "Created By User ID",
+      "created_at": "Created At",
+      "updated_at": "Last Updated At",
+      "paid_at": "Paid At",
+      "notes": "Notes"
+    },
+    "value": {
+      "na": "N/A",
+      "not_paid": "Not Paid",
+      "no_notes": "None",
+      "period_id_prefix": "ID: "
+    },
+    "section_title_entries": "Payroll Entries"
+  },
+  "entries_table": {
+    "error_fetch": "Unable to fetch payroll entry data",
+    "message": {
+      "view_details_todo": "View payroll entry details for employee {employeeIdentifier} (ID: {entryId}) - Functionality to be implemented",
+      "edit_entry_todo": "Edit payroll entry for employee {employeeIdentifier} (ID: {entryId}) - Functionality to be implemented"
+    },
+    "column": {
+      "entry_id": "Entry ID",
+      "employee_id": "Employee ID",
+      "employee_name": "Employee Name",
+      "total_earnings": "Total Earnings",
+      "total_deductions": "Total Deductions",
+      "net_pay": "Net Pay",
+      "status": "Status",
+      "remarks": "Remarks",
+      "actions": "Actions"
+    },
+    "cell_name_supplement_needed": "Supplement Needed",
+    "cell_remarks_empty": "-",
+    "tooltip": {
+      "view_details": "View Details",
+      "edit_entry": "Edit/Adjust Payroll Entry"
+    },
+    "spin_loading_entries": "Loading payroll entries...",
+    "alert_error_prefix": "Error: ",
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
+    "currency_symbol": "¥"
+  }
+}

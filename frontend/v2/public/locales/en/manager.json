@@ -1,0 +1,9 @@
+{
+  "title": "Manager View",
+  "leave_approvals": {
+    "placeholder_title": "Leave Approvals Page (Placeholder)"
+  },
+  "subordinates": {
+    "placeholder_title": "Subordinates Management Page (Placeholder)"
+  }
+}

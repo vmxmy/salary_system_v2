@@ -16,12 +16,18 @@ import { useTranslation } from 'react-i18next';
 // Interface for form values when creating a user, including confirm_password
 interface UserFormCreationValues extends CreateUserPayload {
   confirm_password?: string;
+  employee_first_name?: string;
+  employee_last_name?: string;
+  employee_id_card?: string;
 }
 
 // Interface for form values when updating a user
 // For editing, password fields are not present. username is usually not editable directly in this form.
 interface UserFormUpdateValues extends Omit<UpdateUserPayload, 'role_ids'> { // Omit role_ids if handled by assignRolesToUser separately
   username?: string; // Display purposes, usually disabled
+  employee_first_name?: string; // Added
+  employee_last_name?: string; // Added
+  employee_id_card?: string; // Added
   role_ids?: number[]; // For the Select component in the form
 }
 
@@ -40,7 +46,7 @@ interface PageUser {
 }
 
 const UserListPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['user', 'common']);
   const [users, setUsers] = useState<PageUser[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [tableParams, setTableParams] = useState<TableParams>({
@@ -90,9 +96,9 @@ const UserListPage: React.FC = () => {
           id: apiUser.id,
           username: apiUser.username,
           employee_id: apiUser.employee_id,
-          roles: apiUser.roles ? apiUser.roles.map((role: ApiRole) => role.name || t('common.role.unknown')) : [],
+          roles: apiUser.roles ? apiUser.roles.map((role: ApiRole) => role.name || t('common:role.unknown')) : [],
           is_active: apiUser.is_active,
-          created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('user_management_page.table.value.not_applicable'),
+          created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('table.value.not_applicable'),
         }));
         setUsers(pageUsers);
         setTableParams({
@@ -139,7 +145,7 @@ const UserListPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch roles:", error);
-      message.error(t('user_management_page.message.fetch_roles_error'));
+      message.error(t('message.fetch_roles_error'));
     }
   };
 
@@ -202,7 +208,7 @@ const UserListPage: React.FC = () => {
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInputRef} // Connect ref
-          placeholder={t('user_management_page.table.search.placeholder_prefix') + (columnName || dataIndex.toString())}
+          placeholder={t('table.search.placeholder_prefix') + (columnName || dataIndex.toString())}
           value={selectedKeys[0]}
           onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleColumnSearch(selectedKeys as string[], confirm, dataIndex)}
@@ -216,13 +222,13 @@ const UserListPage: React.FC = () => {
             size="small"
             style={{ width: 90 }}
           >
-            {t('user_management_page.table.search.button_search')}
+            {t('table.search.button_search')}
           </Button>
           <Button onClick={() => clearFilters && handleColumnSearchReset(clearFilters)} size="small" style={{ width: 90 }}>
-            {t('user_management_page.table.search.button_reset')}
+            {t('table.search.button_reset')}
           </Button>
           <Button type="link" size="small" onClick={() => close()}>
-            {t('user_management_page.table.search.button_close')}
+            {t('table.search.button_close')}
           </Button>
         </Space>
       </div>
@@ -251,7 +257,9 @@ const UserListPage: React.FC = () => {
       username: '', 
       password: '',
       confirm_password: '', 
-      employee_id: undefined, 
+      employee_first_name: undefined,
+      employee_last_name: undefined,
+      employee_id_card: undefined,
       role_ids: [] 
     });
     setIsUserModalOpen(true);
@@ -266,41 +274,34 @@ const UserListPage: React.FC = () => {
   const handleCreateUserSubmit = async (values: UserFormCreationValues) => {
     setUserModalLoading(true);
     try {
-      const { confirm_password, ...payloadForApi } = values;
+      const { confirm_password, employee_id, ...apiValues } = values as UserFormCreationValues & { employee_id?: any };
       
-      if (payloadForApi.employee_id && typeof payloadForApi.employee_id === 'string') {
-        payloadForApi.employee_id = parseInt(payloadForApi.employee_id, 10);
-        if (isNaN(payloadForApi.employee_id)) {
-          delete payloadForApi.employee_id;
-        }
-      }
-      // No need to check for empty string as employee_id type is number | undefined
-      // if (payloadForApi.employee_id === null || payloadForApi.employee_id === undefined ){
-      //   delete payloadForApi.employee_id; 
-      // }
-
-      if (payloadForApi.role_ids) {
-        payloadForApi.role_ids = payloadForApi.role_ids.map(id => Number(id));
-      }
-
-      if (payloadForApi.is_active === undefined) {
-        payloadForApi.is_active = true;
-      }
-
-      console.log("Submitting for create: ", payloadForApi);
-      // Ensure payloadForApi matches CreateUserPayload (it should after stripping confirm_password)
-      const newUser = await createUser(payloadForApi as CreateUserPayload); // Corrected to createUser
+      const payloadForApi: CreateUserPayload = {
+        username: apiValues.username,
+        password: apiValues.password as string,
+        is_active: apiValues.is_active === undefined ? true : apiValues.is_active,
+        role_ids: apiValues.role_ids?.map(id => Number(id)) || [],
+        employee_first_name: apiValues.employee_first_name,
+        employee_last_name: apiValues.employee_last_name,
+        employee_id_card: apiValues.employee_id_card,
+      };
       
-      message.success(t('user_management_page.message.create_user_success', { username: newUser.username }));
+      const cleanedPayloadForApi = Object.fromEntries(
+        Object.entries(payloadForApi).filter(([_, v]) => v !== undefined)
+      ) as CreateUserPayload;
+
+      console.log("Submitting for create: ", cleanedPayloadForApi);
+      const newUser = await createUser(cleanedPayloadForApi);
+      
+      message.success(t('message.create_user_success', { username: newUser.username }));
       setIsUserModalOpen(false);
       userForm.resetFields();
-      // Refresh the user list - fetch with current params, resetting to page 1 might be good UX
       setTableParams(prev => ({ ...prev, pagination: { ...prev.pagination, current: 1 }}));
-      fetchUsers({ ...tableParams, pagination: { ...tableParams.pagination, current: 1 } }); // fetch updated list
+      fetchUsers({ ...tableParams, pagination: { ...tableParams.pagination, current: 1 } });
 
     } catch (error: any) {
       console.error("创建用户失败:", error);
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('user_management_page.message.create_user_error.default');
+      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.create_user_error.default');
       message.error(errorMsg);
     } finally {
       setUserModalLoading(false);
@@ -311,7 +312,9 @@ const UserListPage: React.FC = () => {
     setEditingUser(userToEdit);
     userForm.setFieldsValue({
       username: userToEdit.username,
-      employee_id: userToEdit.employee_id,
+      employee_first_name: undefined, 
+      employee_last_name: undefined,
+      employee_id_card: undefined,
       is_active: userToEdit.is_active,
       role_ids: userToEdit.roles?.map(role => role.id) || [],
       // Password fields are not set for editing
@@ -323,24 +326,47 @@ const UserListPage: React.FC = () => {
     if (!editingUser) return;
     setUserModalLoading(true);
     try {
+      // Construct payload based on new fields from UserFormUpdateValues
       const payload: UpdateUserPayload = {
-        employee_id: values.employee_id,
         is_active: values.is_active,
-        role_ids: values.role_ids?.map(id => Number(id)), // Ensure role_ids are numbers
+        role_ids: values.role_ids?.map(id => Number(id)),
+        employee_first_name: values.employee_first_name,
+        employee_last_name: values.employee_last_name,
+        employee_id_card: values.employee_id_card,
       };
       
       // Filter out undefined fields, except for is_active which can be false
+      // and employee association fields which can be null/undefined to signal unbinding (if backend expects them)
+      // Backend is set to handle unbinding if all three (first_name, last_name, id_card) are null and were part of the request.
+      // So, we should send them if they were part of the form submission (even if undefined).
+      // The 'UpdateUserPayload' type should reflect this (all Optional).
+      
+      // Let's assume UpdateUserPayload in api/types.ts will be updated to include these optional fields.
+      // The current UpdateUserPayload might not have them yet.
+      // For now, we construct it and it will be an issue if updateUser API function doesn't expect them.
       const cleanedPayload = Object.fromEntries(
-        Object.entries(payload).filter(([key, v]) => key === 'is_active' || v !== undefined)
+        Object.entries(payload).filter(([key, v]) => {
+          if (key === 'is_active') return true; // always include is_active
+          if (['employee_first_name', 'employee_last_name', 'employee_id_card'].includes(key)) return true; // send them even if undefined/null
+          return v !== undefined;
+        })
       ) as UpdateUserPayload;
 
-      const updatedUser = await updateUser(editingUser.id, cleanedPayload);
-      message.success(t('user_management_page.message.update_user_success', { username: updatedUser.username }));
+      const updatedUser = await updateUser(editingUser.id, cleanedPayload); // updateUser will need to be adapted
+      message.success(t('message.update_user_success', { username: updatedUser.username }));
       setIsUserModalOpen(false);
       fetchUsers(tableParams); // Refresh with current params
     } catch (error: any) {
       console.error("更新用户失败:", error);
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('user_management_page.message.update_user_error.default');
+      const errorDetail = error.response?.data?.detail;
+      let errorMsg = t('message.update_user_error.default');
+      if (typeof errorDetail === 'string') {
+        errorMsg = errorDetail;
+      } else if (errorDetail?.details && typeof errorDetail.details === 'string') {
+        errorMsg = errorDetail.details; // Use the specific message from backend's create_error_response
+      } else if (error.response?.data?.error?.message && typeof error.response?.data?.error?.message === 'string') {
+        errorMsg = error.response.data.error.message;
+      }
       message.error(errorMsg);
     } finally {
       setUserModalLoading(false);
@@ -357,15 +383,15 @@ const UserListPage: React.FC = () => {
 
   const handleDeleteUser = (userId: number, username: string) => {
     Modal.confirm({
-      title: t('user_management_page.modal.confirm_delete.title', { username }),
-      content: t('user_management_page.modal.confirm_delete.content'),
-      okText: t('user_management_page.modal.confirm_delete.ok_text'),
+      title: t('modal.confirm_delete.title', { username }),
+      content: t('modal.confirm_delete.content'),
+      okText: t('modal.confirm_delete.ok_text'),
       okType: 'danger',
-      cancelText: t('user_management_page.modal.confirm_delete.cancel_text'),
+      cancelText: t('modal.confirm_delete.cancel_text'),
       onOk: async () => {
         try {
           await deleteUser(userId);
-          message.success(t('user_management_page.message.delete_user_success', { username }));
+          message.success(t('message.delete_user_success', { username }));
           // Refresh users list - fetch with current params, or reset to page 1 if current page might be empty
           const newTotal = tableParams.pagination?.total ? tableParams.pagination.total - 1 : 0;
           const newCurrentPage = (users.length === 1 && (tableParams.pagination?.current || 1) > 1) ? 
@@ -383,7 +409,7 @@ const UserListPage: React.FC = () => {
           fetchUsers(newTableParams);
         } catch (error: any) {
           console.error("删除用户失败:", error);
-          const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('user_management_page.message.delete_user_error.default');
+          const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.delete_user_error.default');
           message.error(errorMsg);
         }
       },
@@ -392,69 +418,69 @@ const UserListPage: React.FC = () => {
 
   const columns: ColumnType<PageUser>[] = [
     {
-      title: t('user_management_page.table.column.id'),
+      title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
       sorter: (a, b) => a.id - b.id,
     },
     {
-      title: t('user_management_page.table.column.username'),
+      title: t('table.column.username'),
       dataIndex: 'username',
       key: 'username',
-      ...getColumnSearchProps('username', t('user_management_page.table.column.username')),
+      ...getColumnSearchProps('username', t('table.column.username')),
       sorter: (a, b) => a.username.localeCompare(b.username),
     },
     {
-      title: t('user_management_page.table.column.employee_id'),
+      title: t('table.column.employee_id'),
       dataIndex: 'employee_id',
       key: 'employee_id',
-      render: (employeeId?: number) => employeeId || t('user_management_page.table.value.not_applicable'),
+      render: (employeeId?: number) => employeeId || t('table.value.not_applicable'),
       sorter: (a, b) => (a.employee_id || 0) - (b.employee_id || 0),
     },
     {
-      title: t('user_management_page.table.column.roles'),
+      title: t('table.column.roles'),
       dataIndex: 'roles',
       key: 'roles',
-      render: (roles: string[]) => roles.join(', ') || t('user_management_page.table.value.not_applicable'),
+      render: (roles: string[]) => roles.join(', ') || t('table.value.not_applicable'),
       // Note: Filtering/searching on roles might need a custom approach if roles is an array
     },
     {
-      title: t('user_management_page.table.column.status'),
+      title: t('table.column.status'),
       dataIndex: 'is_active',
       key: 'is_active',
       render: (isActive: boolean) => (
         <Tag color={isActive ? 'success' : 'error'}>
-          {isActive ? t('user_management_page.table.status.active') : t('user_management_page.table.status.inactive')}
+          {isActive ? t('table.status.active') : t('table.status.inactive')}
         </Tag>
       ),
       filters: [
-        { text: t('user_management_page.table.status.active'), value: true },
-        { text: t('user_management_page.table.status.inactive'), value: false },
+        { text: t('table.status.active'), value: true },
+        { text: t('table.status.inactive'), value: false },
       ],
       onFilter: (value, record) => record.is_active === value,
       sorter: (a, b) => (a.is_active === b.is_active ? 0 : a.is_active ? -1 : 1),
     },
     {
-      title: t('user_management_page.table.column.created_at'),
+      title: t('table.column.created_at'),
       dataIndex: 'created_at',
       key: 'created_at',
       sorter: (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
     },
     {
-      title: t('user_management_page.table.column.actions'),
+      title: t('table.column.actions'),
       key: 'action',
       render: (_, record: PageUser) => {
         const userToEdit = allApiUsersForEdit.find(u => u.id === record.id); // Find full ApiUser for editing
         return (
           <div style={{ display: 'flex', gap: 8 }}>
-            <Tooltip title={t('user_management_page.tooltip.edit_user')}>
+            <Tooltip title={t('tooltip.edit_user')}>
               <ActionButton
                 actionType="edit"
                 onClick={() => userToEdit && showEditUserModal(userToEdit)}
                 disabled={!userToEdit}
               />
             </Tooltip>
-            <Tooltip title={t('user_management_page.tooltip.delete_user')}>
+            <Tooltip title={t('tooltip.delete_user')}>
               <ActionButton
                 actionType="delete"
                 onClick={() => handleDeleteUser(record.id, record.username)}
@@ -470,9 +496,9 @@ const UserListPage: React.FC = () => {
   return (
     <div>
       <PageHeaderLayout>
-        <Typography.Title level={4} style={{ marginBottom: 0 }}>{t('user_management_page.title')}</Typography.Title>
+        <Typography.Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Typography.Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={showCreateUserModal} shape="round">
-          {t('user_management_page.button.create_user')}
+          {t('button.create_user')}
         </Button>
       </PageHeaderLayout>
       <Table
@@ -484,7 +510,7 @@ const UserListPage: React.FC = () => {
         rowKey="key" // Ensure rowKey is set
       />
       <Modal
-        title={editingUser ? t('user_management_page.modal.title.edit_user') : t('user_management_page.modal.title.create_user')}
+        title={editingUser ? t('modal.title.edit_user') : t('modal.title.create_user')}
         open={isUserModalOpen}
         onCancel={handleUserModalCancel}
         onOk={() => userForm.submit()}
@@ -500,8 +526,8 @@ const UserListPage: React.FC = () => {
         >
           <Form.Item
             name="username"
-            label={t('user_management_page.form.username.label')}
-            rules={[{ required: true, message: t('user_management_page.form.username.validation.required') }, { type: 'string', min: 3, message: t('user_management_page.form.username.validation.min_length', { count: 3 }) }]}
+            label={t('form.username.label')}
+            rules={[{ required: true, message: t('form.username.validation.required') }]}
           >
             <Input disabled={!!editingUser} />
           </Form.Item>
@@ -510,25 +536,25 @@ const UserListPage: React.FC = () => {
             <>
               <Form.Item
                 name="password"
-                label={t('user_management_page.form.password.label')}
-                rules={[{ required: !editingUser, message: t('user_management_page.form.password.validation.required') }, {min: 6, message: t('user_management_page.form.password.validation.min_length', { count: 6 })}] }
+                label={t('form.password.label')}
+                rules={[{ required: true, message: t('form.password.validation.required') }]}
                 hasFeedback
               >
                 <Input.Password />
               </Form.Item>
               <Form.Item
                 name="confirm_password"
-                label={t('user_management_page.form.confirm_password.label')}
+                label={t('form.confirm_password.label')}
                 dependencies={['password']}
                 hasFeedback
                 rules={[
-                  { required: !editingUser, message: t('user_management_page.form.confirm_password.validation.required') },
+                  { required: true, message: t('form.confirm_password.validation.required') },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
                       if (!value || getFieldValue('password') === value) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error(t('user_management_page.form.confirm_password.validation.match')));
+                      return Promise.reject(new Error(t('form.confirm_password.validation.match')));
                     },
                   }),
                 ]}
@@ -538,37 +564,54 @@ const UserListPage: React.FC = () => {
             </>
           )}
 
+          <Typography.Text strong style={{ display: 'block', marginBottom: 8, marginTop: 16 }}>
+            {t('form.section.employee_association')}
+          </Typography.Text>
           <Form.Item
-            name="employee_id"
-            label={t('user_management_page.form.employee_id.label')}
-            // TODO: Replace with a Select dropdown populated with employees
+            name="employee_first_name"
+            label={t('form.label.employee_first_name')}
           >
-            <Input type="number" placeholder={t('user_management_page.form.employee_id.placeholder')} />
+            <Input placeholder={t('form.placeholder.employee_first_name')} />
           </Form.Item>
-
           <Form.Item
-            name="is_active"
-            label={t('user_management_page.form.status.label')}
-            valuePropName="checked"
-            initialValue={true} // Default for new user
+            name="employee_last_name"
+            label={t('form.label.employee_last_name')}
           >
-            <Switch checkedChildren={t('user_management_page.form.status.active')} unCheckedChildren={t('user_management_page.form.status.inactive')} />
+            <Input placeholder={t('form.placeholder.employee_last_name')} />
+          </Form.Item>
+          <Form.Item
+            name="employee_id_card"
+            label={t('form.label.employee_id_card')}
+            tooltip={t('form.tooltip.employee_id_card_for_association')}
+          >
+            <Input placeholder={t('form.placeholder.employee_id_card')} />
           </Form.Item>
           
           <Form.Item
             name="role_ids"
-            label={t('user_management_page.form.roles.label')}
+            label={t('form.roles.label')}
+            rules={[{ required: true, message: t('form.roles.validation.required') }]}
           >
             <Select
               mode="multiple"
               allowClear
               style={{ width: '100%' }}
-              placeholder={t('user_management_page.form.roles.placeholder')}
+              placeholder={t('form.roles.placeholder')}
               options={allRoles.map(role => ({ label: role.name, value: role.id }))}
-              loading={allRoles.length === 0} // Show loading if roles are not yet fetched
+              optionFilterProp="label"
             />
           </Form.Item>
 
+          <Form.Item
+            name="is_active"
+            label={t('form.status.label')}
+            valuePropName="checked"
+          >
+            <Switch 
+              checkedChildren={t('form.status_switch.active')} 
+              unCheckedChildren={t('form.status_switch.inactive')}
+            />
+          </Form.Item>
         </Form>
       </Modal>
     </div>

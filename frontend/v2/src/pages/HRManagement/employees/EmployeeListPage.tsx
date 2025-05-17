@@ -15,7 +15,7 @@ import { employeeService } from '../../../services/employeeService';
 const { Title } = Typography;
 
 const EmployeeListPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'pageTitle']);
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
 
@@ -30,7 +30,7 @@ const EmployeeListPage: React.FC = () => {
 
   useEffect(() => {
     if (errorLookups) {
-      message.error(t('employee_list_page.message_load_aux_data_failed'));
+      message.error(t('employee:list_page.message.load_aux_data_failed'));
       console.error('Error from useLookupMaps:', errorLookups);
     }
   }, [errorLookups, t]);
@@ -54,10 +54,10 @@ const EmployeeListPage: React.FC = () => {
         setTotalEmployees(0);
         setCurrentPage(page);
         setPageSize(size);
-        message.error(t('employee_list_page.message_get_employees_failed_empty_response'));
+        message.error(t('employee:list_page.message.get_employees_failed_empty_response'));
       }
     } catch (error) {
-      message.error(t('employee_list_page.message_get_employees_failed'));
+      message.error(t('employee:list_page.message.get_employees_failed'));
       setEmployees([]);
       setTotalEmployees(0);
     } finally {
@@ -83,19 +83,19 @@ const EmployeeListPage: React.FC = () => {
 
   const handleDelete = async (employeeId: string) => {
     Modal.confirm({
-      title: t('employee_list_page.delete_confirm_title'),
-      content: t('employee_list_page.delete_confirm_content'),
-      okText: t('employee_list_page.delete_confirm_ok_text'),
+      title: t('employee:list_page.delete_confirm.title'),
+      content: t('employee:list_page.delete_confirm.content'),
+      okText: t('employee:list_page.delete_confirm.ok_text'),
       okType: 'danger',
-      cancelText: t('employee_list_page.delete_confirm_cancel_text'),
+      cancelText: t('employee:list_page.delete_confirm.cancel_text'),
       onOk: async () => {
         setLoadingData(true); 
         try {
           await employeeService.deleteEmployee(employeeId);
-          message.success(t('employee_list_page.message_delete_employee_success'));
+          message.success(t('employee:list_page.message.delete_employee_success'));
           fetchEmployees(currentPage, pageSize, filters);
         } catch (error) {
-          message.error(t('employee_list_page.message_delete_employee_failed'));
+          message.error(t('employee:list_page.message.delete_employee_failed'));
           console.error('Failed to delete employee:', error);
         } finally {
             setLoadingData(false); 

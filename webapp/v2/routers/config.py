@@ -19,8 +19,8 @@ from ...auth import get_current_user, require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="/v2/config",
-    tags=["v2 Config"],
+    prefix="/config",
+    tags=["Configuration"],
 )
 
 

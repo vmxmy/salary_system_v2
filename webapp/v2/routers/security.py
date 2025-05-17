@@ -5,6 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status, Body
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import logging
+
+# 设置日志
+logger = logging.getLogger("auth_debug")
+logger.setLevel(logging.DEBUG)
 
 from ..database import get_db_v2
 from ..crud import security as crud
@@ -18,8 +23,8 @@ from ...auth import require_permissions # MODIFIED: require_role removed as it w
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="/v2",
-    tags=["v2 Security"],
+    prefix="",
+    tags=["Security"],
 )
 
 
@@ -138,8 +143,13 @@ async def create_user(
     """
     try:
         # 创建用户
-        db_user = crud.create_user(db, user)
-
+        logger.debug(f"Creating user with data: {user}")
+        try:
+            db_user = crud.create_user(db, user)
+            logger.debug(f"Successfully created user: {db_user}")
+        except Exception as e:
+            logger.error(f"Error creating user: {e}", exc_info=True)
+            raise
         # 返回标准响应格式
         return {"data": db_user}
     except ValueError as e:
@@ -194,25 +204,30 @@ async def update_user(
         # 返回标准响应格式
         return {"data": db_user}
     except ValueError as e:
-        # 返回标准错误响应格式
+        # 特定的业务逻辑错误 (例如，用户名已存在，员工关联问题等)
+        # 这些通常是由于客户端输入不当或违反业务规则造成的，适合用 400 或 422
+        # logging.info(f"ValueError during user update for user_id {user_id}: {str(e)}") # Optional: Log as info or warning
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, # Or status.HTTP_400_BAD_REQUEST
             detail=create_error_response(
-                status_code=422,
-                message="Unprocessable Entity",
-                details=str(e)
+                status_code=422, # Or 400
+                message="Validation Error", # A more generic message for the category
+                details=str(e) # The specific error message from CRUD
             )
         )
     except HTTPException:
+        # If it's already an HTTPException (e.g., from permission checks), re-raise it.
         raise
     except Exception as e:
+        # 捕获所有其他意外错误，记录它们，并返回500
+        logging.exception(f"Unexpected error updating user {user_id}: {e}")
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
                 status_code=500,
                 message="Internal Server Error",
-                details=str(e)
+                details="An unexpected error occurred while updating the user."
             )
         )
 

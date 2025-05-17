@@ -40,23 +40,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# --- Old psycopg2 Connection (REMOVE) --- START ---
-# def get_db_connection():
-#     """Provides a psycopg2 database connection using DATABASE_URL."""
-#     if not DATABASE_URL:
-#         logger.critical("DATABASE_URL environment variable not set for psycopg2 connection!")
-#         raise ConnectionError("Database configuration is missing.")
-#     conn = None
-#     try:
-#         conn = psycopg2.connect(DATABASE_URL)
-#         logger.debug("psycopg2 connection established.")
-#         yield conn # Yield the connection for use in a 'with' statement or endpoint dependency
-#     except psycopg2.OperationalError as e:
-#         logger.error(f"Failed to connect to database using psycopg2: {e}")
-#         raise ConnectionError(f"Database connection failed: {e}")
-#     finally:
-#         if conn:
-#             conn.close()
-#             logger.debug("psycopg2 connection closed.")
-# --- Old psycopg2 Connection (REMOVE) --- END ---

@@ -1,0 +1,7 @@
+{
+  "user_menu": {
+    "profile": "Profile",
+    "logout": "Logout",
+    "default_user_text": "User"
+  }
+}

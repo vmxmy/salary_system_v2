@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, Dict, Any
 from passlib.context import CryptContext
 
 from ..models.security import User, Role, Permission, user_roles, role_permissions
+from ..models.hr import Employee
 from ..pydantic_models.security import UserCreate, UserUpdate, RoleCreate, RoleUpdate, PermissionCreate, PermissionUpdate, UserRoleCreate, RolePermissionCreate
 
 # 密码哈希工具
@@ -116,22 +117,92 @@ def create_user(db: Session, user: UserCreate) -> User:
     Returns:
         创建的用户对象
     """
+    import logging
+    logger = logging.getLogger("auth_debug")
+    logger.debug(f"创建用户，接收到的数据: {user.model_dump()}")
+    
     existing_username = get_user_by_username(db, user.username)
     if existing_username:
+        logger.error(f"用户名 '{user.username}' 已存在")
         raise ValueError(f"User with username '{user.username}' already exists")
 
-    if user.employee_id:
-        existing_employee = get_user_by_employee_id(db, user.employee_id)
-        if existing_employee:
-            raise ValueError(f"User with employee ID '{user.employee_id}' already exists")
+    # 处理员工关联
+    target_employee_id = user.employee_id
+    
+    # 如果提供了员工身份证号，尝试查找对应的员工
+    if user.employee_id_card:
+        from ..models.hr import Employee
+        logger.debug(f"尝试通过身份证号 '{user.employee_id_card}' 查找员工")
+        
+        found_employee = db.query(Employee).filter(Employee.id_number == user.employee_id_card).first()
+        if not found_employee:
+            logger.error(f"未找到身份证号为 '{user.employee_id_card}' 的员工")
+            raise ValueError(f"No employee found with ID card '{user.employee_id_card}'")
+            
+        # 验证姓名匹配（如果提供）
+        if user.employee_first_name and user.employee_last_name:
+            if not (found_employee.first_name == user.employee_first_name and
+                    found_employee.last_name == user.employee_last_name):
+                logger.error(f"提供的姓名与身份证号对应的员工不匹配")
+                raise ValueError(f"The provided name ('{user.employee_first_name} {user.employee_last_name}') does not match the employee with ID card '{user.employee_id_card}'")
+        
+        # 检查该员工是否已关联到其他用户
+        existing_link = db.query(User).filter(User.employee_id == found_employee.id).first()
+        if existing_link:
+            logger.error(f"员工已关联到其他用户 '{existing_link.username}'")
+            raise ValueError(f"Employee with ID card '{user.employee_id_card}' is already linked to user '{existing_link.username}'")
+            
+        target_employee_id = found_employee.id
+        logger.debug(f"找到员工ID: {target_employee_id}")
 
-    user_data = user.model_dump(exclude={"password"})
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User(**user_data, password_hash=hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    try:
+        # 排除不属于User模型的字段
+        user_data = user.model_dump(exclude={
+            "password",
+            "employee_first_name",
+            "employee_last_name",
+            "employee_id_card",
+            "role_ids"
+        })
+        
+        # 使用找到的员工ID替换原始employee_id
+        if target_employee_id:
+            user_data["employee_id"] = target_employee_id
+            
+        logger.debug(f"处理后的用户数据: {user_data}")
+        hashed_password = pwd_context.hash(user.password)
+        db_user = User(**user_data, password_hash=hashed_password)
+        
+        # 添加角色（如果提供）
+        if user.role_ids:
+            roles = db.query(Role).filter(Role.id.in_(user.role_ids)).all()
+            if len(roles) != len(set(user.role_ids)):
+                found_ids = {r.id for r in roles}
+                missing_ids = set(user.role_ids) - found_ids
+                logger.warning(f"部分角色ID无效: {missing_ids}")
+            db_user.roles = roles
+            logger.debug(f"为用户分配角色: {[r.name for r in roles]}")
+        
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        logger.debug(f"用户创建成功: {db_user.username}, ID: {db_user.id}")
+        return db_user
+    except Exception as e:
+        db.rollback()
+        logger.error(f"创建用户时发生错误: {str(e)}", exc_info=True)
+        # 添加更详细的错误信息
+        error_type = type(e).__name__
+        error_msg = str(e)
+        logger.error(f"错误类型: {error_type}, 错误信息: {error_msg}")
+        
+        # 检查是否是SQLAlchemy错误
+        if hasattr(e, '__module__') and 'sqlalchemy' in e.__module__:
+            logger.error(f"SQLAlchemy错误: {e.__module__}.{error_type}")
+            if hasattr(e, 'orig') and e.orig:
+                logger.error(f"原始数据库错误: {e.orig}")
+        
+        raise ValueError(f"Error creating user: {error_type} - {error_msg}")
 
 
 def update_user(db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
@@ -150,40 +221,75 @@ def update_user(db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
     if not db_user:
         return None
 
+    update_data = user.model_dump(exclude_unset=True, exclude={"password", "role_ids", "employee_first_name", "employee_last_name", "employee_id_card"})
+
     if user.username is not None and user.username != db_user.username:
         existing = get_user_by_username(db, user.username)
         if existing:
             raise ValueError(f"User with username '{user.username}' already exists")
 
-    if user.employee_id is not None and user.employee_id != db_user.employee_id:
-        if db_user.employee_id is not None and str(db_user.employee_id) == user.employee_id:
-            pass
-        elif user.employee_id:
-            existing_employee_user = db.query(User).filter(User.employee_id == user.employee_id, User.id != user_id).first()
-            if existing_employee_user:
-                raise ValueError(f"User with employee ID '{user.employee_id}' already exists for another user.")
+    # Handle employee association based on Strategy 1 (Strict ID card)
+    target_employee_id: Optional[int] = db_user.employee_id # Preserve current if no change or invalid input
 
-    update_data = user.model_dump(exclude_unset=True, exclude={"password", "role_ids"})
+    # Check if any employee association fields were explicitly provided in the request
+    employee_fields_provided = user.model_fields_set.intersection({'employee_first_name', 'employee_last_name', 'employee_id_card'})
+
+    if employee_fields_provided:
+        employee_first_name = user.employee_first_name
+        employee_last_name = user.employee_last_name
+        employee_id_card = user.employee_id_card
+
+        is_attempting_unbind = (employee_first_name is None and
+                                employee_last_name is None and
+                                employee_id_card is None)
+
+        if is_attempting_unbind:
+            target_employee_id = None
+        else:
+            # If not unbinding, ID card is strictly required
+            if not employee_id_card:
+                raise ValueError("必须提供员工身份证号才能关联员工。如果提供了姓名，也请同时提供身份证号。")
+
+            found_employee = db.query(Employee).filter(Employee.id_number == employee_id_card).first()
+            if not found_employee:
+                raise ValueError(f"未找到身份证号为 '{employee_id_card}' 的员工。")
+
+            # Optional: Validate name if both ID card and name are provided
+            if employee_first_name is not None and employee_last_name is not None:
+                if not (found_employee.first_name == employee_first_name and found_employee.last_name == employee_last_name):
+                    raise ValueError(f"提供的姓名 ('{employee_first_name} {employee_last_name}') 与身份证号 '{employee_id_card}' 对应的员工 ('{found_employee.first_name} {found_employee.last_name}') 不匹配。")
+            
+            # Check if this employee is already linked to another user (excluding the current user being updated)
+            existing_link = db.query(User).filter(User.employee_id == found_employee.id, User.id != user_id).first()
+            if existing_link:
+                raise ValueError(f"员工 (身份证号: {employee_id_card}) 已关联到其他用户 '{existing_link.username}'。")
+            
+            target_employee_id = found_employee.id
+    
+    # Apply other updates from update_data (username, email, full_name, etc.)
     for key, value in update_data.items():
         setattr(db_user, key, value)
+    
+    db_user.employee_id = target_employee_id # Apply the determined employee_id
 
     if user.password:
         db_user.password_hash = pwd_context.hash(user.password)
 
     if user.role_ids is not None:
-        if not user.role_ids:
+        if not user.role_ids: # Empty list means unassign all roles
             db_user.roles = []
         else:
             roles = db.query(Role).filter(Role.id.in_(user.role_ids)).all()
             if len(roles) != len(set(user.role_ids)):
                 found_db_ids = {r.id for r in roles}
                 missing_ids = set(user.role_ids) - found_db_ids
-                print(f"Warning: Invalid role ID(s) provided during user update for user {user_id}: {missing_ids}. Only valid roles will be assigned.")
+                # Consider logging this as a warning
+                # logging.warning(f"Invalid role ID(s) provided during user update for user {user_id}: {missing_ids}. Only valid roles will be assigned.")
             db_user.roles = roles
 
     db.commit()
     db.refresh(db_user)
-    updated_db_user_with_relations = get_user(db, user_id)
+    updated_db_user_with_relations = get_user(db, user_id) 
     return updated_db_user_with_relations
 
 

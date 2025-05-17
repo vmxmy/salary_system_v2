@@ -1,8 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-项目核心信息文档路径：
-docs/v2/
-请使用改路径下各文档深入了解当前项目。

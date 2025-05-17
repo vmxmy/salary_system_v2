@@ -2,17 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, message, Spin, Alert, Modal, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import ActionButton from '../../../../components/common/ActionButton';
-import { employeeService } from '../../../services/employeeService';
-import type { JobHistoryItem, JobHistoryPageResult } from '../../types';
+import { employeeService } from '../../../../services/employeeService';
+import type { JobHistoryItem, JobHistoryPageResult, CreateJobHistoryPayload, UpdateJobHistoryPayload } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import JobHistoryTable from './JobHistoryTable';
 import JobHistoryModal from './JobHistoryModal';
+import { useTranslation } from 'react-i18next';
+import { useLookupMaps, type LookupMaps } from '../../../../hooks/useLookupMaps';
+import dayjs from 'dayjs';
 
 interface JobHistoryTabProps {
   employeeId: string;
 }
 
 const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
+  const { t } = useTranslation(['employee', 'common']);
+  const { lookupMaps, loadingLookups, errorLookups } = useLookupMaps();
   const [jobHistory, setJobHistory] = useState<JobHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,13 +49,13 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
       const result: JobHistoryPageResult = await employeeService.getEmployeeJobHistory(employeeId, { page: 1, pageSize: 1000 });
       setJobHistory(result.data);
     } catch (err: any) {
-      console.error('获取岗位历史失败:', err);
-      setError('获取岗位历史失败，请稍后重试。');
-      message.error(err.message || '获取岗位历史失败!');
+      console.error(t('employee:detail_page.job_history_tab.message.get_history_failed', '获取岗位历史失败:'), err);
+      setError(t('employee:detail_page.job_history_tab.message.get_history_failed_retry', '获取岗位历史失败，请稍后重试。'));
+      message.error(err.message || t('employee:detail_page.job_history_tab.message.get_history_failed', '获取岗位历史失败!'));
     } finally {
       setLoading(false);
     }
-  }, [employeeId]);
+  }, [employeeId, t]);
 
   useEffect(() => {
     fetchJobHistory();
@@ -70,18 +75,18 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
 
   const handleDelete = async (id: number) => {
     Modal.confirm({
-      title: '确认删除',
-      content: '确定要删除这条岗位历史记录吗？',
-      okText: '确认',
-      cancelText: '取消',
+      title: t('common:modal.confirm_delete.title', '确认删除'),
+      content: t('employee:detail_page.job_history_tab.delete_confirm.content', '确定要删除这条岗位历史记录吗？'),
+      okText: t('common:button.confirm', '确认'),
+      cancelText: t('common:button.cancel', '取消'),
       onOk: async () => {
         try {
           setLoading(true);
-          await employeeService.deleteJobHistoryItem(id);
-          message.success('岗位历史记录删除成功');
-          fetchJobHistory(); // Refresh data
+          await employeeService.deleteJobHistoryItem(employeeId, String(id));
+          message.success(t('employee:detail_page.job_history_tab.message.delete_success', '岗位历史记录删除成功'));
+          fetchJobHistory();
         } catch (error: any) {
-          message.error(error.message || '删除失败');
+          message.error(error.message || t('employee:detail_page.job_history_tab.message.delete_failed', '删除失败'));
         } finally {
           setLoading(false);
         }
@@ -89,26 +94,32 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
     });
   };
 
-  const handleModalSubmit = async (values: Omit<JobHistoryItem, 'id' | 'employeeId' | 'departmentName' | 'positionName'>) => {
+  const handleModalSubmit = async (formValues: Omit<JobHistoryItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'job_title_name'>) => {
     try {
-      setLoading(true); // Handled by modal, but good for tab context too
+      setLoading(true);
       if (modalMode === 'add') {
-        await employeeService.addJobHistoryItem(employeeId, values);
-        message.success('岗位历史添加成功');
+        const createPayload: CreateJobHistoryPayload = {
+          ...formValues,
+          effectiveDate: dayjs(formValues.effectiveDate).isValid() ? dayjs(formValues.effectiveDate).format('YYYY-MM-DD') : '',
+        };
+        await employeeService.addJobHistoryItem(employeeId, createPayload);
+        message.success(t('employee:detail_page.job_history_tab.message.add_success', '岗位历史添加成功'));
       } else if (editingRecord) {
-        await employeeService.updateJobHistoryItem(editingRecord.id, values);
-        message.success('岗位历史更新成功');
+        const updatePayload: UpdateJobHistoryPayload = {
+          ...formValues,
+          id: editingRecord.id,
+          effectiveDate: dayjs(formValues.effectiveDate).isValid() ? dayjs(formValues.effectiveDate).format('YYYY-MM-DD') : undefined,
+        };
+        await employeeService.updateJobHistoryItem(employeeId, String(editingRecord.id), updatePayload);
+        message.success(t('employee:detail_page.job_history_tab.message.update_success', '岗位历史更新成功'));
       }
       setIsModalVisible(false);
       setEditingRecord(null);
-      fetchJobHistory(); // Refresh data
+      fetchJobHistory();
     } catch (error: any) {
-      // Error message is shown by modal usually, but can have a fallback here
-      message.error(error.message || '操作失败，请重试');
-      // Do not close modal on error, let user correct it
-      // setIsModalVisible(false);
+      message.error(error.message || t('common:message.operation_failed_default_retry', '操作失败，请重试'));
     } finally {
-      // setLoading(false); // Modal handles its own internal loading state for submission
+      setLoading(false);
     }
   };
 
@@ -122,15 +133,15 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
       <div style={{ textAlign: 'center', padding: '20px'}}>
         <Spin>
           <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>
-            加载岗位历史中...
+            {t('employee:detail_page.job_history_tab.loading_history', '加载岗位历史中...')}
           </div>
         </Spin>
       </div>
     );
   }
 
-  if (error && !jobHistory.length) { // Show error only if there's no data to display
-    return <Alert message="错误" description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
+  if (error && !jobHistory.length) {
+    return <Alert message={t('common:status.error', '错误')} description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
   }
 
   return (
@@ -141,28 +152,28 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
           icon={<PlusOutlined />}
           onClick={handleAdd}
           style={{ marginBottom: 16 }}
-          disabled={loading} // Disable add button while tab is loading data
+          disabled={loading}
         >
-          添加岗位历史
+          {t('employee:detail_page.job_history_tab.button_add_history', '添加岗位历史')}
         </Button>
       )}
       {error && jobHistory.length > 0 && (
-         <Alert message="错误" description={error} type="warning" showIcon closable style={{ marginBottom: '16px' }} />
+         <Alert message={t('common:status.error', '错误')} description={error} type="warning" showIcon closable style={{ marginBottom: '16px' }} />
       )}
       <JobHistoryTable
         dataSource={jobHistory}
-        loading={loading}
+        loading={loading || loadingLookups}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        // The edit and delete buttons are rendered within JobHistoryTable, so no direct replacement here
+        lookupMaps={lookupMaps}
       />
       {isModalVisible && (
         <JobHistoryModal
           visible={isModalVisible}
           mode={modalMode}
-          initialData={editingRecord || undefined} // Pass undefined if null
+          initialData={editingRecord || undefined}
           employeeId={employeeId}
-          onSubmit={handleModalSubmit} // Modal will handle its own loading state for submission
+          onSubmit={handleModalSubmit}
           onCancel={handleModalCancel}
         />
       )}
