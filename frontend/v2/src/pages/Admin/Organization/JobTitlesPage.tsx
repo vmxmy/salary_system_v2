@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, message, Popconfirm, TreeSelect } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
+import ActionButton from '../../../components/common/ActionButton';
+import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs'; // For DatePicker default values
 
 import { getJobTitles, createJobTitle, updateJobTitle, deleteJobTitle, getAllJobTitlesFlat } from '../../../api/jobTitles';
+import styles from './TreeTable.module.less';
 import type { GetJobTitlesApiParams } from '../../../api/jobTitles'; // Import new API params type
 import type { JobTitle, CreateJobTitlePayload, UpdateJobTitlePayload } from '../../../api/types';
 import type { TableParams } from '../../../types/antd'; // Reusing TableParams
@@ -57,6 +61,7 @@ interface JobTitleFormValues extends Omit<CreateJobTitlePayload, 'effective_date
 }
 
 const JobTitlesPage: React.FC = () => {
+  const { t } = useTranslation();
   const [jobTitles, setJobTitles] = useState<JobTitlePageItem[]>([]);
   const [jobTitlesTree, setJobTitlesTree] = useState<JobTitlePageItem[]>([]);
   const [allFlatJobTitles, setAllFlatJobTitles] = useState<JobTitle[]>([]);
@@ -78,7 +83,7 @@ const JobTitlesPage: React.FC = () => {
     }
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData: () => Promise<void> = useCallback(async () => {
     setIsLoading(true);
     try {
       // 获取所有职位数据，用于构建树形结构
@@ -128,11 +133,11 @@ const JobTitlesPage: React.FC = () => {
 
       // 不再 setTableParams，彻底断开死循环
     } catch (error) {
-      message.error('获取职位列表失败');
+      message.error(t('job_title_management_page.message_fetch_list_failed'));
       console.error('Failed to fetch job titles:', error);
     }
     setIsLoading(false);
-  }, []); // 移除依赖，避免循环
+  }, [t]);
 
   useEffect(() => {
     fetchData();
@@ -208,17 +213,17 @@ const JobTitlesPage: React.FC = () => {
     try {
       if (editingJobTitle) {
         await updateJobTitle(editingJobTitle.id, payload as UpdateJobTitlePayload); // Cast for update
-        message.success('职位更新成功');
+        message.success(t('job_title_management_page.message_update_success'));
       } else {
         await createJobTitle(payload);
-        message.success('职位创建成功');
+        message.success(t('job_title_management_page.message_create_success'));
       }
       setIsModalOpen(false);
       setEditingJobTitle(null);
       fetchData();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || '未知错误';
-      message.error(`操作失败: ${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('job_title_management_page.error_unknown');
+      message.error(`${t('job_title_management_page.message_operation_failed_prefix')}${errorMsg}`);
       console.error('Job title operation failed:', error.response?.data || error);
     }
     setModalLoading(false);
@@ -227,11 +232,11 @@ const JobTitlesPage: React.FC = () => {
   const handleDeleteJobTitle = async (id: number) => {
     try {
       await deleteJobTitle(id);
-      message.success('职位删除成功');
+      message.success(t('job_title_management_page.message_delete_success'));
       fetchData();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || '职位可能正在使用中';
-      message.error(`删除失败: ${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('job_title_management_page.message_delete_failed_has_children');
+      message.error(`${t('job_title_management_page.message_delete_failed_prefix')}${errorMsg}`);
       console.error('Failed to delete job title:', error.response?.data || error);
     }
   };
@@ -261,58 +266,58 @@ const JobTitlesPage: React.FC = () => {
       };
       await createJobTitle(childPayload);
 
-      message.success('测试数据创建成功');
+      message.success(t('job_title_management_page.message_test_data_create_success'));
       fetchData(); // 重新获取数据
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || '未知错误';
-      message.error(`测试数据创建失败: ${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('job_title_management_page.error_unknown');
+      message.error(`${t('job_title_management_page.message_test_data_create_failed_prefix')}${errorMsg}`);
       console.error('Failed to create test data:', error);
     }
   };
 
   const columns: ColumnsType<JobTitlePageItem> = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-    { title: '代码', dataIndex: 'code', key: 'code', width: 150 },
-    { title: '名称', dataIndex: 'name', key: 'name' }, // 树形结构将基于此列
-    { title: '上级职位ID', dataIndex: 'parent_job_title_id', key: 'parent_job_title_id', width: 120, render: (id) => id || '-' },
-    { title: '描述', dataIndex: 'description', key: 'description', render: (text) => text || '-' },
+    { title: t('job_title_management_page.table_column_id'), dataIndex: 'id', key: 'id', width: 80 },
+    { title: t('job_title_management_page.table_column_code'), dataIndex: 'code', key: 'code', width: 150 },
+    { title: t('job_title_management_page.table_column_name'), dataIndex: 'name', key: 'name' }, // 树形结构将基于此列
+    { title: t('job_title_management_page.table_column_parent_id'), dataIndex: 'parent_job_title_id', key: 'parent_job_title_id', width: 120, render: (id) => id || t('job_title_management_page.table_cell_empty') },
+    { title: t('job_title_management_page.table_column_description'), dataIndex: 'description', key: 'description', render: (text) => text || t('job_title_management_page.table_cell_empty') },
     {
-      title: '生效日期',
+      title: t('job_title_management_page.table_column_effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
       width: 120,
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : '-',
+      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('job_title_management_page.table_cell_empty'),
     },
     {
-      title: '失效日期',
+      title: t('job_title_management_page.table_column_end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
       width: 120,
-      render: (text?: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : '-',
+      render: (text?: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('job_title_management_page.table_cell_empty'),
     },
     {
-      title: '激活',
+      title: t('job_title_management_page.table_column_active'),
       dataIndex: 'is_active',
       key: 'is_active',
       width: 80,
       render: (isActive: boolean) => <Switch checked={isActive} disabled />,
     },
     {
-      title: '操作',
+      title: t('job_title_management_page.table_column_actions'),
       key: 'action',
       width: 180,
       render: (_: any, record: JobTitlePageItem) => (
-        <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} />
-          <Button icon={<PlusOutlined />} onClick={() => showCreateChildModal(record.id)} title="添加子职位" />
+        <Space size="small">
+          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('job_title_management_page.tooltip_edit_job_title')} />
           <Popconfirm
-            title="确定删除此职位吗？"
+            title={t('job_title_management_page.popconfirm_delete_title')}
             onConfirm={() => handleDeleteJobTitle(record.id)}
-            okText="是"
-            cancelText="否"
+            okText={t('job_title_management_page.popconfirm_ok')}
+            cancelText={t('job_title_management_page.popconfirm_cancel')}
           >
-            <Button icon={<DeleteOutlined />} danger />
+            <ActionButton actionType="delete" tooltipTitle={t('job_title_management_page.tooltip_delete_job_title')} danger/>
           </Popconfirm>
+          <Button size="small" icon={<PlusOutlined />} onClick={() => showCreateChildModal(record.id)} title={t('job_title_management_page.tooltip_add_child_job_title')} />
         </Space>
       ),
     },
@@ -320,23 +325,26 @@ const JobTitlesPage: React.FC = () => {
 
   return (
     <div>
-      <Title level={3}>职位管理</Title>
-      <Space style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-          新建顶级职位
+      <PageHeaderLayout>
+        <Title level={4} style={{ marginBottom: 0 }}>{t('job_title_management_page.title')}</Title>
+        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal} shape="round">
+          {t('job_title_management_page.button_create_top_level')}
         </Button>
+      </PageHeaderLayout>
+      <Space style={{ marginBottom: 16 }}>
         <Button onClick={createTestData}>
-          创建测试数据
+          {t('job_title_management_page.button_create_test_data')}
         </Button>
         <Button onClick={() => {
           console.log('Current jobTitles:', jobTitles);
           console.log('Current allFlatJobTitles:', allFlatJobTitles);
-          message.info('数据已打印到控制台');
+          message.info(t('job_title_management_page.message_debug_data_logged'));
         }}>
-          调试数据
+          {t('job_title_management_page.button_debug_data')}
         </Button>
       </Space>
       <Table
+        className={styles['tree-table']}
         columns={columns}
         dataSource={jobTitles}
         loading={isLoading}
@@ -350,9 +358,17 @@ const JobTitlesPage: React.FC = () => {
           indentSize: 20, // 缩进大小
         }}
         bordered
+        onRow={(record) => {
+          // 这里没有 depth 字段，需兼容性处理
+          // 若后续有 depth 字段可直接用 record.depth
+          // 目前只加粗根节点（parent_job_title_id 为 null）
+          return {
+            style: record.parent_job_title_id == null ? { fontWeight: 'bold' } : {}
+          };
+        }}
       />
       <Modal
-        title={editingJobTitle ? '编辑职位' : '新建职位'}
+        title={editingJobTitle ? t('job_title_management_page.modal_title_edit_job_title') : t('job_title_management_page.modal_title_new_job_title')}
         open={isModalOpen}
         onCancel={handleCancelModal}
         onOk={() => form.submit()}
@@ -360,25 +376,25 @@ const JobTitlesPage: React.FC = () => {
         destroyOnHidden
       >
         <Form form={form} layout="vertical" name="jobTitleForm" onFinish={handleFormSubmit}>
-          <Form.Item name="code" label="职位代码" rules={[{ required: true, message: '请输入职位代码' }]}>
-            <Input />
+          <Form.Item name="code" label={t('job_title_management_page.form_label_code')} rules={[{ required: true, message: t('job_title_management_page.form_validation_code_required') }]}>
+            <Input placeholder={t('job_title_management_page.form_placeholder_code')} />
           </Form.Item>
-          <Form.Item name="name" label="职位名称" rules={[{ required: true, message: '请输入职位名称' }]}>
-            <Input />
+          <Form.Item name="name" label={t('job_title_management_page.form_label_name')} rules={[{ required: true, message: t('job_title_management_page.form_validation_name_required') }]}>
+            <Input placeholder={t('job_title_management_page.form_placeholder_name')} />
           </Form.Item>
-          <Form.Item name="description" label="描述">
-            <Input.TextArea rows={2} />
+          <Form.Item name="description" label={t('job_title_management_page.form_label_description')}>
+            <Input.TextArea rows={2} placeholder={t('job_title_management_page.form_placeholder_description')} />
           </Form.Item>
-          <Form.Item name="parent_job_title_id" label="上级职位">
+          <Form.Item name="parent_job_title_id" label={t('job_title_management_page.form_label_parent_job_title')}>
             <TreeSelect
               showSearch
               style={{ width: '100%' }}
               styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder="选择上级职位 (留空则为顶级职位)"
+              placeholder={t('job_title_management_page.form_placeholder_parent_job_title')}
               allowClear
               treeDefaultExpandAll
               treeData={buildTreeData(allFlatJobTitles)}
-              notFoundContent={<div style={{ padding: '8px 12px', color: '#999' }}>暂无职位数据</div>}
+              notFoundContent={<div style={{ padding: '8px 12px', color: '#999' }}>{t('job_title_management_page.treeselect_not_found')}</div>}
               filterTreeNode={(inputValue, treeNode) =>
                 treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
               }
@@ -387,17 +403,17 @@ const JobTitlesPage: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="effective_date"
-            label="生效日期"
-            rules={[{ required: true, message: '请选择生效日期' }]}
+            label={t('job_title_management_page.form_label_effective_date')}
+            rules={[{ required: true, message: t('job_title_management_page.form_validation_effective_date_required') }]}
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="end_date" label="失效日期">
+          <Form.Item name="end_date" label={t('job_title_management_page.form_label_end_date')}>
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
           <Form.Item
             name="is_active"
-            label="是否激活"
+            label={t('job_title_management_page.form_label_is_active')}
             valuePropName="checked"
             initialValue={true} // Default is_active in form to true
           >

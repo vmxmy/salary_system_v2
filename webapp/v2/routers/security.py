@@ -14,7 +14,7 @@ from ..pydantic_models.security import (
     PermissionCreate, PermissionUpdate, Permission, PermissionListResponse,
     UserRoleCreate, RolePermissionCreate, UserRoleAssignRequest
 )
-from ...auth import get_current_user, require_role
+from ...auth import require_permissions # MODIFIED: require_role removed as it will be replaced
 from ..utils import create_error_response
 
 router = APIRouter(
@@ -32,7 +32,7 @@ async def get_users(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_VIEW_LIST"])) # MODIFIED
 ):
     """
     获取用户列表，支持分页、搜索和过滤。
@@ -87,7 +87,7 @@ async def get_users(
 async def get_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_VIEW_DETAIL"])) # MODIFIED
 ):
     """
     根据ID获取用户详情。
@@ -129,7 +129,7 @@ async def get_user(
 async def create_user(
     user: UserCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_CREATE"])) # MODIFIED
 ):
     """
     创建新用户。
@@ -169,7 +169,7 @@ async def update_user(
     user_id: int,
     user: UserUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_UPDATE"])) # MODIFIED
 ):
     """
     更新用户信息。
@@ -221,7 +221,7 @@ async def update_user(
 async def delete_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_DELETE"])) # MODIFIED
 ):
     """
     删除用户。
@@ -264,7 +264,7 @@ async def assign_roles_to_user_endpoint(
     user_id: int,
     user_role_assign_request: UserRoleAssignRequest, 
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_MANAGE_ROLES"])) # MODIFIED
 ):
     """
     为指定用户分配角色列表，替换其现有所有角色。
@@ -311,7 +311,7 @@ async def assign_roles_to_user_endpoint(
 async def get_user_roles(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_USER_MANAGE_ROLES"])) # MODIFIED
 ):
     """
     获取指定用户拥有的所有角色。
@@ -351,7 +351,7 @@ async def get_roles(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_ROLE_VIEW_LIST"])) # MODIFIED (get_current_user replaced)
 ):
     """
     获取角色列表，支持分页和搜索。
@@ -401,7 +401,7 @@ async def get_roles(
 async def get_role(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_ROLE_VIEW_DETAIL"])) # MODIFIED (get_current_user replaced)
 ):
     """
     根据ID获取角色详情。
@@ -442,7 +442,7 @@ async def get_role(
 async def create_role(
     role: RoleCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_ROLE_CREATE"])) # MODIFIED
 ):
     """
     创建新角色。
@@ -482,7 +482,7 @@ async def update_role(
     role_id: int,
     role: RoleUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_ROLE_UPDATE"])) # MODIFIED
 ):
     """
     更新角色信息。
@@ -534,7 +534,7 @@ async def update_role(
 async def delete_role(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_ROLE_DELETE"])) # MODIFIED
 ):
     """
     删除角色。
@@ -576,7 +576,7 @@ async def assign_permission_to_role(
     role_id: int,
     permission_id: int = Body(..., embed=True),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_ROLE_MANAGE_PERMISSIONS"])) # MODIFIED
 ):
     """
     为角色分配权限。
@@ -619,7 +619,7 @@ async def remove_permission_from_role(
     role_id: int,
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_ROLE_MANAGE_PERMISSIONS"])) # MODIFIED
 ):
     """
     从角色中移除权限。
@@ -662,7 +662,7 @@ async def remove_permission_from_role(
 async def get_role_permissions(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user) # 权限暂定，后续可根据需要调整
+    current_user = Depends(require_permissions(["P_ROLE_MANAGE_PERMISSIONS"])) # MODIFIED (get_current_user replaced)
 ):
     """
     获取指定角色所拥有的所有权限。
@@ -702,7 +702,7 @@ async def get_permissions(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_PERMISSION_VIEW_LIST"])) # MODIFIED (get_current_user replaced)
 ):
     """
     获取权限列表，支持分页和搜索。
@@ -752,7 +752,7 @@ async def get_permissions(
 async def get_permission(
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_PERMISSION_VIEW_DETAIL"])) # MODIFIED (get_current_user replaced)
 ):
     """
     根据ID获取权限详情。
@@ -793,7 +793,7 @@ async def get_permission(
 async def create_permission(
     permission: PermissionCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_PERMISSION_CREATE"])) # MODIFIED
 ):
     """
     创建新权限。
@@ -833,7 +833,7 @@ async def update_permission(
     permission_id: int,
     permission: PermissionUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_PERMISSION_UPDATE"])) # MODIFIED
 ):
     """
     更新权限信息。
@@ -885,7 +885,7 @@ async def update_permission(
 async def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_PERMISSION_DELETE"])) # MODIFIED
 ):
     """
     删除权限。

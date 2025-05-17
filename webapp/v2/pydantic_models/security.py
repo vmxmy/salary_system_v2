@@ -39,6 +39,7 @@ class User(UserBase):
     roles: List['Role'] = []
     description: Optional[str] = Field(None, max_length=255, description="用户描述")
     is_active: bool = True
+    all_permission_codes: Optional[List[str]] = Field(None, description="用户通过其角色获得的所有唯一权限代码列表")
 
     class Config:
         from_attributes = True

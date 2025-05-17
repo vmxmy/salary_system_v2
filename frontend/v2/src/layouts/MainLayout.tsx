@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Avatar, Dropdown, Space, Typography, Breadcrumb, Button } from 'antd';
 import {
@@ -18,16 +18,23 @@ import {
   ControlOutlined,
   UsergroupAddOutlined,
   UserAddOutlined,
+  DollarCircleOutlined,
+  CalendarOutlined,
+  CalculatorOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions } from '../hooks/usePermissions';
-// import routes from '../router/routes'; // 用于动态菜单和面包屑，后续实现
-// import { AppRouteObject } from '../router/routes'; // 类型导入
+import { allAppRoutes, type AppRouteObject } from '../router/routes'; // Import allAppRoutes and AppRouteObject type
+import LanguageSwitcher from '../components/common/LanguageSwitcher'; // Import LanguageSwitcher
+import { useTranslation } from 'react-i18next'; // Import useTranslation
+
+// Import payroll permissions
+import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW } from '../pages/Payroll/constants/payrollPermissions';
 
 const { Header, Content, Sider, Footer } = Layout;
 const { Text } = Typography;
 
-// 简单的面包屑名称映射，后续可以从路由 meta 中获取
+// 简单的面包屑名称映射，后续可以从路由 meta 中获取 - THIS WILL BE DEPRECATED by new logic
 const breadcrumbNameMap: Record<string, string> = {
   '/dashboard': '仪表盘',
   '/admin': '系统管理',
@@ -45,6 +52,7 @@ const breadcrumbNameMap: Record<string, string> = {
 
 
 const MainLayout: React.FC = () => {
+  const { t } = useTranslation(); // Initialize t function
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,6 +60,8 @@ const MainLayout: React.FC = () => {
   const logoutAction = useAuthStore((state) => state.logoutAction);
   const authToken = useAuthStore((state) => state.authToken);
   const { hasPermission, hasRole } = usePermissions();
+  const userPermissions = useAuthStore((state) => state.userPermissions);
+  const userRoleCodes = useAuthStore((state) => state.userRoleCodes); // For hasRole dependency
 
   useEffect(() => {
     // 初始加载或 token 变化时，如果没有用户信息且有 token，尝试获取
@@ -70,12 +80,12 @@ const MainLayout: React.FC = () => {
   const userMenuItems = [
     {
       key: 'profile',
-      label: <Link to="/employee-info/my-info">个人中心</Link>, // Corrected from /employee/my-info based on routes.tsx
+      label: <Link to="/employee-info/my-info">{t('user_menu.profile')}</Link>,
       icon: <UserOutlined />,
     },
     {
       key: 'logout',
-      label: '退出登录',
+      label: t('user_menu.logout'),
       icon: <LogoutOutlined />,
       onClick: handleLogout,
     },
@@ -83,175 +93,201 @@ const MainLayout: React.FC = () => {
 
   // 生成面包屑
   const pathSnippets = location.pathname.split('/').filter((i) => i);
-  const extraBreadcrumbItems: { key: string; title: React.ReactNode }[] = pathSnippets.map((_, index) => {
-    const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
-    const name = breadcrumbNameMap[url] || pathSnippets[index];
-    return {
-      key: url,
-      title: index === pathSnippets.length - 1 ? name : <Link to={url}>{name}</Link>,
-    };
-  });
+  const extraBreadcrumbItems = useMemo(() => {
+    return pathSnippets
+      .map((snippet, index) => {
+        const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
+        // Find route from allAppRoutes (which now has keys in meta.title)
+        const route = allAppRoutes.find((r) => {
+            // Handle potential trailing slashes or exact matches
+            const rPath = r.path?.endsWith('/') ? r.path.slice(0, -1) : r.path;
+            const uPath = url.endsWith('/') ? url.slice(0, -1) : url;
+            return rPath === uPath;
+        });
+
+        if (route?.meta?.hideInBreadcrumbIfParentOfNext && index < pathSnippets.length - 1) {
+          return null;
+        }
+
+        const nameKey = route?.meta?.title || snippet; // nameKey is now a translation key or a snippet
+        const translatedName = t(nameKey as string, snippet); // Provide snippet as fallback
+
+        return {
+          key: url,
+          title: index === pathSnippets.length - 1 ? translatedName : <Link to={url}>{translatedName}</Link>,
+        };
+      })
+      .filter(item => item !== null) as { key: string; title: React.ReactNode }[];
+  }, [location.pathname, allAppRoutes, t]); // Added t to dependencies
 
   const breadcrumbItems: { key: string; title: React.ReactNode }[] = [
     {
       key: 'home',
-      title: <Link to="/dashboard"><HomeOutlined /></Link>,
+      title: <Link to="/dashboard"><HomeOutlined /></Link>, // Home icon usually doesn't need translation itself, but if it had text...
     },
     ...extraBreadcrumbItems,
   ];
 
   // Dynamically build admin children based on permissions
   const organizationChildren = [
-    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">部门管理</Link>, icon: <BranchesOutlined /> },
-    { key: '/admin/organization/job-titles', label: <Link to="/admin/organization/job-titles">职位管理</Link>, icon: <IdcardOutlined /> },
+    // These labels come from route.meta.title via allAppRoutes, so they will be translated if link text is derived from it in Menu items.
+    // Or, if Menu items are constructed with explicit labels, those labels need t()
+    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">{t('page_title.department_management')}</Link>, icon: <BranchesOutlined /> },
+    { key: '/admin/organization/job-titles', label: <Link to="/admin/organization/job-titles">{t('page_title.job_title_management')}</Link>, icon: <IdcardOutlined /> },
   ];
 
-  // Define initial admin children, order matters for display. Organization is now a top-level item.
-  const adminChildren = [
-    { key: '/admin/users', label: <Link to="/admin/users">用户管理</Link>, icon: <TeamOutlined /> },
-    { key: '/admin/roles', label: <Link to="/admin/roles">角色管理</Link>, icon: <UserSwitchOutlined /> },
-    // Permissions will be inserted after roles if user is SUPER_ADMIN
-    // Organization item removed from here
-    { key: '/admin/config', label: <Link to="/admin/config">系统配置</Link>, icon: <ControlOutlined /> },
-  ];
-
-  // Conditionally add 'Permissions Management' for SUPER_ADMIN
-  // This ensures it's placed correctly, e.g., after 'Roles'
-  if (hasRole('SUPER_ADMIN')) {
-    const permissionsLink = {
-      key: '/admin/permissions',
-      label: <Link to="/admin/permissions">权限管理</Link>,
-      icon: <SafetyOutlined />,
-    };
-    const rolesIndex = adminChildren.findIndex(child => child.key === '/admin/roles');
-    if (rolesIndex !== -1) {
-      adminChildren.splice(rolesIndex + 1, 0, permissionsLink);
-    } else {
-      // Fallback if roles are not found (e.g. if adminChildren is empty or roles link is removed for some reason)
-      // Insert before config, or push to end. Let's push to end for simplicity as this is a fallback.
-      adminChildren.push(permissionsLink);
+  const adminChildren = useMemo(() => {
+    const baseAdminChildren = [
+      { key: '/admin/users', label: <Link to="/admin/users">{t('page_title.user_management')}</Link>, icon: <TeamOutlined /> },
+      { key: '/admin/roles', label: <Link to="/admin/roles">{t('page_title.role_management')}</Link>, icon: <UserSwitchOutlined /> },
+      { key: '/admin/config', label: <Link to="/admin/config">{t('page_title.system_configuration')}</Link>, icon: <ControlOutlined /> },
+    ];
+    if (hasRole('SUPER_ADMIN')) {
+      const permissionsLink = {
+        key: '/admin/permissions',
+        label: <Link to="/admin/permissions">{t('page_title.permission_management')}</Link>,
+        icon: <SafetyOutlined />,
+      };
+      const rolesIndex = baseAdminChildren.findIndex(child => child.key === '/admin/roles');
+      if (rolesIndex !== -1) {
+        baseAdminChildren.splice(rolesIndex + 1, 0, permissionsLink);
+      } else {
+        baseAdminChildren.push(permissionsLink);
+      }
     }
-  }
+    return baseAdminChildren;
+  }, [hasRole, t]); // Added t
 
-  // Define the new top-level organization menu item
-  const organizationMenuItem = {
-    key: '/admin/organization', // Parent key for the menu group
-    label: '组织架构',
+  const organizationMenuItem = useMemo(() => ({
+    key: '/admin/organization',
+    label: t('page_title.organization_structure'),
     icon: <ApartmentOutlined />,
-    children: organizationChildren,
-  };
+    children: organizationChildren, 
+  }), [organizationChildren, t]); // Added t
 
-  // HR Management Menu Item
-  const hrManagementChildren = [
+  const hrManagementChildren = useMemo(() => [
     {
         key: '/hr/employees',
-        label: <Link to="/hr/employees">员工档案</Link>,
-        icon: <TeamOutlined />, // Using existing TeamOutlined for consistency or specific icon
+        label: <Link to="/hr/employees">{t('page_title.employee_files')}</Link>, 
+        icon: <TeamOutlined />, 
     },
     {
-      label: <Link to="/hr/employees/create">创建员工</Link>,
+      label: <Link to="/hr/employees/create">{t('page_title.create_employee')}</Link>,
       key: '/hr/employees/create', 
-      path: '/hr/employees/create', // Restored path attribute
       icon: <UserAddOutlined />,
     },
-    // Future HR sub-modules like leave, payroll (if they become sub-items of HR top menu)
-    // { key: '/hr/leave', label: <Link to="/hr/leave">假勤管理</Link>, icon: <CalendarOutlined /> },
-  ];
+  ], [t]); // Added t
 
-  const hrManagementMenuItem = {
+  const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',
-    label: '人事管理',
+    label: t('page_title.hr_management'),
     icon: <UsergroupAddOutlined />,
     children: hrManagementChildren,
-    // Add permission check if HR menu itself should be conditional
-    // visible: hasPermission('hr_module:access') || hasRole(['HR_MANAGER', 'HR_SPECIALIST', 'SUPER_ADMIN'])
-  };
+  }), [hrManagementChildren, t]); // Added t
 
-  // 侧边栏菜单项
-  const siderMenuItems = [
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: <Link to="/dashboard">仪表盘</Link>,
-    },
-    {
-      key: '/admin',
-      icon: <SettingOutlined />,
-      label: '系统管理',
-      children: adminChildren, // adminChildren no longer contains Organization
-    },
-    organizationMenuItem, // Add Organization as a top-level menu item
-    hrManagementMenuItem, // Added HR Management Menu
-    // ...其他模块 (if any)
-  ];
+  const siderMenuItems = useMemo(() => {
+    const baseItems = [
+      {
+        key: '/dashboard',
+        icon: <DashboardOutlined />,
+        label: <Link to="/dashboard">{t('page_title.dashboard')}</Link>,
+      },
+      {
+        key: '/admin',
+        icon: <SettingOutlined />,
+        label: t('page_title.system_management'),
+        children: adminChildren,
+      },
+      organizationMenuItem,
+      hrManagementMenuItem,
+    ];
+
+    const currentPayrollManagementChildren = [];
+    if (hasPermission(P_PAYROLL_PERIOD_VIEW)) {
+      currentPayrollManagementChildren.push({
+        key: '/finance/payroll/periods',
+        label: <Link to="/finance/payroll/periods">{t('page_title.payroll_periods')}</Link>,
+        icon: <CalendarOutlined />,
+      });
+    }
+    if (hasPermission(P_PAYROLL_RUN_VIEW)) {
+      currentPayrollManagementChildren.push({
+        key: '/finance/payroll/runs',
+        label: <Link to="/finance/payroll/runs">{t('page_title.payroll_runs')}</Link>,
+        icon: <CalculatorOutlined />,
+      });
+    }
+
+    const currentPayrollManagementMenuItem = currentPayrollManagementChildren.length > 0 ? {
+      key: '/finance/payroll',
+      label: t('page_title.payroll_management'), // Top level menu item for payroll
+      icon: <DollarCircleOutlined />,
+      children: currentPayrollManagementChildren,
+    } : null;
+
+    if (currentPayrollManagementMenuItem) {
+      return [...baseItems, currentPayrollManagementMenuItem];
+    }
+    return baseItems;
+  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, organizationMenuItem, hrManagementMenuItem, t]); // Added t
   
   // 获取当前选中的菜单项key
-  const getSelectedKeys = () => {
+  const selectedKeys = useMemo(() => {
     const currentPath = location.pathname;
     let selectedKey = '';
     // 优先完全匹配或子路径匹配
     for (const item of siderMenuItems) {
+      if (!item) continue; // Skip null items (like payrollManagementMenuItem if it's null)
       if (item.key === currentPath) {
-        selectedKey = item.key as string; // Assuming key is string
+        selectedKey = item.key as string;
         break;
       }
-      // Check if children exists and is an array, and that item itself is an object
-      if (typeof item === 'object' && item !== null && 'children' in item && item.children && Array.isArray(item.children)) {
+      // Check if children exists and is an array before iterating
+      if ('children' in item && item.children && Array.isArray(item.children)) {
         for (const child of item.children) {
-          // Ensure child is an object with a key property
-          if (child && typeof child === 'object' && 'key' in child && child.key === currentPath) {
-            selectedKey = child.key as string; // Assuming key is string
-            // 如果需要父菜单也高亮，可以考虑返回 item.key 或 child.key 的数组
+          if (child && child.key === currentPath) {
+            selectedKey = child.key as string;
             break;
           }
         }
       }
       if (selectedKey) break;
     }
-    // 如果没有完全匹配的子菜单，尝试匹配父菜单
     if (!selectedKey) {
-        // Ensure item is an object with a key property for find
-        const matchedParent = siderMenuItems.find(item => 
-            item && typeof item === 'object' && 'key' in item && item.key && 
-            typeof item.key === 'string' && currentPath.startsWith(item.key)
-        );
-        if (matchedParent && typeof matchedParent === 'object' && 'key' in matchedParent && matchedParent.key) {
-            selectedKey = matchedParent.key as string; // Assuming key is string
-        }
+      const matchedParent = siderMenuItems.find(item => 
+        item && item.key && typeof item.key === 'string' && currentPath.startsWith(item.key)
+      );
+      if (matchedParent && matchedParent.key) {
+        selectedKey = matchedParent.key as string;
+      }
     }
-    return selectedKey ? [selectedKey] : ['/dashboard']; // 默认
-  };
+    return selectedKey ? [selectedKey] : ['/dashboard'];
+  }, [location.pathname, siderMenuItems]);
 
   // 获取当前需要展开的父菜单项key
-  const getDefaultOpenKeys = () => {
+  const defaultOpenKeys = useMemo(() => {
     const currentPath = location.pathname;
     const openKeyItem = siderMenuItems.find(item => {
-      // Ensure item is an object with children array
-      if (typeof item === 'object' && item !== null && 'children' in item && item.children && Array.isArray(item.children)) {
-        // Ensure child is an object with a key property
-        return item.children.some(child => 
-            child && typeof child === 'object' && 'key' in child && child.key === currentPath
-        );
-      }
-      return false;
+      if (!item) return false; // Skip null items
+      // Check if children exists and is an array before trying to access .some
+      return 'children' in item && item.children && Array.isArray(item.children) && item.children.some(child => child && child.key === currentPath);
     });
-    // Ensure openKeyItem is an object with a key property
-    return (openKeyItem && typeof openKeyItem === 'object' && 'key' in openKeyItem && openKeyItem.key) ? [openKeyItem.key as string] : []; // Assuming key is string
-  };
+    return (openKeyItem && openKeyItem.key) ? [openKeyItem.key as string] : [];
+  }, [location.pathname, siderMenuItems]);
 
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="dark">
         <div style={{ height: '32px', margin: '16px', background: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', lineHeight: '32px', color: 'white', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          {collapsed ? '薪' : '薪酬管理系统'}
+          {collapsed ? t('sider.title.collapsed') : t('sider.title.full')}
         </div>
         <Menu
           theme="dark"
           mode="inline"
           defaultSelectedKeys={['/dashboard']}
-          selectedKeys={getSelectedKeys()}
-          defaultOpenKeys={getDefaultOpenKeys()} // 自动展开当前选中子菜单的父菜单
+          selectedKeys={selectedKeys}
+          defaultOpenKeys={defaultOpenKeys}
           items={siderMenuItems}
         />
       </Sider>
@@ -268,7 +304,8 @@ const MainLayout: React.FC = () => {
             }}
           />
           <Space>
-            <Text>{currentUser?.username || '用户'}</Text>
+            <LanguageSwitcher />
+            <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu.default_user_text', '用户')}</Text>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Avatar style={{ cursor: 'pointer' }} icon={<UserOutlined />} /* src={currentUser?.avatar_url} // 假设有头像 */ />
             </Dropdown>
@@ -277,12 +314,14 @@ const MainLayout: React.FC = () => {
         <Content style={{ margin: '0 16px' }}>
           <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />
           <div style={{ padding: 24, minHeight: 360, background: '#fff', borderRadius: '8px' }}>
-            <React.Suspense fallback={<div className="page-loading-suspense">Loading page content...</div>}>
+            <React.Suspense fallback={<div className="page-loading-suspense">{t('common.loading', 'Loading page content...')}</div>}>
               <Outlet />
             </React.Suspense>
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>Salary Management System ©{new Date().getFullYear()} Created by AI Assistant</Footer>
+        <Footer style={{ textAlign: 'center' }}>
+          {t('footer.system_name')} ©{new Date().getFullYear()} {t('footer.created_by')}
+        </Footer>
       </Layout>
     </Layout>
   );

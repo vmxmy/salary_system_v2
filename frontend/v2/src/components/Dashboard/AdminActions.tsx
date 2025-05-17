@@ -1,9 +1,11 @@
 import React from 'react';
 import { Button, Space } from 'antd';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useTranslation } from 'react-i18next';
 
 const AdminActions: React.FC = () => {
   const { hasPermission, hasRole } = usePermissions();
+  const { t } = useTranslation();
 
   // Example: Button visible only to users with 'user:create' permission
   const canCreateUser = hasPermission('user:create');
@@ -23,16 +25,16 @@ const AdminActions: React.FC = () => {
 
   return (
     <div>
-      <h3>Admin Actions Panel (Example)</h3>
+      <h3>{t('dashboard.admin_actions.panel_title_example')}</h3>
       <Space direction="vertical">
         {isAdmin && (
           <Button type="primary" danger>
-            Super Admin Only Action
+            {t('dashboard.admin_actions.super_admin_action_example')}
           </Button>
         )}
         {canCreateUser && (
           <Button type="primary">
-            Create New User (Requires 'user:create')
+            {t('dashboard.admin_actions.create_user_example')}
           </Button>
         )}
         {/* Example: A button that requires ALL of multiple permissions */}
@@ -41,7 +43,7 @@ const AdminActions: React.FC = () => {
         )} */}
         {canEditConfig && (
           <Button>
-            Edit System Configuration (Requires 'config:edit' OR 'sys_admin' role)
+            {t('dashboard.admin_actions.edit_config_example')}
           </Button>
         )}
       </Space>

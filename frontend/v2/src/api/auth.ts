@@ -29,8 +29,29 @@ export const login = async (credentials: LoginCredentials): Promise<LoginRespons
 export const getCurrentUser = async (userId: number): Promise<User> => {
     // 用户信息应通过 /v2/users/{userId} 端点获取
     // userId 通常在登录成功后从 /v2/token 响应中获得 (作为数字ID)，并存储在状态管理中
+    console.log(`[apiGetCurrentUser] Fetching user details for userId: ${userId}`);
     const response = await apiClient.get<{ data: User }>(`/users/${userId}`); // Expect a { data: User } structure
-    return response.data.data; // Extract the actual User object from the nested data property
+    console.log('[apiGetCurrentUser] Full response.data from /users/{userId}:', JSON.stringify(response.data, null, 2));
+    
+    // Basic check if response.data and response.data.data exist before returning
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+        // This assumes the backend consistently wraps the User object in a 'data' property.
+        // If the backend might sometimes return User directly, or other structures, more robust checking is needed.
+        console.log('[apiGetCurrentUser] Attempting to return response.data.data');
+        return response.data.data as User; // Type assertion as User
+    } else {
+        // Handle cases where the structure is not { data: User }
+        // This could be an error, or the backend might directly return the User object
+        console.warn('[apiGetCurrentUser] Response structure from /users/{userId} is not { data: User }. Response.data:', response.data);
+        // Attempt to return response.data directly if it seems like a User object, otherwise throw error
+        // This is a guess; a more robust solution depends on knowing all possible backend response structures.
+        if (response.data && typeof response.data === 'object' && 'id' in response.data && 'username' in response.data) {
+            console.log('[apiGetCurrentUser] Assuming response.data is the User object directly.');
+            return response.data as User; // Type assertion as User
+        }
+        console.error('[apiGetCurrentUser] Unexpected response structure from /users/{userId}. Cannot extract User.');
+        throw new Error('Unexpected response structure for user details.');
+    }
 };
 
 // (可选) 登出函数

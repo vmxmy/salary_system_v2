@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Spin, Alert, Modal, Pagination, Typography } from 'antd';
+import { Button, message, Spin, Alert, Modal, Pagination, Typography, Table } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { employeeService } from '../../../../services/employeeService';
+import ActionButton from '../../../../components/common/ActionButton';
+import { employeeService } from '../../../services/employeeService';
 import type { CompensationItem, CompensationPageResult, CreateCompensationPayload, UpdateCompensationPayload } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import CompensationTable from './CompensationTable';
@@ -37,9 +38,9 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
     try {
       const result: CompensationPageResult = await employeeService.getEmployeeCompensationHistory(employeeId, { page, pageSize: size });
       setCompensations(result.data);
-      setTotalRecords(result.total);
-      setCurrentPage(result.page);
-      setPageSize(result.pageSize);
+      setTotalRecords(result.meta.total_items);
+      setCurrentPage(result.meta.current_page);
+      setPageSize(result.meta.per_page);
     } catch (err: any) {
       console.error('Error fetching compensation history:', err);
       setError(err.message || 'Failed to fetch compensation history. Please try again.');
@@ -69,7 +70,7 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     Modal.confirm({
       title: 'Confirm Delete',
       content: 'Are you sure you want to delete this compensation record?',
@@ -142,6 +143,7 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        // The edit and delete buttons are rendered within CompensationTable, so no direct replacement here
       />
       {totalRecords > 0 && (
           <Pagination 

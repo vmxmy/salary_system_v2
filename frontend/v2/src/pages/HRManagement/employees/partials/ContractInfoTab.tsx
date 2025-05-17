@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Spin, Alert, Modal } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import { employeeService } from '../../../../services/employeeService';
+import { Button, message, Spin, Alert, Modal, Table, Popconfirm, Space } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { employeeService } from '../../services/employeeService';
 import type { ContractItem, ContractPageResult, CreateContractPayload, UpdateContractPayload } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import ContractTable from './ContractTable';
 import ContractModal from './ContractModal';
+import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
 
 interface ContractInfoTabProps {
   employeeId: string;

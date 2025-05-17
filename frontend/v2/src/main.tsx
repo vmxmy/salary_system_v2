@@ -6,10 +6,10 @@ import { routes as routesConfig } from './router/routes'; // Changed to named im
 import './styles/index.less';
 import AppWrapper from './AppWrapper'; // 导入 AppWrapper
 // import "./index.css"; // Commented out due to build error: File not found
-import { ConfigProvider } from 'antd';
-import zhCN from 'antd/locale/zh_CN';
-import dayjs from 'dayjs';
-import 'dayjs/locale/zh-cn';
+
+import './i18n'; // Initialize i18next
+import i18n from './i18n'; // Import the i18n instance
+import I18nAppConfigProvider from './I18nAppConfigProvider'; // Import the new provider
 
 // Import the store
 import { useAuthStore } from './store/authStore';
@@ -18,9 +18,9 @@ import { useAuthStore } from './store/authStore';
 if (import.meta.env.DEV) {
   (window as any).useAuthStore = useAuthStore;
   console.log('[main.tsx] useAuthStore exposed to window for debugging.');
+  (window as any).i18n = i18n; // Expose i18n for debugging
+  console.log('[main.tsx] i18n instance exposed to window for debugging.');
 }
-
-dayjs.locale('zh-cn');
 
 // AppRouteObject[] to RouteObject[] needs `as any` or proper mapping
 // 如果 routesConfig 已经是 RouteObject[] 类型，则不需要类型断言
@@ -28,8 +28,8 @@ const router = createBrowserRouter(routesConfig as any);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ConfigProvider locale={zhCN}>
+    <I18nAppConfigProvider>
       <AppWrapper router={router} />
-    </ConfigProvider>
+    </I18nAppConfigProvider>
   </React.StrictMode>
 );

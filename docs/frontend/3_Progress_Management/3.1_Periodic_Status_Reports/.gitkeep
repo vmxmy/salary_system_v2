@@ -1,0 +1,31 @@
+# 此目录用于存放定期的前端开发进度报告。
+
+例如：
+- `2023-11_Frontend_Status_Report.md`
+- `2023-12_Frontend_Status_Report.md`
+
+## 报告模板示例 (YYYY-MM_Frontend_Status_Report.md)
+
+### 1. 报告周期：YYYY年MM月DD日 - YYYY年MM月DD日
+
+### 2. 本期完成任务
+
+- [任务1] (关联Checklist项)
+- [任务2]
+
+### 3. 进行中任务
+
+- [任务3] (预计完成时间，当前进度%)
+
+### 4. 下期计划任务
+
+- [任务4]
+- [任务5]
+
+### 5. 遇到的问题与风险
+
+- [问题1] (解决方案/求助)
+
+### 6. 其他说明 
+
+# This file is intentionally left blank to ensure the directory is tracked by Git. 

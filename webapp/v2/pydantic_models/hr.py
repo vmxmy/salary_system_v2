@@ -61,9 +61,15 @@ class Employee(EmployeeBase):
         from_attributes = True
 
 
+class EmployeeWithNames(Employee):
+    """员工响应模型，包含部门和职位名称"""
+    departmentName: Optional[str] = Field(None, description="Current department name")
+    positionName: Optional[str] = Field(None, description="Current job title name")
+
+
 class EmployeeListResponse(BaseModel):
     """员工列表响应模型"""
-    data: List[Employee]
+    data: List[EmployeeWithNames]
     meta: Dict[str, Any] = Field(
         default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
     )

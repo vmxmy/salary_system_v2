@@ -1,6 +1,7 @@
 // HRManagement Module Routes
 import React from 'react';
 import type { AppRouteObject } from '../../router/routes'; // Corrected: AppRouteObject is exported from routes.tsx
+import i18n from '../../i18n'; // Import i18n instance
 
 // Import page components
 import EmployeeListPage from './employees/EmployeeListPage';
@@ -20,15 +21,16 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees',
     element: React.createElement(EmployeeListPage),
     meta: {
-      title: '员工档案',
+      title: i18n.t('page_title.employee_files'),
       requiredPermissions: ['employee:list'], // Changed from permission to requiredPermissions
+      hideInBreadcrumbIfParentOfNext: true,
     },
   },
   {
     path: 'employees/create',
     element: React.createElement(CreateEmployeePage),
     meta: {
-      title: '新增员工',
+      title: i18n.t('page_title.create_employee'),
       requiredPermissions: ['employee:create'], // Changed from permission to requiredPermissions
     },
   },
@@ -36,7 +38,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId/edit',
     element: React.createElement(EditEmployeePage),
     meta: {
-      title: '编辑员工',
+      title: i18n.t('page_title.edit_employee'),
       requiredPermissions: ['employee:edit'], // Changed from permission to requiredPermissions
     },
   },
@@ -44,7 +46,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId', // Detail page route
     element: React.createElement(EmployeeDetailPage), // Use the actual component
     meta: {
-      title: '员工详情',
+      title: i18n.t('page_title.employee_details'),
       requiredPermissions: ['employee:view'], // Changed from permission to requiredPermissions
     },
   },

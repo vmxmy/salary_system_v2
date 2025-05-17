@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography } from 'antd';
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import ActionButton from '../../components/common/ActionButton';
+import PageHeaderLayout from '../../components/common/PageHeaderLayout';
 import type { InputRef } from 'antd';
 import type { ColumnType, Key, TablePaginationConfig } from 'antd/lib/table/interface';
 import type { FilterValue, SorterResult } from 'antd/lib/table/interface';
@@ -9,6 +11,7 @@ import { getRoles } from '../../api/roles';
 import type { User as ApiUser, Role as ApiRole, ApiResponse, CreateUserPayload, UpdateUserPayload } from '../../api/types';
 import { format } from 'date-fns';
 import type { TableParams } from '../../types/antd';
+import { useTranslation } from 'react-i18next';
 
 // Interface for form values when creating a user, including confirm_password
 interface UserFormCreationValues extends CreateUserPayload {
@@ -37,6 +40,7 @@ interface PageUser {
 }
 
 const UserListPage: React.FC = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<PageUser[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [tableParams, setTableParams] = useState<TableParams>({
@@ -86,9 +90,9 @@ const UserListPage: React.FC = () => {
           id: apiUser.id,
           username: apiUser.username,
           employee_id: apiUser.employee_id,
-          roles: apiUser.roles ? apiUser.roles.map((role: ApiRole) => role.name || 'UnknownRole') : [],
+          roles: apiUser.roles ? apiUser.roles.map((role: ApiRole) => role.name || t('common.role.unknown')) : [],
           is_active: apiUser.is_active,
-          created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : 'N/A',
+          created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('user_management_page.table.value.not_applicable'),
         }));
         setUsers(pageUsers);
         setTableParams({
@@ -135,7 +139,7 @@ const UserListPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch roles:", error);
-      message.error('加载角色列表失败');
+      message.error(t('user_management_page.message.fetch_roles_error'));
     }
   };
 
@@ -193,12 +197,12 @@ const UserListPage: React.FC = () => {
     // fetchUsers(tableParams);
   };
 
-  const getColumnSearchProps = (dataIndex: keyof PageUser): ColumnType<PageUser> => ({
+  const getColumnSearchProps = (dataIndex: keyof PageUser, columnName?: string): ColumnType<PageUser> => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInputRef} // Connect ref
-          placeholder={`搜索 ${dataIndex.toString()}`}
+          placeholder={t('user_management_page.table.search.placeholder_prefix') + (columnName || dataIndex.toString())}
           value={selectedKeys[0]}
           onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleColumnSearch(selectedKeys as string[], confirm, dataIndex)}
@@ -212,13 +216,13 @@ const UserListPage: React.FC = () => {
             size="small"
             style={{ width: 90 }}
           >
-            搜索
+            {t('user_management_page.table.search.button_search')}
           </Button>
           <Button onClick={() => clearFilters && handleColumnSearchReset(clearFilters)} size="small" style={{ width: 90 }}>
-            重置
+            {t('user_management_page.table.search.button_reset')}
           </Button>
           <Button type="link" size="small" onClick={() => close()}>
-            关闭
+            {t('user_management_page.table.search.button_close')}
           </Button>
         </Space>
       </div>
@@ -242,7 +246,14 @@ const UserListPage: React.FC = () => {
   const showCreateUserModal = () => {
     setEditingUser(null);
     userForm.resetFields();
-    userForm.setFieldsValue({ is_active: true, username: '', password: '', confirm_password: '', employee_id: undefined, role_ids: [] });
+    userForm.setFieldsValue({ 
+      is_active: true, 
+      username: '', 
+      password: '',
+      confirm_password: '', 
+      employee_id: undefined, 
+      role_ids: [] 
+    });
     setIsUserModalOpen(true);
   };
 
@@ -280,7 +291,7 @@ const UserListPage: React.FC = () => {
       // Ensure payloadForApi matches CreateUserPayload (it should after stripping confirm_password)
       const newUser = await createUser(payloadForApi as CreateUserPayload); // Corrected to createUser
       
-      message.success(`用户 "${newUser.username}" 创建成功!`);
+      message.success(t('user_management_page.message.create_user_success', { username: newUser.username }));
       setIsUserModalOpen(false);
       userForm.resetFields();
       // Refresh the user list - fetch with current params, resetting to page 1 might be good UX
@@ -289,7 +300,7 @@ const UserListPage: React.FC = () => {
 
     } catch (error: any) {
       console.error("创建用户失败:", error);
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || '创建用户失败，请检查输入或联系管理员。';
+      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('user_management_page.message.create_user_error.default');
       message.error(errorMsg);
     } finally {
       setUserModalLoading(false);
@@ -324,12 +335,12 @@ const UserListPage: React.FC = () => {
       ) as UpdateUserPayload;
 
       const updatedUser = await updateUser(editingUser.id, cleanedPayload);
-      message.success(`用户 "${updatedUser.username}" 更新成功!`);
+      message.success(t('user_management_page.message.update_user_success', { username: updatedUser.username }));
       setIsUserModalOpen(false);
       fetchUsers(tableParams); // Refresh with current params
     } catch (error: any) {
       console.error("更新用户失败:", error);
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || '更新用户失败';
+      const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('user_management_page.message.update_user_error.default');
       message.error(errorMsg);
     } finally {
       setUserModalLoading(false);
@@ -346,15 +357,15 @@ const UserListPage: React.FC = () => {
 
   const handleDeleteUser = (userId: number, username: string) => {
     Modal.confirm({
-      title: `确认删除用户 "${username}"?`,
-      content: '此操作无法撤销。',
-      okText: '确认删除',
+      title: t('user_management_page.modal.confirm_delete.title', { username }),
+      content: t('user_management_page.modal.confirm_delete.content'),
+      okText: t('user_management_page.modal.confirm_delete.ok_text'),
       okType: 'danger',
-      cancelText: '取消',
+      cancelText: t('user_management_page.modal.confirm_delete.cancel_text'),
       onOk: async () => {
         try {
           await deleteUser(userId);
-          message.success(`用户 "${username}" 已删除。`);
+          message.success(t('user_management_page.message.delete_user_success', { username }));
           // Refresh users list - fetch with current params, or reset to page 1 if current page might be empty
           const newTotal = tableParams.pagination?.total ? tableParams.pagination.total - 1 : 0;
           const newCurrentPage = (users.length === 1 && (tableParams.pagination?.current || 1) > 1) ? 
@@ -372,7 +383,7 @@ const UserListPage: React.FC = () => {
           fetchUsers(newTableParams);
         } catch (error: any) {
           console.error("删除用户失败:", error);
-          const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || '删除用户失败';
+          const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('user_management_page.message.delete_user_error.default');
           message.error(errorMsg);
         }
       },
@@ -381,82 +392,76 @@ const UserListPage: React.FC = () => {
 
   const columns: ColumnType<PageUser>[] = [
     {
-      title: 'ID',
+      title: t('user_management_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: (a, b) => a.id - b.id, // Client-side sort
+      sorter: (a, b) => a.id - b.id,
     },
     {
-      title: '用户名',
+      title: t('user_management_page.table.column.username'),
       dataIndex: 'username',
       key: 'username',
-      ...getColumnSearchProps('username'),
-      sorter: (a, b) => a.username.localeCompare(b.username), // Client-side sort
+      ...getColumnSearchProps('username', t('user_management_page.table.column.username')),
+      sorter: (a, b) => a.username.localeCompare(b.username),
     },
     {
-      title: '关联员工ID',
+      title: t('user_management_page.table.column.employee_id'),
       dataIndex: 'employee_id',
       key: 'employee_id',
-      render: (id?: number) => id || 'N/A',
+      render: (employeeId?: number) => employeeId || t('user_management_page.table.value.not_applicable'),
+      sorter: (a, b) => (a.employee_id || 0) - (b.employee_id || 0),
     },
     {
-      title: '角色',
+      title: t('user_management_page.table.column.roles'),
       dataIndex: 'roles',
       key: 'roles',
-      render: (roles: string[]) => (
-        <>
-          {roles.map(role => (
-            <Tag color="blue" key={role}>{role}</Tag>
-          ))}
-        </>
-      ),
-      // TODO: Add filter for roles if needed (requires fetching all roles for filter options)
+      render: (roles: string[]) => roles.join(', ') || t('user_management_page.table.value.not_applicable'),
+      // Note: Filtering/searching on roles might need a custom approach if roles is an array
     },
     {
-      title: '状态',
+      title: t('user_management_page.table.column.status'),
       dataIndex: 'is_active',
       key: 'is_active',
       render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>{isActive ? '激活' : '禁用'}</Tag>
+        <Tag color={isActive ? 'success' : 'error'}>
+          {isActive ? t('user_management_page.table.status.active') : t('user_management_page.table.status.inactive')}
+        </Tag>
       ),
       filters: [
-        { text: '激活', value: true },
-        { text: '禁用', value: false },
+        { text: t('user_management_page.table.status.active'), value: true },
+        { text: t('user_management_page.table.status.inactive'), value: false },
       ],
-      onFilter: (value, record) => record.is_active === value, // Direct boolean comparison
+      onFilter: (value, record) => record.is_active === value,
+      sorter: (a, b) => (a.is_active === b.is_active ? 0 : a.is_active ? -1 : 1),
     },
     {
-      title: '创建时间',
+      title: t('user_management_page.table.column.created_at'),
       dataIndex: 'created_at',
       key: 'created_at',
-      sorter: (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(), // Client-side sort
+      sorter: (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
     },
     {
-      title: '操作',
+      title: t('user_management_page.table.column.actions'),
       key: 'action',
-      render: (_: any, record: PageUser) => {
-        // Find the original ApiUser object to pass to edit modal
-        const apiUserRecord = users.find(u => u.id === record.id) ? 
-                              allApiUsersForEdit.find(au => au.id === record.id) : undefined;
+      render: (_, record: PageUser) => {
+        const userToEdit = allApiUsersForEdit.find(u => u.id === record.id); // Find full ApiUser for editing
         return (
-          <Space size="middle">
-            <Tooltip title="编辑用户">
-              <Button 
-                type="link" 
-                icon={<EditOutlined />} 
-                onClick={() => apiUserRecord && showEditUserModal(apiUserRecord)} 
-                disabled={!apiUserRecord} // Disable if original record not found (should not happen)
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Tooltip title={t('user_management_page.tooltip.edit_user')}>
+              <ActionButton
+                actionType="edit"
+                onClick={() => userToEdit && showEditUserModal(userToEdit)}
+                disabled={!userToEdit}
               />
             </Tooltip>
-            <Tooltip title="删除用户">
-              <Button 
-                type="link" 
-                danger 
-                icon={<DeleteOutlined />} 
-                onClick={() => handleDeleteUser(record.id, record.username)} 
+            <Tooltip title={t('user_management_page.tooltip.delete_user')}>
+              <ActionButton
+                actionType="delete"
+                onClick={() => handleDeleteUser(record.id, record.username)}
+                danger
               />
             </Tooltip>
-          </Space>
+          </div>
         );
       },
     },
@@ -464,23 +469,22 @@ const UserListPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <h2>用户管理</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateUserModal}>
-          新建用户
+      <PageHeaderLayout>
+        <Typography.Title level={4} style={{ marginBottom: 0 }}>{t('user_management_page.title')}</Typography.Title>
+        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateUserModal} shape="round">
+          {t('user_management_page.button.create_user')}
         </Button>
-      </div>
-      <Table<PageUser> // Specify generic type for Table
+      </PageHeaderLayout>
+      <Table
         columns={columns}
         dataSource={users}
         loading={loading}
-        rowKey="key" // Use key from PageUser
-        pagination={tableParams.pagination}
         onChange={handleTableChange}
-        scroll={{ x: 'max-content' }} // For better responsiveness if many columns
+        pagination={tableParams.pagination}
+        rowKey="key" // Ensure rowKey is set
       />
       <Modal
-        title={editingUser ? "编辑用户" : "新建用户"}
+        title={editingUser ? t('user_management_page.modal.title.edit_user') : t('user_management_page.modal.title.create_user')}
         open={isUserModalOpen}
         onCancel={handleUserModalCancel}
         onOk={() => userForm.submit()}
@@ -496,8 +500,8 @@ const UserListPage: React.FC = () => {
         >
           <Form.Item
             name="username"
-            label="用户名"
-            rules={[{ required: true, message: '请输入用户名!' }, { type: 'string', min: 3, message: '用户名至少需要3个字符'}] }
+            label={t('user_management_page.form.username.label')}
+            rules={[{ required: true, message: t('user_management_page.form.username.validation.required') }, { type: 'string', min: 3, message: t('user_management_page.form.username.validation.min_length', { count: 3 }) }]}
           >
             <Input disabled={!!editingUser} />
           </Form.Item>
@@ -506,25 +510,25 @@ const UserListPage: React.FC = () => {
             <>
               <Form.Item
                 name="password"
-                label="密码"
-                rules={[{ required: !editingUser, message: '请输入密码!' }, {min: 6, message: '密码至少需要6个字符'}] }
+                label={t('user_management_page.form.password.label')}
+                rules={[{ required: !editingUser, message: t('user_management_page.form.password.validation.required') }, {min: 6, message: t('user_management_page.form.password.validation.min_length', { count: 6 })}] }
                 hasFeedback
               >
                 <Input.Password />
               </Form.Item>
               <Form.Item
                 name="confirm_password"
-                label="确认密码"
+                label={t('user_management_page.form.confirm_password.label')}
                 dependencies={['password']}
                 hasFeedback
                 rules={[
-                  { required: !editingUser, message: '请确认密码!' },
+                  { required: !editingUser, message: t('user_management_page.form.confirm_password.validation.required') },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
                       if (!value || getFieldValue('password') === value) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('两次输入的密码不匹配!'));
+                      return Promise.reject(new Error(t('user_management_page.form.confirm_password.validation.match')));
                     },
                   }),
                 ]}
@@ -536,30 +540,30 @@ const UserListPage: React.FC = () => {
 
           <Form.Item
             name="employee_id"
-            label="关联员工 ID (可选)"
+            label={t('user_management_page.form.employee_id.label')}
             // TODO: Replace with a Select dropdown populated with employees
           >
-            <Input type="number" placeholder="输入员工系统ID" />
+            <Input type="number" placeholder={t('user_management_page.form.employee_id.placeholder')} />
           </Form.Item>
 
           <Form.Item
             name="is_active"
-            label="状态"
+            label={t('user_management_page.form.status.label')}
             valuePropName="checked"
             initialValue={true} // Default for new user
           >
-            <Switch checkedChildren="激活" unCheckedChildren="禁用" />
+            <Switch checkedChildren={t('user_management_page.form.status.active')} unCheckedChildren={t('user_management_page.form.status.inactive')} />
           </Form.Item>
           
           <Form.Item
             name="role_ids"
-            label="分配角色 (可选)"
+            label={t('user_management_page.form.roles.label')}
           >
             <Select
               mode="multiple"
               allowClear
               style={{ width: '100%' }}
-              placeholder="请选择角色"
+              placeholder={t('user_management_page.form.roles.placeholder')}
               options={allRoles.map(role => ({ label: role.name, value: role.id }))}
               loading={allRoles.length === 0} // Show loading if roles are not yet fetched
             />

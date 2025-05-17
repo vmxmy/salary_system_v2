@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 from ..database import get_db_v2
 from ..crud import hr as crud
 from ..pydantic_models.hr import DepartmentCreate, DepartmentUpdate, Department, DepartmentListResponse
-from ...auth import get_current_user, require_role
+from ...auth import require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
@@ -25,7 +25,7 @@ async def get_departments(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_DEPARTMENT_VIEW"]))
 ):
     """
     获取部门列表，支持分页、搜索和过滤。
@@ -79,7 +79,7 @@ async def get_departments(
 async def get_department(
     department_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_DEPARTMENT_VIEW"]))
 ):
     """
     根据ID获取部门详情。
@@ -120,12 +120,12 @@ async def get_department(
 async def create_department(
     department: DepartmentCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_DEPARTMENT_MANAGE"]))
 ):
     """
     创建新部门。
     
-    - 需要 SUPER_ADMIN 角色
+    - 需要 P_DEPARTMENT_MANAGE 权限
     """
     try:
         # 创建部门
@@ -160,13 +160,13 @@ async def update_department(
     department_id: int,
     department: DepartmentUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_DEPARTMENT_MANAGE"]))
 ):
     """
     更新部门信息。
     
     - **department_id**: 部门ID
-    - 需要 SUPER_ADMIN 角色
+    - 需要 P_DEPARTMENT_MANAGE 权限
     """
     try:
         # 更新部门
@@ -212,13 +212,13 @@ async def update_department(
 async def delete_department(
     department_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_DEPARTMENT_MANAGE"]))
 ):
     """
     删除部门。
     
     - **department_id**: 部门ID
-    - 需要 SUPER_ADMIN 角色
+    - 需要 P_DEPARTMENT_MANAGE 权限
     """
     try:
         # 删除部门

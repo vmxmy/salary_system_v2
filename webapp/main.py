@@ -1,4 +1,6 @@
 import sys
+import os # Import os module
+print(f"==== Loading main.py from: {os.path.abspath(__file__)} ====") # Added print statement
 print("==== sys.path ====", sys.path)
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response
 import bcrypt
@@ -38,24 +40,35 @@ from fastapi import APIRouter
 # 配置logger
 logger = logging.getLogger(__name__)
 
+# Configure logging to output DEBUG level messages
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG) # Set logger level to DEBUG
+
+# Also set the root logger level to DEBUG to ensure all loggers inherit it
+logging.basicConfig(level=logging.DEBUG)
+
+
 # Import modules - 使用相对导入
 from . import auth, models_db, schemas, models, file_converter
 from .database import get_db
+# from .routers import units # V1 Units router, commented out to prevent loading
 from .core.config import settings
-from .routers import units
-from .routers import departments
-from .routers import report_links
-from .routers.employees import router as employees_router
-from .routers.salary_data import router as salary_data_router
-from .routers.auth_management import router as auth_router
-from .routers.user_management import router as user_router
-from .routers.config_management import router as config_router
-from .routers.file_conversion import router as file_conversion_router
-from .routers.calculation_rules_admin import router as calculation_admin_router
-from .routers.salary_calculation import router as salary_calculation_router
-from .routers.table_configs import router as table_configs_router
-from .routers.email_config import router as email_config_router
-from .routers.email_sender import router as email_sender_router # Added email_sender_router
+# from .routers import departments # V1 Departments router, commented out
+# from .routers import report_links # V1 Report Links router, commented out
+# from .routers.employees import router as employees_router # V1, to be commented out
+# from .routers.salary_data import router as salary_data_router # V1, to be commented out
+# from .routers.auth_management import router as auth_router # V1, to be commented out
+# from .routers.user_management import router as user_router # V1, to be commented out
+# from .routers.config_management import router as config_router # V1, to be commented out
+# from .routers.file_conversion import router as file_conversion_router # V1, to be commented out
+# from .routers.calculation_rules_admin import router as calculation_admin_router # V1, to be commented out
+# from .routers.salary_calculation import router as salary_calculation_router # V1, to be commented out
+# from .routers.table_configs import router as table_configs_router # V1, to be commented out
+# from .routers.email_config import router as email_config_router # V1, to be commented out
+# from .routers.email_sender import router as email_sender_router # V1, to be commented out
 
 # Import v2 API routers
 from .v2.routers import employees_router as v2_employees_router
@@ -329,29 +342,29 @@ def _trigger_dbt_build_if_project_valid(background_tasks: BackgroundTasks, dbt_p
 # --- Helper Function to Trigger dbt Build --- END ---
 
 # --- New API Endpoint to Trigger dbt Build --- START ---
-@app.post("/api/dbt/trigger-run", status_code=status.HTTP_202_ACCEPTED, tags=["DBT Tasks"])
-async def trigger_dbt_run_endpoint(
-    background_tasks: BackgroundTasks,
-    current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"]))
-):
-    """
-    Manually triggers a dbt build process in the background.
-    Requires Super Admin or Data Admin role.
-    """
-    # Calculate dbt project path (ensure this logic is consistent)
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    dbt_project_path = os.path.abspath(os.path.join(current_dir, '../salary_dbt_transforms'))
-
-    task_added = _trigger_dbt_build_if_project_valid(background_tasks, dbt_project_path)
-
-    if task_added:
-        return {"message": "dbt build task added to background."}
-    else:
-        # If the project path was invalid, raise an error
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"dbt project directory not found or invalid at: {dbt_project_path}. Task not triggered."
-        )
+# @app.post("/api/dbt/trigger-run", status_code=status.HTTP_202_ACCEPTED, tags=["DBT Tasks"])
+# async def trigger_dbt_run_endpoint(
+#     background_tasks: BackgroundTasks,
+#     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"]))
+# ):
+#     """
+#     Manually triggers a dbt build process in the background.
+#     Requires Super Admin or Data Admin role.
+#     """
+#     # Calculate dbt project path (ensure this logic is consistent)
+#     current_dir = os.path.dirname(os.path.abspath(__file__))
+#     dbt_project_path = os.path.abspath(os.path.join(current_dir, '../salary_dbt_transforms'))
+#
+#     task_added = _trigger_dbt_build_if_project_valid(background_tasks, dbt_project_path)
+#
+#     if task_added:
+#         return {"message": "dbt build task added to background."}
+#     else:
+#         # If the project path was invalid, raise an error
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"dbt project directory not found or invalid at: {dbt_project_path}. Task not triggered."
+#         )
 # --- New API Endpoint to Trigger dbt Build --- END
 
 # Ensure this is placed appropriately, e.g., before the final uvicorn run if applicable,
@@ -430,107 +443,108 @@ async def debug_get_field_config(
 
 # 注册路由
 # 1. 认证路由
-app.include_router(
-    auth_router,
-    prefix="", # Keep empty for root paths like /token
-    tags=["Authentication"]
-)
+# app.include_router(
+#     auth_router,
+#     prefix="", # Keep empty for root paths like /token
+#     tags=["Authentication"]
+# )
 
 # 2. 用户管理路由
-app.include_router(
-    user_router,
-    prefix="", # Removed /api prefix, assuming /api/users is defined within user_router
-    tags=["Users"]
-)
+# app.include_router(
+#     user_router,
+#     prefix="", # Removed /api prefix, assuming /api/users is defined within user_router
+#     tags=["Users"]
+# )
 
 # 3. 员工路由
-app.include_router(
-    employees_router,
-    prefix="", # Removed /api prefix, assuming /api/employees is defined within employees_router
-    tags=["Employees"]
-)
+# app.include_router(
+#     employees_router,
+#     prefix="/api", # Removed: prevent old employees API from shadowing v2
+#     tags=["Employees"]
+# )
 
 # 4. 单位路由
-app.include_router(
-    units.router,
-    prefix="", # Removed /api prefix, assuming /api/units is defined within units.router
-    tags=["Units"]
-)
+# app.include_router(
+#     units.router,
+#     prefix="", # Removed /api prefix, assuming /api/units is defined within units.router
+#     tags=["Units"]
+# )
 
 # 5. 部门路由
-app.include_router(
-    departments.router,
-    prefix="", # Removed /api prefix, assuming /api/departments is defined within departments.router
-    tags=["Departments"]
-)
+# app.include_router(
+#     departments.router,
+#     prefix="", # Removed /api prefix, assuming /api/departments is defined within departments.router
+#     tags=["Departments"]
+# )
 
 # 6. 报表链接路由
-app.include_router(
-    report_links.router,
-    prefix="/api/report-links", # Keep specific prefix
-    tags=["Report Links"]
-)
+# app.include_router(
+#     report_links.router,
+#     prefix="/api/report-links", # Keep specific prefix
+#     tags=["Report Links"]
+# )
 
 # 7. 薪资数据路由
-app.include_router(
-    salary_data_router,
-    prefix="",  # Keep empty as router defines /api/...
-    tags=["Salary Data"]
-)
+# app.include_router(
+#     salary_data_router,
+#     prefix="",  # Keep empty as router defines /api/...
+#     tags=["Salary Data"]
+# )
 
 # 8. 配置管理路由
-app.include_router(
-    config_router,
-    prefix="/api/config", # Keep specific prefix
-    tags=["Configuration"]
-)
+# app.include_router(
+#     config_router,
+#     prefix="/api/config", # Keep specific prefix
+#     tags=["Configuration"]
+# )
 
 # 9. 文件转换路由
-app.include_router(
-    file_conversion_router,
-    prefix="/api", # Changed prefix from '' to '/api'
-    tags=["File Conversion"]
-)
+# app.include_router(
+#     file_conversion_router,
+#     prefix="/api", # Changed prefix from '' to '/api'
+#     tags=["File Conversion"]
+# )
 
 # 10. 计算引擎管理路由
-app.include_router(
-    calculation_admin_router,
-    prefix="/api/v1", # Added /api/v1 prefix
-    tags=["Calculation Engine Admin"]
-)
+# app.include_router(
+#     calculation_admin_router,
+#     prefix="/api/v1", # Added /api/v1 prefix
+#     tags=["Calculation Engine Admin"]
+# )
 
 # 11. 工资计算路由
-app.include_router(
-    salary_calculation_router,
-    prefix="/api/v1", # Added /api/v1 prefix (assuming it's part of v1)
-    tags=["Salary Calculation"]
-)
+# app.include_router(
+#     salary_calculation_router,
+#     prefix="/api/v1", # Added /api/v1 prefix (assuming it's part of v1)
+#     tags=["Salary Calculation"]
+# )
 
 # 12. 表格配置路由
-app.include_router(
-    table_configs_router,
-    prefix="",  # 移除重复的前缀，因为路由文件中已经定义了前缀
-    tags=["Table Configurations"]
-)
+# app.include_router(
+#     table_configs_router,
+#     prefix="",  # 移除重复的前缀，因为路由文件中已经定义了前缀
+#     tags=["Table Configurations"]
+# )
 
 # 13. 邮件服务器配置路由
-app.include_router(
-    email_config_router,
-    # prefix="/api/email-configs" # Prefix is defined in the router itself
-    tags=["Email Server Configurations"]
-)
+# app.include_router(
+#     email_config_router,
+#     # prefix="/api/email-configs" # Prefix is defined in the router itself
+#     tags=["Email Server Configurations"]
+# )
 
 # 14. 邮件发送路由
-app.include_router(
-    email_sender_router,
-    # prefix="/api/email-sender" # Prefix is defined in the router itself
-    tags=["Email Sender"]
-)
+# app.include_router(
+#     email_sender_router,
+#     # prefix="/api/email-sender" # Prefix is defined in the router itself
+#     tags=["Email Sender"]
+# )
 
 # 15. v2 API路由
 # 员工路由
 app.include_router(
     v2_employees_router,
+    prefix="",
     tags=["v2 API"]
 )
 

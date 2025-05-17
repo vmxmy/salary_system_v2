@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Form, message, Typography, Breadcrumb, Spin, Alert } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import EmployeeForm from '../components/EmployeeForm';
 import { employeeService } from '../../../services/employeeService';
 import type { Employee, UpdateEmployeePayload, CreateEmployeePayload } from '../types'; // Import CreateEmployeePayload for casting
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Title } = Typography;
 
 const EditEmployeePage: React.FC = () => {
+  const { t } = useTranslation();
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { employeeId } = useParams<{ employeeId: string }>();
@@ -27,50 +30,49 @@ const EditEmployeePage: React.FC = () => {
           if (data) {
             setEmployeeData(data);
           } else {
-            setError('未找到要编辑的员工信息。');
-            message.error('未找到员工信息。');
+            setError(t('edit_employee_page.error_employee_not_found_edit'));
+            message.error(t('edit_employee_page.error_employee_not_found'));
           }
         })
         .catch(err => {
-          console.error('加载员工信息失败:', err);
-          setError('加载员工信息失败，请稍后重试。');
-          message.error('加载员工信息失败!');
+          console.error('Failed to load employee data:', err);
+          setError(t('edit_employee_page.error_load_employee_failed_retry'));
+          message.error(t('edit_employee_page.error_load_employee_failed'));
         })
         .finally(() => {
           setLoadingData(false);
         });
     } else {
-      setError('无效的员工ID。');
+      setError(t('edit_employee_page.error_invalid_employee_id'));
       setLoadingData(false);
     }
-  }, [employeeId]);
+  }, [employeeId, t]);
 
   const handleUpdateEmployee = async (values: UpdateEmployeePayload) => {
     if (!employeeId) return;
     setSubmitting(true);
     try {
       await employeeService.updateEmployee(employeeId, values);
-      message.success('员工信息更新成功!');
-      navigate(`/hr/employees/${employeeId}`); // Navigate to detail page
+      message.success(t('edit_employee_page.message_update_success'));
+      navigate(`/hr/employees/${employeeId}`);
     } catch (err: any) {
-      console.error('更新员工信息失败:', err);
-      message.error(err.response?.data?.message || '更新员工信息失败，请稍后重试。');
+      console.error('Failed to update employee data:', err);
+      message.error(err.response?.data?.message || t('edit_employee_page.message_update_fail_default'));
     } finally {
       setSubmitting(false);
     }
   };
 
   if (loadingData) {
-    return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" tip="加载员工数据中..." /></div>;
+    return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" tip={t('edit_employee_page.spin_tip_loading_data')} /></div>;
   }
 
   if (error) {
-    return <Alert message="错误" description={error} type="error" showIcon style={{ margin: '24px' }} />;
+    return <Alert message={t('edit_employee_page.alert_message_error')} description={error} type="error" showIcon style={{ margin: '24px' }} />;
   }
 
   if (!employeeData) {
-    // This case should ideally be covered by the error state if employeeId was valid but data not found
-    return <Alert message="信息" description="没有可编辑的员工数据。" type="info" showIcon style={{ margin: '24px' }} />;
+    return <Alert message={t('edit_employee_page.alert_message_info')} description={t('edit_employee_page.alert_description_no_data_to_edit')} type="info" showIcon style={{ margin: '24px' }} />;
   }
 
   const employeeDisplayName = (employeeData.first_name || employeeData.last_name) ?
@@ -79,23 +81,22 @@ const EditEmployeePage: React.FC = () => {
 
   const breadcrumbItems = [
     { onClick: () => navigate('/'), title: <HomeOutlined /> },
-    { onClick: () => navigate('/hr/employees'), title: '人事管理' },
-    { onClick: () => navigate('/hr/employees'), title: '员工列表' },
-    { title: employeeDisplayName ? `编辑: ${employeeDisplayName}` : '编辑员工' }
+    { onClick: () => navigate('/hr/employees'), title: t('page_title.hr_management') },
+    { onClick: () => navigate('/hr/employees'), title: t('page_title.employee_list') },
+    { title: employeeDisplayName ? t('edit_employee_page.breadcrumb_title_edit_employee_name', { name: employeeDisplayName }) : t('edit_employee_page.breadcrumb_title_edit_employee') }
   ];
 
   return (
     <div style={{ padding: '24px' }}>
       <Breadcrumb style={{ marginBottom: '16px' }} items={breadcrumbItems} />
       <Title level={3} style={{ marginBottom: '24px' }}>
-        {employeeDisplayName ? `编辑员工: ${employeeDisplayName}` : '编辑员工'}
+        {employeeDisplayName ? t('edit_employee_page.page_title_edit_employee_name', { name: employeeDisplayName }) : t('edit_employee_page.page_title_edit_employee')}
       </Title>
       <Card>
         <EmployeeForm
           form={form}
           isEditMode={true}
           initialValues={employeeData}
-          // Explicitly cast to satisfy the EmployeeForm's onSubmit prop type
           onSubmit={handleUpdateEmployee as (values: CreateEmployeePayload | UpdateEmployeePayload) => Promise<void>}
           onCancel={() => navigate(employeeId ? `/hr/employees/${employeeId}` : '/hr/employees')}
           loadingSubmit={submitting}

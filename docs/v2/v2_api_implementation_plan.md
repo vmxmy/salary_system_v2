@@ -87,7 +87,7 @@ webapp/
 3. `webapp/v2/routers/job_titles.py`: 职位相关API路由 ✅
 4. `webapp/v2/routers/lookup.py`: 查找值相关API路由 ✅
 5. `webapp/v2/routers/config.py`: 配置相关API路由 ✅
-6. `webapp/v2/routers/payroll.py`: 工资相关API路由 ❌
+6. `webapp/v2/routers/payroll.py`: 工资相关API路由 (新增 PATCH 端点及 bank-export 端点) ✅
 
 ### 7. 集成到主应用 ✅
 
@@ -161,10 +161,10 @@ cd webapp/v2/scripts
    - ✅ 工资组件定义API路由
    - ✅ 税率档位API路由
    - ✅ 社保费率API路由
-2. ✅ 创建工资相关API路由
+2. ✅ 完成工资相关API路由
    - ✅ 工资周期API路由
-   - ✅ 工资运行批次API路由
-   - ✅ 工资明细API路由
+   - ✅ 工资运行批次API路由 (包括 `PATCH` 更新状态和 `GET` 银行文件导出)
+   - ✅ 工资明细API路由 (包括 `PATCH` 更新条目详情和状态)
 3. ✅ 创建安全相关API路由
    - ✅ 用户API路由
    - ✅ 角色API路由
@@ -198,6 +198,15 @@ DATABASE_URL_V2=postgresql://user:password@host:port/salary_system_v2
 - `/v2/job-titles/{job_title_id}`: 获取单个职位
 - `/v2/lookup/types`: 获取查找类型列表
 - `/v2/lookup/values`: 获取查找值列表
+- `/v2/payroll-periods`: 获取工资周期列表
+- `/v2/payroll-periods/{period_id}`: 获取单个工资周期
+- `/v2/payroll-runs`: 获取工资计算批次列表
+- `/v2/payroll-runs/{run_id}`: 获取单个工资计算批次
+- `PATCH /v2/payroll-runs/{run_id}`: 部分更新工资计算批次 (例如，标记为已发放)
+- `GET /v2/payroll-runs/{run_id}/bank-export`: 下载银行代发文件 (CSV)
+- `/v2/payroll-entries`: 获取工资条目列表
+- `/v2/payroll-entries/{entry_id}`: 获取单个工资条目
+- `PATCH /v2/payroll-entries/{entry_id}`: 部分更新工资条目 (例如，审核状态，调整金额)
 
 ### 响应格式
 
@@ -242,6 +251,12 @@ DATABASE_URL_V2=postgresql://user:password@host:port/salary_system_v2
   }
 }
 ```
+
+### Pydantic 模型补充说明 (如果该文档中有此部分，则添加)
+
+除了现有的 Pydantic 模型外，本次任务新增了以下用于 `PATCH` 操作的模型：
+- `PayrollEntryPatch`: 用于部分更新 `PayrollEntry`，所有字段可选。
+- `PayrollRunPatch`: 用于部分更新 `PayrollRun`，主要包含可选的 `status_lookup_value_id` 和 `paid_at`。
 
 ## 后续工作
 

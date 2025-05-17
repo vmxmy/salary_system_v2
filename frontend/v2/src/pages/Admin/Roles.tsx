@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Input, Space, Typography, message, Tag, Form, Modal, Switch, Transfer } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
+import ActionButton from '../../components/common/ActionButton';
 import type { InputRef } from 'antd';
 import type { ColumnType, ColumnsType } from 'antd/lib/table';
 import type { FilterConfirmProps } from 'antd/lib/table/interface';
 import { getRoles, createRole, updateRole, deleteRole } from '../../api/roles';
 import { getPermissions as apiGetPermissions } from '../../api/permissions';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../api/types';
+import { useTranslation } from 'react-i18next';
 
 const { Title } = Typography;
 
@@ -21,6 +23,7 @@ interface RoleFormValues {
 }
 
 const RoleListPage: React.FC = () => {
+  const { t } = useTranslation();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState('');
@@ -43,7 +46,7 @@ const RoleListPage: React.FC = () => {
       setRoles(apiResponse.data || []); 
     } catch (error) {
       console.error("Failed to fetch roles:", error);
-      message.error('加载角色列表失败');
+      message.error(t('role_management_page.message.fetch_roles_error'));
       setRoles([]); 
     }
     setLoading(false);
@@ -64,7 +67,7 @@ const RoleListPage: React.FC = () => {
       setAllPermissions(permissionsArray || []); // Directly use the returned array
     } catch (error) {
       console.error("Failed to fetch permissions:", error);
-      message.error('加载权限列表失败');
+      message.error(t('role_management_page.message.fetch_permissions_error'));
       setAllPermissions([]);
     }
     setLoadingPermissions(false);
@@ -130,10 +133,10 @@ const RoleListPage: React.FC = () => {
         ) as UpdateRolePayload;
         
         await updateRole(editingRole.id, cleanedPayload);
-        message.success('角色更新成功');
+        message.success(t('role_management_page.message.update_role_success'));
       } else {
         if (!values.name || !values.code) {
-          message.error('角色名称和代码是必填项。');
+          message.error(t('role_management_page.message.create_role_error.name_code_required'));
           setModalLoading(false);
           return;
         }
@@ -143,7 +146,7 @@ const RoleListPage: React.FC = () => {
           permission_ids: submissionPermissionIds,
         };
         await createRole(payload);
-        message.success('角色创建成功');
+        message.success(t('role_management_page.message.create_role_success'));
       }
       setIsModalOpen(false);
       setEditingRole(null);
@@ -152,7 +155,9 @@ const RoleListPage: React.FC = () => {
     } catch (error: any) {
       console.error("Role operation failed:", error);
       
-      let errorToDisplay: string = editingRole ? '更新角色失败' : '创建角色失败'; // Default message
+      let errorToDisplay: string = editingRole 
+        ? t('role_management_page.message.update_role_error') 
+        : t('role_management_page.message.create_role_error'); 
 
       if (error.response?.data) {
         const serverErrorData = error.response.data;
@@ -199,7 +204,7 @@ const RoleListPage: React.FC = () => {
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInput}
-          placeholder={`搜索 ${String(dataIndex)}`}
+          placeholder={`${t('role_management_page.table.search.placeholder_prefix')}${String(dataIndex)}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
@@ -213,14 +218,14 @@ const RoleListPage: React.FC = () => {
             size="small"
             style={{ width: 90 }}
           >
-            搜索
+            {t('role_management_page.table.search.button_search')}
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
             size="small"
             style={{ width: 90 }}
           >
-            重置
+            {t('role_management_page.table.search.button_reset')}
           </Button>
           <Button
             type="link"
@@ -231,10 +236,10 @@ const RoleListPage: React.FC = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            过滤
+            {t('role_management_page.table.search.button_filter')}
           </Button>
           <Button type="link" size="small" onClick={() => close()}>
-            关闭
+            {t('role_management_page.table.search.button_close')}
           </Button>
         </Space>
       </div>
@@ -261,58 +266,56 @@ const RoleListPage: React.FC = () => {
   const handleDeleteRole = async (roleId: number) => {
     try {
       await deleteRole(roleId);
-      message.success('角色删除成功');
+      message.success(t('role_management_page.message.delete_role_success'));
       fetchRoles();
     } catch (error: any) {
       console.error("Failed to delete role:", error);
-      const errorMsg = error.response?.data?.detail || '删除角色失败';
+      const errorMsg = error.response?.data?.detail || t('role_management_page.message.delete_role_error');
       message.error(errorMsg);
     }
   };
 
   const columns: ColumnsType<Role> = [
     {
-      title: 'ID',
+      title: t('role_management_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
       sorter: (a, b) => a.id - b.id,
     },
     {
-      title: '角色代码',
+      title: t('role_management_page.table.column.code'),
       dataIndex: 'code',
       key: 'code',
       ...getColumnSearchProps('code'),
       sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
-      title: '角色名称',
+      title: t('role_management_page.table.column.name'),
       dataIndex: 'name',
       key: 'name',
       ...getColumnSearchProps('name'),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
-      title: '操作',
+      title: t('role_management_page.table.column.actions'),
       key: 'action',
       width: 180,
       render: (_: any, record: Role) => (
         <Space size="middle">
-          <Button type="link" icon={<EditOutlined />} onClick={() => showEditModal(record)}>编辑</Button>
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />} 
+          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('role_management_page.tooltip.edit_role')} />
+          <ActionButton
+            actionType="delete"
+            danger
             onClick={() => Modal.confirm({
-              title: '确认删除',
-              content: `确定要删除角色 "${record.name}"吗？此操作不可撤销。`,
-              okText: '删除',
+              title: t('role_management_page.modal.confirm_delete.title'),
+              content: t('role_management_page.modal.confirm_delete.content', { roleName: record.name }),
+              okText: t('role_management_page.modal.confirm_delete.ok_text'),
               okType: 'danger',
-              cancelText: '取消',
+              cancelText: t('role_management_page.modal.confirm_delete.cancel_text'),
               onOk: () => handleDeleteRole(record.id),
             })}
-          >
-            删除
-          </Button>
+            tooltipTitle={t('role_management_page.tooltip.delete_role')}
+          />
         </Space>
       ),
     },
@@ -321,13 +324,14 @@ const RoleListPage: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ marginBottom: 0 }}>角色管理</Title> 
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
+        <Title level={4} style={{ marginBottom: 0 }}>{t('role_management_page.title')}</Title> 
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
           onClick={showCreateModal}
+          shape="round"
         >
-          新建角色
+          {t('role_management_page.button.create_role')}
         </Button>
       </div>
       <Table 
@@ -337,7 +341,9 @@ const RoleListPage: React.FC = () => {
         rowKey="id" 
       />
       <Modal
-        title={editingRole ? '编辑角色' : '新建角色'}
+        title={editingRole 
+          ? t('role_management_page.modal.role_form.title.edit') 
+          : t('role_management_page.modal.role_form.title.create')}
         open={isModalOpen}
         onOk={form.submit}
         onCancel={handleModalCancel}
@@ -352,21 +358,21 @@ const RoleListPage: React.FC = () => {
         >
           <Form.Item
             name="name"
-            label="角色名称"
-            rules={[{ required: true, message: '请输入角色名称!' }]}
+            label={t('role_management_page.modal.role_form.label.name')}
+            rules={[{ required: true, message: t('role_management_page.modal.role_form.validation.name_required') }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="code"
-            label="角色代码"
-            rules={[{ required: true, message: '请输入角色代码!' }]}
+            label={t('role_management_page.modal.role_form.label.code')}
+            rules={[{ required: true, message: t('role_management_page.modal.role_form.validation.code_required') }]}
           >
             <Input disabled={!!editingRole} />
           </Form.Item>
           <Form.Item
             name="permission_ids"
-            label="分配权限"
+            label={t('role_management_page.modal.role_form.label.permissions')}
           >
             <Transfer
               dataSource={allPermissions.map(p => ({

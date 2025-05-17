@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Space, Button, Tag } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Employee, LookupItem } from '../types'; // LookupItem might not be needed here anymore unless for other direct use
 // import { EmploymentStatus } from '../types'; // No longer needed as we use statusLookupMap
 import { usePermissions } from '../../../hooks/usePermissions';
@@ -13,8 +14,8 @@ interface EmployeeTableProps {
   total: number;
   currentPage: number;
   pageSize: number;
-  onPageChange: (page: number, pageSize: number) => void; 
-  onDelete: (employeeId: string) => void; 
+  onPageChange: (page: number, pageSize: number) => void;
+  onDelete: (employeeId: string) => void;
   // Added Lookup Maps
   genderLookupMap: Map<number, string>;
   statusLookupMap: Map<number, string>;
@@ -23,6 +24,10 @@ interface EmployeeTableProps {
   maritalStatusLookupMap: Map<number, string>;
   politicalStatusLookupMap: Map<number, string>;
   contractTypeLookupMap: Map<number, string>;
+  departmentLookupMap: Map<number, string>; // Added
+  jobTitleLookupMap: Map<number, string>; // Added
+  onEdit: (employeeId: string) => void; // Added
+  onViewDetails: (employeeId: string) => void; // Added
 }
 
 const EmployeeTable: React.FC<EmployeeTableProps> = ({
@@ -41,73 +46,87 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   // maritalStatusLookupMap,    // Add if used in columns
   // politicalStatusLookupMap,  // Add if used in columns
   // contractTypeLookupMap,     // Add if used in columns
+  departmentLookupMap, // Added
+  jobTitleLookupMap, // Added
+  onEdit, // Added
+  onViewDetails, // Added
 }) => {
+  const { t } = useTranslation();
   const { hasPermission } = usePermissions();
 
   const columns: ColumnsType<Employee> = [
     {
-      title: '姓名',
+      title: t('employee_table.column_full_name'),
       key: 'fullName',
       render: (_, record: Employee) => `${record.first_name || ''} ${record.last_name || ''}`.trim(),
     },
     {
-      title: '工号',
+      title: t('employee_table.column_employee_code'),
       dataIndex: 'employee_code',
       key: 'employee_code',
     },
     {
-      title: '性别',
+      title: t('employee_table.column_gender'),
       dataIndex: 'gender_lookup_value_id',
       key: 'gender',
       render: (genderId: number | undefined) => {
-        if (genderId === undefined || genderId === null) return '-';
-        return genderLookupMap.get(genderId) || `未知 (${genderId})`;
+        if (genderId === undefined || genderId === null) return t('employee_table.cell_empty');
+        return genderLookupMap.get(genderId) || t('employee_table.unknown_gender_param', { genderId });
       },
     },
     {
-      title: '部门',
-      dataIndex: 'departmentName', 
-      key: 'departmentName',
+      title: t('employee_table.column_department'),
+      dataIndex: 'department_id',
+      key: 'department_id',
+      render: (departmentId?: number) => {
+        if (departmentId === undefined || departmentId === null) return t('employee_table.cell_empty');
+        return departmentLookupMap?.get(departmentId) || String(departmentId);
+      },
     },
     {
-      title: '职位',
-      dataIndex: 'positionName', 
-      key: 'positionName',
+      title: t('employee_table.column_job_title'),
+      dataIndex: 'job_title_id',
+      key: 'job_title_id',
+      render: (jobTitleId?: number) => {
+        if (jobTitleId === undefined || jobTitleId === null) return t('employee_table.cell_empty');
+        return jobTitleLookupMap?.get(jobTitleId) || String(jobTitleId);
+      },
     },
     {
-      title: '状态',
+      title: t('employee_table.column_status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
       render: (statusId: number | undefined) => {
-        if (statusId === undefined || statusId === null) return <Tag>未知</Tag>;
-        const statusText = statusLookupMap.get(statusId) || `未知 (${statusId})`;
+        if (statusId === undefined || statusId === null) return <Tag>{t('employee_table.unknown_status_raw')}</Tag>;
+        const statusText = statusLookupMap.get(statusId) || t('employee_table.unknown_status_param', { statusId });
         let color = 'default';
         // Simplified color logic based on common statuses, can be expanded
-        if (statusText.includes('在职')) color = 'green'; // includes for cases like '在职 (xxx)' if map fails
-        else if (statusText.includes('离职')) color = 'red';
-        else if (statusText.includes('试用期')) color = 'blue';
-        else if (statusText.includes('休假')) color = 'orange';
+        // Assumes statusLookupMap returns values that can be compared or are keys for translation
+        if (statusText.includes(t('employee_table.status_active_raw'))) color = 'green'; 
+        else if (statusText.includes(t('employee_table.status_inactive_raw'))) color = 'red';
+        else if (statusText.includes(t('employee_table.status_probation_raw'))) color = 'blue';
+        else if (statusText.includes(t('employee_table.status_on_leave_raw'))) color = 'orange';
         return <Tag color={color}>{statusText}</Tag>; 
       },
     },
     {
-      title: '入职日期',
+      title: t('employee_table.column_hire_date'),
       dataIndex: 'hire_date',
       key: 'hire_date',
       render: (date: string | Dayjs | undefined) => {
-        if (!date) return '-';
+        if (!date) return t('employee_table.cell_empty');
         // Check if it's a Dayjs object (has toLocaleDateString) or a string that needs parsing
         if (typeof date === 'string') {
-          return new Date(date).toLocaleDateString();
+          try {
+            return new Date(date).toLocaleDateString();
+          } catch (e) {
+            return String(date); // Fallback if date string is invalid
+          }
         }
         // If it's a Dayjs object (or something that behaves like it for our purpose)
         if (date && typeof (date as any).toLocaleDateString === 'function') {
             return (date as any).toLocaleDateString();
         }
-        // Fallback for Dayjs objects if the above check isn't robust enough
-        // or if it's already a pre-formatted string that doesn't need Date() parsing.
-        // This part might need adjustment based on actual `hire_date` type from API.
-        // For now, assuming Dayjs object or ISO string.
         try {
             return (date as Dayjs).format('YYYY-MM-DD'); // If it's Dayjs
         } catch (e) {
@@ -116,19 +135,19 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
       },
     },
     {
-      title: '操作',
+      title: t('employee_table.column_actions'),
       key: 'action',
       render: (_, record: Employee) => (
         <Space size="middle">
-          {hasPermission('employee:view') && (
-            <Link to={`/hr/employees/${record.id}`}>查看详情</Link>
+          {hasPermission('P_EMPLOYEE_VIEW_DETAIL') && (
+            <Button type="link" onClick={() => onViewDetails(String(record.id))}>{t('employee_table.action_view_details')}</Button>
           )}
-          {hasPermission('employee:edit') && (
-            <Link to={`/hr/employees/${record.id}/edit`}>编辑</Link>
+          {hasPermission('P_EMPLOYEE_UPDATE') && (
+            <Button type="link" onClick={() => onEdit(String(record.id))}>{t('employee_table.action_edit')}</Button>
           )}
-          {hasPermission('employee:delete') && (
-            <Button type="link" danger onClick={() => onDelete(record.id)}>
-              删除
+          {hasPermission('P_EMPLOYEE_DELETE') && (
+            <Button type="link" danger onClick={() => onDelete(String(record.id))}>
+              {t('employee_table.action_delete')}
             </Button>
           )}
         </Space>

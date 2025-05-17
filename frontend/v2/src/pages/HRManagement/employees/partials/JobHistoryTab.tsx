@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Spin, Alert, Modal } from 'antd';
+import { Button, message, Spin, Alert, Modal, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { employeeService } from '../../../../services/employeeService';
+import ActionButton from '../../../../components/common/ActionButton';
+import { employeeService } from '../../../services/employeeService';
 import type { JobHistoryItem, JobHistoryPageResult } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import JobHistoryTable from './JobHistoryTable';
@@ -67,7 +68,7 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这条岗位历史记录吗？',
@@ -153,6 +154,7 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        // The edit and delete buttons are rendered within JobHistoryTable, so no direct replacement here
       />
       {isModalVisible && (
         <JobHistoryModal

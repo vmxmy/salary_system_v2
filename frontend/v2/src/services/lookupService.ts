@@ -1,6 +1,6 @@
 import type { Department, ContractStatus } from '../pages/HRManagement/types'; // Types that are only used as types
 import { EmploymentStatus, Gender, EmploymentType, ContractType, EducationLevel, LeaveType, MaritalStatus, PoliticalStatus } from '../pages/HRManagement/types'; // Enums used as values
-import type { LookupItem, PositionItem } from '../pages/HRManagement/types';
+import type { LookupItem, JobTitle } from '../pages/HRManagement/types'; // Changed PositionItem to JobTitle
 import apiClient from '../api'; // Added apiClient import
 import { message } from 'antd'; // Added message import
 
@@ -29,18 +29,19 @@ interface DepartmentWithParentId extends Department {
   parentId?: string;
 }
 
-// Helper type for raw API response for positions
-interface ApiPosition {
+// Helper type for raw API response for JobTitles (formerly Positions)
+interface ApiJobTitle { // Renamed from ApiPosition
   id: number | string;
   name: string;
   code?: string;
   is_active?: boolean;
-  parent_job_title_id?: number | string | null;
+  parent_job_title_id?: number | string | null; // Ensure this field name matches API if it provides parent id for job titles
 }
 
-// Internal type that extends the imported PositionItem to include parentId for tree building
-interface PositionItemWithParentId extends PositionItem {
+// Internal type that extends the imported JobTitle to include parentId for tree building
+interface JobTitleWithParentId extends JobTitle { // Renamed from PositionItemWithParentId
   parentId?: string;
+  children?: JobTitleWithParentId[]; 
 }
 
 // 定义通用的 API Lookup Value 结构
@@ -170,7 +171,7 @@ const buildDepartmentTree = (flatDepartments: DepartmentWithParentId[]): Departm
 
   flatDepartments.forEach(dept => {
     dept.children = dept.children || []; // Ensure children is initialized, using original Department type's children
-    map.set(dept.id, dept);
+    map.set(String(dept.id), dept); // Use String(dept.id) as map key is string
   });
 
   flatDepartments.forEach(dept => {
@@ -190,30 +191,30 @@ const buildDepartmentTree = (flatDepartments: DepartmentWithParentId[]): Departm
   return roots as Department[]; // Cast roots back to Department[]
 };
 
-// Helper function to build tree structure from flat list of positions
-const buildPositionTree = (flatPositions: PositionItemWithParentId[]): PositionItem[] => {
-  const map = new Map<string, PositionItemWithParentId>();
-  const roots: PositionItemWithParentId[] = [];
+// Helper function to build tree structure from flat list of job titles
+const buildJobTitleTree = (flatJobTitles: JobTitleWithParentId[]): JobTitle[] => { // Renamed from buildPositionTree
+  const map = new Map<string, JobTitleWithParentId>();
+  const roots: JobTitleWithParentId[] = [];
 
-  flatPositions.forEach(pos => {
-    pos.children = pos.children || [];
-    map.set(pos.id, pos);
+  flatJobTitles.forEach(jt => { // Renamed pos to jt
+    jt.children = jt.children || [];
+    map.set(String(jt.id), jt); // Use String(jt.id) as JobTitle.id is number and map key is string
   });
 
-  flatPositions.forEach(pos => {
-    if (pos.parentId && map.has(pos.parentId)) {
-      const parent = map.get(pos.parentId)!;
-      const parentChildren = parent.children as PositionItem[] | undefined;
+  flatJobTitles.forEach(jt => { // Renamed pos to jt
+    if (jt.parentId && map.has(jt.parentId)) {
+      const parent = map.get(jt.parentId)!;
+      const parentChildren = parent.children as JobTitle[] | undefined; 
       if (parentChildren) {
-        parentChildren.push(pos as PositionItem);
+        parentChildren.push(jt as JobTitle); 
       } else {
-        parent.children = [pos as PositionItem];
+        parent.children = [jt as JobTitle];
       }
     } else {
-      roots.push(pos);
+      roots.push(jt);
     }
   });
-  return roots as PositionItem[];
+  return roots as JobTitle[]; 
 };
 
 const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
@@ -233,28 +234,29 @@ export const lookupService = {
         return [];
       }
 
-      // Map to DepartmentWithParentId first
       const departmentsWithParent: DepartmentWithParentId[] = rawDepartments
         .filter(dept => dept.is_active !== false)
         .map(apiDept => ({
-          id: String(apiDept.id),
-          value: String(apiDept.id), // 使用id作为value，保持与key一致
-          label: apiDept.name,
+          id: Number(apiDept.id), // Ensure ID is number to match Department type
           name: apiDept.name,
-          // Ensure children is part of Department type, initialize if not directly from apiDept
-          children: [], // Initialize based on Department type, buildDepartmentTree will populate it
+          code: apiDept.code,
+          value: Number(apiDept.id), // For select options
+          label: apiDept.name, // For select options
+          children: [], 
           parentId: apiDept.parent_department_id ? String(apiDept.parent_department_id) : undefined,
+          is_active: apiDept.is_active,
         }));
 
       return buildDepartmentTree(departmentsWithParent);
     } catch (error) {
-      console.error('lookupService: Failed to fetch departments:', error);
-      throw error;
+      console.error('Failed to fetch departments lookup:', error);
+      message.error('获取部门列表失败');
+      return [];
     }
   },
 
   getEmployeeStatusesLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching employee statuses');
+    // console.log('Mock lookupService: Fetching employee statuses');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'EMPLOYEE_STATUS' },
@@ -272,7 +274,7 @@ export const lookupService = {
   },
 
   getGenderLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching genders');
+    // console.log('Mock lookupService: Fetching genders');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'GENDER' },
@@ -290,7 +292,7 @@ export const lookupService = {
   },
 
   getEducationLevelsLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching education levels');
+    // console.log('Mock lookupService: Fetching education levels');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'EDUCATION_LEVEL' },
@@ -308,7 +310,7 @@ export const lookupService = {
   },
 
   getEmploymentTypesLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching employment types');
+    // console.log('Mock lookupService: Fetching employment types');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'EMPLOYMENT_TYPE' },
@@ -326,7 +328,7 @@ export const lookupService = {
   },
 
   getContractTypesLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching contract types');
+    // console.log('Mock lookupService: Fetching contract types');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'CONTRACT_TYPE' }, 
@@ -344,7 +346,7 @@ export const lookupService = {
   },
 
   getMaritalStatusesLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching marital statuses');
+    // console.log('Mock lookupService: Fetching marital statuses');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'MARITAL_STATUS' }, 
@@ -362,7 +364,7 @@ export const lookupService = {
   },
 
   getPoliticalStatusesLookup: async (): Promise<LookupItem[]> => {
-    console.log('Mock lookupService: Fetching political statuses');
+    // console.log('Mock lookupService: Fetching political statuses');
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
         params: { type_code: 'POLITICAL_STATUS' }, 
@@ -379,40 +381,39 @@ export const lookupService = {
     }
   },
 
-  getPositionsLookup: async (departmentId?: string): Promise<PositionItem[]> => {
+  getJobTitlesLookup: async (): Promise<JobTitle[]> => { // Renamed from getPositionsLookup
     try {
-      let apiUrl = '/job-titles';
-      if (departmentId) {
-        console.warn(`lookupService: getPositionsLookup called with departmentId=${departmentId}, but API filtering by department is not yet implemented/confirmed for /job-titles. Fetching all positions.`);
-      }
-
-      const response = await apiClient.get<{ data: ApiPosition[] } | { data: { data: ApiPosition[] } }>(apiUrl);
-
-      let rawPositions: ApiPosition[];
+      const response = await apiClient.get<{ data: ApiJobTitle[] } | { data: { data: ApiJobTitle[] } }>('/job-titles');
+      
+      let rawJobTitles: ApiJobTitle[];
       if ('data' in response.data && Array.isArray(response.data.data)) {
-        rawPositions = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        rawPositions = response.data as ApiPosition[];
+        rawJobTitles = response.data.data;
+      } else if (Array.isArray(response.data)) { 
+        rawJobTitles = response.data as ApiJobTitle[];
       } else {
-        console.error('lookupService: Unexpected positions API response structure:', response.data);
+        console.error('lookupService: Unexpected job titles API response structure:', response.data);
         return [];
       }
 
-      const positionsWithParent: PositionItemWithParentId[] = rawPositions
-        .filter(pos => pos.is_active !== false)
-        .map(apiPos => ({
-          id: String(apiPos.id),
-          name: apiPos.name,
-          value: String(apiPos.id), // Populate value for TreeSelect
-          label: apiPos.name,     // Populate label for TreeSelect
-          children: [],           // Initialize children
-          parentId: apiPos.parent_job_title_id ? String(apiPos.parent_job_title_id) : undefined,
+      const jobTitlesWithParent: JobTitleWithParentId[] = rawJobTitles
+        .filter(jt => jt.is_active !== false) 
+        .map(apiJt => ({
+          id: Number(apiJt.id),       // Ensure ID is number to match JobTitle type
+          name: apiJt.name,        
+          code: apiJt.code,       
+          value: Number(apiJt.id),  // Use numeric ID for value if JobTitle value is number
+          label: apiJt.name,        
+          children: [],
+          parentId: apiJt.parent_job_title_id ? String(apiJt.parent_job_title_id) : undefined,
+          is_active: apiJt.is_active,
+          // description and other fields from JobTitle can be mapped here if available in ApiJobTitle
         }));
 
-      return buildPositionTree(positionsWithParent);
+      return buildJobTitleTree(jobTitlesWithParent); 
     } catch (error) {
-      console.error('lookupService: Failed to fetch positions:', error);
-      throw error;
+      console.error('Failed to fetch job titles lookup:', error);
+      message.error('获取职位列表失败');
+      return [];
     }
   },
 

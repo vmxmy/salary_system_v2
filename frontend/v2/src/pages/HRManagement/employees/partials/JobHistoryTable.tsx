@@ -1,7 +1,8 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {  } from '@ant-design/icons';
+import ActionButton from '../../../../components/common/ActionButton';
 import type { JobHistoryItem, EmploymentType } from '../../types'; // Assuming EmploymentType is an enum or has a display mapping
 import dayjs from 'dayjs';
 import { usePermissions } from '../../../../hooks/usePermissions';
@@ -12,7 +13,7 @@ interface JobHistoryTableProps {
   dataSource: JobHistoryItem[];
   loading: boolean;
   onEdit: (item: JobHistoryItem) => void;
-  onDelete: (itemId: string) => void;
+  onDelete: (itemId: number) => void;
 }
 
 // Helper to get display label for EmploymentType (can be expanded or moved to a util)
@@ -87,12 +88,10 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       render: (_: any, record: JobHistoryItem) => (
         <Space size="small">
           {canEditJobHistory && (
-            <Button 
-              type="link" 
-              icon={<EditOutlined />} 
-              onClick={() => onEdit(record)} 
-              size="small"
-              aria-label={`编辑岗位历史 ${record.id}`}
+            <ActionButton
+              actionType="edit"
+              onClick={() => onEdit(record)}
+              tooltipTitle={`编辑岗位历史 ${record.id}`}
             />
           )}
           {canDeleteJobHistory && (
@@ -102,12 +101,10 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
               okText="确定"
               cancelText="取消"
             >
-              <Button 
-                type="link" 
-                danger 
-                icon={<DeleteOutlined />} 
-                size="small" 
-                aria-label={`删除岗位历史 ${record.id}`}
+              <ActionButton
+                actionType="delete"
+                danger
+                tooltipTitle={`删除岗位历史 ${record.id}`}
               />
             </Popconfirm>
           )}

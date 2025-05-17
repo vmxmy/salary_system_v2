@@ -70,6 +70,15 @@ class PayrollRunUpdate(BaseModel):
     total_net_pay: Optional[Decimal] = Field(None, description="Total net pay amount for this run")
 
 
+class PayrollRunPatch(BaseModel):
+    """部分更新工资运行批次模型 (for PATCH operations)"""
+    payroll_period_id: Optional[int] = Field(None, description="Foreign key to the payroll period")
+    status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to run status lookup value")
+    initiated_by_user_id: Optional[int] = Field(None, description="Foreign key to user who initiated the run")
+    total_employees: Optional[int] = Field(None, description="Total number of employees processed in this run")
+    total_net_pay: Optional[Decimal] = Field(None, description="Total net pay amount for this run")
+
+
 class PayrollRun(PayrollRunBase):
     """工资运行批次响应模型"""
     id: int = Field(..., description="Primary key")
@@ -111,6 +120,22 @@ class PayrollEntryCreate(PayrollEntryBase):
 
 class PayrollEntryUpdate(BaseModel):
     """更新工资明细模型"""
+    employee_id: Optional[int] = Field(None, description="Foreign key to employees")
+    payroll_period_id: Optional[int] = Field(None, description="Foreign key to the payroll period")
+    payroll_run_id: Optional[int] = Field(None, description="Foreign key to the specific payroll run this result belongs to")
+    gross_pay: Optional[Decimal] = Field(None, description="Total gross pay (應發合計)")
+    total_deductions: Optional[Decimal] = Field(None, description="Total deductions (應扣合計)")
+    net_pay: Optional[Decimal] = Field(None, description="Total net pay (實發合計)")
+    earnings_details: Optional[Dict[str, Any]] = Field(None, description="JSONB object storing individual earning items")
+    deductions_details: Optional[Dict[str, Any]] = Field(None, description="JSONB object storing individual deduction items")
+    calculation_inputs: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation input values")
+    calculation_log: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation log/details")
+    status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to payroll entry status")
+    remarks: Optional[str] = Field(None, description="Remarks for this payroll entry")
+
+
+class PayrollEntryPatch(BaseModel):
+    """部分更新工资明细模型 (for PATCH operations)"""
     employee_id: Optional[int] = Field(None, description="Foreign key to employees")
     payroll_period_id: Optional[int] = Field(None, description="Foreign key to the payroll period")
     payroll_run_id: Optional[int] = Field(None, description="Foreign key to the specific payroll run this result belongs to")

@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 from ..database import get_db_v2
 from ..crud import hr as crud
 from ..pydantic_models.hr import JobTitleCreate, JobTitleUpdate, JobTitle, JobTitleListResponse
-from ...auth import get_current_user, require_role
+from ...auth import require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
@@ -25,7 +25,7 @@ async def get_job_titles(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_JOB_TITLE_VIEW"]))
 ):
     """
     获取职位列表，支持分页、搜索和过滤。
@@ -79,7 +79,7 @@ async def get_job_titles(
 async def get_job_title(
     job_title_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_JOB_TITLE_VIEW"]))
 ):
     """
     根据ID获取职位详情。
@@ -120,12 +120,12 @@ async def get_job_title(
 async def create_job_title(
     job_title: JobTitleCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_JOB_TITLE_MANAGE"]))
 ):
     """
     创建新职位。
 
-    - 需要 SUPER_ADMIN 角色
+    - 需要 P_JOB_TITLE_MANAGE 权限
     """
     try:
         # 创建职位
@@ -160,13 +160,13 @@ async def update_job_title(
     job_title_id: int,
     job_title: JobTitleUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_JOB_TITLE_MANAGE"]))
 ):
     """
     更新职位信息。
 
     - **job_title_id**: 职位ID
-    - 需要 SUPER_ADMIN 角色
+    - 需要 P_JOB_TITLE_MANAGE 权限
     """
     try:
         # 更新职位
@@ -212,13 +212,13 @@ async def update_job_title(
 async def delete_job_title(
     job_title_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["SUPER_ADMIN"]))
+    current_user = Depends(require_permissions(["P_JOB_TITLE_MANAGE"]))
 ):
     """
     删除职位。
 
     - **job_title_id**: 职位ID
-    - 需要 SUPER_ADMIN 角色
+    - 需要 P_JOB_TITLE_MANAGE 权限
     """
     try:
         # 删除职位

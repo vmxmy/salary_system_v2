@@ -69,6 +69,7 @@ class PayrollEntry(BaseV2):
     status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='RESTRICT'), nullable=False)
     remarks = Column(Text, nullable=True)
     calculated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), nullable=True, onupdate=func.now())
 
     # Relationships
     employee = relationship("Employee", back_populates="payroll_entries")

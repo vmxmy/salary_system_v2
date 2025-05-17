@@ -41,17 +41,13 @@ const ReportViewer: React.FC = () => {
     navigate(-1);
   };
 
-  if (loading) {
-    return <Spin size="large" tip={t('common.loading')} />;
-  }
-
   if (error || !reportLink) {
     return (
       <div>
         <Alert type="error" message={error || t('reportViewer.reportNotFound')} />
-        <Button 
-          type="primary" 
-          onClick={handleBack} 
+        <Button
+          type="primary"
+          onClick={handleBack}
           icon={<ArrowLeftOutlined />}
           style={{ marginTop: 16 }}
         >
@@ -62,29 +58,31 @@ const ReportViewer: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)' }}>
-      <Space align="center" style={{ marginBottom: '16px' }}>
-        <Button 
-          icon={<ArrowLeftOutlined />} 
-          onClick={handleBack}
-        >
-          {t('common.back')}
-        </Button>
-        <h2>{reportLink.name}</h2>
-      </Space>
+    <Spin spinning={loading} size="large" tip={t('common.loading')}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)' }}>
+        <Space align="center" style={{ marginBottom: '16px' }}>
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBack}
+          >
+            {t('common.back')}
+          </Button>
+          <h2>{reportLink.name}</h2>
+        </Space>
 
-      <div style={{ flexGrow: 1 }}>
-        <iframe
-          src={reportLink.url}
-          title={reportLink.name}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-          }}
-        />
+        <div style={{ flexGrow: 1 }}>
+          <iframe
+            src={reportLink.url}
+            title={reportLink.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </Spin>
   );
 };
 

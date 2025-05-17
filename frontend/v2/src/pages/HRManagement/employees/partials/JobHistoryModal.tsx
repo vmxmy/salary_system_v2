@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, DatePicker, Select, InputNumber, Input, message, Spin } from 'antd';
+import { Modal, Form, DatePicker, Select, InputNumber, Input, Button, message, Row, Col, Spin } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { employeeService } from '../../../../services/employeeService';
+import { employeeService } from '../../services/employeeService';
 import type { JobHistoryItem, Department, PositionItem, EmploymentType } from '../../types';
 
 const { Option } = Select;

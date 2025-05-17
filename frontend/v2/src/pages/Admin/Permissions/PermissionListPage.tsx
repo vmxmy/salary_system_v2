@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Table, Button, Modal, message, Space, Typography, Card } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
+import ActionButton from '../../../components/common/ActionButton';
+import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import type { ColumnsType } from 'antd/es/table';
 import { getPermissions, createPermission, updatePermission, deletePermission } from '../../../api/permissions';
 import type { Permission, CreatePermissionPayload, UpdatePermissionPayload } from '../../../api/types';
 import PermissionForm from './components/PermissionForm';
+import { useTranslation } from 'react-i18next';
 
 const { Title } = Typography;
 
@@ -15,6 +18,7 @@ interface UpdatePermissionVariables extends UpdatePermissionPayload {
 }
 
 const PermissionListPage: React.FC = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
@@ -32,11 +36,11 @@ const PermissionListPage: React.FC = () => {
     mutationFn: createPermission,
     onSuccess: (data: Permission) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      message.success(`权限 "${data.code}" 已成功创建。`);
+      message.success(t('permission_list_page.message.create_success', { permissionCode: data.code }));
       setIsModalOpen(false);
     },
     onError: (error: Error) => {
-      message.error(`创建权限失败: ${error.message}`);
+      message.error(`${t('permission_list_page.message.create_error_prefix')}${error.message}`);
     },
   });
 
@@ -49,12 +53,12 @@ const PermissionListPage: React.FC = () => {
       updatePermission(variables.id, { code: variables.code, description: variables.description }),
     onSuccess: (data: Permission) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      message.success(`权限 "${data.code}" 已成功更新。`);
+      message.success(t('permission_list_page.message.update_success', { permissionCode: data.code }));
       setIsModalOpen(false);
       setEditingPermission(null);
     },
     onError: (error: Error) => {
-      message.error(`更新权限失败: ${error.message}`);
+      message.error(`${t('permission_list_page.message.update_error_prefix')}${error.message}`);
     },
   });
 
@@ -66,46 +70,42 @@ const PermissionListPage: React.FC = () => {
     mutationFn: deletePermission,
     onSuccess: (_: void, permissionId: number) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      message.success(`权限 ID ${permissionId} 已成功删除。`);
+      message.success(t('permission_list_page.message.delete_success', { permissionId }));
     },
     onError: (error: Error, permissionId: number) => {
-      message.error(`删除权限 ID ${permissionId} 失败: ${error.message}`);
+      message.error(`${t('permission_list_page.message.delete_error_prefix', { permissionId })}${error.message}`);
     },
   });
 
   if (fetchError) {
-    message.error(`加载权限列表失败: ${fetchError.message}`);
+    message.error(`${t('permission_list_page.message.load_list_error_prefix')}${fetchError.message}`);
   }
 
   const columns: ColumnsType<Permission> = [
     {
-      title: 'ID',
+      title: t('permission_list_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
       sorter: (a, b) => a.id - b.id,
     },
     {
-      title: 'Code',
+      title: t('permission_list_page.table.column.code'),
       dataIndex: 'code',
       key: 'code',
       sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
-      title: 'Description',
+      title: t('permission_list_page.table.column.description'),
       dataIndex: 'description',
       key: 'description',
     },
     {
-      title: 'Actions',
+      title: t('permission_list_page.table.column.actions'),
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDeleteConfirmation(record)}>
-            删除
-          </Button>
+          <ActionButton actionType="edit" onClick={() => handleEdit(record)} tooltipTitle={t('permission_list_page.tooltip.edit_permission')} />
+          <ActionButton actionType="delete" danger onClick={() => handleDeleteConfirmation(record)} tooltipTitle={t('permission_list_page.tooltip.delete_permission')} />
         </Space>
       ),
     },
@@ -123,11 +123,11 @@ const PermissionListPage: React.FC = () => {
 
   const handleDeleteConfirmation = (permission: Permission) => {
     Modal.confirm({
-      title: `您确定要删除权限 "${permission.code}" 吗?`,
-      content: '此操作无法撤销。',
-      okText: '确认删除',
+      title: t('permission_list_page.modal.confirm_delete.title', { permissionCode: permission.code }),
+      content: t('permission_list_page.modal.confirm_delete.content'),
+      okText: t('permission_list_page.modal.confirm_delete.ok_text'),
       okType: 'danger',
-      cancelText: '取消',
+      cancelText: t('permission_list_page.modal.confirm_delete.cancel_text'),
       onOk: async () => {
         try {
           await deleteMutation.mutateAsync(permission.id);
@@ -148,16 +148,18 @@ const PermissionListPage: React.FC = () => {
   };
 
   return (
-    <Card>
-      <Title level={3}>权限管理</Title>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleCreate}
-        style={{ marginBottom: 16 }}
-      >
-        创建权限
-      </Button>
+    <div>
+      <PageHeaderLayout>
+        <Title level={4} style={{ marginBottom: 0 }}>{t('permission_list_page.title')}</Title>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleCreate}
+          shape="round"
+        >
+          {t('permission_list_page.button.create_permission')}
+        </Button>
+      </PageHeaderLayout>
       <Table
         columns={columns}
         dataSource={permissions}
@@ -177,7 +179,7 @@ const PermissionListPage: React.FC = () => {
           isLoading={createMutation.isPending || updateMutation.isPending || deleteMutation.isPending}
         />
       )}
-    </Card>
+    </div>
   );
 };
 

@@ -64,8 +64,9 @@
 }
 
 // ===== 表单样式 =====
+// ===== 统一表单样式 =====
 .ant-form {
-  // 表单项间距
+  // 默认表单项间距
   .ant-form-item {
     margin-bottom: @spacing-md;
   }
@@ -74,11 +75,14 @@
   .ant-form-item-label > label {
     color: @heading-color;
     font-weight: 500;
+    font-size: @font-size-base;
+    letter-spacing: 0.5px;
   }
 
   // 必填标记
   .ant-form-item-required::before {
     color: @error-color;
+    margin-right: 2px;
   }
 
   // 表单错误提示
@@ -88,10 +92,43 @@
     margin-top: @spacing-xs;
   }
 
-  // 紧凑型表单
+  // 输入框、选择器等控件统一高度
+  input,
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker,
+  .ant-input-number,
+  .ant-cascader-picker {
+    min-height: @input-height-base;
+    font-size: @font-size-base;
+    border-radius: @border-radius-base;
+  }
+
+  // 统一按钮样式
+  .ant-btn {
+    min-width: 96px;
+    font-size: @font-size-base;
+    border-radius: @border-radius-base;
+  }
+
+  // 紧凑型表单（如需更小间距可在表单组件加 className="form-compact"）
   &.form-compact {
     .ant-form-item {
       margin-bottom: @spacing-sm;
+    }
+    .ant-btn {
+      min-width: 80px;
+      font-size: @font-size-sm;
+      padding: 0 @spacing-sm;
+    }
+    input,
+    .ant-input,
+    .ant-select-selector,
+    .ant-picker,
+    .ant-input-number,
+    .ant-cascader-picker {
+      min-height: @input-height-sm;
+      font-size: @font-size-sm;
     }
   }
 

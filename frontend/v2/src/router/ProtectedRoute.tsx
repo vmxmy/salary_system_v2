@@ -51,19 +51,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   console.log('[ProtectedRoute] Route requiredPermissions:', requiredPermissions);
   console.log('[ProtectedRoute] Route permissionMatchMode:', permissionMatchMode);
 
+  // --- New Loading Logic ---
+  // Determine if we are in a state where critical data (user details, roles, permissions) is still loading.
+  const isEffectivelyLoading = isLoadingUser || (isAuthenticated && currentUser && !rbacDataInitialized);
+  console.log(`[ProtectedRoute] Combined Loading Status: isEffectivelyLoading: ${isEffectivelyLoading} (isLoadingUser: ${isLoadingUser}, isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}, rbacDataInitialized: ${rbacDataInitialized})`);
+
+  if (isEffectivelyLoading) {
+    console.log('[ProtectedRoute] Effective loading is true. Rendering spinner.');
+    return (
+      <Spin spinning={true} size="large" tip="加载用户信息中...">
+        {/* Render minimal content or adjust layout if Spin should cover children conceptually */}
+        {/* For a full-page spinner scenario, children might be null or a div with min-height */}
+        <div style={{ width: '100%', height: '100vh' }} /> 
+      </Spin>
+    );
+  }
+  // --- End New Loading Logic ---
+
   // Loading condition: 
   // 1. isLoadingUser is true (actively fetching user details).
   // 2. OR, user is authenticated (token exists), but either currentUser is not yet set OR rbacData (role codes/permissions) hasn't been initialized.
   // This second part catches the state where initializeAuth has started a fetch, isLoadingUser might even become false briefly 
   // before user object and derived RBAC states are fully populated.
-  if (isLoadingUser || (isAuthenticated && (!currentUser || !rbacDataInitialized))) {
-    console.log(`ProtectedRoute: Waiting for user data. isLoadingUser: ${isLoadingUser}, isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}, rbacDataInitialized: ${rbacDataInitialized}`);
-    return (
-      <Spin size="large" tip="加载用户信息中..." fullscreen />
-    );
-  }
-
-  // Authentication Check: If, after loading attempts, user is still not authenticated (no token) 
+  // Authentication Check: If, after loading attempts, user is still not authenticated (no token)
   // OR if authenticated but currentUser object is missing (should not happen if loading logic is correct, but as a safeguard).
   if (!isAuthenticated || !currentUser) {
     console.log(`ProtectedRoute: Authentication check failed post-loading. isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}. Redirecting to login.`);
@@ -105,10 +115,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  // If all checks pass, render the children that were passed to this component.
-  return <>{children}</>; 
-  // Removed conditional rendering of MainLayout or Outlet directly.
-  // The children prop will now contain what needs to be rendered (e.g. <MainLayout><Outlet /></MainLayout> or just <Outlet />)
+  // If all checks pass, render the children directly as loading is handled above.
+  console.log('[ProtectedRoute] All checks passed. Rendering children.');
+  return <>{children}</>; // Render children directly
 };
 
 export default ProtectedRoute; 

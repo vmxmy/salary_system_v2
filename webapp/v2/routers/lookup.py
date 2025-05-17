@@ -11,7 +11,7 @@ from ..pydantic_models.config import (
     LookupTypeCreate, LookupTypeUpdate, LookupType, LookupTypeListResponse,
     LookupValueCreate, LookupValueUpdate, LookupValue, LookupValueListResponse
 )
-from ...auth import get_current_user, require_role
+from ...auth import require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
@@ -27,7 +27,7 @@ async def get_lookup_types(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_LOOKUP_TYPE_VIEW"]))
 ):
     """
     获取查找类型列表，支持分页和搜索。
@@ -77,7 +77,7 @@ async def get_lookup_types(
 async def get_lookup_type(
     lookup_type_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_LOOKUP_TYPE_VIEW"]))
 ):
     """
     根据ID获取查找类型详情。
@@ -118,7 +118,7 @@ async def get_lookup_type(
 async def create_lookup_type(
     lookup_type: LookupTypeCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_LOOKUP_TYPE_MANAGE"]))
 ):
     """
     创建新查找类型。
@@ -158,7 +158,7 @@ async def update_lookup_type(
     lookup_type_id: int,
     lookup_type: LookupTypeUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_LOOKUP_TYPE_MANAGE"]))
 ):
     """
     更新查找类型信息。
@@ -210,7 +210,7 @@ async def update_lookup_type(
 async def delete_lookup_type(
     lookup_type_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_permissions(["P_LOOKUP_TYPE_MANAGE"]))
 ):
     """
     删除查找类型。
@@ -257,7 +257,7 @@ async def get_lookup_values(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_LOOKUP_VALUE_VIEW"]))
 ):
     """
     获取查找值列表，支持分页、搜索和过滤。
@@ -328,7 +328,7 @@ async def get_lookup_values(
 async def get_lookup_value(
     lookup_value_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_LOOKUP_VALUE_VIEW"]))
 ):
     """
     根据ID获取查找值详情。
@@ -369,7 +369,7 @@ async def get_lookup_value(
 async def create_lookup_value(
     lookup_value: LookupValueCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_LOOKUP_VALUE_MANAGE"]))
 ):
     """
     创建新查找值。
@@ -409,7 +409,7 @@ async def update_lookup_value(
     lookup_value_id: int,
     lookup_value: LookupValueUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_LOOKUP_VALUE_MANAGE"]))
 ):
     """
     更新查找值信息。
@@ -461,7 +461,7 @@ async def update_lookup_value(
 async def delete_lookup_value(
     lookup_value_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_permissions(["P_LOOKUP_VALUE_MANAGE"]))
 ):
     """
     删除查找值。

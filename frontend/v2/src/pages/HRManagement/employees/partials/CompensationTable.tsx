@@ -1,7 +1,8 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {  } from '@ant-design/icons';
+import ActionButton from '../../../../components/common/ActionButton';
 import { PayFrequency } from '../../types'; // Enum import for type usage and value mapping
 import type { CompensationItem } from '../../types';
 import dayjs from 'dayjs';
@@ -27,7 +28,7 @@ interface CompensationTableProps {
   dataSource: CompensationItem[];
   loading: boolean;
   onEdit: (record: CompensationItem) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loading, onEdit, onDelete }) => {
@@ -39,17 +40,17 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
   const columns: ColumnsType<CompensationItem> = [
     {
       title: 'Effective Date',
-      dataIndex: 'effectiveDate',
-      key: 'effectiveDate',
-      sorter: (a, b) => dayjs(a.effectiveDate).unix() - dayjs(b.effectiveDate).unix(),
+      dataIndex: 'effective_date',
+      key: 'effective_date',
+      sorter: (a, b) => dayjs(a.effective_date).unix() - dayjs(b.effective_date).unix(),
       render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : 'N/A',
     },
     {
       title: 'Basic Salary',
-      dataIndex: 'basicSalary',
-      key: 'basicSalary',
+      dataIndex: 'basic_salary',
+      key: 'basic_salary',
       align: 'right',
-      sorter: (a, b) => a.basicSalary - b.basicSalary,
+      sorter: (a, b) => a.basic_salary - b.basic_salary,
       render: (val) => typeof val === 'number' ? val.toFixed(2) : 'N/A',
     },
     {
@@ -62,19 +63,21 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
     },
     {
       title: 'Total Salary',
-      dataIndex: 'totalSalary',
-      key: 'totalSalary',
+      dataIndex: 'total_salary',
+      key: 'total_salary',
       align: 'right',
-      sorter: (a, b) => (a.totalSalary || 0) - (b.totalSalary || 0),
+      sorter: (a, b) => (a.total_salary || 0) - (b.total_salary || 0),
       render: (val) => typeof val === 'number' ? val.toFixed(2) : 'N/A',
     },
     {
       title: 'Pay Frequency',
-      dataIndex: 'payFrequency',
-      key: 'payFrequency',
-      render: (freq: PayFrequency) => <Tag>{getPayFrequencyLabel(freq)}</Tag>,
-      filters: Object.values(PayFrequency).map(pf => ({ text: getPayFrequencyLabel(pf), value: pf })),
-      onFilter: (value, record) => record.payFrequency === value,
+      dataIndex: 'pay_frequency_lookup_value_id',
+      key: 'pay_frequency_lookup_value_id',
+      // TODO: Render using lookup map
+      render: (lookupValueId: number) => lookupValueId, // Placeholder
+      // TODO: Add filters using lookup map
+      // filters: Object.values(PayFrequency).map(pf => ({ text: getPayFrequencyLabel(pf), value: pf })),
+      // onFilter: (value, record) => record.payFrequency === value,
     },
     {
       title: 'Currency',
@@ -106,12 +109,10 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       render: (_, record) => (
         <Space size="small">
           {canEdit && (
-            <Button
-              type="link"
-              icon={<EditOutlined />}
+            <ActionButton
+              actionType="edit"
               onClick={() => onEdit(record)}
-              size="small"
-              title="Edit"
+              tooltipTitle="编辑薪资记录"
             />
           )}
           {canDelete && (
@@ -121,7 +122,8 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
               okText="Yes"
               cancelText="No"
             >
-              <Button type="link" danger icon={<DeleteOutlined />} size="small" title="Delete" />
+            {/* The delete button is rendered within ActionButton, so no direct replacement here */}
+              <ActionButton actionType="delete" danger tooltipTitle="删除薪资记录" />
             </Popconfirm>
           )}
         </Space>

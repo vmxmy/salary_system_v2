@@ -90,6 +90,11 @@ export const createThemeConfig = (options: {
       fontSize,
       borderRadius,
     },
+    components: {
+      Button: {
+        borderRadius: 9999, // Make buttons round by default
+      },
+    },
   };
 };
 

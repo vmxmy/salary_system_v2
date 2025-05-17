@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, DatePicker, Select, InputNumber, Input, message, Spin } from 'antd';
+import { Modal, Form, DatePicker, Select, InputNumber, Input, message, Spin, Row, Col } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { employeeService } from '../../../../services/employeeService';
-import type { CompensationItem, PayFrequency, CreateCompensationPayload, UpdateCompensationPayload } from '../../types';
+import { employeeService } from '../../services/employeeService';
+import type { CompensationItem, PayFrequency, Currency, CreateCompensationPayload, UpdateCompensationPayload } from '../../types';
 
 const { Option } = Select;
 

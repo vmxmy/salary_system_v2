@@ -1,7 +1,8 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {  } from '@ant-design/icons';
+import ActionButton from '../../../../components/common/ActionButton';
 import { ContractType, ContractStatus } from '../../types';
 import type { ContractItem } from '../../types';
 import dayjs from 'dayjs';
@@ -24,7 +25,7 @@ interface ContractTableProps {
   dataSource: ContractItem[];
   loading: boolean;
   onEdit: (record: ContractItem) => void;
-  onDelete: (recordId: string) => void;
+  onDelete: (recordId: number) => void;
 }
 
 const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEdit, onDelete }) => {
@@ -85,14 +86,11 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       render: (_, record) => (
         <Space size="small">
           {canEditContract && (
-            <Button 
-              type="link" 
-              icon={<EditOutlined />} 
+            <ActionButton
+              actionType="edit"
               onClick={() => onEdit(record)}
-              size="small"
-            >
-              Edit
-            </Button>
+              tooltipTitle="编辑合同"
+            />
           )}
           {canDeleteContract && (
             <Popconfirm
@@ -102,9 +100,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
               okText="Yes, Delete"
               cancelText="Cancel"
             >
-              <Button type="link" icon={<DeleteOutlined />} danger size="small">
-                Delete
-              </Button>
+              <ActionButton actionType="delete" danger tooltipTitle="删除合同" />
             </Popconfirm>
           )}
         </Space>

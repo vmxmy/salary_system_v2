@@ -50,6 +50,32 @@ class Employee(BaseV2):
     payroll_entries = relationship("PayrollEntry", back_populates="employee")
     user = relationship("User", back_populates="employee", uselist=False)
 
+    # Relationship to bank accounts
+    bank_accounts = relationship("EmployeeBankAccount", back_populates="employee", cascade="all, delete-orphan")
+
+
+class EmployeeBankAccount(BaseV2):
+    __tablename__ = 'employee_bank_accounts'
+    __table_args__ = (
+        UniqueConstraint('employee_id', 'account_number', name='uq_employee_bank_account_number'),
+        {'schema': 'hr'}
+    )
+
+    id = Column(BigInteger, Identity(always=True), primary_key=True)
+    employee_id = Column(BigInteger, ForeignKey('hr.employees.id', ondelete='CASCADE'), nullable=False)
+    bank_name = Column(String(255), nullable=False)
+    account_number = Column(String(100), nullable=False)
+    account_holder_name = Column(String(255), nullable=False) # Usually the employee's name, but can differ
+    branch_name = Column(String(255), nullable=True)
+    bank_code = Column(String(50), nullable=True) # e.g., SWIFT code or local bank code
+    account_type_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='SET NULL'), nullable=True)
+    is_primary = Column(Boolean, nullable=False, default=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    employee = relationship("Employee", back_populates="bank_accounts")
+    account_type = relationship("LookupValue", foreign_keys=[account_type_lookup_value_id])
+
 
 class Department(BaseV2):
     __tablename__ = 'departments'

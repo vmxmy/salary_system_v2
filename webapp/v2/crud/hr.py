@@ -23,9 +23,9 @@ def get_employees(
     department_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 100
-) -> Tuple[List[Employee], int]:
+) -> Tuple[List[Tuple[Employee, Optional[str], Optional[str]]], int]:
     """
-    获取员工列表。
+    获取员工列表，包括当前部门和职位名称。
 
     Args:
         db: 数据库会话
@@ -36,9 +36,29 @@ def get_employees(
         limit: 返回的记录数
 
     Returns:
-        员工列表和总记录数
+        员工列表 (包含Employee对象、部门名称、职位名称的元组) 和总记录数
     """
-    query = db.query(Employee)
+    # Base query with joins for current job history, department, and job title
+    query = db.query(
+        Employee,
+        Department.name.label("department_name"),
+        JobTitle.name.label("job_title_name")
+    ).join(
+        EmployeeJobHistory,
+        and_(
+            Employee.id == EmployeeJobHistory.employee_id,
+            EmployeeJobHistory.end_date == None # Filter for current job history
+        ),
+        isouter=True # Use isouter=True to include employees without job history
+    ).join(
+        Department,
+        EmployeeJobHistory.department_id == Department.id,
+        isouter=True # Use isouter=True to include employees without a department in job history
+    ).join(
+        JobTitle,
+        EmployeeJobHistory.job_title_id == JobTitle.id,
+        isouter=True # Use isouter=True to include employees without a job title in job history
+    )
 
     # 应用过滤条件
     if status_id:
@@ -54,31 +74,73 @@ def get_employees(
                 Employee.last_name.ilike(search_term),
                 Employee.id_number.ilike(search_term),
                 Employee.email.ilike(search_term),
-                Employee.phone_number.ilike(search_term)
+                Employee.phone_number.ilike(search_term),
+                # Include department and job title names in search
+                Department.name.ilike(search_term),
+                JobTitle.name.ilike(search_term)
             )
         )
 
     # 如果指定了部门ID，则需要通过员工工作历史关联查询
     if department_id:
-        # 获取当前在指定部门工作的员工
-        # 注意：这里假设员工工作历史中end_date为NULL表示当前记录
-        query = query.join(
-            EmployeeJobHistory,
-            and_(
-                Employee.id == EmployeeJobHistory.employee_id,
-                EmployeeJobHistory.department_id == department_id,
-                EmployeeJobHistory.end_date == None
+        # Filter by department ID in the current job history
+        query = query.filter(EmployeeJobHistory.department_id == department_id)
+
+
+    # Get total count before applying limit and offset
+    # To get the correct total count with joins and filters, we need to count the primary entity (Employee)
+    # while considering the applied filters. Using a subquery or distinct count might be necessary
+    # depending on the complexity and potential for duplicate rows due to joins.
+    # A simpler approach for total count with filters applied to the joined tables:
+    total_query = db.query(func.count(Employee.id)).select_from(Employee).join(
+        EmployeeJobHistory,
+        and_(
+            Employee.id == EmployeeJobHistory.employee_id,
+            EmployeeJobHistory.end_date == None
+        ),
+        isouter=True
+    ).join(
+        Department,
+        EmployeeJobHistory.department_id == Department.id,
+        isouter=True
+    ).join(
+        JobTitle,
+        EmployeeJobHistory.job_title_id == JobTitle.id,
+        isouter=True
+    )
+
+    if status_id:
+        total_query = total_query.filter(Employee.status_lookup_value_id == status_id)
+
+    if search:
+        search_term = f"%{search}%"
+        total_query = total_query.filter(
+            or_(
+                Employee.employee_code.ilike(search_term),
+                Employee.first_name.ilike(search_term),
+                Employee.last_name.ilike(search_term),
+                Employee.id_number.ilike(search_term),
+                Employee.email.ilike(search_term),
+                Employee.phone_number.ilike(search_term),
+                Department.name.ilike(search_term),
+                JobTitle.name.ilike(search_term)
             )
         )
 
-    # 获取总记录数
-    total = query.count()
+    if department_id:
+        total_query = total_query.filter(EmployeeJobHistory.department_id == department_id)
+
+    total = total_query.scalar()
+
 
     # 应用排序和分页
     query = query.order_by(Employee.last_name, Employee.first_name)
     query = query.offset(skip).limit(limit)
 
-    return query.all(), total
+    # Execute the query and return results as list of tuples
+    results = query.all()
+
+    return results, total
 
 
 def get_employee(db: Session, employee_id: int) -> Optional[Employee]:

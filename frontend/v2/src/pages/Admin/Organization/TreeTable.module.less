@@ -1,0 +1,38 @@
+/* 通用树状表格样式 */
+.tree-table .ant-table-cell {
+  padding: 8px 12px;
+}
+
+/* 斑马条纹 */
+.tree-table tr:nth-child(even) > td {
+  background-color: #fafafa;
+}
+
+/* 行头样式 */
+.tree-table th[rowscope="row"],
+.tree-table td[rowscope="row"] {
+  background-color: #fafafa;
+  font-weight: 500;
+}
+
+/* 根节点样式 */
+.tree-table tr[data-row-depth="0"] > td {
+  background-color: #f0f5ff;
+}
+
+/* 合并单元格样式 */
+.tree-table td[colspan] {
+  background-color: #f0f5ff;
+}
+
+/* 表格边框样式 */
+.tree-table.ant-table-bordered .ant-table-container {
+  border: 1px solid #f0f0f0;
+  border-radius: 2px;
+}
+
+/* 表头样式 */
+.tree-table th.ant-table-cell {
+  background-color: #fafafa;
+  font-weight: 500;
+}

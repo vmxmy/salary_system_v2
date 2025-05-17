@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, DatePicker, Select, Input, message, Spin } from 'antd';
+import { Modal, Form, DatePicker, Select, Input, message, Spin, Button, Row, Col } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { employeeService } from '../../../../services/employeeService';
+import { employeeService } from '../../services/employeeService';
 import type { ContractItem, ContractType, ContractStatus, CreateContractPayload, UpdateContractPayload } from '../../types';
+import type { FormInstance } from 'antd/lib/form';
 
 const { Option } = Select;
 

@@ -15,7 +15,7 @@ from ..pydantic_models.config import (
     TaxBracketCreate, TaxBracketUpdate, TaxBracket, TaxBracketListResponse,
     SocialSecurityRateCreate, SocialSecurityRateUpdate, SocialSecurityRate, SocialSecurityRateListResponse
 )
-from ...auth import get_current_user, require_role
+from ...auth import get_current_user, require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
@@ -31,7 +31,7 @@ async def get_system_parameters(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_SYSTEM_PARAMETER_VIEW"]))
 ):
     """
     获取系统参数列表，支持分页和搜索。
@@ -81,7 +81,7 @@ async def get_system_parameters(
 async def get_system_parameter(
     parameter_id: str,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_SYSTEM_PARAMETER_VIEW"]))
 ):
     """
     根据ID或键获取系统参数详情。
@@ -129,7 +129,7 @@ async def get_system_parameter(
 async def create_system_parameter(
     parameter: SystemParameterCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_SYSTEM_PARAMETER_MANAGE"]))
 ):
     """
     创建新系统参数。
@@ -169,7 +169,7 @@ async def update_system_parameter(
     parameter_id: str,
     parameter: SystemParameterUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_SYSTEM_PARAMETER_MANAGE"]))
 ):
     """
     更新系统参数信息。
@@ -237,7 +237,7 @@ async def update_system_parameter(
 async def delete_system_parameter(
     parameter_id: str,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_permissions(["P_SYSTEM_PARAMETER_MANAGE"]))
 ):
     """
     删除系统参数。
@@ -298,7 +298,7 @@ async def get_payroll_components(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"]))
 ):
     """
     获取工资组件定义列表，支持分页、搜索和过滤。
@@ -365,7 +365,7 @@ async def get_payroll_components(
 async def get_payroll_component(
     component_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"]))
 ):
     """
     根据ID获取工资组件定义详情。
@@ -406,7 +406,7 @@ async def get_payroll_component(
 async def create_payroll_component(
     component: PayrollComponentDefinitionCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"]))
 ):
     """
     创建新工资组件定义。
@@ -446,7 +446,7 @@ async def update_payroll_component(
     component_id: int,
     component: PayrollComponentDefinitionUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"]))
 ):
     """
     更新工资组件定义信息。
@@ -498,7 +498,7 @@ async def update_payroll_component(
 async def delete_payroll_component(
     component_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"]))
 ):
     """
     删除工资组件定义。
@@ -556,7 +556,7 @@ async def get_tax_brackets(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_TAX_BRACKET_VIEW"]))
 ):
     """
     获取税率档位列表，支持分页、搜索和过滤。
@@ -612,7 +612,7 @@ async def get_tax_brackets(
 async def get_tax_bracket(
     bracket_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_TAX_BRACKET_VIEW"]))
 ):
     """
     根据ID获取税率档位详情。
@@ -653,7 +653,7 @@ async def get_tax_bracket(
 async def create_tax_bracket(
     tax_bracket: TaxBracketCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_TAX_BRACKET_MANAGE"]))
 ):
     """
     创建新税率档位。
@@ -693,7 +693,7 @@ async def update_tax_bracket(
     bracket_id: int,
     tax_bracket: TaxBracketUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_TAX_BRACKET_MANAGE"]))
 ):
     """
     更新税率档位信息。
@@ -745,7 +745,7 @@ async def update_tax_bracket(
 async def delete_tax_bracket(
     bracket_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_permissions(["P_TAX_BRACKET_MANAGE"]))
 ):
     """
     删除税率档位。
@@ -803,7 +803,7 @@ async def get_social_security_rates(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_SOCIAL_SECURITY_RATE_VIEW"]))
 ):
     """
     获取社保费率列表，支持分页、搜索和过滤。
@@ -872,7 +872,7 @@ async def get_social_security_rates(
 async def get_social_security_rate(
     rate_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_permissions(["P_SOCIAL_SECURITY_RATE_VIEW"]))
 ):
     """
     根据ID获取社保费率详情。
@@ -913,7 +913,7 @@ async def get_social_security_rate(
 async def create_social_security_rate(
     rate: SocialSecurityRateCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_SOCIAL_SECURITY_RATE_MANAGE"]))
 ):
     """
     创建新社保费率。
@@ -953,7 +953,7 @@ async def update_social_security_rate(
     rate_id: int,
     rate: SocialSecurityRateUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin", "Config Admin"]))
+    current_user = Depends(require_permissions(["P_SOCIAL_SECURITY_RATE_MANAGE"]))
 ):
     """
     更新社保费率信息。
@@ -1005,7 +1005,7 @@ async def update_social_security_rate(
 async def delete_social_security_rate(
     rate_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_role(["Super Admin"]))
+    current_user = Depends(require_permissions(["P_SOCIAL_SECURITY_RATE_MANAGE"]))
 ):
     """
     删除社保费率。

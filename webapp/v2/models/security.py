@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Foreign
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TIMESTAMP
+from typing import Set, List
 
 from ..database import BaseV2
 
@@ -42,6 +43,18 @@ class User(BaseV2):
     roles = relationship("Role", secondary=user_roles, back_populates="users")
     payroll_runs = relationship("PayrollRun", back_populates="initiated_by")
 
+    @property
+    def all_permission_codes(self) -> Set[str]:
+        """Returns a set of all unique permission codes granted to the user via their roles."""
+        codes = set()
+        if not self.roles:
+            return codes
+        for role in self.roles:
+            if role and hasattr(role, 'permission_codes'):
+                for p_code in role.permission_codes:
+                    codes.add(p_code)
+        return codes
+
 
 class Role(BaseV2):
     __tablename__ = 'roles'
@@ -54,6 +67,13 @@ class Role(BaseV2):
     # Relationships
     users = relationship("User", secondary=user_roles, back_populates="roles")
     permissions = relationship("Permission", secondary=role_permissions, back_populates="roles")
+
+    @property
+    def permission_codes(self) -> List[str]:
+        """Returns a list of permission codes associated with this role."""
+        if not self.permissions:
+            return []
+        return [p.code for p in self.permissions if p and p.code]
 
 
 class Permission(BaseV2):

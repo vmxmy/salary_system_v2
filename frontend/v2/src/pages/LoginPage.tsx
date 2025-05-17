@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Typography, Alert, Row, Col, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import type { LoginCredentials } from '../api/auth'; // 确保 LoginCredentials 在 api/auth.ts 中定义并导出
 
@@ -10,6 +11,7 @@ const { Title } = Typography;
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const {
     loginAction,
     authToken,
@@ -50,8 +52,8 @@ const LoginPage: React.FC = () => {
   return (
     <Row justify="center" align="middle" style={{ minHeight: '100vh' /* Removed background: '#f0f2f5' */ }}>
       <Col xs={20} sm={16} md={12} lg={8} xl={6}>
-        <Card variant="outlined" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' /* Adjusted shadow */ }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <Card variant="outlined" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' /* REMOVE position: 'relative' */ }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' /* REMOVE marginTop: '40px' */ }}>
             {/* Changed logo to a text placeholder */}
             <div style={{ 
               height: '60px', // Approximate height for logo area
@@ -67,7 +69,7 @@ const LoginPage: React.FC = () => {
             }}>
               App Logo
             </div>
-            <Title level={2} style={{ marginBottom: '24px' /* Added margin below title */ }}>系统登录</Title>
+            <Title level={2} style={{ marginBottom: '24px' /* Added margin below title */ }}>{t('login_page_title')}</Title>
           </div>
           <Form
             form={form}
@@ -79,25 +81,25 @@ const LoginPage: React.FC = () => {
             layout="vertical"
           >
             <Form.Item
-              label="用户名"
+              label={t('username_label')}
               name="username"
-              rules={[{ required: true, message: '请输入用户名!' }]}
+              rules={[{ required: true, message: t('username_required_message') }]}
               style={{ marginBottom: '20px' }} // Adjusted spacing
             >
               <Input prefix={<UserOutlined />} size="large" autoComplete="username" /* Removed placeholder */ />
             </Form.Item>
 
             <Form.Item
-              label="密码"
+              label={t('password_label')}
               name="password"
-              rules={[{ required: true, message: '请输入密码!' }]}
+              rules={[{ required: true, message: t('password_required_message') }]}
               style={{ marginBottom: '12px' }} // Adjusted spacing
             >
               <Input.Password prefix={<LockOutlined />} size="large" autoComplete="current-password" /* Removed placeholder */ />
             </Form.Item>
 
             <Form.Item name="remember" valuePropName="checked" style={{ marginBottom: '24px' /* Adjusted spacing */ }}>
-              <Checkbox>记住我</Checkbox>
+              <Checkbox>{t('remember_me_checkbox')}</Checkbox>
             </Form.Item>
 
             {loginError && (
@@ -107,8 +109,8 @@ const LoginPage: React.FC = () => {
             )}
 
             <Form.Item style={{ marginBottom: '12px' }}>
-              <Button type="primary" htmlType="submit" loading={isLoadingUser} style={{ width: '100%' }} size="large">
-                登录
+              <Button type="primary" htmlType="submit" loading={isLoadingUser} style={{ width: '100%' }} size="large" shape="round">
+                {t('login_button')}
               </Button>
             </Form.Item>
           </Form>

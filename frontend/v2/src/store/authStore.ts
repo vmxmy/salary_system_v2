@@ -61,129 +61,167 @@ const processUserRbac = (user: User | null): { roles: string[] | null, roleCodes
   return { roles, roleCodes, permissions }; // Return role codes
 };
 
+// Helper function to compare two string arrays (order matters for simplicity here)
+const areArraysEqual = (arr1: string[] | null | undefined, arr2: string[] | null | undefined): boolean => {
+  if (arr1 === arr2) return true; // Same reference or both null/undefined
+  if (!arr1 || !arr2) return false; // One is null/undefined, the other isn't
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false;
+  }
+  return true;
+};
+
 export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
   persist(
     (set, get) => ({
       ...initialState,
 
       loginAction: async (credentials) => {
-        console.log('[AuthStore] loginAction called with credentials:', credentials);
-        set({ isLoadingUser: true, loginError: null, fetchUserError: null }); // Clear previous fetchUserError too
+        console.log('[AuthStore:loginAction] Called with credentials:', credentials);
+        const newStateBeforeLogin = { isLoadingUser: true, loginError: null, fetchUserError: null };
+        console.log('[AuthStore:loginAction] Setting state (before API call):', newStateBeforeLogin);
+        set(newStateBeforeLogin);
         try {
           const response: LoginResponse = await apiLogin(credentials);
-          console.log('[AuthStore] loginAction: API login response received:', response);
-          // Assuming LoginResponse now contains the full user object as response.user
+          console.log('[AuthStore:loginAction] API login response received:', response);
           const { access_token, user } = response;
 
           if (!access_token || !user) {
-            console.error('[AuthStore] loginAction: Access token or user object not found in login response');
-            throw new Error('Access token or user object not found in login response');
+            const errorMsg = 'Access token or user object not found in login response';
+            console.error('[AuthStore:loginAction]', errorMsg);
+            throw new Error(errorMsg);
           }
 
           const decodedToken = jwtDecode<DecodedToken>(access_token);
           const usernameFromToken = decodedToken.sub;
-          const { roles, roleCodes, permissions } = processUserRbac(user); // Destructure roleCodes
+          const { roles, roleCodes, permissions } = processUserRbac(user);
 
-          set({
-            authToken: access_token,
-            currentUser: user,
-            currentUserId: usernameFromToken, // from token sub
-            currentUserNumericId: user.id,   // from user object
-            userRoles: roles,
-            userRoleCodes: roleCodes, // Set roleCodes
-            userPermissions: permissions,
-            loginError: null,
-            isLoadingUser: false, // Login and user processing complete
+          set(state => {
+            const updatedState = {
+              ...state,
+              authToken: access_token,
+              currentUser: user,
+              currentUserId: usernameFromToken,
+              currentUserNumericId: user.id,
+              userRoles: areArraysEqual(state.userRoles, roles) ? state.userRoles : roles,
+              userRoleCodes: areArraysEqual(state.userRoleCodes, roleCodes) ? state.userRoleCodes : roleCodes,
+              userPermissions: areArraysEqual(state.userPermissions, permissions) ? state.userPermissions : permissions,
+              loginError: null,
+              isLoadingUser: false,
+            };
+            console.log('[AuthStore:loginAction] Setting state (on success):', updatedState);
+            return updatedState;
           });
-          console.log('[AuthStore] loginAction: User, roles, and permissions set in store.', user, roles, permissions);
-          // No longer need to call fetchCurrentUserDetails here as user object is complete
+          console.log('[AuthStore:loginAction] User, roles, and permissions set in store.');
+          console.log('[AuthStore:loginAction] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
         } catch (error: any) {
-          console.error('[AuthStore] loginAction: Login failed.', error);
+          console.error('[AuthStore:loginAction] Login failed.', error);
           const errorMessage = error.response?.data?.detail || error.message || 'An unknown login error occurred';
-          set({
-            ...initialState, // Reset to initial state on login failure
+          const errorState = {
+            ...initialState,
             loginError: errorMessage,
             isLoadingUser: false,
-          });
+          };
+          console.log('[AuthStore:loginAction] Setting state (on error):', errorState);
+          set(errorState);
         }
       },
 
       fetchCurrentUserDetails: async (numericUserId) => {
-        console.log(`[AuthStore] fetchCurrentUserDetails called with numericId: ${numericUserId}`);
+        console.log(`[AuthStore:fetchCurrentUserDetails] Called with numericId: ${numericUserId}`);
         if (numericUserId === undefined || numericUserId === null) {
-          console.warn('[AuthStore] fetchCurrentUserDetails: Numeric User ID is missing.');
-          set({ fetchUserError: 'Numeric User ID is missing, cannot fetch details.', currentUser: null, userRoles: null, userPermissions: null, isLoadingUser: false });
+          const errorMsg = 'Numeric User ID is missing, cannot fetch details.';
+          console.warn('[AuthStore:fetchCurrentUserDetails]', errorMsg);
+          const errorState = { fetchUserError: errorMsg, currentUser: null, userRoles: null, userPermissions: null, isLoadingUser: false };
+          console.log('[AuthStore:fetchCurrentUserDetails] Setting state (ID missing):', errorState);
+          set(errorState);
           return;
         }
-        set({ isLoadingUser: true, fetchUserError: null });
+        const loadingState = { isLoadingUser: true, fetchUserError: null }; 
+        console.log('[AuthStore:fetchCurrentUserDetails] Setting state (before API call):', loadingState);
+        set(loadingState);
         try {
-          const user = await apiGetCurrentUser(numericUserId); // This should return the User type with roles and permissions
-          console.log('[AuthStore] fetchCurrentUserDetails: User fetched successfully:', user);
-          const { roles, roleCodes, permissions } = processUserRbac(user); // Destructure roleCodes
-          set({
-            currentUser: user,
-            currentUserNumericId: user.id, // Ensure this is also updated
-            currentUserId: user.username, // Update currentUserId to match fetched user's username
-            userRoles: roles,
-            userRoleCodes: roleCodes, // Set roleCodes
-            userPermissions: permissions,
-            isLoadingUser: false,
-            fetchUserError: null
+          const user = await apiGetCurrentUser(numericUserId);
+          console.log('[AuthStore:fetchCurrentUserDetails] User fetched successfully:', user);
+          const { roles, roleCodes, permissions } = processUserRbac(user);
+          set(state => {
+            const successState = {
+              ...state,
+              currentUser: user,
+              currentUserNumericId: user.id,
+              currentUserId: user.username,
+              userRoles: areArraysEqual(state.userRoles, roles) ? state.userRoles : roles,
+              userRoleCodes: areArraysEqual(state.userRoleCodes, roleCodes) ? state.userRoleCodes : roleCodes,
+              userPermissions: areArraysEqual(state.userPermissions, permissions) ? state.userPermissions : permissions,
+              isLoadingUser: false,
+              fetchUserError: null
+            };
+            console.log('[AuthStore:fetchCurrentUserDetails] Setting state (on success):', successState);
+            return successState;
           });
+          console.log('[AuthStore:fetchCurrentUserDetails] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
         } catch (error: any) {
-          console.error('[AuthStore] fetchCurrentUserDetails: Failed to fetch user details.', error);
           const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch user details';
-          // 彻底登出，避免 token 残留导致状态不一致
+          console.error('[AuthStore:fetchCurrentUserDetails] Failed to fetch user details, logging out.', error);
           get().logoutAction();
-          set({ fetchUserError: errorMessage, isLoadingUser: false });
+          const errorStateAfterLogout = { fetchUserError: errorMessage };
+          console.log('[AuthStore:fetchCurrentUserDetails] Setting state (on error, after logout):', errorStateAfterLogout);
+          set(errorStateAfterLogout);
         }
       },
 
       logoutAction: () => {
-        console.log('[AuthStore] logoutAction called');
-        set(initialState); // Resets all fields including new RBAC ones
+        console.log('[AuthStore:logoutAction] Called');
+        console.log('[AuthStore:logoutAction] Setting state to initialState:', initialState);
+        set(initialState);
       },
 
       initializeAuth: () => {
         const token = get().authToken;
-        const numericIdFromStorage = get().currentUserNumericId; // Persisted numeric ID
-        console.log(`[AuthStore] initializeAuth called. Token: ${!!token}, NumericID: ${numericIdFromStorage}`);
+        const numericIdFromStorage = get().currentUserNumericId;
+        console.log(`[AuthStore:initializeAuth] Called. Token: ${!!token}, NumericID: ${numericIdFromStorage}`);
         
         const isLoading = get().isLoadingUser;
-        // const currentUser = get().currentUser; // currentUser from store is not directly used for this decision anymore
 
         if (token) {
           try {
             const decodedToken = jwtDecode<DecodedToken>(token);
-            set({ currentUserId: decodedToken.sub }); 
+            const setSubState = { currentUserId: decodedToken.sub };
+            console.log('[AuthStore:initializeAuth] Setting currentUserId from token:', setSubState);
+            set(setSubState); 
 
             if (isLoading) {
-              console.log('[AuthStore] initializeAuth: User is already being loaded. Skipping fetchCurrentUserDetails.');
+              console.log('[AuthStore:initializeAuth] User is already being loaded. Skipping fetchCurrentUserDetails.');
             } else if (numericIdFromStorage !== null && numericIdFromStorage !== undefined) {
-              // If token and numericId exist from storage, always try to fetch/validate user details
-              console.log(`[AuthStore] initializeAuth: Found token and numericId (${numericIdFromStorage}) from storage. Attempting to fetch/validate user details.`);
+              console.log(`[AuthStore:initializeAuth] Found token and numericId (${numericIdFromStorage}). Calling fetchCurrentUserDetails.`);
               get().fetchCurrentUserDetails(numericIdFromStorage);
             } else {
-              // Token exists but numericId is missing/invalid from storage, or some other inconsistent state
-              console.warn(`[AuthStore] initializeAuth: authToken exists but currentUserNumericId (${numericIdFromStorage}) from storage is not valid or missing. Logging out.`);
+              console.warn(`[AuthStore:initializeAuth] authToken exists but currentUserNumericId (${numericIdFromStorage}) from storage is not valid or missing. Calling logoutAction.`);
               get().logoutAction();
             }
           } catch (error) {
-            console.error('[AuthStore] Failed to decode token during initialization or other init error:', error);
+            console.error('[AuthStore:initializeAuth] Failed to decode token or other init error. Calling logoutAction:', error);
             get().logoutAction();
           }
         } else {
-          console.log('[AuthStore] initializeAuth: No token found, ensuring logout state.');
-          // If no token, ensure all user state is cleared (logoutAction already does this)
-          // We can add an explicit check to ensure initialState is set if any user data might linger
+          console.log('[AuthStore:initializeAuth] No token found, ensuring logout state.');
           if (get().currentUser || get().userRoles || get().userPermissions || get().authToken ) { 
+            console.log('[AuthStore:initializeAuth] User data found with no token. Setting state to initialState.');
             set(initialState);
           }
         }
+        console.log('[AuthStore:initializeAuth] Store state AT END of initializeAuth:', JSON.stringify(get(), null, 2));
       },
 
-      clearLoginError: () => set({ loginError: null }),
-      clearFetchUserError: () => set({ fetchUserError: null }),
+      clearLoginError: () => {
+        console.log('[AuthStore:clearLoginError] Setting loginError to null');
+        set({ loginError: null });
+      },
+      clearFetchUserError: () => {
+        console.log('[AuthStore:clearFetchUserError] Setting fetchUserError to null');
+        set({ fetchUserError: null });
+      },
     }),
     {
       name: 'auth-storage',

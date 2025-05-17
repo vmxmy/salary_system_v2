@@ -14,14 +14,17 @@ import {
   message,
   Popconfirm,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ClusterOutlined } from '@ant-design/icons';
+import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import { PlusOutlined, ClusterOutlined } from '@ant-design/icons';
+import ActionButton from '../../../components/common/ActionButton';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
 // 导入样式文件
-import './DepartmentsPage.css';
+import styles from './TreeTable.module.less';
 
 import {
   getDepartments,
@@ -65,6 +68,7 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
 };
 
 const DepartmentsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [departmentsTree, setDepartmentsTree] = useState<DepartmentPageItem[]>([]);
   const [allFlatDepartments, setAllFlatDepartments] = useState<Department[]>([]); // For parent selector
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -83,9 +87,9 @@ const DepartmentsPage: React.FC = () => {
       const flatData = await getAllDepartmentsFlat();
       setAllFlatDepartments(flatData);
     } catch (error) {
-      message.error('获取所有部门列表失败 (用于选择器)');
+      message.error(t('department_management_page.message.fetch_all_flat_error'));
     }
-  }, []);
+  }, [t]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -108,11 +112,11 @@ const DepartmentsPage: React.FC = () => {
         pagination: { ...prev.pagination, total: response.meta.total },
       }));
     } catch (error) {
-      message.error('获取部门列表失败');
+      message.error(t('department_management_page.message.fetch_list_error'));
       console.error('Failed to fetch departments:', error);
     }
     setIsLoading(false);
-  }, [allFlatDepartments.length]); // Re-fetch if flat list was empty
+  }, [allFlatDepartments.length, t]);
 
   useEffect(() => {
     fetchData();
@@ -176,18 +180,18 @@ const DepartmentsPage: React.FC = () => {
     try {
       if (editingDepartment) {
         await updateDepartment(editingDepartment.id, payload as UpdateDepartmentPayload);
-        message.success('部门更新成功');
+        message.success(t('department_management_page.message.update_success'));
       } else {
         await createDepartment(payload);
-        message.success('部门创建成功');
+        message.success(t('department_management_page.message.create_success'));
       }
       setIsModalOpen(false);
       setEditingDepartment(null);
       fetchData(); // Refresh tree
       fetchAllFlatDataForSelector(); // Refresh selector options
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || '未知错误';
-      message.error(`操作失败: ${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('department_management_page.message.error.unknown');
+      message.error(`${t('department_management_page.message.operation_failed_prefix')}${errorMsg}`);
       console.error('Department operation failed:', error.response?.data || error);
     }
     setModalLoading(false);
@@ -196,12 +200,12 @@ const DepartmentsPage: React.FC = () => {
   const handleDeleteDepartment = async (id: number) => {
     try {
       await deleteDepartment(id);
-      message.success('部门删除成功');
+      message.success(t('department_management_page.message.delete_success'));
       fetchData();
       fetchAllFlatDataForSelector();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || '部门可能正在使用中或包含子部门';
-      message.error(`删除失败: ${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('department_management_page.message.error.delete_in_use_or_has_children');
+      message.error(`${t('department_management_page.message.delete_failed_prefix')}${errorMsg}`);
       console.error('Failed to delete department:', error.response?.data || error);
     }
   };
@@ -230,62 +234,62 @@ const DepartmentsPage: React.FC = () => {
 
   const columns: ColumnsType<DepartmentPageItem> = [
     {
-      title: 'ID',
+      title: t('department_management_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
       rowScope: 'row' // 将ID列设置为行头
     },
     {
-      title: '部门代码',
+      title: t('department_management_page.table.column.code'),
       dataIndex: 'code',
       key: 'code',
       width: 150,
       onCell: sharedOnCell // 根部门时被合并
     },
     {
-      title: '部门名称',
+      title: t('department_management_page.table.column.name'),
       dataIndex: 'name',
       key: 'name',
       onCell: nameColumnOnCell // 根部门时合并代码列
     },
     {
-      title: '上级部门ID',
+      title: t('department_management_page.table.column.parent_department_id'),
       dataIndex: 'parent_department_id',
       key: 'parent_department_id',
       width: 120,
-      render: (id) => id || '-'
+      render: (id) => id || t('department_management_page.table.column.value_na_or_dash')
     },
     {
-      title: '生效日期',
+      title: t('department_management_page.table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : '-'
+      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('department_management_page.table.column.value_na_or_dash')
     },
     {
-      title: '激活',
+      title: t('department_management_page.table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
       render: (isActive: boolean) => <Switch checked={isActive} disabled />,
       width: 80
     },
     {
-      title: '操作',
+      title: t('department_management_page.table.column.actions'),
       key: 'action',
       width: 180,
       render: (_, record) => (
         <Space size="small">
-          <Button size="small" icon={<EditOutlined />} onClick={() => showEditModal(record)} />
+          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('department_management_page.tooltip.edit_department')} />
           <Popconfirm
-            title="确定删除此部门吗？"
-            description="删除部门也会删除其所有子部门，并可能影响关联员工。"
+            title={t('department_management_page.popconfirm.delete.title')}
+            description={t('department_management_page.popconfirm.delete.description')}
             onConfirm={() => handleDeleteDepartment(record.id)}
-            okText="是"
-            cancelText="否"
+            okText={t('department_management_page.popconfirm.delete.ok_text')}
+            cancelText={t('department_management_page.popconfirm.delete.cancel_text')}
           >
-            <Button size="small" icon={<DeleteOutlined />} danger />
+            <ActionButton actionType="delete" tooltipTitle={t('department_management_page.tooltip.delete_department')} danger/>
           </Popconfirm>
-          <Button size="small" icon={<PlusOutlined />} onClick={() => showCreateModal(record.id)} title="添加子部门" />
+          <Button size="small" icon={<PlusOutlined />} onClick={() => showCreateModal(record.id)} title={t('department_management_page.button.add_child_department_tooltip')} />
         </Space>
       ),
     },
@@ -293,10 +297,12 @@ const DepartmentsPage: React.FC = () => {
 
   return (
     <div>
-      <Title level={3}><ClusterOutlined /> 部门管理</Title>
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal(null)} style={{ marginBottom: 16 }}>
-        新建根部门
-      </Button>
+      <PageHeaderLayout>
+        <Title level={4} style={{ marginBottom: 0 }}><ClusterOutlined /> {t('department_management_page.title')}</Title>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal(null)} shape="round">
+          {t('department_management_page.button.create_root_department')}
+        </Button>
+      </PageHeaderLayout>
       <Table
         columns={columns}
         dataSource={departmentsTree} // Use tree data
@@ -307,7 +313,7 @@ const DepartmentsPage: React.FC = () => {
         expandable={{ defaultExpandAllRows: true }}
         bordered
         style={{ marginBottom: 16 }}
-        className="department-tree-table"
+        className={styles['tree-table']}
         onRow={(record) => {
           return {
             // 使用自定义属性存储深度信息
@@ -318,7 +324,9 @@ const DepartmentsPage: React.FC = () => {
         }}
       />
       <Modal
-        title={editingDepartment ? '编辑部门' : '新建部门'}
+        title={editingDepartment 
+          ? t('department_management_page.modal.department_form.title.edit') 
+          : t('department_management_page.modal.department_form.title.create')}
         open={isModalOpen}
         onCancel={handleCancelModal}
         onOk={() => form.submit()}
@@ -326,36 +334,37 @@ const DepartmentsPage: React.FC = () => {
         destroyOnHidden
       >
         <Form form={form} layout="vertical" name="departmentForm" onFinish={handleFormSubmit}>
-          <Form.Item name="code" label="部门代码" rules={[{ required: true, message: '请输入部门代码' }]}>
+          <Form.Item name="code" label={t('department_management_page.modal.department_form.label.code')} rules={[{ required: true, message: t('department_management_page.modal.department_form.validation.code_required') }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="name" label="部门名称" rules={[{ required: true, message: '请输入部门名称' }]}>
+          <Form.Item name="name" label={t('department_management_page.modal.department_form.label.name')} rules={[{ required: true, message: t('department_management_page.modal.department_form.validation.name_required') }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="parent_department_id" label="上级部门">
+          <Form.Item name="parent_department_id" label={t('department_management_page.modal.department_form.label.parent_department')}>
             <TreeSelect
               showSearch
               style={{ width: '100%' }}
               styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder="选择上级部门 (留空则为根部门)"
+              placeholder={t('department_management_page.modal.department_form.placeholder.parent_department')}
               allowClear
               treeDefaultExpandAll
               treeData={buildTreeData(allFlatDepartments)} // Use the flat list converted to tree for selector
               filterTreeNode={(inputValue, treeNode) =>
                 treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
               }
+              virtual={false}
             />
           </Form.Item>
-          <Form.Item name="description" label="描述">
+          <Form.Item name="description" label={t('department_management_page.modal.department_form.label.description')}>
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="effective_date" label="生效日期" rules={[{ required: true, message: '请选择生效日期' }]}>
+          <Form.Item name="effective_date" label={t('department_management_page.modal.department_form.label.effective_date')} rules={[{ required: true, message: t('department_management_page.modal.department_form.validation.effective_date_required') }]}>
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="end_date" label="失效日期">
+          <Form.Item name="end_date" label={t('department_management_page.modal.department_form.label.end_date')}>
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="is_active" label="是否激活" valuePropName="checked" initialValue={true}>
+          <Form.Item name="is_active" label={t('department_management_page.modal.department_form.label.is_active')} valuePropName="checked" initialValue={true}>
             <Switch />
           </Form.Item>
         </Form>
