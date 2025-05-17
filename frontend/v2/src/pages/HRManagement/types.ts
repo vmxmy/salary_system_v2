@@ -101,17 +101,15 @@ export interface Employee {
   gender_lookup_value_id?: number; 
   
   id_number?: string; 
-  dob?: string | Dayjs; 
+  date_of_birth?: string | Dayjs; 
   hire_date: string | Dayjs; // Made non-optional
 
   nationality?: string;
   education_level_lookup_value_id?: number;
   
-  personalEmail?: string;
-  workEmail?: string; 
-  workPhone?: string;
-  mobilePhone?: string; 
-  addressDetail?: string; 
+  email?: string;
+  phone_number?: string;
+  home_address?: string;
 
   probationEndDate?: string | Dayjs; 
   reports_to_employee_id?: number | null; // Changed to snake_case, number, and nullable
@@ -125,12 +123,11 @@ export interface Employee {
   ethnicity?: string; 
   political_status_lookup_value_id?: number;
   
-  bankName?: string;
-  bankAccountName?: string; 
-  bankAccountNumber?: string; 
+  bank_name?: string;
+  bank_account_number?: string;
 
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
   emergencyContactRelation?: string;
 
   contract_type_lookup_value_id?: number; 
@@ -290,17 +287,15 @@ export interface CreateEmployeePayload {
   avatar?: string;
   gender_lookup_value_id?: number | null;
   id_number: string;
-  dob: string; // Expecting YYYY-MM-DD string format for API
+  date_of_birth: string; // Expecting YYYY-MM-DD string format for API
   nationality?: string;
   education_level_lookup_value_id?: number | null;
   marital_status_lookup_value_id?: number | null;
   ethnicity?: string;
   political_status_lookup_value_id?: number | null;
-  personalEmail?: string;
-  workEmail?: string;
-  workPhone?: string;
-  mobilePhone?: string;
-  addressDetail?: string;
+  email?: string;
+  phone_number?: string;
+  home_address?: string;
 
   department_id: number; // Changed to snake_case and number
   job_title_id: number; // Changed from positionId, to snake_case and number
@@ -315,12 +310,11 @@ export interface CreateEmployeePayload {
   initialContractStartDate?: string | null; // Expecting YYYY-MM-DD string format for API
   initialContractEndDate?: string | null; // Expecting YYYY-MM-DD string format for API
 
-  bankName?: string;
-  bankAccountName?: string;
-  bankAccountNumber?: string;
+  bank_name?: string;
+  bank_account_number?: string;
 
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
   emergencyContactRelation?: string;
   notes?: string;
 

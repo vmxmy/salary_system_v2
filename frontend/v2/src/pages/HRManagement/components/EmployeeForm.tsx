@@ -111,7 +111,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       console.log('[EmployeeForm] Received initialValues:', JSON.parse(JSON.stringify(initialValues)));
       const processedValues: Record<string, any> = {
         ...initialValues,
-        dob: initialValues.dob ? (dayjs(initialValues.dob, 'YYYY-MM-DD', true).isValid() ? dayjs(initialValues.dob, 'YYYY-MM-DD', true) : undefined) : undefined,
+        date_of_birth: initialValues.date_of_birth ? (dayjs(initialValues.date_of_birth, 'YYYY-MM-DD', true).isValid() ? dayjs(initialValues.date_of_birth, 'YYYY-MM-DD', true) : undefined) : undefined,
         hire_date: initialValues.hire_date ? (dayjs(initialValues.hire_date, 'YYYY-MM-DD', true).isValid() ? dayjs(initialValues.hire_date, 'YYYY-MM-DD', true) : undefined) : undefined,
         probation_end_date: initialValues.probationEndDate ? (dayjs(initialValues.probationEndDate, 'YYYY-MM-DD', true).isValid() ? dayjs(initialValues.probationEndDate, 'YYYY-MM-DD', true) : undefined) : undefined,
         gender_lookup_value_id: initialValues.gender_lookup_value_id != null 
@@ -163,7 +163,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       last_name: formValues.last_name,
       ...(isEditMode ? {} : { employee_code: formValues.employee_code }), // employee_code only for create
       gender_lookup_value_id: formValues.gender_lookup_value_id != null ? Number(formValues.gender_lookup_value_id) : undefined,
-      date_of_birth: formValues.dob ? dayjs(formValues.dob).utc().format('YYYY-MM-DD') : null, // API expects date_of_birth
+      date_of_birth: formValues.date_of_birth ? dayjs(formValues.date_of_birth).utc().format('YYYY-MM-DD') : null,
       id_number: formValues.id_number,
       marital_status_lookup_value_id: formValues.marital_status_lookup_value_id != null ? Number(formValues.marital_status_lookup_value_id) : undefined,
       education_level_lookup_value_id: formValues.education_level_lookup_value_id != null ? Number(formValues.education_level_lookup_value_id) : undefined,
@@ -183,13 +183,13 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       employment_type_lookup_value_id: formValues.employment_type_lookup_value_id != null ? Number(formValues.employment_type_lookup_value_id) : undefined,
       contract_type_lookup_value_id: formValues.contract_type_lookup_value_id != null ? Number(formValues.contract_type_lookup_value_id) : undefined,
       
-      probation_end_date: formValues.probation_end_date ? dayjs(formValues.probation_end_date).utc().format('YYYY-MM-DD') : null, // API expects probation_end_date
+      probation_end_date: formValues.probation_end_date ? dayjs(formValues.probation_end_date).utc().format('YYYY-MM-DD') : null,
       reports_to_employee_id: formValues.reports_to_employee_id != null ? Number(formValues.reports_to_employee_id) : undefined,
 
       // Contact & Bank Info
-      phone_number: formValues.mobile_phone, // API expects phone_number
-      email: formValues.work_email,          // API expects email
-      home_address: formValues.home_address, 
+      phone_number: formValues.phone_number,
+      email: formValues.email,
+      home_address: formValues.home_address,
       bank_name: formValues.bank_name,
       bank_account_number: formValues.bank_account_number,
       emergency_contact_name: formValues.emergency_contact_name,
@@ -292,7 +292,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         onFinish={handleFormSubmit}
         initialValues={initialValues ? {
           ...initialValues,
-          dob: initialValues.dob ? dayjs(initialValues.dob) : undefined,
+          date_of_birth: initialValues.date_of_birth ? dayjs(initialValues.date_of_birth) : undefined,
           hire_date: initialValues.hire_date ? dayjs(initialValues.hire_date) : undefined,
           probation_end_date: initialValues.probationEndDate ? dayjs(initialValues.probationEndDate) : undefined,
           gender_lookup_value_id: initialValues.gender_lookup_value_id != null ? Number(initialValues.gender_lookup_value_id) : undefined,
@@ -324,7 +324,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 {genderOptions.map(g => <Option key={g.value as React.Key} value={Number(g.value)}>{g.label}</Option>)}
               </Select>
             </Form.Item>
-              <Form.Item name="dob" label={t('employee:detail_page.basic_info_tab.label_dob')} rules={[{ required: true, message: getRequiredMessage('employee:detail_page.basic_info_tab.label_dob') }]}>
+              <Form.Item name="date_of_birth" label={t('employee:detail_page.basic_info_tab.label_dob')} rules={[{ required: true, message: getRequiredMessage('employee:detail_page.basic_info_tab.label_dob') }]}>
               <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
             </Form.Item>
               <Form.Item name="id_number" label={t('employee:form_label.id_number')} rules={[{ required: true, message: getRequiredMessage('employee:form_label.id_number') }]}>
@@ -404,10 +404,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
         <Col xs={24} md={12} lg={8}>
             <Card title={t('employee:form_card.title_contact_bank_info')} style={{ marginBottom: 24 }}>
-              <Form.Item name="mobile_phone" label={t('employee:detail_page.basic_info_tab.label_mobile_phone')} rules={[{ required: true, message: getRequiredMessage('employee:detail_page.basic_info_tab.label_mobile_phone') }]}>
+              <Form.Item name="phone_number" label={t('employee:detail_page.basic_info_tab.label_mobile_phone')} rules={[{ required: true, message: getRequiredMessage('employee:detail_page.basic_info_tab.label_mobile_phone') }]}>
               <Input />
             </Form.Item>
-              <Form.Item name="work_email" label={t('employee:detail_page.basic_info_tab.label_email')} rules={[{ type: 'email', message: t('common:form.validation.email_invalid') }]}>
+              <Form.Item name="email" label={t('employee:detail_page.basic_info_tab.label_email')} rules={[{ type: 'email', message: t('common:form.validation.email_invalid') }]}>
               <Input type="email" />
             </Form.Item>
               <Form.Item name="home_address" label={t('employee:form_label.home_address')}>
