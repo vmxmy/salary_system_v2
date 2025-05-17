@@ -23,7 +23,7 @@ interface RoleFormValues {
 }
 
 const RoleListPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('role');
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState('');
@@ -46,7 +46,7 @@ const RoleListPage: React.FC = () => {
       setRoles(apiResponse.data || []); 
     } catch (error) {
       console.error("Failed to fetch roles:", error);
-      message.error(t('role_management_page.message.fetch_roles_error'));
+      message.error(t('message.fetch_roles_error'));
       setRoles([]); 
     }
     setLoading(false);
@@ -67,7 +67,7 @@ const RoleListPage: React.FC = () => {
       setAllPermissions(permissionsArray || []); // Directly use the returned array
     } catch (error) {
       console.error("Failed to fetch permissions:", error);
-      message.error(t('role_management_page.message.fetch_permissions_error'));
+      message.error(t('message.fetch_permissions_error'));
       setAllPermissions([]);
     }
     setLoadingPermissions(false);
@@ -133,10 +133,10 @@ const RoleListPage: React.FC = () => {
         ) as UpdateRolePayload;
         
         await updateRole(editingRole.id, cleanedPayload);
-        message.success(t('role_management_page.message.update_role_success'));
+        message.success(t('message.update_role_success'));
       } else {
         if (!values.name || !values.code) {
-          message.error(t('role_management_page.message.create_role_error.name_code_required'));
+          message.error(t('message.create_role_error_name_code_required'));
           setModalLoading(false);
           return;
         }
@@ -146,7 +146,7 @@ const RoleListPage: React.FC = () => {
           permission_ids: submissionPermissionIds,
         };
         await createRole(payload);
-        message.success(t('role_management_page.message.create_role_success'));
+        message.success(t('message.create_role_success'));
       }
       setIsModalOpen(false);
       setEditingRole(null);
@@ -156,8 +156,8 @@ const RoleListPage: React.FC = () => {
       console.error("Role operation failed:", error);
       
       let errorToDisplay: string = editingRole 
-        ? t('role_management_page.message.update_role_error') 
-        : t('role_management_page.message.create_role_error'); 
+        ? t('message.update_role_error') 
+        : t('message.create_role_error'); 
 
       if (error.response?.data) {
         const serverErrorData = error.response.data;
@@ -204,7 +204,7 @@ const RoleListPage: React.FC = () => {
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInput}
-          placeholder={`${t('role_management_page.table.search.placeholder_prefix')}${String(dataIndex)}`}
+          placeholder={`${t('table.search.placeholder_prefix')}${String(dataIndex)}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
@@ -218,14 +218,14 @@ const RoleListPage: React.FC = () => {
             size="small"
             style={{ width: 90 }}
           >
-            {t('role_management_page.table.search.button_search')}
+            {t('table.search.button_search')}
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
             size="small"
             style={{ width: 90 }}
           >
-            {t('role_management_page.table.search.button_reset')}
+            {t('table.search.button_reset')}
           </Button>
           <Button
             type="link"
@@ -236,10 +236,10 @@ const RoleListPage: React.FC = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            {t('role_management_page.table.search.button_filter')}
+            {t('table.search.button_filter')}
           </Button>
           <Button type="link" size="small" onClick={() => close()}>
-            {t('role_management_page.table.search.button_close')}
+            {t('table.search.button_close')}
           </Button>
         </Space>
       </div>
@@ -266,55 +266,55 @@ const RoleListPage: React.FC = () => {
   const handleDeleteRole = async (roleId: number) => {
     try {
       await deleteRole(roleId);
-      message.success(t('role_management_page.message.delete_role_success'));
+      message.success(t('message.delete_role_success'));
       fetchRoles();
     } catch (error: any) {
       console.error("Failed to delete role:", error);
-      const errorMsg = error.response?.data?.detail || t('role_management_page.message.delete_role_error');
+      const errorMsg = error.response?.data?.detail || t('message.delete_role_error');
       message.error(errorMsg);
     }
   };
 
   const columns: ColumnsType<Role> = [
     {
-      title: t('role_management_page.table.column.id'),
+      title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
       sorter: (a, b) => a.id - b.id,
     },
     {
-      title: t('role_management_page.table.column.code'),
+      title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
       ...getColumnSearchProps('code'),
       sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
-      title: t('role_management_page.table.column.name'),
+      title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
       ...getColumnSearchProps('name'),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
-      title: t('role_management_page.table.column.actions'),
+      title: t('table.column.actions'),
       key: 'action',
       width: 180,
       render: (_: any, record: Role) => (
         <Space size="middle">
-          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('role_management_page.tooltip.edit_role')} />
+          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_role')} />
           <ActionButton
             actionType="delete"
             danger
             onClick={() => Modal.confirm({
-              title: t('role_management_page.modal.confirm_delete.title'),
-              content: t('role_management_page.modal.confirm_delete.content', { roleName: record.name }),
-              okText: t('role_management_page.modal.confirm_delete.ok_text'),
+              title: t('modal.confirm_delete.title'),
+              content: t('modal.confirm_delete.content', { roleName: record.name }),
+              okText: t('modal.confirm_delete.ok_text'),
               okType: 'danger',
-              cancelText: t('role_management_page.modal.confirm_delete.cancel_text'),
+              cancelText: t('modal.confirm_delete.cancel_text'),
               onOk: () => handleDeleteRole(record.id),
             })}
-            tooltipTitle={t('role_management_page.tooltip.delete_role')}
+            tooltipTitle={t('tooltip.delete_role')}
           />
         </Space>
       ),
@@ -324,14 +324,14 @@ const RoleListPage: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ marginBottom: 0 }}>{t('role_management_page.title')}</Title> 
+        <Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Title> 
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={showCreateModal}
           shape="round"
         >
-          {t('role_management_page.button.create_role')}
+          {t('button.create_role')}
         </Button>
       </div>
       <Table 
@@ -342,8 +342,8 @@ const RoleListPage: React.FC = () => {
       />
       <Modal
         title={editingRole 
-          ? t('role_management_page.modal.role_form.title.edit') 
-          : t('role_management_page.modal.role_form.title.create')}
+          ? t('modal.role_form.title.edit') 
+          : t('modal.role_form.title.create')}
         open={isModalOpen}
         onOk={form.submit}
         onCancel={handleModalCancel}
@@ -358,21 +358,21 @@ const RoleListPage: React.FC = () => {
         >
           <Form.Item
             name="name"
-            label={t('role_management_page.modal.role_form.label.name')}
-            rules={[{ required: true, message: t('role_management_page.modal.role_form.validation.name_required') }]}
+            label={t('modal.role_form.label.name')}
+            rules={[{ required: true, message: t('modal.role_form.validation.name_required') }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="code"
-            label={t('role_management_page.modal.role_form.label.code')}
-            rules={[{ required: true, message: t('role_management_page.modal.role_form.validation.code_required') }]}
+            label={t('modal.role_form.label.code')}
+            rules={[{ required: true, message: t('modal.role_form.validation.code_required') }]}
           >
             <Input disabled={!!editingRole} />
           </Form.Item>
           <Form.Item
             name="permission_ids"
-            label={t('role_management_page.modal.role_form.label.permissions')}
+            label={t('modal.role_form.label.permissions')}
           >
             <Transfer
               dataSource={allPermissions.map(p => ({

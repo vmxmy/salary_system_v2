@@ -6,6 +6,9 @@ import { useAuthStore } from './store/authStore';
 // import { shallow } from 'zustand/shallow'; // Reverted
 // import type { AuthStoreState, AuthStoreActions } from './store/authStore'; // Reverted
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import usePayrollConfigStore from './store/payrollConfigStore'; // Import the new store
+import useHrLookupStore from './store/hrLookupStore'; // Import the HR lookup store
+import { fetchAllLookupTypesAndCache } from './services/lookupService'; // Import the service
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; // 可选导入
 
 // 获取 createBrowserRouter 返回的 router 类型
@@ -27,11 +30,53 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   const isLoadingUser = useAuthStore(state => state.isLoadingUser);
   // const userPermissions = useAuthStore(state => state.userPermissions); // Uncomment if directly needed by AppWrapper logic
 
+  const fetchPayrollConfigs = usePayrollConfigStore(state => state.fetchComponentDefinitions); // Get the action
+  const fetchHrLookups = useHrLookupStore(state => state.fetchLookup); // Get the HR lookup action
+
   useEffect(() => {
     console.log('[AppWrapper:useEffect-initializeAuth] Effect triggered. About to call initializeAuth.');
     initializeAuth();
     console.log('[AppWrapper:useEffect-initializeAuth] initializeAuth call completed.');
-  }, [initializeAuth]);
+  }, []);
+
+  useEffect(() => {
+    // Only fetch payroll configs if the user is authenticated
+    if (authToken) {
+      console.log('[AppWrapper:useEffect-fetchPayrollConfigs] Auth token present. About to call fetchPayrollConfigs.');
+      fetchPayrollConfigs(); // Fetch payroll component definitions on app load
+      console.log('[AppWrapper:useEffect-fetchPayrollConfigs] fetchPayrollConfigs call completed.');
+    } else {
+      console.log('[AppWrapper:useEffect-fetchPayrollConfigs] No auth token. Skipping payroll configs.');
+    }
+  }, [authToken, fetchPayrollConfigs]); // Add authToken and fetchPayrollConfigs to dependency array
+
+  useEffect(() => {
+    // Only fetch HR lookups if the user is authenticated
+    if (authToken) {
+      console.log('[AppWrapper:useEffect-fetchHrLookups] Auth token present. Fetching essential HR lookups.');
+      // Fetch a set of common HR lookups. More can be added or fetched on-demand elsewhere.
+      fetchHrLookups('genders');
+      fetchHrLookups('maritalStatuses');
+      fetchHrLookups('educationLevels');
+      fetchHrLookups('employmentTypes');
+      fetchHrLookups('employeeStatuses');
+      fetchHrLookups('departments');
+      fetchHrLookups('jobTitles');
+      console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups fetch calls initiated.');
+    } else {
+      console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
+    }
+  }, [authToken, fetchHrLookups]); // Add authToken and fetchHrLookups to dependency array
+
+  useEffect(() => {
+    // Prime the general lookup types cache if the user is authenticated
+    if (authToken) {
+      console.log('[AppWrapper:useEffect-primeLookupCache] Auth token present. Priming lookup types cache.');
+      fetchAllLookupTypesAndCache();
+    } else {
+      console.log('[AppWrapper:useEffect-primeLookupCache] No auth token. Skipping lookup types cache priming.');
+    }
+  }, [authToken]); // Only re-run if authToken changes
 
   useEffect(() => {
     console.log(

@@ -98,7 +98,7 @@ const PayrollPeriodsPage: React.FC = () => {
   useEffect(() => {
     console.log('[PayrollPeriodsPage:useEffect-fetchPeriods] Triggered. Calling fetchPeriods().');
     fetchPeriods();
-  }, [fetchPeriods]);
+  }, []);
 
   const showModal = useCallback((period?: PayrollPeriod) => {
     console.log('[PayrollPeriodsPage:showModal] Called. Period:', period);

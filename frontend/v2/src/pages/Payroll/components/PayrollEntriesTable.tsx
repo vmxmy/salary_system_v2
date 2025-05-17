@@ -24,7 +24,7 @@ import {
   P_PAYROLL_ENTRY_VIEW,
   P_PAYROLL_ENTRY_EDIT_DETAILS
 } from '../constants/payrollPermissions'; // Import permissions
-// import PayrollEntryDetailModal from './PayrollEntryDetailModal'; // To be created later
+import PayrollEntryDetailModal from './PayrollEntryDetailModal'; // Uncommented and imported
 // import PayrollEntryEditForm from './PayrollEntryEditForm'; // To be created later
 
 interface PayrollEntriesTableProps {
@@ -38,10 +38,10 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // States for future modals
-  // const [isViewModalVisible, setIsViewModalVisible] = useState<boolean>(false);
+  // States for modals
+  const [isViewModalVisible, setIsViewModalVisible] = useState<boolean>(false); // Uncommented
   // const [isEditModalVisible, setIsEditModalVisible] = useState<boolean>(false);
-  // const [currentEntry, setCurrentEntry] = useState<PayrollEntry | null>(null);
+  const [currentEntryId, setCurrentEntryId] = useState<number | null>(null); // Using entryId
   // const [form] = Form.useForm();
 
   const fetchEntries = useCallback(async (page = 1, pageSize = 10) => {
@@ -73,9 +73,9 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   }, [payrollRunId, fetchEntries]);
 
   const handleViewEntryDetails = (entry: PayrollEntry) => {
-    // setCurrentEntry(entry);
-    // setIsViewModalVisible(true);
-    message.info(t('payroll_entries_table.message_view_details_todo', { employeeIdentifier: entry.employee_name || entry.employee_id, entryId: entry.id }));
+    setCurrentEntryId(entry.id); // Set the ID of the entry to view
+    setIsViewModalVisible(true); // Show the detail modal
+    // message.info(t('payroll_entries_table.message_view_details_todo', { employeeIdentifier: entry.employee_name || entry.employee_id, entryId: entry.id }));
   };
 
   const handleEditEntry = (entry: PayrollEntry) => {
@@ -159,8 +159,15 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         scroll={{ x: 'max-content' }}
         size="small"
       />
-      {/* Modals for View/Edit will go here */}
-      {/* <PayrollEntryDetailModal visible={isViewModalVisible} onClose={() => setIsViewModalVisible(false)} entryData={currentEntry} /> */}
+      {/* Render the detail modal */}
+      <PayrollEntryDetailModal 
+        entryId={currentEntryId}
+        visible={isViewModalVisible} 
+        onClose={() => {
+          setIsViewModalVisible(false);
+          setCurrentEntryId(null); // Reset entryId when modal is closed
+        }} 
+      />
       {/* <PayrollEntryEditForm form={form} visible={isEditModalVisible} onCancel={() => setIsEditModalVisible(false)} onFinish={handleEditFormSubmit} initialValues={currentEntry} /> */}
     </>
   );

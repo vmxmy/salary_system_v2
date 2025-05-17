@@ -210,7 +210,16 @@ def require_permissions(required_permissions: List[str]):
         logger.info(f"*** TEST 12: ENTERING permission_checker (inlined get_current_user) AT {datetime.now()}")
         
         # --- Start of inlined get_current_user logic ---
-        logger.info(f"+++ TEST 12 (inline): Processing token starting with: {credentials.credentials[:20] if credentials and credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
+        # Add a check for None before accessing credentials.credentials
+        if credentials is None:
+            logger.warning(f"!!! TEST 12 (inline): NO CREDENTIALS PROVIDED (credentials is None). Raising 401.")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated or credentials missing (Test 12 inline check)",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        logger.info(f"+++ TEST 12 (inline): Processing token starting with: {credentials.credentials[:20] if credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
         token = credentials.credentials
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -360,23 +369,8 @@ def very_simple_auth_dependency():
 # def require_permissions(required_permissions: List[str]):
 #     logger.info(f"@@@ TEST 12: FACTORY require_permissions CALLED with required_permissions: {required_permissions} AT {datetime.now()}")
     
-#     async def permission_checker(
-#         db: Session = Depends(get_db_v2),
-#         credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme) 
-#     ) -> v2_security_schemas.User:
-#         logger.info(f"*** TEST 12: ENTERING permission_checker (inlined get_current_user) AT {datetime.now()}")
-        
-#         # --- Start of inlined get_current_user logic ---
-#         logger.info(f"+++ TEST 12 (inline): Processing token starting with: {credentials.credentials[:20] if credentials and credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
-#         token = credentials.credentials
-#         # ... (rest of Test 12's inlined logic) ...
-#         logger.info(f"+++ TEST 12 (inline): Successfully processed user '{current_user.username}'")
-#         # --- End of inlined get_current_user logic ---
-        
-#         logger.info(f"*** TEST 12 (permission check part): User '{current_user.username}'. Required: {required_permissions}")
-#         # ... (rest of Test 12's permission checking logic) ...
-#         logger.info(f"*** TEST 12: EXITING permission_checker successfully for user '{current_user.username}' AT {datetime.now()}")
-#         return current_user
+#     async def permission_checker( ... ) -> v2_security_schemas.User:
+#         ... (Test 12 logic) ...
 #     return permission_checker
 
 # --- FINAL SOLUTION ---

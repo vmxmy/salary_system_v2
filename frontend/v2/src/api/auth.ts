@@ -17,7 +17,7 @@ export const login = async (credentials: LoginCredentials): Promise<LoginRespons
   // 注意：这里我们假设 LoginResponse 包含了 user 信息，如果后端不直接返回，
   // 可能需要在登录成功后单独请求用户信息。
   // 类型断言可能需要根据实际的 LoginResponse 结构调整。
-  const response = await apiClient.post<LoginResponse>('/token', form_data, {
+  const response = await apiClient.post<LoginResponse>('/auth/token', form_data, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },

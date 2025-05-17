@@ -23,7 +23,7 @@ This document provides an overview of the Salary Information Management System's
 *   **Language:** TypeScript (~5.7.2)
 *   **Build Tool:** Vite (^6.3.1)
 *   **UI Component Library:** Ant Design (implied by `V2实施计划.md`, version TBD)
-*   **State Management:** Redux Toolkit (mentioned in `V2实施计划.md`, though `项目开发核心信息.md` lists Zustand - **clarification needed from definitive V2 frontend docs**)
+*   **State Management:** Zustand (v5.0.4, as confirmed by `frontend/v2/package.json` and `frontend/v2/src/store/authStore.ts`)
 *   **Routing:** React Router
 *   **API Client:** Axios (^1.8.4)
 *   **Charts:** @ant-design/charts (mentioned in `V2实施计划.md`)
@@ -32,10 +32,12 @@ This document provides an overview of the Salary Information Management System's
 
 ## 4. High-Level Frontend Roadmap & Phases (from `docs/v2/V2实施计划.md`)
 
+**Current Status (as of YYYY-MM-DD - *Please replace with actual date*):** The project has largely completed Phase 1 (Preparation & Base Infrastructure Setup). Phase 2 (Core Functionality) is well underway, with significant progress in Authentication, HR Management (Employee Files), and Payroll (Periods, Runs, basic Entries) modules. The project is transitioning towards Phase 3 tasks.
+
 *   **Phase 1: Preparation & Base Infrastructure Setup**
     *   Environment setup, V2 project initialization.
     *   Base routing and main layout components.
-    *   State management integration (e.g., Redux Toolkit store).
+    *   State management integration (Zustand, e.g., `frontend/v2/src/store/authStore.ts`).
     *   API service layer setup (Axios instance, interceptors).
 *   **Phase 2: Core Functionality Migration & Refactoring**
     *   Authentication module (login, user profile).

@@ -1,0 +1,9 @@
+{
+  "title": "Dashboard",
+  "admin_actions": {
+    "panel_title_example": "Admin Actions Panel (Example)",
+    "super_admin_action_example": "Super Admin Exclusive Action (Example)",
+    "create_user_example": "Create New User (Requires 'user:create' Permission) (Example)",
+    "edit_config_example": "Edit System Configuration (Requires 'config:edit' Permission or 'sys_admin' Role) (Example)"
+  }
+}

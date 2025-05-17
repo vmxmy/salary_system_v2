@@ -1,21 +1,11 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from typing import Optional, List, Dict, Any, Tuple, Union
 import logging
 from fastapi import HTTPException, status
 from datetime import datetime, timezone
 import uuid # Add this import
 
-# TODO: 代码迁移说明
-# ============================
-# 本文件正在从直接使用psycopg2迁移到SQLAlchemy ORM
-# - 带有_orm后缀的函数是新的SQLAlchemy ORM版本
-# - 无后缀的函数是旧的psycopg2直接连接版本
-# 在迁移完成后，应该:
-# 1. 删除所有旧版psycopg2函数
-# 2. 将_orm后缀函数重命名为无后缀版本
-# 3. 更新所有引用这些函数的代码
-# ============================
+# 注意：此文件已完成从psycopg2到SQLAlchemy ORM的迁移
+# 所有数据库操作现在都使用SQLAlchemy ORM实现
 
 # Import SQLAlchemy components
 from sqlalchemy.orm import Session, joinedload, selectinload, relationship

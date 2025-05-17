@@ -1,0 +1,59 @@
+{
+    "list_page": {
+      "title": "权限管理",
+      "button": {
+        "create_permission": "创建权限"
+      },
+      "table": {
+        "column": {
+          "id": "ID",
+          "code": "权限代码",
+          "description": "权限描述",
+          "actions": "操作"
+        }
+      },
+      "tooltip": {
+        "edit_permission": "编辑权限",
+        "delete_permission": "删除权限"
+      },
+      "modal": {
+        "confirm_delete": {
+          "title": "您确定要删除权限 \"{permissionCode}\" 吗?",
+          "content": "此操作无法撤销。",
+          "ok_text": "确认删除",
+          "cancel_text": "取消"
+        }
+      },
+      "message": {
+        "create_success": "权限 \"{permissionCode}\" 已成功创建。",
+        "create_error_prefix": "创建权限失败: ",
+        "update_success": "权限 \"{permissionCode}\" 已成功更新。",
+        "update_error_prefix": "更新权限失败: ",
+        "delete_success": "权限 ID {permissionId} 已成功删除。",
+        "delete_error_prefix": "删除权限 ID {permissionId} 失败: ",
+        "load_list_error_prefix": "加载权限列表失败: "
+      }
+    },
+    "form": {
+      "title": {
+        "edit": "编辑权限",
+        "create": "创建权限"
+      },
+      "button": {
+        "cancel": "取消",
+        "save_changes": "保存更改",
+        "create": "创建"
+      },
+      "label": {
+        "code": "权限代码",
+        "description": "权限描述"
+      },
+      "validation": {
+        "code_required": "请输入权限代码!"
+      },
+      "placeholder": {
+        "code": "例如: user:create 或 payroll:view_all",
+        "description": "请输入权限的描述信息"
+      }
+    }
+  }

@@ -6,15 +6,20 @@ import { useTranslation } from 'react-i18next';
 const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
 
-  const currentLng = i18n.language.split('-')[0]; // Get base language (e.g., 'en' from 'en-US')
+  // 获取当前语言，支持zh-CN格式
+  const currentLng = i18n.language;
 
   const toggleLanguage = () => {
-    const newLang = currentLng === 'zh' ? 'en' : 'zh';
+    // 检查当前语言是否为中文（zh或zh-CN开头）
+    const isChinese = currentLng === 'zh' || currentLng === 'zh-CN' || currentLng.startsWith('zh-');
+    const newLang = isChinese ? 'en' : 'zh-CN'; // 切换到zh-CN而不是zh
     i18n.changeLanguage(newLang);
   };
 
-  const buttonText = currentLng === 'zh' ? '中' : 'En';
-  const tooltipTitle = currentLng === 'zh' 
+  // 检查当前语言是否为中文（zh或zh-CN开头）
+  const isChinese = currentLng === 'zh' || currentLng === 'zh-CN' || currentLng.startsWith('zh-');
+  const buttonText = isChinese ? '中' : 'En';
+  const tooltipTitle = isChinese 
     ? "Switch to English" 
     : "切换到中文";
 

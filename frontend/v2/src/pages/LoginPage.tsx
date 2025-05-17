@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Typography, Alert, Row, Col, Card } from 'antd';
+import { Form, Input, Button, Checkbox, Typography, Alert, Row, Col, Card, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
@@ -11,7 +11,7 @@ const { Title } = Typography;
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, ready, i18n } = useTranslation(['common', 'auth']); // 明确指定使用的命名空间
   const {
     loginAction,
     authToken,
@@ -49,6 +49,10 @@ const LoginPage: React.FC = () => {
     console.log('Login form submission failed:', errorInfo);
   };
 
+  if (!ready) {
+    return <Spin tip={t('loading.generic_loading_text', { ns: 'common' })} size="large" style={{ display: 'block', marginTop: '50px' }} />;
+  }
+
   return (
     <Row justify="center" align="middle" style={{ minHeight: '100vh' /* Removed background: '#f0f2f5' */ }}>
       <Col xs={20} sm={16} md={12} lg={8} xl={6}>
@@ -69,7 +73,7 @@ const LoginPage: React.FC = () => {
             }}>
               App Logo
             </div>
-            <Title level={2} style={{ marginBottom: '24px' /* Added margin below title */ }}>{t('login_page_title')}</Title>
+            <Title level={2} style={{ marginBottom: '24px' /* Added margin below title */ }}>{t('login_page_title', { ns: 'auth' })}</Title>
           </div>
           <Form
             form={form}
@@ -81,25 +85,25 @@ const LoginPage: React.FC = () => {
             layout="vertical"
           >
             <Form.Item
-              label={t('username_label')}
+              label={t('username_label', { ns: 'common' })}
               name="username"
-              rules={[{ required: true, message: t('username_required_message') }]}
+              rules={[{ required: true, message: t('username_required_message', { ns: 'auth' }) }]}
               style={{ marginBottom: '20px' }} // Adjusted spacing
             >
               <Input prefix={<UserOutlined />} size="large" autoComplete="username" /* Removed placeholder */ />
             </Form.Item>
 
             <Form.Item
-              label={t('password_label')}
+              label={t('password_label', { ns: 'common' })}
               name="password"
-              rules={[{ required: true, message: t('password_required_message') }]}
+              rules={[{ required: true, message: t('password_required_message', { ns: 'auth' }) }]}
               style={{ marginBottom: '12px' }} // Adjusted spacing
             >
               <Input.Password prefix={<LockOutlined />} size="large" autoComplete="current-password" /* Removed placeholder */ />
             </Form.Item>
 
             <Form.Item name="remember" valuePropName="checked" style={{ marginBottom: '24px' /* Adjusted spacing */ }}>
-              <Checkbox>{t('remember_me_checkbox')}</Checkbox>
+              <Checkbox>{t('remember_me_checkbox', { ns: 'common' })}</Checkbox>
             </Form.Item>
 
             {loginError && (
@@ -110,9 +114,9 @@ const LoginPage: React.FC = () => {
 
             <Form.Item style={{ marginBottom: '12px' }}>
               <Button type="primary" htmlType="submit" loading={isLoadingUser} style={{ width: '100%' }} size="large" shape="round">
-                {t('login_button')}
-              </Button>
-            </Form.Item>
+                  {t('login_button', { ns: 'common' })}
+                </Button>
+              </Form.Item>
           </Form>
         </Card>
       </Col>

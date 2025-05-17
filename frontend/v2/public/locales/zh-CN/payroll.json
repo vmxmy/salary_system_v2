@@ -1,0 +1,262 @@
+{
+    "page_title": {
+      "management": "薪资管理",
+      "calculation": "薪资核算",
+      "periods": "工资周期管理",
+      "runs": "工资计算批次",
+      "run_detail": "计算批次详情"
+    },
+    "loading": {
+      "periods": "工资周期加载中...",
+      "runs": "工资计算批次加载中..."
+    },
+    "status": {
+      "run": {
+        "draft": "草稿",
+        "processing": "计算中",
+        "pending_review": "待审核",
+        "approved": "已审核",
+        "approved_for_payment": "支付已审批",
+        "paid": "已发放",
+        "cancelled": "已取消",
+        "error": "错误"
+      },
+      "entry": {
+        "pending_calculation": "待计算",
+        "calculated": "已计算",
+        "pending_confirmation": "待确认",
+        "confirmed": "已确认",
+        "adjusted": "有调整",
+        "archived": "已归档",
+        "error": "错误"
+      },
+      "period": {
+          "draft": "草稿",
+          "active": "进行中",
+          "closed": "已关闭",
+          "archived": "已存档"
+      }
+    },
+    "periods_page": {
+      "title": "工资周期管理",
+      "button": {
+        "create_period": "新建工资周期"
+      },
+      "error_fetch_periods": "无法获取工资周期数据",
+      "message": {
+        "update_success": "工资周期已成功更新！",
+        "create_success": "工资周期已成功创建！",
+        "delete_success": "工资周期已成功删除！",
+        "update_failed": "更新失败",
+        "create_failed": "创建失败",
+        "delete_failed": "删除失败"
+      },
+      "table": {
+        "column": {
+          "id": "ID",
+          "period_name": "周期名称",
+          "start_date": "开始日期",
+          "end_date": "结束日期",
+          "status": "状态",
+          "actions": "操作"
+        }
+      },
+      "tooltip": {
+        "edit_period": "编辑工资周期",
+        "delete_period": "删除工资周期"
+      },
+      "popconfirm_delete": {
+        "title": "确认删除",
+        "description": "确定要删除工资周期 \"{periodName}\" 吗?",
+        "ok_text": "确认",
+        "cancel_text": "取消"
+      },
+      "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
+      "modal_title": {
+          "create": "新建工资周期",
+          "edit": "编辑工资周期"
+      },
+      "form": {
+        "label": {
+          "name": "周期名称",
+          "start_date": "开始日期",
+          "end_date": "结束日期",
+          "status": "状态"
+        },
+        "validation": {
+          "name_required": "请输入周期名称!",
+          "start_date_required": "请选择开始日期!",
+          "end_date_required": "请选择结束日期!",
+          "end_date_before_start_date": "结束日期不能早于开始日期!",
+          "status_required": "请选择状态!"
+        },
+        "placeholder": {
+          "name": "例如：2024年7月工资周期",
+          "status": "选择周期状态"
+        },
+        "button": {
+          "cancel": "取消",
+          "save_changes": "保存更改",
+          "create_period": "创建周期"
+        }
+      }
+    },
+    "runs_page": {
+      "title": "工资计算批次",
+      "button": {
+        "create_run": "创建新计算批次",
+        "mark_as_paid": "标记为已支付",
+        "export_bank_file": "导出银行文件"
+      },
+      "error_fetch_runs": "无法获取工资计算批次数据",
+      "message": {
+        "update_success": "工资计算批次已成功更新！",
+        "create_success": "工资计算批次已成功创建！",
+        "delete_success": "工资计算批次已成功删除！",
+        "mark_as_paid_success": "计算批次 #{runId} 已成功标记为已支付！",
+        "exporting_bank_file": "正在导出银行文件 (批次 #{runId})...",
+        "export_bank_file_success": "银行文件 (批次 #{runId}) 已开始下载！",
+        "already_paid": "此计算批次已标记为已支付。"
+      },
+      "error": {
+        "update_failed": "更新计算批次失败",
+        "create_failed": "创建计算批次失败",
+        "delete_failed": "删除计算批次失败",
+        "mark_as_paid_failed": "标记为已支付失败",
+        "export_bank_file_failed_prefix": "导出银行文件失败: ",
+        "export_bank_file_failed_default": "导出银行文件失败"
+      },
+      "popconfirm": {
+        "delete_title": "确认删除",
+        "delete_content": "确定要删除此工资计算批次吗？此操作无法撤销。",
+        "delete_ok_text": "删除",
+        "delete_cancel_text": "取消",
+        "mark_as_paid_title": "确认操作",
+        "mark_as_paid_content": "确定要将计算批次 #{runId} 标记为已支付吗？",
+        "mark_as_paid_ok_text": "标记为已支付"
+      },
+      "default_bank_export_filename_prefix": "bank_export_run_",
+      "table": {
+        "column": {
+          "id": "ID",
+          "payroll_period": "工资周期",
+          "run_date": "计算日期",
+          "status": "状态",
+          "employee_count": "包含员工数",
+          "notes": "备注",
+          "actions": "操作"
+        },
+        "action_details": "详情"
+      },
+      "tooltip": {
+        "edit_run": "编辑计算批次",
+        "delete_run": "删除计算批次"
+      },
+      "alert_error_prefix": "错误: ",
+      "alert_modal_error_prefix": "操作失败: ",
+      "modal_title": {
+          "create": "创建新工资计算批次",
+          "edit": "编辑工资计算批次"
+      },
+      "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
+      "form": {
+        "error":{
+            "load_periods_failed": "无法加载工资周期列表",
+            "load_periods_failed_with_message": "无法加载工资周期列表: {message}"
+        },
+        "label": {
+          "payroll_period": "工资周期",
+          "run_date": "计算日期",
+          "status_edit_mode": "状态",
+          "status_create_mode": "初始状态",
+          "employee_ids": "包含员工ID (选填，逗号分隔)",
+          "notes": "备注 (选填)"
+        },
+        "validation": {
+          "payroll_period_required": "请选择工资周期!",
+          "run_date_required": "请选择计算日期!",
+          "status_required": "请选择状态!"
+        },
+        "tooltip": {
+            "employee_ids": "输入员工的数字ID，用英文逗号分隔。例如：101,102,105"
+        },
+        "placeholder": {
+          "payroll_period": "选择一个工资周期",
+          "status": "选择状态",
+          "employee_ids": "例如: 1, 2, 3, 4, 5\\n留空以包含选定工资周期内的所有适用员工 (如果后端支持此逻辑)",
+          "notes": "关于此次计算的任何说明"
+        },
+        "button": {
+          "cancel": "取消",
+          "save_changes": "保存更改",
+          "create_run": "创建计算批次"
+        }
+      }
+    },
+    "run_detail_page": {
+      "title": "计算批次详情",
+      "error": {
+        "fetch_details": "无法获取工资计算批次详情",
+        "invalid_run_id": "无效的计算批次ID",
+        "no_run_id_provided": "未提供计算批次ID"
+      },
+      "spin_loading": "加载中...",
+      "alert": {
+        "error_prefix": "错误: ",
+        "not_found": "未找到工资计算批次数据。"
+      },
+      "breadcrumb": {
+        "runs_management": "工资计算批次管理",
+        "current_page": "计算批次详情 (ID: {runId})"
+      },
+      "card_title": "工资计算批次详情: #{runId}",
+      "button_back_to_list": "返回列表",
+      "description": {
+        "id": "ID",
+        "payroll_period": "工资周期",
+        "run_date": "计算日期",
+        "status": "状态",
+        "employee_count": "包含员工数",
+        "created_by": "创建者用户ID",
+        "created_at": "创建时间",
+        "updated_at": "最后更新时间",
+        "paid_at": "支付时间",
+        "notes": "备注"
+      },
+      "value": {
+        "na": "无",
+        "not_paid": "未支付",
+        "no_notes": "无",
+        "period_id_prefix": "ID: "
+      },
+      "section_title_entries": "工资条目"
+    },
+    "entries_table": {
+      "error_fetch": "无法获取工资条目数据",
+      "message": {
+        "view_details_todo": "查看员工 {employeeIdentifier} (ID: {entryId}) 的工资条目详情 - 功能待实现",
+        "edit_entry_todo": "编辑员工 {employeeIdentifier} (ID: {entryId}) 的工资条目 - 功能待实现"
+      },
+      "column": {
+        "entry_id": "条目ID",
+        "employee_id": "员工ID",
+        "employee_name": "员工姓名",
+        "total_earnings": "总收入",
+        "total_deductions": "总扣除",
+        "net_pay": "净工资",
+        "status": "状态",
+        "remarks": "备注",
+        "actions": "操作"
+      },
+      "cell_name_supplement_needed": "需补充",
+      "cell_remarks_empty": "-",
+      "tooltip": {
+        "view_details": "查看详情",
+        "edit_entry": "编辑/调整工资条目"
+      },
+      "spin_loading_entries": "加载工资条目中...",
+      "alert_error_prefix": "错误: ",
+      "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
+      "currency_symbol": "¥"
+    }
+  }

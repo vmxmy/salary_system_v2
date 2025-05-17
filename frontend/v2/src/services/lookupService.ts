@@ -1,8 +1,89 @@
-import type { Department, ContractStatus } from '../pages/HRManagement/types'; // Types that are only used as types
-import { EmploymentStatus, Gender, EmploymentType, ContractType, EducationLevel, LeaveType, MaritalStatus, PoliticalStatus } from '../pages/HRManagement/types'; // Enums used as values
+import type { Department } from '../pages/HRManagement/types'; // Types that are only used as types
+import { EmploymentStatus, Gender, EmploymentType, ContractType, EducationLevel, LeaveType, MaritalStatus, PoliticalStatus, ContractStatus } from '../pages/HRManagement/types'; // Enums used as values
 import type { LookupItem, JobTitle } from '../pages/HRManagement/types'; // Changed PositionItem to JobTitle
 import apiClient from '../api'; // Added apiClient import
 import { message } from 'antd'; // Added message import
+
+// Define standard Lookup Type Codes used by the backend -- REMOVING THIS as we will fetch dynamically
+// export const LookupTypeCodes = { ... } as const;
+
+// Interface for the structure of a single LookupType object from /v2/lookup/types API
+interface LookupType {
+  id: number;
+  code: string; // This is the actual type_code we need for fetchLookupValuesByType
+  name: string; // This is the human-readable name we will use as a key, e.g., "性别"
+  description?: string;
+}
+
+// Interface for the API response of /v2/lookup/types
+interface LookupTypeListResponse {
+  data: LookupType[]; // data 属性直接是 LookupType 数组
+  meta: {
+    total_items: number;
+    total_pages: number;
+    page?: number;
+    size?: number;
+  };
+}
+
+let cachedLookupTypes: readonly LookupType[] | null = null;
+let isFetchingLookupTypes = false;
+let fetchLookupTypesPromise: Promise<readonly LookupType[] | null> | null = null;
+
+// Fetches all lookup types from the API and caches them
+export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType[] | null> => {
+  if (cachedLookupTypes) {
+    return cachedLookupTypes;
+  }
+  if (isFetchingLookupTypes && fetchLookupTypesPromise) {
+    return fetchLookupTypesPromise;
+  }
+
+  isFetchingLookupTypes = true;
+  fetchLookupTypesPromise = apiClient.get<LookupTypeListResponse>('/lookup/types', {
+    params: {
+      size: 100, // Assuming up to 100 lookup types, based on openapi.json
+      page: 1,
+    }
+  })
+  .then(response => {
+    // 调整判断条件以匹配新的 LookupTypeListResponse 结构
+    // response.data (axios 的 data) 对应整个 LookupTypeListResponse
+    // response.data.data 对应 LookupTypeListResponse 中的 data 数组
+    if (response.data && Array.isArray(response.data.data)) {
+      cachedLookupTypes = Object.freeze([...response.data.data]); // 从 response.data.data 获取数组
+      return cachedLookupTypes;
+    }
+    console.error('lookupService: Unexpected API response structure for /lookup/types:', response.data);
+    message.error('Failed to load lookup type definitions.');
+    return null;
+  })
+  .catch(error => {
+    console.error('lookupService: Error fetching lookup types:', error);
+    message.error('Error loading lookup type definitions.');
+    return null;
+  })
+  .finally(() => {
+    isFetchingLookupTypes = false;
+    // fetchLookupTypesPromise = null; // Keep promise to return its result for concurrent calls
+  });
+  return fetchLookupTypesPromise;
+};
+
+// Renamed and modified to search by system code key against the 'code' field of lookup types
+const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | undefined> => {
+  const allTypes = await fetchAllLookupTypesAndCache();
+  if (!allTypes) {
+    return undefined;
+  }
+  // Find the type where its 'code' (from DB, e.g., 'GENDER') matches our systemCodeKey (e.g., LookupSystemCodes.GENDER which is also 'GENDER')
+  const foundType = allTypes.find(type => type.code === systemCodeKey);
+  if (!foundType) {
+    console.warn(`lookupService: Could not find lookup type with system code key "${systemCodeKey}" in cached types. Ensure this key exists in 'config.lookup_types.code' column.`);
+  }
+  // The 'code' property of the found type is the actual type_code we need.
+  return foundType?.code;
+};
 
 // General Lookup Item type
 // export interface LookupItem {
@@ -47,8 +128,13 @@ interface JobTitleWithParentId extends JobTitle { // Renamed from PositionItemWi
 // 定义通用的 API Lookup Value 结构
 interface ApiLookupValue {
   id: number;
-  name: string; // 这是显示名称，例如：'男', '女', '固定期限'
-  code: string; // 这是机器可读的代码，例如：'MALE', 'FEMALE', 'FIXED_TERM'
+  label: string; // Changed from name to label to match what LookupItem expects directly from API if possible
+  value: string; // Changed from code to value for consistency, assuming API code is the value for LookupItem
+  code?: string; // Keep original code if needed for other logic
+  lookup_type_id?: number;
+  lookup_type_code?: string; // If API provides this directly for context
+  is_active?: boolean;
+  sort_order?: number;
 }
 
 // 定义通用的 API Lookup Value 列表响应结构 (用于分页的 lookup values)
@@ -62,15 +148,21 @@ interface ApiLookupValue {
 
 // New interfaces for the correct API response structure
 interface ApiListMeta {
-  total: number;
-  page: number;
-  size: number;
-  // Add other meta fields if necessary, e.g., total_pages
+  total_items: number; // Adjusted to match typical meta, or use total if API gives that
+  total_pages: number; 
+  page?: number; // openapi shows page and size as request params, not always in response meta
+  size?: number;
 }
 
 interface ActualApiLookupValueListResponse {
-  data: ApiLookupValue[];
-  meta: ApiListMeta;
+  data: ApiLookupValue[]; // Expecting an array of ApiLookupValue
+}
+
+interface LookupValueListResponse { // As per openapi.json
+  data: {
+    items: ApiLookupValue[];
+  };
+  meta: ApiListMeta; 
 }
 
 // Mock data for lookups
@@ -85,14 +177,8 @@ const mockPositions: PositionItem[] = [
 ];
 */
 
-const mockEmployeeStatuses: LookupItem[] = [
-  { value: 1, label: '在职', code: EmploymentStatus.ACTIVE },
-  { value: 2, label: '试用期', code: EmploymentStatus.PROBATION },
-  { value: 3, label: '休假', code: EmploymentStatus.LEAVE },
-  { value: 4, label: '离职', code: EmploymentStatus.TERMINATED },
-  { value: 5, label: '待入职', code: EmploymentStatus.PENDING },
-];
-
+// REMOVING MOCK DATA as we will fetch from API
+/*
 const mockGender: LookupItem[] = Object.values(Gender).map(g => ({
   value: g,
   label: (() => {
@@ -146,8 +232,16 @@ const mockContractTypes: LookupItem[] = Object.values(ContractType).map(ct => ({
   })(),
 }));
 
-const mockMaritalStatuses: LookupItem[] = Object.values(MaritalStatus).map(s => ({ value: s, label: s })); // TODO: Provide proper labels
-const mockPoliticalStatuses: LookupItem[] = Object.values(PoliticalStatus).map(s => ({ value: s, label: s })); // TODO: Provide proper labels
+const mockMaritalStatuses: LookupItem[] = Object.values(MaritalStatus).map(s => ({ value: s, label: s }));
+const mockPoliticalStatuses: LookupItem[] = Object.values(PoliticalStatus).map(s => ({ value: s, label: s }));
+
+const mockEmployeeStatuses: LookupItem[] = [
+  { value: 1, label: '在职', code: EmploymentStatus.ACTIVE },
+  { value: 2, label: '试用期', code: EmploymentStatus.PROBATION },
+  { value: 3, label: '休假', code: EmploymentStatus.LEAVE },
+  { value: 4, label: '离职', code: EmploymentStatus.TERMINATED },
+  { value: 5, label: '待入职', code: EmploymentStatus.PENDING },
+];
 
 const mockLeaveTypesLookup: LookupItem[] = Object.values(LeaveType).map(lt => ({
   value: lt,
@@ -163,6 +257,14 @@ const mockLeaveTypesLookup: LookupItem[] = Object.values(LeaveType).map(lt => ({
     }
   })(),
 }));
+
+const mockPayFrequencies: LookupItem[] = [
+  { value: 'monthly', label: '月度' },
+  { value: 'bi_weekly', label: '双周' },
+  { value: 'weekly', label: '每周' },
+  { value: 'annually', label: '年度' },
+];
+*/
 
 // Helper function to build tree structure from flat list of departments
 const buildDepartmentTree = (flatDepartments: DepartmentWithParentId[]): Department[] => {
@@ -219,7 +321,53 @@ const buildJobTitleTree = (flatJobTitles: JobTitleWithParentId[]): JobTitle[] =>
 
 const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
 
+// Generic function to fetch lookup values by type code
+const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> => {
+  if (!typeCode) { // Added a check for empty typeCode
+    console.warn('fetchLookupValuesByType called with empty typeCode.');
+    return [];
+  }
+  try {
+    // Assuming the API returns a structure like { data: { items: ApiLookupValue[] } }
+    // And we want all items, so setting a large page size.
+    // Adjust size if pagination is desired or if API has a max limit.
+    const response = await apiClient.get<LookupValueListResponse>(`${API_BASE_PATH}`, {
+      params: {
+        type_code: typeCode,
+        is_active: true, // Typically, we only want active lookup values for forms
+        size: 100, // API最大允许100，超出会422
+        page: 1,
+      }
+    });
+    
+    if (response.data && Array.isArray(response.data.data)) {
+      return response.data.data
+        .filter(item => item.is_active !== false)
+        .map(apiItem => ({
+          value: apiItem.id,
+          label: apiItem.label || apiItem.name, // 兼容label或name
+          code: apiItem.code,
+          id: apiItem.id,
+          name: apiItem.label || apiItem.name,
+        }));
+    }
+    console.error(`lookupService: Unexpected API response structure for type_code ${typeCode}:`, response.data);
+    message.error(`Failed to load lookup values for type: ${typeCode}`);
+    return [];
+  } catch (error) {
+    console.error(`lookupService: Error fetching lookup values for type_code ${typeCode}:`, error);
+    message.error(`Error loading lookup values for type: ${typeCode}.`);
+    return [];
+  }
+};
+
 export const lookupService = {
+  // Ensure all lookup types are primed (fetched and cached) when the service is first used or app starts.
+  // This can be called early in the application lifecycle.
+  primeLookupTypesCache: async (): Promise<void> => {
+    await fetchAllLookupTypesAndCache();
+  },
+
   getDepartmentsLookup: async (): Promise<Department[]> => {
     try {
       const response = await apiClient.get<{ data: ApiDepartment[] } | { data: { data: ApiDepartment[] } }>('/departments');
@@ -256,129 +404,66 @@ export const lookupService = {
   },
 
   getEmployeeStatusesLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching employee statuses');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'EMPLOYEE_STATUS' },
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id, 
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('Error fetching employee statuses lookup:', error);
-      message.error('获取员工状态选项失败');
-      return [];
+    const typeCode = await getTypeCodeBySystemCode('EMPLOYEE_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载员工状态选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getGenderLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching genders');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'GENDER' },
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id,
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('lookupService: Failed to fetch genders:', error);
-      message.error('获取性别选项失败');
-      return []; // Return empty array on error
+    const typeCode = await getTypeCodeBySystemCode('GENDER'); // Using direct system code string
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载性别选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getEducationLevelsLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching education levels');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'EDUCATION_LEVEL' },
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id,
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('Error fetching education levels lookup:', error);
-      message.error('获取学历选项失败');
-      return [];
+    const typeCode = await getTypeCodeBySystemCode('EDUCATION_LEVEL');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载学历选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getEmploymentTypesLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching employment types');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'EMPLOYMENT_TYPE' },
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id,
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('Error fetching employment types lookup:', error);
-      message.error('获取雇佣类型选项失败');
-      return [];
+    const typeCode = await getTypeCodeBySystemCode('EMPLOYMENT_TYPE');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载雇佣类型选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getContractTypesLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching contract types');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'CONTRACT_TYPE' }, 
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id,
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('Error fetching contract types lookup:', error);
-      message.error('获取合同类型选项失败');
-      return [];
+    const typeCode = await getTypeCodeBySystemCode('CONTRACT_TYPE');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载合同类型选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getMaritalStatusesLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching marital statuses');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'MARITAL_STATUS' }, 
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id,
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('Error fetching marital statuses lookup:', error);
-      message.error('获取婚姻状况选项失败');
-      return [];
+    const typeCode = await getTypeCodeBySystemCode('MARITAL_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载婚姻状况选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getPoliticalStatusesLookup: async (): Promise<LookupItem[]> => {
-    // console.log('Mock lookupService: Fetching political statuses');
-    try {
-      const response = await apiClient.get<ActualApiLookupValueListResponse>(API_BASE_PATH, {
-        params: { type_code: 'POLITICAL_STATUS' }, 
-      });
-      return (response.data?.data || []).map(item => ({
-        value: item.id,
-        label: item.name,
-        code: item.code,
-      }));
-    } catch (error) {
-      console.error('Error fetching political statuses lookup:', error);
-      message.error('获取政治面貌选项失败');
-      return [];
+    const typeCode = await getTypeCodeBySystemCode('POLITICAL_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
     }
+    message.error('无法加载政治面貌选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
   getJobTitlesLookup: async (): Promise<JobTitle[]> => { // Renamed from getPositionsLookup
@@ -418,27 +503,36 @@ export const lookupService = {
   },
 
   getLeaveTypesLookup: async (): Promise<LookupItem[]> => {
-    await RqDelay(250);
-    console.log('Mock lookupService: Fetching leave types');
-    return JSON.parse(JSON.stringify(mockLeaveTypesLookup));
+    const typeCode = await getTypeCodeBySystemCode('LEAVE_TYPE');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载假期类型选项：类型定义缺失或Code不匹配');
+    return [];
   },
 
-  // Example: Fetching positions based on department (can be more complex)
-  // async getPositionsLookup(departmentId?: string): Promise<LookupItem[]> {
-  //   await RqDelay(200);
-  //   const allPositions = [
-  //     { value: 'P001', label: '高级软件工程师', departmentId: 'D001' },
-  //     { value: 'P002', label: '软件工程师', departmentId: 'D001' },
-  //     { value: 'P003', label: '测试工程师', departmentId: 'D001' },
-  //     { value: 'P004', label: '市场经理', departmentId: 'D002' },
-  //     { value: 'P005', label: '行政助理', departmentId: 'D003' },
-  //   ];
-  //   if (departmentId) {
-  //     return allPositions.filter(p => p.departmentId === departmentId);
-  //   }
-  //   return allPositions;
-  // }
+  getPayFrequenciesLookup: async (): Promise<LookupItem[]> => {
+    const typeCode = await getTypeCodeBySystemCode('PAY_FREQUENCY');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载发薪频率选项：类型定义缺失或Code不匹配');
+    return [];
+  },
 
-  // getPoliticalStatusLookup, getContractTypeLookup below were duplicates and used wrong path.
-  // Correct versions are part of the lookupService object above.
+  // Mock for contract statuses until API is ready or confirmed
+  getContractStatusesLookup: async (): Promise<LookupItem[]> => {
+    const typeCode = await getTypeCodeBySystemCode('CONTRACT_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载合同状态选项：类型定义缺失或Code不匹配');
+    return [];
+  },
+
+  // Example of fetching specific lookup values if needed, e.g., for a single value by code
+  // async getLookupValueByCode(typeCode: string, valueCode: string): Promise<LookupItem | null> {
+  //   const values = await fetchLookupValuesByType(typeCode);
+  //   return values.find(v => v.code === valueCode) || null;
+  // }
 };

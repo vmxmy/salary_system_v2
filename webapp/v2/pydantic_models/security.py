@@ -16,6 +16,10 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     """创建用户模型"""
     password: str = Field(..., min_length=6, description="用户密码")
+    employee_first_name: Optional[str] = Field(None, description="员工的姓，用于关联员工")
+    employee_last_name: Optional[str] = Field(None, description="员工的名，用于关联员工")
+    employee_id_card: Optional[str] = Field(None, description="员工身份证号，用于关联员工")
+    role_ids: Optional[List[int]] = Field(None, description="角色ID列表，用于分配用户角色")
 
 
 class UserUpdate(BaseModel):
@@ -23,7 +27,9 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50, description="用户名")
     email: Optional[EmailStr] = Field(None, description="用户邮箱")
     full_name: Optional[str] = Field(None, max_length=50, description="用户全名")
-    employee_id: Optional[str] = Field(None, max_length=20, description="工号")
+    employee_first_name: Optional[str] = Field(None, description="员工的姓，用于关联员工")
+    employee_last_name: Optional[str] = Field(None, description="员工的名，用于关联员工")
+    employee_id_card: Optional[str] = Field(None, description="员工身份证号，用于关联员工")
     department: Optional[str] = Field(None, max_length=100, description="所属部门")
     position: Optional[str] = Field(None, max_length=100, description="职位")
     description: Optional[str] = Field(None, max_length=255, description="用户描述")

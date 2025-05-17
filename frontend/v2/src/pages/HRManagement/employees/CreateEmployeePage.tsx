@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, Form, message, Typography, Breadcrumb } from 'antd';
+import { useNavigate, Link } from 'react-router-dom';
+import { Card, Form, message } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import EmployeeForm from '../components/EmployeeForm';
 import { employeeService } from '../../../services/employeeService';
 import type { CreateEmployeePayload, UpdateEmployeePayload } from '../types';
-
-const { Title } = Typography;
+import { PageContainer } from '@ant-design/pro-components';
 
 const CreateEmployeePage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common', 'pageTitle']);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -19,17 +18,17 @@ const CreateEmployeePage: React.FC = () => {
     setSubmitting(true);
     try {
       const newEmployee = await employeeService.createEmployee(values);
-      message.success(t('create_employee_page.message_create_success'));
+      message.success(t('employee:create_page.message.create_success'));
       if (newEmployee && newEmployee.id) {
         navigate(`/hr/employees/${newEmployee.id}`);
       } else {
         navigate('/hr/employees');
       }
     } catch (error: any) {
-      console.error(t('create_employee_page.message_create_fail_default'), error);
-      let errorMessage = t('create_employee_page.message_create_fail_default');
+      console.error(t('employee:create_page.message.create_fail_default'), error);
+      let errorMessage = t('employee:create_page.message.create_fail_default');
       if (error.response?.status === 403) {
-        errorMessage = t('create_employee_page.message_create_fail_403');
+        errorMessage = t('employee:create_page.message.create_fail_403');
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
@@ -41,15 +40,25 @@ const CreateEmployeePage: React.FC = () => {
 
   const breadcrumbItems = [
     { onClick: () => navigate('/'), title: <HomeOutlined /> },
-    { onClick: () => navigate('/hr/employees'), title: t('page_title.hr_management') },
-    { onClick: () => navigate('/hr/employees'), title: t('page_title.employee_list') },
-    { title: t('page_title.create_employee') }
+    { onClick: () => navigate('/hr/employees'), title: t('pageTitle:hr_management') },
+    { onClick: () => navigate('/hr/employees'), title: t('pageTitle:employee_list') },
+    { title: t('pageTitle:create_employee') }
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Breadcrumb style={{ marginBottom: '16px' }} items={breadcrumbItems} />
-      <Title level={3} style={{ marginBottom: '24px' }}>{t('page_title.create_employee')}</Title>
+    <PageContainer
+      title={t('pageTitle:create_employee')}
+      breadcrumb={{ 
+        items: breadcrumbItems, 
+        itemRender: (route, _params, routes, _paths) => {
+          const last = routes.indexOf(route) === routes.length - 1;
+          if (route.onClick) {
+            return <Link to="#" onClick={route.onClick}>{route.title}</Link>;
+          }
+          return <span>{route.title}</span>;
+        }
+      }}
+    >
       <Card>
         <EmployeeForm
           form={form}
@@ -59,7 +68,7 @@ const CreateEmployeePage: React.FC = () => {
           loadingSubmit={submitting}
         />
       </Card>
-    </div>
+    </PageContainer>
   );
 };
 

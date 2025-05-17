@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     API_TITLE: str = "薪资管理系统API"
     API_VERSION: str = "1.0.0"
     API_PREFIX: str = ""
+    API_V2_PREFIX: str = os.getenv("VITE_API_PATH_PREFIX", "/v2")
 
     # 安全设置
     SECRET_KEY: str = os.getenv("SECRET_KEY", "请替换这个为真正的密钥，不要使用默认值")

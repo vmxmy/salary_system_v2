@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { lookupService } from '../services/lookupService';
+import { employeeService } from '../services/employeeService';
 import type { 
   LookupItem, 
   Department as DepartmentType, 
@@ -19,6 +20,8 @@ export interface LookupMaps {
   maritalStatusMap: Map<number, string>;
   politicalStatusMap: Map<number, string>;
   leaveTypeMap: Map<number, string>;
+  payFrequencyMap: Map<number, string>;
+  contractStatusMap?: Map<number, string>;
   // Add more maps as needed
 }
 
@@ -33,6 +36,9 @@ export interface RawLookups {
   maritalStatusOptions: LookupItem[];
   politicalStatusOptions: LookupItem[];
   leaveTypeOptions: LookupItem[];
+  payFrequencyOptions: LookupItem[];
+  employeeStatuses: LookupItem[];
+  contractStatusOptions?: LookupItem[];
   // Add more raw options as needed
 }
 
@@ -89,6 +95,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           maritals,
           politicals,
           leaveTypesData,
+          payFrequencies,
+          contractStatusesData
         ] = await Promise.all([
           lookupService.getGenderLookup(),
           lookupService.getEmployeeStatusesLookup(),
@@ -100,6 +108,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           lookupService.getMaritalStatusesLookup(),
           lookupService.getPoliticalStatusesLookup(),
           lookupService.getLeaveTypesLookup(),
+          lookupService.getPayFrequenciesLookup(),
+          employeeService.getContractStatusesLookup()
         ]);
 
         const createMapFromArray = (items: LookupItem[]): Map<number, string> =>
@@ -116,6 +126,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           maritalStatusMap: createMapFromArray(maritals),
           politicalStatusMap: createMapFromArray(politicals),
           leaveTypeMap: createMapFromArray(leaveTypesData),
+          payFrequencyMap: createMapFromArray(payFrequencies),
+          contractStatusMap: createMapFromArray(contractStatusesData)
         });
 
         setRawLookups({
@@ -129,8 +141,10 @@ export const useLookupMaps = (): UseLookupsResult => {
           maritalStatusOptions: maritals,
           politicalStatusOptions: politicals,
           leaveTypeOptions: leaveTypesData,
+          payFrequencyOptions: payFrequencies,
+          employeeStatuses: statuses,
+          contractStatusOptions: contractStatusesData
         });
-
       } catch (error) {
         console.error("Failed to fetch lookups:", error);
         message.error('加载辅助选项数据失败');

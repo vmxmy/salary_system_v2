@@ -21,7 +21,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees',
     element: React.createElement(EmployeeListPage),
     meta: {
-      title: i18n.t('page_title.employee_files'),
+      title: i18n.t('pageTitle:employee_files'),
       requiredPermissions: ['employee:list'], // Changed from permission to requiredPermissions
       hideInBreadcrumbIfParentOfNext: true,
     },
@@ -30,7 +30,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/create',
     element: React.createElement(CreateEmployeePage),
     meta: {
-      title: i18n.t('page_title.create_employee'),
+      title: i18n.t('pageTitle:create_employee'),
       requiredPermissions: ['employee:create'], // Changed from permission to requiredPermissions
     },
   },
@@ -38,7 +38,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId/edit',
     element: React.createElement(EditEmployeePage),
     meta: {
-      title: i18n.t('page_title.edit_employee'),
+      title: i18n.t('pageTitle:edit_employee'),
       requiredPermissions: ['employee:edit'], // Changed from permission to requiredPermissions
     },
   },
@@ -46,7 +46,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId', // Detail page route
     element: React.createElement(EmployeeDetailPage), // Use the actual component
     meta: {
-      title: i18n.t('page_title.employee_details'),
+      title: i18n.t('pageTitle:employee_details'),
       requiredPermissions: ['employee:view'], // Changed from permission to requiredPermissions
     },
   },

@@ -61,7 +61,7 @@ interface JobTitleFormValues extends Omit<CreateJobTitlePayload, 'effective_date
 }
 
 const JobTitlesPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('jobTitle');
   const [jobTitles, setJobTitles] = useState<JobTitlePageItem[]>([]);
   const [jobTitlesTree, setJobTitlesTree] = useState<JobTitlePageItem[]>([]);
   const [allFlatJobTitles, setAllFlatJobTitles] = useState<JobTitle[]>([]);
@@ -133,7 +133,7 @@ const JobTitlesPage: React.FC = () => {
 
       // 不再 setTableParams，彻底断开死循环
     } catch (error) {
-      message.error(t('job_title_management_page.message_fetch_list_failed'));
+      message.error(t('message.fetch_list_failed'));
       console.error('Failed to fetch job titles:', error);
     }
     setIsLoading(false);
@@ -213,17 +213,17 @@ const JobTitlesPage: React.FC = () => {
     try {
       if (editingJobTitle) {
         await updateJobTitle(editingJobTitle.id, payload as UpdateJobTitlePayload); // Cast for update
-        message.success(t('job_title_management_page.message_update_success'));
+        message.success(t('message.update_success'));
       } else {
         await createJobTitle(payload);
-        message.success(t('job_title_management_page.message_create_success'));
+        message.success(t('message.create_success'));
       }
       setIsModalOpen(false);
       setEditingJobTitle(null);
       fetchData();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('job_title_management_page.error_unknown');
-      message.error(`${t('job_title_management_page.message_operation_failed_prefix')}${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error_unknown');
+      message.error(`${t('message.operation_failed_prefix')}${errorMsg}`);
       console.error('Job title operation failed:', error.response?.data || error);
     }
     setModalLoading(false);
@@ -232,11 +232,11 @@ const JobTitlesPage: React.FC = () => {
   const handleDeleteJobTitle = async (id: number) => {
     try {
       await deleteJobTitle(id);
-      message.success(t('job_title_management_page.message_delete_success'));
+      message.success(t('message.delete_success'));
       fetchData();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('job_title_management_page.message_delete_failed_has_children');
-      message.error(`${t('job_title_management_page.message_delete_failed_prefix')}${errorMsg}`);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.delete_failed_has_children');
+      message.error(`${t('message.delete_failed_prefix')}${errorMsg}`);
       console.error('Failed to delete job title:', error.response?.data || error);
     }
   };
@@ -248,76 +248,78 @@ const JobTitlesPage: React.FC = () => {
       const parentPayload: CreateJobTitlePayload = {
         code: 'TEST-PARENT',
         name: '测试父职位',
-        description: '测试父职位描述',
-        effective_date: dayjs().format('YYYY-MM-DD'),
+        description: '这是一个自动创建的测试父职位',
+        parent_job_title_id: null,
+        effective_date: format(new Date(), 'yyyy-MM-dd'),
         is_active: true,
       };
       const parentResponse = await createJobTitle(parentPayload);
-      const parentId = parentResponse.data.id;
+      message.success(t('message.test_data_create_success'));
 
-      // 创建一个子职位
+      // 创建子职位
       const childPayload: CreateJobTitlePayload = {
         code: 'TEST-CHILD',
         name: '测试子职位',
-        description: '测试子职位描述',
-        parent_job_title_id: parentId,
-        effective_date: dayjs().format('YYYY-MM-DD'),
+        description: '这是一个自动创建的测试子职位',
+        parent_job_title_id: parentResponse.data.id, // Correctly access id from parentResponse.data
+        effective_date: format(new Date(), 'yyyy-MM-dd'),
         is_active: true,
       };
       await createJobTitle(childPayload);
+      message.success(t('message.test_data_create_success'));
 
-      message.success(t('job_title_management_page.message_test_data_create_success'));
-      fetchData(); // 重新获取数据
+      fetchData(); // Refresh data after creating test data
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('job_title_management_page.error_unknown');
-      message.error(`${t('job_title_management_page.message_test_data_create_failed_prefix')}${errorMsg}`);
+      const errorMsg = error.response?.data?.detail || error.message || t('message.error_unknown');
+      message.error(`${t('message.test_data_create_failed_prefix')}${errorMsg}`);
       console.error('Failed to create test data:', error);
     }
   };
 
   const columns: ColumnsType<JobTitlePageItem> = [
-    { title: t('job_title_management_page.table_column_id'), dataIndex: 'id', key: 'id', width: 80 },
-    { title: t('job_title_management_page.table_column_code'), dataIndex: 'code', key: 'code', width: 150 },
-    { title: t('job_title_management_page.table_column_name'), dataIndex: 'name', key: 'name' }, // 树形结构将基于此列
-    { title: t('job_title_management_page.table_column_parent_id'), dataIndex: 'parent_job_title_id', key: 'parent_job_title_id', width: 120, render: (id) => id || t('job_title_management_page.table_cell_empty') },
-    { title: t('job_title_management_page.table_column_description'), dataIndex: 'description', key: 'description', render: (text) => text || t('job_title_management_page.table_cell_empty') },
+    { title: t('table.column.id'), dataIndex: 'id', key: 'id', width: 80 },
+    { title: t('table.column.code'), dataIndex: 'code', key: 'code', width: 150 },
+    { title: t('table.column.name'), dataIndex: 'name', key: 'name' }, // 树形结构将基于此列
+    { title: t('table.column.parent_id'), dataIndex: 'parent_job_title_id', key: 'parent_job_title_id', width: 120, render: (id) => id || t('table.cell_empty') },
+    { title: t('table.column.description'), dataIndex: 'description', key: 'description', render: (text) => text || t('table.cell_empty') },
     {
-      title: t('job_title_management_page.table_column_effective_date'),
+      title: t('table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
       width: 120,
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('job_title_management_page.table_cell_empty'),
+      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.cell_empty'),
     },
     {
-      title: t('job_title_management_page.table_column_end_date'),
+      title: t('table.column.end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
       width: 120,
-      render: (text?: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('job_title_management_page.table_cell_empty'),
+      render: (text?: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.cell_empty'),
     },
     {
-      title: t('job_title_management_page.table_column_active'),
+      title: t('table.column.active'),
       dataIndex: 'is_active',
       key: 'is_active',
       width: 80,
       render: (isActive: boolean) => <Switch checked={isActive} disabled />,
     },
     {
-      title: t('job_title_management_page.table_column_actions'),
+      title: t('table.column.actions'),
       key: 'action',
       width: 180,
       render: (_: any, record: JobTitlePageItem) => (
         <Space size="small">
-          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('job_title_management_page.tooltip_edit_job_title')} />
+          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_job_title')} />
           <Popconfirm
-            title={t('job_title_management_page.popconfirm_delete_title')}
+            title={t('popconfirm.delete_title')}
             onConfirm={() => handleDeleteJobTitle(record.id)}
-            okText={t('job_title_management_page.popconfirm_ok')}
-            cancelText={t('job_title_management_page.popconfirm_cancel')}
+            okText={t('popconfirm.ok')}
+            cancelText={t('popconfirm.cancel')}
+            disabled={record.children && record.children.length > 0} // Disable if has children, for example
           >
-            <ActionButton actionType="delete" tooltipTitle={t('job_title_management_page.tooltip_delete_job_title')} danger/>
+            <ActionButton actionType="delete" tooltipTitle={t('tooltip.delete_job_title')} danger disabled={record.children && record.children.length > 0}/>
           </Popconfirm>
-          <Button size="small" icon={<PlusOutlined />} onClick={() => showCreateChildModal(record.id)} title={t('job_title_management_page.tooltip_add_child_job_title')} />
+          <ActionButton actionType="add" onClick={() => showCreateChildModal(record.id)} tooltipTitle={t('tooltip.add_child_job_title')} />
         </Space>
       ),
     },
@@ -326,94 +328,80 @@ const JobTitlesPage: React.FC = () => {
   return (
     <div>
       <PageHeaderLayout>
-        <Title level={4} style={{ marginBottom: 0 }}>{t('job_title_management_page.title')}</Title>
+        <Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal} shape="round">
-          {t('job_title_management_page.button_create_top_level')}
+          {t('button.create_top_level')}
         </Button>
       </PageHeaderLayout>
       <Space style={{ marginBottom: 16 }}>
         <Button onClick={createTestData}>
-          {t('job_title_management_page.button_create_test_data')}
+          {t('button.create_test_data')}
         </Button>
         <Button onClick={() => {
           console.log('Current jobTitles:', jobTitles);
           console.log('Current allFlatJobTitles:', allFlatJobTitles);
-          message.info(t('job_title_management_page.message_debug_data_logged'));
+          message.info(t('message.debug_data_logged'));
         }}>
-          {t('job_title_management_page.button_debug_data')}
+          {t('button.debug_data')}
         </Button>
       </Space>
       <Table
-        className={styles['tree-table']}
         columns={columns}
-        dataSource={jobTitles}
+        dataSource={jobTitlesTree} 
         loading={isLoading}
         pagination={false}
-        onChange={handleTableChange}
-        rowKey="key"
-        expandable={{
-          defaultExpandAllRows: true,
-          childrenColumnName: 'children',
-          expandRowByClick: true, // 点击行时展开/折叠
-          indentSize: 20, // 缩进大小
-        }}
+        rowKey="id"
+        expandable={{ defaultExpandAllRows: true }}
+        className={styles['tree-table']}
         bordered
-        onRow={(record) => {
-          // 这里没有 depth 字段，需兼容性处理
-          // 若后续有 depth 字段可直接用 record.depth
-          // 目前只加粗根节点（parent_job_title_id 为 null）
-          return {
-            style: record.parent_job_title_id == null ? { fontWeight: 'bold' } : {}
-          };
-        }}
       />
       <Modal
-        title={editingJobTitle ? t('job_title_management_page.modal_title_edit_job_title') : t('job_title_management_page.modal_title_new_job_title')}
+        title={editingJobTitle ? t('modal.title.edit_job_title') : t('modal.title.new_job_title')}
         open={isModalOpen}
         onCancel={handleCancelModal}
-        onOk={() => form.submit()}
+        onOk={form.submit}
         confirmLoading={modalLoading}
-        destroyOnHidden
+        destroyOnHidden // Ensure form is reset when modal is closed and reopened for "create"
       >
         <Form form={form} layout="vertical" name="jobTitleForm" onFinish={handleFormSubmit}>
-          <Form.Item name="code" label={t('job_title_management_page.form_label_code')} rules={[{ required: true, message: t('job_title_management_page.form_validation_code_required') }]}>
-            <Input placeholder={t('job_title_management_page.form_placeholder_code')} />
+          <Form.Item name="code" label={t('form.label.code')} rules={[{ required: true, message: t('form.validation.code_required') }]}>
+            <Input placeholder={t('form.placeholder.code')} />
           </Form.Item>
-          <Form.Item name="name" label={t('job_title_management_page.form_label_name')} rules={[{ required: true, message: t('job_title_management_page.form_validation_name_required') }]}>
-            <Input placeholder={t('job_title_management_page.form_placeholder_name')} />
+          <Form.Item name="name" label={t('form.label.name')} rules={[{ required: true, message: t('form.validation.name_required') }]}>
+            <Input placeholder={t('form.placeholder.name')} />
           </Form.Item>
-          <Form.Item name="description" label={t('job_title_management_page.form_label_description')}>
-            <Input.TextArea rows={2} placeholder={t('job_title_management_page.form_placeholder_description')} />
+          <Form.Item name="description" label={t('form.label.description')}>
+            <Input.TextArea rows={2} placeholder={t('form.placeholder.description')} />
           </Form.Item>
-          <Form.Item name="parent_job_title_id" label={t('job_title_management_page.form_label_parent_job_title')}>
+          <Form.Item name="parent_job_title_id" label={t('form.label.parent_job_title')}>
             <TreeSelect
               showSearch
               style={{ width: '100%' }}
               styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder={t('job_title_management_page.form_placeholder_parent_job_title')}
+              placeholder={t('form.placeholder.parent_job_title')}
               allowClear
               treeDefaultExpandAll
               treeData={buildTreeData(allFlatJobTitles)}
-              notFoundContent={<div style={{ padding: '8px 12px', color: '#999' }}>{t('job_title_management_page.treeselect_not_found')}</div>}
+              notFoundContent={<div style={{ padding: '8px 12px', color: '#999' }}>{t('treeselect.not_found')}</div>}
               filterTreeNode={(inputValue, treeNode) =>
                 treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
               }
-              virtual={false}
+              virtual={false} // Disable virtual scroll if tree data is not very large or if there are issues with it
             />
           </Form.Item>
           <Form.Item
             name="effective_date"
-            label={t('job_title_management_page.form_label_effective_date')}
-            rules={[{ required: true, message: t('job_title_management_page.form_validation_effective_date_required') }]}
+            label={t('form.label.effective_date')}
+            rules={[{ required: true, message: t('form.validation.effective_date_required') }]}
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="end_date" label={t('job_title_management_page.form_label_end_date')}>
+          <Form.Item name="end_date" label={t('form.label.end_date')}>
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
           <Form.Item
             name="is_active"
-            label={t('job_title_management_page.form_label_is_active')}
+            label={t('form.label.is_active')}
             valuePropName="checked"
             initialValue={true} // Default is_active in form to true
           >

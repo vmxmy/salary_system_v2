@@ -15,8 +15,8 @@ from ...auth import require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="/v2/lookup",
-    tags=["v2 Lookup"],
+    prefix="/lookup",
+    tags=["Lookup"],
 )
 
 

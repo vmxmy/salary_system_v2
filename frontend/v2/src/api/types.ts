@@ -94,14 +94,18 @@ export interface UpdateRolePayload {
 export interface CreateUserPayload {
   username: string;
   password: string;
-  employee_id?: number;
+  employee_first_name?: string;
+  employee_last_name?: string;
+  employee_id_card?: string;
   role_ids?: number[];
   is_active?: boolean; // Defaults to true on backend typically
 }
 
 // Payload for updating an existing user
 export interface UpdateUserPayload {
-  employee_id?: number;
+  employee_first_name?: string;
+  employee_last_name?: string;
+  employee_id_card?: string;
   is_active?: boolean;
   role_ids?: number[]; // For updating roles directly, if supported/chosen over separate endpoint
   // password?: string; // Password changes should be a separate, secure flow (e.g., reset password)

@@ -26,7 +26,7 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
   employmentTypeOptions = [],
   jobTitleOptions = []
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('employee');
   const [form] = Form.useForm();
 
   const handleFinish = (values: any) => {
@@ -66,22 +66,22 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
     <Form form={form} onFinish={handleFinish} layout="vertical" style={{ marginBottom: 16 }}>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="name" label={t('employee_filter_form.label_name')}>
-            <Input placeholder={t('employee_filter_form.placeholder_name')} />
+          <Form.Item name="name" label={t('list_page.filter_form.label.name')}>
+            <Input placeholder={t('list_page.filter_form.placeholder.name')} />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="employee_code" label={t('employee_filter_form.label_employee_code')}>
-            <Input placeholder={t('employee_filter_form.placeholder_employee_code')} />
+          <Form.Item name="employee_code" label={t('list_page.filter_form.label.employee_code')}>
+            <Input placeholder={t('list_page.filter_form.placeholder.employee_code')} />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="department_id" label={t('employee_filter_form.label_department')}>
+          <Form.Item name="department_id" label={t('list_page.filter_form.label.department')}>
             <TreeSelect
               showSearch
               style={{ width: '100%' }}
               styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder={t('employee_filter_form.placeholder_department')}
+              placeholder={t('list_page.filter_form.placeholder.department')}
               allowClear
               treeDefaultExpandAll
               treeData={transformToTreeData(departmentOptions)}
@@ -93,8 +93,8 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="status_lookup_value_id" label={t('employee_filter_form.label_status')}>
-            <Select placeholder={t('employee_filter_form.placeholder_status')} allowClear loading={loading}>
+          <Form.Item name="status_lookup_value_id" label={t('list_page.filter_form.label.status')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.status')} allowClear loading={loading}>
               {statusOptions.map(option => (
                 <Select.Option key={option.value as React.Key} value={option.value}>
                   {option.label}
@@ -104,13 +104,13 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="hireDateRange" label={t('employee_filter_form.label_hire_date_range')}>
+          <Form.Item name="hireDateRange" label={t('list_page.filter_form.label.hire_date_range')}>
             <RangePicker style={{ width: '100%' }} />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="gender_lookup_value_id" label={t('employee_filter_form.label_gender')}>
-            <Select placeholder={t('employee_filter_form.placeholder_gender')} allowClear loading={loading}>
+          <Form.Item name="gender_lookup_value_id" label={t('list_page.filter_form.label.gender')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.gender')} allowClear loading={loading}>
               {genderOptions.map(option => (
                 <Select.Option key={option.value as React.Key} value={option.value}>
                   {option.label}
@@ -120,8 +120,8 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="education_level_lookup_value_id" label={t('employee_filter_form.label_education_level')}>
-            <Select placeholder={t('employee_filter_form.placeholder_education_level')} allowClear loading={loading}>
+          <Form.Item name="education_level_lookup_value_id" label={t('list_page.filter_form.label.education_level')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.education_level')} allowClear loading={loading}>
               {educationLevelOptions.map(option => (
                 <Select.Option key={option.value as React.Key} value={option.value}>
                   {option.label}
@@ -131,8 +131,8 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="employment_type_lookup_value_id" label={t('employee_filter_form.label_employment_type')}>
-            <Select placeholder={t('employee_filter_form.placeholder_employment_type')} allowClear loading={loading}>
+          <Form.Item name="employment_type_lookup_value_id" label={t('list_page.filter_form.label.employment_type')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.employment_type')} allowClear loading={loading}>
               {employmentTypeOptions.map(option => (
                 <Select.Option key={option.value as React.Key} value={option.value}>
                   {option.label}
@@ -142,8 +142,8 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="job_title_id" label={t('employee_filter_form.label_job_title')}>
-            <Select placeholder={t('employee_filter_form.placeholder_job_title')} allowClear loading={loading}>
+          <Form.Item name="job_title_id" label={t('list_page.filter_form.label.job_title')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.job_title')} allowClear loading={loading}>
               {jobTitleOptions.map(option => (
                 <Select.Option key={option.id as React.Key} value={option.id}>
                   {option.name}
@@ -156,10 +156,10 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
       <Row>
         <Col span={24} style={{ textAlign: 'right' }}>
           <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
-            {t('employee_filter_form.button_search')}
+            {t('list_page.filter_form.button.search')}
           </Button>
           <Button onClick={() => form.resetFields()} loading={loading}>
-            {t('employee_filter_form.button_reset')}
+            {t('list_page.filter_form.button.reset')}
           </Button>
         </Col>
       </Row>

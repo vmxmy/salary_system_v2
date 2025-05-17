@@ -18,7 +18,7 @@ interface UpdatePermissionVariables extends UpdatePermissionPayload {
 }
 
 const PermissionListPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('permission');
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
@@ -36,11 +36,11 @@ const PermissionListPage: React.FC = () => {
     mutationFn: createPermission,
     onSuccess: (data: Permission) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      message.success(t('permission_list_page.message.create_success', { permissionCode: data.code }));
+      message.success(t('list_page.message.create_success', { permissionCode: data.code }));
       setIsModalOpen(false);
     },
     onError: (error: Error) => {
-      message.error(`${t('permission_list_page.message.create_error_prefix')}${error.message}`);
+      message.error(`${t('list_page.message.create_error_prefix')}${error.message}`);
     },
   });
 
@@ -53,12 +53,12 @@ const PermissionListPage: React.FC = () => {
       updatePermission(variables.id, { code: variables.code, description: variables.description }),
     onSuccess: (data: Permission) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      message.success(t('permission_list_page.message.update_success', { permissionCode: data.code }));
+      message.success(t('list_page.message.update_success', { permissionCode: data.code }));
       setIsModalOpen(false);
       setEditingPermission(null);
     },
     onError: (error: Error) => {
-      message.error(`${t('permission_list_page.message.update_error_prefix')}${error.message}`);
+      message.error(`${t('list_page.message.update_error_prefix')}${error.message}`);
     },
   });
 
@@ -70,42 +70,42 @@ const PermissionListPage: React.FC = () => {
     mutationFn: deletePermission,
     onSuccess: (_: void, permissionId: number) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      message.success(t('permission_list_page.message.delete_success', { permissionId }));
+      message.success(t('list_page.message.delete_success', { permissionId }));
     },
     onError: (error: Error, permissionId: number) => {
-      message.error(`${t('permission_list_page.message.delete_error_prefix', { permissionId })}${error.message}`);
+      message.error(`${t('list_page.message.delete_error_prefix', { permissionId })}${error.message}`);
     },
   });
 
   if (fetchError) {
-    message.error(`${t('permission_list_page.message.load_list_error_prefix')}${fetchError.message}`);
+    message.error(`${t('list_page.message.load_list_error_prefix')}${fetchError.message}`);
   }
 
   const columns: ColumnsType<Permission> = [
     {
-      title: t('permission_list_page.table.column.id'),
+      title: t('list_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
       sorter: (a, b) => a.id - b.id,
     },
     {
-      title: t('permission_list_page.table.column.code'),
+      title: t('list_page.table.column.code'),
       dataIndex: 'code',
       key: 'code',
       sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
-      title: t('permission_list_page.table.column.description'),
+      title: t('list_page.table.column.description'),
       dataIndex: 'description',
       key: 'description',
     },
     {
-      title: t('permission_list_page.table.column.actions'),
+      title: t('list_page.table.column.actions'),
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
-          <ActionButton actionType="edit" onClick={() => handleEdit(record)} tooltipTitle={t('permission_list_page.tooltip.edit_permission')} />
-          <ActionButton actionType="delete" danger onClick={() => handleDeleteConfirmation(record)} tooltipTitle={t('permission_list_page.tooltip.delete_permission')} />
+          <ActionButton actionType="edit" onClick={() => handleEdit(record)} tooltipTitle={t('list_page.tooltip.edit_permission')} />
+          <ActionButton actionType="delete" danger onClick={() => handleDeleteConfirmation(record)} tooltipTitle={t('list_page.tooltip.delete_permission')} />
         </Space>
       ),
     },
@@ -123,11 +123,11 @@ const PermissionListPage: React.FC = () => {
 
   const handleDeleteConfirmation = (permission: Permission) => {
     Modal.confirm({
-      title: t('permission_list_page.modal.confirm_delete.title', { permissionCode: permission.code }),
-      content: t('permission_list_page.modal.confirm_delete.content'),
-      okText: t('permission_list_page.modal.confirm_delete.ok_text'),
+      title: t('list_page.modal.confirm_delete.title', { permissionCode: permission.code }),
+      content: t('list_page.modal.confirm_delete.content'),
+      okText: t('list_page.modal.confirm_delete.ok_text'),
       okType: 'danger',
-      cancelText: t('permission_list_page.modal.confirm_delete.cancel_text'),
+      cancelText: t('list_page.modal.confirm_delete.cancel_text'),
       onOk: async () => {
         try {
           await deleteMutation.mutateAsync(permission.id);
@@ -150,14 +150,14 @@ const PermissionListPage: React.FC = () => {
   return (
     <div>
       <PageHeaderLayout>
-        <Title level={4} style={{ marginBottom: 0 }}>{t('permission_list_page.title')}</Title>
+        <Title level={4} style={{ marginBottom: 0 }}>{t('list_page.title')}</Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleCreate}
           shape="round"
         >
-          {t('permission_list_page.button.create_permission')}
+          {t('list_page.button.create_permission')}
         </Button>
       </PageHeaderLayout>
       <Table

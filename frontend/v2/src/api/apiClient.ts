@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore'; // For accessing the auth token
 
+// Define authentication verification URLs
+const AUTH_VERIFICATION_URLS: string[] = [
+    '/v2/users/', // Example: Get current user details
+    '/v2/token/refresh', // Example: Refresh token endpoint
+    // Add any other relevant auth-related endpoints here
+];
+
 const host = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, ''); // 移除VITE_API_BASE_URL末尾的斜杠（如果有）
 const pathPrefix = (import.meta.env.VITE_API_PATH_PREFIX || '/api/v2'); // VITE_API_PATH_PREFIX，默认为 /api/v2
 
@@ -39,24 +46,26 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response && error.response.status === 401) {
-      // Attempt to refresh token or redirect to login
-      // For now, just log out if not on login page and it's a 401
-      const currentPath = window.location.pathname;
-      if (currentPath !== '/login') {
-        // Avoid logout if the 401 occurs during login attempt itself
-        // or if it's from a silent token refresh failing.
-        // More sophisticated logic might be needed here based on specific auth flows.
-        
-        // Check if the original request was to a user-details or token-refresh endpoint
-        // to prevent logout loops if these fail silently.
-        const isAuthVerificationRequest = error.config.url?.includes('/v2/users/') || error.config.url?.includes('/v2/token/refresh');
+      const isAuthVerificationUrl = AUTH_VERIFICATION_URLS.some((url: string) =>
+        error.config.url?.includes(url)
+      );
 
-        if (!isAuthVerificationRequest) {
-            console.warn('ApiClient: Detected 401, attempting logout.');
-            // await useAuthStore.getState().logoutAction(); // This might cause issues if called rapidly or in certain contexts
-            // window.location.href = '/login'; // Force redirect
-        } else {
-            console.warn(`ApiClient: Detected 401 on auth verification request (${error.config.url}), not logging out.`);
+      if (window.location.pathname === '/login' || isAuthVerificationUrl) {
+        // 💡 如果当前已在登录页，或错误来源于认证接口本身，则不执行登出，避免循环
+        console.warn(
+          'ApiClient: 401 on login page or auth verification URL, not attempting logout.',
+          error.config.url
+        );
+      } else {
+        console.warn('ApiClient: Detected 401, attempting logout.', error.config.url);
+        // 确保 logoutAction 是异步的，并且正确处理
+        try {
+          await useAuthStore.getState().logoutAction();
+          window.location.href = '/login';
+        } catch (logoutError) {
+          console.error("ApiClient: Error during logoutAction: ", logoutError);
+          // 即使登出失败，也尝试跳转到登录页作为后备
+          window.location.href = '/login';
         }
       }
     } 

@@ -1,0 +1,80 @@
+{
+  "title": "Department Management",
+  "button": {
+    "create_root_department": "Create Root Department",
+    "add_child_department_tooltip": "Add Child Department"
+  },
+  "table": {
+    "column": {
+      "id": "ID",
+      "code": "Department Code",
+      "name": "Department Name",
+      "parent_department_id": "Parent Department ID",
+      "effective_date": "Effective Date",
+      "is_active": "Active",
+      "actions": "Actions",
+      "value_na_or_dash": "-"
+    }
+  },
+  "tooltip": {
+    "edit_department": "Edit Department",
+    "delete_department": "Delete Department"
+  },
+  "popconfirm": {
+    "delete": {
+      "title": "Are you sure you want to delete this department?",
+      "description": "Deleting a department will also delete all its child departments and may affect associated employees.",
+      "ok_text": "Yes",
+      "cancel_text": "No"
+    }
+  },
+  "modal": {
+    "department_form": {
+      "title": {
+        "create": "Create Department",
+        "edit": "Edit Department"
+      },
+      "label": {
+        "code": "Department Code",
+        "name": "Department Name",
+        "parent_department": "Parent Department",
+        "description": "Description",
+        "effective_date": "Effective Date",
+        "end_date": "End Date",
+        "is_active": "Is Active"
+      },
+      "validation": {
+        "code_required": "Please enter department code!",
+        "name_required": "Please enter department name!",
+        "effective_date_required": "Please select effective date!"
+      },
+      "placeholder": {
+        "parent_department": "Select parent department (leave blank for root department)"
+      }
+    }
+  },
+  "message": {
+    "fetch_all_flat_error": "Failed to get all department list (for selector)",
+    "fetch_list_error": "Failed to get department list",
+    "update_success": "Department updated successfully",
+    "create_success": "Department created successfully",
+    "operation_failed_prefix": "Operation failed: ",
+    "error": {
+        "unknown": "Unknown error",
+        "delete_in_use_or_has_children": "Department may be in use or has child departments"
+    },
+    "delete_success": "Department deleted successfully",
+    "delete_failed_prefix": "Delete failed: ",
+    "create_failed_prefix": "Failed to create department: ",
+    "update_failed_prefix": "Failed to update department: ",
+    "fetch_list_failed_prefix": "Failed to load department list: ",
+    "fetch_flat_list_failed_prefix": "Failed to load flattened department list: "
+  },
+  "treeselect": {
+    "no_data": "No department data."
+  },
+  "error_page_level": {
+    "in_use_or_has_children": "Department may be in use or has child departments.",
+    "unknown": "Unknown error."
+  }
+}

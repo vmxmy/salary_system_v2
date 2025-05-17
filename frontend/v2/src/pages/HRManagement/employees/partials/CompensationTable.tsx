@@ -1,98 +1,89 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import {  } from '@ant-design/icons';
 import ActionButton from '../../../../components/common/ActionButton';
-import { PayFrequency } from '../../types'; // Enum import for type usage and value mapping
-import type { CompensationItem } from '../../types';
+import type { CompensationItem } from '../../types'; // Removed PayFrequency enum import
 import dayjs from 'dayjs';
 import { usePermissions } from '../../../../hooks/usePermissions';
+import { useTranslation } from 'react-i18next'; // +
+import type { LookupMaps } from '../../../../hooks/useLookupMaps'; // +
 
 const { Text } = Typography;
 
-// Helper to get display label for PayFrequency enum
-const getPayFrequencyLabel = (freq: PayFrequency): string => {
-  switch (freq) {
-    case PayFrequency.MONTHLY:
-      return 'Monthly';
-    case PayFrequency.BI_WEEKLY:
-      return 'Bi-Weekly';
-    case PayFrequency.WEEKLY:
-      return 'Weekly';
-    default:
-      return freq;
-  }
-};
+// Removed getPayFrequencyLabel helper function
 
 interface CompensationTableProps {
   dataSource: CompensationItem[];
   loading: boolean;
   onEdit: (record: CompensationItem) => void;
   onDelete: (id: number) => void;
+  lookupMaps: LookupMaps | null; // +
 }
 
-const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loading, onEdit, onDelete }) => {
+const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loading, onEdit, onDelete, lookupMaps }) => { // +
+  const { t } = useTranslation(['employee', 'common']); // +
   const { hasPermission } = usePermissions();
 
   const canEdit = hasPermission('employee_compensation:edit');
   const canDelete = hasPermission('employee_compensation:delete');
+  const naText = t('employee:detail_page.common_value.na', 'N/A'); // +
+  const zeroDecimalText = t('employee:detail_page.common_value.zero_decimal', '0.00'); // +
+  const defaultCurrencyText = t('employee:detail_page.compensation_tab.default_currency', 'CNY'); // +
 
   const columns: ColumnsType<CompensationItem> = [
     {
-      title: 'Effective Date',
+      title: t('employee:detail_page.compensation_tab.table.column_effective_date', 'Effective Date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
       sorter: (a, b) => dayjs(a.effective_date).unix() - dayjs(b.effective_date).unix(),
-      render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : 'N/A',
+      render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : naText,
     },
     {
-      title: 'Basic Salary',
+      title: t('employee:detail_page.compensation_tab.table.column_basic_salary', 'Basic Salary'),
       dataIndex: 'basic_salary',
       key: 'basic_salary',
       align: 'right',
       sorter: (a, b) => a.basic_salary - b.basic_salary,
-      render: (val) => typeof val === 'number' ? val.toFixed(2) : 'N/A',
+      render: (val) => typeof val === 'number' ? val.toFixed(2) : naText,
     },
     {
-      title: 'Allowances',
+      title: t('employee:detail_page.compensation_tab.table.column_allowances', 'Allowances'),
       dataIndex: 'allowances',
       key: 'allowances',
       align: 'right',
       sorter: (a, b) => (a.allowances || 0) - (b.allowances || 0),
-      render: (val) => typeof val === 'number' ? val.toFixed(2) : (val === null || val === undefined ? '0.00' : 'N/A'), 
+      render: (val) => typeof val === 'number' ? val.toFixed(2) : (val === null || val === undefined ? zeroDecimalText : naText), 
     },
     {
-      title: 'Total Salary',
+      title: t('employee:detail_page.compensation_tab.table.column_total_salary', 'Total Salary'),
       dataIndex: 'total_salary',
       key: 'total_salary',
       align: 'right',
       sorter: (a, b) => (a.total_salary || 0) - (b.total_salary || 0),
-      render: (val) => typeof val === 'number' ? val.toFixed(2) : 'N/A',
+      render: (val) => typeof val === 'number' ? val.toFixed(2) : naText,
     },
     {
-      title: 'Pay Frequency',
+      title: t('employee:detail_page.compensation_tab.table.column_pay_frequency', 'Pay Frequency'),
       dataIndex: 'pay_frequency_lookup_value_id',
       key: 'pay_frequency_lookup_value_id',
-      // TODO: Render using lookup map
-      render: (lookupValueId: number) => lookupValueId, // Placeholder
-      // TODO: Add filters using lookup map
-      // filters: Object.values(PayFrequency).map(pf => ({ text: getPayFrequencyLabel(pf), value: pf })),
-      // onFilter: (value, record) => record.payFrequency === value,
+      render: (id: number) => {
+        return lookupMaps?.payFrequencyMap?.get(id) || id?.toString() || naText;
+      },
     },
     {
-      title: 'Currency',
+      title: t('employee:detail_page.compensation_tab.table.column_currency', 'Currency'),
       dataIndex: 'currency',
       key: 'currency',
-      render: (text) => text || 'CNY',
+      render: (text) => text || defaultCurrencyText,
     },
     {
-      title: 'Reason for Change',
-      dataIndex: 'changeReason',
-      key: 'changeReason',
+      title: t('employee:detail_page.compensation_tab.table.column_change_reason', 'Reason for Change'),
+      dataIndex: 'change_reason', // Corrected: types.ts uses change_reason
+      key: 'change_reason',
       ellipsis: true,
     },
     {
-      title: 'Remarks',
+      title: t('common:label.remarks', 'Remarks'),
       dataIndex: 'remarks',
       key: 'remarks',
       ellipsis: true,
@@ -101,7 +92,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
 
   if (canEdit || canDelete) {
     columns.push({
-      title: 'Actions',
+      title: t('common:label.actions', 'Actions'),
       key: 'actions',
       align: 'center',
       fixed: 'right',
@@ -112,18 +103,17 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
             <ActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
-              tooltipTitle="编辑薪资记录"
+              tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_edit_record', '编辑薪资记录')}
             />
           )}
           {canDelete && (
             <Popconfirm
-              title="Are you sure you want to delete this record?"
+              title={t('employee:detail_page.compensation_tab.delete_confirm.content_table', 'Are you sure you want to delete this record?')}
               onConfirm={() => onDelete(record.id)}
-              okText="Yes"
-              cancelText="No"
+              okText={t('common:button.yes', 'Yes')}
+              cancelText={t('common:button.no', 'No')}
             >
-            {/* The delete button is rendered within ActionButton, so no direct replacement here */}
-              <ActionButton actionType="delete" danger tooltipTitle="删除薪资记录" />
+              <ActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record', '删除薪资记录')} />
             </Popconfirm>
           )}
         </Space>
@@ -137,7 +127,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       dataSource={dataSource}
       loading={loading}
       rowKey="id"
-      pagination={false} // Assuming pagination is handled by parent Tab component
+      pagination={false}
       scroll={{ x: 'max-content' }}
       size="small"
     />

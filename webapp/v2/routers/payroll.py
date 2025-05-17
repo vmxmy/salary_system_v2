@@ -20,8 +20,8 @@ from ...auth import require_permissions, get_current_user
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="/v2",
-    tags=["v2 Payroll"],
+    prefix="",
+    tags=["Payroll"],
 )
 
 
