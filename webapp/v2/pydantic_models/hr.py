@@ -25,6 +25,17 @@ class EmployeeBase(BaseModel):
     email: Optional[EmailStr] = Field(None, description="Employee's email address")
     phone_number: Optional[str] = Field(None, description="Employee's phone number")
 
+    # Fields added for direct update in hr.employees table (these were missing in EmployeeUpdate initially)
+    home_address: Optional[str] = Field(None, description="Employee's home address")
+    emergency_contact_name: Optional[str] = Field(None, description="Emergency contact's name")
+    emergency_contact_phone: Optional[str] = Field(None, description="Emergency contact's phone number")
+    department_id: Optional[int] = Field(None, description="Current department ID")
+    job_title_id: Optional[int] = Field(None, description="Current job title ID")
+
+    # Fields for bank account, to be processed for hr.employee_bank_accounts table (also missing)
+    bank_name: Optional[str] = Field(None, description="Bank name for employee's account")
+    bank_account_number: Optional[str] = Field(None, description="Employee's bank account number")
+
 
 class EmployeeCreate(EmployeeBase):
     """创建员工模型"""
@@ -49,6 +60,17 @@ class EmployeeUpdate(BaseModel):
     contract_type_lookup_value_id: Optional[int] = Field(None, description="Foreign key to contract type lookup value")
     email: Optional[EmailStr] = Field(None, description="Employee's email address")
     phone_number: Optional[str] = Field(None, description="Employee's phone number")
+
+    # Fields added for direct update in hr.employees table
+    home_address: Optional[str] = Field(None, description="Employee's home address")
+    emergency_contact_name: Optional[str] = Field(None, description="Emergency contact's name")
+    emergency_contact_phone: Optional[str] = Field(None, description="Emergency contact's phone number")
+    department_id: Optional[int] = Field(None, description="Current department ID")
+    job_title_id: Optional[int] = Field(None, description="Current job title ID")
+
+    # Fields for bank account, to be processed for hr.employee_bank_accounts table
+    bank_name: Optional[str] = Field(None, description="Bank name for employee's account")
+    bank_account_number: Optional[str] = Field(None, description="Employee's bank account number")
 
 
 class Employee(EmployeeBase):

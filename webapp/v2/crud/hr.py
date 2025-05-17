@@ -2,18 +2,21 @@
 人事相关的CRUD操作。
 """
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_, and_, inspect
 from typing import List, Optional, Tuple, Dict, Any
+import logging
 
 from ..models.hr import (
     Employee, Department, JobTitle, EmployeeJobHistory,
     EmployeeContract, EmployeeCompensationHistory, EmployeePayrollComponent,
-    LeaveType, EmployeeLeaveBalance, EmployeeLeaveRequest
+    LeaveType, EmployeeLeaveBalance, EmployeeLeaveRequest, EmployeeBankAccount
 )
 from ..pydantic_models.hr import (
     EmployeeCreate, EmployeeUpdate, DepartmentCreate, DepartmentUpdate,
     JobTitleCreate, JobTitleUpdate, EmployeeJobHistoryCreate, EmployeeJobHistoryUpdate
 )
+
+logger = logging.getLogger(__name__)
 
 # Employee CRUD
 def get_employees(
@@ -232,6 +235,10 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
     if not db_employee:
         return None
 
+    logger.info(f"--- CRUD LOG: update_employee (hr.py) ---")
+    logger.info(f"Updating employee_id: {employee_id}")
+    logger.info(f"Data from Pydantic model (EmployeeUpdate): {employee.model_dump_json(indent=2)}")
+
     # 如果员工代码发生变化，检查新代码是否已存在
     if employee.employee_code is not None and employee.employee_code != db_employee.employee_code:
         existing = get_employee_by_code(db, employee.employee_code)
@@ -246,11 +253,101 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
 
     # 更新员工
     update_data = employee.model_dump(exclude_unset=True)
+    logger.info(f"Data to be set on ORM model (exclude_unset=True): {update_data}")
+    
+    if 'home_address' in update_data:
+        logger.info(f"CRUD LOG: 'home_address' IS IN update_data with value: '{update_data['home_address']}'")
+    else:
+        logger.warning("CRUD LOG: 'home_address' IS NOT IN update_data dictionary!")
+
     for key, value in update_data.items():
+        logger.debug(f"CRUD LOG: Setting attribute: {key} = {value} (type: {type(value)}) precon_value: {getattr(db_employee, key, 'AttributeNotExists')}")
         setattr(db_employee, key, value)
+        logger.debug(f"CRUD LOG: Setting attribute: {key} = {value} (type: {type(value)}) post_value: {getattr(db_employee, key, 'AttributeNotExists')}")
+
+    # === Begin SQLAlchemy Inspect for home_address specifically AFTER loop ===
+    try:
+        attr_state_after_set = inspect(db_employee).attrs.get('home_address')
+        if attr_state_after_set:
+            logger.info(f"CRUD LOG (After Setattr Loop): Attribute 'home_address' state: value='{attr_state_after_set.value}', history_changed='{attr_state_after_set.history.has_changes()}', history='{attr_state_after_set.history}'")
+        else:
+            logger.warning("CRUD LOG (After Setattr Loop): FAILED to get attribute state for 'home_address'.")
+    except Exception as e_inspect_attr:
+        logger.error(f"CRUD LOG (After Setattr Loop): Error during SQLAlchemy inspect of home_address attribute: {e_inspect_attr}")
+    # === End SQLAlchemy Inspect for home_address ===
+
+    # 处理银行账户信息
+    bank_account_instance_for_logging = None # 用来存储银行账户实例以供日志记录
+    if employee.bank_account_number:
+        if not employee.bank_name:
+            logger.error(f"CRUD LOG: Bank name is missing for employee_id: {db_employee.id} while bank_account_number is provided.")
+            raise ValueError("Bank name is required if bank account number is provided.")
+        
+        # 尝试查找现有的银行账户记录
+        bank_account = db.query(EmployeeBankAccount).filter(EmployeeBankAccount.employee_id == db_employee.id).first()
+        account_holder_name_to_set = f"{db_employee.first_name} {db_employee.last_name}" # 默认账户持有人姓名
+
+        if bank_account:
+            logger.info(f"CRUD LOG: Updating bank account for employee_id: {db_employee.id}")
+            bank_account.bank_name = employee.bank_name
+            bank_account.account_number = employee.bank_account_number
+            bank_account.account_holder_name = account_holder_name_to_set # 确保账户持有人姓名也更新或设置
+            bank_account_instance_for_logging = bank_account
+            # 其他银行账户字段可以按需更新，例如：
+            # bank_account.branch_name = employee.branch_name # 如果Pydantic模型中有
+            # bank_account.bank_code = employee.bank_code     # 如果Pydantic模型中有
+            # bank_account.is_primary = True # 根据业务逻辑设置
+        else:
+            logger.info(f"CRUD LOG: Creating new bank account for employee_id: {db_employee.id}")
+            new_bank_account = EmployeeBankAccount(
+                employee_id=db_employee.id,
+                bank_name=employee.bank_name,
+                account_number=employee.bank_account_number,
+                account_holder_name=account_holder_name_to_set,
+                is_primary=True # 通常第一个添加的银行账户设为主要
+                # 其他必须字段或有默认值的字段，例如 bank_code, branch_name, account_type_lookup_value_id
+            )
+            db.add(new_bank_account)
+            bank_account_instance_for_logging = new_bank_account
+    # 如果 bank_account_number 为空或None，当前逻辑是不删除现有银行账户。
+    # 如果需要删除，可以在此处添加 else: db.delete(bank_account) (在找到bank_account之后)
+
+    logger.info(f"CRUD LOG: Values before commit: dob={db_employee.date_of_birth}, email={db_employee.email}, phone={db_employee.phone_number}, home_address={db_employee.home_address}")
+    if bank_account_instance_for_logging:
+        logger.info(f"CRUD LOG: Bank account (instance for logging) before commit: name='{bank_account_instance_for_logging.bank_name}', number='{bank_account_instance_for_logging.account_number}'")
+    
+    # === Begin SQLAlchemy Inspect ===
+    try:
+        session_instance = inspect(db_employee).session
+        if session_instance:
+            logger.info(f"CRUD LOG: Employee object is in session: {session_instance}")
+            if db_employee in session_instance.dirty:
+                logger.info("CRUD LOG: Employee object IS marked as dirty in session.")
+            else:
+                logger.info("CRUD LOG: Employee object is NOT marked as dirty in session.")
+            
+            # Detailed attribute state
+            attr_state = inspect(db_employee).attrs.get('home_address')
+            if attr_state:
+                logger.info(f"CRUD LOG: Attribute 'home_address' state: value='{attr_state.value}', history_changed='{attr_state.history.has_changes()}'")
+        else:
+            logger.info("CRUD LOG: Employee object is NOT in a session.")
+    except Exception as e_inspect:
+        logger.error(f"CRUD LOG: Error during SQLAlchemy inspect: {e_inspect}")
+    # === End SQLAlchemy Inspect ===
 
     db.commit()
+    logger.info(f"CRUD LOG: Values after commit, before refresh: dob={db_employee.date_of_birth}, email={db_employee.email}, phone={db_employee.phone_number}, home_address={db_employee.home_address}")
     db.refresh(db_employee)
+    logger.info(f"CRUD LOG: Values after refresh: dob={db_employee.date_of_birth}, email={db_employee.email}, phone={db_employee.phone_number}, home_address={db_employee.home_address}")
+
+    # 重新查询银行账户信息以确认持久化状态
+    final_bank_account_check = db.query(EmployeeBankAccount).filter(EmployeeBankAccount.employee_id == db_employee.id).first()
+    if final_bank_account_check:
+        logger.info(f"CRUD LOG: Bank account (final check after refresh) for employee_id {db_employee.id}: name='{final_bank_account_check.bank_name}', number='{final_bank_account_check.account_number}'")
+    else:
+        logger.info(f"CRUD LOG: No bank account found (final check after refresh) for employee_id {db_employee.id}")
+        
     return db_employee
 
 

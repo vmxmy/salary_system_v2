@@ -114,14 +114,41 @@ async def get_employee(
 
     logger.info(f"$$$ DIRECT DEPENDENCY TEST: User '{current_user.username}' authenticated by explicit_auth_check. Permissions: {current_user.all_permission_codes}")
 
-    employee_orm_data = v2_hr_crud.get_employee(db=db, employee_id=employee_id)
+    employee_orm = v2_hr_crud.get_employee(db=db, employee_id=employee_id)
     
-    if employee_orm_data is None:
+    if employee_orm is None:
         logger.warning(f"DIRECT DEPENDENCY TEST: Employee with ID {employee_id} not found in DB.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with id {employee_id} not found")
     
-    logger.info(f"DIRECT DEPENDENCY TEST: Employee {employee_id} ({employee_orm_data.first_name} {employee_orm_data.last_name}) found. Returning details.")
-    return employee_orm_data
+    logger.info(f"DIRECT DEPENDENCY TEST: Employee {employee_id} ({employee_orm.first_name} {employee_orm.last_name}) found. Preparing details.")
+
+    # Initialize data from ORM model, Pydantic will pick up matching fields
+    # The EmployeeResponseSchema (aliased as Employee) already has bank_name and bank_account_number as Optional fields.
+    employee_data_for_response = EmployeeResponseSchema.model_validate(employee_orm).model_dump()
+
+    # Fetch and add bank account details
+    primary_bank_account_orm = None
+    if employee_orm.bank_accounts: # This is the relationship field on Employee ORM model
+        # Attempt to find the primary bank account
+        for acc_orm in employee_orm.bank_accounts:
+            if acc_orm.is_primary:
+                primary_bank_account_orm = acc_orm
+                break
+        if not primary_bank_account_orm and employee_orm.bank_accounts: # If no primary, take the first one
+            primary_bank_account_orm = employee_orm.bank_accounts[0]
+
+    if primary_bank_account_orm:
+        logger.info(f"Found bank account for employee {employee_id}: Name='{primary_bank_account_orm.bank_name}', Number='{primary_bank_account_orm.account_number}'")
+        employee_data_for_response['bank_name'] = primary_bank_account_orm.bank_name
+        employee_data_for_response['bank_account_number'] = primary_bank_account_orm.account_number
+    else:
+        logger.info(f"No bank account found or no primary bank account for employee {employee_id}. Bank details will be null.")
+        # Ensure these are explicitly None if not found, though Pydantic model optionality should handle it.
+        employee_data_for_response['bank_name'] = None
+        employee_data_for_response['bank_account_number'] = None
+
+    logger.info(f"Returning employee data for employee {employee_id}: {employee_data_for_response}")
+    return employee_data_for_response
 
 
 @router.post("/", response_model=Dict[str, EmployeeResponseSchema], status_code=status.HTTP_201_CREATED)
@@ -177,6 +204,10 @@ async def update_employee(
     - **employee_id**: 员工ID
     - 需要SUPER_ADMIN或HR_ADMIN角色
     """
+    logger.info(f"--- ROUTER LOG: update_employee ---")
+    logger.info(f"Received request to update employee_id: {employee_id}")
+    logger.info(f"Request body (EmployeeUpdate Pydantic model after validation): {employee.model_dump_json(indent=2)}")
+    
     try:
         # 更新员工
         db_employee = v2_hr_crud.update_employee(db, employee_id, employee)
