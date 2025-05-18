@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button, Tooltip } from 'antd';
 import type { ButtonProps } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 interface ActionButtonProps extends ButtonProps {
-  actionType?: 'edit' | 'delete' | 'add';
+  actionType?: 'edit' | 'delete' | 'add' | 'view';
   tooltipTitle?: string;
   danger?: boolean;
 }
@@ -47,6 +47,10 @@ const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
       case 'add':
         icon = <PlusOutlined />;
         defaultTooltip = '添加';
+        break;
+      case 'view':
+        icon = <EyeOutlined />;
+        defaultTooltip = '查看';
         break;
       default:
         break;

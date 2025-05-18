@@ -13,7 +13,7 @@ import { getPayrollEntryStatusDisplay } from '../Payroll/utils/payrollUtils';
 const { Title } = Typography;
 
 const MyPayslipsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation(['common', 'myPayslips']);
   const currentUser = useAuthStore(state => state.currentUser);
   const [payslips, setPayslips] = useState<PayrollEntry[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
@@ -24,7 +24,7 @@ const MyPayslipsPage: React.FC = () => {
 
   const fetchPayslips = useCallback(async (page = 1, pageSize = 10) => {
     if (!currentUser?.employee_id) {
-      setError(t('myPayslips.noEmployeeIdError'));
+      setError(t('myPayslips:noEmployeeIdError'));
       setLoading(false);
       setPayslips([]);
       setMeta(null);
@@ -44,7 +44,7 @@ const MyPayslipsPage: React.FC = () => {
       setMeta(response.meta);
     } catch (err: any) {
       console.error('Error fetching payslips:', err);
-      setError(t('myPayslips.fetchError'));
+      setError(t('myPayslips:fetchError'));
       setPayslips([]);
       setMeta(null);
     }
@@ -62,31 +62,31 @@ const MyPayslipsPage: React.FC = () => {
 
   const columns: ColumnsType<PayrollEntry> = [
     {
-      title: t('myPayslips.column.payrollPeriod'),
+      title: t('myPayslips:column.payrollPeriod'),
       dataIndex: ['payroll_run', 'payroll_period', 'name'],
       key: 'payrollPeriodName',
-      render: (name, record) => name || `${t('myPayslips.periodIdPrefix')}${record.payroll_run?.payroll_period_id || 'N/A'}`,
+      render: (name, record) => name || `${t('myPayslips:periodIdPrefix')}${record.payroll_run?.payroll_period_id || 'N/A'}`,
     },
     {
-      title: t('myPayslips.column.runDate'),
+      title: t('myPayslips:column.runDate'),
       dataIndex: ['payroll_run', 'run_date'],
       key: 'runDate',
       render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A',
     },
     {
-      title: t('myPayslips.column.netPay'),
+      title: t('myPayslips:column.netPay'),
       dataIndex: 'net_pay',
       key: 'netPay',
       render: (amount) => amount?.toFixed(2) || '0.00',
     },
     {
-      title: t('myPayslips.column.paymentDate'),
-      dataIndex: ['payroll_run', 'paid_at'], 
+      title: t('myPayslips:column.paymentDate'),
+      dataIndex: ['payroll_run', 'paid_at'],
       key: 'paymentDate',
-      render: (date) => date ? new Date(date).toLocaleDateString() : t('myPayslips.status.pendingPayment'),
+      render: (date) => date ? new Date(date).toLocaleDateString() : t('myPayslips:status.pendingPayment'),
     },
     {
-      title: t('myPayslips.column.status'),
+      title: t('myPayslips:column.status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
       render: (statusId) => {
@@ -95,11 +95,11 @@ const MyPayslipsPage: React.FC = () => {
       },
     },
     {
-      title: t('myPayslips.column.actions'),
+      title: t('myPayslips:column.actions'),
       key: 'actions',
       align: 'center',
       render: (_, record) => (
-        <Tooltip title={t('myPayslips.actions.viewDetails')}>
+        <Tooltip title={t('myPayslips:actions.viewDetails')}>
           <Button icon={<EyeOutlined />} onClick={() => handleViewDetails(record)} />
         </Tooltip>
       ),
@@ -108,15 +108,15 @@ const MyPayslipsPage: React.FC = () => {
 
   const breadcrumbItems = [
     { key: 'home', href: '/', title: <HomeOutlined /> },
-    { key: 'my-payslips', title: t('myPayslips.title') },
+    { key: 'my-payslips', title: t('myPayslips:title') },
   ];
 
-  if (loading && !payslips.length) {
-    return <Spin tip={t('loading')} style={{ display: 'block', marginTop: '50px' }} />;
+  if (!ready || (loading && !payslips.length)) {
+    return <Spin tip={t('common:loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error && !payslips.length) {
-    return <Alert message={t('error.genericTitle')} description={error} type="error" showIcon style={{ margin: '20px' }} />;
+    return <Alert message={t('common:error.genericTitle')} description={error} type="error" showIcon style={{ margin: '20px' }} />;
   }
 
   return (
@@ -128,9 +128,9 @@ const MyPayslipsPage: React.FC = () => {
           </Breadcrumb.Item>
         ))}
       </Breadcrumb>
-      <Title level={2} style={{ marginBottom: '24px' }}>{t('myPayslips.title')}</Title>
+      <Title level={2} style={{ marginBottom: '24px' }}>{t('myPayslips:title')}</Title>
       {error && payslips.length > 0 && (
-         <Alert message={t('error.genericTitle')} description={error} type="warning" showIcon closable style={{ marginBottom: '20px' }} />
+         <Alert message={t('common:error.genericTitle')} description={error} type="warning" showIcon closable style={{ marginBottom: '20px' }} />
       )}
       <Table
         columns={columns}
@@ -143,8 +143,8 @@ const MyPayslipsPage: React.FC = () => {
           total: meta.total,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50'],
-          showTotal: (total, range) => 
-            `${t('pagination.totalRecords', { count: total })} (${t('pagination.showingRange', { start: range[0], end: range[1] })})`,
+          showTotal: (total, range) =>
+            `${t('common:pagination.totalRecords', { count: total })} (${t('common:pagination.showingRange', { start: range[0], end: range[1] })})`,
           onChange: fetchPayslips,
         }: false}
         scroll={{ x: 'max-content' }}

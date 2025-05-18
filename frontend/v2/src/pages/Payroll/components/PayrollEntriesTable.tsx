@@ -133,7 +133,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   ];
 
   if (loading && !entries.length) { // Show full page spinner only on initial load
-    return <Spin tip={t('payroll_entries_table.spin_loading_entries')} style={{ display: 'block', marginTop: '20px' }} />;
+    return <Spin tip={t('payroll_entries_table.spin_loading_entries')} style={{ display: 'block', marginTop: '20px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error) {

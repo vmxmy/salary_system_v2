@@ -31,7 +31,8 @@ ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 if SECRET_KEY == "default_secret_key_change_this":
-    print("WARNING: Using default JWT_SECRET_KEY. Please set a strong secret key in your .env file.")
+    # print("WARNING: Using default JWT_SECRET_KEY. Please set a strong secret key in your .env file.")
+    logger.warning("Using default JWT_SECRET_KEY. Please set a strong secret key in your .env file.")
 
 # Fernet Key for Email Server Password Encryption
 # IMPORTANT: This key MUST be kept secret and consistent across application instances.
@@ -39,8 +40,9 @@ if SECRET_KEY == "default_secret_key_change_this":
 EMAIL_CFG_FERNET_KEY_ENV_VAR = "EMAIL_CFG_FERNET_KEY"
 _fernet_key = os.getenv(EMAIL_CFG_FERNET_KEY_ENV_VAR)
 if not _fernet_key:
-    print(f"WARNING: Environment variable {EMAIL_CFG_FERNET_KEY_ENV_VAR} for email config encryption is not set.")
-    print("Using a fixed development key. For production, generate a key once and set it as an environment variable.")
+    # print(f"WARNING: Environment variable {EMAIL_CFG_FERNET_KEY_ENV_VAR} for email config encryption is not set.")
+    # print("Using a fixed development key. For production, generate a key once and set it as an environment variable.")
+    logger.warning(f"Environment variable {EMAIL_CFG_FERNET_KEY_ENV_VAR} for email config encryption is not set. Using a fixed development key. For production, generate a key once and set it as an environment variable.")
     # 使用固定的开发密钥 - 注意：这只适用于开发环境，生产环境应该使用环境变量
     _fernet_key = "2aJmWSBM9jAqez6XRJ4Xhkv5DohIfl4b5UNchy0YR44="
     # In a real app, you might want to halt or have a more robust way to handle this.
@@ -136,8 +138,8 @@ async def get_current_user(
     # conn = Depends(get_db_connection) # <-- Remove old dependency
     db: Session = Depends(get_db_v2) # <--- USE get_db_v2 HERE
 ) -> v2_security_schemas.User: # UPDATED return type annotation
-    logger.info(f"+++ ENTERING get_current_user at {datetime.now()} for token starting with: {credentials.credentials[:20] if credentials and credentials.credentials else 'NO_TOKEN_CREDENTIALS'}") # EXISTING LINE
-    logger.info(f"+++ get_current_user successfully obtained db session from get_db_v2: {type(db)}") # ADDED LOG
+    # logger.info(f"+++ ENTERING get_current_user at {datetime.now()} for token starting with: {credentials.credentials[:20] if credentials and credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
+    # logger.info(f"+++ get_current_user successfully obtained db session from get_db_v2: {type(db)}")
     token = credentials.credentials # Extract token from credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -149,14 +151,14 @@ async def get_current_user(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub") # Get username, might be None
-        logger.info(f"+++ JWT decoded. Payload sub (username): '{username}'") # MODIFIED: Changed to INFO
+        # logger.info(f"+++ JWT decoded. Payload sub (username): '{username}'") # MODIFIED: Changed to INFO
 
         if not username:  # 检查空字符串
             logger.warning(f"!!! USERNAME MISSING in JWT payload. Token: {token[:30]}... Raising 401.") # MODIFIED: Enhanced log, was JWT payload 'sub' is empty.
             raise credentials_exception
         
         token_role: Optional[str] = payload.get("role")  # 正确标注类型
-        logger.info(f"+++ JWT token_role: '{token_role}' for username '{username}'") # ADDED INFO
+        # logger.info(f"+++ JWT token_role: '{token_role}' for username '{username}'") # ADDED INFO
 
     except JWTError as e: # Capture JWTError
         logger.warning(f"!!! JWT DECODE ERROR: {e}. Token: {token[:30]}... Raising 401.") # MODIFIED: Enhanced log, was JWT Error: {e}
@@ -166,9 +168,9 @@ async def get_current_user(
         raise credentials_exception
 
 
-    logger.info(f"+++ Attempting to fetch user '{username}' from DB.") # MODIFIED: Changed to INFO, was debug log
+    # logger.info(f"+++ Attempting to fetch user '{username}' from DB.") # MODIFIED: Changed to INFO, was debug log
     user_orm = v2_crud_security.get_user_by_username(db, username=username) # <--- MODIFIED: Use v2_crud_security
-    logger.info(f"+++ User '{username}' fetched from DB. Result: {'Found' if user_orm else 'NOT FOUND'}") # MODIFIED: Changed to INFO, was debug log
+    # logger.info(f"+++ User '{username}' fetched from DB. Result: {'Found' if user_orm else 'NOT FOUND'}") # MODIFIED: Changed to INFO, was debug log
 
     if user_orm is None:
         logger.warning(f"!!! USER '{username}' NOT FOUND in DB. Raising 401.") # MODIFIED: Enhanced log, was User '{username}' not found in DB.
@@ -176,7 +178,7 @@ async def get_current_user(
 
     # Construct User (from v2_security_schemas) from the ORM object
     current_user = v2_security_schemas.User.model_validate(user_orm) # UPDATED to use v2_security_schemas.User
-    logger.info(f"+++ User model validated for '{username}'. All permission codes: {current_user.all_permission_codes}") # ADDED INFO
+    # logger.info(f"+++ User model validated for '{username}'. All permission codes: {current_user.all_permission_codes}") # ADDED INFO
 
     if not current_user.is_active:
          logger.warning(f"!!! USER '{username}' IS INACTIVE. Raising 400.") # MODIFIED: Enhanced log, was Inactive user '{username}' ...
@@ -194,32 +196,32 @@ async def get_current_user(
     elif token_role is not None and not current_user.roles:
         logger.warning(f"Token role '{token_role}' present, but user '{current_user.username}' has no roles assigned in DB (roles list is empty).") # Existing log
 
-    logger.info(f"+++ EXITING get_current_user successfully for user: '{current_user.username}', active: {current_user.is_active} at {datetime.now()}") # MODIFIED: Enhanced log, was Authentication successful & EXITING log 
+    # logger.info(f"+++ EXITING get_current_user successfully for user: '{current_user.username}', active: {current_user.is_active} at {datetime.now()}") # MODIFIED: Enhanced log, was Authentication successful & EXITING log
     return current_user
 
 # Dependency factory for requiring specific permissions
 def require_permissions(required_permissions: List[str]):
     """Dependency factory that checks if the current user has ALL of the required permissions."""
-    logger.info(f"@@@ TEST 12: FACTORY require_permissions CALLED with required_permissions: {required_permissions} AT {datetime.now()}")
+    # logger.info(f"@@@ TEST 12: FACTORY require_permissions CALLED with required_permissions: {required_permissions} AT {datetime.now()}")
     
     # Test 12: permission_checker now takes db and credentials, and inlines get_current_user logic
     async def permission_checker(
         db: Session = Depends(get_db_v2),
-        credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme) 
+        credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
     ) -> v2_security_schemas.User:
-        logger.info(f"*** TEST 12: ENTERING permission_checker (inlined get_current_user) AT {datetime.now()}")
+        # logger.info(f"*** TEST 12: ENTERING permission_checker (inlined get_current_user) AT {datetime.now()}")
         
         # --- Start of inlined get_current_user logic ---
         # Add a check for None before accessing credentials.credentials
         if credentials is None:
-            logger.warning(f"!!! TEST 12 (inline): NO CREDENTIALS PROVIDED (credentials is None). Raising 401.")
+            # logger.warning(f"!!! TEST 12 (inline): NO CREDENTIALS PROVIDED (credentials is None). Raising 401.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Not authenticated or credentials missing (Test 12 inline check)",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        logger.info(f"+++ TEST 12 (inline): Processing token starting with: {credentials.credentials[:20] if credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
+        # logger.info(f"+++ TEST 12 (inline): Processing token starting with: {credentials.credentials[:20] if credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
         token = credentials.credentials
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -231,12 +233,12 @@ def require_permissions(required_permissions: List[str]):
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")
-            logger.info(f"+++ TEST 12 (inline): JWT decoded. Payload sub (username): '{username}'")
+            # logger.info(f"+++ TEST 12 (inline): JWT decoded. Payload sub (username): '{username}'")
             if not username:
                 logger.warning(f"!!! TEST 12 (inline): USERNAME MISSING in JWT payload. Token: {token[:30]}... Raising 401.")
                 raise credentials_exception
             token_role: Optional[str] = payload.get("role")
-            logger.info(f"+++ TEST 12 (inline): JWT token_role: '{token_role}' for username '{username}'")
+            # logger.info(f"+++ TEST 12 (inline): JWT token_role: '{token_role}' for username '{username}'")
         except JWTError as e:
             logger.warning(f"!!! TEST 12 (inline): JWT DECODE ERROR: {e}. Token: {token[:30]}... Raising 401.")
             raise credentials_exception
@@ -244,16 +246,16 @@ def require_permissions(required_permissions: List[str]):
             logger.error(f"!!! TEST 12 (inline): UNEXPECTED ERROR during JWT processing for token {token[:30]}... : {e_jwt_generic}", exc_info=True)
             raise credentials_exception
 
-        logger.info(f"+++ TEST 12 (inline): Attempting to fetch user '{username}' from DB.")
+        # logger.info(f"+++ TEST 12 (inline): Attempting to fetch user '{username}' from DB.")
         user_orm = v2_crud_security.get_user_by_username(db, username=username)
-        logger.info(f"+++ TEST 12 (inline): User '{username}' fetched from DB. Result: {'Found' if user_orm else 'NOT FOUND'}")
+        # logger.info(f"+++ TEST 12 (inline): User '{username}' fetched from DB. Result: {'Found' if user_orm else 'NOT FOUND'}")
 
         if user_orm is None:
             logger.warning(f"!!! TEST 12 (inline): USER '{username}' NOT FOUND in DB. Raising 401.")
             raise credentials_exception
 
         current_user = v2_security_schemas.User.model_validate(user_orm)
-        logger.info(f"+++ TEST 12 (inline): User model validated for '{username}'. All permission codes: {current_user.all_permission_codes}")
+        # logger.info(f"+++ TEST 12 (inline): User model validated for '{username}'. All permission codes: {current_user.all_permission_codes}")
 
         if not current_user.is_active:
             logger.warning(f"!!! TEST 12 (inline): USER '{username}' IS INACTIVE. Raising 400.")
@@ -269,11 +271,11 @@ def require_permissions(required_permissions: List[str]):
         elif token_role is not None and not current_user.roles:
             logger.warning(f"TEST 12 (inline): Token role '{token_role}' present, but user '{current_user.username}' has no DB roles (list empty).")
 
-        logger.info(f"+++ TEST 12 (inline): Successfully processed user '{current_user.username}'")
+        # logger.info(f"+++ TEST 12 (inline): Successfully processed user '{current_user.username}'")
         # --- End of inlined get_current_user logic ---
         
         # Original permission checking logic starts here, using the `current_user` obtained above
-        logger.info(f"*** TEST 12 (permission check part): User '{current_user.username}'. Required: {required_permissions}")
+        # logger.info(f"*** TEST 12 (permission check part): User '{current_user.username}'. Required: {required_permissions}")
         
         if not current_user.all_permission_codes:
             logger.warning(f"!!! TEST 12 (permission check part): PERMISSION DENIED for user '{current_user.username}' - no permissions. Required: {required_permissions}")
@@ -292,15 +294,15 @@ def require_permissions(required_permissions: List[str]):
                 detail=f"User missing permissions: {', '.join(missing_permissions)}. (Test 12)"
             )
         
-        logger.info(f"*** TEST 12: EXITING permission_checker successfully for user '{current_user.username}' AT {datetime.now()}")
+        # logger.info(f"*** TEST 12: EXITING permission_checker successfully for user '{current_user.username}' AT {datetime.now()}")
         return current_user
     return permission_checker
 
 # Test 13: Define a minimal auth factory from auth.py
 def minimal_auth_factory():
-    logger.info(f"@@@ TEST 13: MINIMAL_AUTH_FACTORY CALLED AT {datetime.now()} @@@")
+    # logger.info(f"@@@ TEST 13: MINIMAL_AUTH_FACTORY CALLED AT {datetime.now()} @@@")
     async def minimal_auth_checker() -> v2_security_schemas.User:
-        logger.info(f"*** TEST 13: MINIMAL_AUTH_CHECKER ENTERED AT {datetime.now()} ***")
+        # logger.info(f"*** TEST 13: MINIMAL_AUTH_CHECKER ENTERED AT {datetime.now()} ***")
         # Return a hardcoded, valid User object
         mock_user_for_test13 = v2_security_schemas.User(
             id=778, # Different ID from other mocks
@@ -312,16 +314,16 @@ def minimal_auth_factory():
             all_permission_codes=["P_EMPLOYEE_VIEW_DETAIL", "P_TEST_PERMISSION"], # Include necessary permission
             description="Mock user for Test 13 minimal_auth_factory"
         )
-        logger.info(f"*** TEST 13: MINIMAL_AUTH_CHECKER RETURNING mock user: {mock_user_for_test13.username} ***")
+        # logger.info(f"*** TEST 13: MINIMAL_AUTH_CHECKER RETURNING mock user: {mock_user_for_test13.username} ***")
         return mock_user_for_test13
     return minimal_auth_checker
 
 # Test 9: Define a mock_get_current_user function
 async def mock_get_current_user() -> v2_security_schemas.User:
-    logger.info(">>> MOCK_GET_CURRENT_USER CALLED AT %s <<<", datetime.now())
+    # logger.info(">>> MOCK_GET_CURRENT_USER CALLED AT %s <<<", datetime.now())
     # Ensure this object's fields align with v2_security_schemas.User
     mock_user_data = {
-        "id": 999, 
+        "id": 999,
         "username": "mockuser_test9",
         # "email": "mockuser@example.com", # email is not in UserBase or User directly, but in UserUpdate
         # "full_name": "Mock User Test9", # full_name is not in UserBase or User directly
@@ -338,7 +340,7 @@ async def mock_get_current_user() -> v2_security_schemas.User:
     try:
         # This assumes v2_security_schemas.User.model_validate can handle this structure
         user_instance = v2_security_schemas.User.model_validate(mock_user_data)
-        logger.info(">>> MOCK_GET_CURRENT_USER: Successfully validated and created mock_user_instance for %s AT %s <<<", user_instance.username, datetime.now())
+        # logger.info(">>> MOCK_GET_CURRENT_USER: Successfully validated and created mock_user_instance for %s AT %s <<<", user_instance.username, datetime.now())
         return user_instance
     except Exception as e: # Catch Pydantic ValidationError specifically if possible
         logger.error(">>> MOCK_GET_CURRENT_USER: Failed to validate mock_user_data: %s", e, exc_info=True)
@@ -347,10 +349,10 @@ async def mock_get_current_user() -> v2_security_schemas.User:
         # This part might need adjustment based on how strictly we want to enforce the mock
         logger.warning(">>> MOCK_GET_CURRENT_USER: Falling back to minimal user due to validation error AT %s <<<", datetime.now())
         minimal_user = v2_security_schemas.User(
-            id=998, 
-            username="fallback_mockuser", 
-            is_active=True, 
-            created_at=datetime.now(), 
+            id=998,
+            username="fallback_mockuser",
+            is_active=True,
+            created_at=datetime.now(),
             roles=[], # Empty roles list
             all_permission_codes=["P_EMPLOYEE_VIEW_DETAIL"] # Minimal permissions
         )
@@ -362,7 +364,7 @@ async def mock_get_current_user() -> v2_security_schemas.User:
 
 # Test 4b: Define a very simple synchronous dependency
 def very_simple_auth_dependency():
-    logger.info("@@@ VERY_SIMPLE_AUTH_DEPENDENCY CALLED @@@")
+    # logger.info("@@@ VERY_SIMPLE_AUTH_DEPENDENCY CALLED @@@")
     return "simple_auth_ok"
 
 # Original require_permissions - for reference or potential revert. Keep commented.
@@ -377,7 +379,7 @@ def very_simple_auth_dependency():
 
 # Step 1: Core logic function (no Depends in its signature within this helper)
 async def get_actual_user_and_check_permissions(token: Optional[str], db: Session, required_permissions: List[str]) -> v2_security_schemas.User:
-    logger.info(f"FINAL_AUTH_CORE: Entered. Token Present: {'Yes' if token else 'No'}. Required Permissions: {required_permissions}")
+    # logger.info(f"FINAL_AUTH_CORE: Entered. Token Present: {'Yes' if token else 'No'}. Required Permissions: {required_permissions}")
 
     credentials_exception_401 = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -397,7 +399,7 @@ async def get_actual_user_and_check_permissions(token: Optional[str], db: Sessio
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-        logger.info(f"FINAL_AUTH_CORE: JWT decoded. User: '{username}'")
+        # logger.info(f"FINAL_AUTH_CORE: JWT decoded. User: '{username}'")
         if not username:
             logger.warning("FINAL_AUTH_CORE: Username missing in JWT payload.")
             raise credentials_exception_401
@@ -416,7 +418,7 @@ async def get_actual_user_and_check_permissions(token: Optional[str], db: Sessio
         logger.warning(f"FINAL_AUTH_CORE: User '{username}' is inactive.")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user (FINAL_AUTH_CORE)")
 
-    logger.info(f"FINAL_AUTH_CORE: User '{username}' retrieved. Checking permissions: {required_permissions}")
+    # logger.info(f"FINAL_AUTH_CORE: User '{username}' retrieved. Checking permissions: {required_permissions}")
     
     # Handle case where current_user.all_permission_codes might be None
     user_permissions_set = set(current_user.all_permission_codes or [])
@@ -427,39 +429,39 @@ async def get_actual_user_and_check_permissions(token: Optional[str], db: Sessio
             logger.warning(f"FINAL_AUTH_CORE: User '{username}' missing permissions: {missing_permissions}")
             raise credentials_exception_403
     
-    logger.info(f"FINAL_AUTH_CORE: Permissions OK for user '{username}'. Returning user.")
+    # logger.info(f"FINAL_AUTH_CORE: Permissions OK for user '{username}'. Returning user.")
     return current_user
 
 # Step 2: The new dependency factory
 def require_permissions_final(required_permissions: List[str]):
-    logger.info(f"FINAL_AUTH_FACTORY: require_permissions_final CALLED for: {required_permissions}")
+    # logger.info(f"FINAL_AUTH_FACTORY: require_permissions_final CALLED for: {required_permissions}")
 
     async def actual_checker_with_deps(
-        db: Session = Depends(get_db_v2), 
+        db: Session = Depends(get_db_v2),
         cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme)
     ) -> v2_security_schemas.User:
-        logger.info(f"FINAL_AUTH_CHECKER: CALLED. DB: {'OK' if db else 'FAIL'}, Cred: {'OK' if cred and cred.credentials else 'FAIL/MISSING'}")
+        # logger.info(f"FINAL_AUTH_CHECKER: CALLED. DB: {'OK' if db else 'FAIL'}, Cred: {'OK' if cred and cred.credentials else 'FAIL/MISSING'}")
         
         if not cred or not cred.credentials:
             logger.warning("FINAL_AUTH_CHECKER: No credentials provided by bearer_scheme.")
             # Re-raise with WWW-Authenticate header for browser basic auth prompt or token refresh UIs
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Not authenticated (FINAL_AUTH_CHECKER)",
-                headers={"WWW-Authenticate": "Bearer"} 
+                headers={"WWW-Authenticate": "Bearer"}
             )
         
         token = cred.credentials
         # required_permissions is from the outer factory's scope (closure)
         user = await get_actual_user_and_check_permissions(token, db, required_permissions)
-        logger.info(f"FINAL_AUTH_CHECKER: PASSED for user: {user.username}")
+        # logger.info(f"FINAL_AUTH_CHECKER: PASSED for user: {user.username}")
         return user
 
     return actual_checker_with_deps
 
 # --- NEW EXPLICIT AUTH CHECK (Plan Step 1a) ---
 async def explicit_auth_check(db: Session, credentials: Optional[HTTPAuthorizationCredentials], required_permissions: List[str]) -> v2_security_schemas.User:
-    logger.info(f"EXPLICIT_AUTH_CHECK: Entered. Credentials Present: {'Yes' if credentials and credentials.credentials else 'No'}. Required Permissions: {required_permissions}")
+    # logger.info(f"EXPLICIT_AUTH_CHECK: Entered. Credentials Present: {'Yes' if credentials and credentials.credentials else 'No'}. Required Permissions: {required_permissions}")
 
     token: Optional[str] = None
     if credentials and credentials.credentials:
@@ -483,7 +485,7 @@ async def explicit_auth_check(db: Session, credentials: Optional[HTTPAuthorizati
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-        logger.info(f"EXPLICIT_AUTH_CHECK: JWT decoded. User: '{username}'")
+        # logger.info(f"EXPLICIT_AUTH_CHECK: JWT decoded. User: '{username}'")
         if not username:
             logger.warning("EXPLICIT_AUTH_CHECK: Username missing in JWT payload.")
             raise credentials_exception_401

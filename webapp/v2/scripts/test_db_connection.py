@@ -5,7 +5,7 @@
 使用方法:
     python test_db_connection.py [--db-url DATABASE_URL]
 
-如果不提供--db-url参数，脚本将尝试从环境变量DATABASE_URL_V2或DATABASE_URL中读取数据库连接字符串。
+如果不提供--db-url参数，脚本将尝试从环境变量DATABASE_URL中读取数据库连接字符串。
 """
 
 import argparse
@@ -22,12 +22,12 @@ def test_connection(db_url=None):
     """测试数据库连接"""
     # 如果没有提供数据库连接字符串，尝试从环境变量中读取
     if not db_url:
-        db_url = os.environ.get("DATABASE_URL_V2")
+        db_url = os.environ.get("DATABASE_URL")
         if not db_url:
-            print("错误: 未提供数据库连接字符串，且环境变量DATABASE_URL_V2未设置")
+            print("错误: 未提供数据库连接字符串，且环境变量DATABASE_URL未设置")
             return False
         else:
-            print(f"使用环境变量DATABASE_URL_V2: {db_url}")
+            print(f"使用环境变量DATABASE_URL: {db_url}")
     else:
         print(f"使用提供的数据库连接字符串: {db_url}")
 

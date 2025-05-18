@@ -8,8 +8,8 @@ from datetime import datetime
 import logging
 
 # 设置日志
-logger = logging.getLogger("auth_debug")
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__) # Use standard logger name
+# logger.setLevel(logging.DEBUG) # Inherit level from global config
 
 from ..database import get_db_v2
 from ..crud import security as crud
@@ -143,10 +143,10 @@ async def create_user(
     """
     try:
         # 创建用户
-        logger.debug(f"Creating user with data: {user}")
+        # logger.debug(f"Creating user with data: {user}")
         try:
             db_user = crud.create_user(db, user)
-            logger.debug(f"Successfully created user: {db_user}")
+            # logger.debug(f"Successfully created user: {db_user}")
         except Exception as e:
             logger.error(f"Error creating user: {e}", exc_info=True)
             raise

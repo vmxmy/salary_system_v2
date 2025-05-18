@@ -157,6 +157,7 @@
         "label_dob": "出生日期",
         "label_department": "部门",
         "label_job_title": "职位",
+        "label_actual_position": "实际职位",
         "label_employment_type": "雇佣类型",
         "label_employee_status": "员工状态",
         "label_hire_date": "入职日期",
@@ -250,7 +251,8 @@
           "column_contract_type": "合同类型",
           "column_start_date": "开始日期",
           "column_end_date": "结束日期",
-          "column_status": "状态"
+          "column_status": "状态",
+          "column_actions": "操作"
         },
         "tooltip_edit_contract": "编辑合同",
         "tooltip_delete_contract": "删除合同",
@@ -332,6 +334,7 @@
     "form_label": {
       "id_number": "身份证号",
       "nationality": "国籍",
+      "ethnicity": "民族",
       "avatar": "头像",
       "contract_type": "合同类型",
       "home_address": "家庭住址",
@@ -366,5 +369,37 @@
         "part_time": "兼职",
         "contractor": "合同工",
         "intern": "实习"
-    }
+    },
+    "page_title": {
+      "employee_files": "员工档案"
+    },
+  "firstName": "名",
+  "lastName": "姓",
+  "dob": "出生日期",
+  "idNumber": "身份证号",
+  "nationality": "国籍",
+  "maritalStatus": "婚姻状况",
+  "ethnicity": "民族",
+  "politicalStatus": "政治面貌",
+  "educationLevel": "学历",
+  "personalEmail": "个人邮箱",
+  "mobilePhone": "手机号码",
+  "address": "地址",
+  "department": "部门",
+  "jobTitle": "职位",
+  "hireDate": "入职日期",
+  "probationEndDate": "试用期结束日期",
+  "employmentType": "雇佣类型",
+  "status": "状态",
+  "reportsTo": "汇报对象",
+  "workLocation": "工作地点",
+  "bankName": "开户行",
+  "bankAccountNumber": "银行账号",
+  "emergencyContactName": "紧急联系人",
+  "emergencyContactPhone": "紧急联系人电话",
+  "emergencyContactRelation": "与紧急联系人关系",
+  "personnelCategory": "人事类别",
+  "actualPosition": "实际岗位",
+  "detail_page.basic_info_tab.label_actual_position": "实际岗位",
+  "list_page.filter_form.placeholder.actual_position": "请输入实际岗位"
   }

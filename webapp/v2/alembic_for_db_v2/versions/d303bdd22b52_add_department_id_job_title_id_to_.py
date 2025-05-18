@@ -21,22 +21,22 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     op.add_column('employees', sa.Column('department_id', sa.BigInteger(), nullable=True), schema='hr')
-    op.add_column('employees', sa.Column('job_title_id', sa.BigInteger(), nullable=True), schema='hr')
+    op.add_column('employees', sa.Column('personnel_category_id', sa.BigInteger(), nullable=True), schema='hr')
     op.create_foreign_key(
         'fk_employees_department_id', 'employees', 'departments',
         ['department_id'], ['id'], source_schema='hr', referent_schema='hr', ondelete='SET NULL'
     )
     op.create_foreign_key(
-        'fk_employees_job_title_id', 'employees', 'job_titles',
-        ['job_title_id'], ['id'], source_schema='hr', referent_schema='hr', ondelete='SET NULL'
+        'fk_employee_personnel_category_id', 'employees', 'personnel_categories',
+        ['personnel_category_id'], ['id'], source_schema='hr', referent_schema='hr', ondelete='SET NULL'
     )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint('fk_employees_job_title_id', 'employees', schema='hr', type_='foreignkey')
+    op.drop_constraint('fk_employee_personnel_category_id', 'employees', schema='hr', type_='foreignkey')
     op.drop_constraint('fk_employees_department_id', 'employees', schema='hr', type_='foreignkey')
-    op.drop_column('employees', 'job_title_id', schema='hr')
+    op.drop_column('employees', 'personnel_category_id', schema='hr')
     op.drop_column('employees', 'department_id', schema='hr')
     # ### end Alembic commands ###

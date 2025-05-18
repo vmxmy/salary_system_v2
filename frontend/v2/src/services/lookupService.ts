@@ -1,6 +1,6 @@
 import type { Department } from '../pages/HRManagement/types'; // Types that are only used as types
 import { EmploymentStatus, Gender, EmploymentType, ContractType, EducationLevel, LeaveType, MaritalStatus, PoliticalStatus, ContractStatus } from '../pages/HRManagement/types'; // Enums used as values
-import type { LookupItem, JobTitle } from '../pages/HRManagement/types'; // Changed PositionItem to JobTitle
+import type { LookupItem, PersonnelCategory, Position as PositionType } from '../pages/HRManagement/types'; // MODIFIED: No longer JobTitle as PersonnelCategory, ADDED PositionType
 import apiClient from '../api'; // Added apiClient import
 import { message } from 'antd'; // Added message import
 
@@ -110,19 +110,34 @@ interface DepartmentWithParentId extends Department {
   parentId?: string;
 }
 
-// Helper type for raw API response for JobTitles (formerly Positions)
-interface ApiJobTitle { // Renamed from ApiPosition
+// Helper type for raw API response for PersonnelCategories (formerly JobTitles)
+interface ApiPersonnelCategory { // MODIFIED from ApiJobTitle
   id: number | string;
   name: string;
   code?: string;
   is_active?: boolean;
-  parent_job_title_id?: number | string | null; // Ensure this field name matches API if it provides parent id for job titles
+  parent_category_id?: number | string | null; // MODIFIED from parent_job_title_id, and ensure it matches API response field name for parent ID
 }
 
-// Internal type that extends the imported JobTitle to include parentId for tree building
-interface JobTitleWithParentId extends JobTitle { // Renamed from PositionItemWithParentId
+// Internal type that extends the imported PersonnelCategory to include parentId for tree building
+interface PersonnelCategoryWithParentId extends PersonnelCategory { // MODIFIED from JobTitleWithParentId
   parentId?: string;
-  children?: JobTitleWithParentId[]; 
+  children?: PersonnelCategoryWithParentId[]; 
+}
+
+// ADDED for Position
+interface ApiPosition { 
+  id: number | string;
+  name: string;
+  code?: string;
+  is_active?: boolean;
+  parent_position_id?: number | string | null; 
+}
+
+// ADDED for Position
+interface PositionWithParentId extends PositionType { 
+  parentId?: string;
+  children?: PositionWithParentId[]; 
 }
 
 // 定义通用的 API Lookup Value 结构
@@ -293,30 +308,51 @@ const buildDepartmentTree = (flatDepartments: DepartmentWithParentId[]): Departm
   return roots as Department[]; // Cast roots back to Department[]
 };
 
-// Helper function to build tree structure from flat list of job titles
-const buildJobTitleTree = (flatJobTitles: JobTitleWithParentId[]): JobTitle[] => { // Renamed from buildPositionTree
-  const map = new Map<string, JobTitleWithParentId>();
-  const roots: JobTitleWithParentId[] = [];
+// Helper function to build tree structure from flat list of personnel categories
+const buildPersonnelCategoryTree = (flatPersonnelCategories: PersonnelCategoryWithParentId[]): PersonnelCategory[] => { // MODIFIED from buildJobTitleTree
+  const map = new Map<string, PersonnelCategoryWithParentId>();
+  const roots: PersonnelCategoryWithParentId[] = [];
 
-  flatJobTitles.forEach(jt => { // Renamed pos to jt
-    jt.children = jt.children || [];
-    map.set(String(jt.id), jt); // Use String(jt.id) as JobTitle.id is number and map key is string
+  flatPersonnelCategories.forEach(pc => { // MODIFIED jt to pc
+    pc.children = pc.children || [];
+    map.set(String(pc.id), pc); // Use String(pc.id) as PersonnelCategory.id is number and map key is string
   });
 
-  flatJobTitles.forEach(jt => { // Renamed pos to jt
-    if (jt.parentId && map.has(jt.parentId)) {
-      const parent = map.get(jt.parentId)!;
-      const parentChildren = parent.children as JobTitle[] | undefined; 
+  flatPersonnelCategories.forEach(pc => { // MODIFIED jt to pc
+    if (pc.parentId && map.has(pc.parentId)) {
+      const parent = map.get(pc.parentId)!;
+      const parentChildren = parent.children as PersonnelCategory[] | undefined; 
       if (parentChildren) {
-        parentChildren.push(jt as JobTitle); 
+        parentChildren.push(pc as PersonnelCategory); 
       } else {
-        parent.children = [jt as JobTitle];
+        parent.children = [pc as PersonnelCategory];
       }
     } else {
-      roots.push(jt);
+      roots.push(pc);
     }
   });
-  return roots as JobTitle[]; 
+  return roots as PersonnelCategory[]; 
+};
+
+// ADDED for Position
+const buildPositionTree = (flatPositions: PositionWithParentId[]): PositionType[] => {
+  const map = new Map<string, PositionWithParentId>();
+  const roots: PositionWithParentId[] = [];
+
+  flatPositions.forEach(p => {
+    map.set(String(p.id), { ...p, children: [] });
+  });
+
+  flatPositions.forEach(p => {
+    // Use parent_position_id from PositionWithParentId which should have been mapped from ApiPosition
+    const parentId = p.parentId; // This is the critical change
+    if (parentId && map.has(parentId)) {
+      map.get(parentId)!.children!.push(map.get(String(p.id))!);
+    } else {
+      roots.push(map.get(String(p.id))!);
+    }
+  });
+  return roots as PositionType[];
 };
 
 const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
@@ -466,38 +502,39 @@ export const lookupService = {
     return [];
   },
 
-  getJobTitlesLookup: async (): Promise<JobTitle[]> => { // Renamed from getPositionsLookup
+  getPersonnelCategoriesLookup: async (): Promise<PersonnelCategory[]> => { // MODIFIED from getJobTitlesLookup
     try {
-      const response = await apiClient.get<{ data: ApiJobTitle[] } | { data: { data: ApiJobTitle[] } }>('/job-titles');
+      // MODIFIED path and expected type
+      const response = await apiClient.get<{ data: ApiPersonnelCategory[] } | { data: { data: ApiPersonnelCategory[] } }>('/personnel-categories');
       
-      let rawJobTitles: ApiJobTitle[];
+      let rawPersonnelCategories: ApiPersonnelCategory[]; // MODIFIED
       if ('data' in response.data && Array.isArray(response.data.data)) {
-        rawJobTitles = response.data.data;
+        rawPersonnelCategories = response.data.data; // MODIFIED
       } else if (Array.isArray(response.data)) { 
-        rawJobTitles = response.data as ApiJobTitle[];
+        rawPersonnelCategories = response.data as ApiPersonnelCategory[]; // MODIFIED
       } else {
-        console.error('lookupService: Unexpected job titles API response structure:', response.data);
+        console.error('lookupService: Unexpected personnel categories API response structure:', response.data); // MODIFIED
         return [];
       }
 
-      const jobTitlesWithParent: JobTitleWithParentId[] = rawJobTitles
-        .filter(jt => jt.is_active !== false) 
-        .map(apiJt => ({
-          id: Number(apiJt.id),       // Ensure ID is number to match JobTitle type
-          name: apiJt.name,        
-          code: apiJt.code,       
-          value: Number(apiJt.id),  // Use numeric ID for value if JobTitle value is number
-          label: apiJt.name,        
+      const personnelCategoriesWithParent: PersonnelCategoryWithParentId[] = rawPersonnelCategories // MODIFIED
+        .filter(pc => pc.is_active !== false) // MODIFIED jt to pc
+        .map(apiPc => ({ // MODIFIED apiJt to apiPc
+          id: Number(apiPc.id),       // Ensure ID is number to match PersonnelCategory type
+          name: apiPc.name,        
+          code: apiPc.code,       
+          value: Number(apiPc.id),  // Use numeric ID for value if PersonnelCategory value is number
+          label: apiPc.name,        
           children: [],
-          parentId: apiJt.parent_job_title_id ? String(apiJt.parent_job_title_id) : undefined,
-          is_active: apiJt.is_active,
-          // description and other fields from JobTitle can be mapped here if available in ApiJobTitle
+          parentId: apiPc.parent_category_id ? String(apiPc.parent_category_id) : undefined, // MODIFIED from parent_job_title_id
+          is_active: apiPc.is_active,
+          // description and other fields from PersonnelCategory can be mapped here if available in ApiPersonnelCategory
         }));
 
-      return buildJobTitleTree(jobTitlesWithParent); 
+      return buildPersonnelCategoryTree(personnelCategoriesWithParent); // MODIFIED
     } catch (error) {
-      console.error('Failed to fetch job titles lookup:', error);
-      message.error('获取职位列表失败');
+      console.error('Failed to fetch personnel categories lookup:', error); // MODIFIED
+      message.error('获取人员类别列表失败'); // MODIFIED
       return [];
     }
   },
@@ -535,4 +572,28 @@ export const lookupService = {
   //   const values = await fetchLookupValuesByType(typeCode);
   //   return values.find(v => v.code === valueCode) || null;
   // }
+
+  // ADDED: Fetch all Positions (tree structure)
+  getPositionsLookup: async (): Promise<PositionType[]> => {
+    try {
+      const response = await apiClient.get<{ data: ApiPosition[] }>('/positions/', { params: { size: 1000 } }); // CORRECTED: Removed leading /v2/
+      if (response.data && Array.isArray(response.data.data)) {
+        const positionsWithParentId: PositionWithParentId[] = response.data.data.map(p => ({
+          ...p, // Spread ApiPosition
+          id: Number(p.id),
+          // Convert parent_position_id from ApiPosition to number for PositionWithParentId
+          parent_position_id: p.parent_position_id ? Number(p.parent_position_id) : null, 
+          // parentId is for tree building logic, derived from parent_position_id
+          parentId: p.parent_position_id ? String(p.parent_position_id) : undefined, 
+        }));
+        return buildPositionTree(positionsWithParentId);
+      }
+      message.error('Failed to load position list or data is not in expected format.');
+      return [];
+    } catch (error) {
+      console.error('Error fetching positions:', error);
+      message.error('Error loading positions.');
+      return [];
+    }
+  },
 };

@@ -57,6 +57,27 @@ const RoleListPage: React.FC = () => {
     fetchAllPermissions();
   }, []);
 
+  // Effect for initializing/resetting form when modal opens/closes or editingRole changes
+  useEffect(() => {
+    if (isModalOpen) {
+      if (editingRole) {
+        // Editing existing role
+        const currentPermissionIdsAsStrings = (editingRole.permissions || []).map(p => p.id.toString());
+        form.setFieldsValue({
+          name: editingRole.name,
+          code: editingRole.code,
+          permission_ids: currentPermissionIdsAsStrings,
+        });
+      } else {
+        // Creating new role
+        form.setFieldsValue({ name: '', code: '', permission_ids: [] });
+      }
+    } else {
+      // Modal is closed
+      form.resetFields();
+    }
+  }, [isModalOpen, editingRole, form]);
+
   // Fetch all permissions
   const fetchAllPermissions = async () => {
     setLoadingPermissions(true);
@@ -94,20 +115,11 @@ const RoleListPage: React.FC = () => {
   // Modal Actions
   const showCreateModal = () => {
     setEditingRole(null);
-    form.resetFields(); 
-    // Explicitly set default values according to RoleFormValues
-    form.setFieldsValue({ name: '', code: '', permission_ids: [] });
     setIsModalOpen(true);
   };
 
   const showEditModal = (role: Role) => {
     setEditingRole(role);
-    const currentPermissionIdsAsStrings = (role.permissions || []).map(p => p.id.toString());
-    form.setFieldsValue({
-      name: role.name,
-      code: role.code,
-      permission_ids: currentPermissionIdsAsStrings,
-    });
     setIsModalOpen(true);
   };
 
@@ -118,8 +130,10 @@ const RoleListPage: React.FC = () => {
   };
 
   const handleFormSubmit = async (values: RoleFormValues) => {
+    console.log('Form submitted with raw values:', values); // Log raw form values
     setModalLoading(true);
     const submissionPermissionIds = (values.permission_ids || []).map(idStr => parseInt(idStr, 10));
+    console.log('Submission permission IDs (numbers):', submissionPermissionIds); // Log numeric IDs
 
     try {
       if (editingRole) {
@@ -132,6 +146,7 @@ const RoleListPage: React.FC = () => {
           Object.entries(payload).filter(([_, v]) => v !== undefined)
         ) as UpdateRolePayload;
         
+        console.log('Cleaned payload to be sent to API:', cleanedPayload); // Log the payload
         await updateRole(editingRole.id, cleanedPayload);
         message.success(t('message.update_role_success'));
       } else {
@@ -349,12 +364,16 @@ const RoleListPage: React.FC = () => {
         onCancel={handleModalCancel}
         confirmLoading={modalLoading}
         destroyOnHidden
+        width={800}
       >
         <Form
           form={form}
           layout="vertical"
           name="roleForm"
           onFinish={handleFormSubmit}
+          onValuesChange={(changedValues, allValues) => {
+            console.log('Form values changed by Transfer:', changedValues, allValues);
+          }}
         >
           <Form.Item
             name="name"
@@ -375,11 +394,16 @@ const RoleListPage: React.FC = () => {
             label={t('modal.role_form.label.permissions')}
           >
             <Transfer
-              dataSource={allPermissions.map(p => ({
-                key: p.id.toString(),
-                title: p.code,
-                description: p.description || p.code,
-              }))}
+              dataSource={(() => {
+                const data = allPermissions.map(p => ({
+                  key: p.id.toString(),
+                  title: p.code,
+                  description: p.description || p.code,
+                }));
+                console.log('allPermissions length:', allPermissions.length);
+                console.log('Transfer dataSource length:', data.length);
+                return data;
+              })()}
               render={item => `${item.title} (${item.description})`}
               listStyle={{
                 width: '100%',

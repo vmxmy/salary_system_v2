@@ -8,8 +8,8 @@ from datetime import timedelta
 import logging
 
 # 设置日志
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("auth_debug")
+# logging.basicConfig(level=logging.DEBUG) # Configured in webapp/core/config.py
+logger = logging.getLogger(__name__) # Use standard logger name
 
 from ..database import get_db_v2
 from ..crud import security as crud
@@ -37,7 +37,7 @@ async def login_for_access_token(
     try:
         # 获取用户 (user 对象应该包含 id 属性)
         user = crud.get_user_by_username(db, form_data.username)
-        logger.debug(f"[DEBUG] 登录用户名: {form_data.username}, user: {user}, password_hash: {getattr(user, 'password_hash', None)}")
+        # logger.debug(f"[DEBUG] 登录用户名: {form_data.username}, user: {user}, password_hash: {getattr(user, 'password_hash', None)}")
         if not user or not hasattr(user, 'id'): # 确保 user 对象存在且有 id 属性
             # 返回标准错误响应格式
             raise HTTPException(
@@ -48,7 +48,7 @@ async def login_for_access_token(
         
         # 验证密码
         password_check = verify_password(form_data.password, user.password_hash)
-        logger.debug(f"[DEBUG] 密码校验结果: {password_check}, 输入密码: {form_data.password}, 数据库存储: {user.password_hash}")
+        # logger.debug(f"[DEBUG] 密码校验结果: {password_check}, 输入密码: {form_data.password}, 数据库存储: {user.password_hash}")
         if not password_check:
             # 返回标准错误响应格式
             raise HTTPException(

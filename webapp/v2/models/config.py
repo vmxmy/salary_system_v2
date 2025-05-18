@@ -35,9 +35,12 @@ class LookupValue(BaseV2):
     description = Column(Text, nullable=True)
     sort_order = Column(Integer, nullable=False, server_default='0')
     is_active = Column(Boolean, nullable=False, server_default='TRUE')
+    parent_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_lookup_value_parent_id', ondelete='SET NULL'), nullable=True)
 
     # Relationships
     lookup_type = relationship("LookupType", back_populates="lookup_values")
+    parent = relationship("LookupValue", remote_side=[id], back_populates="children", foreign_keys=[parent_lookup_value_id])
+    children = relationship("LookupValue", back_populates="parent", foreign_keys=[parent_lookup_value_id])
 
 
 class SystemParameter(BaseV2):

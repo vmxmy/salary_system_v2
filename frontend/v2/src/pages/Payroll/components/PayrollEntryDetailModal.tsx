@@ -14,7 +14,7 @@ interface PayrollEntryDetailModalProps {
 }
 
 const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entryId, visible, onClose }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['common', 'payroll']);
   const [entry, setEntry] = useState<PayrollEntry | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
         })
         .catch((err) => {
           console.error("Error fetching payroll entry details:", err);
-          setError(t('payroll.entryDetailModal.fetchError'));
+          setError(t('payroll:entries_table.error_fetch'));
         })
         .finally(() => {
           setLoading(false);
@@ -47,7 +47,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     if (!details || details.length === 0) {
       return (
         <Card title={title} bordered={false} style={{ marginBottom: 16 }}>
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('payroll.entryDetailModal.noDetails')} />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('common:table.empty_data')} />
         </Card>
       );
     }
@@ -64,9 +64,9 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
 
           return (
             <Descriptions key={index} bordered column={1} size="small" style={{ marginBottom: 10 }}>
-              <Descriptions.Item label={t('payroll.entryDetailModal.componentName')}>{itemTitle}</Descriptions.Item>
-              <Descriptions.Item label={t('payroll.entryDetailModal.amount')}>{item.amount.toFixed(2)}</Descriptions.Item>
-              {item.description && <Descriptions.Item label={t('payroll.entryDetailModal.notes')}>{item.description}</Descriptions.Item>}
+              <Descriptions.Item label={t('payroll:entries_table.modal.component_name')}>{itemTitle}</Descriptions.Item>
+              <Descriptions.Item label={t('payroll:entries_table.modal.amount')}>{item.amount.toFixed(2)}</Descriptions.Item>
+              {item.description && <Descriptions.Item label={t('payroll:entries_table.modal.notes')}>{item.description}</Descriptions.Item>}
             </Descriptions>
           );
         })}
@@ -76,7 +76,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
 
   return (
     <Modal
-      title={t('payroll.entryDetailModal.title')}
+      title={t('payroll:entries_table.modal.title_detail')}
       visible={visible}
       onCancel={onClose}
       footer={null}
@@ -84,30 +84,30 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       destroyOnClose // Ensures state is reset when modal is closed and re-opened
     >
       {loading && <Spin />}
-      {error && <Alert message={t('error.genericTitle')} description={error} type="error" showIcon />}
+      {error && <Alert message={t('common:error.genericTitle')} description={error} type="error" showIcon />}
       {entry && !loading && !error && (
         <>
-          <Descriptions bordered column={2} title={<Title level={5}>{t('payroll.entryDetailModal.summaryTitle')}</Title>} style={{ marginBottom: 20 }}>
-            <Descriptions.Item label={t('payroll.entry.id')}>{entry.id}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.employeeId')}>{entry.employee_id}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.payrollRunId')}>{entry.payroll_run_id}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.payrollPeriod')}>
-              {entry.payroll_run?.payroll_period?.name || t('common.notAvailable')}
+          <Descriptions bordered column={2} title={<Title level={5}>{t('payroll:run_detail_page.section_title_entries')}</Title>} style={{ marginBottom: 20 }}>
+            <Descriptions.Item label={t('payroll:entries_table.column.entry_id')}>{entry.id}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.employee_id')}>{entry.employee_id}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.payroll_run_id')}>{entry.payroll_run_id}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.payroll_period')}>
+              {entry.payroll_run?.payroll_period?.name || t('common:notAvailable')}
             </Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.totalEarnings')}>{entry.total_earnings?.toFixed(2)}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.totalDeductions')}>{entry.total_deductions?.toFixed(2)}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.netPay')}>{entry.net_pay?.toFixed(2)}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.paymentDate')}>{entry.payroll_run?.paid_at ? new Date(entry.payroll_run.paid_at).toLocaleDateString() : t('common.notAvailable')}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.status')}>{entry.status?.display_name || entry.status_lookup_value_id}</Descriptions.Item>
-            <Descriptions.Item label={t('payroll.entry.remarks')} span={2}>{entry.remarks || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.total_earnings')}>{entry.total_earnings?.toFixed(2)}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.total_deductions')}>{entry.total_deductions?.toFixed(2)}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.net_pay')}>{entry.net_pay?.toFixed(2)}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.payment_date')}>{entry.payroll_run?.paid_at ? new Date(entry.payroll_run.paid_at).toLocaleDateString() : t('common:notAvailable')}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.status')}>{entry.status?.display_name || entry.status_lookup_value_id}</Descriptions.Item>
+            <Descriptions.Item label={t('payroll:entries_table.column.remarks')} span={2}>{entry.remarks || '-'}</Descriptions.Item>
           </Descriptions>
 
-          {renderDetailsCard(t('payroll.entry.earningsDetails'), entry.earnings_details)}
-          {renderDetailsCard(t('payroll.entry.deductionsDetails'), entry.deductions_details)}
+          {renderDetailsCard(t('payroll:entries_table.modal.earnings_details'), entry.earnings_details)}
+          {renderDetailsCard(t('payroll:entries_table.modal.deductions_details'), entry.deductions_details)}
         </>
       )}
     </Modal>
   );
 };
 
-export default PayrollEntryDetailModal; 
+export default PayrollEntryDetailModal;

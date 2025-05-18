@@ -38,15 +38,15 @@ const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps:
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_full_name')}>{fullName}</Descriptions.Item>
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_id')}>{employee.employee_code || naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:form_label.id_number')}>{employee.id_number || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_dob')}>{employee.dob ? String(employee.dob) : naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_dob')}>{employee.date_of_birth ? String(employee.date_of_birth) : naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_gender')}>{genderText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:form_label.nationality')}>{employee.nationality || naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_education_level')}>{educationLevelText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_mobile_phone')}>{employee.mobilePhone || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_email')} span={2}>{employee.workEmail || employee.personalEmail || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address')}>{employee.addressDetail || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:form_label.bank_name')}>{employee.bankName || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:form_label.bank_account_number')}>{employee.bankAccountNumber || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_mobile_phone')}>{employee.phone_number || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_email')} span={2}>{employee.email || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address')}>{employee.home_address || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:form_label.bank_name')}>{employee.bank_name || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:form_label.bank_account_number')}>{employee.bank_account_number || naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_status')}>
         {statusText !== naText && employee.status_lookup_value_id !== undefined && 
           rawLookups?.statusOptions?.find((opt: LookupItem) => opt.value === employee.status_lookup_value_id)?.code === 'active' 
@@ -63,8 +63,9 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
     if (!employee) return <Descriptions title={t('employee:detail_page.job_info_tab.title')} bordered column={2}><Descriptions.Item>{t('employee:detail_page.job_info_tab.loading')}</Descriptions.Item></Descriptions>; 
     return (
         <Descriptions title={t('employee:detail_page.job_info_tab.title')} bordered column={2}>
-            <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_current_job_title')}>{lookupMaps?.jobTitleMap.get(Number(employee.job_title_id)) || employee.job_title_name || String(employee.job_title_id ?? t('employee:detail_page.common_value.dash'))}</Descriptions.Item>
             <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_department')}>{lookupMaps?.departmentMap.get(Number(employee.department_id)) || employee.departmentName || String(employee.department_id ?? t('employee:detail_page.common_value.dash'))}</Descriptions.Item>
+            <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_personnel_category')}>{lookupMaps?.personnelCategoryMap.get(Number(employee.personnel_category_id)) || employee.personnel_category_name || String(employee.personnel_category_id ?? t('employee:detail_page.common_value.dash'))}</Descriptions.Item>
+            <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_actual_position')}>{lookupMaps?.positionMap.get(Number(employee.actual_position_id)) || employee.actual_position_name || String(employee.actual_position_id ?? t('employee:detail_page.common_value.dash'))}</Descriptions.Item>
             <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_reports_to')}>{employee.reports_to_employee_id ? t('employee:detail_page.job_info_tab.reports_to_id_prefix', {id: employee.reports_to_employee_id}) : t('employee:detail_page.common_value.dash')} </Descriptions.Item>
             <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_work_location')}>{employee.workLocation || t('employee:detail_page.common_value.dash')}</Descriptions.Item>
         </Descriptions>
@@ -80,7 +81,8 @@ const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; l
       {data.map((item) => (
         <li key={item.id}>
           {item.effectiveDate ? String(item.effectiveDate) : t('employee:detail_page.common_value.na')}: 
-          {lookupMaps?.jobTitleMap.get(Number(item.job_title_id)) || item.job_title_name || String(item.job_title_id ?? t('employee:detail_page.common_value.na'))} {t('employee:detail_page.job_history_tab.at_conjunction')} 
+          {t('employee:detail_page.job_history_tab.personnel_category_prefix')} {lookupMaps?.personnelCategoryMap.get(Number(item.personnel_category_id)) || item.personnel_category_name || String(item.personnel_category_id ?? t('employee:detail_page.common_value.na'))}, 
+          {t('employee:detail_page.job_history_tab.actual_position_prefix')} {lookupMaps?.positionMap.get(Number(item.position_id)) || item.position_name || String(item.position_id ?? t('employee:detail_page.common_value.na'))} {t('employee:detail_page.job_history_tab.at_conjunction')} 
           {lookupMaps?.departmentMap.get(Number(item.department_id)) || item.departmentName || String(item.department_id ?? t('employee:detail_page.common_value.na'))}
           {item.employment_type_lookup_value_id ? ` (${lookupMaps?.employmentTypeMap.get(Number(item.employment_type_lookup_value_id)) || String(item.employment_type_lookup_value_id)})` : ''}
         </li>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { employeeService } from '../services/employeeService';
-import type { LookupValue, Department, JobTitle } from '../pages/HRManagement/types';
+import { lookupService } from '../services/lookupService';
+import type { LookupValue, Department, PersonnelCategory, Position } from '../pages/HRManagement/types';
 
 export interface HrLookupData {
   genders: LookupValue[];
@@ -9,7 +10,8 @@ export interface HrLookupData {
   employmentTypes: LookupValue[];
   employeeStatuses: LookupValue[]; // For general employee status
   departments: Department[]; // For department selection/display
-  jobTitles: JobTitle[]; // For job title selection/display
+  personnelCategories: PersonnelCategory[]; // MODIFIED from jobTitles: JobTitle[];
+  actualPositions: Position[];
   // Add other lookup types as needed, e.g., contract types, pay frequencies
 }
 
@@ -18,7 +20,7 @@ interface HrLookupState extends HrLookupData {
   errors: Map<string, string | null>; // Map of lookup types to their error messages
   fetchLookup: (lookupType: keyof HrLookupData | 'all', params?: any) => Promise<void>;
   // Helper to get a specific lookup array by its key in HrLookupData
-  getLookupByType: (lookupType: keyof HrLookupData) => LookupValue[] | Department[] | JobTitle[];
+  getLookupByType: (lookupType: keyof HrLookupData) => LookupValue[] | Department[] | PersonnelCategory[] | Position[];
 }
 
 const initialLookupData: HrLookupData = {
@@ -28,7 +30,8 @@ const initialLookupData: HrLookupData = {
   employmentTypes: [],
   employeeStatuses: [],
   departments: [],
-  jobTitles: [],
+  personnelCategories: [],
+  actualPositions: [],
 };
 
 const useHrLookupStore = create<HrLookupState>((set, get) => ({
@@ -51,7 +54,7 @@ const useHrLookupStore = create<HrLookupState>((set, get) => ({
     for (const type of typesToFetch) {
       newErrors.delete(type);
       try {
-        let data: LookupValue[] | Department[] | JobTitle[] = [];
+        let data: LookupValue[] | Department[] | PersonnelCategory[] | Position[] = [];
         switch (type) {
           case 'genders':
             data = await employeeService.getLookupValues('GENDER'); // Assuming 'GENDER' is the type_code
@@ -71,11 +74,15 @@ const useHrLookupStore = create<HrLookupState>((set, get) => ({
           case 'departments':
             data = await employeeService.getDepartmentsLookup();
             break;
-          case 'jobTitles':
-            data = await employeeService.getJobTitlesLookup(params); // params might be department_id for filtering
+          case 'personnelCategories': // MODIFIED from 'jobTitles'
+            data = await employeeService.getPersonnelCategoriesLookup(params); // MODIFIED, params might be department_id for filtering
+            break;
+          case 'actualPositions':
+            data = await lookupService.getPositionsLookup();
             break;
           default:
-            console.warn(`Unknown lookup type: ${type}`);
+            const exhaustiveCheck: never = type;
+            console.warn(`Unhandled lookup type in fetchLookup: ${exhaustiveCheck}`);
             continue;
         }
         set((state) => ({ ...state, [type]: data }));
@@ -89,7 +96,7 @@ const useHrLookupStore = create<HrLookupState>((set, get) => ({
   },
 
   getLookupByType: (lookupType: keyof HrLookupData) => {
-    return get()[lookupType];
+    return get()[lookupType] as LookupValue[] | Department[] | PersonnelCategory[] | Position[];
   },
 }));
 

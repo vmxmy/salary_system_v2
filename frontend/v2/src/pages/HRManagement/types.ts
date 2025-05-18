@@ -85,6 +85,15 @@ export enum PoliticalStatus {
   OTHER = 'other',
 }
 
+export interface EmployeeAppraisalFormData {
+  id?: number; // For existing records being updated. Omit for new records.
+  // employee_id is usually implicit from the parent Employee context, so not needed here for payload items.
+  appraisal_year: number; // Should be required for a valid appraisal record
+  appraisal_result_lookup_id: number; // Should be required
+  appraisal_date?: string | Dayjs | null;
+  remarks?: string | null;
+}
+
 export interface Employee {
   id: number; // Changed to number, assuming DB ID is numeric
   first_name: string; // Made non-optional as it's usually required
@@ -93,8 +102,8 @@ export interface Employee {
   employee_code: string; 
 
   avatar?: string; 
-  department_id?: number | null; // Changed to snake_case, number, and nullable
-  job_title_id?: number | null; // Changed from positionId, to snake_case, number, and nullable
+  department_id?: number | null; 
+  actual_position_id?: number | null; // ADDED/CONFIRMED - for current actual position
   
   status_lookup_value_id?: number; 
   employment_type_lookup_value_id?: number;
@@ -102,9 +111,11 @@ export interface Employee {
   
   id_number?: string; 
   date_of_birth?: string | Dayjs; 
-  hire_date: string | Dayjs; // Made non-optional
-
+  hire_date: string | Dayjs; // This is 'onboarding date to current company'
+  first_work_date?: string | Dayjs; // Added: 'Initial employment date in career'
+  
   nationality?: string;
+  ethnicity?: string; // Existed, confirmed for '民族'
   education_level_lookup_value_id?: number;
   
   email?: string;
@@ -112,15 +123,13 @@ export interface Employee {
   home_address?: string;
 
   probationEndDate?: string | Dayjs; 
-  reports_to_employee_id?: number | null; // Changed to snake_case, number, and nullable
+  reports_to_employee_id?: number | null; 
   workLocation?: string;
 
   departmentName?: string;
-  // positionName?: string; // Should be jobTitleName or similar if JobTitle is used
-  job_title_name?: string; // Added to match job_title_id
+  actual_position_name?: string; // ADDED/CONFIRMED - for current actual position name
 
   marital_status_lookup_value_id?: number;
-  ethnicity?: string; 
   political_status_lookup_value_id?: number;
   
   bank_name?: string;
@@ -135,11 +144,17 @@ export interface Employee {
   initialContractEndDate?: string | Dayjs; 
   notes?: string;
 
+  // New fields based on discussion
+  interrupted_service_years?: number | null; // Added: '工龄间断年限'
+  personnel_category_id?: number | null; // Modified: Made optional/nullable, matches CreateEmployeePayload
+  personnel_category_name?: string; 
+
   // Sub-module arrays as per API schema
   job_history_records?: JobHistoryItem[];
   contracts?: ContractItem[];
   compensation_records?: CompensationItem[];
   leave_balances?: LeaveBalanceItem[];
+  appraisals?: EmployeeAppraisalFormData[]; // Added for employee data structure
 
   created_at?: string | Dayjs;
   updated_at?: string | Dayjs;
@@ -177,17 +192,38 @@ export interface Department {
   label?: string; // For select options, usually name
 }
 
-export interface JobTitle { // Renamed from PositionItem
+export interface PersonnelCategory { // MODIFIED from JobTitle, was Renamed from PositionItem
   id: number; // Assuming id is number
   code?: string;
   name: string;
   description?: string | null;
+  parent_category_id?: number | null; // ADDED to match api/types.ts and backend model
+  effective_date?: string | Dayjs;    // Ensure this matches api/types.ts if it uses string only
+  end_date?: string | Dayjs | null;   // Ensure this matches api/types.ts if it uses string only
   is_active?: boolean;
   created_at?: string | Dayjs;
   updated_at?: string | Dayjs;
   // value and label for Select components
   value?: number; // For select options, usually id
   label?: string; // For select options, usually name
+  children?: PersonnelCategory[]; // ADDED to support tree structures if needed directly in this type
+}
+
+export interface Position { // ADDED for Actual Position
+  id: number;
+  code?: string;
+  name: string;
+  description?: string | null;
+  parent_position_id?: number | null; // To match backend model hr.positions
+  effective_date?: string | Dayjs;
+  end_date?: string | Dayjs | null;
+  is_active?: boolean;
+  created_at?: string | Dayjs;
+  updated_at?: string | Dayjs;
+  // value and label for Select components
+  value?: number; // For select options, usually id
+  label?: string; // For select options, usually name
+  children?: Position[]; // To support tree structures
 }
 
 // From previous job history thoughts, refine as needed
@@ -197,11 +233,12 @@ export interface JobHistoryItem {
   effectiveDate: string | Dayjs; 
   department_id: number; 
   departmentName?: string; 
-  job_title_id: number; 
-  // positionName?: string; // Should be jobTitleName
-  job_title_name?: string; // To match job_title_id
-  employment_type_lookup_value_id?: number; 
-  salary?: number; 
+  personnel_category_id: number; // RENAMED from job_title_id
+  personnel_category_name?: string; // RENAMED from job_title_name
+  position_id: number; // ADDED for actual position in history
+  position_name?: string; // ADDED for actual position name in history
+  employment_type_lookup_value_id?: number; // THIS IS THE ORIGINAL ONE, KEEP
+  salary?: number; // THIS IS THE ORIGINAL ONE, KEEP
   remarks?: string;
   created_at?: string | Dayjs;
   updated_at?: string | Dayjs;
@@ -281,30 +318,37 @@ export interface LeaveBalancePageResult extends PaginatedResponse<LeaveBalanceIt
 // For creating an employee, 'id' is typically generated by the backend.
 // Other fields might be required or optional based on business logic.
 export interface CreateEmployeePayload {
-  employee_code: string;
+  employee_code: string; // Will pass "" if backend auto-generates
   first_name: string;
   last_name: string;
   avatar?: string;
   gender_lookup_value_id?: number | null;
-  id_number: string;
+  id_number: string; 
   date_of_birth: string; // Expecting YYYY-MM-DD string format for API
   nationality?: string;
+  ethnicity?: string; // Existed, confirmed for '民族'
   education_level_lookup_value_id?: number | null;
   marital_status_lookup_value_id?: number | null;
-  ethnicity?: string;
   political_status_lookup_value_id?: number | null;
   email?: string;
   phone_number?: string;
   home_address?: string;
 
-  department_id: number; // Changed to snake_case and number
-  job_title_id: number; // Changed from positionId, to snake_case and number
-  hire_date: string; // Expecting YYYY-MM-DD string format for API
+  department_id?: number | null; // Modified: Made optional/nullable
+  actual_position_id?: number | null; // Corrected to actual_position_id and made optional/nullable
+  
+  hire_date: string; // Expecting YYYY-MM-DD string format for API (onboarding to current company)
+  first_work_date: string; // Added: Expecting YYYY-MM-DD (Initial employment date in career)
+  
   probationEndDate?: string | null; // Expecting YYYY-MM-DD string format for API
   employment_type_lookup_value_id?: number | null;
   status_lookup_value_id: number; 
   workLocation?: string;
-  reports_to_employee_id?: number | null; // Changed to snake_case and number
+  reports_to_employee_id?: number | null; 
+
+  // New fields based on discussion
+  interrupted_service_years?: number | null; // Added: '工龄间断年限'
+  personnel_category_id?: number | null; // Added: FK to hr.job_titles.id for '人员身份'
 
   contract_type_lookup_value_id?: number | null;
   initialContractStartDate?: string | null; // Expecting YYYY-MM-DD string format for API
@@ -319,15 +363,17 @@ export interface CreateEmployeePayload {
   notes?: string;
 
   // Allow passing initial sub-entity arrays
-  job_history_records?: Omit<JobHistoryItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'job_title_name'>[];
+  job_history_records?: Omit<JobHistoryItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'personnel_category_name' | 'position_name'>[]; // Added position_name to Omit
   contracts?: Omit<ContractItem, 'id' | 'employee_id' | 'created_at' | 'updated_at'>[];
   compensation_records?: Omit<CompensationItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'total_salary'>[];
   leave_balances?: Omit<LeaveBalanceItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'balance' | 'leave_type_name'>[];
+  appraisals?: Omit<EmployeeAppraisalFormData, 'id'>[]; // Added for create payload
 }
 
 // For updating an employee, most fields are optional (Partial)
 // 'id' or 'employeeId' would be used to identify the record, but not usually part of the updatable payload itself (passed in URL or separate param)
-export interface UpdateEmployeePayload extends Partial<Omit<CreateEmployeePayload, 'employee_code'>> {
+export interface UpdateEmployeePayload extends Partial<Omit<CreateEmployeePayload, 'employee_code' | 'appraisals'>> {
+  // appraisals will be handled separately to allow for full array replacement strategy if needed
   // id is passed in URL, not payload for employee update
   // job_history_records, contracts, etc. can be updated by passing the full modified array.
   // Ensure sub-entity payloads within these arrays for update operations correctly omit read-only fields
@@ -336,18 +382,20 @@ export interface UpdateEmployeePayload extends Partial<Omit<CreateEmployeePayloa
   // If the API supports partial updates to sub-entities (e.g., add one, update one, delete one in a single PUT Employee call),
   // the payload structure for these arrays might need to be more complex (e.g. items with an 'operation' flag).
   // Based on typical REST patterns with nested resources, often the entire sub-collection is replaced.
+  appraisals?: EmployeeAppraisalFormData[]; // Added for update payload, items can have 'id'
 }
 
 // Job History Payloads
 // For CreateJobHistoryPayload, we omit fields that are auto-generated or derived.
 // employee_id will be part of the URL path or main employee object context, not this payload.
-export interface CreateJobHistoryPayload extends Omit<JobHistoryItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'job_title_name'> {
+export interface CreateJobHistoryPayload extends Omit<JobHistoryItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'personnel_category_name' | 'position_name'> { // Added position_name to Omit
   effectiveDate: string; // Ensure this is string for API, Dayjs for form is fine
-  // departmentName and job_title_name are typically derived/joined, not part of create payload
+  // departmentName and personnel_category_name are typically derived/joined, not part of create payload
+  // position_name is also typically derived/joined
 }
 // For UpdateJobHistoryPayload, typically all fields are optional, and 'id' identifies the record.
 // However, if updates happen via PUT on the parent Employee, this specific type might be less used directly with an API client.
-export interface UpdateJobHistoryPayload extends Partial<Omit<JobHistoryItem, 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'job_title_name'>> {
+export interface UpdateJobHistoryPayload extends Partial<Omit<JobHistoryItem, 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'personnel_category_name' | 'position_name'> > { // Added position_name to Omit
   id: number; // ID of the specific job history record to update is required
   effectiveDate?: string;
 }

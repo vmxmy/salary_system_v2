@@ -1,155 +1,236 @@
 {
-    "greeting": "你好!",
-    "permission_denied_action": "您没有执行此操作的权限。",
-    "role": {
-      "unknown": "未知角色"
+  "greeting": "你好!",
+  "permission_denied_action": "您没有执行此操作的权限。",
+  "role": {
+    "unknown": "未知角色"
+  },
+  "status": {
+    "active": "激活",
+    "inactive": "禁用",
+    "na": "无",
+    "unknown_param": "未知状态 (ID: {statusId})",
+    "draft": "草稿",
+    "processing": "处理中",
+    "error": "错误"
+  },
+  "boolean": {
+    "true": "是",
+    "false": "否"
+  },
+  "button": {
+    "login": "登录",
+    "confirm": "确定",
+    "ok": "是",
+    "yes": "是",
+    "cancel": "取消",
+    "no": "否",
+    "save": "保存",
+    "save_changes": "保存更改",
+    "create": "创建",
+    "add": "添加",
+    "edit": "编辑",
+    "delete": "删除",
+    "search": "搜索",
+    "query": "查询",
+    "reset": "重置",
+    "close": "关闭",
+    "back_to_list": "返回列表",
+    "submit": "提交",
+    "next_step": "下一步",
+    "previous_step": "上一步",
+    "finish": "完成",
+    "view_details": "查看详情",
+    "refresh": "刷新"
+  },
+  "label": {
+    "username": "用户名",
+    "password": "密码",
+    "remember_me": "记住我",
+    "id": "ID",
+    "code": "代码",
+    "name": "名称",
+    "description": "描述",
+    "status": "状态",
+    "actions": "操作",
+    "created_at": "创建时间",
+    "updated_at": "最后更新时间",
+    "effective_date": "生效日期",
+    "end_date": "失效日期",
+    "remarks": "备注",
+    "notes": "备注",
+    "amount": "金额"
+  },
+  "placeholder": {
+    "select": "请选择",
+    "input": "请输入",
+    "search": "请输入搜索内容"
+  },
+  "tooltip": {
+    "edit": "编辑",
+    "delete": "删除",
+    "add_child": "添加子项"
+  },
+  "message": {
+    "operation_success": "操作成功",
+    "operation_failed": "操作失败",
+    "operation_failed_prefix": "操作失败: ",
+    "create_success_default": "创建成功",
+    "update_success_default": "更新成功",
+    "delete_success_default": "删除成功",
+    "create_failed_default": "创建失败",
+    "update_failed_default": "更新失败",
+    "delete_failed_default": "删除失败",
+    "error_unknown": "未知错误",
+    "error_default_retry": "操作失败，请稍后重试。",
+    "data_loading_error": "数据加载失败",
+    "form_validation_error": "表单校验失败，请检查输入项。",
+    "upload_success_param": "文件 {fileName} 上传成功。",
+    "upload_failed_param": "文件 {fileName} 上传失败。"
+  },
+  "modal": {
+    "confirm_delete": {
+      "title": "确认删除",
+      "title_item": "确认删除 {itemName}?",
+      "content": "此操作无法撤销。",
+      "content_item": "确定要删除 {itemName} 吗？此操作无法撤销。",
+      "ok_text": "确认删除",
+      "cancel_text": "取消"
     },
-    "status": {
-      "active": "激活",
-      "inactive": "禁用",
-      "na": "无",
-      "unknown_param": "未知状态 (ID: {statusId})",
-      "draft": "草稿",
-      "processing": "处理中",
-      "error": "错误"
-    },
-    "boolean": {
-      "true": "是",
-      "false": "否"
-    },
-    "button": {
-      "login": "登录",
-      "confirm": "确定",
-      "ok": "是",
-      "yes": "是",
-      "cancel": "取消",
-      "no": "否",
-      "save": "保存",
-      "save_changes": "保存更改",
-      "create": "创建",
-      "add": "添加",
-      "edit": "编辑",
-      "delete": "删除",
-      "search": "搜索",
-      "query": "查询",
-      "reset": "重置",
-      "close": "关闭",
-      "back_to_list": "返回列表",
-      "submit": "提交",
-      "next_step": "下一步",
-      "previous_step": "上一步",
-      "finish": "完成",
-      "view_details": "查看详情",
-      "refresh": "刷新"
-    },
-    "label": {
-      "username": "用户名",
-      "password": "密码",
-      "remember_me": "记住我",
-      "id": "ID",
-      "code": "代码",
-      "name": "名称",
-      "description": "描述",
-      "status": "状态",
-      "actions": "操作",
-      "created_at": "创建时间",
-      "updated_at": "最后更新时间",
-      "effective_date": "生效日期",
-      "end_date": "失效日期",
-      "remarks": "备注",
-      "notes": "备注"
-    },
-    "placeholder": {
-      "select": "请选择",
-      "input": "请输入",
-      "search": "请输入搜索内容"
-    },
-    "tooltip": {
-      "edit": "编辑",
-      "delete": "删除",
-      "add_child": "添加子项"
-    },
-    "message": {
-      "operation_success": "操作成功",
-      "operation_failed": "操作失败",
-      "operation_failed_prefix": "操作失败: ",
-      "create_success_default": "创建成功",
-      "update_success_default": "更新成功",
-      "delete_success_default": "删除成功",
-      "create_failed_default": "创建失败",
-      "update_failed_default": "更新失败",
-      "delete_failed_default": "删除失败",
-      "error_unknown": "未知错误",
-      "error_default_retry": "操作失败，请稍后重试。",
-      "data_loading_error": "数据加载失败",
-      "form_validation_error": "表单校验失败，请检查输入项。",
-      "upload_success_param": "文件 {fileName} 上传成功。",
-      "upload_failed_param": "文件 {fileName} 上传失败。"
-    },
-    "modal": {
-      "confirm_delete": {
-        "title": "确认删除",
-        "title_item": "确认删除 {itemName}?",
-        "content": "此操作无法撤销。",
-        "content_item": "确定要删除 {itemName} 吗？此操作无法撤销。",
-        "ok_text": "确认删除",
-        "cancel_text": "取消"
-      },
-      "unsaved_changes": {
-        "title": "未保存的更改",
-        "content": "您有未保存的更改，确定要离开吗？",
-        "ok_text": "离开",
-        "cancel_text": "留下"
-      }
-    },
+    "unsaved_changes": {
+      "title": "未保存的更改",
+      "content": "您有未保存的更改，确定要离开吗？",
+      "ok_text": "离开",
+      "cancel_text": "留下"
+    }
+  },
+  "table": {
+    "empty_data": "暂无数据",
+    "column_actions": "操作",
+    "cell_empty": "-",
+    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条"
+  },
+  "currency": {
+    "symbol": "¥"
+  },
+  "date": {
+    "to": "至"
+  },
+  "sider": {
+    "title": {
+      "full": "薪酬管理系统",
+      "collapsed": "薪"
+    }
+  },
+  "footer": {
+    "system_name": "薪酬管理系统",
+    "created_by": "由AI助手创建"
+  },
+  "user_menu": {
+    "profile": "个人中心",
+    "logout": "退出登录",
+    "default_user_text": "用户"
+  },
+  "page": {
+    "admin_config": {
+      "title_placeholder": "配置页面 (占位符)"
+    }
+  },
+  "pagination": {
+    "previous_page": "上一页",
+    "next_page": "下一页",
+    "page_info": "第 {{currentPage}} 页 / 共 {{totalPages}} 页"
+  },
+  "form": {
+    "validation": {
+      "default_required_template": "{fieldName} 是必填项。",
+      "email_invalid": "请输入有效的邮箱地址。"
+    }
+  },
+  "loading": {
+    "generic_loading_text": "加载中..."
+  },
+  "username_label": "用户名",
+  "password_label": "密码",
+  "remember_me_checkbox": "记住我",
+  "login_button": "登录",
+  "common": {
+    "status_na": "不适用"
+  },
+  "payroll_periods_page": {
     "table": {
-      "empty_data": "暂无数据",
+      "column_id": "ID",
+      "column_period_name": "期间名称",
+      "column_start_date": "开始日期",
+      "column_end_date": "结束日期",
+      "column_status": "状态",
+      "column_actions": "操作"
+    },
+    "title": "工资期间管理",
+    "button": {
+      "create_period": "创建工资期间"
+    },
+    "modal_title_create": "创建新的工资期间",
+    "tooltip_edit_period": "编辑工资期间",
+    "popconfirm_delete_title": "确认删除工资期间",
+    "popconfirm_delete_description": "确定要删除此工资期间吗？此操作不可撤销。",
+    "popconfirm_ok_text": "确认删除",
+    "popconfirm_cancel_text": "取消",
+    "tooltip_delete_period": "删除工资期间",
+    "pagination_show_total": "显示 {range0}-{range1}，共 {total} 条"
+  },
+  "payroll_runs_page": {
+    "table": {
+      "column_id": "ID",
+      "column_payroll_period": "工资期间",
+      "column_run_date": "运行日期",
+      "column_status": "状态",
+      "column_employee_count": "员工人数",
+      "column_notes": "备注",
       "column_actions": "操作",
-      "cell_empty": "-",
-      "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条"
+      "action_details": "详情"
     },
-    "currency": {
-      "symbol": "¥"
+    "title": "工资发放运行",
+    "button": {
+      "create_run": "创建工资发放"
     },
-    "date": {
-      "to": "至"
-    },
-    "sider": {
-      "title": {
-        "full": "薪酬管理系统",
-        "collapsed": "薪"
-      }
-    },
-    "footer": {
-      "system_name": "薪酬管理系统",
-      "created_by": "由AI助手创建"
-    },
-    "user_menu": {
-      "profile": "个人中心",
-      "logout": "退出登录",
-      "default_user_text": "用户"
-    },
-    "page": {
-      "admin_config": {
-        "title_placeholder": "配置页面 (占位符)"
-      }
-    },
-    "pagination": {
-      "previous_page": "上一页",
-      "next_page": "下一页",
-      "page_info": "第 {{currentPage}} 页 / 共 {{totalPages}} 页"
-    },
-    "form": {
-        "validation": {
-            "default_required_template": "{fieldName} 是必填项。",
-            "email_invalid": "请输入有效的邮箱地址。"
-        }
-    },
-    "loading": {
-        "generic_loading_text": "加载中..."
-    },
-    "username_label": "用户名",
-    "password_label": "密码",
-    "remember_me_checkbox": "记住我",
-    "login_button": "登录"
+    "modal_title_create": "创建新的工资发放",
+    "tooltip_edit_run": "编辑工资发放",
+    "tooltip_delete_run": "删除工资发放",
+    "button_mark_as_paid": "标记为已支付",
+    "button_export_bank_file": "导出银行文件",
+    "pagination_show_total": "显示 {range0}-{range1}，共 {total} 条"
+  },
+  "payroll_run_status": {
+    "approved_for_payment": "已批准付款"
+  },
+  "myInfo": {
+    "title": "我的信息"
+  },
+  "employee": {
+    "firstName": "名",
+    "lastName": "姓",
+    "dob": "出生日期",
+    "idNumber": "证件号码",
+    "nationality": "国籍",
+    "maritalStatus": "婚姻状况",
+    "ethnicity": "民族",
+    "politicalStatus": "政治面貌",
+    "educationLevel": "学历",
+    "personalEmail": "个人邮箱",
+    "mobilePhone": "手机号码",
+    "address": "联系地址",
+    "department": "所属部门",
+    "jobTitle": "职位名称",
+    "hireDate": "入职日期",
+    "probationEndDate": "试用期结束日期",
+    "employmentType": "雇佣性质",
+    "status": "在职状态",
+    "reportsTo": "直接上级",
+    "workLocation": "工作地点",
+    "bankName": "开户银行",
+    "bankAccountNumber": "银行卡号",
+    "emergencyContactName": "紧急联系人",
+    "emergencyContactPhone": "紧急联系电话",
+    "emergencyContactRelation": "与紧急联系人关系"
+  }
 }

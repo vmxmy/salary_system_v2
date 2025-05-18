@@ -1,5 +1,5 @@
 """
-职位相关的API路由。
+人员类别相关的API路由。
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -7,32 +7,32 @@ from typing import Optional, Dict, Any
 
 from ..database import get_db_v2
 from ..crud import hr as crud
-from ..pydantic_models.hr import JobTitleCreate, JobTitleUpdate, JobTitle, JobTitleListResponse
+from ..pydantic_models.hr import PersonnelCategoryCreate, PersonnelCategoryUpdate, PersonnelCategorySchema, PersonnelCategoryListResponse
 from ...auth import require_permissions
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="/job-titles",
-    tags=["Job Titles"],
+    prefix="/personnel-categories",
+    tags=["Personnel Categories"],
 )
 
 
-@router.get("/", response_model=JobTitleListResponse)
-async def get_job_titles(
+@router.get("/", response_model=PersonnelCategoryListResponse)
+async def get_personnel_categories(
     parent_id: Optional[int] = None,
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_JOB_TITLE_VIEW"]))
+    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_VIEW"]))
 ):
     """
-    获取职位列表，支持分页、搜索和过滤。
+    获取人员类别列表，支持分页、搜索和过滤。
 
-    - **parent_id**: 父职位ID，用于获取特定职位的子职位
-    - **is_active**: 是否激活，用于过滤激活或未激活的职位
-    - **search**: 搜索关键字，可以匹配职位代码、名称或描述
+    - **parent_id**: 父人员类别ID，用于获取特定人员类别的子类别
+    - **is_active**: 是否激活，用于过滤激活或未激活的人员类别
+    - **search**: 搜索关键字，可以匹配人员类别代码、名称或描述
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
     """
@@ -40,8 +40,8 @@ async def get_job_titles(
         # 计算跳过的记录数
         skip = (page - 1) * size
 
-        # 获取职位列表
-        job_titles, total = crud.get_job_titles(
+        # 获取人员类别列表
+        personnel_categories, total = crud.get_personnel_categories(
             db=db,
             parent_id=parent_id,
             is_active=is_active,
@@ -55,7 +55,7 @@ async def get_job_titles(
 
         # 返回标准响应格式
         return {
-            "data": job_titles,
+            "data": personnel_categories,
             "meta": {
                 "page": page,
                 "size": size,
@@ -75,33 +75,33 @@ async def get_job_titles(
         )
 
 
-@router.get("/{job_title_id}", response_model=Dict[str, JobTitle])
-async def get_job_title(
-    job_title_id: int,
+@router.get("/{personnel_category_id}", response_model=Dict[str, PersonnelCategorySchema])
+async def get_personnel_category(
+    personnel_category_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_JOB_TITLE_VIEW"]))
+    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_VIEW"]))
 ):
     """
-    根据ID获取职位详情。
+    根据ID获取人员类别详情。
 
-    - **job_title_id**: 职位ID
+    - **personnel_category_id**: 人员类别ID
     """
     try:
-        # 获取职位
-        job_title = crud.get_job_title(db, job_title_id)
-        if not job_title:
+        # 获取人员类别
+        personnel_category = crud.get_personnel_category(db, personnel_category_id)
+        if not personnel_category:
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=create_error_response(
                     status_code=404,
                     message="Not Found",
-                    details=f"Job title with ID {job_title_id} not found"
+                    details=f"Personnel category with ID {personnel_category_id} not found"
                 )
             )
 
         # 返回标准响应格式
-        return {"data": job_title}
+        return {"data": personnel_category}
     except HTTPException:
         raise
     except Exception as e:
@@ -116,23 +116,23 @@ async def get_job_title(
         )
 
 
-@router.post("/", response_model=Dict[str, JobTitle], status_code=status.HTTP_201_CREATED)
-async def create_job_title(
-    job_title: JobTitleCreate,
+@router.post("/", response_model=Dict[str, PersonnelCategorySchema], status_code=status.HTTP_201_CREATED)
+async def create_personnel_category(
+    personnel_category: PersonnelCategoryCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_JOB_TITLE_MANAGE"]))
+    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_MANAGE"]))
 ):
     """
-    创建新职位。
+    创建新人员类别。
 
-    - 需要 P_JOB_TITLE_MANAGE 权限
+    - 需要 P_PERSONNEL_CATEGORY_MANAGE 权限
     """
     try:
-        # 创建职位
-        db_job_title = crud.create_job_title(db, job_title)
+        # 创建人员类别
+        db_personnel_category = crud.create_personnel_category(db, personnel_category)
 
         # 返回标准响应格式
-        return {"data": db_job_title}
+        return {"data": db_personnel_category}
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -155,35 +155,35 @@ async def create_job_title(
         )
 
 
-@router.put("/{job_title_id}", response_model=Dict[str, JobTitle])
-async def update_job_title(
-    job_title_id: int,
-    job_title: JobTitleUpdate,
+@router.put("/{personnel_category_id}", response_model=Dict[str, PersonnelCategorySchema])
+async def update_personnel_category(
+    personnel_category_id: int,
+    personnel_category: PersonnelCategoryUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_JOB_TITLE_MANAGE"]))
+    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_MANAGE"]))
 ):
     """
-    更新职位信息。
+    更新人员类别信息。
 
-    - **job_title_id**: 职位ID
-    - 需要 P_JOB_TITLE_MANAGE 权限
+    - **personnel_category_id**: 人员类别ID
+    - 需要 P_PERSONNEL_CATEGORY_MANAGE 权限
     """
     try:
-        # 更新职位
-        db_job_title = crud.update_job_title(db, job_title_id, job_title)
-        if not db_job_title:
+        # 更新人员类别
+        db_personnel_category = crud.update_personnel_category(db, personnel_category_id, personnel_category)
+        if not db_personnel_category:
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=create_error_response(
                     status_code=404,
                     message="Not Found",
-                    details=f"Job title with ID {job_title_id} not found"
+                    details=f"Personnel category with ID {personnel_category_id} not found"
                 )
             )
 
         # 返回标准响应格式
-        return {"data": db_job_title}
+        return {"data": db_personnel_category}
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -208,21 +208,21 @@ async def update_job_title(
         )
 
 
-@router.delete("/{job_title_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_job_title(
-    job_title_id: int,
+@router.delete("/{personnel_category_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_personnel_category(
+    personnel_category_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_JOB_TITLE_MANAGE"]))
+    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_MANAGE"]))
 ):
     """
-    删除职位。
+    删除人员类别。
 
-    - **job_title_id**: 职位ID
-    - 需要 P_JOB_TITLE_MANAGE 权限
+    - **personnel_category_id**: 人员类别ID
+    - 需要 P_PERSONNEL_CATEGORY_MANAGE 权限
     """
     try:
-        # 删除职位
-        success = crud.delete_job_title(db, job_title_id)
+        # 删除人员类别
+        success = crud.delete_personnel_category(db, personnel_category_id)
         if not success:
             # 返回标准错误响应格式
             raise HTTPException(
@@ -230,7 +230,7 @@ async def delete_job_title(
                 detail=create_error_response(
                     status_code=404,
                     message="Not Found",
-                    details=f"Job title with ID {job_title_id} not found"
+                    details=f"Personnel category with ID {personnel_category_id} not found"
                 )
             )
 

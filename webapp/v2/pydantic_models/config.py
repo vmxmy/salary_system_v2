@@ -50,6 +50,7 @@ class LookupValueBase(BaseModel):
     description: Optional[str] = Field(None, description="Description of the lookup value")
     sort_order: int = Field(0, description="Order for displaying values")
     is_active: bool = Field(True, description="Whether the lookup value is active")
+    parent_lookup_value_id: Optional[int] = Field(None, description="Foreign key to parent lookup value in the same type for hierarchical relationships")
 
 
 class LookupValueCreate(LookupValueBase):
@@ -65,15 +66,21 @@ class LookupValueUpdate(BaseModel):
     description: Optional[str] = Field(None, description="Description of the lookup value")
     sort_order: Optional[int] = Field(None, description="Order for displaying values")
     is_active: Optional[bool] = Field(None, description="Whether the lookup value is active")
+    parent_lookup_value_id: Optional[int] = Field(None, description="Foreign key to parent lookup value in the same type for hierarchical relationships")
 
 
 class LookupValue(LookupValueBase):
     """查找值响应模型"""
     id: int = Field(..., description="Primary key")
     lookup_type: Optional[LookupType] = Field(None, description="Lookup type")
+    parent: Optional["LookupValue"] = Field(None, description="Parent lookup value, if any")
+    children: Optional[List["LookupValue"]] = Field(None, description="Child lookup values, if any")
 
     class Config:
         from_attributes = True
+
+
+LookupValue.update_forward_refs()
 
 
 class LookupValueListResponse(BaseModel):

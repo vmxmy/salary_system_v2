@@ -7,7 +7,9 @@ const API_BASE_URL = '/permissions'; // Assuming /v2 prefix is handled by the ax
  * Fetches all permissions.
  */
 export const getPermissions = async (): Promise<Permission[]> => {
-  const response = await api.get<ApiResponse<Permission[]>>(`${API_BASE_URL}/`);
+  const response = await api.get<ApiResponse<Permission[]>>(`${API_BASE_URL}/`, {
+    params: { pageSize: 200 }
+  });
   // Assuming the backend returns a list directly or within a 'data' property matching ApiResponse
   // Adjust based on actual backend structure. If it's not wrapped in ApiResponse, use: api.get<Permission[]>
   // If it's { data: Permission[], total: number }, then: response.data.data

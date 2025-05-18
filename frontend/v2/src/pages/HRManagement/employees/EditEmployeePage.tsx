@@ -65,7 +65,7 @@ const EditEmployeePage: React.FC = () => {
   };
 
   if (loadingData) {
-    return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" tip={t('employee:edit_page.spin_tip_loading_data')} /></div>;
+    return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" tip={t('employee:edit_page.spin_tip_loading_data')}><div style={{ padding: 50 }} /></Spin></div>;
   }
 
   if (error) {
