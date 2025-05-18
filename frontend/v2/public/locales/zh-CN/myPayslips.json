@@ -1,0 +1,14 @@
+{
+  "title": "我的薪资单",
+  "column.payrollPeriod": "工资周期",
+  "column.runDate": "计算日期",
+  "column.netPay": "实发工资",
+  "column.paymentDate": "支付日期",
+  "column.status": "状态",
+  "column.actions": "操作",
+  "noEmployeeIdError": "无法获取员工ID，请确保您已登录并有员工账号。",
+  "fetchError": "获取薪资单数据失败，请稍后重试。",
+  "periodIdPrefix": "ID: ",
+  "status.pendingPayment": "待支付",
+  "actions.viewDetails": "查看详情"
+}

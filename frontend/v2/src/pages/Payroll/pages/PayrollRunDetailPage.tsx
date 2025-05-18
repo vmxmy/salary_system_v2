@@ -59,7 +59,7 @@ const PayrollRunDetailPage: React.FC = () => {
   }, [runId, fetchRunDetails, t]);
 
   if (loading) {
-    return <Spin tip={t('payroll_run_detail_page.spin_loading')} style={{ display: 'block', marginTop: '50px' }} />;
+    return <Spin tip={t('payroll_run_detail_page.spin_loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error) {

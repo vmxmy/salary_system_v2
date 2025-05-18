@@ -166,6 +166,7 @@ const PermissionListPage: React.FC = () => {
         loading={isLoading}
         rowKey="id"
         bordered
+        pagination={{ pageSize: 200, showSizeChanger: false }} // Show all items on one page
       />
       {isModalOpen && (
         <PermissionForm

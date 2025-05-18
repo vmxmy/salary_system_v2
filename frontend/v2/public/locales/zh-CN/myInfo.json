@@ -1,0 +1,15 @@
+{
+  "title": "我的信息",
+  "employeeCode": "员工号",
+  "sectionTitles": {
+    "personal": "个人信息",
+    "contact": "联系方式",
+    "employment": "雇佣信息",
+    "bank": "银行信息",
+    "emergency": "紧急联系人"
+  },
+  "fetchErrorUnauthorized": "加载您的信息失败，可能是授权问题。请尝试重新登录。",
+  "fetchError": "加载您的信息失败。",
+  "noEmployeeIdError": "员工ID不可用。无法显示信息。",
+  "noData": "没有可用的员工信息。"
+}

@@ -24,6 +24,17 @@ else:
     print(f"--- Alembic env.py: Project root already in sys.path: {project_root} ---")
 # --- 结束新增 ---
 
+# --- 新增：尝试从 webapp.core.config 导入 settings ---
+S_SETTINGS_IMPORTED = False
+try:
+    from webapp.core.config import settings as app_settings
+    S_SETTINGS_IMPORTED = True
+    print("--- Alembic env.py: Successfully imported app_settings from webapp.core.config ---")
+except ImportError as e:
+    app_settings = None
+    print(f"--- Alembic env.py: Failed to import app_settings from webapp.core.config: {e}. Will rely on direct os.getenv('DATABASE_URL'). ---")
+# --- 结束新增 ---
+
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 import sqlalchemy as sa # Added for sa.create_engine
@@ -38,6 +49,25 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# --- BEGIN ADDITION: Explicitly import model modules ---
+print("--- Alembic env.py: Attempting to import application models... ---")
+try:
+    # Ensure these imports cover all your model definitions
+    from webapp.v2 import models # This might be enough if models/__init__.py imports all submodules/models
+    from webapp.v2.models import hr
+    from webapp.v2.models import config as model_config # alias to avoid conflict with alembic's config object
+    from webapp.v2.models import security
+    # If specific models need to be imported directly (e.g. not covered by __init__.py):
+    # from webapp.v2.models.hr import Employee, Position, PersonnelCategory # etc.
+    # from webapp.v2.models.config import LookupValue # etc.
+    # from webapp.v2.models.security import User # etc.
+    print("--- Alembic env.py: Successfully imported application model modules (hr, config, security). ---")
+except ImportError as e:
+    print(f"--- Alembic env.py: Error importing application model modules: {e}. Check paths and module names. ---")
+    # Depending on your project structure, you might need to adjust the import paths
+    # or ensure that webapp.v2.models package and its submodules are correctly structured.
+# --- END ADDITION ---
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -66,17 +96,21 @@ except ImportError as e:
 
 # --- 新增：从环境变量直接获取完整的数据库URL ---
 def get_configured_database_url():
-    # 直接从 .env 文件读取 DATABASE_URL_V2
-    db_url = os.getenv("DATABASE_URL_V2")
+    db_url = None
+    if S_SETTINGS_IMPORTED and app_settings and app_settings.DATABASE_URL:
+        db_url = app_settings.DATABASE_URL
+        print(f"--- Alembic env.py: Using DATABASE_URL from app_settings: {db_url.split('@')[0] if db_url and '@' in db_url else '(details masked)'}@******** ---")
+    else:
+        db_url = os.getenv("DATABASE_URL") # 直接从环境变量读取 DATABASE_URL
+        if db_url:
+            print(f"--- Alembic env.py: Using DATABASE_URL from direct environment variable: {db_url.split('@')[0] if db_url and '@' in db_url else '(details masked)'}@******** ---")
 
     if not db_url:
-        print("--- Alembic env.py Error: DATABASE_URL_V2 environment variable not set! ---")
-        # Fallback or raise error - for now, let's try the main config as a last resort, though it's not ideal
-        # This part might need adjustment based on whether alembic.ini has a usable default
+        print("--- Alembic env.py Error: DATABASE_URL environment variable not set (neither via app_settings nor directly)! ---")
         print("--- Alembic env.py: Attempting to use sqlalchemy.url from alembic.ini as fallback. ---")
-        return config.get_main_option("sqlalchemy.url") # Fallback, might be None or wrong DB
+        # Fallback to alembic.ini setting, which might be empty or not what's desired for V2
+        return config.get_main_option("sqlalchemy.url") 
 
-    print(f"--- Alembic env.py: Using database URL from environment variable DATABASE_URL_V2: {db_url.split('@')[0]}@******** ---") # Mask password
     return db_url.strip()
 # --- 结束新增 ---
 

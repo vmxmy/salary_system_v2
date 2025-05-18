@@ -82,12 +82,12 @@ const MainLayout: React.FC = () => {
   const userMenuItems = [
     {
       key: 'profile',
-      label: <Link to="/employee-info/my-info">{ready ? t('user_menu:profile', 'Profile') : 'Profile'}</Link>,
+      label: <Link to="/employee-info/my-info">{ready ? t('user_menu:profile') : 'Profile'}</Link>,
       icon: <UserOutlined />,
     },
     {
       key: 'logout',
-      label: ready ? t('user_menu:logout', 'Logout') : 'Logout',
+      label: ready ? t('user_menu:logout') : 'Logout',
       icon: <LogoutOutlined />,
       onClick: handleLogout,
     },
@@ -111,13 +111,25 @@ const MainLayout: React.FC = () => {
         }
 
         const nameKey = route?.meta?.title || snippet;
-        // Log before translating for breadcrumbs
-        if (!ready && nameKey.startsWith('pageTitle:')) {
-            console.log(`[MainLayout:Breadcrumb] i18next not ready for key: ${nameKey}. Translation will return key.`);
-        }
-        const translatedName = t(nameKey as string, snippet);
-        if (translatedName === nameKey && nameKey.startsWith('pageTitle:')) {
-            console.log(`[MainLayout:Breadcrumb] Key ${nameKey} returned as is (either not ready or missing).`);
+        let translatedName = snippet; // Default to snippet if no title or translation found
+
+        if (route?.meta?.title) {
+          // Check if nameKey looks like a translation key (e.g., contains no spaces and uses underscores/dots)
+          // This is a heuristic. A more robust way would be to ensure all meta.title are keys.
+          const isKey = /^[a-z0-9_.:-]+$/.test(nameKey);
+          if (isKey) {
+            const translationKey = nameKey.startsWith('pageTitle:') ? nameKey : `pageTitle:${nameKey}`;
+            translatedName = t(translationKey, snippet); // Provide snippet as fallback
+            if (!ready && nameKey.startsWith('pageTitle:')) {
+                console.log(`[MainLayout:Breadcrumb] i18next not ready for key: ${translationKey}. Translation will return key or fallback.`);
+            }
+            if (translatedName === translationKey && nameKey.startsWith('pageTitle:')) {
+                 console.log(`[MainLayout:Breadcrumb] Key ${translationKey} returned as is (either not ready or missing).`);
+            }
+          } else {
+            // If it's not a typical key format, assume it's already translated or a literal string
+            translatedName = nameKey;
+          }
         }
 
         return {
@@ -191,7 +203,7 @@ const MainLayout: React.FC = () => {
 
   const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',
-    label: t('pageTitle:hr_management'),
+    label: ready ? (typeof t('pageTitle:hr_management') === 'string' ? t('pageTitle:hr_management') : '人力资源') : '人力资源', // Add type check and default value
     icon: <UsergroupAddOutlined />,
     children: hrManagementChildren,
   }), [hrManagementChildren, t, ready]); // Added ready and t
@@ -307,12 +319,12 @@ const MainLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="dark">
-        <div style={{ height: '32px', margin: '16px', background: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', lineHeight: '32px', color: 'white', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="light">
+        <div style={{ height: '32px', margin: '16px', background: 'rgba(0, 0, 0, 0.05)', textAlign: 'center', lineHeight: '32px', color: '#454552', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           {collapsed ? t('sider.title.collapsed') : t('sider.title.full')}
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           defaultSelectedKeys={['/dashboard']}
           selectedKeys={selectedKeys}

@@ -3,7 +3,7 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Path
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 import logging
@@ -55,7 +55,8 @@ async def get_employees(
         skip = (page - 1) * size
         
         # 获取员工列表和总数
-        employees_data, total = v2_hr_crud.get_employees(
+        # v2_hr_crud.get_employees now returns Tuple[List[ORM_Employee], int]
+        employees_orms, total = v2_hr_crud.get_employees(
             db=db,
             search=search,
             status_id=status_id,
@@ -64,18 +65,32 @@ async def get_employees(
             limit=size
         )
         
-        # Map the returned tuples to EmployeeWithNames Pydantic models
-        employees = [
-            EmployeeWithNames.model_validate(employee).model_copy(update={'departmentName': dept_name, 'positionName': job_title_name})
-            for employee, dept_name, job_title_name in employees_data
-        ]
+        processed_employees: List[EmployeeWithNames] = []
+        for emp_orm in employees_orms:
+            # Validate ORM object against the base Pydantic Employee model
+            # EmployeeResponseSchema is an alias for the Pydantic Employee model
+            employee_pydantic = EmployeeResponseSchema.model_validate(emp_orm)
+            
+            # Get names from related objects (handle None cases)
+            dept_name = emp_orm.current_department.name if emp_orm.current_department else None
+            pc_name = emp_orm.personnel_category.name if emp_orm.personnel_category else None
+            actual_pos_name = emp_orm.actual_position.name if emp_orm.actual_position else None
+            
+            # Create EmployeeWithNames instance
+            employee_with_names_instance = EmployeeWithNames(
+                **employee_pydantic.model_dump(), 
+                departmentName=dept_name,
+                personnelCategoryName=pc_name, # Corresponds to old job_title_name
+                actualPositionName=actual_pos_name
+            )
+            processed_employees.append(employee_with_names_instance)
 
         # 计算总页数
         total_pages = (total + size - 1) // size if total > 0 else 1
         
         # 返回标准响应格式
         return {
-            "data": employees,
+            "data": processed_employees,
             "meta": {
                 "page": page,
                 "size": size,
@@ -107,20 +122,20 @@ async def get_employee(
     
     # Directly call the explicit auth check function from auth.py
     current_user = await auth.explicit_auth_check(
-        db=db, 
-        credentials=creds, 
+        db=db,
+        credentials=creds,
         required_permissions=["P_EMPLOYEE_VIEW_DETAIL"]
     )
 
-    logger.info(f"$$$ DIRECT DEPENDENCY TEST: User '{current_user.username}' authenticated by explicit_auth_check. Permissions: {current_user.all_permission_codes}")
+    # logger.info(f"$$$ DIRECT DEPENDENCY TEST: User '{current_user.username}' authenticated by explicit_auth_check. Permissions: {current_user.all_permission_codes}")
 
     employee_orm = v2_hr_crud.get_employee(db=db, employee_id=employee_id)
     
     if employee_orm is None:
-        logger.warning(f"DIRECT DEPENDENCY TEST: Employee with ID {employee_id} not found in DB.")
+        # logger.warning(f"DIRECT DEPENDENCY TEST: Employee with ID {employee_id} not found in DB.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with id {employee_id} not found")
     
-    logger.info(f"DIRECT DEPENDENCY TEST: Employee {employee_id} ({employee_orm.first_name} {employee_orm.last_name}) found. Preparing details.")
+    # logger.info(f"DIRECT DEPENDENCY TEST: Employee {employee_id} ({employee_orm.first_name} {employee_orm.last_name}) found. Preparing details.")
 
     # Initialize data from ORM model, Pydantic will pick up matching fields
     # The EmployeeResponseSchema (aliased as Employee) already has bank_name and bank_account_number as Optional fields.
@@ -138,16 +153,16 @@ async def get_employee(
             primary_bank_account_orm = employee_orm.bank_accounts[0]
 
     if primary_bank_account_orm:
-        logger.info(f"Found bank account for employee {employee_id}: Name='{primary_bank_account_orm.bank_name}', Number='{primary_bank_account_orm.account_number}'")
+        # logger.info(f"Found bank account for employee {employee_id}: Name='{primary_bank_account_orm.bank_name}', Number='{primary_bank_account_orm.account_number}'")
         employee_data_for_response['bank_name'] = primary_bank_account_orm.bank_name
         employee_data_for_response['bank_account_number'] = primary_bank_account_orm.account_number
     else:
-        logger.info(f"No bank account found or no primary bank account for employee {employee_id}. Bank details will be null.")
+        # logger.info(f"No bank account found or no primary bank account for employee {employee_id}. Bank details will be null.")
         # Ensure these are explicitly None if not found, though Pydantic model optionality should handle it.
         employee_data_for_response['bank_name'] = None
         employee_data_for_response['bank_account_number'] = None
 
-    logger.info(f"Returning employee data for employee {employee_id}: {employee_data_for_response}")
+    # logger.info(f"Returning employee data for employee {employee_id}: {employee_data_for_response}")
     return employee_data_for_response
 
 
@@ -204,9 +219,9 @@ async def update_employee(
     - **employee_id**: 员工ID
     - 需要SUPER_ADMIN或HR_ADMIN角色
     """
-    logger.info(f"--- ROUTER LOG: update_employee ---")
-    logger.info(f"Received request to update employee_id: {employee_id}")
-    logger.info(f"Request body (EmployeeUpdate Pydantic model after validation): {employee.model_dump_json(indent=2)}")
+    # logger.info(f"--- ROUTER LOG: update_employee ---")
+    # logger.info(f"Received request to update employee_id: {employee_id}")
+    # logger.info(f"Request body (EmployeeUpdate Pydantic model after validation): {employee.model_dump_json(indent=2)}")
     
     try:
         # 更新员工

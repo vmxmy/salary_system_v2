@@ -16,18 +16,21 @@ export const i18nInitOptions = {
   lng: 'zh-CN', // 强制设置初始语言为中文
   debug: import.meta.env.DEV, // 在开发模式下记录i18n事件到控制台
   ns: [
-    'common', 
-    'auth', 
-    'dashboard', 
-    'department', 
-    'employee', 
-    'jobTitle', 
-    'manager', 
-    'pageTitle', 
-    'payroll', 
-    'permission', 
-    'role', 
-    'user'
+    'common',
+    'auth',
+    'dashboard',
+    'department',
+    'employee',
+    'jobTitle',
+    'manager',
+    'myPayslips', // Added myPayslips namespace
+'myInfo', // Added myInfo namespace
+    'pageTitle',
+    'payroll',
+    'permission',
+    'role',
+    'user',
+    'personnelCategory'
   ],
   defaultNS: 'common', // Default namespace to use
   backend: {

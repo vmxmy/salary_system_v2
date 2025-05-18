@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty, Breadcrumb } from 'antd';
-import { UserOutlined, HomeOutlined } from '@ant-design/icons';
+import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty, Breadcrumb, Tabs } from 'antd';
+import { UserOutlined, HomeOutlined, ProfileOutlined, SolutionOutlined, WalletOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuthStore } from '../../store/authStore';
 import { employeeService } from '../../services/employeeService';
-import type { Employee, LookupValue, Department, JobTitle } from '../HRManagement/types';
+import type { Employee, LookupValue, Department, PersonnelCategory, Position } from '../HRManagement/types';
 import useHrLookupStore from '../../store/hrLookupStore';
 
 const { Title, Text } = Typography;
@@ -23,7 +23,7 @@ const getLookupDisplayName = <T extends { id: number; name?: string; label?: str
 };
 
 const MyInfoPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['common', 'employee', 'myInfo']);
   const employeeId = useAuthStore(state => state.currentUser?.employee_id);
   const currentUserForDisplay = useAuthStore(state => state.currentUser);
 
@@ -34,7 +34,8 @@ const MyInfoPage: React.FC = () => {
   const employmentTypes = useHrLookupStore(state => state.employmentTypes);
   const employeeStatuses = useHrLookupStore(state => state.employeeStatuses);
   const departments = useHrLookupStore(state => state.departments);
-  const jobTitles = useHrLookupStore(state => state.jobTitles);
+  const personnelCategories = useHrLookupStore(state => state.personnelCategories);
+  const actualPositions = useHrLookupStore(state => state.actualPositions);
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -43,16 +44,29 @@ const MyInfoPage: React.FC = () => {
 
   useEffect(() => {
     // Fetch all lookups when the component mounts if not already loading/loaded
-    const { loading: lookupLoadingState, fetchLookup, errors: lookupErrors, genders: sg, maritalStatuses: sms, educationLevels: sel, departments: sd, jobTitles: sjt, employmentTypes: sety, employeeStatuses: ses } = useHrLookupStore.getState();
+    const { 
+      loading: lookupLoadingState, 
+      fetchLookup, 
+      errors: lookupErrors, 
+      genders: sg, 
+      maritalStatuses: sms, 
+      educationLevels: sel, 
+      departments: sd, 
+      personnelCategories: spc,
+      actualPositions: sap,
+      employmentTypes: sety, 
+      employeeStatuses: ses 
+    } = useHrLookupStore.getState();
     
     const shouldFetchLookups = 
-      sg.length === 0 && !lookupErrors.has('genders') && !lookupLoadingState.has('genders') ||
-      sms.length === 0 && !lookupErrors.has('maritalStatuses') && !lookupLoadingState.has('maritalStatuses') ||
-      sel.length === 0 && !lookupErrors.has('educationLevels') && !lookupLoadingState.has('educationLevels') ||
-      sd.length === 0 && !lookupErrors.has('departments') && !lookupLoadingState.has('departments') ||
-      sjt.length === 0 && !lookupErrors.has('jobTitles') && !lookupLoadingState.has('jobTitles') ||
-      sety.length === 0 && !lookupErrors.has('employmentTypes') && !lookupLoadingState.has('employmentTypes') ||
-      ses.length === 0 && !lookupErrors.has('employeeStatuses') && !lookupLoadingState.has('employeeStatuses');
+      (!sg || sg.length === 0) && !lookupErrors.has('genders') && !lookupLoadingState.has('genders') ||
+      (!sms || sms.length === 0) && !lookupErrors.has('maritalStatuses') && !lookupLoadingState.has('maritalStatuses') ||
+      (!sel || sel.length === 0) && !lookupErrors.has('educationLevels') && !lookupLoadingState.has('educationLevels') ||
+      (!sd || sd.length === 0) && !lookupErrors.has('departments') && !lookupLoadingState.has('departments') ||
+      (!spc || spc.length === 0) && !lookupErrors.has('personnelCategories') && !lookupLoadingState.has('personnelCategories') ||
+      (!sap || sap.length === 0) && !lookupErrors.has('actualPositions') && !lookupLoadingState.has('actualPositions') ||
+      (!sety || sety.length === 0) && !lookupErrors.has('employmentTypes') && !lookupLoadingState.has('employmentTypes') ||
+      (!ses || ses.length === 0) && !lookupErrors.has('employeeStatuses') && !lookupLoadingState.has('employeeStatuses');
 
     if (shouldFetchLookups) {
       fetchLookup('all');
@@ -97,13 +111,8 @@ const MyInfoPage: React.FC = () => {
     fetchEmployeeData();
   }, [employeeId, t]);
 
-  const breadcrumbItems = [
-    { key: 'home', href: '/', title: <HomeOutlined /> },
-    { key: 'my-info', title: t('myInfo.title') },
-  ];
-
   if (loading && !employee) {
-    return <Spin tip={t('loading')} style={{ display: 'block', marginTop: '50px' }} />;
+    return <Spin tip={t('loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error) {
@@ -114,75 +123,137 @@ const MyInfoPage: React.FC = () => {
     return <Empty description={t('myInfo.noData')} style={{ marginTop: '50px' }} />;
   }
 
+  const tabItems = [
+    {
+      key: 'personalContact',
+      label: (
+        <span>
+          <ProfileOutlined />
+          {t('myInfo:tabTitles.personalContact', 'Personal & Contact')}
+        </span>
+      ),
+      children: (
+        <>
+          {/* Card 2: Personal Information */}
+          <Card title={t('myInfo:sectionTitles.personal')} style={{ marginBottom: 16 }}>
+            <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
+              <Descriptions.Item label={t('employee:firstName')}>{employee.first_name}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:lastName')}>{employee.last_name}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:dob')}>{employee.date_of_birth ? String(employee.date_of_birth) : 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_gender')}>{getLookupDisplayName(employee.gender_lookup_value_id, genders)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:idNumber')}>{employee.id_number || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:nationality')}>{employee.nationality || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:maritalStatus')}>{getLookupDisplayName(employee.marital_status_lookup_value_id, maritalStatuses)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:ethnicity')}>{employee.ethnicity || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:politicalStatus')}>{getLookupDisplayName(employee.political_status_lookup_value_id /*, politicalStatuses - if fetched */)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:educationLevel')}>{getLookupDisplayName(employee.education_level_lookup_value_id, educationLevels)}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+          
+          {/* Card 3: Contact Information */}
+          <Card title={t('myInfo:sectionTitles.contact')} style={{ marginBottom: 16 }}>
+            <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
+              <Descriptions.Item label={t('employee:personalEmail')}>{employee.email || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:mobilePhone')}>{employee.phone_number || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:address')} span={2}>{employee.home_address || 'N/A'}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </>
+      )
+    },
+    {
+      key: 'employment',
+      label: (
+        <span>
+          <SolutionOutlined />
+          {t('myInfo:tabTitles.employment', 'Employment')}
+        </span>
+      ),
+      children: (
+        <>
+          {/* Card 4: Employment Information */}
+          <Card title={t('myInfo:sectionTitles.employment')} style={{ marginBottom: 16 }}>
+            <Descriptions title={t('myInfo:sectionTitles.employment')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
+              <Descriptions.Item label={t('employee:department')}>{employee.departmentName || getLookupDisplayName(employee.department_id, departments)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:personnelCategory')}>{employee.personnel_category_name || getLookupDisplayName(employee.personnel_category_id, personnelCategories)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:actualPosition')}>{employee.actual_position_name || getLookupDisplayName(employee.actual_position_id, actualPositions)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:hireDate')}>{employee.hire_date ? String(employee.hire_date) : 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:probationEndDate')}>{employee.probationEndDate ? String(employee.probationEndDate) : 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:employmentType')}>{getLookupDisplayName(employee.employment_type_lookup_value_id, employmentTypes)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:status')}>{getLookupDisplayName(employee.status_lookup_value_id, employeeStatuses)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:reportsTo')}>{getLookupDisplayName(employee.reports_to_employee_id /*, employees - if fetched for manager name lookup */)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:workLocation')} span={2}>{employee.workLocation || 'N/A'}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </>
+      )
+    },
+    {
+      key: 'financialOther',
+      label: (
+        <span>
+          <WalletOutlined />
+          {t('myInfo:tabTitles.financialOther', 'Financial & Other')}
+        </span>
+      ),
+      children: (
+        <>
+          {/* Card 5: Bank Information */}
+          <Card title={t('myInfo:sectionTitles.bank')} style={{ marginBottom: 16 }}>
+            <Descriptions title={t('myInfo:sectionTitles.bank')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
+              <Descriptions.Item label={t('employee:bankName')} span={2}>{employee.bank_name || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:bankAccountNumber')} span={2}>{employee.bank_account_number || 'N/A'}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+          
+          {/* Card 6: Emergency Contact */}
+          <Card title={t('myInfo:sectionTitles.emergency')} style={{ marginBottom: 16 }}>
+            <Descriptions title={t('myInfo:sectionTitles.emergency')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
+              <Descriptions.Item label={t('employee:emergencyContactName')}>{employee.emergency_contact_name || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:emergencyContactPhone')}>{employee.emergency_contact_phone || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:emergencyContactRelation')} span={2}>{employee.emergencyContactRelation || 'N/A'}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+          
+          {employee.notes && (
+            <Card title={t('employee.notes')} style={{ marginBottom: 16 }}>
+              <Text>{employee.notes}</Text>
+            </Card>
+          )}
+        </>
+      )
+    }
+  ];
+
   return (
     <div style={{ padding: '24px' }}>
-      <Breadcrumb style={{ marginBottom: '24px' }}>
-        {breadcrumbItems.map(item => (
-          <Breadcrumb.Item key={item.key}>
-            {item.href ? <Link to={item.href}>{item.title}</Link> : item.title}
-          </Breadcrumb.Item>
-        ))}
-      </Breadcrumb>
+      <Breadcrumb 
+        style={{ marginBottom: '24px' }} 
+        items={[
+          {
+            key: 'home',
+            title: <Link to="/"><HomeOutlined /></Link>,
+          },
+          {
+            key: 'my-info',
+            title: t('myInfo:title'),
+          },
+        ]}
+      />
 
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+      {/* Card 1: Employee Overview - Stays above Tabs */}
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <Avatar size={64} src={employee.avatar} icon={<UserOutlined />} style={{ marginRight: '20px' }} />
           <div>
             <Title level={3} style={{ marginBottom: 0 }}>{`${employee.first_name} ${employee.last_name}`}</Title>
-            <Text type="secondary">{t('myInfo.employeeCode')}: {employee.employee_code}</Text>
+            <Text type="secondary">{t('myInfo:employeeCode')}: {employee.employee_code}</Text>
           </div>
         </div>
-
-        <Descriptions title={t('myInfo.sectionTitles.personal')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
-          <Descriptions.Item label={t('employee.firstName')}>{employee.first_name}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.lastName')}>{employee.last_name}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.dob')}>{employee.dob ? String(employee.dob) : 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.gender')}>{getLookupDisplayName(employee.gender_lookup_value_id, genders)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.idNumber')}>{employee.id_number || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.nationality')}>{employee.nationality || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.maritalStatus')}>{getLookupDisplayName(employee.marital_status_lookup_value_id, maritalStatuses)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.ethnicity')}>{employee.ethnicity || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.politicalStatus')}>{getLookupDisplayName(employee.political_status_lookup_value_id /*, politicalStatuses - if fetched */)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.educationLevel')}>{getLookupDisplayName(employee.education_level_lookup_value_id, educationLevels)}</Descriptions.Item>
-        </Descriptions>
-
-        <Descriptions title={t('myInfo.sectionTitles.contact')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
-          <Descriptions.Item label={t('employee.personalEmail')}>{employee.personalEmail || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.workEmail')}>{employee.workEmail || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.mobilePhone')}>{employee.mobilePhone || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.workPhone')}>{employee.workPhone || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.address')} span={2}>{employee.addressDetail || 'N/A'}</Descriptions.Item>
-        </Descriptions>
-        
-        <Descriptions title={t('myInfo.sectionTitles.employment')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
-          <Descriptions.Item label={t('employee.department')}>{employee.departmentName || getLookupDisplayName(employee.department_id, departments)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.jobTitle')}>{employee.job_title_name || getLookupDisplayName(employee.job_title_id, jobTitles)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.hireDate')}>{employee.hire_date ? String(employee.hire_date) : 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.probationEndDate')}>{employee.probationEndDate ? String(employee.probationEndDate) : 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.employmentType')}>{getLookupDisplayName(employee.employment_type_lookup_value_id, employmentTypes)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.status')}>{getLookupDisplayName(employee.status_lookup_value_id, employeeStatuses)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.reportsTo')}>{getLookupDisplayName(employee.reports_to_employee_id /*, employees - if fetched for manager name lookup */)}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.workLocation')}>{employee.workLocation || 'N/A'}</Descriptions.Item>
-        </Descriptions>
-
-        <Descriptions title={t('myInfo.sectionTitles.bank')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
-          <Descriptions.Item label={t('employee.bankName')}>{employee.bankName || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.bankAccountName')}>{employee.bankAccountName || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.bankAccountNumber')} span={2}>{employee.bankAccountNumber || 'N/A'}</Descriptions.Item>
-        </Descriptions>
-
-        <Descriptions title={t('myInfo.sectionTitles.emergency')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-          <Descriptions.Item label={t('employee.emergencyContactName')}>{employee.emergencyContactName || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.emergencyContactPhone')}>{employee.emergencyContactPhone || 'N/A'}</Descriptions.Item>
-          <Descriptions.Item label={t('employee.emergencyContactRelation')}>{employee.emergencyContactRelation || 'N/A'}</Descriptions.Item>
-        </Descriptions>
-
-        {employee.notes && (
-          <Card title={t('employee.notes')} style={{ marginTop: 24 }}>
-            <Text>{employee.notes}</Text>
-          </Card>
-        )}
       </Card>
+
+      <Tabs defaultActiveKey="personalContact" items={tabItems} type="card" />
+
     </div>
   );
 };

@@ -1,16 +1,16 @@
 // Ant Design 主题变量覆盖
 // 主题色系
-@primary-color: #1677ff;           // 主色
+@primary-color: #4ea1d3;           // 主色 (与 ConfigProvider 中 colorPrimary 一致)
 @success-color: #52c41a;           // 成功色
 @warning-color: #faad14;           // 警告色
-@error-color: #ff4d4f;             // 错误色
-@info-color: #1677ff;              // 信息色
+@error-color: #e85a71;             // 错误色 (与 ConfigProvider 中 colorError 一致)
+@info-color: #1677ff;              // 信息色 (如果 ConfigProvider 中未设置 colorInfo，将使用此值或 antd 默认)
 
 // 中性色系
-@body-background: #fff;            // 背景色
-@component-background: #fff;       // 组件背景色
+@body-background: #d8e9ef;            // 背景色 (与 ConfigProvider 中 colorBgLayout 一致)
+@component-background: #ffffff;       // 组件背景色 (与 ConfigProvider 中 colorBgContainer 一致)
 @heading-color: rgba(0, 0, 0, 0.85); // 标题色
-@text-color: rgba(0, 0, 0, 0.65);  // 主文本色
+@text-color: #454552;  // 主文本色 (与 ConfigProvider 中 colorTextBase 一致)
 @text-color-secondary: rgba(0, 0, 0, 0.45); // 次文本色
 @disabled-color: rgba(0, 0, 0, 0.25); // 失效色
 @border-color-base: #d9d9d9;       // 边框色
@@ -31,7 +31,7 @@
 @heading-5-size: 16px;             // h5
 
 // 圆角
-@border-radius-base: 2px;          // 基础圆角
+@border-radius-base: 6px;          // 基础圆角 (与 ConfigProvider 中 borderRadius 一致)
 @border-radius-sm: 2px;            // 小圆角
 @border-radius-lg: 8px;            // 大圆角
 
@@ -79,3 +79,16 @@
   0 5px 12px 4px rgba(0, 0, 0, 0.09); // 卡片阴影
 
 @menu-item-active-bg: #e6f7ff;     // 菜单项激活背景色
+
+// Differentiate first-level menu titles in the sidebar
+.ant-layout-sider {
+  .ant-menu-inline { // Specific to inline menu in the sider
+    .ant-menu-submenu {
+      .ant-menu-submenu-title {
+        font-weight: 600; // Make first-level titles bolder
+        // ನೀವು ಬಯಸಿದಲ್ಲಿ ಪಠ್ಯ ಬಣ್ಣವನ್ನು ಸಹ ಇಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು
+        // color: #303030; // Example: a slightly darker color
+      }
+    }
+  }
+}

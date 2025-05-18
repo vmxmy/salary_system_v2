@@ -9,135 +9,126 @@ import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs'; // For DatePicker default values
 
-import { getJobTitles, createJobTitle, updateJobTitle, deleteJobTitle, getAllJobTitlesFlat } from '../../../api/jobTitles';
+import {
+  getPersonnelCategories,
+  createPersonnelCategory,
+  updatePersonnelCategory,
+  deletePersonnelCategory,
+  getAllPersonnelCategoriesFlat,
+  // Potentially getPersonnelCategoryById if it was used, assuming not for now
+} from "../../../api/personnelCategories"; // Corrected path and function names
 import styles from './TreeTable.module.less';
-import type { GetJobTitlesApiParams } from '../../../api/jobTitles'; // Import new API params type
-import type { JobTitle, CreateJobTitlePayload, UpdateJobTitlePayload } from '../../../api/types';
+import type { GetPersonnelCategoriesApiParams } from '../../../api/personnelCategories'; // Import new API params type
+import type { PersonnelCategory, CreatePersonnelCategoryPayload, UpdatePersonnelCategoryPayload } from '../../../api/types';
 import type { TableParams } from '../../../types/antd'; // Reusing TableParams
 
 const { Title } = Typography;
 const { TreeNode } = TreeSelect;
 
-interface JobTitlePageItem extends JobTitle {
+interface PersonnelCategoryPageItem extends PersonnelCategory {
   key: React.Key;
-  children?: JobTitlePageItem[];
+  children?: PersonnelCategoryPageItem[];
 }
 
 // Helper function to convert flat list to tree structure for AntD Table/TreeSelect
-const buildTreeData = (jobTitles: JobTitle[], parentId: number | null = null): JobTitlePageItem[] => {
+const buildTreeData = (personnelCategories: PersonnelCategory[], parentId: number | null = null): PersonnelCategoryPageItem[] => {
   // 统一用 number/null 进行父子关系判断，避免字符串比较导致的类型问题
-  const filtered = jobTitles.filter(jt => {
-    const jtParentIdNum = jt.parent_job_title_id === undefined || jt.parent_job_title_id === null
+  const filtered = personnelCategories.filter(pc => {
+    const pcParentIdNum = pc.parent_category_id === undefined || pc.parent_category_id === null
       ? null
-      : Number(jt.parent_job_title_id);
-    const isMatch = jtParentIdNum === parentId;
-    console.log(`Comparing jt.parent_job_title_id=${jtParentIdNum} with parentId=${parentId}, isMatch=${isMatch}`);
+      : Number(pc.parent_category_id);
+    const isMatch = pcParentIdNum === parentId;
+    console.log(`Comparing pc.parent_category_id=${pcParentIdNum} with parentId=${parentId}, isMatch=${isMatch}`);
     return isMatch;
   });
 
   console.log(`Building tree data for parentId: ${parentId}, matching items:`, filtered.length);
-  console.log('jobTitles:', jobTitles);
+  console.log('personnelCategories:', personnelCategories);
   console.log('parentId:', parentId);
-  console.log('filtered jobTitles:', filtered);
+  console.log('filtered personnelCategories:', filtered);
 
-  return filtered.map(jt => {
-    const children = buildTreeData(jobTitles, jt.id);
-    console.log(`Item ${jt.id} (${jt.name}) has ${children.length} children`);
+  return filtered.map(pc => {
+    const children = buildTreeData(personnelCategories, pc.id);
+    console.log(`Item ${pc.id} (${pc.name}) has ${children.length} children`);
 
     return {
-      ...jt,
-      key: jt.id,
-      title: jt.name, // For TreeSelect
-      value: jt.id,   // For TreeSelect
+      ...pc,
+      key: pc.id,
+      title: pc.name, // For TreeSelect
+      value: pc.id,   // For TreeSelect
       children: children, // 始终设置为数组，即使是空数组
     };
   });
 };
 
-interface JobTitleFormValues extends Omit<CreateJobTitlePayload, 'effective_date' | 'end_date' | 'is_active'> {
+interface PersonnelCategoryFormValues extends Omit<CreatePersonnelCategoryPayload, 'effective_date' | 'end_date' | 'is_active'> {
   effective_date: dayjs.Dayjs;
   end_date?: dayjs.Dayjs | null;
   is_active?: boolean; // Kept optional here, will be defaulted in form/payload
 }
 
-const JobTitlesPage: React.FC = () => {
-  const { t } = useTranslation('jobTitle');
-  const [jobTitles, setJobTitles] = useState<JobTitlePageItem[]>([]);
-  const [jobTitlesTree, setJobTitlesTree] = useState<JobTitlePageItem[]>([]);
-  const [allFlatJobTitles, setAllFlatJobTitles] = useState<JobTitle[]>([]);
+const PersonnelCategoriesPage: React.FC = () => {
+  const { t } = useTranslation('personnelCategory');
+  const [personnelCategories, setPersonnelCategories] = useState<PersonnelCategoryPageItem[]>([]);
+  const [personnelCategoriesTree, setPersonnelCategoriesTree] = useState<PersonnelCategoryPageItem[]>([]);
+  const [allFlatPersonnelCategories, setAllFlatPersonnelCategories] = useState<PersonnelCategory[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tableParams, setTableParams] = useState<TableParams>({
     pagination: { current: 1, pageSize: 10, total: 0 },
   });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingJobTitle, setEditingJobTitle] = useState<JobTitlePageItem | null>(null);
+  const [editingPersonnelCategory, setEditingPersonnelCategory] = useState<PersonnelCategoryPageItem | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
-  const [form] = Form.useForm<JobTitleFormValues>();
-
-  const fetchAllFlatJobTitles = useCallback(async () => {
-    try {
-      const allJobTitles = await getAllJobTitlesFlat();
-      setAllFlatJobTitles(allJobTitles);
-    } catch (error) {
-      console.error('Failed to fetch all flat job titles:', error);
-    }
-  }, []);
+  const [form] = Form.useForm<PersonnelCategoryFormValues>();
 
   const fetchData: () => Promise<void> = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 获取所有职位数据，用于构建树形结构
-      // 添加非空的search参数，确保获取所有职位，而不仅仅是顶级职位
-      const response = await getJobTitles({
-        is_active: true,
-        search: '', // 现在直接传空字符串即可获取所有职位，符合新接口逻辑
+      const response = await getPersonnelCategories({
+        search: '', 
+        size: 100, // Fetch up to 100 items, covering all data as per user confirmation
+        // is_active: undefined, // Explicitly undefined or not passing it means no filter by active status by backend
       });
 
-      console.log('API Response (raw):', response);
-      console.log('API Response Data:', response.data);
+      console.log('API Response (raw for table):', response);
+      console.log('API Response Data (for table):', response.data);
       if (response.data.length > 0) {
         console.log('API Response Data[0]:', response.data[0]);
-        console.log('parent_job_title_id in Data[0]:', response.data[0].parent_job_title_id);
+        console.log('parent_category_id in Data[0]:', response.data[0].parent_category_id);
       }
 
-      // 检查并修复数据格式
       const fixedData = response.data.map(item => {
         const itemCopy = { ...item };
-        // 如果parent_job_title_id是字符串，尝试转换为数字
-        if (typeof itemCopy.parent_job_title_id === 'string') {
-          const parentIdStr = itemCopy.parent_job_title_id as string;
-          // 如果包含逗号，取第一个数字
+        if (typeof itemCopy.parent_category_id === 'string') {
+          const parentIdStr = itemCopy.parent_category_id as string;
           if (parentIdStr.includes(',')) {
             const firstNumber = parentIdStr.split(',')[0].trim();
-            console.log(`Converting parent_job_title_id from "${parentIdStr}" to ${firstNumber}`);
-            itemCopy.parent_job_title_id = parseInt(firstNumber, 10);
+            itemCopy.parent_category_id = parseInt(firstNumber, 10);
           } else {
-            console.log(`Converting parent_job_title_id from "${parentIdStr}" to ${parseInt(parentIdStr, 10)}`);
-            itemCopy.parent_job_title_id = parseInt(parentIdStr, 10);
+            itemCopy.parent_category_id = parseInt(parentIdStr, 10);
           }
         }
         return itemCopy;
       });
 
-      console.log('Fixed Data:', fixedData);
+      console.log('Fixed Data (for table and selector):', fixedData);
 
-      // 更新平面列表，用于表单选择器
-      setAllFlatJobTitles(fixedData);
+      // Use the fetched and fixed data for both the tree selector and the table
+      setAllFlatPersonnelCategories(fixedData);
 
-      // 构建树形结构数据
       const treeData = buildTreeData(fixedData);
-      console.log('Tree Data:', treeData);
+      console.log('Tree Data (for table):', treeData);
 
-      setJobTitlesTree(treeData);
-      setJobTitles(treeData);
+      setPersonnelCategoriesTree(treeData);
+      // setPersonnelCategories(treeData); // This might be redundant if personnelCategoriesTree is the primary source for the Table
 
-      // 不再 setTableParams，彻底断开死循环
+      // No need to setTableParams here if pagination is fully client-side or not used for tree.
     } catch (error) {
       message.error(t('message.fetch_list_failed'));
-      console.error('Failed to fetch job titles:', error);
+      console.error('Failed to fetch personnel categories:', error);
     }
     setIsLoading(false);
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -162,7 +153,7 @@ const JobTitlesPage: React.FC = () => {
 
   // 创建新职位的模态框
   const showCreateModal = () => {
-    setEditingJobTitle(null);
+    setEditingPersonnelCategory(null);
     form.resetFields();
     form.setFieldsValue({
         is_active: true,
@@ -173,18 +164,18 @@ const JobTitlesPage: React.FC = () => {
 
   // 创建子职位的模态框
   const showCreateChildModal = (parentId: number) => {
-    setEditingJobTitle(null);
+    setEditingPersonnelCategory(null);
     form.resetFields();
     form.setFieldsValue({
         is_active: true,
         effective_date: dayjs(), // Default effective_date to today for new entries
-        parent_job_title_id: parentId // 设置父职位ID
+        parent_category_id: parentId // Corrected: parent_category_id
      });
     setIsModalOpen(true);
   };
 
-  const showEditModal = (record: JobTitlePageItem) => {
-    setEditingJobTitle(record);
+  const showEditModal = (record: PersonnelCategoryPageItem) => {
+    setEditingPersonnelCategory(record);
     form.setFieldsValue({
       ...record, // Spread first to get code, name, description, is_active
       effective_date: dayjs(record.effective_date),
@@ -195,92 +186,82 @@ const JobTitlesPage: React.FC = () => {
 
   const handleCancelModal = () => {
     setIsModalOpen(false);
-    setEditingJobTitle(null);
+    setEditingPersonnelCategory(null);
   };
 
-  const handleFormSubmit = async (values: JobTitleFormValues) => {
+  const handleFormSubmit = async (values: PersonnelCategoryFormValues) => {
     setModalLoading(true);
-    const payload: CreateJobTitlePayload = {
+    const payload: CreatePersonnelCategoryPayload = {
       code: values.code,
       name: values.name,
       description: values.description === undefined ? null : values.description,
-      parent_job_title_id: values.parent_job_title_id || null,
+      parent_category_id: values.parent_category_id || null,
       effective_date: values.effective_date.format('YYYY-MM-DD'),
       end_date: values.end_date ? values.end_date.format('YYYY-MM-DD') : undefined,
       is_active: values.is_active === undefined ? true : values.is_active,
     };
 
     try {
-      if (editingJobTitle) {
-        await updateJobTitle(editingJobTitle.id, payload as UpdateJobTitlePayload); // Cast for update
+      if (editingPersonnelCategory) {
+        await updatePersonnelCategory(editingPersonnelCategory.id, payload as UpdatePersonnelCategoryPayload); // Cast for update
         message.success(t('message.update_success'));
       } else {
-        await createJobTitle(payload);
+        await createPersonnelCategory(payload);
         message.success(t('message.create_success'));
       }
       setIsModalOpen(false);
-      setEditingJobTitle(null);
+      setEditingPersonnelCategory(null);
       fetchData();
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error_unknown');
       message.error(`${t('message.operation_failed_prefix')}${errorMsg}`);
-      console.error('Job title operation failed:', error.response?.data || error);
+      console.error('Personnel category operation failed:', error.response?.data || error);
     }
     setModalLoading(false);
   };
 
-  const handleDeleteJobTitle = async (id: number) => {
+  const handleDeletePersonnelCategory = async (id: number) => {
     try {
-      await deleteJobTitle(id);
+      await deletePersonnelCategory(id);
       message.success(t('message.delete_success'));
       fetchData();
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.delete_failed_has_children');
       message.error(`${t('message.delete_failed_prefix')}${errorMsg}`);
-      console.error('Failed to delete job title:', error.response?.data || error);
+      console.error('Failed to delete personnel category:', error.response?.data || error);
     }
   };
 
-  // 创建测试数据的函数
-  const createTestData = async () => {
+  const handleStatusChange = async (newIsActiveState: boolean, record: PersonnelCategoryPageItem) => {
+    setModalLoading(true); // Use modalLoading or a new state for inline loading indication if preferred
+    const payload: UpdatePersonnelCategoryPayload = {
+      code: record.code,
+      name: record.name,
+      description: record.description === undefined ? null : record.description,
+      parent_category_id: record.parent_category_id === undefined ? null : record.parent_category_id,
+      effective_date: record.effective_date, // Already string YYYY-MM-DD
+      end_date: record.end_date ? record.end_date : undefined, // Already string YYYY-MM-DD or null/undefined
+      is_active: newIsActiveState,
+    };
+
     try {
-      // 创建一个顶级职位
-      const parentPayload: CreateJobTitlePayload = {
-        code: 'TEST-PARENT',
-        name: '测试父职位',
-        description: '这是一个自动创建的测试父职位',
-        parent_job_title_id: null,
-        effective_date: format(new Date(), 'yyyy-MM-dd'),
-        is_active: true,
-      };
-      const parentResponse = await createJobTitle(parentPayload);
-      message.success(t('message.test_data_create_success'));
-
-      // 创建子职位
-      const childPayload: CreateJobTitlePayload = {
-        code: 'TEST-CHILD',
-        name: '测试子职位',
-        description: '这是一个自动创建的测试子职位',
-        parent_job_title_id: parentResponse.data.id, // Correctly access id from parentResponse.data
-        effective_date: format(new Date(), 'yyyy-MM-dd'),
-        is_active: true,
-      };
-      await createJobTitle(childPayload);
-      message.success(t('message.test_data_create_success'));
-
-      fetchData(); // Refresh data after creating test data
+      await updatePersonnelCategory(record.id, payload);
+      message.success(t('message.update_success')); // Assuming this translation key exists and is appropriate
+      fetchData(); // Refresh data to show updated status
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || error.message || t('message.error_unknown');
-      message.error(`${t('message.test_data_create_failed_prefix')}${errorMsg}`);
-      console.error('Failed to create test data:', error);
+      const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error_unknown');
+      message.error(`${t('message.operation_failed_prefix')}${errorMsg}`);
+      // Consider reverting switch optimistically, or refetch data to ensure UI consistency
+    } finally {
+      setModalLoading(false); // Reset loading state
     }
   };
 
-  const columns: ColumnsType<JobTitlePageItem> = [
+  const columns: ColumnsType<PersonnelCategoryPageItem> = [
     { title: t('table.column.id'), dataIndex: 'id', key: 'id', width: 80 },
     { title: t('table.column.code'), dataIndex: 'code', key: 'code', width: 150 },
     { title: t('table.column.name'), dataIndex: 'name', key: 'name' }, // 树形结构将基于此列
-    { title: t('table.column.parent_id'), dataIndex: 'parent_job_title_id', key: 'parent_job_title_id', width: 120, render: (id) => id || t('table.cell_empty') },
+    { title: t('table.column.parent_id'), dataIndex: 'parent_category_id', key: 'parent_category_id', width: 120, render: (id) => id || t('table.cell_empty') },
     { title: t('table.column.description'), dataIndex: 'description', key: 'description', render: (text) => text || t('table.cell_empty') },
     {
       title: t('table.column.effective_date'),
@@ -301,53 +282,50 @@ const JobTitlesPage: React.FC = () => {
       dataIndex: 'is_active',
       key: 'is_active',
       width: 80,
-      render: (isActive: boolean) => <Switch checked={isActive} disabled />,
+      render: (isActive: boolean, record: PersonnelCategoryPageItem) => (
+        <Switch
+          checked={isActive}
+          onChange={(checked) => handleStatusChange(checked, record)}
+          loading={modalLoading && editingPersonnelCategory?.id === record.id} // Optional: show loading on the specific switch
+        />
+      ),
     },
     {
       title: t('table.column.actions'),
       key: 'action',
       width: 180,
-      render: (_: any, record: JobTitlePageItem) => (
+      render: (_: any, record: PersonnelCategoryPageItem) => (
         <Space size="small">
-          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_job_title')} />
+          <ActionButton actionType="add" onClick={() => showCreateChildModal(record.id)} tooltipTitle={t('tooltip.add_child_personnel_category')} />
+          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_personnel_category')} />
           <Popconfirm
             title={t('popconfirm.delete_title')}
-            onConfirm={() => handleDeleteJobTitle(record.id)}
+            onConfirm={() => handleDeletePersonnelCategory(record.id)}
             okText={t('popconfirm.ok')}
             cancelText={t('popconfirm.cancel')}
             disabled={record.children && record.children.length > 0} // Disable if has children, for example
           >
-            <ActionButton actionType="delete" tooltipTitle={t('tooltip.delete_job_title')} danger disabled={record.children && record.children.length > 0}/>
+            <ActionButton actionType="delete" tooltipTitle={t('tooltip.delete_personnel_category')} danger disabled={record.children && record.children.length > 0}/>
           </Popconfirm>
-          <ActionButton actionType="add" onClick={() => showCreateChildModal(record.id)} tooltipTitle={t('tooltip.add_child_job_title')} />
         </Space>
       ),
     },
   ];
 
   return (
-    <div>
+    <>
       <PageHeaderLayout>
-        <Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal} shape="round">
-          {t('button.create_top_level')}
-        </Button>
+        <Title level={4} style={{ margin: 0 }}>{t('title')}</Title>
+        <Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
+            {t('button.create_top_level')}
+          </Button>
+        </Space>
       </PageHeaderLayout>
-      <Space style={{ marginBottom: 16 }}>
-        <Button onClick={createTestData}>
-          {t('button.create_test_data')}
-        </Button>
-        <Button onClick={() => {
-          console.log('Current jobTitles:', jobTitles);
-          console.log('Current allFlatJobTitles:', allFlatJobTitles);
-          message.info(t('message.debug_data_logged'));
-        }}>
-          {t('button.debug_data')}
-        </Button>
-      </Space>
+
       <Table
         columns={columns}
-        dataSource={jobTitlesTree} 
+        dataSource={personnelCategoriesTree} 
         loading={isLoading}
         pagination={false}
         rowKey="id"
@@ -356,14 +334,14 @@ const JobTitlesPage: React.FC = () => {
         bordered
       />
       <Modal
-        title={editingJobTitle ? t('modal.title.edit_job_title') : t('modal.title.new_job_title')}
+        title={editingPersonnelCategory ? t('modal.title.edit_personnel_category') : t('modal.title.new_personnel_category')}
         open={isModalOpen}
         onCancel={handleCancelModal}
         onOk={form.submit}
         confirmLoading={modalLoading}
         destroyOnHidden // Ensure form is reset when modal is closed and reopened for "create"
       >
-        <Form form={form} layout="vertical" name="jobTitleForm" onFinish={handleFormSubmit}>
+        <Form form={form} layout="vertical" name="personnelCategoryForm" onFinish={handleFormSubmit}>
           <Form.Item name="code" label={t('form.label.code')} rules={[{ required: true, message: t('form.validation.code_required') }]}>
             <Input placeholder={t('form.placeholder.code')} />
           </Form.Item>
@@ -373,15 +351,15 @@ const JobTitlesPage: React.FC = () => {
           <Form.Item name="description" label={t('form.label.description')}>
             <Input.TextArea rows={2} placeholder={t('form.placeholder.description')} />
           </Form.Item>
-          <Form.Item name="parent_job_title_id" label={t('form.label.parent_job_title')}>
+          <Form.Item name="parent_category_id" label={t('form.label.parent_personnel_category')}>
             <TreeSelect
               showSearch
               style={{ width: '100%' }}
               styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder={t('form.placeholder.parent_job_title')}
+              placeholder={t('form.placeholder.parent_personnel_category')}
               allowClear
               treeDefaultExpandAll
-              treeData={buildTreeData(allFlatJobTitles)}
+              treeData={buildTreeData(allFlatPersonnelCategories)}
               notFoundContent={<div style={{ padding: '8px 12px', color: '#999' }}>{t('treeselect.not_found')}</div>}
               filterTreeNode={(inputValue, treeNode) =>
                 treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
@@ -409,8 +387,8 @@ const JobTitlesPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </>
   );
 };
 
-export default JobTitlesPage;
+export default PersonnelCategoriesPage;

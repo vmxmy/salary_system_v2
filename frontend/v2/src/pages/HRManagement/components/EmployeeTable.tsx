@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Space, Button, Tag } from 'antd';
+import { Table, Space, Button, Tag, Popconfirm } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import type { Employee, LookupItem } from '../types'; // LookupItem might not be
 // import { EmploymentStatus } from '../types'; // No longer needed as we use statusLookupMap
 import { usePermissions } from '../../../hooks/usePermissions';
 import type { Dayjs } from 'dayjs'; // Import Dayjs
+import ActionButton from '../../../components/common/ActionButton'; // Import ActionButton
 
 interface EmployeeTableProps {
   employees: Employee[]; 
@@ -138,17 +139,34 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
       title: t('list_page.table.column.actions'),
       key: 'action',
       render: (_, record: Employee) => (
-        <Space size="middle">
+        <Space size="small">
           {hasPermission('P_EMPLOYEE_VIEW_DETAIL') && (
-            <Button type="link" onClick={() => onViewDetails(String(record.id))}>{t('list_page.table.action.view_details')}</Button>
+            <ActionButton 
+              actionType="view"
+              onClick={() => onViewDetails(String(record.id))}
+              tooltipTitle={t('list_page.table.action.view_details')}
+            />
           )}
           {hasPermission('P_EMPLOYEE_UPDATE') && (
-            <Button type="link" onClick={() => onEdit(String(record.id))}>{t('list_page.table.action.edit')}</Button>
+            <ActionButton 
+              actionType="edit"
+              onClick={() => onEdit(String(record.id))}
+              tooltipTitle={t('list_page.table.action.edit')}
+            />
           )}
           {hasPermission('P_EMPLOYEE_DELETE') && (
-            <Button type="link" danger onClick={() => onDelete(String(record.id))}>
-              {t('list_page.table.action.delete')}
-            </Button>
+            <Popconfirm
+              title={t('list_page.delete_confirm.content')}
+              onConfirm={() => onDelete(String(record.id))}
+              okText={t('list_page.delete_confirm.ok_text')}
+              cancelText={t('list_page.delete_confirm.cancel_text')}
+            >
+              <ActionButton 
+                actionType="delete"
+                tooltipTitle={t('list_page.table.action.delete')}
+                danger
+              />
+            </Popconfirm>
           )}
         </Space>
       ),

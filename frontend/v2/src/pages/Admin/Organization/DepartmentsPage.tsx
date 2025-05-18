@@ -245,13 +245,11 @@ const DepartmentsPage: React.FC = () => {
       dataIndex: 'code',
       key: 'code',
       width: 150,
-      onCell: sharedOnCell // 根部门时被合并
     },
     {
       title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
-      onCell: nameColumnOnCell // 根部门时合并代码列
     },
     {
       title: t('table.column.parent_department_id'),
@@ -329,9 +327,9 @@ const DepartmentsPage: React.FC = () => {
   return (
     <div>
       <PageHeaderLayout>
-        <Title level={4} style={{ marginBottom: 0 }}><ClusterOutlined /> {t('department_management_page.title')}</Title>
+        <Title level={4} style={{ marginBottom: 0 }}><ClusterOutlined /> {t('title')}</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal(null)} shape="round">
-          {t('department_management_page.button.create_root_department')}
+          {t('button.create_root_department')}
         </Button>
       </PageHeaderLayout>
       <Table
@@ -355,9 +353,9 @@ const DepartmentsPage: React.FC = () => {
         }}
       />
       <Modal
-        title={editingDepartment 
-          ? t('department_management_page.modal.department_form.title.edit') 
-          : t('department_management_page.modal.department_form.title.create')}
+        title={editingDepartment
+          ? t('modal.department_form.title.edit')
+          : t('modal.department_form.title.create')}
         open={isModalOpen}
         onCancel={handleCancelModal}
         onOk={() => form.submit()}
@@ -365,18 +363,18 @@ const DepartmentsPage: React.FC = () => {
         destroyOnHidden
       >
         <Form form={form} layout="vertical" name="departmentForm" onFinish={handleFormSubmit}>
-          <Form.Item name="code" label={t('department_management_page.modal.department_form.label.code')} rules={[{ required: true, message: t('department_management_page.modal.department_form.validation.code_required') }]}>
+          <Form.Item name="code" label={t('modal.department_form.label.code')} rules={[{ required: true, message: t('modal.department_form.validation.code_required') }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="name" label={t('department_management_page.modal.department_form.label.name')} rules={[{ required: true, message: t('department_management_page.modal.department_form.validation.name_required') }]}>
+          <Form.Item name="name" label={t('modal.department_form.label.name')} rules={[{ required: true, message: t('modal.department_form.validation.name_required') }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="parent_department_id" label={t('department_management_page.modal.department_form.label.parent_department')}>
+          <Form.Item name="parent_department_id" label={t('modal.department_form.label.parent_department')}>
             <TreeSelect
               showSearch
               style={{ width: '100%' }}
               styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder={t('department_management_page.modal.department_form.placeholder.parent_department')}
+              placeholder={t('modal.department_form.placeholder.parent_department')}
               allowClear
               treeDefaultExpandAll
               treeData={buildTreeData(allFlatDepartments)} // Use the flat list converted to tree for selector
@@ -386,16 +384,16 @@ const DepartmentsPage: React.FC = () => {
               virtual={false}
             />
           </Form.Item>
-          <Form.Item name="description" label={t('department_management_page.modal.department_form.label.description')}>
+          <Form.Item name="description" label={t('modal.department_form.label.description')}>
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="effective_date" label={t('department_management_page.modal.department_form.label.effective_date')} rules={[{ required: true, message: t('department_management_page.modal.department_form.validation.effective_date_required') }]}>
+          <Form.Item name="effective_date" label={t('modal.department_form.label.effective_date')} rules={[{ required: true, message: t('modal.department_form.validation.effective_date_required') }]}>
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="end_date" label={t('department_management_page.modal.department_form.label.end_date')}>
+          <Form.Item name="end_date" label={t('modal.department_form.label.end_date')}>
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="is_active" label={t('department_management_page.modal.department_form.label.is_active')} valuePropName="checked" initialValue={true}>
+          <Form.Item name="is_active" label={t('modal.department_form.label.is_active')} valuePropName="checked" initialValue={true}>
             <Switch />
           </Form.Item>
         </Form>

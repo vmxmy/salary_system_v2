@@ -246,7 +246,17 @@
         "net_pay": "净工资",
         "status": "状态",
         "remarks": "备注",
-        "actions": "操作"
+        "actions": "操作",
+        "payroll_run_id": "计算批次ID",
+        "payment_date": "支付日期"
+      },
+      "modal": {
+        "title_detail": "工资条目详情",
+        "component_name": "项目名称",
+        "amount": "金额",
+        "notes": "备注",
+        "earnings_details": "收入详情",
+        "deductions_details": "扣除详情"
       },
       "cell_name_supplement_needed": "需补充",
       "cell_remarks_empty": "-",

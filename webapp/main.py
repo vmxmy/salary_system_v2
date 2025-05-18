@@ -1,17 +1,17 @@
 import sys
 import os # Import os module
-print(f"==== Loading main.py from: {os.path.abspath(__file__)} ====") # Added print statement
-print("==== sys.path ====", sys.path)
+# print(f"==== Loading main.py from: {os.path.abspath(__file__)} ====") # Added print statement
+# print("==== sys.path ====", sys.path)
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response
 import bcrypt
 from webapp.auth import get_password_hash
-print("admin hash:", get_password_hash("admin"))
-print("==== bcrypt module path:", bcrypt.__file__)
-print("==== has __about__:", hasattr(bcrypt, "__about__"))
-if hasattr(bcrypt, "__about__"):
-    print("==== bcrypt.__about__:", bcrypt.__about__)
-else:
-    print("==== dir(bcrypt):", dir(bcrypt))
+# print("admin hash:", get_password_hash("admin"))
+# print("==== bcrypt module path:", bcrypt.__file__)
+# print("==== has __about__:", hasattr(bcrypt, "__about__"))
+# if hasattr(bcrypt, "__about__"):
+#     print("==== bcrypt.__about__:", bcrypt.__about__)
+# else:
+#     print("==== dir(bcrypt):", dir(bcrypt))
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Sequence
@@ -45,10 +45,10 @@ handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.setLevel(logging.DEBUG) # Set logger level to DEBUG
+logger.setLevel(logging.INFO) # Set logger level to INFO
 
 # Also set the root logger level to DEBUG to ensure all loggers inherit it
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG) # Configured in webapp/core/config.py
 
 
 # Import modules - 使用相对导入
@@ -59,7 +59,8 @@ from .core.config import settings
 # Import v2 API routers
 from .v2.routers import employees_router as v2_employees_router
 from .v2.routers import departments_router as v2_departments_router
-from .v2.routers import job_titles_router as v2_job_titles_router
+from .v2.routers import personnel_categories_router as v2_personnel_categories_router
+from .v2.routers import positions_router as v2_positions_router
 from .v2.routers import lookup_router as v2_lookup_router
 from .v2.routers import config_router as v2_config_router
 from .v2.routers import payroll_router as v2_payroll_router
@@ -116,7 +117,7 @@ else:
 
 DATABASE_URL = settings.DATABASE_URL  # 从配置获取
 if not DATABASE_URL:
-    logger.critical("DATABASE_URL environment variable not set!")
+    logger.warning("DATABASE_URL environment variable not set! Attempting to construct from components.") # Changed to warning
     # 尝试从各个组件构建连接字符串
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
@@ -125,12 +126,12 @@ if not DATABASE_URL:
     DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
 
     DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    logger.info(f"DATABASE_URL not set, constructed from components: {DB_HOST}:{DB_PORT}/{DB_NAME}")
+    logger.info(f"DATABASE_URL was not set, constructed from components: {DB_HOST}:{DB_PORT}/{DB_NAME}") # Minor wording change
 
 # 在应用启动时初始化数据库（如果AUTO_INIT_DB环境变量设置为true）
 AUTO_INIT_DB = os.getenv("AUTO_INIT_DB", "false").lower() == "true"
 if AUTO_INIT_DB:
-    logger.info("AUTO_INIT_DB设置为true，尝试自动初始化数据库...")
+    logger.info("AUTO_INIT_DB is true, attempting to auto-initialize database...") # Minor wording change
     from .scripts.init_app import initialize_database
     try:
         initialize_database()
@@ -138,7 +139,7 @@ if AUTO_INIT_DB:
         logger.error(f"Error initializing database: {e}")
         # 不中断应用启动，但记录错误
 else:
-    logger.info("AUTO_INIT_DB未设置为true，跳过自动数据库初始化。如需自动初始化，请设置环境变量AUTO_INIT_DB=true")
+    logger.info("AUTO_INIT_DB is not true, skipping auto database initialization. Set AUTO_INIT_DB=true to enable.") # Minor wording change
 
 # --- Column Definitions --- START
 # 注意: 列定义已迁移到数据库配置表 (salary_field_mappings)
@@ -229,7 +230,7 @@ async def get_converter_page():
     html_file_path = os.path.join(os.path.dirname(__file__), "converter.html")
     if not os.path.exists(html_file_path):
         # Log this error
-        print(f"Frontend HTML file not found at: {html_file_path}")
+        logger.error(f"Frontend HTML file not found at: {html_file_path}") # Changed to logger.error
         raise HTTPException(status_code=404, detail="Converter page not found.")
     try:
         with open(html_file_path, "r", encoding="utf-8") as f:
@@ -237,7 +238,7 @@ async def get_converter_page():
         return HTMLResponse(content=html_content)
     except Exception as e:
         # 修复print参数错误
-        print(f"Error reading HTML file {html_file_path}: {e}")
+        logger.error(f"Error reading HTML file {html_file_path}: {e}") # Changed to logger.error
         raise HTTPException(status_code=500, detail="Could not load converter page.")
 
 # --- File Conversion Endpoint --- # New Section
@@ -328,18 +329,18 @@ if __name__ == "__main__":
     root_dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
     if os.path.exists(root_dotenv_path):
         load_dotenv(dotenv_path=root_dotenv_path)
-        print(f"Loaded environment variables from {root_dotenv_path}")
+        logger.info(f"Loaded environment variables from {root_dotenv_path}") # Changed to logger.info
     else:
         # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
         webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
         load_dotenv(dotenv_path=webapp_dotenv_path)
-        print(f"Loaded environment variables from {webapp_dotenv_path}")
+        logger.info(f"Loaded environment variables from {webapp_dotenv_path}") # Changed to logger.info
 
     host = os.getenv("UVICORN_HOST", "0.0.0.0")
     port = int(os.getenv("UVICORN_PORT", 8080))
     reload = os.getenv("UVICORN_RELOAD", "true").lower() == "true"
 
-    print(f"Starting Uvicorn server on http://{host}:{port} with reload={reload}...")
+    logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload}...") # Changed to logger.info
     uvicorn.run("main:app", host=host, port=port, reload=reload)
 
 # === NEW DEBUGGING ENDPOINT ===
@@ -421,9 +422,9 @@ app.include_router(
     tags=["Departments"]
 )
 app.include_router(
-    v2_job_titles_router,
+    v2_personnel_categories_router,
     prefix=settings.API_V2_PREFIX,
-    tags=["Job Titles"]
+    tags=["Personnel Categories"]
 )
 app.include_router(
     v2_lookup_router,
@@ -446,6 +447,12 @@ app.include_router(
     tags=["Security"]
 )
 
+# Include the new positions router
+app.include_router(
+    v2_positions_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Positions V2"]
+)
 
 # --- Removed API Routers with /api/v1 prefix ---
 # (Removed api_v1_router definition and app.include_router(api_v1_router))

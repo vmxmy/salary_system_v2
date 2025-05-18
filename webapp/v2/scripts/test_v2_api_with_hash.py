@@ -41,10 +41,10 @@ class APITesterWithHash:
         # 确保使用正确的数据库连接参数
         if db_url:
             self.db_url = db_url
-        elif os.environ.get("DATABASE_URL_V2"):
-            self.db_url = os.environ.get("DATABASE_URL_V2")
+        elif os.environ.get("DATABASE_URL"):
+            self.db_url = os.environ.get("DATABASE_URL")
         else:
-            raise ValueError("数据库连接参数未提供！请设置DATABASE_URL_V2环境变量或通过--db-url参数提供。")
+            raise ValueError("数据库连接参数未提供！请设置DATABASE_URL环境变量或通过--db-url参数提供。")
 
         self.base_url = base_url or os.environ.get("API_BASE_URL", "http://localhost:8080")
         self.username = username or os.environ.get("API_USERNAME", "admin")
@@ -432,7 +432,7 @@ class APITesterWithHash:
 
 def main():
     parser = argparse.ArgumentParser(description="v2 API测试脚本 - 使用密码哈希直接生成JWT令牌")
-    parser.add_argument("--db-url", help="数据库URL", default=os.environ.get("DATABASE_URL_V2"))
+    parser.add_argument("--db-url", help="数据库URL", default=os.environ.get("DATABASE_URL"))
     parser.add_argument("--base-url", help="API基础URL", default=os.environ.get("API_BASE_URL", "http://localhost:8080"))
     parser.add_argument("--username", help="用户名", default=os.environ.get("API_USERNAME", "admin"))
     parser.add_argument("--password-hash", help="密码哈希", default="$2b$12$YVBr/QMAoInO9Gfq3efSm.rmZX65hUsPTl2K0jWD0VQ57jfIexBk6")
@@ -443,18 +443,22 @@ def main():
 
     args = parser.parse_args()
 
-    # 检查数据库连接参数
-    if not args.db_url:
-        print(f"{Fore.RED}错误: 数据库连接参数未提供！请设置DATABASE_URL_V2环境变量或通过--db-url参数提供。{Style.RESET_ALL}")
+    # 确保使用正确的数据库连接参数
+    db_url_to_use = args.db_url
+    if not db_url_to_use:
+        db_url_to_use = os.environ.get("DATABASE_URL")
+
+    if not db_url_to_use:
+        print(f"{Fore.RED}错误: 数据库连接参数未提供！请设置DATABASE_URL环境变量或通过--db-url参数提供。{Style.RESET_ALL}")
         sys.exit(1)
 
     tester = APITesterWithHash(
-        args.db_url,
-        args.base_url,
-        args.username,
-        args.password_hash,
-        args.jwt_secret,
-        args.jwt_algorithm
+        db_url=db_url_to_use,
+        base_url=args.base_url,
+        username=args.username,
+        password_hash=args.password_hash,
+        jwt_secret=args.jwt_secret,
+        jwt_algorithm=args.jwt_algorithm
     )
 
     if args.test_all or args.categories:

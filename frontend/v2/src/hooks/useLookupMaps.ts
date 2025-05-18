@@ -4,7 +4,8 @@ import { employeeService } from '../services/employeeService';
 import type { 
   LookupItem, 
   Department as DepartmentType, 
-  JobTitle as JobTitleType,
+  PersonnelCategory as PersonnelCategoryType,
+  Position as PositionType,
   // Add other specific types if needed by rawLookups, e.g. for tree data structure
 } from '../pages/HRManagement/types'; // Adjust path as necessary based on actual file structure
 import { message } from 'antd';
@@ -13,7 +14,7 @@ export interface LookupMaps {
   genderMap: Map<number, string>;
   statusMap: Map<number, string>;
   departmentMap: Map<number, string>;
-  jobTitleMap: Map<number, string>;
+  personnelCategoryMap: Map<number, string>;
   employmentTypeMap: Map<number, string>;
   contractTypeMap: Map<number, string>;
   educationLevelMap: Map<number, string>;
@@ -22,6 +23,7 @@ export interface LookupMaps {
   leaveTypeMap: Map<number, string>;
   payFrequencyMap: Map<number, string>;
   contractStatusMap?: Map<number, string>;
+  positionMap: Map<number, string>;
   // Add more maps as needed
 }
 
@@ -29,7 +31,7 @@ export interface RawLookups {
   genderOptions: LookupItem[];
   statusOptions: LookupItem[];
   departmentOptions: DepartmentType[]; // Tree structure
-  jobTitleOptions: JobTitleType[];   // Flat list or tree
+  personnelCategoryOptions: PersonnelCategoryType[];
   employmentTypeOptions: LookupItem[];
   contractTypeOptions: LookupItem[];
   educationLevelOptions: LookupItem[];
@@ -39,6 +41,7 @@ export interface RawLookups {
   payFrequencyOptions: LookupItem[];
   employeeStatuses: LookupItem[];
   contractStatusOptions?: LookupItem[];
+  positionOptions: PositionType[];
   // Add more raw options as needed
 }
 
@@ -50,9 +53,9 @@ export interface UseLookupsResult {
 }
 
 const createFlatMapFromTree = (
-  nodes: DepartmentType[] | JobTitleType[], 
-  idKey: keyof (DepartmentType | JobTitleType) = 'id',
-  nameKey: keyof (DepartmentType | JobTitleType) = 'name'
+  nodes: DepartmentType[] | PersonnelCategoryType[] | PositionType[], 
+  idKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'id',
+  nameKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'name'
 ): Map<number, string> => {
   const flatMap = new Map<number, string>();
   const stack = [...nodes];
@@ -88,7 +91,7 @@ export const useLookupMaps = (): UseLookupsResult => {
           genders,
           statuses,
           departments, // Tree structure
-          jobTitles,   // Flat list or tree
+          personnelCategories,   // MODIFIED from jobTitles
           empTypes,
           contractTypesData,
           eduLevels,
@@ -96,12 +99,13 @@ export const useLookupMaps = (): UseLookupsResult => {
           politicals,
           leaveTypesData,
           payFrequencies,
-          contractStatusesData
+          contractStatusesData,
+          positions
         ] = await Promise.all([
           lookupService.getGenderLookup(),
           lookupService.getEmployeeStatusesLookup(),
           lookupService.getDepartmentsLookup(),
-          lookupService.getJobTitlesLookup(),
+          lookupService.getPersonnelCategoriesLookup(), // MODIFIED from getJobTitlesLookup
           lookupService.getEmploymentTypesLookup(),
           lookupService.getContractTypesLookup(),
           lookupService.getEducationLevelsLookup(),
@@ -109,7 +113,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           lookupService.getPoliticalStatusesLookup(),
           lookupService.getLeaveTypesLookup(),
           lookupService.getPayFrequenciesLookup(),
-          employeeService.getContractStatusesLookup()
+          employeeService.getContractStatusesLookup(),
+          lookupService.getPositionsLookup()
         ]);
 
         const createMapFromArray = (items: LookupItem[]): Map<number, string> =>
@@ -119,7 +124,7 @@ export const useLookupMaps = (): UseLookupsResult => {
           genderMap: createMapFromArray(genders),
           statusMap: createMapFromArray(statuses),
           departmentMap: createFlatMapFromTree(departments),
-          jobTitleMap: createFlatMapFromTree(jobTitles), // Assuming jobTitles might be tree-like for consistency, or flat
+          personnelCategoryMap: createFlatMapFromTree(personnelCategories), // MODIFIED from jobTitleMap and jobTitles
           employmentTypeMap: createMapFromArray(empTypes),
           contractTypeMap: createMapFromArray(contractTypesData),
           educationLevelMap: createMapFromArray(eduLevels),
@@ -127,14 +132,15 @@ export const useLookupMaps = (): UseLookupsResult => {
           politicalStatusMap: createMapFromArray(politicals),
           leaveTypeMap: createMapFromArray(leaveTypesData),
           payFrequencyMap: createMapFromArray(payFrequencies),
-          contractStatusMap: createMapFromArray(contractStatusesData)
+          contractStatusMap: createMapFromArray(contractStatusesData),
+          positionMap: createFlatMapFromTree(positions, 'id', 'name')
         });
 
         setRawLookups({
           genderOptions: genders,
           statusOptions: statuses,
           departmentOptions: departments,
-          jobTitleOptions: jobTitles,
+          personnelCategoryOptions: personnelCategories, // MODIFIED from jobTitleOptions and jobTitles
           employmentTypeOptions: empTypes,
           contractTypeOptions: contractTypesData,
           educationLevelOptions: eduLevels,
@@ -143,7 +149,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           leaveTypeOptions: leaveTypesData,
           payFrequencyOptions: payFrequencies,
           employeeStatuses: statuses,
-          contractStatusOptions: contractStatusesData
+          contractStatusOptions: contractStatusesData,
+          positionOptions: positions
         });
       } catch (error) {
         console.error("Failed to fetch lookups:", error);

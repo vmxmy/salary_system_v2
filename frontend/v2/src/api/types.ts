@@ -170,31 +170,31 @@ export interface UpdateDepartmentPayload extends Partial<CreateDepartmentPayload
 
 export interface DepartmentListResponse extends PaginatedResponse<Department> {}
 
-// JobTitle Types
-export interface JobTitle {
+// PersonnelCategory Types (Formerly JobTitle Types)
+export interface PersonnelCategory {
   id: number;
   code: string;
   name: string;
   description?: string | null;
-  parent_job_title_id?: number | null;
-  effective_date: string; // Consider using Date type
-  end_date?: string | null;   // Consider using Date type
+  parent_category_id?: number | null;
+  effective_date: string;
+  end_date?: string | null;
   is_active: boolean;
 }
 
-export interface CreateJobTitlePayload {
+export interface CreatePersonnelCategoryPayload {
   code: string;
   name: string;
   description?: string | null;
-  parent_job_title_id?: number | null;
+  parent_category_id?: number | null;
   effective_date: string;
   end_date?: string | null;
   is_active?: boolean;
 }
 
-export interface UpdateJobTitlePayload extends Partial<CreateJobTitlePayload> {}
+export interface UpdatePersonnelCategoryPayload extends Partial<CreatePersonnelCategoryPayload> {}
 
-export interface JobTitleListResponse extends PaginatedResponse<JobTitle> {}
+export interface PersonnelCategoryListResponse extends PaginatedResponse<PersonnelCategory> {}
 
 // 查找类型 (根据 /v2/config/lookup-types)
 export interface LookupType {

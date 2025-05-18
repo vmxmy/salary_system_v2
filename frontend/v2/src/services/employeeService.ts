@@ -22,7 +22,7 @@ import type {
   LeaveBalancePageResult,
   Department,
   // PositionItem, // Will be replaced by JobTitle
-  JobTitle, // Added
+  PersonnelCategory, // MODIFIED: No longer JobTitle as PersonnelCategory
   CreateContractPayload,
   UpdateContractPayload,
   CreateCompensationPayload,
@@ -152,29 +152,30 @@ export const employeeService = {
       const response = await apiClient.get<{ data: Department[], meta?: any }>('/departments');
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
-      } else {
-        console.warn('Departments lookup data array not found or not an array in response:', response.data);
-        return []; 
+      } else if (Array.isArray(response.data)) {
+        return response.data as Department[];
       }
+      console.warn('Departments lookup data array not found or not an array in response:', response.data);
+      return [];
     } catch (error) {
       console.error('Error fetching departments lookup:', error);
-      return []; 
+      return [];
     }
   },
 
-  // Renamed from getPositionsLookup to getJobTitlesLookup to match type JobTitle
-  async getJobTitlesLookup(departmentId?: string): Promise<JobTitle[]> {
+  // Renamed from getJobTitlesLookup to getPersonnelCategoriesLookup
+  async getPersonnelCategoriesLookup(departmentId?: string): Promise<PersonnelCategory[]> {
     try {
       const queryString = departmentId ? buildQueryParams({ department_id: departmentId }) : '';
-      const response = await apiClient.get<{ data: JobTitle[], meta?: any }>(`/job-titles${queryString}`);
+      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>(`/personnel-categories${queryString}`);
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
       } else {
-        console.warn('Job titles lookup data array not found or not an array in response:', response.data);
+        console.warn('Personnel Categories lookup data array not found or not an array in response:', response.data);
         return []; 
       }
     } catch (error) {
-      console.error('Error fetching job titles lookup:', error);
+      console.error('Error fetching personnel categories lookup:', error);
       return []; 
     }
   },

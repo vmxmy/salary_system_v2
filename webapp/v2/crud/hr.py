@@ -7,13 +7,17 @@ from typing import List, Optional, Tuple, Dict, Any
 import logging
 
 from ..models.hr import (
-    Employee, Department, JobTitle, EmployeeJobHistory,
+    Employee, Department, PersonnelCategory, EmployeeJobHistory,
     EmployeeContract, EmployeeCompensationHistory, EmployeePayrollComponent,
-    LeaveType, EmployeeLeaveBalance, EmployeeLeaveRequest, EmployeeBankAccount
+    LeaveType, EmployeeLeaveBalance, EmployeeLeaveRequest, EmployeeBankAccount,
+    Position, EmployeeAppraisal, Department as DepartmentModel, Employee as EmployeeModel, EmployeeAppraisal as EmployeeAppraisalModel, EmployeeJobHistory as EmployeeJobHistoryModel, PersonnelCategory as PersonnelCategoryModel, Position as PositionModel
 )
+from ..models.config import LookupValue
+
 from ..pydantic_models.hr import (
     EmployeeCreate, EmployeeUpdate, DepartmentCreate, DepartmentUpdate,
-    JobTitleCreate, JobTitleUpdate, EmployeeJobHistoryCreate, EmployeeJobHistoryUpdate
+    PersonnelCategoryCreate, PersonnelCategoryUpdate, EmployeeJobHistoryCreate, EmployeeJobHistoryUpdate,
+    PositionCreate, PositionUpdate, EmployeeAppraisalCreate, EmployeeAppraisalUpdate
 )
 
 logger = logging.getLogger(__name__)
@@ -26,9 +30,9 @@ def get_employees(
     department_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 100
-) -> Tuple[List[Tuple[Employee, Optional[str], Optional[str]]], int]:
+) -> Tuple[List[Employee], int]:
     """
-    获取员工列表，包括当前部门和职位名称。
+    获取员工列表，包含完整的关联对象。
 
     Args:
         db: 数据库会话
@@ -39,108 +43,75 @@ def get_employees(
         limit: 返回的记录数
 
     Returns:
-        员工列表 (包含Employee对象、部门名称、职位名称的元组) 和总记录数
+        员工对象列表 (已预加载关联数据) 和总记录数
     """
-    # Base query with joins for current job history, department, and job title
-    query = db.query(
-        Employee,
-        Department.name.label("department_name"),
-        JobTitle.name.label("job_title_name")
-    ).join(
-        EmployeeJobHistory,
-        and_(
-            Employee.id == EmployeeJobHistory.employee_id,
-            EmployeeJobHistory.end_date == None # Filter for current job history
-        ),
-        isouter=True # Use isouter=True to include employees without job history
-    ).join(
-        Department,
-        EmployeeJobHistory.department_id == Department.id,
-        isouter=True # Use isouter=True to include employees without a department in job history
-    ).join(
-        JobTitle,
-        EmployeeJobHistory.job_title_id == JobTitle.id,
-        isouter=True # Use isouter=True to include employees without a job title in job history
-    )
+    from sqlalchemy.orm import selectinload, joinedload
+
+    query = db.query(Employee)
 
     # 应用过滤条件
     if status_id:
         query = query.filter(Employee.status_lookup_value_id == status_id)
 
+    # department_id 过滤直接作用于 Employee.department_id
+    if department_id:
+        query = query.filter(Employee.department_id == department_id)
+
     # 应用搜索过滤
     if search:
         search_term = f"%{search}%"
-        query = query.filter(
-            or_(
-                Employee.employee_code.ilike(search_term),
-                Employee.first_name.ilike(search_term),
-                Employee.last_name.ilike(search_term),
-                Employee.id_number.ilike(search_term),
-                Employee.email.ilike(search_term),
-                Employee.phone_number.ilike(search_term),
-                # Include department and job title names in search
-                Department.name.ilike(search_term),
-                JobTitle.name.ilike(search_term)
-            )
-        )
-
-    # 如果指定了部门ID，则需要通过员工工作历史关联查询
-    if department_id:
-        # Filter by department ID in the current job history
-        query = query.filter(EmployeeJobHistory.department_id == department_id)
+        employee_filters = [
+            Employee.employee_code.ilike(search_term),
+            Employee.first_name.ilike(search_term),
+            Employee.last_name.ilike(search_term),
+            Employee.id_number.ilike(search_term),
+            Employee.email.ilike(search_term),
+            Employee.phone_number.ilike(search_term)
+        ]
+        # 如果需要基于 current_department 的名称进行搜索，可以添加 join
+        # query = query.outerjoin(Employee.current_department)
+        # employee_filters.append(Department.name.ilike(search_term))
+        query = query.filter(or_(*employee_filters))
 
 
-    # Get total count before applying limit and offset
-    # To get the correct total count with joins and filters, we need to count the primary entity (Employee)
-    # while considering the applied filters. Using a subquery or distinct count might be necessary
-    # depending on the complexity and potential for duplicate rows due to joins.
-    # A simpler approach for total count with filters applied to the joined tables:
-    total_query = db.query(func.count(Employee.id)).select_from(Employee).join(
-        EmployeeJobHistory,
-        and_(
-            Employee.id == EmployeeJobHistory.employee_id,
-            EmployeeJobHistory.end_date == None
-        ),
-        isouter=True
-    ).join(
-        Department,
-        EmployeeJobHistory.department_id == Department.id,
-        isouter=True
-    ).join(
-        JobTitle,
-        EmployeeJobHistory.job_title_id == JobTitle.id,
-        isouter=True
-    )
-
+    # 获取总记录数 (在应用 options 和分页之前)
+    count_query = db.query(func.count(Employee.id))
     if status_id:
-        total_query = total_query.filter(Employee.status_lookup_value_id == status_id)
-
-    if search:
-        search_term = f"%{search}%"
-        total_query = total_query.filter(
-            or_(
-                Employee.employee_code.ilike(search_term),
-                Employee.first_name.ilike(search_term),
-                Employee.last_name.ilike(search_term),
-                Employee.id_number.ilike(search_term),
-                Employee.email.ilike(search_term),
-                Employee.phone_number.ilike(search_term),
-                Department.name.ilike(search_term),
-                JobTitle.name.ilike(search_term)
-            )
-        )
-
+        count_query = count_query.filter(Employee.status_lookup_value_id == status_id)
     if department_id:
-        total_query = total_query.filter(EmployeeJobHistory.department_id == department_id)
+        count_query = count_query.filter(Employee.department_id == department_id) # Filter count query by department_id directly
+    if search:
+        # Apply the same search filters to count_query
+        # This also needs to handle joins if search spans related tables.
+        count_query = count_query.filter(or_(*employee_filters)) # Simplified search for count
 
-    total = total_query.scalar()
+    total = count_query.scalar()
 
+    # 应用 eager loading options to the main query
+    query = query.options(
+        selectinload(Employee.gender),
+        selectinload(Employee.status),
+        selectinload(Employee.employment_type),
+        selectinload(Employee.education_level),
+        selectinload(Employee.marital_status),
+        selectinload(Employee.political_status),
+        selectinload(Employee.contract_type),
+        selectinload(Employee.current_department),
+        selectinload(Employee.personnel_category),
+        selectinload(Employee.actual_position).selectinload(Position.parent_position),
+        selectinload(Employee.appraisals).selectinload(EmployeeAppraisal.appraisal_result),
+        selectinload(Employee.job_history).options( 
+            selectinload(EmployeeJobHistory.department),
+            selectinload(EmployeeJobHistory.position_detail).selectinload(Position.parent_position),
+            selectinload(EmployeeJobHistory.personnel_category_detail).selectinload(PersonnelCategory.parent_category),
+            selectinload(EmployeeJobHistory.manager)
+        )
+    )
 
     # 应用排序和分页
     query = query.order_by(Employee.last_name, Employee.first_name)
     query = query.offset(skip).limit(limit)
 
-    # Execute the query and return results as list of tuples
     results = query.all()
 
     return results, total
@@ -157,7 +128,37 @@ def get_employee(db: Session, employee_id: int) -> Optional[Employee]:
     Returns:
         员工对象，如果不存在则返回None
     """
-    return db.query(Employee).filter(Employee.id == employee_id).first()
+    from sqlalchemy.orm import selectinload, joinedload
+
+    return db.query(Employee).options(
+        # Eager load direct LookupValue relationships
+        selectinload(Employee.gender),
+        selectinload(Employee.status),
+        selectinload(Employee.employment_type),
+        selectinload(Employee.education_level),
+        selectinload(Employee.marital_status),
+        selectinload(Employee.political_status),
+        selectinload(Employee.contract_type),
+        
+        # Eager load related main objects
+        selectinload(Employee.current_department),
+        selectinload(Employee.personnel_category),
+        selectinload(Employee.actual_position).selectinload(Position.parent_position),
+        
+        # Eager load list-based relationships
+        selectinload(Employee.appraisals).selectinload(EmployeeAppraisal.appraisal_result),
+        selectinload(Employee.job_history).options(
+            selectinload(EmployeeJobHistory.department),
+            selectinload(EmployeeJobHistory.position_detail).selectinload(Position.parent_position),
+            selectinload(EmployeeJobHistory.personnel_category_detail).selectinload(PersonnelCategory.parent_category),
+            selectinload(EmployeeJobHistory.manager)
+        ),
+        # selectinload(Employee.bank_accounts)
+        # selectinload(Employee.contracts)
+        # selectinload(Employee.compensation_history)
+        # selectinload(Employee.payroll_components)
+
+    ).filter(Employee.id == employee_id).first()
 
 
 def get_employee_by_code(db: Session, employee_code: str) -> Optional[Employee]:
@@ -210,12 +211,33 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
         if existing_id:
             raise ValueError(f"Employee with ID number '{employee.id_number}' already exists")
 
-    # 创建新的员工
-    db_employee = Employee(**employee.model_dump())
+    # 从 Pydantic 模型提取员工数据，排除 appraisals (如果 appraisals 在 EmployeeCreate 中)
+    employee_data = employee.model_dump(exclude_none=True, exclude={"appraisals"}) # Exclude appraisals for now
+    db_employee = Employee(**employee_data)
+    
     db.add(db_employee)
+    # 先 flush 获取 employee ID，用于创建关联的 appraisals
+    try:
+        db.flush() 
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error flushing new employee: {e}")
+        raise
+
+    # 处理年度考核 appraisals (如果提供)
+    if hasattr(employee, 'appraisals') and employee.appraisals:
+        for appraisal_data in employee.appraisals:
+            db_appraisal = EmployeeAppraisal(
+                **appraisal_data.model_dump(), 
+                employee_id=db_employee.id
+            )
+            db.add(db_appraisal)
+
     db.commit()
     db.refresh(db_employee)
-    return db_employee
+    # Re-query to load all relationships for the response, as per Pydantic model expectations
+    # This ensures that the returned object is fully populated.
+    return get_employee(db, db_employee.id) # Use existing get_employee to load relations
 
 
 def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> Optional[Employee]:
@@ -251,104 +273,55 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
         if existing:
             raise ValueError(f"Employee with ID number '{employee.id_number}' already exists")
 
-    # 更新员工
-    update_data = employee.model_dump(exclude_unset=True)
-    logger.info(f"Data to be set on ORM model (exclude_unset=True): {update_data}")
-    
-    if 'home_address' in update_data:
-        logger.info(f"CRUD LOG: 'home_address' IS IN update_data with value: '{update_data['home_address']}'")
-    else:
-        logger.warning("CRUD LOG: 'home_address' IS NOT IN update_data dictionary!")
-
+    # 更新员工的直接字段
+    update_data = employee.model_dump(exclude_unset=True, exclude={"appraisals"}) # appraisals is handled separately
     for key, value in update_data.items():
-        logger.debug(f"CRUD LOG: Setting attribute: {key} = {value} (type: {type(value)}) precon_value: {getattr(db_employee, key, 'AttributeNotExists')}")
-        setattr(db_employee, key, value)
-        logger.debug(f"CRUD LOG: Setting attribute: {key} = {value} (type: {type(value)}) post_value: {getattr(db_employee, key, 'AttributeNotExists')}")
-
-    # === Begin SQLAlchemy Inspect for home_address specifically AFTER loop ===
-    try:
-        attr_state_after_set = inspect(db_employee).attrs.get('home_address')
-        if attr_state_after_set:
-            logger.info(f"CRUD LOG (After Setattr Loop): Attribute 'home_address' state: value='{attr_state_after_set.value}', history_changed='{attr_state_after_set.history.has_changes()}', history='{attr_state_after_set.history}'")
+        if hasattr(db_employee, key):
+            setattr(db_employee, key, value)
         else:
-            logger.warning("CRUD LOG (After Setattr Loop): FAILED to get attribute state for 'home_address'.")
-    except Exception as e_inspect_attr:
-        logger.error(f"CRUD LOG (After Setattr Loop): Error during SQLAlchemy inspect of home_address attribute: {e_inspect_attr}")
-    # === End SQLAlchemy Inspect for home_address ===
+            logger.warning(f"Attempted to set non-existent attribute '{key}' on Employee model during update.")
 
-    # 处理银行账户信息
-    bank_account_instance_for_logging = None # 用来存储银行账户实例以供日志记录
-    if employee.bank_account_number:
-        if not employee.bank_name:
-            logger.error(f"CRUD LOG: Bank name is missing for employee_id: {db_employee.id} while bank_account_number is provided.")
-            raise ValueError("Bank name is required if bank account number is provided.")
+    # 处理年度考核 appraisals 的更新
+    # Only proceed if 'appraisals' key was provided in the payload and is not None.
+    # If employee.appraisals is an empty list [], it means to delete all existing and add no new ones.
+    # If employee.appraisals is None, existing appraisals are not touched.
+    if employee.appraisals is not None:
+        # 1. 删除该员工所有现有的年度考核记录
+        logger.info(f"Updating appraisals for employee {employee_id}. Deleting existing ones first.")
+        db.query(EmployeeAppraisal).filter(EmployeeAppraisal.employee_id == employee_id).delete(synchronize_session=False)
         
-        # 尝试查找现有的银行账户记录
-        bank_account = db.query(EmployeeBankAccount).filter(EmployeeBankAccount.employee_id == db_employee.id).first()
-        account_holder_name_to_set = f"{db_employee.first_name} {db_employee.last_name}" # 默认账户持有人姓名
+        # 2. 如果传入了新的 appraisals 数据 (i.e., list is not empty), 则创建它们
+        if employee.appraisals: # This ensures the list itself is not empty
+            logger.info(f"Adding {len(employee.appraisals)} new appraisal records.")
+            for appraisal_data_pydantic in employee.appraisals: # appraisal_data_pydantic is EmployeeAppraisalUpdate
+                # For new appraisals, id might not be present.
+                # Since current strategy is delete all then add all from payload, id from payload item is ignored.
+                appraisal_dict = appraisal_data_pydantic.model_dump(exclude_unset=True) 
+                
+                # Ensure 'id' and 'employee_id' from payload item are not used when creating new ORM instances
+                appraisal_dict.pop('id', None) 
+                appraisal_dict.pop('employee_id', None) # employee_id will be set from the main employee_id
 
-        if bank_account:
-            logger.info(f"CRUD LOG: Updating bank account for employee_id: {db_employee.id}")
-            bank_account.bank_name = employee.bank_name
-            bank_account.account_number = employee.bank_account_number
-            bank_account.account_holder_name = account_holder_name_to_set # 确保账户持有人姓名也更新或设置
-            bank_account_instance_for_logging = bank_account
-            # 其他银行账户字段可以按需更新，例如：
-            # bank_account.branch_name = employee.branch_name # 如果Pydantic模型中有
-            # bank_account.bank_code = employee.bank_code     # 如果Pydantic模型中有
-            # bank_account.is_primary = True # 根据业务逻辑设置
+                db_appraisal = EmployeeAppraisal(
+                    **appraisal_dict, 
+                    employee_id=employee_id 
+                )
+                db.add(db_appraisal)
         else:
-            logger.info(f"CRUD LOG: Creating new bank account for employee_id: {db_employee.id}")
-            new_bank_account = EmployeeBankAccount(
-                employee_id=db_employee.id,
-                bank_name=employee.bank_name,
-                account_number=employee.bank_account_number,
-                account_holder_name=account_holder_name_to_set,
-                is_primary=True # 通常第一个添加的银行账户设为主要
-                # 其他必须字段或有默认值的字段，例如 bank_code, branch_name, account_type_lookup_value_id
-            )
-            db.add(new_bank_account)
-            bank_account_instance_for_logging = new_bank_account
-    # 如果 bank_account_number 为空或None，当前逻辑是不删除现有银行账户。
-    # 如果需要删除，可以在此处添加 else: db.delete(bank_account) (在找到bank_account之后)
-
-    logger.info(f"CRUD LOG: Values before commit: dob={db_employee.date_of_birth}, email={db_employee.email}, phone={db_employee.phone_number}, home_address={db_employee.home_address}")
-    if bank_account_instance_for_logging:
-        logger.info(f"CRUD LOG: Bank account (instance for logging) before commit: name='{bank_account_instance_for_logging.bank_name}', number='{bank_account_instance_for_logging.account_number}'")
-    
-    # === Begin SQLAlchemy Inspect ===
-    try:
-        session_instance = inspect(db_employee).session
-        if session_instance:
-            logger.info(f"CRUD LOG: Employee object is in session: {session_instance}")
-            if db_employee in session_instance.dirty:
-                logger.info("CRUD LOG: Employee object IS marked as dirty in session.")
-            else:
-                logger.info("CRUD LOG: Employee object is NOT marked as dirty in session.")
-            
-            # Detailed attribute state
-            attr_state = inspect(db_employee).attrs.get('home_address')
-            if attr_state:
-                logger.info(f"CRUD LOG: Attribute 'home_address' state: value='{attr_state.value}', history_changed='{attr_state.history.has_changes()}'")
-        else:
-            logger.info("CRUD LOG: Employee object is NOT in a session.")
-    except Exception as e_inspect:
-        logger.error(f"CRUD LOG: Error during SQLAlchemy inspect: {e_inspect}")
-    # === End SQLAlchemy Inspect ===
-
-    db.commit()
-    logger.info(f"CRUD LOG: Values after commit, before refresh: dob={db_employee.date_of_birth}, email={db_employee.email}, phone={db_employee.phone_number}, home_address={db_employee.home_address}")
-    db.refresh(db_employee)
-    logger.info(f"CRUD LOG: Values after refresh: dob={db_employee.date_of_birth}, email={db_employee.email}, phone={db_employee.phone_number}, home_address={db_employee.home_address}")
-
-    # 重新查询银行账户信息以确认持久化状态
-    final_bank_account_check = db.query(EmployeeBankAccount).filter(EmployeeBankAccount.employee_id == db_employee.id).first()
-    if final_bank_account_check:
-        logger.info(f"CRUD LOG: Bank account (final check after refresh) for employee_id {db_employee.id}: name='{final_bank_account_check.bank_name}', number='{final_bank_account_check.account_number}'")
+            logger.info(f"Payload contained empty list for appraisals. All existing appraisals for employee {employee_id} were deleted and no new ones added.")
     else:
-        logger.info(f"CRUD LOG: No bank account found (final check after refresh) for employee_id {db_employee.id}")
+        logger.info(f"'appraisals' field was not provided or was null in the payload for employee {employee_id}. Existing appraisals remain untouched.")
+    
+    try:
+        db.commit()
+        db.refresh(db_employee)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error committing employee update for ID {employee_id}: {e}")
+        raise
         
-    return db_employee
+    # Re-query to load all relationships for the response
+    return get_employee(db, employee_id)
 
 
 def delete_employee(db: Session, employee_id: int) -> bool:
@@ -542,47 +515,47 @@ def delete_department(db: Session, department_id: int) -> bool:
     return True
 
 
-# JobTitle CRUD
-def get_job_titles(
+# PersonnelCategory CRUD (人员类别 CRUD)
+def get_personnel_categories(
     db: Session,
     parent_id: Optional[int] = None,
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
     skip: int = 0,
     limit: int = 100
-) -> Tuple[List[JobTitle], int]:
+) -> Tuple[List[PersonnelCategory], int]:
     """
-    获取职位列表。
+    获取人员类别列表。
 
     Args:
         db: 数据库会话
-        parent_id: 父职位ID
+        parent_id: 父人员类别ID
         is_active: 是否激活
         search: 搜索关键字
         skip: 跳过的记录数
         limit: 返回的记录数
 
     Returns:
-        职位列表和总记录数
+        人员类别列表和总记录数
     """
-    query = db.query(JobTitle)
+    query = db.query(PersonnelCategory)
 
     # 应用过滤条件
     if parent_id is not None:
-        query = query.filter(JobTitle.parent_job_title_id == parent_id)
-    # parent_id为None时，不加parent_job_title_id过滤，返回所有职位
+        query = query.filter(PersonnelCategory.parent_category_id == parent_id)
+    # parent_id为None时，不加parent_category_id过滤，返回所有人员类别
 
     if is_active is not None:
-        query = query.filter(JobTitle.is_active == is_active)
+        query = query.filter(PersonnelCategory.is_active == is_active)
 
     # 应用搜索过滤
     if search:
         search_term = f"%{search}%"
         query = query.filter(
             or_(
-                JobTitle.code.ilike(search_term),
-                JobTitle.name.ilike(search_term),
-                JobTitle.description.ilike(search_term)
+                PersonnelCategory.code.ilike(search_term),
+                PersonnelCategory.name.ilike(search_term),
+                PersonnelCategory.description.ilike(search_term)
             )
         )
 
@@ -590,124 +563,153 @@ def get_job_titles(
     total = query.count()
 
     # 应用排序和分页
-    query = query.order_by(JobTitle.name)
+    query = query.order_by(PersonnelCategory.name)
     query = query.offset(skip).limit(limit)
 
     return query.all(), total
 
 
-def get_job_title(db: Session, job_title_id: int) -> Optional[JobTitle]:
+def get_personnel_category(db: Session, personnel_category_id: int) -> Optional[PersonnelCategory]:
     """
-    根据ID获取职位。
+    根据ID获取人员类别。
 
     Args:
         db: 数据库会话
-        job_title_id: 职位ID
+        personnel_category_id: 人员类别ID
 
     Returns:
-        职位对象，如果不存在则返回None
+        人员类别对象，如果不存在则返回None
     """
-    return db.query(JobTitle).filter(JobTitle.id == job_title_id).first()
+    return db.query(PersonnelCategory).filter(PersonnelCategory.id == personnel_category_id).first()
 
 
-def get_job_title_by_code(db: Session, code: str) -> Optional[JobTitle]:
+def get_personnel_category_by_code(db: Session, code: str) -> Optional[PersonnelCategory]:
     """
-    根据代码获取职位。
+    根据代码获取人员类别。
 
     Args:
         db: 数据库会话
-        code: 职位代码
+        code: 人员类别代码
 
     Returns:
-        职位对象，如果不存在则返回None
+        人员类别对象，如果不存在则返回None
     """
-    return db.query(JobTitle).filter(JobTitle.code == code).first()
+    return db.query(PersonnelCategory).filter(PersonnelCategory.code == code).first()
 
 
-def create_job_title(db: Session, job_title: JobTitleCreate) -> JobTitle:
+def create_personnel_category(db: Session, personnel_category: PersonnelCategoryCreate) -> PersonnelCategory:
     """
-    创建职位。
+    创建人员类别。
 
     Args:
         db: 数据库会话
-        job_title: 职位创建模型
+        personnel_category: 人员类别创建模型
 
     Returns:
-        创建的职位对象
+        创建的人员类别对象
     """
-    # 检查职位代码是否已存在
-    existing = get_job_title_by_code(db, job_title.code)
+    # 检查人员类别代码是否已存在
+    existing = get_personnel_category_by_code(db, personnel_category.code)
     if existing:
-        raise ValueError(f"Job title with code '{job_title.code}' already exists")
+        raise ValueError(f"PersonnelCategory with code '{personnel_category.code}' already exists")
 
-    # 创建新的职位
-    db_job_title = JobTitle(**job_title.model_dump())
-    db.add(db_job_title)
+    # 创建新的人员类别
+    db_personnel_category = PersonnelCategory(**personnel_category.model_dump())
+    db.add(db_personnel_category)
     db.commit()
-    db.refresh(db_job_title)
-    return db_job_title
+    db.refresh(db_personnel_category)
+    return db_personnel_category
 
 
-def update_job_title(db: Session, job_title_id: int, job_title: JobTitleUpdate) -> Optional[JobTitle]:
+def update_personnel_category(db: Session, personnel_category_id: int, personnel_category: PersonnelCategoryUpdate) -> Optional[PersonnelCategory]:
     """
-    更新职位。
+    更新人员类别。
 
     Args:
         db: 数据库会话
-        job_title_id: 职位ID
-        job_title: 职位更新模型
+        personnel_category_id: 人员类别ID
+        personnel_category: 人员类别更新模型
 
     Returns:
-        更新后的职位对象，如果不存在则返回None
+        更新后的人员类别对象，如果不存在则返回None
     """
-    # 获取要更新的职位
-    db_job_title = get_job_title(db, job_title_id)
-    if not db_job_title:
+    # 获取要更新的人员类别
+    db_personnel_category = get_personnel_category(db, personnel_category_id)
+    if not db_personnel_category:
         return None
 
-    # 如果职位代码发生变化，检查新代码是否已存在
-    if job_title.code is not None and job_title.code != db_job_title.code:
-        existing = get_job_title_by_code(db, job_title.code)
+    # 如果人员类别代码发生变化，检查新代码是否已存在
+    if personnel_category.code is not None and personnel_category.code != db_personnel_category.code:
+        existing = get_personnel_category_by_code(db, personnel_category.code)
         if existing:
-            raise ValueError(f"Job title with code '{job_title.code}' already exists")
+            raise ValueError(f"PersonnelCategory with code '{personnel_category.code}' already exists")
 
-    # 更新职位
-    update_data = job_title.model_dump(exclude_unset=True)
+    # 更新人员类别
+    update_data = personnel_category.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(db_job_title, key, value)
+        setattr(db_personnel_category, key, value)
 
     db.commit()
-    db.refresh(db_job_title)
-    return db_job_title
+    db.refresh(db_personnel_category)
+    return db_personnel_category
 
 
-def delete_job_title(db: Session, job_title_id: int) -> bool:
+def delete_personnel_category(db: Session, personnel_category_id: int) -> bool:
     """
-    删除职位。
+    删除人员类别。
 
     Args:
         db: 数据库会话
-        job_title_id: 职位ID
+        personnel_category_id: 人员类别ID
 
     Returns:
         是否成功删除
     """
-    # 获取要删除的职位
-    db_job_title = get_job_title(db, job_title_id)
-    if not db_job_title:
+    # 获取要删除的人员类别
+    db_personnel_category = get_personnel_category(db, personnel_category_id)
+    if not db_personnel_category:
         return False
 
-    # 检查是否有员工工作历史引用了该职位
-    job_history_count = db.query(EmployeeJobHistory).filter(EmployeeJobHistory.job_title_id == job_title_id).count()
+    # 检查是否有员工工作历史引用了该人员类别
+    job_history_count = db.query(EmployeeJobHistory).filter(EmployeeJobHistory.personnel_category_id == personnel_category_id).count()
     if job_history_count > 0:
-        raise ValueError(f"Cannot delete job title with ID {job_title_id} because it is referenced by {job_history_count} employee job history records")
+        raise ValueError(f"Cannot delete PersonnelCategory with ID {personnel_category_id} because it is referenced by {job_history_count} employee job history records")
 
-    # 检查是否有子职位引用了该职位
-    child_job_title_count = db.query(JobTitle).filter(JobTitle.parent_job_title_id == job_title_id).count()
-    if child_job_title_count > 0:
-        raise ValueError(f"Cannot delete job title with ID {job_title_id} because it has {child_job_title_count} child job titles")
+    # 检查是否有子人员类别引用了该人员类别
+    child_category_count = db.query(PersonnelCategory).filter(PersonnelCategory.parent_category_id == personnel_category_id).count()
+    if child_category_count > 0:
+        raise ValueError(f"Cannot delete PersonnelCategory with ID {personnel_category_id} because it has {child_category_count} child categories")
 
-    # 删除职位
-    db.delete(db_job_title)
+    # 删除人员类别
+    db.delete(db_personnel_category)
     db.commit()
     return True
+
+# ADDED FUNCTION for getting positions
+def get_positions(
+    db: Session,
+    search: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    is_active: Optional[bool] = None
+) -> Tuple[List[PositionModel], int]:
+    """    
+    获取实际任职列表，支持分页、搜索和按激活状态过滤。
+    """
+    query = db.query(PositionModel)
+
+    if is_active is not None:
+        query = query.filter(PositionModel.is_active == is_active)
+
+    if search:
+        search_term = f"%{search.lower()}%"
+        query = query.filter(
+            or_(
+                func.lower(PositionModel.name).like(search_term),
+                func.lower(PositionModel.code).like(search_term) 
+            )
+        )
+    
+    total = query.count()
+    positions = query.order_by(PositionModel.name).offset(skip).limit(limit).all()
+    return positions, total
