@@ -9,17 +9,23 @@ const LanguageSwitcher: React.FC = () => {
   // 获取当前语言，支持zh-CN格式
   const currentLng = i18n.language;
 
+  // 安全地检查语言是否为中文
+  const checkIsChinese = (lang: string | undefined): boolean => {
+    if (lang && typeof lang === 'string') {
+      return lang === 'zh' || lang === 'zh-CN' || lang.startsWith('zh-');
+    }
+    return false; // 如果 lang 未定义或是非字符串，则默认为非中文
+  };
+
   const toggleLanguage = () => {
-    // 检查当前语言是否为中文（zh或zh-CN开头）
-    const isChinese = currentLng === 'zh' || currentLng === 'zh-CN' || currentLng.startsWith('zh-');
-    const newLang = isChinese ? 'en' : 'zh-CN'; // 切换到zh-CN而不是zh
+    const isCurrentlyChinese = checkIsChinese(currentLng);
+    const newLang = isCurrentlyChinese ? 'en' : 'zh-CN';
     i18n.changeLanguage(newLang);
   };
 
-  // 检查当前语言是否为中文（zh或zh-CN开头）
-  const isChinese = currentLng === 'zh' || currentLng === 'zh-CN' || currentLng.startsWith('zh-');
-  const buttonText = isChinese ? '中' : 'En';
-  const tooltipTitle = isChinese 
+  const isCurrentlyChineseForDisplay = checkIsChinese(currentLng);
+  const buttonText = isCurrentlyChineseForDisplay ? '中' : 'En';
+  const tooltipTitle = isCurrentlyChineseForDisplay 
     ? "Switch to English" 
     : "切换到中文";
 

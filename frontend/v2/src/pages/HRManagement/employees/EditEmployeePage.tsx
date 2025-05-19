@@ -111,17 +111,11 @@ const EditEmployeePage: React.FC = () => {
 
   return (
     <PageContainer
-      title={employeeDisplayName 
+      title={employeeDisplayName
         ? t('employee:edit_page.title_with_name', { employeeName: employeeDisplayName })
         : t('employee:edit_page.title')
       }
-      breadcrumb={{ 
-        items: breadcrumbItems, 
-        itemRender: (route, _params, routes, _paths) => { 
-          const last = routes.indexOf(route) === routes.length - 1; 
-          return last ? (<span>{route.title}</span>) : (<Link to="#" onClick={route.onClick}>{route.title}</Link>);
-        }
-      }}
+      breadcrumbRender={false}
     >
       <Card>
         <EmployeeForm
