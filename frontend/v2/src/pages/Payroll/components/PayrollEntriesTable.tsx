@@ -91,16 +91,18 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
     { 
       title: t('payroll_entries_table.column_employee_name'),
       dataIndex: 'employee_name', 
-      key: 'employee_name', 
+      key: 'employee_name',
+      sorter: true,
       render: (name, record) => name || <Tag>{t('payroll_entries_table.cell_name_supplement_needed')}</Tag>
     },
-    { title: t('payroll_entries_table.column_total_earnings'), dataIndex: 'total_earnings', key: 'total_earnings', render: amount => `${t('payroll_entries_table.currency_symbol')}${amount.toFixed(2)}` },
-    { title: t('payroll_entries_table.column_total_deductions'), dataIndex: 'total_deductions', key: 'total_deductions', render: amount => `${t('payroll_entries_table.currency_symbol')}${amount.toFixed(2)}` },
-    { title: t('payroll_entries_table.column_net_pay'), dataIndex: 'net_pay', key: 'net_pay', render: amount => `${t('payroll_entries_table.currency_symbol')}${amount.toFixed(2)}` },
+    { title: t('payroll_entries_table.column_total_earnings'), dataIndex: 'total_earnings', key: 'total_earnings', sorter: true, render: amount => `${t('payroll_entries_table.currency_symbol')}${amount.toFixed(2)}` },
+    { title: t('payroll_entries_table.column_total_deductions'), dataIndex: 'total_deductions', key: 'total_deductions', sorter: true, render: amount => `${t('payroll_entries_table.currency_symbol')}${amount.toFixed(2)}` },
+    { title: t('payroll_entries_table.column_net_pay'), dataIndex: 'net_pay', key: 'net_pay', sorter: true, render: amount => `${t('payroll_entries_table.currency_symbol')}${amount.toFixed(2)}` },
     {
       title: t('payroll_entries_table.column_status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
+      sorter: true,
       render: (statusId?: number) => {
         const statusInfo = getPayrollEntryStatusDisplay(statusId); // Use imported utility
         return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
@@ -110,6 +112,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       title: t('payroll_entries_table.column_remarks'),
       dataIndex: 'remarks',
       key: 'remarks',
+      sorter: true,
       ellipsis: true,
       render: text => text || t('payroll_entries_table.cell_remarks_empty'),
     },

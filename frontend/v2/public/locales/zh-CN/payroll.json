@@ -268,5 +268,67 @@
       "alert_error_prefix": "错误: ",
       "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
       "currency_symbol": "¥"
+    },
+    "period": {
+      "title": "工资周期管理",
+      "create_button": "创建工资周期",
+      "table": {
+        "id": "ID",
+        "name": "周期名称",
+        "start_date": "开始日期",
+        "end_date": "结束日期",
+        "status": "状态",
+        "actions": "操作"
+      },
+      "status": {
+        "open": "开放",
+        "closed": "关闭",
+        "processing": "处理中",
+        "na": "不适用"
+      },
+      "form": {
+        "create_title": "创建工资周期",
+        "edit_title": "编辑工资周期",
+        "name_label": "周期名称",
+        "name_placeholder": "请输入周期名称",
+        "start_date_label": "开始日期",
+        "end_date_label": "结束日期",
+        "status_label": "状态",
+        "status_placeholder": "请选择状态",
+        "submit_button": "提交",
+        "cancel_button": "取消"
+      },
+      "message": {
+        "create_success": "工资周期创建成功",
+        "create_failed": "工资周期创建失败",
+        "update_success": "工资周期更新成功",
+        "update_failed": "工资周期更新失败",
+        "delete_success": "工资周期删除成功",
+        "delete_failed": "工资周期删除失败",
+        "delete_confirm": "确定要删除该工资周期吗？"
+      },
+      "monthly_payroll": "月度工资 {month} {year}"
+    },
+    "run": {
+      "title": "工资计算批次",
+      "create_button": "创建计算批次",
+      "table": {
+        "id": "ID",
+        "name": "批次名称",
+        "period": "工资周期",
+        "status": "状态",
+        "created_at": "创建时间",
+        "actions": "操作"
+      },
+      "status": {
+        "draft": "草稿",
+        "processing": "处理中",
+        "completed": "已完成",
+        "failed": "失败",
+        "approved": "已批准",
+        "rejected": "已拒绝",
+        "published": "已发布",
+        "na": "不适用"
+      }
     }
   }

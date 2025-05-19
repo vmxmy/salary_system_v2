@@ -1,0 +1,164 @@
+{
+  "bulk_import": {
+    "page_title": "Bulk Import Employees",
+    "steps": {
+      "input_data": "Input Data",
+      "preview_data": "Preview Data",
+      "upload_progress": "Upload Progress",
+      "results": "Results"
+    },
+    "card_title": {
+      "select_or_paste_json": "Select or Paste JSON Data",
+      "preview_data": "Preview Parsed Data",
+      "uploading_data": "Uploading Data",
+      "upload_results": "Upload Results",
+      "preview_data_count": "Preview Data ({{count}} records)"
+    },
+    "button": {
+      "select_file_to_fill_editor": "Select File to Fill Editor",
+      "start_upload": "Start Upload",
+      "import_another_file": "Import Another File",
+      "parse_and_preview": "Parse and Preview Data"
+    },
+    "placeholder": {
+      "paste_json_here": "Paste JSON data here...",
+      "paste_json_here_or_drag": "Paste JSON data here, or drag file to this area",
+      "drag_paste_or_type": "Drag JSON file here, or click to select, or paste/edit JSON content directly here."
+    },
+    "dragger": {
+      "title": "Click or drag JSON file to this area",
+      "hint": "Supports a single JSON file. Content will be displayed and editable here."
+    },
+    "notes": {
+      "json_format_intro": "Please ensure your JSON file or pasted content follows this basic format (refer to documentation for field details):",
+      "refer_to_documentation_for_fields": "For detailed specifications of all required and optional fields, please refer to the project documentation on employee data import.",
+      "preview_warning_max_100": "Note: A maximum of 100 records are shown for preview. All successfully parsed data will be attempted for upload."
+    },
+    "message": {
+      "file_parsed_success": "File parsed successfully, {{count}} records available for preview.",
+      "file_parse_error": "File parse failed",
+      "upload_in_progress": "Uploading data, please wait...",
+      "upload_success": "Successfully uploaded {{count}} employee records.",
+      "upload_failed_prefix": "Bulk upload failed: "
+    },
+    "validation": {
+      "json_only": "Please upload JSON files only (.json).",
+      "json_not_array": "JSON data must be an array.",
+      "no_data_to_upload": "No data to upload or JSON content is empty.",
+      "missing_or_invalid_field": "Field '{{field}}' in record '{{record}}' is missing or invalid (expected type: {{type}}).",
+      "invalid_date_format": "Date field '{{field}}' in record '{{record}}' has an invalid format (expected format: {{format}}).",
+      "status_is_number": "The status_lookup_value_id field in record '{{record}}' must be a number."
+    },
+    "results": {
+      "all_success": "All {{count}} records imported successfully!",
+      "partial_success": "{{success}} records imported successfully, {{error}} records failed."
+    },
+    "results_table": {
+      "title_failed_records": "Failed Records",
+      "title_successfully_imported_records_preview": "Successfully Imported Records Preview (max 100)",
+      "employee_code": "Employee Code",
+      "name": "Name",
+      "error_message": "Error Message"
+    },
+    "table_header": {
+        "employee_code": "Employee Code",
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "id_number": "ID Number",
+        "date_of_birth": "Date of Birth",
+        "hire_date": "Hire Date",
+        "first_work_date": "First Work Date",
+        "department_name": "Department",
+        "position_name": "Position",
+        "status_lookup_value_name": "Employee Status",
+        "gender_lookup_value_name": "Gender",
+        "employment_type_lookup_value_name": "Employment Type",
+        "education_level_lookup_value_name": "Education Level",
+        "marital_status_lookup_value_name": "Marital Status",
+        "political_status_lookup_value_name": "Political Status",
+        "contract_type_lookup_value_name": "Contract Type",
+        "personnel_category_name": "Personnel Category",
+        "nationality": "Nationality",
+        "ethnicity": "Ethnicity",
+        "email": "Email",
+        "phone_number": "Phone Number",
+        "interrupted_service_years": "Interrupted Service Years",
+        "home_address": "Home Address",
+        "probationEndDate": "Probation End Date",
+        "workLocation": "Work Location",
+        "reports_to_employee_code": "Reports To (Employee Code)",
+        "initialContractStartDate": "Initial Contract Start Date",
+        "initialContractEndDate": "Initial Contract End Date",
+        "bank_name": "Bank Name",
+        "bank_account_number": "Bank Account Number",
+        "emergency_contact_name": "Emergency Contact Name",
+        "emergency_contact_phone": "Emergency Contact Phone",
+        "emergencyContactRelation": "Emergency Contact Relation",
+        "notes": "Notes",
+        "avatar": "Avatar URL",
+        "gender_name": "Gender",
+        "status_name": "Employee Status",
+        "employment_type_name": "Employment Type",
+        "education_level_name": "Education Level",
+        "marital_status_name": "Marital Status",
+        "political_status_name": "Political Status",
+        "contract_type_name": "Contract Type",
+        "entry_date_to_current_organization": "Date of Joining Current Organization",
+        "validation_errors": "Validation Errors"
+    }
+  },
+  "employee": {
+    "fields": {
+        "employee_code": "Employee Code",
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "email": "Email",
+        "phone_number": "Phone Number",
+        "hire_date": "Hire Date",
+        "gender": "Gender",
+        "id_number": "ID Number",
+        "date_of_birth": "Date of Birth",
+        "ethnicity": "Ethnicity",
+        "education_level": "Education Level",
+        "first_work_date": "First Work Date",
+        "personnel_category": "Personnel Category",
+        "actual_position": "Actual Position",
+        "employee_status": "Employee Status",
+        "department": "Department",
+        "position": "Position",
+        "employment_type": "Employment Type",
+        "marital_status": "Marital Status",
+        "political_status": "Political Status",
+        "contract_type": "Contract Type",
+        "nationality_placeholder": "Nationality",
+        "interrupted_service_years": "Interrupted Service Years",
+        "home_address": "Home Address",
+        "probationEndDate": "Probation End Date",
+        "workLocation": "Work Location",
+        "reports_to_employee": "Reports To",
+        "initialContractStartDate": "Initial Contract Start Date",
+        "initialContractEndDate": "Initial Contract End Date",
+        "bank_name": "Bank Name",
+        "bank_account_number": "Bank Account Number",
+        "emergency_contact_name": "Emergency Contact Name",
+        "emergency_contact_phone": "Emergency Contact Phone",
+        "emergencyContactRelation": "Emergency Contact Relation",
+        "notes": "Notes"
+    },
+    "list_page": {
+        "filter_form": {
+            "label": {
+                "personnel_category": "Personnel Category"
+            },
+            "placeholder": {
+                "personnel_category": "Select personnel category"
+            }
+        },
+        "table": {
+            "column": {
+                "personnel_category": "Personnel Category"
+            }
+        }
+    }
+  }
+} 

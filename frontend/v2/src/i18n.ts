@@ -30,7 +30,8 @@ export const i18nInitOptions = {
     'permission',
     'role',
     'user',
-    'personnelCategory'
+    'personnelCategory',
+    'hr' // Added hr namespace
   ],
   defaultNS: 'common', // Default namespace to use
   backend: {

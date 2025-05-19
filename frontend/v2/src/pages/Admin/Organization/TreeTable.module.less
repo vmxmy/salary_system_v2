@@ -36,3 +36,44 @@
   background-color: #fafafa;
   font-weight: 500;
 }
+/* 自定义展开/折叠按钮样式 */
+.tree-table {
+  :global(.ant-table-row-expand-icon) {
+    font-size: var(--ant-table-expand-icon-font-size, 12px); /* 使用 CSS 变量，并提供一个回退值 */
+    color: #0056b3; /* 更深更饱和的蓝色 */
+    background-color: #e6f7ff; /* 浅蓝色背景 */
+    border: 1px solid #91d5ff; /* 配套边框颜色 */
+    border-radius: 4px;
+    padding: 2px; /* 轻微内边距 */
+    margin-right: 8px;
+    transition: all 0.2s ease-in-out;
+    vertical-align: middle; /* 确保垂直居中 */
+    display: inline-flex; /* 使用 flex 确保内部图标居中 */
+    align-items: center;
+    justify-content: center;
+    width: 20px; /* 固定宽度 */
+    height: 20px; /* 固定高度 */
+  }
+
+  :global(.ant-table-row-expand-icon):hover {
+    background-color: #d0ebff; /* 鼠标悬停时略深的背景 */
+    border-color: #69c0ff; /* 鼠标悬停时略深的边框 */
+  }
+
+  /* 针对展开状态的图标 (通常是减号) */
+  :global(.ant-table-row-expand-icon.ant-table-row-expanded)::before {
+    /* 如果需要特别调整减号的样式，可以在这里添加 */
+  }
+
+  /* 针对折叠状态的图标 (通常是加号) */
+  :global(.ant-table-row-expand-icon.ant-table-row-collapsed)::before {
+    /* 如果需要特别调整加号的样式，可以在这里添加 */
+  }
+
+  /* 确保图标在没有子节点时不显示或有占位符 */
+  :global(.ant-table-row-expand-icon.ant-table-row-spaced) {
+    background-color: transparent;
+    border: none;
+    cursor: default;
+  }
+}

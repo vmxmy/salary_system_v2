@@ -45,6 +45,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       title: t('employee:detail_page.job_history_tab.table.column_department', '部门'),
       dataIndex: 'department_id',
       key: 'department_id',
+      sorter: true,
       render: (id?: number) => id ? (lookupMaps?.departmentMap?.get(id) || String(id)) : naText,
       width: 150,
     },
@@ -52,6 +53,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       title: t('employee:detail_page.job_history_tab.table.column_job_title', '职位'),
       dataIndex: 'job_title_id',
       key: 'job_title_id',
+      sorter: true,
       render: (id?: number) => id ? (lookupMaps?.jobTitleMap?.get(id) || String(id)) : naText,
       width: 150,
     },
@@ -59,6 +61,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       title: t('employee:detail_page.job_history_tab.table.column_employment_type', '雇佣类型'),
       dataIndex: 'employment_type_lookup_value_id',
       key: 'employment_type_lookup_value_id',
+      sorter: true,
       render: (id?: number) => {
         const typeText = id ? (lookupMaps?.employmentTypeMap?.get(id) || String(id)) : naText;
         return <Tag>{typeText}</Tag>;
@@ -69,6 +72,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       title: t('employee:detail_page.job_history_tab.table.column_salary', '薪资'),
       dataIndex: 'salary',
       key: 'salary',
+      sorter: true,
       align: 'right',
       render: (salary?: number) => salary ? salary.toLocaleString() : naText,
       width: 100,

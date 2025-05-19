@@ -13,8 +13,8 @@ import { message } from 'antd';
 export interface LookupMaps {
   genderMap: Map<number, string>;
   statusMap: Map<number, string>;
-  departmentMap: Map<number, string>;
-  personnelCategoryMap: Map<number, string>;
+  departmentMap: Map<string, string>;
+  personnelCategoryMap: Map<string, string>;
   employmentTypeMap: Map<number, string>;
   contractTypeMap: Map<number, string>;
   educationLevelMap: Map<number, string>;
@@ -23,7 +23,7 @@ export interface LookupMaps {
   leaveTypeMap: Map<number, string>;
   payFrequencyMap: Map<number, string>;
   contractStatusMap?: Map<number, string>;
-  positionMap: Map<number, string>;
+  positionMap: Map<string, string>;
   // Add more maps as needed
 }
 
@@ -56,23 +56,93 @@ const createFlatMapFromTree = (
   nodes: DepartmentType[] | PersonnelCategoryType[] | PositionType[], 
   idKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'id',
   nameKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'name'
-): Map<number, string> => {
-  const flatMap = new Map<number, string>();
-  const stack = [...nodes];
-  while (stack.length > 0) {
-    const node = stack.pop();
-    if (node) {
-      // Assuming id and name are present and id is number. Adjust if types differ.
-      const id = node[idKey] as number;
-      const name = node[nameKey] as string;
-      if (id != null && name != null) {
-        flatMap.set(id, name);
+): Map<string, string> => {
+  console.log(`\n========= 开始创建平面映射表 =========`);
+  console.log(`数据类型: ${nodes && nodes.length > 0 ? nodes[0].constructor.name : '未知'}`);
+  console.log(`ID字段: ${String(idKey)}, 名称字段: ${String(nameKey)}`);
+  console.log(`节点数量: ${nodes ? nodes.length : 0}`);
+  
+  const flatMap = new Map<string, string>();
+  
+  // 检查输入是否为空数组
+  if (!nodes || nodes.length === 0) {
+    console.warn('⚠️ createFlatMapFromTree: 输入为空数组');
+    return flatMap;
+  }
+  
+  // 输出前3个节点的详细结构
+  console.log('输入数据预览:');
+  for (let i = 0; i < Math.min(3, nodes.length); i++) {
+    const node = nodes[i];
+    console.log(`节点[${i}]: {
+      ${String(idKey)}: ${node[idKey]} (${typeof node[idKey]}),
+      ${String(nameKey)}: ${node[nameKey]} (${typeof node[nameKey]}),
+      children: ${node['children' as keyof typeof node] ? 
+        `Array[${(node['children' as keyof typeof node] as any[]).length}]` : 
+        'undefined'}
+    }`);
+  }
+  
+  // 处理节点和子节点
+  const processNode = (node: any) => {
+    try {
+      // 更安全的属性访问
+      const nodeId = node[idKey];
+      const nodeName = node[nameKey];
+      
+      if (nodeId === undefined || nodeId === null || nodeName === undefined || nodeName === null) {
+        console.warn(`⚠️ 节点缺少有效的ID或名称: id=${nodeId}, name=${nodeName}`, node);
+        return;
       }
-      if ((node as any).children && Array.isArray((node as any).children)) {
-        stack.push(...(node as any).children);
+      
+      // 尝试将ID转换为数字
+      let numericId: number;
+      if (typeof nodeId === 'number') {
+        numericId = nodeId;
+      } else if (typeof nodeId === 'string') {
+        numericId = parseInt(nodeId, 10);
+        if (isNaN(numericId)) {
+          console.warn(`⚠️ 字符串ID "${nodeId}" 无法转换为数字`);
+          return;
+        }
+      } else {
+        console.warn(`⚠️ 不支持的ID类型: ${typeof nodeId}`);
+        return;
       }
+      
+      // 将转换后的ID和名称加入映射表
+      flatMap.set(String(nodeId), String(nodeName));
+      
+      // 处理子节点
+      const childrenField = 'children';
+      if (node[childrenField] && Array.isArray(node[childrenField])) {
+        node[childrenField].forEach(processNode);
+      }
+    } catch (err) {
+      console.error('❌ 处理节点时出错:', err, node);
+    }
+  };
+  
+  // 处理所有顶级节点及其子节点
+  nodes.forEach(processNode);
+  
+  console.log(`\n✅ 映射表创建完成:`);
+  console.log(`- 映射表项目数: ${flatMap.size}`);
+  
+  if (flatMap.size > 0) {
+    console.log('映射表内容预览:');
+    const previewEntries = Array.from(flatMap.entries()).slice(0, 5);
+    previewEntries.forEach(([key, value], index) => {
+      console.log(`  ${index+1}. ${key} => "${value}"`);
+    });
+    
+    if (flatMap.size > 5) {
+      console.log(`  ... 还有${flatMap.size - 5}项`);
     }
   }
+  
+  console.log('========= 映射表创建结束 =========\n');
+  
   return flatMap;
 };
 
@@ -83,10 +153,14 @@ export const useLookupMaps = (): UseLookupsResult => {
   const [errorLookups, setErrorLookups] = useState<any>(null);
 
   useEffect(() => {
+    let isMounted = true; // 添加组件挂载状态跟踪
     const fetchAllLookups = async () => {
+      if (!isMounted) return; // 如果组件已卸载，不执行操作
+      
       setLoadingLookups(true);
       setErrorLookups(null);
       try {
+        console.log('开始获取所有lookups数据');
         const [
           genders,
           statuses,
@@ -117,14 +191,59 @@ export const useLookupMaps = (): UseLookupsResult => {
           lookupService.getPositionsLookup()
         ]);
 
+        if (!isMounted) return; // 再次检查，避免在异步操作后组件已卸载
+
+        console.log('所有lookups API调用已返回', {
+          genders: genders.length,
+          statuses: statuses.length,
+          departments: departments.length,
+          personnelCategories: personnelCategories.length,
+          empTypes: empTypes.length,
+          contractTypesData: contractTypesData.length,
+          eduLevels: eduLevels.length,
+          maritals: maritals.length,
+          politicals: politicals.length,
+          leaveTypesData: leaveTypesData.length,
+          payFrequencies: payFrequencies.length,
+          contractStatusesData: contractStatusesData ? contractStatusesData.length : 'undefined',
+          positions: positions.length
+        });
+
+        console.log('API返回的departments数据:', {
+          departments: departments,
+          length: departments.length,
+          sample: departments.slice(0, 2)
+        });
+        console.log('API返回的personnelCategories数据:', {
+          personnelCategories: personnelCategories,
+          length: personnelCategories.length,
+          sample: personnelCategories.slice(0, 2)
+        });
+
         const createMapFromArray = (items: LookupItem[]): Map<number, string> =>
           new Map(items.map(item => [Number(item.value), item.label]));
 
-        setLookupMaps({
+        // 创建部门和人员身份映射表
+        const departmentMap = createFlatMapFromTree(departments);
+        console.log('departmentMap创建结果:', {
+          size: departmentMap.size,
+          entries: Array.from(departmentMap.entries()).slice(0, 3)
+        });
+        
+        const personnelCategoryMap = createFlatMapFromTree(personnelCategories);
+        console.log('personnelCategoryMap创建结果:', {
+          size: personnelCategoryMap.size,
+          entries: Array.from(personnelCategoryMap.entries()).slice(0, 3)
+        });
+
+        // 确保所有映射表都创建完成后，创建最终的lookupMaps对象
+        if (!isMounted) return; // 再次检查，避免在状态更新前组件已卸载
+        
+        const newLookupMaps: LookupMaps = {
           genderMap: createMapFromArray(genders),
           statusMap: createMapFromArray(statuses),
-          departmentMap: createFlatMapFromTree(departments),
-          personnelCategoryMap: createFlatMapFromTree(personnelCategories), // MODIFIED from jobTitleMap and jobTitles
+          departmentMap,
+          personnelCategoryMap,
           employmentTypeMap: createMapFromArray(empTypes),
           contractTypeMap: createMapFromArray(contractTypesData),
           educationLevelMap: createMapFromArray(eduLevels),
@@ -132,37 +251,48 @@ export const useLookupMaps = (): UseLookupsResult => {
           politicalStatusMap: createMapFromArray(politicals),
           leaveTypeMap: createMapFromArray(leaveTypesData),
           payFrequencyMap: createMapFromArray(payFrequencies),
-          contractStatusMap: createMapFromArray(contractStatusesData),
-          positionMap: createFlatMapFromTree(positions, 'id', 'name')
-        });
+          positionMap: createFlatMapFromTree(positions),
+          // 可选的contractStatusMap，如果contractStatusesData存在的话
+          ...(contractStatusesData ? { contractStatusMap: createMapFromArray(contractStatusesData) } : {})
+        };
 
-        setRawLookups({
-          genderOptions: genders,
-          statusOptions: statuses,
-          departmentOptions: departments,
-          personnelCategoryOptions: personnelCategories, // MODIFIED from jobTitleOptions and jobTitles
-          employmentTypeOptions: empTypes,
-          contractTypeOptions: contractTypesData,
-          educationLevelOptions: eduLevels,
-          maritalStatusOptions: maritals,
-          politicalStatusOptions: politicals,
-          leaveTypeOptions: leaveTypesData,
-          payFrequencyOptions: payFrequencies,
-          employeeStatuses: statuses,
-          contractStatusOptions: contractStatusesData,
-          positionOptions: positions
-        });
+        // 在组件仍然挂载的情况下更新状态
+        if (isMounted) {
+          setLookupMaps(newLookupMaps);
+          setRawLookups({
+            genderOptions: genders,
+            statusOptions: statuses,
+            departmentOptions: departments,
+            personnelCategoryOptions: personnelCategories,
+            employmentTypeOptions: empTypes,
+            contractTypeOptions: contractTypesData,
+            educationLevelOptions: eduLevels,
+            maritalStatusOptions: maritals,
+            politicalStatusOptions: politicals,
+            leaveTypeOptions: leaveTypesData,
+            payFrequencyOptions: payFrequencies,
+            employeeStatuses: statuses, // 保持一致性，可能是之前的另一个引用
+            contractStatusOptions: contractStatusesData || [],
+            positionOptions: positions
+          });
+          setLoadingLookups(false);
+        }
       } catch (error) {
-        console.error("Failed to fetch lookups:", error);
-        message.error('加载辅助选项数据失败');
-        setErrorLookups(error);
-      } finally {
-        setLoadingLookups(false);
+        if (isMounted) {
+          console.error('❌ useLookupMaps 获取数据失败:', error);
+          setErrorLookups(error);
+          setLoadingLookups(false);
+        }
       }
     };
 
     fetchAllLookups();
-  }, []);
+
+    // 清理函数，当组件卸载时设置isMounted为false
+    return () => {
+      isMounted = false;
+    };
+  }, []); // 仅在组件挂载时执行一次
 
   return { lookupMaps, rawLookups, loadingLookups, errorLookups };
 }; 

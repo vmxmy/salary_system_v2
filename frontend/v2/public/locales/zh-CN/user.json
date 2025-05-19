@@ -1,5 +1,11 @@
 {
   "title": "用户管理",
+  "user_list_page": {
+    "title": "用户列表",
+    "button": {
+      "create_user": "创建用户"
+    }
+  },
   "button": {
     "create_user": "新建用户"
   },
@@ -73,8 +79,8 @@
         "employee_association": "员工关联"
     },
     "label": {
-        "employee_first_name": "员工的姓",
-        "employee_last_name": "员工的名",
+        "employee_first_name": "员工的名",
+        "employee_last_name": "员工的姓",
         "employee_id_card": "身份证号"
     },
     "placeholder": {

@@ -66,6 +66,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       title: t('employee:detail_page.compensation_tab.table.column_pay_frequency', 'Pay Frequency'),
       dataIndex: 'pay_frequency_lookup_value_id',
       key: 'pay_frequency_lookup_value_id',
+      sorter: true,
       render: (id: number) => {
         return lookupMaps?.payFrequencyMap?.get(id) || id?.toString() || naText;
       },
@@ -74,18 +75,21 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       title: t('employee:detail_page.compensation_tab.table.column_currency', 'Currency'),
       dataIndex: 'currency',
       key: 'currency',
+      sorter: true,
       render: (text) => text || defaultCurrencyText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_change_reason', 'Reason for Change'),
       dataIndex: 'change_reason', // Corrected: types.ts uses change_reason
       key: 'change_reason',
+      sorter: true,
       ellipsis: true,
     },
     {
       title: t('common:label.remarks', 'Remarks'),
       dataIndex: 'remarks',
       key: 'remarks',
+      sorter: true,
       ellipsis: true,
     },
   ];

@@ -258,5 +258,45 @@
     "alert_error_prefix": "Error: ",
     "pagination_show_total": "Showing {range0}-{range1} of {total} items",
     "currency_symbol": "¥"
+  },
+  "period": {
+    "title": "Payroll Period Management",
+    "create_button": "Create Payroll Period",
+    "table": {
+      "id": "ID",
+      "name": "Period Name",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "processing": "Processing",
+      "na": "N/A"
+    },
+    "form": {
+      "create_title": "Create Payroll Period",
+      "edit_title": "Edit Payroll Period",
+      "name_label": "Period Name",
+      "name_placeholder": "Please enter period name",
+      "start_date_label": "Start Date",
+      "end_date_label": "End Date",
+      "status_label": "Status",
+      "status_placeholder": "Please select status",
+      "submit_button": "Submit",
+      "cancel_button": "Cancel"
+    },
+    "message": {
+      "create_success": "Payroll period created successfully",
+      "create_failed": "Failed to create payroll period",
+      "update_success": "Payroll period updated successfully",
+      "update_failed": "Failed to update payroll period",
+      "delete_success": "Payroll period deleted successfully",
+      "delete_failed": "Failed to delete payroll period",
+      "delete_confirm": "Are you sure you want to delete this payroll period?"
+    },
+    "monthly_payroll": "Monthly Payroll {month} {year}"
   }
 }

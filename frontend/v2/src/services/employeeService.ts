@@ -99,14 +99,20 @@ export const employeeService = {
     }
   },
 
-  async createEmployee(payload: CreateEmployeePayload): Promise<Employee> {
+  async createEmployee(employeeData: CreateEmployeePayload): Promise<Employee> {
     try {
-      const response = await apiClient.post<Employee>(`/employees`, payload);
+      const response = await apiClient.post<Employee>('/employees/', employeeData);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating employee:', error);
-      console.error('Error creating employee - Response data:', error.response?.data);
-      throw error;
+      console.error('Error creating employee - Raw error:', error);
+      if (error.response && error.response.data && error.response.data.detail) {
+        console.error('Error creating employee - Response data detail:', JSON.stringify(error.response.data.detail, null, 2));
+      } else if (error.response && error.response.data) {
+        console.error('Error creating employee - Response data:', error.response.data);
+      }
+      // Propagate a more structured error or a user-friendly message
+      const errorMessage = error.response?.data?.detail?.[0]?.msg || error.response?.data?.detail || 'Failed to create employee';
+      throw new Error(errorMessage);
     }
   },
 
@@ -125,6 +131,22 @@ export const employeeService = {
       await apiClient.delete(`/employees/${id}`);
     } catch (error) {
       console.error(`Error deleting employee with id ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // ADD THE NEW FUNCTION HERE
+  async bulkCreateEmployees(payload: CreateEmployeePayload[]): Promise<{ data: Employee[] }> { // Assuming Employee[] is the expected return type for created employees
+    try {
+      // T in apiClient.post<T> refers to the type of the 'data' field in the AxiosResponse
+      // So, if the backend response body is { "data": Employee[] }, then T should be { data: Employee[] }
+      const response = await apiClient.post<{ data: Employee[] }>('/employees/bulk', payload); // CORRECTED URL: Removed /v2/
+      // response here is AxiosResponse<{ data: Employee[] }>
+      // response.data here is { data: Employee[] }
+      return response.data; // This should align with the Promise<{ data: Employee[] }> signature
+    } catch (error: any) {
+      console.error('Error bulk creating employees:', error);
+      console.error('Error bulk creating employees - Response data:', error.response?.data);
       throw error;
     }
   },

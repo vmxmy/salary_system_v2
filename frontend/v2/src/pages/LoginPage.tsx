@@ -5,6 +5,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import type { LoginCredentials } from '../api/auth'; // 确保 LoginCredentials 在 api/auth.ts 中定义并导出
+import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Import the logo
 
 const { Title } = Typography;
 
@@ -59,20 +60,7 @@ const LoginPage: React.FC = () => {
         <Card variant="outlined" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' /* REMOVE position: 'relative' */ }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' /* REMOVE marginTop: '40px' */ }}>
             {/* Changed logo to a text placeholder */}
-            <div style={{ 
-              height: '60px', // Approximate height for logo area
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '24px', 
-              color: '#8c8c8c', // Lighter text color for placeholder
-              // backgroundColor: '#f0f0f0', // Optional placeholder background
-              // borderRadius: '4px', // Optional placeholder border radius
-              marginBottom: '20px',
-              border: '1px dashed #d9d9d9' // Placeholder border to mimic image
-            }}>
-              App Logo
-            </div>
+            <img src={hyperchainLogoPath} alt="App Logo" style={{ height: '50px', marginBottom: '20px' }} />
             <Title level={2} style={{ marginBottom: '24px' /* Added margin below title */ }}>{t('login_page_title', { ns: 'auth' })}</Title>
           </div>
           <Form
@@ -102,21 +90,21 @@ const LoginPage: React.FC = () => {
               <Input.Password prefix={<LockOutlined />} size="large" autoComplete="current-password" /* Removed placeholder */ />
             </Form.Item>
 
-            <Form.Item name="remember" valuePropName="checked" style={{ marginBottom: '24px' /* Adjusted spacing */ }}>
+            <Form.Item name="remember" valuePropName="checked">
               <Checkbox>{t('remember_me_checkbox', { ns: 'common' })}</Checkbox>
             </Form.Item>
 
             {loginError && (
-              <Form.Item style={{ marginBottom: '24px' /* Adjusted spacing */ }}>
+              <Form.Item>
                 <Alert message={loginError} type="error" showIcon closable onClose={clearLoginError} />
               </Form.Item>
             )}
 
-            <Form.Item style={{ marginBottom: '12px' }}>
+            <Form.Item>
               <Button type="primary" htmlType="submit" loading={isLoadingUser} style={{ width: '100%' }} size="large" shape="round">
-                  {t('login_button', { ns: 'common' })}
-                </Button>
-              </Form.Item>
+                {t('login_button', { ns: 'common' })}
+              </Button>
+            </Form.Item>
           </Form>
         </Card>
       </Col>

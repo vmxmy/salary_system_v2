@@ -23,12 +23,14 @@ import {
   CalculatorOutlined,
   SolutionOutlined,
   ProfileOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions } from '../hooks/usePermissions';
 import { allAppRoutes, type AppRouteObject } from '../router/routes'; // Import allAppRoutes and AppRouteObject type
 import LanguageSwitcher from '../components/common/LanguageSwitcher'; // Import LanguageSwitcher
 import { useTranslation } from 'react-i18next'; // Import useTranslation
+import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Standard image import
 
 // Import payroll permissions
 import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW } from '../pages/Payroll/constants/payrollPermissions';
@@ -188,25 +190,48 @@ const MainLayout: React.FC = () => {
 
   const hrManagementChildren = useMemo(() => {
     console.log('[MainLayout:HRMenu] ready state:', ready);
-    return [
-    {
+    const children = [
+      {
         key: '/hr/employees',
         label: <Link to="/hr/employees">{t('pageTitle:employee_files')}</Link>, 
         icon: <TeamOutlined />, 
-    },
-    {
-      label: <Link to="/hr/employees/create">{t('pageTitle:create_employee')}</Link>,
-      key: '/hr/employees/create', 
-      icon: <UserAddOutlined />,
-    },
-  ]}, [t, ready]); // Added ready and t
+      },
+      {
+        label: <Link to="/hr/employees/new">{t('pageTitle:create_employee')}</Link>, // Ensure key matches path used in routes.tsx for creation
+        key: '/hr/employees/new', // Corrected from /hr/employees/create if routes.tsx uses /new
+        icon: <UserAddOutlined />,
+      },
+    ];
+
+    // Conditionally add Bulk Import if user has permission
+    // Assuming P_EMPLOYEE_CREATE is the correct permission for bulk import as well
+    if (hasPermission('P_EMPLOYEE_CREATE')) { 
+      children.push({
+        label: <Link to="/hr/employees/bulk-import">{t('pageTitle:bulk_import_employees')}</Link>,
+        key: '/hr/employees/bulk-import',
+        icon: <UploadOutlined />, // Using UploadOutlined as an example
+      });
+    }
+    
+    // Potentially add other HR related sub-menu items here, e.g., Leave Management
+    // Example for Leave Management, if it's to be a sub-menu of HR and not top-level:
+    // if (hasPermission('leave:manage')) { // Or appropriate permission for leave management visibility
+    //   children.push({
+    //     key: '/hr/leave', 
+    //     label: <Link to="/hr/leave">{t('pageTitle:leave_management')}</Link>,
+    //     icon: <CalendarOutlined />,
+    //   });
+    // }
+
+    return children;
+  }, [t, ready, hasPermission]); // Added hasPermission to dependency array
 
   const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',
-    label: ready ? (typeof t('pageTitle:hr_management') === 'string' ? t('pageTitle:hr_management') : '人力资源') : '人力资源', // Add type check and default value
+    label: ready ? (t('pageTitle:hr_management')) : '人力资源管理',
     icon: <UsergroupAddOutlined />,
     children: hrManagementChildren,
-  }), [hrManagementChildren, t, ready]); // Added ready and t
+  }), [hrManagementChildren, t, ready]);
 
   const siderMenuItems = useMemo(() => {
     console.log('[MainLayout:SiderMenu] Building menu, ready state:', ready);
@@ -344,7 +369,7 @@ const MainLayout: React.FC = () => {
               height: 64,
             }}
           />
-          <Space>
+          <Space style={{ padding: '0 8px', borderRadius: '4px', border: '1px solid rgba(5, 5, 5, 0.06)' }}>
             <LanguageSwitcher />
             <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu:default_user_text', '用户')}</Text>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
@@ -360,8 +385,13 @@ const MainLayout: React.FC = () => {
             </React.Suspense>
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>
-          {t('footer.system_name')} ©{new Date().getFullYear()} {t('footer.created_by')}
+        <Footer style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 24px' }}>
+          <span style={{ marginRight: '8px' }}>
+            成都高新区财政国资局 人事工资信息管理系统 ©{new Date().getFullYear()}
+          </span>
+          <img src={hyperchainLogoPath} alt="趣链科技 Logo" style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
+          <span style={{ verticalAlign: 'middle' }}>
+          </span>
         </Footer>
       </Layout>
     </Layout>

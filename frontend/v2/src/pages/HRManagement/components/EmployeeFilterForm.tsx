@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, DatePicker, Button, Row, Col, TreeSelect } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { EmployeeQuery, Department, LookupItem, Position as JobTitleType } from '../types';
+import type { EmployeeQuery, Department, LookupItem, PersonnelCategory as PersonnelCategoryType } from '../types';
 
 const { RangePicker } = DatePicker;
 
@@ -13,7 +13,7 @@ interface EmployeeFilterFormProps {
   statusOptions?: LookupItem[];
   educationLevelOptions?: LookupItem[];
   employmentTypeOptions?: LookupItem[];
-  jobTitleOptions?: JobTitleType[];
+  personnelCategoryOptions?: PersonnelCategoryType[];
 }
 
 const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({ 
@@ -24,7 +24,7 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
   statusOptions = [],
   educationLevelOptions = [],
   employmentTypeOptions = [],
-  jobTitleOptions = []
+  personnelCategoryOptions = []
 }) => {
   const { t } = useTranslation('employee');
   const [form] = Form.useForm();
@@ -36,7 +36,7 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
       gender_lookup_value_id?: number; 
       education_level_lookup_value_id?: number; 
       employment_type_lookup_value_id?: number; 
-      job_title_id?: number;
+      personnel_category_id?: number;
     } = {
       name: values.name,
       employee_code: values.employee_code,
@@ -45,7 +45,7 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
       gender_lookup_value_id: values.gender_lookup_value_id,
       education_level_lookup_value_id: values.education_level_lookup_value_id,
       employment_type_lookup_value_id: values.employment_type_lookup_value_id,
-      job_title_id: values.job_title_id,
+      personnel_category_id: values.personnel_category_id,
       hireDateStart: values.hireDateRange?.[0]?.format('YYYY-MM-DD'),
       hireDateEnd: values.hireDateRange?.[1]?.format('YYYY-MM-DD'),
     };
@@ -63,7 +63,7 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
   };
 
   return (
-    <Form form={form} onFinish={handleFinish} layout="vertical" style={{ marginBottom: 16 }}>
+    <Form form={form} onFinish={handleFinish} layout="vertical">
       <Row gutter={16}>
         <Col xs={24} sm={12} md={8} lg={6}>
           <Form.Item name="name" label={t('list_page.filter_form.label.name')}>
@@ -147,9 +147,9 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
       </Row>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="job_title_id" label={t('list_page.filter_form.label.job_title')}>
-            <Select placeholder={t('list_page.filter_form.placeholder.job_title')} allowClear loading={loading} size="small">
-              {jobTitleOptions.map(option => (
+          <Form.Item name="personnel_category_id" label={t('list_page.filter_form.label.personnel_category')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.personnel_category')} allowClear loading={loading} size="small">
+              {personnelCategoryOptions.map(option => (
                 <Select.Option key={option.id as React.Key} value={option.id}>
                   {option.name}
                 </Select.Option>

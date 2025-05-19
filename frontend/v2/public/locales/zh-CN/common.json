@@ -40,7 +40,8 @@
     "previous_step": "上一步",
     "finish": "完成",
     "view_details": "查看详情",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "next": "下一步"
   },
   "label": {
     "username": "用户名",
@@ -86,6 +87,9 @@
     "form_validation_error": "表单校验失败，请检查输入项。",
     "upload_success_param": "文件 {fileName} 上传成功。",
     "upload_failed_param": "文件 {fileName} 上传失败。"
+  },
+  "error": {
+    "genericTitle": "发生错误"
   },
   "modal": {
     "confirm_delete": {
@@ -232,5 +236,8 @@
     "emergencyContactName": "紧急联系人",
     "emergencyContactPhone": "紧急联系电话",
     "emergencyContactRelation": "与紧急联系人关系"
-  }
+  },
+  "page_title_settings": "页面标题设置",
+  "record_prefix": "记录",
+  "search": "搜索"
 }

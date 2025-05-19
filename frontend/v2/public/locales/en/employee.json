@@ -110,7 +110,7 @@
   },
   "detail_page": {
     "title_default": "Employee Details",
-    "title_with_name_id": "{name} (Employee ID: {employeeCode})",
+    "title_with_name_id": "{{name}} (Employee ID: {{employeeCode}})",
     "breadcrumb_loading": "Loading...",
     "alert": {
         "message_info": "Information",
@@ -137,6 +137,9 @@
         "loading_basic_info": "Loading basic information...",
         "zero_decimal": "0.00"
     },
+    "contact_info": "Contact Information",
+    "bank_info": "Banking Information",
+    "additional_info": "Additional Information",
     "tabs": {
       "basic_info": "Basic Information",
       "job_info": "Job Information",
@@ -169,13 +172,26 @@
       "label_notes": "Notes" 
     },
     "job_info_tab": {
-      "title": "Job Information",
-      "loading": "Loading...",
-      "label_current_job_title": "Current Job Title",
+      "title": "Position Information",
+      "loading": "Loading position information...",
       "label_department": "Department",
+      "label_personnel_category": "Personnel Category",
+      "label_actual_position": "Actual Position",
+      "label_position_code": "Position Code",
+      "label_work_location": "Work Location",
+      "label_hire_date": "Hire Date",
+      "label_employment_type": "Employment Type",
+      "label_seniority": "Seniority",
+      "label_probation_end_date": "Probation End Date",
       "label_reports_to": "Reports To",
-      "reports_to_id_prefix": "ID: {id}",
-      "label_work_location": "Work Location"
+      "reports_to_id_prefix": "Employee ID: {id}",
+      "seniority_year": "year",
+      "seniority_month": "month",
+      "seniority_years_months": "{{years}} years {{months}} months",
+      "seniority_months": "{{months}} months",
+      "department_position": "Department & Position",
+      "employment_info": "Employment Information",
+      "reporting_info": "Reporting Relationship"
     },
     "job_history_tab": {
       "loading_or_no_data": "Loading or no data...",

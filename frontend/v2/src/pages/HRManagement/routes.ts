@@ -27,7 +27,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     },
   },
   {
-    path: 'employees/create',
+    path: 'employees/new',
     element: React.createElement(CreateEmployeePage),
     meta: {
       title: i18n.t('pageTitle:create_employee'),

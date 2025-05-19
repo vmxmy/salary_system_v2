@@ -13,6 +13,8 @@ import { format } from 'date-fns';
 import type { TableParams } from '../../types/antd';
 import { useTranslation } from 'react-i18next';
 
+const { Title } = Typography;
+
 // Interface for form values when creating a user, including confirm_password
 interface UserFormCreationValues extends CreateUserPayload {
   confirm_password?: string;
@@ -252,15 +254,8 @@ const UserListPage: React.FC = () => {
   const showCreateUserModal = () => {
     setEditingUser(null);
     userForm.resetFields();
-    userForm.setFieldsValue({ 
-      is_active: true, 
-      username: '', 
-      password: '',
-      confirm_password: '', 
-      employee_first_name: undefined,
-      employee_last_name: undefined,
-      employee_id_card: undefined,
-      role_ids: [] 
+    userForm.setFieldsValue({
+      is_active: true,
     });
     setIsUserModalOpen(true);
   };
@@ -358,14 +353,22 @@ const UserListPage: React.FC = () => {
       fetchUsers(tableParams); // Refresh with current params
     } catch (error: any) {
       console.error("更新用户失败:", error);
-      const errorDetail = error.response?.data?.detail;
       let errorMsg = t('message.update_user_error.default');
-      if (typeof errorDetail === 'string') {
-        errorMsg = errorDetail;
-      } else if (errorDetail?.details && typeof errorDetail.details === 'string') {
-        errorMsg = errorDetail.details; // Use the specific message from backend's create_error_response
-      } else if (error.response?.data?.error?.message && typeof error.response?.data?.error?.message === 'string') {
-        errorMsg = error.response.data.error.message;
+
+      // Attempt to get detailed message from backend
+      const backendError = error.response?.data; // The full error response object
+      if (backendError) {
+        if (backendError.detail?.details && typeof backendError.detail.details === 'string') { // Assuming error is nested in detail.details
+            errorMsg = backendError.detail.details;
+        } else if (backendError.detail && typeof backendError.detail === 'string') { // Or directly in detail
+            errorMsg = backendError.detail;
+        } else if (backendError.error?.details && typeof backendError.error.details === 'string') { // Common structure { error: { details: "..."}}
+             errorMsg = backendError.error.details;
+        } else if (backendError.error?.message && typeof backendError.error.message === 'string') {
+             errorMsg = backendError.error.message;
+        } else if (typeof backendError === 'string') { // If the data itself is a string message
+             errorMsg = backendError;
+        }
       }
       message.error(errorMsg);
     } finally {
@@ -442,6 +445,7 @@ const UserListPage: React.FC = () => {
       dataIndex: 'roles',
       key: 'roles',
       render: (roles: string[]) => roles.join(', ') || t('table.value.not_applicable'),
+      sorter: (a, b) => (a.roles || []).join(', ').localeCompare((b.roles || []).join(', ')),
       // Note: Filtering/searching on roles might need a custom approach if roles is an array
     },
     {
@@ -495,11 +499,20 @@ const UserListPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeaderLayout>
-        <Typography.Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateUserModal} shape="round">
-          {t('button.create_user')}
-        </Button>
+      <PageHeaderLayout
+        pageTitle={<Title level={4} style={{ marginBottom: 0 }}>{t('user_list_page.title')}</Title>}
+        actions={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateUserModal}
+            shape="round"
+          >
+            {t('user_list_page.button.create_user')}
+          </Button>
+        }
+      >
+        <></>
       </PageHeaderLayout>
       <Table
         columns={columns}
@@ -507,7 +520,7 @@ const UserListPage: React.FC = () => {
         loading={loading}
         onChange={handleTableChange}
         pagination={tableParams.pagination}
-        rowKey="key" // Ensure rowKey is set
+        rowKey="key"
       />
       <Modal
         title={editingUser ? t('modal.title.edit_user') : t('modal.title.create_user')}

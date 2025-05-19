@@ -314,13 +314,17 @@ const PersonnelCategoriesPage: React.FC = () => {
 
   return (
     <>
-      <PageHeaderLayout>
-        <Title level={4} style={{ margin: 0 }}>{t('title')}</Title>
-        <Space>
-          <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-            {t('button.create_top_level')}
-          </Button>
-        </Space>
+      <PageHeaderLayout
+        pageTitle={<Title level={4} style={{ margin: 0 }}>{t('title')}</Title>}
+        actions={
+          <Space> {/* It's good practice to keep Space if there might be multiple actions in future */}
+            <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal} shape="round">
+              {t('button.create_top_level')}
+            </Button>
+          </Space>
+        }
+      >
+        <></> {/* Empty children to satisfy prop requirement */}
       </PageHeaderLayout>
 
       <Table
