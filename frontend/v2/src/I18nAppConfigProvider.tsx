@@ -3,6 +3,7 @@ import { ConfigProvider, Spin, theme as antdTheme, type ThemeConfig } from 'antd
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import i18n from './i18n'; // Your i18n.ts configuration
+import dayjs from 'dayjs';
 
 interface I18nAppConfigProviderProps {
   children: React.ReactNode;
@@ -57,7 +58,7 @@ const customTheme: ThemeConfig = {
     boxShadowSecondary: '0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', // 更强的阴影，用于需要更突出层级的元素
 
     // ----------- 字体 -----------
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+    fontFamily: '"SourceHanSerifCN-Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
     fontSize: 14, // 基础字号
     fontSizeLG: 16, // 大字号
     fontSizeSM: 12, // 小字号
@@ -189,33 +190,56 @@ const customTheme: ThemeConfig = {
 };
 
 const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children }) => {
-  // 安全地获取初始语言，如果 i18n.language 未定义，则回退到 'en' 或其他默认语言
-  const getInitialAntLocale = () => {
-    const currentLang = i18n.language; 
-    if (currentLang && typeof currentLang === 'string') {
-      const baseLng = currentLang.split('-')[0];
-      return antLocales[baseLng] || enUS;
+  const getAntLocale = (langCode: string | undefined) => {
+    if (langCode && typeof langCode === 'string') {
+      const baseLng = langCode.split('-')[0];
+      return antLocales[baseLng] || enUS; // Default to enUS if no match
     }
-    return enUS; // 默认回退
+    return enUS; // Default to enUS if langCode is undefined
   };
 
-  const [antdLocale, setAntdLocale] = useState(getInitialAntLocale());
+  // Initialize with a reliable default, will be updated by useEffect
+  // We use i18n.options.lng which should reflect thelng option passed to init
+  const [antdLocale, setAntdLocale] = useState(() => getAntLocale(i18n.options.lng as string | undefined || i18n.language));
 
   useEffect(() => {
-    const handleLanguageChanged = (lng: string | undefined) => { // 允许 lng 为 undefined
-      let baseLng = 'en'; // 默认基础语言
-      if (lng && typeof lng === 'string') { // 检查 lng 是否为有效字符串
-        baseLng = lng.split('-')[0];
-      }
-      console.log('[I18nAppConfigProvider] Language changed to:', lng, ', baseLng:', baseLng);
-      setAntdLocale(antLocales[baseLng] || enUS);
+    const updateLocale = (lng: string | undefined) => {
+      console.log('[I18nAppConfigProvider] Updating AntD locale based on i18n language:', lng);
+      setAntdLocale(getAntLocale(lng));
     };
 
+    // Listener for language change to update antd locale and dayjs locale
+    const handleLanguageChanged = (lng: string | undefined) => {
+      updateLocale(lng);
+      // Update dayjs locale as well (moved from i18n.ts for better sync with React lifecycle)
+      const baseLng = lng ? lng.split('-')[0] : 'zh'; // Default to zh for dayjs if lng is undefined briefly
+      if (baseLng === 'zh') {
+        dayjs.locale('zh-cn');
+      } else if (baseLng === 'en') {
+        dayjs.locale('en');
+      } else {
+        dayjs.locale('zh-cn'); // Default to Chinese for dayjs
+      }
+      console.log('[I18nAppConfigProvider] Dayjs locale set to:', dayjs.locale());
+    };
+
+    // If i18next is already initialized, set the locale immediately.
+    // Otherwise, wait for the initialized event.
+    if (i18n.isInitialized) {
+      console.log('[I18nAppConfigProvider] i18next already initialized. Setting locale with language:', i18n.language);
+      handleLanguageChanged(i18n.language);
+    } else {
+      console.log('[I18nAppConfigProvider] i18next not initialized yet. Waiting for initialized event.');
+      i18n.on('initialized', (options) => {
+        console.log('[I18nAppConfigProvider] i18next initialized event. Setting locale with language:', i18n.language, 'options:', options);
+        handleLanguageChanged(i18n.language);
+      });
+    }
+
     i18n.on('languageChanged', handleLanguageChanged);
-    // 初始调用时也进行检查
-    handleLanguageChanged(i18n.language);
 
     return () => {
+      i18n.off('initialized', handleLanguageChanged); // Ensure we also remove this specific handler
       i18n.off('languageChanged', handleLanguageChanged);
     };
   }, []);

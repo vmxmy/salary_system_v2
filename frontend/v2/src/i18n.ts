@@ -44,42 +44,23 @@ export const i18nInitOptions = {
   interpolation: {
     escapeValue: false, // React already safes from xss
   },
+  // 正确禁用语言检测的方法是将 order 设置为空数组
   detection: {
-    // Order and from where user language should be detected
-    order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag'],
-    // Keys or params to lookup language from
-    caches: ['localStorage'], // 只缓存在localStorage中，避免持久cookie
-    // cookieMinutes: 10080, // 7 days - 不使用cookie
-    // cookieDomain: import.meta.env.MODE === 'development' ? '' : window.location.hostname,
-    lookupQuerystring: 'lng',
-    lookupCookie: 'i18next',
-    lookupLocalStorage: 'i18nextLng',
-    lookupSessionStorage: 'i18nextLng',
-    debug: import.meta.env.DEV, // 保持与全局debug一致
-    // 添加cleanCode函数来规范化检测到的语言代码
-    cleanCode: (code: string) => {
-      if (typeof code === 'string') {
-        const lowerCode = code.toLowerCase();
-        // 所有中文变体都规范化为zh-CN，包括zh本身
-        if (lowerCode.startsWith('zh')) {
-          return 'zh-CN';
-        }
-        if (lowerCode.startsWith('en')) {
-          return 'en'; // 将en-US, en-GB等规范化为en
-        }
-      }
-      return code; // 返回其他语言代码
-    },
-    initImmediate: false // 确保异步初始化
-  }
+    order: [], // 空数组禁用所有检测器
+    // caches: [], // 可选，如果 order 为空，caches 通常也应为空或不设置
+    // lookupQuerystring: false, // etc. - 也可以将各个 lookup 设置为 false
+  },
+  // initImmediate: false // detection 为 false 时，此选项意义不大，可以移除或保留
 };
 
 i18n
   .use(HttpBackend) // Loads translations from your server
   // .use(LanguageDetector) // Detects user language - REMOVED
-  .use(initReactI18next); // Passes i18n instance to react-i18next
+  .use(initReactI18next)
+  .init(i18nInitOptions); // <--- 在这里使用定义的选项进行初始化
 
 // Listener for language change to update dayjs locale
+/* // MOVED to I18nAppConfigProvider.tsx
 i18n.on('languageChanged', (lng) => {
   console.log('[i18n] Language changed to:', lng);
   const baseLng = lng.split('-')[0];
@@ -91,6 +72,7 @@ i18n.on('languageChanged', (lng) => {
     dayjs.locale('en'); // Default to English for dayjs if an unsupported language is set
   }
 });
+*/
 
 // Initialize dayjs with the initial language from i18next upon import
 // This part needs to be re-evaluated as i18n.language might not be set yet
