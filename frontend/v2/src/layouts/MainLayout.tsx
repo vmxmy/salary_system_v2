@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu, Avatar, Dropdown, Space, Typography, Breadcrumb, Button } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Space, Typography, Breadcrumb, Button, Tour, type TourProps } from 'antd';
 import {
   UserOutlined,
   LogoutOutlined,
@@ -56,7 +56,7 @@ const breadcrumbNameMap: Record<string, string> = {
 
 
 const MainLayout: React.FC = () => {
-  const { t, i18n, ready } = useTranslation(['pageTitle', 'common', 'user_menu']); // Initialize t function with namespaces
+  const { t, i18n, ready } = useTranslation(['pageTitle', 'common', 'user_menu', 'tour']); // Initialize t function with namespaces
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,6 +66,73 @@ const MainLayout: React.FC = () => {
   const { hasPermission, hasRole } = usePermissions();
   const userPermissions = useAuthStore((state) => state.userPermissions);
   const userRoleCodes = useAuthStore((state) => state.userRoleCodes); // For hasRole dependency
+
+  // Refs for Tour targets
+  const refDashboard = useRef(null);
+  const refBulkImport = useRef(null);
+  const refAiRobot = useRef(null);
+
+  // State for Tour visibility
+  const [openTour, setOpenTour] = useState<boolean>(false);
+
+  // Tour steps
+  const steps: TourProps['steps'] = [
+    {
+      title: t('tour:dashboard.title', '仪表盘概览'),
+      description: t('tour:dashboard.description', '这里是系统的概览和快捷入口，您可以快速了解关键数据和导航至各功能模块。'),
+      target: () => refDashboard.current,
+      nextButtonProps: { children: t('tour:common.next', '下一步') },
+      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+    },
+    {
+      title: t('tour:bulk_import.title', '批量导入员工'),
+      description: t('tour:bulk_import.description', '若您需要一次性添加多名员工信息，可以使用此功能通过上传文件快速完成。'),
+      target: () => refBulkImport.current,
+      nextButtonProps: { children: t('tour:common.next', '下一步') },
+      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      // disabled: !refBulkImport.current, // Example: Disable step if target is not available (though ref is assigned in useEffect)
+    },
+    {
+      title: t('tour:ai_robot.title', 'AI 助手'),
+      description: t('tour:ai_robot.description', '有任何疑问或需要操作指引吗？随时点击右下角的 AI 助手图标，它会尽力帮助您。'),
+      target: () => refAiRobot.current,
+      nextButtonProps: { children: t('tour:common.finish', '完成') }, // Last step
+      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      // disabled: !refAiRobot.current, // Example: Disable step if target is not available
+    },
+  ];
+  
+  useEffect(() => {
+    const tourSeen = localStorage.getItem('mainTourSeenV2'); // Use a versioned key if needed
+    if (tourSeen !== 'true') {
+      setTimeout(() => {
+        // @ts-ignore
+        refDashboard.current = document.getElementById('tour-dashboard-link');
+        // @ts-ignore
+        refBulkImport.current = document.getElementById('tour-bulk-import-link');
+        // @ts-ignore
+        refAiRobot.current = document.getElementById('dify-chatbot-bubble-button');
+
+        // Basic check if primary static target is available.
+        // AI Bot target is dynamic, Tour step should handle if it's not immediately available or gracefully skip.
+        if (refDashboard.current) { 
+          // Check if all refs are loaded before opening the tour, especially dynamic ones
+          // For a better UX, one might want to wait for refAiRobot.current to be available
+          // or have the Tour component itself handle potentially missing targets gracefully per step.
+          // A simple check: if (refDashboard.current && refAiRobot.current) 
+          // For now, proceeding if dashboard is found.
+          setOpenTour(true);
+        } else {
+          console.warn("Tour: Dashboard link not found, tour will not start.");
+        }
+      }, 1500); // Increased delay to allow Dify bot to potentially load
+    }
+  }, []);
+
+  const handleCloseTour = () => {
+    setOpenTour(false);
+    localStorage.setItem('mainTourSeenV2', 'true');
+  };
 
   useEffect(() => {
     // 初始加载或 token 变化时，如果没有用户信息且有 token，尝试获取
@@ -207,7 +274,7 @@ const MainLayout: React.FC = () => {
     // Assuming P_EMPLOYEE_CREATE is the correct permission for bulk import as well
     if (hasPermission('P_EMPLOYEE_CREATE')) { 
       children.push({
-        label: <Link to="/hr/employees/bulk-import">{t('pageTitle:bulk_import_employees')}</Link>,
+        label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">{t('pageTitle:bulk_import_employees')}</Link>,
         key: '/hr/employees/bulk-import',
         icon: <UploadOutlined />, // Using UploadOutlined as an example
       });
@@ -239,7 +306,7 @@ const MainLayout: React.FC = () => {
       {
         key: '/dashboard',
         icon: <DashboardOutlined />,
-        label: <Link to="/dashboard">{t('pageTitle:dashboard')}</Link>,
+        label: <Link to="/dashboard" id="tour-dashboard-link">{t('pageTitle:dashboard')}</Link>,
       },
       {
         key: '/admin',
@@ -346,7 +413,7 @@ const MainLayout: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="light">
         <div style={{ height: '32px', margin: '16px', background: 'rgba(0, 0, 0, 0.05)', textAlign: 'center', lineHeight: '32px', color: '#454552', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          {collapsed ? t('sider.title.collapsed') : t('sider.title.full')}
+          {collapsed ? t('common:sider.title.collapsed', 'GSMS') : t('common:sider.title.full', '高新发薪管理系统')}
         </div>
         <Menu
           theme="light"
@@ -394,6 +461,8 @@ const MainLayout: React.FC = () => {
           </span>
         </Footer>
       </Layout>
+      {/* Render the Tour component */}
+      <Tour open={openTour} onClose={handleCloseTour} steps={steps} />
     </Layout>
   );
 };

@@ -1,0 +1,19 @@
+{
+  "dashboard": {
+    "title": "仪表盘概览",
+    "description": "这里是系统的概览和快捷入口，您可以快速了解关键数据和导航至各功能模块。"
+  },
+  "bulk_import": {
+    "title": "批量导入员工",
+    "description": "若您需要一次性添加多名员工信息，可以使用此功能通过上传文件快速完成。"
+  },
+  "ai_robot": {
+    "title": "AI 助手",
+    "description": "有任何疑问或需要操作指引吗？随时点击右下角的 AI 助手图标，它会尽力帮助您。"
+  },
+  "common": {
+    "next": "下一步",
+    "previous": "上一步",
+    "finish": "完成"
+  }
+} 

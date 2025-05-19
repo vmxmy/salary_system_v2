@@ -52,19 +52,11 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
-// 确保 i18n 已经初始化 (i18n.ts 应该处理这个)
-// 通常，i18next 的 init 方法是异步的。react-i18next 推荐使用 Suspense 来处理加载状态。
-// 或者，如果 i18n.ts 中的初始化是同步的（不常见）或你正在使用 .then() 结构：
-
-// 假设 i18n.ts 中的 i18n.init() 返回一个 Promise (标准做法)
-// 或者 i18n.isInitialized 标志可用
-
 const renderApp = () => {
   root.render(
-    // <React.StrictMode> // 保持注释，按需启用
+    // <React.StrictMode>
       <Provider store={store}>
         <I18nAppConfigProvider> 
-          {/* I18nAppConfigProvider 内部可能会使用 Suspense */}
           <AppWrapper router={router} />
         </I18nAppConfigProvider>
       </Provider>
@@ -72,18 +64,18 @@ const renderApp = () => {
   );
 };
 
+// i18n.init() is now called within i18n.ts when the module is imported.
+// We still need to wait for initialization to complete before rendering.
 if (i18n.isInitialized) {
+  console.log('[main.tsx] i18next already initialized. Rendering app.');
   renderApp();
 } else {
-  // 如果 i18n 还未初始化（例如语言文件加载中），等待 initialized 事件
-  i18n.on('initialized', () => {
-    console.log('[main.tsx] i18n initialized event received. Rendering app.');
+  i18n.on('initialized', (options) => {
+    console.log('[main.tsx] i18n initialized event received. Rendering app. Options used were:', options);
     renderApp();
   });
-  // 作为备选，如果长时间未初始化，可以添加超时或错误处理
-  i18n.init().catch(err => { // 确保 init 被调用如果之前没有被调用
-    console.error('[main.tsx] i18next explicit init failed in main.tsx as fallback:', err);
-    // 渲染错误UI
-    root.render(<div>Error initializing internationalization. Please try again later.</div>);
-  });
+  // DO NOT CALL i18n.init() here anymore.
+  // If init in i18n.ts fails, that promise rejection should be handled,
+  // though i18next.init typically doesn't return a promise that needs explicit handling here
+  // if a callback isn't provided to init itself. The 'initialized' event is key.
 }

@@ -1,3 +1,20 @@
+/* 自定义字体定义 */
+@font-face {
+  font-family: 'SourceHanSerifCN-Bold';
+  src: url('../assets/fonts/SourceHanSerifCN-Bold.otf') format('opentype');
+  font-weight: 700; /* 700 通常对应 Bold */
+  font-style: normal;
+  font-display: swap; /* 建议添加，改善字体加载体验 */
+}
+
+@font-face {
+  font-family: 'SourceHanSerifCN-Medium';
+  src: url('../assets/fonts/SourceHanSerifCN-Medium.otf') format('opentype');
+  font-weight: 500; /* 500 通常对应 Medium */
+  font-style: normal;
+  font-display: swap; /* 建议添加，改善字体加载体验 */
+}
+
 // 全局样式
 @import './theme.less';
 
@@ -25,34 +42,36 @@ body {
 
 // ===== 基础元素样式 =====
 // 标题
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6,
+.ant-typography h1, .ant-typography h2, .ant-typography h3, .ant-typography h4, .ant-typography h5, .ant-typography h6 {
+  font-family: 'SourceHanSerifCN-Bold', sans-serif; /* 使用自定义的粗体标题字体 */
   color: @heading-color;
-  font-weight: 500;
+  font-weight: 700; /* 确保与 @font-face 中的定义匹配 */
   line-height: 1.2;
   margin-bottom: 0.5em;
 }
 
-h1 {
+h1, .ant-typography h1 {
   font-size: @heading-1-size;
 }
 
-h2 {
+h2, .ant-typography h2 {
   font-size: @heading-2-size;
 }
 
-h3 {
+h3, .ant-typography h3 {
   font-size: @heading-3-size;
 }
 
-h4 {
+h4, .ant-typography h4 {
   font-size: @heading-4-size;
 }
 
-h5 {
+h5, .ant-typography h5 {
   font-size: @heading-5-size;
 }
 
-h6 {
+h6, .ant-typography h6 {
   font-size: @font-size-base;
 }
 

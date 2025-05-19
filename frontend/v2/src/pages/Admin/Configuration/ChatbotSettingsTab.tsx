@@ -28,7 +28,10 @@ const ChatbotSettingsTab: React.FC = () => {
     console.log('[ChatbotSettingsTab-Redux-DEBUG] useEffect triggered. Current config from Redux:', chatbotConfig);
     if (chatbotConfig) {
       form.setFieldsValue({
-        ...chatbotConfig,
+        token: chatbotConfig.token,
+        baseUrl: chatbotConfig.baseUrl,
+        customCss: chatbotConfig.customCss,
+        customJs: chatbotConfig.customJs,
         systemVariables: JSON.stringify(chatbotConfig.systemVariables || [], null, 2),
       });
     }
@@ -53,8 +56,6 @@ const ChatbotSettingsTab: React.FC = () => {
       const configToSave: Partial<ChatbotConfig> = {
         token: values.token,
         baseUrl: values.baseUrl,
-        scriptSrc: values.scriptSrc,
-        scriptId: values.scriptId,
         customCss: values.customCss,
         customJs: values.customJs,
         systemVariables: systemVariablesArray,
@@ -75,7 +76,10 @@ const ChatbotSettingsTab: React.FC = () => {
   };
 
   const initialFormValues = {
-    ...(chatbotConfig || initialChatbotConfig),
+    token: (chatbotConfig || initialChatbotConfig).token,
+    baseUrl: (chatbotConfig || initialChatbotConfig).baseUrl,
+    customCss: (chatbotConfig || initialChatbotConfig).customCss,
+    customJs: (chatbotConfig || initialChatbotConfig).customJs,
     systemVariables: JSON.stringify((chatbotConfig || initialChatbotConfig).systemVariables || [], null, 2),
   };
 
@@ -110,12 +114,6 @@ const ChatbotSettingsTab: React.FC = () => {
           <Input />
         </Form.Item>
         <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, message: '请输入 Base URL' }]} tooltip="Dify 服务的基础 URL, 例如: http://dify.example.com">
-          <Input />
-        </Form.Item>
-        <Form.Item name="scriptSrc" label="脚本 Src URL" rules={[{ required: true, message: '请输入脚本 Src URL' }]} tooltip="Dify 嵌入脚本的完整 URL, 例如: http://dify.example.com/embed.min.js">
-          <Input />
-        </Form.Item>
-        <Form.Item name="scriptId" label="脚本 ID" rules={[{ required: true, message: '请输入脚本 ID' }]} tooltip="Dify 嵌入脚本的 ID, 通常与 Token 相关或相同">
           <Input />
         </Form.Item>
 

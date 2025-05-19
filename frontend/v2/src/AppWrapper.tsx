@@ -15,8 +15,6 @@ import {
   selectChatbotIsConfigured,
   selectChatbotToken,
   selectChatbotBaseUrl,
-  selectChatbotScriptSrc,
-  selectChatbotScriptId,
   selectChatbotCustomCss,
   selectChatbotCustomJs,
   selectChatbotSystemVariables
@@ -46,11 +44,11 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   const chatbotIsConfigured = useSelector(selectChatbotIsConfigured);
   const chatbotConfigToken = useSelector(selectChatbotToken);
   const chatbotConfigBaseUrl = useSelector(selectChatbotBaseUrl);
-  const chatbotConfigScriptSrc = useSelector(selectChatbotScriptSrc);
-  const chatbotConfigScriptId = useSelector(selectChatbotScriptId);
   const chatbotConfigCustomCss = useSelector(selectChatbotCustomCss);
   const chatbotConfigCustomJs = useSelector(selectChatbotCustomJs);
   const chatbotSystemVariables = useSelector(selectChatbotSystemVariables);
+
+  const DIFY_EMBED_SCRIPT_SRC = "http://dify.atx.ziikoo.com/embed.min.js";
 
   const chatbotSystemVariablesJson = useMemo(() => JSON.stringify(chatbotSystemVariables), [chatbotSystemVariables]);
 
@@ -111,7 +109,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     console.log(
       '[AppWrapper-Redux-DEBUG] Chatbot useEffect triggered. isLoading:', chatbotIsLoading,
       'isEnabled:', chatbotIsEnabled, 'isConfigured:', chatbotIsConfigured,
-      'scriptId:', chatbotConfigScriptId
+      'token:', chatbotConfigToken
     );
 
     if (chatbotIsLoading) {
@@ -119,7 +117,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       return;
     }
 
-    const scriptIdToUse = chatbotConfigScriptId || 'dify-chatbot-script';
+    const scriptIdToUse = chatbotConfigToken || 'dify-chatbot-default-id';
 
     const cleanupChatbotElements = () => {
       console.log(`[AppWrapper-Redux-DEBUG] cleanupChatbotElements called for scriptId: ${scriptIdToUse}.`);
@@ -137,16 +135,17 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       if (difyChatbotRoot) difyChatbotRoot.remove();
     };
 
-    if (chatbotIsEnabled && chatbotIsConfigured) {
+    if (chatbotIsEnabled && chatbotIsConfigured && chatbotConfigToken && DIFY_EMBED_SCRIPT_SRC) {
       console.log('[AppWrapper-Redux-DEBUG] Conditions met: Injecting chatbot script and config.');
       cleanupChatbotElements();
 
       const configScript = document.createElement('script');
       configScript.id = 'dify-chatbot-config';
-      const chatbotWindowConfig: { token: string; baseUrl?: string; system_variables: Record<string, any> } = {
+      const chatbotWindowConfig: { token: string; baseUrl?: string; system_variables: Record<string, any>; dynamicScript?: boolean } = {
         token: chatbotConfigToken!,
         baseUrl: chatbotConfigBaseUrl,
         system_variables: {},
+        dynamicScript: true,
       };
       if (chatbotSystemVariables && Array.isArray(chatbotSystemVariables)) {
         chatbotSystemVariables.forEach(sv => {
@@ -176,23 +175,23 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       }
 
       const embedScript = document.createElement('script');
-      embedScript.src = chatbotConfigScriptSrc!;
+      embedScript.src = DIFY_EMBED_SCRIPT_SRC;
       embedScript.id = scriptIdToUse;
       embedScript.defer = true;
       embedScript.onload = () => {
-        console.log(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${chatbotConfigScriptSrc}) LOADED successfully.`);
+        console.log(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}) LOADED successfully.`);
         console.log('[AppWrapper-Redux-DEBUG] window.difyChatbotConfig on embed script load:', (window as any).difyChatbotConfig);
         console.log('[AppWrapper-Redux-DEBUG] Checking for Dify API on window (e.g., window.Dify):', (window as any).Dify);
         console.log('[AppWrapper-Redux-DEBUG] Checking for Dify Chatbot instance (e.g., window.difyChatbot):', (window as any).difyChatbot);
       };
       embedScript.onerror = () => {
-        console.error(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${chatbotConfigScriptSrc}) FAILED to load.`);
+        console.error(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}) FAILED to load.`);
       };
       document.head.appendChild(embedScript);
-      console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${chatbotConfigScriptSrc}).`);
+      console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}).`);
 
     } else {
-      console.log('[AppWrapper-Redux-DEBUG] Conditions not met (isLoading is false, but isEnabled is false or not configured). Cleaning up chatbot elements.');
+      console.log('[AppWrapper-Redux-DEBUG] Conditions not met (isLoading is false, but isEnabled is false or not configured/essential params missing). Cleaning up chatbot elements.');
       cleanupChatbotElements();
     }
 
@@ -206,8 +205,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     chatbotIsConfigured,
     chatbotConfigToken,
     chatbotConfigBaseUrl,
-    chatbotConfigScriptSrc,
-    chatbotConfigScriptId,
     chatbotConfigCustomCss,
     chatbotConfigCustomJs,
     chatbotSystemVariablesJson,

@@ -4,8 +4,6 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 export interface ChatbotConfig {
   token: string;
   baseUrl?: string;
-  scriptSrc: string;
-  scriptId: string;
   customCss?: string;
   customJs?: string;
   systemVariables?: Array<{ key: string; value_type: string; value: any; label?: string }>;
@@ -15,8 +13,6 @@ export interface ChatbotConfig {
 export const initialChatbotConfig: ChatbotConfig = {
   token: 'hMAF064QpYeYtSHm',
   baseUrl: 'https://proxy-llm.1024paas.com/v1',
-  scriptSrc: 'https://cdn.dify.ai/embed-chatbot/embed.min.js',
-  scriptId: 'hMAF064QpYeYtSHm',
   customCss: '',
   customJs: '',
   isEnabled: true,
@@ -36,7 +32,7 @@ export interface ChatbotSliceState { // 重命名 State 接口以避免与 Chatb
 const initialState: ChatbotSliceState = {
   config: initialChatbotConfig,
   isEnabled: initialChatbotConfig.isEnabled !== undefined ? initialChatbotConfig.isEnabled : true,
-  isConfigured: !!(initialChatbotConfig.token && initialChatbotConfig.scriptSrc),
+  isConfigured: !!(initialChatbotConfig.token),
   isLoading: true, 
 };
 
@@ -56,14 +52,22 @@ const chatbotConfigSlice = createSlice({
       console.log('[Redux-chatbotConfigSlice] setInitialChatbotState called. Resetting to default.');
       state.config = initialChatbotConfig;
       state.isEnabled = initialChatbotConfig.isEnabled !== undefined ? initialChatbotConfig.isEnabled : true;
-      state.isConfigured = !!(initialChatbotConfig.token && initialChatbotConfig.scriptSrc);
+      state.isConfigured = !!(initialChatbotConfig.token);
       state.isLoading = false; 
       console.log('[Redux-chatbotConfigSlice] setInitialChatbotState - state.isLoading is now:', state.isLoading);
     },
     updateChatbotConfig: (state, action: PayloadAction<Partial<ChatbotConfig>>) => {
       console.log('[Redux-chatbotConfigSlice] updateChatbotConfig called with:', action.payload);
-      state.config = { ...state.config, ...action.payload };
-      state.isConfigured = !!(state.config.token && state.config.scriptSrc);
+      const newConfigCandidate = { ...state.config, ...action.payload };
+      if (action.payload.systemVariables === undefined && state.config.systemVariables) {
+        newConfigCandidate.systemVariables = state.config.systemVariables;
+      } else if (action.payload.systemVariables === null || action.payload.systemVariables === undefined) {
+        newConfigCandidate.systemVariables = [];
+      } else {
+        newConfigCandidate.systemVariables = action.payload.systemVariables;
+      }
+      state.config = newConfigCandidate;
+      state.isConfigured = !!(state.config.token);
     },
     setChatbotEnabled: (state, action: PayloadAction<boolean>) => {
       console.log('[Redux-chatbotConfigSlice] setChatbotEnabled called with:', action.payload);
@@ -93,8 +97,6 @@ export const selectChatbotIsConfigured = (state: RootStateForSelectors) => state
 export const selectChatbotIsLoading = (state: RootStateForSelectors) => state.chatbotConfig.isLoading;
 export const selectChatbotToken = (state: RootStateForSelectors) => state.chatbotConfig.config.token;
 export const selectChatbotBaseUrl = (state: RootStateForSelectors) => state.chatbotConfig.config.baseUrl;
-export const selectChatbotScriptSrc = (state: RootStateForSelectors) => state.chatbotConfig.config.scriptSrc;
-export const selectChatbotScriptId = (state: RootStateForSelectors) => state.chatbotConfig.config.scriptId;
 export const selectChatbotCustomCss = (state: RootStateForSelectors) => state.chatbotConfig.config.customCss;
 export const selectChatbotCustomJs = (state: RootStateForSelectors) => state.chatbotConfig.config.customJs;
 export const selectChatbotSystemVariables = (state: RootStateForSelectors) => state.chatbotConfig.config.systemVariables; 
