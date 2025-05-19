@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Typography, Spin, Empty } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, UserOutlined, AuditOutlined, MoneyCollectOutlined, DollarCircleOutlined } from '@ant-design/icons';
 import { Line, Pie, Column, Gauge, type LineConfig, type PieConfig, type ColumnConfig, type GaugeConfig } from '@ant-design/charts';
+import { employeeService } from '../services/employeeService';
 // 假设我们有一个API服务来获取数据，这里我们先用模拟函数替代
 // import { getDashboardKpis, getSalaryTrend, getDepartmentSalaryDistribution, getEmployeeGradeDistribution } from '../services/dashboardService';
 
@@ -119,11 +120,31 @@ const DashboardPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoadingKpis(true);
-        const kpis = await mockFetchKpis();
-        setKpiData(kpis);
+        
+        const employeeResponse = await employeeService.getEmployees({ page: 1, pageSize: 1 }); 
+        console.log('Employee API Response:', employeeResponse); 
+        const realTotalEmployees = employeeResponse.meta?.total || 0;
+        console.log('Real Total Employees:', realTotalEmployees); 
+
+        // Get other KPI data from mock (as current requirement is only for totalEmployees)
+        // mockFetchKpis is assumed to be defined in the file and returns Promise<KpiData>
+        const otherMockKpis = await mockFetchKpis(); 
+
+        setKpiData({
+          ...otherMockKpis, // Spread all values from the mock KpiData structure
+          totalEmployees: realTotalEmployees, // Override with the real totalEmployees count
+        });
+
       } catch (error) {
         console.error("Failed to fetch KPI data:", error);
-        // 在这里可以设置错误状态并在UI中显示
+        // Fallback: If API fails, try to set KpiData with full mock data
+        try {
+          const kpis = await mockFetchKpis(); // Use mock data as a fallback
+          setKpiData(kpis);
+        } catch (mockError) {
+          console.error("Failed to fetch mock KPI data after API error:", mockError);
+          setKpiData(null); // Or set to a state indicating an error
+        }
       } finally {
         setLoadingKpis(false);
       }
@@ -238,7 +259,13 @@ const DashboardPage: React.FC = () => {
   };
 
   if (loadingKpis || !kpiData) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}><Spin size="large" tip="加载仪表盘数据中..." /></div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
+        <Spin size="large" tip="加载仪表盘数据中...">
+          <div style={{ width: '100px', height: '100px' }} /> 
+        </Spin>
+      </div>
+    );
   }
   
   const employeeChange = kpiData ? getStatisticChange(kpiData.totalEmployees, kpiData.totalEmployeesLastMonth) : 0;
@@ -270,7 +297,7 @@ const DashboardPage: React.FC = () => {
             </Card>
           ) : (
             <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}>
-              <Spin tip="加载中..." />
+              <Spin />
             </Card>
           )}
         </Col>
@@ -298,7 +325,7 @@ const DashboardPage: React.FC = () => {
             </Card>
           ) : (
             <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}>
-               <Spin tip="加载中..." />
+               <Spin />
             </Card>
           )}
         </Col>
@@ -326,7 +353,7 @@ const DashboardPage: React.FC = () => {
             </Card>
           ) : (
             <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}> 
-              <Spin tip="加载中..." />
+              <Spin />
             </Card>
           )}
         </Col>
@@ -350,7 +377,7 @@ const DashboardPage: React.FC = () => {
             </Card>
           ) : (
             <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}>
-              <Spin tip="加载中..." />
+              <Spin />
             </Card>
           )}
         </Col>

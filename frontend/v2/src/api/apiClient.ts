@@ -9,7 +9,7 @@ const AUTH_VERIFICATION_URLS: string[] = [
 ];
 
 const host = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, ''); // 移除VITE_API_BASE_URL末尾的斜杠（如果有）
-const pathPrefix = (import.meta.env.VITE_API_PATH_PREFIX || '/api/v2'); // VITE_API_PATH_PREFIX，默认为 /api/v2
+const pathPrefix = (import.meta.env.VITE_API_PATH_PREFIX || '/v2'); // VITE_API_PATH_PREFIX，默认为 /v2
 
 // 确保 pathPrefix 以 / 开头
 const resolvedPathPrefix = pathPrefix.startsWith('/') ? pathPrefix : `/${pathPrefix}`;
@@ -18,7 +18,7 @@ const fullBaseURL = host ? `${host}${resolvedPathPrefix}` : resolvedPathPrefix;
 const apiClient = axios.create({
   baseURL: fullBaseURL, 
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
 });
 

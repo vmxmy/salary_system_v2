@@ -65,30 +65,35 @@ const MyPayslipsPage: React.FC = () => {
       title: t('myPayslips:column.payrollPeriod'),
       dataIndex: ['payroll_run', 'payroll_period', 'name'],
       key: 'payrollPeriodName',
+      sorter: true,
       render: (name, record) => name || `${t('myPayslips:periodIdPrefix')}${record.payroll_run?.payroll_period_id || 'N/A'}`,
     },
     {
       title: t('myPayslips:column.runDate'),
       dataIndex: ['payroll_run', 'run_date'],
       key: 'runDate',
+      sorter: true,
       render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A',
     },
     {
       title: t('myPayslips:column.netPay'),
       dataIndex: 'net_pay',
       key: 'netPay',
+      sorter: true,
       render: (amount) => amount?.toFixed(2) || '0.00',
     },
     {
       title: t('myPayslips:column.paymentDate'),
       dataIndex: ['payroll_run', 'paid_at'],
       key: 'paymentDate',
+      sorter: true,
       render: (date) => date ? new Date(date).toLocaleDateString() : t('myPayslips:status.pendingPayment'),
     },
     {
       title: t('myPayslips:column.status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
+      sorter: true,
       render: (statusId) => {
         const statusInfo = getPayrollEntryStatusDisplay(statusId);
         return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
@@ -112,7 +117,7 @@ const MyPayslipsPage: React.FC = () => {
   ];
 
   if (!ready || (loading && !payslips.length)) {
-    return <Spin tip={t('common:loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('common:loading.generic_loading_text')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error && !payslips.length) {

@@ -1,0 +1,164 @@
+{
+  "bulk_import": {
+    "results_table": {
+      "title_failed_records": "导入失败的记录",
+      "title_successfully_imported_records_preview": "成功导入记录预览 (最多100条)",
+      "employee_code": "员工工号",
+      "name": "姓名",
+      "error_message": "错误信息"
+    },
+    "page_title": "员工批量导入",
+    "steps": {
+      "input_data": "输入数据",
+      "preview_data": "预览数据",
+      "upload_progress": "上传进度",
+      "results": "结果"
+    },
+    "card_title": {
+      "select_or_paste_json": "选择或粘贴 JSON 数据",
+      "preview_data": "预览解析的数据",
+      "uploading_data": "上传数据中",
+      "upload_results": "上传结果",
+      "preview_data_count": "预览数据 ({{count}} 条记录)"
+    },
+    "button": {
+      "select_file_to_fill_editor": "选择文件填充编辑器",
+      "parse_and_preview": "解析并预览",
+      "start_upload": "开始上传",
+      "import_another_file": "导入另一个文件"
+    },
+    "placeholder": {
+      "paste_json_here": "在此粘贴 JSON 数据",
+      "drag_paste_or_type": "拖拽或粘贴数据到此处",
+      "paste_json_here_or_drag": "在此粘贴JSON数据，或将文件拖动到此区域"
+    },
+    "dragger": {
+      "title": "点击或拖拽文件到此区域上传",
+      "hint": "支持单个JSON文件，内容将在此处显示并可编辑。"
+    },
+    "notes": {
+      "json_format_intro": "请确保您的 JSON 数据符合预期的格式。",
+      "refer_to_documentation_for_fields": "请参考文档了解支持的字段和格式要求。",
+      "preview_warning_max_100": "注意：最多显示100条记录进行预览。所有成功解析的数据都将尝试上传。"
+    },
+    "message": {
+      "file_parsed_success": "文件解析成功，共 {{count}} 条记录可供预览。",
+      "file_parse_error": "文件解析失败",
+      "upload_in_progress": "正在上传数据，请稍候...",
+      "upload_success": "成功上传 {{count}} 条员工记录。",
+      "upload_failed_prefix": "批量上传失败: "
+    },
+    "validation": {
+      "json_only": "请仅上传JSON文件（.json）。",
+      "json_not_array": "JSON数据必须是数组格式。",
+      "no_data_to_upload": "没有可上传的数据或JSON内容为空。",
+      "missing_or_invalid_field": "记录'{{record}}'中的'{{field}}'字段缺失或无效（预期类型: {{type}}）。",
+      "invalid_date_format": "记录'{{record}}'中的日期字段'{{field}}'格式无效（预期格式: {{format}}）。",
+      "status_is_number": "记录'{{record}}'中的status_lookup_value_id字段必须是数字。"
+    },
+    "results": {
+      "all_success": "全部 {{count}} 条记录导入成功！",
+      "partial_success": "{{success}} 条记录导入成功，{{error}} 条记录失败。"
+    },
+    "table_header": {
+      "employee_code": "员工工号",
+      "first_name": "名",
+      "last_name": "姓",
+      "id_number": "身份证号",
+      "date_of_birth": "出生日期",
+      "hire_date": "入职日期",
+      "first_work_date": "首次工作日期",
+      "department_name": "部门",
+      "position_name": "职位",
+      "status_lookup_value_name": "员工状态",
+      "gender_lookup_value_name": "性别",
+      "employment_type_lookup_value_name": "用工性质",
+      "education_level_lookup_value_name": "学历",
+      "marital_status_lookup_value_name": "婚姻状况",
+      "political_status_lookup_value_name": "政治面貌",
+      "contract_type_lookup_value_name": "合同类型",
+      "personnel_category_name": "人员类别",
+      "nationality": "国籍",
+      "ethnicity": "民族",
+      "email": "邮箱",
+      "phone_number": "电话号码",
+      "interrupted_service_years": "工龄间断年限",
+      "home_address": "家庭住址",
+      "probationEndDate": "试用期结束日期",
+      "workLocation": "工作地点",
+      "reports_to_employee_code": "汇报对象工号",
+      "initialContractStartDate": "初始合同开始日",
+      "initialContractEndDate": "初始合同结束日",
+      "bank_name": "开户行",
+      "bank_account_number": "银行账号",
+      "emergency_contact_name": "紧急联系人姓名",
+      "emergency_contact_phone": "紧急联系人电话",
+      "emergencyContactRelation": "紧急联系人关系",
+      "notes": "备注",
+      "avatar": "头像URL",
+      "gender_name": "性别",
+      "status_name": "员工状态",
+      "employment_type_name": "用工性质",
+      "education_level_name": "学历",
+      "marital_status_name": "婚姻状况",
+      "political_status_name": "政治面貌",
+      "contract_type_name": "合同类型",
+      "entry_date_to_current_organization": "加入本单位日期",
+      "validation_errors": "校验错误"
+    }
+  },
+  "employee": {
+    "fields": {
+        "employee_code": "员工工号",
+        "first_name": "名",
+        "last_name": "姓",
+        "email": "邮箱",
+        "phone_number": "电话号码",
+        "hire_date": "入职日期",
+        "gender": "性别",
+        "id_number": "身份证号",
+        "date_of_birth": "出生日期",
+        "ethnicity": "民族",
+        "education_level": "学历",
+        "first_work_date": "首次工作日期",
+        "personnel_category": "人员类别",
+        "actual_position": "实际职位",
+        "employee_status": "员工状态",
+        "department": "部门",
+        "position": "职位",
+        "employment_type": "用工性质",
+        "marital_status": "婚姻状况",
+        "political_status": "政治面貌",
+        "contract_type": "合同类型",
+        "nationality_placeholder": "国籍",
+        "interrupted_service_years": "工龄间断年限",
+        "home_address": "家庭住址",
+        "probationEndDate": "试用期结束日期",
+        "workLocation": "工作地点",
+        "reports_to_employee": "汇报对象",
+        "initialContractStartDate": "初始合同开始日",
+        "initialContractEndDate": "初始合同结束日",
+        "bank_name": "开户行",
+        "bank_account_number": "银行账号",
+        "emergency_contact_name": "紧急联系人姓名",
+        "emergency_contact_phone": "紧急联系人电话",
+        "emergencyContactRelation": "紧急联系人关系",
+        "notes": "备注"
+    },
+    "list_page": {
+        "filter_form": {
+            "label": {
+                "personnel_category": "人员类别"
+            },
+            "placeholder": {
+                "personnel_category": "选择人员类别"
+            }
+        },
+        "table": {
+            "column": {
+                "personnel_category": "人员类别"
+            }
+        }
+    }
+  }
+}

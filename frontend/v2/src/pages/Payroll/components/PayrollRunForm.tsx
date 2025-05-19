@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import type { PayrollPeriod, CreatePayrollRunPayload } from '../types/payrollTypes';
 import { getPayrollPeriods } from '../services/payrollApi';
 import { PAYROLL_RUN_STATUS_OPTIONS } from '../utils/payrollUtils'; // Import status options
+import { formatPayrollPeriodDisplay } from '../utils/payrollFormatUtils';
 
 const { Option } = Select;
 
@@ -114,7 +115,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
         <Select placeholder={t('payroll_run_form.placeholder.payroll_period')} loading={loadingPeriods} showSearch filterOption={(input, option) => (option?.children as unknown as string ?? '').toLowerCase().includes(input.toLowerCase()) }>
           {payrollPeriods.map(period => (
             <Option key={period.id} value={period.id}>
-              {period.name} ( {dayjs(period.start_date).format('YYYY-MM-DD')} - {dayjs(period.end_date).format('YYYY-MM-DD')} )
+              {formatPayrollPeriodDisplay(period)}
             </Option>
           ))}
         </Select>

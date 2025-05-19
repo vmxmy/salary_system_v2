@@ -37,7 +37,7 @@ import {
 } from '../constants/payrollPermissions';
 
 const PayrollRunsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['payroll', 'common', 'translation']);
   const [runs, setRuns] = useState<PayrollRun[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -62,7 +62,7 @@ const PayrollRunsPage: React.FC = () => {
       setRuns(response.data);
       setMeta(response.meta);
     } catch (err: any) {
-      setError(err.message || t('payroll_runs_page.error_fetch_runs'));
+      setError(err.message || t('runs_page.error_fetch_runs'));
       setRuns([]);
       setMeta(null);
     } finally {
@@ -125,16 +125,16 @@ const PayrollRunsPage: React.FC = () => {
       if (currentRun && currentRun.id) {
         const updatePayload: UpdatePayrollRunPayload = { ...commonPayload };
         await updatePayrollRun(currentRun.id, updatePayload);
-        message.success(t('payroll_runs_page.message_update_success'));
+        message.success(t('runs_page.message_update_success'));
       } else {
         const createPayload: CreatePayrollRunPayload = { ...commonPayload };
         await createPayrollRun(createPayload);
-        message.success(t('payroll_runs_page.message_create_success'));
+        message.success(t('runs_page.message_create_success'));
       }
       handleModalCancel();
       fetchRuns(meta?.page || 1, meta?.size || 10);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || (currentRun ? t('payroll_runs_page.error_update_failed') : t('payroll_runs_page.error_create_failed'));
+      const errorMessage = err.response?.data?.detail || err.message || (currentRun ? t('runs_page.error_update_failed') : t('runs_page.error_create_failed'));
       setModalError(errorMessage);
       message.error(errorMessage);
     } finally {
@@ -144,19 +144,19 @@ const PayrollRunsPage: React.FC = () => {
 
   const handleDeleteRun = async (runId: number) => {
     Modal.confirm({
-      title: t('payroll_runs_page.popconfirm_delete_title'),
-      content: t('payroll_runs_page.popconfirm_delete_content'),
-      okText: t('payroll_runs_page.popconfirm_ok_text'),
+      title: t('runs_page.popconfirm_delete_title'),
+      content: t('runs_page.popconfirm_delete_content'),
+      okText: t('runs_page.popconfirm_ok_text'),
       okType: 'danger',
-      cancelText: t('payroll_runs_page.popconfirm_cancel_text'),
+      cancelText: t('runs_page.popconfirm_cancel_text'),
       onOk: async () => {
         try {
           setLoading(true);
           await deletePayrollRun(runId);
-          message.success(t('payroll_runs_page.message_delete_success'));
+          message.success(t('runs_page.message_delete_success'));
           fetchRuns(meta?.page || 1, meta?.size || 10);
         } catch (err: any) {
-          const errorMessage = err.response?.data?.detail || err.message || t('payroll_runs_page.error_delete_failed');
+          const errorMessage = err.response?.data?.detail || err.message || t('runs_page.error_delete_failed');
           message.error(errorMessage);
           setError(errorMessage);
         } finally {
@@ -170,15 +170,15 @@ const PayrollRunsPage: React.FC = () => {
 
   const handleMarkAsPaid = async (run: PayrollRun) => {
     if (run.status_lookup_value_id === PAID_STATUS_ID) {
-      message.info(t('payroll_runs_page.message_already_paid'));
+      message.info(t('runs_page.message_already_paid'));
       return;
     }
 
     Modal.confirm({
-      title: t('payroll_runs_page.popconfirm_mark_as_paid_title'),
-      content: t('payroll_runs_page.popconfirm_mark_as_paid_content', { runId: run.id }),
-      okText: t('payroll_runs_page.popconfirm_mark_as_paid_ok_text'),
-      cancelText: t('payroll_runs_page.popconfirm_cancel_text'),
+      title: t('runs_page.popconfirm_mark_as_paid_title'),
+      content: t('runs_page.popconfirm_mark_as_paid_content', { runId: run.id }),
+      okText: t('runs_page.popconfirm_mark_as_paid_ok_text'),
+      cancelText: t('runs_page.popconfirm_cancel_text'),
       onOk: async () => {
         try {
           setLoading(true);
@@ -187,10 +187,10 @@ const PayrollRunsPage: React.FC = () => {
             paid_at: dayjs().toISOString(),
           };
           await updatePayrollRun(run.id, payload);
-          message.success(t('payroll_runs_page.message_mark_as_paid_success', { runId: run.id }));
+          message.success(t('runs_page.message_mark_as_paid_success', { runId: run.id }));
           fetchRuns(meta?.page || 1, meta?.size || 10);
         } catch (err: any) {
-          const errorMessage = err.response?.data?.detail || err.message || t('payroll_runs_page.error_mark_as_paid_failed');
+          const errorMessage = err.response?.data?.detail || err.message || t('runs_page.error_mark_as_paid_failed');
           message.error(errorMessage);
           setError(errorMessage);
         } finally {
@@ -202,22 +202,22 @@ const PayrollRunsPage: React.FC = () => {
 
   const handleExportBankFile = async (run: PayrollRun) => {
     const exportMessageKey = `export-${run.id}`;
-    message.loading({ content: t('payroll_runs_page.message_exporting_bank_file', {runId: run.id}), key: exportMessageKey, duration: 0 });
+    message.loading({ content: t('runs_page.message_exporting_bank_file', {runId: run.id}), key: exportMessageKey, duration: 0 });
 
     try {
       const blob = await exportPayrollRunBankFile(run.id);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${t('payroll_runs_page.default_bank_export_filename_prefix')}${run.id}.csv`);
+      link.setAttribute('download', `${t('runs_page.default_bank_export_filename_prefix')}${run.id}.csv`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-      message.success({ content: t('payroll_runs_page.message_export_bank_file_success', {runId: run.id}), key: exportMessageKey, duration: 3 });
+      message.success({ content: t('runs_page.message_export_bank_file_success', {runId: run.id}), key: exportMessageKey, duration: 3 });
     } catch (err: any) {
-      const errorDetail = err.response?.data?.detail || err.message || t('payroll_runs_page.error_export_bank_file_failed_default');
-      message.error({ content: t('payroll_runs_page.error_export_bank_file_failed_prefix') + errorDetail, key: exportMessageKey, duration: 5 });
+      const errorDetail = err.response?.data?.detail || err.message || t('runs_page.error_export_bank_file_failed_default');
+      message.error({ content: t('runs_page.error_export_bank_file_failed_prefix') + errorDetail, key: exportMessageKey, duration: 5 });
     }
   };
 
@@ -231,59 +231,63 @@ const PayrollRunsPage: React.FC = () => {
   
   const columns: ColumnsType<PayrollRun> = React.useMemo(() => [
       {
-        title: t('payroll_runs_page.table.column_id'),
+        title: t('runs_page.table.column.id'),
         dataIndex: 'id',
         key: 'id',
         sorter: (a, b) => a.id - b.id,
       },
       {
-        title: t('payroll_runs_page.table.column_payroll_period'),
+        title: t('runs_page.table.column.payroll_period'),
         dataIndex: ['payroll_period', 'name'],
         key: 'payroll_period_name',
+        sorter: true,
         render: (name: string, record: PayrollRun) => name || record.payroll_period_id,
       },
       {
-        title: t('payroll_runs_page.table.column_run_date'),
+        title: t('runs_page.table.column.run_date'),
         dataIndex: 'run_date',
         key: 'run_date',
-        render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
         sorter: (a, b) => dayjs(a.run_date).unix() - dayjs(b.run_date).unix(),
+        render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
       },
       {
-        title: t('payroll_runs_page.table.column_status'),
+        title: t('runs_page.table.column.status'),
         dataIndex: 'status_lookup_value_id',
         key: 'status',
+        sorter: true,
         render: (statusId?: number) => {
           const statusInfo = getPayrollRunStatusDisplay(statusId);
           return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
         },
       },
       {
-        title: t('payroll_runs_page.table.column_employee_count'),
+        title: t('runs_page.table.column.employee_count'),
         dataIndex: 'employee_ids',
         key: 'employee_count',
+        sorter: (a, b) => (a.employee_ids?.length || 0) - (b.employee_ids?.length || 0),
         render: (employee_ids?: number[]) => employee_ids?.length || 0,
       },
       {
-        title: t('payroll_runs_page.table.column_notes'),
+        title: t('runs_page.table.column.notes'),
         dataIndex: 'notes',
         key: 'notes',
+        sorter: true,
         ellipsis: true,
       },
       {
-        title: t('payroll_runs_page.table.column_actions'),
+        title: t('runs_page.table.column.actions'),
         key: 'actions',
         align: 'center',
         render: (_, record: PayrollRun) => (
           <Space size="middle">
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_VIEW]}>
-                <Button type="link" icon={<EyeOutlined/>} onClick={() => handleViewDetails(record.id)}>{t('payroll_runs_page.table.action_details')}</Button>
+                <Button type="link" icon={<EyeOutlined/>} onClick={() => handleViewDetails(record.id)}>{t('runs_page.table.action_details')}</Button>
             </PermissionGuard>
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('payroll_runs_page.tooltip_edit_run')} />
+              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('runs_page.tooltip.edit_run')} />
             </PermissionGuard>
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <ActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle={t('payroll_runs_page.tooltip_delete_run')} />
+              <ActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle={t('runs_page.tooltip.delete_run')} />
             </PermissionGuard>
             {record.status_lookup_value_id !== PAID_STATUS_ID && (
               <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MARK_AS_PAID]}>
@@ -293,7 +297,7 @@ const PayrollRunsPage: React.FC = () => {
                       onClick={() => handleMarkAsPaid(record)}
                       style={{ color: 'green' }}
                   >
-                      {t('payroll_runs_page.button_mark_as_paid')}
+                      {t('runs_page.button.mark_as_paid')}
                   </Button>
               </PermissionGuard>
             )}
@@ -303,7 +307,7 @@ const PayrollRunsPage: React.FC = () => {
                 icon={<DownloadOutlined />}
                 onClick={() => handleExportBankFile(record)}
               >
-                  {t('payroll_runs_page.button_export_bank_file')}
+                  {t('runs_page.button.export_bank_file')}
               </Button>
             </PermissionGuard>
           </Space>
@@ -313,21 +317,25 @@ const PayrollRunsPage: React.FC = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <PageHeaderLayout>
-        <Typography.Title level={4} style={{ marginBottom: 0 }}>{t('payroll_runs_page.title')}</Typography.Title>
-        <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={showCreateModal}
-            shape="round"
-          >
-            {t('payroll_runs_page.button.create_run')}
-          </Button>
-        </PermissionGuard>
+      <PageHeaderLayout
+        pageTitle={t('runs_page.title')}
+        actions={
+          <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showCreateModal}
+              shape="round"
+            >
+              {t('runs_page.button.create_run')}
+            </Button>
+          </PermissionGuard>
+        }
+      >
+        <></>
       </PageHeaderLayout>
 
-      {error && <Alert message={`${t('payroll_runs_page.alert_error_prefix')}${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
+      {error && <Alert message={`${t('runs_page.alert_error_prefix')}${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
       
       <Table
         columns={columns}
@@ -339,14 +347,14 @@ const PayrollRunsPage: React.FC = () => {
           pageSize: meta?.size,
           total: meta?.total,
           showSizeChanger: true,
-          showTotal: (total, range) => t('payroll_runs_page.pagination_show_total', { range0: range[0], range1: range[1], total }),
+          showTotal: (total, range) => t('runs_page.pagination_show_total', { range0: range[0], range1: range[1], total }),
         }}
         onChange={handleTableChange}
         scroll={{ x: 'max-content' }}
       />
 
       <Modal
-        title={currentRun ? t('payroll_runs_page.modal_title_edit') : t('payroll_runs_page.modal_title_create')}
+        title={currentRun ? t('runs_page.modal_title_edit') : t('runs_page.modal_title_create')}
         open={isModalVisible}
         onCancel={handleModalCancel}
         confirmLoading={modalLoading} 
@@ -354,7 +362,7 @@ const PayrollRunsPage: React.FC = () => {
         destroyOnClose 
         width={650} 
       >
-        {modalError && <Alert message={`${t('payroll_runs_page.alert_modal_error_prefix')}${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}
+        {modalError && <Alert message={`${t('runs_page.alert_modal_error_prefix')}${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}
         <PayrollRunForm
           form={form}
           onFinish={handleFormFinish}

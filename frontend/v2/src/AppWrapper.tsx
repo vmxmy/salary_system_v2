@@ -1,5 +1,6 @@
 import React, { useEffect, StrictMode } from 'react';
 import { RouterProvider, type createBrowserRouter } from 'react-router-dom';
+import { App } from 'antd'; // 导入 Ant Design App 组件
 // import { ConfigProvider } from 'antd'; // Removed
 // import zhCN from 'antd/locale/zh_CN'; // Removed
 import { useAuthStore } from './store/authStore';
@@ -61,7 +62,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       fetchHrLookups('employmentTypes');
       fetchHrLookups('employeeStatuses');
       fetchHrLookups('departments');
-      fetchHrLookups('jobTitles');
+      fetchHrLookups('personnelCategories');
       console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups fetch calls initiated.');
     } else {
       console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
@@ -93,12 +94,14 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}> { /* QueryClientProvider 包裹 */}
-        {/* <ConfigProvider locale={zhCN}> */} {/* Removed ConfigProvider wrapper */}
-          {/* RouterProvider 的 fallbackElement 在 v6.4+ 中通过 router 配置中的 errorElement 处理，或者在 Suspense 中使用 */} 
-          {/* 如果需要加载指示器，可以在 RouterProvider 外部或特定路由元素内部处理 */} 
-          <RouterProvider router={router} />
-          {/* <ReactQueryDevtools initialIsOpen={false} /> */}{/* 可选的开发工具，放在QueryClientProvider内部 */}
-        {/* </ConfigProvider> */} {/* Removed ConfigProvider wrapper */}
+        <App> { /* 用 Ant Design App 组件包裹 */}
+          {/* <ConfigProvider locale={zhCN}> */} {/* Removed ConfigProvider wrapper */}
+            {/* RouterProvider 的 fallbackElement 在 v6.4+ 中通过 router 配置中的 errorElement 处理，或者在 Suspense 中使用 */}
+            {/* 如果需要加载指示器，可以在 RouterProvider 外部或特定路由元素内部处理 */}
+            <RouterProvider router={router} />
+            {/* <ReactQueryDevtools initialIsOpen={false} /> */}{/* 可选的开发工具，放在QueryClientProvider内部 */}
+          {/* </ConfigProvider> */} {/* Removed ConfigProvider wrapper */}
+        </App> { /* 结束 Ant Design App 组件包裹 */}
       </QueryClientProvider>
     </StrictMode>
   );

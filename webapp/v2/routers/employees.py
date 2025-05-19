@@ -206,6 +206,51 @@ async def create_employee(
         )
 
 
+@router.post("/bulk", response_model=Dict[str, List[EmployeeResponseSchema]], status_code=status.HTTP_201_CREATED)
+async def create_bulk_employees_api(
+    employees_in: List[EmployeeCreate],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_CREATE"]))
+):
+    """
+    批量创建新员工。
+    
+    - 需要与创建单个员工相同的权限 (例如 P_EMPLOYEE_CREATE)。
+    - 请求体应该是一个包含多个员工对象的JSON数组。
+    """
+    if not employees_in:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=create_error_response(
+                status_code=400,
+                message="Bad Request",
+                details="Input employee list cannot be empty."
+            )
+        )
+    try:
+        created_employees = v2_hr_crud.create_bulk_employees(db, employees_in)
+        return {"data": created_employees}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="Unprocessable Entity during bulk creation",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"Error in create_bulk_employees_api endpoint: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error during bulk creation",
+                details=str(e)
+            )
+        )
+
+
 @router.put("/{employee_id}", response_model=Dict[str, EmployeeResponseSchema])
 async def update_employee(
     employee_id: int,

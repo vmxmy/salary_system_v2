@@ -2,7 +2,7 @@
 人事相关的CRUD操作。
 """
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_, and_, inspect
+from sqlalchemy import func, or_, and_, inspect, select
 from typing import List, Optional, Tuple, Dict, Any
 import logging
 
@@ -12,7 +12,7 @@ from ..models.hr import (
     LeaveType, EmployeeLeaveBalance, EmployeeLeaveRequest, EmployeeBankAccount,
     Position, EmployeeAppraisal, Department as DepartmentModel, Employee as EmployeeModel, EmployeeAppraisal as EmployeeAppraisalModel, EmployeeJobHistory as EmployeeJobHistoryModel, PersonnelCategory as PersonnelCategoryModel, Position as PositionModel
 )
-from ..models.config import LookupValue
+from ..models.config import LookupValue, LookupType
 
 from ..pydantic_models.hr import (
     EmployeeCreate, EmployeeUpdate, DepartmentCreate, DepartmentUpdate,
@@ -100,6 +100,7 @@ def get_employees(
         selectinload(Employee.personnel_category),
         selectinload(Employee.actual_position).selectinload(Position.parent_position),
         selectinload(Employee.appraisals).selectinload(EmployeeAppraisal.appraisal_result),
+        selectinload(Employee.bank_accounts),
         selectinload(Employee.job_history).options( 
             selectinload(EmployeeJobHistory.department),
             selectinload(EmployeeJobHistory.position_detail).selectinload(Position.parent_position),
@@ -153,7 +154,7 @@ def get_employee(db: Session, employee_id: int) -> Optional[Employee]:
             selectinload(EmployeeJobHistory.personnel_category_detail).selectinload(PersonnelCategory.parent_category),
             selectinload(EmployeeJobHistory.manager)
         ),
-        # selectinload(Employee.bank_accounts)
+        selectinload(Employee.bank_accounts),
         # selectinload(Employee.contracts)
         # selectinload(Employee.compensation_history)
         # selectinload(Employee.payroll_components)
@@ -211,18 +212,102 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
         if existing_id:
             raise ValueError(f"Employee with ID number '{employee.id_number}' already exists")
 
-    # 从 Pydantic 模型提取员工数据，排除 appraisals (如果 appraisals 在 EmployeeCreate 中)
-    employee_data = employee.model_dump(exclude_none=True, exclude={"appraisals"}) # Exclude appraisals for now
+    # 保存银行信息以便稍后创建银行账户记录
+    bank_name = employee.bank_name
+    bank_account_number = employee.bank_account_number
+
+    # 从 Pydantic 模型提取员工数据，排除不属于 Employee 模型的字段
+    fields_to_exclude = {
+        "appraisals", 
+        # 排除银行相关字段，因为这些字段不在 Employee 模型中
+        "bank_name", 
+        "bank_account_number",
+        # 排除其他用于解析的名称字段
+        "gender_lookup_value_name", 
+        "status_lookup_value_name",
+        "employment_type_lookup_value_name", 
+        "education_level_lookup_value_name",
+        "marital_status_lookup_value_name", 
+        "political_status_lookup_value_name",
+        "contract_type_lookup_value_name", 
+        "department_name", 
+        "position_name",
+        "personnel_category_name"
+    }
+    
+    employee_data = employee.model_dump(exclude_none=True, exclude=fields_to_exclude)
+
+    # 处理lookup fields，将名称转换为ID
+    # 必须处理status_lookup_value_name，因为status_lookup_value_id是必填字段
+    if not employee_data.get('status_lookup_value_id') and employee.status_lookup_value_name:
+        status_id = _resolve_lookup_id(db, employee.status_lookup_value_name, "EMPLOYEE_STATUS")
+        if status_id is None:
+            raise ValueError(f"Status '{employee.status_lookup_value_name}' could not be resolved or is missing.")
+        employee_data['status_lookup_value_id'] = status_id
+    
+    # 处理其他可选lookup fields
+    if not employee_data.get('gender_lookup_value_id') and employee.gender_lookup_value_name:
+        employee_data['gender_lookup_value_id'] = _resolve_lookup_id(db, employee.gender_lookup_value_name, "GENDER")
+    
+    if not employee_data.get('employment_type_lookup_value_id') and employee.employment_type_lookup_value_name:
+        employee_data['employment_type_lookup_value_id'] = _resolve_lookup_id(db, employee.employment_type_lookup_value_name, "EMPLOYMENT_TYPE")
+    
+    if not employee_data.get('education_level_lookup_value_id') and employee.education_level_lookup_value_name:
+        employee_data['education_level_lookup_value_id'] = _resolve_lookup_id(db, employee.education_level_lookup_value_name, "EDUCATION_LEVEL")
+    
+    if not employee_data.get('marital_status_lookup_value_id') and employee.marital_status_lookup_value_name:
+        employee_data['marital_status_lookup_value_id'] = _resolve_lookup_id(db, employee.marital_status_lookup_value_name, "MARITAL_STATUS")
+    
+    if not employee_data.get('political_status_lookup_value_id') and employee.political_status_lookup_value_name:
+        employee_data['political_status_lookup_value_id'] = _resolve_lookup_id(db, employee.political_status_lookup_value_name, "POLITICAL_STATUS")
+    
+    if not employee_data.get('contract_type_lookup_value_id') and employee.contract_type_lookup_value_name:
+        employee_data['contract_type_lookup_value_id'] = _resolve_lookup_id(db, employee.contract_type_lookup_value_name, "CONTRACT_TYPE")
+    
+    # 处理department和position
+    if not employee_data.get('department_id') and employee.department_name:
+        dept = _get_department_by_name(db, employee.department_name)
+        if dept:
+            employee_data['department_id'] = dept.id
+    
+    if not employee_data.get('actual_position_id') and employee.position_name:
+        pos = _get_position_by_name(db, employee.position_name)
+        if pos:
+            employee_data['actual_position_id'] = pos.id
+    
+    if not employee_data.get('personnel_category_id') and employee.personnel_category_name:
+        pc = _get_personnel_category_by_name(db, employee.personnel_category_name)
+        if pc:
+            employee_data['personnel_category_id'] = pc.id
+    
     db_employee = Employee(**employee_data)
     
     db.add(db_employee)
-    # 先 flush 获取 employee ID，用于创建关联的 appraisals
+    # 先 flush 获取 employee ID，用于创建关联的记录
     try:
         db.flush() 
     except Exception as e:
         db.rollback()
         logger.error(f"Error flushing new employee: {e}")
         raise
+
+    # 如果提供了银行信息，创建银行账户记录
+    if bank_name and bank_account_number:
+        try:
+            # 创建银行账户记录
+            bank_account = EmployeeBankAccount(
+                employee_id=db_employee.id,
+                bank_name=bank_name,
+                account_number=bank_account_number,
+                account_holder_name=f"{db_employee.last_name} {db_employee.first_name}".strip(),  # 使用员工姓名作为账户持有人
+                is_primary=True  # 设为主要账户
+            )
+            db.add(bank_account)
+            logger.info(f"Created bank account for employee {db_employee.id}: {bank_name}, {bank_account_number}")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error creating bank account for employee {db_employee.id}: {e}")
+            raise ValueError(f"Failed to create bank account: {str(e)}")
 
     # 处理年度考核 appraisals (如果提供)
     if hasattr(employee, 'appraisals') and employee.appraisals:
@@ -273,13 +358,56 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
         if existing:
             raise ValueError(f"Employee with ID number '{employee.id_number}' already exists")
 
-    # 更新员工的直接字段
-    update_data = employee.model_dump(exclude_unset=True, exclude={"appraisals"}) # appraisals is handled separately
+    # 保存银行信息以便稍后处理
+    bank_name = employee.bank_name
+    bank_account_number = employee.bank_account_number
+
+    # 更新员工的直接字段，排除不属于Employee模型的字段
+    fields_to_exclude = {
+        "appraisals", 
+        # 排除银行相关字段，因为这些字段不在Employee模型中
+        "bank_name", 
+        "bank_account_number"
+    }
+    update_data = employee.model_dump(exclude_unset=True, exclude=fields_to_exclude)
+    
     for key, value in update_data.items():
         if hasattr(db_employee, key):
             setattr(db_employee, key, value)
         else:
             logger.warning(f"Attempted to set non-existent attribute '{key}' on Employee model during update.")
+
+    # 处理银行账户信息更新
+    if bank_name is not None and bank_account_number is not None:
+        # 查找员工的主要银行账户
+        primary_account = None
+        for account in db_employee.bank_accounts:
+            if account.is_primary:
+                primary_account = account
+                break
+        
+        if not primary_account and db_employee.bank_accounts:
+            # 如果没有主要账户但有其他账户，使用第一个
+            primary_account = db_employee.bank_accounts[0]
+        
+        if primary_account:
+            # 更新现有账户
+            primary_account.bank_name = bank_name
+            primary_account.account_number = bank_account_number
+            primary_account.account_holder_name = f"{db_employee.last_name} {db_employee.first_name}".strip()
+            primary_account.is_primary = True
+            logger.info(f"Updated bank account for employee {employee_id}: {bank_name}, {bank_account_number}")
+        else:
+            # 创建新账户
+            new_account = EmployeeBankAccount(
+                employee_id=employee_id,
+                bank_name=bank_name,
+                account_number=bank_account_number,
+                account_holder_name=f"{db_employee.last_name} {db_employee.first_name}".strip(),
+                is_primary=True
+            )
+            db.add(new_account)
+            logger.info(f"Created new bank account for employee {employee_id}: {bank_name}, {bank_account_number}")
 
     # 处理年度考核 appraisals 的更新
     # Only proceed if 'appraisals' key was provided in the payload and is not None.
@@ -713,3 +841,249 @@ def get_positions(
     total = query.count()
     positions = query.order_by(PositionModel.name).offset(skip).limit(limit).all()
     return positions, total
+
+def _get_position_by_name(db: Session, name: str) -> Optional[PositionModel]:
+    return db.query(PositionModel).filter(func.lower(PositionModel.name) == func.lower(name)).first()
+
+# Helper function to get personnel category by name (NEW)
+def _get_personnel_category_by_name(db: Session, name: str) -> Optional[PersonnelCategoryModel]:
+    return db.query(PersonnelCategoryModel).filter(func.lower(PersonnelCategoryModel.name) == func.lower(name)).first()
+
+# region Helper functions for resolving IDs
+def _resolve_lookup_id(db: Session, text_value: Optional[str], type_code: str) -> Optional[int]:
+    """
+    Resolves a text value for a lookup to its corresponding ID using the LookupType code.
+    Example: text_value="男", type_code="GENDER" -> returns the ID of "男" in lookup_values.
+    """
+    if not text_value:
+        return None
+    
+    from ..models.config import LookupType, LookupValue 
+    # from sqlalchemy import func # Not used in this specific query yet
+
+    # New SQLAlchemy 2.0 style query
+    stmt = select(LookupValue.id)\
+        .join(LookupType, LookupValue.lookup_type_id == LookupType.id)\
+        .where(LookupType.code == type_code)\
+        .where(LookupValue.name == text_value)
+    
+    # lookup_value_id = db.scalar_one_or_none(stmt) # Original attempt for 2.0 style
+    result = db.execute(stmt) # Execute the statement first
+    lookup_value_id = result.scalar_one_or_none() # Then get the scalar from the result
+
+    if lookup_value_id is None:
+        logger.warning(f"Lookup value not found for text: '{text_value}' with type_code: '{type_code}'. A new one might be created if applicable or this will be skipped.")
+    return lookup_value_id
+
+def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate]) -> List[Employee]:
+    """
+    批量创建员工。
+
+    Args:
+        db: 数据库会话
+        employees_in: 员工创建模型列表 (包含 *_name fields for lookups and department/position)
+
+    Returns:
+        成功创建的员工对象列表
+
+    Raises:
+        ValueError: If data validation fails (e.g., duplicate employee_code or id_number,
+                    unresolved mandatory lookups, unresolved department/position if name provided but not found).
+        Exception: If a database operation fails.
+    """
+    created_employees: List[Employee] = []
+    errors: List[Dict[str, Any]] = [] # To collect errors for records
+
+    # For checking uniqueness within the batch
+    seen_employee_codes_in_batch = set()
+    seen_id_numbers_in_batch = set()
+
+    db_employees_to_add: List[Employee] = []
+    # 保存银行账户信息，稍后创建
+    bank_accounts_to_add: List[Tuple[int, dict]] = []  # (employee_index, bank_account_data)
+
+    for index, emp_in in enumerate(employees_in):
+        current_record_errors = []
+        try:
+            # 1. Validate uniqueness within the batch and against DB for non-empty employee_code
+            if emp_in.employee_code: # Only validate if employee_code is not None and not empty string
+                if emp_in.employee_code in seen_employee_codes_in_batch:
+                    current_record_errors.append(f"Duplicate employee_code '{emp_in.employee_code}' in batch.")
+                seen_employee_codes_in_batch.add(emp_in.employee_code)
+                
+                # Check against DB only if employee_code is provided
+                # The get_employee_by_code function expects a string, so this check is implicitly for non-None codes.
+                # If the DB allows multiple NULLs but unique non-NULLs, this is fine.
+                # If DB has unique constraint that treats multiple empty strings as duplicate, that's a DB level concern.
+                existing_in_db = get_employee_by_code(db, emp_in.employee_code)
+                if existing_in_db:
+                    current_record_errors.append(f"Employee_code '{emp_in.employee_code}' already exists in DB.")
+
+            if emp_in.id_number:
+                if emp_in.id_number in seen_id_numbers_in_batch:
+                    current_record_errors.append(f"Duplicate id_number '{emp_in.id_number}' in batch.")
+                seen_id_numbers_in_batch.add(emp_in.id_number)
+                if get_employee_by_id_number(db, emp_in.id_number):
+                    current_record_errors.append(f"Id_number '{emp_in.id_number}' already exists in DB.")
+
+            # 保存银行信息以便稍后创建
+            bank_name = emp_in.bank_name
+            bank_account_number = emp_in.bank_account_number
+
+            # 2. Prepare data for Employee ORM model
+            # Start with fields that don't need special resolution from EmployeeCreate
+            # Exclude _name fields as they are resolved to _id fields, and exclude appraisals.
+            fields_to_exclude = {
+                "appraisals", 
+                "gender_lookup_value_name", 
+                "status_lookup_value_name",
+                "employment_type_lookup_value_name", 
+                "education_level_lookup_value_name",
+                "marital_status_lookup_value_name", 
+                "political_status_lookup_value_name",
+                "contract_type_lookup_value_name", 
+                "department_name", 
+                "position_name",
+                "personnel_category_name", 
+                # 排除银行相关字段，因为这些字段不在 Employee 模型中
+                "bank_name", 
+                "bank_account_number"
+            }
+            employee_orm_data = emp_in.model_dump(exclude_none=True, exclude=fields_to_exclude)
+
+            # Ensure employee_code is None if it's an empty string, to play well with DB unique constraints on NULL vs ''
+            if "employee_code" in employee_orm_data and employee_orm_data["employee_code"] == "":
+                employee_orm_data["employee_code"] = None
+            elif emp_in.employee_code == "": # also catch case where it was not excluded by model_dump due to exclude_none=False or not being None
+                employee_orm_data["employee_code"] = None
+
+            # Resolve lookups
+            employee_orm_data["gender_lookup_value_id"] = _resolve_lookup_id(db, emp_in.gender_lookup_value_name, "GENDER")
+            
+            status_id = _resolve_lookup_id(db, emp_in.status_lookup_value_name, "EMPLOYEE_STATUS")
+            if status_id is None: # status_lookup_value_id is mandatory in EmployeeBase
+                current_record_errors.append(f"Status '{emp_in.status_lookup_value_name}' could not be resolved or is missing.")
+            employee_orm_data["status_lookup_value_id"] = status_id
+            
+            employee_orm_data["employment_type_lookup_value_id"] = _resolve_lookup_id(db, emp_in.employment_type_lookup_value_name, "EMPLOYMENT_TYPE")
+            employee_orm_data["education_level_lookup_value_id"] = _resolve_lookup_id(db, emp_in.education_level_lookup_value_name, "EDUCATION_LEVEL")
+            employee_orm_data["marital_status_lookup_value_id"] = _resolve_lookup_id(db, emp_in.marital_status_lookup_value_name, "MARITAL_STATUS")
+            employee_orm_data["political_status_lookup_value_id"] = _resolve_lookup_id(db, emp_in.political_status_lookup_value_name, "POLITICAL_STATUS")
+            employee_orm_data["contract_type_lookup_value_id"] = _resolve_lookup_id(db, emp_in.contract_type_lookup_value_name, "CONTRACT_TYPE")
+
+            # Resolve department and position
+            if emp_in.department_name:
+                dept = _get_department_by_name(db, emp_in.department_name)
+                if dept:
+                    employee_orm_data["department_id"] = dept.id
+                else:
+                    current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
+            elif "department_id" not in employee_orm_data and emp_in.department_id is not None: # If ID was directly provided
+                 employee_orm_data["department_id"] = emp_in.department_id
+
+
+            if emp_in.position_name:
+                pos = _get_position_by_name(db, emp_in.position_name)
+                if pos:
+                    employee_orm_data["actual_position_id"] = pos.id # Assuming field name is actual_position_id
+                else:
+                    current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
+            elif "actual_position_id" not in employee_orm_data and emp_in.actual_position_id is not None: # If ID was directly provided
+                 employee_orm_data["actual_position_id"] = emp_in.actual_position_id
+            
+            # Resolve personnel category by name (NEW)
+            if emp_in.personnel_category_name:
+                pc = _get_personnel_category_by_name(db, emp_in.personnel_category_name)
+                if pc:
+                    employee_orm_data["personnel_category_id"] = pc.id
+                else:
+                    current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
+            elif "personnel_category_id" not in employee_orm_data and emp_in.personnel_category_id is not None: # If ID was directly provided
+                employee_orm_data["personnel_category_id"] = emp_in.personnel_category_id
+
+            # If company_id is None, try to set from context or default (placeholder logic)
+            if employee_orm_data.get("company_id") is None:
+                # Add logic here if company_id needs to be set from user context or a default
+                # For now, we'll assume it might be optional or handled by DB default if not in emp_in
+                pass
+
+
+            if current_record_errors:
+                errors.append({"record_index": index, "employee_code": emp_in.employee_code, "errors": current_record_errors})
+                continue # Skip this record
+
+            db_employee = Employee(**employee_orm_data)
+            db_employees_to_add.append(db_employee)
+            db.add(db_employee)
+            
+            # 如果提供了银行信息，保存以便稍后创建
+            if bank_name and bank_account_number:
+                bank_accounts_to_add.append((index, {
+                    "bank_name": bank_name,
+                    "account_number": bank_account_number,
+                    "first_name": emp_in.first_name,
+                    "last_name": emp_in.last_name
+                }))
+
+        except Exception as e_rec:
+            logger.error(f"Error processing record {index} ({emp_in.employee_code if emp_in else 'N/A'}): {e_rec}", exc_info=True)
+            errors.append({"record_index": index, "employee_code": (emp_in.employee_code if emp_in else 'N/A'), "errors": [str(e_rec)]})
+
+
+    if not db_employees_to_add: # If all records had errors or input was empty
+        if errors: # If there were errors, raise them or return them
+             # Depending on API design, you might raise an exception or return error details
+            raise ValueError(f"Employee bulk creation failed with errors: {errors}")
+        return [] # No employees to create, no errors, return empty list
+
+
+    try:
+        db.flush() # Flush all valid employees
+
+        # 创建银行账户
+        for idx, bank_data in bank_accounts_to_add:
+            employee = db_employees_to_add[idx]
+            try:
+                bank_account = EmployeeBankAccount(
+                    employee_id=employee.id,
+                    bank_name=bank_data["bank_name"],
+                    account_number=bank_data["account_number"],
+                    account_holder_name=f"{bank_data['last_name']} {bank_data['first_name']}".strip(),
+                    is_primary=True
+                )
+                db.add(bank_account)
+                logger.info(f"Created bank account for employee {employee.id}: {bank_data['bank_name']}, {bank_data['account_number']}")
+            except Exception as e:
+                logger.error(f"Error creating bank account for employee {employee.id}: {e}")
+                # 这里不抛出错误，我们继续处理其他记录
+
+        # Appraisals are explicitly not handled in this bulk employee creation
+        # If they were, logic would go here, iterating emp_in and db_employees_to_add
+
+        db.commit()
+
+        for db_emp in db_employees_to_add:
+            db.refresh(db_emp)
+            # For consistency with single create, re-query. Consider optimizing for bulk.
+            refreshed_emp = get_employee(db, db_emp.id) 
+            if refreshed_emp:
+                created_employees.append(refreshed_emp)
+            else: # Should not happen
+                logger.error(f"Failed to re-fetch employee with ID {db_emp.id} after bulk commit.")
+                # Potentially add the original db_emp to created_employees as a fallback
+                # or handle this as a more critical error.
+    
+    except Exception as e_commit:
+        db.rollback()
+        logger.error(f"Error during bulk employee commit phase: {e_commit}", exc_info=True)
+        # Add commit phase errors to the list or raise a general exception
+        # For now, re-raise to be handled by API route
+        raise ValueError(f"Commit phase failed: {e_commit}. Errors from validation phase: {errors}")
+
+    if errors: # If there were validation errors for some records, but others committed
+        # Log them or include them in a more complex response structure
+        logger.warning(f"Partial success in bulk employee creation. Errors: {errors}")
+        # Depending on API contract, you might still return created_employees
+        # and have a way to communicate partial failure.
+
+    return created_employees

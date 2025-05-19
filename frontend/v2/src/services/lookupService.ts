@@ -33,12 +33,15 @@ let fetchLookupTypesPromise: Promise<readonly LookupType[] | null> | null = null
 // Fetches all lookup types from the API and caches them
 export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType[] | null> => {
   if (cachedLookupTypes) {
+    console.log('使用已缓存的lookup类型数据，共', cachedLookupTypes.length, '项');
     return cachedLookupTypes;
   }
   if (isFetchingLookupTypes && fetchLookupTypesPromise) {
+    console.log('正在获取lookup类型数据，等待结果...');
     return fetchLookupTypesPromise;
   }
 
+  console.log('🔍 开始请求所有lookup类型数据 GET /lookup/types');
   isFetchingLookupTypes = true;
   fetchLookupTypesPromise = apiClient.get<LookupTypeListResponse>('/lookup/types', {
     params: {
@@ -47,6 +50,23 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
     }
   })
   .then(response => {
+    console.log('✅ lookup类型API响应:', {
+      status: response.status,
+      url: response.config.url,
+      hasData: !!response.data,
+      dataIsArray: response.data && Array.isArray(response.data.data),
+      dataLength: response.data && response.data.data ? response.data.data.length : 0,
+    });
+    
+    // 详细输出响应数据的前几项
+    if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+      console.log('lookup类型数据预览:');
+      response.data.data.slice(0, 3).forEach((item, index) => {
+        console.log(`  ${index+1}. id=${item.id}, code="${item.code}", name="${item.name}"`);
+      });
+      console.log(`  ... 共${response.data.data.length}项`);
+    }
+    
     // 调整判断条件以匹配新的 LookupTypeListResponse 结构
     // response.data (axios 的 data) 对应整个 LookupTypeListResponse
     // response.data.data 对应 LookupTypeListResponse 中的 data 数组
@@ -54,12 +74,18 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
       cachedLookupTypes = Object.freeze([...response.data.data]); // 从 response.data.data 获取数组
       return cachedLookupTypes;
     }
-    console.error('lookupService: Unexpected API response structure for /lookup/types:', response.data);
+    console.error('❌ lookupService: 意外的API响应结构 /lookup/types:', response.data);
     message.error('Failed to load lookup type definitions.');
     return null;
   })
   .catch(error => {
-    console.error('lookupService: Error fetching lookup types:', error);
+    console.error('❌ lookupService: 获取lookup类型失败:', error);
+    console.error('错误详情:', error.message);
+    console.error('请求配置:', error.config);
+    if (error.response) {
+      console.error('响应数据:', error.response.data);
+      console.error('响应状态:', error.response.status);
+    }
     message.error('Error loading lookup type definitions.');
     return null;
   })
@@ -72,14 +98,18 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
 
 // Renamed and modified to search by system code key against the 'code' field of lookup types
 const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | undefined> => {
+  console.log(`开始查询系统码 "${systemCodeKey}" 的类型代码`);
   const allTypes = await fetchAllLookupTypesAndCache();
   if (!allTypes) {
+    console.warn(`查询系统码 "${systemCodeKey}" 失败：缓存类型为空`);
     return undefined;
   }
   // Find the type where its 'code' (from DB, e.g., 'GENDER') matches our systemCodeKey (e.g., LookupSystemCodes.GENDER which is also 'GENDER')
   const foundType = allTypes.find(type => type.code === systemCodeKey);
   if (!foundType) {
     console.warn(`lookupService: Could not find lookup type with system code key "${systemCodeKey}" in cached types. Ensure this key exists in 'config.lookup_types.code' column.`);
+  } else {
+    console.log(`找到系统码 "${systemCodeKey}" 对应的类型：`, foundType);
   }
   // The 'code' property of the found type is the actual type_code we need.
   return foundType?.code;
@@ -143,8 +173,9 @@ interface PositionWithParentId extends PositionType {
 // 定义通用的 API Lookup Value 结构
 interface ApiLookupValue {
   id: number;
-  label: string; // Changed from name to label to match what LookupItem expects directly from API if possible
-  value: string; // Changed from code to value for consistency, assuming API code is the value for LookupItem
+  label?: string; // Changed from name to label to match what LookupItem expects directly from API if possible
+  name?: string;  // 添加name属性，API实际返回的是name而不是label
+  value?: string; // Changed from code to value for consistency, assuming API code is the value for LookupItem
   code?: string; // Keep original code if needed for other logic
   lookup_type_id?: number;
   lookup_type_code?: string; // If API provides this directly for context
@@ -360,39 +391,68 @@ const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
 // Generic function to fetch lookup values by type code
 const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> => {
   if (!typeCode) { // Added a check for empty typeCode
-    console.warn('fetchLookupValuesByType called with empty typeCode.');
+    console.warn('❌ fetchLookupValuesByType: 被调用时typeCode为空');
     return [];
   }
+  
+  console.log(`🔍 开始获取类型 "${typeCode}" 的查找值`);
+  
   try {
-    // Assuming the API returns a structure like { data: { items: ApiLookupValue[] } }
-    // And we want all items, so setting a large page size.
-    // Adjust size if pagination is desired or if API has a max limit.
-    const response = await apiClient.get<LookupValueListResponse>(`${API_BASE_PATH}`, {
-      params: {
-        type_code: typeCode,
-        is_active: true, // Typically, we only want active lookup values for forms
-        size: 100, // API最大允许100，超出会422
-        page: 1,
-      }
+    // 构建请求URL和参数
+    const apiPath = `/${API_BASE_PATH}`;
+    const params = {
+      type_code: typeCode,
+      is_active: true,
+      size: 100,
+      page: 1,
+    };
+    
+    console.log(`API请求: GET ${apiPath}`, { params });
+    
+    // Assuming the API returns a structure like { data: [...ApiLookupValue] }
+    const response = await apiClient.get<ActualApiLookupValueListResponse>(apiPath, { params });
+    
+    console.log(`✅ 类型 "${typeCode}" 的API响应:`, {
+      status: response.status,
+      url: response.config.url,
+      hasData: !!response.data,
+      dataType: response.data ? typeof response.data.data : 'undefined',
+      isArray: response.data && Array.isArray(response.data.data),
+      itemCount: response.data && Array.isArray(response.data.data) ? response.data.data.length : 0
     });
+    
+    // 详细输出响应数据的前几项
+    if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+      console.log(`类型 "${typeCode}" 数据预览:`);
+      response.data.data.slice(0, 3).forEach((item, index) => {
+        console.log(`  ${index+1}. id=${item.id}, name="${item.name || item.label}", code="${item.code}"`);
+      });
+      console.log(`  ... 共${response.data.data.length}项`);
+    }
     
     if (response.data && Array.isArray(response.data.data)) {
       return response.data.data
         .filter(item => item.is_active !== false)
         .map(apiItem => ({
           value: apiItem.id,
-          label: apiItem.label || apiItem.name, // 兼容label或name
+          label: apiItem.name || apiItem.label || '', // 首先使用name，因为API数据结构是这样的
           code: apiItem.code,
           id: apiItem.id,
-          name: apiItem.label || apiItem.name,
+          name: apiItem.name || apiItem.label || '',
         }));
     }
-    console.error(`lookupService: Unexpected API response structure for type_code ${typeCode}:`, response.data);
+    console.error(`❌ lookupService: 意外的API响应结构 type_code=${typeCode}:`, response.data);
     message.error(`Failed to load lookup values for type: ${typeCode}`);
     return [];
-  } catch (error) {
-    console.error(`lookupService: Error fetching lookup values for type_code ${typeCode}:`, error);
-    message.error(`Error loading lookup values for type: ${typeCode}.`);
+  } catch (error: any) {
+    console.error(`❌ lookupService: 获取类型为"${typeCode}"的查找值时出错:`, error);
+    console.error('错误详情:', error.message);
+    console.error('请求配置:', error.config);
+    if (error.response) {
+      console.error('响应数据:', error.response.data);
+      console.error('响应状态:', error.response.status);
+    }
+    message.error(`获取"${typeCode}"类型的查找值失败`);
     return [];
   }
 };
@@ -406,35 +466,53 @@ export const lookupService = {
 
   getDepartmentsLookup: async (): Promise<Department[]> => {
     try {
-      const response = await apiClient.get<{ data: ApiDepartment[] } | { data: { data: ApiDepartment[] } }>('/departments');
+      const response = await apiClient.get<{ data: ApiDepartment[], meta?: any }>( // Expect ApiDepartment
+        '/departments/', 
+        { params: { size: 100, is_active: true } } // CORRECTED size to 100
+      );
+      
+      console.log('getDepartmentsLookup API响应 (raw):', response.data);
 
       let rawDepartments: ApiDepartment[];
-      if ('data' in response.data && Array.isArray(response.data.data)) {
+      // Check if data is nested under a 'data' property or if response itself is the array
+      if (response.data && Array.isArray(response.data.data)) {
         rawDepartments = response.data.data;
-      } else if (Array.isArray(response.data)) {
+      } else if (Array.isArray(response.data)) { 
         rawDepartments = response.data as ApiDepartment[];
       } else {
-        console.error('lookupService: Unexpected departments API response structure:', response.data);
+        console.warn('Departments lookup: data array not found or not an array in response:', response.data);
+        message.error('获取部门列表失败：数据格式不正确');
         return [];
       }
 
-      const departmentsWithParent: DepartmentWithParentId[] = rawDepartments
-        .filter(dept => dept.is_active !== false)
-        .map(apiDept => ({
-          id: Number(apiDept.id), // Ensure ID is number to match Department type
-          name: apiDept.name,
-          code: apiDept.code,
-          value: Number(apiDept.id), // For select options
-          label: apiDept.name, // For select options
-          children: [], 
-          parentId: apiDept.parent_department_id ? String(apiDept.parent_department_id) : undefined,
-          is_active: apiDept.is_active,
-        }));
+      if (!rawDepartments || rawDepartments.length === 0) {
+        console.log('getDepartmentsLookup: No raw departments returned from API or list is empty.');
+        return [];
+      }
 
-      return buildDepartmentTree(departmentsWithParent);
+      const departmentsWithParentId: DepartmentWithParentId[] = rawDepartments.map(apiDept => {
+        const deptIdAsNumber = Number(apiDept.id); // Ensure id is treated as number
+        return {
+          id: deptIdAsNumber, 
+          name: apiDept.name,
+          code: apiDept.code, 
+          is_active: apiDept.is_active,
+          value: deptIdAsNumber, // Ensure value is also number, consistent with id
+          label: apiDept.name, // Used by transformToTreeData if labelKey is 'name'
+          parentId: apiDept.parent_department_id ? String(apiDept.parent_department_id) : undefined,
+          children: [], // Initialize for buildDepartmentTree
+        } as DepartmentWithParentId; // Explicit cast to satisfy DepartmentWithParentId which extends Department
+      });
+      
+      console.log('getDepartmentsLookup - departmentsWithParentId (first 3):', departmentsWithParentId.slice(0,3));
+
+      const treeResult = buildDepartmentTree(departmentsWithParentId);
+      console.log('getDepartmentsLookup - final treeResult (first 3 roots):', treeResult.slice(0,3));
+      return treeResult;
+
     } catch (error) {
-      console.error('Failed to fetch departments lookup:', error);
-      message.error('获取部门列表失败');
+      console.error('Error fetching and processing departments lookup:', error);
+      message.error('获取部门列表失败: ' + (error instanceof Error ? error.message : '未知错误'));
       return [];
     }
   },
@@ -505,17 +583,20 @@ export const lookupService = {
   getPersonnelCategoriesLookup: async (): Promise<PersonnelCategory[]> => { // MODIFIED from getJobTitlesLookup
     try {
       // MODIFIED path and expected type
-      const response = await apiClient.get<{ data: ApiPersonnelCategory[] } | { data: { data: ApiPersonnelCategory[] } }>('/personnel-categories');
+      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>(`/personnel-categories/`, { params: { size: 100, page: 1 } }); // CORRECTED size to 100
+      console.log('getPersonnelCategoriesLookup API响应:', response.data);
       
-      let rawPersonnelCategories: ApiPersonnelCategory[]; // MODIFIED
+      let rawPersonnelCategories: PersonnelCategory[]; // MODIFIED
       if ('data' in response.data && Array.isArray(response.data.data)) {
         rawPersonnelCategories = response.data.data; // MODIFIED
       } else if (Array.isArray(response.data)) { 
-        rawPersonnelCategories = response.data as ApiPersonnelCategory[]; // MODIFIED
+        rawPersonnelCategories = response.data as PersonnelCategory[]; // MODIFIED
       } else {
         console.error('lookupService: Unexpected personnel categories API response structure:', response.data); // MODIFIED
         return [];
       }
+
+      console.log('raw personnel categories:', rawPersonnelCategories.slice(0, 3));
 
       const personnelCategoriesWithParent: PersonnelCategoryWithParentId[] = rawPersonnelCategories // MODIFIED
         .filter(pc => pc.is_active !== false) // MODIFIED jt to pc
@@ -531,9 +612,13 @@ export const lookupService = {
           // description and other fields from PersonnelCategory can be mapped here if available in ApiPersonnelCategory
         }));
 
-      return buildPersonnelCategoryTree(personnelCategoriesWithParent); // MODIFIED
+      console.log('mapped personnel categories:', personnelCategoriesWithParent.slice(0, 3));
+
+      const result = buildPersonnelCategoryTree(personnelCategoriesWithParent); // MODIFIED
+      console.log('final personnel categories tree:', result.slice(0, 3));
+      return result;
     } catch (error) {
-      console.error('Failed to fetch personnel categories lookup:', error); // MODIFIED
+      console.error('Error fetching personnel categories lookup:', error); // MODIFIED
       message.error('获取人员类别列表失败'); // MODIFIED
       return [];
     }

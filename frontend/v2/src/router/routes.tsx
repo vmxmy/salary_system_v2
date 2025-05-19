@@ -33,8 +33,11 @@ import NotFoundPage from '../pages/NotFoundPage'; // Create this if needed
 import UnauthorizedPage from '../pages/UnauthorizedPage'; // 我们将创建这个页面
 
 // Admin pages (lazy loaded)
-const JobTitlesPage = lazy(() => import('../pages/Admin/Organization/JobTitlesPage'));
+const PersonnelCategoriesPage = lazy(() => import('../pages/Admin/Organization/PersonnelCategoriesPage'));
 const DepartmentsPage = lazy(() => import('../pages/Admin/Organization/DepartmentsPage'));
+
+// Lazy load the new bulk import page
+const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
 
 // RouteObject 本身就包含 element, path, children, index
 // 我们将 meta 附加到自定义的 RouteConfig 上
@@ -99,7 +102,7 @@ export const routes: AppRouteObject[] = [
             children: [
               { index: true, element: <Navigate to="departments" replace /> },
               { path: 'departments', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Departments...</div>}><DepartmentsPage /></React.Suspense>, meta: { title: 'department_management' } },
-              { path: 'job-titles', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Job Titles...</div>}><JobTitlesPage /></React.Suspense>, meta: { title: 'job_title_management' } },
+              { path: 'job-titles', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'job_title_management' } },
             ],
           },
         ],
@@ -132,6 +135,12 @@ export const routes: AppRouteObject[] = [
             }
             return route;
           }),
+          // New route for bulk import
+          {
+            path: 'employees/bulk-import',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><EmployeeBulkImportPage /></React.Suspense>,
+            meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['P_EMPLOYEE_CREATE'] } // Using the i18n key from hr.json
+          },
           // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: 'HR仪表盘' } },
           // EmployeeListPage import is removed, new routes handle /hr/employees
           { path: 'leave', element: <LeavePage />, meta: { title: 'leave_management', requiredPermissions: ['leave:manage'] } },

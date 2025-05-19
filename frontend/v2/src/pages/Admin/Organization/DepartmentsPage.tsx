@@ -325,33 +325,29 @@ const DepartmentsPage: React.FC = () => {
   ];
 
   return (
-    <div>
-      <PageHeaderLayout>
-        <Title level={4} style={{ marginBottom: 0 }}><ClusterOutlined /> {t('title')}</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal(null)} shape="round">
-          {t('button.create_root_department')}
-        </Button>
+    <>
+      <PageHeaderLayout
+        pageTitle={<Title level={4}>{t('title')}</Title>}
+        actions={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal()} shape="round">
+            {t('button.create_top_level_department')}
+          </Button>
+        }
+      >
+        <></>
       </PageHeaderLayout>
+
       <Table
         columns={columns}
-        dataSource={departmentsTree} // Use tree data
+        dataSource={departmentsTree}
         loading={isLoading}
-        pagination={false} // Pagination typically not used with client-side tree display
-        onChange={handleTableChange} // 添加onChange处理函数，虽然在树形结构中不常用，但可以处理筛选等操作
+        pagination={false}
         rowKey="id"
         expandable={{ defaultExpandAllRows: true }}
-        bordered
-        style={{ marginBottom: 16 }}
         className={styles['tree-table']}
-        onRow={(record) => {
-          return {
-            // 使用自定义属性存储深度信息
-            'data-row-depth': record.depth?.toString(),
-            // 为根部门添加特殊样式
-            style: record.depth === 0 ? { fontWeight: 'bold' } : {}
-          };
-        }}
+        bordered
       />
+      
       <Modal
         title={editingDepartment
           ? t('modal.department_form.title.edit')
@@ -398,7 +394,7 @@ const DepartmentsPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </>
   );
 };
 

@@ -149,16 +149,20 @@ const PermissionListPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeaderLayout>
-        <Title level={4} style={{ marginBottom: 0 }}>{t('list_page.title')}</Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreate}
-          shape="round"
-        >
-          {t('list_page.button.create_permission')}
-        </Button>
+      <PageHeaderLayout
+        pageTitle={<Title level={4} style={{ marginBottom: 0 }}>{t('list_page.title')}</Title>}
+        actions={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            shape="round"
+          >
+            {t('list_page.button.create_permission')}
+          </Button>
+        }
+      >
+        <></> {/* Empty children */}
       </PageHeaderLayout>
       <Table
         columns={columns}

@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter } from 'react-router-dom';
 import { routes as routesConfig } from './router/routes'; // Changed to named import with alias
 import './styles/index.less';
+import './App.css'; // Import App.css for global styles and @font-face
 import AppWrapper from './AppWrapper'; // 导入 AppWrapper
 // import "./index.css"; // Commented out due to build error: File not found
 import dayjs from 'dayjs'; // Import dayjs

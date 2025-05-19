@@ -21,6 +21,7 @@ interface PayrollPeriodFormProps {
   onCancel?: () => void;
   loading?: boolean;
   isEditMode?: boolean;
+  onStartDateChange?: (date: Dayjs | null) => void; // 添加开始日期变化回调
 }
 
 export interface PayrollPeriodFormData {
@@ -37,6 +38,7 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
   onCancel,
   loading,
   isEditMode = false,
+  onStartDateChange,
 }) => {
   const { t } = useTranslation(); // Added
 
@@ -79,7 +81,11 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
             label={t('payroll_period_form.label.start_date')}
             rules={[{ required: true, message: t('payroll_period_form.validation.start_date_required') }]}
           >
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+            <DatePicker 
+              style={{ width: '100%' }} 
+              format="YYYY-MM-DD" 
+              onChange={onStartDateChange} 
+            />
           </Form.Item>
         </Col>
         <Col span={12}>

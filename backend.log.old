@@ -1,0 +1,954 @@
+INFO:     Will watch for changes in these directories: ['/Users/xumingyang/app/高新区工资信息管理/salary_system']
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+INFO:     Started reloader process [98079] using WatchFiles
+2025-05-19 11:04:44,151 - webapp.v2.database - INFO - V2 API is configured to use DATABASE_URL: postgresql+psycopg2://postgres:810705@********
+2025-05-19 11:04:44,586 - webapp.main - INFO - AUTO_INIT_DB is not true, skipping auto database initialization. Set AUTO_INIT_DB=true to enable.
+2025-05-19 11:04:44,586 - webapp.main - INFO - AUTO_INIT_DB is not true, skipping auto database initialization. Set AUTO_INIT_DB=true to enable.
+INFO:     Started server process [98082]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64629 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64637 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64638 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64636 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64636 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64629 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64638 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64637 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64638 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64637 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64636 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64626 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64630 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64629 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees/?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees/?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees/?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees/?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees?sortBy=personnel_category_id&sortOrder=desc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees?sortBy=personnel_category_id&sortOrder=desc&page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees/?sortBy=personnel_category_id&sortOrder=desc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees/?sortBy=personnel_category_id&sortOrder=desc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees?sortBy=personnel_category_id&sortOrder=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees?sortBy=personnel_category_id&sortOrder=desc HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51026 - "OPTIONS /v2/employees/?sortBy=personnel_category_id&sortOrder=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51026 - "GET /v2/employees/?sortBy=personnel_category_id&sortOrder=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees/?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees/?sortBy=personnel_category_id&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51576 - "OPTIONS /v2/employees/?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /v2/employees/?sortBy=personnel_category_id&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "OPTIONS /v2/employees?sortBy=last_name&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "GET /v2/employees?sortBy=last_name&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:52196 - "OPTIONS /v2/employees/?sortBy=last_name&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "GET /v2/employees/?sortBy=last_name&sortOrder=asc&page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "OPTIONS /v2/employees?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "GET /v2/employees?sortBy=last_name&sortOrder=asc HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:52196 - "OPTIONS /v2/employees/?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "GET /v2/employees/?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53720 - "GET /v2/lookup/types HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:53986 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54001 - "OPTIONS /v2/employees?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54002 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54002 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54001 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54002 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:54001 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:53990 - "GET /v2/employees?sortBy=last_name&sortOrder=asc HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:53997 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54002 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54001 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/employees/?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54002 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54001 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "GET /v2/employees/?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/employees?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "GET /v2/employees?sortBy=last_name&sortOrder=asc HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:53990 - "OPTIONS /v2/employees/?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53990 - "GET /v2/employees/?sortBy=last_name&sortOrder=asc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55430 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55418 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55422 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55430 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55418 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55430 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55420 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55427 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55430 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56492 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56494 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56504 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56507 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56492 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56494 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56504 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56507 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56492 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56494 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56504 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56509 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56507 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56506 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56494 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56504 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56492 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56507 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56504 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56494 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56492 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56507 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56509 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56494 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56506 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56506 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57271 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57263 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57271 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57259 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57259 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57271 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57267 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57266 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57266 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57259 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57271 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57267 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57263 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57272 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57272 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58537 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58536 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58537 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58528 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58525 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58537 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58533 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58531 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58528 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58536 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58537 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:58525 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58525 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60031 - "GET /v2/lookup/types?size=10&page=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60303 - "GET /v2/lookup/types?size=10&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60420 - "GET /v2/lookup/values?type_code=GENDER&size=10&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60571 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:60670 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60818 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61213 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61225 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61221 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61209 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61219 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61221 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61221 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61213 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61225 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61216 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61216 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62443 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62451 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62453 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62460 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62443 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62451 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62453 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62460 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62443 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62451 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:62453 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:62461 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:62460 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62451 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62443 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62453 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62460 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62451 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62443 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62453 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62460 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:62456 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62456 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63433 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63429 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63435 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63426 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63426 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63437 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63437 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63435 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63429 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63438 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63433 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63426 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/users/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/config/payroll-components HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64885 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=GENDER HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/lookup/values?type_code=MARITAL_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/lookup/types?size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64885 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64881 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/personnel-categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "OPTIONS /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "OPTIONS /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64885 - "GET /v2/departments HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64895 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64894 - "GET /v2/personnel-categories HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/lookup/values?type_code=CONTRACT_STATUS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/positions/?size=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/lookup/values?type_code=GENDER&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=EMPLOYMENT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/lookup/values?type_code=EDUCATION_LEVEL&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/lookup/values?type_code=EMPLOYEE_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/lookup/values?type_code=CONTRACT_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "GET /v2/lookup/values?type_code=MARITAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/lookup/values?type_code=POLITICAL_STATUS&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/lookup/values?type_code=PAY_FREQUENCY&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/lookup/values?type_code=LEAVE_TYPE&is_active=true&size=100&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "OPTIONS /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64885 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64893 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64881 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64895 - "GET /v2/departments/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64894 - "GET /v2/personnel-categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/employees?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/employees?page=1&pageSize=10 HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/employees/?page=1&pageSize=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/employees HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:64887 - "OPTIONS /v2/employees/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64887 - "GET /v2/employees/ HTTP/1.1" 200 OK

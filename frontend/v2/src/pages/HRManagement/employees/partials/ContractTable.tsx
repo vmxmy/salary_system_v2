@@ -31,12 +31,14 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       title: t('employee:detail_page.contracts_tab.table.column_contract_number', '合同编号'),
       dataIndex: 'contract_number',
       key: 'contract_number',
+      sorter: true,
       ellipsis: true,
     },
     {
       title: t('employee:detail_page.contracts_tab.table.column_contract_type', '合同类型'),
       dataIndex: 'contract_type_lookup_value_id',
       key: 'contract_type_lookup_value_id',
+      sorter: true,
       render: (id: number) => {
         const typeText = lookupMaps?.contractTypeMap?.get(id) || String(id);
         return <Tag>{typeText || naText}</Tag>;
@@ -46,18 +48,21 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       title: t('employee:detail_page.contracts_tab.table.column_start_date', '开始日期'),
       dataIndex: 'start_date',
       key: 'start_date',
+      sorter: true,
       render: (date: string | dayjs.Dayjs) => dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD') : naText,
     },
     {
       title: t('employee:detail_page.contracts_tab.table.column_end_date', '结束日期'),
       dataIndex: 'end_date',
       key: 'end_date',
+      sorter: true,
       render: (date: string | dayjs.Dayjs) => dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD') : naText,
     },
     {
       title: t('employee:detail_page.contracts_tab.table.column_status', '状态'),
       dataIndex: 'contract_status_lookup_value_id',
       key: 'contract_status_lookup_value_id',
+      sorter: true,
       render: (id: number) => {
         const statusText = lookupMaps?.contractStatusMap?.get(id) || String(id);
         let color = 'default';
@@ -72,6 +77,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       title: t('common:label.remarks', '备注'),
       dataIndex: 'remarks',
       key: 'remarks',
+      sorter: true,
       ellipsis: true,
     },
     {

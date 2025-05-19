@@ -58,7 +58,7 @@ class EmployeeAppraisalListResponse(BaseModel):
 # Employee Models
 class EmployeeBase(BaseModel):
     """员工基础模型"""
-    employee_code: str = Field(..., description="Unique employee ID/Code")
+    employee_code: Optional[str] = Field(None, description="Unique employee ID/Code")
     first_name: str = Field(..., description="Employee's first name")
     last_name: str = Field(..., description="Employee's last name")
     date_of_birth: Optional[date] = Field(None, description="Employee's date of birth")
@@ -69,7 +69,7 @@ class EmployeeBase(BaseModel):
     first_work_date: Optional[date] = Field(None, description="Date when employee first started working in their career")
     interrupted_service_years: Optional[float] = Field(None, description="Years of interrupted service")
     hire_date: date = Field(..., description="Employee's hire date at current company")
-    status_lookup_value_id: int = Field(..., description="Foreign key to employee status lookup value")
+    status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to employee status lookup value")
     employment_type_lookup_value_id: Optional[int] = Field(None, description="Foreign key to employment type lookup value")
     education_level_lookup_value_id: Optional[int] = Field(None, description="Foreign key to education level lookup value")
     marital_status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to marital status lookup value")
@@ -93,8 +93,23 @@ class EmployeeBase(BaseModel):
 
 class EmployeeCreate(EmployeeBase):
     """创建员工模型"""
-    # Allow creating appraisals along with the employee
+    # Fields for resolving lookups by name
+    gender_lookup_value_name: Optional[str] = Field(None, description="Gender name, e.g., '男', '女'")
+    status_lookup_value_name: str = Field(..., description="Status name, e.g., '在职', '离职'")
+    employment_type_lookup_value_name: Optional[str] = Field(None, description="Employment type name")
+    education_level_lookup_value_name: Optional[str] = Field(None, description="Education level name")
+    marital_status_lookup_value_name: Optional[str] = Field(None, description="Marital status name")
+    political_status_lookup_value_name: Optional[str] = Field(None, description="Political status name")
+    contract_type_lookup_value_name: Optional[str] = Field(None, description="Contract type name")
+
+    # Fields for resolving department and position by name
+    department_name: Optional[str] = Field(None, description="Department name for resolving department_id")
+    position_name: Optional[str] = Field(None, description="Position name for resolving actual_position_id")
+    personnel_category_name: Optional[str] = Field(None, description="Personnel category name for resolving ID")
+
+    # Allow creating appraisals along with the employee (though not used for bulk import of employees only)
     appraisals: Optional[List[EmployeeAppraisalCreate]] = Field(default_factory=list, description="List of employee appraisals to create")
+
 
 
 class EmployeeUpdate(BaseModel):

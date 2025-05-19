@@ -24,7 +24,8 @@
           "gender": "性别",
           "education_level": "学历",
           "employment_type": "雇佣类型",
-          "job_title": "职位"
+          "job_title": "实际任职",
+          "personnel_category": "人员身份"
         },
         "placeholder": {
           "name": "请输入员工姓名",
@@ -34,7 +35,8 @@
           "gender": "请选择性别",
           "education_level": "请选择学历",
           "employment_type": "请选择雇佣类型",
-          "job_title": "请选择职位"
+          "job_title": "请选择职位",
+          "personnel_category": "请选择人员身份"
         },
         "button": {
           "search": "查询",
@@ -48,6 +50,7 @@
           "gender": "性别",
           "department": "部门",
           "job_title": "职位",
+          "personnel_category": "人员身份",
           "status": "状态",
           "hire_date": "入职日期",
           "actions": "操作"
@@ -87,9 +90,9 @@
     },
     "edit_page": {
       "title": "编辑员工",
-      "title_with_name": "编辑员工: {name}",
+      "title_with_name": "编辑员工: {{employeeName}}",
       "breadcrumb_title": "编辑员工",
-      "breadcrumb_title_with_name": "编辑: {name}",
+      "breadcrumb_title_with_name": "编辑: {{employeeName}}",
       "error": {
         "employee_not_found_edit": "未找到要编辑的员工信息。",
         "employee_not_found": "未找到员工信息。",
@@ -106,11 +109,12 @@
         "message_error": "错误",
         "message_info": "信息",
         "description_no_data_to_edit": "没有可编辑的员工数据。"
-      }
+      },
+      "default_employee_name": "员工"
     },
     "detail_page": {
       "title_default": "员工详情",
-      "title_with_name_id": "{name} (员工号: {employeeCode})",
+      "title_with_name_id": "{{name}} (员工号: {{employeeCode}})",
       "breadcrumb_loading": "加载中...",
       "alert": {
           "message_info": "信息",
@@ -137,6 +141,9 @@
           "loading_basic_info": "加载基本信息中...",
           "zero_decimal": "0.00"
       },
+      "contact_info": "联系方式",
+      "bank_info": "银行信息",
+      "additional_info": "其他信息",
       "tabs": {
         "basic_info": "基本信息",
         "job_info": "职位信息",
@@ -171,18 +178,25 @@
       },
       "job_info_tab": {
         "title": "职位信息",
-        "loading": "加载中...",
-        "no_data": "无员工职位信息。",
-        "seniority_year": " 年 ",
-        "seniority_month": " 个月",
-        "label_current_job_title": "当前职位",
-        "label_department": "所属部门",
-        "label_reports_to": "汇报对象",
-        "reports_to_id_prefix": "ID: {id}",
+        "loading": "加载职位信息中...",
+        "label_department": "部门",
+        "label_personnel_category": "人员类别",
+        "label_actual_position": "实际职位",
+        "label_position_code": "职位编码",
         "label_work_location": "工作地点",
-        "label_direct_manager": "直属经理",
+        "label_hire_date": "入职日期",
         "label_employment_type": "雇佣类型",
-        "label_seniority": "工龄 (司龄)"
+        "label_seniority": "司龄",
+        "label_probation_end_date": "试用期结束日期",
+        "label_reports_to": "汇报对象",
+        "reports_to_id_prefix": "员工ID: {id}",
+        "seniority_year": "年",
+        "seniority_month": "月",
+        "seniority_years_months": "{{years}}年{{months}}个月",
+        "seniority_months": "{{months}}个月",
+        "department_position": "部门职位信息",
+        "employment_info": "雇佣信息",
+        "reporting_info": "汇报关系"
       },
       "job_history_tab": {
         "message": {
@@ -331,6 +345,11 @@
       "title_position_contract_info": "职位与合同信息",
       "title_contact_bank_info": "联系方式与银行信息"
     },
+    "form_steps": {
+      "basic_info": "基本信息",
+      "position_info": "职位合同",
+      "contact_info": "联系与银行"
+    },
     "form_label": {
       "id_number": "身份证号",
       "nationality": "国籍",
@@ -398,8 +417,16 @@
   "emergencyContactName": "紧急联系人",
   "emergencyContactPhone": "紧急联系人电话",
   "emergencyContactRelation": "与紧急联系人关系",
-  "personnelCategory": "人事类别",
+  "personnelCategory": "人员身份",
   "actualPosition": "实际岗位",
   "detail_page.basic_info_tab.label_actual_position": "实际岗位",
-  "list_page.filter_form.placeholder.actual_position": "请输入实际岗位"
+  "list_page.filter_form.placeholder.actual_position": "请输入实际岗位",
+  "fields": {
+    "employee_code": "工号",
+    "first_name": "名",
+    "last_name": "姓",
+    "email": "邮箱",
+    "phone_number": "手机号",
+    "hire_date": "入职日期"
   }
+}

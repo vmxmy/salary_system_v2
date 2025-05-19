@@ -146,5 +146,8 @@
   "username_label": "Username",
   "password_label": "Password",
   "remember_me_checkbox": "Remember me",
-  "login_button": "Login"
+  "login_button": "Login",
+  "page_title_settings": "Page Title Settings",
+  "record_prefix": "Record",
+  "search": "Search"
 }

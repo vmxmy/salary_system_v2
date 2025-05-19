@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Card, Form, message } from 'antd';
+import { Card, Form, App } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import EmployeeForm from '../components/EmployeeForm';
@@ -13,6 +13,7 @@ const CreateEmployeePage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const { message } = App.useApp();
 
   const handleCreateEmployee = async (values: CreateEmployeePayload) => {
     setSubmitting(true);
@@ -25,12 +26,12 @@ const CreateEmployeePage: React.FC = () => {
         navigate('/hr/employees');
       }
     } catch (error: any) {
-      console.error(t('employee:create_page.message.create_fail_default'), error);
+      console.error('CreateEmployeePage: Error creating employee:', error.message);
       let errorMessage = t('employee:create_page.message.create_fail_default');
       if (error.response?.status === 403) {
         errorMessage = t('employee:create_page.message.create_fail_403');
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       message.error(errorMessage);
     } finally {

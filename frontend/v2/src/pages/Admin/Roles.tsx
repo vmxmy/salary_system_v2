@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Input, Space, Typography, message, Tag, Form, Modal, Switch, Transfer } from 'antd';
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import ActionButton from '../../components/common/ActionButton';
+import PageHeaderLayout from '../../components/common/PageHeaderLayout';
 import type { InputRef } from 'antd';
 import type { ColumnType, ColumnsType } from 'antd/lib/table';
 import type { FilterConfirmProps } from 'antd/lib/table/interface';
@@ -338,17 +339,21 @@ const RoleListPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Title> 
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={showCreateModal}
-          shape="round"
-        >
-          {t('button.create_role')}
-        </Button>
-      </div>
+      <PageHeaderLayout
+        pageTitle={<Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Title>}
+        actions={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateModal}
+            shape="round"
+          >
+            {t('button.create_role')}
+          </Button>
+        }
+      >
+        <></> {/* Empty children to satisfy prop requirement */}
+      </PageHeaderLayout>
       <Table 
         columns={columns}
         dataSource={roles.map(role => ({ ...role, key: role.id }))} 
