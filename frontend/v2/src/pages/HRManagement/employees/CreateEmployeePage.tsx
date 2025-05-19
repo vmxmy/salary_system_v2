@@ -49,16 +49,7 @@ const CreateEmployeePage: React.FC = () => {
   return (
     <PageContainer
       title={t('pageTitle:create_employee')}
-      breadcrumb={{ 
-        items: breadcrumbItems, 
-        itemRender: (route, _params, routes, _paths) => {
-          const last = routes.indexOf(route) === routes.length - 1;
-          if (route.onClick) {
-            return <Link to="#" onClick={route.onClick}>{route.title}</Link>;
-          }
-          return <span>{route.title}</span>;
-        }
-      }}
+      breadcrumbRender={false}
     >
       <Card>
         <EmployeeForm

@@ -1,61 +1,78 @@
-import React, { useEffect, StrictMode } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { RouterProvider, type createBrowserRouter } from 'react-router-dom';
-import { App } from 'antd'; // 导入 Ant Design App 组件
-// import { ConfigProvider } from 'antd'; // Removed
-// import zhCN from 'antd/locale/zh_CN'; // Removed
+import { App } from 'antd';
 import { useAuthStore } from './store/authStore';
-// import { shallow } from 'zustand/shallow'; // Reverted
-// import type { AuthStoreState, AuthStoreActions } from './store/authStore'; // Reverted
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import usePayrollConfigStore from './store/payrollConfigStore'; // Import the new store
-import useHrLookupStore from './store/hrLookupStore'; // Import the HR lookup store
-import { fetchAllLookupTypesAndCache } from './services/lookupService'; // Import the service
-// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; // 可选导入
+import usePayrollConfigStore from './store/payrollConfigStore';
+import useHrLookupStore from './store/hrLookupStore';
+import { fetchAllLookupTypesAndCache } from './services/lookupService';
 
-// 获取 createBrowserRouter 返回的 router 类型
+// 导入 Redux hooks 和 selectors
+import { useSelector } from 'react-redux';
+import {
+  selectChatbotIsLoading,
+  selectChatbotIsEnabled,
+  selectChatbotIsConfigured,
+  selectChatbotToken,
+  selectChatbotBaseUrl,
+  selectChatbotScriptSrc,
+  selectChatbotScriptId,
+  selectChatbotCustomCss,
+  selectChatbotCustomJs,
+  selectChatbotSystemVariables
+} from './store/chatbotConfigSlice';
+import type { RootState } from './store'; // 导入 RootState 类型
+
 type AppRouter = ReturnType<typeof createBrowserRouter>;
 
 interface AppWrapperProps {
   router: AppRouter;
 }
 
-// 创建一个 QueryClient 实例 (通常在组件外部或仅创建一次)
 const queryClient = new QueryClient();
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   console.log('AppWrapper: Rendering or re-rendering.');
-  // Decomposed selectors
   const initializeAuth = useAuthStore(state => state.initializeAuth);
   const authToken = useAuthStore(state => state.authToken);
   const currentUser = useAuthStore(state => state.currentUser);
   const isLoadingUser = useAuthStore(state => state.isLoadingUser);
-  // const userPermissions = useAuthStore(state => state.userPermissions); // Uncomment if directly needed by AppWrapper logic
+  const fetchPayrollConfigs = usePayrollConfigStore(state => state.fetchComponentDefinitions);
+  const fetchHrLookups = useHrLookupStore(state => state.fetchLookup);
 
-  const fetchPayrollConfigs = usePayrollConfigStore(state => state.fetchComponentDefinitions); // Get the action
-  const fetchHrLookups = useHrLookupStore(state => state.fetchLookup); // Get the HR lookup action
+  // 从 Redux store 中获取 chatbot 配置状态
+  const chatbotIsLoading = useSelector(selectChatbotIsLoading);
+  const chatbotIsEnabled = useSelector(selectChatbotIsEnabled);
+  const chatbotIsConfigured = useSelector(selectChatbotIsConfigured);
+  const chatbotConfigToken = useSelector(selectChatbotToken);
+  const chatbotConfigBaseUrl = useSelector(selectChatbotBaseUrl);
+  const chatbotConfigScriptSrc = useSelector(selectChatbotScriptSrc);
+  const chatbotConfigScriptId = useSelector(selectChatbotScriptId);
+  const chatbotConfigCustomCss = useSelector(selectChatbotCustomCss);
+  const chatbotConfigCustomJs = useSelector(selectChatbotCustomJs);
+  const chatbotSystemVariables = useSelector(selectChatbotSystemVariables);
+
+  const chatbotSystemVariablesJson = useMemo(() => JSON.stringify(chatbotSystemVariables), [chatbotSystemVariables]);
 
   useEffect(() => {
     console.log('[AppWrapper:useEffect-initializeAuth] Effect triggered. About to call initializeAuth.');
     initializeAuth();
     console.log('[AppWrapper:useEffect-initializeAuth] initializeAuth call completed.');
-  }, []);
+  }, [initializeAuth]);
 
   useEffect(() => {
-    // Only fetch payroll configs if the user is authenticated
     if (authToken) {
       console.log('[AppWrapper:useEffect-fetchPayrollConfigs] Auth token present. About to call fetchPayrollConfigs.');
-      fetchPayrollConfigs(); // Fetch payroll component definitions on app load
+      fetchPayrollConfigs();
       console.log('[AppWrapper:useEffect-fetchPayrollConfigs] fetchPayrollConfigs call completed.');
     } else {
       console.log('[AppWrapper:useEffect-fetchPayrollConfigs] No auth token. Skipping payroll configs.');
     }
-  }, [authToken, fetchPayrollConfigs]); // Add authToken and fetchPayrollConfigs to dependency array
+  }, [authToken, fetchPayrollConfigs]);
 
   useEffect(() => {
-    // Only fetch HR lookups if the user is authenticated
     if (authToken) {
       console.log('[AppWrapper:useEffect-fetchHrLookups] Auth token present. Fetching essential HR lookups.');
-      // Fetch a set of common HR lookups. More can be added or fetched on-demand elsewhere.
       fetchHrLookups('genders');
       fetchHrLookups('maritalStatuses');
       fetchHrLookups('educationLevels');
@@ -67,17 +84,16 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     } else {
       console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
     }
-  }, [authToken, fetchHrLookups]); // Add authToken and fetchHrLookups to dependency array
+  }, [authToken, fetchHrLookups]);
 
   useEffect(() => {
-    // Prime the general lookup types cache if the user is authenticated
     if (authToken) {
       console.log('[AppWrapper:useEffect-primeLookupCache] Auth token present. Priming lookup types cache.');
       fetchAllLookupTypesAndCache();
     } else {
       console.log('[AppWrapper:useEffect-primeLookupCache] No auth token. Skipping lookup types cache priming.');
     }
-  }, [authToken]); // Only re-run if authToken changes
+  }, [authToken]);
 
   useEffect(() => {
     console.log(
@@ -86,24 +102,126 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
         isAuthenticated: !!authToken,
         currentUser: currentUser ? currentUser.username : null,
         isLoadingUser,
-        // permissionsCount: userPermissions?.length ?? 0, // Keep commented if userPermissions selector is commented
       }
     );
   }, [authToken, currentUser, isLoadingUser]);
 
+  // --- AI Chatbot Integration useEffect Start ---
+  useEffect(() => {
+    console.log(
+      '[AppWrapper-Redux-DEBUG] Chatbot useEffect triggered. isLoading:', chatbotIsLoading,
+      'isEnabled:', chatbotIsEnabled, 'isConfigured:', chatbotIsConfigured,
+      'scriptId:', chatbotConfigScriptId
+    );
+
+    if (chatbotIsLoading) {
+      console.log('[AppWrapper-Redux-DEBUG] Chatbot config is loading, deferring script management.');
+      return;
+    }
+
+    const scriptIdToUse = chatbotConfigScriptId || 'dify-chatbot-script';
+
+    const cleanupChatbotElements = () => {
+      console.log(`[AppWrapper-Redux-DEBUG] cleanupChatbotElements called for scriptId: ${scriptIdToUse}.`);
+      const existingScript = document.getElementById(scriptIdToUse);
+      if (existingScript) existingScript.remove();
+      const existingConfigScript = document.getElementById('dify-chatbot-config');
+      if (existingConfigScript) existingConfigScript.remove();
+      const existingCustomStyle = document.getElementById('chatbot-custom-style');
+      if (existingCustomStyle) existingCustomStyle.remove();
+      const existingCustomLogic = document.getElementById('chatbot-custom-js');
+      if (existingCustomLogic) existingCustomLogic.remove();
+      const difyWidgetBubble = document.getElementById('dify-chatbot-bubble-button');
+      if (difyWidgetBubble) difyWidgetBubble.remove();
+      const difyChatbotRoot = document.querySelector('div[id^="dify-chatbotroot-"]');
+      if (difyChatbotRoot) difyChatbotRoot.remove();
+    };
+
+    if (chatbotIsEnabled && chatbotIsConfigured) {
+      console.log('[AppWrapper-Redux-DEBUG] Conditions met: Injecting chatbot script and config.');
+      cleanupChatbotElements();
+
+      const configScript = document.createElement('script');
+      configScript.id = 'dify-chatbot-config';
+      const chatbotWindowConfig: { token: string; baseUrl?: string; system_variables: Record<string, any> } = {
+        token: chatbotConfigToken!,
+        baseUrl: chatbotConfigBaseUrl,
+        system_variables: {},
+      };
+      if (chatbotSystemVariables && Array.isArray(chatbotSystemVariables)) {
+        chatbotSystemVariables.forEach(sv => {
+          if (sv.key && sv.value !== undefined) {
+            chatbotWindowConfig.system_variables[sv.key] = sv.value;
+          }
+        });
+      }
+      configScript.innerHTML = `window.difyChatbotConfig = ${JSON.stringify(chatbotWindowConfig)};`;
+      document.head.appendChild(configScript);
+      console.log('[AppWrapper-Redux-DEBUG] Added config script with content:', configScript.innerHTML);
+
+      if (chatbotConfigCustomCss) {
+        const styleElement = document.createElement('style');
+        styleElement.id = 'chatbot-custom-style';
+        styleElement.textContent = chatbotConfigCustomCss;
+        document.head.appendChild(styleElement);
+        console.log('[AppWrapper-Redux-DEBUG] Added custom CSS.');
+      }
+
+      if (chatbotConfigCustomJs) {
+        const customScriptElement = document.createElement('script');
+        customScriptElement.id = 'chatbot-custom-js';
+        customScriptElement.textContent = chatbotConfigCustomJs;
+        document.head.appendChild(customScriptElement);
+        console.log('[AppWrapper-Redux-DEBUG] Added custom JS logic.');
+      }
+
+      const embedScript = document.createElement('script');
+      embedScript.src = chatbotConfigScriptSrc!;
+      embedScript.id = scriptIdToUse;
+      embedScript.defer = true;
+      embedScript.onload = () => {
+        console.log(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${chatbotConfigScriptSrc}) LOADED successfully.`);
+        console.log('[AppWrapper-Redux-DEBUG] window.difyChatbotConfig on embed script load:', (window as any).difyChatbotConfig);
+        console.log('[AppWrapper-Redux-DEBUG] Checking for Dify API on window (e.g., window.Dify):', (window as any).Dify);
+        console.log('[AppWrapper-Redux-DEBUG] Checking for Dify Chatbot instance (e.g., window.difyChatbot):', (window as any).difyChatbot);
+      };
+      embedScript.onerror = () => {
+        console.error(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${chatbotConfigScriptSrc}) FAILED to load.`);
+      };
+      document.head.appendChild(embedScript);
+      console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${chatbotConfigScriptSrc}).`);
+
+    } else {
+      console.log('[AppWrapper-Redux-DEBUG] Conditions not met (isLoading is false, but isEnabled is false or not configured). Cleaning up chatbot elements.');
+      cleanupChatbotElements();
+    }
+
+    return () => {
+      console.log('[AppWrapper-Redux-DEBUG] Chatbot useEffect cleanup triggered.');
+      cleanupChatbotElements();
+    };
+  }, [
+    chatbotIsLoading,
+    chatbotIsEnabled,
+    chatbotIsConfigured,
+    chatbotConfigToken,
+    chatbotConfigBaseUrl,
+    chatbotConfigScriptSrc,
+    chatbotConfigScriptId,
+    chatbotConfigCustomCss,
+    chatbotConfigCustomJs,
+    chatbotSystemVariablesJson,
+  ]);
+  // --- AI Chatbot Integration useEffect End ---
+
   return (
-    <StrictMode>
-      <QueryClientProvider client={queryClient}> { /* QueryClientProvider 包裹 */}
-        <App> { /* 用 Ant Design App 组件包裹 */}
-          {/* <ConfigProvider locale={zhCN}> */} {/* Removed ConfigProvider wrapper */}
-            {/* RouterProvider 的 fallbackElement 在 v6.4+ 中通过 router 配置中的 errorElement 处理，或者在 Suspense 中使用 */}
-            {/* 如果需要加载指示器，可以在 RouterProvider 外部或特定路由元素内部处理 */}
-            <RouterProvider router={router} />
-            {/* <ReactQueryDevtools initialIsOpen={false} /> */}{/* 可选的开发工具，放在QueryClientProvider内部 */}
-          {/* </ConfigProvider> */} {/* Removed ConfigProvider wrapper */}
-        </App> { /* 结束 Ant Design App 组件包裹 */}
+    // <React.StrictMode> // StrictMode in main.tsx is already commented out
+      <QueryClientProvider client={queryClient}>
+        <App>
+          <RouterProvider router={router} />
+        </App>
       </QueryClientProvider>
-    </StrictMode>
+    // </React.StrictMode>
   );
 };
 

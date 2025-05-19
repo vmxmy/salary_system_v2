@@ -46,13 +46,13 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
   const renderDetailsCard = (title: string, details: PayrollItemDetail[] | undefined | null) => {
     if (!details || details.length === 0) {
       return (
-        <Card title={title} bordered={false} style={{ marginBottom: 16 }}>
+        <Card title={title} variant="borderless" style={{ marginBottom: 16 }}>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('common:table.empty_data')} />
         </Card>
       );
     }
     return (
-      <Card title={title} bordered={false} style={{ marginBottom: 16 }}>
+      <Card title={title} variant="borderless" style={{ marginBottom: 16 }}>
         {details.map((item, index) => {
           const definition = getDefinitionByName(item.name);
           const displayName = definition?.name || item.name;

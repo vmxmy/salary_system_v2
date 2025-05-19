@@ -370,15 +370,9 @@ const EmployeeDetailPage: React.FC = () => {
 
   if (loading || loadingLookups) {
     return (
-      <PageContainer 
-        title={t('employee:detail_page.page_container.title_loading')} 
-        breadcrumb={{ 
-          items: breadcrumbItems, 
-          itemRender: (route, _params, routes, _paths) => { 
-            const last = routes.indexOf(route) === routes.length - 1; 
-            return last ? (<span>{route.title}</span>) : (<Link to={''} onClick={route.onClick}>{route.title}</Link>);
-          }
-        }} 
+      <PageContainer
+        title={t('employee:detail_page.page_container.title_loading')}
+        breadcrumbRender={false}
         extra={pageHeaderExtra}
       >
         <Spin size="large" style={{ display: 'block', marginTop: '50px' }} />
@@ -388,15 +382,9 @@ const EmployeeDetailPage: React.FC = () => {
 
   if (error) {
     return (
-      <PageContainer 
-        title={t('employee:detail_page.page_container.title_error')} 
-        breadcrumb={{
-          items: breadcrumbItems, 
-          itemRender: (route, _params, routes, _paths) => { 
-            const last = routes.indexOf(route) === routes.length - 1; 
-            return last ? (<span>{route.title}</span>) : (<Link to={''} onClick={route.onClick}>{route.title}</Link>);
-          }
-        }} 
+      <PageContainer
+        title={t('employee:detail_page.page_container.title_error')}
+        breadcrumbRender={false}
         extra={pageHeaderExtra}
       >
         <Alert message={t('employee:detail_page.alert.message_error')} description={error} type="error" showIcon /> 
@@ -409,15 +397,9 @@ const EmployeeDetailPage: React.FC = () => {
 
   if (!employee) {
      return (
-      <PageContainer 
-        title={t('employee:detail_page.page_container.title_employee_not_found')} 
-        breadcrumb={{
-          items: breadcrumbItems, 
-          itemRender: (route, _params, routes, _paths) => { 
-            const last = routes.indexOf(route) === routes.length - 1; 
-            return last ? (<span>{route.title}</span>) : (<Link to={''} onClick={route.onClick}>{route.title}</Link>);
-          }
-        }} 
+      <PageContainer
+        title={t('employee:detail_page.page_container.title_employee_not_found')}
+        breadcrumbRender={false}
         extra={pageHeaderExtra}
       >
         <Alert message={t('employee:detail_page.alert.message_info')} description={t('employee:detail_page.page_container.alert_description_cannot_load_data')} type="info" showIcon />
@@ -430,14 +412,8 @@ const EmployeeDetailPage: React.FC = () => {
 
   return (
     <PageContainer
-      title={pageTitleText} 
-      breadcrumb={{
-        items: breadcrumbItems, 
-        itemRender: (route, _params, routes, _paths) => { 
-          const last = routes.indexOf(route) === routes.length - 1; 
-          return last ? (<span>{route.title}</span>) : (<Link to={''} onClick={route.onClick}>{route.title}</Link>);
-        }
-      }} 
+      title={pageTitleText}
+      breadcrumbRender={false}
       extra={pageHeaderExtra}
     >
       {renderContent()}

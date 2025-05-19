@@ -189,17 +189,30 @@ const customTheme: ThemeConfig = {
 };
 
 const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children }) => {
-  const [antdLocale, setAntdLocale] = useState(antLocales[i18n.language.split('-')[0]] || enUS);
+  // 安全地获取初始语言，如果 i18n.language 未定义，则回退到 'en' 或其他默认语言
+  const getInitialAntLocale = () => {
+    const currentLang = i18n.language; 
+    if (currentLang && typeof currentLang === 'string') {
+      const baseLng = currentLang.split('-')[0];
+      return antLocales[baseLng] || enUS;
+    }
+    return enUS; // 默认回退
+  };
+
+  const [antdLocale, setAntdLocale] = useState(getInitialAntLocale());
 
   useEffect(() => {
-    const handleLanguageChanged = (lng: string) => {
-      const baseLng = lng.split('-')[0]; // e.g., 'en-US' -> 'en'
+    const handleLanguageChanged = (lng: string | undefined) => { // 允许 lng 为 undefined
+      let baseLng = 'en'; // 默认基础语言
+      if (lng && typeof lng === 'string') { // 检查 lng 是否为有效字符串
+        baseLng = lng.split('-')[0];
+      }
       console.log('[I18nAppConfigProvider] Language changed to:', lng, ', baseLng:', baseLng);
       setAntdLocale(antLocales[baseLng] || enUS);
     };
 
     i18n.on('languageChanged', handleLanguageChanged);
-    // Set initial locale based on current i18n language
+    // 初始调用时也进行检查
     handleLanguageChanged(i18n.language);
 
     return () => {
@@ -211,8 +224,8 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
 
   return (
     <Suspense fallback={<Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />}>
-      {/* <ConfigProvider locale={antdLocale} theme={customTheme}> */}
-      <ConfigProvider locale={antdLocale}>
+      {/* 你之前提到要启用 customTheme，这里取消注释 */}
+      <ConfigProvider locale={antdLocale} theme={customTheme}>
         {children}
       </ConfigProvider>
     </Suspense>

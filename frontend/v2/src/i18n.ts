@@ -17,6 +17,7 @@ export const i18nInitOptions = {
   debug: import.meta.env.DEV, // 在开发模式下记录i18n事件到控制台
   ns: [
     'common',
+    'admin',
     'auth',
     'dashboard',
     'department',
