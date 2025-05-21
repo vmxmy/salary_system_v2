@@ -377,14 +377,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           activeKey={activeTabKey} 
           onChange={onTabChange}
           size="large"
-          type="line"
-        >
-          {tabItems.map(item => (
-            <UnifiedTabs.TabPane key={item.key} tab={item.label} forceRender> {/* forceRender to keep form state */}
-              {item.children}
-            </UnifiedTabs.TabPane>
-          ))}
-        </UnifiedTabs>
+          type="line" // forceRender is implicitly handled by antd's default behavior or can be added to items if needed
+          items={tabItems.map(item => ({ ...item, forceRender: true }))} // Spread item and add forceRender if it's a valid prop for items' children
+        />
 
         <div style={{ marginTop: 24, textAlign: 'right' }}>
           <Button type="primary" onClick={() => form.submit()} loading={loadingSubmit}> {/* Use form.submit() */}
