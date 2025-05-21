@@ -36,9 +36,9 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
     try {
       const result: LeaveBalancePageResult = await employeeService.getEmployeeLeaveBalances(employeeId, { page, pageSize: size });
       setLeaveBalances(result.data.map(item => ({ ...item, balance: item.total_entitlement - item.taken }) ));
-      setTotalRecords(result.meta.total_items || 0);
-      setCurrentPage(result.meta.current_page);
-      setPageSize(result.meta.per_page);
+      setTotalRecords(result.meta.total || 0);
+      setCurrentPage(result.meta.page);
+      setPageSize(result.meta.size);
     } catch (err: any) {
       console.error('获取假期余额失败:', err);
       setError('获取假期余额失败，请稍后重试。');

@@ -80,13 +80,8 @@ export interface UnifiedTabsProps extends TabsProps {
  * 统一的标签页组件
  * 使用系统一致的样式来渲染标签页
  */
-const UnifiedTabs: React.FC<UnifiedTabsProps> & {
-  TabPane: typeof Tabs.TabPane;
-} = (props) => {
+const UnifiedTabs: React.FC<UnifiedTabsProps> = (props) => {
   return <StyledTabs {...props} />;
 };
 
-// 为 UnifiedTabs 添加 TabPane 属性
-UnifiedTabs.TabPane = Tabs.TabPane;
-
-export default UnifiedTabs; 
+export default UnifiedTabs;

@@ -39,9 +39,9 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
     try {
       const result: ContractPageResult = await employeeService.getEmployeeContracts(employeeId, { page, pageSize: size });
       setContracts(result.data);
-      setTotalRecords(result.meta.total_items || 0);
-      setCurrentPage(result.meta.current_page);
-      setPageSize(result.meta.per_page);
+      setTotalRecords(result.meta.total || 0);
+      setCurrentPage(result.meta.page);
+      setPageSize(result.meta.size);
     } catch (err: any) {
       console.error('获取合同信息失败:', err);
       const errorMessage = err.message || t('employee:detail_page.contracts_tab.message.get_contracts_failed_retry', '获取合同信息失败，请稍后重试。');

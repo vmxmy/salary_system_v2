@@ -41,9 +41,9 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
     try {
       const result: CompensationPageResult = await employeeService.getEmployeeCompensationHistory(employeeId, { page, pageSize: size });
       setCompensations(result.data);
-      setTotalRecords(result.meta.total_items || 0);
-      setCurrentPage(result.meta.current_page);
-      setPageSize(result.meta.per_page);
+      setTotalRecords(result.meta.total || 0);
+      setCurrentPage(result.meta.page);
+      setPageSize(result.meta.size);
     } catch (err: any) {
       console.error('Error fetching compensation history:', err);
       setError(err.message || t('employee:detail_page.compensation_tab.message.get_history_failed_retry', 'Failed to fetch compensation history. Please try again.'));

@@ -410,137 +410,143 @@ const PersonnelCategoriesPage: React.FC = () => {
   );
 
   return (
-    <UnifiedTabs 
-      activeKey={activeTabKey} 
+    <UnifiedTabs
+      activeKey={activeTabKey}
       onChange={onTabChange}
       type="line"
       size="large"
       className={tabStyles['job-management-tabs']}
-    >
-      <UnifiedTabs.TabPane tab={t('tab.personnel_category_management')} key="1">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <Title level={3} style={{ margin: 0 }}>{t('title.current_personnel_categories')}</Title>
-          <Space>
-            <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-              {t('button.add_personnel_category')}
-            </Button>
-            <Tooltip title={t('export.tooltipTitle')}>
-              <ExportButton />
-            </Tooltip>
-            <ColumnControl />
-          </Space>
-        </div>
-        {activeTabKey === '1' && (
-          <Table
-            columns={visibleColumns}
-            dataSource={personnelCategoriesTree}
-            loading={isLoading}
-            pagination={{
-              showSizeChanger: true,
-              showQuickJumper: true,
-              pageSizeOptions: ['10', '20', '50', '100'],
-              showTotal: (total) => t('pagination.total', { total }),
-              current: tableParams.pagination?.current,
-              pageSize: tableParams.pagination?.pageSize,
-              onChange: (page, pageSize) => {
-                setTableParams(prev => ({
-                  ...prev,
-                  pagination: {
-                    ...prev.pagination,
-                    current: page,
-                    pageSize: pageSize
-                  }
-                }));
-              }
-            }}
-            rowKey="id"
-            expandable={{ defaultExpandAllRows: true }}
-            onChange={handleTableChange}
-            className={styles['tree-table']}
-            bordered
-            scroll={{ x: 'max-content' }}
-            tableLayout="fixed"
-          />
-        )}
+      items={[
+        {
+          key: '1',
+          label: t('tab.personnel_category_management'),
+          children: (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Title level={3} style={{ margin: 0 }}>{t('title.current_personnel_categories')}</Title>
+                <Space>
+                  <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
+                    {t('button.add_personnel_category')}
+                  </Button>
+                  <Tooltip title={t('export.tooltipTitle')}>
+                    <ExportButton />
+                  </Tooltip>
+                  <ColumnControl />
+                </Space>
+              </div>
+              {activeTabKey === '1' && (
+                <Table
+                  columns={visibleColumns}
+                  dataSource={personnelCategoriesTree}
+                  loading={isLoading}
+                  pagination={{
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    showTotal: (total) => t('pagination.total', { total }),
+                    current: tableParams.pagination?.current,
+                    pageSize: tableParams.pagination?.pageSize,
+                    onChange: (page, pageSize) => {
+                      setTableParams(prev => ({
+                        ...prev,
+                        pagination: {
+                          ...prev.pagination,
+                          current: page,
+                          pageSize: pageSize
+                        }
+                      }));
+                    }
+                  }}
+                  rowKey="id"
+                  expandable={{ defaultExpandAllRows: true }}
+                  onChange={handleTableChange}
+                  className={styles['tree-table']}
+                  bordered
+                  scroll={{ x: 'max-content' }}
+                  tableLayout="fixed"
+                />
+              )}
 
-        <Modal
-          title={editingPersonnelCategory ? t('modal.edit_title') : t('modal.create_title')}
-          open={isModalOpen}
-          onCancel={handleCancelModal}
-          confirmLoading={modalLoading}
-          onOk={() => {
-            form
-              .validateFields()
-              .then(values => {
-                // Ensure parent_category_id is correctly handled if it's not set (for root categories)
-                if (values.parent_category_id === undefined || values.parent_category_id === null) {
-                  // If editing and the original had a parent, but it's now cleared, it should be null.
-                  // If creating as root, it should be null.
-                  values.parent_category_id = null;
-                }
-                handleFormSubmit(values);
-              })
-              .catch(info => {
-                console.log('Validate Failed:', info);
-                message.error(t('common:message.form_validation_error'));
-              });
-          }}
-          destroyOnClose
-        >
-          <Form form={form} layout="vertical" name="personnelCategoryForm">
-            <Form.Item
-              name="code"
-              label={t('form.field.code')}
-              rules={[{ required: true, message: t('form.validation.code_required') }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="name"
-              label={t('form.field.name')}
-              rules={[{ required: true, message: t('form.validation.name_required') }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item name="description" label={t('form.field.description')}>
-              <Input.TextArea rows={3} />
-            </Form.Item>
-            <Form.Item
-              name="parent_category_id"
-              label={t('form.field.parent_category')}
-            >
-              <TreeSelect
-                allowClear
-                treeData={buildTreeData(allFlatPersonnelCategories.filter(pc => !editingPersonnelCategory || pc.id !== editingPersonnelCategory.id))}
-                placeholder={t('form.placeholder.select_parent_category')}
-                treeDefaultExpandAll
-              />
-            </Form.Item>
-            <Form.Item
-              name="effective_date"
-              label={t('form.field.effective_date')}
-              rules={[{ required: true, message: t('form.validation.effective_date_required') }]}
-            >
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="end_date" label={t('form.field.end_date')}>
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item
-                name="is_active"
-                valuePropName="checked"
-                label={t('form.field.is_active')}
-                initialValue={true}
-            >
-                <Switch />
-            </Form.Item>
-          </Form>
-        </Modal>
-      </UnifiedTabs.TabPane>
-      <UnifiedTabs.TabPane tab={t('tab.actual_position_management')} key="2">
-        <ActualPositionTab />
-      </UnifiedTabs.TabPane>
-    </UnifiedTabs>
+              <Modal
+                title={editingPersonnelCategory ? t('modal.edit_title') : t('modal.create_title')}
+                open={isModalOpen}
+                onCancel={handleCancelModal}
+                confirmLoading={modalLoading}
+                onOk={() => {
+                  form
+                    .validateFields()
+                    .then(values => {
+                      if (values.parent_category_id === undefined || values.parent_category_id === null) {
+                        values.parent_category_id = null;
+                      }
+                      handleFormSubmit(values);
+                    })
+                    .catch(info => {
+                      console.log('Validate Failed:', info);
+                      message.error(t('common:message.form_validation_error'));
+                    });
+                }}
+                destroyOnClose
+              >
+                <Form form={form} layout="vertical" name="personnelCategoryForm">
+                  <Form.Item
+                    name="code"
+                    label={t('form.field.code')}
+                    rules={[{ required: true, message: t('form.validation.code_required') }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    name="name"
+                    label={t('form.field.name')}
+                    rules={[{ required: true, message: t('form.validation.name_required') }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="description" label={t('form.field.description')}>
+                    <Input.TextArea rows={3} />
+                  </Form.Item>
+                  <Form.Item
+                    name="parent_category_id"
+                    label={t('form.field.parent_category')}
+                  >
+                    <TreeSelect
+                      allowClear
+                      treeData={buildTreeData(allFlatPersonnelCategories.filter(pc => !editingPersonnelCategory || pc.id !== editingPersonnelCategory.id))}
+                      placeholder={t('form.placeholder.select_parent_category')}
+                      treeDefaultExpandAll
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    name="effective_date"
+                    label={t('form.field.effective_date')}
+                    rules={[{ required: true, message: t('form.validation.effective_date_required') }]}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item name="end_date" label={t('form.field.end_date')}>
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item
+                      name="is_active"
+                      valuePropName="checked"
+                      label={t('form.field.is_active')}
+                      initialValue={true}
+                  >
+                      <Switch />
+                  </Form.Item>
+                </Form>
+              </Modal>
+            </>
+          ),
+        },
+        {
+          key: '2',
+          label: t('tab.actual_position_management'),
+          children: <ActualPositionTab />,
+        },
+      ]}
+    />
   );
 };
 
