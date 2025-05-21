@@ -121,7 +121,7 @@ const DashboardPage: React.FC = () => {
       try {
         setLoadingKpis(true);
         
-        const employeeResponse = await employeeService.getEmployees({ page: 1, pageSize: 1 }); 
+        const employeeResponse = await employeeService.getEmployees({ page: 1, size: 1 }); 
         console.log('Employee API Response:', employeeResponse); 
         const realTotalEmployees = employeeResponse.meta?.total || 0;
         console.log('Real Total Employees:', realTotalEmployees); 

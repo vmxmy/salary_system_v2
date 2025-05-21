@@ -79,7 +79,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
     setLoading(true);
     try {
       // 通过姓名搜索员工
-      const response = await employeeService.getEmployees({ name, pageSize: 20 });
+      const response = await employeeService.getEmployees({ name, size: 20 });
       console.log('搜索员工结果:', JSON.stringify(response.data, null, 2));
       
       // 确保每个员工对象都包含必要的信息

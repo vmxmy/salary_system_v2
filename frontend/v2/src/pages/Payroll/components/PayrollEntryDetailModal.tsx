@@ -9,6 +9,28 @@ import EmployeeName from '../../../components/common/EmployeeName';
 
 const { Title } = Typography;
 
+// Helper function to normalize details to PayrollItemDetail[]
+const normalizePayrollItemDetails = (
+  details: Record<string, PayrollItemDetail | { amount: number }> | PayrollItemDetail[] | undefined | null
+): PayrollItemDetail[] => {
+  if (!details) {
+    return [];
+  }
+  if (Array.isArray(details)) {
+    return details;
+  }
+  // If it's a Record, convert it
+  // Assuming the key of the record is the 'name' of the payroll item
+  return Object.entries(details).map(([name, itemData]) => ({
+    name,
+    amount: itemData.amount,
+    // currency and description might be part of itemData if it's PayrollItemDetail,
+    // or undefined if it's just { amount: number }
+    currency: (itemData as PayrollItemDetail).currency,
+    description: (itemData as PayrollItemDetail).description,
+  }));
+};
+
 interface PayrollEntryDetailModalProps {
   entryId: number | null;
   visible: boolean;
@@ -76,19 +98,38 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
             employee_name_length: response.data.employee_name ? response.data.employee_name.length : 0
           });
           
-          // 检查earnings_details和deductions_details的数据结构
+          // Safe logging for earnings_details
           console.log('💰 收入项详情:', {
+            isObject: typeof response.data.earnings_details === 'object' && !Array.isArray(response.data.earnings_details),
             isArray: Array.isArray(response.data.earnings_details),
-            count: Array.isArray(response.data.earnings_details) ? response.data.earnings_details.length : null,
-            firstItem: response.data.earnings_details && response.data.earnings_details.length > 0 
-              ? response.data.earnings_details[0] : null
+            count: Array.isArray(response.data.earnings_details) 
+              ? response.data.earnings_details.length 
+              : (typeof response.data.earnings_details === 'object' && response.data.earnings_details !== null ? Object.keys(response.data.earnings_details).length : 0),
+            firstItem: Array.isArray(response.data.earnings_details) && response.data.earnings_details.length > 0
+              ? response.data.earnings_details[0]
+              : (typeof response.data.earnings_details === 'object' && 
+                 response.data.earnings_details !== null && 
+                 !Array.isArray(response.data.earnings_details) && // Explicitly not an array
+                 Object.keys(response.data.earnings_details).length > 0
+                  ? (response.data.earnings_details as Record<string, PayrollItemDetail | { amount: number }>)[Object.keys(response.data.earnings_details)[0]]
+                  : null)
           });
           
+          // Safe logging for deductions_details
           console.log('💸 扣除项详情:', {
+            isObject: typeof response.data.deductions_details === 'object' && !Array.isArray(response.data.deductions_details),
             isArray: Array.isArray(response.data.deductions_details),
-            count: Array.isArray(response.data.deductions_details) ? response.data.deductions_details.length : null,
-            firstItem: response.data.deductions_details && response.data.deductions_details.length > 0 
-              ? response.data.deductions_details[0] : null
+            count: Array.isArray(response.data.deductions_details)
+              ? response.data.deductions_details.length
+              : (typeof response.data.deductions_details === 'object' && response.data.deductions_details !== null ? Object.keys(response.data.deductions_details).length : 0),
+            firstItem: Array.isArray(response.data.deductions_details) && response.data.deductions_details.length > 0
+              ? response.data.deductions_details[0]
+              : (typeof response.data.deductions_details === 'object' && 
+                 response.data.deductions_details !== null && 
+                 !Array.isArray(response.data.deductions_details) && // Explicitly not an array
+                 Object.keys(response.data.deductions_details).length > 0
+                  ? (response.data.deductions_details as Record<string, PayrollItemDetail | { amount: number }>)[Object.keys(response.data.deductions_details)[0]]
+                  : null)
           });
           
           // 检查原始API响应中的所有顶级字段
@@ -114,8 +155,10 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     }
   }, [entryId, visible, t]);
 
-  const renderDetailsCard = (title: string, details: PayrollItemDetail[] | undefined | null) => {
-    if (!details || !Array.isArray(details) || details.length === 0) {
+  const renderDetailsCard = (title: string, detailsSource: Record<string, PayrollItemDetail | { amount: number }> | PayrollItemDetail[] | undefined | null) => {
+    const normalizedDetails = normalizePayrollItemDetails(detailsSource); // Use the helper
+
+    if (normalizedDetails.length === 0) { // Check length of normalized array
       return (
         <Card title={title} variant="borderless" style={{ marginBottom: 16 }}>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('common:table.empty_data')} />
@@ -124,7 +167,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     }
     return (
       <Card title={title} variant="borderless" style={{ marginBottom: 16 }}>
-        {details.map((item, index) => {
+        {normalizedDetails.map((item, index) => {
           const definition = getDefinitionByName(item.name);
           const displayName = definition?.name || item.name;
           const itemTitle = definition ? (
