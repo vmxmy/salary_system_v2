@@ -87,6 +87,9 @@ async def login_for_access_token(
     except HTTPException:
         raise
     except Exception as e:
+        # 强制记录详细的异常信息，包括堆栈跟踪
+        logger.exception("An unexpected error occurred during login:")
+        
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

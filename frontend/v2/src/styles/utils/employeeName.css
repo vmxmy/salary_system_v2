@@ -1,0 +1,75 @@
+.employee-name-component {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.employee-name-component .employee-name {
+  font-weight: 500;
+}
+
+.employee-name-component .employee-id {
+  font-size: 0.85em;
+  color: rgba(0, 0, 0, 0.45);
+  margin-left: 6px;
+}
+
+.employee-name-component .ant-spin {
+  margin-left: 8px;
+}
+
+.employee-name-component .ant-tag {
+  margin-left: 4px;
+  margin-right: 0;
+}
+
+/* 样式变体 */
+.payroll-entry-employee-name .employee-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.payroll-detail-employee-name {
+  font-size: 1.05em;
+}
+
+/* 员工信息页面 */
+.employee-info-name {
+  font-size: 1.25em;
+}
+
+/* 员工详情页面 */
+.employee-detail-name .employee-name {
+  font-weight: 600;
+}
+
+/* 员工表格显示 */
+.employee-table-name .employee-name {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+/* 页面标题员工名称 */
+.employee-header-name {
+  font-size: 1.1em;
+}
+
+/* 面包屑导航员工名称 */
+.employee-breadcrumb-name {
+  font-size: 0.95em;
+}
+
+/* 部门管理者名称 */
+.department-manager-name .employee-name {
+  font-size: 0.9em;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+/* 职位主管名称 */
+.personnel-category-supervisor-name .employee-name {
+  font-size: 0.9em;
+  color: rgba(0, 0, 0, 0.65);
+} 

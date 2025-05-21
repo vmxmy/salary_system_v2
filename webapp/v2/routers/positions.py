@@ -7,9 +7,10 @@ from typing import List, Optional, Dict, Any
 
 from ..database import get_db_v2
 from ..crud import hr as hr_crud # UNCOMMENTED
-from ..pydantic_models.hr import Position, PositionListResponse # UNCOMMENTED and corrected: Position instead of PositionSchema
+from ..pydantic_models.hr import Position, PositionListResponse, PositionCreate, PositionUpdate # 添加导入PositionCreate和PositionUpdate
 from ...auth import require_permissions # UNCOMMENTED
 from ..utils import create_error_response # Added for standardized error responses
+from ..models.hr import Position as PositionModel # 导入ORM模型
 
 router = APIRouter(
     prefix="/positions",
@@ -63,4 +64,235 @@ async def get_all_positions(
             )
         )
 
-# Add other endpoints (GET by ID, POST, PUT, DELETE) as needed 
+@router.post("/", response_model=Position, status_code=status.HTTP_201_CREATED)
+async def create_position(
+    position_data: PositionCreate,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["P_POSITION_MANAGE"]))
+):
+    """
+    创建新的实际任职。
+    """
+    try:
+        # 检查职位名称是否已存在
+        existing_position = db.query(PositionModel).filter(PositionModel.name == position_data.name).first()
+        if existing_position:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="Position with this name already exists.",
+                    details=f"A position with name '{position_data.name}' already exists."
+                )
+            )
+        
+        # 如果提供了code，检查是否唯一
+        if position_data.code:
+            existing_code = db.query(PositionModel).filter(PositionModel.code == position_data.code).first()
+            if existing_code:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=create_error_response(
+                        status_code=400,
+                        message="Position with this code already exists.",
+                        details=f"A position with code '{position_data.code}' already exists."
+                    )
+                )
+        
+        # 创建新职位
+        db_position = PositionModel(**position_data.model_dump(exclude_unset=True))
+        db.add(db_position)
+        db.commit()
+        db.refresh(db_position)
+        return db_position
+    except HTTPException:
+        # 重新抛出HTTP异常
+        raise
+    except Exception as e:
+        db.rollback()  # 回滚事务
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error while creating position.",
+                details=str(e)
+            )
+        )
+
+@router.get("/{position_id}", response_model=Position)
+async def get_position_by_id(
+    position_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["P_POSITION_VIEW"]))
+):
+    """
+    根据ID获取实际任职详情。
+    """
+    try:
+        db_position = db.query(PositionModel).filter(PositionModel.id == position_id).first()
+        if db_position is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="Position not found.",
+                    details=f"Position with ID {position_id} not found."
+                )
+            )
+        return db_position
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error while fetching position.",
+                details=str(e)
+            )
+        )
+
+@router.put("/{position_id}", response_model=Position)
+async def update_position(
+    position_id: int,
+    position_data: PositionUpdate,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["P_POSITION_MANAGE"]))
+):
+    """
+    更新实际任职信息。
+    """
+    try:
+        # 检查职位是否存在
+        db_position = db.query(PositionModel).filter(PositionModel.id == position_id).first()
+        if db_position is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="Position not found.",
+                    details=f"Position with ID {position_id} not found."
+                )
+            )
+        
+        # 如果更新name，检查是否与其他职位冲突
+        if position_data.name is not None and position_data.name != db_position.name:
+            existing_position = db.query(PositionModel).filter(
+                PositionModel.name == position_data.name,
+                PositionModel.id != position_id
+            ).first()
+            if existing_position:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=create_error_response(
+                        status_code=400,
+                        message="Position with this name already exists.",
+                        details=f"A position with name '{position_data.name}' already exists."
+                    )
+                )
+        
+        # 如果更新code，检查是否与其他职位冲突
+        if position_data.code is not None and position_data.code != db_position.code:
+            existing_code = db.query(PositionModel).filter(
+                PositionModel.code == position_data.code,
+                PositionModel.id != position_id
+            ).first()
+            if existing_code:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=create_error_response(
+                        status_code=400,
+                        message="Position with this code already exists.",
+                        details=f"A position with code '{position_data.code}' already exists."
+                    )
+                )
+        
+        # 更新职位信息
+        update_data = position_data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_position, key, value)
+        
+        db.commit()
+        db.refresh(db_position)
+        return db_position
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()  # 回滚事务
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error while updating position.",
+                details=str(e)
+            )
+        )
+
+@router.delete("/{position_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_position(
+    position_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["P_POSITION_MANAGE"]))
+):
+    """
+    删除实际任职。
+    """
+    try:
+        # 检查职位是否存在
+        db_position = db.query(PositionModel).filter(PositionModel.id == position_id).first()
+        if db_position is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="Position not found.",
+                    details=f"Position with ID {position_id} not found."
+                )
+            )
+        
+        # 检查是否有依赖关系（如员工引用了该职位）
+        has_employees = db.query(PositionModel).join(
+            "employees_in_position"
+        ).filter(PositionModel.id == position_id).first()
+        
+        if has_employees:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="Position cannot be deleted.",
+                    details="This position is still assigned to some employees and cannot be deleted."
+                )
+            )
+        
+        # 检查是否有子职位
+        has_children = db.query(PositionModel).filter(
+            PositionModel.parent_position_id == position_id
+        ).first()
+        
+        if has_children:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="Position cannot be deleted.",
+                    details="This position has child positions which must be reassigned first."
+                )
+            )
+        
+        # 执行删除
+        db.delete(db_position)
+        db.commit()
+        return None  # 204 No Content
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()  # 回滚事务
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error while deleting position.",
+                details=str(e)
+            )
+        ) 

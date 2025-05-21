@@ -30,7 +30,7 @@ interface AppWrapperProps {
 const queryClient = new QueryClient();
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
-  console.log('AppWrapper: Rendering or re-rendering.');
+  // console.log('AppWrapper: Rendering or re-rendering.');
   const initializeAuth = useAuthStore(state => state.initializeAuth);
   const authToken = useAuthStore(state => state.authToken);
   const currentUser = useAuthStore(state => state.currentUser);
@@ -48,29 +48,32 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   const chatbotConfigCustomJs = useSelector(selectChatbotCustomJs);
   const chatbotSystemVariables = useSelector(selectChatbotSystemVariables);
 
-  const DIFY_EMBED_SCRIPT_SRC = "http://dify.atx.ziikoo.com/embed.min.js";
+  // 使用用户配置的baseUrl来构建脚本URL，不再使用硬编码的URL
+  const DIFY_EMBED_SCRIPT_SRC = chatbotConfigBaseUrl ?
+    `${chatbotConfigBaseUrl.replace(/\/$/, '')}/embed.min.js` :
+    "";
 
   const chatbotSystemVariablesJson = useMemo(() => JSON.stringify(chatbotSystemVariables), [chatbotSystemVariables]);
 
   useEffect(() => {
-    console.log('[AppWrapper:useEffect-initializeAuth] Effect triggered. About to call initializeAuth.');
+    // console.log('[AppWrapper:useEffect-initializeAuth] Effect triggered. About to call initializeAuth.');
     initializeAuth();
-    console.log('[AppWrapper:useEffect-initializeAuth] initializeAuth call completed.');
+    // console.log('[AppWrapper:useEffect-initializeAuth] initializeAuth call completed.');
   }, [initializeAuth]);
 
   useEffect(() => {
     if (authToken) {
-      console.log('[AppWrapper:useEffect-fetchPayrollConfigs] Auth token present. About to call fetchPayrollConfigs.');
+      // console.log('[AppWrapper:useEffect-fetchPayrollConfigs] Auth token present. About to call fetchPayrollConfigs.');
       fetchPayrollConfigs();
-      console.log('[AppWrapper:useEffect-fetchPayrollConfigs] fetchPayrollConfigs call completed.');
+      // console.log('[AppWrapper:useEffect-fetchPayrollConfigs] fetchPayrollConfigs call completed.');
     } else {
-      console.log('[AppWrapper:useEffect-fetchPayrollConfigs] No auth token. Skipping payroll configs.');
+      // console.log('[AppWrapper:useEffect-fetchPayrollConfigs] No auth token. Skipping payroll configs.');
     }
   }, [authToken, fetchPayrollConfigs]);
 
   useEffect(() => {
     if (authToken) {
-      console.log('[AppWrapper:useEffect-fetchHrLookups] Auth token present. Fetching essential HR lookups.');
+      // console.log('[AppWrapper:useEffect-fetchHrLookups] Auth token present. Fetching essential HR lookups.');
       fetchHrLookups('genders');
       fetchHrLookups('maritalStatuses');
       fetchHrLookups('educationLevels');
@@ -78,30 +81,30 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       fetchHrLookups('employeeStatuses');
       fetchHrLookups('departments');
       fetchHrLookups('personnelCategories');
-      console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups fetch calls initiated.');
+      // console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups fetch calls initiated.');
     } else {
-      console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
+      // console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
     }
   }, [authToken, fetchHrLookups]);
 
   useEffect(() => {
     if (authToken) {
-      console.log('[AppWrapper:useEffect-primeLookupCache] Auth token present. Priming lookup types cache.');
+      // console.log('[AppWrapper:useEffect-primeLookupCache] Auth token present. Priming lookup types cache.');
       fetchAllLookupTypesAndCache();
     } else {
-      console.log('[AppWrapper:useEffect-primeLookupCache] No auth token. Skipping lookup types cache priming.');
+      // console.log('[AppWrapper:useEffect-primeLookupCache] No auth token. Skipping lookup types cache priming.');
     }
   }, [authToken]);
 
   useEffect(() => {
-    console.log(
-      '[AppWrapper:useEffect-authWatcher] Auth state changed:',
-      {
-        isAuthenticated: !!authToken,
-        currentUser: currentUser ? currentUser.username : null,
-        isLoadingUser,
-      }
-    );
+    // console.log(
+    //   '[AppWrapper:useEffect-authWatcher] Auth state changed:',
+    //   {
+    //     isAuthenticated: !!authToken,
+    //     currentUser: currentUser ? currentUser.username : null,
+    //     isLoadingUser,
+    //   }
+    // );
   }, [authToken, currentUser, isLoadingUser]);
 
   // --- AI Chatbot Integration useEffect Start ---
@@ -109,7 +112,9 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     console.log(
       '[AppWrapper-Redux-DEBUG] Chatbot useEffect triggered. isLoading:', chatbotIsLoading,
       'isEnabled:', chatbotIsEnabled, 'isConfigured:', chatbotIsConfigured,
-      'token:', chatbotConfigToken
+      'token:', chatbotConfigToken,
+      'baseUrl:', chatbotConfigBaseUrl,
+      'DIFY_EMBED_SCRIPT_SRC:', DIFY_EMBED_SCRIPT_SRC
     );
 
     if (chatbotIsLoading) {
@@ -135,7 +140,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       if (difyChatbotRoot) difyChatbotRoot.remove();
     };
 
-    if (chatbotIsEnabled && chatbotIsConfigured && chatbotConfigToken && DIFY_EMBED_SCRIPT_SRC) {
+    if (chatbotIsEnabled && chatbotIsConfigured && chatbotConfigToken && DIFY_EMBED_SCRIPT_SRC && DIFY_EMBED_SCRIPT_SRC.trim() !== '') {
       console.log('[AppWrapper-Redux-DEBUG] Conditions met: Injecting chatbot script and config.');
       cleanupChatbotElements();
 
@@ -156,14 +161,14 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       }
       configScript.innerHTML = `window.difyChatbotConfig = ${JSON.stringify(chatbotWindowConfig)};`;
       document.head.appendChild(configScript);
-      console.log('[AppWrapper-Redux-DEBUG] Added config script with content:', configScript.innerHTML);
+      // console.log('[AppWrapper-Redux-DEBUG] Added config script with content:', configScript.innerHTML);
 
       if (chatbotConfigCustomCss) {
         const styleElement = document.createElement('style');
         styleElement.id = 'chatbot-custom-style';
         styleElement.textContent = chatbotConfigCustomCss;
         document.head.appendChild(styleElement);
-        console.log('[AppWrapper-Redux-DEBUG] Added custom CSS.');
+        // console.log('[AppWrapper-Redux-DEBUG] Added custom CSS.');
       }
 
       if (chatbotConfigCustomJs) {
@@ -171,7 +176,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
         customScriptElement.id = 'chatbot-custom-js';
         customScriptElement.textContent = chatbotConfigCustomJs;
         document.head.appendChild(customScriptElement);
-        console.log('[AppWrapper-Redux-DEBUG] Added custom JS logic.');
+        // console.log('[AppWrapper-Redux-DEBUG] Added custom JS logic.');
       }
 
       const embedScript = document.createElement('script');
@@ -188,15 +193,15 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
         console.error(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}) FAILED to load.`);
       };
       document.head.appendChild(embedScript);
-      console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}).`);
+      // console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}).`);
 
     } else {
-      console.log('[AppWrapper-Redux-DEBUG] Conditions not met (isLoading is false, but isEnabled is false or not configured/essential params missing). Cleaning up chatbot elements.');
+      // console.log('[AppWrapper-Redux-DEBUG] Conditions not met (isLoading is false, but isEnabled is false or not configured/essential params missing). Cleaning up chatbot elements.');
       cleanupChatbotElements();
     }
 
     return () => {
-      console.log('[AppWrapper-Redux-DEBUG] Chatbot useEffect cleanup triggered.');
+      // console.log('[AppWrapper-Redux-DEBUG] Chatbot useEffect cleanup triggered.');
       cleanupChatbotElements();
     };
   }, [

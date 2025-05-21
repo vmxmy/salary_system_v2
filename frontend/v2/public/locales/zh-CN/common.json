@@ -9,10 +9,12 @@
     "inactive": "禁用",
     "na": "无",
     "unknown_param": "未知状态 (ID: {statusId})",
+    "unknown_status_param": "未知状态参数 (ID: {statusId})",
     "draft": "草稿",
     "processing": "处理中",
     "error": "错误"
   },
+  "notAvailable": "不可用",
   "boolean": {
     "true": "是",
     "false": "否"
@@ -41,7 +43,11 @@
     "finish": "完成",
     "view_details": "查看详情",
     "refresh": "刷新",
-    "next": "下一步"
+    "next": "下一步",
+    "add_child": "添加子项",
+    "export_data": "导出数据",
+    "column_settings": "列设置",
+    "export_excel": "导出Excel"
   },
   "label": {
     "username": "用户名",
@@ -86,7 +92,10 @@
     "data_loading_error": "数据加载失败",
     "form_validation_error": "表单校验失败，请检查输入项。",
     "upload_success_param": "文件 {fileName} 上传成功。",
-    "upload_failed_param": "文件 {fileName} 上传失败。"
+    "upload_failed_param": "文件 {fileName} 上传失败。",
+    "feature_under_development": "此功能正在开发中，敬请期待。",
+    "missing_required_fields": "有必填字段未填写。",
+    "missing_required_fields_in_tab_param": "在 {tabName} 标签页中有必填字段未填写。"
   },
   "error": {
     "genericTitle": "发生错误"
@@ -111,7 +120,8 @@
     "empty_data": "暂无数据",
     "column_actions": "操作",
     "cell_empty": "-",
-    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条"
+    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
+    "total_items": "共 {total} 条记录"
   },
   "currency": {
     "symbol": "¥"
@@ -121,7 +131,7 @@
   },
   "sider": {
     "title": {
-      "full": "薪酬管理系统",
+      "full": "高新发薪管理系统",
       "collapsed": "薪"
     }
   },
@@ -158,7 +168,9 @@
   "remember_me_checkbox": "记住我",
   "login_button": "登录",
   "common": {
-    "status_na": "不适用"
+    "pagination_total": "第 {start}-{end} 条 / 共 {total} 条",
+    "status_na": "不适用",
+    "unknown_status_param": "未知状态参数 (ID: {statusId})"
   },
   "payroll_periods_page": {
     "table": {
@@ -239,5 +251,59 @@
   },
   "page_title_settings": "页面标题设置",
   "record_prefix": "记录",
-  "search": "搜索"
+  "search": {
+    "placeholder": "搜索 {{field}}"
+  },
+  "payroll_run_detail_page": {
+    "spin_loading": "加载中...",
+    "breadcrumb_runs_management": "工资计算批次管理",
+    "breadcrumb_current_page": "计算批次详情 (ID: {runId})",
+    "card_title": "工资计算批次详情: #{runId}",
+    "button_back_to_list": "返回列表",
+    "desc_label_id": "ID",
+    "desc_label_payroll_period": "工资周期",
+    "value_period_id_prefix": "ID: ",
+    "desc_label_run_date": "计算日期",
+    "desc_label_status": "状态",
+    "desc_label_employee_count": "包含员工数",
+    "desc_label_created_by": "创建者用户ID",
+    "value_na": "无",
+    "desc_label_created_at": "创建时间",
+    "desc_label_updated_at": "最后更新时间",
+    "desc_label_paid_at": "支付时间",
+    "value_not_paid": "未支付",
+    "desc_label_notes": "备注",
+    "value_no_notes": "无",
+    "section_title_entries": "工资条目"
+  },
+  "payroll_entries_table": {
+    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
+    "column_entry_id": "条目ID",
+    "column_employee_id": "员工ID",
+    "column_employee_name": "员工姓名",
+    "column_total_earnings": "总收入",
+    "column_total_deductions": "总扣除",
+    "column_net_pay": "净工资",
+    "column_status": "状态",
+    "column_remarks": "备注",
+    "column_actions": "操作",
+    "cell_name_supplement_needed": "需补充",
+    "currency_symbol": "¥",
+    "tooltip_view_details": "查看详情",
+    "tooltip_edit_entry": "编辑/调整工资条目",
+    "spin_loading_entries": "加载工资条目中..."
+  },
+  "export": {
+    "filename": "导出数据",
+    "sheetName": "Sheet1",
+    "success_message": "导出成功",
+    "error_message": "导出失败，请重试",
+    "error_log": "导出Excel失败:"
+  },
+  "column_control": {
+    "button_text": "列设置",
+    "tooltip_title": "自定义显示列",
+    "dropdown_title": "列显示",
+    "reset_success": "已重置列设置"
+  }
 }

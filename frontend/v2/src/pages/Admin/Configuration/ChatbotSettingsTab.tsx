@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Button, message, Switch, Card, Typography, Space, Row, Col } from 'antd';
+import { Form, Input, Button, App, Switch, Card, Typography, Space, Row, Col } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectChatbotFullConfig,
@@ -37,6 +37,8 @@ const ChatbotSettingsTab: React.FC = () => {
     }
   }, [chatbotConfig, form]);
 
+  const { message } = App.useApp(); // 使用 App.useApp() 获取 message 实例
+  
   const handleSave = async (values: any) => {
     console.log('[ChatbotSettingsTab-Redux-DEBUG] handleSave called with form values:', values);
     try {

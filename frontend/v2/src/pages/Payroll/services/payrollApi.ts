@@ -10,6 +10,7 @@ import type {
   PayrollEntry,
   PayrollEntryPatch,
 } from '../types/payrollTypes';
+import i18n from 'i18next';
 
 const PAYROLL_PERIODS_ENDPOINT = '/payroll-periods';
 const PAYROLL_RUNS_ENDPOINT = '/payroll-runs';
@@ -112,9 +113,12 @@ export const createPayrollRun = async (data: CreatePayrollRunPayload): Promise<A
 /**
  * Fetches a specific payroll run by its ID.
  */
-export const getPayrollRunById = async (id: number): Promise<ApiSingleResponse<PayrollRun>> => {
+export const getPayrollRunById = async (id: number, options?: { include_employee_details?: boolean }): Promise<ApiSingleResponse<PayrollRun>> => {
   try {
-    const response = await apiClient.get<ApiSingleResponse<PayrollRun>>(`${PAYROLL_RUNS_ENDPOINT}/${id}`);
+    const response = await apiClient.get<ApiSingleResponse<PayrollRun>>(
+      `${PAYROLL_RUNS_ENDPOINT}/${id}`, 
+      { params: options }
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching payroll run ${id}:`, error);
@@ -178,6 +182,7 @@ export const getPayrollEntries = async (params?: {
   size?: number;
   payroll_run_id?: number;
   employee_id?: number;
+  include_employee_details?: boolean;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }): Promise<ApiListResponse<PayrollEntry>> => {
@@ -211,10 +216,69 @@ export const getPayrollEntryById = async (entryId: number): Promise<ApiSingleRes
  */
 export const updatePayrollEntryDetails = async (entryId: number, data: PayrollEntryPatch): Promise<ApiSingleResponse<PayrollEntry>> => {
   try {
+    console.log(`准备发送PATCH请求到 ${PAYROLL_ENTRIES_ENDPOINT}/${entryId}，数据:`, JSON.stringify(data, null, 2));
+    
+    // 获取apiClient中配置的请求头
+    const requestConfig = {
+      url: `${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`,
+      method: 'PATCH',
+      data,
+      headers: apiClient.defaults.headers
+    };
+    
+    console.log('请求配置:', JSON.stringify(requestConfig, null, 2));
+    
+    // 验证earnings_details和deductions_details的结构是否符合后端期望
+    if (data.earnings_details && Array.isArray(data.earnings_details)) {
+      console.error('警告: earnings_details是数组格式，但后端期望对象格式');
+    }
+    
+    if (data.deductions_details && Array.isArray(data.deductions_details)) {
+      console.error('警告: deductions_details是数组格式，但后端期望对象格式');
+    }
+    
     const response = await apiClient.patch<ApiSingleResponse<PayrollEntry>>(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`, data);
+    
+    console.log(`PATCH请求成功，状态码: ${response.status}，响应头:`, response.headers);
+    console.log(`响应数据:`, JSON.stringify(response.data, null, 2));
+    
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error updating payroll entry ${entryId}:`, error);
+    
+    // 增加更详细的错误日志
+    if (error.response) {
+      console.error(`PATCH请求失败，状态码: ${error.response.status}`);
+      console.error(`错误详情:`, JSON.stringify(error.response.data, null, 2));
+    }
+    
     throw error;
   }
+};
+
+// 测试翻译函数
+export const testTranslations = () => {
+  // 使用已导入的i18n实例，而不是重新require
+  
+  // 测试各种访问方式
+  const results = {
+    direct: {
+      withNamespace: i18n.t('periods_page.button.add_period', { ns: 'payroll' }),
+      withoutNamespace: i18n.t('periods_page.button.add_period')
+    },
+    nestedKeys: {
+      fullPath: i18n.t('payroll:periods_page.button.add_period'),
+      parentPath: i18n.t('payroll:periods_page.button'),
+      directKey: i18n.t('add_period', { ns: 'payroll.periods_page.button' })
+    },
+    alternatives: {
+      createPeriod: i18n.t('periods_page.button.create_period', { ns: 'payroll' }),
+      commonButton: i18n.t('button.create', { ns: 'common' })
+    },
+    loadedNamespaces: i18n.options.ns,
+    availableLanguages: i18n.options.preload,
+    currentLanguage: i18n.language
+  };
+  
+  return results;
 }; 

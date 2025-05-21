@@ -34,7 +34,10 @@ const CompensationModal: React.FC<CompensationModalProps> = ({ visible, mode, in
       setLookupsLoading(true);
       try {
         const freqRes = await employeeService.getPayFrequenciesLookup();
-        setPayFrequencies(freqRes.map((f: LookupValue) => ({ value: String(f.value), label: f.label })));
+        setPayFrequencies(freqRes.map((f: any) => ({ 
+          value: String(f.id || f.value || f.value_code || ''), 
+          label: f.label || f.value_name || String(f.id) 
+        })));
       } catch (error) {
         message.error(t('employee:detail_page.compensation_tab.modal.message_load_lookups_failed', 'Failed to load lookup data for compensation.'));
         console.error('Error fetching compensation lookups:', error);
@@ -87,7 +90,7 @@ const CompensationModal: React.FC<CompensationModalProps> = ({ visible, mode, in
       onOk={handleOk}
       onCancel={onCancel}
       confirmLoading={loading}
-      destroyOnClose
+      destroyOnHidden
       width={600}
     >
       {lookupsLoading ? (

@@ -3,6 +3,7 @@ import { EmploymentStatus, Gender, EmploymentType, ContractType, EducationLevel,
 import type { LookupItem, PersonnelCategory, Position as PositionType } from '../pages/HRManagement/types'; // MODIFIED: No longer JobTitle as PersonnelCategory, ADDED PositionType
 import apiClient from '../api'; // Added apiClient import
 import { message } from 'antd'; // Added message import
+import { employeeService } from './employeeService'; // 添加对employeeService的导入
 
 // Define standard Lookup Type Codes used by the backend -- REMOVING THIS as we will fetch dynamically
 // export const LookupTypeCodes = { ... } as const;
@@ -33,15 +34,15 @@ let fetchLookupTypesPromise: Promise<readonly LookupType[] | null> | null = null
 // Fetches all lookup types from the API and caches them
 export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType[] | null> => {
   if (cachedLookupTypes) {
-    console.log('使用已缓存的lookup类型数据，共', cachedLookupTypes.length, '项');
+    // console.log('使用已缓存的lookup类型数据，共', cachedLookupTypes.length, '项');
     return cachedLookupTypes;
   }
   if (isFetchingLookupTypes && fetchLookupTypesPromise) {
-    console.log('正在获取lookup类型数据，等待结果...');
+    // console.log('正在获取lookup类型数据，等待结果...');
     return fetchLookupTypesPromise;
   }
 
-  console.log('🔍 开始请求所有lookup类型数据 GET /lookup/types');
+  // console.log('🔍 开始请求所有lookup类型数据 GET /lookup/types');
   isFetchingLookupTypes = true;
   fetchLookupTypesPromise = apiClient.get<LookupTypeListResponse>('/lookup/types', {
     params: {
@@ -50,21 +51,21 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
     }
   })
   .then(response => {
-    console.log('✅ lookup类型API响应:', {
-      status: response.status,
-      url: response.config.url,
-      hasData: !!response.data,
-      dataIsArray: response.data && Array.isArray(response.data.data),
-      dataLength: response.data && response.data.data ? response.data.data.length : 0,
-    });
+    // console.log('✅ lookup类型API响应:', {
+    //   status: response.status,
+    //   url: response.config.url,
+    //   hasData: !!response.data,
+    //   dataIsArray: response.data && Array.isArray(response.data.data),
+    //   dataLength: response.data && response.data.data ? response.data.data.length : 0,
+    // });
     
     // 详细输出响应数据的前几项
     if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-      console.log('lookup类型数据预览:');
-      response.data.data.slice(0, 3).forEach((item, index) => {
-        console.log(`  ${index+1}. id=${item.id}, code="${item.code}", name="${item.name}"`);
-      });
-      console.log(`  ... 共${response.data.data.length}项`);
+      // console.log('lookup类型数据预览:');
+      // response.data.data.slice(0, 3).forEach((item, index) => {
+      //   console.log(`  ${index+1}. id=${item.id}, code="${item.code}", name="${item.name}"`);
+      // });
+      // console.log(`  ... 共${response.data.data.length}项`);
     }
     
     // 调整判断条件以匹配新的 LookupTypeListResponse 结构
@@ -74,18 +75,18 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
       cachedLookupTypes = Object.freeze([...response.data.data]); // 从 response.data.data 获取数组
       return cachedLookupTypes;
     }
-    console.error('❌ lookupService: 意外的API响应结构 /lookup/types:', response.data);
+    // console.error('❌ lookupService: 意外的API响应结构 /lookup/types:', response.data);
     message.error('Failed to load lookup type definitions.');
     return null;
   })
   .catch(error => {
-    console.error('❌ lookupService: 获取lookup类型失败:', error);
-    console.error('错误详情:', error.message);
-    console.error('请求配置:', error.config);
-    if (error.response) {
-      console.error('响应数据:', error.response.data);
-      console.error('响应状态:', error.response.status);
-    }
+    // console.error('❌ lookupService: 获取lookup类型失败:', error);
+    // console.error('错误详情:', error.message);
+    // console.error('请求配置:', error.config);
+    // if (error.response) {
+    //   console.error('响应数据:', error.response.data);
+    //   console.error('响应状态:', error.response.status);
+    // }
     message.error('Error loading lookup type definitions.');
     return null;
   })
@@ -98,21 +99,68 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
 
 // Renamed and modified to search by system code key against the 'code' field of lookup types
 const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | undefined> => {
-  console.log(`开始查询系统码 "${systemCodeKey}" 的类型代码`);
-  const allTypes = await fetchAllLookupTypesAndCache();
-  if (!allTypes) {
-    console.warn(`查询系统码 "${systemCodeKey}" 失败：缓存类型为空`);
+  // console.log(`开始查询系统码 "${systemCodeKey}" 的类型代码`);
+  try {
+    const allTypes = await fetchAllLookupTypesAndCache();
+    if (!allTypes) {
+      // console.warn(`查询系统码 "${systemCodeKey}" 失败：缓存类型为空`);
+      return undefined;
+    }
+    
+    // 首先尝试直接匹配code字段 (默认方式)
+    let foundType = allTypes.find(type => type.code === systemCodeKey);
+    
+    // 如果没找到，尝试不区分大小写的匹配
+    if (!foundType) {
+      // console.log(`未找到精确匹配系统码 "${systemCodeKey}"，尝试不区分大小写的匹配...`);
+      foundType = allTypes.find(type => type.code?.toUpperCase() === systemCodeKey.toUpperCase());
+    }
+    
+    // 如果仍未找到，检查是否有部分匹配
+    if (!foundType) {
+      // console.log(`未找到不区分大小写的匹配，尝试部分匹配...`);
+      foundType = allTypes.find(type =>
+        type.code?.includes(systemCodeKey) ||
+        systemCodeKey.includes(type.code || '')
+      );
+    }
+    
+    if (!foundType) {
+      // 如果系统码是PAY_FREQUENCY，可以尝试其他变体名称
+      if (systemCodeKey === 'PAY_FREQUENCY') {
+        // console.log(`特殊处理：尝试查找PAY_FREQUENCY的其他变体...`);
+        foundType = allTypes.find(type =>
+          type.code?.includes('PAY') ||
+          type.code?.includes('FREQUENCY') ||
+          type.name?.includes('频率') ||
+          type.name?.includes('薪资') ||
+          type.name?.includes('工资')
+        );
+      }
+      // 如果系统码是CONTRACT_STATUS，可以尝试其他变体名称
+      else if (systemCodeKey === 'CONTRACT_STATUS') {
+        // console.log(`特殊处理：尝试查找CONTRACT_STATUS的其他变体...`);
+        foundType = allTypes.find(type =>
+          type.code?.includes('CONTRACT') ||
+          type.code?.includes('STATUS') ||
+          type.name?.includes('合同') ||
+          type.name?.includes('状态')
+        );
+      }
+    }
+    
+    if (!foundType) {
+      // console.warn(`lookupService: Could not find lookup type with system code key "${systemCodeKey}" in cached types. Ensure this key exists in 'config.lookup_types.code' column.`);
+    } else {
+      // console.log(`找到系统码 "${systemCodeKey}" 对应的类型：`, foundType);
+    }
+    
+    // The 'code' property of the found type is the actual type_code we need.
+    return foundType?.code;
+  } catch (error) {
+    // console.error(`查询系统码 "${systemCodeKey}" 时发生错误:`, error);
     return undefined;
   }
-  // Find the type where its 'code' (from DB, e.g., 'GENDER') matches our systemCodeKey (e.g., LookupSystemCodes.GENDER which is also 'GENDER')
-  const foundType = allTypes.find(type => type.code === systemCodeKey);
-  if (!foundType) {
-    console.warn(`lookupService: Could not find lookup type with system code key "${systemCodeKey}" in cached types. Ensure this key exists in 'config.lookup_types.code' column.`);
-  } else {
-    console.log(`找到系统码 "${systemCodeKey}" 对应的类型：`, foundType);
-  }
-  // The 'code' property of the found type is the actual type_code we need.
-  return foundType?.code;
 };
 
 // General Lookup Item type
@@ -391,11 +439,11 @@ const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
 // Generic function to fetch lookup values by type code
 const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> => {
   if (!typeCode) { // Added a check for empty typeCode
-    console.warn('❌ fetchLookupValuesByType: 被调用时typeCode为空');
+    // console.warn('❌ fetchLookupValuesByType: 被调用时typeCode为空');
     return [];
   }
   
-  console.log(`🔍 开始获取类型 "${typeCode}" 的查找值`);
+  // console.log(`🔍 开始获取类型 "${typeCode}" 的查找值`);
   
   try {
     // 构建请求URL和参数
@@ -407,27 +455,27 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
       page: 1,
     };
     
-    console.log(`API请求: GET ${apiPath}`, { params });
+    // console.log(`API请求: GET ${apiPath}`, { params });
     
     // Assuming the API returns a structure like { data: [...ApiLookupValue] }
     const response = await apiClient.get<ActualApiLookupValueListResponse>(apiPath, { params });
     
-    console.log(`✅ 类型 "${typeCode}" 的API响应:`, {
-      status: response.status,
-      url: response.config.url,
-      hasData: !!response.data,
-      dataType: response.data ? typeof response.data.data : 'undefined',
-      isArray: response.data && Array.isArray(response.data.data),
-      itemCount: response.data && Array.isArray(response.data.data) ? response.data.data.length : 0
-    });
+    // console.log(`✅ 类型 "${typeCode}" 的API响应:`, {
+    //   status: response.status,
+    //   url: response.config.url,
+    //   hasData: !!response.data,
+    //   dataType: response.data ? typeof response.data.data : 'undefined',
+    //   isArray: response.data && Array.isArray(response.data.data),
+    //   itemCount: response.data && Array.isArray(response.data.data) ? response.data.data.length : 0
+    // });
     
     // 详细输出响应数据的前几项
     if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-      console.log(`类型 "${typeCode}" 数据预览:`);
-      response.data.data.slice(0, 3).forEach((item, index) => {
-        console.log(`  ${index+1}. id=${item.id}, name="${item.name || item.label}", code="${item.code}"`);
-      });
-      console.log(`  ... 共${response.data.data.length}项`);
+      // console.log(`类型 "${typeCode}" 数据预览:`);
+      // response.data.data.slice(0, 3).forEach((item, index) => {
+      //   console.log(`  ${index+1}. id=${item.id}, name="${item.name || item.label}", code="${item.code}"`);
+      // });
+      // console.log(`  ... 共${response.data.data.length}项`);
     }
     
     if (response.data && Array.isArray(response.data.data)) {
@@ -441,17 +489,17 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
           name: apiItem.name || apiItem.label || '',
         }));
     }
-    console.error(`❌ lookupService: 意外的API响应结构 type_code=${typeCode}:`, response.data);
+    // console.error(`❌ lookupService: 意外的API响应结构 type_code=${typeCode}:`, response.data);
     message.error(`Failed to load lookup values for type: ${typeCode}`);
     return [];
   } catch (error: any) {
-    console.error(`❌ lookupService: 获取类型为"${typeCode}"的查找值时出错:`, error);
-    console.error('错误详情:', error.message);
-    console.error('请求配置:', error.config);
-    if (error.response) {
-      console.error('响应数据:', error.response.data);
-      console.error('响应状态:', error.response.status);
-    }
+    // console.error(`❌ lookupService: 获取类型为"${typeCode}"的查找值时出错:`, error);
+    // console.error('错误详情:', error.message);
+    // console.error('请求配置:', error.config);
+    // if (error.response) {
+    //   console.error('响应数据:', error.response.data);
+    //   console.error('响应状态:', error.response.status);
+    // }
     message.error(`获取"${typeCode}"类型的查找值失败`);
     return [];
   }
@@ -612,13 +660,13 @@ export const lookupService = {
           // description and other fields from PersonnelCategory can be mapped here if available in ApiPersonnelCategory
         }));
 
-      console.log('mapped personnel categories:', personnelCategoriesWithParent.slice(0, 3));
+      // console.log('mapped personnel categories:', personnelCategoriesWithParent.slice(0, 3));
 
       const result = buildPersonnelCategoryTree(personnelCategoriesWithParent); // MODIFIED
-      console.log('final personnel categories tree:', result.slice(0, 3));
+      // console.log('final personnel categories tree:', result.slice(0, 3));
       return result;
     } catch (error) {
-      console.error('Error fetching personnel categories lookup:', error); // MODIFIED
+      // console.error('Error fetching personnel categories lookup:', error); // MODIFIED
       message.error('获取人员类别列表失败'); // MODIFIED
       return [];
     }
@@ -638,8 +686,29 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载发薪频率选项：类型定义缺失或Code不匹配');
-    return [];
+    
+    // 不立即显示错误，而是尝试使用employeeService作为备选
+    try {
+      // console.log('无法通过lookupService.getTypeCodeBySystemCode获取PAY_FREQUENCY，尝试使用employeeService.getPayFrequenciesLookup作为备选');
+      const frequenciesFromEmployeeService = await employeeService.getPayFrequenciesLookup();
+      
+      // 将从employeeService获取的数据转换为LookupItem[]
+      return frequenciesFromEmployeeService.map(f => {
+        // 由于不确定LookupValue的精确格式，以下代码采用通用处理方式
+        const freqItem = f as any; // 临时使用any类型避免类型检查错误
+        return {
+          value: freqItem.id || freqItem.value || 0,
+          label: freqItem.label || freqItem.value_name || String(freqItem.id || ''),
+          code: String(freqItem.value || freqItem.id || ''),
+          id: Number(freqItem.id || 0),
+          name: freqItem.label || freqItem.value_name || String(freqItem.id || '')
+        };
+      });
+    } catch (error) {
+      // console.error('通过备选employeeService获取发薪频率失败:', error);
+      message.error('无法加载发薪频率选项：类型定义缺失或Code不匹配');
+      return [];
+    }
   },
 
   // Mock for contract statuses until API is ready or confirmed
@@ -648,8 +717,29 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载合同状态选项：类型定义缺失或Code不匹配');
-    return [];
+    
+    // 不立即显示错误，而是尝试使用employeeService作为备选
+    try {
+      // console.log('无法通过lookupService.getTypeCodeBySystemCode获取CONTRACT_STATUS，尝试使用employeeService.getContractStatusesLookup作为备选');
+      const statusesFromEmployeeService = await employeeService.getContractStatusesLookup();
+      
+      // 将从employeeService获取的数据转换为LookupItem[]
+      return statusesFromEmployeeService.map(s => {
+        // 由于不确定LookupValue的精确格式，以下代码采用通用处理方式
+        const statusItem = s as any; // 临时使用any类型避免类型检查错误
+        return {
+          value: statusItem.id || statusItem.value || 0,
+          label: statusItem.label || statusItem.value_name || String(statusItem.id || ''),
+          code: String(statusItem.value || statusItem.id || ''),
+          id: Number(statusItem.id || 0),
+          name: statusItem.label || statusItem.value_name || String(statusItem.id || '')
+        };
+      });
+    } catch (error) {
+      // console.error('通过备选employeeService获取合同状态失败:', error);
+      message.error('无法加载合同状态选项：类型定义缺失或Code不匹配');
+      return [];
+    }
   },
 
   // Example of fetching specific lookup values if needed, e.g., for a single value by code
@@ -676,7 +766,7 @@ export const lookupService = {
       message.error('Failed to load position list or data is not in expected format.');
       return [];
     } catch (error) {
-      console.error('Error fetching positions:', error);
+      // console.error('Error fetching positions:', error);
       message.error('Error loading positions.');
       return [];
     }

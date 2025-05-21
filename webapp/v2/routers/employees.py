@@ -36,6 +36,7 @@ async def get_employees(
     search: Optional[str] = None,
     status_id: Optional[int] = None,
     department_id: Optional[int] = None,
+    ids: Optional[str] = Query(None, description="逗号分隔的员工ID列表，用于批量获取指定员工"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
@@ -47,23 +48,59 @@ async def get_employees(
     - **search**: 搜索关键字，可以匹配员工代码、姓名、身份证号、邮箱、电话号码、部门名称或职位名称
     - **status_id**: 员工状态ID，用于过滤特定状态的员工
     - **department_id**: 部门ID，用于过滤特定部门的员工
+    - **ids**: 逗号分隔的员工ID列表，用于批量获取指定员工，例如"1,2,3"
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
     """
+    logger.info(f"Received request for /employees with page: {page}, size: {size}, search: '{search}', status_id: {status_id}, department_id: {department_id}, ids: '{ids}'")
     try:
-        # 计算跳过的记录数
-        skip = (page - 1) * size
+        # 解析ids参数
+        employee_ids = None
+        if ids:
+            try:
+                employee_ids = [int(id_str.strip()) for id_str in ids.split(',') if id_str.strip()]
+                # 限制批量获取的员工数量，避免过大的请求
+                if len(employee_ids) > 100:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=create_error_response(
+                            status_code=400,
+                            message="Bad Request",
+                            details="Too many employee IDs requested. Maximum is 100."
+                        )
+                    )
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=create_error_response(
+                        status_code=400,
+                        message="Bad Request",
+                        details="Invalid employee ID format in 'ids' parameter."
+                    )
+                )
+        
+        # 计算跳过的记录数 (仅在不使用ids时应用分页)
+        skip = (page - 1) * size if not employee_ids else 0
         
         # 获取员工列表和总数
         # v2_hr_crud.get_employees now returns Tuple[List[ORM_Employee], int]
-        employees_orms, total = v2_hr_crud.get_employees(
-            db=db,
-            search=search,
-            status_id=status_id,
-            department_id=department_id,
-            skip=skip,
-            limit=size
-        )
+        if employee_ids:
+            # 如果提供了employee_ids，则直接获取这些ID的员工
+            employees_orms = []
+            for emp_id in employee_ids:
+                emp = v2_hr_crud.get_employee(db=db, employee_id=emp_id)
+                if emp:
+                    employees_orms.append(emp)
+            total = len(employees_orms)
+        else:
+            employees_orms, total = v2_hr_crud.get_employees(
+                db=db,
+                search=search,
+                status_id=status_id,
+                department_id=department_id,
+                skip=skip,
+                limit=size
+            )
         
         processed_employees: List[EmployeeWithNames] = []
         for emp_orm in employees_orms:
@@ -85,17 +122,18 @@ async def get_employees(
             )
             processed_employees.append(employee_with_names_instance)
 
-        # 计算总页数
+        # 计算总页数 (仅在不使用ids时有意义)
         total_pages = (total + size - 1) // size if total > 0 else 1
         
+        logger.info(f"Responding to /employees request with total: {total}, totalPages: {total_pages}, page: {page}, size: {size}")
         # 返回标准响应格式
         return {
             "data": processed_employees,
             "meta": {
-                "page": page,
-                "size": size,
+                "page": page if not employee_ids else 1,
+                "size": size if not employee_ids else len(processed_employees),
                 "total": total,
-                "totalPages": total_pages
+                "totalPages": total_pages if not employee_ids else 1
             }
         }
     except Exception as e:
@@ -209,6 +247,7 @@ async def create_employee(
 @router.post("/bulk", response_model=Dict[str, List[EmployeeResponseSchema]], status_code=status.HTTP_201_CREATED)
 async def create_bulk_employees_api(
     employees_in: List[EmployeeCreate],
+    overwrite_mode: bool = Query(False, description="是否启用覆盖模式，允许更新已存在的员工记录"),
     db: Session = Depends(get_db_v2),
     current_user = Depends(auth.require_permissions(["P_EMPLOYEE_CREATE"]))
 ):
@@ -217,6 +256,7 @@ async def create_bulk_employees_api(
     
     - 需要与创建单个员工相同的权限 (例如 P_EMPLOYEE_CREATE)。
     - 请求体应该是一个包含多个员工对象的JSON数组。
+    - **overwrite_mode**: 如果设置为True，将允许更新已存在的员工记录（根据身份证号和员工代码匹配）。
     """
     if not employees_in:
         raise HTTPException(
@@ -228,7 +268,7 @@ async def create_bulk_employees_api(
             )
         )
     try:
-        created_employees = v2_hr_crud.create_bulk_employees(db, employees_in)
+        created_employees = v2_hr_crud.create_bulk_employees(db, employees_in, overwrite_mode)
         return {"data": created_employees}
     except ValueError as e:
         raise HTTPException(

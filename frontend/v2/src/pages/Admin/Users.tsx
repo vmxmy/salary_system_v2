@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import ActionButton from '../../components/common/ActionButton';
+import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
+import TableActionButton from '../../components/common/TableActionButton';
 import PageHeaderLayout from '../../components/common/PageHeaderLayout';
 import type { InputRef } from 'antd';
-import type { ColumnType, Key, TablePaginationConfig } from 'antd/lib/table/interface';
+import type { ColumnType, TablePaginationConfig } from 'antd/lib/table/interface';
 import type { FilterValue, SorterResult } from 'antd/lib/table/interface';
 import { getUsers, createUser, updateUser, deleteUser } from '../../api/users';
 import { getRoles } from '../../api/roles';
@@ -12,6 +12,8 @@ import type { User as ApiUser, Role as ApiRole, ApiResponse, CreateUserPayload, 
 import { format } from 'date-fns';
 import type { TableParams } from '../../types/antd';
 import { useTranslation } from 'react-i18next';
+import { useTableSearch, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
+import type { ColumnsType } from 'antd/lib/table';
 
 const { Title } = Typography;
 
@@ -59,10 +61,8 @@ const UserListPage: React.FC = () => {
     },
   });
 
-  // Search related states for column search
-  const [columnSearchText, setColumnSearchText] = useState('');
-  const [searchedTableColumn, setSearchedTableColumn] = useState('');
-  const searchInputRef = useRef<InputRef>(null);
+  // 使用通用表格搜索工具
+  const { getColumnSearch } = useTableSearch();
 
   // Modal states for Create/Edit User
   const [isUserModalOpen, setIsUserModalOpen] = useState<boolean>(false);
@@ -80,6 +80,7 @@ const UserListPage: React.FC = () => {
   // For simplicity now, we will refetch user for edit if needed, or assume PageUser is sufficient
   // For now, let's add a temporary state to hold the full ApiUser objects from the last fetch
   const [allApiUsersForEdit, setAllApiUsersForEdit] = useState<ApiUser[]>([]);
+
 
   const fetchUsers = async (params: TableParams = tableParams) => {
     setLoading(true);
@@ -170,86 +171,14 @@ const UserListPage: React.FC = () => {
       sortField: sort.field as string,
       sortOrder: sort.order as string,
     }));
-    // Fetch users will be triggered by useEffect if current/pageSize changed, 
-    // or we can call fetchUsers explicitly here if filters/sorter are also backend-driven.
-    // For now, assuming fetchUsers is called if current/pageSize changes in tableParams.pagination
-    // If filters/sorters are backend-driven, add them to useEffect dependencies or call fetchUsers here.
-    fetchUsers({ // Explicitly call if filters/sorters are to be sent to backend
+    
+    fetchUsers({ 
         pagination: newPagination,
         filters,
         sortField: sort.field as string,
         sortOrder: sort.order as string,
     });
   };
-
-  const handleColumnSearch = (
-    selectedKeys: string[], 
-    confirm: () => void, 
-    dataIndex: keyof PageUser
-  ) => {
-    confirm();
-    setColumnSearchText(selectedKeys[0]);
-    setSearchedTableColumn(dataIndex as string);
-    // For client-side search, antd table handles it if onFilter is defined.
-    // For server-side search on a specific column:
-    // setTableParams(prev => ({ ...prev, searchColumn: dataIndex, searchText: selectedKeys[0], pagination: {...prev.pagination, current: 1} }));
-    // And then fetchUsers(tableParams) would be called by useEffect or directly.
-  };
-
-  const handleColumnSearchReset = (clearFilters: () => void) => {
-    clearFilters();
-    setColumnSearchText('');
-    setSearchedTableColumn('');
-    // For server-side search reset:
-    // setTableParams(prev => ({ ...prev, searchColumn: undefined, searchText: undefined, pagination: {...prev.pagination, current: 1} }));
-    // fetchUsers(tableParams);
-  };
-
-  const getColumnSearchProps = (dataIndex: keyof PageUser, columnName?: string): ColumnType<PageUser> => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          ref={searchInputRef} // Connect ref
-          placeholder={t('table.search.placeholder_prefix') + (columnName || dataIndex.toString())}
-          value={selectedKeys[0]}
-          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleColumnSearch(selectedKeys as string[], confirm, dataIndex)}
-          style={{ marginBottom: 8, display: 'block' }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleColumnSearch(selectedKeys as string[], confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            {t('table.search.button_search')}
-          </Button>
-          <Button onClick={() => clearFilters && handleColumnSearchReset(clearFilters)} size="small" style={{ width: 90 }}>
-            {t('table.search.button_reset')}
-          </Button>
-          <Button type="link" size="small" onClick={() => close()}>
-            {t('table.search.button_close')}
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
-    ),
-    onFilter: (value, record) => {
-      const recordValue = record[dataIndex];
-      return recordValue ? recordValue.toString().toLowerCase().includes((value as string).toLowerCase()) : '' === (value as string).toLowerCase();
-    },
-    filterDropdownProps: {
-      onOpenChange: visible => {
-        if (visible) {
-          setTimeout(() => searchInputRef.current?.select(), 100);
-        }
-      }
-    },
-  });
 
   const showCreateUserModal = () => {
     setEditingUser(null);
@@ -419,81 +348,93 @@ const UserListPage: React.FC = () => {
     });
   };
 
-  const columns: ColumnType<PageUser>[] = [
+  // 使用通用表格工具定义列
+  const columns: ColumnsType<PageUser> = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: (a, b) => a.id - b.id,
+      width: 80,
+      sorter: numberSorter<PageUser>('id'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('id'),
     },
     {
       title: t('table.column.username'),
       dataIndex: 'username',
       key: 'username',
-      ...getColumnSearchProps('username', t('table.column.username')),
-      sorter: (a, b) => a.username.localeCompare(b.username),
+      sorter: stringSorter<PageUser>('username'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('username'),
     },
     {
       title: t('table.column.employee_id'),
       dataIndex: 'employee_id',
       key: 'employee_id',
-      render: (employeeId?: number) => employeeId || t('table.value.not_applicable'),
-      sorter: (a, b) => (a.employee_id || 0) - (b.employee_id || 0),
+      width: 120,
+      sorter: numberSorter<PageUser>('employee_id'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('employee_id'),
     },
     {
       title: t('table.column.roles'),
       dataIndex: 'roles',
       key: 'roles',
-      render: (roles: string[]) => roles.join(', ') || t('table.value.not_applicable'),
-      sorter: (a, b) => (a.roles || []).join(', ').localeCompare((b.roles || []).join(', ')),
-      // Note: Filtering/searching on roles might need a custom approach if roles is an array
+      render: (roles: string[]) => (
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', maxWidth: '300px' }}>
+          {roles.map((role, index) => (
+            <Tag color="blue" key={index}>
+              {role}
+            </Tag>
+          ))}
+        </div>
+      ),
     },
     {
-      title: t('table.column.status'),
+      title: t('table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
+      width: 100,
       render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'}>
-          {isActive ? t('table.status.active') : t('table.status.inactive')}
-        </Tag>
+        isActive ? 
+          <Tag color="green">{t('table.value.active')}</Tag> : 
+          <Tag color="red">{t('table.value.inactive')}</Tag>
       ),
-      filters: [
-        { text: t('table.status.active'), value: true },
-        { text: t('table.status.inactive'), value: false },
-      ],
-      onFilter: (value, record) => record.is_active === value,
-      sorter: (a, b) => (a.is_active === b.is_active ? 0 : a.is_active ? -1 : 1),
     },
     {
       title: t('table.column.created_at'),
       dataIndex: 'created_at',
       key: 'created_at',
-      sorter: (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
+      width: 180,
+      sorter: dateSorter<PageUser>('created_at'),
+      sortDirections: ['descend', 'ascend'],
     },
     {
       title: t('table.column.actions'),
       key: 'action',
-      render: (_, record: PageUser) => {
-        const userToEdit = allApiUsersForEdit.find(u => u.id === record.id); // Find full ApiUser for editing
-        return (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Tooltip title={t('tooltip.edit_user')}>
-              <ActionButton
-                actionType="edit"
-                onClick={() => userToEdit && showEditUserModal(userToEdit)}
-                disabled={!userToEdit}
-              />
-            </Tooltip>
-            <Tooltip title={t('tooltip.delete_user')}>
-              <ActionButton
-                actionType="delete"
-                onClick={() => handleDeleteUser(record.id, record.username)}
-                danger
-              />
-            </Tooltip>
-          </div>
-        );
-      },
+      width: 120,
+      render: (_, record) => (
+        <Space size="middle">
+          <TableActionButton
+            actionType="edit"
+            onClick={() => {
+              const apiUser = allApiUsersForEdit.find(u => u.id === record.id);
+              if (apiUser) {
+                showEditUserModal(apiUser);
+              } else {
+                message.error(t('message.user_not_found_for_edit'));
+              }
+            }}
+            tooltipTitle={t('tooltip.edit_user')}
+          />
+          <TableActionButton
+            actionType="delete"
+            danger
+            onClick={() => handleDeleteUser(record.id, record.username)}
+            tooltipTitle={t('tooltip.delete_user')}
+          />
+        </Space>
+      ),
     },
   ];
 

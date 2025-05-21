@@ -1,14 +1,18 @@
 {
     "title": "角色管理",
     "button": {
-      "create_role": "新建角色"
+      "create_role": "新建角色",
+      "export_excel": "导出Excel",
+      "column_control": "列设置",
+      "reset": "重置"
     },
     "table": {
       "column": {
         "id": "ID",
         "code": "角色代码",
         "name": "角色名称",
-        "actions": "操作"
+        "actions": "操作",
+        "permissions": "权限"
       },
       "search": {
         "placeholder_prefix": "搜索 ",
@@ -20,7 +24,9 @@
     },
     "tooltip": {
       "edit_role": "编辑角色",
-      "delete_role": "删除角色"
+      "delete_role": "删除角色",
+      "column_control": "自定义显示列",
+      "export_excel": "导出Excel表格"
     },
     "modal": {
       "role_form": {
@@ -54,6 +60,14 @@
       "create_role_error": "创建角色失败",
       "create_role_error_name_code_required": "角色名称和代码是必填项。",
       "delete_role_success": "角色删除成功",
-      "delete_role_error": "删除角色失败"
+      "delete_role_error": "删除角色失败",
+      "export_success": "角色列表导出成功"
+    },
+    "dropdown": {
+      "column_control_title": "列显示控制"
+    },
+    "page_title": "角色管理",
+    "pagination": {
+      "total": "共 {total} 条"
     }
   }

@@ -1,38 +1,107 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Modal, Row, Col, Typography, Space } from 'antd';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Button, message, Modal, Space, Tooltip } from 'antd';
+import { PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import ActionButton from '../../../components/common/ActionButton';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
-import EmployeeFilterForm from '../components/EmployeeFilterForm';
 import EmployeeTable from '../components/EmployeeTable';
 import type { Employee, EmployeeQuery } from '../types';
-import type { SorterResult } from 'antd/es/table/interface'; // Import SorterResult
+import type { SorterResult, ColumnsType } from 'antd/es/table/interface';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import { employeeService } from '../../../services/employeeService';
+import { useTableExport, useColumnControl, stringSorter, numberSorter, dateSorter, useTableSearch } from '../../../components/common/TableUtils';
+import type { Dayjs } from 'dayjs';
+import EmployeeName from '../../../components/common/EmployeeName';
+import Highlighter from 'react-highlight-words';
 
-const { Title } = Typography;
 
-// 添加立即执行的全局测试日志
-console.log('=== 全局测试日志：请检查控制台是否正常显示 ===');
-console.warn('=== 全局警告测试：请确认是否看到此警告 ===');
-console.error('=== 全局错误测试：请确认是否看到此错误 ===');
+// 员工列表页面组件
 
 const EmployeeListPage: React.FC = () => {
-  const { t } = useTranslation(['employee', 'pageTitle']);
+  const { t } = useTranslation(['employee', 'pageTitle', 'common']);
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
 
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loadingData, setLoadingData] = useState<boolean>(false);
-  const [totalEmployees, setTotalEmployees] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [queryOptions, setQueryOptions] = useState<Omit<EmployeeQuery, 'page' | 'pageSize'>>({});
- 
+
   const { lookupMaps, rawLookups, loadingLookups, errorLookups } = useLookupMaps();
+
+  const { getColumnSearch, searchText, searchedColumn } = useTableSearch();
+
+  const tableColumnsConfigForControls: ColumnsType<Employee> = [
+    {
+      title: t('employee:list_page.table.column.full_name'),
+      key: 'fullName',
+      dataIndex: 'last_name',
+      render: (_text: any, record: Employee) => `${record.last_name || ''}${record.first_name || ''}`,
+      sorter: (a, b) => {
+        const nameA = `${a.last_name || ''}${a.first_name || ''}`.trim().toLowerCase();
+        const nameB = `${b.last_name || ''}${b.first_name || ''}`.trim().toLowerCase();
+        return nameA.localeCompare(nameB);
+      },
+    },
+    {
+      title: t('employee:list_page.table.column.employee_code'),
+      dataIndex: 'employee_code',
+      key: 'employee_code',
+      sorter: stringSorter<Employee>('employee_code'),
+    },
+    {
+      title: t('employee:list_page.table.column.id_number'),
+      dataIndex: 'id_number',
+      key: 'id_number',
+      sorter: stringSorter<Employee>('id_number'),
+    },
+    {
+      title: t('employee:list_page.table.column.gender'),
+      dataIndex: 'gender_lookup_value_id',
+      key: 'gender',
+      render: (genderId: number | undefined) => lookupMaps?.genderMap?.get(genderId as number) || ''
+    },
+    {
+      title: t('employee:list_page.table.column.department'),
+      dataIndex: 'department_id',
+      key: 'department_id',
+      render: (departmentId: string | undefined) => lookupMaps?.departmentMap?.get(String(departmentId)) || ''
+    },
+    {
+      title: t('employee:list_page.table.column.status'),
+      dataIndex: 'status_lookup_value_id',
+      key: 'status',
+      render: (statusId: number | undefined) => lookupMaps?.statusMap?.get(statusId as number) || ''
+    },
+    {
+      title: t('employee:list_page.table.column.hire_date'),
+      dataIndex: 'hire_date',
+      key: 'hire_date',
+      render: (date: string | Dayjs | undefined) => date ? new Date(date as string).toLocaleDateString() : ''
+    },
+  ];
+
+  const { ExportButton } = useTableExport(
+    allEmployees || [], 
+    tableColumnsConfigForControls, 
+    {
+      filename: t('employee:list_page.export.filename'),
+      sheetName: t('employee:list_page.export.sheet_name'),
+      buttonText: t('employee:list_page.export.button_text'),
+      successMessage: t('employee:list_page.export.success_message')
+    }
+  );
+
+  const { ColumnControl } = useColumnControl(
+    tableColumnsConfigForControls, 
+    {
+      storageKeyPrefix: 'employee_table_page_level',
+      buttonText: t('employee:list_page.column_control.button_text'),
+      tooltipTitle: t('employee:list_page.column_control.tooltip'),
+      dropdownTitle: t('employee:list_page.column_control.dropdown_title'),
+      resetText: t('employee:list_page.column_control.reset_text'),
+      requiredColumns: ['fullName']
+    }
+  );
 
   useEffect(() => {
     if (errorLookups) {
@@ -41,159 +110,60 @@ const EmployeeListPage: React.FC = () => {
     }
   }, [errorLookups, t]);
  
-  const fetchEmployees = useCallback(async (page: number, size: number, currentQueryOptions: Omit<EmployeeQuery, 'page' | 'pageSize'>) => {
+  // Fetches ALL employees
+  const fetchAllEmployees = useCallback(async () => {
     setLoadingData(true);
     try {
-      const query: EmployeeQuery = {
-        ...currentQueryOptions,
-        page,
-        pageSize: size,
-      };
-      console.log('Fetching employees with query:', query); // For debugging
+      // Request a large enough page size to get all items. Backend max is 100.
+      // For 40 items, pageSize: 100 is sufficient.
+      const query: EmployeeQuery = { page: 1, size: 100 }; // Changed pageSize to size
+      console.log('Fetching ALL employees with query:', query);
       const response = await employeeService.getEmployees(query);
+      
       if (response && response.data) {
-        console.log('Employee data received:', {
-          count: response.data.length,
-          firstEmployee: response.data[0] ? {
-            id: response.data[0].id,
-            firstName: response.data[0].first_name,
-            lastName: response.data[0].last_name,
-            departmentId: response.data[0].department_id,
-            personnelCategoryId: response.data[0].personnel_category_id,
-          } : 'No employees found'
-        });
-        setEmployees(response.data);
-        setTotalEmployees(response.meta.total_items);
-        setCurrentPage(response.meta.current_page);
-        setPageSize(response.meta.per_page);
+        console.log('[EmployeeListPage] fetchAllEmployees - Response received. Data length:', response.data.length, 'Meta:', response.meta);
+        setAllEmployees(response.data);
+        // No longer need to set totalEmployees, currentPage, pageSize from response for backend pagination
       } else {
-        setEmployees([]);
-        setTotalEmployees(0);
-        setCurrentPage(page);
-        setPageSize(size);
+        console.log('[EmployeeListPage] fetchAllEmployees - No data in response.');
+        setAllEmployees([]);
         message.error(t('employee:list_page.message.get_employees_failed_empty_response'));
       }
     } catch (error) {
       message.error(t('employee:list_page.message.get_employees_failed'));
-      setEmployees([]);
-      setTotalEmployees(0);
+      setAllEmployees([]);
     } finally {
       setLoadingData(false);
     }
-  }, [t]);
+  }, [t]); // employeeService is stable, t is for translation
  
-  useEffect(() => {
-    if (employees.length > 0) {
-      console.log('EmployeeListPage employees数据:', {
-        count: employees.length,
-        sample: employees.slice(0, 3).map(e => ({
-          id: e.id,
-          fullName: `${e.last_name || ''}${e.first_name || ''}`,
-          departmentId: e.department_id,
-          personnelCategoryId: e.personnel_category_id
-        }))
-      });
-    }
-    
-    if (lookupMaps) {
-      console.log('EmployeeListPage lookupMaps:', {
-        departmentMap: lookupMaps.departmentMap?.size ? `包含${lookupMaps.departmentMap.size}个项目` : 'Map为空',
-        sampleDepartments: lookupMaps.departmentMap?.size ? Array.from(lookupMaps.departmentMap.entries()).slice(0, 3) : [],
-        personnelCategoryMap: lookupMaps.personnelCategoryMap?.size ? `包含${lookupMaps.personnelCategoryMap.size}个项目` : 'Map为空',
-        samplePersonnelCategories: lookupMaps.personnelCategoryMap?.size ? Array.from(lookupMaps.personnelCategoryMap.entries()).slice(0, 3) : [],
-      });
-    }
-  }, [employees, lookupMaps]);
 
+
+  // Fetch all employees once lookups are loaded
   useEffect(() => {
     if (!loadingLookups) {
-      console.log('Lookups加载完成，开始获取员工数据');
-      fetchEmployees(currentPage, pageSize, queryOptions);
+      fetchAllEmployees();
     }
-  }, [fetchEmployees, currentPage, pageSize, queryOptions, loadingLookups]);
-  
-  // 添加单独的useEffect来验证lookupMaps是否正确设置
+  }, [fetchAllEmployees, loadingLookups]); // Depends on fetchAllEmployees and loadingLookups
+
   useEffect(() => {
-    if (lookupMaps && !loadingLookups) {
-      console.log('验证lookupMaps是否完整:', {
-        genderMapSize: lookupMaps.genderMap?.size || 0,
-        statusMapSize: lookupMaps.statusMap?.size || 0,
-        departmentMapSize: lookupMaps.departmentMap?.size || 0,
-        personnelCategoryMapSize: lookupMaps.personnelCategoryMap?.size || 0,
-        // 测试查找示例ID
-        departmentTest: lookupMaps.departmentMap?.has('60') ? 
-          `部门ID 60 => ${lookupMaps.departmentMap.get('60')}` : '没有ID为60的部门',
-        personnelCategoryTest: lookupMaps.personnelCategoryMap?.has('78') ? 
-          `人员身份ID 78 => ${lookupMaps.personnelCategoryMap.get('78')}` : '没有ID为78的人员身份',
-      });
-    }
-  }, [lookupMaps, loadingLookups]);
+    console.log('[EmployeeListPage] allEmployees state updated, length:', allEmployees.length);
+  }, [allEmployees]);
+  
 
-  const handleSearch = (formFilters: Omit<EmployeeQuery, 'page' | 'pageSize' | 'sortBy' | 'sortOrder'>) => {
-    // Merge form filters with existing sort options, table filters will be handled by handleTableChange
-    setQueryOptions(prevOptions => ({
-        ...prevOptions, // Keep existing sort order and table filters
-        ...formFilters, // Apply new form filters
-    }));
-    setCurrentPage(1); // Reset to first page on new search
-  };
- 
+
+  // Ant Table's onChange handler for client-side operations
   const handleTableChange = (
-    newPage: number,
-    newPageSize: number,
-    sorter?: SorterResult<Employee> | SorterResult<Employee>[],
-    tableFilters?: Record<string, any | null>
+    pagination: any, // pagination object from Ant Table
+    filters: Record<string, any | null>, // filters object from Ant Table
+    sorter: SorterResult<Employee> | SorterResult<Employee>[], // sorter object from Ant Table
+    extra: { currentDataSource: Employee[], action: string } // extra info
   ) => {
-    const newQueryOptions: Omit<EmployeeQuery, 'page' | 'pageSize'> = { ...queryOptions };
-
-    // Handle sorting
-    if (sorter && !Array.isArray(sorter) && sorter.field && sorter.order) {
-      newQueryOptions.sortBy = String(sorter.field);
-      newQueryOptions.sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
-    } else if (Array.isArray(sorter) && sorter.length > 0 && sorter[0].field && sorter[0].order) {
-      // Handle array sorter (though typically single sorter is used)
-      newQueryOptions.sortBy = String(sorter[0].field);
-      newQueryOptions.sortOrder = sorter[0].order === 'ascend' ? 'asc' : 'desc';
-    } else {
-      // Clear sort if order is undefined (column header clicked to clear sort)
-      delete newQueryOptions.sortBy;
-      delete newQueryOptions.sortOrder;
-    }
-
-    // Handle filters from table
-    if (tableFilters) {
-      Object.keys(tableFilters).forEach(key => {
-        const filterValue = tableFilters[key];
-        if (filterValue && filterValue.length > 0) {
-          // Assuming single value selection for simplicity, or join if backend supports array/comma-separated
-          (newQueryOptions as any)[key] = filterValue[0];
-        } else {
-          delete (newQueryOptions as any)[key]; // Remove filter if not set
-        }
-      });
-    }
-    
-    // Remove any filter keys that were part of EmployeeQuery but are now null/undefined from tableFilters
-    // This ensures that if a table filter is cleared, it's removed from queryOptions
-    const currentTableFilterKeys = tableFilters ? Object.keys(tableFilters) : [];
-    Object.keys(newQueryOptions).forEach(key => {
-        if (key !== 'sortBy' && key !== 'sortOrder' &&
-            !currentTableFilterKeys.includes(key) &&
-            !(key in (queryOptions as Omit<EmployeeQuery, 'page' | 'pageSize' | 'sortBy' | 'sortOrder'>)) // Check if it was an original form filter
-            ) {
-            // This logic might need refinement to distinguish between form filters and table filters.
-            // For now, if a key was in tableFilters and now it's not, or value is null, remove it.
-            // This part is tricky: we need to preserve form filters while updating table filters.
-            // A better approach might be to have separate states for form filters and table-derived filters.
-            // For now, let's assume table filters overwrite if they exist, or are removed if cleared.
-        }
-    });
-
-
-    setQueryOptions(newQueryOptions);
-    if (newPage !== currentPage) setCurrentPage(newPage);
-    if (newPageSize !== pageSize) setPageSize(newPageSize);
-    // Fetching is handled by the useEffect watching queryOptions, currentPage, pageSize
+    // For client-side pagination, sorting, and filtering,
+    // Ant Table handles these internally based on the full dataSource.
+    // This callback can be used to log changes or if any external state needs to be synced.
+    console.log('Ant Table onChange event:', { pagination, filters, sorter, extra });
+    // No need to set any state here for data fetching purposes when all data is client-side.
   };
  
   const handleDelete = async (employeeId: string) => {
@@ -204,16 +174,16 @@ const EmployeeListPage: React.FC = () => {
       okType: 'danger',
       cancelText: t('employee:list_page.delete_confirm.cancel_text'),
       onOk: async () => {
-        setLoadingData(true); 
+        setLoadingData(true);
         try {
           await employeeService.deleteEmployee(employeeId);
           message.success(t('employee:list_page.message.delete_employee_success'));
-          fetchEmployees(currentPage, pageSize, queryOptions); // Use queryOptions
+          fetchAllEmployees(); // Refetch all data after deletion
         } catch (error) {
           message.error(t('employee:list_page.message.delete_employee_failed'));
           console.error('Failed to delete employee:', error);
         } finally {
-            setLoadingData(false); 
+            setLoadingData(false);
         }
       },
     });
@@ -221,13 +191,10 @@ const EmployeeListPage: React.FC = () => {
 
   const combinedLoading = loadingData || loadingLookups;
 
-  console.log('EmployeeListPage: lookupMaps', lookupMaps);
-  if (lookupMaps) {
-    console.log('EmployeeListPage: departmentMap size', lookupMaps.departmentMap?.size);
-    console.log('EmployeeListPage: departmentMap keys', Array.from(lookupMaps.departmentMap?.keys() || []));
-    console.log('EmployeeListPage: personnelCategoryMap size', lookupMaps.personnelCategoryMap?.size);
-    console.log('EmployeeListPage: personnelCategoryMap keys', Array.from(lookupMaps.personnelCategoryMap?.keys() || []));
-  }
+  // Note: EmployeeFilterForm is not present in the current file content.
+  // If it were, its onSearch would need to update a filter state,
+  // and `filteredEmployees` would be derived from `allEmployees` using those filters.
+  // For now, we pass `allEmployees` directly.
 
   return (
     <div>
@@ -245,40 +212,37 @@ const EmployeeListPage: React.FC = () => {
                 {t('pageTitle:create_employee')}
               </Button>
             )}
+            {hasPermission('P_EMPLOYEE_EXPORT') && (
+              <ExportButton />
+            )}
+            <ColumnControl />
           </Space>
         }
       >
-        <EmployeeFilterForm
-          onSearch={handleSearch} 
-          loading={combinedLoading} 
-          genderOptions={rawLookups?.genderOptions || []}
-          statusOptions={rawLookups?.statusOptions || []}
-          departmentOptions={rawLookups?.departmentOptions || []}
-          personnelCategoryOptions={rawLookups?.personnelCategoryOptions || []}
-          educationLevelOptions={rawLookups?.educationLevelOptions || []}
-          employmentTypeOptions={rawLookups?.employmentTypeOptions || []}
-        />
         {lookupMaps && lookupMaps.departmentMap && lookupMaps.personnelCategoryMap ? (
-          <EmployeeTable
-            employees={employees}
-            loading={combinedLoading}
-            total={totalEmployees}
-            currentPage={currentPage}
-            pageSize={pageSize}
-            onPageChange={handleTableChange}
-            onDelete={handleDelete}
-            onEdit={(employee: Employee) => navigate(`/hr/employees/${employee.id}/edit`, { state: { employeeData: employee } })}
-            onViewDetails={(id: string) => navigate(`/hr/employees/${id}`)}
-            genderLookupMap={lookupMaps.genderMap || new Map()}
-            statusLookupMap={lookupMaps.statusMap || new Map()}
-            departmentLookupMap={lookupMaps.departmentMap}
-            personnelCategoryMap={lookupMaps.personnelCategoryMap}
-            educationLevelLookupMap={lookupMaps.educationLevelMap || new Map()}
-            employmentTypeLookupMap={lookupMaps.employmentTypeMap || new Map()}
-            maritalStatusLookupMap={lookupMaps.maritalStatusMap || new Map()}
-            politicalStatusLookupMap={lookupMaps.politicalStatusMap || new Map()}
-            contractTypeLookupMap={lookupMaps.contractTypeMap || new Map()}
-          />
+          (() => {
+            console.log('[EmployeeListPage] Rendering EmployeeTable. allEmployees.length:', allEmployees.length);
+            return (
+              <EmployeeTable
+                employees={allEmployees} // Pass all employees
+                loading={combinedLoading}
+                total={allEmployees.length} // Total is the length of all employees
+                onPageChange={handleTableChange} // Still useful for logging or other side effects
+                onDelete={handleDelete}
+                onEdit={(employee: Employee) => navigate(`/hr/employees/${employee.id}/edit`, { state: { employeeData: employee } })}
+                onViewDetails={(id: string) => navigate(`/hr/employees/${id}`)}
+                genderLookupMap={lookupMaps.genderMap || new Map()}
+                statusLookupMap={lookupMaps.statusMap || new Map()}
+                departmentLookupMap={lookupMaps.departmentMap}
+                personnelCategoryMap={lookupMaps.personnelCategoryMap}
+                educationLevelLookupMap={lookupMaps.educationLevelMap || new Map()}
+                employmentTypeLookupMap={lookupMaps.employmentTypeMap || new Map()}
+                maritalStatusLookupMap={lookupMaps.maritalStatusMap || new Map()}
+                politicalStatusLookupMap={lookupMaps.politicalStatusMap || new Map()}
+                contractTypeLookupMap={lookupMaps.contractTypeMap || new Map()}
+              />
+            );
+          })()
         ) : (
           <div style={{ textAlign: 'center', padding: '20px' }}>
             {loadingLookups ? t('employee:list_page.loading_lookups') : t('employee:list_page.lookup_data_error')}

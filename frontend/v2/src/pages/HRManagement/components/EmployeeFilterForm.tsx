@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, DatePicker, Button, Row, Col, TreeSelect } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { EmployeeQuery, Department, LookupItem, PersonnelCategory as PersonnelCategoryType } from '../types';
+import type { EmployeeQuery, Department, LookupItem, PersonnelCategory as PersonnelCategoryType, Position as PositionType } from '../types';
 
 const { RangePicker } = DatePicker;
 
@@ -14,6 +14,11 @@ interface EmployeeFilterFormProps {
   educationLevelOptions?: LookupItem[];
   employmentTypeOptions?: LookupItem[];
   personnelCategoryOptions?: PersonnelCategoryType[];
+  positionOptions?: PositionType[];
+  maritalStatusOptions?: LookupItem[];
+  politicalStatusOptions?: LookupItem[];
+  contractTypeOptions?: LookupItem[];
+  payFrequencyOptions?: LookupItem[];
 }
 
 const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({ 
@@ -24,7 +29,12 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
   statusOptions = [],
   educationLevelOptions = [],
   employmentTypeOptions = [],
-  personnelCategoryOptions = []
+  personnelCategoryOptions = [],
+  positionOptions = [],
+  maritalStatusOptions = [],
+  politicalStatusOptions = [],
+  contractTypeOptions = [],
+  payFrequencyOptions = []
 }) => {
   const { t } = useTranslation('employee');
   const [form] = Form.useForm();
@@ -32,11 +42,18 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
   const handleFinish = (values: any) => {
     const filters: Omit<EmployeeQuery, 'page' | 'pageSize' | 'sortBy' | 'sortOrder'> & { 
       hireDateStart?: string; 
-      hireDateEnd?: string; 
+      hireDateEnd?: string;
+      firstWorkDateStart?: string;
+      firstWorkDateEnd?: string;
       gender_lookup_value_id?: number; 
       education_level_lookup_value_id?: number; 
       employment_type_lookup_value_id?: number; 
       personnel_category_id?: number;
+      actual_position_id?: number;
+      marital_status_lookup_value_id?: number;
+      political_status_lookup_value_id?: number;
+      contract_type_lookup_value_id?: number;
+      id_number?: string;
     } = {
       name: values.name,
       employee_code: values.employee_code,
@@ -48,6 +65,13 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
       personnel_category_id: values.personnel_category_id,
       hireDateStart: values.hireDateRange?.[0]?.format('YYYY-MM-DD'),
       hireDateEnd: values.hireDateRange?.[1]?.format('YYYY-MM-DD'),
+      actual_position_id: values.actual_position_id,
+      marital_status_lookup_value_id: values.marital_status_lookup_value_id,
+      political_status_lookup_value_id: values.political_status_lookup_value_id,
+      contract_type_lookup_value_id: values.contract_type_lookup_value_id,
+      id_number: values.id_number,
+      firstWorkDateStart: values.firstWorkDateRange?.[0]?.format('YYYY-MM-DD'),
+      firstWorkDateEnd: values.firstWorkDateRange?.[1]?.format('YYYY-MM-DD'),
     };
     Object.keys(filters).forEach(key => (filters as any)[key] === undefined && delete (filters as any)[key]);
     onSearch(filters as Omit<EmployeeQuery, 'page' | 'pageSize' | 'sortBy' | 'sortOrder'>);
@@ -76,6 +100,24 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
+          <Form.Item name="id_number" label={t('list_page.filter_form.label.id_number')}>
+            <Input placeholder={t('list_page.filter_form.placeholder.id_number')} size="small" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Form.Item name="status_lookup_value_id" label={t('list_page.filter_form.label.status')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.status')} allowClear loading={loading} size="small">
+              {statusOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} sm={12} md={12} lg={6}>
           <Form.Item name="department_id" label={t('list_page.filter_form.label.department')}>
             <TreeSelect
               showSearch
@@ -93,41 +135,23 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="status_lookup_value_id" label={t('list_page.filter_form.label.status')}>
-            <Select placeholder={t('list_page.filter_form.placeholder.status')} allowClear loading={loading} size="small">
-              {statusOptions.map(option => (
-                <Select.Option key={option.value as React.Key} value={option.value}>
-                  {option.label}
+        <Col xs={24} sm={12} md={12} lg={6}>
+          <Form.Item name="personnel_category_id" label={t('list_page.filter_form.label.personnel_category')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.personnel_category')} allowClear loading={loading} size="small">
+              {personnelCategoryOptions.map(option => (
+                <Select.Option key={option.id as React.Key} value={option.id}>
+                  {option.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
         </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} sm={24} md={12} lg={8}>
-          <Form.Item name="hireDateRange" label={t('list_page.filter_form.label.hire_date_range')}>
-            <RangePicker style={{ width: '100%' }} size="small" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={5}>
-          <Form.Item name="gender_lookup_value_id" label={t('list_page.filter_form.label.gender')}>
-            <Select placeholder={t('list_page.filter_form.placeholder.gender')} allowClear loading={loading} size="small">
-              {genderOptions.map(option => (
-                <Select.Option key={option.value as React.Key} value={option.value}>
-                  {option.label}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={5}>
-          <Form.Item name="education_level_lookup_value_id" label={t('list_page.filter_form.label.education_level')}>
-            <Select placeholder={t('list_page.filter_form.placeholder.education_level')} allowClear loading={loading} size="small">
-              {educationLevelOptions.map(option => (
-                <Select.Option key={option.value as React.Key} value={option.value}>
-                  {option.label}
+        <Col xs={24} sm={12} md={12} lg={6}>
+          <Form.Item name="actual_position_id" label={t('list_page.filter_form.label.actual_position')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.actual_position')} allowClear loading={loading} size="small">
+              {positionOptions.map(option => (
+                <Select.Option key={option.id as React.Key} value={option.id}>
+                  {option.name}
                 </Select.Option>
               ))}
             </Select>
@@ -146,12 +170,70 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
         </Col>
       </Row>
       <Row gutter={16}>
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <Form.Item name="hireDateRange" label={t('list_page.filter_form.label.hire_date_range')}>
+            <RangePicker style={{ width: '100%' }} size="small" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <Form.Item name="firstWorkDateRange" label={t('list_page.filter_form.label.first_work_date_range')}>
+            <RangePicker style={{ width: '100%' }} size="small" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} sm={12} md={6} lg={6}>
+          <Form.Item name="gender_lookup_value_id" label={t('list_page.filter_form.label.gender')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.gender')} allowClear loading={loading} size="small">
+              {genderOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={6}>
+          <Form.Item name="marital_status_lookup_value_id" label={t('list_page.filter_form.label.marital_status')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.marital_status')} allowClear loading={loading} size="small">
+              {maritalStatusOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={6}>
+          <Form.Item name="political_status_lookup_value_id" label={t('list_page.filter_form.label.political_status')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.political_status')} allowClear loading={loading} size="small">
+              {politicalStatusOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={6}>
+          <Form.Item name="education_level_lookup_value_id" label={t('list_page.filter_form.label.education_level')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.education_level')} allowClear loading={loading} size="small">
+              {educationLevelOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Form.Item name="personnel_category_id" label={t('list_page.filter_form.label.personnel_category')}>
-            <Select placeholder={t('list_page.filter_form.placeholder.personnel_category')} allowClear loading={loading} size="small">
-              {personnelCategoryOptions.map(option => (
-                <Select.Option key={option.id as React.Key} value={option.id}>
-                  {option.name}
+          <Form.Item name="contract_type_lookup_value_id" label={t('list_page.filter_form.label.contract_type')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.contract_type')} allowClear loading={loading} size="small">
+              {contractTypeOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
                 </Select.Option>
               ))}
             </Select>

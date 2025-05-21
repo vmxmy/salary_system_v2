@@ -1,0 +1,29 @@
+/* 职位管理页面标签样式 */
+.job-management-tabs {
+  :global {
+    .ant-tabs-nav {
+      margin-bottom: 24px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .ant-tabs-tab {
+      font-size: 16px;
+      padding: 12px 20px;
+      margin-right: 32px;
+      transition: all 0.3s;
+
+      &.ant-tabs-tab-active {
+        .ant-tabs-tab-btn {
+          font-weight: 600;
+          color: var(--ant-primary-color, #1890ff);
+          position: relative;
+        }
+      }
+    }
+
+    .ant-tabs-ink-bar {
+      height: 3px;
+      background-color: var(--ant-primary-color, #1890ff);
+    }
+  }
+} 

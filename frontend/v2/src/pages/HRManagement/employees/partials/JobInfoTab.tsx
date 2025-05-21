@@ -1,7 +1,6 @@
 import React from 'react';
-import { Descriptions, Tag, Spin } from 'antd';
+import { Descriptions, Spin } from 'antd';
 import type { Employee } from '../../types'; // Adjusted path
-import { EmploymentStatus } from '../../types'; // Removed EmploymentType as it will be handled by lookupMap
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { LookupMaps } from '../../../../hooks/useLookupMaps'; // + Import LookupMaps
@@ -38,12 +37,12 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
     return `${years}${t('employee:detail_page.job_info_tab.seniority_year', ' 年 ')}${months}${t('employee:detail_page.job_info_tab.seniority_month', ' 个月')}`;
   };
 
-  const jobTitleText = employee.job_title_id !== undefined && employee.job_title_id !== null
-    ? lookupMaps?.jobTitleMap?.get(Number(employee.job_title_id)) || employee.job_title_name || String(employee.job_title_id)
+  const jobTitleText = employee.personnel_category_id !== undefined && employee.personnel_category_id !== null
+    ? lookupMaps?.personnelCategoryMap?.get(String(employee.personnel_category_id)) || employee.personnel_category_name || String(employee.personnel_category_id)
     : naText;
 
   const departmentText = employee.department_id !== undefined && employee.department_id !== null
-    ? lookupMaps?.departmentMap?.get(Number(employee.department_id)) || employee.departmentName || String(employee.department_id)
+    ? lookupMaps?.departmentMap?.get(String(employee.department_id)) || employee.departmentName || String(employee.department_id)
     : naText;
 
   const employmentTypeText = employee.employment_type_lookup_value_id !== undefined && employee.employment_type_lookup_value_id !== null

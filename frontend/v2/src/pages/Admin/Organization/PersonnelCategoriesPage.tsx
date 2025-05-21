@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, message, Popconfirm, TreeSelect } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, message, Popconfirm, TreeSelect, Select, Tooltip } from 'antd';
+import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import ActionButton from '../../../components/common/ActionButton';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs'; // For DatePicker default values
+import EmployeeName from '../../../components/common/EmployeeName';
+import TableActionButton from '../../../components/common/TableActionButton';
+import UnifiedTabs from '../../../components/common/UnifiedTabs';
+import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 
 import {
   getPersonnelCategories,
@@ -18,9 +20,11 @@ import {
   // Potentially getPersonnelCategoryById if it was used, assuming not for now
 } from "../../../api/personnelCategories"; // Corrected path and function names
 import styles from './TreeTable.module.less';
+import tabStyles from './JobManagementTabs.module.less';
 import type { GetPersonnelCategoriesApiParams } from '../../../api/personnelCategories'; // Import new API params type
 import type { PersonnelCategory, CreatePersonnelCategoryPayload, UpdatePersonnelCategoryPayload } from '../../../api/types';
 import type { TableParams } from '../../../types/antd'; // Reusing TableParams
+import ActualPositionTab from './ActualPositionTab'; // Import the new ActualPositionTab component
 
 const { Title } = Typography;
 const { TreeNode } = TreeSelect;
@@ -68,7 +72,11 @@ interface PersonnelCategoryFormValues extends Omit<CreatePersonnelCategoryPayloa
 }
 
 const PersonnelCategoriesPage: React.FC = () => {
-  const { t } = useTranslation('personnelCategory');
+  const { t } = useTranslation(['personnelCategory', 'common']);
+  
+  // 使用通用表格搜索钩子
+  const { getColumnSearch } = useTableSearch();
+  
   const [personnelCategories, setPersonnelCategories] = useState<PersonnelCategoryPageItem[]>([]);
   const [personnelCategoriesTree, setPersonnelCategoriesTree] = useState<PersonnelCategoryPageItem[]>([]);
   const [allFlatPersonnelCategories, setAllFlatPersonnelCategories] = useState<PersonnelCategory[]>([]);
@@ -80,6 +88,11 @@ const PersonnelCategoriesPage: React.FC = () => {
   const [editingPersonnelCategory, setEditingPersonnelCategory] = useState<PersonnelCategoryPageItem | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
   const [form] = Form.useForm<PersonnelCategoryFormValues>();
+  const [activeTabKey, setActiveTabKey] = useState('1');
+
+  const onTabChange = (key: string) => {
+    setActiveTabKey(key);
+  };
 
   const fetchData: () => Promise<void> = useCallback(async () => {
     setIsLoading(true);
@@ -128,7 +141,7 @@ const PersonnelCategoriesPage: React.FC = () => {
       console.error('Failed to fetch personnel categories:', error);
     }
     setIsLoading(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchData();
@@ -257,141 +270,277 @@ const PersonnelCategoriesPage: React.FC = () => {
     }
   };
 
+  // 表格列定义
   const columns: ColumnsType<PersonnelCategoryPageItem> = [
-    { title: t('table.column.id'), dataIndex: 'id', key: 'id', width: 80 },
-    { title: t('table.column.code'), dataIndex: 'code', key: 'code', width: 150 },
-    { title: t('table.column.name'), dataIndex: 'name', key: 'name' }, // 树形结构将基于此列
-    { title: t('table.column.parent_id'), dataIndex: 'parent_category_id', key: 'parent_category_id', width: 120, render: (id) => id || t('table.cell_empty') },
-    { title: t('table.column.description'), dataIndex: 'description', key: 'description', render: (text) => text || t('table.cell_empty') },
+    {
+      title: t('table.column.id'),
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+      sorter: numberSorter<PersonnelCategoryPageItem>('id'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('id'),
+    },
+    {
+      title: t('table.column.code'),
+      dataIndex: 'code',
+      key: 'code',
+      width: 150,
+      sorter: stringSorter<PersonnelCategoryPageItem>('code'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('code'),
+    },
+    {
+      title: t('table.column.name'),
+      dataIndex: 'name',
+      key: 'name',
+      sorter: stringSorter<PersonnelCategoryPageItem>('name'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('name'),
+      ellipsis: true,
+    },
+    {
+      title: t('table.column.parent_category_id'),
+      dataIndex: 'parent_category_id',
+      key: 'parent_category_id',
+      width: 150,
+      render: (id?: number) => id || t('table.column.value_na_or_dash'),
+      sorter: numberSorter<PersonnelCategoryPageItem>('parent_category_id'),
+      sortDirections: ['descend', 'ascend'],
+      ellipsis: true,
+    },
     {
       title: t('table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
+      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
+      sorter: dateSorter<PersonnelCategoryPageItem>('effective_date'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('effective_date'),
       width: 120,
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.cell_empty'),
+      ellipsis: true,
     },
     {
       title: t('table.column.end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
+      render: (text: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
+      sorter: dateSorter<PersonnelCategoryPageItem>('end_date'),
+      sortDirections: ['descend', 'ascend'],
       width: 120,
-      render: (text?: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.cell_empty'),
+      ellipsis: true,
     },
     {
-      title: t('table.column.active'),
+      title: t('table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
-      width: 80,
       render: (isActive: boolean, record: PersonnelCategoryPageItem) => (
-        <Switch
-          checked={isActive}
+        <Switch 
+          checked={isActive} 
           onChange={(checked) => handleStatusChange(checked, record)}
-          loading={modalLoading && editingPersonnelCategory?.id === record.id} // Optional: show loading on the specific switch
+          disabled={record.children && record.children.length > 0}
         />
       ),
+      width: 100,
+      filters: [
+        { text: t('table.filter.active'), value: true },
+        { text: t('table.filter.inactive'), value: false },
+      ],
+      onFilter: (value, record) => record.is_active === value,
     },
     {
       title: t('table.column.actions'),
       key: 'action',
       width: 180,
-      render: (_: any, record: PersonnelCategoryPageItem) => (
+      render: (_, record) => (
         <Space size="small">
-          <ActionButton actionType="add" onClick={() => showCreateChildModal(record.id)} tooltipTitle={t('tooltip.add_child_personnel_category')} />
-          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_personnel_category')} />
+          <TableActionButton 
+            actionType="edit" 
+            onClick={() => showEditModal(record)} 
+            tooltipTitle={t('button.edit_personnel_category_tooltip')} 
+          />
+          <TableActionButton 
+            actionType="add" 
+            onClick={() => showCreateChildModal(record.id)} 
+            tooltipTitle={t('button.add_child_personnel_category_tooltip')} 
+          />
           <Popconfirm
-            title={t('popconfirm.delete_title')}
+            title={t('popconfirm.delete.title')}
+            description={t('popconfirm.delete.description')}
             onConfirm={() => handleDeletePersonnelCategory(record.id)}
-            okText={t('popconfirm.ok')}
-            cancelText={t('popconfirm.cancel')}
-            disabled={record.children && record.children.length > 0} // Disable if has children, for example
+            okText={t('popconfirm.delete.ok_text')}
+            cancelText={t('popconfirm.delete.cancel_text')}
+            disabled={record.children && record.children.length > 0} // Disable if has children
           >
-            <ActionButton actionType="delete" tooltipTitle={t('tooltip.delete_personnel_category')} danger disabled={record.children && record.children.length > 0}/>
+            <TableActionButton 
+              actionType="delete" 
+              danger 
+              tooltipTitle={t('button.delete_personnel_category_tooltip')} 
+              disabled={record.children && record.children.length > 0}
+            />
           </Popconfirm>
         </Space>
       ),
     },
   ];
+  
+  // 添加表格导出功能
+  const { ExportButton } = useTableExport(
+    personnelCategoriesTree || [], 
+    columns, 
+    {
+      filename: t('export.filename'),
+      sheetName: t('export.sheetName'),
+      buttonText: t('common:button.export_data'),
+      successMessage: t('export.successMessage')
+    }
+  );
+  
+  // 添加列控制功能
+  const { visibleColumns, ColumnControl } = useColumnControl(
+    columns,
+    {
+      storageKeyPrefix: 'personnel_categories_table',
+      buttonText: t('common:button.column_settings'),
+      tooltipTitle: t('columnControl.tooltipTitle'),
+      dropdownTitle: t('columnControl.dropdownTitle'),
+      resetText: t('common:button.reset'),
+      requiredColumns: ['id', 'name', 'action'] // ID、名称和操作列必须显示
+    }
+  );
 
   return (
-    <>
-      <PageHeaderLayout
-        pageTitle={<Title level={4} style={{ margin: 0 }}>{t('title')}</Title>}
-        actions={
-          <Space> {/* It's good practice to keep Space if there might be multiple actions in future */}
-            <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal} shape="round">
-              {t('button.create_top_level')}
+    <UnifiedTabs 
+      activeKey={activeTabKey} 
+      onChange={onTabChange}
+      type="line"
+      size="large"
+      className={tabStyles['job-management-tabs']}
+    >
+      <UnifiedTabs.TabPane tab={t('tab.personnel_category_management')} key="1">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Title level={3} style={{ margin: 0 }}>{t('title.current_personnel_categories')}</Title>
+          <Space>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
+              {t('button.add_personnel_category')}
             </Button>
+            <Tooltip title={t('export.tooltipTitle')}>
+              <ExportButton />
+            </Tooltip>
+            <ColumnControl />
           </Space>
-        }
-      >
-        <></> {/* Empty children to satisfy prop requirement */}
-      </PageHeaderLayout>
-
-      <Table
-        columns={columns}
-        dataSource={personnelCategoriesTree} 
-        loading={isLoading}
-        pagination={false}
-        rowKey="id"
-        expandable={{ defaultExpandAllRows: true }}
-        className={styles['tree-table']}
-        bordered
-      />
-      <Modal
-        title={editingPersonnelCategory ? t('modal.title.edit_personnel_category') : t('modal.title.new_personnel_category')}
-        open={isModalOpen}
-        onCancel={handleCancelModal}
-        onOk={form.submit}
-        confirmLoading={modalLoading}
-        destroyOnHidden // Ensure form is reset when modal is closed and reopened for "create"
-      >
-        <Form form={form} layout="vertical" name="personnelCategoryForm" onFinish={handleFormSubmit}>
-          <Form.Item name="code" label={t('form.label.code')} rules={[{ required: true, message: t('form.validation.code_required') }]}>
-            <Input placeholder={t('form.placeholder.code')} />
-          </Form.Item>
-          <Form.Item name="name" label={t('form.label.name')} rules={[{ required: true, message: t('form.validation.name_required') }]}>
-            <Input placeholder={t('form.placeholder.name')} />
-          </Form.Item>
-          <Form.Item name="description" label={t('form.label.description')}>
-            <Input.TextArea rows={2} placeholder={t('form.placeholder.description')} />
-          </Form.Item>
-          <Form.Item name="parent_category_id" label={t('form.label.parent_personnel_category')}>
-            <TreeSelect
-              showSearch
-              style={{ width: '100%' }}
-              styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
-              placeholder={t('form.placeholder.parent_personnel_category')}
-              allowClear
-              treeDefaultExpandAll
-              treeData={buildTreeData(allFlatPersonnelCategories)}
-              notFoundContent={<div style={{ padding: '8px 12px', color: '#999' }}>{t('treeselect.not_found')}</div>}
-              filterTreeNode={(inputValue, treeNode) =>
-                treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
+        </div>
+        {activeTabKey === '1' && (
+          <Table
+            columns={visibleColumns}
+            dataSource={personnelCategoriesTree}
+            loading={isLoading}
+            pagination={{
+              showSizeChanger: true,
+              showQuickJumper: true,
+              pageSizeOptions: ['10', '20', '50', '100'],
+              showTotal: (total) => t('pagination.total', { total }),
+              current: tableParams.pagination?.current,
+              pageSize: tableParams.pagination?.pageSize,
+              onChange: (page, pageSize) => {
+                setTableParams(prev => ({
+                  ...prev,
+                  pagination: {
+                    ...prev.pagination,
+                    current: page,
+                    pageSize: pageSize
+                  }
+                }));
               }
-              virtual={false} // Disable virtual scroll if tree data is not very large or if there are issues with it
-            />
-          </Form.Item>
-          <Form.Item
-            name="effective_date"
-            label={t('form.label.effective_date')}
-            rules={[{ required: true, message: t('form.validation.effective_date_required') }]}
-          >
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-          </Form.Item>
-          <Form.Item name="end_date" label={t('form.label.end_date')}>
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-          </Form.Item>
-          <Form.Item
-            name="is_active"
-            label={t('form.label.is_active')}
-            valuePropName="checked"
-            initialValue={true} // Default is_active in form to true
-          >
-            <Switch />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
+            }}
+            rowKey="id"
+            expandable={{ defaultExpandAllRows: true }}
+            onChange={handleTableChange}
+            className={styles['tree-table']}
+            bordered
+            scroll={{ x: 'max-content' }}
+            tableLayout="fixed"
+          />
+        )}
+
+        <Modal
+          title={editingPersonnelCategory ? t('modal.edit_title') : t('modal.create_title')}
+          open={isModalOpen}
+          onCancel={handleCancelModal}
+          confirmLoading={modalLoading}
+          onOk={() => {
+            form
+              .validateFields()
+              .then(values => {
+                // Ensure parent_category_id is correctly handled if it's not set (for root categories)
+                if (values.parent_category_id === undefined || values.parent_category_id === null) {
+                  // If editing and the original had a parent, but it's now cleared, it should be null.
+                  // If creating as root, it should be null.
+                  values.parent_category_id = null;
+                }
+                handleFormSubmit(values);
+              })
+              .catch(info => {
+                console.log('Validate Failed:', info);
+                message.error(t('common:message.form_validation_error'));
+              });
+          }}
+          destroyOnClose
+        >
+          <Form form={form} layout="vertical" name="personnelCategoryForm">
+            <Form.Item
+              name="code"
+              label={t('form.field.code')}
+              rules={[{ required: true, message: t('form.validation.code_required') }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="name"
+              label={t('form.field.name')}
+              rules={[{ required: true, message: t('form.validation.name_required') }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item name="description" label={t('form.field.description')}>
+              <Input.TextArea rows={3} />
+            </Form.Item>
+            <Form.Item
+              name="parent_category_id"
+              label={t('form.field.parent_category')}
+            >
+              <TreeSelect
+                allowClear
+                treeData={buildTreeData(allFlatPersonnelCategories.filter(pc => !editingPersonnelCategory || pc.id !== editingPersonnelCategory.id))}
+                placeholder={t('form.placeholder.select_parent_category')}
+                treeDefaultExpandAll
+              />
+            </Form.Item>
+            <Form.Item
+              name="effective_date"
+              label={t('form.field.effective_date')}
+              rules={[{ required: true, message: t('form.validation.effective_date_required') }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="end_date" label={t('form.field.end_date')}>
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item
+                name="is_active"
+                valuePropName="checked"
+                label={t('form.field.is_active')}
+                initialValue={true}
+            >
+                <Switch />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </UnifiedTabs.TabPane>
+      <UnifiedTabs.TabPane tab={t('tab.actual_position_management')} key="2">
+        <ActualPositionTab />
+      </UnifiedTabs.TabPane>
+    </UnifiedTabs>
   );
 };
 

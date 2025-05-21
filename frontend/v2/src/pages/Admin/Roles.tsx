@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button, Input, Space, Typography, message, Tag, Form, Modal, Switch, Transfer } from 'antd';
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
-import ActionButton from '../../components/common/ActionButton';
+import { Table, Button, Input, Space, Typography, message, Form, Modal, Transfer, Tooltip } from 'antd';
+import { PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
+import TableActionButton from '../../components/common/TableActionButton';
 import PageHeaderLayout from '../../components/common/PageHeaderLayout';
-import type { InputRef } from 'antd';
-import type { ColumnType, ColumnsType } from 'antd/lib/table';
-import type { FilterConfirmProps } from 'antd/lib/table/interface';
+import type { ColumnsType } from 'antd/lib/table';
 import { getRoles, createRole, updateRole, deleteRole } from '../../api/roles';
 import { getPermissions as apiGetPermissions } from '../../api/permissions';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../api/types';
 import { useTranslation } from 'react-i18next';
+import { useTableSearch, numberSorter, stringSorter, useTableExport, useColumnControl } from '../../components/common/TableUtils';
 
 const { Title } = Typography;
-
-// Correctly define DataIndex as a type alias for keyof Role
-type DataIndex = keyof Role;
 
 // Define a type for the form values to accurately reflect field types, esp. permission_ids as string[]
 interface RoleFormValues {
@@ -27,9 +23,10 @@ const RoleListPage: React.FC = () => {
   const { t } = useTranslation('role');
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState<DataIndex | '' >('');
-  const [form] = Form.useForm<RoleFormValues>(); // Use the dedicated form values type
+  const [form] = Form.useForm<RoleFormValues>();
+
+  // 使用通用表格搜索钩子
+  const { getColumnSearch } = useTableSearch();
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -39,6 +36,7 @@ const RoleListPage: React.FC = () => {
   // Permissions states
   const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
   const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -64,6 +62,7 @@ const RoleListPage: React.FC = () => {
       if (editingRole) {
         // Editing existing role
         const currentPermissionIdsAsStrings = (editingRole.permissions || []).map(p => p.id.toString());
+        setSelectedPermissions(currentPermissionIdsAsStrings);
         form.setFieldsValue({
           name: editingRole.name,
           code: editingRole.code,
@@ -71,10 +70,12 @@ const RoleListPage: React.FC = () => {
         });
       } else {
         // Creating new role
+        setSelectedPermissions([]);
         form.setFieldsValue({ name: '', code: '', permission_ids: [] });
       }
     } else {
       // Modal is closed
+      setSelectedPermissions([]);
       form.resetFields();
     }
   }, [isModalOpen, editingRole, form]);
@@ -93,24 +94,6 @@ const RoleListPage: React.FC = () => {
       setAllPermissions([]);
     }
     setLoadingPermissions(false);
-  };
-
-  const searchInput = useRef<InputRef>(null);
-
-  const handleSearch = (
-    selectedKeys: string[],
-    confirm: (param?: FilterConfirmProps) => void,
-    dataIndex: DataIndex
-  ) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex); 
-  };
-
-  const handleReset = (clearFilters: () => void) => {
-    clearFilters();
-    setSearchText('');
-    setSearchedColumn(''); 
   };
 
   // Modal Actions
@@ -133,7 +116,7 @@ const RoleListPage: React.FC = () => {
   const handleFormSubmit = async (values: RoleFormValues) => {
     console.log('Form submitted with raw values:', values); // Log raw form values
     setModalLoading(true);
-    const submissionPermissionIds = (values.permission_ids || []).map(idStr => parseInt(idStr, 10));
+    const submissionPermissionIds = selectedPermissions.map(idStr => parseInt(idStr, 10));
     console.log('Submission permission IDs (numbers):', submissionPermissionIds); // Log numeric IDs
 
     try {
@@ -215,70 +198,6 @@ const RoleListPage: React.FC = () => {
     setModalLoading(false);
   };
 
-  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Role> => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          ref={searchInput}
-          placeholder={`${t('table.search.placeholder_prefix')}${String(dataIndex)}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
-          style={{ marginBottom: 8, display: 'block' }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            {t('table.search.button_search')}
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{ width: 90 }}
-          >
-            {t('table.search.button_reset')}
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              confirm({ closeDropdown: false });
-              setSearchText((selectedKeys as string[])[0]);
-              setSearchedColumn(dataIndex);
-            }}
-          >
-            {t('table.search.button_filter')}
-          </Button>
-          <Button type="link" size="small" onClick={() => close()}>
-            {t('table.search.button_close')}
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
-    ),
-    onFilter: (value, record) => {
-      const recordValue = record[dataIndex];
-      if (recordValue !== undefined && recordValue !== null) { 
-        return recordValue.toString().toLowerCase().includes((value as string).toLowerCase());
-      }
-      return false;
-    },
-    filterDropdownProps: {
-      onOpenChange: (visible) => {
-        if (visible) {
-          setTimeout(() => searchInput.current?.select(), 100);
-        }
-      }
-    },
-  });
-
   const handleDeleteRole = async (roleId: number) => {
     try {
       await deleteRole(roleId);
@@ -291,74 +210,139 @@ const RoleListPage: React.FC = () => {
     }
   };
 
+  // Table columns definition
   const columns: ColumnsType<Role> = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: (a, b) => a.id - b.id,
+      sorter: numberSorter<Role>('id'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('id'),
+      width: 80,
     },
     {
       title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
-      ...getColumnSearchProps('code'),
-      sorter: (a, b) => a.code.localeCompare(b.code),
+      sorter: stringSorter<Role>('code'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('code'),
+      width: 150,
     },
     {
       title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
-      ...getColumnSearchProps('name'),
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: stringSorter<Role>('name'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('name'),
+      width: 200,
+    },
+    {
+      title: t('table.column.permissions'),
+      dataIndex: 'permissions',
+      key: 'permissions',
+      render: (permissions: Permission[]) => {
+        if (!permissions || permissions.length === 0) return '-';
+        return permissions.map(p => p.code).join(', ');
+      },
+      width: 300,
     },
     {
       title: t('table.column.actions'),
-      key: 'action',
-      width: 180,
-      render: (_: any, record: Role) => (
+      key: 'actions',
+      render: (_, record) => (
         <Space size="middle">
-          <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_role')} />
-          <ActionButton
+          <TableActionButton
+            actionType="edit"
+            onClick={() => showEditModal(record)}
+            tooltipTitle={t('tooltip.edit_role')}
+          />
+          <TableActionButton
             actionType="delete"
             danger
-            onClick={() => Modal.confirm({
-              title: t('modal.confirm_delete.title'),
-              content: t('modal.confirm_delete.content', { roleName: record.name }),
-              okText: t('modal.confirm_delete.ok_text'),
-              okType: 'danger',
-              cancelText: t('modal.confirm_delete.cancel_text'),
-              onOk: () => handleDeleteRole(record.id),
-            })}
+            onClick={() => showDeleteConfirm(record)}
             tooltipTitle={t('tooltip.delete_role')}
           />
         </Space>
       ),
+      width: 120,
     },
   ];
+
+  // 添加表格导出功能
+  const { ExportButton } = useTableExport(
+    roles || [], 
+    columns, 
+    {
+      filename: '角色列表', 
+      sheetName: '角色数据',
+      buttonText: t('button.export_excel'),
+      successMessage: t('message.export_success')
+    }
+  );
+  
+  // 添加列控制功能
+  const { visibleColumns, ColumnControl } = useColumnControl(
+    columns,
+    {
+      storageKeyPrefix: 'roles_table',
+      buttonText: t('button.column_control'),
+      tooltipTitle: t('tooltip.column_control'),
+      dropdownTitle: t('dropdown.column_control_title'),
+      resetText: t('button.reset'),
+      requiredColumns: ['id', 'actions'] // ID和操作列始终显示
+    }
+  );
+
+  // 显示删除确认对话框
+  const showDeleteConfirm = (role: Role) => {
+    Modal.confirm({
+      title: t('modal.confirm_delete.title'),
+      content: t('modal.confirm_delete.content', { roleName: role.name }),
+      okText: t('modal.confirm_delete.ok_text'),
+      okType: 'danger',
+      cancelText: t('modal.confirm_delete.cancel_text'),
+      onOk: () => handleDeleteRole(role.id),
+    });
+  };
 
   return (
     <div>
       <PageHeaderLayout
-        pageTitle={<Title level={4} style={{ marginBottom: 0 }}>{t('title')}</Title>}
+        pageTitle={<Title level={2}>{t('page_title')}</Title>}
         actions={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={showCreateModal}
-            shape="round"
-          >
-            {t('button.create_role')}
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showCreateModal}
+            >
+              {t('button.create_role')}
+            </Button>
+            <Tooltip title={t('tooltip.export_excel')}>
+              <ExportButton />
+            </Tooltip>
+            <ColumnControl />
+          </Space>
         }
       >
-        <></> {/* Empty children to satisfy prop requirement */}
+        <></>
       </PageHeaderLayout>
-      <Table 
-        columns={columns}
-        dataSource={roles.map(role => ({ ...role, key: role.id }))} 
-        loading={loading} 
-        rowKey="id" 
+      <Table
+        columns={visibleColumns}
+        dataSource={roles}
+        rowKey="id"
+        loading={loading}
+        pagination={{ 
+          showSizeChanger: true, 
+          showQuickJumper: true,
+          showTotal: (total) => t('pagination.total', { total }), 
+          pageSizeOptions: ['10', '20', '50', '100'],
+        }}
+        bordered
+        scroll={{ x: 'max-content' }}
       />
       <Modal
         title={editingRole 
@@ -395,20 +379,19 @@ const RoleListPage: React.FC = () => {
             <Input disabled={!!editingRole} />
           </Form.Item>
           <Form.Item
-            name="permission_ids"
             label={t('modal.role_form.label.permissions')}
           >
             <Transfer
-              dataSource={(() => {
-                const data = allPermissions.map(p => ({
-                  key: p.id.toString(),
-                  title: p.code,
-                  description: p.description || p.code,
-                }));
-                console.log('allPermissions length:', allPermissions.length);
-                console.log('Transfer dataSource length:', data.length);
-                return data;
-              })()}
+              dataSource={allPermissions.map(p => ({
+                key: p.id.toString(),
+                title: p.code,
+                description: p.description || p.code,
+              }))}
+              targetKeys={selectedPermissions}
+              onChange={(nextTargetKeys) => {
+                setSelectedPermissions(nextTargetKeys as string[]);
+                form.setFieldsValue({ permission_ids: nextTargetKeys as string[] });
+              }}
               render={item => `${item.title} (${item.description})`}
               listStyle={{
                 width: '100%',
@@ -417,6 +400,10 @@ const RoleListPage: React.FC = () => {
               disabled={loadingPermissions}
               showSearch
             />
+          </Form.Item>
+          
+          <Form.Item name="permission_ids" hidden>
+            <Input />
           </Form.Item>
         </Form>
       </Modal>

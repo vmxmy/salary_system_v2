@@ -72,6 +72,8 @@ class Employee(BaseV2):
     interrupted_service_years = Column(Numeric(4, 2), nullable=True)
     personnel_category_id = Column(BigInteger, ForeignKey('hr.personnel_categories.id', name='fk_employee_personnel_category_id', ondelete='SET NULL'), nullable=True)
     actual_position_id = Column(BigInteger, ForeignKey('hr.positions.id', name='fk_employee_actual_position_id', ondelete='SET NULL'), nullable=True)
+    career_position_level_date = Column(Date, nullable=True, comment="The date when employee first reached this position level in their entire career")
+    current_position_start_date = Column(Date, nullable=True, comment="The date when employee started this position in current organization")
     # --- END NEW FIELDS for Employee ---
     
     hire_date = Column(Date, nullable=False)

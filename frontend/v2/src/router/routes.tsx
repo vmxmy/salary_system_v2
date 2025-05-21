@@ -58,12 +58,12 @@ export const routes: AppRouteObject[] = [
   {
     path: '/login',
     element: <LoginPage />,
-    meta: { title: 'login' },
+    meta: { title: 'auth:login' },
   },
   {
     path: '/unauthorized',
     element: <UnauthorizedPage />,
-    meta: { title: 'unauthorized' },
+    meta: { title: 'auth:unauthorized' },
   },
   {
     path: '/',
@@ -139,7 +139,7 @@ export const routes: AppRouteObject[] = [
           {
             path: 'employees/bulk-import',
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><EmployeeBulkImportPage /></React.Suspense>,
-            meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['P_EMPLOYEE_CREATE'] } // Using the i18n key from hr.json
+            meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['P_EMPLOYEE_CREATE'] }
           },
           // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: 'HR仪表盘' } },
           // EmployeeListPage import is removed, new routes handle /hr/employees
@@ -161,7 +161,7 @@ export const routes: AppRouteObject[] = [
           {
             path: 'payroll',
             element: <Outlet />,
-            meta: { title: 'payroll_calculation', requiredPermissions: ['P_PAYROLL_MODULE_VIEW'] }, // Example top-level permission for the module
+            meta: { title: 'payroll_calculation', requiredPermissions: ['P_PAYROLL_MODULE_VIEW'] },
             children: payrollRoutes, // These are the routes from Payroll/routes.ts
           }
         ],

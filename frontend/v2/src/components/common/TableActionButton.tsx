@@ -1,0 +1,121 @@
+import React, { forwardRef } from 'react';
+import type { HTMLAttributes } from 'react';
+import { Button, Tooltip } from 'antd';
+import type { ButtonProps } from 'antd';
+import { 
+  EditOutlined, 
+  DeleteOutlined, 
+  PlusOutlined, 
+  EyeOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+  CheckCircleOutlined,
+  CopyOutlined,
+  PrinterOutlined
+} from '@ant-design/icons';
+
+interface TableActionButtonProps extends ButtonProps {
+  actionType: 'edit' | 'delete' | 'add' | 'view' | 'upload' | 'download' | 'approve' | 'copy' | 'print';
+  tooltipTitle?: string;
+}
+
+// Wrapper component that forwards ref
+const TooltipWrapper = forwardRef<
+  HTMLSpanElement, 
+  { children: React.ReactNode } & HTMLAttributes<HTMLSpanElement>
+>(({ children, ...props }, ref) => {
+  return (
+    <span {...props} ref={ref}>
+      {children}
+    </span>
+  );
+});
+TooltipWrapper.displayName = 'TooltipWrapper';
+
+/**
+ * 表格操作按钮组件，基于链接型样式，用于表格的操作列
+ * 与员工档案页面风格一致的无背景透明按钮样式
+ */
+const TableActionButton: React.FC<TableActionButtonProps> = ({ 
+  actionType, 
+  tooltipTitle, 
+  onClick,
+  disabled,
+  ...rest 
+}) => {
+  // 根据类型确定图标
+  let icon;
+  switch (actionType) {
+    case 'edit':
+      icon = <EditOutlined />;
+      break;
+    case 'delete':
+      icon = <DeleteOutlined />;
+      break;
+    case 'add':
+      icon = <PlusOutlined />;
+      break;
+    case 'view':
+      icon = <EyeOutlined />;
+      break;
+    case 'upload':
+      icon = <UploadOutlined />;
+      break;
+    case 'download':
+      icon = <DownloadOutlined />;
+      break;
+    case 'approve':
+      icon = <CheckCircleOutlined />;
+      break;
+    case 'copy':
+      icon = <CopyOutlined />;
+      break;
+    case 'print':
+      icon = <PrinterOutlined />;
+      break;
+    default:
+      icon = <EditOutlined />;
+  }
+
+  // 如果没有提供tooltipTitle，根据actionType生成默认提示
+  const defaultTooltip = {
+    edit: '编辑',
+    delete: '删除',
+    add: '添加',
+    view: '查看详情',
+    upload: '上传',
+    download: '下载',
+    approve: '审批',
+    copy: '复制',
+    print: '打印'
+  };
+  
+  const finalTooltipTitle = tooltipTitle || defaultTooltip[actionType];
+  
+  // 如果是删除按钮，自动添加danger属性
+  const isDanger = actionType === 'delete';
+  
+  // 为某些特定操作类型设置自定义颜色
+  let customStyle = {};
+  if (actionType === 'approve') {
+    customStyle = { color: '#52c41a' }; // 使用Ant Design的成功色
+  }
+
+  return (
+    <Tooltip title={finalTooltipTitle}>
+      <TooltipWrapper>
+        <Button
+          type="link"
+          icon={icon}
+          onClick={onClick}
+          disabled={disabled}
+          danger={isDanger}
+          style={customStyle}
+          {...rest}
+        />
+      </TooltipWrapper>
+    </Tooltip>
+  );
+};
+
+export default TableActionButton; 

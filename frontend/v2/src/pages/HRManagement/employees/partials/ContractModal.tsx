@@ -39,8 +39,14 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
           employeeService.getContractTypesLookup(),
           employeeService.getContractStatusesLookup(),
         ]);
-        setContractTypes(typesRes.map((item: LookupValue) => ({ value: String(item.value), label: item.label })));
-        setContractStatuses(statusesRes.map((item: LookupValue) => ({ value: String(item.value), label: item.label })));
+        setContractTypes(typesRes.map((item: any) => ({ 
+          value: String(item.id || item.value || item.value_code || ''), 
+          label: item.label || item.value_name || String(item.id) 
+        })));
+        setContractStatuses(statusesRes.map((item: any) => ({ 
+          value: String(item.id || item.value || item.value_code || ''), 
+          label: item.label || item.value_name || String(item.id) 
+        })));
       } catch (error) {
         message.error(t('employee:detail_page.contracts_tab.modal.message_load_lookups_failed', '加载合同相关选项失败。'));
         console.error('Error fetching contract lookups:', error);
@@ -93,7 +99,7 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
       onOk={handleOk}
       onCancel={onCancel}
       confirmLoading={loading}
-      destroyOnClose
+      destroyOnHidden
       width={600}
     >
       {lookupsLoading ? (

@@ -71,19 +71,24 @@ export const employeeService = {
   async getEmployees(query?: EmployeeQuery): Promise<EmployeePageResult> {
     try {
       const queryString = query ? buildQueryParams(query) : '';
-      const response = await apiClient.get<EmployeePageResult>(`/employees${queryString}`);
+      // Ensure the path ends with a slash to potentially avoid 307 redirect if router expects it
+      const requestUrl = `/employees/${queryString}`;
+      console.log('[employeeService] Requesting URL:', requestUrl); // Log the full request URL
+      const response = await apiClient.get<EmployeePageResult>(requestUrl);
+      console.log('[employeeService] Received response meta:', response.data.meta); // Log received meta
       return response.data;
     } catch (error) {
       console.error('Error fetching employees:', error);
       const currentPage = query?.page || 1;
-      const pageSize = query?.pageSize || 10;
-      return { 
-        data: [], 
-        meta: { 
-          current_page: currentPage, 
-          per_page: pageSize, 
-          total_items: 0, 
-          total_pages: 0 
+      const pageSize = query?.size || 10; // Changed from pageSize to size
+      return {
+        data: [],
+        meta: {
+          page: currentPage,
+          size: pageSize,
+          total: 0,
+          totalPages: 0
+          // total_items removed as it's not in PageMeta or used consistently
         }
       };
     }
@@ -136,11 +141,13 @@ export const employeeService = {
   },
 
   // ADD THE NEW FUNCTION HERE
-  async bulkCreateEmployees(payload: CreateEmployeePayload[]): Promise<{ data: Employee[] }> { // Assuming Employee[] is the expected return type for created employees
+  async bulkCreateEmployees(payload: CreateEmployeePayload[], overwriteMode: boolean = false): Promise<{ data: Employee[] }> { // Assuming Employee[] is the expected return type for created employees
     try {
       // T in apiClient.post<T> refers to the type of the 'data' field in the AxiosResponse
       // So, if the backend response body is { "data": Employee[] }, then T should be { data: Employee[] }
-      const response = await apiClient.post<{ data: Employee[] }>('/employees/bulk', payload); // CORRECTED URL: Removed /v2/
+      const response = await apiClient.post<{ data: Employee[] }>('/employees/bulk', payload, { 
+        params: { overwrite_mode: overwriteMode } 
+      }); // CORRECTED URL: Removed /v2/
       // response here is AxiosResponse<{ data: Employee[] }>
       // response.data here is { data: Employee[] }
       return response.data; // This should align with the Promise<{ data: Employee[] }> signature
@@ -254,19 +261,19 @@ export const employeeService = {
   ): Promise<JobHistoryPageResult> {
     try {
       const queryString = query ? buildQueryParams(query) : '';
-      const response = await apiClient.get<JobHistoryPageResult>(`/employees/${employeeId}/job-history${queryString}`);
+      const response = await apiClient.get<JobHistoryPageResult>(`/employees/${employeeId}/job-history/${queryString}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching job history for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
-      const pageSize = query?.pageSize || 10;
-      return { 
-        data: [], 
-        meta: { 
-          current_page: currentPage, 
-          per_page: pageSize, 
-          total_items: 0, 
-          total_pages: 0 
+      const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
+      return {
+        data: [],
+        meta: {
+          page: currentPage,
+          size: pageSize,
+          total: 0,
+          totalPages: 0
         }
       };
     }
@@ -307,19 +314,19 @@ export const employeeService = {
   ): Promise<ContractPageResult> {
     try {
       const queryString = query ? buildQueryParams(query) : '';
-      const response = await apiClient.get<ContractPageResult>(`/employees/${employeeId}/contracts${queryString}`);
+      const response = await apiClient.get<ContractPageResult>(`/employees/${employeeId}/contracts/${queryString}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching contracts for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
-      const pageSize = query?.pageSize || 10;
-      return { 
-        data: [], 
-        meta: { 
-          current_page: currentPage, 
-          per_page: pageSize, 
-          total_items: 0, 
-          total_pages: 0 
+      const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
+      return {
+        data: [],
+        meta: {
+          page: currentPage,
+          size: pageSize,
+          total: 0,
+          totalPages: 0
         }
       };
     }
@@ -360,19 +367,19 @@ export const employeeService = {
   ): Promise<CompensationPageResult> {
     try {
       const queryString = query ? buildQueryParams(query) : '';
-      const response = await apiClient.get<CompensationPageResult>(`/employees/${employeeId}/compensation-history${queryString}`);
+      const response = await apiClient.get<CompensationPageResult>(`/employees/${employeeId}/compensation-history/${queryString}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching compensation history for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
-      const pageSize = query?.pageSize || 10;
-      return { 
-        data: [], 
-        meta: { 
-          current_page: currentPage, 
-          per_page: pageSize, 
-          total_items: 0, 
-          total_pages: 0 
+      const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
+      return {
+        data: [],
+        meta: {
+          page: currentPage,
+          size: pageSize,
+          total: 0,
+          totalPages: 0
         }
       };
     }
@@ -413,19 +420,19 @@ export const employeeService = {
   ): Promise<LeaveBalancePageResult> {
     try {
       const queryString = query ? buildQueryParams(query) : '';
-      const response = await apiClient.get<LeaveBalancePageResult>(`/employees/${employeeId}/leave-balances${queryString}`);
+      const response = await apiClient.get<LeaveBalancePageResult>(`/employees/${employeeId}/leave-balances/${queryString}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching leave balances for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
-      const pageSize = query?.pageSize || 10;
-      return { 
-        data: [], 
-        meta: { 
-          current_page: currentPage, 
-          per_page: pageSize, 
-          total_items: 0, 
-          total_pages: 0 
+      const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
+      return {
+        data: [],
+        meta: {
+          page: currentPage,
+          size: pageSize,
+          total: 0,
+          totalPages: 0
         }
       };
     }
@@ -459,6 +466,40 @@ export const employeeService = {
       console.error(`Error deleting leave balance ${leaveBalanceId} for employee ${employeeId}:`, error);
       throw error;
     }
-  }
-  // Removed TODO for mock CUD for leave balances
+  },
+
+  // 添加批量获取员工信息的方法
+  async getEmployeesByIds(ids: string[]): Promise<Record<string, Employee>> {
+    if (!ids || ids.length === 0) return {};
+    
+    try {
+      // 避免查询参数过长，每次查询最多50个员工ID
+      const batchSize = 50;
+      const employeeMap: Record<string, Employee> = {};
+      
+      // 分批处理员工ID
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batchIds = ids.slice(i, i + batchSize);
+        const idParam = batchIds.join(',');
+        
+        // 使用查询参数获取多个员工
+        const response = await apiClient.get<{ data: Employee[] }>(`/employees?ids=${idParam}`);
+        
+        // 将结果添加到映射中
+        if (response.data && Array.isArray(response.data.data)) {
+          response.data.data.forEach(emp => {
+            if (emp.id) {
+              employeeMap[String(emp.id)] = emp;
+            }
+          });
+        }
+      }
+      
+      console.log(`Successfully fetched ${Object.keys(employeeMap).length} employees`);
+      return employeeMap;
+    } catch (error) {
+      console.error('Error fetching employees by IDs:', error);
+      return {};
+    }
+  },
 };

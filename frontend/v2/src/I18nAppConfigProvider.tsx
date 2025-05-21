@@ -112,7 +112,7 @@ const customTheme: ThemeConfig = {
       colorBorderSecondary: 'rgba(5, 5, 5, 0.06)', // 卡片边框颜色 (同 token.colorSplit)
     },
     Button: {
-      // borderRadius: 6, // 已由 token.borderRadius 全局设置
+      borderRadius: 8, // 统一所有按钮为圆角样式
       // controlHeight: 32, // 已由 token.controlHeight 全局设置
       // primary 按钮样式已由 colorPrimary 定义，若需特定覆盖可在此处添加
       linkHoverBg: 'transparent', // Link 按钮 hover 时背景透明
@@ -212,13 +212,12 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
     const handleLanguageChanged = (lng: string | undefined) => {
       updateLocale(lng);
       // Update dayjs locale as well (moved from i18n.ts for better sync with React lifecycle)
-      const baseLng = lng ? lng.split('-')[0] : 'zh'; // Default to zh for dayjs if lng is undefined briefly
-      if (baseLng === 'zh') {
-        dayjs.locale('zh-cn');
-      } else if (baseLng === 'en') {
+      if (lng === 'zh-CN') {
+        dayjs.locale('zh-cn'); // 使用小写的 'zh-cn'，这是 dayjs 的命名
+      } else if (lng === 'en') {
         dayjs.locale('en');
       } else {
-        dayjs.locale('zh-cn'); // Default to Chinese for dayjs
+        dayjs.locale('zh-cn'); // 默认使用中文
       }
       console.log('[I18nAppConfigProvider] Dayjs locale set to:', dayjs.locale());
     };

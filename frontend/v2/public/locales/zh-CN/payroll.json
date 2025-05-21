@@ -1,16 +1,25 @@
 {
+    "common": {
+        "status_na": "不适用",
+        "pagination_total": "共 {total} 条"
+    },
+    "pagination_total": "共 {total} 条",
     "page_title": {
       "management": "薪资管理",
       "calculation": "薪资核算",
       "periods": "工资周期管理",
       "runs": "工资计算批次",
-      "run_detail": "计算批次详情"
+      "run_detail": "计算批次详情",
+      "payroll_runs": "工资计算批次",
+      "payroll_run_detail": "计算批次详情",
+      "payroll_periods": "工资周期管理"
     },
     "loading": {
       "periods": "工资周期加载中...",
       "runs": "工资计算批次加载中..."
     },
     "status": {
+      "unknown_status_param": "未知状态参数",
       "run": {
         "draft": "草稿",
         "processing": "计算中",
@@ -40,7 +49,8 @@
     "periods_page": {
       "title": "工资周期管理",
       "button": {
-        "create_period": "新建工资周期"
+        "create_period": "新建工资周期",
+        "add_period": "新建工资周期"
       },
       "error_fetch_periods": "无法获取工资周期数据",
       "message": {
@@ -99,6 +109,23 @@
           "save_changes": "保存更改",
           "create_period": "创建周期"
         }
+      },
+      "export": {
+        "filename": "工资计算期间",
+        "sheetName": "工资计算期间",
+        "buttonText": "导出数据",
+        "successMessage": "导出成功",
+        "tooltipTitle": "导出到Excel"
+      },
+      "columnControl": {
+        "buttonText": "列设置",
+        "tooltipTitle": "自定义显示列",
+        "dropdownTitle": "列显示",
+        "resetText": "重置"
+      },
+      "confirm": {
+        "delete_title": "确认删除",
+        "delete_description": "确定要删除此工资周期吗？此操作不可撤销。"
       }
     },
     "runs_page": {
@@ -158,6 +185,7 @@
           "create": "创建新工资计算批次",
           "edit": "编辑工资计算批次"
       },
+      "modal_title_create": "创建新工资计算批次",
       "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
       "form": {
         "error":{
@@ -231,6 +259,28 @@
       },
       "section_title_entries": "工资条目"
     },
+    "payroll_run_detail_page": {
+      "spin_loading": "加载中...",
+      "breadcrumb_runs_management": "工资计算批次管理",
+      "breadcrumb_current_page": "计算批次详情 (ID: {runId})",
+      "card_title": "工资计算批次详情: #{runId}",
+      "button_back_to_list": "返回列表",
+      "desc_label_id": "ID",
+      "desc_label_payroll_period": "工资周期",
+      "value_period_id_prefix": "ID: ",
+      "desc_label_run_date": "计算日期",
+      "desc_label_status": "状态",
+      "desc_label_employee_count": "包含员工数",
+      "desc_label_created_by": "创建者用户ID",
+      "value_na": "无",
+      "desc_label_created_at": "创建时间",
+      "desc_label_updated_at": "最后更新时间",
+      "desc_label_paid_at": "支付时间",
+      "value_not_paid": "未支付",
+      "desc_label_notes": "备注",
+      "value_no_notes": "无",
+      "section_title_entries": "工资条目"
+    },
     "entries_table": {
       "error_fetch": "无法获取工资条目数据",
       "message": {
@@ -248,7 +298,8 @@
         "remarks": "备注",
         "actions": "操作",
         "payroll_run_id": "计算批次ID",
-        "payment_date": "支付日期"
+        "payment_date": "支付日期",
+        "payroll_period": "工资周期"
       },
       "modal": {
         "title_detail": "工资条目详情",
@@ -268,6 +319,32 @@
       "alert_error_prefix": "错误: ",
       "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
       "currency_symbol": "¥"
+    },
+    "payroll_entries_table": {
+      "column_entry_id": "条目ID",
+      "column_employee_id": "员工ID",
+      "column_employee_name": "员工姓名",
+      "column_total_earnings": "总收入",
+      "column_total_deductions": "总扣除",
+      "column_net_pay": "净工资",
+      "column_status": "状态",
+      "column_remarks": "备注",
+      "column_actions": "操作",
+      "cell_name_supplement_needed": "需补充",
+      "employee_id_prefix": "员工ID: {id}",
+      "currency_symbol": "¥",
+      "tooltip_view_details": "查看详情",
+      "tooltip_edit_entry": "编辑/调整工资条目",
+      "tooltip_name_from_employee_record": "从员工档案获取的姓名信息",
+      "spin_loading_entries": "加载工资条目中...",
+      "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
+      "error_fetch": "无法获取工资条目数据",
+      "alert_error_prefix": "错误: ",
+      "cell_remarks_empty": "-",
+      "message": {
+        "edit_entry_todo": "编辑员工 {employeeIdentifier} (ID: {entryId}) 的工资条目 - 功能待实现",
+        "view_details_todo": "查看员工 {employeeIdentifier} (ID: {entryId}) 的工资条目详情 - 功能待实现"
+      }
     },
     "period": {
       "title": "工资周期管理",
@@ -329,6 +406,120 @@
         "rejected": "已拒绝",
         "published": "已发布",
         "na": "不适用"
+      },
+      "common": {
+        "status_na": "不适用",
+        "pagination_total": "共 {total} 条",
+        "unknown_status_param": "未知状态参数"
       }
+    },
+    "payroll_run_status": {
+      "draft": "草稿",
+      "processing": "计算中",
+      "pending_review": "待审核",
+      "approved": "已审核",
+      "approved_for_payment": "支付已审批",
+      "paid": "已发放",
+      "cancelled": "已取消",
+      "error": "错误"
+    },
+    "payroll_entry_status": {
+      "pending_calculation": "待计算",
+      "calculated": "已计算",
+      "pending_confirmation": "待确认",
+      "confirmed": "已确认",
+      "adjusted": "有调整",
+      "archived": "已归档",
+      "error": "错误",
+      "draft": "草稿",
+      "submitted": "已提交",
+      "approved": "已审核"
+    },
+    "entry_page": {
+      "title": "工资录入",
+      "filter": {
+        "period": "薪资周期",
+        "employee": "员工查询"
+      },
+      "placeholder": {
+        "select_period": "选择薪资周期",
+        "search_employee": "搜索员工姓名或编号"
+      },
+      "button": {
+        "add_entry": "添加工资记录",
+        "batch_import": "批量导入",
+        "export": "导出Excel"
+      },
+      "tooltip": {
+        "edit_entry": "编辑工资记录"
+      },
+      "table": {
+        "column": {
+          "employee_id": "员工编号",
+          "employee_name": "员工姓名",
+          "department": "部门",
+          "position": "职位",
+          "total_earnings": "总收入",
+          "total_deductions": "总扣减",
+          "net_pay": "实发工资",
+          "status": "状态",
+          "actions": "操作"
+        }
+      },
+      "message": {
+        "operation_success": "操作成功",
+        "batch_import_coming_soon": "批量导入功能即将上线",
+        "export_coming_soon": "导出功能即将上线"
+      },
+      "error_fetch_periods": "获取薪资周期失败",
+      "error_fetch_entries": "获取工资明细失败"
+    },
+    "entry_form": {
+      "title_create": "创建工资明细",
+      "title_edit": "编辑工资明细",
+      "section": {
+        "employee_info": "员工信息",
+        "earnings": "收入项",
+        "deductions": "扣缴项",
+        "summary": "汇总信息"
+      },
+      "label": {
+        "employee_id": "员工编号",
+        "employee": "员工选择",
+        "employee_name": "员工姓名",
+        "department": "所属部门",
+        "personnel_category": "人员身份",
+        "actual_position": "实际任职",
+        "amount": "金额",
+        "total_earnings": "总收入",
+        "total_deductions": "总扣缴",
+        "net_pay": "实发工资",
+        "status": "状态",
+        "remarks": "备注"
+      },
+      "placeholder": {
+        "select_earnings_component": "选择收入项",
+        "select_deductions_component": "选择扣缴项",
+        "select_employee": "输入姓名搜索员工"
+      },
+      "status": {
+        "draft": "草稿",
+        "submitted": "已提交",
+        "approved": "已审核"
+      },
+      "message": {
+        "update_success": "工资明细更新成功",
+        "create_success": "工资明细创建成功",
+        "component_already_exists": "该组件已存在"
+      },
+      "total": "合计",
+      "no_earnings_components": "暂无收入项",
+      "no_deductions_components": "暂无扣缴项",
+      "validation": {
+        "employee_required": "请选择员工",
+        "status_required": "请选择状态"
+      },
+      "error_fetch_employee": "获取员工信息失败",
+      "error_save": "保存工资明细失败"
     }
   }

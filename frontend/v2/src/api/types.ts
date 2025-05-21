@@ -216,4 +216,32 @@ export interface LookupValue {
   // lookup_type?: LookupType; // 如果 API 嵌套返回
 }
 
+// Position Types (职位类型定义)
+export interface Position {
+  id: number;
+  code?: string | null;
+  name: string;
+  description?: string | null;
+  parent_position_id?: number | null;
+  effective_date: string;
+  end_date?: string | null;
+  is_active: boolean;
+  parent?: Position | null;
+  children?: Position[] | null;
+}
+
+export interface CreatePositionPayload {
+  code?: string | null;
+  name: string;
+  description?: string | null;
+  parent_position_id?: number | null;
+  effective_date: string;
+  end_date?: string | null;
+  is_active?: boolean;
+}
+
+export interface UpdatePositionPayload extends Partial<CreatePositionPayload> {}
+
+export interface PositionListResponse extends PaginatedResponse<Position> {}
+
 // 可以继续添加其他 API 资源对应的类型...

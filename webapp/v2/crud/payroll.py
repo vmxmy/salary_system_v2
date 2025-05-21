@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import date, datetime
+from sqlalchemy.orm import selectinload
 
 from ..models.payroll import PayrollPeriod, PayrollRun, PayrollEntry
 from ..pydantic_models.payroll import (
@@ -12,8 +13,8 @@ from ..pydantic_models.payroll import (
     PayrollRunCreate, PayrollRunUpdate, PayrollRunPatch,
     PayrollEntryCreate, PayrollEntryUpdate, PayrollEntryPatch
 )
-# Assuming an Employee model might be needed for search later
-# from ..models.hr import Employee 
+from ..models.hr import Employee
+from .config import get_payroll_component_definitions # 新增导入
 
 # PayrollPeriod CRUD
 def get_payroll_periods(
@@ -171,10 +172,17 @@ def get_payroll_entries(
     run_id: Optional[int] = None,
     status_id: Optional[int] = None,
     search: Optional[str] = None, # For employee name/code search
+    include_employee_details: bool = False, # 新增参数，控制是否关联员工详情
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[PayrollEntry], int]:
     query = db.query(PayrollEntry)
+    
+    # 如果需要包含员工详情，则JOIN Employee表
+    if include_employee_details:
+        query = query.join(Employee, PayrollEntry.employee_id == Employee.id)
+        
+    # 应用过滤条件
     if employee_id:
         query = query.filter(PayrollEntry.employee_id == employee_id)
     if period_id:
@@ -184,46 +192,236 @@ def get_payroll_entries(
     if status_id:
         query = query.filter(PayrollEntry.status_lookup_value_id == status_id)
     
-    # if search: # Requires Employee model and join
-    #     from ..models.hr import Employee # Ensure this import path is correct
-    #     search_term = f"%{search}%"
-    #     query = query.join(Employee, PayrollEntry.employee_id == Employee.id)
-    #     query = query.filter(
-    #         or_(
-    #             Employee.first_name.ilike(search_term),
-    #             Employee.last_name.ilike(search_term),
-    #             # Employee.employee_code.ilike(search_term) # If Employee model has employee_code
-    #         )
-    #     )
+    # 如果提供了搜索关键词且关联了Employee表，添加名称搜索条件
+    if search and include_employee_details:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Employee.first_name.ilike(search_term),
+                Employee.last_name.ilike(search_term),
+                Employee.employee_code.ilike(search_term)
+            )
+        )
     
-    total = query.count() # May need adjustment if search join is active
+    # 获取总记录数
+    total = query.count()
+    
+    # 排序并应用分页
     query = query.order_by(PayrollEntry.id.desc()).offset(skip).limit(limit)
-    return query.all(), total
+    
+    # 如果需要包含员工详情，使用options加载关联的员工数据，包括员工姓名
+    if include_employee_details:
+        query = query.options(
+            selectinload(PayrollEntry.employee).load_only(
+                Employee.id, Employee.first_name, Employee.last_name, Employee.employee_code
+            )
+        )
+        
+    # 执行查询并返回结果
+    entries = query.all()
+    
+    # 处理返回的PayrollEntry对象，加入employee_name属性
+    if include_employee_details:
+        for entry in entries:
+            if entry.employee:
+                # 确保entry对象可以添加额外的属性
+                # 合并姓和名为全名，添加空格分隔
+                last_name = entry.employee.last_name or ''
+                first_name = entry.employee.first_name or ''
+                if last_name and first_name:
+                    entry.employee_name = f"{last_name} {first_name}"
+                else:
+                    entry.employee_name = (last_name + first_name).strip()
+            else:
+                entry.employee_name = None
+    
+    return entries, total
 
-def get_payroll_entry(db: Session, entry_id: int) -> Optional[PayrollEntry]:
-    return db.query(PayrollEntry).filter(PayrollEntry.id == entry_id).first()
+def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool = True) -> Optional[PayrollEntry]:
+    query = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id)
+    
+    # 如果需要包含员工详情，使用options加载关联的员工数据
+    if include_employee_details:
+        query = query.options(
+            selectinload(PayrollEntry.employee).load_only(
+                Employee.id, Employee.first_name, Employee.last_name, Employee.employee_code
+            )
+        )
+    
+    # 执行查询
+    entry = query.first()
+    
+    # 如果找到了entry
+    if entry:
+        # 处理员工姓名
+        if include_employee_details and entry.employee:
+            # 合并姓和名为全名，添加空格分隔
+            last_name = entry.employee.last_name or ''
+            first_name = entry.employee.first_name or ''
+            if last_name and first_name:
+                entry.employee_name = f"{last_name} {first_name}"
+            else:
+                entry.employee_name = (last_name + first_name).strip()
+        else:
+            # 如果没有关联的员工信息或不需要员工详情，则employee_name设为None
+            # 这可以确保 Pydantic 模型在序列化时，如果 employee_name 是 Optional 才不会报错
+            if hasattr(entry, 'employee_name'):
+                 entry.employee_name = None
 
-def create_payroll_entry(db: Session, payroll_entry: PayrollEntryCreate) -> PayrollEntry:
-    db_payroll_entry = PayrollEntry(**payroll_entry.model_dump())
+        # 获取所有激活的扣除和法定类型的薪资组件定义，并创建映射
+        all_deduction_components, _ = get_payroll_component_definitions(
+            db, 
+            component_type='DEDUCTION', 
+            is_active=True, 
+            limit=1000 # 假设组件定义不会超过1000个
+        )
+        all_statutory_components, _ = get_payroll_component_definitions(
+            db,
+            component_type='STATUTORY',
+            is_active=True,
+            limit=1000
+        )
+        
+        component_map = {comp.code: comp.name for comp in all_deduction_components}
+        component_map.update({comp.code: comp.name for comp in all_statutory_components})
+
+        # 为 earnings_details 也从 component_map 更新/确认 name (如果需要统一来源)
+        # 注意：当前 earnings_details 在DB中本身就可能包含 name 和 amount
+        if entry.earnings_details and isinstance(entry.earnings_details, dict):
+            new_earnings_details = {}
+            for code, earn_value in entry.earnings_details.items():
+                # earn_value 可能是 {name: 'xxx', amount: 123} 或直接是 amount (虽然不符合当前已知结构)
+                current_amount = 0
+                current_name_from_db = code # 默认用code作为name
+
+                if isinstance(earn_value, dict):
+                    current_amount = earn_value.get('amount', 0)
+                    current_name_from_db = earn_value.get('name', code)
+                elif isinstance(earn_value, (int, float)):
+                    current_amount = earn_value
+                
+                # 优先使用 component_map 中的规范名称
+                component_name = component_map.get(code, current_name_from_db)
+                
+                new_earnings_details[code] = {
+                    "name": component_name,
+                    "amount": current_amount
+                }
+            entry.earnings_details = new_earnings_details
+
+        # 修改 deductions_details，从 component_map 获取 name
+        if entry.deductions_details and isinstance(entry.deductions_details, dict):
+            new_deductions_details = {}
+            for code, amount_val in entry.deductions_details.items():
+                # amount_val 可能是 amount 数字，或罕见情况下是 {name: 'xxx', amount: 123}
+                actual_amount = 0
+                name_from_db_if_complex = code
+
+                if isinstance(amount_val, dict): # 虽然当前deductions是 code: amount 结构
+                    actual_amount = amount_val.get('amount', 0)
+                    name_from_db_if_complex = amount_val.get('name', code)
+                elif isinstance(amount_val, (int, float)):
+                    actual_amount = amount_val
+
+                component_name = component_map.get(code, name_from_db_if_complex) 
+                new_deductions_details[code] = {
+                    "name": component_name,
+                    "amount": actual_amount
+                }
+            entry.deductions_details = new_deductions_details
+            
+    return entry
+
+def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) -> PayrollEntry:
+    # 获取组件定义
+    all_deduction_components, _ = get_payroll_component_definitions(db, component_type='DEDUCTION', is_active=True, limit=1000)
+    all_statutory_components, _ = get_payroll_component_definitions(db, component_type='STATUTORY', is_active=True, limit=1000)
+    all_earning_components, _ = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    
+    component_map = {comp.code: comp.name for comp in all_deduction_components}
+    component_map.update({comp.code: comp.name for comp in all_statutory_components})
+    component_map.update({comp.code: comp.name for comp in all_earning_components})
+
+    db_data_dict = payroll_entry_data.model_dump()
+
+    # 规范化 earnings_details
+    if "earnings_details" in db_data_dict and isinstance(db_data_dict["earnings_details"], dict):
+        processed_earnings = {}
+        for code, item_input in db_data_dict["earnings_details"].items(): # item_input is now PayrollItemInput
+            component_name = component_map.get(code)
+            if component_name is None:
+                # 或者根据策略 logging.warning(f"未找到薪资项代码 {code} 的定义，将使用原始代码作为名称")
+                # component_name = code
+                raise ValueError(f"无效的收入项代码: {code}")
+            
+            processed_earnings[code] = {
+                "name": component_name, 
+                "amount": item_input['amount'] # Access amount from the dict representation of PayrollItemInput
+            }
+        db_data_dict["earnings_details"] = processed_earnings
+
+    # 规范化 deductions_details
+    if "deductions_details" in db_data_dict and isinstance(db_data_dict["deductions_details"], dict):
+        processed_deductions = {}
+        for code, item_input in db_data_dict["deductions_details"].items(): # item_input is now PayrollItemInput
+            component_name = component_map.get(code)
+            if component_name is None:
+                raise ValueError(f"无效的扣除项代码: {code}")
+            
+            processed_deductions[code] = {
+                "name": component_name,
+                "amount": item_input['amount'] # Access amount
+            }
+        db_data_dict["deductions_details"] = processed_deductions
+        
+    db_payroll_entry = PayrollEntry(**db_data_dict)
     # Ensure `calculated_at` and `updated_at` (if added to model with server_default) are handled by DB
     db.add(db_payroll_entry)
     db.commit()
     db.refresh(db_payroll_entry)
     return db_payroll_entry
 
-def update_payroll_entry(db: Session, entry_id: int, payroll_entry: PayrollEntryUpdate) -> Optional[PayrollEntry]:
-    db_payroll_entry = get_payroll_entry(db, entry_id)
+def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: PayrollEntryUpdate) -> Optional[PayrollEntry]:
+    db_payroll_entry = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id).first() # Changed from get_payroll_entry to avoid re-fetching transformed data
     if not db_payroll_entry:
         return None
-    update_data = payroll_entry.model_dump(exclude_unset=True)
+
+    # 获取组件定义 (与create中类似)
+    all_deduction_components, _ = get_payroll_component_definitions(db, component_type='DEDUCTION', is_active=True, limit=1000)
+    all_statutory_components, _ = get_payroll_component_definitions(db, component_type='STATUTORY', is_active=True, limit=1000)
+    all_earning_components, _ = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    
+    component_map = {comp.code: comp.name for comp in all_deduction_components}
+    component_map.update({comp.code: comp.name for comp in all_statutory_components})
+    component_map.update({comp.code: comp.name for comp in all_earning_components})
+
+    update_data = payroll_entry_data.model_dump(exclude_unset=True)
+
+    # 规范化 earnings_details (如果存在于 update_data)
+    if "earnings_details" in update_data and isinstance(update_data["earnings_details"], dict):
+        processed_earnings = {}
+        for code, item_input in update_data["earnings_details"].items():
+            component_name = component_map.get(code)
+            if component_name is None:
+                raise ValueError(f"无效的收入项代码: {code}")
+            processed_earnings[code] = {"name": component_name, "amount": item_input['amount']}
+        update_data["earnings_details"] = processed_earnings
+
+    # 规范化 deductions_details (如果存在于 update_data)
+    if "deductions_details" in update_data and isinstance(update_data["deductions_details"], dict):
+        processed_deductions = {}
+        for code, item_input in update_data["deductions_details"].items():
+            component_name = component_map.get(code)
+            if component_name is None:
+                raise ValueError(f"无效的扣除项代码: {code}")
+            processed_deductions[code] = {"name": component_name, "amount": item_input['amount']}
+        update_data["deductions_details"] = processed_deductions
+
     for key, value in update_data.items():
         setattr(db_payroll_entry, key, value)
     
-    # If PayrollEntry model has updated_at and it's not set by onupdate=func.now() or needs explicit app-level set
     if hasattr(db_payroll_entry, 'updated_at'):
-         # If model's updated_at is onupdate=func.now(), this line might be redundant for some DBs after commit
-         # but good for ensuring the object has the value before refresh if needed immediately.
-        db_payroll_entry.updated_at = datetime.utcnow() 
+        db_payroll_entry.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(db_payroll_entry)
@@ -233,46 +431,68 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
     db_payroll_entry = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id).first()
     if not db_payroll_entry:
         return None
+
+    # 获取组件定义 (与create/update中类似)
+    all_deduction_components, _ = get_payroll_component_definitions(db, component_type='DEDUCTION', is_active=True, limit=1000)
+    all_statutory_components, _ = get_payroll_component_definitions(db, component_type='STATUTORY', is_active=True, limit=1000)
+    all_earning_components, _ = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    
+    component_map = {comp.code: comp.name for comp in all_deduction_components}
+    component_map.update({comp.code: comp.name for comp in all_statutory_components})
+    component_map.update({comp.code: comp.name for comp in all_earning_components})
+    
     update_values = entry_data.model_dump(exclude_unset=True)
     changed_fields = False
-    for key, value in update_values.items():
-        if value is None and key not in entry_data.model_fields_set: # Allow explicit None if set by user in Pydantic model
-            continue
+
+    # 规范化传入的 details 字段 (如果存在)
+    if "earnings_details" in update_values and isinstance(update_values["earnings_details"], dict):
+        processed_earnings_patch = {}
+        for code, item_input in update_values["earnings_details"].items():
+            component_name = component_map.get(code)
+            if component_name is None:
+                raise ValueError(f"无效的收入项代码(PATCH): {code}")
+            processed_earnings_patch[code] = {"name": component_name, "amount": item_input['amount']}
         
-        current_value = getattr(db_payroll_entry, key)
-        if current_value == value: # Avoid unnecessary setattr if value hasn't changed
-            continue
+        current_earnings = getattr(db_payroll_entry, "earnings_details", {}) or {}
+        current_earnings.update(processed_earnings_patch) # Merge
+        setattr(db_payroll_entry, "earnings_details", current_earnings)
+        update_values.pop("earnings_details") 
+        changed_fields = True 
+
+    if "deductions_details" in update_values and isinstance(update_values["deductions_details"], dict):
+        processed_deductions_patch = {}
+        for code, item_input in update_values["deductions_details"].items():
+            component_name = component_map.get(code)
+            if component_name is None:
+                raise ValueError(f"无效的扣除项代码(PATCH): {code}")
+            processed_deductions_patch[code] = {"name": component_name, "amount": item_input['amount']}
+
+        current_deductions = getattr(db_payroll_entry, "deductions_details", {}) or {}
+        current_deductions.update(processed_deductions_patch) # Merge
+        setattr(db_payroll_entry, "deductions_details", current_deductions)
+        update_values.pop("deductions_details")
         changed_fields = True
 
-        if key in ["earnings_details", "deductions_details"]:
-            existing_json_data = current_value
-            if not isinstance(existing_json_data, dict):
-                existing_json_data = {} # Initialize if None or not a dict
-            
-            if isinstance(value, dict):
-                updated_json_data = existing_json_data.copy()
-                updated_json_data.update(value)
-                setattr(db_payroll_entry, key, updated_json_data)
-            elif value is None: # Allow setting JSONB field to null explicitly
-                setattr(db_payroll_entry, key, None)
-            # else: Log warning or skip for non-dict, non-None values for JSONB if strict typing is needed
-        else:
+    for key, value in update_values.items():
+        # if value is None and key not in entry_data.model_fields_set: 
+        #     continue
+        current_db_value = getattr(db_payroll_entry, key)
+        if current_db_value != value:
             setattr(db_payroll_entry, key, value)
+            changed_fields = True
     
     if changed_fields and hasattr(db_payroll_entry, 'updated_at'):
-        # If model's updated_at is onupdate=func.now(), this might be redundant for some DBs after commit.
-        db_payroll_entry.updated_at = datetime.utcnow() 
+        db_payroll_entry.updated_at = datetime.utcnow()
 
-    if changed_fields: # Only commit if there were actual changes
+    if changed_fields:
         try:
             db.commit()
             db.refresh(db_payroll_entry)
-            # Audit logging: log_audit(f"PayrollEntry {entry_id} patched. Fields: {list(update_values.keys())}")
             return db_payroll_entry
         except Exception as e:
             db.rollback()
             raise
-    return db_payroll_entry # Return the object even if no changes were made
+    return db_payroll_entry
 
 def delete_payroll_entry(db: Session, entry_id: int) -> bool:
     db_payroll_entry = get_payroll_entry(db, entry_id)

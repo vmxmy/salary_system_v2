@@ -640,6 +640,8 @@ async def get_payroll_entries(
     run_id: Optional[int] = None,
     employee_id: Optional[int] = None,
     status_id: Optional[int] = None,
+    include_employee_details: bool = Query(False, description="是否包含员工姓名等详细信息"),
+    search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
@@ -652,6 +654,8 @@ async def get_payroll_entries(
     - **run_id**: 工资运行批次ID，用于过滤特定运行批次的明细
     - **employee_id**: 员工ID，用于过滤特定员工的明细
     - **status_id**: 状态ID，用于过滤特定状态的明细
+    - **include_employee_details**: 是否包含员工姓名等详细信息
+    - **search**: 搜索关键词，用于按员工姓名、工号等信息搜索
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
     """
@@ -666,6 +670,8 @@ async def get_payroll_entries(
             run_id=run_id,
             employee_id=employee_id,
             status_id=status_id,
+            search=search,
+            include_employee_details=include_employee_details,
             skip=skip,
             limit=size
         )
@@ -698,6 +704,7 @@ async def get_payroll_entries(
 @router.get("/payroll-entries/{entry_id}", response_model=Dict[str, PayrollEntry])
 async def get_payroll_entry(
     entry_id: int,
+    include_employee_details: bool = Query(True, description="是否包含员工姓名等详细信息"),
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_VIEW"]))
 ):
@@ -705,10 +712,11 @@ async def get_payroll_entry(
     根据ID获取工资明细详情。
 
     - **entry_id**: 工资明细ID
+    - **include_employee_details**: 是否包含员工姓名等详细信息
     """
     try:
         # 获取工资明细
-        entry = crud.get_payroll_entry(db, entry_id)
+        entry = crud.get_payroll_entry(db, entry_id, include_employee_details=include_employee_details)
         if not entry:
             # 返回标准错误响应格式
             raise HTTPException(

@@ -2,6 +2,7 @@
     "title": "部门管理",
     "button": {
       "create_root_department": "新建根部门",
+      "create_top_level_department": "新建顶级部门",
       "add_child_department_tooltip": "添加子部门"
     },
     "table": {
@@ -13,7 +14,12 @@
         "effective_date": "生效日期",
         "is_active": "激活",
         "actions": "操作",
+        "manager": "部门负责人",
         "value_na_or_dash": "-"
+      },
+      "filter": {
+        "active": "激活",
+        "inactive": "未激活"
       }
     },
     "tooltip": {
@@ -41,7 +47,8 @@
           "description": "描述",
           "effective_date": "生效日期",
           "end_date": "失效日期",
-          "is_active": "是否激活"
+          "is_active": "是否激活",
+          "manager": "部门负责人"
         },
         "validation": {
           "code_required": "请输入部门代码!",
@@ -49,7 +56,8 @@
           "effective_date_required": "请选择生效日期!"
         },
         "placeholder": {
-          "parent_department": "选择上级部门 (留空则为根部门)"
+          "parent_department": "选择上级部门 (留空则为根部门)",
+          "manager": "请选择部门负责人"
         }
       }
     },
@@ -76,5 +84,8 @@
     "error_page_level": {
       "in_use_or_has_children": "部门可能正在使用中或包含子部门。",
       "unknown": "未知错误。"
+    },
+    "pagination": {
+      "total": "共 {total} 条"
     }
   }
