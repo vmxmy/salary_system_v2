@@ -1,0 +1,30 @@
+{
+  "actual_position_management": {
+    "title": "Actual Position Management",
+    "button": {
+      "add_position": "Add Position"
+    },
+    "modal": {
+      "create_title": "New Position",
+      "edit_title": "Edit Position"
+    },
+    "form": {
+      "field": {
+        "code": "Position Code",
+        "name": "Position Name",
+        "description": "Description",
+        "parent_position": "Parent Position",
+        "effective_date": "Effective Date",
+        "end_date": "End Date",
+        "is_active": "Is Active"
+      },
+      "validation": {
+        "name_required": "Position name is required",
+        "effective_date_required": "Effective date is required"
+      }
+    }
+  },
+  "tab_title_personnel_category_management": "Personnel Category Management",
+  "tab_title_actual_position_management": "Actual Position Management",
+  "current_personnel_categories_title": "Current Personnel Categories"
+} 

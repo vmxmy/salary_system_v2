@@ -19,12 +19,12 @@ import dayjs from 'dayjs';
 import type { PayrollRun } from '../types/payrollTypes';
 import { getPayrollRunById } from '../services/payrollApi';
 import PayrollEntriesTable from '../components/PayrollEntriesTable';
-import { getPayrollRunStatusDisplay } from '../utils/payrollUtils';
+import { getPayrollRunStatusInfo } from '../utils/payrollUtils';
 
 const { Title, /* Paragraph, Text */ } = Typography;
 
 const PayrollRunDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['payroll', 'common']);
   const { runId } = useParams<{ runId: string }>();
   const [runDetails, setRunDetails] = useState<PayrollRun | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -34,7 +34,8 @@ const PayrollRunDetailPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getPayrollRunById(id);
+      const response = await getPayrollRunById(id, { include_employee_details: true });
+      console.log('PayrollRun detail loaded:', response.data);
       setRunDetails(response.data);
     } catch (err: any) {
       setError(err.message || t('payroll_run_detail_page.error_fetch_details'));
@@ -70,7 +71,7 @@ const PayrollRunDetailPage: React.FC = () => {
     return <Alert message={t('payroll_run_detail_page.alert_not_found')} type="warning" showIcon style={{ margin: '20px' }} />;
   }
 
-  const statusInfo = getPayrollRunStatusDisplay(runDetails.status_lookup_value_id);
+  const statusInfo = getPayrollRunStatusInfo(runDetails.status_lookup_value_id);
 
   return (
     <div style={{ padding: '24px' }}>
@@ -100,13 +101,13 @@ const PayrollRunDetailPage: React.FC = () => {
           </Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_run_date')}>{dayjs(runDetails.run_date).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_status')}>
-            <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
+            <Tag color={statusInfo.color}>{t(statusInfo.key, statusInfo.params)}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_employee_count')}>{runDetails.employee_ids?.length || 0}</Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_created_by')}>{runDetails.created_by_user_id || t('payroll_run_detail_page.value_na')}</Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_created_at')}>{runDetails.created_at ? dayjs(runDetails.created_at).format('YYYY-MM-DD HH:mm:ss') : t('payroll_run_detail_page.value_na')}</Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_updated_at')}>{runDetails.updated_at ? dayjs(runDetails.updated_at).format('YYYY-MM-DD HH:mm:ss') : t('payroll_run_detail_page.value_na')}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_paid_at')} span={runDetails.paid_at ? 1 : 2}>{runDetails.paid_at ? dayjs(runDetails.paid_at).format('YYYY-MM-DD HH:mm:ss') : t('payroll_run_detail_page.value_not_paid')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_paid_at')} span={2}>{runDetails.paid_at ? dayjs(runDetails.paid_at).format('YYYY-MM-DD HH:mm:ss') : t('payroll_run_detail_page.value_not_paid')}</Descriptions.Item>
           <Descriptions.Item label={t('payroll_run_detail_page.desc_label_notes')} span={2}>{runDetails.notes || t('payroll_run_detail_page.value_no_notes')}</Descriptions.Item>
         </Descriptions>
 

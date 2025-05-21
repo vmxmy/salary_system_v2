@@ -51,7 +51,7 @@ const LoginPage: React.FC = () => {
   };
 
   if (!ready) {
-    return <Spin tip={t('loading.generic_loading_text', { ns: 'common' })} size="large" style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('common:loading.generic_loading_text')} size="large" style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   return (

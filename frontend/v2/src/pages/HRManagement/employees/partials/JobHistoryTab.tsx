@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, message, Spin, Alert, Modal, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import ActionButton from '../../../../components/common/ActionButton';
+import TableActionButton from '../../../../components/common/TableActionButton';
 import { employeeService } from '../../../../services/employeeService';
 import type { JobHistoryItem, JobHistoryPageResult, CreateJobHistoryPayload, UpdateJobHistoryPayload } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';

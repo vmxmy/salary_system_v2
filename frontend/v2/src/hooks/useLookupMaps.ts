@@ -8,7 +8,6 @@ import type {
   Position as PositionType,
   // Add other specific types if needed by rawLookups, e.g. for tree data structure
 } from '../pages/HRManagement/types'; // Adjust path as necessary based on actual file structure
-import { message } from 'antd';
 
 export interface LookupMaps {
   genderMap: Map<number, string>;

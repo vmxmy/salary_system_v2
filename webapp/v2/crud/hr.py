@@ -317,6 +317,33 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
                 employee_id=db_employee.id
             )
             db.add(db_appraisal)
+    
+    # 创建初始工作历史记录
+    if db_employee.actual_position_id:
+        try:
+            from datetime import date
+            today = date.today()
+            
+            # 确定effective_date
+            effective_date = db_employee.current_position_start_date or db_employee.hire_date or today
+            
+            # 如果不存在career_position_level_date，则将其设置为effective_date
+            if not db_employee.career_position_level_date:
+                db_employee.career_position_level_date = effective_date
+                
+            # 创建工作历史记录
+            job_history = EmployeeJobHistory(
+                employee_id=db_employee.id,
+                department_id=db_employee.department_id,
+                position_id=db_employee.actual_position_id,
+                personnel_category_id=db_employee.personnel_category_id,
+                effective_date=effective_date,
+                end_date=None  # 开放结束日期，直到职位变更
+            )
+            db.add(job_history)
+            logger.info(f"Created initial job history record for new employee {db_employee.id}")
+        except Exception as e:
+            logger.error(f"Error creating initial job history record for employee {db_employee.id}: {e}")
 
     db.commit()
     db.refresh(db_employee)
@@ -361,6 +388,13 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
     # 保存银行信息以便稍后处理
     bank_name = employee.bank_name
     bank_account_number = employee.bank_account_number
+
+    # 检查职位变更情况，记录职位变更前的值
+    position_changed = (
+        employee.actual_position_id is not None and 
+        employee.actual_position_id != db_employee.actual_position_id
+    )
+    old_position_id = db_employee.actual_position_id
 
     # 更新员工的直接字段，排除不属于Employee模型的字段
     fields_to_exclude = {
@@ -408,7 +442,58 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
             )
             db.add(new_account)
             logger.info(f"Created new bank account for employee {employee_id}: {bank_name}, {bank_account_number}")
-
+    
+    # 如果职位发生变更，自动创建一条工作历史记录
+    if position_changed:
+        from datetime import date
+        # 设置当前职位的起始时间
+        today = date.today()
+        
+        # 检查是否提供了current_position_start_date，如果没有则默认使用当前日期
+        if employee.current_position_start_date:
+            effective_date = employee.current_position_start_date
+        else:
+            effective_date = today
+            # 同时更新员工的current_position_start_date字段
+            db_employee.current_position_start_date = today
+        
+        # 检查是否是员工首次担任该职位，如果是则更新career_position_level_date
+        first_time_in_position = True
+        for history in db_employee.job_history:
+            if history.position_id == employee.actual_position_id:
+                first_time_in_position = False
+                break
+        
+        if first_time_in_position and not db_employee.career_position_level_date:
+            db_employee.career_position_level_date = effective_date
+        
+        # 结束之前的工作历史记录(如果有)
+        for job_history in db_employee.job_history:
+            if job_history.end_date is None:
+                job_history.end_date = effective_date
+                break
+        
+        # 获取必要的关联ID
+        department_id = db_employee.department_id
+        personnel_category_id = db_employee.personnel_category_id
+        
+        # 创建新的工作历史记录
+        try:
+            new_job_history = EmployeeJobHistory(
+                employee_id=employee_id,
+                department_id=department_id,
+                position_id=employee.actual_position_id,
+                personnel_category_id=personnel_category_id,
+                effective_date=effective_date,
+                end_date=None  # 开放结束日期，直到下次职位变更
+            )
+            db.add(new_job_history)
+            logger.info(f"Created job history record for employee {employee_id}: "
+                        f"position change from {old_position_id} to {employee.actual_position_id} "
+                        f"effective {effective_date}")
+        except Exception as e:
+            logger.error(f"Error creating job history record for employee {employee_id}: {e}")
+    
     # 处理年度考核 appraisals 的更新
     # Only proceed if 'appraisals' key was provided in the payload and is not None.
     # If employee.appraisals is an empty list [], it means to delete all existing and add no new ones.
@@ -875,13 +960,14 @@ def _resolve_lookup_id(db: Session, text_value: Optional[str], type_code: str) -
         logger.warning(f"Lookup value not found for text: '{text_value}' with type_code: '{type_code}'. A new one might be created if applicable or this will be skipped.")
     return lookup_value_id
 
-def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate]) -> List[Employee]:
+def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overwrite_mode: bool = False) -> List[Employee]:
     """
     批量创建员工。
 
     Args:
         db: 数据库会话
         employees_in: 员工创建模型列表 (包含 *_name fields for lookups and department/position)
+        overwrite_mode: 是否启用覆盖模式，允许更新已存在的员工记录（根据身份证号和员工代码匹配）
 
     Returns:
         成功创建的员工对象列表
@@ -917,14 +1003,26 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate]) -> Li
                 # If DB has unique constraint that treats multiple empty strings as duplicate, that's a DB level concern.
                 existing_in_db = get_employee_by_code(db, emp_in.employee_code)
                 if existing_in_db:
-                    current_record_errors.append(f"Employee_code '{emp_in.employee_code}' already exists in DB.")
+                    if overwrite_mode:
+                        # 在覆盖模式下，保存现有员工ID用于更新
+                        emp_in.id = existing_in_db.id
+                        logger.info(f"Overwrite mode: Found existing employee with code '{emp_in.employee_code}', will update.")
+                    else:
+                        current_record_errors.append(f"Employee_code '{emp_in.employee_code}' already exists in DB.")
 
             if emp_in.id_number:
                 if emp_in.id_number in seen_id_numbers_in_batch:
                     current_record_errors.append(f"Duplicate id_number '{emp_in.id_number}' in batch.")
                 seen_id_numbers_in_batch.add(emp_in.id_number)
-                if get_employee_by_id_number(db, emp_in.id_number):
-                    current_record_errors.append(f"Id_number '{emp_in.id_number}' already exists in DB.")
+                existing_employee = get_employee_by_id_number(db, emp_in.id_number)
+                if existing_employee:
+                    if overwrite_mode:
+                        # 如果之前没有通过employee_code找到，则通过id_number找到
+                        if not hasattr(emp_in, 'id') or emp_in.id is None:
+                            emp_in.id = existing_employee.id
+                            logger.info(f"Overwrite mode: Found existing employee with ID number '{emp_in.id_number}', will update.")
+                    else:
+                        current_record_errors.append(f"Id_number '{emp_in.id_number}' already exists in DB.")
 
             # 保存银行信息以便稍后创建
             bank_name = emp_in.bank_name
@@ -1012,9 +1110,30 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate]) -> Li
                 errors.append({"record_index": index, "employee_code": emp_in.employee_code, "errors": current_record_errors})
                 continue # Skip this record
 
-            db_employee = Employee(**employee_orm_data)
+            # 在覆盖模式下，处理更新现有员工的情况
+            if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
+                # 查找现有员工
+                existing_employee = get_employee(db, emp_in.id)
+                if existing_employee:
+                    # 更新现有员工的字段
+                    for key, value in employee_orm_data.items():
+                        setattr(existing_employee, key, value)
+                    db_employee = existing_employee
+                    logger.info(f"Overwrite mode: Updating existing employee with ID {emp_in.id}")
+                else:
+                    # 如果找不到员工（不应该发生），创建新员工
+                    db_employee = Employee(**employee_orm_data)
+                    logger.warning(f"Overwrite mode: Could not find employee with ID {emp_in.id}, creating new.")
+            else:
+                # 正常创建新员工
+                db_employee = Employee(**employee_orm_data)
+            
             db_employees_to_add.append(db_employee)
-            db.add(db_employee)
+            if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
+                # 对于已存在的记录，不需要add，会自动更新
+                pass
+            else:
+                db.add(db_employee)
             
             # 如果提供了银行信息，保存以便稍后创建
             if bank_name and bank_account_number:
@@ -1056,6 +1175,35 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate]) -> Li
             except Exception as e:
                 logger.error(f"Error creating bank account for employee {employee.id}: {e}")
                 # 这里不抛出错误，我们继续处理其他记录
+        
+        # 为每个员工创建初始工作历史记录
+        from datetime import date
+        today = date.today()
+        
+        for employee in db_employees_to_add:
+            if employee.actual_position_id and employee.department_id and employee.personnel_category_id:
+                try:
+                    # 确定effective_date
+                    effective_date = employee.current_position_start_date or employee.hire_date or today
+                    
+                    # 如果不存在career_position_level_date，则将其设置为effective_date
+                    if not employee.career_position_level_date:
+                        employee.career_position_level_date = effective_date
+                    
+                    # 创建工作历史记录
+                    job_history = EmployeeJobHistory(
+                        employee_id=employee.id,
+                        department_id=employee.department_id,
+                        position_id=employee.actual_position_id,
+                        personnel_category_id=employee.personnel_category_id,
+                        effective_date=effective_date,
+                        end_date=None  # 开放结束日期，直到职位变更
+                    )
+                    db.add(job_history)
+                    logger.info(f"Created initial job history record for bulk-created employee {employee.id}")
+                except Exception as e:
+                    logger.error(f"Error creating initial job history record for employee {employee.id}: {e}")
+                    # 这里不抛出错误，我们继续处理其他记录
 
         # Appraisals are explicitly not handled in this bulk employee creation
         # If they were, logic would go here, iterating emp_in and db_employees_to_add

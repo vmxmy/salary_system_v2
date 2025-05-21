@@ -10,16 +10,19 @@ import {
   Card,
   Input,
   App,
+  Tabs,
+  Switch,
   type UploadFile
 } from 'antd';
-import { UploadOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, InboxOutlined } from '@ant-design/icons';
+import { UploadOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, InboxOutlined, TableOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
-import { employeeService } from '../../../services/employeeService'; 
+import { employeeService } from '../../../services/employeeService';
 import styles from './EmployeeBulkImportPage.module.less';
 import type { CreateEmployeePayload } from '../../HRManagement/types';
 import { nanoid } from 'nanoid';
+import TableTextConverter from './TableTextConverter';
 
 export interface RawEmployeeData extends CreateEmployeePayload { 
   _clientId?: string; 
@@ -44,10 +47,11 @@ interface ValidationSummary {
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
+const { TabPane } = Tabs;
 
 const EmployeeBulkImportPage: React.FC = () => {
   const { t, ready } = useTranslation(['hr', 'common']);
-  const { message, modal } = App.useApp(); 
+  const { message, modal } = App.useApp();
   const navigate = useNavigate();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [parsedData, setParsedData] = useState<ValidatedEmployeeData[] | null>(null);
@@ -56,8 +60,10 @@ const EmployeeBulkImportPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [jsonInput, setJsonInput] = useState<string>('');
   const [parseError, setParseError] = useState<string | null>(null);
-  const textAreaRef = useRef<any>(null); 
+  const textAreaRef = useRef<any>(null);
   const [validationSummary, setValidationSummary] = useState<ValidationSummary>({ totalRecords: 0, validRecords: 0, invalidRecords: 0 });
+  const [activeTab, setActiveTab] = useState<string>('json');
+  const [overwriteMode, setOverwriteMode] = useState<boolean>(false);
 
   useEffect(() => {
     if (jsonInput && textAreaRef.current) {
@@ -67,7 +73,27 @@ const EmployeeBulkImportPage: React.FC = () => {
         textAreaRef.current.focus();
       }
     }
-  }, [jsonInput]); 
+  }, [jsonInput]);
+
+  // 监听表格转换器的结果事件
+  useEffect(() => {
+    const handleTableConverterResult = (event: any) => {
+      const { jsonData } = event.detail;
+      if (jsonData && Array.isArray(jsonData)) {
+        // 将转换后的JSON数据设置到输入框
+        setJsonInput(JSON.stringify(jsonData, null, 2));
+        // 切换到JSON标签页
+        setActiveTab('json');
+        // 显示成功消息
+        message.success(`成功从表格转换了 ${jsonData.length} 条员工记录`);
+      }
+    };
+
+    window.addEventListener('tableConverterResult', handleTableConverterResult);
+    return () => {
+      window.removeEventListener('tableConverterResult', handleTableConverterResult);
+    };
+  }, [message]);
 
   const handleJsonInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setJsonInput(e.target.value);
@@ -279,7 +305,7 @@ const EmployeeBulkImportPage: React.FC = () => {
         return apiPayload as CreateEmployeePayload; 
       });
 
-      const response = await employeeService.bulkCreateEmployees(payload); 
+      const response = await employeeService.bulkCreateEmployees(payload, overwriteMode); 
       
       console.log("[BULK IMPORT DEBUG] Raw API Response from service in handleUpload:", response);
       
@@ -399,24 +425,26 @@ const EmployeeBulkImportPage: React.FC = () => {
   return (
     <PageHeaderLayout pageTitle={t('hr:bulk_import.page_title')} icon={<UserAddOutlined />}>
       <div className={styles.bulkImportContainer}>
-        <Steps current={currentStep} style={{ marginBottom: 24 }}>
-          <Step title={t('bulk_import.steps.input_data')} icon={<FileTextOutlined />} />
-          <Step title={t('bulk_import.steps.preview_data')} icon={<UploadOutlined />} />
-          <Step title={t('bulk_import.steps.upload_progress')} />
-          <Step title={t('bulk_import.steps.results')} />
-        </Steps>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} style={{ marginBottom: 16 }}>
+          <TabPane tab={<span><FileTextOutlined />JSON导入</span>} key="json">
+            <Steps current={currentStep} style={{ marginBottom: 24 }}>
+              <Step title={t('bulk_import.steps.input_data')} icon={<FileTextOutlined />} />
+              <Step title={t('bulk_import.steps.preview_data')} icon={<UploadOutlined />} />
+              <Step title={t('bulk_import.steps.upload_progress')} />
+              <Step title={t('bulk_import.steps.results')} />
+            </Steps>
 
-        {parseError && (
-          <Alert 
-            message={parseError} 
-            type="error" 
-            showIcon 
-            closable 
-            onClose={() => setParseError(null)} 
-          />
-        )}
+            {parseError && (
+              <Alert
+                message={parseError}
+                type="error"
+                showIcon
+                closable
+                onClose={() => setParseError(null)}
+              />
+            )}
 
-        {currentStep === 0 && (
+            {currentStep === 0 && (
           <Card title={t('bulk_import.card_title.select_or_paste_json')}>
             <Upload.Dragger
               name="file"
@@ -475,9 +503,9 @@ const EmployeeBulkImportPage: React.FC = () => {
               {t('bulk_import.notes.refer_to_documentation_for_fields')}
             </Paragraph>
           </Card>
-        )}
+            )}
 
-        {currentStep === 1 && parsedData && (
+            {currentStep === 1 && parsedData && (
           <Card title={t('bulk_import.card_title.preview_data_count_summary', { 
             count: parsedData.length, 
             valid: validationSummary.validRecords, 
@@ -499,6 +527,16 @@ const EmployeeBulkImportPage: React.FC = () => {
                 style={{marginBottom: 16}}
               />
             }
+            <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center' }}>
+              <Switch 
+                checked={overwriteMode} 
+                onChange={(checked) => setOverwriteMode(checked)} 
+                style={{ marginRight: 8 }}
+              />
+              <Text>
+                {t('bulk_import.overwrite_mode', { defaultValue: '覆盖模式：允许更新已存在的员工记录（根据身份证号和员工代码匹配）' })}
+              </Text>
+            </div>
             <Table 
               columns={columns} 
               dataSource={parsedData}
@@ -519,17 +557,17 @@ const EmployeeBulkImportPage: React.FC = () => {
               {t('bulk_import.button.start_upload_count', {count: validationSummary.validRecords})}
             </Button>
           </Card>
-        )}
-        
-        {currentStep === 2 && uploading && (
+            )}
+
+            {currentStep === 2 && uploading && (
             <Card title={t('bulk_import.card_title.uploading_data')}>
                 <Space direction="vertical" align="center" style={{width: '100%'}}>
                     <Text>{t('bulk_import.message.upload_in_progress')}</Text>
                 </Space>
             </Card>
-        )}
+            )}
 
-        {currentStep === 3 && uploadResult && (
+            {currentStep === 3 && uploadResult && (
           <Card title={t('bulk_import.card_title.upload_results')}>
             {uploadResult.errorCount === 0 && uploadResult.successCount > 0 ? (
               <Alert
@@ -589,7 +627,12 @@ const EmployeeBulkImportPage: React.FC = () => {
               {t('bulk_import.button.import_another_file')}
             </Button>
           </Card>
-        )}
+            )}
+          </TabPane>
+          <TabPane tab={<span><TableOutlined />表格转换</span>} key="table">
+            <TableTextConverter />
+          </TabPane>
+        </Tabs>
       </div>
     </PageHeaderLayout>
   );

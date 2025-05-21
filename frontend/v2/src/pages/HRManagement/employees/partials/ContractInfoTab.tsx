@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Spin, Alert, Modal, Table, Popconfirm, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, message, Spin, Alert, Modal } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { employeeService } from '../../../../services/employeeService';
 import type { ContractItem, ContractPageResult, CreateContractPayload, UpdateContractPayload } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import ContractTable from './ContractTable';
 import ContractModal from './ContractModal';
-import type { ColumnsType } from 'antd/es/table';
-import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { useLookupMaps } from '../../../../hooks/useLookupMaps';
 
 interface ContractInfoTabProps {
   employeeId: string;
@@ -19,6 +18,7 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
   const [contracts, setContracts] = useState<ContractItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { lookupMaps, loadingLookups } = useLookupMaps();
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -39,7 +39,7 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
     try {
       const result: ContractPageResult = await employeeService.getEmployeeContracts(employeeId, { page, pageSize: size });
       setContracts(result.data);
-      setTotalRecords(result.meta.total_items);
+      setTotalRecords(result.meta.total_items || 0);
       setCurrentPage(result.meta.current_page);
       setPageSize(result.meta.per_page);
     } catch (err: any) {
@@ -135,12 +135,6 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
     setEditingRecord(null);
   };
 
-  const handleTableChange = (pagination: any) => {
-    // Called by AntD table when pagination changes
-    setCurrentPage(pagination.current);
-    setPageSize(pagination.pageSize);
-    // fetchContracts will be called by useEffect due to currentPage/pageSize change
-  };
 
   if (loading && !contracts.length && currentPage === 1) {
     return <div style={{ textAlign: 'center', padding: '20px'}}>
@@ -171,11 +165,10 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
       )}
       <ContractTable
         dataSource={contracts}
-        loading={loading}
-        onEdit={handleEdit} // Permission for edit button itself is handled inside ContractTable
-        onDelete={handleDelete} // Permission for delete button itself is handled inside ContractTable
-        // Pass pagination props if ContractTable is to handle it
-        // For now, ContractTable pagination is false, parent handles data fetching based on its state
+        loading={loading || loadingLookups }
+        lookupMaps={lookupMaps}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
       {totalRecords > 0 && (
         <div style={{ marginTop: 16, textAlign: 'right' }}>

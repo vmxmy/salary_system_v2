@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import ActionButton from '../../../../components/common/ActionButton';
+import TableActionButton from '../../../../components/common/TableActionButton';
 import type { ContractItem } from '../../types';
 import dayjs from 'dayjs';
 import { usePermissions } from '../../../../hooks/usePermissions';
@@ -88,7 +88,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       render: (_, record) => (
         <Space size="small">
           {canEditContract && (
-            <ActionButton
+            <TableActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
               tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_edit_contract', '编辑合同')}
@@ -102,7 +102,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
               okText={t('common:button.yes_delete', '是的，删除')}
               cancelText={t('common:button.cancel', '取消')}
             >
-              <ActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_delete_contract', '删除合同')} />
+              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_delete_contract', '删除合同')} />
             </Popconfirm>
           )}
         </Space>

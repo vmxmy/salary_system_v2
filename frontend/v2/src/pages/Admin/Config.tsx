@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tabs, Card, Typography } from 'antd';
+import { Card, Typography } from 'antd';
+import UnifiedTabs from '../../components/common/UnifiedTabs';
 import ChatbotSettingsTab from './Configuration/ChatbotSettingsTab'; // 确保路径正确
 
 const { Title } = Typography;
@@ -34,8 +35,13 @@ const ConfigPage: React.FC = () => {
       <Title level={2} style={{ marginBottom: '24px' }}>
         {t('configpage.title', '系统配置')}
       </Title>
-      <Card variant="borderless">
-        <Tabs defaultActiveKey="chatbot" tabPosition="top" type="line" items={tabItems} />
+      <Card>
+        <UnifiedTabs 
+          type="line" 
+          size="large"
+          items={tabItems}
+          defaultActiveKey="chatbot"
+        />
       </Card>
     </div>
   );

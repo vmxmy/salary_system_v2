@@ -1,5 +1,6 @@
 import { create, type StateCreator } from 'zustand';
 import { persist, createJSONStorage, type PersistOptions } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 
 export interface ChatbotConfig {
   token: string;
@@ -24,10 +25,10 @@ export interface ChatbotConfigState {
 }
 
 export const defaultConfig: ChatbotConfig = {
-  token: 'hMAF064QpYeYtSHm', // Default token
-  baseUrl: 'https://proxy-llm.1024paas.com/v1', // Default baseUrl
+  token: '', // Default token
+  baseUrl: '', // Default baseUrl
   scriptSrc: 'https://cdn.dify.ai/embed-chatbot/embed.min.js',
-  scriptId: 'hMAF064QpYeYtSHm', // Default scriptId, ensure it matches token
+  scriptId: '', // Default scriptId, ensure it matches token
   customCss: '',
   customJs: '',
   isEnabled: true, // Default enabled state

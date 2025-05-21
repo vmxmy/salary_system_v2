@@ -1,6 +1,22 @@
 {
     "list_page": {
       "title": "员工列表",
+      "loading_lookups": "正在加载筛选选项...",
+      "export": {
+        "filename": "员工列表",
+        "sheet_name": "员工数据",
+        "button_text": "导出Excel",
+        "success_message": "员工列表导出成功"
+      },
+      "column_control": {
+        "button_text": "列设置",
+        "tooltip": "自定义显示列",
+        "dropdown_title": "列显示",
+        "reset_text": "重置"
+      },
+      "pagination": {
+        "total": "共 {total} 条"
+      },
       "message": {
         "load_aux_data_failed": "加载筛选和显示所需的辅助数据失败。",
         "get_employees_failed_empty_response": "获取员工数据失败：响应数据为空。",
@@ -25,7 +41,13 @@
           "education_level": "学历",
           "employment_type": "雇佣类型",
           "job_title": "实际任职",
-          "personnel_category": "人员身份"
+          "personnel_category": "人员身份",
+          "id_number": "证件号码",
+          "actual_position": "实际岗位",
+          "first_work_date_range": "首次工作日期范围",
+          "marital_status": "婚姻状况",
+          "political_status": "政治面貌",
+          "contract_type": "合同类型"
         },
         "placeholder": {
           "name": "请输入员工姓名",
@@ -36,7 +58,12 @@
           "education_level": "请选择学历",
           "employment_type": "请选择雇佣类型",
           "job_title": "请选择职位",
-          "personnel_category": "请选择人员身份"
+          "personnel_category": "请选择人员身份",
+          "id_number": "请输入证件号码",
+          "actual_position": "请选择实际岗位",
+          "marital_status": "请选择婚姻状况",
+          "political_status": "请选择政治面貌",
+          "contract_type": "请选择合同类型"
         },
         "button": {
           "search": "查询",
@@ -44,15 +71,27 @@
         }
       },
       "table": {
+        "empty_text": "暂无员工数据",
+        "search_placeholder_prefix": "搜索",
+        "search_button": "搜索",
+        "reset_button": "重置",
         "column": {
           "full_name": "姓名",
           "employee_code": "工号",
           "gender": "性别",
           "department": "部门",
-          "job_title": "职位",
+          "job_title": "实际任职",
           "personnel_category": "人员身份",
           "status": "状态",
           "hire_date": "入职日期",
+          "id_number": "身份证号",
+          "ethnicity": "民族",
+          "date_of_birth": "出生日期",
+          "education_level": "文化程度",
+          "first_work_date": "参加工作时间",
+          "interrupted_service_years": "工龄间断年限",
+          "actual_position_start_date": "实际任职时间",
+          "career_position_level_date": "任职级时间",
           "actions": "操作"
         },
         "cell_empty": "-",
@@ -65,7 +104,8 @@
         "unknown": {
           "gender_param": "未知 ({genderId})",
           "status_raw": "未知",
-          "status_param": "未知 ({statusId})"
+          "status_param": "未知 ({statusId})",
+          "education_level_param": "未知 ({educationLevelId})"
         },
         "action": {
           "view_details": "查看详情",
@@ -168,13 +208,17 @@
         "label_employment_type": "雇佣类型",
         "label_employee_status": "员工状态",
         "label_hire_date": "入职日期",
+        "label_current_position_start_date": "实际任职时间(本单位)",
+        "label_career_position_level_date": "任职级时间(职业生涯)",
         "label_email": "邮箱",
         "label_mobile_phone": "手机号",
         "label_education_level": "最高学历",
         "label_marital_status": "婚姻状况",
         "label_political_status": "政治面貌",
         "label_residential_address": "居住地址", 
-        "label_notes": "备注" 
+        "label_notes": "备注",
+        "tooltip_current_position_start_date": "员工在当前单位担任该职级的开始日期",
+        "tooltip_career_position_level_date": "员工在整个职业生涯中首次担任该职级的时间"
       },
       "job_info_tab": {
         "title": "职位信息",
@@ -428,5 +472,7 @@
     "email": "邮箱",
     "phone_number": "手机号",
     "hire_date": "入职日期"
-  }
+  },
+  "employee_id_format": "员工ID: {{id}}",
+  "employee_unavailable": "员工信息不可用"
 }

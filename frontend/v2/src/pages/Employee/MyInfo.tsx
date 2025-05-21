@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty, Breadcrumb, Tabs } from 'antd';
+import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty, Breadcrumb } from 'antd';
 import { UserOutlined, HomeOutlined, ProfileOutlined, SolutionOutlined, WalletOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,8 @@ import { useAuthStore } from '../../store/authStore';
 import { employeeService } from '../../services/employeeService';
 import type { Employee, LookupValue, Department, PersonnelCategory, Position } from '../HRManagement/types';
 import useHrLookupStore from '../../store/hrLookupStore';
+import EmployeeName from '../../components/common/EmployeeName';
+import UnifiedTabs from '../../components/common/UnifiedTabs';
 
 const { Title, Text } = Typography;
 
@@ -112,7 +114,7 @@ const MyInfoPage: React.FC = () => {
   }, [employeeId, t]);
 
   if (loading && !employee) {
-    return <Spin tip={t('loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('common:loading.generic_loading_text')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error) {
@@ -155,7 +157,7 @@ const MyInfoPage: React.FC = () => {
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:personalEmail')}>{employee.email || 'N/A'}</Descriptions.Item>
               <Descriptions.Item label={t('employee:mobilePhone')}>{employee.phone_number || 'N/A'}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:address')} span={2}>{employee.home_address || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:address')} span={1}>{employee.home_address || 'N/A'}</Descriptions.Item>
             </Descriptions>
           </Card>
         </>
@@ -173,7 +175,7 @@ const MyInfoPage: React.FC = () => {
         <>
           {/* Card 4: Employment Information */}
           <Card title={t('myInfo:sectionTitles.employment')} style={{ marginBottom: 16 }}>
-            <Descriptions title={t('myInfo:sectionTitles.employment')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
+            <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:department')}>{employee.departmentName || getLookupDisplayName(employee.department_id, departments)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:personnelCategory')}>{employee.personnel_category_name || getLookupDisplayName(employee.personnel_category_id, personnelCategories)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:actualPosition')}>{employee.actual_position_name || getLookupDisplayName(employee.actual_position_id, actualPositions)}</Descriptions.Item>
@@ -182,7 +184,7 @@ const MyInfoPage: React.FC = () => {
               <Descriptions.Item label={t('employee:employmentType')}>{getLookupDisplayName(employee.employment_type_lookup_value_id, employmentTypes)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:status')}>{getLookupDisplayName(employee.status_lookup_value_id, employeeStatuses)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:reportsTo')}>{getLookupDisplayName(employee.reports_to_employee_id /*, employees - if fetched for manager name lookup */)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:workLocation')} span={2}>{employee.workLocation || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:workLocation')} span={1}>{employee.workLocation || 'N/A'}</Descriptions.Item>
             </Descriptions>
           </Card>
         </>
@@ -200,18 +202,18 @@ const MyInfoPage: React.FC = () => {
         <>
           {/* Card 5: Bank Information */}
           <Card title={t('myInfo:sectionTitles.bank')} style={{ marginBottom: 16 }}>
-            <Descriptions title={t('myInfo:sectionTitles.bank')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }} style={{ marginBottom: 24}}>
-              <Descriptions.Item label={t('employee:bankName')} span={2}>{employee.bank_name || 'N/A'}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:bankAccountNumber')} span={2}>{employee.bank_account_number || 'N/A'}</Descriptions.Item>
+            <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
+              <Descriptions.Item label={t('employee:bankName')} span={1}>{employee.bank_name || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:bankAccountNumber')} span={1}>{employee.bank_account_number || 'N/A'}</Descriptions.Item>
             </Descriptions>
           </Card>
           
           {/* Card 6: Emergency Contact */}
           <Card title={t('myInfo:sectionTitles.emergency')} style={{ marginBottom: 16 }}>
-            <Descriptions title={t('myInfo:sectionTitles.emergency')} bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
+            <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:emergencyContactName')}>{employee.emergency_contact_name || 'N/A'}</Descriptions.Item>
               <Descriptions.Item label={t('employee:emergencyContactPhone')}>{employee.emergency_contact_phone || 'N/A'}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:emergencyContactRelation')} span={2}>{employee.emergencyContactRelation || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:emergencyContactRelation')} span={1}>{employee.emergencyContactRelation || 'N/A'}</Descriptions.Item>
             </Descriptions>
           </Card>
           
@@ -246,13 +248,25 @@ const MyInfoPage: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Avatar size={64} src={employee.avatar} icon={<UserOutlined />} style={{ marginRight: '20px' }} />
           <div>
-            <Title level={3} style={{ marginBottom: 0 }}>{`${employee.first_name} ${employee.last_name}`}</Title>
+            <Title level={3} style={{ marginBottom: 0 }}>
+              <EmployeeName 
+                employeeId={employee.id} 
+                employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
+                showId={false}
+                className="employee-info-name"
+              />
+            </Title>
             <Text type="secondary">{t('myInfo:employeeCode')}: {employee.employee_code}</Text>
           </div>
         </div>
       </Card>
 
-      <Tabs defaultActiveKey="personalContact" items={tabItems} type="card" />
+      <UnifiedTabs 
+        defaultActiveKey="personalContact" 
+        items={tabItems} 
+        size="large"
+        type="line"
+      />
 
     </div>
   );

@@ -85,8 +85,8 @@ export interface PayrollEntry {
   status_lookup_value_id: number;
   status?: LookupValue; // Optional: if status details are fetched/included
   remarks?: string;
-  earnings_details: PayrollItemDetail[]; // JSONB field
-  deductions_details: PayrollItemDetail[]; // JSONB field
+  earnings_details: Record<string, PayrollItemDetail | { amount: number }> | PayrollItemDetail[];
+  deductions_details: Record<string, PayrollItemDetail | { amount: number }> | PayrollItemDetail[];
   created_at?: string;
   updated_at?: string;
   payroll_run?: PayrollRun; // Optional: if run details are fetched/included
@@ -95,10 +95,16 @@ export interface PayrollEntry {
 
 // For PATCH /v2/payroll-entries/{entryId} (e.g., manual adjustments)
 export interface PayrollEntryPatch {
+  employee_id?: number;
+  payroll_period_id?: number;
+  payroll_run_id?: number;
   status_lookup_value_id?: number;
   remarks?: string;
-  earnings_details?: PayrollItemDetail[];
-  deductions_details?: PayrollItemDetail[];
+  gross_pay?: number;
+  total_deductions?: number;
+  net_pay?: number;
+  earnings_details?: Record<string, { amount: number, name?: string }>;
+  deductions_details?: Record<string, { amount: number, name?: string }>;
   // Add other patchable fields as needed
 }
 

@@ -6,6 +6,7 @@
   "column.paymentDate": "Payment Date",
   "column.status": "Status",
   "column.actions": "Actions",
+  "column.employeeName": "Employee Name",
   "noEmployeeIdError": "Cannot retrieve employee ID. Please ensure you are logged in and have an employee account.",
   "fetchError": "Failed to fetch payslip data. Please try again later.",
   "periodIdPrefix": "ID: ",

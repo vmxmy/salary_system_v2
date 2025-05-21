@@ -1,7 +1,8 @@
 // HRManagement Module Routes
 import React from 'react';
 import type { AppRouteObject } from '../../router/routes'; // Corrected: AppRouteObject is exported from routes.tsx
-import i18n from '../../i18n'; // Import i18n instance
+// 不要在模块级别导入 i18n 并直接调用 t() 函数
+// import i18n from '../../i18n'; // Import i18n instance
 
 // Import page components
 import EmployeeListPage from './employees/EmployeeListPage';
@@ -21,7 +22,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees',
     element: React.createElement(EmployeeListPage),
     meta: {
-      title: i18n.t('pageTitle:employee_files'),
+      title: 'pageTitle:employee_files', // 使用静态翻译键
       requiredPermissions: ['employee:list'], // Changed from permission to requiredPermissions
       hideInBreadcrumbIfParentOfNext: true,
     },
@@ -30,7 +31,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/new',
     element: React.createElement(CreateEmployeePage),
     meta: {
-      title: i18n.t('pageTitle:create_employee'),
+      title: 'pageTitle:create_employee', // 使用静态翻译键
       requiredPermissions: ['employee:create'], // Changed from permission to requiredPermissions
     },
   },
@@ -38,7 +39,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId/edit',
     element: React.createElement(EditEmployeePage),
     meta: {
-      title: i18n.t('pageTitle:edit_employee'),
+      title: 'pageTitle:edit_employee', // 使用静态翻译键
       requiredPermissions: ['employee:edit'], // Changed from permission to requiredPermissions
     },
   },
@@ -46,7 +47,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId', // Detail page route
     element: React.createElement(EmployeeDetailPage), // Use the actual component
     meta: {
-      title: i18n.t('pageTitle:employee_details'),
+      title: 'pageTitle:employee_details', // 使用静态翻译键
       requiredPermissions: ['employee:view'], // Changed from permission to requiredPermissions
     },
   },

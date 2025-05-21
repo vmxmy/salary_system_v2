@@ -47,9 +47,9 @@ const initialState: AuthStoreState = {
 
 // Helper function to extract roles and permissions
 const processUserRbac = (user: User | null): { roles: string[] | null, roleCodes: string[] | null, permissions: string[] | null } => {
-  console.log('[AuthStore] processUserRbac called with user:', JSON.stringify(user, null, 2)); // Log the input user object
+  // console.log('[AuthStore] processUserRbac called with user:', JSON.stringify(user, null, 2)); // Log the input user object
   if (!user || !user.roles) {
-    console.log('[AuthStore] processUserRbac: User or user.roles is null/undefined.');
+    // console.log('[AuthStore] processUserRbac: User or user.roles is null/undefined.');
     return { roles: null, roleCodes: null, permissions: null };
   }
   const roles = user.roles.map((r: Role) => r.name);
@@ -57,7 +57,7 @@ const processUserRbac = (user: User | null): { roles: string[] | null, roleCodes
   const permissions = Array.from(
     new Set(user.roles.flatMap((r: Role) => r.permissions?.map((p: Permission) => p.code) || []))
   );
-  console.log('[AuthStore] processUserRbac processed:', { roles, roleCodes, permissions }); // Log the output
+  // console.log('[AuthStore] processUserRbac processed:', { roles, roleCodes, permissions }); // Log the output
   return { roles, roleCodes, permissions }; // Return role codes
 };
 
@@ -78,18 +78,18 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
       ...initialState,
 
       loginAction: async (credentials) => {
-        console.log('[AuthStore:loginAction] Called with credentials:', credentials);
+        // console.log('[AuthStore:loginAction] Called with credentials:', credentials);
         const newStateBeforeLogin = { isLoadingUser: true, loginError: null, fetchUserError: null };
-        console.log('[AuthStore:loginAction] Setting state (before API call):', newStateBeforeLogin);
+        // console.log('[AuthStore:loginAction] Setting state (before API call):', newStateBeforeLogin);
         set(newStateBeforeLogin);
         try {
           const response: LoginResponse = await apiLogin(credentials);
-          console.log('[AuthStore:loginAction] API login response received:', response);
+          // console.log('[AuthStore:loginAction] API login response received:', response);
           const { access_token, user } = response;
 
           if (!access_token || !user) {
             const errorMsg = 'Access token or user object not found in login response';
-            console.error('[AuthStore:loginAction]', errorMsg);
+            // console.error('[AuthStore:loginAction]', errorMsg);
             throw new Error(errorMsg);
           }
 
@@ -110,40 +110,40 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
               loginError: null,
               isLoadingUser: false,
             };
-            console.log('[AuthStore:loginAction] Setting state (on success):', updatedState);
+            // console.log('[AuthStore:loginAction] Setting state (on success):', updatedState);
             return updatedState;
           });
-          console.log('[AuthStore:loginAction] User, roles, and permissions set in store.');
-          console.log('[AuthStore:loginAction] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
+          // console.log('[AuthStore:loginAction] User, roles, and permissions set in store.');
+          // console.log('[AuthStore:loginAction] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
         } catch (error: any) {
-          console.error('[AuthStore:loginAction] Login failed.', error);
+          // console.error('[AuthStore:loginAction] Login failed.', error);
           const errorMessage = error.response?.data?.detail || error.message || 'An unknown login error occurred';
           const errorState = {
             ...initialState,
             loginError: errorMessage,
             isLoadingUser: false,
           };
-          console.log('[AuthStore:loginAction] Setting state (on error):', errorState);
+          // console.log('[AuthStore:loginAction] Setting state (on error):', errorState);
           set(errorState);
         }
       },
 
       fetchCurrentUserDetails: async (numericUserId) => {
-        console.log(`[AuthStore:fetchCurrentUserDetails] Called with numericId: ${numericUserId}`);
+        // console.log(`[AuthStore:fetchCurrentUserDetails] Called with numericId: ${numericUserId}`);
         if (numericUserId === undefined || numericUserId === null) {
           const errorMsg = 'Numeric User ID is missing, cannot fetch details.';
-          console.warn('[AuthStore:fetchCurrentUserDetails]', errorMsg);
+          // console.warn('[AuthStore:fetchCurrentUserDetails]', errorMsg);
           const errorState = { fetchUserError: errorMsg, currentUser: null, userRoles: null, userPermissions: null, isLoadingUser: false };
-          console.log('[AuthStore:fetchCurrentUserDetails] Setting state (ID missing):', errorState);
+          // console.log('[AuthStore:fetchCurrentUserDetails] Setting state (ID missing):', errorState);
           set(errorState);
           return;
         }
-        const loadingState = { isLoadingUser: true, fetchUserError: null }; 
-        console.log('[AuthStore:fetchCurrentUserDetails] Setting state (before API call):', loadingState);
+        const loadingState = { isLoadingUser: true, fetchUserError: null };
+        // console.log('[AuthStore:fetchCurrentUserDetails] Setting state (before API call):', loadingState);
         set(loadingState);
         try {
           const user = await apiGetCurrentUser(numericUserId);
-          console.log('[AuthStore:fetchCurrentUserDetails] User fetched successfully:', user);
+          // console.log('[AuthStore:fetchCurrentUserDetails] User fetched successfully:', user);
           const { roles, roleCodes, permissions } = processUserRbac(user);
           set(state => {
             const successState = {
@@ -157,30 +157,30 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
               isLoadingUser: false,
               fetchUserError: null
             };
-            console.log('[AuthStore:fetchCurrentUserDetails] Setting state (on success):', successState);
+            // console.log('[AuthStore:fetchCurrentUserDetails] Setting state (on success):', successState);
             return successState;
           });
-          console.log('[AuthStore:fetchCurrentUserDetails] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
+          // console.log('[AuthStore:fetchCurrentUserDetails] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
         } catch (error: any) {
           const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch user details';
-          console.error('[AuthStore:fetchCurrentUserDetails] Failed to fetch user details, logging out.', error);
+          // console.error('[AuthStore:fetchCurrentUserDetails] Failed to fetch user details, logging out.', error);
           get().logoutAction();
           const errorStateAfterLogout = { fetchUserError: errorMessage };
-          console.log('[AuthStore:fetchCurrentUserDetails] Setting state (on error, after logout):', errorStateAfterLogout);
+          // console.log('[AuthStore:fetchCurrentUserDetails] Setting state (on error, after logout):', errorStateAfterLogout);
           set(errorStateAfterLogout);
         }
       },
 
       logoutAction: () => {
-        console.log('[AuthStore:logoutAction] Called');
-        console.log('[AuthStore:logoutAction] Setting state to initialState:', initialState);
+        // console.log('[AuthStore:logoutAction] Called');
+        // console.log('[AuthStore:logoutAction] Setting state to initialState:', initialState);
         set(initialState);
       },
 
       initializeAuth: () => {
         const token = get().authToken;
         const numericIdFromStorage = get().currentUserNumericId;
-        console.log(`[AuthStore:initializeAuth] Called. Token: ${!!token}, NumericID: ${numericIdFromStorage}`);
+        // console.log(`[AuthStore:initializeAuth] Called. Token: ${!!token}, NumericID: ${numericIdFromStorage}`);
         
         const isLoading = get().isLoadingUser;
 
@@ -188,38 +188,38 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
           try {
             const decodedToken = jwtDecode<DecodedToken>(token);
             const setSubState = { currentUserId: decodedToken.sub };
-            console.log('[AuthStore:initializeAuth] Setting currentUserId from token:', setSubState);
-            set(setSubState); 
+            // console.log('[AuthStore:initializeAuth] Setting currentUserId from token:', setSubState);
+            set(setSubState);
 
             if (isLoading) {
-              console.log('[AuthStore:initializeAuth] User is already being loaded. Skipping fetchCurrentUserDetails.');
+              // console.log('[AuthStore:initializeAuth] User is already being loaded. Skipping fetchCurrentUserDetails.');
             } else if (numericIdFromStorage !== null && numericIdFromStorage !== undefined) {
-              console.log(`[AuthStore:initializeAuth] Found token and numericId (${numericIdFromStorage}). Calling fetchCurrentUserDetails.`);
+              // console.log(`[AuthStore:initializeAuth] Found token and numericId (${numericIdFromStorage}). Calling fetchCurrentUserDetails.`);
               get().fetchCurrentUserDetails(numericIdFromStorage);
             } else {
-              console.warn(`[AuthStore:initializeAuth] authToken exists but currentUserNumericId (${numericIdFromStorage}) from storage is not valid or missing. Calling logoutAction.`);
+              // console.warn(`[AuthStore:initializeAuth] authToken exists but currentUserNumericId (${numericIdFromStorage}) from storage is not valid or missing. Calling logoutAction.`);
               get().logoutAction();
             }
           } catch (error) {
-            console.error('[AuthStore:initializeAuth] Failed to decode token or other init error. Calling logoutAction:', error);
+            // console.error('[AuthStore:initializeAuth] Failed to decode token or other init error. Calling logoutAction:', error);
             get().logoutAction();
           }
         } else {
-          console.log('[AuthStore:initializeAuth] No token found, ensuring logout state.');
-          if (get().currentUser || get().userRoles || get().userPermissions || get().authToken ) { 
-            console.log('[AuthStore:initializeAuth] User data found with no token. Setting state to initialState.');
+          // console.log('[AuthStore:initializeAuth] No token found, ensuring logout state.');
+          if (get().currentUser || get().userRoles || get().userPermissions || get().authToken ) {
+            // console.log('[AuthStore:initializeAuth] User data found with no token. Setting state to initialState.');
             set(initialState);
           }
         }
-        console.log('[AuthStore:initializeAuth] Store state AT END of initializeAuth:', JSON.stringify(get(), null, 2));
+        // console.log('[AuthStore:initializeAuth] Store state AT END of initializeAuth:', JSON.stringify(get(), null, 2));
       },
 
       clearLoginError: () => {
-        console.log('[AuthStore:clearLoginError] Setting loginError to null');
+        // console.log('[AuthStore:clearLoginError] Setting loginError to null');
         set({ loginError: null });
       },
       clearFetchUserError: () => {
-        console.log('[AuthStore:clearFetchUserError] Setting fetchUserError to null');
+        // console.log('[AuthStore:clearFetchUserError] Setting fetchUserError to null');
         set({ fetchUserError: null });
       },
     }),
@@ -227,14 +227,14 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
-        console.log('[AuthStore] partialize called. Persisting state:', {
-          authToken: state.authToken,
-          currentUserNumericId: state.currentUserNumericId,
-          // currentUser: state.currentUser, // Temporarily comment out currentUser for simpler logging if needed
-          // userRoles: state.userRoles, // Not persisted, derived from currentUser
-          // userRoleCodes: state.userRoleCodes, // Not persisted, derived from currentUser
-          // userPermissions: state.userPermissions, // Not persisted, derived from currentUser
-        });
+        // console.log('[AuthStore] partialize called. Persisting state:', {
+        //   authToken: state.authToken,
+        //   currentUserNumericId: state.currentUserNumericId,
+        //   // currentUser: state.currentUser, // Temporarily comment out currentUser for simpler logging if needed
+        //   // userRoles: state.userRoles, // Not persisted, derived from currentUser
+        //   // userRoleCodes: state.userRoleCodes, // Not persisted, derived from currentUser
+        //   // userPermissions: state.userPermissions, // Not persisted, derived from currentUser
+        // });
         return {
           authToken: state.authToken,
           currentUserNumericId: state.currentUserNumericId,

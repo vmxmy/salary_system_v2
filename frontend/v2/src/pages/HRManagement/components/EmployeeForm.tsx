@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Form, Input, Select, DatePicker, Button, Row, Col, Card, TreeSelect, Spin, Upload, message, Steps, App } from 'antd';
-import ActionButton from '../../../components/common/ActionButton';
+import { Form, Input, Select, DatePicker, Button, Row, Col, Card, TreeSelect, Spin, Upload, message, Tabs, App } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadChangeParam } from 'antd/es/upload';
@@ -23,7 +22,7 @@ import type {
 } from '../types';
 
 const { Option } = Select;
-const { Step } = Steps;
+const { TabPane } = Tabs;
 
 interface EmployeeFormProps {
   form: FormInstance; 
@@ -105,21 +104,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   const [statusOptions, setStatusOptions] = useState<LookupItem[]>([]);
   
   const [avatarFileList, setAvatarFileList] = useState<UploadFile[]>([]);
-  const [currentStep, setCurrentStep] = useState(0);
-  
-  const [allStepsData, setAllStepsData] = useState<Partial<CreateEmployeePayload | UpdateEmployeePayload>>({});
-  const [stepData, setStepData] = useState<Record<number, any>>({});
+  const [activeTabKey, setActiveTabKey] = useState('1');
 
-  useEffect(() => {
-    if (isEditMode && initialValues) {
-      setAllStepsData(initialValues as Partial<CreateEmployeePayload | UpdateEmployeePayload>);
-      setStepData({
-        0: initialValues,
-        1: initialValues,
-        2: initialValues,
-      });
-    }
-  }, [isEditMode, initialValues]);
+  // 移除了不再需要的 stepData 和 allStepsData 相关的 useEffect
 
   useEffect(() => {
     const fetchLookups = async () => {
@@ -171,22 +158,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   }, [t, antdMessage]);
 
   useEffect(() => {
-    console.log('[EmployeeForm] Checking conditions to set form values:', {
-      hasInitialValues: !!initialValues,
-      initialValuesKeyCount: initialValues ? Object.keys(initialValues).length : 0,
-      isLoadingLookups: loadingLookups
-    });
     if (initialValues && Object.keys(initialValues).length > 0 && !loadingLookups) {
-      console.log('[EmployeeForm] Dependencies met for setting form values. initialValues:', JSON.parse(JSON.stringify(initialValues)));
-      console.log('[EmployeeForm] initialValues.personnel_category_id:', initialValues?.personnel_category_id);
-      console.log('[EmployeeForm] Current personnelCategoryOptions when setting form values (first 5):', JSON.parse(JSON.stringify(personnelCategoryOptions.slice(0, 5))));
+      console.log('[EmployeeForm] Setting form values from initialValues');
       
-      const targetPersonnelCategoryId = initialValues?.personnel_category_id;
-      if (targetPersonnelCategoryId !== undefined && targetPersonnelCategoryId !== null) {
-        const matchingOption = personnelCategoryOptions.find(option => option.value === Number(targetPersonnelCategoryId));
-        console.log(`[EmployeeForm] Matching personnelCategory option for ID ${targetPersonnelCategoryId}:`, matchingOption ? JSON.parse(JSON.stringify(matchingOption)) : 'NOT FOUND');
-      }
-
       const processedValues: Record<string, any> = {
         ...initialValues,
         
@@ -210,20 +184,12 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         reports_to_employee_id: initialValues.reports_to_employee_id != null ? Number(initialValues.reports_to_employee_id) : undefined,
       };
       
-      console.log('[EmployeeForm] Processed values for form.setFieldsValue:', JSON.parse(JSON.stringify(processedValues)));
       form.setFieldsValue(processedValues);
-      console.log('[EmployeeForm] Values in form instance AFTER setFieldsValue:', JSON.parse(JSON.stringify(form.getFieldsValue(true))));
       
-      // Attempt to force a re-render or validation update
+      // 尝试触发表单重新渲染
       form.validateFields().catch(() => {
-        // console.log('[EmployeeForm] Validate fields catch block (expected if form is invalid, or just for update)');
-        // We don't really care about the validation result here, just want to trigger an update.
-        // It's possible that if fields are initially empty and have rules, this might log errors, which is fine for now.
+        // 我们不关心验证结果，只是想触发更新
       });
-      
-      if (isEditMode) {
-        setAllStepsData(prev => ({...prev, ...processedValues}));
-      }
       
       if (initialValues.avatar) {
         setAvatarFileList([{
@@ -236,7 +202,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         setAvatarFileList([]);
       }
     }
-  }, [initialValues, form, loadingLookups, isEditMode]);
+  }, [initialValues, form, loadingLookups]);
 
   /*
   useEffect(() => {
@@ -255,91 +221,114 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       console.log('[EmployeeForm] Form submission started');
     }
 
-    const currentFieldsValue = form.getFieldsValue(true);
-    
-    setStepData(prev => ({
-      ...prev,
-      [currentStep]: currentFieldsValue
-    }));
-    
-    const allStepDataCombined = { 
-      ...stepData[0], 
-      ...stepData[1], 
-      ...stepData[2], 
-      ...currentFieldsValue 
-    };
-    
-    setAllStepsData(allStepDataCombined);
+    // 直接从表单获取所有字段值
+    const allFormData = form.getFieldsValue(true);
     
     const requiredFields = ['first_name', 'last_name', 'hire_date', 'status_lookup_value_id'];
-    const missingFields = requiredFields.filter(field => !allStepDataCombined[field]);
+    const missingFields = requiredFields.filter(field => !allFormData[field]);
     
     if (missingFields.length > 0) {
       console.error('[EmployeeForm] Missing required fields:', missingFields);
       antdMessage.error(t('common:message.missing_required_fields'));
       
+      // 根据缺失字段切换到相应的标签页
       if (missingFields.includes('first_name') || missingFields.includes('last_name')) {
-        setCurrentStep(0);
+        setActiveTabKey('1');
         return;
       } else if (missingFields.includes('hire_date') || missingFields.includes('status_lookup_value_id')) {
-        setCurrentStep(1);
+        setActiveTabKey('2');
         return;
       }
       return;
     }
 
-    const processedFinalPayload: Partial<CreateEmployeePayload | UpdateEmployeePayload> = {
-      first_name: allStepDataCombined.first_name,
-      last_name: allStepDataCombined.last_name,
-      ...(isEditMode ? {} : (allStepDataCombined.employee_code ? { employee_code: allStepDataCombined.employee_code } : {})),
-      gender_lookup_value_name: allStepDataCombined.gender_lookup_value_id != null 
-                               ? genderOptions.find(opt => opt.id === Number(allStepDataCombined.gender_lookup_value_id))?.name 
+    // 记录原始数据用于调试
+    console.log('[EmployeeForm] All form data before processing:', JSON.stringify(allFormData, null, 2));
+
+    // 使用 any 类型绕过类型检查
+    const processedFinalPayload: any = {
+      first_name: allFormData.first_name,
+      last_name: allFormData.last_name,
+      ...(isEditMode ? {} : (allFormData.employee_code ? { employee_code: allFormData.employee_code } : {})),
+      gender_lookup_value_id: allFormData.gender_lookup_value_id != null
+                               ? Number(allFormData.gender_lookup_value_id)
                                : undefined,
-      date_of_birth: allStepDataCombined.date_of_birth ? dayjs(allStepDataCombined.date_of_birth).utc().format('YYYY-MM-DD') : undefined,
-      id_number: allStepDataCombined.id_number,
-      marital_status_lookup_value_name: allStepDataCombined.marital_status_lookup_value_id != null 
-                                       ? maritalStatusOptions.find(opt => opt.id === Number(allStepDataCombined.marital_status_lookup_value_id))?.name 
+      gender_lookup_value_name: allFormData.gender_lookup_value_id != null
+                               ? genderOptions.find(opt => opt.id === Number(allFormData.gender_lookup_value_id))?.name
+                               : undefined,
+      date_of_birth: allFormData.date_of_birth ? dayjs(allFormData.date_of_birth).utc().format('YYYY-MM-DD') : undefined,
+      id_number: allFormData.id_number,
+      marital_status_lookup_value_id: allFormData.marital_status_lookup_value_id != null
+                                       ? Number(allFormData.marital_status_lookup_value_id)
                                        : undefined,
-      education_level_lookup_value_name: allStepDataCombined.education_level_lookup_value_id != null 
-                                       ? educationLevelOptions.find(opt => opt.id === Number(allStepDataCombined.education_level_lookup_value_id))?.name 
+      marital_status_lookup_value_name: allFormData.marital_status_lookup_value_id != null
+                                       ? maritalStatusOptions.find(opt => opt.id === Number(allFormData.marital_status_lookup_value_id))?.name
                                        : undefined,
-      political_status_lookup_value_name: allStepDataCombined.political_status_lookup_value_id != null 
-                                       ? politicalStatusOptions.find(opt => opt.id === Number(allStepDataCombined.political_status_lookup_value_id))?.name 
+      education_level_lookup_value_id: allFormData.education_level_lookup_value_id != null
+                                       ? Number(allFormData.education_level_lookup_value_id)
                                        : undefined,
-      nationality: allStepDataCombined.nationality,
-      ethnicity: allStepDataCombined.ethnicity,
-      first_work_date: allStepDataCombined.first_work_date ? dayjs(allStepDataCombined.first_work_date).utc().format('YYYY-MM-DD') : undefined,
-      interrupted_service_years: allStepDataCombined.interrupted_service_years != null ? Number(allStepDataCombined.interrupted_service_years) : undefined,
+      education_level_lookup_value_name: allFormData.education_level_lookup_value_id != null
+                                       ? educationLevelOptions.find(opt => opt.id === Number(allFormData.education_level_lookup_value_id))?.name
+                                       : undefined,
+      political_status_lookup_value_id: allFormData.political_status_lookup_value_id != null
+                                       ? Number(allFormData.political_status_lookup_value_id)
+                                       : undefined,
+      political_status_lookup_value_name: allFormData.political_status_lookup_value_id != null
+                                       ? politicalStatusOptions.find(opt => opt.id === Number(allFormData.political_status_lookup_value_id))?.name
+                                       : undefined,
+      nationality: allFormData.nationality,
+      ethnicity: allFormData.ethnicity,
+      first_work_date: allFormData.first_work_date ? dayjs(allFormData.first_work_date).utc().format('YYYY-MM-DD') : undefined,
+      interrupted_service_years: allFormData.interrupted_service_years != null ? Number(allFormData.interrupted_service_years) : undefined,
 
-      avatar: allStepDataCombined.avatar || (avatarFileList.length > 0 && avatarFileList[0].url) || (avatarFileList.length > 0 && avatarFileList[0].response?.url) || undefined,
+      avatar: allFormData.avatar || (avatarFileList.length > 0 && avatarFileList[0].url) || (avatarFileList.length > 0 && avatarFileList[0].response?.url) || undefined,
 
-      department_name: allStepDataCombined.department_id != null 
-                      ? departmentOptions.find(opt => opt.value === Number(allStepDataCombined.department_id))?.title 
+      // 保留ID和名称，确保ID字段被发送到后端
+      department_id: allFormData.department_id != null
+                    ? Number(allFormData.department_id)
+                    : undefined,
+      department_name: allFormData.department_id != null
+                      ? departmentOptions.find(opt => opt.value === Number(allFormData.department_id))?.title
                       : undefined,
-      personnel_category_name: allStepDataCombined.personnel_category_id != null 
-                             ? personnelCategoryOptions.find(opt => opt.value === Number(allStepDataCombined.personnel_category_id))?.label 
+      personnel_category_id: allFormData.personnel_category_id != null
+                           ? Number(allFormData.personnel_category_id)
+                           : undefined,
+      personnel_category_name: allFormData.personnel_category_id != null
+                             ? personnelCategoryOptions.find(opt => opt.value === Number(allFormData.personnel_category_id))?.label
                              : undefined,
-      position_name: allStepDataCombined.actual_position_id != null 
-                   ? positionOptions.find(opt => opt.value === Number(allStepDataCombined.actual_position_id))?.label 
+      actual_position_id: allFormData.actual_position_id != null
+                        ? Number(allFormData.actual_position_id)
+                        : undefined,
+      position_name: allFormData.actual_position_id != null
+                   ? positionOptions.find(opt => opt.value === Number(allFormData.actual_position_id))?.label
                    : undefined,
-      hire_date: allStepDataCombined.hire_date ? dayjs(allStepDataCombined.hire_date).utc().format('YYYY-MM-DD') : undefined,
-      status_lookup_value_name: allStepDataCombined.status_lookup_value_id != null 
-                              ? statusOptions.find(opt => opt.id === Number(allStepDataCombined.status_lookup_value_id))?.name 
+      hire_date: allFormData.hire_date ? dayjs(allFormData.hire_date).utc().format('YYYY-MM-DD') : undefined,
+      status_lookup_value_id: allFormData.status_lookup_value_id != null
+                             ? Number(allFormData.status_lookup_value_id)
+                             : undefined,
+      status_lookup_value_name: allFormData.status_lookup_value_id != null
+                              ? statusOptions.find(opt => opt.id === Number(allFormData.status_lookup_value_id))?.name
                               : undefined,
-      employment_type_lookup_value_name: allStepDataCombined.employment_type_lookup_value_id != null 
-                                      ? employmentTypeOptions.find(opt => opt.id === Number(allStepDataCombined.employment_type_lookup_value_id))?.name 
+      employment_type_lookup_value_id: allFormData.employment_type_lookup_value_id != null
+                                     ? Number(allFormData.employment_type_lookup_value_id)
+                                     : undefined,
+      employment_type_lookup_value_name: allFormData.employment_type_lookup_value_id != null
+                                      ? employmentTypeOptions.find(opt => opt.id === Number(allFormData.employment_type_lookup_value_id))?.name
                                       : undefined,
-      contract_type_lookup_value_name: allStepDataCombined.contract_type_lookup_value_id != null 
-                                    ? contractTypeOptions.find(opt => opt.id === Number(allStepDataCombined.contract_type_lookup_value_id))?.name 
+      contract_type_lookup_value_id: allFormData.contract_type_lookup_value_id != null
+                                   ? Number(allFormData.contract_type_lookup_value_id)
+                                   : undefined,
+      contract_type_lookup_value_name: allFormData.contract_type_lookup_value_id != null
+                                    ? contractTypeOptions.find(opt => opt.id === Number(allFormData.contract_type_lookup_value_id))?.name
                                     : undefined,
       
-      phone_number: allStepDataCombined.phone_number,
-      email: allStepDataCombined.email,
-      home_address: allStepDataCombined.home_address,
-      bank_name: allStepDataCombined.bank_name,
-      bank_account_number: allStepDataCombined.bank_account_number,
-      emergency_contact_name: allStepDataCombined.emergency_contact_name,
-      emergency_contact_phone: allStepDataCombined.emergency_contact_phone,
+      phone_number: allFormData.phone_number,
+      email: allFormData.email,
+      home_address: allFormData.home_address,
+      bank_name: allFormData.bank_name,
+      bank_account_number: allFormData.bank_account_number,
+      emergency_contact_name: allFormData.emergency_contact_name,
+      emergency_contact_phone: allFormData.emergency_contact_phone,
     };
     
     Object.keys(processedFinalPayload).forEach(keyStr => {
@@ -350,7 +339,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     });
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('[EmployeeForm] Payload prepared for submission');
+      console.log('[EmployeeForm] Payload prepared for submission:', JSON.stringify(processedFinalPayload, null, 2));
     }
 
     if (isEditMode && initialValues?.id) {
@@ -378,18 +367,17 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   
   const handleAvatarChange = (info: UploadChangeParam<UploadFile>) => {
     let fileList = [...info.fileList];
-    fileList = fileList.slice(-1); 
+    fileList = fileList.slice(-1);
     fileList = fileList.map(file => {
       if (file.response) {
-        file.url = file.response.url; 
+        file.url = file.response.url;
       }
       return file;
     });
     setAvatarFileList(fileList);
     if (info.file.status === 'done') {
       antdMessage.success(t('common:message.upload_success_param', { fileName: info.file.name }));
-      form.setFieldsValue({ avatar: info.file.response.url }); 
-      setAllStepsData(prev => ({...prev, avatar: info.file.response.url}));
+      form.setFieldsValue({ avatar: info.file.response.url });
     } else if (info.file.status === 'error') {
       antdMessage.error(t('common:message.upload_failed_param', { fileName: info.file.name }));
     }
@@ -432,10 +420,12 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" tip={t('common:loading.generic_loading_text')}><div style={{ padding: 50 }} /></Spin></div>;
   }
 
-  const steps = [
+  // 定义Tab内容
+  const tabItems = [
     {
-      title: t('employee:form_card.title_basic_info'),
-      content: (
+      key: '1',
+      label: t('employee:form_card.title_basic_info'),
+      children: (
         <Card title={null} style={{ marginBottom: 24, border: 'none' }}>
             <Row gutter={24}>
               <Col span={12}>
@@ -524,8 +514,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       ),
     },
     {
-      title: t('employee:form_card.title_position_contract_info'),
-      content: (
+      key: '2',
+      label: t('employee:form_card.title_position_contract_info'),
+      children: (
         <Card title={null} style={{ marginBottom: 24, border: 'none' }}>
             <Row gutter={24}>
               <Col span={12}>
@@ -602,8 +593,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       ),
     },
     {
-      title: t('employee:form_card.title_contact_bank_info'),
-      content: (
+      key: '3',
+      label: t('employee:form_card.title_contact_bank_info'),
+      children: (
         <Card title={null} style={{ marginBottom: 24, border: 'none' }}>
             <Row gutter={24}>
               <Col span={12}>
@@ -649,86 +641,26 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     },
   ];
 
-  const next = async () => {
-    try {
-      await form.validateFields();
-      
-      const currentFieldsValue = form.getFieldsValue(true);
-      
-      setStepData(prev => ({
-        ...prev,
-        [currentStep]: currentFieldsValue
-      }));
-      setAllStepsData(prevData => ({ 
-        ...prevData, 
-        ...currentFieldsValue 
-      }));
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[EmployeeForm] Saved data for step ${currentStep}`, currentFieldsValue);
-        console.log(`[EmployeeForm] All steps data after step ${currentStep}`, allStepsData);
-      }
-      
-      const nextStepValue = currentStep + 1;
-      setCurrentStep(nextStepValue);
-
-    } catch (errorInfo) {
-      console.log('Validation Failed:', errorInfo);
-      antdMessage.error(t('common:form.validation_error_please_check'));
-    }
-  };
-
-  const prev = () => {
-    const currentFieldsValue = form.getFieldsValue(true);
-    
-    setStepData(prev => ({
-      ...prev,
-      [currentStep]: currentFieldsValue
-    }));
-    setAllStepsData(prevData => ({
-      ...prevData,
-      ...currentFieldsValue
-    }));
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EmployeeForm] Saved data for step ${currentStep}`, currentFieldsValue);
-    }
-    
-    const prevStepValue = currentStep - 1;
-    setCurrentStep(prevStepValue);
-  };
-
-  const renderStepContent = () => {
-    return steps[currentStep].content;
+  // 处理标签页切换
+  const onTabChange = (key: string) => {
+    setActiveTabKey(key);
   };
 
   return (
     <Spin spinning={loadingLookups || loadingSubmit}>
-      <Steps current={currentStep} style={{ marginBottom: 24 }}>
-        <Step title={t('employee:form_steps.basic_info')} />
-        <Step title={t('employee:form_steps.position_info')} />
-        <Step title={t('employee:form_steps.contact_info')} />
-      </Steps>
-
       <Form layout="vertical" form={form} onFinish={handleFormSubmit}>
-        {renderStepContent()}
+        <Tabs activeKey={activeTabKey} onChange={onTabChange}>
+          {tabItems.map(item => (
+            <TabPane key={item.key} tab={item.label}>
+              {item.children}
+            </TabPane>
+          ))}
+        </Tabs>
 
         <div style={{ marginTop: 24, textAlign: 'right' }}>
-          {currentStep > 0 && (
-            <Button style={{ marginRight: 8 }} onClick={prev}>
-              {t('common:button.previous')}
-            </Button>
-          )}
-          {currentStep < (3 - 1) && (
-            <Button type="primary" onClick={next}>
-              {t('common:button.next')}
-            </Button>
-          )}
-          {currentStep === (3 - 1) && (
-            <Button type="primary" htmlType="submit" loading={loadingSubmit}>
-              {isEditMode ? t('common:button.update') : t('common:button.create')}
-            </Button>
-          )}
+          <Button type="primary" htmlType="submit" loading={loadingSubmit}>
+            {isEditMode ? t('common:button.update') : t('common:button.create')}
+          </Button>
           <Button style={{ marginLeft: 8 }} onClick={onCancel} disabled={loadingSubmit}>
             {t('common:button.cancel')}
           </Button>

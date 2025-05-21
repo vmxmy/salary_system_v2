@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Spin, Alert, Modal, Pagination, Typography, Table } from 'antd';
+import { Button, message, Alert, Modal, Pagination } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import ActionButton from '../../../../components/common/ActionButton';
 import { employeeService } from '../../../../services/employeeService';
 import type { CompensationItem, CompensationPageResult, CreateCompensationPayload, UpdateCompensationPayload } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import CompensationTable from './CompensationTable';
 import CompensationModal from './CompensationModal';
 import { useTranslation } from 'react-i18next';
-import { useLookupMaps, type LookupMaps } from '../../../../hooks/useLookupMaps';
+import { useLookupMaps } from '../../../../hooks/useLookupMaps';
 
-const { Title } = Typography;
+// const { Title } = Typography; // This line will be removed
 
 interface CompensationHistoryTabProps {
   employeeId: string;
@@ -20,7 +19,7 @@ const DEFAULT_PAGE_SIZE = 5;
 
 const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employeeId }) => {
   const { t } = useTranslation(['employee', 'common']);
-  const { lookupMaps, loadingLookups, errorLookups } = useLookupMaps();
+  const { lookupMaps, loadingLookups } = useLookupMaps();
   const [compensations, setCompensations] = useState<CompensationItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +41,7 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
     try {
       const result: CompensationPageResult = await employeeService.getEmployeeCompensationHistory(employeeId, { page, pageSize: size });
       setCompensations(result.data);
-      setTotalRecords(result.meta.total_items);
+      setTotalRecords(result.meta.total_items || 0);
       setCurrentPage(result.meta.current_page);
       setPageSize(result.meta.per_page);
     } catch (err: any) {

@@ -4,10 +4,12 @@ import { PageContainer } from '@ant-design/pro-components';
 import { Descriptions, Tabs, Spin, Button, message, Alert, Breadcrumb, Typography, Tag } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import ActionButton from '../../../components/common/ActionButton';
+import TableActionButton from '../../../components/common/TableActionButton';
 import { employeeService } from "../../../services/employeeService";
 import type { Employee, JobHistoryItem, ContractItem, CompensationItem, LeaveBalanceItem, LookupItem } from "../types";
 import { useLookupMaps, type LookupMaps, type RawLookups } from '../../../hooks/useLookupMaps';
+import EmployeeName from '../../../components/common/EmployeeName';
+import UnifiedTabs from '../../../components/common/UnifiedTabs';
 // import { usePermissions } from '../../../../hooks/usePermissions'; // TODO: Integrate permissions
 
 // Updated BasicInfoTabPlaceholder
@@ -59,7 +61,7 @@ const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps:
       <Descriptions title={t('employee:detail_page.contact_info')} bordered column={2} layout="vertical" style={{ marginBottom: 20 }}>
         <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_email')} span={1}>{employee.email || naText}</Descriptions.Item>
         <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_mobile_phone')} span={1}>{employee.phone_number || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address')} span={2}>{employee.home_address || naText}</Descriptions.Item>
+        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address')} span={1}>{employee.home_address || naText}</Descriptions.Item>
       </Descriptions>
 
       {/* 第三部分：银行信息 */}
@@ -300,7 +302,7 @@ const EmployeeDetailPage: React.FC = () => {
   };
   
   const pageHeaderExtra = (
-    <ActionButton
+    <TableActionButton
       key="edit"
       actionType="edit"
       onClick={handleEdit}
@@ -308,20 +310,31 @@ const EmployeeDetailPage: React.FC = () => {
     />
   );
 
-  const nameParts = [];
-  if (employee?.last_name) nameParts.push(employee.last_name);
-  if (employee?.first_name) nameParts.push(employee.first_name);
-  const employeeDisplayName = nameParts.join(' ').trim();
-  
   const pageTitleText = employee 
-    ? t('employee:detail_page.title_with_name_id', { name: employeeDisplayName, employeeCode: employee.employee_code || t('employee:detail_page.common_value.na')}) 
+    ? t('employee:detail_page.title_with_name_id', { 
+        name: <EmployeeName 
+                employeeId={employee.id} 
+                employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
+                showId={false}
+                className="employee-header-name"
+              />, 
+        employeeCode: employee.employee_code || t('employee:detail_page.common_value.na')
+      }) 
     : t('employee:detail_page.title_default');
 
   const breadcrumbItems = [
     { onClick: () => navigate('/'), title: <HomeOutlined /> },
     { onClick: () => navigate('/hr/employees'), title: t('pageTitle:hr_management') },
     { onClick: () => navigate('/hr/employees'), title: t('pageTitle:employee_list') },
-    { title: employee ? employeeDisplayName : t('employee:detail_page.breadcrumb_loading') }
+    { title: employee ? 
+        <EmployeeName 
+          employeeId={employee.id} 
+          employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
+          showId={false}
+          className="employee-breadcrumb-name"
+        /> 
+        : t('employee:detail_page.breadcrumb_loading') 
+    }
   ];
 
   const renderContent = () => {
@@ -361,7 +374,13 @@ const EmployeeDetailPage: React.FC = () => {
     ];
 
     return (
-      <Tabs defaultActiveKey="basic" items={tabItems} onChange={setActiveTab} />
+      <UnifiedTabs 
+        defaultActiveKey="basic" 
+        items={tabItems} 
+        onChange={setActiveTab} 
+        size="large"
+        type="line"
+      />
     );
   };
 

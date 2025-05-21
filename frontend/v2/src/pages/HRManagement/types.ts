@@ -128,6 +128,10 @@ export interface Employee {
 
   departmentName?: string;
   actual_position_name?: string; // ADDED/CONFIRMED - for current actual position name
+  
+  // Position timing fields
+  career_position_level_date?: string | Dayjs; // Date when employee first reached this position level in their entire career
+  current_position_start_date?: string | Dayjs; // Date when employee started this position in current organization
 
   marital_status_lookup_value_id?: number;
   political_status_lookup_value_id?: number;
@@ -162,7 +166,7 @@ export interface Employee {
 
 export interface EmployeeQuery {
   page?: number;
-  pageSize?: number;
+  size?: number; // Changed from pageSize to match backend expected param name 'size'
   name?: string;
   employee_code?: string;
   department_id?: string;
@@ -172,6 +176,13 @@ export interface EmployeeQuery {
   employment_type_lookup_value_id?: number;
   hireDateStart?: string;
   hireDateEnd?: string;
+  actual_position_id?: number;
+  marital_status_lookup_value_id?: number;
+  political_status_lookup_value_id?: number;
+  contract_type_lookup_value_id?: number;
+  id_number?: string;
+  firstWorkDateStart?: string; 
+  firstWorkDateEnd?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -319,14 +330,18 @@ export interface LeaveBalancePageResult extends PaginatedResponse<LeaveBalanceIt
 // Other fields might be required or optional based on business logic.
 export interface CreateEmployeePayload {
   // Core fields from EmployeeBase
-  employee_code: string; // Made non-optional, matches backend
+  employee_code: string;
   first_name: string;
   last_name: string;
   id_number: string; 
   date_of_birth: string; // YYYY-MM-DD
   hire_date: string;     // YYYY-MM-DD
-  first_work_date?: string | null; // YYYY-MM-DD
-  entry_date_to_current_organization?: string | null; // YYYY-MM-DD
+  first_work_date?: string | null;
+  entry_date_to_current_organization?: string | null;
+  
+  // Position timing fields
+  career_position_level_date?: string | null; // Date when employee first reached this position level in their entire career
+  current_position_start_date?: string | null; // Date when employee started this position in current organization
   
   nationality?: string | null;
   ethnicity?: string | null;
@@ -335,45 +350,39 @@ export interface CreateEmployeePayload {
   phone_number?: string | null;
   home_address?: string | null;
 
-  // Fields for resolving lookups by name (instead of ID)
+  // Direct ID fields that should be part of the payload
+  gender_lookup_value_id?: number | null;
+  status_lookup_value_id: number; // This is required for creation
+  employment_type_lookup_value_id?: number | null;
+  education_level_lookup_value_id?: number | null;
+  marital_status_lookup_value_id?: number | null;
+  political_status_lookup_value_id?: number | null;
+  contract_type_lookup_value_id?: number | null;
+  department_id?: number | null; 
+  personnel_category_id?: number | null; 
+  actual_position_id?: number | null;
+
+  // Fields for resolving lookups by name (can be optional if ID is provided)
   gender_lookup_value_name?: string | null;
-  status_lookup_value_name: string; // Required
+  status_lookup_value_name?: string | null; // Made optional as ID is primary
   employment_type_lookup_value_name?: string | null;
   education_level_lookup_value_name?: string | null;
   marital_status_lookup_value_name?: string | null;
   political_status_lookup_value_name?: string | null;
   contract_type_lookup_value_name?: string | null;
-  // blood_type_lookup_value_name?: string | null; // If you add this
-  // nationality_lookup_value_name?: string | null; // If you add this (note: nationality is already a string field above, decide which to use)
-  // religion_lookup_value_name?: string | null; // If you add this
-  // degree_lookup_value_name?: string | null; // If you add this
-
-  // Fields for resolving department and position by name (instead of ID)
-  department_name?: string | null;
-  position_name?: string | null;
   
-  // personnel_category_id?: number | null; // Replaced by personnel_category_name
-  personnel_category_name?: string | null; // Name for '人员身份'
-
-  // Removed ID fields that are now resolved by name
-  // gender_lookup_value_id?: number | null;
-  // status_lookup_value_id: number; 
-  // employment_type_lookup_value_id?: number | null;
-  // education_level_lookup_value_id?: number | null;
-  // marital_status_lookup_value_id?: number | null;
-  // political_status_lookup_value_id?: number | null;
-  // contract_type_lookup_value_id?: number | null;
-  // department_id?: number | null; 
-  // actual_position_id?: number | null; 
+  department_name?: string | null;
+  position_name?: string | null; // Covers actual_position_name
+  personnel_category_name?: string | null;
 
   // Other existing fields
   avatar?: string;
-  probationEndDate?: string | null; // YYYY-MM-DD
+  probationEndDate?: string | null;
   workLocation?: string;
-  reports_to_employee_id?: number | null; // This remains as an ID
+  reports_to_employee_id?: number | null;
 
-  initialContractStartDate?: string | null; // YYYY-MM-DD
-  initialContractEndDate?: string | null; // YYYY-MM-DD
+  initialContractStartDate?: string | null;
+  initialContractEndDate?: string | null;
 
   bank_name?: string;
   bank_account_number?: string;
@@ -382,30 +391,12 @@ export interface CreateEmployeePayload {
   emergency_contact_phone?: string;
   emergencyContactRelation?: string;
   notes?: string;
-
-  // Sub-entity arrays are more complex and typically handled by separate endpoints or logic.
-  // For bulk import, we might only support core employee fields.
-  // If sub-entities are included in bulk, ensure their payloads also use names if IDs aren't known.
-  // job_history_records?: Omit<JobHistoryItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'departmentName' | 'personnel_category_name' | 'position_name'>[];
-  // contracts?: Omit<ContractItem, 'id' | 'employee_id' | 'created_at' | 'updated_at'>[];
-  // compensation_records?: Omit<CompensationItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'total_salary'>[];
-  // leave_balances?: Omit<LeaveBalanceItem, 'id' | 'employee_id' | 'created_at' | 'updated_at' | 'balance' | 'leave_type_name'>[];
-  // appraisals?: Omit<EmployeeAppraisalFormData, 'id'>[]; // Removed as per decision
 }
 
 // For updating an employee, most fields are optional (Partial)
 // 'id' or 'employeeId' would be used to identify the record, but not usually part of the updatable payload itself (passed in URL or separate param)
 export interface UpdateEmployeePayload extends Partial<Omit<CreateEmployeePayload, 'employee_code' | 'appraisals'>> {
-  // appraisals will be handled separately to allow for full array replacement strategy if needed
-  // id is passed in URL, not payload for employee update
-  // job_history_records, contracts, etc. can be updated by passing the full modified array.
-  // Ensure sub-entity payloads within these arrays for update operations correctly omit read-only fields
-  // and include their own IDs if individual items within the array are being updated.
-  // For simplicity here, we assume the API replaces the entire collection for a sub-entity if provided.
-  // If the API supports partial updates to sub-entities (e.g., add one, update one, delete one in a single PUT Employee call),
-  // the payload structure for these arrays might need to be more complex (e.g. items with an 'operation' flag).
-  // Based on typical REST patterns with nested resources, often the entire sub-collection is replaced.
-  appraisals?: EmployeeAppraisalFormData[]; // Added for update payload, items can have 'id'
+  appraisals?: EmployeeAppraisalFormData[];
 }
 
 // Job History Payloads
@@ -463,10 +454,11 @@ export interface UpdateLeaveBalancePayload extends Partial<Omit<LeaveBalanceItem
 // e.g. CreateEmployeeFormValues, EditEmployeeFormValues 
 
 export interface PageMeta {
-  current_page: number;
-  per_page: number;
+  page: number; // Changed from current_page
+  size: number; // Changed from per_page
   total: number;
-  total_pages: number;
+  totalPages: number; // Changed from total_pages
+  // total_items is removed as 'total' is confirmed from backend
   // Add other fields if your API returns them, e.g., from, to, last_page, etc.
 }
 

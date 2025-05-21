@@ -6,6 +6,11 @@ from typing import Optional, List, Dict, Any
 from datetime import date, datetime
 from decimal import Decimal
 
+# Helper model for detail items in create/update payloads
+class PayrollItemInput(BaseModel):
+    amount: Decimal = Field(..., description="金额")
+    # name 字段不应由客户端提供，由后端根据 code 从配置中填充
+
 # PayrollPeriod Models
 class PayrollPeriodBase(BaseModel):
     """工资周期基础模型"""
@@ -105,8 +110,8 @@ class PayrollEntryBase(BaseModel):
     gross_pay: Decimal = Field(0, description="Total gross pay (應發合計)")
     total_deductions: Decimal = Field(0, description="Total deductions (應扣合計)")
     net_pay: Decimal = Field(0, description="Total net pay (實發合計)")
-    earnings_details: Dict[str, Any] = Field({}, description="JSONB object storing individual earning items")
-    deductions_details: Dict[str, Any] = Field({}, description="JSONB object storing individual deduction items")
+    earnings_details: Dict[str, PayrollItemInput] = Field({}, description="收入项详情, e.g., {'SALARY': {'amount': 5000}}")
+    deductions_details: Dict[str, PayrollItemInput] = Field({}, description="扣除项详情, e.g., {'TAX': {'amount': 500}}")
     calculation_inputs: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation input values")
     calculation_log: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation log/details")
     status_lookup_value_id: int = Field(..., description="Foreign key to payroll entry status")
@@ -126,8 +131,8 @@ class PayrollEntryUpdate(BaseModel):
     gross_pay: Optional[Decimal] = Field(None, description="Total gross pay (應發合計)")
     total_deductions: Optional[Decimal] = Field(None, description="Total deductions (應扣合計)")
     net_pay: Optional[Decimal] = Field(None, description="Total net pay (實發合計)")
-    earnings_details: Optional[Dict[str, Any]] = Field(None, description="JSONB object storing individual earning items")
-    deductions_details: Optional[Dict[str, Any]] = Field(None, description="JSONB object storing individual deduction items")
+    earnings_details: Optional[Dict[str, PayrollItemInput]] = Field(None, description="收入项详情")
+    deductions_details: Optional[Dict[str, PayrollItemInput]] = Field(None, description="扣除项详情")
     calculation_inputs: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation input values")
     calculation_log: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation log/details")
     status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to payroll entry status")
@@ -142,8 +147,8 @@ class PayrollEntryPatch(BaseModel):
     gross_pay: Optional[Decimal] = Field(None, description="Total gross pay (應發合計)")
     total_deductions: Optional[Decimal] = Field(None, description="Total deductions (應扣合計)")
     net_pay: Optional[Decimal] = Field(None, description="Total net pay (實發合計)")
-    earnings_details: Optional[Dict[str, Any]] = Field(None, description="JSONB object storing individual earning items")
-    deductions_details: Optional[Dict[str, Any]] = Field(None, description="JSONB object storing individual deduction items")
+    earnings_details: Optional[Dict[str, PayrollItemInput]] = Field(None, description="收入项详情, partial updates allowed")
+    deductions_details: Optional[Dict[str, PayrollItemInput]] = Field(None, description="扣除项详情, partial updates allowed")
     calculation_inputs: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation input values")
     calculation_log: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation log/details")
     status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to payroll entry status")
@@ -154,6 +159,11 @@ class PayrollEntry(PayrollEntryBase):
     """工资明细响应模型"""
     id: int = Field(..., description="Primary key")
     calculated_at: datetime = Field(..., description="Timestamp when this entry was calculated")
+    employee_name: Optional[str] = Field(None, description="Employee full name (last_name + first_name)")
+    
+    # For response, details will include name and amount
+    earnings_details: Dict[str, Any] = Field({}, description="JSONB object storing individual earning items with name and amount")
+    deductions_details: Dict[str, Any] = Field({}, description="JSONB object storing individual deduction items with name and amount")
 
     class Config:
         from_attributes = True

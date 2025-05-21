@@ -1,0 +1,30 @@
+{
+  "actual_position_management": {
+    "title": "实际职务管理",
+    "button": {
+      "add_position": "添加实际职务"
+    },
+    "modal": {
+      "create_title": "新增实际职务",
+      "edit_title": "编辑实际职务"
+    },
+    "form": {
+      "field": {
+        "code": "职务代码",
+        "name": "职务名称",
+        "description": "职务描述",
+        "parent_position": "上级职务",
+        "effective_date": "生效日期",
+        "end_date": "失效日期",
+        "is_active": "是否激活"
+      },
+      "validation": {
+        "name_required": "职务名称不能为空",
+        "effective_date_required": "生效日期不能为空"
+      }
+    }
+  },
+  "tab_title_personnel_category_management": "人员身份管理",
+  "tab_title_actual_position_management": "实际职务管理",
+  "current_personnel_categories_title": "当前人员身份"
+} 

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, message, Progress, Spin, Alert, Space, InputNumber, DatePicker } from 'antd';
+import { Table, Button, Modal, Form, Select, message, Progress, Spin, Alert, Space, InputNumber, DatePicker } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { PlusOutlined, CalculatorOutlined } from '@ant-design/icons';
-import ActionButton from '../../../../components/common/ActionButton';
-import { employeeService } from '../../../services/employeeService';
+import { PlusOutlined } from '@ant-design/icons';
+import TableActionButton from '../../../../components/common/TableActionButton';
+import { employeeService } from '../../../../services/employeeService';
 import { LeaveType } from '../../types'; // Enum used as value
 import type { LeaveBalanceItem, LeaveBalancePageResult } from '../../types'; // Types
 import { usePermissions } from '../../../../hooks/usePermissions';
-import dayjs from 'dayjs';
+import dayjs from 'dayjs'; // Restore dayjs import
+import { useTranslation } from 'react-i18next';
+// import { useEmployeeDetails } from '../../../../hooks/useEmployeeDetails'; // Commented out: Source file not definitively located
+// import { formatDate } from '../../../../utils/dateUtils'; // Commented out: Source file not definitively located
 
 interface LeaveBalanceTabProps {
   employeeId: string;
@@ -21,6 +24,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
   const [editingRecord, setEditingRecord] = useState<LeaveBalanceItem | null>(null);
   const [form] = Form.useForm();
   const { hasPermission } = usePermissions();
+  const { t } = useTranslation();
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -32,7 +36,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
     try {
       const result: LeaveBalancePageResult = await employeeService.getEmployeeLeaveBalances(employeeId, { page, pageSize: size });
       setLeaveBalances(result.data.map(item => ({ ...item, balance: item.total_entitlement - item.taken }) ));
-      setTotalRecords(result.meta.total_items);
+      setTotalRecords(result.meta.total_items || 0);
       setCurrentPage(result.meta.current_page);
       setPageSize(result.meta.per_page);
     } catch (err: any) {
@@ -64,28 +68,10 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
-    // TODO: Implement actual delete API call in employeeService for leave balances if applicable
-    Modal.confirm({
-      title: '确认操作', // Deleting balances might not be standard, adjust wording
-      content: '确定要移除这条假期余额记录吗？此操作可能不可逆。',
-      okText: '确认',
-      cancelText: '取消',
-      onOk: async () => {
-        message.success('假期余额记录移除成功 (模拟)');
-        fetchLeaveBalances(currentPage, pageSize); // Refresh
-      },
-    });
-  };
 
   const handleModalOk = async () => {
     // TODO: Implement actual create/update/adjust API call in employeeService
     try {
-      const values = await form.validateFields();
-      const payload = {
-        ...values,
-        validity_date: values.validityDate ? values.validityDate.format('YYYY-MM-DD') : null,
-      };
       if (editingRecord) {
         message.success('假期余额调整成功 (模拟)');
       } else {
@@ -136,7 +122,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       render: (_, record) => (
         <Space size="middle">
           {hasPermission('leave:adjust_balance') && (
-            <ActionButton actionType="edit" onClick={() => handleAddOrAdjust(record)} tooltipTitle="调整假期余额" />
+            <TableActionButton actionType="edit" onClick={() => handleAddOrAdjust(record)} tooltipTitle={t('adjust_balance')} />
           )}
           {/* Delete might not be a standard operation for balances; consider if needed */}
           {/* {hasPermission('leave:manage_balance_records') && (
@@ -191,12 +177,12 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       />
       <Modal
         title={editingRecord ? '调整假期余额' : '添加假期余额'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         okText="保存"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
         width={600}
       >
         <Form form={form} layout="vertical">

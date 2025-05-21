@@ -1,14 +1,16 @@
 import React, { lazy } from 'react';
 import { Navigate } from 'react-router-dom';
 import type { AppRouteObject } from '../../router/routes'; // Assuming AppRouteObject is exported from main router
-import i18n from '../../i18n'; // Added
+// import i18n from '../../i18n'; // 移除此导入
 import PayrollPeriodsPage from './pages/PayrollPeriodsPage';
 import PayrollRunsPage from './pages/PayrollRunsPage';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
+import PayrollEntryPage from './pages/PayrollEntryPage';
 import {
   P_PAYROLL_PERIOD_VIEW,
-  P_PAYROLL_RUN_VIEW
-} from './constants/payrollPermissions'; // Corrected import path
+  P_PAYROLL_RUN_VIEW,
+  P_PAYROLL_ENTRY_VIEW
+} from './constants/payrollPermissions'; // 添加薪资录入查看权限
 
 // Lazy load page components
 // const PayrollPeriodsPage = lazy(() => import('./pages/PayrollPeriodsPage'));
@@ -28,17 +30,17 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'periods',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, i18n.t('common.loading_payroll_periods')) }, React.createElement(PayrollPeriodsPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Periods...') }, React.createElement(PayrollPeriodsPage)),
     meta: {
-      title: i18n.t('page_title.payroll_periods'),
+      title: 'pageTitle:payroll_periods', // 修改为使用pageTitle命名空间
       requiredPermissions: [P_PAYROLL_PERIOD_VIEW],
     },
   },
   {
     path: 'runs',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, i18n.t('common.loading_payroll_runs')) }, React.createElement(PayrollRunsPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPage)),
     meta: {
-      title: i18n.t('page_title.payroll_runs'),
+      title: 'payroll:page_title.payroll_runs', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW],
     },
   },
@@ -46,8 +48,16 @@ export const payrollRoutes: AppRouteObject[] = [
     path: 'runs/:runId',
     element: React.createElement(PayrollRunDetailPage),
     meta: {
-      title: i18n.t('page_title.payroll_run_detail'),
+      title: 'payroll:page_title.payroll_run_detail', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW], 
+    },
+  },
+  {
+    path: 'entry',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Entry...') }, React.createElement(PayrollEntryPage)),
+    meta: {
+      title: 'payroll:page_title.payroll_entry', // 使用静态翻译键
+      requiredPermissions: [P_PAYROLL_ENTRY_VIEW],
     },
   },
   // {

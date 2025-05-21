@@ -3,7 +3,7 @@
  * 提供用于处理样式的实用工具函数
  */
 
-import { CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 
 /**
  * 合并多个样式对象
@@ -32,12 +32,10 @@ export const conditionalStyle = (
 /**
  * 创建响应式样式对象
  * @param defaultStyle 默认样式
- * @param breakpoints 断点样式映射
  * @returns 包含媒体查询的样式对象
  */
 export const responsiveStyle = (
   defaultStyle: CSSProperties,
-  breakpoints: { [key: string]: CSSProperties }
 ): CSSProperties => {
   // 注意：这个函数在运行时不会真正应用媒体查询
   // 它只是一个概念示例，实际应用中应该使用 CSS-in-JS 库或 CSS 类

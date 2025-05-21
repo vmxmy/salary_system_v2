@@ -41,7 +41,12 @@
     "previous_step": "Previous",
     "finish": "Finish",
     "view_details": "View details",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "next": "Next",
+    "add_child": "Add child",
+    "export_data": "Export data",
+    "column_settings": "Column settings",
+    "export_excel": "Export Excel"
   },
   "label": {
     "username": "Username",
@@ -85,7 +90,10 @@
     "data_loading_error": "Data loading failed",
     "form_validation_error": "Form validation failed, please check inputs.",
     "upload_success_param": "File {fileName} uploaded successfully.",
-    "upload_failed_param": "File {fileName} upload failed."
+    "upload_failed_param": "File {fileName} upload failed.",
+    "feature_under_development": "This feature is under development.",
+    "missing_required_fields": "Required fields are missing.",
+    "missing_required_fields_in_tab_param": "Required fields are missing in the {tabName} tab."
   },
   "modal": {
     "confirm_delete": {
@@ -149,5 +157,20 @@
   "login_button": "Login",
   "page_title_settings": "Page Title Settings",
   "record_prefix": "Record",
-  "search": "Search"
+  "search": {
+    "placeholder": "Search {{field}}"
+  },
+  "export": {
+    "filename": "Export Data",
+    "sheetName": "Sheet1",
+    "success_message": "Export successful",
+    "error_message": "Export failed, please try again",
+    "error_log": "Export Excel failed:"
+  },
+  "column_control": {
+    "button_text": "Column Settings",
+    "tooltip_title": "Customize columns",
+    "dropdown_title": "Column Display",
+    "reset_success": "Column settings reset successfully"
+  }
 }

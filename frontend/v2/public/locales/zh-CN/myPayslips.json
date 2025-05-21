@@ -6,9 +6,26 @@
   "column.paymentDate": "支付日期",
   "column.status": "状态",
   "column.actions": "操作",
+  "column.employeeName": "员工姓名",
   "noEmployeeIdError": "无法获取员工ID，请确保您已登录并有员工账号。",
   "fetchError": "获取薪资单数据失败，请稍后重试。",
   "periodIdPrefix": "ID: ",
   "status.pendingPayment": "待支付",
-  "actions.viewDetails": "查看详情"
+  "status.draft": "草稿",
+  "status.finalized": "已确认",
+  "status.paid": "已支付",
+  "actions.viewDetails": "查看详情",
+  "export": {
+    "filename": "我的薪资单",
+    "sheetName": "薪资单数据",
+    "buttonText": "导出工资单",
+    "successMessage": "工资单导出成功",
+    "tooltipTitle": "导出工资单到Excel"
+  },
+  "columnControl": {
+    "buttonText": "列设置",
+    "tooltipTitle": "自定义显示列",
+    "dropdownTitle": "列显示",
+    "resetText": "重置"
+  }
 }

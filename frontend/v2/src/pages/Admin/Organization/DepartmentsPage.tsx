@@ -16,12 +16,14 @@ import {
 } from 'antd';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { PlusOutlined, ClusterOutlined } from '@ant-design/icons';
-import ActionButton from '../../../components/common/ActionButton';
+import TableActionButton from '../../../components/common/TableActionButton';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import EmployeeName from '../../../components/common/EmployeeName';
+import { useTableSearch, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 
 // 导入样式文件
 import styles from './TreeTable.module.less';
@@ -80,6 +82,9 @@ const DepartmentsPage: React.FC = () => {
   const [editingDepartment, setEditingDepartment] = useState<DepartmentPageItem | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
   const [form] = Form.useForm<DepartmentFormValues>();
+
+  // 使用通用表格搜索工具
+  const { getColumnSearch } = useTableSearch();
 
   const fetchAllFlatDataForSelector = useCallback(async () => {
     // This fetches all (active) departments for the parent selector
@@ -210,22 +215,10 @@ const DepartmentsPage: React.FC = () => {
     }
   };
 
-  // 根部门（深度为0）的单元格合并逻辑已通过onCell属性在columns中直接使用
-
-  // 共享的单元格合并逻辑，用于被合并的单元格
-  const sharedOnCell = (record: DepartmentPageItem) => {
-    if (record.depth === 0) {
-      return { colSpan: 0 };
-    }
-    return {};
-  };
-
-  // 部门名称列的单元格合并逻辑
+  // 只保留名称列的样式设置，移除列合并逻辑
   const nameColumnOnCell = (record: DepartmentPageItem) => {
-    // 根部门（深度为0）的名称列会合并代码列
     if (record.depth === 0) {
       return {
-        colSpan: 2,
         style: { fontWeight: 'bold' }
       };
     }
@@ -238,18 +231,28 @@ const DepartmentsPage: React.FC = () => {
       dataIndex: 'id',
       key: 'id',
       width: 80,
-      rowScope: 'row' // 将ID列设置为行头
+      rowScope: 'row', // 将ID列设置为行头
+      sorter: numberSorter<DepartmentPageItem>('id'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('id'),
     },
     {
       title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
       width: 150,
+      sorter: stringSorter<DepartmentPageItem>('code'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('code'),
     },
     {
       title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
+      onCell: nameColumnOnCell, // 只保留名称列的样式设置
+      sorter: stringSorter<DepartmentPageItem>('name'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('name'),
     },
     {
       title: t('table.column.parent_department_id'),
@@ -257,20 +260,29 @@ const DepartmentsPage: React.FC = () => {
       key: 'parent_department_id',
       width: 120,
       render: (id?: number) => id || t('table.column.value_na_or_dash'),
-      onCell: sharedOnCell // 根部门时被合并
+      sorter: numberSorter<DepartmentPageItem>('parent_department_id'),
+      sortDirections: ['descend', 'ascend'],
     },
     {
       title: t('table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash')
+      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
+      sorter: dateSorter<DepartmentPageItem>('effective_date'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('effective_date'),
     },
     {
       title: t('table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
       render: (isActive: boolean) => <Switch checked={isActive} disabled />,
-      width: 80
+      width: 80,
+      filters: [
+        { text: t('table.filter.active'), value: true },
+        { text: t('table.filter.inactive'), value: false },
+      ],
+      onFilter: (value, record) => record.is_active === value,
     },
     {
       title: t('table.column.actions'),
@@ -280,8 +292,8 @@ const DepartmentsPage: React.FC = () => {
         <>
           {record.depth === 0 ? (
             <Space size="small">
-              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_department')} />
-              <ActionButton actionType="add" onClick={() => showCreateModal(record.id)} tooltipTitle={t('button.add_child_department_tooltip')} />
+              <TableActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_department')} />
+              <TableActionButton actionType="add" onClick={() => showCreateModal(record.id)} tooltipTitle={t('button.add_child_department_tooltip')} />
               <Popconfirm
                 title={t('popconfirm.delete.title')}
                 description={t('popconfirm.delete.description')}
@@ -290,7 +302,7 @@ const DepartmentsPage: React.FC = () => {
                 cancelText={t('popconfirm.delete.cancel_text')}
                 disabled={record.children && record.children.length > 0} // Disable if has children
               >
-                <ActionButton 
+                <TableActionButton 
                   actionType="delete" 
                   danger 
                   tooltipTitle={t('tooltip.delete_department')} 
@@ -300,8 +312,8 @@ const DepartmentsPage: React.FC = () => {
             </Space>
           ) : (
         <Space size="small">
-              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_department')} />
-              <ActionButton actionType="add" onClick={() => showCreateModal(record.id)} tooltipTitle={t('button.add_child_department_tooltip')} />
+              <TableActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('tooltip.edit_department')} />
+              <TableActionButton actionType="add" onClick={() => showCreateModal(record.id)} tooltipTitle={t('button.add_child_department_tooltip')} />
           <Popconfirm
                 title={t('popconfirm.delete.title')}
                 description={t('popconfirm.delete.description')}
@@ -310,7 +322,7 @@ const DepartmentsPage: React.FC = () => {
                 cancelText={t('popconfirm.delete.cancel_text')}
                 disabled={record.children && record.children.length > 0} // Disable if has children
           >
-                <ActionButton 
+                <TableActionButton 
                   actionType="delete" 
                   danger 
                   tooltipTitle={t('tooltip.delete_department')} 
@@ -341,11 +353,17 @@ const DepartmentsPage: React.FC = () => {
         columns={columns}
         dataSource={departmentsTree}
         loading={isLoading}
-        pagination={false}
+        pagination={{
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          showTotal: (total) => t('pagination.total', { total }),
+        }}
         rowKey="id"
         expandable={{ defaultExpandAllRows: true }}
         className={styles['tree-table']}
         bordered
+        onChange={handleTableChange}
       />
       
       <Modal
@@ -378,6 +396,19 @@ const DepartmentsPage: React.FC = () => {
                 treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
               }
               virtual={false}
+            />
+          </Form.Item>
+          <Form.Item name="manager_id" label={t('modal.department_form.label.manager')}>
+            <Select
+              showSearch
+              style={{ width: '100%' }}
+              placeholder={t('modal.department_form.placeholder.manager')}
+              allowClear
+              filterOption={(input, option: any) =>
+                option?.label?.toLowerCase().includes(input.toLowerCase()) || false
+              }
+              options={[]}
+              // 实际应用中，需要从后端获取员工列表作为选项
             />
           </Form.Item>
           <Form.Item name="description" label={t('modal.department_form.label.description')}>

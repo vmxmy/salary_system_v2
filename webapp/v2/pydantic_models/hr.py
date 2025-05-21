@@ -69,6 +69,8 @@ class EmployeeBase(BaseModel):
     first_work_date: Optional[date] = Field(None, description="Date when employee first started working in their career")
     interrupted_service_years: Optional[float] = Field(None, description="Years of interrupted service")
     hire_date: date = Field(..., description="Employee's hire date at current company")
+    career_position_level_date: Optional[date] = Field(None, description="Date when employee first reached this position level in their entire career")
+    current_position_start_date: Optional[date] = Field(None, description="Date when employee started this position in current organization")
     status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to employee status lookup value")
     employment_type_lookup_value_id: Optional[int] = Field(None, description="Foreign key to employment type lookup value")
     education_level_lookup_value_id: Optional[int] = Field(None, description="Foreign key to education level lookup value")

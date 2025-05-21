@@ -24,6 +24,7 @@ import {
   SolutionOutlined,
   ProfileOutlined,
   UploadOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions } from '../hooks/usePermissions';
@@ -33,30 +34,50 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation
 import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Standard image import
 
 // Import payroll permissions
-import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW } from '../pages/Payroll/constants/payrollPermissions';
+import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW, P_PAYROLL_ENTRY_VIEW } from '../pages/Payroll/constants/payrollPermissions';
 
 const { Header, Content, Sider, Footer } = Layout;
 const { Text } = Typography;
 
 // 简单的面包屑名称映射，后续可以从路由 meta 中获取 - THIS WILL BE DEPRECATED by new logic
-const breadcrumbNameMap: Record<string, string> = {
-  '/dashboard': '仪表盘',
-  '/admin': '系统管理',
-  '/admin/users': '用户管理',
-  '/admin/roles': '角色管理',
-  '/admin/config': '系统配置',
-  '/admin/organization': '组织架构',
-  '/admin/organization/departments': '部门管理',
-  '/admin/organization/job-titles': '职位管理',
-  '/admin/permissions': '权限管理',
-  '/hr': '人事管理',
-  '/hr/employees': '员工档案',
-  // ...更多路径
-};
+// const breadcrumbNameMap: Record<string, string> = {
+//   '/dashboard': '仪表盘',
+//   '/admin': '系统管理',
+//   '/admin/users': '用户管理',
+//   '/admin/roles': '角色管理',
+//   '/admin/config': '系统配置',
+//   '/admin/organization': '组织架构',
+//   '/admin/organization/departments': '部门管理',
+//   '/admin/organization/job-titles': '职位管理',
+//   '/admin/permissions': '权限管理',
+//   '/hr': '人事管理',
+//   '/hr/employees': '员工档案',
+//   // ...更多路径
+// };
 
 
 const MainLayout: React.FC = () => {
-  const { t, i18n, ready } = useTranslation(['pageTitle', 'common', 'user_menu', 'tour']); // Initialize t function with namespaces
+  const { t, i18n, ready } = useTranslation([
+    'pageTitle', 
+    'common', 
+    'user_menu', 
+    'tour', 
+    'hr', 
+    'employee',
+    'admin',
+    'auth',
+    'dashboard',
+    'department',
+    'jobTitle',
+    'manager',
+    'myPayslips',
+    'myInfo',
+    'payroll',
+    'permission',
+    'role',
+    'user',
+    'personnelCategory'
+  ]); // 确保包含所有可能需要的命名空间
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -170,9 +191,20 @@ const MainLayout: React.FC = () => {
       .map((snippet, index) => {
         const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
         const route = allAppRoutes.find((r) => {
-            const rPath = r.path?.endsWith('/') ? r.path.slice(0, -1) : r.path;
-            const uPath = url.endsWith('/') ? url.slice(0, -1) : url;
-            return rPath === uPath;
+            // Normalize paths by removing trailing slashes for comparison
+            const rPath = r.path?.replace(/\/+$/, '');
+            const uPath = url.replace(/\/+$/, '');
+            // Exact match or parameterized match (basic check)
+            if (rPath === uPath) return true;
+            if (rPath?.includes(':') && uPath.startsWith(rPath.substring(0, rPath.indexOf(':')))) {
+              // Basic check for parameterized routes, consider more robust matching if needed
+              const rPathParts = rPath.split('/');
+              const uPathParts = uPath.split('/');
+              if (rPathParts.length === uPathParts.length) {
+                return rPathParts.every((part, i) => part.startsWith(':') || part === uPathParts[i]);
+              }
+            }
+            return false;
         });
 
         if (route?.meta?.hideInBreadcrumbIfParentOfNext && index < pathSnippets.length - 1) {
@@ -180,25 +212,19 @@ const MainLayout: React.FC = () => {
         }
 
         const nameKey = route?.meta?.title || snippet;
-        let translatedName = snippet; // Default to snippet if no title or translation found
+        let translatedName = nameKey; // Default to key or snippet
 
-        if (route?.meta?.title) {
-          // Check if nameKey looks like a translation key (e.g., contains no spaces and uses underscores/dots)
-          // This is a heuristic. A more robust way would be to ensure all meta.title are keys.
-          const isKey = /^[a-z0-9_.:-]+$/.test(nameKey);
-          if (isKey) {
-            const translationKey = nameKey.startsWith('pageTitle:') ? nameKey : `pageTitle:${nameKey}`;
-            translatedName = t(translationKey, snippet); // Provide snippet as fallback
-            if (!ready && nameKey.startsWith('pageTitle:')) {
-                console.log(`[MainLayout:Breadcrumb] i18next not ready for key: ${translationKey}. Translation will return key or fallback.`);
-            }
-            if (translatedName === translationKey && nameKey.startsWith('pageTitle:')) {
-                 console.log(`[MainLayout:Breadcrumb] Key ${translationKey} returned as is (either not ready or missing).`);
-            }
-          } else {
-            // If it's not a typical key format, assume it's already translated or a literal string
-            translatedName = nameKey;
-          }
+        // Only attempt translation if i18next is ready and it's a valid-looking key
+        if (ready && route?.meta?.title) {
+          // Assuming meta.title is always a key. If it might be an already translated string,
+          // this logic would need to be smarter, or routes.tsx must guarantee only keys.
+          // For keys like "hr:bulk_import.page_title", t function handles namespace.
+          // For keys like "dashboard", it will use defaultNS or specified ns in useTranslation.
+          // The namespaces provided to useTranslation at the top should cover all cases.
+          translatedName = t(nameKey, { defaultValue: nameKey });
+        } else if (!ready && route?.meta?.title) {
+          // If not ready, use the key itself or a placeholder
+          translatedName = nameKey; // Or some loading indicator like "Loading..."
         }
 
         return {
@@ -207,15 +233,51 @@ const MainLayout: React.FC = () => {
         };
       })
       .filter(item => item !== null) as { key: string; title: React.ReactNode }[];
-  }, [location.pathname, allAppRoutes, t, ready]); // Added t and ready to dependencies
+  }, [location.pathname, allAppRoutes, t, ready]);
 
-  const breadcrumbItems: { key: string; title: React.ReactNode }[] = [
+  const breadcrumbItems = [
     {
       key: 'home',
-      title: <Link to="/dashboard"><HomeOutlined /></Link>, // Home icon usually doesn't need translation itself, but if it had text...
+      title: <Link to="/dashboard"><HomeOutlined /></Link>,
     },
     ...extraBreadcrumbItems,
   ];
+
+  // Set document title effect
+  useEffect(() => {
+    if (ready) {
+      let currentTitleKey = 'sider.title.full'; // Default title key
+      let titleNs = ['pageTitle', 'common', 'hr', 'user_menu', 'tour', 'auth', 'admin', 'payroll']; // Add all relevant namespaces
+
+      const currentRoute = allAppRoutes.find(r => location.pathname === r.path || (r.path && location.pathname.startsWith(r.path + '/') && r.path !== '/'));
+      
+      if (currentRoute?.meta?.title) {
+        currentTitleKey = currentRoute.meta.title;
+      }
+      
+      // Heuristic to determine if the key already contains a namespace
+      if (!currentTitleKey.includes(':')) {
+         // If no namespace in key, and it's a common page title, prefix with 'pageTitle'
+         // This might need adjustment based on how keys are structured.
+         // For now, we assume keys like 'dashboard', 'user_management' are in 'pageTitle' ns.
+         // Keys like 'hr:bulk_import.page_title' already have their ns.
+        if (['dashboard', 'system_management', 'user_management', 'role_management', 'permission_management', 'system_configuration', 'organization_structure', 'department_management', 'job_title_management', 'hr_management', 'employee_list', 'create_employee', 'employee_details', 'edit_employee', 'leave_management', 'finance_management', 'payroll_calculation', 'manager_view', 'employee_hub', 'my_info', 'my_payslips', 'not_found', 'login', 'unauthorized', 'employee_center', 'periods', 'bulk_import_employees'].includes(currentTitleKey)) {
+             currentTitleKey = `pageTitle:${currentTitleKey}`;
+        }
+      }
+      
+      const appBaseTitle = t('sider.title.full', { ns: 'pageTitle', defaultValue: "Salary System" });
+      const dynamicTitle = t(currentTitleKey, { ns: titleNs, defaultValue: currentTitleKey.substring(currentTitleKey.indexOf(':') + 1) });
+
+      if (dynamicTitle && dynamicTitle !== currentTitleKey.substring(currentTitleKey.indexOf(':') + 1)) { // check if translation was successful
+        document.title = `${dynamicTitle} - ${appBaseTitle}`;
+      } else if (currentRoute?.meta?.title) { // Fallback to key if translation fails but key exists
+        document.title = `${currentRoute.meta.title} - ${appBaseTitle}`;
+      } else {
+        document.title = appBaseTitle;
+      }
+    }
+  }, [location.pathname, t, ready, allAppRoutes]);
 
   // Dynamically build admin children based on permissions
   const organizationChildren = [
@@ -350,6 +412,14 @@ const MainLayout: React.FC = () => {
         icon: <CalculatorOutlined />,
       });
     }
+    // Add payroll entry menu item
+    if (hasPermission(P_PAYROLL_ENTRY_VIEW)) {
+      currentPayrollManagementChildren.push({
+        key: '/finance/payroll/entry',
+        label: <Link to="/finance/payroll/entry">{t('pageTitle:payroll_entry')}</Link>,
+        icon: <EditOutlined />,
+      });
+    }
 
     const currentPayrollManagementMenuItem = currentPayrollManagementChildren.length > 0 ? {
       key: '/finance/payroll',
@@ -413,7 +483,7 @@ const MainLayout: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="light">
         <div style={{ height: '32px', margin: '16px', background: 'rgba(0, 0, 0, 0.05)', textAlign: 'center', lineHeight: '32px', color: '#454552', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          {collapsed ? t('common:sider.title.collapsed', 'GSMS') : t('common:sider.title.full', '高新发薪管理系统')}
+          {collapsed ? t('common:sider.title.collapsed') : t('common:sider.title.full')}
         </div>
         <Menu
           theme="light"
@@ -454,9 +524,9 @@ const MainLayout: React.FC = () => {
         </Content>
         <Footer style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 24px' }}>
           <span style={{ marginRight: '8px' }}>
-            成都高新区财政国资局 人事工资信息管理系统 ©{new Date().getFullYear()}
+            {t('common:footer.copyright', '成都高新区财政国资局 人事工资信息管理系统')} ©{new Date().getFullYear()}
           </span>
-          <img src={hyperchainLogoPath} alt="趣链科技 Logo" style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
+          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt', '趣链科技 Logo')} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
           <span style={{ verticalAlign: 'middle' }}>
           </span>
         </Footer>

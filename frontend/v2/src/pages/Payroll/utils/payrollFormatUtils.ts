@@ -1,5 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
-import i18n from '../../../i18n';
+// 不要在工具函数中直接导入和使用 i18n
+// import i18n from '../../../i18n';
 
 /**
  * 获取日期的月份名称
@@ -11,15 +12,26 @@ export const formatMonthName = (date: Dayjs): string => {
 };
 
 /**
- * 自动生成工资周期名称，格式为"月度工资 八月 2024"或"Monthly Payroll August 2024"
+ * 自动生成工资周期名称的翻译键和参数
  * @param startDate 开始日期
- * @returns 格式化的工资周期名称
+ * @returns 翻译信息对象
  */
-export const generatePayrollPeriodName = (startDate: Dayjs): string => {
+export const getPayrollPeriodNameTranslation = (startDate: Dayjs): { key: string, params: Record<string, any> } => {
   const month = formatMonthName(startDate);
   const year = startDate.year();
-  return i18n.t('payroll:period.monthly_payroll', { month, year });
+  return {
+    key: 'payroll:period.monthly_payroll',
+    params: { month, year }
+  };
 };
+
+/**
+ * 自动生成工资周期名称，但需要在组件中使用
+ * 示例用法：
+ * const { t } = useTranslation(['payroll']);
+ * const periodNameInfo = getPayrollPeriodNameTranslation(startDate);
+ * const periodName = t(periodNameInfo.key, periodNameInfo.params);
+ */
 
 /**
  * 格式化工资周期显示

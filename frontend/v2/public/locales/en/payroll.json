@@ -99,6 +99,23 @@
         "save_changes": "Save Changes",
         "create_period": "Create Period"
       }
+    },
+    "export": {
+      "filename": "Payroll Period Data",
+      "sheetName": "Payroll Periods",
+      "buttonText": "Export Data",
+      "successMessage": "Export successful",
+      "tooltipTitle": "Export to Excel"
+    },
+    "columnControl": {
+      "buttonText": "Column Settings",
+      "tooltipTitle": "Customize Columns",
+      "dropdownTitle": "Column Display",
+      "resetText": "Reset"
+    },
+    "confirm": {
+      "delete_title": "Confirm Delete",
+      "delete_description": "Are you sure you want to delete this payroll period? This action cannot be undone."
     }
   },
   "runs_page": {
@@ -259,6 +276,31 @@
     "pagination_show_total": "Showing {range0}-{range1} of {total} items",
     "currency_symbol": "¥"
   },
+  "payroll_entries_table": {
+    "column_entry_id": "Entry ID",
+    "column_employee_id": "Employee ID",
+    "column_employee_name": "Employee Name",
+    "column_total_earnings": "Total Earnings",
+    "column_total_deductions": "Total Deductions",
+    "column_net_pay": "Net Pay",
+    "column_status": "Status",
+    "column_remarks": "Remarks",
+    "column_actions": "Actions",
+    "cell_name_supplement_needed": "Supplement Needed",
+    "employee_id_prefix": "Employee ID: {id}",
+    "currency_symbol": "¥",
+    "tooltip_view_details": "View Details",
+    "tooltip_edit_entry": "Edit/Adjust Payroll Entry",
+    "spin_loading_entries": "Loading payroll entries...",
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
+    "error_fetch": "Unable to fetch payroll entry data",
+    "alert_error_prefix": "Error: ",
+    "cell_remarks_empty": "-",
+    "message": {
+      "edit_entry_todo": "Edit payroll entry for employee {employeeIdentifier} (ID: {entryId}) - Functionality to be implemented",
+      "view_details_todo": "View payroll entry details for employee {employeeIdentifier} (ID: {entryId}) - Functionality to be implemented"
+    }
+  },
   "period": {
     "title": "Payroll Period Management",
     "create_button": "Create Payroll Period",
@@ -298,5 +340,112 @@
       "delete_confirm": "Are you sure you want to delete this payroll period?"
     },
     "monthly_payroll": "Monthly Payroll {month} {year}"
+  },
+  "payroll_run_status": {
+    "draft": "Draft",
+    "processing": "Processing",
+    "pending_review": "Pending Review",
+    "approved": "Approved",
+    "approved_for_payment": "Approved for Payment",
+    "paid": "Paid",
+    "cancelled": "Cancelled",
+    "error": "Error"
+  },
+  "payroll_entry_status": {
+    "pending_calculation": "Pending Calculation",
+    "calculated": "Calculated",
+    "pending_confirmation": "Pending Confirmation",
+    "confirmed": "Confirmed",
+    "adjusted": "Adjusted",
+    "archived": "Archived",
+    "error": "Error"
+  },
+  "pagination_total": "Total {total} items",
+  "entry_form": {
+    "title_create": "Create Payroll Entry",
+    "title_edit": "Edit Payroll Entry",
+    "section": {
+      "employee_info": "Employee Information",
+      "earnings": "Earnings",
+      "deductions": "Deductions",
+      "summary": "Summary"
+    },
+    "label": {
+      "employee_id": "Employee ID",
+      "employee": "Select Employee",
+      "employee_name": "Employee Name",
+      "department": "Department",
+      "personnel_category": "Personnel Category",
+      "actual_position": "Actual Position",
+      "amount": "Amount",
+      "total_earnings": "Total Earnings",
+      "total_deductions": "Total Deductions",
+      "net_pay": "Net Pay",
+      "status": "Status",
+      "remarks": "Remarks"
+    },
+    "placeholder": {
+      "select_earnings_component": "Select Earnings Component",
+      "select_deductions_component": "Select Deductions Component",
+      "select_employee": "Search employee by name"
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved"
+    },
+    "message": {
+      "update_success": "Payroll entry updated successfully",
+      "create_success": "Payroll entry created successfully",
+      "component_already_exists": "This component already exists"
+    },
+    "total": "Total",
+    "no_earnings_components": "No earnings components",
+    "no_deductions_components": "No deductions components",
+    "validation": {
+      "employee_required": "Please select an employee",
+      "status_required": "Please select a status"
+    },
+    "error_fetch_employee": "Failed to fetch employee details",
+    "error_save": "Failed to save payroll entry"
+  },
+  "entry_page": {
+    "title": "Payroll Entry",
+    "filter": {
+      "period": "Payroll Period",
+      "employee": "Employee Search"
+    },
+    "placeholder": {
+      "select_period": "Select Payroll Period",
+      "search_employee": "Search employee name or ID"
+    },
+    "button": {
+      "add_entry": "Add Payroll Record",
+      "batch_import": "Batch Import",
+      "export": "Export to Excel"
+    },
+    "tooltip": {
+      "edit_entry": "Edit Payroll Record"
+    },
+    "table": {
+      "column": {
+        "employee_id": "Employee ID",
+        "employee_name": "Employee Name",
+        "department": "Department",
+        "position": "Position",
+        "total_earnings": "Total Earnings",
+        "total_deductions": "Total Deductions",
+        "net_pay": "Net Pay",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
+    "message": {
+      "operation_success": "Operation successful",
+      "batch_import_coming_soon": "Batch import feature coming soon",
+      "export_coming_soon": "Export feature coming soon"
+    },
+    "error_fetch_periods": "Failed to fetch payroll periods",
+    "error_fetch_entries": "Failed to fetch payroll entries"
   }
 }

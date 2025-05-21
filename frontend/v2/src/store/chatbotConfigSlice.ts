@@ -11,8 +11,8 @@ export interface ChatbotConfig {
 }
 
 export const initialChatbotConfig: ChatbotConfig = {
-  token: 'hMAF064QpYeYtSHm',
-  baseUrl: 'https://proxy-llm.1024paas.com/v1',
+  token: '',
+  baseUrl: '',
   customCss: '',
   customJs: '',
   isEnabled: true,

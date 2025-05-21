@@ -169,7 +169,11 @@
       "label_marital_status": "Marital Status",
       "label_political_status": "Political Status",
       "label_residential_address": "Residential Address", 
-      "label_notes": "Notes" 
+      "label_notes": "Notes",
+      "label_current_position_start_date": "Current Position Start Date (This Org)",
+      "label_career_position_level_date": "Career Position Level Date (Career)",
+      "tooltip_current_position_start_date": "The date when employee started this position in current organization",
+      "tooltip_career_position_level_date": "The date when employee first reached this position level in their entire career"
     },
     "job_info_tab": {
       "title": "Position Information",

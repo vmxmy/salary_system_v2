@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, DatePicker, Select, InputNumber, Input, Button, message, Row, Col, Spin } from 'antd';
+import { Modal, Form, DatePicker, Select, InputNumber, Input, message, Spin } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { employeeService } from '../../../../services/employeeService';
-import type { JobHistoryItem, Department, JobTitle, LookupValue, CreateJobHistoryPayload } from '../../types';
+import type { JobHistoryItem, Department, PersonnelCategory, LookupValue, CreateJobHistoryPayload } from '../../types';
 import { useTranslation } from 'react-i18next';
 
-const { Option } = Select;
 
 interface JobHistoryModalProps {
   visible: boolean;
@@ -21,7 +20,6 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
   visible,
   mode,
   initialData,
-  employeeId,
   onSubmit,
   onCancel,
 }) => {
@@ -30,9 +28,10 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
+  const [jobTitles, setJobTitles] = useState<PersonnelCategory[]>([]);
   const [employmentTypes, setEmploymentTypes] = useState<LookupValue[]>([]);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | undefined>(initialData?.department_id);
+  const [loadingJobTitles, setLoadingJobTitles] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchLookups = async () => {
@@ -47,8 +46,10 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
         
         if (initialData?.department_id) {
           setSelectedDepartmentId(initialData.department_id);
-          const titlesRes = await employeeService.getJobTitlesLookup(String(initialData.department_id));
-          setJobTitles(titlesRes);
+          const titlesRes = await employeeService.getPersonnelCategoriesLookup(String(initialData.department_id));
+          if (titlesRes) {
+            setJobTitles(titlesRes);
+          }
         } else {
           setJobTitles([]); 
         }
@@ -71,7 +72,7 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
         ...initialData,
         effectiveDate: initialData.effectiveDate ? dayjs(initialData.effectiveDate) : null,
         department_id: initialData.department_id,
-        job_title_id: initialData.job_title_id,
+        personnel_category_id: initialData.personnel_category_id,
         employment_type_lookup_value_id: initialData.employment_type_lookup_value_id,
         salary: initialData.salary,
         remarks: initialData.remarks,
@@ -85,11 +86,11 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
 
   useEffect(() => {
     if (selectedDepartmentId) {
-      setLoading(true);
-      employeeService.getJobTitlesLookup(String(selectedDepartmentId))
+      setLoadingJobTitles(true);
+      employeeService.getPersonnelCategoriesLookup(String(selectedDepartmentId))
         .then(setJobTitles)
         .catch(() => message.error(t('employee:detail_page.job_history_tab.modal.message_load_job_titles_failed', '无法加载职位数据')))
-        .finally(() => setLoading(false));
+        .finally(() => setLoadingJobTitles(false));
     } else {
       setJobTitles([]); 
     }
@@ -101,7 +102,8 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
       const values = await form.validateFields();
       const submissionData: CreateJobHistoryPayload = {
         department_id: values.department_id,
-        job_title_id: values.job_title_id,
+        personnel_category_id: values.personnel_category_id,
+        position_id: values.position_id || 0,
         effectiveDate: values.effectiveDate ? (values.effectiveDate as Dayjs).format('YYYY-MM-DD') : '',
         employment_type_lookup_value_id: values.employment_type_lookup_value_id,
         salary: values.salary,
@@ -117,7 +119,7 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
 
   const handleDepartmentChange = (value: number) => {
     setSelectedDepartmentId(value);
-    form.setFieldsValue({ job_title_id: undefined });
+    form.setFieldsValue({ personnel_category_id: undefined });
   };
 
   return (
@@ -127,7 +129,7 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
       onOk={handleOk}
       onCancel={onCancel}
       confirmLoading={submitLoading}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={false}
     >
       <Spin spinning={loading && departments.length === 0}>
@@ -159,13 +161,13 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
           </Form.Item>
 
           <Form.Item
-            name="job_title_id"
+            name="personnel_category_id"
             label={t('employee:detail_page.job_history_tab.table.column_job_title', '职位')}
             rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_job_title_required', '请选择职位!') }]}
           >
             <Select 
               placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_job_title', '请选择职位')} 
-              loading={loading && selectedDepartmentId !== undefined && jobTitles.length === 0}
+              loading={loadingJobTitles && selectedDepartmentId !== undefined && jobTitles.length === 0}
               disabled={!selectedDepartmentId}
               showSearch
               optionFilterProp="children"

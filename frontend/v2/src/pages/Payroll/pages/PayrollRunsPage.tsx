@@ -9,11 +9,15 @@ import {
   Form,
   message,
   Typography,
+  Tooltip,
 } from 'antd';
 import { PlusOutlined, CheckCircleOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import ActionButton from '../../../components/common/ActionButton';
+import { useNavigate } from 'react-router-dom';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PermissionGuard from '../../../components/common/PermissionGuard';
+import TableActionButton from '../../../components/common/TableActionButton';
+import { format } from 'date-fns';
 import type { ColumnsType } from 'antd/es/table';
 import type { TablePaginationConfig } from 'antd/es/table/interface';
 import dayjs from 'dayjs';
@@ -26,9 +30,8 @@ import {
   deletePayrollRun,
   exportPayrollRunBankFile,
 } from '../services/payrollApi';
-import PermissionGuard from '../../../components/common/PermissionGuard';
 import PayrollRunForm, { type PayrollRunFormData } from '../components/PayrollRunForm';
-import { getPayrollRunStatusDisplay, PAYROLL_RUN_STATUS_OPTIONS } from '../utils/payrollUtils';
+import { getPayrollRunStatusInfo, PAYROLL_RUN_STATUS_OPTIONS } from '../utils/payrollUtils';
 import {
   P_PAYROLL_RUN_MANAGE,
   P_PAYROLL_RUN_MARK_AS_PAID,
@@ -37,7 +40,8 @@ import {
 } from '../constants/payrollPermissions';
 
 const PayrollRunsPage: React.FC = () => {
-  const { t } = useTranslation(['payroll', 'common', 'translation']);
+  const { t } = useTranslation(['payroll', 'common']);
+  console.log('[PayrollRunsPage] Rendering. Component instance created/re-rendered.');
   const [runs, setRuns] = useState<PayrollRun[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -49,6 +53,7 @@ const PayrollRunsPage: React.FC = () => {
   const [currentRun, setCurrentRun] = useState<Partial<PayrollRun> | null>(null);
   
   const [form] = Form.useForm<PayrollRunFormData>();
+  const navigate = useNavigate();
 
   const fetchRuns = useCallback(async (page = 1, pageSize = 10, payrollPeriodId?: number) => {
     setLoading(true);
@@ -95,11 +100,11 @@ const PayrollRunsPage: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const handleModalCancel = () => {
+  const handleModalCancel = useCallback(() => {
     setIsModalVisible(false);
     setModalError(null);
     setCurrentRun(null);
-  };
+  }, []);
 
   const handleFormFinish = React.useCallback(async (formData: PayrollRunFormData) => {
     setModalLoading(true);
@@ -222,7 +227,7 @@ const PayrollRunsPage: React.FC = () => {
   };
 
   const handleViewDetails = (runId: number) => {
-    message.info(`Navigate to details for Payroll Run ID: ${runId} (Not yet implemented)`);
+    navigate(`/finance/payroll/runs/${runId}`);
   };
 
   const handleTableChange = React.useCallback((pagination: TablePaginationConfig) => {
@@ -256,8 +261,8 @@ const PayrollRunsPage: React.FC = () => {
         key: 'status',
         sorter: true,
         render: (statusId?: number) => {
-          const statusInfo = getPayrollRunStatusDisplay(statusId);
-          return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+          const statusInfo = getPayrollRunStatusInfo(statusId);
+          return <Tag color={statusInfo.color}>{t(statusInfo.key, statusInfo.params)}</Tag>;
         },
       },
       {
@@ -281,39 +286,38 @@ const PayrollRunsPage: React.FC = () => {
         render: (_, record: PayrollRun) => (
           <Space size="middle">
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_VIEW]}>
-                <Button type="link" icon={<EyeOutlined/>} onClick={() => handleViewDetails(record.id)}>{t('runs_page.table.action_details')}</Button>
+                <TableActionButton 
+                  actionType="view" 
+                  onClick={() => handleViewDetails(record.id)} 
+                  tooltipTitle={t('runs_page.table.action_details')}
+                />
             </PermissionGuard>
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <ActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('runs_page.tooltip.edit_run')} />
+              <TableActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('runs_page.tooltip.edit_run')} />
             </PermissionGuard>
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <ActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle={t('runs_page.tooltip.delete_run')} />
+              <TableActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle={t('runs_page.tooltip.delete_run')} />
             </PermissionGuard>
             {record.status_lookup_value_id !== PAID_STATUS_ID && (
               <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MARK_AS_PAID]}>
-                  <Button
-                      type="link"
-                      icon={<CheckCircleOutlined />}
+                  <TableActionButton
+                      actionType="approve"
                       onClick={() => handleMarkAsPaid(record)}
-                      style={{ color: 'green' }}
-                  >
-                      {t('runs_page.button.mark_as_paid')}
-                  </Button>
+                      tooltipTitle={t('runs_page.button.mark_as_paid')}
+                  />
               </PermissionGuard>
             )}
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_EXPORT_BANK_FILE]}>
-              <Button
-                type="link"
-                icon={<DownloadOutlined />}
+              <TableActionButton
+                actionType="download"
                 onClick={() => handleExportBankFile(record)}
-              >
-                  {t('runs_page.button.export_bank_file')}
-              </Button>
+                tooltipTitle={t('runs_page.button.export_bank_file')}
+              />
             </PermissionGuard>
           </Space>
         ),
       },
-    ], [PAID_STATUS_ID, t, handleViewDetails, showEditModal, handleDeleteRun, handleMarkAsPaid, handleExportBankFile, getPayrollRunStatusDisplay]);
+    ], [PAID_STATUS_ID, t, handleViewDetails, showEditModal, handleDeleteRun, handleMarkAsPaid, handleExportBankFile]);
 
   return (
     <div style={{ padding: '24px' }}>
@@ -359,7 +363,7 @@ const PayrollRunsPage: React.FC = () => {
         onCancel={handleModalCancel}
         confirmLoading={modalLoading} 
         footer={null} 
-        destroyOnClose 
+        destroyOnClose
         width={650} 
       >
         {modalError && <Alert message={`${t('runs_page.alert_modal_error_prefix')}${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}

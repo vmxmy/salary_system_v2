@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import ActionButton from '../../../../components/common/ActionButton';
+import TableActionButton from '../../../../components/common/TableActionButton';
 import type { CompensationItem } from '../../types'; // Removed PayFrequency enum import
 import dayjs from 'dayjs';
 import { usePermissions } from '../../../../hooks/usePermissions';
@@ -104,7 +104,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       render: (_, record) => (
         <Space size="small">
           {canEdit && (
-            <ActionButton
+            <TableActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
               tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_edit_record', '编辑薪资记录')}
@@ -117,7 +117,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
               okText={t('common:button.yes', 'Yes')}
               cancelText={t('common:button.no', 'No')}
             >
-              <ActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record', '删除薪资记录')} />
+              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record', '删除薪资记录')} />
             </Popconfirm>
           )}
         </Space>

@@ -9,26 +9,36 @@ import {
   Tag, 
   Form,
   Alert,
-  Typography
+  Input,
+  DatePicker,
+  Typography,
+  Select,
+  Tooltip
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
+import { format } from 'date-fns';
+import dayjs, { Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import utc from 'dayjs/plugin/utc';
 import ActionButton from '../../../components/common/ActionButton';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import type { ColumnsType } from 'antd/es/table';
-import dayjs, { Dayjs } from 'dayjs';
-
-import type { PayrollPeriod, ApiListMeta } from '../types/payrollTypes';
 import { 
   getPayrollPeriods, 
   createPayrollPeriod, 
   updatePayrollPeriod, 
-  deletePayrollPeriod 
+  deletePayrollPeriod,
+  testTranslations
 } from '../services/payrollApi';
 import PayrollPeriodForm, { type PayrollPeriodFormData } from '../components/PayrollPeriodForm';
 import PermissionGuard from '../../../components/common/PermissionGuard';
 import { P_PAYROLL_PERIOD_MANAGE } from '../constants/payrollPermissions';
-import { generatePayrollPeriodName } from '../utils/payrollFormatUtils';
+import { getPayrollPeriodNameTranslation } from '../utils/payrollFormatUtils';
+import TableActionButton from '../../../components/common/TableActionButton';
+import type { PayrollPeriod, ApiListMeta } from '../types/payrollTypes';
+import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 
 // Define status options keys (can be moved to a shared util if used elsewhere)
 // These keys should match what's in your translation files for payroll_period_form.status_option.*
@@ -40,8 +50,15 @@ const PERIOD_STATUS_OPTION_KEYS = [
 ];
 
 const PayrollPeriodsPage: React.FC = () => {
-  const { t } = useTranslation(['payroll', 'translation']);
+  const { t } = useTranslation(['payroll', 'common']);
   console.log('[PayrollPeriodsPage] Rendering. Component instance created/re-rendered.');
+  // 添加调试日志，检查翻译内容
+  console.log('[PayrollPeriodsPage] Translation check:', {
+    addPeriodBtn: t('periods_page.button.add_period'),
+    title: t('periods_page.title'),
+    nsCheck: t('periods_page.button.add_period', { ns: 'payroll' })
+  });
+  
   const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -107,11 +124,14 @@ const PayrollPeriodsPage: React.FC = () => {
     if (isModalVisible && !currentPeriod) {
       const startDateField = form.getFieldValue('start_date');
       if (startDateField) {
-        const generatedName = generatePayrollPeriodName(startDateField);
+        // 使用新的函数获取翻译键和参数
+        const translationInfo = getPayrollPeriodNameTranslation(startDateField);
+        // 使用t函数进行翻译，并确保结果是字符串
+        const generatedName = t(translationInfo.key, translationInfo.params) as string;
         form.setFieldsValue({ name: generatedName });
       }
     }
-  }, [form, isModalVisible, currentPeriod]);
+  }, [form, isModalVisible, currentPeriod, t]);
 
   const showModal = useCallback((period?: PayrollPeriod) => {
     console.log('[PayrollPeriodsPage:showModal] Called. Period:', period);
@@ -193,132 +213,214 @@ const PayrollPeriodsPage: React.FC = () => {
     }
   }, [periods.length, meta, fetchPeriods, t]);
 
-  const columns = React.useMemo((): ColumnsType<PayrollPeriod> => [
+  // 添加表格搜索功能
+  const { getColumnSearch } = useTableSearch();
+
+  const columns: ColumnsType<PayrollPeriod> = [
     {
       title: t('periods_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: (a, b) => a.id - b.id,
+      sorter: numberSorter<PayrollPeriod>('id'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('id'),
+      width: 80,
     },
     {
-      title: t('periods_page.table.column.period_name'),
+      title: t('periods_page.table.column.name'),
       dataIndex: 'name',
       key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: stringSorter<PayrollPeriod>('name'),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearch('name'),
+      width: 200,
     },
     {
       title: t('periods_page.table.column.start_date'),
       dataIndex: 'start_date',
       key: 'start_date',
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
-      sorter: (a, b) => dayjs(a.start_date).unix() - dayjs(b.start_date).unix(),
+      sorter: dateSorter<PayrollPeriod>('start_date'),
+      sortDirections: ['descend', 'ascend'],
+      width: 130,
+      render: (date: string) => date ? format(new Date(date), 'yyyy-MM-dd') : '',
     },
     {
       title: t('periods_page.table.column.end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
-      sorter: (a, b) => dayjs(a.end_date).unix() - dayjs(b.end_date).unix(),
+      sorter: dateSorter<PayrollPeriod>('end_date'),
+      sortDirections: ['descend', 'ascend'],
+      width: 130,
+      render: (date: string) => date ? format(new Date(date), 'yyyy-MM-dd') : '',
     },
     {
       title: t('periods_page.table.column.status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
-      sorter: true,
-      render: (statusId?: number) => {
-        const statusInfo = getStatusDisplayForPage(statusId);
-        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+      filters: PERIOD_STATUS_OPTION_KEYS.map(option => ({
+        text: t(option.key),
+        value: option.id,
+      })),
+      onFilter: (value, record) => record.status_lookup_value_id === value,
+      render: (statusId: number) => {
+        const status = getStatusDisplayForPage(statusId);
+        return <Tag color={status.color}>{status.text}</Tag>;
       },
+      width: 120,
     },
     {
       title: t('periods_page.table.column.actions'),
       key: 'actions',
       align: 'center',
-      render: (_, record: PayrollPeriod) => (
+      width: 120,
+      render: (_, record) => (
         <Space size="middle">
-          <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
-            <ActionButton actionType="edit" onClick={() => showModal(record)} tooltipTitle={t('periods_page.tooltip.edit_period')} />
-          </PermissionGuard>
-          <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
-            <Popconfirm
-                title={t('periods_page.popconfirm_delete.title')}
-                description={t('periods_page.popconfirm_delete.description', { periodName: record.name })}
-                onConfirm={() => handleDeletePeriod(record.id)}
-                okText={t('periods_page.popconfirm_delete.ok_text')}
-                cancelText={t('periods_page.popconfirm_delete.cancel_text')}
-              >
-                <ActionButton actionType="delete" tooltipTitle={t('periods_page.tooltip.delete_period')} />
-            </Popconfirm>
-          </PermissionGuard>
+          <TableActionButton
+            actionType="edit"
+            onClick={() => showModal(record)}
+            tooltipTitle={t('periods_page.tooltip.edit_period')}
+          />
+          <Popconfirm
+            title={t('periods_page.confirm.delete_title')}
+            description={t('periods_page.confirm.delete_description', { periodName: record.name })}
+            onConfirm={() => handleDeletePeriod(record.id)}
+            okText={t('common:action.yes')}
+            cancelText={t('common:action.no')}
+          >
+            <TableActionButton
+              actionType="delete"
+              tooltipTitle={t('periods_page.tooltip.delete_period')}
+            />
+          </Popconfirm>
         </Space>
       ),
     },
-  ], [requiredPermissionsMemo, showModal, handleDeletePeriod, t, getStatusDisplayForPage]);
+  ];
+  
+  // 添加表格导出功能
+  const { ExportButton } = useTableExport(
+    periods || [], 
+    columns, 
+    {
+      filename: t('periods_page.export.filename'),
+      sheetName: t('periods_page.export.sheetName'),
+      buttonText: t('periods_page.export.buttonText'),
+      successMessage: t('periods_page.export.successMessage')
+    }
+  );
+  
+  // 添加列控制功能
+  const { visibleColumns, ColumnControl } = useColumnControl(
+    columns,
+    {
+      storageKeyPrefix: 'payroll_periods_table',
+      buttonText: t('periods_page.columnControl.buttonText'),
+      tooltipTitle: t('periods_page.columnControl.tooltipTitle'),
+      dropdownTitle: t('periods_page.columnControl.dropdownTitle'),
+      resetText: t('periods_page.columnControl.resetText'),
+      requiredColumns: ['id', 'name', 'actions'] // ID、名称和操作列必须显示
+    }
+  );
 
-  const paginationConfig = React.useMemo(() => ({
-    current: meta?.page,
-    pageSize: meta?.size,
-    total: meta?.total,
-    showSizeChanger: true,
-    showTotal: (total: number, range: [number, number]) => t('periods_page.pagination_show_total', { range0: range[0], range1: range[1], total }),
-  }), [meta?.page, meta?.size, meta?.total, t]);
+  const pageTitle = t('periods_page.title');
+  const actions = (
+    <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+        {t('button.create', { ns: 'common' })}
+      </Button>
+    </PermissionGuard>
+  );
 
   // 表单开始日期变化回调函数
   const handleStartDateChange = (date: Dayjs | null) => {
     if (date && !currentPeriod) {
-      const generatedName = generatePayrollPeriodName(date);
+      const translationInfo = getPayrollPeriodNameTranslation(date);
+      const generatedName = t(translationInfo.key, translationInfo.params) as string;
       form.setFieldsValue({ name: generatedName });
     }
   };
 
+  // 国际化加载诊断代码 - 可以在生产环境中删除
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PayrollPeriodsPage] i18n loaded namespaces:', i18n.options.ns);
+      console.log('[PayrollPeriodsPage] i18n current language:', i18n.language);
+      
+      // 测试翻译函数的结果
+      const testResults = testTranslations();
+      console.log('[PayrollPeriodsPage] Translation test results from utility:', testResults);
+    }
+  }, [t]);
+
   return (
-    <div style={{ padding: '24px' }}>
-      {error && <Alert message={error} type="error" showIcon closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
+    <PermissionGuard requiredPermissions={requiredPermissionsMemo} showError={true}>
       <PageHeaderLayout
-        pageTitle={t('periods_page.title')}
+        pageTitle={<Typography.Title level={4} style={{ margin: 0 }}>{t('periods_page.title')}</Typography.Title>}
         actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} shape="round">
-            {t('periods_page.button.create_period')}
-          </Button>
+          <Space>
+            <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => showModal()}
+              >
+                {t('button.create', { ns: 'common' })}
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
+              <Tooltip title={t('periods_page.export.tooltipTitle')}>
+                <ExportButton />
+              </Tooltip>
+            </PermissionGuard>
+            <ColumnControl />
+          </Space>
         }
       >
-      </PageHeaderLayout>
-      <Table
-        columns={columns}
-        dataSource={periods}
-        rowKey="id"
-        loading={loading}
-        pagination={paginationConfig}
-        onChange={(pagination) => fetchPeriods(pagination.current, pagination.pageSize)}
-      />
-      <Modal
-        title={currentPeriod ? t('periods_page.modal_title.edit') : t('periods_page.modal_title.create')}
-        open={isModalVisible}
-        onCancel={handleModalCancel}
-        footer={null}
-        destroyOnClose 
-        width={600}
-      >
-        <PayrollPeriodForm
-          form={form}
-          initialValues={memoizedInitialValues}
-          onFinish={handleFormFinish}
-          onCancel={handleModalCancel}
-          loading={modalLoading}
-          isEditMode={!!currentPeriod}
-          onStartDateChange={handleStartDateChange}
+        {/* Content for PageHeaderLayout children goes here */}
+        {error && <Alert message={t('common.error_alert_title')} description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
+        <Table
+          columns={visibleColumns}
+          dataSource={periods}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            current: meta?.page || 1,
+            pageSize: meta?.size || 10,
+            total: meta?.total || 0,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            onChange: (page, pageSize) => fetchPeriods(page, pageSize),
+            showTotal: (total, range) => t('common.pagination_total', { start: range[0], end: range[1], total }),
+          }}
+          scroll={{ x: 'max-content' }}
         />
-      </Modal>
-      <div style={{ textAlign: 'center', marginTop: 20 }}>
-        <Typography.Text type="secondary">
-          {t('periods_page.pagination_show_total', { 
-            range0: meta ? (meta.page - 1) * meta.size + 1 : 0, 
-            range1: meta ? Math.min(meta.page * meta.size, meta.total) : 0, 
-            total: meta ? meta.total : 0 
-          })}
-        </Typography.Text>
-      </div>
-    </div>
+        {isModalVisible && (
+          <Modal
+            title={currentPeriod ? t('periods_page.modal.title_edit') : t('periods_page.modal.title_add')}
+            open={isModalVisible}
+            onCancel={handleModalCancel}
+            confirmLoading={modalLoading}
+            footer={[
+              <Button key="back" onClick={handleModalCancel} disabled={modalLoading}>
+                {t('common.button_cancel')}
+              </Button>,
+              <Button key="submit" type="primary" loading={modalLoading} onClick={() => form.submit()}>
+                {currentPeriod ? t('common.button_save_changes') : t('common.button_create')}
+              </Button>,
+            ]}
+            destroyOnHidden
+          >
+            {error && <Alert message={t('common.error_alert_title')} description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
+            <PayrollPeriodForm 
+              form={form} 
+              onFinish={handleFormFinish} 
+              initialValues={memoizedInitialValues} 
+              onStartDateChange={handleStartDateChange} 
+            />
+          </Modal>
+        )}
+      </PageHeaderLayout>
+    </PermissionGuard>
   );
 };
 

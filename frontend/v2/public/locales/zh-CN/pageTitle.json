@@ -23,6 +23,7 @@
     "payroll_periods": "工资周期管理",
     "payroll_runs": "工资计算批次",
     "payroll_run_detail": "计算批次详情",
+    "payroll_entry": "工资录入",
     "manager_view": "经理视图",
     "employee_hub": "个人中心",
     "my_info": "我的信息",
@@ -35,4 +36,4 @@
     "hr.bulk_import.page_title": "员工批量导入",
     "periods": "工资周期管理",
     "bulk_import_employees": "员工批量导入"
-  }
+}
