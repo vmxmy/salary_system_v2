@@ -74,6 +74,11 @@ class Employee(BaseV2):
     actual_position_id = Column(BigInteger, ForeignKey('hr.positions.id', name='fk_employee_actual_position_id', ondelete='SET NULL'), nullable=True)
     career_position_level_date = Column(Date, nullable=True, comment="The date when employee first reached this position level in their entire career")
     current_position_start_date = Column(Date, nullable=True, comment="The date when employee started this position in current organization")
+    
+    # --- 新增字段 - 工资级别、工资档次、参照正编薪级 ---
+    salary_level_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_salary_level_id', ondelete='SET NULL'), nullable=True, comment="员工工资级别")
+    salary_grade_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_salary_grade_id', ondelete='SET NULL'), nullable=True, comment="员工工资档次")
+    ref_salary_level_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_ref_salary_level_id', ondelete='SET NULL'), nullable=True, comment="员工参照正编薪级")
     # --- END NEW FIELDS for Employee ---
     
     hire_date = Column(Date, nullable=False)

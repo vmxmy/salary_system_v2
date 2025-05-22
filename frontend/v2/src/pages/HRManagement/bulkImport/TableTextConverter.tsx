@@ -46,6 +46,9 @@ const TableTextConverter: React.FC = () => {
     { key: 'position_name', label: '实际任职', required: false },
     { key: 'current_position_start_date', label: '实际任职时间(本单位)', required: false },
     { key: 'career_position_level_date', label: '任职级时间(职业生涯)', required: false },
+    { key: 'salary_level_lookup_value_name', label: '工资级别', required: false },
+    { key: 'salary_grade_lookup_value_name', label: '工资档次', required: false },
+    { key: 'ref_salary_level_lookup_value_name', label: '参照正编薪级', required: false },
     { key: 'email', label: '邮箱', required: false },
     { key: 'phone_number', label: '电话号码', required: false },
     { key: 'hire_date', label: '入职日期', required: true },
@@ -68,6 +71,9 @@ const TableTextConverter: React.FC = () => {
     '实际任职': 'position_name',
     '实际任职时间': 'current_position_start_date',
     '任职级时间': 'career_position_level_date',
+    '工资级别': 'salary_level_lookup_value_name',
+    '工资档次': 'salary_grade_lookup_value_name',
+    '参照正编薪级': 'ref_salary_level_lookup_value_name',
     '年度考核': '',
   };
 

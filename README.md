@@ -1,194 +1,86 @@
-# 高新区工资信息管理系统
+# 高新区工资信息管理系统 (Salary Information Management System)
 
 ## 项目概述
 
-高新区工资信息管理系统是一个用于管理和分析员工薪资数据的应用程序。系统支持导入、合并、查询和分析各类薪资数据，包括基本工资、社保、公积金、年金等信息。
+高新区工资信息管理系统是一个全面的薪资信息管理解决方案，为高新区提供员工信息管理、薪资数据导入、计算、审批、报表生成和工资单电子邮件分发等功能，从而提高薪资管理的效率和准确性。
+
+系统目标是成为高新区乃至更广泛区域内一个高效、安全且用户友好的薪资信息管理平台，为企业和员工提供优质服务。
 
 ## 主要功能
 
-- 数据导入：支持导入各类薪资数据文件
-- 数据合并：将不同来源的数据合并到统一的数据结构中
-- 数据查询：提供多种视图和查询方式，方便用户查看和分析数据
-- 数据分析：支持按部门、职位等维度进行薪资数据分析
+- **员工信息管理**：管理员工基本信息、合同、职位历史和薪酬等
+- **薪资数据处理**：支持导入、合并、计算各类薪资数据
+- **薪资核算**：处理薪资周期、薪资计算、工资单生成和银行导出文件
+- **休假管理**：管理休假类型、员工休假余额、休假申请和审批
+- **系统配置**：管理查询值、系统参数、薪资组件定义、税率/社保费率
+- **报表与分析**：提供数据报表和仪表板
+- **角色与权限**：基于角色的权限管理系统
 
 ## 技术栈
 
-- 后端：Python, Flask, SQLAlchemy, Alembic
-- 数据库：PostgreSQL
-- 前端：Vue.js, Element UI
+### 后端
 
-## 数据库结构
+- **核心框架**：FastAPI, Python
+- **数据库**：PostgreSQL
+- **ORM**：SQLAlchemy
+- **数据库迁移**：Alembic
+- **身份验证**：JWT
+- **API文档**：Swagger UI / ReDoc (FastAPI自动生成)
 
-系统使用 PostgreSQL 数据库，主要包含以下几个模式（Schema）：
+### 前端 (V2)
 
-- `core`: 包含核心数据表，如用户、部门、员工类型等
-- `staging`: 包含数据导入和合并的中间表
-- `payroll`: 包含薪资计算和规则相关的表
-- `public`: 包含用于查询和分析的视图
+- **核心框架**：React 18
+- **编程语言**：TypeScript
+- **构建工具**：Vite
+- **UI组件库**：Ant Design
+- **状态管理**：Zustand / Redux Toolkit
+- **路由**：React Router
+- **HTTP客户端**：Axios
+- **图表**：@ant-design/charts
+- **表格处理**：xlsx
 
-### 主要数据表
+## 系统架构
 
-- `staging.consolidated_data`: 合并后的薪资数据表，包含所有薪资相关字段
-- `staging.raw_salary_data_staging`: 原始薪资数据导入表
-- `staging.raw_medical_staging`: 医疗保险数据导入表
-- `staging.raw_pension_staging`: 养老保险数据导入表
-- `staging.raw_housingfund_staging`: 住房公积金数据导入表
-- `staging.raw_annuity_staging`: 年金数据导入表
-- `staging.raw_tax_staging`: 税务数据导入表
+### 后端架构
 
-### 主要视图
+采用分层架构设计：
+- **API层**：处理HTTP请求、请求验证、认证和路由
+- **服务层**：封装核心业务逻辑，协调操作
+- **数据访问层**：负责所有数据库交互
+- **数据库层**：用于所有应用数据的持久存储
 
-- `public.正编人员工资信息表`: 正编人员（公务员、参公和事业编制）的薪资信息视图
-- `public.聘用人员工资信息表`: 聘用人员（非正编人员）的薪资信息视图
+### 前端架构
+
+基于组件化设计：
+- **API服务层**：封装所有后端API调用
+- **组件**：可复用UI组件，包括通用基础组件、布局组件、业务组件等
+- **页面**：组合通用组件和业务组件，构成完整页面视图
+- **状态管理**：使用Zustand/Redux Toolkit进行全局状态管理
+- **路由管理**：集中管理应用路由，包含权限控制
 
 ## 开发环境设置
 
-1. 克隆仓库
-```bash
-git clone https://github.com/vmxmy/salary_system.git
-cd salary_system
-```
+### 前提条件
 
-2. 创建并激活 conda 环境
-```bash
-conda create -n lightweight-salary-system python=3.9
-conda activate lightweight-salary-system
-```
+- Python 3.9+
+- PostgreSQL 13+
+- Node.js 16+
+- npm 8+ 或 Yarn
 
-3. 安装依赖
-```bash
-pip install -r webapp/requirements.txt
-cd frontend/salary-viewer
-npm install
-cd ../..
-```
 
-4. 设置数据库
-```bash
-# 创建数据库
-createdb salary_system
+## 项目文档
 
-# 运行数据库迁移
-alembic upgrade head
-```
+详细的项目文档位于 `docs/` 目录：
 
-5. 启动开发服务器
-```bash
-./start-dev.sh
-```
+- **通用文档**：`docs/common/`
+- **后端文档**：`docs/backend/`
+- **前端文档**：`docs/frontend/`
 
-## 拉取代码后启动服务步骤
-
-如果您已经克隆过仓库，并且想要拉取最新代码并启动服务，请按照以下步骤操作：
-
-1. 拉取最新代码
-```bash
-cd /path/to/salary_system
-git pull
-```
-
-2. 激活 conda 环境
-```bash
-conda activate lightweight-salary-system
-```
-
-3. 更新依赖（如果有更新）
-```bash
-pip install -r webapp/requirements.txt
-cd frontend/salary-viewer
-npm install
-cd ../..
-```
-
-4. 运行数据库迁移（如果有新的迁移）
-```bash
-alembic upgrade head
-```
-
-5. 启动服务
-```bash
-./start-dev.sh
-```
-
-服务启动后：
-- 后端服务将运行在 http://localhost:8080
-- 前端服务将运行在 http://localhost:5173
-- 后端日志将自动显示在终端中
-- 前端日志保存在 frontend.log 文件中
-
-如需停止服务，可以按 Ctrl+C 或运行：
-```bash
-./stop-dev.sh
-```
-
-## 数据库迁移
-
-系统使用 Alembic 管理数据库迁移。以下是常用的 Alembic 命令：
-
-```bash
-# 创建新的迁移文件
-alembic revision -m "描述"
-
-# 应用所有迁移
-alembic upgrade head
-
-# 回滚到上一个版本
-alembic downgrade -1
-
-# 查看迁移历史
-alembic history
-```
-
-### 多数据库迁移
-
-系统支持同时在多个数据库上运行迁移。有两种方式可以实现：
-
-#### 方法1：使用环境变量
-
-通过设置`ALEMBIC_DATABASE_URL`环境变量来指定目标数据库：
-
-```bash
-# 在第一个数据库上运行迁移
-ALEMBIC_DATABASE_URL=postgresql://user1:pass1@host1/db1 alembic upgrade head
-
-# 在第二个数据库上运行迁移
-ALEMBIC_DATABASE_URL=postgresql://user2:pass2@host2/db2 alembic upgrade head
-```
-
-#### 方法2：使用辅助脚本
-
-使用`scripts/multi_db_migrate.py`脚本可以同时在多个数据库上运行相同的迁移命令：
-
-```bash
-# 在多个数据库上应用所有迁移
-python scripts/multi_db_migrate.py --command upgrade --target head --db-urls "postgresql://user1:pass1@host1/db1" "postgresql://user2:pass2@host2/db2"
-
-# 在多个数据库上创建新的迁移文件
-python scripts/multi_db_migrate.py --command revision --message "新的迁移" --autogenerate --db-urls "postgresql://user1:pass1@host1/db1"
-
-# 在多个数据库上回滚到上一个版本
-python scripts/multi_db_migrate.py --command downgrade --target -1 --db-urls "postgresql://user1:pass1@host1/db1" "postgresql://user2:pass2@host2/db2"
-```
-
-注意：创建迁移文件时，通常只需要针对一个数据库运行，因为迁移文件是通用的，可以应用到多个数据库。
-
-## 最近更新
-
-### 2025-05-10
-
-- 添加了多数据库迁移支持，可以同时在多个数据库上运行迁移
-  - 支持通过环境变量指定目标数据库
-  - 提供了辅助脚本`scripts/multi_db_migrate.py`，简化多数据库迁移操作
-- 更新了文档，添加了多数据库迁移的使用说明
-
-### 2025-05-07
-
-- 创建了正编人员工资信息表视图，包含正编人员（公务员、参公和事业编制）的薪资信息
-- 创建了聘用人员工资信息表视图，包含非正编人员的薪资信息
-- 修改了数据库字段名称，使命名更加一致
-  - 将 `raw_medical_staging` 表中的 `total_employee_contribution` 改为 `medical_total_employee_contribution`
-  - 将 `raw_medical_staging` 表中的 `total_employer_contribution` 改为 `medical_total_employer_contribution`
-  - 将 `consolidated_data` 表中的字段名称相应更新为 `med_medical_total_employee_contribution` 和 `med_medical_total_employer_contribution`
+主要文档包括：
+- 项目愿景与目标：`docs/common/0_Project_Vision_and_Goals.md`
+- 后端架构：`docs/backend/1_Technical_Framework/1.1_Backend_Architecture.md`
+- 前端架构：`docs/frontend/1_Technical_Framework/1.1_Frontend_Architecture.md`
+- 技术栈和库：`docs/frontend/1_Technical_Framework/1.2_Technology_Stack_and_Libraries.md`
 
 ## 贡献指南
 

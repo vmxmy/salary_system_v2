@@ -103,6 +103,14 @@ class EmployeeCreate(EmployeeBase):
     marital_status_lookup_value_name: Optional[str] = Field(None, description="Marital status name")
     political_status_lookup_value_name: Optional[str] = Field(None, description="Political status name")
     contract_type_lookup_value_name: Optional[str] = Field(None, description="Contract type name")
+    
+    # 新增字段 - 工资级别、工资档次、参照正编薪级
+    salary_level_lookup_value_id: Optional[int] = Field(None, description="Salary level lookup ID")
+    salary_level_lookup_value_name: Optional[str] = Field(None, description="Salary level name")
+    salary_grade_lookup_value_id: Optional[int] = Field(None, description="Salary grade lookup ID")
+    salary_grade_lookup_value_name: Optional[str] = Field(None, description="Salary grade name")
+    ref_salary_level_lookup_value_id: Optional[int] = Field(None, description="Reference salary level lookup ID")
+    ref_salary_level_lookup_value_name: Optional[str] = Field(None, description="Reference salary level name")
 
     # Fields for resolving department and position by name
     department_name: Optional[str] = Field(None, description="Department name for resolving department_id")

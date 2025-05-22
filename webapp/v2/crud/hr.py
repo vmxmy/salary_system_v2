@@ -1045,7 +1045,11 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 "personnel_category_name", 
                 # 排除银行相关字段，因为这些字段不在 Employee 模型中
                 "bank_name", 
-                "bank_account_number"
+                "bank_account_number",
+                # 排除新增的lookup name字段
+                "salary_level_lookup_value_name",
+                "salary_grade_lookup_value_name",
+                "ref_salary_level_lookup_value_name"
             }
             employee_orm_data = emp_in.model_dump(exclude_none=True, exclude=fields_to_exclude)
 
@@ -1105,6 +1109,77 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 # For now, we'll assume it might be optional or handled by DB default if not in emp_in
                 pass
 
+            # 处理lookup字段
+            if not employee_orm_data.get('status_lookup_value_id') and emp_in.status_lookup_value_name:
+                status_id = _resolve_lookup_id(db, emp_in.status_lookup_value_name, "EMPLOYEE_STATUS")
+                if status_id is None:
+                    current_record_errors.append(f"Status '{emp_in.status_lookup_value_name}' could not be resolved.")
+                else:
+                    employee_orm_data['status_lookup_value_id'] = status_id
+
+            # 处理其他可选lookup fields
+            if not employee_orm_data.get('gender_lookup_value_id') and emp_in.gender_lookup_value_name:
+                employee_orm_data['gender_lookup_value_id'] = _resolve_lookup_id(db, emp_in.gender_lookup_value_name, "GENDER")
+            
+            if not employee_orm_data.get('employment_type_lookup_value_id') and emp_in.employment_type_lookup_value_name:
+                employee_orm_data['employment_type_lookup_value_id'] = _resolve_lookup_id(db, emp_in.employment_type_lookup_value_name, "EMPLOYMENT_TYPE")
+            
+            if not employee_orm_data.get('education_level_lookup_value_id') and emp_in.education_level_lookup_value_name:
+                employee_orm_data['education_level_lookup_value_id'] = _resolve_lookup_id(db, emp_in.education_level_lookup_value_name, "EDUCATION_LEVEL")
+            
+            if not employee_orm_data.get('marital_status_lookup_value_id') and emp_in.marital_status_lookup_value_name:
+                employee_orm_data['marital_status_lookup_value_id'] = _resolve_lookup_id(db, emp_in.marital_status_lookup_value_name, "MARITAL_STATUS")
+            
+            if not employee_orm_data.get('political_status_lookup_value_id') and emp_in.political_status_lookup_value_name:
+                employee_orm_data['political_status_lookup_value_id'] = _resolve_lookup_id(db, emp_in.political_status_lookup_value_name, "POLITICAL_STATUS")
+            
+            if not employee_orm_data.get('contract_type_lookup_value_id') and emp_in.contract_type_lookup_value_name:
+                employee_orm_data['contract_type_lookup_value_id'] = _resolve_lookup_id(db, emp_in.contract_type_lookup_value_name, "CONTRACT_TYPE")
+                
+            # 处理新增的lookup字段
+            if not employee_orm_data.get('salary_level_lookup_value_id') and emp_in.salary_level_lookup_value_name:
+                employee_orm_data['salary_level_lookup_value_id'] = _resolve_lookup_id(db, emp_in.salary_level_lookup_value_name, "SALARY_LEVEL")
+                
+            if not employee_orm_data.get('salary_grade_lookup_value_id') and emp_in.salary_grade_lookup_value_name:
+                employee_orm_data['salary_grade_lookup_value_id'] = _resolve_lookup_id(db, emp_in.salary_grade_lookup_value_name, "SALARY_GRADE")
+                
+            if not employee_orm_data.get('ref_salary_level_lookup_value_id') and emp_in.ref_salary_level_lookup_value_name:
+                employee_orm_data['ref_salary_level_lookup_value_id'] = _resolve_lookup_id(db, emp_in.ref_salary_level_lookup_value_name, "REF_SALARY_LEVEL")
+            
+            # 处理department和position
+            if emp_in.department_name:
+                dept = _get_department_by_name(db, emp_in.department_name)
+                if dept:
+                    employee_orm_data["department_id"] = dept.id
+                else:
+                    current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
+            elif "department_id" not in employee_orm_data and emp_in.department_id is not None: # If ID was directly provided
+                 employee_orm_data["department_id"] = emp_in.department_id
+
+            if emp_in.position_name:
+                pos = _get_position_by_name(db, emp_in.position_name)
+                if pos:
+                    employee_orm_data["actual_position_id"] = pos.id # Assuming field name is actual_position_id
+                else:
+                    current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
+            elif "actual_position_id" not in employee_orm_data and emp_in.actual_position_id is not None: # If ID was directly provided
+                 employee_orm_data["actual_position_id"] = emp_in.actual_position_id
+            
+            # Resolve personnel category by name (NEW)
+            if emp_in.personnel_category_name:
+                pc = _get_personnel_category_by_name(db, emp_in.personnel_category_name)
+                if pc:
+                    employee_orm_data["personnel_category_id"] = pc.id
+                else:
+                    current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
+            elif "personnel_category_id" not in employee_orm_data and emp_in.personnel_category_id is not None: # If ID was directly provided
+                employee_orm_data["personnel_category_id"] = emp_in.personnel_category_id
+
+            # If company_id is None, try to set from context or default (placeholder logic)
+            if employee_orm_data.get("company_id") is None:
+                # Add logic here if company_id needs to be set from user context or a default
+                # For now, we'll assume it might be optional or handled by DB default if not in emp_in
+                pass
 
             if current_record_errors:
                 errors.append({"record_index": index, "employee_code": emp_in.employee_code, "errors": current_record_errors})

@@ -136,6 +136,14 @@ export interface Employee {
   marital_status_lookup_value_id?: number;
   political_status_lookup_value_id?: number;
   
+  // 新增字段 - 工资级别、工资档次、参照正编薪级
+  salary_level_lookup_value_id?: number;
+  salary_level_lookup_value_name?: string;
+  salary_grade_lookup_value_id?: number;
+  salary_grade_lookup_value_name?: string;
+  ref_salary_level_lookup_value_id?: number;
+  ref_salary_level_lookup_value_name?: string;
+  
   bank_name?: string;
   bank_account_number?: string;
 
@@ -361,6 +369,11 @@ export interface CreateEmployeePayload {
   department_id?: number | null; 
   personnel_category_id?: number | null; 
   actual_position_id?: number | null;
+  
+  // 新增字段 - 工资级别、工资档次、参照正编薪级
+  salary_level_lookup_value_id?: number | null;
+  salary_grade_lookup_value_id?: number | null;
+  ref_salary_level_lookup_value_id?: number | null;
 
   // Fields for resolving lookups by name (can be optional if ID is provided)
   gender_lookup_value_name?: string | null;
@@ -371,26 +384,22 @@ export interface CreateEmployeePayload {
   political_status_lookup_value_name?: string | null;
   contract_type_lookup_value_name?: string | null;
   
+  // 新增字段名称 - 工资级别、工资档次、参照正编薪级
+  salary_level_lookup_value_name?: string | null;
+  salary_grade_lookup_value_name?: string | null;
+  ref_salary_level_lookup_value_name?: string | null;
+  
+  // Fields for resolving department, personnel_category and position by name (can be optional if ID is provided)
   department_name?: string | null;
-  position_name?: string | null; // Covers actual_position_name
   personnel_category_name?: string | null;
+  position_name?: string | null;
 
-  // Other existing fields
-  avatar?: string;
-  probationEndDate?: string | null;
-  workLocation?: string;
-  reports_to_employee_id?: number | null;
-
-  initialContractStartDate?: string | null;
-  initialContractEndDate?: string | null;
-
-  bank_name?: string;
-  bank_account_number?: string;
-
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  emergencyContactRelation?: string;
-  notes?: string;
+  // Additional fields not directly part of the Employee object
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_relationship?: string | null;
 }
 
 // For updating an employee, most fields are optional (Partial)
