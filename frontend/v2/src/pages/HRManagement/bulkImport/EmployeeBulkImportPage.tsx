@@ -30,6 +30,7 @@ export interface RawEmployeeData extends CreateEmployeePayload {
   _clientId?: string; 
   validationErrors?: string[];
   originalIndex?: number;
+  _fullname?: string;
 }
 
 export interface ValidatedEmployeeData extends RawEmployeeData {}
@@ -166,10 +167,9 @@ const EmployeeBulkImportPage: React.FC = () => {
       }
     }
 
+    // 入职日期不再是必填项，但如果提供了则检查格式
     console.log(`[DEBUG ${recordDescription}] hire_date: '${record.hire_date}', typeof: ${typeof record.hire_date}, empty: ${!record.hire_date}`);
-    if (!record.hire_date) {
-      errors.push(t('bulk_import.validation.hire_date_required'));
-    } else { 
+    if (record.hire_date && String(record.hire_date).trim() !== '') { 
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       const dateTestFailed = !dateRegex.test(String(record.hire_date)); 
       console.log(`[DEBUG ${recordDescription}] hire_date regex test (${dateRegex}) on '${record.hire_date}': failed: ${dateTestFailed}`);
@@ -178,8 +178,7 @@ const EmployeeBulkImportPage: React.FC = () => {
       }
     }
     
-    console.log(`[DEBUG ${recordDescription}] status_lookup_value_name: '${record.status_lookup_value_name}', typeof: ${typeof record.status_lookup_value_name}, empty: ${!record.status_lookup_value_name}`);
-    if (!record.status_lookup_value_name) errors.push(t('bulk_import.validation.status_required'));
+    // 员工状态不再是必填项，默认值会在后续处理中设置
 
     const dateRegexOptional = /^\d{4}-\d{2}-\d{2}$/;
     if (record.date_of_birth && String(record.date_of_birth).trim() !== '') { 
@@ -354,8 +353,16 @@ const EmployeeBulkImportPage: React.FC = () => {
 
   const columns = [
     { title: t('bulk_import.table_header.employee_code'), dataIndex: 'employee_code', key: 'employee_code', width: 120, render: (text: any) => text || '-' },
-    { title: t('bulk_import.table_header.last_name'), dataIndex: 'last_name', key: 'last_name', width: 100 },
-    { title: t('bulk_import.table_header.first_name'), dataIndex: 'first_name', key: 'first_name', width: 100 },
+    { 
+      title: t('bulk_import.table_header.fullname'),
+      key: 'fullname', 
+      width: 100,
+      render: (_: unknown, record: RawEmployeeData) => {
+        return record._fullname || `${record.last_name || ''}${record.first_name || ''}` || '-';
+      }
+    },
+    { title: t('bulk_import.table_header.last_name'), dataIndex: 'last_name', key: 'last_name', width: 80 },
+    { title: t('bulk_import.table_header.first_name'), dataIndex: 'first_name', key: 'first_name', width: 80 },
     { title: t('bulk_import.table_header.id_number'), dataIndex: 'id_number', key: 'id_number', width: 180 },
     { title: t('bulk_import.table_header.date_of_birth'), dataIndex: 'date_of_birth', key: 'date_of_birth', width: 120, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.gender_name'), dataIndex: 'gender_lookup_value_name', key: 'gender_lookup_value_name', width: 80, render: (text: any) => text || '-' },
@@ -385,7 +392,14 @@ const EmployeeBulkImportPage: React.FC = () => {
 
   const resultErrorColumns = [
     { title: t('bulk_import.results_table.employee_code'), dataIndex: ['record', 'employee_code'], key: 'code', width: 150, render: (text: any, item:any) => item.record?.employee_code || '-' },
-    { title: t('bulk_import.results_table.name'), key: 'name', render: (_: any, item: any) => `${item.record?.last_name || ''}${item.record?.first_name || ''}` || '-' },
+    { 
+      title: t('bulk_import.results_table.name'), 
+      key: 'name', 
+      width: 120,
+      render: (_: unknown, item: { record?: RawEmployeeData; error: string }) => {
+        return item.record?._fullname || `${item.record?.last_name || ''}${item.record?.first_name || ''}` || '-';
+      }
+    },
     { title: t('bulk_import.results_table.error_message'), dataIndex: 'error', key: 'error' },
   ];
 

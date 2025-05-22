@@ -33,6 +33,7 @@ const TableTextConverter: React.FC = () => {
     { key: 'employee_code', label: '员工代码', required: false },
     { key: 'first_name', label: '名', required: true },
     { key: 'last_name', label: '姓', required: true },
+    { key: 'fullname', label: '姓名(自动拆分)', required: false },
     { key: 'id_number', label: '身份证号', required: true },
     { key: 'date_of_birth', label: '出生日期', required: false },
     { key: 'gender_lookup_value_name', label: '性别', required: false },
@@ -41,7 +42,7 @@ const TableTextConverter: React.FC = () => {
     { key: 'first_work_date', label: '参加工作时间', required: false },
     { key: 'years_of_service', label: '工龄', required: false },
     { key: 'interrupted_service_years', label: '工龄间断年限', required: false },
-    { key: 'status_lookup_value_name', label: '员工状态', required: true },
+    { key: 'status_lookup_value_name', label: '员工状态', required: false },
     { key: 'personnel_category_name', label: '人员类别', required: false },
     { key: 'position_name', label: '实际任职', required: false },
     { key: 'current_position_start_date', label: '实际任职时间(本单位)', required: false },
@@ -51,14 +52,14 @@ const TableTextConverter: React.FC = () => {
     { key: 'ref_salary_level_lookup_value_name', label: '参照正编薪级', required: false },
     { key: 'email', label: '邮箱', required: false },
     { key: 'phone_number', label: '电话号码', required: false },
-    { key: 'hire_date', label: '入职日期', required: true },
+    { key: 'hire_date', label: '入职日期', required: false },
     { key: 'department_name', label: '部门', required: false },
   ];
 
   // 预设的字段映射规则
   const predefinedMappingRules: Record<string, string> = {
     '序号': '',
-    '姓名': 'last_name', // 特殊处理
+    '姓名': 'fullname', // 确保映射到fullname
     '性别': 'gender_lookup_value_name',
     '民族': 'ethnicity',
     '身份证号': 'id_number',
@@ -96,12 +97,19 @@ const TableTextConverter: React.FC = () => {
         const apiField = predefinedMappingRules[header] || '';
         const apiFieldInfo = defaultApiFields.find(f => f.key === apiField);
         
+        // 设置特殊处理器
+        let specialHandler: string | undefined = undefined;
+        if (header === '姓名' || apiField === 'fullname') {
+          specialHandler = 'fullname';
+          console.log(`为字段 '${header}' 设置了fullname特殊处理器`);
+        }
+        
         return {
           tableField: header,
           apiField: apiField,
           required: apiFieldInfo?.required || false,
           type: getFieldType(header),
-          specialHandler: header === '姓名' ? 'splitName' : undefined
+          specialHandler: specialHandler
         };
       });
       
@@ -143,28 +151,64 @@ const TableTextConverter: React.FC = () => {
     const newMappings = [...fieldMappings];
     const selectedApiField = defaultApiFields.find(f => f.key === apiField);
     
+    // 设置特殊处理器
+    let specialHandler: string | undefined = undefined;
+    if (newMappings[index].tableField === '姓名' || apiField === 'fullname') {
+      specialHandler = 'fullname';
+      console.log(`为字段 '${newMappings[index].tableField}' 更新了fullname特殊处理器`);
+    }
+    
     newMappings[index] = {
       ...newMappings[index],
       apiField,
       required: selectedApiField?.required || false,
-      specialHandler: apiField === 'last_name' ? 'splitName' : undefined
+      specialHandler: specialHandler
     };
     
     setFieldMappings(newMappings);
   };
 
-  // 处理中文姓名拆分
+  // 处理中文姓名拆分 - 修改后更加清晰
   const splitName = (fullName: string) => {
     if (!fullName) return { last_name: '', first_name: '' };
     
     // 假设中文姓名格式为"姓+名"，姓通常为1个字
+    // 复姓处理：常见复姓列表
+    const commonDoubleLastNames = ['欧阳', '太史', '端木', '上官', '司马', '东方', '独孤', '南宫', '万俟', '闻人', 
+                                  '夏侯', '诸葛', '尉迟', '公羊', '赫连', '澹台', '皇甫', '宗政', '濮阳', '公冶', 
+                                  '太叔', '申屠', '公孙', '慕容', '仲孙', '钟离', '长孙', '宇文', '司徒', '鲜于', 
+                                  '司空', '闾丘', '子车', '亓官', '司寇', '巫马', '公西', '颛孙', '壤驷', '公良', 
+                                  '漆雕', '乐正', '宰父', '谷梁', '拓跋', '夹谷', '轩辕', '令狐', '段干', '百里', 
+                                  '呼延', '东郭', '南门', '羊舌', '微生', '公户', '公玉', '公仪', '梁丘', '公仲', 
+                                  '公上', '公门', '公山', '公坚', '左丘', '公伯', '西门', '公祖', '第五', '公乘', 
+                                  '贯丘', '公皙', '南荣', '东里', '东宫', '仲长', '子书', '子桑', '即墨', '达奚', 
+                                  '褚师'];
+    
+    // 检查是否为复姓
+    let lastName = '';
+    let firstName = '';
+    
     if (fullName.length <= 1) {
       return { last_name: fullName, first_name: '' };
     }
     
+    // 先检查是否是复姓
+    const doubleLastName = commonDoubleLastNames.find(dlname => fullName.startsWith(dlname));
+    
+    if (doubleLastName) {
+      lastName = doubleLastName;
+      firstName = fullName.substring(doubleLastName.length);
+    } else {
+      // 单姓处理
+      lastName = fullName.substring(0, 1);
+      firstName = fullName.substring(1);
+    }
+    
+    console.log(`拆分姓名: "${fullName}" => 姓: "${lastName}", 名: "${firstName}"`);
+    
     return {
-      last_name: fullName.substring(0, 1),
-      first_name: fullName.substring(1)
+      last_name: lastName,
+      first_name: firstName
     };
   };
 
@@ -197,8 +241,14 @@ const TableTextConverter: React.FC = () => {
     // 检查必填字段是否已映射
     const requiredFields = defaultApiFields.filter(field => field.required);
     const mappedFields = fieldMappings.filter(map => map.apiField);
-    const missingRequiredFields = requiredFields.filter(field => 
-      !mappedFields.some(map => map.apiField === field.key)
+    
+    // 检查是否有fullname字段的映射，如果有，则认为已经映射了姓和名
+    const hasFullnameMapping = mappedFields.some(map => map.apiField === 'fullname' || map.specialHandler === 'fullname');
+    
+    // 处理必填字段检查 - 如果有fullname，视为已映射姓和名
+    let missingRequiredFields = requiredFields.filter(field => 
+      !mappedFields.some(map => map.apiField === field.key) && 
+      !(hasFullnameMapping && (field.key === 'first_name' || field.key === 'last_name'))
     );
 
     // 检查重要关联字段(虽然不是必填，但创建工作历史记录需要)
@@ -244,10 +294,13 @@ const TableTextConverter: React.FC = () => {
             let value = row[mapping.tableField];
             
             // 特殊处理
-            if (mapping.specialHandler === 'splitName') {
+            if (mapping.specialHandler === 'fullname' || mapping.apiField === 'fullname') {
               const { first_name, last_name } = splitName(value);
               nameData.first_name = first_name;
               nameData.last_name = last_name;
+              
+              // 添加用于显示的全名字段(只用于前端展示)
+              jsonRow['_fullname'] = value;
               return; // 跳过常规处理
             }
             
@@ -275,8 +328,8 @@ const TableTextConverter: React.FC = () => {
           typedItem.hire_date = typedItem.first_work_date;
         }
         
-        // 始终将员工状态设置为"在职"
-        typedItem.status_lookup_value_name = '在职';
+        // 始终将员工状态设置为"在职"，无论是否已提供
+        typedItem.status_lookup_value_name = typedItem.status_lookup_value_name || '在职';
         
         return typedItem;
       });
