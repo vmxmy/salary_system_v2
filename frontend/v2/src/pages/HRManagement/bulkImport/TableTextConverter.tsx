@@ -54,6 +54,8 @@ const TableTextConverter: React.FC = () => {
     { key: 'phone_number', label: '电话号码', required: false },
     { key: 'hire_date', label: '入职日期', required: false },
     { key: 'department_name', label: '部门', required: false },
+    { key: 'bank_name', label: '开户银行', required: false },
+    { key: 'bank_account_number', label: '银行账号', required: false },
   ];
 
   // 预设的字段映射规则
@@ -75,11 +77,16 @@ const TableTextConverter: React.FC = () => {
     '工资级别': 'salary_level_lookup_value_name',
     '工资档次': 'salary_grade_lookup_value_name',
     '参照正编薪级': 'ref_salary_level_lookup_value_name',
+    '开户银行': 'bank_name',
+    '银行账号': 'bank_account_number',
+    '银行卡号': 'bank_account_number',
     '年度考核': '',
   };
 
   // 解析表格文本
   const parseTableText = () => {
+    // 调试: 打印字段列表，检查银行字段是否存在
+    console.log('defaultApiFields:', defaultApiFields);
     try {
       // 分割行
       const lines = tableText.trim().split('\n');
@@ -379,20 +386,24 @@ const TableTextConverter: React.FC = () => {
                 {
                   title: 'API字段',
                   dataIndex: 'apiField',
-                  render: (text, record: any) => (
-                    <Select
-                      style={{ width: '100%' }}
-                      value={text}
-                      onChange={value => updateFieldMapping(record.key, value)}
-                    >
-                      <Option value="">忽略此字段</Option>
-                      {defaultApiFields.map(field => (
-                        <Option key={field.key} value={field.key}>
-                          {field.label} {field.required ? '(必填)' : ''}
-                        </Option>
-                      ))}
-                    </Select>
-                  )
+                  render: (text, record: any) => {
+                    // 调试: 查看渲染下拉列表时的字段数组
+                    console.log('渲染下拉列表时的字段:', defaultApiFields);
+                    return (
+                      <Select
+                        style={{ width: '100%' }}
+                        value={text}
+                        onChange={value => updateFieldMapping(record.key, value)}
+                      >
+                        <Option value="">忽略此字段</Option>
+                        {defaultApiFields.map(field => (
+                          <Option key={field.key} value={field.key}>
+                            {field.label} {field.required ? '(必填)' : ''}
+                          </Option>
+                        ))}
+                      </Select>
+                    );
+                  }
                 },
                 {
                   title: '数据类型',
