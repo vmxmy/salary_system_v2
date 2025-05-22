@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Input, Button, Table, Select, Card, Alert, Space } from 'antd';
+import { Input, Button, Table, Select, Card, Alert, Space, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { nanoid } from 'nanoid';
 
@@ -192,8 +192,48 @@ const TableTextConverter: React.FC = () => {
     }
   };
 
+  // 验证映射
+  const validateMapping = () => {
+    // 检查必填字段是否已映射
+    const requiredFields = defaultApiFields.filter(field => field.required);
+    const mappedFields = fieldMappings.filter(map => map.apiField);
+    const missingRequiredFields = requiredFields.filter(field => 
+      !mappedFields.some(map => map.apiField === field.key)
+    );
+
+    // 检查重要关联字段(虽然不是必填，但创建工作历史记录需要)
+    const importantRelationFields = ['department_name', 'position_name', 'personnel_category_name'];
+    const missingRelationFields = importantRelationFields.filter(field => 
+      !mappedFields.some(map => map.apiField === field)
+    );
+
+    if (missingRequiredFields.length > 0) {
+      message.error(`以下必填字段未映射: ${missingRequiredFields.map(field => field.label).join(', ')}`);
+      return false;
+    }
+
+    if (missingRelationFields.length > 0) {
+      message.warning(`注意: 以下重要关联字段未映射，可能导致无法创建完整的员工工作历史: ${missingRelationFields.map(field => {
+        switch(field) {
+          case 'department_name': return '部门';
+          case 'position_name': return '实际任职';
+          case 'personnel_category_name': return '人员身份';
+          default: return field;
+        }
+      }).join(', ')}`);
+      // 不阻止提交，但显示警告
+    }
+
+    return true;
+  };
+
   // 转换为JSON
   const convertToJson = () => {
+    // 验证映射
+    if (!validateMapping()) {
+      return;
+    }
+    
     try {
       const jsonData = parsedData.map(row => {
         const jsonRow: Record<string, any> = {};

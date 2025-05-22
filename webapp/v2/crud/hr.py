@@ -265,21 +265,43 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
         employee_data['contract_type_lookup_value_id'] = _resolve_lookup_id(db, employee.contract_type_lookup_value_name, "CONTRACT_TYPE")
     
     # 处理department和position
-    if not employee_data.get('department_id') and employee.department_name:
+    logger.debug(f"原始字段值 - 部门名称: '{employee.department_name}', 职位名称: '{employee.position_name}', 人员类别: '{employee.personnel_category_name}'")
+    
+    if employee.department_name:
         dept = _get_department_by_name(db, employee.department_name)
         if dept:
             employee_data['department_id'] = dept.id
-    
-    if not employee_data.get('actual_position_id') and employee.position_name:
+            logger.debug(f"成功解析部门 '{employee.department_name}' 为ID: {dept.id}")
+        else:
+            logger.warning(f"无法找到部门 '{employee.department_name}'")
+    elif "department_id" not in employee_data and employee.department_id is not None: # If ID was directly provided
+         employee_data["department_id"] = employee.department_id
+         logger.debug(f"使用直接提供的部门ID: {employee.department_id}")
+
+
+    if employee.position_name:
         pos = _get_position_by_name(db, employee.position_name)
         if pos:
-            employee_data['actual_position_id'] = pos.id
+            employee_data["actual_position_id"] = pos.id # Assuming field name is actual_position_id
+            logger.debug(f"成功解析职位 '{employee.position_name}' 为ID: {pos.id}")
+        else:
+            logger.warning(f"无法找到职位 '{employee.position_name}'")
+    elif "actual_position_id" not in employee_data and employee.actual_position_id is not None: # If ID was directly provided
+         employee_data["actual_position_id"] = employee.actual_position_id
+         logger.debug(f"使用直接提供的职位ID: {employee.actual_position_id}")
     
-    if not employee_data.get('personnel_category_id') and employee.personnel_category_name:
+    # Resolve personnel category by name (NEW)
+    if employee.personnel_category_name:
         pc = _get_personnel_category_by_name(db, employee.personnel_category_name)
         if pc:
-            employee_data['personnel_category_id'] = pc.id
-    
+            employee_data["personnel_category_id"] = pc.id
+            logger.debug(f"成功解析人员类别 '{employee.personnel_category_name}' 为ID: {pc.id}")
+        else:
+            logger.warning(f"无法找到人员类别 '{employee.personnel_category_name}'")
+    elif "personnel_category_id" not in employee_data and employee.personnel_category_id is not None: # If ID was directly provided
+        employee_data["personnel_category_id"] = employee.personnel_category_id
+        logger.debug(f"使用直接提供的人员类别ID: {employee.personnel_category_id}")
+
     db_employee = Employee(**employee_data)
     
     db.add(db_employee)
@@ -319,7 +341,9 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
             db.add(db_appraisal)
     
     # 创建初始工作历史记录
-    if db_employee.actual_position_id:
+    logger.info(f"尝试创建员工工作历史，员工ID: {db_employee.id}, 部门ID: {db_employee.department_id}, 职位ID: {db_employee.actual_position_id}, 人员类别ID: {db_employee.personnel_category_id}")
+    
+    if db_employee.actual_position_id and db_employee.department_id and db_employee.personnel_category_id:
         try:
             from datetime import date
             today = date.today()
@@ -330,7 +354,7 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
             # 如果不存在career_position_level_date，则将其设置为effective_date
             if not db_employee.career_position_level_date:
                 db_employee.career_position_level_date = effective_date
-                
+            
             # 创建工作历史记录
             job_history = EmployeeJobHistory(
                 employee_id=db_employee.id,
@@ -344,6 +368,14 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
             logger.info(f"Created initial job history record for new employee {db_employee.id}")
         except Exception as e:
             logger.error(f"Error creating initial job history record for employee {db_employee.id}: {e}")
+    elif db_employee.actual_position_id:
+        # 当有职位但缺少部门或人员类别时记录警告
+        missing_fields = []
+        if not db_employee.department_id:
+            missing_fields.append("department_id")
+        if not db_employee.personnel_category_id:
+            missing_fields.append("personnel_category_id")
+        logger.warning(f"无法为员工 {db_employee.id} 创建工作历史记录，缺少必要字段: {', '.join(missing_fields)}")
 
     db.commit()
     db.refresh(db_employee)
@@ -1061,34 +1093,45 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
             employee_orm_data["contract_type_lookup_value_id"] = _resolve_lookup_id(db, emp_in.contract_type_lookup_value_name, "CONTRACT_TYPE")
 
             # Resolve department and position
+            logger.debug(f"原始字段值 - 部门名称: '{emp_in.department_name}', 职位名称: '{emp_in.position_name}', 人员类别: '{emp_in.personnel_category_name}'")
+            
             if emp_in.department_name:
                 dept = _get_department_by_name(db, emp_in.department_name)
                 if dept:
                     employee_orm_data["department_id"] = dept.id
+                    logger.debug(f"成功解析部门 '{emp_in.department_name}' 为ID: {dept.id}")
                 else:
                     current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
+                    logger.warning(f"无法找到部门 '{emp_in.department_name}'")
             elif "department_id" not in employee_orm_data and emp_in.department_id is not None: # If ID was directly provided
                  employee_orm_data["department_id"] = emp_in.department_id
+                 logger.debug(f"使用直接提供的部门ID: {emp_in.department_id}")
 
 
             if emp_in.position_name:
                 pos = _get_position_by_name(db, emp_in.position_name)
                 if pos:
                     employee_orm_data["actual_position_id"] = pos.id # Assuming field name is actual_position_id
+                    logger.debug(f"成功解析职位 '{emp_in.position_name}' 为ID: {pos.id}")
                 else:
                     current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
+                    logger.warning(f"无法找到职位 '{emp_in.position_name}'")
             elif "actual_position_id" not in employee_orm_data and emp_in.actual_position_id is not None: # If ID was directly provided
                  employee_orm_data["actual_position_id"] = emp_in.actual_position_id
+                 logger.debug(f"使用直接提供的职位ID: {emp_in.actual_position_id}")
             
             # Resolve personnel category by name (NEW)
             if emp_in.personnel_category_name:
                 pc = _get_personnel_category_by_name(db, emp_in.personnel_category_name)
                 if pc:
                     employee_orm_data["personnel_category_id"] = pc.id
+                    logger.debug(f"成功解析人员类别 '{emp_in.personnel_category_name}' 为ID: {pc.id}")
                 else:
                     current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
+                    logger.warning(f"无法找到人员类别 '{emp_in.personnel_category_name}'")
             elif "personnel_category_id" not in employee_orm_data and emp_in.personnel_category_id is not None: # If ID was directly provided
                 employee_orm_data["personnel_category_id"] = emp_in.personnel_category_id
+                logger.debug(f"使用直接提供的人员类别ID: {emp_in.personnel_category_id}")
 
             # If company_id is None, try to set from context or default (placeholder logic)
             if employee_orm_data.get("company_id") is None:
@@ -1192,7 +1235,9 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 logger.info(f"'appraisals' field was not provided or was null in the payload for employee {db_employee.id}. Existing appraisals remain untouched.")
 
             # 创建初始工作历史记录
-            if db_employee.actual_position_id:
+            logger.info(f"尝试创建员工工作历史，员工ID: {db_employee.id}, 部门ID: {db_employee.department_id}, 职位ID: {db_employee.actual_position_id}, 人员类别ID: {db_employee.personnel_category_id}")
+            
+            if db_employee.actual_position_id and db_employee.department_id and db_employee.personnel_category_id:
                 try:
                     from datetime import date
                     today = date.today()
@@ -1217,6 +1262,14 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                     logger.info(f"Created initial job history record for new employee {db_employee.id}")
                 except Exception as e:
                     logger.error(f"Error creating initial job history record for employee {db_employee.id}: {e}")
+            elif db_employee.actual_position_id:
+                # 当有职位但缺少部门或人员类别时记录警告
+                missing_fields = []
+                if not db_employee.department_id:
+                    missing_fields.append("department_id")
+                if not db_employee.personnel_category_id:
+                    missing_fields.append("personnel_category_id")
+                logger.warning(f"无法为员工 {db_employee.id} 创建工作历史记录，缺少必要字段: {', '.join(missing_fields)}")
 
             created_employees.append(db_employee)
             
