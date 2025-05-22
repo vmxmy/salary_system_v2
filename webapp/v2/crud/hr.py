@@ -961,38 +961,22 @@ def _resolve_lookup_id(db: Session, text_value: Optional[str], type_code: str) -
     return lookup_value_id
 
 def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overwrite_mode: bool = False) -> List[Employee]:
-    """
-    批量创建员工。
-
-    Args:
-        db: 数据库会话
-        employees_in: 员工创建模型列表 (包含 *_name fields for lookups and department/position)
-        overwrite_mode: 是否启用覆盖模式，允许更新已存在的员工记录（根据身份证号和员工代码匹配）
-
-    Returns:
-        成功创建的员工对象列表
-
-    Raises:
-        ValueError: If data validation fails (e.g., duplicate employee_code or id_number,
-                    unresolved mandatory lookups, unresolved department/position if name provided but not found).
-        Exception: If a database operation fails.
-    """
-    created_employees: List[Employee] = []
-    errors: List[Dict[str, Any]] = [] # To collect errors for records
-
-    # For checking uniqueness within the batch
+    """批量创建员工"""
+    created_employees = []
+    errors = []
     seen_employee_codes_in_batch = set()
     seen_id_numbers_in_batch = set()
 
-    db_employees_to_add: List[Employee] = []
-    # 保存银行账户信息，稍后创建
-    bank_accounts_to_add: List[Tuple[int, dict]] = []  # (employee_index, bank_account_data)
+    logger.info(f"开始批量创建员工, 数量: {len(employees_in)}, 覆盖模式: {overwrite_mode}")
 
     for index, emp_in in enumerate(employees_in):
-        current_record_errors = []
         try:
-            # 1. Validate uniqueness within the batch and against DB for non-empty employee_code
-            if emp_in.employee_code: # Only validate if employee_code is not None and not empty string
+            current_record_errors = []
+            logger.debug(f"处理第{index+1}条记录, 员工代码: {emp_in.employee_code}, 身份证号: {emp_in.id_number}")
+
+            # 1. Validate basic constraints
+            # Ensure employee_code uniqueness within batch and DB
+            if emp_in.employee_code:
                 if emp_in.employee_code in seen_employee_codes_in_batch:
                     current_record_errors.append(f"Duplicate employee_code '{emp_in.employee_code}' in batch.")
                 seen_employee_codes_in_batch.add(emp_in.employee_code)
@@ -1006,13 +990,15 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                     if overwrite_mode:
                         # 在覆盖模式下，保存现有员工ID用于更新
                         emp_in.id = existing_in_db.id
-                        logger.info(f"Overwrite mode: Found existing employee with code '{emp_in.employee_code}', will update.")
+                        logger.info(f"覆盖模式: 找到已存在的员工代码 '{emp_in.employee_code}', ID: {emp_in.id}, 将进行更新")
                     else:
                         current_record_errors.append(f"Employee_code '{emp_in.employee_code}' already exists in DB.")
+                        logger.warning(f"员工代码 '{emp_in.employee_code}' 已存在，但不在覆盖模式，跳过")
 
             if emp_in.id_number:
                 if emp_in.id_number in seen_id_numbers_in_batch:
                     current_record_errors.append(f"Duplicate id_number '{emp_in.id_number}' in batch.")
+                    logger.warning(f"批次中存在重复的身份证号 '{emp_in.id_number}'")
                 seen_id_numbers_in_batch.add(emp_in.id_number)
                 existing_employee = get_employee_by_id_number(db, emp_in.id_number)
                 if existing_employee:
@@ -1020,9 +1006,10 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                         # 如果之前没有通过employee_code找到，则通过id_number找到
                         if not hasattr(emp_in, 'id') or emp_in.id is None:
                             emp_in.id = existing_employee.id
-                            logger.info(f"Overwrite mode: Found existing employee with ID number '{emp_in.id_number}', will update.")
+                            logger.info(f"覆盖模式: 通过身份证号 '{emp_in.id_number}' 找到已存在的员工, ID: {emp_in.id}, 将进行更新")
                     else:
                         current_record_errors.append(f"Id_number '{emp_in.id_number}' already exists in DB.")
+                        logger.warning(f"身份证号 '{emp_in.id_number}' 已存在，但不在覆盖模式，跳过")
 
             # 保存银行信息以便稍后创建
             bank_name = emp_in.bank_name
@@ -1110,80 +1097,32 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 pass
 
             # 处理lookup字段
-            if not employee_orm_data.get('status_lookup_value_id') and emp_in.status_lookup_value_name:
-                status_id = _resolve_lookup_id(db, emp_in.status_lookup_value_name, "EMPLOYEE_STATUS")
-                if status_id is None:
-                    current_record_errors.append(f"Status '{emp_in.status_lookup_value_name}' could not be resolved.")
-                else:
-                    employee_orm_data['status_lookup_value_id'] = status_id
-
-            # 处理其他可选lookup fields
-            if not employee_orm_data.get('gender_lookup_value_id') and emp_in.gender_lookup_value_name:
-                employee_orm_data['gender_lookup_value_id'] = _resolve_lookup_id(db, emp_in.gender_lookup_value_name, "GENDER")
+            logger.debug(f"处理lookup字段: 工资级别: {emp_in.salary_level_lookup_value_name}, 工资档次: {emp_in.salary_grade_lookup_value_name}, 参照正编薪级: {emp_in.ref_salary_level_lookup_value_name}")
             
-            if not employee_orm_data.get('employment_type_lookup_value_id') and emp_in.employment_type_lookup_value_name:
-                employee_orm_data['employment_type_lookup_value_id'] = _resolve_lookup_id(db, emp_in.employment_type_lookup_value_name, "EMPLOYMENT_TYPE")
-            
-            if not employee_orm_data.get('education_level_lookup_value_id') and emp_in.education_level_lookup_value_name:
-                employee_orm_data['education_level_lookup_value_id'] = _resolve_lookup_id(db, emp_in.education_level_lookup_value_name, "EDUCATION_LEVEL")
-            
-            if not employee_orm_data.get('marital_status_lookup_value_id') and emp_in.marital_status_lookup_value_name:
-                employee_orm_data['marital_status_lookup_value_id'] = _resolve_lookup_id(db, emp_in.marital_status_lookup_value_name, "MARITAL_STATUS")
-            
-            if not employee_orm_data.get('political_status_lookup_value_id') and emp_in.political_status_lookup_value_name:
-                employee_orm_data['political_status_lookup_value_id'] = _resolve_lookup_id(db, emp_in.political_status_lookup_value_name, "POLITICAL_STATUS")
-            
-            if not employee_orm_data.get('contract_type_lookup_value_id') and emp_in.contract_type_lookup_value_name:
-                employee_orm_data['contract_type_lookup_value_id'] = _resolve_lookup_id(db, emp_in.contract_type_lookup_value_name, "CONTRACT_TYPE")
-                
-            # 处理新增的lookup字段
+            # 处理新增的lookup字段，并记录日志
             if not employee_orm_data.get('salary_level_lookup_value_id') and emp_in.salary_level_lookup_value_name:
-                employee_orm_data['salary_level_lookup_value_id'] = _resolve_lookup_id(db, emp_in.salary_level_lookup_value_name, "SALARY_LEVEL")
+                salary_level_id = _resolve_lookup_id(db, emp_in.salary_level_lookup_value_name, "SALARY_LEVEL")
+                if salary_level_id is None:
+                    logger.warning(f"无法解析工资级别 '{emp_in.salary_level_lookup_value_name}'")
+                else:
+                    logger.debug(f"成功解析工资级别 '{emp_in.salary_level_lookup_value_name}' 为ID: {salary_level_id}")
+                    employee_orm_data['salary_level_lookup_value_id'] = salary_level_id
                 
             if not employee_orm_data.get('salary_grade_lookup_value_id') and emp_in.salary_grade_lookup_value_name:
-                employee_orm_data['salary_grade_lookup_value_id'] = _resolve_lookup_id(db, emp_in.salary_grade_lookup_value_name, "SALARY_GRADE")
+                salary_grade_id = _resolve_lookup_id(db, emp_in.salary_grade_lookup_value_name, "SALARY_GRADE")
+                if salary_grade_id is None:
+                    logger.warning(f"无法解析工资档次 '{emp_in.salary_grade_lookup_value_name}'")
+                else:
+                    logger.debug(f"成功解析工资档次 '{emp_in.salary_grade_lookup_value_name}' 为ID: {salary_grade_id}")
+                    employee_orm_data['salary_grade_lookup_value_id'] = salary_grade_id
                 
             if not employee_orm_data.get('ref_salary_level_lookup_value_id') and emp_in.ref_salary_level_lookup_value_name:
-                employee_orm_data['ref_salary_level_lookup_value_id'] = _resolve_lookup_id(db, emp_in.ref_salary_level_lookup_value_name, "REF_SALARY_LEVEL")
-            
-            # 处理department和position
-            if emp_in.department_name:
-                dept = _get_department_by_name(db, emp_in.department_name)
-                if dept:
-                    employee_orm_data["department_id"] = dept.id
+                ref_salary_level_id = _resolve_lookup_id(db, emp_in.ref_salary_level_lookup_value_name, "REF_SALARY_LEVEL")
+                if ref_salary_level_id is None:
+                    logger.warning(f"无法解析参照正编薪级 '{emp_in.ref_salary_level_lookup_value_name}'")
                 else:
-                    current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
-            elif "department_id" not in employee_orm_data and emp_in.department_id is not None: # If ID was directly provided
-                 employee_orm_data["department_id"] = emp_in.department_id
-
-            if emp_in.position_name:
-                pos = _get_position_by_name(db, emp_in.position_name)
-                if pos:
-                    employee_orm_data["actual_position_id"] = pos.id # Assuming field name is actual_position_id
-                else:
-                    current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
-            elif "actual_position_id" not in employee_orm_data and emp_in.actual_position_id is not None: # If ID was directly provided
-                 employee_orm_data["actual_position_id"] = emp_in.actual_position_id
-            
-            # Resolve personnel category by name (NEW)
-            if emp_in.personnel_category_name:
-                pc = _get_personnel_category_by_name(db, emp_in.personnel_category_name)
-                if pc:
-                    employee_orm_data["personnel_category_id"] = pc.id
-                else:
-                    current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
-            elif "personnel_category_id" not in employee_orm_data and emp_in.personnel_category_id is not None: # If ID was directly provided
-                employee_orm_data["personnel_category_id"] = emp_in.personnel_category_id
-
-            # If company_id is None, try to set from context or default (placeholder logic)
-            if employee_orm_data.get("company_id") is None:
-                # Add logic here if company_id needs to be set from user context or a default
-                # For now, we'll assume it might be optional or handled by DB default if not in emp_in
-                pass
-
-            if current_record_errors:
-                errors.append({"record_index": index, "employee_code": emp_in.employee_code, "errors": current_record_errors})
-                continue # Skip this record
+                    logger.debug(f"成功解析参照正编薪级 '{emp_in.ref_salary_level_lookup_value_name}' 为ID: {ref_salary_level_id}")
+                    employee_orm_data['ref_salary_level_lookup_value_id'] = ref_salary_level_id
 
             # 在覆盖模式下，处理更新现有员工的情况
             if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
@@ -1191,122 +1130,108 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 existing_employee = get_employee(db, emp_in.id)
                 if existing_employee:
                     # 更新现有员工的字段
+                    logger.info(f"覆盖模式: 更新员工ID {emp_in.id}的信息")
+                    logger.debug(f"更新字段: {', '.join(employee_orm_data.keys())}")
                     for key, value in employee_orm_data.items():
                         setattr(existing_employee, key, value)
                     db_employee = existing_employee
-                    logger.info(f"Overwrite mode: Updating existing employee with ID {emp_in.id}")
                 else:
                     # 如果找不到员工（不应该发生），创建新员工
+                    logger.warning(f"覆盖模式: 无法找到ID为{emp_in.id}的员工，将创建新员工")
                     db_employee = Employee(**employee_orm_data)
-                    logger.warning(f"Overwrite mode: Could not find employee with ID {emp_in.id}, creating new.")
+                    db.add(db_employee)
             else:
-                # 正常创建新员工
+                # 创建新员工
+                logger.info(f"创建新员工: {emp_in.first_name} {emp_in.last_name}")
                 db_employee = Employee(**employee_orm_data)
-            
-            db_employees_to_add.append(db_employee)
-            if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
-                # 对于已存在的记录，不需要add，会自动更新
-                pass
-            else:
                 db.add(db_employee)
             
+            db.flush() # 需要先flush获取db_employee.id
+
             # 如果提供了银行信息，保存以便稍后创建
             if bank_name and bank_account_number:
-                bank_accounts_to_add.append((index, {
-                    "bank_name": bank_name,
-                    "account_number": bank_account_number,
-                    "first_name": emp_in.first_name,
-                    "last_name": emp_in.last_name
-                }))
-
-        except Exception as e_rec:
-            logger.error(f"Error processing record {index} ({emp_in.employee_code if emp_in else 'N/A'}): {e_rec}", exc_info=True)
-            errors.append({"record_index": index, "employee_code": (emp_in.employee_code if emp_in else 'N/A'), "errors": [str(e_rec)]})
-
-
-    if not db_employees_to_add: # If all records had errors or input was empty
-        if errors: # If there were errors, raise them or return them
-             # Depending on API design, you might raise an exception or return error details
-            raise ValueError(f"Employee bulk creation failed with errors: {errors}")
-        return [] # No employees to create, no errors, return empty list
-
-
-    try:
-        db.flush() # Flush all valid employees
-
-        # 创建银行账户
-        for idx, bank_data in bank_accounts_to_add:
-            employee = db_employees_to_add[idx]
-            try:
                 bank_account = EmployeeBankAccount(
-                    employee_id=employee.id,
-                    bank_name=bank_data["bank_name"],
-                    account_number=bank_data["account_number"],
-                    account_holder_name=f"{bank_data['last_name']} {bank_data['first_name']}".strip(),
+                    employee_id=db_employee.id,
+                    bank_name=bank_name,
+                    account_number=bank_account_number,
+                    account_holder_name=f"{emp_in.last_name} {emp_in.first_name}".strip(),
                     is_primary=True
                 )
                 db.add(bank_account)
-                logger.info(f"Created bank account for employee {employee.id}: {bank_data['bank_name']}, {bank_data['account_number']}")
-            except Exception as e:
-                logger.error(f"Error creating bank account for employee {employee.id}: {e}")
-                # 这里不抛出错误，我们继续处理其他记录
-        
-        # 为每个员工创建初始工作历史记录
-        from datetime import date
-        today = date.today()
-        
-        for employee in db_employees_to_add:
-            if employee.actual_position_id and employee.department_id and employee.personnel_category_id:
+                logger.info(f"Created bank account for employee {db_employee.id}: {bank_name}, {bank_account_number}")
+
+            # 处理年度考核 appraisals 的更新
+            # Only proceed if 'appraisals' key was provided in the payload and is not None.
+            # If employee.appraisals is an empty list [], it means to delete all existing and add no new ones.
+            # If employee.appraisals is None, existing appraisals are not touched.
+            if emp_in.appraisals is not None:
+                # 1. 删除该员工所有现有的年度考核记录
+                logger.info(f"Updating appraisals for employee {db_employee.id}. Deleting existing ones first.")
+                db.query(EmployeeAppraisal).filter(EmployeeAppraisal.employee_id == db_employee.id).delete(synchronize_session=False)
+                
+                # 2. 如果传入了新的 appraisals 数据 (i.e., list is not empty), 则创建它们
+                if emp_in.appraisals: # This ensures the list itself is not empty
+                    logger.info(f"Adding {len(emp_in.appraisals)} new appraisal records.")
+                    for appraisal_data_pydantic in emp_in.appraisals: # appraisal_data_pydantic is EmployeeAppraisalUpdate
+                        # For new appraisals, id might not be present.
+                        # Since current strategy is delete all then add all from payload, id from payload item is ignored.
+                        appraisal_dict = appraisal_data_pydantic.model_dump(exclude_unset=True) 
+                        
+                        # Ensure 'id' and 'employee_id' from payload item are not used when creating new ORM instances
+                        appraisal_dict.pop('id', None) 
+                        appraisal_dict.pop('employee_id', None) # employee_id will be set from the main employee_id
+
+                        db_appraisal = EmployeeAppraisal(
+                            **appraisal_dict, 
+                            employee_id=db_employee.id 
+                        )
+                        db.add(db_appraisal)
+                else:
+                    logger.info(f"Payload contained empty list for appraisals. All existing appraisals for employee {db_employee.id} were deleted and no new ones added.")
+            else:
+                logger.info(f"'appraisals' field was not provided or was null in the payload for employee {db_employee.id}. Existing appraisals remain untouched.")
+
+            # 创建初始工作历史记录
+            if db_employee.actual_position_id:
                 try:
+                    from datetime import date
+                    today = date.today()
+                    
                     # 确定effective_date
-                    effective_date = employee.current_position_start_date or employee.hire_date or today
+                    effective_date = db_employee.current_position_start_date or db_employee.hire_date or today
                     
                     # 如果不存在career_position_level_date，则将其设置为effective_date
-                    if not employee.career_position_level_date:
-                        employee.career_position_level_date = effective_date
+                    if not db_employee.career_position_level_date:
+                        db_employee.career_position_level_date = effective_date
                     
                     # 创建工作历史记录
                     job_history = EmployeeJobHistory(
-                        employee_id=employee.id,
-                        department_id=employee.department_id,
-                        position_id=employee.actual_position_id,
-                        personnel_category_id=employee.personnel_category_id,
+                        employee_id=db_employee.id,
+                        department_id=db_employee.department_id,
+                        position_id=db_employee.actual_position_id,
+                        personnel_category_id=db_employee.personnel_category_id,
                         effective_date=effective_date,
                         end_date=None  # 开放结束日期，直到职位变更
                     )
                     db.add(job_history)
-                    logger.info(f"Created initial job history record for bulk-created employee {employee.id}")
+                    logger.info(f"Created initial job history record for new employee {db_employee.id}")
                 except Exception as e:
-                    logger.error(f"Error creating initial job history record for employee {employee.id}: {e}")
-                    # 这里不抛出错误，我们继续处理其他记录
+                    logger.error(f"Error creating initial job history record for employee {db_employee.id}: {e}")
 
-        # Appraisals are explicitly not handled in this bulk employee creation
-        # If they were, logic would go here, iterating emp_in and db_employees_to_add
+            created_employees.append(db_employee)
+            
+        except Exception as e:
+            # 记录异常
+            logger.error(f"处理员工记录时发生异常: {str(e)}", exc_info=True)
+            current_record_errors.append(f"Error processing record: {str(e)}")
+            errors.append({"record_index": index, "employee_code": getattr(emp_in, 'employee_code', 'unknown'), "errors": current_record_errors})
+            continue
 
-        db.commit()
-
-        for db_emp in db_employees_to_add:
-            db.refresh(db_emp)
-            # For consistency with single create, re-query. Consider optimizing for bulk.
-            refreshed_emp = get_employee(db, db_emp.id) 
-            if refreshed_emp:
-                created_employees.append(refreshed_emp)
-            else: # Should not happen
-                logger.error(f"Failed to re-fetch employee with ID {db_emp.id} after bulk commit.")
-                # Potentially add the original db_emp to created_employees as a fallback
-                # or handle this as a more critical error.
+    # 提交更改并返回
+    if errors:
+        logger.warning(f"批量员工创建部分成功。错误: {errors}")
+    else:
+        logger.info(f"批量员工创建完全成功，共创建/更新 {len(created_employees)} 条记录")
     
-    except Exception as e_commit:
-        db.rollback()
-        logger.error(f"Error during bulk employee commit phase: {e_commit}", exc_info=True)
-        # Add commit phase errors to the list or raise a general exception
-        # For now, re-raise to be handled by API route
-        raise ValueError(f"Commit phase failed: {e_commit}. Errors from validation phase: {errors}")
-
-    if errors: # If there were validation errors for some records, but others committed
-        # Log them or include them in a more complex response structure
-        logger.warning(f"Partial success in bulk employee creation. Errors: {errors}")
-        # Depending on API contract, you might still return created_employees
-        # and have a way to communicate partial failure.
-
+    db.commit()
     return created_employees

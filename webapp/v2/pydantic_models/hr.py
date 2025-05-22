@@ -95,6 +95,9 @@ class EmployeeBase(BaseModel):
 
 class EmployeeCreate(EmployeeBase):
     """创建员工模型"""
+    # 添加id字段，用于覆盖模式下更新现有员工
+    id: Optional[int] = Field(None, description="员工ID，仅用于覆盖模式下更新现有员工")
+    
     # Fields for resolving lookups by name
     gender_lookup_value_name: Optional[str] = Field(None, description="Gender name, e.g., '男', '女'")
     status_lookup_value_name: str = Field(..., description="Status name, e.g., '在职', '离职'")
