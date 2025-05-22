@@ -10,6 +10,7 @@ import type { Permission, CreatePermissionPayload, UpdatePermissionPayload } fro
 import PermissionForm from './components/PermissionForm';
 import { useTranslation } from 'react-i18next';
 import { useTableSearch, numberSorter, stringSorter, useTableExport, useColumnControl } from '../../../components/common/TableUtils';
+import styles from './PermissionListPage.module.less';
 
 const { Title } = Typography;
 
@@ -184,7 +185,7 @@ const PermissionListPage: React.FC = () => {
   return (
     <div>
       <PageHeaderLayout
-        pageTitle={<Title level={4} style={{ marginBottom: 0 }}>{t('list_page.title')}</Title>}
+        pageTitle={<Title level={4} className={styles.pageTitleCustom}>{t('list_page.title')}</Title>}
         actions={
           <Space>
             <Button

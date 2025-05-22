@@ -137,7 +137,9 @@
   },
   "footer": {
     "system_name": "薪酬管理系统",
-    "created_by": "由AI助手创建"
+    "created_by": "由AI助手创建",
+    "copyright": "成都高新区财政国资局 人事工资信息管理系统",
+    "hyperchain_logo_alt": "趣链科技 Logo"
   },
   "user_menu": {
     "profile": "个人中心",

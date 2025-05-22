@@ -1,1 +1,100 @@
- 
+/* 恢复使用 Less 变量 - 第三步：恢复间距变量 */
+@import (reference) '../../../styles/variables.less';
+@import (reference) '../../../styles/theme.less';
+
+/* 最小化文件，逐步恢复变量引用 */
+
+.successIcon {
+  color: green;
+}
+
+.errorList {
+  margin: 0;
+  padding-left: 15px;
+}
+
+.stepsContainer {
+  margin-bottom: @margin-lg; // 24px
+}
+
+.jsonInputArea {
+  min-height: 120px;
+}
+
+.uploadButton {
+  margin-top: @margin-md; // 16px
+}
+
+.helperText {
+  margin-top: @margin-lg; // 24px
+}
+
+.formItemMargin {
+  margin-bottom: @margin-md; // 16px
+}
+
+/* 居中的表单标签 */
+.centeredFormLabel {
+  :global(.ant-form-item-label) {
+    text-align: center;
+  }
+  
+  :global(.ant-form-item-control-input-content) {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* 结果相关样式暂时保持硬编码值 */
+.resultMessage {
+  margin-top: 20px;
+}
+
+.resultSpace {
+  width: 100%;
+}
+
+.resultTableTitle {
+  margin-top: 20px;
+}
+
+.tabContentContainer {
+  /* 暂时为空 */
+}
+
+.uploadProgressContainer {
+  margin-top: @margin-lg;
+  margin-bottom: @margin-lg;
+  padding: @padding-md;
+  border: 1px solid @border-color-split;
+  border-radius: @border-radius-base;
+}
+
+/* 表格中的验证错误样式保持硬编码 */
+.validationErrorsInTable {
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 12px;
+  padding: 8px 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 2px;
+  background-color: #fff;
+  margin-top: 8px;
+
+  ul {
+    margin-bottom: 0;
+    padding-left: 18px;
+  }
+
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+.bulkImportContainer {
+  /* 暂时为空 */
+}
+
+.tabsContainer {
+  margin-bottom: @margin-md; // 16px
+} 

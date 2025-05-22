@@ -9,6 +9,7 @@ import { getPermissions as apiGetPermissions } from '../../api/permissions';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../api/types';
 import { useTranslation } from 'react-i18next';
 import { useTableSearch, numberSorter, stringSorter, useTableExport, useColumnControl } from '../../components/common/TableUtils';
+import styles from './Roles.module.less'; // 导入样式
 
 const { Title } = Typography;
 
@@ -382,6 +383,7 @@ const RoleListPage: React.FC = () => {
             label={t('modal.role_form.label.permissions')}
           >
             <Transfer
+              className={styles.customTransfer}
               dataSource={allPermissions.map(p => ({
                 key: p.id.toString(),
                 title: p.code,
@@ -393,10 +395,6 @@ const RoleListPage: React.FC = () => {
                 form.setFieldsValue({ permission_ids: nextTargetKeys as string[] });
               }}
               render={item => `${item.title} (${item.description})`}
-              listStyle={{
-                width: '100%',
-                height: 300,
-              }}
               disabled={loadingPermissions}
               showSearch
             />

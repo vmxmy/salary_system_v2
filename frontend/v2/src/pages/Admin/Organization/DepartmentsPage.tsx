@@ -13,6 +13,8 @@ import {
   Typography,
   message,
   Popconfirm,
+  Col,
+  Row,
 } from 'antd';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { PlusOutlined, ClusterOutlined } from '@ant-design/icons';
@@ -377,12 +379,18 @@ const DepartmentsPage: React.FC = () => {
         destroyOnHidden
       >
         <Form form={form} layout="vertical" name="departmentForm" onFinish={handleFormSubmit}>
-          <Form.Item name="code" label={t('modal.department_form.label.code')} rules={[{ required: true, message: t('modal.department_form.validation.code_required') }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="name" label={t('modal.department_form.label.name')} rules={[{ required: true, message: t('modal.department_form.validation.name_required') }]}>
-            <Input />
-          </Form.Item>
+          <Row>
+            <Col span={12}>
+              <Form.Item name="code" label={t('modal.department_form.label.code')} rules={[{ required: true, message: t('modal.department_form.validation.code_required') }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="name" label={t('modal.department_form.label.name')} rules={[{ required: true, message: t('modal.department_form.validation.name_required') }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item name="parent_department_id" label={t('modal.department_form.label.parent_department')}>
             <TreeSelect
               showSearch
@@ -391,7 +399,7 @@ const DepartmentsPage: React.FC = () => {
               placeholder={t('modal.department_form.placeholder.parent_department')}
               allowClear
               treeDefaultExpandAll
-              treeData={buildTreeData(allFlatDepartments)} // Use the flat list converted to tree for selector
+              treeData={buildTreeData(allFlatDepartments.filter(d => !editingDepartment || d.id !== editingDepartment.id))}
               filterTreeNode={(inputValue, treeNode) =>
                 treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
               }
@@ -414,12 +422,18 @@ const DepartmentsPage: React.FC = () => {
           <Form.Item name="description" label={t('modal.department_form.label.description')}>
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="effective_date" label={t('modal.department_form.label.effective_date')} rules={[{ required: true, message: t('modal.department_form.validation.effective_date_required') }]}>
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-          </Form.Item>
-          <Form.Item name="end_date" label={t('modal.department_form.label.end_date')}>
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-          </Form.Item>
+          <Row>
+            <Col span={12}>
+              <Form.Item name="effective_date" label={t('modal.department_form.label.effective_date')} rules={[{ required: true, message: t('modal.department_form.validation.effective_date_required') }]}>
+                <DatePicker format="YYYY-MM-DD" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="end_date" label={t('modal.department_form.label.end_date')}>
+                <DatePicker format="YYYY-MM-DD" />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item name="is_active" label={t('modal.department_form.label.is_active')} valuePropName="checked" initialValue={true}>
             <Switch />
           </Form.Item>

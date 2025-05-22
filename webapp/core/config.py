@@ -31,17 +31,24 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:810705@localhost:5432/salary_system_v2")
 
     # CORS设置
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "http://172.28.97.217:5173",  # 添加您的IP地址和端口
-        "http://salary.ziikoo.com",   # 添加域名
-        "https://salary.ziikoo.com",  # 添加HTTPS版本
-        # 移除通配符"*"，因为它与allow_credentials=True不兼容
-    ]
+    CORS_ORIGINS_STRING: Optional[str] = os.getenv("CORS_ORIGINS_STRING", None)
+    CORS_ORIGINS: List[str] = []
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        if self.CORS_ORIGINS_STRING:
+            self.CORS_ORIGINS = [origin.strip() for origin in self.CORS_ORIGINS_STRING.split(',')]
+        else:
+            self.CORS_ORIGINS = [
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:8080",
+                "http://127.0.0.1:8080",
+                "http://172.28.97.217:5173",
+                "http://salary.ziikoo.com",
+                "https://salary.ziikoo.com",
+            ]
 
     # 文件上传设置
     UPLOAD_DIR: str = "/tmp/salary_uploads"

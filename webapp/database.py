@@ -4,6 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
+from sqlalchemy.exc import OperationalError
+
+# Import settings
+from .core.config import settings
 
 # Load environment variables
 # 首先尝试加载项目根目录的.env文件
@@ -15,13 +19,26 @@ else:
     webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
     load_dotenv(dotenv_path=webapp_dotenv_path)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
 logger = logging.getLogger(__name__)
 
+# 使用settings中的DATABASE_URL
+DATABASE_URL = settings.DATABASE_URL
+
 if not DATABASE_URL:
-    logger.critical("DATABASE_URL environment variable not set! Cannot establish DB connection.")
-    # Raise error during module load if DATABASE_URL is missing or placeholder
-    DATABASE_URL = "postgresql://user:password@host:port/dbname" # Placeholder only
+    # This case should ideally not be reached if settings has a default or .env is loaded correctly by pydantic-settings
+    logger.critical("DATABASE_URL is not configured in settings (via .env or defaults)! Cannot establish DB connection.")
+    # Optionally, raise an exception here to prevent the app from starting with a misconfiguration
+    # raise ValueError("DATABASE_URL is not configured.") 
+    # For now, to maintain original behavior of having a string (though now it's from settings):
+    # If settings.DATABASE_URL could somehow be None and we don't raise, SQLAlchemy would error.
+    # The original code had a placeholder, but now we rely on settings to provide a valid or default URL.
+    # If settings.DATABASE_URL itself can be None and we must have a string,
+    # we might need a different fallback, but pydantic settings usually handle this.
+
+
+# 检查 DATABASE_URL 是否是占位符，这不应该再发生，因为我们直接从 settings 读取
+# if DATABASE_URL == "postgresql://user:password@host:port/dbname":
+# logger.warning("DATABASE_URL is still using the placeholder value. Ensure .env is correctly loaded and configured.")
 
 # Create SQLAlchemy engine
 # connect_args can be used for options like SSL: e.g., {"sslmode": "require"}

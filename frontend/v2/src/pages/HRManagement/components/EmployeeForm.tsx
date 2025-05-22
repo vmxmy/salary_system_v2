@@ -22,7 +22,6 @@ import type {
 } from '../types';
 
 const { Option } = Select;
-const { TabPane } = Tabs;
 
 interface EmployeeFormProps {
   form: FormInstance; 
@@ -649,13 +648,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   return (
     <Spin spinning={loadingLookups || loadingSubmit}>
       <Form layout="vertical" form={form} onFinish={handleFormSubmit}>
-        <Tabs activeKey={activeTabKey} onChange={onTabChange}>
-          {tabItems.map(item => (
-            <TabPane key={item.key} tab={item.label}>
-              {item.children}
-            </TabPane>
-          ))}
-        </Tabs>
+        <Tabs 
+          activeKey={activeTabKey} 
+          onChange={onTabChange}
+          items={tabItems}
+        />
 
         <div style={{ marginTop: 24, textAlign: 'right' }}>
           <Button type="primary" htmlType="submit" loading={loadingSubmit}>

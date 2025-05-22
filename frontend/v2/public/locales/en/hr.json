@@ -15,19 +15,20 @@
       "preview_data_count": "Preview Data ({{count}} records)"
     },
     "button": {
-      "select_file_to_fill_editor": "Select File to Fill Editor",
-      "start_upload": "Start Upload",
       "import_another_file": "Import Another File",
       "parse_and_preview": "Parse and Preview Data"
     },
     "placeholder": {
-      "paste_json_here": "Paste JSON data here...",
-      "paste_json_here_or_drag": "Paste JSON data here, or drag file to this area",
-      "drag_paste_or_type": "Drag JSON file here, or click to select, or paste/edit JSON content directly here."
+      "paste_json_here": "Paste JSON data here..."
     },
-    "dragger": {
-      "title": "Click or drag JSON file to this area",
-      "hint": "Supports a single JSON file. Content will be displayed and editable here."
+    "label": {
+      "json_input": "JSON Data Input",
+      "overwrite_mode": "Overwrite Mode"
+    },
+    "help": {
+      "json_input": "Please enter JSON data according to the required format",
+      "data_format_guidance_intro": "Please input employee data in the following format",
+      "overwrite_mode": "When enabled, if imported data contains ID numbers matching existing employees, it will overwrite the existing data"
     },
     "notes": {
       "json_format_intro": "Please ensure your JSON file or pasted content follows this basic format (refer to documentation for field details):",
@@ -42,7 +43,6 @@
       "upload_failed_prefix": "Bulk upload failed: "
     },
     "validation": {
-      "json_only": "Please upload JSON files only (.json).",
       "json_not_array": "JSON data must be an array.",
       "no_data_to_upload": "No data to upload or JSON content is empty.",
       "missing_or_invalid_field": "Field '{{field}}' in record '{{record}}' is missing or invalid (expected type: {{type}}).",

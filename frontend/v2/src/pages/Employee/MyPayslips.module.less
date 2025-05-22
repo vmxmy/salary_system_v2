@@ -1,0 +1,57 @@
+@import (reference) '../../styles/variables.less'; // 导入变量供参考，实际编译时 antd 会处理
+@import (reference) '../../styles/theme.less'; // 导入主题变量供参考
+
+/* Table Filter Dropdown */
+.filterDropdown {
+  padding: @padding-xs; // 8px from Ant Design theme
+}
+
+.filterInput {
+  margin-bottom: @margin-xs; // 8px
+  display: block;
+}
+
+.filterButton {
+  width: 90px;
+}
+
+/* Loading Spin */
+.loadingSpin {
+  display: block;
+  margin-top: 50px; // Non-standard, review if can be changed
+  text-align: center; // Ensure tip is centered if Spin is block
+}
+
+.loadingSpinContent {
+  padding: 50px; // Non-standard, review purpose, maybe height/min-height is better
+  display: inline-block; // To make padding work as expected if Spin is centered
+}
+
+/* Alerts */
+.errorAlert {
+  margin: 20px; // Non-standard, consider @margin-lg (24px) or @margin-md (16px)
+}
+
+.warningAlert {
+  margin-bottom: 20px; // Non-standard, consider @margin-lg or @margin-md
+}
+
+/* Page Layout */
+.pageContainer {
+  padding: @padding-lg; // 24px from Ant Design theme
+}
+
+.pageBreadcrumb {
+  margin-bottom: @margin-lg; // 24px
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: @margin-lg; // 24px
+}
+
+.pageHeaderTitle {
+  margin: 0;
+} 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, Typography } from 'antd';
 import UnifiedTabs from '../../components/common/UnifiedTabs';
 import ChatbotSettingsTab from './Configuration/ChatbotSettingsTab'; // 确保路径正确
+import styles from './Config.module.less'; // 导入样式
 
 const { Title } = Typography;
 
@@ -31,8 +32,8 @@ const ConfigPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Title level={2} style={{ marginBottom: '24px' }}>
+    <div className={styles.configPageContainer}> {/* 应用样式 */}
+      <Title level={2} className={styles.configPageTitle}> {/* 应用样式 */}
         {t('configpage.title', '系统配置')}
       </Title>
       <Card>

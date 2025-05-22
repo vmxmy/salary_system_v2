@@ -11,6 +11,7 @@ import { getPositions, createPosition, updatePosition, deletePosition } from '..
 import type { Position, CreatePositionPayload, UpdatePositionPayload } from '../../../api/types';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
+import styles from './ActualPositionTab.module.less';
 
 const { Title } = Typography;
 
@@ -305,11 +306,11 @@ const ActualPositionTab: React.FC = () => {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={3} style={{ margin: 0 }}>{t('position.title', '实际职位管理')}</Title>
+      <div className={styles.sectionHeader}>
+        <Title level={3} className={styles.sectionHeaderTitle}>{t('position.title', '实际职位管理')}</Title>
         <Space>
           <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-            {t('position.button.add', '添加职位')}
+            {t('position.button.add', '新增职位')}
           </Button>
           <Tooltip title={t('position.export.tooltipTitle', '导出到Excel')}>
             <ExportButton />
@@ -384,16 +385,16 @@ const ActualPositionTab: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="effective_date"
-            label={t('actual_position_management.form.field.effective_date', 'Effective Date')}
-            rules={[{ required: true, message: t('actual_position_management.form.validation.effective_date_required', 'Effective date is required') }]}
+            label={t('position.form.effective_date', '生效日期')}
+            rules={[{ required: true, message: t('position.form.validation.effective_date_required', '请输入生效日期') }]}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker />
           </Form.Item>
-          <Form.Item 
-            name="end_date" 
-            label={t('actual_position_management.form.field.end_date', 'End Date')}
+          <Form.Item
+            name="end_date"
+            label={t('position.form.end_date', '失效日期')}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker />
           </Form.Item>
           <Form.Item
             name="is_active"

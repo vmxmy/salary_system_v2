@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography } from 'antd';
+import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography, App } from 'antd';
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import TableActionButton from '../../components/common/TableActionButton';
 import PageHeaderLayout from '../../components/common/PageHeaderLayout';
@@ -14,8 +14,10 @@ import type { TableParams } from '../../types/antd';
 import { useTranslation } from 'react-i18next';
 import { useTableSearch, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
 import type { ColumnsType } from 'antd/lib/table';
+import styles from './Users.module.less';
 
 const { Title } = Typography;
+const { Option } = Select;
 
 // Interface for form values when creating a user, including confirm_password
 interface UserFormCreationValues extends CreateUserPayload {
@@ -381,7 +383,7 @@ const UserListPage: React.FC = () => {
       dataIndex: 'roles',
       key: 'roles',
       render: (roles: string[]) => (
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', maxWidth: '300px' }}>
+        <div className={styles.roleTagsContainer}>
           {roles.map((role, index) => (
             <Tag color="blue" key={index}>
               {role}
@@ -441,7 +443,7 @@ const UserListPage: React.FC = () => {
   return (
     <div>
       <PageHeaderLayout
-        pageTitle={<Title level={4} style={{ marginBottom: 0 }}>{t('user_list_page.title')}</Title>}
+        pageTitle={<Title level={4} className={styles.pageTitleCustom}>{t('user_list_page.title')}</Title>}
         actions={
           <Button
             type="primary"
@@ -518,7 +520,7 @@ const UserListPage: React.FC = () => {
             </>
           )}
 
-          <Typography.Text strong style={{ display: 'block', marginBottom: 8, marginTop: 16 }}>
+          <Typography.Text strong className={styles.formSectionHeader}>
             {t('form.section.employee_association')}
           </Typography.Text>
           <Form.Item
@@ -549,7 +551,6 @@ const UserListPage: React.FC = () => {
             <Select
               mode="multiple"
               allowClear
-              style={{ width: '100%' }}
               placeholder={t('form.roles.placeholder')}
               options={allRoles.map(role => ({ label: role.name, value: role.id }))}
               optionFilterProp="label"

@@ -11,6 +11,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { getPayrollEntryStatusInfo } from '../Payroll/utils/payrollUtils';
 import EmployeeName from '../../components/common/EmployeeName';
 import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
+import styles from './MyPayslips.module.less';
 
 const { Title } = Typography;
 
@@ -73,13 +74,13 @@ const MyPayslipsPage: React.FC = () => {
       key: 'payrollPeriodName',
       sorter: true,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <div className={styles.filterDropdown} onKeyDown={(e) => e.stopPropagation()}>
           <Input
             placeholder={`搜索${t('myPayslips:column.payrollPeriod')}`}
             value={selectedKeys[0]}
             onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
             onPressEnter={() => confirm()}
-            style={{ marginBottom: 8, display: 'block' }}
+            className={styles.filterInput}
           />
           <Space>
             <Button
@@ -87,14 +88,14 @@ const MyPayslipsPage: React.FC = () => {
               onClick={() => confirm()}
               icon={<SearchOutlined />}
               size="small"
-              style={{ width: 90 }}
+              className={styles.filterButton}
             >
               搜索
             </Button>
             <Button
               onClick={() => clearFilters && clearFilters()}
               size="small"
-              style={{ width: 90 }}
+              className={styles.filterButton}
             >
               重置
             </Button>
@@ -210,24 +211,24 @@ const MyPayslipsPage: React.FC = () => {
   ];
 
   if (!ready || (loading && !payslips.length)) {
-    return <Spin tip={t('common:loading.generic_loading_text')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('common:loading.generic_loading_text')} className={styles.loadingSpin}><div className={styles.loadingSpinContent} /></Spin>;
   }
 
   if (error && !payslips.length) {
-    return <Alert message={t('common:error.genericTitle')} description={error} type="error" showIcon style={{ margin: '20px' }} />;
+    return <Alert message={t('common:error.genericTitle')} description={error} type="error" showIcon className={styles.errorAlert} />;
   }
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Breadcrumb style={{ marginBottom: '24px' }}>
+    <div className={styles.pageContainer}>
+      <Breadcrumb className={styles.pageBreadcrumb}>
         {breadcrumbItems.map(item => (
           <Breadcrumb.Item key={item.key}>
             {item.href ? <Link to={item.href}>{item.title}</Link> : item.title}
           </Breadcrumb.Item>
         ))}
       </Breadcrumb>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <Title level={2} style={{ margin: 0 }}>{t('myPayslips:title')}</Title>
+      <div className={styles.pageHeader}>
+        <Title level={2} className={styles.pageHeaderTitle}>{t('myPayslips:title')}</Title>
         <Space>
           <Tooltip title={t('myPayslips:export.tooltipTitle', '导出工资单到Excel')}>
             <ExportButton />
@@ -236,7 +237,7 @@ const MyPayslipsPage: React.FC = () => {
         </Space>
       </div>
       {error && payslips.length > 0 && (
-         <Alert message={t('common:error.genericTitle')} description={error} type="warning" showIcon closable style={{ marginBottom: '20px' }} />
+         <Alert message={t('common:error.genericTitle')} description={error} type="warning" showIcon closable className={styles.warningAlert} />
       )}
       <Table
         columns={visibleColumns}

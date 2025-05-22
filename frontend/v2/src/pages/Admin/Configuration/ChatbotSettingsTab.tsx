@@ -10,6 +10,7 @@ import {
 } from '../../../store/chatbotConfigSlice';
 import type { ChatbotConfig, ChatbotSliceState } from '../../../store/chatbotConfigSlice';
 import type { RootState, AppDispatch } from '../../../store';
+import styles from './ChatbotSettingsTab.module.less'; // 导入样式
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -90,7 +91,7 @@ const ChatbotSettingsTab: React.FC = () => {
     <Card variant="borderless">
       {/* Title 的 textAlign: 'left' 通常是默认行为 */}
       {/* marginBottom 可以通过 ConfigProvider theme.components.Typography.titleMarginBottom 调整，或使用CSS类 */}
-      <Title level={4} style={{ marginBottom: '24px' }}>AI 聊天机器人设置</Title>
+      <Title level={4} className={styles.tabTitle}>AI 聊天机器人设置</Title> {/* 应用样式 */}
       <Form 
         form={form} 
         layout="vertical" 
@@ -102,16 +103,16 @@ const ChatbotSettingsTab: React.FC = () => {
           <Row align="middle" gutter={16}> 
             <Col>
               {/* verticalAlign 仍保留，因为它对于特定行内对齐很重要 */}
-              <Text style={{ verticalAlign: 'middle' }}>启用 AI 机器人</Text>
+              <Text className={styles.inlineMiddle}>启用 AI 机器人</Text> {/* 应用样式 */}
             </Col>
             <Col>
-              <Switch checked={!!chatbotIsEnabled} onChange={handleIsEnabledChange} style={{ verticalAlign: 'middle' }}/>
+              <Switch checked={!!chatbotIsEnabled} onChange={handleIsEnabledChange} className={styles.inlineMiddle}/> {/* 应用样式 */}
             </Col>
           </Row>
         </Form.Item>
 
         {/* marginTop 和 marginBottom 可以通过 ConfigProvider 或 CSS 类调整 */}
-        <Title level={5} style={{ marginTop: '20px', marginBottom: '10px' }}>主要配置</Title>
+        <Title level={5} className={styles.sectionTitle}>主要配置</Title> {/* 应用样式 */}
         <Form.Item name="token" label="Token" rules={[{ required: true, message: '请输入 Token' }]} tooltip="Dify 服务提供的 API Token">
           <Input />
         </Form.Item>
@@ -119,7 +120,7 @@ const ChatbotSettingsTab: React.FC = () => {
           <Input />
         </Form.Item>
 
-        <Title level={5} style={{ marginTop: '20px', marginBottom: '10px' }}>自定义</Title>
+        <Title level={5} className={styles.sectionTitle}>自定义</Title> {/* 应用样式 */}
         <Form.Item name="customCss" label="自定义 CSS" tooltip="用于调整机器人聊天气泡和窗口样式的 CSS 代码">
           <TextArea rows={6} placeholder={`/* 示例 */\n#dify-chatbot-bubble-button {\n  background-color: #1C64F2 !important;\n}\n#dify-chatbot-bubble-window {\n  width: 24rem !important;\n  height: 40rem !important;\n}`}/>
         </Form.Item>
@@ -131,7 +132,7 @@ const ChatbotSettingsTab: React.FC = () => {
         </Form.Item>
         
         {/* marginTop 可以通过 ConfigProvider theme.components.Form.itemMarginBottom (如果适用) 或CSS类调整 */}
-        <Form.Item style={{ marginTop: '32px' }}>
+        <Form.Item className={styles.saveButtonFormItem}> {/* 应用样式 */}
           <Button type="primary" htmlType="submit">
             保存配置
           </Button>

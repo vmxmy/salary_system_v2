@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Upload,
   Button,
   Alert,
   Typography,
@@ -12,9 +11,12 @@ import {
   App,
   Tabs,
   Switch,
-  type UploadFile
+  Tooltip,
+  Result,
+  Spin,
+  Form
 } from 'antd';
-import { UploadOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, InboxOutlined, TableOutlined } from '@ant-design/icons';
+import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, TableOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
@@ -47,22 +49,20 @@ interface ValidationSummary {
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
-const { TabPane } = Tabs;
 
 const EmployeeBulkImportPage: React.FC = () => {
   const { t, ready } = useTranslation(['hr', 'common']);
   const { message, modal } = App.useApp();
   const navigate = useNavigate();
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [parsedData, setParsedData] = useState<ValidatedEmployeeData[] | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [jsonInput, setJsonInput] = useState<string>('');
   const [parseError, setParseError] = useState<string | null>(null);
   const textAreaRef = useRef<any>(null);
+  const [parsedData, setParsedData] = useState<ValidatedEmployeeData[] | null>(null);
   const [validationSummary, setValidationSummary] = useState<ValidationSummary>({ totalRecords: 0, validRecords: 0, invalidRecords: 0 });
-  const [activeTab, setActiveTab] = useState<string>('json');
+  const [activeTab, setActiveTab] = useState<string>('table');
   const [overwriteMode, setOverwriteMode] = useState<boolean>(false);
 
   useEffect(() => {
@@ -248,40 +248,6 @@ const EmployeeBulkImportPage: React.FC = () => {
     }
   };
 
-  const handleFileChange = (info: any) => {
-    const { file } = info;
-    setParseError(null);
-
-    if (file && file.originFileObj) {
-      if (file.type !== 'application/json' && file.status !== 'removed') {
-        message.error(t('bulk_import.validation.json_only'));
-        setJsonInput('');
-        setParsedData(null);
-        setFileList([]); 
-        return;
-      }
-
-      if (file.status === 'removed') { 
-        setJsonInput('');
-        setParsedData(null);
-        setFileList([]);
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        setJsonInput(content);
-      };
-      reader.readAsText(file.originFileObj);
-      setFileList([file as UploadFile]);
-    } else if (info.fileList.length === 0) { 
-        setJsonInput('');
-        setParsedData(null);
-        setFileList([]);
-    }
-  };
-
   const handleUpload = async () => {
     if (!parsedData || parsedData.length === 0) {
       message.error(t('bulk_import.validation.no_data_to_upload'));
@@ -374,6 +340,18 @@ const EmployeeBulkImportPage: React.FC = () => {
     }
   };
 
+  const renderValidationErrors = (errors?: string[]) => {
+    if (!errors || errors.length === 0) return <CheckCircleOutlined className={styles.successIcon} />;
+    return (
+      <Tooltip 
+        title={<div className={styles.validationErrorsInTable}><ul>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul></div>}
+        overlayInnerStyle={{ whiteSpace: 'normal', maxWidth: 400 }}
+      >
+        <CloseCircleOutlined style={{ color: 'red' }} />
+      </Tooltip>
+    );
+  };
+
   const columns = [
     { title: t('bulk_import.table_header.employee_code'), dataIndex: 'employee_code', key: 'employee_code', width: 120, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.last_name'), dataIndex: 'last_name', key: 'last_name', width: 100 },
@@ -401,14 +379,7 @@ const EmployeeBulkImportPage: React.FC = () => {
       dataIndex: 'validationErrors',
       key: 'validationErrors',
       width: 200,
-      render: (errors: string[] | undefined) => {
-        if (!errors || errors.length === 0) return <CheckCircleOutlined style={{ color: 'green' }} />;
-        return (
-          <ul style={{ margin: 0, paddingLeft: 15 }}>
-            {errors.map((err, i) => <li key={i}><Text type="danger">{err}</Text></li>)}
-          </ul>
-        );
-      }
+      render: renderValidationErrors
     }
   ];
 
@@ -418,75 +389,68 @@ const EmployeeBulkImportPage: React.FC = () => {
     { title: t('bulk_import.results_table.error_message'), dataIndex: 'error', key: 'error' },
   ];
 
-   if (!ready) {
-    return <div>Loading Translations...</div>; 
-  }
+  // 新增: 定义 Tabs 的 items
+  const tabItems = [
+    {
+      key: 'table',
+      label: <span><TableOutlined />表格转换</span>,
+      children: <TableTextConverter />
+    },
+    {
+      key: 'json',
+      label: <span><FileTextOutlined />JSON导入</span>,
+      children: (
+        <div className={styles.tabContentContainer}>
+          <Steps current={currentStep} className={styles.stepsContainer}>
+            <Step title={t('bulk_import.steps.input_data')} icon={<FileTextOutlined />} />
+            <Step title={t('bulk_import.steps.preview_data')} icon={<PlaySquareOutlined />} />
+            <Step title={t('bulk_import.steps.upload_progress')} />
+            <Step title={t('bulk_import.steps.results')} />
+          </Steps>
 
-  return (
-    <PageHeaderLayout pageTitle={t('hr:bulk_import.page_title')} icon={<UserAddOutlined />}>
-      <div className={styles.bulkImportContainer}>
-        <Tabs activeKey={activeTab} onChange={setActiveTab} style={{ marginBottom: 16 }}>
-          <TabPane tab={<span><FileTextOutlined />JSON导入</span>} key="json">
-            <Steps current={currentStep} style={{ marginBottom: 24 }}>
-              <Step title={t('bulk_import.steps.input_data')} icon={<FileTextOutlined />} />
-              <Step title={t('bulk_import.steps.preview_data')} icon={<UploadOutlined />} />
-              <Step title={t('bulk_import.steps.upload_progress')} />
-              <Step title={t('bulk_import.steps.results')} />
-            </Steps>
+          {parseError && (
+            <Alert
+              message={parseError}
+              type="error"
+              showIcon
+              closable
+              onClose={() => setParseError(null)}
+            />
+          )}
 
-            {parseError && (
-              <Alert
-                message={parseError}
-                type="error"
-                showIcon
-                closable
-                onClose={() => setParseError(null)}
-              />
-            )}
-
-            {currentStep === 0 && (
-          <Card title={t('bulk_import.card_title.select_or_paste_json')}>
-            <Upload.Dragger
-              name="file"
-              multiple={false}
-              accept=".json"
-              fileList={fileList}
-              beforeUpload={() => false}
-              onChange={handleFileChange}
-              style={{ minHeight: '120px' }}
-            >
-              <Input.TextArea
-                ref={textAreaRef}
-                value={jsonInput}
-                onChange={handleJsonInputChange}
-                onClick={(e) => { e.stopPropagation(); }}
-                placeholder={t('bulk_import.placeholder.drag_paste_or_type')}
-                rows={6}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  minHeight: '120px',
-                  resize: 'vertical',
-                  border: 'none',
-                  outline: 'none',
-                  boxShadow: 'none',
-                  padding: '12px',
-                }}
-              />
-            </Upload.Dragger>
-            <Button
-              type="primary"
-              onClick={handleParseAndPreview}
-              disabled={!jsonInput.trim()}
-              icon={<PlaySquareOutlined />}
-              style={{ marginTop: 16 }}
-            >
-              {t('bulk_import.button.parse_and_preview')}
-            </Button>
-            <Paragraph type="secondary" style={{ marginTop: 24 }}>
-              {t('bulk_import.notes.json_format_intro')}
-              <pre>
-                {`[
+          {currentStep === 0 && (
+            <>
+              <Form.Item 
+                label={t('bulk_import.label.json_input')} 
+                help={parseError ? <Text type="danger">{parseError}</Text> : t('bulk_import.help.json_input')} 
+                validateStatus={parseError ? 'error' : ''}
+                labelCol={{ span: 24 }}
+                wrapperCol={{ span: 24 }}
+                className={styles.centeredFormLabel}
+              >
+                <Input.TextArea
+                  ref={textAreaRef}
+                  rows={10}
+                  value={jsonInput}
+                  onChange={handleJsonInputChange}
+                  placeholder={t('bulk_import.placeholder.paste_json_here')}
+                  className={styles.jsonInputArea}
+                />
+              </Form.Item>
+              <Button 
+                type="primary" 
+                onClick={handleParseAndPreview} 
+                icon={<PlaySquareOutlined />} 
+                loading={uploading && currentStep === 0}
+                className={styles.uploadButton}
+                disabled={!jsonInput.trim()}
+              >
+                {t('bulk_import.button.parse_and_preview')}
+              </Button>
+              <Paragraph type="secondary" className={styles.helperText}>
+                {t('bulk_import.help.data_format_guidance_intro')}
+                <pre>
+                  {`[
   {
     "employee_code": "E001",
     "first_name": "张",
@@ -499,140 +463,152 @@ const EmployeeBulkImportPage: React.FC = () => {
   },
   // ...more employee records
 ]`}
-              </pre>
-              {t('bulk_import.notes.refer_to_documentation_for_fields')}
-            </Paragraph>
-          </Card>
-            )}
+                </pre>
+                {t('bulk_import.notes.refer_to_documentation_for_fields')}
+              </Paragraph>
+              <Form.Item 
+                label={t('bulk_import.label.overwrite_mode')} 
+                labelCol={{ span: 24 }}
+                wrapperCol={{ span: 24 }}
+                help={t('bulk_import.help.overwrite_mode')}
+                className={styles.centeredFormLabel}
+              >
+                <Switch checked={overwriteMode} onChange={setOverwriteMode} />
+              </Form.Item>
+            </>
+          )}
 
-            {currentStep === 1 && parsedData && (
-          <Card title={t('bulk_import.card_title.preview_data_count_summary', { 
-            count: parsedData.length, 
-            valid: validationSummary.validRecords, 
-            invalid: validationSummary.invalidRecords 
+          {currentStep === 1 && parsedData && (
+            <Card title={t('bulk_import.card_title.preview_data_count_summary', {
+              count: parsedData.length,
+              valid: validationSummary.validRecords,
+              invalid: validationSummary.invalidRecords
             })}>
-            {validationSummary.invalidRecords > 0 && 
-              <Alert 
-                message={t('bulk_import.notes.preview_contains_errors', {count: validationSummary.invalidRecords})} 
-                type="warning" 
-                showIcon 
-                style={{marginBottom: 16}}
-              />
-            }
-            {validationSummary.validRecords === 0 && validationSummary.invalidRecords > 0 &&
-               <Alert 
-                message={t('bulk_import.notes.no_valid_records_to_upload')} 
-                type="error" 
-                showIcon 
-                style={{marginBottom: 16}}
-              />
-            }
-            <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center' }}>
-              <Switch 
-                checked={overwriteMode} 
-                onChange={(checked) => setOverwriteMode(checked)} 
-                style={{ marginRight: 8 }}
-              />
-              <Text>
-                {t('bulk_import.overwrite_mode', { defaultValue: '覆盖模式：允许更新已存在的员工记录（根据身份证号和员工代码匹配）' })}
-              </Text>
-            </div>
-            <Table 
-              columns={columns} 
-              dataSource={parsedData}
-              rowKey="_clientId" 
-              scroll={{ x: 'max-content' }} 
-              size="small"
-              bordered
-              pagination={{ pageSize: 10, hideOnSinglePage: parsedData.length <= 10 }}
-            />
-            <Button 
-              type="primary" 
-              icon={<UploadOutlined />} 
-              onClick={handleUpload} 
-              loading={uploading} 
-              style={{ marginTop: '20px' }}
-              disabled={uploading || validationSummary.validRecords === 0}
-            >
-              {t('bulk_import.button.start_upload_count', {count: validationSummary.validRecords})}
-            </Button>
-          </Card>
-            )}
-
-            {currentStep === 2 && uploading && (
-            <Card title={t('bulk_import.card_title.uploading_data')}>
-                <Space direction="vertical" align="center" style={{width: '100%'}}>
-                    <Text>{t('bulk_import.message.upload_in_progress')}</Text>
-                </Space>
-            </Card>
-            )}
-
-            {currentStep === 3 && uploadResult && (
-          <Card title={t('bulk_import.card_title.upload_results')}>
-            {uploadResult.errorCount === 0 && uploadResult.successCount > 0 ? (
-              <Alert
-                message={t('bulk_import.results.all_success', { count: uploadResult.successCount })}
-                type="success"
-                showIcon
-              />
-            ) : uploadResult.successCount > 0 && uploadResult.errorCount > 0 ? (
-              <Alert
-                message={t('bulk_import.results.partial_success', { success: uploadResult.successCount, error: uploadResult.errorCount })}
-                type="warning"
-                showIcon
-              />
-            ) : uploadResult.errorCount > 0 && uploadResult.successCount === 0 ? (
-              <Alert
-                message={t('bulk_import.results.all_failed_at_server', { count: uploadResult.errorCount })}
-                type="error"
-                showIcon
-              />
-            ) : (
+              {validationSummary.invalidRecords > 0 &&
+                <Alert
+                  message={t('bulk_import.notes.preview_contains_errors', {count: validationSummary.invalidRecords})}
+                  type="warning"
+                  showIcon
+                  style={{marginBottom: 16}}
+                />
+              }
+              {validationSummary.validRecords === 0 && validationSummary.invalidRecords > 0 &&
                  <Alert
-                    message={t('bulk_import.results.no_records_processed_at_server')}
-                    type="info"
-                    showIcon
+                  message={t('bulk_import.notes.no_valid_records_to_upload')}
+                  type="error"
+                  showIcon
+                  style={{marginBottom: 16}}
+                />
+              }
+              <Table
+                columns={columns}
+                dataSource={parsedData}
+                rowKey="_clientId"
+                scroll={{ x: 'max-content' }}
+                size="small"
+                bordered
+                pagination={{ pageSize: 10, hideOnSinglePage: parsedData.length <= 10 }}
+              />
+              <Button 
+                type="primary" 
+                icon={<UserAddOutlined />} 
+                onClick={handleUpload} 
+                loading={uploading && currentStep === 1} 
+                disabled={!parsedData || parsedData.length === 0 || validationSummary.invalidRecords > 0}
+                className={styles.uploadButton}
+              >
+                {t('bulk_import.button.upload_validated_records', { count: validationSummary.validRecords })}
+              </Button>
+            </Card>
+          )}
+
+          {currentStep === 2 && uploading && (
+            <Card title={t('bulk_import.card_title.uploading_data')}>
+              <Space direction="vertical" align="center" style={{width: '100%'}}>
+                <Text>{t('bulk_import.message.upload_in_progress')}</Text>
+              </Space>
+            </Card>
+          )}
+
+          {currentStep === 3 && uploadResult && (
+            <Card title={t('bulk_import.card_title.upload_results')}>
+              {uploadResult.errorCount === 0 && uploadResult.successCount > 0 ? (
+                <Alert
+                  message={t('bulk_import.results.all_success', { count: uploadResult.successCount })}
+                  type="success"
+                  showIcon
+                />
+              ) : uploadResult.successCount > 0 && uploadResult.errorCount > 0 ? (
+                <Alert
+                  message={t('bulk_import.results.partial_success', { success: uploadResult.successCount, error: uploadResult.errorCount })}
+                  type="warning"
+                  showIcon
+                />
+              ) : uploadResult.errorCount > 0 && uploadResult.successCount === 0 ? (
+                <Alert
+                  message={t('bulk_import.results.all_failed_at_server', { count: uploadResult.errorCount })}
+                  type="error"
+                  showIcon
+                />
+              ) : (
+                   <Alert
+                      message={t('bulk_import.results.no_records_processed_at_server')}
+                      type="info"
+                      showIcon
+                    />
+              )}
+
+              {uploadResult.createdEmployees && uploadResult.createdEmployees.length > 0 && (
+                <>
+                  <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_successfully_imported_records_preview')}</Title>
+                  <Table
+                    columns={columns.filter(col => col.key !== 'validationErrors')}
+                    dataSource={uploadResult.createdEmployees}
+                    rowKey={(record: any) => record.id || record._clientId || record.employee_code || nanoid()}
+                    scroll={{ x: 'max-content' }}
+                    size="small"
+                    bordered
+                    pagination={{ pageSize: 10, hideOnSinglePage: uploadResult.createdEmployees.length <= 10 }}
                   />
-            )}
+                </>
+              )}
 
-            {uploadResult.createdEmployees && uploadResult.createdEmployees.length > 0 && (
-              <>
-                <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_successfully_imported_records_preview')}</Title>
-                <Table 
-                  columns={columns.filter(col => col.key !== 'validationErrors')}
-                  dataSource={uploadResult.createdEmployees}
-                  rowKey={(record: any) => record.id || record._clientId || record.employee_code || nanoid()} 
-                  scroll={{ x: 'max-content' }} 
-                  size="small"
-                  bordered
-                  pagination={{ pageSize: 10, hideOnSinglePage: uploadResult.createdEmployees.length <= 10 }}
-                />
-              </>
-            )}
+              {uploadResult.errors && uploadResult.errors.length > 0 && (
+                <>
+                  <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_failed_records_at_server')}</Title>
+                  <Table
+                    columns={resultErrorColumns}
+                    dataSource={uploadResult.errors}
+                    rowKey={(item, index) => `error_${index}`}
+                    size="small"
+                    bordered
+                    pagination={false}
+                  />
+                </>
+              )}
+              <Button onClick={() => { setCurrentStep(0); setJsonInput(''); setParsedData(null); setUploadResult(null); setValidationSummary({ totalRecords: 0, validRecords: 0, invalidRecords: 0 }); }}>
+                {t('bulk_import.button.import_another_file')}
+              </Button>
+            </Card>
+          )}
+        </div>
+      )
+    }
+  ];
 
-            {uploadResult.errors && uploadResult.errors.length > 0 && (
-              <>
-                <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_failed_records_at_server')}</Title>
-                <Table
-                  columns={resultErrorColumns}
-                  dataSource={uploadResult.errors}
-                  rowKey={(item, index) => `error_${index}`}
-                  size="small"
-                  bordered
-                  pagination={false}
-                />
-              </>
-            )}
-            <Button onClick={() => { setCurrentStep(0); setJsonInput(''); setFileList([]); setParsedData(null); setUploadResult(null); setValidationSummary({ totalRecords: 0, validRecords: 0, invalidRecords: 0 }); }}>
-              {t('bulk_import.button.import_another_file')}
-            </Button>
-          </Card>
-            )}
-          </TabPane>
-          <TabPane tab={<span><TableOutlined />表格转换</span>} key="table">
-            <TableTextConverter />
-          </TabPane>
-        </Tabs>
+  if (!ready) {
+    return <div>Loading Translations...</div>; 
+  }
+
+  return (
+    <PageHeaderLayout pageTitle={t('hr:bulk_import.page_title')} icon={<UserAddOutlined />}>
+      <div className={styles.bulkImportContainer}>
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={setActiveTab} 
+          className={styles.tabsContainer}
+          items={tabItems}
+        /> 
       </div>
     </PageHeaderLayout>
   );

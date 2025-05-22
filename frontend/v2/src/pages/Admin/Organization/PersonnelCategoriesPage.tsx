@@ -19,12 +19,13 @@ import {
   getAllPersonnelCategoriesFlat,
   // Potentially getPersonnelCategoryById if it was used, assuming not for now
 } from "../../../api/personnelCategories"; // Corrected path and function names
-import styles from './TreeTable.module.less';
+import treeTableStyles from './TreeTable.module.less';
 import tabStyles from './JobManagementTabs.module.less';
 import type { GetPersonnelCategoriesApiParams } from '../../../api/personnelCategories'; // Import new API params type
 import type { PersonnelCategory, CreatePersonnelCategoryPayload, UpdatePersonnelCategoryPayload } from '../../../api/types';
 import type { TableParams } from '../../../types/antd'; // Reusing TableParams
 import ActualPositionTab from './ActualPositionTab'; // Import the new ActualPositionTab component
+import pageStyles from './PersonnelCategoriesPage.module.less'; // 导入新创建的页面特定样式文件
 
 const { Title } = Typography;
 const { TreeNode } = TreeSelect;
@@ -422,8 +423,8 @@ const PersonnelCategoriesPage: React.FC = () => {
           label: t('tab.personnel_category_management'),
           children: (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={3} style={{ margin: 0 }}>{t('title.current_personnel_categories')}</Title>
+              <div className={pageStyles.sectionHeader}>
+                <Title level={3} className={pageStyles.sectionHeaderTitle}>{t('title.current_personnel_categories')}</Title>
                 <Space>
                   <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
                     {t('button.add_personnel_category')}
@@ -460,7 +461,7 @@ const PersonnelCategoriesPage: React.FC = () => {
                   rowKey="id"
                   expandable={{ defaultExpandAllRows: true }}
                   onChange={handleTableChange}
-                  className={styles['tree-table']}
+                  className={treeTableStyles['tree-table']}
                   bordered
                   scroll={{ x: 'max-content' }}
                   tableLayout="fixed"
@@ -522,10 +523,10 @@ const PersonnelCategoriesPage: React.FC = () => {
                     label={t('form.field.effective_date')}
                     rules={[{ required: true, message: t('form.validation.effective_date_required') }]}
                   >
-                    <DatePicker style={{ width: '100%' }} />
+                    <DatePicker />
                   </Form.Item>
                   <Form.Item name="end_date" label={t('form.field.end_date')}>
-                    <DatePicker style={{ width: '100%' }} />
+                    <DatePicker />
                   </Form.Item>
                   <Form.Item
                       name="is_active"

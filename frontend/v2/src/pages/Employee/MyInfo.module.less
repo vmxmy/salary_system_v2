@@ -1,0 +1,54 @@
+@import (reference) '../../styles/variables.less';
+@import (reference) '../../styles/theme.less';
+
+/* Loading, Error, Empty States */
+.loadingSpin {
+  display: block;
+  margin-top: 50px; // Non-standard
+  text-align: center;
+}
+
+.loadingSpinContent {
+  padding: 50px; // Non-standard
+  display: inline-block;
+}
+
+.errorAlert {
+  margin: 20px; // Non-standard, consider @margin-lg or @margin-md
+}
+
+.emptyState {
+  margin-top: 50px; // Non-standard
+}
+
+/* Page Layout */
+.pageContainer {
+  padding: @padding-lg; // 24px
+}
+
+.pageBreadcrumb {
+  margin-bottom: @padding-lg; // 24px, using padding-lg for consistency if it represents general large spacing
+}
+
+/* Info Cards */
+.infoCard {
+  margin-bottom: @margin-md; // 16px
+}
+
+/* Overview Card (Top section with Avatar and Name) */
+.overviewCard {
+  margin-bottom: @margin-lg; // 24px
+}
+
+.overviewHeader {
+  display: flex;
+  align-items: center;
+}
+
+.overviewAvatar {
+  margin-right: 20px; // Non-standard, consider @margin-lg or @margin-md
+}
+
+.overviewTitle {
+  margin-bottom: 0 !important; // Ensure override if antd Title has default margin
+} 

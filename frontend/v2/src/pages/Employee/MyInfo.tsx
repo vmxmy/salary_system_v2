@@ -10,6 +10,7 @@ import type { Employee, LookupValue, Department, PersonnelCategory, Position } f
 import useHrLookupStore from '../../store/hrLookupStore';
 import EmployeeName from '../../components/common/EmployeeName';
 import UnifiedTabs from '../../components/common/UnifiedTabs';
+import styles from './MyInfo.module.less';
 
 const { Title, Text } = Typography;
 
@@ -114,15 +115,15 @@ const MyInfoPage: React.FC = () => {
   }, [employeeId, t]);
 
   if (loading && !employee) {
-    return <Spin tip={t('common:loading.generic_loading_text')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('common:loading.generic_loading_text')} className={styles.loadingSpin}><div className={styles.loadingSpinContent} /></Spin>;
   }
 
   if (error) {
-    return <Alert message={t('error.genericTitle')} description={error} type="error" showIcon style={{ margin: '20px' }} />;
+    return <Alert message={t('error.genericTitle')} description={error} type="error" showIcon className={styles.errorAlert} />;
   }
 
   if (!employee) {
-    return <Empty description={t('myInfo.noData')} style={{ marginTop: '50px' }} />;
+    return <Empty description={t('myInfo.noData')} className={styles.emptyState} />;
   }
 
   const tabItems = [
@@ -137,7 +138,7 @@ const MyInfoPage: React.FC = () => {
       children: (
         <>
           {/* Card 2: Personal Information */}
-          <Card title={t('myInfo:sectionTitles.personal')} style={{ marginBottom: 16 }}>
+          <Card title={t('myInfo:sectionTitles.personal')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:firstName')}>{employee.first_name}</Descriptions.Item>
               <Descriptions.Item label={t('employee:lastName')}>{employee.last_name}</Descriptions.Item>
@@ -153,7 +154,7 @@ const MyInfoPage: React.FC = () => {
           </Card>
           
           {/* Card 3: Contact Information */}
-          <Card title={t('myInfo:sectionTitles.contact')} style={{ marginBottom: 16 }}>
+          <Card title={t('myInfo:sectionTitles.contact')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:personalEmail')}>{employee.email || 'N/A'}</Descriptions.Item>
               <Descriptions.Item label={t('employee:mobilePhone')}>{employee.phone_number || 'N/A'}</Descriptions.Item>
@@ -174,7 +175,7 @@ const MyInfoPage: React.FC = () => {
       children: (
         <>
           {/* Card 4: Employment Information */}
-          <Card title={t('myInfo:sectionTitles.employment')} style={{ marginBottom: 16 }}>
+          <Card title={t('myInfo:sectionTitles.employment')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:department')}>{employee.departmentName || getLookupDisplayName(employee.department_id, departments)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:personnelCategory')}>{employee.personnel_category_name || getLookupDisplayName(employee.personnel_category_id, personnelCategories)}</Descriptions.Item>
@@ -201,7 +202,7 @@ const MyInfoPage: React.FC = () => {
       children: (
         <>
           {/* Card 5: Bank Information */}
-          <Card title={t('myInfo:sectionTitles.bank')} style={{ marginBottom: 16 }}>
+          <Card title={t('myInfo:sectionTitles.bank')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:bankName')} span={1}>{employee.bank_name || 'N/A'}</Descriptions.Item>
               <Descriptions.Item label={t('employee:bankAccountNumber')} span={1}>{employee.bank_account_number || 'N/A'}</Descriptions.Item>
@@ -209,7 +210,7 @@ const MyInfoPage: React.FC = () => {
           </Card>
           
           {/* Card 6: Emergency Contact */}
-          <Card title={t('myInfo:sectionTitles.emergency')} style={{ marginBottom: 16 }}>
+          <Card title={t('myInfo:sectionTitles.emergency')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:emergencyContactName')}>{employee.emergency_contact_name || 'N/A'}</Descriptions.Item>
               <Descriptions.Item label={t('employee:emergencyContactPhone')}>{employee.emergency_contact_phone || 'N/A'}</Descriptions.Item>
@@ -218,7 +219,7 @@ const MyInfoPage: React.FC = () => {
           </Card>
           
           {employee.notes && (
-            <Card title={t('employee.notes')} style={{ marginBottom: 16 }}>
+            <Card title={t('employee.notes')} className={styles.infoCard}>
               <Text>{employee.notes}</Text>
             </Card>
           )}
@@ -228,9 +229,9 @@ const MyInfoPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className={styles.pageContainer}>
       <Breadcrumb 
-        style={{ marginBottom: '24px' }} 
+        className={styles.pageBreadcrumb}
         items={[
           {
             key: 'home',
@@ -244,19 +245,18 @@ const MyInfoPage: React.FC = () => {
       />
 
       {/* Card 1: Employee Overview - Stays above Tabs */}
-      <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar size={64} src={employee.avatar} icon={<UserOutlined />} style={{ marginRight: '20px' }} />
+      <Card className={styles.overviewCard}>
+        <div className={styles.overviewHeader}>
+          <Avatar size={64} src={employee.avatar} icon={<UserOutlined />} className={styles.overviewAvatar} />
           <div>
-            <Title level={3} style={{ marginBottom: 0 }}>
+            <Title level={3} className={styles.overviewTitle}>
               <EmployeeName 
                 employeeId={employee.id} 
                 employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
                 showId={false}
-                className="employee-info-name"
               />
             </Title>
-            <Text type="secondary">{t('myInfo:employeeCode')}: {employee.employee_code}</Text>
+            <Text type="secondary">{t('myInfo:employeeId', 'Employee ID:')} {employee.employee_code || employeeId}</Text>
           </div>
         </div>
       </Card>

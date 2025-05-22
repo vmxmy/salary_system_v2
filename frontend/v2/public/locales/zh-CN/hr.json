@@ -22,19 +22,21 @@
       "preview_data_count": "预览数据 ({{count}} 条记录)"
     },
     "button": {
-      "select_file_to_fill_editor": "选择文件填充编辑器",
       "parse_and_preview": "解析并预览",
-      "start_upload": "开始上传",
       "import_another_file": "导入另一个文件"
     },
     "placeholder": {
       "paste_json_here": "在此粘贴 JSON 数据",
-      "drag_paste_or_type": "拖拽或粘贴数据到此处",
-      "paste_json_here_or_drag": "在此粘贴JSON数据，或将文件拖动到此区域"
+      "json_input": "请输入JSON格式的员工数据"
     },
-    "dragger": {
-      "title": "点击或拖拽文件到此区域上传",
-      "hint": "支持单个JSON文件，内容将在此处显示并可编辑。"
+    "label": {
+      "json_input": "JSON数据输入",
+      "overwrite_mode": "覆盖模式"
+    },
+    "help": {
+      "json_input": "请输入符合格式要求的JSON数据",
+      "data_format_guidance_intro": "请按照以下格式输入员工数据",
+      "overwrite_mode": "启用后，若导入数据中包含与现有员工相同的身份证号，将覆盖现有数据"
     },
     "notes": {
       "json_format_intro": "请确保您的 JSON 数据符合预期的格式。",
@@ -49,7 +51,6 @@
       "upload_failed_prefix": "批量上传失败: "
     },
     "validation": {
-      "json_only": "请仅上传JSON文件（.json）。",
       "json_not_array": "JSON数据必须是数组格式。",
       "no_data_to_upload": "没有可上传的数据或JSON内容为空。",
       "missing_or_invalid_field": "记录'{{record}}'中的'{{field}}'字段缺失或无效（预期类型: {{type}}）。",
