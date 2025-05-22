@@ -65,6 +65,7 @@ const EmployeeBulkImportPage: React.FC = () => {
   const [validationSummary, setValidationSummary] = useState<ValidationSummary>({ totalRecords: 0, validRecords: 0, invalidRecords: 0 });
   const [activeTab, setActiveTab] = useState<string>('table');
   const [overwriteMode, setOverwriteMode] = useState<boolean>(false);
+  const [showDetailedErrors, setShowDetailedErrors] = useState<boolean>(false);
 
   useEffect(() => {
     if (jsonInput && textAreaRef.current) {
@@ -306,20 +307,29 @@ const EmployeeBulkImportPage: React.FC = () => {
       console.error("Bulk upload failed:", error.response?.data || error);
       
       let extractedErrorMessage = t('common:error.unknown');
+      let detailedErrorMessage = '';
+      
       if (error.response?.data?.detail) {
         if (typeof error.response.data.detail === 'string') {
           extractedErrorMessage = error.response.data.detail;
+          detailedErrorMessage = error.response.data.detail;
         } else if (Array.isArray(error.response.data.detail) && error.response.data.detail.length > 0) {
-          extractedErrorMessage = error.response.data.detail
+          // 提取简短摘要
+          extractedErrorMessage = `${t('bulk_import.message.upload_failed_with_errors', { count: error.response.data.detail.length })}`;
+          // 保存详细错误信息
+          detailedErrorMessage = error.response.data.detail
             .map((errItem: any) => errItem.msg || JSON.stringify(errItem))
-            .join('; ');
+            .join('\n');
         } else if (typeof error.response.data.detail === 'object') {
-            extractedErrorMessage = error.response.data.detail.msg || JSON.stringify(error.response.data.detail);
+          extractedErrorMessage = error.response.data.detail.msg || t('bulk_import.message.upload_failed_with_details');
+          detailedErrorMessage = JSON.stringify(error.response.data.detail, null, 2);
         } else {
-            extractedErrorMessage = JSON.stringify(error.response.data.detail);
+          extractedErrorMessage = t('bulk_import.message.upload_failed');
+          detailedErrorMessage = JSON.stringify(error.response.data.detail);
         }
       } else if (error.message) {
         extractedErrorMessage = error.message;
+        detailedErrorMessage = error.message;
       }
 
       message.error(`${t('bulk_import.message.upload_failed_prefix')} ${extractedErrorMessage}`);
@@ -589,18 +599,48 @@ const EmployeeBulkImportPage: React.FC = () => {
 
               {uploadResult.errors && uploadResult.errors.length > 0 && (
                 <>
-                  <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_failed_records_at_server')}</Title>
-                  <Table
-                    columns={resultErrorColumns}
-                    dataSource={uploadResult.errors}
-                    rowKey={(item, index) => `error_${index}`}
-                    size="small"
-                    bordered
-                    pagination={false}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+                    <Title level={5}>{t('bulk_import.results_table.title_failed_records_at_server')}</Title>
+                    <Button
+                      type="link"
+                      onClick={() => setShowDetailedErrors(!showDetailedErrors)}
+                    >
+                      {showDetailedErrors ? t('bulk_import.button.hide_error_details') : t('bulk_import.button.show_error_details')}
+                    </Button>
+                  </div>
+                  
+                  {!showDetailedErrors ? (
+                    <Alert
+                      message={t('bulk_import.results.error_summary', { count: uploadResult.errors.length })}
+                      description={t('bulk_import.results.click_to_view_details')}
+                      type="error"
+                      showIcon
+                      action={
+                        <Button size="small" onClick={() => setShowDetailedErrors(true)}>
+                          {t('bulk_import.button.view_details')}
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <Table
+                      columns={resultErrorColumns}
+                      dataSource={uploadResult.errors}
+                      rowKey={(item, index) => `error_${index}`}
+                      size="small"
+                      bordered
+                      pagination={false}
+                    />
+                  )}
                 </>
               )}
-              <Button onClick={() => { setCurrentStep(0); setJsonInput(''); setParsedData(null); setUploadResult(null); setValidationSummary({ totalRecords: 0, validRecords: 0, invalidRecords: 0 }); }}>
+              <Button onClick={() => {
+                setCurrentStep(0);
+                setJsonInput('');
+                setParsedData(null);
+                setUploadResult(null);
+                setValidationSummary({ totalRecords: 0, validRecords: 0, invalidRecords: 0 });
+                setShowDetailedErrors(false);
+              }}>
                 {t('bulk_import.button.import_another_file')}
               </Button>
             </Card>

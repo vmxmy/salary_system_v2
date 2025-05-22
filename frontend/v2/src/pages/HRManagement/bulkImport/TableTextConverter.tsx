@@ -422,12 +422,12 @@ const TableTextConverter: React.FC = () => {
               />
               <Space style={{ marginTop: 8 }}>
                 <Button
-                  type="primary"
                   onClick={() => navigator.clipboard.writeText(jsonResult)}
                 >
                   复制JSON
                 </Button>
                 <Button
+                  type="primary"
                   onClick={() => {
                     try {
                       const jsonData = JSON.parse(jsonResult);

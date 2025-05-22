@@ -183,6 +183,11 @@ class EmployeeJobHistory(BaseV2):
     effective_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
 
+    # BEGIN: Added timestamp fields
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    # END: Added timestamp fields
+
     # Relationships
     employee = relationship("Employee", foreign_keys=[employee_id], back_populates="job_history")
     department = relationship("Department", back_populates="job_history", lazy='selectin')

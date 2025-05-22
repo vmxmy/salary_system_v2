@@ -16,7 +16,10 @@
     },
     "button": {
       "import_another_file": "Import Another File",
-      "parse_and_preview": "Parse and Preview Data"
+      "parse_and_preview": "Parse and Preview Data",
+      "show_error_details": "Show Error Details",
+      "hide_error_details": "Hide Error Details",
+      "view_details": "View Details"
     },
     "placeholder": {
       "paste_json_here": "Paste JSON data here..."
@@ -40,7 +43,10 @@
       "file_parse_error": "File parse failed",
       "upload_in_progress": "Uploading data, please wait...",
       "upload_success": "Successfully uploaded {{count}} employee records.",
-      "upload_failed_prefix": "Bulk upload failed: "
+      "upload_failed_prefix": "Bulk upload failed: ",
+      "upload_failed": "Upload failed",
+      "upload_failed_with_details": "Upload failed with details",
+      "upload_failed_with_errors": "Upload failed with {{count}} errors"
     },
     "validation": {
       "json_not_array": "JSON data must be an array.",
@@ -51,7 +57,11 @@
     },
     "results": {
       "all_success": "All {{count}} records imported successfully!",
-      "partial_success": "{{success}} records imported successfully, {{error}} records failed."
+      "partial_success": "{{success}} records imported successfully, {{error}} records failed.",
+      "all_failed_at_server": "All {{count}} records failed to import.",
+      "no_records_processed_at_server": "No records were processed by the server.",
+      "error_summary": "{{count}} records failed to import",
+      "click_to_view_details": "Click the button to view detailed error information"
     },
     "results_table": {
       "title_failed_records": "Failed Records",
