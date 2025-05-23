@@ -66,7 +66,8 @@
     },
     "results": {
       "all_success": "全部 {{count}} 条记录导入成功！",
-      "partial_success": "{{success}} 条记录导入成功，{{error}} 条记录失败。"
+      "partial_success": "{{success}} 条记录导入成功，{{error}} 条记录失败。",
+      "all_failed_at_server": "所有 {{count}} 条记录在服务器端处理失败。"
     },
     "table_header": {
       "employee_code": "员工工号",

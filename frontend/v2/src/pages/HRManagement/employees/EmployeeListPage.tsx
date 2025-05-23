@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Modal, Space, Tooltip } from 'antd';
-import { PlusOutlined, DownloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button, message, Modal, Space, Tooltip, Input } from 'antd';
+import { PlusOutlined, DownloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +41,52 @@ const generateEmployeeTableColumnsConfig = (
         const nameB = `${b.last_name || ''}${b.first_name || ''}`.trim().toLowerCase();
         return nameA.localeCompare(nameB);
       },
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            placeholder="搜索姓名"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              搜索
+            </Button>
+            <Button
+              onClick={() => clearFilters && clearFilters()}
+              size="small"
+              style={{ width: 90 }}
+            >
+              重置
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                confirm();
+                close();
+              }}
+            >
+              关闭
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+      ),
+      onFilter: (value, record) => {
+        const fullName = `${record.last_name || ''}${record.first_name || ''}`;
+        return fullName.toLowerCase().includes((value as string).toLowerCase());
+      },
     },
     {
       title: t('employee:list_page.table.column.employee_code'),
@@ -61,7 +107,11 @@ const generateEmployeeTableColumnsConfig = (
       dataIndex: 'gender_lookup_value_id',
       key: 'gender',
       render: (genderId: number | undefined) => lookupMaps?.genderMap?.get(genderId as number) || '',
-      // Add sorter/filter based on lookupMap if needed
+      filters: lookupMaps?.genderMap ? Array.from(lookupMaps.genderMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.gender_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.ethnicity'),
@@ -89,18 +139,33 @@ const generateEmployeeTableColumnsConfig = (
       dataIndex: 'education_level_lookup_value_id',
       key: 'education_level',
       render: (educationLevelId: number | undefined) => lookupMaps?.educationLevelMap?.get(educationLevelId as number) || '',
+      filters: lookupMaps?.educationLevelMap ? Array.from(lookupMaps.educationLevelMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.education_level_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.marital_status'),
       dataIndex: 'marital_status_lookup_value_id',
       key: 'marital_status',
       render: (maritalStatusId: number | undefined) => lookupMaps?.maritalStatusMap?.get(maritalStatusId as number) || '',
+      filters: lookupMaps?.maritalStatusMap ? Array.from(lookupMaps.maritalStatusMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.marital_status_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.political_status'),
       dataIndex: 'political_status_lookup_value_id',
       key: 'political_status',
       render: (politicalStatusId: number | undefined) => lookupMaps?.politicalStatusMap?.get(politicalStatusId as number) || '',
+      filters: lookupMaps?.politicalStatusMap ? Array.from(lookupMaps.politicalStatusMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.political_status_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.first_work_date'),
@@ -162,14 +227,22 @@ const generateEmployeeTableColumnsConfig = (
       dataIndex: 'department_id',
       key: 'department_id',
       render: (departmentId: string | undefined) => lookupMaps?.departmentMap?.get(String(departmentId)) || '',
-      // Add sorter/filter based on lookupMap or department_name if available
+      filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => String(record.department_id) === String(value),
     },
     {
       title: t('employee:list_page.table.column.personnel_category'),
       dataIndex: 'personnel_category_id',
       key: 'personnel_category_id',
       render: (categoryId: string | undefined) => lookupMaps?.personnelCategoryMap?.get(String(categoryId)) || '',
-      // Add sorter/filter
+      filters: lookupMaps?.personnelCategoryMap ? Array.from(lookupMaps.personnelCategoryMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => String(record.personnel_category_id) === String(value),
     },
     {
       title: t('employee:list_page.table.column.actual_position'),
@@ -197,18 +270,33 @@ const generateEmployeeTableColumnsConfig = (
       dataIndex: 'employment_type_lookup_value_id',
       key: 'employment_type',
       render: (employmentTypeId: number | undefined) => lookupMaps?.employmentTypeMap?.get(employmentTypeId as number) || '',
+      filters: lookupMaps?.employmentTypeMap ? Array.from(lookupMaps.employmentTypeMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.employment_type_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.contract_type'),
       dataIndex: 'contract_type_lookup_value_id',
       key: 'contract_type',
       render: (contractTypeId: number | undefined) => lookupMaps?.contractTypeMap?.get(contractTypeId as number) || '',
+      filters: lookupMaps?.contractTypeMap ? Array.from(lookupMaps.contractTypeMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.contract_type_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
       render: (statusId: number | undefined) => lookupMaps?.statusMap?.get(statusId as number) || '',
+      filters: lookupMaps?.statusMap ? Array.from(lookupMaps.statusMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[0],
+      })) : [],
+      onFilter: (value, record) => record.status_lookup_value_id === value,
     },
     {
       title: t('employee:list_page.table.column.hire_date'),

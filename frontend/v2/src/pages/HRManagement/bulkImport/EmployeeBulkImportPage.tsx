@@ -296,60 +296,145 @@ const EmployeeBulkImportPage: React.FC = () => {
       
       console.log("[BULK IMPORT DEBUG] Raw API Response from service in handleUpload:", response);
       
-      let employeesToDisplay: any[] = [];
-      if (response && response.data && Array.isArray(response.data)) { 
-        employeesToDisplay = response.data;
-        console.log("[BULK IMPORT DEBUG] Successfully extracted employee array from response.data:", employeesToDisplay);
-      } 
-      else if (response && Array.isArray(response)) { 
-        employeesToDisplay = response;
-        console.warn("[BULK IMPORT DEBUG] API Response was a direct array. Using direct array:", employeesToDisplay);
-      } 
-      else {
-        console.error("[BULK IMPORT DEBUG] API Response format is not as expected (expected {data: Array} or Array). Received:", response);
-      }
-      
-      if (employeesToDisplay.length > 0) {
-        message.success(t('bulk_import.message.upload_success', { count: employeesToDisplay.length }));
-      } else if (parsedData.length - validRecords.length > 0) {
-        message.warning(t('bulk_import.message.upload_attempted_but_no_valid_records_processed_or_returned'));
-      } else {
-        message.error(t('bulk_import.message.upload_failed_no_data_returned'));
-      }
+      // 新的API响应格式包含详细的成功和失败信息
+      if (response && typeof response === 'object' && 'success_count' in response) {
+        const {
+          success_count = 0,
+          failed_count = 0,
+          total_count = 0,
+          created_employees = [],
+          failed_records = []
+        } = response as any;
 
-      setUploadResult({
-        successCount: employeesToDisplay.length,
-        errorCount: parsedData.length - validRecords.length,
-        errors: parsedData.filter(r => r.validationErrors && r.validationErrors.length > 0).map(r => ({record: r, error: r.validationErrors!.join('; ')})),
-        createdEmployees: employeesToDisplay.map((emp, index) => {
-          // 确保显示原始提交的人员身份和实际任职名称
-          const enhancedEmp = {...emp, _clientId: `success_${Date.now()}_${index}`};
-          
-          // 通过身份证号匹配原始数据
-          if (emp.id_number && originalNameData[emp.id_number]) {
-            // 记录匹配过程
-            console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number}, 
-              后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}], 
-              原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name}, 
-              实际任职=${originalNameData[emp.id_number].position_name}]`);
+        console.log("[BULK IMPORT DEBUG] 解析API响应:", {
+          success_count,
+          failed_count,
+          total_count,
+          created_employees_length: created_employees.length,
+          failed_records_length: failed_records.length
+        });
+
+        // 显示结果消息
+        if (success_count > 0 && failed_count === 0) {
+          message.success(t('bulk_import.message.upload_success', { count: success_count }));
+        } else if (success_count > 0 && failed_count > 0) {
+          message.warning(t('bulk_import.results.partial_success', { success: success_count, error: failed_count }));
+        } else if (failed_count > 0) {
+          message.error(t('bulk_import.results.all_failed_at_server', { count: failed_count }));
+        } else {
+          message.error(t('bulk_import.message.upload_failed_no_data_returned'));
+        }
+
+        // 合并前端验证错误和后端处理错误
+        const allErrors = [
+          // 前端验证失败的记录
+          ...parsedData.filter(r => r.validationErrors && r.validationErrors.length > 0).map(r => ({
+            record: r, 
+            error: r.validationErrors!.join('; ')
+          })),
+          // 后端处理失败的记录
+          ...failed_records.map((failedRecord: any) => ({
+            record: {
+              employee_code: failedRecord.employee_code,
+              id_number: failedRecord.id_number,
+              first_name: failedRecord.first_name,
+              last_name: failedRecord.last_name,
+              originalIndex: failedRecord.original_index
+            },
+            error: failedRecord.errors.join('; ')
+          }))
+        ];
+
+        setUploadResult({
+          successCount: success_count,
+          errorCount: allErrors.length,
+          errors: allErrors,
+          createdEmployees: created_employees.map((emp: any, index: number) => {
+            // 确保显示原始提交的人员身份和实际任职名称
+            const enhancedEmp = {...emp, _clientId: `success_${Date.now()}_${index}`};
             
-            // 如果后端返回的数据中这些字段为空，使用原始提交的数据
-            if (!enhancedEmp.personnel_category_name) {
-              enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
-              console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
+            // 通过身份证号匹配原始数据
+            if (emp.id_number && originalNameData[emp.id_number]) {
+              // 记录匹配过程
+              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number}, 
+                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}], 
+                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name}, 
+                实际任职=${originalNameData[emp.id_number].position_name}]`);
+              
+              // 如果后端返回的数据中这些字段为空，使用原始提交的数据
+              if (!enhancedEmp.personnel_category_name) {
+                enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
+                console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
+              }
+              
+              if (!enhancedEmp.position_name) {
+                enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
+                console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
+              }
+            } else {
+              console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
             }
             
-            if (!enhancedEmp.position_name) {
-              enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
-              console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
+            return enhancedEmp;
+          })
+        });
+      } else {
+        // 兼容旧的API响应格式
+        let employeesToDisplay: any[] = [];
+        if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) { 
+          employeesToDisplay = (response as any).data;
+          console.log("[BULK IMPORT DEBUG] Successfully extracted employee array from response.data:", employeesToDisplay);
+        } 
+        else if (response && Array.isArray(response)) { 
+          employeesToDisplay = response;
+          console.warn("[BULK IMPORT DEBUG] API Response was a direct array. Using direct array:", employeesToDisplay);
+        } 
+        else {
+          console.error("[BULK IMPORT DEBUG] API Response format is not as expected (expected {data: Array} or Array). Received:", response);
+        }
+        
+        if (employeesToDisplay.length > 0) {
+          message.success(t('bulk_import.message.upload_success', { count: employeesToDisplay.length }));
+        } else if (parsedData.length - validRecords.length > 0) {
+          message.warning(t('bulk_import.message.upload_attempted_but_no_valid_records_processed_or_returned'));
+        } else {
+          message.error(t('bulk_import.message.upload_failed_no_data_returned'));
+        }
+
+        setUploadResult({
+          successCount: employeesToDisplay.length,
+          errorCount: parsedData.length - validRecords.length,
+          errors: parsedData.filter(r => r.validationErrors && r.validationErrors.length > 0).map(r => ({record: r, error: r.validationErrors!.join('; ')})),
+          createdEmployees: employeesToDisplay.map((emp, index) => {
+            // 确保显示原始提交的人员身份和实际任职名称
+            const enhancedEmp = {...emp, _clientId: `success_${Date.now()}_${index}`};
+            
+            // 通过身份证号匹配原始数据
+            if (emp.id_number && originalNameData[emp.id_number]) {
+              // 记录匹配过程
+              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number}, 
+                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}], 
+                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name}, 
+                实际任职=${originalNameData[emp.id_number].position_name}]`);
+              
+              // 如果后端返回的数据中这些字段为空，使用原始提交的数据
+              if (!enhancedEmp.personnel_category_name) {
+                enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
+                console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
+              }
+              
+              if (!enhancedEmp.position_name) {
+                enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
+                console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
+              }
+            } else {
+              console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
             }
-          } else {
-            console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
-          }
-          
-          return enhancedEmp;
-        })
-      });
+            
+            return enhancedEmp;
+          })
+        });
+      }
       setCurrentStep(3);
     } catch (error: any) {
       console.error("Bulk upload failed:", error.response?.data || error);

@@ -459,3 +459,21 @@ EmployeeJobHistory.model_rebuild()
 # Example for EmployeeAppraisal and LookupValue if they were to use ForwardRef, though they might not need it here.
 EmployeeAppraisal.model_rebuild() # Added for the moved models
 # LookupValue.model_rebuild() # If LookupValue has self-references or forward refs to resolve
+
+# 在文件末尾添加批量创建的响应模型
+class BulkEmployeeFailedRecord(BaseModel):
+    """批量创建员工时失败的记录信息"""
+    original_index: int = Field(..., description="原始记录在批次中的索引（从0开始）")
+    employee_code: Optional[str] = Field(None, description="员工代码")
+    id_number: Optional[str] = Field(None, description="身份证号")
+    first_name: Optional[str] = Field(None, description="名")
+    last_name: Optional[str] = Field(None, description="姓")
+    errors: List[str] = Field(..., description="错误信息列表")
+
+class BulkEmployeeCreateResult(BaseModel):
+    """批量创建员工的结果"""
+    success_count: int = Field(..., description="成功创建/更新的员工数量")
+    failed_count: int = Field(..., description="失败的记录数量")
+    total_count: int = Field(..., description="总记录数量")
+    created_employees: List[Employee] = Field(..., description="成功创建/更新的员工列表")
+    failed_records: List[BulkEmployeeFailedRecord] = Field(..., description="失败的记录列表")

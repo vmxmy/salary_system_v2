@@ -66,6 +66,22 @@ const buildQueryParams = (params: Record<string, any>): string => {
   return queryString ? `?${queryString}` : '';
 };
 
+// 定义批量创建的响应类型
+interface BulkCreateResponse {
+  success_count: number;
+  failed_count: number;
+  total_count: number;
+  created_employees: Employee[];
+  failed_records: Array<{
+    original_index: number;
+    employee_code?: string;
+    id_number?: string;
+    first_name?: string;
+    last_name?: string;
+    errors: string[];
+  }>;
+}
+
 export const employeeService = {
   // --- Employee CUD (existing, uses apiClient) ---
   async getEmployees(query?: EmployeeQuery): Promise<EmployeePageResult> {
@@ -141,16 +157,16 @@ export const employeeService = {
   },
 
   // ADD THE NEW FUNCTION HERE
-  async bulkCreateEmployees(payload: CreateEmployeePayload[], overwriteMode: boolean = false): Promise<{ data: Employee[] }> { // Assuming Employee[] is the expected return type for created employees
+  async bulkCreateEmployees(payload: CreateEmployeePayload[], overwriteMode: boolean = false): Promise<BulkCreateResponse | { data: Employee[] }> {
     try {
       // T in apiClient.post<T> refers to the type of the 'data' field in the AxiosResponse
       // So, if the backend response body is { "data": Employee[] }, then T should be { data: Employee[] }
-      const response = await apiClient.post<{ data: Employee[] }>('/employees/bulk', payload, { 
+      const response = await apiClient.post<BulkCreateResponse | { data: Employee[] }>('/employees/bulk', payload, { 
         params: { overwrite_mode: overwriteMode } 
       }); // CORRECTED URL: Removed /v2/
-      // response here is AxiosResponse<{ data: Employee[] }>
-      // response.data here is { data: Employee[] }
-      return response.data; // This should align with the Promise<{ data: Employee[] }> signature
+      // response here is AxiosResponse<BulkCreateResponse | { data: Employee[] }>
+      // response.data here is BulkCreateResponse | { data: Employee[] }
+      return response.data; // This should align with the Promise<BulkCreateResponse | { data: Employee[] }> signature
     } catch (error: any) {
       console.error('Error bulk creating employees:', error);
       console.error('Error bulk creating employees - Response data:', error.response?.data);

@@ -1016,10 +1016,10 @@ def _resolve_lookup_id(db: Session, text_value: Optional[str], type_code: str) -
         logger.warning(f"Lookup value not found for text: '{text_value}' with type_code: '{type_code}'. A new one might be created if applicable or this will be skipped.")
     return lookup_value_id
 
-def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overwrite_mode: bool = False) -> List[Employee]:
-    """批量创建员工"""
+def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overwrite_mode: bool = False) -> Tuple[List[Employee], List[Dict]]:
+    """批量创建员工，返回成功和失败记录的详细信息"""
     created_employees = []
-    errors = []
+    failed_records = []
     seen_employee_codes_in_batch = set()
     seen_id_numbers_in_batch = set()
     
@@ -1042,7 +1042,7 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
             # Ensure employee_code uniqueness within batch and DB
             if emp_in.employee_code:
                 if emp_in.employee_code in seen_employee_codes_in_batch:
-                    current_record_errors.append(f"Duplicate employee_code '{emp_in.employee_code}' in batch.")
+                    current_record_errors.append(f"批次中存在重复的员工代码 '{emp_in.employee_code}'")
                 seen_employee_codes_in_batch.add(emp_in.employee_code)
                 
                 # Check against DB only if employee_code is provided
@@ -1056,12 +1056,12 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                         emp_in.id = existing_in_db.id
                         logger.info(f"覆盖模式: 找到已存在的员工代码 '{emp_in.employee_code}', ID: {emp_in.id}, 将进行更新")
                     else:
-                        current_record_errors.append(f"Employee_code '{emp_in.employee_code}' already exists in DB.")
+                        current_record_errors.append(f"员工代码 '{emp_in.employee_code}' 已存在于数据库中")
                         logger.warning(f"员工代码 '{emp_in.employee_code}' 已存在，但不在覆盖模式，跳过")
 
             if emp_in.id_number:
                 if emp_in.id_number in seen_id_numbers_in_batch:
-                    current_record_errors.append(f"Duplicate id_number '{emp_in.id_number}' in batch.")
+                    current_record_errors.append(f"批次中存在重复的身份证号 '{emp_in.id_number}'")
                     logger.warning(f"批次中存在重复的身份证号 '{emp_in.id_number}'")
                 seen_id_numbers_in_batch.add(emp_in.id_number)
                 existing_employee = get_employee_by_id_number(db, emp_in.id_number)
@@ -1072,7 +1072,7 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                             emp_in.id = existing_employee.id
                             logger.info(f"覆盖模式: 通过身份证号 '{emp_in.id_number}' 找到已存在的员工, ID: {emp_in.id}, 将进行更新")
                     else:
-                        current_record_errors.append(f"Id_number '{emp_in.id_number}' already exists in DB.")
+                        current_record_errors.append(f"身份证号 '{emp_in.id_number}' 已存在于数据库中")
                         logger.warning(f"身份证号 '{emp_in.id_number}' 已存在，但不在覆盖模式，跳过")
 
             # 保存银行信息以便稍后创建
@@ -1115,7 +1115,7 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
             
             status_id = _resolve_lookup_id(db, emp_in.status_lookup_value_name, "EMPLOYEE_STATUS")
             if status_id is None: # status_lookup_value_id is mandatory in EmployeeBase
-                current_record_errors.append(f"Status '{emp_in.status_lookup_value_name}' could not be resolved or is missing.")
+                current_record_errors.append(f"员工状态 '{emp_in.status_lookup_value_name}' 无法解析或缺失")
             employee_orm_data["status_lookup_value_id"] = status_id
             
             employee_orm_data["employment_type_lookup_value_id"] = _resolve_lookup_id(db, emp_in.employment_type_lookup_value_name, "EMPLOYMENT_TYPE")
@@ -1147,7 +1147,7 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                         if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
                             logger.warning(f"无法找到部门 '{emp_in.department_name}'，但在覆盖模式下继续更新员工")
                         else:
-                            current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
+                            current_record_errors.append(f"部门 '{emp_in.department_name}' 在数据库中未找到")
                             logger.warning(f"无法找到部门 '{emp_in.department_name}'")
             elif "department_id" not in employee_orm_data and emp_in.department_id is not None: # If ID was directly provided
                  employee_orm_data["department_id"] = emp_in.department_id
@@ -1174,7 +1174,7 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                         if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
                             logger.warning(f"无法找到职位 '{emp_in.position_name}'，但在覆盖模式下继续更新员工")
                         else:
-                            current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
+                            current_record_errors.append(f"职位 '{emp_in.position_name}' 在数据库中未找到")
                             logger.warning(f"无法找到职位 '{emp_in.position_name}'")
             elif "actual_position_id" not in employee_orm_data and emp_in.actual_position_id is not None: # If ID was directly provided
                  employee_orm_data["actual_position_id"] = emp_in.actual_position_id
@@ -1201,7 +1201,7 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                         if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
                             logger.warning(f"无法找到人员类别 '{emp_in.personnel_category_name}'，但在覆盖模式下继续更新员工")
                         else:
-                            current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
+                            current_record_errors.append(f"人员类别 '{emp_in.personnel_category_name}' 在数据库中未找到")
                             logger.warning(f"无法找到人员类别 '{emp_in.personnel_category_name}'")
             elif "personnel_category_id" not in employee_orm_data and emp_in.personnel_category_id is not None: # If ID was directly provided
                 employee_orm_data["personnel_category_id"] = emp_in.personnel_category_id
@@ -1401,17 +1401,54 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                     logger.info(f"成功处理员工记录 {index+1}，ID: {record_result.success_employee_id}")
                 else:
                     logger.warning(f"员工记录 {index+1} 创建成功但无法获取详情，ID: {record_result.success_employee_id}")
+            
+            # 如果有错误，收集失败记录信息
+            if record_result.errors:
+                failed_record = {
+                    "original_index": index,
+                    "employee_code": emp_in.employee_code,
+                    "id_number": emp_in.id_number,
+                    "first_name": emp_in.first_name,
+                    "last_name": emp_in.last_name,
+                    "errors": record_result.errors
+                }
+                failed_records.append(failed_record)
+                logger.warning(f"员工记录 {index+1} 处理失败，错误: {record_result.errors}")
 
         except ValueError as ve:
             # 捕获并记录验证错误
             logger.error(f"处理第{index+1}条记录时发生ValueError异常: {ve}")
-            errors.append(f"Employee record {index+1}: {str(ve)}")
+            failed_record = {
+                "original_index": index,
+                "employee_code": getattr(emp_in, 'employee_code', None),
+                "id_number": getattr(emp_in, 'id_number', None),
+                "first_name": getattr(emp_in, 'first_name', None),
+                "last_name": getattr(emp_in, 'last_name', None),
+                "errors": [f"验证错误: {str(ve)}"]
+            }
+            failed_records.append(failed_record)
+        except Exception as e:
+            # 捕获其他未预期的错误
+            logger.error(f"处理第{index+1}条记录时发生未预期异常: {e}")
+            failed_record = {
+                "original_index": index,
+                "employee_code": getattr(emp_in, 'employee_code', None),
+                "id_number": getattr(emp_in, 'id_number', None),
+                "first_name": getattr(emp_in, 'first_name', None),
+                "last_name": getattr(emp_in, 'last_name', None),
+                "errors": [f"系统错误: {str(e)}"]
+            }
+            failed_records.append(failed_record)
 
     # 提交更改并返回
-    if errors:
-        logger.warning(f"批量员工创建部分成功。错误: {errors}")
+    total_count = len(employees_in)
+    success_count = len(created_employees)
+    failed_count = len(failed_records)
+    
+    if failed_count > 0:
+        logger.warning(f"批量员工创建部分成功。总计: {total_count}, 成功: {success_count}, 失败: {failed_count}")
     else:
-        logger.info(f"批量员工创建完全成功，共创建/更新 {len(created_employees)} 条记录")
+        logger.info(f"批量员工创建完全成功，共创建/更新 {success_count} 条记录")
     
     db.commit()
-    return created_employees
+    return created_employees, failed_records

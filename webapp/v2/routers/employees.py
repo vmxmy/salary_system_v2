@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 from webapp.v2.database import get_db_v2
 from webapp.v2.crud import hr as v2_hr_crud
-from webapp.v2.pydantic_models.hr import EmployeeCreate, EmployeeUpdate, Employee as EmployeeResponseSchema, EmployeeListResponse, EmployeeWithNames
+from webapp.v2.pydantic_models.hr import (
+    EmployeeCreate, EmployeeUpdate, Employee as EmployeeResponseSchema, 
+    EmployeeListResponse, EmployeeWithNames, BulkEmployeeCreateResult, BulkEmployeeFailedRecord
+)
 from webapp import auth
 from webapp.v2.pydantic_models import security as v2_security_schemas
 from webapp.v2.utils import create_error_response
@@ -271,7 +274,7 @@ async def create_employee(
         )
 
 
-@router.post("/bulk", response_model=Dict[str, List[EmployeeResponseSchema]], status_code=status.HTTP_201_CREATED)
+@router.post("/bulk", response_model=BulkEmployeeCreateResult, status_code=status.HTTP_201_CREATED)
 async def create_bulk_employees_api(
     employees_in: List[EmployeeCreate],
     overwrite_mode: bool = Query(False, description="是否启用覆盖模式，允许更新已存在的员工记录"),
@@ -295,8 +298,18 @@ async def create_bulk_employees_api(
             )
         )
     try:
-        created_employees = v2_hr_crud.create_bulk_employees(db, employees_in, overwrite_mode)
-        return {"data": created_employees}
+        created_employees, failed_records = v2_hr_crud.create_bulk_employees(db, employees_in, overwrite_mode)
+        
+        # 构建详细的响应
+        result = BulkEmployeeCreateResult(
+            success_count=len(created_employees),
+            failed_count=len(failed_records),
+            total_count=len(employees_in),
+            created_employees=created_employees,
+            failed_records=[BulkEmployeeFailedRecord(**record) for record in failed_records]
+        )
+        
+        return result
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
