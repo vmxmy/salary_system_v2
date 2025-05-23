@@ -154,11 +154,12 @@
                 "personnel_category": "人员类别"
             }
         }
-      },
-      "personnelCategory": {
-        "tab": {
-          "job_position_level_management": "职级管理"
-        }
       }
     }
+  },
+  "personnelCategory": {
+    "tab": {
+      "job_position_level_management": "职级管理"
+    }
+  }
 }

@@ -80,5 +80,6 @@
   "columnControl.dropdownTitle": "列显示",
   "tab.personnel_category_management": "人员身份管理",
   "tab.actual_position_management": "实际职位管理",
+  "tab.job_position_level_management": "职位等级管理",
   "title.current_personnel_categories": "当前人员身份"
 }
