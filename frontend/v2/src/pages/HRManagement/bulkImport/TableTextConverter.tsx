@@ -397,22 +397,24 @@ const TableTextConverter: React.FC = () => {
               } else if (['女', '女性', 'F', 'Female'].includes(value)) {
                 value = '女';
               }
-            } else if (mapping.apiField === 'bank_name' && value) {
-              // 标准化银行名称
-              if (value.includes('工商') || value.includes('ICBC')) {
-                value = '中国工商银行';
-              } else if (value.includes('建设') || value.includes('CCB')) {
-                value = '中国建设银行';
-              } else if (value.includes('农业') || value.includes('ABC')) {
-                value = '中国农业银行';
-              } else if (value.includes('中行') || value.includes('BOC')) {
-                value = '中国银行';
-              } else if (value.includes('交通') || value.includes('BOCOM')) {
-                value = '交通银行';
-              } else if (value.includes('邮政') || value.includes('PSBC')) {
-                value = '中国邮政储蓄银行';
-              }
             }
+            // 注释掉银行名称标准化逻辑，严格保留表格中的原始银行数据
+            // else if (mapping.apiField === 'bank_name' && value) {
+            //   // 标准化银行名称
+            //   if (value.includes('工商') || value.includes('ICBC')) {
+            //     value = '中国工商银行';
+            //   } else if (value.includes('建设') || value.includes('CCB')) {
+            //     value = '中国建设银行';
+            //   } else if (value.includes('农业') || value.includes('ABC')) {
+            //     value = '中国农业银行';
+            //   } else if (value.includes('中行') || value.includes('BOC')) {
+            //     value = '中国银行';
+            //   } else if (value.includes('交通') || value.includes('BOCOM')) {
+            //     value = '交通银行';
+            //   } else if (value.includes('邮政') || value.includes('PSBC')) {
+            //     value = '中国邮政储蓄银行';
+            //   }
+            // }
             
             jsonRow[mapping.apiField] = value || null;
           }
