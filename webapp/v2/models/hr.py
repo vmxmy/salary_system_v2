@@ -112,12 +112,18 @@ class Employee(BaseV2):
     salary_grade = relationship("LookupValue", foreign_keys=[salary_grade_lookup_value_id], lazy='selectin', primaryjoin='Employee.salary_grade_lookup_value_id == LookupValue.id')
     ref_salary_level = relationship("LookupValue", foreign_keys=[ref_salary_level_lookup_value_id], lazy='selectin', primaryjoin='Employee.ref_salary_level_lookup_value_id == LookupValue.id')
     
+    # 职务级别字段
+    job_position_level_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_job_position_level_id', ondelete='SET NULL'), nullable=True, comment="员工职务级别")
+    
     current_department = relationship("Department", foreign_keys=[department_id], lazy='selectin')
     
     # --- BEGIN NEW/UPDATED RELATIONSHIPS for Employee ---
     personnel_category = relationship("PersonnelCategory", foreign_keys=[personnel_category_id], lazy='selectin', back_populates="employees_in_category")
     actual_position = relationship("Position", foreign_keys=[actual_position_id], lazy='selectin', back_populates="employees_in_position")
     appraisals = relationship("EmployeeAppraisal", back_populates="employee", cascade="all, delete-orphan")
+    
+    # 职务级别 relationship
+    job_position_level = relationship("LookupValue", foreign_keys=[job_position_level_lookup_value_id], lazy='selectin', primaryjoin='Employee.job_position_level_lookup_value_id == LookupValue.id')
     # --- END NEW/UPDATED RELATIONSHIPS for Employee ---
     
     job_history = relationship("EmployeeJobHistory", back_populates="employee", foreign_keys="[EmployeeJobHistory.employee_id]", cascade="all, delete-orphan")

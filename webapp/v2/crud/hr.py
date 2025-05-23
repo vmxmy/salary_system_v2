@@ -232,7 +232,8 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
         "contract_type_lookup_value_name", 
         "department_name", 
         "position_name",
-        "personnel_category_name"
+        "personnel_category_name",
+        "job_position_level_lookup_value_name"
     }
     
     employee_data = employee.model_dump(exclude_none=True, exclude=fields_to_exclude)
@@ -263,6 +264,10 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
     
     if not employee_data.get('contract_type_lookup_value_id') and employee.contract_type_lookup_value_name:
         employee_data['contract_type_lookup_value_id'] = _resolve_lookup_id(db, employee.contract_type_lookup_value_name, "CONTRACT_TYPE")
+    
+    # 处理职务级别
+    if not employee_data.get('job_position_level_lookup_value_id') and employee.job_position_level_lookup_value_name:
+        employee_data['job_position_level_lookup_value_id'] = _resolve_lookup_id(db, employee.job_position_level_lookup_value_name, "JOB_POSITION_LEVEL")
     
     # 处理department和position
     logger.debug(f"原始字段值 - 部门名称: '{employee.department_name}', 职位名称: '{employee.position_name}', 人员类别: '{employee.personnel_category_name}'")
@@ -355,17 +360,39 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
             if not db_employee.career_position_level_date:
                 db_employee.career_position_level_date = effective_date
             
-            # 创建工作历史记录
-            job_history = EmployeeJobHistory(
-                employee_id=db_employee.id,
-                department_id=db_employee.department_id,
-                position_id=db_employee.actual_position_id,
-                personnel_category_id=db_employee.personnel_category_id,
-                effective_date=effective_date,
-                end_date=None  # 开放结束日期，直到职位变更
-            )
-            db.add(job_history)
-            logger.info(f"Created initial job history record for new employee {db_employee.id}")
+            # 检查是否已存在相同有效日期的工作历史记录
+            existing_history = db.query(EmployeeJobHistory).filter(
+                EmployeeJobHistory.employee_id == db_employee.id,
+                EmployeeJobHistory.effective_date == effective_date
+            ).first()
+            
+            # 只有在不存在相同日期的记录时才创建新记录
+            if not existing_history:
+                # 创建新的工作历史记录
+                try:
+                    new_job_history = EmployeeJobHistory(
+                        employee_id=db_employee.id,
+                        department_id=db_employee.department_id,
+                        position_id=db_employee.actual_position_id,
+                        personnel_category_id=db_employee.personnel_category_id,
+                        effective_date=effective_date,
+                        end_date=None  # 开放结束日期，直到下次职位变更
+                    )
+                    db.add(new_job_history)
+                    logger.info(f"Created job history record for employee {db_employee.id}: "
+                                f"position change from {db_employee.actual_position_id} to {db_employee.actual_position_id} "
+                                f"effective {effective_date}")
+                except Exception as e:
+                    logger.error(f"Error creating job history record for employee {db_employee.id}: {e}")
+            else:
+                # 如果已存在相同日期的记录，更新其信息
+                existing_history.department_id = db_employee.department_id
+                existing_history.position_id = db_employee.actual_position_id
+                existing_history.personnel_category_id = db_employee.personnel_category_id
+                existing_history.end_date = None  # 确保这是当前有效的记录
+                logger.info(f"Updated existing job history record for employee {db_employee.id}: "
+                            f"position updated to {db_employee.actual_position_id} "
+                            f"effective {effective_date}")
         except Exception as e:
             logger.error(f"Error creating initial job history record for employee {db_employee.id}: {e}")
     elif db_employee.actual_position_id:
@@ -509,22 +536,39 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
         department_id = db_employee.department_id
         personnel_category_id = db_employee.personnel_category_id
         
-        # 创建新的工作历史记录
-        try:
-            new_job_history = EmployeeJobHistory(
-                employee_id=employee_id,
-                department_id=department_id,
-                position_id=employee.actual_position_id,
-                personnel_category_id=personnel_category_id,
-                effective_date=effective_date,
-                end_date=None  # 开放结束日期，直到下次职位变更
-            )
-            db.add(new_job_history)
-            logger.info(f"Created job history record for employee {employee_id}: "
-                        f"position change from {old_position_id} to {employee.actual_position_id} "
+        # 检查是否已存在相同有效日期的工作历史记录
+        existing_history = db.query(EmployeeJobHistory).filter(
+            EmployeeJobHistory.employee_id == employee_id,
+            EmployeeJobHistory.effective_date == effective_date
+        ).first()
+        
+        # 只有在不存在相同日期的记录时才创建新记录
+        if not existing_history:
+            # 创建新的工作历史记录
+            try:
+                new_job_history = EmployeeJobHistory(
+                    employee_id=employee_id,
+                    department_id=department_id,
+                    position_id=employee.actual_position_id,
+                    personnel_category_id=personnel_category_id,
+                    effective_date=effective_date,
+                    end_date=None  # 开放结束日期，直到下次职位变更
+                )
+                db.add(new_job_history)
+                logger.info(f"Created job history record for employee {employee_id}: "
+                            f"position change from {old_position_id} to {employee.actual_position_id} "
+                            f"effective {effective_date}")
+            except Exception as e:
+                logger.error(f"Error creating job history record for employee {employee_id}: {e}")
+        else:
+            # 如果已存在相同日期的记录，更新其信息
+            existing_history.department_id = department_id
+            existing_history.position_id = employee.actual_position_id
+            existing_history.personnel_category_id = personnel_category_id
+            existing_history.end_date = None  # 确保这是当前有效的记录
+            logger.info(f"Updated existing job history record for employee {employee_id}: "
+                        f"position updated to {employee.actual_position_id} "
                         f"effective {effective_date}")
-        except Exception as e:
-            logger.error(f"Error creating job history record for employee {employee_id}: {e}")
     
     # 处理年度考核 appraisals 的更新
     # Only proceed if 'appraisals' key was provided in the payload and is not None.
@@ -1093,14 +1137,8 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 "contract_type_lookup_value_name", 
                 "department_name", 
                 "position_name",
-                "personnel_category_name", 
-                # 排除银行相关字段，因为这些字段不在 Employee 模型中
-                "bank_name", 
-                "bank_account_number",
-                # 排除新增的lookup name字段
-                "salary_level_lookup_value_name",
-                "salary_grade_lookup_value_name",
-                "ref_salary_level_lookup_value_name"
+                "personnel_category_name",
+                "job_position_level_lookup_value_name"
             }
             employee_orm_data = emp_in.model_dump(exclude_none=True, exclude=fields_to_exclude)
 
@@ -1123,7 +1161,10 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
             employee_orm_data["marital_status_lookup_value_id"] = _resolve_lookup_id(db, emp_in.marital_status_lookup_value_name, "MARITAL_STATUS")
             employee_orm_data["political_status_lookup_value_id"] = _resolve_lookup_id(db, emp_in.political_status_lookup_value_name, "POLITICAL_STATUS")
             employee_orm_data["contract_type_lookup_value_id"] = _resolve_lookup_id(db, emp_in.contract_type_lookup_value_name, "CONTRACT_TYPE")
-
+            
+            # 处理职务级别
+            employee_orm_data["job_position_level_lookup_value_id"] = _resolve_lookup_id(db, emp_in.job_position_level_lookup_value_name, "JOB_POSITION_LEVEL")
+            
             # Resolve department and position
             logger.debug(f"原始字段值 - 部门名称: '{emp_in.department_name}', 职位名称: '{emp_in.position_name}', 人员类别: '{emp_in.personnel_category_name}'")
             

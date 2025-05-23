@@ -251,17 +251,34 @@ async def delete_position(
             )
         
         # 检查是否有依赖关系（如员工引用了该职位）
-        has_employees = db.query(PositionModel).join(
-            "employees_in_position"
-        ).filter(PositionModel.id == position_id).first()
+        from ..models.hr import Employee  # 导入Employee模型
+        has_employees = db.query(Employee).filter(
+            Employee.actual_position_id == position_id
+        ).first()
         
         if has_employees:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=create_error_response(
                     status_code=400,
-                    message="Position cannot be deleted.",
-                    details="This position is still assigned to some employees and cannot be deleted."
+                    message="无法删除职位",
+                    details=f"该职位仍有员工在任，无法删除。当前在任员工：{has_employees.last_name}{has_employees.first_name}（工号：{has_employees.employee_code or '无'}）"
+                )
+            )
+        
+        # 检查工作历史中是否有引用该职位的记录
+        from ..models.hr import EmployeeJobHistory  # 导入EmployeeJobHistory模型
+        has_job_history = db.query(EmployeeJobHistory).filter(
+            EmployeeJobHistory.position_id == position_id
+        ).first()
+        
+        if has_job_history:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="无法删除职位",
+                    details="该职位在员工工作历史中被引用，无法删除。如需删除，请先处理相关的工作历史记录。"
                 )
             )
         
@@ -275,8 +292,8 @@ async def delete_position(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=create_error_response(
                     status_code=400,
-                    message="Position cannot be deleted.",
-                    details="This position has child positions which must be reassigned first."
+                    message="无法删除职位",
+                    details=f"该职位包含下级职位，无法删除。请先重新分配或删除下级职位：{has_children.name}"
                 )
             )
         

@@ -12,7 +12,9 @@
     "unknown_status_param": "未知状态参数 (ID: {statusId})",
     "draft": "草稿",
     "processing": "处理中",
-    "error": "错误"
+    "error": "错误",
+    "active_yes": "是",
+    "active_no": "否"
   },
   "notAvailable": "不可用",
   "boolean": {
@@ -77,12 +79,17 @@
   "tooltip": {
     "edit": "编辑",
     "delete": "删除",
-    "add_child": "添加子项"
+    "add_child": "添加子项",
+    "column_settings": "自定义显示列"
   },
   "action": {
     "edit": "编辑",
     "delete": "删除",
-    "view": "查看"
+    "view": "查看",
+    "yes": "是",
+    "no": "否",
+    "export": "导出",
+    "columns": "列设置"
   },
   "message": {
     "operation_success": "操作成功",
@@ -102,7 +109,8 @@
     "upload_failed_param": "文件 {fileName} 上传失败。",
     "feature_under_development": "此功能正在开发中，敬请期待。",
     "missing_required_fields": "有必填字段未填写。",
-    "missing_required_fields_in_tab_param": "在 {tabName} 标签页中有必填字段未填写。"
+    "missing_required_fields_in_tab_param": "在 {tabName} 标签页中有必填字段未填写。",
+    "column_settings_applied": "列设置已应用"
   },
   "error": {
     "genericTitle": "发生错误",
@@ -166,7 +174,8 @@
   "pagination": {
     "previous_page": "上一页",
     "next_page": "下一页",
-    "page_info": "第 {{currentPage}} 页 / 共 {{totalPages}} 页"
+    "page_info": "第 {{currentPage}} 页 / 共 {{totalPages}} 页",
+    "total": "第 {start}-{end} 条 / 共 {total} 条"
   },
   "form": {
     "validation": {
@@ -214,7 +223,8 @@
     },
     "title": "工资期间管理",
     "button": {
-      "create_period": "创建工资期间"
+      "create_period": "创建工资期间",
+      "add_period": "新建工资期间"
     },
     "modal_title_create": "创建新的工资期间",
     "tooltip_edit_period": "编辑工资期间",

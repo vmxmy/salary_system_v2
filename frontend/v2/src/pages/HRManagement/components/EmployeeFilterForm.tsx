@@ -18,6 +18,7 @@ interface EmployeeFilterFormProps {
   maritalStatusOptions?: LookupItem[];
   politicalStatusOptions?: LookupItem[];
   contractTypeOptions?: LookupItem[];
+  jobPositionLevelOptions?: LookupItem[];
   payFrequencyOptions?: LookupItem[];
 }
 
@@ -34,25 +35,31 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
   maritalStatusOptions = [],
   politicalStatusOptions = [],
   contractTypeOptions = [],
+  jobPositionLevelOptions = [],
   payFrequencyOptions = []
 }) => {
   const { t } = useTranslation('employee');
   const [form] = Form.useForm();
 
   const handleFinish = (values: any) => {
-    const filters: Omit<EmployeeQuery, 'page' | 'pageSize' | 'sortBy' | 'sortOrder'> & { 
-      hireDateStart?: string; 
-      hireDateEnd?: string;
-      firstWorkDateStart?: string;
-      firstWorkDateEnd?: string;
-      gender_lookup_value_id?: number; 
-      education_level_lookup_value_id?: number; 
-      employment_type_lookup_value_id?: number; 
+    const filters: {
+      name?: string;
+      employee_code?: string;
+      department_id?: string;
+      status_lookup_value_id?: number;
+      gender_lookup_value_id?: number;
+      education_level_lookup_value_id?: number;
+      employment_type_lookup_value_id?: number;
       personnel_category_id?: number;
+      hireDateStart?: string;
+      hireDateEnd?: string;
       actual_position_id?: number;
       marital_status_lookup_value_id?: number;
       political_status_lookup_value_id?: number;
       contract_type_lookup_value_id?: number;
+      job_position_level_lookup_value_id?: number;
+      firstWorkDateStart?: string;
+      firstWorkDateEnd?: string;
       id_number?: string;
     } = {
       name: values.name,
@@ -69,6 +76,7 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
       marital_status_lookup_value_id: values.marital_status_lookup_value_id,
       political_status_lookup_value_id: values.political_status_lookup_value_id,
       contract_type_lookup_value_id: values.contract_type_lookup_value_id,
+      job_position_level_lookup_value_id: values.job_position_level_lookup_value_id,
       id_number: values.id_number,
       firstWorkDateStart: values.firstWorkDateRange?.[0]?.format('YYYY-MM-DD'),
       firstWorkDateEnd: values.firstWorkDateRange?.[1]?.format('YYYY-MM-DD'),
@@ -232,6 +240,17 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
           <Form.Item name="contract_type_lookup_value_id" label={t('list_page.filter_form.label.contract_type')}>
             <Select placeholder={t('list_page.filter_form.placeholder.contract_type')} allowClear loading={loading} size="small">
               {contractTypeOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Form.Item name="job_position_level_lookup_value_id" label={t('list_page.filter_form.label.job_position_level')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.job_position_level')} allowClear loading={loading} size="small">
+              {jobPositionLevelOptions.map(option => (
                 <Select.Option key={option.value as React.Key} value={option.value}>
                   {option.label}
                 </Select.Option>

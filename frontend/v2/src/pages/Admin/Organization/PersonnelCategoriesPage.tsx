@@ -25,6 +25,7 @@ import type { GetPersonnelCategoriesApiParams } from '../../../api/personnelCate
 import type { PersonnelCategory, CreatePersonnelCategoryPayload, UpdatePersonnelCategoryPayload } from '../../../api/types';
 import type { TableParams } from '../../../types/antd'; // Reusing TableParams
 import ActualPositionTab from './ActualPositionTab'; // Import the new ActualPositionTab component
+import JobPositionLevelTab from './JobPositionLevelTab'; // 导入职务级别管理组件
 import pageStyles from './PersonnelCategoriesPage.module.less'; // 导入新创建的页面特定样式文件
 
 const { Title } = Typography;
@@ -545,6 +546,11 @@ const PersonnelCategoriesPage: React.FC = () => {
           key: '2',
           label: t('tab.actual_position_management'),
           children: <ActualPositionTab />,
+        },
+        {
+          key: '3',
+          label: t('tab.job_position_level_management'),
+          children: <JobPositionLevelTab />,
         },
       ]}
     />

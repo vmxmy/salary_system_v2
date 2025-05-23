@@ -1,50 +1,17 @@
-@font-face {
-  font-family: 'SourceHanSerifCN'; /* 新的字体名称 */
-  src: url('/src/assets/fonts/SourceHanSerifCN-Regular.otf') format('opentype'); /* 指向思源宋体常规体文件 */
-  font-weight: normal; /* 或者 400 */
-  font-style: normal;
-}
+/* 注意：字体定义已移至 global.less 文件中统一管理 */
 
-@font-face {
-  font-family: 'SourceHanSerifCN';
-  src: url('/src/assets/fonts/SourceHanSerifCN-Light.otf') format('opentype');
-  font-weight: 300; /* Light */
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'SourceHanSerifCN';
-  src: url('/src/assets/fonts/SourceHanSerifCN-Bold.otf') format('opentype');
-  font-weight: 700; /* Bold */
-  font-style: normal;
-}
-
-/* 如果您还下载了其他字重，可以像这样为它们分别定义 @font-face */
-/* 例如，思源宋体 Bold */
-/*
-@font-face {
-  font-family: 'SourceHanSerifCN';
-  src: url('./assets/fonts/SourceHanSerifCN-Bold.ttf') format('truetype');
-  font-weight: bold; // 或者 700
-  font-style: normal;
-}
-*/
-
-/* 可选：为全局正文设置默认字重为 Light */
+/* 全局样式设置 */
 body {
-  /* 如果 antd ConfigProvider 的 fontFamily 生效，这里可能不需要再次声明 fontFamily */
-  /* font-family: 'SourceHanSerifCN', sans-serif; */ 
-  font-weight: 300; /* 设置默认正文字重为 Light */
+  font-weight: 400; /* 使用常规字重作为默认值 */
 }
 
-/* 可选：确保 Ant Design 标题组件也使用我们定义的 Bold */
+/* 标题样式设置 */
 .ant-typography h1,
 .ant-typography h2,
 .ant-typography h3,
 .ant-typography h4,
 .ant-typography h5 {
-  /* fontFamily: 'SourceHanSerifCN', sans-serif; */ /* 通常由 ConfigProvider 处理 */
-  font-weight: 700 !important; /* 确保标题使用 Bold 字重，可能需要 !important 覆盖 antd 默认 */
+  font-weight: 700 !important; /* 使用粗体字重 */
 }
 
 #root {

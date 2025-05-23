@@ -2,6 +2,7 @@
   "bulk_import": {
     "results_table": {
       "title_failed_records": "导入失败的记录",
+      "title_failed_records_at_server": "服务器端处理失败的记录",
       "title_successfully_imported_records_preview": "成功导入记录预览 (最多100条)",
       "employee_code": "员工工号",
       "name": "姓名",
@@ -25,7 +26,9 @@
     "button": {
       "parse_and_preview": "解析并预览",
       "import_another_file": "导入另一个文件",
-      "upload_validated_records": "上传 {{count}} 条有效记录"
+      "upload_validated_records": "上传 {{count}} 条有效记录",
+      "show_error_details": "显示错误详情",
+      "view_details": "查看详情"
     },
     "placeholder": {
       "paste_json_here": "在此粘贴 JSON 数据",
@@ -67,7 +70,9 @@
     "results": {
       "all_success": "全部 {{count}} 条记录导入成功！",
       "partial_success": "{{success}} 条记录导入成功，{{error}} 条记录失败。",
-      "all_failed_at_server": "所有 {{count}} 条记录在服务器端处理失败。"
+      "all_failed_at_server": "所有 {{count}} 条记录在服务器端处理失败。",
+      "error_summary": "错误汇总",
+      "click_to_view_details": "点击查看详情"
     },
     "table_header": {
       "employee_code": "员工工号",
@@ -149,6 +154,11 @@
                 "personnel_category": "人员类别"
             }
         }
+      },
+      "personnelCategory": {
+        "tab": {
+          "job_position_level_management": "职级管理"
+        }
+      }
     }
-  }
 }

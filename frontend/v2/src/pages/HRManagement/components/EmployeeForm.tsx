@@ -101,6 +101,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   const [politicalStatusOptions, setPoliticalStatusOptions] = useState<LookupItem[]>([]);
   const [contractTypeOptions, setContractTypeOptions] = useState<LookupItem[]>([]);
   const [statusOptions, setStatusOptions] = useState<LookupItem[]>([]);
+  const [jobPositionLevelOptions, setJobPositionLevelOptions] = useState<LookupItem[]>([]);
   
   const [avatarFileList, setAvatarFileList] = useState<UploadFile[]>([]);
   const [activeTabKey, setActiveTabKey] = useState('1');
@@ -121,7 +122,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           maritals, 
           politicals, 
           contractTypesData, 
-          empStatuses
+          empStatuses,
+          jobPositionLevels
         ] = await Promise.all([
           lookupService.getDepartmentsLookup(),
           lookupService.getPersonnelCategoriesLookup(),
@@ -133,6 +135,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           lookupService.getPoliticalStatusesLookup(),
           lookupService.getContractTypesLookup(),
           lookupService.getEmployeeStatusesLookup(),
+          lookupService.getJobPositionLevelsLookup(),
         ]);
         
         console.log('[EmployeeForm] Raw personnelCategoriesData from lookupService:', JSON.parse(JSON.stringify(personnelCategoriesData)));
@@ -147,6 +150,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         setPoliticalStatusOptions(politicals);
         setContractTypeOptions(contractTypesData);
         setStatusOptions(empStatuses);
+        setJobPositionLevelOptions(jobPositionLevels);
       } catch (error) {
         antdMessage.error(t('common:message.data_loading_error'));
         console.error('Failed to load lookups:', error);
@@ -180,6 +184,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         department_id: initialValues.department_id != null ? Number(initialValues.department_id) : undefined,
         personnel_category_id: initialValues.personnel_category_id != null ? Number(initialValues.personnel_category_id) : undefined,
         actual_position_id: initialValues.actual_position_id != null ? Number(initialValues.actual_position_id) : undefined,
+        job_position_level_lookup_value_id: initialValues.job_position_level_lookup_value_id != null ? Number(initialValues.job_position_level_lookup_value_id) : undefined,
         reports_to_employee_id: initialValues.reports_to_employee_id != null ? Number(initialValues.reports_to_employee_id) : undefined,
       };
       
@@ -320,6 +325,14 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       contract_type_lookup_value_name: allFormData.contract_type_lookup_value_id != null
                                     ? contractTypeOptions.find(opt => opt.id === Number(allFormData.contract_type_lookup_value_id))?.name
                                     : undefined,
+      
+      // 新增职务级别字段处理
+      job_position_level_lookup_value_id: allFormData.job_position_level_lookup_value_id != null
+                                        ? Number(allFormData.job_position_level_lookup_value_id)
+                                        : undefined,
+      job_position_level_lookup_value_name: allFormData.job_position_level_lookup_value_id != null
+                                          ? jobPositionLevelOptions.find(opt => opt.id === Number(allFormData.job_position_level_lookup_value_id))?.name
+                                          : undefined,
       
       phone_number: allFormData.phone_number,
       email: allFormData.email,
@@ -586,6 +599,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             <Form.Item name="contract_type_lookup_value_id" label={t('employee:form_label.contract_type')}>
               <Select placeholder={t('employee:form_placeholder.contract_type')} loading={loadingLookups} allowClear>
                 {contractTypeOptions.map(ct => <Option key={ct.value as React.Key} value={Number(ct.value)}>{ct.label}</Option>)}
+              </Select>
+            </Form.Item>
+            <Form.Item name="job_position_level_lookup_value_id" label="职务级别">
+              <Select placeholder="请选择职务级别" loading={loadingLookups} allowClear>
+                {jobPositionLevelOptions.map(jpl => <Option key={jpl.value as React.Key} value={Number(jpl.value)}>{jpl.label}</Option>)}
               </Select>
             </Form.Item>
         </Card>

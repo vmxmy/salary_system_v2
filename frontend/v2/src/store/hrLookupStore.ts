@@ -12,6 +12,7 @@ export interface HrLookupData {
   departments: Department[]; // For department selection/display
   personnelCategories: PersonnelCategory[]; // MODIFIED from jobTitles: JobTitle[];
   actualPositions: Position[];
+  jobPositionLevels: LookupValue[]; // 新增职务级别数据
   // Add other lookup types as needed, e.g., contract types, pay frequencies
 }
 
@@ -32,6 +33,7 @@ const initialLookupData: HrLookupData = {
   departments: [],
   personnelCategories: [],
   actualPositions: [],
+  jobPositionLevels: [],
 };
 
 const useHrLookupStore = create<HrLookupState>((set, get) => ({
@@ -79,6 +81,9 @@ const useHrLookupStore = create<HrLookupState>((set, get) => ({
             break;
           case 'actualPositions':
             data = await lookupService.getPositionsLookup();
+            break;
+          case 'jobPositionLevels':
+            data = await employeeService.getJobPositionLevelsLookup();
             break;
           default:
             const exhaustiveCheck: never = type;

@@ -13,11 +13,24 @@ class UserBase(BaseModel):
     is_active: bool = Field(True, description="Whether the user account is active")
 
 
+# 简化的员工信息模型，用于用户响应中
+class EmployeeInfo(BaseModel):
+    """员工基本信息"""
+    id: int = Field(..., description="Employee ID")
+    first_name: str = Field(..., description="员工名")
+    last_name: str = Field(..., description="员工姓")
+    id_number: Optional[str] = Field(None, description="身份证号")
+    employee_code: Optional[str] = Field(None, description="员工编号")
+
+    class Config:
+        from_attributes = True
+
+
 class UserCreate(UserBase):
     """创建用户模型"""
     password: str = Field(..., min_length=6, description="用户密码")
-    employee_first_name: Optional[str] = Field(None, description="员工的姓，用于关联员工")
-    employee_last_name: Optional[str] = Field(None, description="员工的名，用于关联员工")
+    employee_first_name: Optional[str] = Field(None, description="员工的名，用于关联员工")
+    employee_last_name: Optional[str] = Field(None, description="员工的姓，用于关联员工")
     employee_id_card: Optional[str] = Field(None, description="员工身份证号，用于关联员工")
     role_ids: Optional[List[int]] = Field(None, description="角色ID列表，用于分配用户角色")
 
@@ -27,8 +40,8 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50, description="用户名")
     email: Optional[EmailStr] = Field(None, description="用户邮箱")
     full_name: Optional[str] = Field(None, max_length=50, description="用户全名")
-    employee_first_name: Optional[str] = Field(None, description="员工的姓，用于关联员工")
-    employee_last_name: Optional[str] = Field(None, description="员工的名，用于关联员工")
+    employee_first_name: Optional[str] = Field(None, description="员工的名，用于关联员工")
+    employee_last_name: Optional[str] = Field(None, description="员工的姓，用于关联员工")
     employee_id_card: Optional[str] = Field(None, description="员工身份证号，用于关联员工")
     department: Optional[str] = Field(None, max_length=100, description="所属部门")
     position: Optional[str] = Field(None, max_length=100, description="职位")
@@ -43,6 +56,7 @@ class User(UserBase):
     id: int = Field(..., description="Primary key")
     created_at: datetime = Field(..., description="User creation timestamp")
     roles: List['Role'] = []
+    employee: Optional[EmployeeInfo] = Field(None, description="关联的员工信息")
     description: Optional[str] = Field(None, max_length=255, description="用户描述")
     is_active: bool = True
     all_permission_codes: Optional[List[str]] = Field(None, description="用户通过其角色获得的所有唯一权限代码列表")

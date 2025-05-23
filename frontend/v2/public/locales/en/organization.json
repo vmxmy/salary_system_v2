@@ -26,5 +26,11 @@
   },
   "tab_title_personnel_category_management": "Personnel Category Management",
   "tab_title_actual_position_management": "Actual Position Management",
-  "current_personnel_categories_title": "Current Personnel Categories"
+  "tab_title_job_position_level_management": "Job Position Level Management",
+  "current_personnel_categories_title": "Current Personnel Categories",
+  "tab": {
+    "personnel_category_management": "Personnel Category Management",
+    "actual_position_management": "Actual Position Management",
+    "job_position_level_management": "Job Position Level Management"
+  }
 } 

@@ -145,6 +145,11 @@ export interface Employee {
   ref_salary_level_lookup_value_id?: number;
   ref_salary_level_lookup_value_name?: string;
   
+  // 新增字段 - 职务级别
+  job_position_level_lookup_value_id?: number;
+  job_position_level_lookup_value_name?: string;
+  jobPositionLevelName?: string; // 驼峰命名版本，匹配后端返回的字段名
+  
   bank_name?: string;
   bank_account_number?: string;
 
@@ -191,6 +196,7 @@ export interface EmployeeQuery {
   marital_status_lookup_value_id?: number;
   political_status_lookup_value_id?: number;
   contract_type_lookup_value_id?: number;
+  job_position_level_lookup_value_id?: number;
   id_number?: string;
   firstWorkDateStart?: string; 
   firstWorkDateEnd?: string;
@@ -377,6 +383,9 @@ export interface CreateEmployeePayload {
   salary_level_lookup_value_id?: number | null;
   salary_grade_lookup_value_id?: number | null;
   ref_salary_level_lookup_value_id?: number | null;
+  
+  // 新增字段 - 职务级别
+  job_position_level_lookup_value_id?: number | null;
 
   // Fields for resolving lookups by name (can be optional if ID is provided)
   gender_lookup_value_name?: string | null;
@@ -391,6 +400,9 @@ export interface CreateEmployeePayload {
   salary_level_lookup_value_name?: string | null;
   salary_grade_lookup_value_name?: string | null;
   ref_salary_level_lookup_value_name?: string | null;
+  
+  // 新增字段名称 - 职务级别
+  job_position_level_lookup_value_name?: string | null;
   
   // Fields for resolving department, personnel_category and position by name (can be optional if ID is provided)
   department_name?: string | null;

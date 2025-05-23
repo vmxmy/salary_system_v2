@@ -53,7 +53,10 @@
       "title": "工资周期管理",
       "button": {
         "create_period": "新建工资周期",
-        "add_period": "新建工资周期"
+        "add_period": "新建工资周期",
+        "add_period": {
+          "add_period": "新建工资周期"
+        }
       },
       "error_fetch_periods": "无法获取工资周期数据",
       "message": {
@@ -67,6 +70,7 @@
       "table": {
         "column": {
           "id": "ID",
+          "name": "周期名称",
           "period_name": "周期名称",
           "start_date": "开始日期",
           "end_date": "结束日期",
@@ -426,6 +430,12 @@
       "cancelled": "已取消",
       "error": "错误"
     },
+    "payroll_period_status": {
+      "planned": "计划中",
+      "active": "进行中",
+      "closed": "已关闭",
+      "archived": "已存档"
+    },
     "payroll_entry_status": {
       "pending_calculation": "待计算",
       "calculated": "已计算",
@@ -452,6 +462,10 @@
         "add_entry": "添加工资记录",
         "batch_import": "批量导入",
         "export": "导出Excel"
+      },
+      "export": {
+        "filename": "工资条目导出",
+        "sheet_name": "工资条目"
       },
       "tooltip": {
         "edit_entry": "编辑工资记录"
@@ -653,5 +667,20 @@
       "create_success": "字段创建成功",
       "update_success": "字段更新成功",
       "delete_success": "字段删除成功"
+    },
+    "table_converter": {
+      "title": "表格文本转换器",
+      "placeholder": "请粘贴表格文本，格式如：列名1,列名2,列名3...",
+      "parse_table": "解析表格",
+      "field_mapping": "字段映射",
+      "table_field": "表格字段",
+      "api_field": "API字段",
+      "data_type": "数据类型",
+      "convert_to_json": "转换为JSON",
+      "json_result": "JSON结果",
+      "copy_json": "复制JSON",
+      "use_json": "使用此JSON",
+      "json_parse_error": "JSON解析错误，无法使用结果",
+      "ignore_field": "忽略此字段"
     }
   }

@@ -332,17 +332,8 @@ const EmployeeBulkImportPage: React.FC = () => {
             record: r, 
             error: r.validationErrors!.join('; ')
           })),
-          // 后端处理失败的记录
-          ...failed_records.map((failedRecord: any) => ({
-            record: {
-              employee_code: failedRecord.employee_code,
-              id_number: failedRecord.id_number,
-              first_name: failedRecord.first_name,
-              last_name: failedRecord.last_name,
-              originalIndex: failedRecord.original_index
-            },
-            error: failedRecord.errors.join('; ')
-          }))
+          // 后端处理失败的记录 - 直接使用新的格式
+          ...failed_records
         ];
 
         setUploadResult({
@@ -536,16 +527,36 @@ const EmployeeBulkImportPage: React.FC = () => {
   ];
 
   const resultErrorColumns = [
-    { title: t('bulk_import.results_table.employee_code'), dataIndex: ['record', 'employee_code'], key: 'code', width: 150, render: (text: any, item:any) => item.record?.employee_code || '-' },
+    { title: t('bulk_import.results_table.employee_code'), dataIndex: 'employee_code', key: 'code', width: 150, render: (text: any) => text || '-' },
     { 
       title: t('bulk_import.results_table.name'), 
       key: 'name', 
       width: 120,
-      render: (_: unknown, item: { record?: RawEmployeeData; error: string }) => {
-        return item.record?._fullname || `${item.record?.last_name || ''}${item.record?.first_name || ''}` || '-';
+      render: (_: unknown, item: any) => {
+        // 新的API响应格式：失败记录直接包含姓名信息
+        if (item.full_name) {
+          return item.full_name;
+        }
+        // 兼容旧格式：从record对象中获取姓名
+        if (item.record) {
+          return item.record._fullname || `${item.record.last_name || ''}${item.record.first_name || ''}` || '-';
+        }
+        // 直接从失败记录中构建姓名
+        return `${item.last_name || ''}${item.first_name || ''}` || '-';
       }
     },
-    { title: t('bulk_import.results_table.error_message'), dataIndex: 'error', key: 'error' },
+    { 
+      title: t('bulk_import.results_table.error_message'), 
+      key: 'error',
+      render: (_: unknown, item: any) => {
+        // 新的API响应格式：errors是数组
+        if (Array.isArray(item.errors)) {
+          return item.errors.join('; ');
+        }
+        // 兼容旧格式：error是字符串
+        return item.error || '-';
+      }
+    },
   ];
 
   // 新增: 定义 Tabs 的 items

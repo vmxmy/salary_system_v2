@@ -23,6 +23,7 @@ export interface LookupMaps {
   payFrequencyMap: Map<number, string>;
   contractStatusMap?: Map<number, string>;
   positionMap: Map<string, string>;
+  jobPositionLevelMap: Map<number, string>;
   // Add more maps as needed
 }
 
@@ -41,6 +42,7 @@ export interface RawLookups {
   employeeStatuses: LookupItem[];
   contractStatusOptions?: LookupItem[];
   positionOptions: PositionType[];
+  jobPositionLevelOptions: LookupItem[]; // 新增职务级别选项
   // Add more raw options as needed
 }
 
@@ -173,7 +175,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           leaveTypesData,
           payFrequencies,
           contractStatusesData,
-          positions
+          positions,
+          jobPositionLevels // 新增职务级别数据
         ] = await Promise.all([
           lookupService.getGenderLookup(),
           lookupService.getEmployeeStatusesLookup(),
@@ -187,7 +190,8 @@ export const useLookupMaps = (): UseLookupsResult => {
           lookupService.getLeaveTypesLookup(),
           lookupService.getPayFrequenciesLookup(),
           employeeService.getContractStatusesLookup(),
-          lookupService.getPositionsLookup()
+          lookupService.getPositionsLookup(),
+          lookupService.getJobPositionLevelsLookup() // 新增职务级别获取
         ]);
 
         if (!isMounted) return; // 再次检查，避免在异步操作后组件已卸载
@@ -251,6 +255,7 @@ export const useLookupMaps = (): UseLookupsResult => {
           leaveTypeMap: createMapFromArray(leaveTypesData),
           payFrequencyMap: createMapFromArray(payFrequencies),
           positionMap: createFlatMapFromTree(positions),
+          jobPositionLevelMap: createMapFromArray(jobPositionLevels),
           // 可选的contractStatusMap，如果contractStatusesData存在的话
           ...(contractStatusesData ? { contractStatusMap: createMapFromArray(contractStatusesData) } : {})
         };
@@ -272,7 +277,8 @@ export const useLookupMaps = (): UseLookupsResult => {
             payFrequencyOptions: payFrequencies,
             employeeStatuses: statuses, // 保持一致性，可能是之前的另一个引用
             contractStatusOptions: contractStatusesData || [],
-            positionOptions: positions
+            positionOptions: positions,
+            jobPositionLevelOptions: jobPositionLevels // 修正：使用jobPositionLevels数组
           });
           setLoadingLookups(false);
         }

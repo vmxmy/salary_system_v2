@@ -24,7 +24,36 @@
       }
     }
   },
+  "position": {
+    "title": "实际职位管理",
+    "button": {
+      "add": "新增职位"
+    },
+    "export": {
+      "filename": "实际职位数据",
+      "sheetName": "实际职位",
+      "successMessage": "导出成功",
+      "tooltipTitle": "导出到Excel"
+    },
+    "columnControl": {
+      "tooltipTitle": "自定义显示列",
+      "dropdownTitle": "列显示"
+    },
+    "form": {
+      "effective_date": "生效日期",
+      "validation": {
+        "effective_date_required": "请输入生效日期"
+      },
+      "end_date": "失效日期"
+    }
+  },
   "tab_title_personnel_category_management": "人员身份管理",
   "tab_title_actual_position_management": "实际职务管理",
-  "current_personnel_categories_title": "当前人员身份"
+  "tab_title_job_position_level_management": "职务级别管理",
+  "current_personnel_categories_title": "当前人员身份",
+  "tab": {
+    "personnel_category_management": "人员身份管理",
+    "actual_position_management": "实际职位管理",
+    "job_position_level_management": "职务级别管理"
+  }
 } 

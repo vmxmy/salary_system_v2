@@ -771,4 +771,90 @@ export const lookupService = {
       return [];
     }
   },
+
+  // 获取职务级别选项
+  getJobPositionLevelsLookup: async (): Promise<LookupItem[]> => {
+    const typeCode = await getTypeCodeBySystemCode('JOB_POSITION_LEVEL');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载职务级别选项：类型定义缺失或Code不匹配');
+    return [];
+  },
+
+  // 创建新的查找值
+  createLookupValue: async (data: {
+    lookup_type_id: number;
+    code: string;
+    name: string;
+    label?: string;
+    value?: string;
+    description?: string;
+    sort_order?: number;
+    is_active?: boolean;
+  }): Promise<LookupItem> => {
+    try {
+      const response = await apiClient.post<{ data: ApiLookupValue }>('/lookup/values', data);
+      const createdValue = response.data.data;
+      return {
+        id: createdValue.id,
+        value: createdValue.code || createdValue.value || String(createdValue.id),
+        label: createdValue.label || createdValue.name || '',
+        code: createdValue.code,
+        name: createdValue.name
+      };
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || '创建失败';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // 更新查找值
+  updateLookupValue: async (id: number, data: {
+    code?: string;
+    name?: string;
+    label?: string;
+    value?: string;
+    description?: string;
+    sort_order?: number;
+    is_active?: boolean;
+  }): Promise<LookupItem> => {
+    try {
+      const response = await apiClient.put<{ data: ApiLookupValue }>(`/lookup/values/${id}`, data);
+      const updatedValue = response.data.data;
+      return {
+        id: updatedValue.id,
+        value: updatedValue.code || updatedValue.value || String(updatedValue.id),
+        label: updatedValue.label || updatedValue.name || '',
+        code: updatedValue.code,
+        name: updatedValue.name
+      };
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || '更新失败';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // 删除查找值
+  deleteLookupValue: async (id: number): Promise<boolean> => {
+    try {
+      await apiClient.delete(`/lookup/values/${id}`);
+      return true;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || '删除失败';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // 获取lookup type ID通过code
+  getLookupTypeIdByCode: async (code: string): Promise<number | null> => {
+    try {
+      const allTypes = await fetchAllLookupTypesAndCache();
+      const foundType = allTypes?.find(type => type.code === code);
+      return foundType?.id || null;
+    } catch (error) {
+      console.error('Error finding lookup type by code:', error);
+      return null;
+    }
+  },
 };

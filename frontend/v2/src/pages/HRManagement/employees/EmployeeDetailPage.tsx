@@ -140,6 +140,12 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
                      employee.actual_position_name || 
                      String(employee.actual_position_id ?? naText)}
                 </Descriptions.Item>
+                <Descriptions.Item label="职务级别">
+                    {lookupMaps?.jobPositionLevelMap.get(Number(employee.job_position_level_lookup_value_id)) || 
+                     employee.job_position_level_lookup_value_name || 
+                     employee.jobPositionLevelName ||
+                     String(employee.job_position_level_lookup_value_id ?? naText)}
+                </Descriptions.Item>
                 <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_work_location')}>
                     {employee.workLocation || naText}
                 </Descriptions.Item>

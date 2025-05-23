@@ -58,7 +58,7 @@ const customTheme: ThemeConfig = {
     boxShadowSecondary: '0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', // 更强的阴影，用于需要更突出层级的元素
 
     // ----------- 字体 -----------
-    fontFamily: '"SourceHanSerifCN-Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+    fontFamily: '"SourceHanSerifCN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
     fontSize: 14, // 基础字号
     fontSizeLG: 16, // 大字号
     fontSizeSM: 12, // 小字号

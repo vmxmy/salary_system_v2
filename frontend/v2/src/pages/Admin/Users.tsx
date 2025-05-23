@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography, App } from 'antd';
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import TableActionButton from '../../components/common/TableActionButton';
 import PageHeaderLayout from '../../components/common/PageHeaderLayout';
 import type { InputRef } from 'antd';
@@ -12,7 +12,7 @@ import type { User as ApiUser, Role as ApiRole, ApiResponse, CreateUserPayload, 
 import { format } from 'date-fns';
 import type { TableParams } from '../../types/antd';
 import { useTranslation } from 'react-i18next';
-import { useTableSearch, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
+import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
 import type { ColumnsType } from 'antd/lib/table';
 import styles from './Users.module.less';
 
@@ -238,9 +238,9 @@ const UserListPage: React.FC = () => {
     setEditingUser(userToEdit);
     userForm.setFieldsValue({
       username: userToEdit.username,
-      employee_first_name: undefined, 
-      employee_last_name: undefined,
-      employee_id_card: undefined,
+      employee_first_name: userToEdit.employee?.first_name || '', 
+      employee_last_name: userToEdit.employee?.last_name || '',
+      employee_id_card: userToEdit.employee?.id_number || '',
       is_active: userToEdit.is_active,
       role_ids: userToEdit.roles?.map(role => role.id) || [],
       // Password fields are not set for editing
@@ -351,7 +351,7 @@ const UserListPage: React.FC = () => {
   };
 
   // 使用通用表格工具定义列
-  const columns: ColumnsType<PageUser> = [
+  const initialColumns: ColumnsType<PageUser> = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
@@ -440,25 +440,50 @@ const UserListPage: React.FC = () => {
     },
   ];
 
+  // 使用表格导出功能
+  const { ExportButton } = useTableExport(
+    users,
+    initialColumns,
+    {
+      filename: t('user:user_list_page.export.filename'),
+      sheetName: t('user:user_list_page.export.sheet_name'),
+      buttonText: t('common:action.export'),
+    }
+  );
+
+  // 使用列设置功能
+  const { ColumnControl, visibleColumns } = useColumnControl(
+    initialColumns,
+    {
+      storageKeyPrefix: 'user_list_table',
+      buttonText: t('common:action.columns'),
+      tooltipTitle: t('common:tooltip.column_settings')
+    }
+  );
+
   return (
     <div>
       <PageHeaderLayout
         pageTitle={<Title level={4} className={styles.pageTitleCustom}>{t('user_list_page.title')}</Title>}
         actions={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={showCreateUserModal}
-            shape="round"
-          >
-            {t('user_list_page.button.create_user')}
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showCreateUserModal}
+              shape="round"
+            >
+              {t('user_list_page.button.create_user')}
+            </Button>
+            {ExportButton && <ExportButton />}
+            {ColumnControl && <ColumnControl />}
+          </Space>
         }
       >
         <></>
       </PageHeaderLayout>
       <Table
-        columns={columns}
+        columns={visibleColumns}
         dataSource={users}
         loading={loading}
         onChange={handleTableChange}
@@ -524,16 +549,16 @@ const UserListPage: React.FC = () => {
             {t('form.section.employee_association')}
           </Typography.Text>
           <Form.Item
-            name="employee_first_name"
-            label={t('form.label.employee_first_name')}
-          >
-            <Input placeholder={t('form.placeholder.employee_first_name')} />
-          </Form.Item>
-          <Form.Item
             name="employee_last_name"
             label={t('form.label.employee_last_name')}
           >
             <Input placeholder={t('form.placeholder.employee_last_name')} />
+          </Form.Item>
+          <Form.Item
+            name="employee_first_name"
+            label={t('form.label.employee_first_name')}
+          >
+            <Input placeholder={t('form.placeholder.employee_first_name')} />
           </Form.Item>
           <Form.Item
             name="employee_id_card"

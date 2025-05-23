@@ -223,6 +223,13 @@ const generateEmployeeTableColumnsConfig = (
       ...getColumnSearch('ref_salary_level_lookup_value_name'),
     },
     {
+      title: '职务级别',
+      dataIndex: 'job_position_level_lookup_value_name',
+      key: 'job_position_level',
+      sorter: stringSorter<Employee>('job_position_level_lookup_value_name'),
+      ...getColumnSearch('job_position_level_lookup_value_name'),
+    },
+    {
       title: t('employee:list_page.table.column.department'),
       dataIndex: 'department_id',
       key: 'department_id',

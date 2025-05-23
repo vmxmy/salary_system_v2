@@ -115,6 +115,7 @@ async def get_employees(
             dept_name = emp_orm.current_department.name if emp_orm.current_department else None
             pc_name = emp_orm.personnel_category.name if emp_orm.personnel_category else None
             actual_pos_name = emp_orm.actual_position.name if emp_orm.actual_position else None
+            job_position_level_name = emp_orm.job_position_level.name if emp_orm.job_position_level else None
             
             # Process bank account information (similar to single employee API)
             primary_bank_account_orm = None
@@ -142,13 +143,15 @@ async def get_employees(
             employee_data['salary_level_lookup_value_name'] = emp_orm.salary_level.name if emp_orm.salary_level else None
             employee_data['salary_grade_lookup_value_name'] = emp_orm.salary_grade.name if emp_orm.salary_grade else None
             employee_data['ref_salary_level_lookup_value_name'] = emp_orm.ref_salary_level.name if emp_orm.ref_salary_level else None
+            employee_data['job_position_level_lookup_value_name'] = emp_orm.job_position_level.name if emp_orm.job_position_level else None
             
             # Create EmployeeWithNames instance
             employee_with_names_instance = EmployeeWithNames(
                 **employee_data, 
                 departmentName=dept_name,
                 personnelCategoryName=pc_name, # Corresponds to old job_title_name
-                actualPositionName=actual_pos_name
+                actualPositionName=actual_pos_name,
+                jobPositionLevelName=job_position_level_name
             )
             processed_employees.append(employee_with_names_instance)
 
@@ -301,12 +304,32 @@ async def create_bulk_employees_api(
         created_employees, failed_records = v2_hr_crud.create_bulk_employees(db, employees_in, overwrite_mode)
         
         # 构建详细的响应
+        failed_records_with_full_name = []
+        for record in failed_records:
+            # 计算完整姓名
+            full_name = ""
+            if record.get("last_name") and record.get("first_name"):
+                full_name = f"{record['last_name']}{record['first_name']}"
+            elif record.get("last_name"):
+                full_name = record["last_name"]
+            elif record.get("first_name"):
+                full_name = record["first_name"]
+            else:
+                full_name = "未知姓名"
+            
+            # 创建包含完整姓名的失败记录
+            failed_record_obj = BulkEmployeeFailedRecord(
+                **record,
+                full_name=full_name
+            )
+            failed_records_with_full_name.append(failed_record_obj)
+        
         result = BulkEmployeeCreateResult(
             success_count=len(created_employees),
             failed_count=len(failed_records),
             total_count=len(employees_in),
             created_employees=created_employees,
-            failed_records=[BulkEmployeeFailedRecord(**record) for record in failed_records]
+            failed_records=failed_records_with_full_name
         )
         
         return result

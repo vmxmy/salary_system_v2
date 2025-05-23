@@ -4,6 +4,10 @@
     "title": "用户列表",
     "button": {
       "create_user": "创建用户"
+    },
+    "export": {
+      "filename": "用户列表",
+      "sheet_name": "用户数据"
     }
   },
   "button": {
@@ -86,8 +90,8 @@
         "employee_id_card": "身份证号"
     },
     "placeholder": {
-        "employee_first_name": "请输入员工的姓氏",
-        "employee_last_name": "请输入员工的名字",
+        "employee_first_name": "请输入员工的名字",
+        "employee_last_name": "请输入员工的姓氏",
         "employee_id_card": "请输入员工身份证号"
     },
     "tooltip": {

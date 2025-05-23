@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Space, Table, Button, Modal, Form, Input, Select, Switch, message, Popconfirm, Card, Typography, Row, Col, Divider, Tag, InputNumber } from 'antd';
 import type { InputRef } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilterFilled } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilterFilled, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useTableExport, useColumnControl } from '../../../components/common/TableUtils';
 import * as payrollApi from '../services/payrollApi';
 import * as configApi from '../../../api/config';
 import type { LookupValue } from '../../../api/types';
@@ -53,7 +54,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, extra }) => {
  * 薪资字段管理页面组件
  */
 const PayrollComponentsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['payroll_components', 'common']);
   const [loading, setLoading] = useState(false);
   const [components, setComponents] = useState<PayrollComponentDefinition[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -212,7 +213,7 @@ const PayrollComponentsPage: React.FC = () => {
   });
 
   // 表格列定义
-  const columns: ColumnType<PayrollComponentDefinition>[] = [
+  const initialColumns: ColumnType<PayrollComponentDefinition>[] = [
     {
       title: t('payroll_components.code'),
       dataIndex: 'code',
@@ -367,6 +368,25 @@ const PayrollComponentsPage: React.FC = () => {
     },
   ];
 
+  const { ExportButton } = useTableExport(
+    components,
+    initialColumns,
+    {
+      filename: t('payroll_components.export.filename', { ns: 'payroll_components' }),
+      sheetName: t('payroll_components.export.sheet_name', { ns: 'payroll_components' }),
+      buttonText: t('common:action.export'),
+    }
+  );
+
+  const { ColumnControl, visibleColumns: controlledColumns } = useColumnControl(
+    initialColumns,
+    {
+      storageKeyPrefix: 'payrollComponentsTable',
+      buttonText: t('common:action.columns'),
+      tooltipTitle: t('common:tooltip.column_settings')
+    }
+  );
+
   // 打开编辑模态框
   const handleEdit = (component: PayrollComponentDefinition) => {
     setEditingComponent(component);
@@ -433,29 +453,33 @@ const PayrollComponentsPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeader 
-        title={t('payroll_components.title')} 
+      <PageHeader
+        title={t('payroll_components.title')}
         extra={
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={handleAdd}
-          >
-            {t('payroll_components.add')}
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAdd}
+            >
+              {t('payroll_components.add')}
+            </Button>
+            {ExportButton && <ExportButton />}
+            {ColumnControl && <ColumnControl />}
+          </Space>
         }
       />
       
       <Card>
-        <Table 
-          dataSource={components} 
-          columns={columns} 
-          rowKey="id" 
+        <Table
+          dataSource={components}
+          columns={controlledColumns}
+          rowKey="id"
           loading={loading}
-          pagination={{ 
-            pageSize: 10, 
-            showSizeChanger: true, 
-            showTotal: (total) => t('common.total_items', { count: total }) 
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => t('common.total_items', { count: total })
           }}
         />
       </Card>

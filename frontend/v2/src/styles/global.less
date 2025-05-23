@@ -1,18 +1,42 @@
-/* 自定义字体定义 */
+/* 自定义字体定义 - 统一使用SourceHanSerifCN字体 */
 @font-face {
-  font-family: 'SourceHanSerifCN-Bold';
-  src: url('../assets/fonts/SourceHanSerifCN-Bold.otf') format('opentype');
-  font-weight: 700; /* 700 通常对应 Bold */
+  font-family: 'SourceHanSerifCN';
+  src: url('../assets/fonts/SourceHanSerifCN-Regular.otf') format('opentype');
+  font-weight: normal; /* 400 */
   font-style: normal;
-  font-display: swap; /* 建议添加，改善字体加载体验 */
+  font-display: swap;
 }
 
 @font-face {
-  font-family: 'SourceHanSerifCN-Medium';
-  src: url('../assets/fonts/SourceHanSerifCN-Medium.otf') format('opentype');
-  font-weight: 500; /* 500 通常对应 Medium */
+  font-family: 'SourceHanSerifCN';
+  src: url('../assets/fonts/SourceHanSerifCN-Light.otf') format('opentype');
+  font-weight: 300;
   font-style: normal;
-  font-display: swap; /* 建议添加，改善字体加载体验 */
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SourceHanSerifCN';
+  src: url('../assets/fonts/SourceHanSerifCN-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SourceHanSerifCN';
+  src: url('../assets/fonts/SourceHanSerifCN-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SourceHanSerifCN';
+  src: url('../assets/fonts/SourceHanSerifCN-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 // 全局样式
@@ -44,9 +68,9 @@ body {
 // 标题
 h1, h2, h3, h4, h5, h6,
 .ant-typography h1, .ant-typography h2, .ant-typography h3, .ant-typography h4, .ant-typography h5, .ant-typography h6 {
-  font-family: 'SourceHanSerifCN-Bold', sans-serif; /* 使用自定义的粗体标题字体 */
+  font-family: @font-family; /* 使用全局字体变量，保持一致性 */
   color: @heading-color;
-  font-weight: 700; /* 确保与 @font-face 中的定义匹配 */
+  font-weight: 700; /* 保留粗体效果 */
   line-height: 1.2;
   margin-bottom: 0.5em;
 }

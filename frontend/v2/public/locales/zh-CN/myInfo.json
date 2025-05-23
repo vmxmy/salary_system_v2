@@ -1,6 +1,7 @@
 {
   "title": "我的信息",
   "employeeCode": "员工号",
+  "employeeId": "员工ID：",
   "sectionTitles": {
     "personal": "个人信息",
     "contact": "联系方式",

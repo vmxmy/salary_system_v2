@@ -36,11 +36,21 @@ export interface LoginResponse {
   // user_id, username, role (old fields) are now part of the nested user object
 }
 
+// 员工基本信息接口（用于用户响应中）
+export interface EmployeeInfo {
+  id: number;
+  first_name: string;
+  last_name: string;
+  id_number?: string;
+  employee_code?: string;
+}
+
 // 用户基本信息 (根据 /v2/users 端点和安全资源定义)
 export interface User {
   id: number; // Changed from string | number
   username: string;
   employee_id?: number; // Changed from string | number
+  employee?: EmployeeInfo; // 关联的员工详细信息
   is_active: boolean; // No longer optional, assuming backend provides it
   created_at: string; // Or Date, depending on how it's parsed. Kept as string for now.
   roles: Role[];

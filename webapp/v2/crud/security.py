@@ -36,7 +36,10 @@ def get_users(
     Returns:
         用户列表和总记录数
     """
-    query = db.query(User).options(selectinload(User.roles).selectinload(Role.permissions))
+    query = db.query(User).options(
+        selectinload(User.roles).selectinload(Role.permissions),
+        selectinload(User.employee)
+    )
 
     if is_active is not None:
         query = query.filter(User.is_active == is_active)
@@ -75,7 +78,10 @@ def get_user(db: Session, user_id: int) -> Optional[User]:
     Returns:
         用户对象，如果不存在则返回None
     """
-    return db.query(User).options(selectinload(User.roles).selectinload(Role.permissions)).filter(User.id == user_id).first()
+    return db.query(User).options(
+        selectinload(User.roles).selectinload(Role.permissions),
+        selectinload(User.employee)
+    ).filter(User.id == user_id).first()
 
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
@@ -187,7 +193,9 @@ def create_user(db: Session, user: UserCreate) -> User:
         db.commit()
         db.refresh(db_user)
         logger.debug(f"用户创建成功: {db_user.username}, ID: {db_user.id}")
-        return db_user
+        # 重新查询以获取完整的关联信息
+        created_user_with_relations = get_user(db, db_user.id)
+        return created_user_with_relations
     except Exception as e:
         db.rollback()
         logger.error(f"创建用户时发生错误: {str(e)}", exc_info=True)

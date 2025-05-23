@@ -1,7 +1,7 @@
 """
 人事相关的Pydantic模型。
 """
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, computed_field
 from typing import Optional, List, Dict, Any, ForwardRef
 from datetime import date, datetime
 
@@ -99,6 +99,10 @@ class EmployeeBase(BaseModel):
     salary_grade_lookup_value_name: Optional[str] = Field(None, description="Salary grade name")
     ref_salary_level_lookup_value_id: Optional[int] = Field(None, description="Reference salary level lookup ID")
     ref_salary_level_lookup_value_name: Optional[str] = Field(None, description="Reference salary level name")
+    
+    # 职务级别相关字段
+    job_position_level_lookup_value_id: Optional[int] = Field(None, description="Job position level lookup ID")
+    job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name")
 
 
 class EmployeeCreate(EmployeeBase):
@@ -119,6 +123,9 @@ class EmployeeCreate(EmployeeBase):
     department_name: Optional[str] = Field(None, description="Department name for resolving department_id")
     position_name: Optional[str] = Field(None, description="Position name for resolving actual_position_id")
     personnel_category_name: Optional[str] = Field(None, description="Personnel category name for resolving ID")
+    
+    # 职务级别名称字段，用于通过名称解析ID
+    job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name for resolving ID")
 
     # Allow creating appraisals along with the employee (though not used for bulk import of employees only)
     appraisals: Optional[List[EmployeeAppraisalCreate]] = Field(default_factory=list, description="List of employee appraisals to create")
@@ -138,6 +145,8 @@ class EmployeeUpdate(BaseModel):
     first_work_date: Optional[date] = Field(None, description="Date when employee first started working in their career")
     interrupted_service_years: Optional[float] = Field(None, description="Years of interrupted service")
     hire_date: Optional[date] = Field(None, description="Employee's hire date at current company")
+    career_position_level_date: Optional[date] = Field(None, description="Date when employee first reached this position level in their entire career")
+    current_position_start_date: Optional[date] = Field(None, description="Date when employee started this position in current organization")
     status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to employee status lookup value")
     employment_type_lookup_value_id: Optional[int] = Field(None, description="Foreign key to employment type lookup value")
     education_level_lookup_value_id: Optional[int] = Field(None, description="Foreign key to education level lookup value")
@@ -158,6 +167,9 @@ class EmployeeUpdate(BaseModel):
     # Fields for bank account, to be processed for hr.employee_bank_accounts table
     bank_name: Optional[str] = Field(None, description="Bank name for employee's account")
     bank_account_number: Optional[str] = Field(None, description="Employee's bank account number")
+    
+    # 职务级别字段
+    job_position_level_lookup_value_id: Optional[int] = Field(None, description="Job position level lookup ID")
 
     # Allow updating appraisals along with the employee
     appraisals: Optional[List[EmployeeAppraisalUpdate]] = Field(None, description="List of employee appraisals to update/create. For existing appraisals, include 'id'. For new ones, omit 'id'. The backend will sync based on this list.")
@@ -178,6 +190,9 @@ class Employee(EmployeeBase):
     political_status: Optional[LookupValue] = Field(None, description="Resolved political status lookup value")
     contract_type: Optional[LookupValue] = Field(None, description="Resolved contract type lookup value")
     
+    # 职务级别 resolved字段
+    job_position_level: Optional[LookupValue] = Field(None, description="Resolved job position level lookup value")
+    
     # Resolved related objects
     department: Optional["Department"] = Field(None, description="Resolved department object")
     personnel_category: Optional["PersonnelCategorySchema"] = Field(None, description="Resolved personnel category object")
@@ -195,6 +210,7 @@ class EmployeeWithNames(Employee):
     departmentName: Optional[str] = Field(None, description="Current department name")
     personnelCategoryName: Optional[str] = Field(None, description="Current personnel category name")
     actualPositionName: Optional[str] = Field(None, description="Current actual position name")
+    jobPositionLevelName: Optional[str] = Field(None, description="Current job position level name")
 
     class Config:
         from_attributes = True
@@ -468,6 +484,7 @@ class BulkEmployeeFailedRecord(BaseModel):
     id_number: Optional[str] = Field(None, description="身份证号")
     first_name: Optional[str] = Field(None, description="名")
     last_name: Optional[str] = Field(None, description="姓")
+    full_name: Optional[str] = Field(None, description="完整姓名")
     errors: List[str] = Field(..., description="错误信息列表")
 
 class BulkEmployeeCreateResult(BaseModel):

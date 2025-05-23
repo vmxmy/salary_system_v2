@@ -1,4 +1,5 @@
 import apiClient from '../api';
+import { lookupService } from './lookupService';
 import {
   // EmploymentType, // No longer directly used if getLookupValues is primary
   // ContractStatus,
@@ -516,6 +517,16 @@ export const employeeService = {
     } catch (error) {
       console.error('Error fetching employees by IDs:', error);
       return {};
+    }
+  },
+
+  // 获取职务级别选项
+  async getJobPositionLevelsLookup(): Promise<LookupValue[]> {
+    try {
+      return await this.getLookupValues('JOB_POSITION_LEVEL');
+    } catch (error) {
+      console.error('Failed to fetch job position levels:', error);
+      return [];
     }
   },
 };
