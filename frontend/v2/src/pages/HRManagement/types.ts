@@ -366,6 +366,7 @@ export interface CreateEmployeePayload {
   email?: string | null;
   phone_number?: string | null;
   home_address?: string | null;
+  avatar?: string | null;
 
   // Direct ID fields that should be part of the payload
   gender_lookup_value_id?: number | null;
