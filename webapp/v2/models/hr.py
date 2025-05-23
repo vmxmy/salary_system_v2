@@ -120,12 +120,12 @@ class Employee(BaseV2):
     appraisals = relationship("EmployeeAppraisal", back_populates="employee", cascade="all, delete-orphan")
     # --- END NEW/UPDATED RELATIONSHIPS for Employee ---
     
-    job_history = relationship("EmployeeJobHistory", back_populates="employee", foreign_keys="[EmployeeJobHistory.employee_id]")
-    contracts = relationship("EmployeeContract", back_populates="employee")
-    compensation_history = relationship("EmployeeCompensationHistory", back_populates="employee")
-    payroll_components = relationship("EmployeePayrollComponent", back_populates="employee")
-    leave_balances = relationship("EmployeeLeaveBalance", back_populates="employee")
-    leave_requests = relationship("EmployeeLeaveRequest", back_populates="employee", foreign_keys="[EmployeeLeaveRequest.employee_id]")
+    job_history = relationship("EmployeeJobHistory", back_populates="employee", foreign_keys="[EmployeeJobHistory.employee_id]", cascade="all, delete-orphan")
+    contracts = relationship("EmployeeContract", back_populates="employee", cascade="all, delete-orphan")
+    compensation_history = relationship("EmployeeCompensationHistory", back_populates="employee", cascade="all, delete-orphan")
+    payroll_components = relationship("EmployeePayrollComponent", back_populates="employee", cascade="all, delete-orphan")
+    leave_balances = relationship("EmployeeLeaveBalance", back_populates="employee", cascade="all, delete-orphan")
+    leave_requests = relationship("EmployeeLeaveRequest", back_populates="employee", foreign_keys="[EmployeeLeaveRequest.employee_id]", cascade="all, delete-orphan")
     payroll_entries = relationship("PayrollEntry", back_populates="employee")
     user = relationship("User", back_populates="employee", uselist=False)
     bank_accounts = relationship("EmployeeBankAccount", back_populates="employee", cascade="all, delete-orphan")

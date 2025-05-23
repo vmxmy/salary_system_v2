@@ -585,10 +585,30 @@ def delete_employee(db: Session, employee_id: int) -> bool:
     if not db_employee:
         return False
 
-    # 删除员工
-    db.delete(db_employee)
-    db.commit()
-    return True
+    try:
+        # 只处理循环引用问题 - 清除该员工作为其他员工管理者的关系
+        # 将所有以此员工为manager的工作历史记录的manager_id设为NULL
+        db.query(EmployeeJobHistory).filter(
+            EmployeeJobHistory.manager_id == employee_id
+        ).update({EmployeeJobHistory.manager_id: None}, synchronize_session=False)
+        
+        # 处理请假申请中的批准人关系 
+        # 将所有以此员工为批准人的请假申请的approved_by_employee_id设为NULL
+        db.query(EmployeeLeaveRequest).filter(
+            EmployeeLeaveRequest.approved_by_employee_id == employee_id
+        ).update({EmployeeLeaveRequest.approved_by_employee_id: None}, synchronize_session=False)
+        
+        # 提交这些预处理更新
+        db.flush()
+        
+        # 删除员工 - ORM级联删除会自动处理相关记录
+        db.delete(db_employee)
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting employee {employee_id}: {e}", exc_info=True)
+        raise
 
 
 # Department CRUD
