@@ -97,29 +97,55 @@ export const getPayrollEntryStatusDisplay = (statusId: number, t: TFunction): st
   }
 };
 
-// --- PayrollPeriod Statuses (Example - if needed) ---
-// Define if PayrollPeriod also uses a similar status system displayed in UI
-// export const PAYROLL_PERIOD_STATUS_OPTIONS: StatusOption[] = [
-//   { id: 101, display_name_key: 'payroll_period_status.planned', color: 'default' },
-//   { id: 102, display_name_key: 'payroll_period_status.open', color: 'blue' },
-//   { id: 103, display_name_key: 'payroll_period_status.closed', color: 'red' },
-//   { id: 104, display_name_key: 'payroll_period_status.archived', color: 'cyan' },
-// ];
+// --- PayrollPeriod Statuses ---
+export const PAYROLL_PERIOD_STATUS_OPTIONS: StatusOption[] = [
+  { id: 101, display_name_key: 'payroll_period_status.planned', color: 'default' },
+  { id: 102, display_name_key: 'payroll_period_status.active', color: 'blue' },
+  { id: 103, display_name_key: 'payroll_period_status.closed', color: 'red' },
+  { id: 104, display_name_key: 'payroll_period_status.archived', color: 'cyan' },
+];
+
+/**
+ * 获取薪资周期状态信息对象
+ * @param statusId 状态ID
+ * @returns 包含翻译键、参数和颜色的对象
+ */
+export const getPayrollPeriodStatusInfo = (statusId?: number): { key: string; params?: Record<string, any>; color: string } => {
+  if (statusId === undefined || statusId === null) return { key: 'status.na', color: 'default' };
+  
+  // 处理旧的状态ID值，映射到新的状态ID
+  let mappedStatusId = statusId;
+  if (statusId === 1) mappedStatusId = 102; // 旧版活动 -> 新版活动(102)
+  if (statusId === 2) mappedStatusId = 103; // 旧版关闭 -> 新版关闭(103)
+  if (statusId === 3) mappedStatusId = 104; // 旧版归档 -> 新版归档(104)
+  
+  const status = PAYROLL_PERIOD_STATUS_OPTIONS.find(opt => opt.id === mappedStatusId);
+  return status 
+    ? { key: status.display_name_key, color: status.color } 
+    : { key: 'status.unknown_status_param', params: { statusId }, color: 'default' };
+};
 
 /**
  * 获取薪资周期状态的显示文本
  * @param statusId 状态ID
  * @param t 翻译函数
  * @returns 状态显示文本
+ * @deprecated 使用 getPayrollPeriodStatusInfo 替代
  */
 export const getPayrollPeriodStatusDisplay = (statusId: number, t: TFunction): string => {
+  // 旧的映射逻辑保持不变，确保向后兼容
   switch (statusId) {
     case 1:
+    case 102: // 支持新ID
       return t('payroll:period_status.active');
     case 2:
+    case 103: // 支持新ID
       return t('payroll:period_status.closed');
     case 3:
+    case 104: // 支持新ID
       return t('payroll:period_status.archived');
+    case 101: // 新增计划状态
+      return t('payroll:period_status.planned');
     default:
       return t('common:unknown');
   }

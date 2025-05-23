@@ -21,15 +21,25 @@
         "load_aux_data_failed": "加载筛选和显示所需的辅助数据失败。",
         "get_employees_failed_empty_response": "获取员工数据失败：响应数据为空。",
         "get_employees_failed": "获取员工列表失败。",
-        "delete_employee_failed": "删除员工失败。",
-        "delete_employee_success": "员工删除成功。"
+        "delete_employee_failed": "删除员工失败",
+        "delete_employee_success": "员工删除成功。",
+        "no_employees_selected": "请先选择要删除的员工",
+        "batch_delete_success": "成功删除 {{count}} 个员工",
+        "batch_delete_failed": "批量删除员工失败"
       },
       "delete_confirm": {
         "title": "确认删除",
-        "content": "确定要删除该员工吗？此操作不可恢复。",
+        "content": "确定要删除这个员工吗？删除后不可恢复。",
         "ok_text": "删除",
         "cancel_text": "取消"
       },
+      "batch_delete_confirm": {
+        "title": "确认批量删除",
+        "content": "确定要删除选中的 {{count}} 个员工吗？删除后不可恢复。",
+        "ok_text": "删除",
+        "cancel_text": "取消"
+      },
+      "batch_delete_button": "删除选中 ({{count}})",
       "filter_form": {
         "label": {
           "keyword": "关键词",
@@ -88,13 +98,29 @@
           "hire_date": "入职日期",
           "id_number": "身份证号",
           "ethnicity": "民族",
+          "nationality": "国籍",
           "date_of_birth": "出生日期",
           "education_level": "文化程度",
+          "marital_status": "婚姻状况",
+          "political_status": "政治面貌",
           "first_work_date": "参加工作时间",
           "interrupted_service_years": "工龄间断年限",
+          "email": "邮箱",
+          "phone_number": "手机号码",
+          "home_address": "家庭住址",
+          "salary_level": "工资级别",
+          "salary_grade": "工资档次",
+          "ref_salary_level": "参照正编薪级",
+          "actual_position": "实际任职",
           "actual_position_start_date": "实际任职时间",
           "career_position_level_date": "任职级时间",
-          "actions": "操作"
+          "employment_type": "雇佣类型",
+          "contract_type": "合同类型",
+          "bank_name": "银行名称",
+          "bank_account_number": "银行账号",
+          "emergency_contact_name": "紧急联系人姓名",
+          "emergency_contact_phone": "紧急联系人电话",
+          "action": "操作"
         },
         "cell_empty": "-",
         "status_text": {

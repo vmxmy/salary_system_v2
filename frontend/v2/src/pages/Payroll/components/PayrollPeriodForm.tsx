@@ -5,14 +5,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs'; // Import dayjs for date conversion
 import { useTranslation } from 'react-i18next'; // Added
 import type { PayrollPeriod } from '../types/payrollTypes'; // Removed LookupValue as it's not directly used in this simplified form's props
-
-// Updated to use translation keys
-const TEMP_STATUS_OPTIONS_KEYS = [
-  { id: 101, key: 'payroll_period_form.status_option.draft' },
-  { id: 102, key: 'payroll_period_form.status_option.active' },
-  { id: 103, key: 'payroll_period_form.status_option.closed' },
-  { id: 104, key: 'payroll_period_form.status_option.archived' },
-];
+import { PAYROLL_PERIOD_STATUS_OPTIONS } from '../utils/payrollUtils';
 
 interface PayrollPeriodFormProps {
   form: FormInstance; // More specific type for Ant Design Form instance
@@ -117,9 +110,9 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         rules={[{ required: true, message: t('payroll_period_form.validation.status_required') }]}
       >
         <Select placeholder={t('payroll_period_form.placeholder.status')}>
-          {TEMP_STATUS_OPTIONS_KEYS.map((statusOpt) => (
+          {PAYROLL_PERIOD_STATUS_OPTIONS.map((statusOpt) => (
             <Select.Option key={statusOpt.id} value={statusOpt.id}>
-              {t(statusOpt.key)}
+              {t(statusOpt.display_name_key)}
             </Select.Option>
           ))}
         </Select>

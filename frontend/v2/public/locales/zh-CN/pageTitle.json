@@ -27,7 +27,7 @@
     "manager_view": "经理视图",
     "employee_hub": "个人中心",
     "my_info": "我的信息",
-    "my_payslips": "我的薪资单",
+    "my_payslips": "我的工资单",
     "not_found": "页面未找到",
     "employee_center": "个人中心",
     "sider.title.full": "高新区工资信息管理系统",
@@ -35,5 +35,7 @@
     "footer.created_by": "徐明扬",
     "hr.bulk_import.page_title": "员工批量导入",
     "periods": "工资周期管理",
-    "bulk_import_employees": "员工批量导入"
+    "bulk_import_employees": "员工批量导入",
+    "subordinates": "下属管理",
+    "leave_approvals": "休假审批"
 }

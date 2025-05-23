@@ -6,11 +6,15 @@ import PayrollPeriodsPage from './pages/PayrollPeriodsPage';
 import PayrollRunsPage from './pages/PayrollRunsPage';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
+import PayrollBulkImportPage from './pages/PayrollBulkImportPage';
+import PayrollComponentsPage from './pages/PayrollComponentsPage';
 import {
   P_PAYROLL_PERIOD_VIEW,
   P_PAYROLL_RUN_VIEW,
-  P_PAYROLL_ENTRY_VIEW
-} from './constants/payrollPermissions'; // 添加薪资录入查看权限
+  P_PAYROLL_ENTRY_VIEW,
+  P_PAYROLL_ENTRY_BULK_IMPORT,
+  P_PAYROLL_COMPONENT_VIEW
+} from './constants/payrollPermissions'; // 添加薪资组件查看权限
 
 // Lazy load page components
 // const PayrollPeriodsPage = lazy(() => import('./pages/PayrollPeriodsPage'));
@@ -58,6 +62,22 @@ export const payrollRoutes: AppRouteObject[] = [
     meta: {
       title: 'payroll:page_title.payroll_entry', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_ENTRY_VIEW],
+    },
+  },
+  {
+    path: 'bulk-import',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import...') }, React.createElement(PayrollBulkImportPage)),
+    meta: {
+      title: 'payroll:batch_import.page_title', // 使用批量导入页面标题翻译键
+      requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
+    },
+  },
+  {
+    path: 'components',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Components...') }, React.createElement(PayrollComponentsPage)),
+    meta: {
+      title: 'payroll:page_title.payroll_components', // 使用薪资字段管理页面标题翻译键
+      requiredPermissions: [P_PAYROLL_COMPONENT_VIEW],
     },
   },
   // {

@@ -35,5 +35,7 @@
   "footer.created_by": "Xu Mingyang",
   "hr.bulk_import.page_title": "Bulk Import Employees",
   "periods": "Payroll Periods",
-  "bulk_import_employees": "Bulk Import Employees"
+  "bulk_import_employees": "Bulk Import Employees",
+  "subordinates": "Subordinates",
+  "leave_approvals": "Leave Approvals"
 }

@@ -751,7 +751,7 @@ export const lookupService = {
   // ADDED: Fetch all Positions (tree structure)
   getPositionsLookup: async (): Promise<PositionType[]> => {
     try {
-      const response = await apiClient.get<{ data: ApiPosition[] }>('/positions/', { params: { size: 1000 } }); // CORRECTED: Removed leading /v2/
+      const response = await apiClient.get<{ data: ApiPosition[] }>('/positions/', { params: { size: 100 } }); // 修改为最大允许值100
       if (response.data && Array.isArray(response.data.data)) {
         const positionsWithParentId: PositionWithParentId[] = response.data.data.map(p => ({
           ...p, // Spread ApiPosition

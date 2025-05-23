@@ -39,15 +39,7 @@ import { getPayrollPeriodNameTranslation } from '../utils/payrollFormatUtils';
 import TableActionButton from '../../../components/common/TableActionButton';
 import type { PayrollPeriod, ApiListMeta } from '../types/payrollTypes';
 import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
-
-// Define status options keys (can be moved to a shared util if used elsewhere)
-// These keys should match what's in your translation files for payroll_period_form.status_option.*
-const PERIOD_STATUS_OPTION_KEYS = [
-  { id: 101, key: 'payroll_period_form.status_option.draft', color: 'default' },
-  { id: 102, key: 'payroll_period_form.status_option.active', color: 'processing' },
-  { id: 103, key: 'payroll_period_form.status_option.closed', color: 'success' },
-  { id: 104, key: 'payroll_period_form.status_option.archived', color: 'warning' },
-];
+import { PAYROLL_PERIOD_STATUS_OPTIONS, getPayrollPeriodStatusInfo } from '../utils/payrollUtils';
 
 const PayrollPeriodsPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common']);
@@ -72,14 +64,10 @@ const PayrollPeriodsPage: React.FC = () => {
 
   const requiredPermissionsMemo = React.useMemo(() => [P_PAYROLL_PERIOD_MANAGE], []);
 
-  // New getStatusDisplayForPage function using t()
+  // 使用新的getPayrollPeriodStatusInfo函数
   const getStatusDisplayForPage = useCallback((statusId?: number) => {
-    if (statusId === undefined || statusId === null) return { text: t('common.status_na'), color: 'default' };
-    const statusOption = PERIOD_STATUS_OPTION_KEYS.find(opt => opt.id === statusId);
-    if (statusOption) {
-      return { text: t(statusOption.key), color: statusOption.color };
-    }
-    return { text: t('common.unknown_status_param', { statusId }), color: 'default' };
+    const statusInfo = getPayrollPeriodStatusInfo(statusId);
+    return { text: t(statusInfo.key, statusInfo.params), color: statusInfo.color };
   }, [t]);
 
   const memoizedInitialValues = React.useMemo(() => {
@@ -257,8 +245,8 @@ const PayrollPeriodsPage: React.FC = () => {
       title: t('periods_page.table.column.status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
-      filters: PERIOD_STATUS_OPTION_KEYS.map(option => ({
-        text: t(option.key),
+      filters: PAYROLL_PERIOD_STATUS_OPTIONS.map(option => ({
+        text: t(option.display_name_key),
         value: option.id,
       })),
       onFilter: (value, record) => record.status_lookup_value_id === value,

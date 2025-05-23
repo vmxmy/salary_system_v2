@@ -2,10 +2,11 @@
 配置相关的CRUD操作。
 """
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, select, asc, desc
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import date
 from sqlalchemy.orm import selectinload
+from sqlalchemy import or_
 
 from ..models.config import LookupType, LookupValue, SystemParameter, PayrollComponentDefinition, TaxBracket, SocialSecurityRate
 from ..pydantic_models.config import (
@@ -495,154 +496,127 @@ def get_payroll_component_definitions(
     component_type: Optional[str] = None,
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
+    sort_by: str = "display_order",
+    sort_order: str = "asc",
     skip: int = 0,
     limit: int = 100
-) -> Tuple[List[PayrollComponentDefinition], int]:
+) -> Dict[str, Any]:
     """
-    获取工资组件定义列表。
-
+    获取薪资组件定义列表
+    
     Args:
         db: 数据库会话
-        component_type: 组件类型
-        is_active: 是否激活
-        search: 搜索关键字
-        skip: 跳过的记录数
-        limit: 返回的记录数
-
+        component_type: 组件类型（收入或扣除）
+        is_active: 是否启用
+        search: 搜索关键字，用于筛选代码、名称或描述
+        sort_by: 排序字段
+        sort_order: 排序方向 (asc/desc)
+        skip: 跳过记录数
+        limit: 返回记录数限制
+        
     Returns:
-        工资组件定义列表和总记录数
+        包含组件定义列表和元数据的字典
     """
-    query = db.query(PayrollComponentDefinition)
-
+    # 构建查询
+    query = select(PayrollComponentDefinition)
+    
     # 应用过滤条件
     if component_type:
-        query = query.filter(PayrollComponentDefinition.type == component_type)
-
+        query = query.where(PayrollComponentDefinition.type == component_type)
     if is_active is not None:
-        query = query.filter(PayrollComponentDefinition.is_active == is_active)
-
-    # 应用搜索过滤
+        query = query.where(PayrollComponentDefinition.is_active == is_active)
+    # 添加搜索过滤条件
     if search:
         search_term = f"%{search}%"
-        query = query.filter(
-            (PayrollComponentDefinition.code.ilike(search_term)) |
-            (PayrollComponentDefinition.name.ilike(search_term)) |
-            (PayrollComponentDefinition.description.ilike(search_term))
+        query = query.where(
+            or_(
+                PayrollComponentDefinition.code.ilike(search_term),
+                PayrollComponentDefinition.name.ilike(search_term),
+                PayrollComponentDefinition.description.ilike(search_term)
+            )
         )
-
-    # 获取总记录数
-    total = query.count()
-
-    # 应用排序和分页
-    query = query.order_by(PayrollComponentDefinition.type, PayrollComponentDefinition.display_order, PayrollComponentDefinition.name)
+    
+    # 计算总记录数
+    count_query = select(func.count()).select_from(query.subquery())
+    total_count = db.execute(count_query).scalar() or 0
+    
+    # 应用排序
+    if sort_by in PayrollComponentDefinition.__table__.columns:
+        sort_column = getattr(PayrollComponentDefinition, sort_by)
+        if sort_order.lower() == "desc":
+            query = query.order_by(desc(sort_column))
+        else:
+            query = query.order_by(asc(sort_column))
+    else:
+        # 默认排序
+        query = query.order_by(asc(PayrollComponentDefinition.display_order))
+    
+    # 应用分页
     query = query.offset(skip).limit(limit)
+    
+    # 执行查询
+    results = db.execute(query).scalars().all()
+    
+    # 计算总页数
+    total_pages = (total_count + limit - 1) // limit if limit > 0 else 1
+    
+    return {
+        "data": results,
+        "meta": {
+            "page": (skip // limit + 1) if limit > 0 else 1,
+            "size": limit,
+            "total": total_count,
+            "totalPages": total_pages
+        }
+    }
 
-    return query.all(), total
-
-
-def get_payroll_component_definition(db: Session, component_id: int) -> Optional[PayrollComponentDefinition]:
-    """
-    根据ID获取工资组件定义。
-
-    Args:
-        db: 数据库会话
-        component_id: 工资组件定义ID
-
-    Returns:
-        工资组件定义对象，如果不存在则返回None
-    """
+def get_payroll_component_definition_by_id(db: Session, component_id: int) -> Optional[PayrollComponentDefinition]:
+    """根据ID获取薪资组件定义"""
     return db.query(PayrollComponentDefinition).filter(PayrollComponentDefinition.id == component_id).first()
 
-
 def get_payroll_component_definition_by_code(db: Session, code: str) -> Optional[PayrollComponentDefinition]:
-    """
-    根据代码获取工资组件定义。
-
-    Args:
-        db: 数据库会话
-        code: 工资组件定义代码
-
-    Returns:
-        工资组件定义对象，如果不存在则返回None
-    """
+    """根据编码获取薪资组件定义"""
     return db.query(PayrollComponentDefinition).filter(PayrollComponentDefinition.code == code).first()
 
-
-def create_payroll_component_definition(db: Session, component: PayrollComponentDefinitionCreate) -> PayrollComponentDefinition:
-    """
-    创建工资组件定义。
-
-    Args:
-        db: 数据库会话
-        component: 工资组件定义创建模型
-
-    Returns:
-        创建的工资组件定义对象
-    """
-    # 检查代码是否已存在
-    existing = get_payroll_component_definition_by_code(db, component.code)
-    if existing:
-        raise ValueError(f"Payroll component definition with code '{component.code}' already exists")
-
-    # 创建新的工资组件定义
-    db_component = PayrollComponentDefinition(**component.model_dump())
-    db.add(db_component)
+def create_payroll_component_definition(
+    db: Session, 
+    component_data: Dict[str, Any]
+) -> PayrollComponentDefinition:
+    """创建新的薪资组件定义"""
+    new_component = PayrollComponentDefinition(**component_data)
+    db.add(new_component)
     db.commit()
-    db.refresh(db_component)
-    return db_component
+    db.refresh(new_component)
+    return new_component
 
-
-def update_payroll_component_definition(db: Session, component_id: int, component: PayrollComponentDefinitionUpdate) -> Optional[PayrollComponentDefinition]:
-    """
-    更新工资组件定义。
-
-    Args:
-        db: 数据库会话
-        component_id: 工资组件定义ID
-        component: 工资组件定义更新模型
-
-    Returns:
-        更新后的工资组件定义对象，如果不存在则返回None
-    """
-    # 获取要更新的工资组件定义
-    db_component = get_payroll_component_definition(db, component_id)
-    if not db_component:
+def update_payroll_component_definition(
+    db: Session,
+    component_id: int,
+    component_data: Dict[str, Any]
+) -> Optional[PayrollComponentDefinition]:
+    """更新薪资组件定义"""
+    component = get_payroll_component_definition_by_id(db, component_id)
+    if not component:
         return None
-
-    # 如果代码发生变化，检查新代码是否已存在
-    if component.code is not None and component.code != db_component.code:
-        existing = get_payroll_component_definition_by_code(db, component.code)
-        if existing:
-            raise ValueError(f"Payroll component definition with code '{component.code}' already exists")
-
-    # 更新工资组件定义
-    update_data = component.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_component, key, value)
-
+        
+    for key, value in component_data.items():
+        if hasattr(component, key):
+            setattr(component, key, value)
+            
     db.commit()
-    db.refresh(db_component)
-    return db_component
+    db.refresh(component)
+    return component
 
-
-def delete_payroll_component_definition(db: Session, component_id: int) -> bool:
-    """
-    删除工资组件定义。
-
-    Args:
-        db: 数据库会话
-        component_id: 工资组件定义ID
-
-    Returns:
-        是否成功删除
-    """
-    # 获取要删除的工资组件定义
-    db_component = get_payroll_component_definition(db, component_id)
-    if not db_component:
+def delete_payroll_component_definition(
+    db: Session,
+    component_id: int
+) -> bool:
+    """删除薪资组件定义"""
+    component = get_payroll_component_definition_by_id(db, component_id)
+    if not component:
         return False
-
-    # 删除工资组件定义
-    db.delete(db_component)
+        
+    db.delete(component)
     db.commit()
     return True
 

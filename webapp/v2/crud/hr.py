@@ -962,6 +962,10 @@ def get_positions(
 def _get_position_by_name(db: Session, name: str) -> Optional[PositionModel]:
     return db.query(PositionModel).filter(func.lower(PositionModel.name) == func.lower(name)).first()
 
+# Helper function to get department by name
+def _get_department_by_name(db: Session, name: str) -> Optional[DepartmentModel]:
+    return db.query(DepartmentModel).filter(func.lower(DepartmentModel.name) == func.lower(name)).first()
+
 # Helper function to get personnel category by name (NEW)
 def _get_personnel_category_by_name(db: Session, name: str) -> Optional[PersonnelCategoryModel]:
     return db.query(PersonnelCategoryModel).filter(func.lower(PersonnelCategoryModel.name) == func.lower(name)).first()
@@ -1109,8 +1113,22 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                     employee_orm_data["department_id"] = dept.id
                     logger.debug(f"成功解析部门 '{emp_in.department_name}' 为ID: {dept.id}")
                 else:
-                    current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
-                    logger.warning(f"无法找到部门 '{emp_in.department_name}'")
+                    # 尝试模糊匹配部门名称
+                    similar_depts = db.query(DepartmentModel).filter(
+                        func.lower(DepartmentModel.name).like(f"%{emp_in.department_name.lower()}%")
+                    ).all()
+                    
+                    if similar_depts and len(similar_depts) == 1:
+                        # 如果只找到一个相似部门，使用它
+                        employee_orm_data["department_id"] = similar_depts[0].id
+                        logger.info(f"使用模糊匹配找到部门 '{similar_depts[0].name}' (ID: {similar_depts[0].id}) 代替 '{emp_in.department_name}'")
+                    else:
+                        # 在覆盖模式下，如果是更新现有员工，允许跳过部门验证
+                        if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
+                            logger.warning(f"无法找到部门 '{emp_in.department_name}'，但在覆盖模式下继续更新员工")
+                        else:
+                            current_record_errors.append(f"Department '{emp_in.department_name}' not found.")
+                            logger.warning(f"无法找到部门 '{emp_in.department_name}'")
             elif "department_id" not in employee_orm_data and emp_in.department_id is not None: # If ID was directly provided
                  employee_orm_data["department_id"] = emp_in.department_id
                  logger.debug(f"使用直接提供的部门ID: {emp_in.department_id}")
@@ -1122,8 +1140,22 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                     employee_orm_data["actual_position_id"] = pos.id # Assuming field name is actual_position_id
                     logger.debug(f"成功解析职位 '{emp_in.position_name}' 为ID: {pos.id}")
                 else:
-                    current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
-                    logger.warning(f"无法找到职位 '{emp_in.position_name}'")
+                    # 尝试模糊匹配职位名称
+                    similar_positions = db.query(PositionModel).filter(
+                        func.lower(PositionModel.name).like(f"%{emp_in.position_name.lower()}%")
+                    ).all()
+                    
+                    if similar_positions and len(similar_positions) == 1:
+                        # 如果只找到一个相似职位，使用它
+                        employee_orm_data["actual_position_id"] = similar_positions[0].id
+                        logger.info(f"使用模糊匹配找到职位 '{similar_positions[0].name}' (ID: {similar_positions[0].id}) 代替 '{emp_in.position_name}'")
+                    else:
+                        # 在覆盖模式下，如果是更新现有员工，允许跳过职位验证
+                        if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
+                            logger.warning(f"无法找到职位 '{emp_in.position_name}'，但在覆盖模式下继续更新员工")
+                        else:
+                            current_record_errors.append(f"Position '{emp_in.position_name}' not found.")
+                            logger.warning(f"无法找到职位 '{emp_in.position_name}'")
             elif "actual_position_id" not in employee_orm_data and emp_in.actual_position_id is not None: # If ID was directly provided
                  employee_orm_data["actual_position_id"] = emp_in.actual_position_id
                  logger.debug(f"使用直接提供的职位ID: {emp_in.actual_position_id}")
@@ -1135,8 +1167,22 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                     employee_orm_data["personnel_category_id"] = pc.id
                     logger.debug(f"成功解析人员类别 '{emp_in.personnel_category_name}' 为ID: {pc.id}")
                 else:
-                    current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
-                    logger.warning(f"无法找到人员类别 '{emp_in.personnel_category_name}'")
+                    # 尝试模糊匹配人员类别名称
+                    similar_categories = db.query(PersonnelCategoryModel).filter(
+                        func.lower(PersonnelCategoryModel.name).like(f"%{emp_in.personnel_category_name.lower()}%")
+                    ).all()
+                    
+                    if similar_categories and len(similar_categories) == 1:
+                        # 如果只找到一个相似人员类别，使用它
+                        employee_orm_data["personnel_category_id"] = similar_categories[0].id
+                        logger.info(f"使用模糊匹配找到人员类别 '{similar_categories[0].name}' (ID: {similar_categories[0].id}) 代替 '{emp_in.personnel_category_name}'")
+                    else:
+                        # 在覆盖模式下，如果是更新现有员工，允许跳过人员类别验证
+                        if overwrite_mode and hasattr(emp_in, 'id') and emp_in.id is not None:
+                            logger.warning(f"无法找到人员类别 '{emp_in.personnel_category_name}'，但在覆盖模式下继续更新员工")
+                        else:
+                            current_record_errors.append(f"Personnel Category '{emp_in.personnel_category_name}' not found.")
+                            logger.warning(f"无法找到人员类别 '{emp_in.personnel_category_name}'")
             elif "personnel_category_id" not in employee_orm_data and emp_in.personnel_category_id is not None: # If ID was directly provided
                 employee_orm_data["personnel_category_id"] = emp_in.personnel_category_id
                 logger.debug(f"使用直接提供的人员类别ID: {emp_in.personnel_category_id}")

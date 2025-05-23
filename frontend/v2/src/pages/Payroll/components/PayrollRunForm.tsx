@@ -62,7 +62,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
     setPeriodsError(null);
     try {
       // Fetch all active/open periods, or a reasonable subset for selection
-      const response = await getPayrollPeriods({ size: 1000 }); // Adjust size as needed, or add filtering
+      const response = await getPayrollPeriods({ size: 100 }); // 符合后端API限制
       setPayrollPeriods(response.data);
     } catch (err: any) {
       const errorMessage = t('payroll_run_form.error.load_periods_failed_with_message', { message: err.message });

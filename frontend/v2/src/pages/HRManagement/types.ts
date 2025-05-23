@@ -128,6 +128,7 @@ export interface Employee {
 
   departmentName?: string;
   actual_position_name?: string; // ADDED/CONFIRMED - for current actual position name
+  actualPositionName?: string; // 添加驼峰命名版本，匹配后端返回的字段名
   
   // Position timing fields
   career_position_level_date?: string | Dayjs; // Date when employee first reached this position level in their entire career
@@ -170,6 +171,8 @@ export interface Employee {
 
   created_at?: string | Dayjs;
   updated_at?: string | Dayjs;
+
+  position_name?: string;
 }
 
 export interface EmployeeQuery {

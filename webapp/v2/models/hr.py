@@ -106,6 +106,12 @@ class Employee(BaseV2):
     marital_status = relationship("LookupValue", foreign_keys=[marital_status_lookup_value_id], lazy='selectin', primaryjoin='Employee.marital_status_lookup_value_id == LookupValue.id')
     political_status = relationship("LookupValue", foreign_keys=[political_status_lookup_value_id], lazy='selectin', primaryjoin='Employee.political_status_lookup_value_id == LookupValue.id')
     contract_type = relationship("LookupValue", foreign_keys=[contract_type_lookup_value_id], lazy='selectin', primaryjoin='Employee.contract_type_lookup_value_id == LookupValue.id')
+    
+    # 工资相关字段的 relationships
+    salary_level = relationship("LookupValue", foreign_keys=[salary_level_lookup_value_id], lazy='selectin', primaryjoin='Employee.salary_level_lookup_value_id == LookupValue.id')
+    salary_grade = relationship("LookupValue", foreign_keys=[salary_grade_lookup_value_id], lazy='selectin', primaryjoin='Employee.salary_grade_lookup_value_id == LookupValue.id')
+    ref_salary_level = relationship("LookupValue", foreign_keys=[ref_salary_level_lookup_value_id], lazy='selectin', primaryjoin='Employee.ref_salary_level_lookup_value_id == LookupValue.id')
+    
     current_department = relationship("Department", foreign_keys=[department_id], lazy='selectin')
     
     # --- BEGIN NEW/UPDATED RELATIONSHIPS for Employee ---

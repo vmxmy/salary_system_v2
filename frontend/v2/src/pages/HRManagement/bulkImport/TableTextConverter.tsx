@@ -54,8 +54,8 @@ const TableTextConverter: React.FC = () => {
     { key: 'phone_number', label: '电话号码', required: false },
     { key: 'hire_date', label: '入职日期', required: false },
     { key: 'department_name', label: '部门', required: false },
-    { key: 'bank_name', label: '开户银行', required: false },
-    { key: 'bank_account_number', label: '银行账号', required: false },
+    { key: 'bank_name', label: '收款人开户银行', required: false },
+    { key: 'bank_account_number', label: '收款人账号', required: false },
   ];
 
   // 预设的字段映射规则
@@ -81,6 +81,38 @@ const TableTextConverter: React.FC = () => {
     '银行账号': 'bank_account_number',
     '银行卡号': 'bank_account_number',
     '年度考核': '',
+    // 增加更多字段映射
+    '部门': 'department_name',
+    '所属部门': 'department_name',
+    '单位': 'department_name',
+    '手机': 'phone_number',
+    '手机号': 'phone_number',
+    '手机号码': 'phone_number',
+    '联系电话': 'phone_number',
+    '电话': 'phone_number',
+    '银行': 'bank_name',
+    '银行名称': 'bank_name',
+    '工资卡开户行': 'bank_name',
+    '账号': 'bank_account_number',
+    '卡号': 'bank_account_number',
+    '工资卡号': 'bank_account_number',
+    '员工代码': 'employee_code',
+    '工号': 'employee_code',
+    '职工编号': 'employee_code',
+    '入职日期': 'hire_date',
+    '入职时间': 'hire_date',
+    '邮箱': 'email',
+    '电子邮箱': 'email',
+    '电子邮件': 'email',
+    '婚姻状况': 'marital_status_lookup_value_name',
+    '政治面貌': 'political_status_lookup_value_name',
+    '合同类型': 'contract_type_lookup_value_name',
+    '员工状态': 'status_lookup_value_name',
+    '在职状态': 'status_lookup_value_name',
+    '用工类型': 'employment_type_lookup_value_name',
+    // 添加截图中显示的字段
+    '收款人账号': 'bank_account_number',
+    '收款人开户银行': 'bank_name',
   };
 
   // 解析表格文本
@@ -228,6 +260,36 @@ const TableTextConverter: React.FC = () => {
       return dateStr;
     }
     
+    // 处理中文日期格式，如"2023年5月1日"
+    const chineseDatePattern = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
+    const chineseMatch = dateStr.match(chineseDatePattern);
+    if (chineseMatch) {
+      const year = chineseMatch[1];
+      const month = String(parseInt(chineseMatch[2])).padStart(2, '0');
+      const day = String(parseInt(chineseMatch[3])).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    // 处理斜杠格式，如"2023/5/1"
+    const slashPattern = /(\d{4})\/(\d{1,2})\/(\d{1,2})/;
+    const slashMatch = dateStr.match(slashPattern);
+    if (slashMatch) {
+      const year = slashMatch[1];
+      const month = String(parseInt(slashMatch[2])).padStart(2, '0');
+      const day = String(parseInt(slashMatch[3])).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    // 处理点格式，如"2023.5.1"
+    const dotPattern = /(\d{4})\.(\d{1,2})\.(\d{1,2})/;
+    const dotMatch = dateStr.match(dotPattern);
+    if (dotMatch) {
+      const year = dotMatch[1];
+      const month = String(parseInt(dotMatch[2])).padStart(2, '0');
+      const day = String(parseInt(dotMatch[3])).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
     // 尝试解析其他格式的日期
     try {
       const date = new Date(dateStr);
@@ -318,6 +380,40 @@ const TableTextConverter: React.FC = () => {
               value = isNaN(Number(value)) ? value : Number(value);
             }
             
+            // 特殊字段值处理
+            if (mapping.apiField === 'status_lookup_value_name' && value) {
+              // 标准化员工状态值
+              if (['在职', '正式', '正式员工', '正式职工'].includes(value)) {
+                value = '在职';
+              } else if (['离职', '已离职'].includes(value)) {
+                value = '离职';
+              } else if (['试用', '试用期'].includes(value)) {
+                value = '试用期';
+              }
+            } else if (mapping.apiField === 'gender_lookup_value_name' && value) {
+              // 标准化性别值
+              if (['男', '男性', 'M', 'Male'].includes(value)) {
+                value = '男';
+              } else if (['女', '女性', 'F', 'Female'].includes(value)) {
+                value = '女';
+              }
+            } else if (mapping.apiField === 'bank_name' && value) {
+              // 标准化银行名称
+              if (value.includes('工商') || value.includes('ICBC')) {
+                value = '中国工商银行';
+              } else if (value.includes('建设') || value.includes('CCB')) {
+                value = '中国建设银行';
+              } else if (value.includes('农业') || value.includes('ABC')) {
+                value = '中国农业银行';
+              } else if (value.includes('中行') || value.includes('BOC')) {
+                value = '中国银行';
+              } else if (value.includes('交通') || value.includes('BOCOM')) {
+                value = '交通银行';
+              } else if (value.includes('邮政') || value.includes('PSBC')) {
+                value = '中国邮政储蓄银行';
+              }
+            }
+            
             jsonRow[mapping.apiField] = value || null;
           }
         });
@@ -335,8 +431,30 @@ const TableTextConverter: React.FC = () => {
           typedItem.hire_date = typedItem.first_work_date;
         }
         
+        // 如果没有hire_date，使用当前日期
+        if (!typedItem.hire_date) {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          const day = String(today.getDate()).padStart(2, '0');
+          typedItem.hire_date = `${year}-${month}-${day}`;
+        }
+        
         // 始终将员工状态设置为"在职"，无论是否已提供
         typedItem.status_lookup_value_name = typedItem.status_lookup_value_name || '在职';
+        
+        // 确保必填字段有值
+        if (!typedItem.first_name && !typedItem.last_name && typedItem._fullname) {
+          const { first_name, last_name } = splitName(typedItem._fullname);
+          typedItem.first_name = first_name;
+          typedItem.last_name = last_name;
+        }
+        
+        // 确保身份证号格式正确
+        if (typedItem.id_number) {
+          // 移除空格
+          typedItem.id_number = typedItem.id_number.replace(/\s/g, '');
+        }
         
         return typedItem;
       });

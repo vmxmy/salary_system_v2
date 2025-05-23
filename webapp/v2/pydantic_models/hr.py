@@ -91,6 +91,14 @@ class EmployeeBase(BaseModel):
     # Fields for bank account, to be processed for hr.employee_bank_accounts table
     bank_name: Optional[str] = Field(None, description="Bank name for employee's account")
     bank_account_number: Optional[str] = Field(None, description="Employee's bank account number")
+    
+    # 工资级别相关字段的名称 - 添加到基础模型中以便响应时包含
+    salary_level_lookup_value_id: Optional[int] = Field(None, description="Salary level lookup ID")
+    salary_level_lookup_value_name: Optional[str] = Field(None, description="Salary level name")
+    salary_grade_lookup_value_id: Optional[int] = Field(None, description="Salary grade lookup ID")
+    salary_grade_lookup_value_name: Optional[str] = Field(None, description="Salary grade name")
+    ref_salary_level_lookup_value_id: Optional[int] = Field(None, description="Reference salary level lookup ID")
+    ref_salary_level_lookup_value_name: Optional[str] = Field(None, description="Reference salary level name")
 
 
 class EmployeeCreate(EmployeeBase):
@@ -107,14 +115,6 @@ class EmployeeCreate(EmployeeBase):
     political_status_lookup_value_name: Optional[str] = Field(None, description="Political status name")
     contract_type_lookup_value_name: Optional[str] = Field(None, description="Contract type name")
     
-    # 新增字段 - 工资级别、工资档次、参照正编薪级
-    salary_level_lookup_value_id: Optional[int] = Field(None, description="Salary level lookup ID")
-    salary_level_lookup_value_name: Optional[str] = Field(None, description="Salary level name")
-    salary_grade_lookup_value_id: Optional[int] = Field(None, description="Salary grade lookup ID")
-    salary_grade_lookup_value_name: Optional[str] = Field(None, description="Salary grade name")
-    ref_salary_level_lookup_value_id: Optional[int] = Field(None, description="Reference salary level lookup ID")
-    ref_salary_level_lookup_value_name: Optional[str] = Field(None, description="Reference salary level name")
-
     # Fields for resolving department and position by name
     department_name: Optional[str] = Field(None, description="Department name for resolving department_id")
     position_name: Optional[str] = Field(None, description="Position name for resolving actual_position_id")

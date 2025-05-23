@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { jwtDecode } from 'jwt-decode';
 import { login as apiLogin, getCurrentUser as apiGetCurrentUser, type LoginCredentials } from '../api/auth';
 import type { User, LoginResponse, Role, Permission } from '../api/types';
+import { formatErrorMessage } from '../api/apiClient';
 
 interface DecodedToken {
   sub: string; // Subject (username)
@@ -117,7 +118,8 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
           // console.log('[AuthStore:loginAction] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
         } catch (error: any) {
           // console.error('[AuthStore:loginAction] Login failed.', error);
-          const errorMessage = error.response?.data?.detail || error.message || 'An unknown login error occurred';
+          const errorMessage = formatErrorMessage(error);
+          
           const errorState = {
             ...initialState,
             loginError: errorMessage,
@@ -162,7 +164,8 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
           });
           // console.log('[AuthStore:fetchCurrentUserDetails] Store state AFTER successful set:', JSON.stringify(get(), null, 2));
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch user details';
+          const errorMessage = formatErrorMessage(error);
+          
           // console.error('[AuthStore:fetchCurrentUserDetails] Failed to fetch user details, logging out.', error);
           get().logoutAction();
           const errorStateAfterLogout = { fetchUserError: errorMessage };

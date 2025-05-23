@@ -464,8 +464,31 @@ export const useColumnControl = <T extends object>(
   const mergedOptions = { ...defaultOptions, ...options };
   const storageKey = `${mergedOptions.storageKeyPrefix}_${window.location.pathname}`;
 
+  // 确保每列都有唯一的key，而且是确定性的
+  const getColumnKey = (col: ColumnType<T>, index: number): string => {
+    // 首先尝试获取key
+    if (col.key) return col.key as string;
+    // 如果没有key，尝试获取dataIndex
+    if ('dataIndex' in col) {
+      if (Array.isArray(col.dataIndex)) {
+        return col.dataIndex.join('.');
+      }
+      return String(col.dataIndex);
+    }
+    // 如果都没有，尝试使用title作为fallback
+    if (col.title) {
+      if (typeof col.title === 'string') {
+        return col.title.replace(/\s+/g, '_').toLowerCase();
+      }
+      // 非字符串标题，生成一个基于索引的key
+      return `column_${index}`;
+    }
+    // 最后的后备方案，生成一个基于索引的key
+    return `column_${index}`;
+  };
+
   // 获取所有列的key
-  const allColumnKeys = allColumns.map(col => 'dataIndex' in col ? col.dataIndex as string : col.key as string);
+  const allColumnKeys = allColumns.map((col, index) => getColumnKey(col, index));
   
   // 获取必须显示的列键名
   const requiredColumnKeys = mergedOptions.requiredColumns || [];
@@ -476,13 +499,26 @@ export const useColumnControl = <T extends object>(
     allColumnKeys
   );
 
+  // 添加调试日志
+  useEffect(() => {
+    console.log('TableUtils: Column Control Debug Info', {
+      storageKey,
+      allColumnKeys,
+      requiredColumnKeys,
+      visibleColumnKeys: visibleColumnKeys || allColumnKeys
+    });
+  }, [storageKey, allColumnKeys, requiredColumnKeys, visibleColumnKeys]);
+
   // 确保visibleColumnKeys存在，如果不存在则使用所有列
   const safeVisibleColumnKeys = visibleColumnKeys || allColumnKeys;
   
   // 计算当前应该显示的列
-  const visibleColumns = allColumns.filter(col => {
-    const colKey = 'dataIndex' in col ? col.dataIndex as string : col.key as string;
-    return safeVisibleColumnKeys.includes(colKey);
+  const visibleColumns = allColumns.filter((col, index) => {
+    // 获取列的唯一标识
+    const colKey = getColumnKey(col, index);
+    
+    // 如果是必须显示的列，或者在可见列列表中，则显示
+    return requiredColumnKeys.includes(colKey) || safeVisibleColumnKeys.includes(colKey);
   });
 
   // 列选项组件
@@ -502,14 +538,34 @@ export const useColumnControl = <T extends object>(
     };
 
     const handleApply = () => {
-      setSelectedKeys(tempSelectedKeys);
-      setVisibleColumnKeys(tempSelectedKeys);
+      console.log('TableUtils: Applying column settings', {
+        tempSelectedKeys,
+        allColumnKeys,
+        requiredColumnKeys
+      });
+      
+      // 确保至少有一列被选中，如果全部取消，则恢复所有列
+      const keysToSave = tempSelectedKeys.length > 0 ? tempSelectedKeys : allColumnKeys;
+      
+      setSelectedKeys(keysToSave);
+      setVisibleColumnKeys(keysToSave);
+      
+      // 在下一个微任务中再次记录最终保存的列状态
+      setTimeout(() => {
+        console.log('TableUtils: Saved column settings', {
+          storageKey,
+          savedKeys: keysToSave,
+          storageKeys: window.localStorage.getItem(storageKey)
+        });
+      }, 0);
+      
       message.success(t('common:message.column_settings_applied', '列设置已应用'));
     };
 
     const handleReset = () => {
-      setSelectedKeys(safeVisibleColumnKeys);
-      setVisibleColumnKeys(safeVisibleColumnKeys);
+      setSelectedKeys(allColumnKeys);
+      setTempSelectedKeys(allColumnKeys);
+      setVisibleColumnKeys(allColumnKeys);
       message.success(t('common:message.column_settings_reset', '列设置已重置'));
     };
 
@@ -521,13 +577,20 @@ export const useColumnControl = <T extends object>(
       {
         key: 'columns',
         label: (
-          <div onClick={stopPropagation} style={{ padding: '8px 12px', minWidth: 180 }}>
+          <div onClick={stopPropagation} style={{ padding: '8px 12px', minWidth: 180, maxWidth: 300, maxHeight: 500, overflow: 'auto' }}>
             <div style={{ fontWeight: 500, marginBottom: 8 }}>{mergedOptions.dropdownTitle}</div>
             <Checkbox.Group
-              options={allColumns.map(col => ({
-                label: col.title as React.ReactNode,
-                value: 'dataIndex' in col ? col.dataIndex as string : col.key as string,
-              }))}
+              options={allColumns.map((col, index) => {
+                // 获取列的唯一标识，与上面相同的逻辑
+                const colKey = getColumnKey(col, index);
+                
+                return {
+                  label: col.title as React.ReactNode,
+                  value: colKey,
+                  // 如果是必须显示的列，则禁用选择框
+                  disabled: requiredColumnKeys.includes(colKey)
+                };
+              })}
               value={tempSelectedKeys}
               onChange={handleColumnChange}
               style={{ display: 'flex', flexDirection: 'column' }}
@@ -540,7 +603,7 @@ export const useColumnControl = <T extends object>(
                 </Button>
               )}
               <Button type="primary" size="small" onClick={handleApply}>
-                {mergedOptions.buttonText}
+                {t('common:button.apply', '应用')}
               </Button>
             </Space>
           </div>
@@ -566,6 +629,12 @@ export const useColumnControl = <T extends object>(
   return {
     visibleColumns,
     ColumnControl,
-    resetColumns: () => setVisibleColumnKeys(allColumnKeys)
+    resetColumns: () => setVisibleColumnKeys(allColumnKeys),
+    // 清除列设置本地存储
+    clearColumnStorage: () => {
+      window.localStorage.removeItem(storageKey);
+      setVisibleColumnKeys(allColumnKeys);
+      console.log(`清除了列设置本地存储: ${storageKey}`);
+    }
   };
 }; 

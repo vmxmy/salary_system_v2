@@ -48,6 +48,8 @@ interface DepartmentPageItem extends Department {
   key: React.Key;
   children?: DepartmentPageItem[];
   depth?: number; // 添加深度属性，用于单元格合并逻辑
+  title?: string; // 用于TreeSelect的显示文本
+  value?: number; // 用于TreeSelect的选择值
 }
 
 // Form values might differ slightly, e.g., dates are Dayjs objects
@@ -59,16 +61,96 @@ interface DepartmentFormValues extends Omit<CreateDepartmentPayload, 'effective_
 
 // Helper function to convert flat list to tree structure for AntD Table/TreeSelect
 const buildTreeData = (departments: Department[], parentId: number | null = null, depth: number = 0): DepartmentPageItem[] => {
-  return departments
-    .filter(dept => dept.parent_department_id === parentId)
-    .map(dept => ({
-      ...dept,
-      key: dept.id,
-      title: dept.name, // For TreeSelect
-      value: dept.id,   // For TreeSelect
-      depth: depth,     // 添加深度属性，用于单元格合并逻辑
-      children: buildTreeData(departments, dept.id, depth + 1),
-    }));
+  console.log(`构建树形数据 parentId=${parentId}, depth=${depth}, 数据条数=${departments.length}`);
+  
+  // 检查departments参数是否有效
+  if (!Array.isArray(departments)) {
+    console.error('buildTreeData: departments不是数组', departments);
+    return [];
+  }
+  
+  try {
+    // 特殊处理顶层调用且没有找到根节点的情况
+    if (depth === 0 && parentId === null) {
+      // 首先尝试查找code为"GXQCZ"的高新区财政国资局作为根节点
+      const rootDept = departments.find(dept => dept.code === "GXQCZ");
+      
+      if (rootDept) {
+        console.log('找到指定根节点:', rootDept);
+        const rootItem: DepartmentPageItem = {
+          ...rootDept,
+          key: rootDept.id,
+          title: rootDept.name,
+          value: rootDept.id,
+          depth: 0,
+          children: buildTreeData(departments, rootDept.id, 1) // 递归构建子节点
+        };
+        return [rootItem];
+      }
+      
+      // 如果没有找到指定的根节点，查找所有parent_department_id为null的记录
+      const nullParentDepts = departments.filter(dept => dept.parent_department_id === null);
+      
+      if (nullParentDepts.length > 0) {
+        console.log('找到parent_department_id为null的记录:', nullParentDepts.length);
+        return nullParentDepts.map(dept => ({
+          ...dept,
+          key: dept.id,
+          title: dept.name,
+          value: dept.id,
+          depth: 0,
+          children: buildTreeData(departments, dept.id, 1),
+        }));
+      }
+      
+      // 如果仍未找到根节点，检查是否有特定ID的部门
+      const rootId = 81; // 根据日志显示，所有部门的父ID是81
+      const allRootParentIds = Array.from(new Set(departments
+        .map(dept => dept.parent_department_id)
+        .filter(id => id !== null)));
+      
+      console.log('所有被引用的父部门ID:', allRootParentIds);
+      
+      // 如果找到了被引用但不在当前列表中的父部门ID
+      if (allRootParentIds.length > 0) {
+        // 方案1：将这些父部门ID的子部门直接作为顶层节点显示
+        console.log(`根部门ID=${rootId}不在返回数据中，将其子部门作为顶层节点显示`);
+        const topLevelDepts = departments.filter(dept => dept.parent_department_id === rootId);
+        
+        if (topLevelDepts.length > 0) {
+          return topLevelDepts.map(dept => ({
+            ...dept,
+            key: dept.id,
+            title: dept.name,
+            value: dept.id,
+            depth: 0,
+            children: buildTreeData(departments, dept.id, 1),
+          }));
+        }
+      }
+    }
+    
+    const result = departments
+      .filter(dept => dept.parent_department_id === parentId)
+      .map(dept => ({
+        ...dept,
+        key: dept.id,
+        title: dept.name, // For TreeSelect
+        value: dept.id,   // For TreeSelect
+        depth: depth,     // 添加深度属性，用于单元格合并逻辑
+        children: buildTreeData(departments, dept.id, depth + 1),
+      }));
+      
+    // 如果是顶层调用，打印结果信息
+    if (depth === 0) {
+      console.log(`顶层树形数据构建完成，节点数量: ${result.length}`);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('构建树形数据出错:', error);
+    return [];
+  }
 };
 
 const DepartmentsPage: React.FC = () => {
@@ -101,26 +183,43 @@ const DepartmentsPage: React.FC = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // For tree display, we often fetch all (or a significant chunk) and build the tree client-side
-      // If dataset is huge, server-side pagination for tree nodes would be needed (more complex)
+      // 获取所有部门数据，使用较大的size确保获取所有记录
       const response = await getDepartments({
-        // page: 1, size: 1000, // Fetch a large number for client-side tree building, or implement paginated tree
-        is_active: true, // Optionally filter by active
+        page: 1, 
+        size: 100, // 增加获取数量，确保能获取所有部门
+        is_active: true, // 只获取激活的部门
       });
+      
+      // 添加调试信息
+      console.log('API响应数据:', response);
+      console.log('返回数据条数:', response.data.length);
+      
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+        console.warn('API返回数据为空或格式不正确');
+        setDepartmentsTree([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // 确保数据格式正确
       const treeData = buildTreeData(response.data);
+      console.log('构建的树形数据:', treeData);
+      
       setDepartmentsTree(treeData);
+      
       // Also update flat list if not already fetched or needs refresh
       if (allFlatDepartments.length === 0 || response.data.length > allFlatDepartments.length) {
         setAllFlatDepartments(response.data); // Simple update, could be refined
       }
+      
       // Update total for pagination if it were used for the main table
       setTableParams(prev => ({
         ...prev,
         pagination: { ...prev.pagination, total: response.meta.total },
       }));
     } catch (error) {
+      console.error('获取部门列表失败，详细错误:', error);
       message.error(t('message.fetch_list_error'));
-      console.error('Failed to fetch departments:', error);
     }
     setIsLoading(false);
   }, [allFlatDepartments.length, t]);

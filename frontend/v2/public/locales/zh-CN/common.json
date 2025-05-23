@@ -43,11 +43,13 @@
     "finish": "完成",
     "view_details": "查看详情",
     "refresh": "刷新",
+    "refresh_and_retry": "刷新并重试",
     "next": "下一步",
     "add_child": "添加子项",
     "export_data": "导出数据",
     "column_settings": "列设置",
-    "export_excel": "导出Excel"
+    "export_excel": "导出Excel",
+    "apply": "应用"
   },
   "label": {
     "username": "用户名",
@@ -77,6 +79,11 @@
     "delete": "删除",
     "add_child": "添加子项"
   },
+  "action": {
+    "edit": "编辑",
+    "delete": "删除",
+    "view": "查看"
+  },
   "message": {
     "operation_success": "操作成功",
     "operation_failed": "操作失败",
@@ -98,7 +105,12 @@
     "missing_required_fields_in_tab_param": "在 {tabName} 标签页中有必填字段未填写。"
   },
   "error": {
-    "genericTitle": "发生错误"
+    "genericTitle": "发生错误",
+    "unknown": "未知错误",
+    "database_connection": "数据库连接错误",
+    "server_unavailable": "服务器不可用",
+    "network_error": "网络连接错误",
+    "please_try_again": "请稍后重试"
   },
   "modal": {
     "confirm_delete": {
@@ -172,7 +184,24 @@
   "common": {
     "pagination_total": "第 {start}-{end} 条 / 共 {total} 条",
     "status_na": "不适用",
-    "unknown_status_param": "未知状态参数 (ID: {statusId})"
+    "unknown_status_param": "未知状态参数 (ID: {statusId})",
+    "status": "状态",
+    "actions": "操作",
+    "validation": {
+      "required": "必填项"
+    },
+    "active": "启用",
+    "inactive": "禁用",
+    "description": "描述",
+    "yes": "是",
+    "no": "否",
+    "confirmDelete": "确认删除",
+    "total_items": "总条数",
+    "search": "搜索",
+    "reset": "重置",
+    "min": "最小值",
+    "max": "最大值",
+    "filter": "筛选"
   },
   "payroll_periods_page": {
     "table": {
@@ -245,8 +274,8 @@
     "status": "在职状态",
     "reportsTo": "直接上级",
     "workLocation": "工作地点",
-    "bankName": "开户银行",
-    "bankAccountNumber": "银行卡号",
+    "bankName": "收款人开户银行",
+    "bankAccountNumber": "收款人账号",
     "emergencyContactName": "紧急联系人",
     "emergencyContactPhone": "紧急联系电话",
     "emergencyContactRelation": "与紧急联系人关系"
@@ -304,8 +333,38 @@
   },
   "column_control": {
     "button_text": "列设置",
-    "tooltip_title": "自定义显示列",
+    "tooltip_title": "自定义列",
     "dropdown_title": "列显示",
-    "reset_success": "已重置列设置"
+    "reset_success": "列设置重置成功"
+  },
+  "payroll_components": {
+    "code": "代码",
+    "name": "名称",
+    "type": "类型",
+    "is_taxable": "是否应税",
+    "sort_order": "排序顺序",
+    "title": "工资组成项",
+    "add": "添加工资组成项",
+    "type_earning": "收入项",
+    "type_deduction": "扣除项",
+    "options": "选项",
+    "is_social_security_base": "是否计入社保基数",
+    "is_housing_fund_base": "是否计入公积金基数",
+    "edit": "编辑工资组成项"
+  },
+  "table_converter": {
+    "title": "表格文本转换器",
+    "placeholder": "请粘贴表格文本，格式如：列名1,列名2,列名3...",
+    "parse_table": "解析表格",
+    "field_mapping": "字段映射",
+    "table_field": "表格字段",
+    "api_field": "API字段",
+    "data_type": "数据类型",
+    "convert_to_json": "转换为JSON",
+    "json_result": "JSON结果",
+    "copy_json": "复制JSON",
+    "use_json": "使用此JSON",
+    "json_parse_error": "JSON解析错误，无法使用结果",
+    "ignore_field": "忽略此字段"
   }
 }

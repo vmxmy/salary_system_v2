@@ -46,7 +46,7 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
     try {
       // Fetch all records for client-side pagination in JobHistoryTable by not passing page/pageSize
       // Or pass very large page size if API requires it for "all"
-      const result: JobHistoryPageResult = await employeeService.getEmployeeJobHistory(employeeId, { page: 1, pageSize: 1000 });
+      const result: JobHistoryPageResult = await employeeService.getEmployeeJobHistory(employeeId, { page: 1, pageSize: 100 });
       setJobHistory(result.data);
     } catch (err: any) {
       console.error(t('employee:detail_page.job_history_tab.message.get_history_failed', '获取岗位历史失败:'), err);

@@ -96,7 +96,27 @@ const LoginPage: React.FC = () => {
 
             {loginError && (
               <Form.Item>
-                <Alert message={loginError} type="error" showIcon closable onClose={clearLoginError} />
+                <Alert 
+                  message={t('auth:error.login_failed')} 
+                  description={loginError.includes('服务器错误') ? (
+                    <>
+                      <div>{loginError}</div>
+                      <div style={{ marginTop: 8 }}>
+                        <Button 
+                          type="link" 
+                          size="small" 
+                          onClick={() => window.location.reload()}
+                        >
+                          {t('common:button.refresh_and_retry')}
+                        </Button>
+                      </div>
+                    </>
+                  ) : loginError}
+                  type="error" 
+                  showIcon 
+                  closable 
+                  onClose={clearLoginError} 
+                />
               </Form.Item>
             )}
 

@@ -19,11 +19,13 @@
       "preview_data": "预览解析的数据",
       "uploading_data": "上传数据中",
       "upload_results": "上传结果",
-      "preview_data_count": "预览数据 ({{count}} 条记录)"
+      "preview_data_count": "预览数据 ({{count}} 条记录)",
+      "preview_data_count_summary": "预览数据 (共 {{count}} 条记录，有效 {{valid}} 条，无效 {{invalid}} 条)"
     },
     "button": {
       "parse_and_preview": "解析并预览",
-      "import_another_file": "导入另一个文件"
+      "import_another_file": "导入另一个文件",
+      "upload_validated_records": "上传 {{count}} 条有效记录"
     },
     "placeholder": {
       "paste_json_here": "在此粘贴 JSON 数据",
@@ -48,7 +50,12 @@
       "file_parse_error": "文件解析失败",
       "upload_in_progress": "正在上传数据，请稍候...",
       "upload_success": "成功上传 {{count}} 条员工记录。",
-      "upload_failed_prefix": "批量上传失败: "
+      "upload_failed_prefix": "批量上传失败: ",
+      "upload_failed_no_data_returned": "上传失败：服务器未返回数据",
+      "upload_failed_with_errors": "上传失败，共有 {{count}} 个错误",
+      "upload_failed_with_details": "上传失败，详情请查看错误信息",
+      "upload_attempted_but_no_valid_records_processed_or_returned": "上传尝试完成，但没有有效记录被处理或返回",
+      "file_parsed_with_errors_summary": "文件解析完成，共 {{count}} 条记录，其中 {{errors}} 条有错误"
     },
     "validation": {
       "json_not_array": "JSON数据必须是数组格式。",
@@ -84,6 +91,8 @@
       "personnel_category_name": "人员类别",
       "email": "邮箱",
       "phone_number": "电话号码",
+      "bank_name": "开户行",
+      "bank_account_number": "银行账号",
       "validation_errors": "验证错误"
     }
   },

@@ -19,7 +19,7 @@ export interface GetDepartmentsApiParams {
  * @param apiParams Parameters for pagination, filtering, sorting
  */
 export const getDepartments = async (apiParams: GetDepartmentsApiParams): Promise<DepartmentListResponse> => {
-  const response = await apiClient.get<DepartmentListResponse>('/departments', { params: apiParams });
+  const response = await apiClient.get<DepartmentListResponse>('/departments/', { params: apiParams });
   return response.data;
 };
 
@@ -28,7 +28,7 @@ export const getDepartments = async (apiParams: GetDepartmentsApiParams): Promis
  * @param id The ID of the department
  */
 export const getDepartmentById = async (id: number): Promise<{data: Department}> => {
-  const response = await apiClient.get<{data: Department}>(`/departments/${id}`);
+  const response = await apiClient.get<{data: Department}>(`/departments/${id}/`);
   return response.data;
 };
 
@@ -37,7 +37,7 @@ export const getDepartmentById = async (id: number): Promise<{data: Department}>
  * @param payload Data for creating the department
  */
 export const createDepartment = async (payload: CreateDepartmentPayload): Promise<{data: Department}> => {
-  const response = await apiClient.post<{data: Department}>('/departments', payload);
+  const response = await apiClient.post<{data: Department}>('/departments/', payload);
   return response.data;
 };
 
@@ -47,7 +47,7 @@ export const createDepartment = async (payload: CreateDepartmentPayload): Promis
  * @param payload Data for updating the department
  */
 export const updateDepartment = async (id: number, payload: UpdateDepartmentPayload): Promise<{data: Department}> => {
-  const response = await apiClient.put<{data: Department}>(`/departments/${id}`, payload);
+  const response = await apiClient.put<{data: Department}>(`/departments/${id}/`, payload);
   return response.data;
 };
 
@@ -56,7 +56,7 @@ export const updateDepartment = async (id: number, payload: UpdateDepartmentPayl
  * @param id The ID of the department to delete
  */
 export const deleteDepartment = async (id: number): Promise<void> => {
-  await apiClient.delete(`/departments/${id}`);
+  await apiClient.delete(`/departments/${id}/`);
 };
 
 /**
@@ -72,7 +72,7 @@ export const getAllDepartmentsFlat = async (): Promise<Department[]> => {
 
   do {
     try {
-      const response = await getDepartments({ page: currentPage, size: pageSize, is_active: true }); // Fetch only active for selectors typically
+      const response = await getDepartments({ page: currentPage, size: pageSize, is_active: true }); // 已修改过的getDepartments确保末尾有斜杠
       allDepartments.push(...response.data);
       totalPages = response.meta.totalPages;
       currentPage++;

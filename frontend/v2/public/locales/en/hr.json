@@ -12,31 +12,34 @@
       "preview_data": "Preview Parsed Data",
       "uploading_data": "Uploading Data",
       "upload_results": "Upload Results",
-      "preview_data_count": "Preview Data ({{count}} records)"
+      "preview_data_count": "Preview Data ({{count}} records)",
+      "preview_data_count_summary": "Preview Data ({{count}} total, {{valid}} valid, {{invalid}} invalid)"
     },
     "button": {
       "import_another_file": "Import Another File",
       "parse_and_preview": "Parse and Preview Data",
       "show_error_details": "Show Error Details",
       "hide_error_details": "Hide Error Details",
-      "view_details": "View Details"
+      "view_details": "View Details",
+      "upload_validated_records": "Upload {{count}} Validated Records"
     },
     "placeholder": {
-      "paste_json_here": "Paste JSON data here..."
+      "paste_json_here": "Paste JSON data here...",
+      "json_input": "Enter JSON format employee data"
     },
     "label": {
       "json_input": "JSON Data Input",
       "overwrite_mode": "Overwrite Mode"
     },
     "help": {
-      "json_input": "Please enter JSON data according to the required format",
-      "data_format_guidance_intro": "Please input employee data in the following format",
-      "overwrite_mode": "When enabled, if imported data contains ID numbers matching existing employees, it will overwrite the existing data"
+      "json_input": "Please enter JSON data in the required format",
+      "data_format_guidance_intro": "Please enter employee data in the following format",
+      "overwrite_mode": "When enabled, existing employee records with matching ID numbers will be overwritten"
     },
     "notes": {
-      "json_format_intro": "Please ensure your JSON file or pasted content follows this basic format (refer to documentation for field details):",
-      "refer_to_documentation_for_fields": "For detailed specifications of all required and optional fields, please refer to the project documentation on employee data import.",
-      "preview_warning_max_100": "Note: A maximum of 100 records are shown for preview. All successfully parsed data will be attempted for upload."
+      "json_format_intro": "Please make sure your JSON data is in the expected format.",
+      "refer_to_documentation_for_fields": "Please refer to the documentation for supported fields and format requirements.",
+      "preview_warning_max_100": "Note: Maximum 100 records are shown for preview. All successfully parsed data will be attempted for upload."
     },
     "message": {
       "file_parsed_success": "File parsed successfully, {{count}} records available for preview.",
@@ -93,6 +96,8 @@
       "personnel_category_name": "Personnel Category",
       "email": "Email",
       "phone_number": "Phone Number",
+      "bank_name": "Bank Name",
+      "bank_account_number": "Bank Account Number",
       "validation_errors": "Validation Errors"
     }
   },

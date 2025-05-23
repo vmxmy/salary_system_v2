@@ -12,7 +12,10 @@
       "run_detail": "计算批次详情",
       "payroll_runs": "工资计算批次",
       "payroll_run_detail": "计算批次详情",
-      "payroll_periods": "工资周期管理"
+      "payroll_periods": "工资周期管理",
+      "payroll_entry": "工资录入",
+      "payroll_bulk_import": "批量导入薪资记录",
+      "payroll_components": "薪资字段管理"
     },
     "loading": {
       "periods": "工资周期加载中...",
@@ -521,5 +524,134 @@
       },
       "error_fetch_employee": "获取员工信息失败",
       "error_save": "保存工资明细失败"
+    },
+    "batch_import": {
+      "page_title": "批量导入薪资记录",
+      "error_fetch_components": "获取薪资组件定义失败，使用默认组件",
+      "steps": {
+        "input_data": "输入数据",
+        "preview_data": "预览数据",
+        "upload_progress": "上传进度",
+        "results": "结果"
+      },
+      "card_title": {
+        "select_or_paste_json": "选择或粘贴JSON数据",
+        "preview_data": "预览解析数据",
+        "uploading_data": "上传数据中",
+        "upload_results": "上传结果",
+        "preview_data_count": "预览数据（{{count}}条记录）"
+      },
+      "button": {
+        "import_another_file": "导入另一个文件",
+        "parse_and_preview": "解析并预览数据",
+        "show_error_details": "显示错误详情",
+        "hide_error_details": "隐藏错误详情",
+        "view_details": "查看详情"
+      },
+      "placeholder": {
+        "paste_json_here": "在此粘贴JSON数据...",
+        "enter_json": "请输入符合格式的JSON数据"
+      },
+      "label": {
+        "json_input": "JSON数据输入",
+        "period_selection": "选择薪资周期",
+        "overwrite_mode": "覆盖模式"
+      },
+      "help": {
+        "json_input": "请输入符合格式的JSON数据",
+        "period_selection": "选择要将薪资记录导入到哪个薪资周期",
+        "overwrite_mode": "启用后，如果导入的员工已有薪资记录，将覆盖现有记录",
+        "data_format_guidance_intro": "示例数据格式："
+      },
+      "validation": {
+        "no_data_to_upload": "没有数据可上传",
+        "json_not_array": "JSON数据必须是数组格式",
+        "employee_id_required": "员工ID必填",
+        "employee_name_required": "员工姓名必填",
+        "invalid_amount": "{{record}}中{{field}}的金额格式无效",
+        "net_pay_mismatch": "{{record}}中净工资计算不匹配",
+        "earnings_required": "必须提供至少一项收入明细",
+        "total_earnings_mismatch": "{{record}}中收入明细总和与总收入不匹配",
+        "total_deductions_mismatch": "{{record}}中扣除明细总和与总扣除不匹配",
+        "no_valid_data_to_upload": "没有有效数据可上传",
+        "period_required": "必须选择一个薪资周期"
+      },
+      "message": {
+        "file_parsed_success": "成功解析{{count}}条记录",
+        "file_parse_error": "解析文件时出错",
+        "upload_in_progress": "正在上传数据，请稍候...",
+        "upload_success": "成功上传{{count}}条记录",
+        "upload_failed": "上传失败",
+        "upload_failed_prefix": "上传失败：",
+        "upload_failed_with_details": "上传失败，请查看详细信息",
+        "upload_failed_with_errors": "上传失败，有{{count}}个错误",
+        "table_converted_success": "成功从表格转换了{{count}}条薪资记录"
+      },
+      "results": {
+        "all_success": "成功导入所有{{count}}条记录",
+        "partial_success": "部分成功：{{success}}条记录导入成功，{{error}}条记录失败",
+        "all_failed_at_server": "所有{{count}}条记录导入失败",
+        "no_records_processed_at_server": "没有记录被处理"
+      },
+      "results_table": {
+        "employee_id": "员工ID",
+        "employee_name": "员工姓名",
+        "error_message": "错误信息",
+        "title_failed_records": "导入失败的记录",
+        "title_successfully_imported_records_preview": "成功导入的记录预览"
+      },
+      "table_header": {
+        "employee_id": "员工ID",
+        "employee_name": "员工姓名",
+        "department": "部门",
+        "position": "职位",
+        "total_earnings": "总收入",
+        "total_deductions": "总扣除",
+        "net_pay": "净工资",
+        "status": "状态",
+        "remarks": "备注",
+        "validation_errors": "验证错误"
+      },
+      "notes": {
+        "preview_warning_max_100": "注意：为了性能考虑，仅显示前100条记录。",
+        "refer_to_documentation_for_fields": "请参考文档了解更多字段信息。"
+      },
+      "tab": {
+        "table_input": "表格输入",
+        "json_input": "JSON输入"
+      },
+      "table_converter": {
+        "title": "表格文本转换器",
+        "placeholder": "请粘贴表格文本，格式如：序号,员工ID,姓名,部门,总收入,总扣除,净工资,...",
+        "parse_table": "解析表格",
+        "field_mapping": "字段映射",
+        "table_field": "表格字段",
+        "api_field": "API字段",
+        "data_type": "数据类型",
+        "convert_to_json": "转换为JSON",
+        "json_result": "JSON结果",
+        "copy_json": "复制JSON",
+        "use_json": "使用此JSON",
+        "json_parse_error": "JSON解析错误，无法使用结果",
+        "ignore_field": "忽略此字段"
+      }
+    },
+    "payroll_components": {
+      "title": "薪资字段管理",
+      "add": "添加字段",
+      "edit": "编辑字段",
+      "code": "编码",
+      "name": "名称", 
+      "type": "类型",
+      "type_earning": "收入项",
+      "type_deduction": "扣除项",
+      "is_taxable": "是否计税",
+      "is_social_security_base": "社保基数项",
+      "is_housing_fund_base": "公积金基数项",
+      "sort_order": "排序顺序",
+      "options": "选项设置",
+      "create_success": "字段创建成功",
+      "update_success": "字段更新成功",
+      "delete_success": "字段删除成功"
     }
   }

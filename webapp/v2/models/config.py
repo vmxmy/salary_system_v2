@@ -56,7 +56,7 @@ class SystemParameter(BaseV2):
 class PayrollComponentDefinition(BaseV2):
     __tablename__ = 'payroll_component_definitions'
     __table_args__ = (
-        CheckConstraint("type IN ('Earning', 'Deduction')", name='chk_payroll_component_type'),
+        CheckConstraint("type IN ('EARNING', 'DEDUCTION', 'PERSONAL_DEDUCTION', 'EMPLOYER_DEDUCTION', 'BENEFIT', 'STATUTORY', 'STAT', 'OTHER', 'CALCULATION_BASE', 'CALCULATION_RATE', 'CALCULATION_RESULT', 'TAX')", name='chk_payroll_component_type'),
         {'schema': 'config'}
     )
 

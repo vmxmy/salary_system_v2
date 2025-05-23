@@ -14,8 +14,10 @@ export interface PayrollPeriod {
   name: string;
   start_date: string; // ISO date string
   end_date: string; // ISO date string
-  status_lookup_value_id?: number; // Assuming status is a lookup
-  status?: LookupValue; // Optional: if status details are fetched/included
+  pay_date: string; // ISO date string
+  frequency_lookup_value_id: number;
+  status_lookup_value_id?: number; // 关联到lookup表的状态ID
+  status_lookup?: LookupValue; // 状态的lookup值详情
   created_at?: string;
   updated_at?: string;
 }
@@ -112,12 +114,13 @@ export interface PayrollEntryPatch {
 // This might already exist in a global types file, if so, import it.
 export interface LookupValue {
   id: number;
-  lookup_type_code: string;
-  value_code: string;
-  display_name: string;
-  description?: string;
-  sort_order?: number;
-  is_active?: boolean;
+  lookup_type_id?: number;
+  lookup_type_code?: string;
+  value_code: string;      // 例如：'ACTIVE', 'CLOSED'
+  display_name: string;    // 显示名称，例如：'活动', '已关闭'
+  description?: string;    // 描述
+  sort_order?: number;     // 排序顺序
+  is_active?: boolean;     // 是否活动
 }
 
 // Example for API responses that return a single item
@@ -136,14 +139,59 @@ export interface PayrollComponentDefinition {
   id: number;
   code: string; // Unique code for the component, e.g., "BASIC_SALARY", "HOUSING_ALLOWANCE"
   name: string; // Display name, e.g., "Basic Salary", "Housing Allowance"
-  type: 'EARNING' | 'DEDUCTION' | 'BENEFIT' | 'STATUTORY' | 'OTHER'; // Component type
-  data_type: 'numeric' | 'percentage' | 'boolean' | 'string'; // Data type of the component's value
-  is_fixed: boolean; // Is the value fixed system-wide or employee-specific/variable?
-  is_employee_specific: boolean; // Does this component apply to specific employees only?
-  is_enabled: boolean; // Is this component currently active/enabled?
+  type: 'Earning' | 'Deduction' | 'EARNING' | 'DEDUCTION' | 'PERSONAL_DEDUCTION' | 'EMPLOYER_DEDUCTION' | 'BENEFIT' | 'STATUTORY' | 'STAT' | 'OTHER'; // Component type
+  data_type?: 'numeric' | 'percentage' | 'boolean' | 'string'; // Data type of the component's value
+  is_fixed?: boolean; // Is the value fixed system-wide or employee-specific/variable?
+  is_employee_specific?: boolean; // Does this component apply to specific employees only?
+  is_enabled: boolean; // Is this component currently active/enabled? (replaces deprecated status field)
+  is_taxable?: boolean; // 是否计税
+  is_social_security_base?: boolean; // 是否为社保基数项
+  is_housing_fund_base?: boolean; // 是否为公积金基数项
   sort_order?: number; // For ordering in UI if needed
   description?: string; // Optional detailed description
   calculation_logic?: string; // Optional: if there's specific logic tied to it (e.g., formula placeholder)
   created_at?: string;
   updated_at?: string;
+} 
+
+// Raw payroll entry data for bulk import
+export interface RawPayrollEntryData {
+  _clientId?: string;
+  employee_id: number;
+  employee_name?: string;
+  department_name?: string;
+  position_name?: string;
+  total_earnings: number;
+  total_deductions: number;
+  net_pay: number;
+  status_lookup_value_id?: number;
+  status_lookup_value_name?: string;
+  remarks?: string;
+  earnings_details: Record<string, { amount: number, name?: string }>;
+  deductions_details?: Record<string, { amount: number, name?: string }>;
+  validationErrors?: string[];
+  originalIndex?: number;
+}
+
+// Interface for validated payroll entry data
+export interface ValidatedPayrollEntryData extends RawPayrollEntryData {}
+
+// Payload for creating payroll entries
+export interface CreatePayrollEntryPayload {
+  employee_id: number;
+  payroll_run_id: number;
+  total_earnings: number;
+  total_deductions: number;
+  net_pay: number;
+  status_lookup_value_id: number;
+  remarks?: string;
+  earnings_details: Record<string, { amount: number, name?: string }>;
+  deductions_details?: Record<string, { amount: number, name?: string }>;
+}
+
+// Payload for bulk creating payroll entries
+export interface BulkCreatePayrollEntriesPayload {
+  payroll_period_id: number;
+  entries: CreatePayrollEntryPayload[];
+  overwrite_mode?: boolean;
 } 

@@ -4,7 +4,13 @@
     "calculation": "Payroll Calculation",
     "periods": "Payroll Period Management",
     "runs": "Payroll Calculation Runs",
-    "run_detail": "Calculation Run Detail"
+    "run_detail": "Calculation Run Detail",
+    "payroll_runs": "Payroll Runs",
+    "payroll_run_detail": "Payroll Run Detail",
+    "payroll_periods": "Payroll Periods",
+    "payroll_entry": "Payroll Entry",
+    "payroll_bulk_import": "Bulk Import Payroll Records",
+    "payroll_components": "Payroll Components Management"
   },
   "loading": {
     "periods": "Loading payroll periods...",
@@ -447,5 +453,133 @@
     },
     "error_fetch_periods": "Failed to fetch payroll periods",
     "error_fetch_entries": "Failed to fetch payroll entries"
+  },
+  "batch_import": {
+    "page_title": "Bulk Import Payroll Records",
+    "steps": {
+      "input_data": "Input Data",
+      "preview_data": "Preview Data",
+      "upload_progress": "Upload Progress",
+      "results": "Results"
+    },
+    "card_title": {
+      "select_or_paste_json": "Select or Paste JSON Data",
+      "preview_data": "Preview Parsed Data",
+      "uploading_data": "Uploading Data",
+      "upload_results": "Upload Results",
+      "preview_data_count": "Preview Data ({{count}} records)"
+    },
+    "button": {
+      "import_another_file": "Import Another File",
+      "parse_and_preview": "Parse and Preview Data",
+      "show_error_details": "Show Error Details",
+      "hide_error_details": "Hide Error Details",
+      "view_details": "View Details"
+    },
+    "placeholder": {
+      "paste_json_here": "Paste JSON data here...",
+      "enter_json": "Enter JSON data in the required format"
+    },
+    "label": {
+      "json_input": "JSON Data Input",
+      "period_selection": "Select Payroll Period",
+      "overwrite_mode": "Overwrite Mode"
+    },
+    "help": {
+      "json_input": "Please enter JSON data in the required format",
+      "period_selection": "Select which payroll period to import records into",
+      "overwrite_mode": "When enabled, existing payroll records for employees will be overwritten",
+      "data_format_guidance_intro": "Example data format:"
+    },
+    "validation": {
+      "no_data_to_upload": "No data to upload",
+      "json_not_array": "JSON data must be an array",
+      "employee_id_required": "Employee ID is required",
+      "employee_name_required": "Employee name is required",
+      "invalid_amount": "Invalid amount format for {{field}} in {{record}}",
+      "net_pay_mismatch": "Net pay calculation doesn't match in {{record}}",
+      "earnings_required": "At least one earnings item is required",
+      "total_earnings_mismatch": "Sum of earnings details doesn't match total earnings in {{record}}",
+      "total_deductions_mismatch": "Sum of deductions details doesn't match total deductions in {{record}}",
+      "no_valid_data_to_upload": "No valid data to upload",
+      "period_required": "A payroll period must be selected"
+    },
+    "message": {
+      "file_parsed_success": "Successfully parsed {{count}} records",
+      "file_parse_error": "Error parsing file",
+      "upload_in_progress": "Uploading data, please wait...",
+      "upload_success": "Successfully uploaded {{count}} records",
+      "upload_failed": "Upload failed",
+      "upload_failed_prefix": "Upload failed: ",
+      "upload_failed_with_details": "Upload failed, see details",
+      "upload_failed_with_errors": "Upload failed with {{count}} errors",
+      "table_converted_success": "Successfully converted {{count}} payroll records from table"
+    },
+    "results": {
+      "all_success": "Successfully imported all {{count}} records",
+      "partial_success": "Partial success: {{success}} records imported successfully, {{error}} records failed",
+      "all_failed_at_server": "All {{count}} records failed to import",
+      "no_records_processed_at_server": "No records were processed"
+    },
+    "results_table": {
+      "employee_id": "Employee ID",
+      "employee_name": "Employee Name",
+      "error_message": "Error Message",
+      "title_failed_records": "Failed Records",
+      "title_successfully_imported_records_preview": "Successfully Imported Records Preview"
+    },
+    "table_header": {
+      "employee_id": "Employee ID",
+      "employee_name": "Employee Name",
+      "department": "Department",
+      "position": "Position",
+      "total_earnings": "Total Earnings",
+      "total_deductions": "Total Deductions",
+      "net_pay": "Net Pay",
+      "status": "Status",
+      "remarks": "Remarks",
+      "validation_errors": "Validation Errors"
+    },
+    "notes": {
+      "preview_warning_max_100": "Note: Only showing up to 100 records for performance reasons.",
+      "refer_to_documentation_for_fields": "Please refer to documentation for more information on fields."
+    },
+    "tab": {
+      "table_input": "Table Input",
+      "json_input": "JSON Input"
+    },
+    "table_converter": {
+      "title": "Table Text Converter",
+      "placeholder": "Paste table text here, format: No.,Employee ID,Name,Department,Total Earnings,Total Deductions,Net Pay,...",
+      "parse_table": "Parse Table",
+      "field_mapping": "Field Mapping",
+      "table_field": "Table Field",
+      "api_field": "API Field",
+      "data_type": "Data Type",
+      "convert_to_json": "Convert to JSON",
+      "json_result": "JSON Result",
+      "copy_json": "Copy JSON",
+      "use_json": "Use This JSON",
+      "json_parse_error": "JSON parse error, cannot use result",
+      "ignore_field": "Ignore this field"
+    }
+  },
+  "payroll_components": {
+    "title": "Payroll Components Management",
+    "add": "Add Component",
+    "edit": "Edit Component",
+    "code": "Code",
+    "name": "Name", 
+    "type": "Type",
+    "type_earning": "Earning",
+    "type_deduction": "Deduction",
+    "is_taxable": "Taxable",
+    "is_social_security_base": "Social Security Base",
+    "is_housing_fund_base": "Housing Fund Base",
+    "sort_order": "Sort Order",
+    "options": "Options",
+    "create_success": "Component created successfully",
+    "update_success": "Component updated successfully",
+    "delete_success": "Component deleted successfully"
   }
 }

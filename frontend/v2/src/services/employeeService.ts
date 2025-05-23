@@ -473,8 +473,8 @@ export const employeeService = {
     if (!ids || ids.length === 0) return {};
     
     try {
-      // 避免查询参数过长，每次查询最多50个员工ID
-      const batchSize = 50;
+      // 避免查询参数过长，每次查询最多200个员工ID
+      const batchSize = 200;
       const employeeMap: Record<string, Employee> = {};
       
       // 分批处理员工ID

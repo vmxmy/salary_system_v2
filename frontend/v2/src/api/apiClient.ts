@@ -1,6 +1,44 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore'; // For accessing the auth token
 
+// 工具函数：检测和处理网络连接或服务器错误
+export const isServerUnavailableError = (error: any): boolean => {
+  // 检查网络连接错误（服务器完全不可用）
+  if (!error.response && error.message && (
+    error.message.includes('Network Error') || 
+    error.message.includes('Failed to fetch') ||
+    error.message.includes('connect ECONNREFUSED')
+  )) {
+    return true;
+  }
+  
+  // 检查服务器内部错误
+  if (error.response && error.response.status === 500) {
+    return true;
+  }
+  
+  return false;
+};
+
+// 格式化错误消息，确保始终返回字符串
+export const formatErrorMessage = (error: any): string => {
+  if (isServerUnavailableError(error)) {
+    return '服务器错误：可能是数据库未启动或后端服务不可用，请联系系统管理员。';
+  }
+  
+  if (error.response?.data?.detail) {
+    return typeof error.response.data.detail === 'string'
+      ? error.response.data.detail
+      : JSON.stringify(error.response.data.detail);
+  }
+  
+  if (error.message) {
+    return String(error.message);
+  }
+  
+  return '发生未知错误';
+};
+
 // Define authentication verification URLs
 const AUTH_VERIFICATION_URLS: string[] = [
     '/v2/users/', // Example: Get current user details
@@ -31,28 +69,25 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       // Added for diagnostics
-      console.log(`ApiClient Request: ${config.method?.toUpperCase()} ${config.url}`); 
-      console.log('ApiClient: Attaching token (first 10 chars):', token.substring(0, 10)); 
+      console.log(`ApiClient请求: ${config.method?.toUpperCase()} ${config.url}`); 
     } else {
       // Added for diagnostics
-      console.warn(`ApiClient Request (no auth): ${config.method?.toUpperCase()} ${config.url}`);
+      console.warn(`ApiClient未认证请求: ${config.method?.toUpperCase()} ${config.url}`);
     }
     
-    // 记录请求详情（仅开发环境）
-    if (process.env.NODE_ENV === 'development') {
-      console.log('ApiClient Request Details:', {
-        url: config.url,
-        method: config.method,
-        headers: config.headers,
-        data: config.data,
-        params: config.params
-      });
-    }
+    // 记录请求详情
+    console.log('ApiClient请求详情:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data,
+      params: config.params
+    });
     
     return config;
   },
   (error) => {
-    console.error('ApiClient Request Error:', error);
+    console.error('ApiClient请求错误:', error);
     return Promise.reject(error);
   }
 );
@@ -60,23 +95,21 @@ apiClient.interceptors.request.use(
 // Optional: Response interceptor for global error handling (e.g., 401 redirects)
 apiClient.interceptors.response.use(
   (response) => {
-    // 记录成功响应详情（仅开发环境）
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`ApiClient Response (${response.status}) for ${response.config.method?.toUpperCase()} ${response.config.url}:`, 
-        { headers: response.headers, data: response.data });
-    }
+    // 记录成功响应详情
+    console.log(`ApiClient响应成功 (${response.status}) 请求: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    console.log('响应数据:', response.data);
     return response;
   },
   async (error) => {
     // 记录错误响应详情
     if (error.response) {
-      const { status, data, headers, config } = error.response;
-      console.error(`ApiClient Error (${status}) for ${config.method?.toUpperCase()} ${config.url}:`, 
-        { data, headers });
+      const { status, data, config } = error.response;
+      console.error(`ApiClient错误 (${status}) 请求: ${config.method?.toUpperCase()} ${config.url}`);
+      console.error('错误详情:', { data, url: config.url, method: config.method });
         
       // 特殊处理404错误
       if (status === 404) {
-        console.error('HTTP 404 Not Found Error:', {
+        console.error('HTTP 404 资源不存在:', {
           url: config.url,
           method: config.method,
           message: '请求的资源不存在，请检查API路径是否正确',
@@ -85,23 +118,23 @@ apiClient.interceptors.response.use(
       }
       // 特殊处理405错误
       else if (status === 405) {
-        console.error('HTTP 405 Method Not Allowed Error:', {
+        console.error('HTTP 405 方法不允许:', {
           url: config.url,
           method: config.method,
-          allowedMethods: headers['allow'] || 'Not specified',
+          allowedMethods: error.response.headers['allow'] || 'Not specified',
           requestData: config.data
         });
       }
     } else if (error.request) {
       // 请求已发送但未收到响应
-      console.error('ApiClient No Response Error:', {
+      console.error('ApiClient未收到响应:', {
         url: error.config?.url,
         method: error.config?.method,
         message: error.message
       });
     } else {
       // 设置请求时发生错误
-      console.error('ApiClient Request Setup Error:', error.message);
+      console.error('ApiClient请求配置错误:', error.message);
     }
     
     // 处理401未授权错误

@@ -34,7 +34,9 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation
 import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Standard image import
 
 // Import payroll permissions
-import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW, P_PAYROLL_ENTRY_VIEW } from '../pages/Payroll/constants/payrollPermissions';
+import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW, P_PAYROLL_ENTRY_VIEW, P_PAYROLL_ENTRY_BULK_IMPORT, P_PAYROLL_COMPONENT_VIEW } from '../pages/Payroll/constants/payrollPermissions';
+// Import Manager permissions
+import { P_MANAGER_SUBORDINATES_VIEW, P_MANAGER_LEAVE_APPROVALS_VIEW } from '../pages/Manager/routes';
 
 const { Header, Content, Sider, Footer } = Layout;
 const { Text } = Typography;
@@ -344,13 +346,13 @@ const MainLayout: React.FC = () => {
     
     // Potentially add other HR related sub-menu items here, e.g., Leave Management
     // Example for Leave Management, if it's to be a sub-menu of HR and not top-level:
-    // if (hasPermission('leave:manage')) { // Or appropriate permission for leave management visibility
-    //   children.push({
-    //     key: '/hr/leave', 
-    //     label: <Link to="/hr/leave">{t('pageTitle:leave_management')}</Link>,
-    //     icon: <CalendarOutlined />,
-    //   });
-    // }
+    if (hasPermission('leave:manage')) { // Or appropriate permission for leave management visibility
+      children.push({
+        key: '/hr/leave', 
+        label: <Link to="/hr/leave">{t('pageTitle:leave_management')}</Link>,
+        icon: <CalendarOutlined />,
+      });
+    }
 
     return children;
   }, [t, ready, hasPermission]); // Added hasPermission to dependency array
@@ -397,6 +399,7 @@ const MainLayout: React.FC = () => {
       },
     ];
 
+    // 在构建薪资管理菜单项的部分添加薪资字段管理
     const currentPayrollManagementChildren = [];
     if (hasPermission(P_PAYROLL_PERIOD_VIEW)) {
       currentPayrollManagementChildren.push({
@@ -420,7 +423,25 @@ const MainLayout: React.FC = () => {
         icon: <EditOutlined />,
       });
     }
-
+    
+    // Add payroll bulk import menu item
+    if (hasPermission(P_PAYROLL_ENTRY_BULK_IMPORT)) {
+      currentPayrollManagementChildren.push({
+        key: '/finance/payroll/bulk-import',
+        label: <Link to="/finance/payroll/bulk-import">{t('payroll:page_title.payroll_bulk_import')}</Link>,
+        icon: <UploadOutlined />,
+      });
+    }
+    
+    // Add payroll components management menu item
+    if (hasPermission(P_PAYROLL_COMPONENT_VIEW)) {
+      currentPayrollManagementChildren.push({
+        key: '/finance/payroll/components',
+        label: <Link to="/finance/payroll/components">{t('payroll:page_title.payroll_components')}</Link>,
+        icon: <ProfileOutlined />,
+      });
+    }
+    
     const currentPayrollManagementMenuItem = currentPayrollManagementChildren.length > 0 ? {
       key: '/finance/payroll',
       label: t('pageTitle:payroll_management'), // Top level menu item for payroll
@@ -428,10 +449,47 @@ const MainLayout: React.FC = () => {
       children: currentPayrollManagementChildren,
     } : null;
 
-    if (currentPayrollManagementMenuItem) {
-      return [...baseItems, currentPayrollManagementMenuItem];
+    // 创建经理模块的菜单项
+    const managerChildren = [];
+
+    // 添加下属管理菜单项
+    if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
+      managerChildren.push({
+        key: '/manager/subordinates',
+        label: <Link to="/manager/subordinates">{t('pageTitle:subordinates')}</Link>,
+        icon: <TeamOutlined />,
+      });
     }
-    return baseItems;
+
+    // 添加请假审批菜单项
+    if (hasPermission(P_MANAGER_LEAVE_APPROVALS_VIEW)) {
+      managerChildren.push({
+        key: '/manager/leave-approvals',
+        label: <Link to="/manager/leave-approvals">{t('pageTitle:leave_approvals')}</Link>,
+        icon: <CalendarOutlined />,
+      });
+    }
+
+    // 如果有子菜单项，则返回经理视图菜单项
+    const managerMenuItem = managerChildren.length > 0 ? {
+      key: '/manager',
+      label: t('pageTitle:manager_view'),
+      icon: <UserSwitchOutlined />,
+      children: managerChildren,
+    } : null;
+
+    // 构建最终菜单项
+    const finalItems = [...baseItems];
+    
+    if (currentPayrollManagementMenuItem) {
+      finalItems.push(currentPayrollManagementMenuItem);
+    }
+    
+    if (managerMenuItem) {
+      finalItems.push(managerMenuItem);
+    }
+    
+    return finalItems;
   }, [hasPermission, userPermissions, userRoleCodes, adminChildren, organizationMenuItem, hrManagementMenuItem, t, ready]); // Added t and ready
   
   // 获取当前选中的菜单项key

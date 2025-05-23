@@ -113,9 +113,36 @@ async def get_employees(
             pc_name = emp_orm.personnel_category.name if emp_orm.personnel_category else None
             actual_pos_name = emp_orm.actual_position.name if emp_orm.actual_position else None
             
+            # Process bank account information (similar to single employee API)
+            primary_bank_account_orm = None
+            if emp_orm.bank_accounts: # This is the relationship field on Employee ORM model
+                # Attempt to find the primary bank account
+                for acc_orm in emp_orm.bank_accounts:
+                    if acc_orm.is_primary:
+                        primary_bank_account_orm = acc_orm
+                        break
+                if not primary_bank_account_orm and emp_orm.bank_accounts: # If no primary, take the first one
+                    primary_bank_account_orm = emp_orm.bank_accounts[0]
+
+            # Get employee data as dict and add bank account information
+            employee_data = employee_pydantic.model_dump()
+            
+            if primary_bank_account_orm:
+                employee_data['bank_name'] = primary_bank_account_orm.bank_name
+                employee_data['bank_account_number'] = primary_bank_account_orm.account_number
+            else:
+                # Ensure these are explicitly None if not found
+                employee_data['bank_name'] = None
+                employee_data['bank_account_number'] = None
+            
+            # 添加工资相关字段的名称填充
+            employee_data['salary_level_lookup_value_name'] = emp_orm.salary_level.name if emp_orm.salary_level else None
+            employee_data['salary_grade_lookup_value_name'] = emp_orm.salary_grade.name if emp_orm.salary_grade else None
+            employee_data['ref_salary_level_lookup_value_name'] = emp_orm.ref_salary_level.name if emp_orm.ref_salary_level else None
+            
             # Create EmployeeWithNames instance
             employee_with_names_instance = EmployeeWithNames(
-                **employee_pydantic.model_dump(), 
+                **employee_data, 
                 departmentName=dept_name,
                 personnelCategoryName=pc_name, # Corresponds to old job_title_name
                 actualPositionName=actual_pos_name

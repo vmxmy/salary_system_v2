@@ -2,9 +2,12 @@
 工资相关的Pydantic模型。
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal, ForwardRef
 from datetime import date, datetime
 from decimal import Decimal
+
+# 导入LookupValue模型
+from .config import LookupValue
 
 # Helper model for detail items in create/update payloads
 class PayrollItemInput(BaseModel):
@@ -19,6 +22,7 @@ class PayrollPeriodBase(BaseModel):
     end_date: date = Field(..., description="Period end date")
     pay_date: date = Field(..., description="Date when payment is scheduled/made")
     frequency_lookup_value_id: int = Field(..., description="Foreign key to pay frequency lookup value")
+    status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to status lookup value")
 
 
 class PayrollPeriodCreate(PayrollPeriodBase):
@@ -33,11 +37,21 @@ class PayrollPeriodUpdate(BaseModel):
     end_date: Optional[date] = Field(None, description="Period end date")
     pay_date: Optional[date] = Field(None, description="Date when payment is scheduled/made")
     frequency_lookup_value_id: Optional[int] = Field(None, description="Foreign key to pay frequency lookup value")
+    status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to status lookup value")
 
 
 class PayrollPeriod(PayrollPeriodBase):
     """工资周期响应模型"""
     id: int = Field(..., description="Primary key")
+    
+    # 添加状态关联对象
+    status: Optional[LookupValue] = Field(None, description="Status lookup value details")
+    
+    @classmethod
+    def from_orm(cls, db_obj):
+        """从ORM模型创建Pydantic模型实例"""
+        # 不再需要旧字段兼容处理，直接调用父类方法
+        return super().from_orm(db_obj)
 
     class Config:
         from_attributes = True
@@ -172,6 +186,102 @@ class PayrollEntry(PayrollEntryBase):
 class PayrollEntryListResponse(BaseModel):
     """工资明细列表响应模型"""
     data: List[PayrollEntry]
+    meta: Dict[str, Any] = Field(
+        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
+    )
+
+
+# PayrollComponentDefinition Models
+class PayrollComponentDefinitionBase(BaseModel):
+    """薪资组件定义基础模型"""
+    code: str = Field(..., description="组件唯一编码，如'BASIC_SALARY'，'HOUSING_ALLOWANCE'")
+    name: str = Field(..., description="显示名称，如'基本工资'，'住房津贴'")
+    type: Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
+                 "BENEFIT", "STATUTORY", "STAT", "OTHER",
+                 "CALCULATION_BASE", "CALCULATION_RATE", "CALCULATION_RESULT", "TAX"] = Field(..., description="组件类型")
+    calculation_method: Optional[str] = Field(None, description="计算方法代码")
+    calculation_parameters: Optional[Dict[str, Any]] = Field(None, description="计算参数")
+    is_taxable: bool = Field(..., description="是否应税")
+    is_social_security_base: bool = Field(..., description="是否计入社保基数")
+    is_housing_fund_base: bool = Field(..., description="是否计入公积金基数")
+    display_order: int = Field(..., description="显示顺序")
+    is_active: bool = Field(..., description="是否启用")
+    effective_date: date = Field(..., description="生效日期")
+    end_date: Optional[date] = Field(None, description="结束日期")
+
+
+class PayrollComponentDefinitionCreate(PayrollComponentDefinitionBase):
+    """创建薪资组件定义模型"""
+    pass
+
+
+class PayrollComponentDefinitionUpdate(BaseModel):
+    """更新薪资组件定义模型"""
+    code: Optional[str] = Field(None, description="组件唯一编码")
+    name: Optional[str] = Field(None, description="显示名称")
+    type: Optional[Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
+                         "BENEFIT", "STATUTORY", "STAT", "OTHER",
+                         "CALCULATION_BASE", "CALCULATION_RATE", "CALCULATION_RESULT", "TAX"]] = Field(None, description="组件类型")
+    calculation_method: Optional[str] = Field(None, description="计算方法代码")
+    calculation_parameters: Optional[Dict[str, Any]] = Field(None, description="计算参数")
+    is_taxable: Optional[bool] = Field(None, description="是否应税")
+    is_social_security_base: Optional[bool] = Field(None, description="是否计入社保基数")
+    is_housing_fund_base: Optional[bool] = Field(None, description="是否计入公积金基数")
+    display_order: Optional[int] = Field(None, description="显示顺序")
+    is_active: Optional[bool] = Field(None, description="是否启用")
+    effective_date: Optional[date] = Field(None, description="生效日期")
+    end_date: Optional[date] = Field(None, description="结束日期")
+
+
+class PayrollComponentDefinition(PayrollComponentDefinitionBase):
+    """薪资组件定义响应模型"""
+    id: int = Field(..., description="主键ID")
+    # 前端需要的额外字段
+    data_type: Literal["numeric", "percentage", "boolean", "string"] = Field("numeric", description="数据类型")
+    is_fixed: bool = Field(False, description="是否为固定值")
+    is_employee_specific: bool = Field(True, description="是否员工特定")
+    is_enabled: bool = Field(..., description="是否启用，等同于is_active")
+    sort_order: int = Field(..., description="排序顺序，等同于display_order")
+    description: Optional[str] = Field(None, description="详细描述")
+    calculation_logic: Optional[str] = Field(None, description="计算逻辑")
+    created_at: Optional[datetime] = Field(None, description="创建时间")
+    updated_at: Optional[datetime] = Field(None, description="更新时间")
+
+    class Config:
+        from_attributes = True
+        
+    # 将数据库字段映射到前端期望的字段
+    @classmethod
+    def from_db_model(cls, db_model):
+        """从数据库模型转换为API响应模型"""
+        return cls(
+            id=db_model.id,
+            code=db_model.code,
+            name=db_model.name,
+            type=db_model.type,
+            calculation_method=db_model.calculation_method,
+            calculation_parameters=db_model.calculation_parameters,
+            is_taxable=db_model.is_taxable,
+            is_social_security_base=db_model.is_social_security_base,
+            is_housing_fund_base=db_model.is_housing_fund_base,
+            display_order=db_model.display_order,
+            is_active=db_model.is_active,
+            effective_date=db_model.effective_date,
+            end_date=db_model.end_date,
+            # 额外前端需要的字段
+            data_type="numeric",  # 默认为numeric类型
+            is_fixed=False,       # 默认为非固定
+            is_employee_specific=True,  # 默认为员工特定
+            is_enabled=db_model.is_active,  # 等同于is_active
+            sort_order=db_model.display_order,  # 等同于display_order
+            description=None,     # 暂无描述字段
+            calculation_logic=db_model.calculation_method  # 计算方法作为计算逻辑
+        )
+
+
+class PayrollComponentDefinitionListResponse(BaseModel):
+    """薪资组件定义列表响应模型"""
+    data: List[PayrollComponentDefinition]
     meta: Dict[str, Any] = Field(
         default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
     )

@@ -271,6 +271,27 @@ const EmployeeBulkImportPage: React.FC = () => {
         return apiPayload as CreateEmployeePayload; 
       });
 
+      // 添加详细日志以便调试
+      console.log("[BULK IMPORT DEBUG] 原始提交数据中的人员身份和实际任职字段:", 
+        validRecords.map(r => ({ 
+          id_number: r.id_number, 
+          personnel_category_name: r.personnel_category_name, 
+          position_name: r.position_name 
+        }))
+      );
+
+      // 保存原始名称数据以便后续显示
+      const originalNameData = validRecords.reduce((acc, record) => {
+        // 使用身份证号码作为唯一标识
+        if (record.id_number) {
+          acc[record.id_number] = {
+            personnel_category_name: record.personnel_category_name || '',
+            position_name: record.position_name || ''
+          };
+        }
+        return acc;
+      }, {} as Record<string, {personnel_category_name: string, position_name: string}>);
+
       const response = await employeeService.bulkCreateEmployees(payload, overwriteMode); 
       
       console.log("[BULK IMPORT DEBUG] Raw API Response from service in handleUpload:", response);
@@ -300,7 +321,34 @@ const EmployeeBulkImportPage: React.FC = () => {
         successCount: employeesToDisplay.length,
         errorCount: parsedData.length - validRecords.length,
         errors: parsedData.filter(r => r.validationErrors && r.validationErrors.length > 0).map(r => ({record: r, error: r.validationErrors!.join('; ')})),
-        createdEmployees: employeesToDisplay.map((emp, index) => ({...emp, _clientId: `success_${Date.now()}_${index}`}))
+        createdEmployees: employeesToDisplay.map((emp, index) => {
+          // 确保显示原始提交的人员身份和实际任职名称
+          const enhancedEmp = {...emp, _clientId: `success_${Date.now()}_${index}`};
+          
+          // 通过身份证号匹配原始数据
+          if (emp.id_number && originalNameData[emp.id_number]) {
+            // 记录匹配过程
+            console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number}, 
+              后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}], 
+              原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name}, 
+              实际任职=${originalNameData[emp.id_number].position_name}]`);
+            
+            // 如果后端返回的数据中这些字段为空，使用原始提交的数据
+            if (!enhancedEmp.personnel_category_name) {
+              enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
+              console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
+            }
+            
+            if (!enhancedEmp.position_name) {
+              enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
+              console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
+            }
+          } else {
+            console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
+          }
+          
+          return enhancedEmp;
+        })
       });
       setCurrentStep(3);
     } catch (error: any) {
@@ -391,6 +439,8 @@ const EmployeeBulkImportPage: React.FC = () => {
     { title: t('bulk_import.table_header.personnel_category_name'), dataIndex: 'personnel_category_name', key: 'personnel_category_name', width: 150, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.email'), dataIndex: 'email', key: 'email', width: 180, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.phone_number'), dataIndex: 'phone_number', key: 'phone_number', width: 120, render: (text: any) => text || '-' },
+    { title: t('bulk_import.table_header.bank_name'), dataIndex: 'bank_name', key: 'bank_name', width: 150, render: (text: any) => text || '-' },
+    { title: t('bulk_import.table_header.bank_account_number'), dataIndex: 'bank_account_number', key: 'bank_account_number', width: 150, render: (text: any) => text || '-' },
     {
       title: t('bulk_import.table_header.validation_errors'),
       dataIndex: 'validationErrors',

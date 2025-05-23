@@ -22,9 +22,11 @@ class PayrollPeriod(BaseV2):
     end_date = Column(Date, nullable=False)
     pay_date = Column(Date, nullable=False)
     frequency_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='RESTRICT'), nullable=False)
+    status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='RESTRICT'), nullable=True)
 
     # Relationships
-    frequency = relationship("LookupValue")
+    frequency = relationship("LookupValue", foreign_keys=[frequency_lookup_value_id])
+    status_lookup = relationship("LookupValue", foreign_keys=[status_lookup_value_id])
     payroll_runs = relationship("PayrollRun", back_populates="payroll_period")
     payroll_entries = relationship("PayrollEntry", back_populates="payroll_period")
 

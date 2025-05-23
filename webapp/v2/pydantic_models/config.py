@@ -2,7 +2,7 @@
 配置相关的Pydantic模型。
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from datetime import date
 
 # LookupType Models
@@ -132,7 +132,9 @@ class PayrollComponentDefinitionBase(BaseModel):
     """工资组件定义基础模型"""
     code: str = Field(..., description="Unique code for the component")
     name: str = Field(..., description="Name of the component (e.g., Basic Salary, Income Tax)")
-    type: str = Field(..., description="Component type (Earning or Deduction)")
+    type: Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
+                 "BENEFIT", "STATUTORY", "STAT", "OTHER",
+                 "CALCULATION_BASE", "CALCULATION_RATE", "CALCULATION_RESULT", "TAX"] = Field(..., description="Component type")
     calculation_method: Optional[str] = Field(None, description="Method used for calculation (e.g., FixedAmount, Percentage, Formula)")
     calculation_parameters: Optional[Dict[str, Any]] = Field(None, description="Parameters for the calculation method")
     is_taxable: bool = Field(True, description="Whether this component is subject to income tax")
@@ -153,7 +155,9 @@ class PayrollComponentDefinitionUpdate(BaseModel):
     """更新工资组件定义模型"""
     code: Optional[str] = Field(None, description="Unique code for the component")
     name: Optional[str] = Field(None, description="Name of the component (e.g., Basic Salary, Income Tax)")
-    type: Optional[str] = Field(None, description="Component type (Earning or Deduction)")
+    type: Optional[Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
+                          "BENEFIT", "STATUTORY", "STAT", "OTHER",
+                          "CALCULATION_BASE", "CALCULATION_RATE", "CALCULATION_RESULT", "TAX"]] = Field(None, description="Component type")
     calculation_method: Optional[str] = Field(None, description="Method used for calculation (e.g., FixedAmount, Percentage, Formula)")
     calculation_parameters: Optional[Dict[str, Any]] = Field(None, description="Parameters for the calculation method")
     is_taxable: Optional[bool] = Field(None, description="Whether this component is subject to income tax")
@@ -171,6 +175,25 @@ class PayrollComponentDefinition(PayrollComponentDefinitionBase):
 
     class Config:
         from_attributes = True
+        
+    @classmethod
+    def from_db_model(cls, db_model):
+        """将数据库模型转换为Pydantic模型"""
+        return cls(
+            id=db_model.id,
+            code=db_model.code,
+            name=db_model.name,
+            type=db_model.type,
+            calculation_method=db_model.calculation_method,
+            calculation_parameters=db_model.calculation_parameters,
+            is_taxable=db_model.is_taxable,
+            is_social_security_base=db_model.is_social_security_base,
+            is_housing_fund_base=db_model.is_housing_fund_base,
+            display_order=db_model.display_order,
+            is_active=db_model.is_active,
+            effective_date=db_model.effective_date,
+            end_date=db_model.end_date
+        )
 
 
 class PayrollComponentDefinitionListResponse(BaseModel):

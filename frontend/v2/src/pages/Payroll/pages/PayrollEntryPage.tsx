@@ -16,9 +16,10 @@ import {
 } from 'antd';
 import { PlusOutlined, ImportOutlined, FileExcelOutlined, EditOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import PermissionGuard from '../../../components/common/PermissionGuard';
-import { P_PAYROLL_ENTRY_VIEW, P_PAYROLL_ENTRY_EDIT_DETAILS } from '../constants/payrollPermissions';
+import { P_PAYROLL_ENTRY_VIEW, P_PAYROLL_ENTRY_EDIT_DETAILS, P_PAYROLL_ENTRY_BULK_IMPORT } from '../constants/payrollPermissions';
 import { getPayrollPeriods, getPayrollEntries } from '../services/payrollApi';
 import type { PayrollPeriod, PayrollEntry, ApiListMeta } from '../types/payrollTypes';
 import { getPayrollEntryStatusInfo } from '../utils/payrollUtils';
@@ -39,6 +40,7 @@ const { YearPicker, MonthPicker } = DatePicker;
 
 const PayrollEntryPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common', 'employee']);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
   const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
@@ -159,6 +161,11 @@ const PayrollEntryPage: React.FC = () => {
     setIsModalVisible(false);
     fetchPayrollEntries(currentPage, pageSize, selectedPeriodId, sorter);
     message.success(t('payroll:entry_page.message.operation_success'));
+  };
+
+  // 处理批量导入
+  const handleBulkImport = () => {
+    navigate('/payroll/bulk-import');
   };
 
   // 表格列定义
@@ -314,14 +321,15 @@ const PayrollEntryPage: React.FC = () => {
                 >
                   {t('payroll:entry_page.button.add_entry')}
                 </Button>
+                <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_BULK_IMPORT]}>
                 <Button
                   icon={<ImportOutlined />}
-                  onClick={() => message.info(t('payroll:entry_page.message.batch_import_coming_soon'))}
-                  disabled={!selectedPeriodId}
+                    onClick={handleBulkImport}
                   shape="round"
                 >
                   {t('payroll:entry_page.button.batch_import')}
                 </Button>
+                </PermissionGuard>
                 <ExportButton />
               </Space>
             </PermissionGuard>

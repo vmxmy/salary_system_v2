@@ -1,7 +1,7 @@
 """
 工资相关的API路由。
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Path
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
@@ -14,7 +14,8 @@ from ..pydantic_models.payroll import (
     PayrollPeriodCreate, PayrollPeriodUpdate, PayrollPeriod, PayrollPeriodListResponse,
     PayrollRunCreate, PayrollRunUpdate, PayrollRun, PayrollRunListResponse,
     PayrollEntryCreate, PayrollEntryUpdate, PayrollEntry, PayrollEntryListResponse,
-    PayrollRunPatch, PayrollEntryPatch
+    PayrollRunPatch, PayrollEntryPatch, PayrollComponentDefinitionListResponse,
+    PayrollComponentDefinition, PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate
 )
 from ...auth import require_permissions, get_current_user
 from ..utils import create_error_response
@@ -29,6 +30,7 @@ router = APIRouter(
 @router.get("/payroll-periods", response_model=PayrollPeriodListResponse)
 async def get_payroll_periods(
     frequency_id: Optional[int] = None,
+    status_lookup_value_id: Optional[int] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     search: Optional[str] = None,
@@ -41,6 +43,7 @@ async def get_payroll_periods(
     获取工资周期列表，支持分页、搜索和过滤。
 
     - **frequency_id**: 频率ID，用于过滤特定频率的工资周期
+    - **status_lookup_value_id**: 状态ID，用于过滤特定状态的工资周期
     - **start_date**: 开始日期，用于过滤开始日期大于等于指定日期的工资周期
     - **end_date**: 结束日期，用于过滤结束日期小于等于指定日期的工资周期
     - **search**: 搜索关键字，可以匹配工资周期名称
@@ -55,6 +58,7 @@ async def get_payroll_periods(
         periods, total = crud.get_payroll_periods(
             db=db,
             frequency_id=frequency_id,
+            status_lookup_value_id=status_lookup_value_id,
             start_date=start_date,
             end_date=end_date,
             search=search,
@@ -924,3 +928,133 @@ async def delete_payroll_entry(
                 details=str(e)
             )
         )
+
+
+# 添加薪资组件定义的API转发路由
+@router.get(
+    "/payroll-component-definitions",
+    response_model=PayrollComponentDefinitionListResponse,
+    summary="获取薪资组件定义列表",
+    description="获取所有薪资组件定义，支持按类型和启用状态过滤，以及自定义排序"
+)
+async def get_payroll_component_definitions(
+    type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
+    is_enabled: Optional[bool] = Query(None, description="是否启用"),
+    sort_by: str = Query("display_order", description="排序字段"),
+    sort_order: str = Query("asc", description="排序方向，asc或desc"),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(10, ge=1, le=100, description="每页记录数"),
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"])),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    获取薪资组件定义列表，转发到config模块API
+    """
+    from ..routers.config import get_payroll_component_definitions as config_get_payroll_component_definitions
+    
+    # 转发请求到config模块的API，删除await关键字，因为是同步函数
+    return config_get_payroll_component_definitions(
+        type=type,
+        is_enabled=is_enabled,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        page=page,
+        size=size,
+        current_user=current_user,
+        db=db
+    )
+
+@router.get(
+    "/payroll-component-definitions/{component_id}",
+    response_model=PayrollComponentDefinition,
+    summary="获取单个薪资组件定义",
+    description="根据ID获取特定薪资组件定义的详细信息"
+)
+async def get_payroll_component_definition(
+    component_id: int = Path(..., description="薪资组件定义ID"),
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"])),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    获取单个薪资组件定义，转发到config模块API
+    """
+    from ..routers.config import get_payroll_component_definition as config_get_payroll_component_definition
+    
+    # 获取组件定义，删除await关键字，因为是同步函数
+    return config_get_payroll_component_definition(
+        component_id=component_id,
+        current_user=current_user,
+        db=db
+    )
+
+@router.post(
+    "/payroll-component-definitions",
+    response_model=Dict[str, PayrollComponentDefinition],
+    status_code=status.HTTP_201_CREATED,
+    summary="创建薪资组件定义",
+    description="创建新的薪资组件定义"
+)
+async def create_payroll_component_definition(
+    component: PayrollComponentDefinitionCreate,
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    创建薪资组件定义，转发到config模块API
+    """
+    from ..routers.config import create_payroll_component as config_create_payroll_component
+    
+    # 转发请求到config模块，删除await关键字，因为是同步函数
+    return config_create_payroll_component(
+        component=component,
+        current_user=current_user,
+        db=db
+    )
+
+@router.put(
+    "/payroll-component-definitions/{component_id}",
+    response_model=Dict[str, PayrollComponentDefinition],
+    summary="更新薪资组件定义",
+    description="更新指定ID的薪资组件定义"
+)
+async def update_payroll_component_definition(
+    component_id: int,
+    component: PayrollComponentDefinitionUpdate,
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    更新薪资组件定义，转发到config模块API
+    """
+    from ..routers.config import update_payroll_component as config_update_payroll_component
+    
+    # 转发请求到config模块，删除await关键字，因为是同步函数
+    return config_update_payroll_component(
+        component_id=component_id,
+        component=component,
+        current_user=current_user,
+        db=db
+    )
+
+@router.delete(
+    "/payroll-component-definitions/{component_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="删除薪资组件定义",
+    description="删除指定ID的薪资组件定义"
+)
+async def delete_payroll_component_definition(
+    component_id: int,
+    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    删除薪资组件定义，转发到config模块API
+    """
+    from ..routers.config import delete_payroll_component as config_delete_payroll_component
+    
+    # 转发请求到config模块，删除await关键字，因为是同步函数
+    return config_delete_payroll_component(
+        component_id=component_id,
+        current_user=current_user,
+        db=db
+    )

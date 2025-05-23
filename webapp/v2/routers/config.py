@@ -1,9 +1,9 @@
 """
 配置相关的API路由。
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Path
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import date
 import logging
 
@@ -11,10 +11,15 @@ from ..database import get_db_v2
 from ..crud import config as crud
 from ..pydantic_models.config import (
     SystemParameterCreate, SystemParameterUpdate, SystemParameter, SystemParameterListResponse,
-    PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate, PayrollComponentDefinition, PayrollComponentDefinitionListResponse,
+    PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate, PayrollComponentDefinitionListResponse,
     TaxBracketCreate, TaxBracketUpdate, TaxBracket, TaxBracketListResponse,
-    SocialSecurityRateCreate, SocialSecurityRateUpdate, SocialSecurityRate, SocialSecurityRateListResponse
+    SocialSecurityRateCreate, SocialSecurityRateUpdate, SocialSecurityRate, SocialSecurityRateListResponse,
+    LookupTypeListResponse, LookupType, LookupTypeCreate, LookupTypeUpdate,
+    LookupValueListResponse, LookupValue, LookupValueCreate, LookupValueUpdate
 )
+# 从payroll模块导入PayrollComponentDefinition
+from ..pydantic_models.payroll import PayrollComponentDefinition
+from ..pydantic_models.security import User
 from ...auth import get_current_user, require_permissions
 from ..utils import create_error_response
 
@@ -1051,3 +1056,95 @@ async def delete_social_security_rate(
                 details=str(e)
             )
         )
+
+
+@router.get(
+    "/v2/payroll-component-definitions",
+    response_model=PayrollComponentDefinitionListResponse,
+    summary="获取薪资组件定义列表",
+    description="获取所有薪资组件定义，支持按类型和启用状态过滤，以及自定义排序"
+)
+def get_payroll_component_definitions(
+    type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
+    is_enabled: Optional[bool] = Query(None, description="是否启用"),
+    search: Optional[str] = Query(None, description="搜索关键字，可匹配代码、名称或描述"),
+    sort_by: str = Query("display_order", description="排序字段"),
+    sort_order: str = Query("asc", description="排序方向，asc或desc"),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(10, ge=1, le=100, description="每页记录数"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    获取薪资组件定义列表，支持分页、过滤和排序
+    """
+    # 调整数据库字段与API字段的映射
+    db_sort_by = sort_by
+    if sort_by == "sort_order":
+        db_sort_by = "display_order"
+    elif sort_by == "is_enabled":
+        db_sort_by = "is_active"
+        
+    # 调用CRUD方法获取数据
+    result = crud.get_payroll_component_definitions(
+        db=db,
+        component_type=type,
+        is_active=is_enabled,
+        search=search,
+        sort_by=db_sort_by,
+        sort_order=sort_order,
+        skip=(page - 1) * size,
+        limit=size
+    )
+    
+    # 处理返回数据，将数据库模型映射为前端期望的格式
+    data = []
+    for item in result["data"]:
+        data.append(
+            PayrollComponentDefinition.from_db_model(item)
+        )
+    
+    return {
+        "data": data,
+        "meta": result["meta"]
+    }
+
+@router.get(
+    "/v2/payroll-component-definitions/{component_id}",
+    response_model=PayrollComponentDefinition,
+    summary="获取单个薪资组件定义",
+    description="根据ID获取特定薪资组件定义的详细信息"
+)
+def get_payroll_component_definition(
+    component_id: int = Path(..., description="薪资组件定义ID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    获取特定薪资组件定义
+    """
+    component = crud.get_payroll_component_definition_by_id(db, component_id)
+    if not component:
+        raise HTTPException(status_code=404, detail="薪资组件定义不存在")
+    
+    return PayrollComponentDefinition.from_db_model(component)
+
+# 添加获取薪资组件类型的API端点
+@router.get("/payroll-component-types", response_model=LookupValueListResponse)
+async def get_payroll_component_types(
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user),
+):
+    """获取薪资组件类型列表"""
+    # 首先获取PAYROLL_COMPONENT_TYPE的type_id
+    lookup_type = crud.get_lookup_type_by_code(db, "PAYROLL_COMPONENT_TYPE")
+    if not lookup_type:
+        return {"data": [], "meta": {"total": 0}}
+    
+    # 使用type_id获取lookup值
+    lookup_values, total = crud.get_lookup_values(
+        db=db, 
+        lookup_type_id=lookup_type.id,
+        is_active=True
+    )
+    return {"data": lookup_values, "meta": {"total": total}}

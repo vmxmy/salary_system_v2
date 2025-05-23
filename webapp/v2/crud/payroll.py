@@ -20,6 +20,7 @@ from .config import get_payroll_component_definitions # 新增导入
 def get_payroll_periods(
     db: Session,
     frequency_id: Optional[int] = None,
+    status_lookup_value_id: Optional[int] = None,  # 新增状态过滤参数
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     search: Optional[str] = None,
@@ -29,6 +30,8 @@ def get_payroll_periods(
     query = db.query(PayrollPeriod)
     if frequency_id:
         query = query.filter(PayrollPeriod.frequency_lookup_value_id == frequency_id)
+    if status_lookup_value_id:
+        query = query.filter(PayrollPeriod.status_lookup_value_id == status_lookup_value_id)
     if start_date:
         query = query.filter(PayrollPeriod.start_date >= start_date)
     if end_date:
@@ -36,8 +39,12 @@ def get_payroll_periods(
     if search:
         search_term = f"%{search}%"
         query = query.filter(PayrollPeriod.name.ilike(search_term))
+    
+    # 默认按开始日期倒序排序
+    query = query.order_by(PayrollPeriod.start_date.desc())
+    
     total = query.count()
-    query = query.order_by(PayrollPeriod.start_date.desc()).offset(skip).limit(limit)
+    query = query.offset(skip).limit(limit)
     return query.all(), total
 
 def get_payroll_period(db: Session, period_id: int) -> Optional[PayrollPeriod]:

@@ -22,6 +22,9 @@ import { hrManagementRoutes } from '../pages/HRManagement/routes';
 // Import the new Payroll module routes
 import { payrollRoutes } from '../pages/Payroll/index'; // This imports from Payroll/index.ts which exports payrollRoutes from Payroll/routes.ts
 
+// Import the Manager module routes
+import { managerRoutes } from '../pages/Manager/routes';
+
 // Placeholder for HR, Finance, Manager sections - replace with actual components
 // const HRDashboardPage = lazy(() => import('../pages/HR/HRDashboardPage'));
 // const FinanceDashboardPage = lazy(() => import('../pages/Finance/FinanceDashboardPage'));
@@ -176,8 +179,7 @@ export const routes: AppRouteObject[] = [
           </AppProtectedRoute>
         ),
         meta: { title: 'manager_view', requiredRoles: ['MANAGER', 'SUPER_ADMIN'] },
-        children: [
-        ],
+        children: managerRoutes,
       },
       {
         path: 'employee-info', 
