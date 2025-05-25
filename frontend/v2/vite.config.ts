@@ -16,5 +16,4 @@ export default defineConfig({
       },
     },
   },
-  envDir: path.resolve(__dirname, '../..'), // 指定 .env 文件所在的目录为项目根目录
 })
