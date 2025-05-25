@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
+    allowedHosts: ['salary.ziikoo.com'],
     // proxy: { // 移除 proxy 配置块
     //   '/api': {
     //     target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
