@@ -1,0 +1,54 @@
+# webapp/docker/docker-compose.yml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..       # 构建上下文是 webapp/ (上一级目录)
+      dockerfile: ./Dockerfile # Dockerfile 在当前目录 (webapp/docker/Dockerfile)
+    container_name: salary_system_backend
+    restart: unless-stopped
+    env_file:
+      - ../.env        # 从 webapp/.env 加载环境变量
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - salary_network
+    # 如果需要挂载卷以进行开发时的代码同步或持久化特定数据：
+    # volumes:
+    #   - ../:/app # 开发时将 webapp 目录挂载到容器的 /app (生产中移除)
+    #   - backend_logs:/app/logs # 示例：挂载日志
+    #   - backend_uploads:/app/uploads # 示例：挂载上传目录
+
+  db:
+    image: postgres:15-alpine
+    container_name: salary_system_db
+    restart: unless-stopped
+    env_file:
+      - ../.env        # 从 webapp/.env 加载 DB_USER, DB_PASSWORD, DB_NAME
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # ports: # 通常不在生产中直接暴露数据库端口给宿主机
+    #   - "5432:5432" 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER:-postgres} -d $${DB_NAME:-salary_system_v2}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - salary_network
+
+networks:
+  salary_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  # backend_logs: # 如果上面定义了日志卷
+  #   driver: local
+  # backend_uploads: # 如果上面定义了上传卷
+  #   driver: local 
