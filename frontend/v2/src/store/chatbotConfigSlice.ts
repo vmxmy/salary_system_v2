@@ -11,8 +11,8 @@ export interface ChatbotConfig {
 }
 
 export const initialChatbotConfig: ChatbotConfig = {
-  token: '',
-  baseUrl: '',
+  token: import.meta.env.VITE_DIFY_TOKEN || '',
+  baseUrl: import.meta.env.VITE_DIFY_BASE_URL || '',
   customCss: '',
   customJs: '',
   isEnabled: true,
