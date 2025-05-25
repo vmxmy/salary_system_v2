@@ -3,9 +3,12 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 import logging
 from typing import List, Optional, Union
+from pathlib import Path
 
-# 加载环境变量
-load_dotenv()
+# 定位到 webapp 目录下的 .env 文件
+dotenv_path = Path(__file__).resolve().parent.parent / ".env"
+if dotenv_path.exists():
+    load_dotenv(dotenv_path=dotenv_path)
 
 # 配置日志
 logging.basicConfig(
@@ -60,7 +63,8 @@ class Settings(BaseSettings):
     # 允许额外的环境变量通过，不会引发验证错误
     model_config = {
         "extra": "ignore",
-        "env_file": ".env"
+        "env_file": ".env",
+        "env_file_encoding": "utf-8"
     }
 
 # 创建设置实例

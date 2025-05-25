@@ -107,14 +107,6 @@ app.add_middleware(
 
 # 数据库连接
 # 首先尝试加载项目根目录的.env文件
-root_dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-if os.path.exists(root_dotenv_path):
-    load_dotenv(dotenv_path=root_dotenv_path)
-else:
-    # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
-    webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-    load_dotenv(dotenv_path=webapp_dotenv_path)
-
 DATABASE_URL = settings.DATABASE_URL  # 从配置获取
 if not DATABASE_URL:
     logger.warning("DATABASE_URL environment variable not set! Attempting to construct from components.") # Changed to warning
@@ -258,11 +250,12 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting Uvicorn server for Salary System API...")
     # Use environment variables for host/port if available, otherwise default
-    host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", "8080"))
-    reload = os.getenv("RELOAD", "true").lower() == "true"
+    host = settings.UVICORN_HOST
+    port = settings.UVICORN_PORT
+    reload_uvicorn = settings.UVICORN_RELOAD
 
-    uvicorn.run("main:app", host=host, port=port, reload=reload)
+    logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload_uvicorn}...") # Changed to logger.info
+    uvicorn.run("main:app", host=host, port=port, reload=reload_uvicorn)
 
 # --- Helper Function to Trigger dbt Build --- START ---
 def _trigger_dbt_build_if_project_valid(background_tasks: BackgroundTasks, dbt_project_dir: str) -> bool:

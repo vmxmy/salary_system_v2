@@ -14,9 +14,12 @@ import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+from pathlib import Path
 
 # 加载环境变量
-load_dotenv()
+env_path = Path(__file__).resolve().parents[2] / '.env'
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
 
 def test_connection(db_url=None):
     """测试数据库连接"""

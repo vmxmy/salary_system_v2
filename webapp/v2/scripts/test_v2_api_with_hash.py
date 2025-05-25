@@ -26,7 +26,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 加载.env文件中的环境变量
-env_path = Path(__file__).resolve().parents[3] / '.env'
+env_path = Path(__file__).resolve().parents[2] / '.env'
 if env_path.exists():
     print(f"加载环境变量文件: {env_path}")
     load_dotenv(dotenv_path=env_path)

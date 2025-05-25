@@ -1,6 +1,7 @@
 import os
 import sys # Ensure sys is imported early
 from logging.config import fileConfig
+from pathlib import Path # +
 
 # --- 新增：加载 .env 文件 ---
 from dotenv import load_dotenv
@@ -8,20 +9,36 @@ from dotenv import load_dotenv
 # 计算 .env 文件的路径
 # env.py 路径: webapp/v2/alembic_for_db_v2/env.py
 # 项目根目录是 env.py 往上三层
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-dotenv_path = os.path.join(project_root, '.env')
-if os.path.exists(dotenv_path):
+# project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# dotenv_path = os.path.join(project_root, '.env')
+
+# 新路径计算：定位到 webapp/.env
+# __file__ is webapp/v2/alembic_for_db_v2/env.py
+# Path(__file__).resolve() -> .../webapp/v2/alembic_for_db_v2/env.py
+# .parent -> .../webapp/v2/alembic_for_db_v2
+# .parent -> .../webapp/v2
+# .parent -> .../webapp
+dotenv_path = Path(__file__).resolve().parent.parent.parent / ".env" # +
+
+if dotenv_path.exists(): # +
     print(f"--- Alembic env.py: Loading .env file from: {dotenv_path} ---")
-    load_dotenv(dotenv_path)
+    load_dotenv(dotenv_path=dotenv_path) # +
 else:
     print(f"--- Alembic env.py: .env file not found at: {dotenv_path} ---")
 
-# --- 新增：将项目根目录添加到 sys.path --- 
-if project_root not in sys.path:
-    print(f"--- Alembic env.py: Adding project root to sys.path: {project_root} ---")
-    sys.path.insert(0, project_root)
-else:
-    print(f"--- Alembic env.py: Project root already in sys.path: {project_root} ---")
+# --- 新增：将项目根目录添加到 sys.path --- # -
+# 这部分逻辑可能需要重新审视，取决于项目根目录的定义，以及PYTHONPATH是否已正确设置
+# 通常 alembic.ini 中的 prepend_sys_path = . 应该处理PYTHONPATH问题
+# 对于这里的 .env 加载，我们主要关心dotenv_path的正确性。
+# 如果应用模块 (webapp.core.config) 需要被导入, sys.path的调整仍然重要。
+# 假设项目根是 webapp 的上一级目录 (salary_system)
+project_root_for_sys_path = Path(__file__).resolve().parent.parent.parent.parent # salary_system/ # +
+if str(project_root_for_sys_path) not in sys.path: # +
+    print(f"--- Alembic env.py: Adding project root ({project_root_for_sys_path}) to sys.path for module imports ---") # +
+    sys.path.insert(0, str(project_root_for_sys_path)) # +
+# else: # +
+#     print(f"--- Alembic env.py: Project root ({project_root_for_sys_path}) already in sys.path ---") # +
+
 # --- 结束新增 ---
 
 # --- 新增：尝试从 webapp.core.config 导入 settings ---
