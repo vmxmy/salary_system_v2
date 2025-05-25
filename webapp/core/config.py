@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     API_PREFIX: str = ""
     API_V2_PREFIX: str = os.getenv("VITE_API_PATH_PREFIX", "/v2")
 
+    # Uvicorn设置
+    UVICORN_HOST: str = os.getenv("UVICORN_HOST", "0.0.0.0")
+    UVICORN_PORT: int = int(os.getenv("UVICORN_PORT", "8080"))
+    UVICORN_RELOAD: bool = os.getenv("UVICORN_RELOAD", "true").lower() == "true"
+
     # 安全设置
     SECRET_KEY: str = os.getenv("SECRET_KEY", "请替换这个为真正的密钥，不要使用默认值")
     ALGORITHM: str = "HS256"

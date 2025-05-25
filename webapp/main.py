@@ -1,5 +1,12 @@
 import sys
-import os # Import os module
+import os
+print(f"--- main.py DEBUG ---")
+print(f"CWD: {os.getcwd()}")
+print(f"sys.path: {sys.path}")
+print(f"PYTHONPATH env: {os.environ.get('PYTHONPATH')}")
+print(f"---------------------")
+
+# Import os module
 # print(f"==== Loading main.py from: {os.path.abspath(__file__)} ====") # Added print statement
 # print("==== sys.path ====", sys.path)
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response
@@ -52,7 +59,7 @@ logger.setLevel(logging.INFO) # Set logger level to INFO
 
 
 # Import modules - 使用相对导入
-from . import auth, models_db, schemas, models, file_converter
+from . import auth, models_db, schemas, models
 from .database import get_db
 from .core.config import settings
 
@@ -254,8 +261,8 @@ if __name__ == "__main__":
     port = settings.UVICORN_PORT
     reload_uvicorn = settings.UVICORN_RELOAD
 
-    logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload_uvicorn}...") # Changed to logger.info
-    uvicorn.run("main:app", host=host, port=port, reload=reload_uvicorn)
+    logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload_uvicorn}...")
+    uvicorn.run("webapp.main:app", host=host, port=port, reload=reload_uvicorn)
 
 # --- Helper Function to Trigger dbt Build --- START ---
 def _trigger_dbt_build_if_project_valid(background_tasks: BackgroundTasks, dbt_project_dir: str) -> bool:
@@ -282,59 +289,6 @@ def _trigger_dbt_build_if_project_valid(background_tasks: BackgroundTasks, dbt_p
          background_tasks.add_task(run_dbt_build, dbt_project_dir)
          return True
 # --- Helper Function to Trigger dbt Build --- END ---
-
-# --- New API Endpoint to Trigger dbt Build --- START ---
-# @app.post("/api/dbt/trigger-run", status_code=status.HTTP_202_ACCEPTED, tags=["DBT Tasks"])
-# async def trigger_dbt_run_endpoint(
-#     background_tasks: BackgroundTasks,
-#     current_user: schemas.UserResponse = Depends(auth.require_role(["Super Admin", "Data Admin"]))
-# ):
-#     """
-#     Manually triggers a dbt build process in the background.
-#     Requires Super Admin or Data Admin role.
-#     """
-#     # Calculate dbt project path (ensure this logic is consistent)
-#     current_dir = os.path.dirname(os.path.abspath(__file__))
-#     dbt_project_path = os.path.abspath(os.path.join(current_dir, '../salary_dbt_transforms'))
-#
-#     task_added = _trigger_dbt_build_if_project_valid(background_tasks, dbt_project_path)
-#
-#     if task_added:
-#         return {"message": "dbt build task added to background."}
-#     else:
-#         # If the project path was invalid, raise an error
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"dbt project directory not found or invalid at: {dbt_project_path}. Task not triggered."
-#         )
-# --- New API Endpoint to Trigger dbt Build --- END
-
-# Ensure this is placed appropriately, e.g., before the final uvicorn run if applicable,
-# or logically grouped with other endpoints.
-
-# Optional: Add a block to run uvicorn directly using .env variables
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    from dotenv import load_dotenv
-
-    # 首先尝试加载项目根目录的.env文件
-    root_dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-    if os.path.exists(root_dotenv_path):
-        load_dotenv(dotenv_path=root_dotenv_path)
-        logger.info(f"Loaded environment variables from {root_dotenv_path}") # Changed to logger.info
-    else:
-        # 如果根目录没有.env文件，则尝试加载webapp/.env文件（向后兼容）
-        webapp_dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-        load_dotenv(dotenv_path=webapp_dotenv_path)
-        logger.info(f"Loaded environment variables from {webapp_dotenv_path}") # Changed to logger.info
-
-    host = os.getenv("UVICORN_HOST", "0.0.0.0")
-    port = int(os.getenv("UVICORN_PORT", 8080))
-    reload = os.getenv("UVICORN_RELOAD", "true").lower() == "true"
-
-    logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload}...") # Changed to logger.info
-    uvicorn.run("main:app", host=host, port=port, reload=reload)
 
 # === NEW DEBUGGING ENDPOINT ===
 @app.get("/api/debug/field-config/{employee_type_key}",
