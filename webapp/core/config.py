@@ -1,14 +1,23 @@
 import os
+import sys
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 import logging
 from typing import List, Optional, Union
 from pathlib import Path
 
-# 定位到 webapp 目录下的 .env 文件
-dotenv_path = Path(__file__).resolve().parent.parent / ".env"
-if dotenv_path.exists():
-    load_dotenv(dotenv_path=dotenv_path)
+# 强制只从 webapp 目录下读取 .env 文件
+webapp_dir = Path(__file__).resolve().parent.parent
+dotenv_path = webapp_dir / ".env"
+
+if not dotenv_path.exists():
+    error_msg = f"❌ 错误: 未找到必需的 .env 文件: {dotenv_path}\n请在 webapp 目录下创建 .env 文件并配置必要的环境变量。"
+    print(error_msg, file=sys.stderr)
+    raise FileNotFoundError(error_msg)
+
+# 加载 webapp 目录下的 .env 文件
+load_dotenv(dotenv_path=dotenv_path)
+print(f"✅ 成功加载配置文件: {dotenv_path}")
 
 # 配置日志
 logging.basicConfig(
@@ -67,9 +76,10 @@ class Settings(BaseSettings):
     DBT_PROJECT_DIR: str = os.getenv("DBT_PROJECT_DIR", "./dbt")
 
     # 允许额外的环境变量通过，不会引发验证错误
+    # 注意：env_file 设置为 None，因为我们已经手动加载了 .env 文件
     model_config = {
         "extra": "ignore",
-        "env_file": ".env",
+        "env_file": None,  # 禁用自动 .env 文件查找
         "env_file_encoding": "utf-8"
     }
 

@@ -37,7 +37,7 @@ import type {
   BulkCreatePayrollEntriesResult
 } from '../types/payrollTypes';
 import TableTextConverter from '../../../components/common/TableTextConverter';
-import { PAYROLL_PERIOD_STATUS } from '../constants/payrollConstants';
+import { getPayrollPeriodStatusIdByCode } from '../utils/dynamicStatusUtils';
 import { lookupService } from '../../../services/lookupService';
 
 interface UploadResult {
@@ -88,13 +88,13 @@ const PayrollBulkImportPage: React.FC = () => {
   const payrollApiFields = useMemo(() => {
     // 基础字段映射
     const baseFields = [
-      { key: 'employee_code', label: t('batch_import.fields.employee_code', '员工编号'), required: false },
-      { key: 'employee_full_name', label: t('batch_import.fields.employee_full_name', '员工姓名'), required: true },
-      { key: 'id_number', label: t('batch_import.fields.id_number', '身份证号'), required: true },
-      { key: 'gross_pay', label: t('batch_import.fields.gross_pay', '应发工资'), required: true },
-      { key: 'total_deductions', label: t('batch_import.fields.total_deductions', '扣发合计'), required: true },
-      { key: 'net_pay', label: t('batch_import.fields.net_pay', '实发工资'), required: true },
-      { key: 'remarks', label: t('batch_import.fields.remarks', '备注'), required: false },
+      { key: 'employee_code', label: t('batch_import.fields.employee_code'), required: false },
+      { key: 'employee_full_name', label: t('batch_import.fields.employee_full_name'), required: true },
+      { key: 'id_number', label: t('batch_import.fields.id_number'), required: true },
+      { key: 'gross_pay', label: t('batch_import.fields.gross_pay'), required: true },
+      { key: 'total_deductions', label: t('batch_import.fields.total_deductions'), required: true },
+      { key: 'net_pay', label: t('batch_import.fields.net_pay'), required: true },
+      { key: 'remarks', label: t('batch_import.fields.remarks'), required: false },
     ];
     
     // 动态添加收入字段 - 使用工具函数判断类型
@@ -131,45 +131,45 @@ const PayrollBulkImportPage: React.FC = () => {
   const payrollMappingRules = useMemo(() => {
     const mappingRules: Record<string, string> = {
       // 忽略字段（非工资相关）
-      [t('batch_import.mapping.serial_number', '序号')]: '',
-      [t('batch_import.mapping.personnel_identity', '人员身份')]: '',
-      [t('batch_import.mapping.personnel_level', '人员职级')]: '',
-      [t('batch_import.mapping.salary_unified', '工资统发')]: '',
-      [t('batch_import.mapping.fiscal_support', '财政供养')]: '',
-      [t('batch_import.mapping.department', '部门')]: '',
-      [t('batch_import.mapping.department_name', '部门名称')]: '',
+      [t('batch_import.mapping.serial_number')]: '',
+      [t('batch_import.mapping.personnel_identity')]: '',
+      [t('batch_import.mapping.personnel_level')]: '',
+      [t('batch_import.mapping.salary_unified')]: '',
+      [t('batch_import.mapping.fiscal_support')]: '',
+      [t('batch_import.mapping.department')]: '',
+      [t('batch_import.mapping.department_name')]: '',
       
       // 员工匹配字段
-      [t('batch_import.mapping.personnel_number', '人员编号')]: 'employee_code',
-      [t('batch_import.mapping.employee_id', '员工ID')]: 'employee_code',
-      [t('batch_import.mapping.employee_number', '员工工号')]: 'employee_code',
-      [t('batch_import.mapping.work_number', '工号')]: 'employee_code',
-      [t('batch_import.mapping.personnel_name', '人员姓名')]: 'employee_full_name',
-      [t('batch_import.mapping.name', '姓名')]: 'employee_full_name',
-      [t('batch_import.mapping.employee_name', '员工姓名')]: 'employee_full_name',
-      [t('batch_import.mapping.id_card', '身份证')]: 'id_number',
-      [t('batch_import.mapping.id_number', '身份证号')]: 'id_number',
-      [t('batch_import.mapping.id_card_number', '身份证号码')]: 'id_number',
+      [t('batch_import.mapping.personnel_number')]: 'employee_code',
+      [t('batch_import.mapping.employee_id')]: 'employee_code',
+      [t('batch_import.mapping.employee_number')]: 'employee_code',
+      [t('batch_import.mapping.work_number')]: 'employee_code',
+      [t('batch_import.mapping.personnel_name')]: 'employee_full_name',
+      [t('batch_import.mapping.name')]: 'employee_full_name',
+      [t('batch_import.mapping.employee_name')]: 'employee_full_name',
+      [t('batch_import.mapping.id_card')]: 'id_number',
+      [t('batch_import.mapping.id_number')]: 'id_number',
+      [t('batch_import.mapping.id_card_number')]: 'id_number',
       
       // 计算字段
-      [t('batch_import.mapping.gross_salary', '应发工资')]: 'gross_pay',
-      [t('batch_import.mapping.total_income', '总收入')]: 'gross_pay',
-      [t('batch_import.mapping.salary_total', '工资总额')]: 'gross_pay',
-      [t('batch_import.mapping.total_earnings', '总计收入')]: 'gross_pay',
-      [t('batch_import.mapping.gross_total', '应发合计')]: 'gross_pay',
-      [t('batch_import.mapping.net_salary', '实发工资')]: 'net_pay',
-      [t('batch_import.mapping.net_pay', '净工资')]: 'net_pay',
-      [t('batch_import.mapping.actual_amount', '实发金额')]: 'net_pay',
-      [t('batch_import.mapping.net_total', '实发合计')]: 'net_pay',
-      [t('batch_import.mapping.deduction_total', '扣发合计')]: 'total_deductions',
-      [t('batch_import.mapping.total_deductions', '总扣除')]: 'total_deductions',
-      [t('batch_import.mapping.deduction_amount', '扣除总额')]: 'total_deductions',
-      [t('batch_import.mapping.total_deduction_amount', '总计扣除')]: 'total_deductions',
-      [t('batch_import.mapping.should_deduct_total', '应扣合计')]: 'total_deductions',
+      [t('batch_import.mapping.gross_salary')]: 'gross_pay',
+      [t('batch_import.mapping.total_income')]: 'gross_pay',
+      [t('batch_import.mapping.salary_total')]: 'gross_pay',
+      [t('batch_import.mapping.total_earnings')]: 'gross_pay',
+      [t('batch_import.mapping.gross_total')]: 'gross_pay',
+      [t('batch_import.mapping.net_salary')]: 'net_pay',
+      [t('batch_import.mapping.net_pay')]: 'net_pay',
+      [t('batch_import.mapping.actual_amount')]: 'net_pay',
+      [t('batch_import.mapping.net_total')]: 'net_pay',
+      [t('batch_import.mapping.deduction_total')]: 'total_deductions',
+      [t('batch_import.mapping.total_deductions')]: 'total_deductions',
+      [t('batch_import.mapping.deduction_amount')]: 'total_deductions',
+      [t('batch_import.mapping.total_deduction_amount')]: 'total_deductions',
+      [t('batch_import.mapping.should_deduct_total')]: 'total_deductions',
       
       // 其他字段
-      [t('batch_import.mapping.remarks', '备注')]: 'remarks',
-      [t('batch_import.mapping.description', '说明')]: 'remarks',
+      [t('batch_import.mapping.remarks')]: 'remarks',
+      [t('batch_import.mapping.description')]: 'remarks',
     };
     
     // 动态添加收入项映射规则
@@ -191,54 +191,56 @@ const PayrollBulkImportPage: React.FC = () => {
     // 添加基于提供数据的具体映射
     const specificMappings: Record<string, string> = {
       // 收入项 - 基础工资类（使用新的复合字段组件）
-      [t('components.earnings.position_tech_grade_salary', '职务/技术等级工资')]: 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
+      [t('components.earnings.position_tech_grade_salary')]: 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
       '职务/技术等级 工资': 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
       '职务/技术等级工资': 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
       
-      [t('components.earnings.grade_position_level_salary', '级别/岗位级别工资')]: 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
+      [t('components.earnings.grade_position_level_salary')]: 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
       '级别/岗位级别 工资': 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
       '级别/岗位级别工资': 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
-      [t('components.earnings.grade_salary', '级别工资')]: 'earnings_details.GRADE_SALARY.amount',
+      [t('components.earnings.grade_salary')]: 'earnings_details.GRADE_SALARY.amount',
       '级别工资': 'earnings_details.GRADE_SALARY.amount',
-      [t('components.earnings.position_salary_general', '岗位工资')]: 'earnings_details.POSITION_SALARY_GENERAL.amount',
+      [t('components.earnings.position_salary_general')]: 'earnings_details.POSITION_SALARY_GENERAL.amount',
       '岗位工资': 'earnings_details.POSITION_SALARY_GENERAL.amount',
       
-      [t('components.earnings.staff_salary_grade', '薪级工资')]: 'earnings_details.STAFF_SALARY_GRADE.amount',
+      [t('components.earnings.staff_salary_grade')]: 'earnings_details.STAFF_SALARY_GRADE.amount',
       '薪级工资': 'earnings_details.STAFF_SALARY_GRADE.amount',
-      [t('components.earnings.basic_salary', '基本工资')]: 'earnings_details.BASIC_SALARY.amount',
+      [t('components.earnings.basic_salary')]: 'earnings_details.BASIC_SALARY.amount',
       '基本工资': 'earnings_details.BASIC_SALARY.amount',
       
       // 收入项 - 绩效类
-      [t('components.earnings.basic_performance_award', '基础绩效奖')]: 'earnings_details.BASIC_PERFORMANCE_AWARD.amount',
+      [t('components.earnings.basic_performance_award')]: 'earnings_details.BASIC_PERFORMANCE_AWARD.amount',
       '基础绩效奖': 'earnings_details.BASIC_PERFORMANCE_AWARD.amount',
-      [t('components.earnings.basic_performance_salary', '基础性绩效工资')]: 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
+      [t('components.earnings.basic_performance_salary')]: 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
       '月基础绩效': 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
       '基础性绩效工资': 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
-      [t('components.earnings.performance_bonus', '奖励性绩效工资')]: 'earnings_details.PERFORMANCE_BONUS.amount',
+      [t('components.earnings.performance_bonus')]: 'earnings_details.PERFORMANCE_BONUS.amount',
       '月奖励绩效': 'earnings_details.PERFORMANCE_BONUS.amount',
       '奖励性绩效工资': 'earnings_details.PERFORMANCE_BONUS.amount',
       '奖励绩效': 'earnings_details.PERFORMANCE_BONUS.amount',
       '绩效奖励': 'earnings_details.PERFORMANCE_BONUS.amount',
       
       // 收入项 - 津贴补贴类
-      [t('components.earnings.reform_allowance_1993', '93年工改保留补贴')]: 'earnings_details.REFORM_ALLOWANCE_1993.amount',
+      [t('components.earnings.reform_allowance_1993')]: 'earnings_details.REFORM_ALLOWANCE_1993.amount',
       '93年工改保留补贴': 'earnings_details.REFORM_ALLOWANCE_1993.amount',
       '九三年工改保留津补贴': 'earnings_details.REFORM_ALLOWANCE_1993.amount',
-      [t('components.earnings.only_child_parent_bonus', '独生子女父母奖励金')]: 'earnings_details.ONLY_CHILD_PARENT_BONUS.amount',
+      [t('components.earnings.only_child_parent_bonus')]: 'earnings_details.ONLY_CHILD_PARENT_BONUS.amount',
       '独生子女父母奖励金': 'earnings_details.ONLY_CHILD_PARENT_BONUS.amount',
-      [t('components.earnings.civil_standard_allowance', '公务员规范性津贴补贴')]: 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
+      [t('components.earnings.civil_standard_allowance')]: 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
       '公务员规范性津贴补贴': 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
       '公务员规范后津补贴': 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
-      [t('components.earnings.traffic_allowance', '公务交通补贴')]: 'earnings_details.TRAFFIC_ALLOWANCE.amount',
+      [t('components.earnings.traffic_allowance')]: 'earnings_details.TRAFFIC_ALLOWANCE.amount',
       '公务交通补贴': 'earnings_details.TRAFFIC_ALLOWANCE.amount',
-      [t('components.earnings.position_allowance', '岗位职务补贴')]: 'earnings_details.POSITION_ALLOWANCE.amount',
+      [t('components.earnings.position_allowance')]: 'earnings_details.POSITION_ALLOWANCE.amount',
       '岗位职务补贴': 'earnings_details.POSITION_ALLOWANCE.amount',
-      [t('components.earnings.petition_allowance', '信访工作人员岗位津贴')]: 'earnings_details.PETITION_ALLOWANCE.amount',
+      [t('components.earnings.petition_allowance')]: 'earnings_details.PETITION_ALLOWANCE.amount',
       '信访工作人员岗位津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
       '信访工作人员岗位工作津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
+      [t('components.earnings.township_allowance')]: 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
+      '乡镇工作补贴': 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
       
       // 收入项 - 补发类
-      [t('components.earnings.back_pay', '补发工资')]: 'earnings_details.BACK_PAY.amount',
+      [t('components.earnings.back_pay')]: 'earnings_details.BACK_PAY.amount',
       '补发工资': 'earnings_details.BACK_PAY.amount',
       '一次性补扣发': 'earnings_details.BACK_PAY.amount',
       '绩效奖金补扣发': 'earnings_details.PERFORMANCE_BONUS_BACK_PAY.amount',
@@ -246,7 +248,7 @@ const PayrollBulkImportPage: React.FC = () => {
       '奖励绩效补发': 'earnings_details.PERFORMANCE_BONUS_BACK_PAY.amount',
       
       // 收入项 - 试用期
-      [t('components.earnings.probation_salary', '试用期工资')]: 'earnings_details.PROBATION_SALARY.amount',
+      [t('components.earnings.probation_salary')]: 'earnings_details.PROBATION_SALARY.amount',
       '见习试用期工资': 'earnings_details.PROBATION_SALARY.amount',
       '试用期工资': 'earnings_details.PROBATION_SALARY.amount',
       
@@ -312,18 +314,77 @@ const PayrollBulkImportPage: React.FC = () => {
     const fetchPayrollPeriods = async () => {
       setLoadingPeriods(true);
       try {
-        // 获取所有薪资周期，使用status_lookup_value_id筛选活动状态
+        console.log('🚀 开始获取薪资周期数据...');
+        console.log('📡 API调用参数:', { size: 100 });
+        
+        // 获取所有薪资周期，不进行状态过滤，以便用户可以选择任何月份
         const response = await payrollApi.getPayrollPeriods({
           size: 100, // 修改为最大允许值100，降低超出限制的风险
-          // 使用ACTIVE状态的lookup value id进行过滤
-          // 如果需要获取所有状态，可以不传此参数
-          status_lookup_value_id: Number(getActiveStatusId()) // 确保是数字类型
+          // 显示所有状态的薪资周期，让用户自由选择
         });
-        setPayrollPeriods(response.data);
+        
+        console.log('📡 API响应状态:', response ? 'SUCCESS' : 'FAILED');
+        console.log('📡 API响应完整数据:', JSON.stringify(response, null, 2));
+        
+        // 特别检查第一个周期的status_lookup字段
+        if (response.data && response.data.length > 0) {
+          const firstPeriod = response.data[0] as any; // 使用any类型来检查字段
+          console.log('🔍 第一个周期的字段检查:');
+          console.log('  - 是否有status字段:', 'status' in firstPeriod);
+          console.log('  - 是否有status_lookup字段:', 'status_lookup' in firstPeriod);
+          console.log('  - status值:', firstPeriod.status);
+          console.log('  - status_lookup值:', firstPeriod.status_lookup);
+          console.log('  - 所有字段名:', Object.keys(firstPeriod));
+        }
+        console.log('📡 response.data类型:', typeof response.data);
+        console.log('📡 response.data是否为数组:', Array.isArray(response.data));
+        console.log('📡 response.data长度:', response.data?.length);
+        
+        if (response.data && response.data.length > 0) {
+          console.log('📡 第一个周期的原始数据:', JSON.stringify(response.data[0], null, 2));
+          console.log('📡 第一个周期的status_lookup:', response.data[0].status_lookup);
+          console.log('📡 第一个周期的status_lookup_value_id:', response.data[0].status_lookup_value_id);
+        }
+        
+        // 按日期倒序排列，最新的月份在前面
+        const sortedPeriods = response.data.sort((a, b) => {
+          return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
+        });
+        
+        console.log('🔄 排序后的周期数据:');
+        sortedPeriods.forEach((period, index) => {
+          console.log(`  ${index + 1}. ${period.name}:`);
+          console.log(`     - status_lookup_value_id: ${period.status_lookup_value_id}`);
+          console.log(`     - status_lookup: ${JSON.stringify(period.status_lookup)}`);
+        });
+        
+        setPayrollPeriods(sortedPeriods);
         // 记录获取到的总数
-        console.log(`成功加载${response.data.length}个薪资周期，总共${response.meta?.total || 0}个`);
+        console.log(`✅ 成功加载${sortedPeriods.length}个薪资周期，总共${response.meta?.total || 0}个`);
+        console.log('📅 薪资周期列表:', sortedPeriods.map(p => `${p.name} (${p.status_lookup?.name || 'Unknown'})`));
+        
+        // 详细检查所有周期的数据结构
+        console.log('🔍 详细检查所有薪资周期的数据结构:');
+        sortedPeriods.forEach((period, index) => {
+          console.log(`\n--- 薪资周期 ${index + 1}: ${period.name} ---`);
+          console.log('完整数据:', JSON.stringify(period, null, 2));
+          console.log('status_lookup_value_id:', period.status_lookup_value_id);
+          console.log('status_lookup字段存在:', !!period.status_lookup);
+          if (period.status_lookup) {
+            console.log('status_lookup内容:', JSON.stringify(period.status_lookup, null, 2));
+            console.log('status_lookup.id:', period.status_lookup.id);
+            console.log('status_lookup.code:', period.status_lookup.code);
+            console.log('status_lookup.name:', period.status_lookup.name);
+          } else {
+            console.log('❌ status_lookup字段为空或未定义');
+          }
+          console.log('--- 结束 ---\n');
+        });
+        
+        // 检查API响应的原始数据
+        console.log('🔍 API响应原始数据:', JSON.stringify(response, null, 2));
       } catch (error) {
-        console.error('Error fetching payroll periods:', error);
+        console.error('❌ Error fetching payroll periods:', error);
         message.error(t('periods_page.error_fetch_periods'));
       } finally {
         setLoadingPeriods(false);
@@ -384,25 +445,36 @@ const PayrollBulkImportPage: React.FC = () => {
     const fetchDefaultPayrollEntryStatusId = async () => {
       try {
         console.log('开始获取默认薪资条目状态ID...');
-        // 获取"已计算"状态的ID
-        const statusId = await lookupService.getLookupValueIdByCode('PAYROLL_ENTRY_STATUS', 'PENTRY_CALCULATED');
-        if (statusId) {
-          setDefaultPayrollEntryStatusId(statusId);
-          console.log(`成功获取默认薪资条目状态ID: ${statusId}`);
+        // 首先尝试获取"已计算"状态的ID
+        const calculatedStatusId = await lookupService.getLookupValueIdByCode('PAYROLL_ENTRY_STATUS', 'CALCULATED');
+        if (calculatedStatusId) {
+          setDefaultPayrollEntryStatusId(calculatedStatusId);
+          console.log(`成功获取默认薪资条目状态ID (CALCULATED): ${calculatedStatusId}`);
+          return;
+        }
+        
+        // 如果找不到CALCULATED，尝试PENTRY_CALCULATED
+        const pentryCalculatedStatusId = await lookupService.getLookupValueIdByCode('PAYROLL_ENTRY_STATUS', 'PENTRY_CALCULATED');
+        if (pentryCalculatedStatusId) {
+          setDefaultPayrollEntryStatusId(pentryCalculatedStatusId);
+          console.log(`成功获取默认薪资条目状态ID (PENTRY_CALCULATED): ${pentryCalculatedStatusId}`);
+          return;
+        }
+        
+        console.warn('未找到CALCULATED或PENTRY_CALCULATED状态，尝试获取第一个可用状态');
+        // 如果都找不到，获取第一个可用的状态
+        const allStatuses = await lookupService.getPayrollEntryStatusesLookup();
+        if (allStatuses.length > 0) {
+          const firstStatusId = Number(allStatuses[0].id);
+          setDefaultPayrollEntryStatusId(firstStatusId);
+          console.log(`使用第一个可用状态ID: ${firstStatusId} (${allStatuses[0].name})`);
         } else {
-          console.warn('未找到PENTRY_CALCULATED状态，尝试获取第一个可用状态');
-          // 如果找不到PENTRY_CALCULATED，获取第一个可用的状态
-          const allStatuses = await lookupService.getPayrollEntryStatusesLookup();
-          if (allStatuses.length > 0) {
-            const firstStatusId = Number(allStatuses[0].id);
-            setDefaultPayrollEntryStatusId(firstStatusId);
-            console.log(`使用第一个可用状态ID: ${firstStatusId}`);
-          } else {
-            console.error('无法获取任何薪资条目状态');
-          }
+          console.error('无法获取任何薪资条目状态');
+          setDefaultPayrollEntryStatusId(null);
         }
       } catch (error) {
         console.error('获取默认薪资条目状态ID失败:', error);
+        setDefaultPayrollEntryStatusId(null);
       }
     };
 
@@ -641,8 +713,8 @@ const PayrollBulkImportPage: React.FC = () => {
     record.total_earnings = record.gross_pay;
     
     // 设置默认状态（使用动态获取的ID）
-    if (!record.status_lookup_value_id) {
-      record.status_lookup_value_id = defaultPayrollEntryStatusId || 64; // 使用动态获取的状态ID，fallback到64
+    if (!record.status_lookup_value_id && defaultPayrollEntryStatusId) {
+      record.status_lookup_value_id = defaultPayrollEntryStatusId; // 使用动态获取的状态ID
     }
     
     console.log('最终处理结果:');
@@ -665,6 +737,13 @@ const PayrollBulkImportPage: React.FC = () => {
 
   const handlePeriodChange = (value: number) => {
     setSelectedPeriodId(value);
+    const selectedPeriod = payrollPeriods.find(p => p.id === value);
+    console.log('🎯 用户选择薪资周期:', {
+      id: value,
+      name: selectedPeriod?.name,
+      status: selectedPeriod?.status_lookup?.name,
+      dateRange: `${selectedPeriod?.start_date} ~ ${selectedPeriod?.end_date}`
+    });
   };
 
   const processAndValidateJsonData = (jsonData: any[]): ValidatedPayrollEntryData[] => {
@@ -981,7 +1060,7 @@ const PayrollBulkImportPage: React.FC = () => {
           gross_pay: apiPayload.gross_pay,
           total_deductions: apiPayload.total_deductions,
           net_pay: apiPayload.net_pay,
-          status_lookup_value_id: apiPayload.status_lookup_value_id || defaultPayrollEntryStatusId || 64, // 使用动态获取的状态ID
+          status_lookup_value_id: apiPayload.status_lookup_value_id || defaultPayrollEntryStatusId || 1, // 使用动态获取的状态ID，如果都没有则使用默认值1
           remarks: apiPayload.remarks,
           earnings_details: apiPayload.earnings_details,
           deductions_details: apiPayload.deductions_details || {},
@@ -998,20 +1077,87 @@ const PayrollBulkImportPage: React.FC = () => {
         overwrite_mode: overwriteMode
       };
 
+      console.log('📤 准备上传薪资数据:', {
+        payroll_period_id: selectedPeriodId,
+        entries_count: payloadEntries.length,
+        overwrite_mode: overwriteMode,
+        selected_period_name: payrollPeriods.find(p => p.id === selectedPeriodId)?.name
+      });
+      
+      // 添加更详细的调试信息
+      console.log('📤 详细检查第一条记录的扣除项:');
+      if (payloadEntries.length > 0) {
+        const firstEntry = payloadEntries[0];
+        console.log('第一条记录完整数据:', JSON.stringify(firstEntry, null, 2));
+        if (firstEntry.deductions_details) {
+          console.log('扣除项代码列表:', Object.keys(firstEntry.deductions_details));
+          Object.entries(firstEntry.deductions_details).forEach(([code, detail]) => {
+            console.log(`  ${code}:`, detail);
+          });
+          console.log('是否包含SOCIAL_INSURANCE_ADJUSTMENT:', 'SOCIAL_INSURANCE_ADJUSTMENT' in firstEntry.deductions_details);
+        }
+      }
+
       const response = await payrollApi.bulkCreatePayrollEntries(bulkPayload);
+      
+      console.log('📥 批量上传响应:', response);
+      console.log('📥 响应类型:', typeof response);
+      console.log('📥 响应keys:', response ? Object.keys(response) : 'response is null/undefined');
       
       // 使用新的响应格式
       const result = response;
       
-      setUploadResult({
-        successCount: result.success_count,
-        errorCount: result.error_count,
-        errors: result.errors.map(err => ({
-          record: { employee_id: err.employee_id, index: err.index },
-          error: err.error
-        })),
-        createdEntries: result.created_entries
+      // 添加更多调试信息
+      console.log('📥 解析result:', {
+        success_count: result?.success_count,
+        error_count: result?.error_count,
+        errors: result?.errors,
+        created_entries: result?.created_entries
       });
+      
+      // 添加详细的错误信息输出
+      if (result?.errors && result.errors.length > 0) {
+        console.log('🚨 批量导入错误详情:');
+        result.errors.forEach((err: any, index: number) => {
+          console.log(`  错误 ${index + 1}:`, {
+            employee_id: err.employee_id,
+            employee_name: err.employee_name,
+            index: err.index,
+            error: err.error,
+            detail: err.detail || err.message || '无详细信息'
+          });
+        });
+        
+        // 检查第一个错误的详细信息
+        if (result.errors[0]) {
+          console.log('🚨 第一个错误的完整对象:', JSON.stringify(result.errors[0], null, 2));
+        }
+      }
+      
+      try {
+        // 检查result是否存在必需的字段
+        if (!result || typeof result.success_count === 'undefined' || typeof result.error_count === 'undefined') {
+          console.error('❌ 响应数据缺少必需字段:', result);
+          throw new Error('响应数据格式不正确');
+        }
+        
+        // 确保errors是数组
+        const errors = Array.isArray(result.errors) ? result.errors : [];
+        const createdEntries = Array.isArray(result.created_entries) ? result.created_entries : [];
+        
+        setUploadResult({
+          successCount: result.success_count || 0,
+          errorCount: result.error_count || 0,
+          errors: errors.map(err => ({
+            record: { employee_id: err.employee_id, index: err.index },
+            error: err.error
+          })),
+          createdEntries: createdEntries
+        });
+      } catch (resultError) {
+        console.error('❌ 处理响应数据时出错:', resultError);
+        throw resultError;
+      }
       
       message.success(t('batch_import.message.upload_success', { count: result.success_count }));
       
@@ -1210,7 +1356,12 @@ const PayrollBulkImportPage: React.FC = () => {
       title = t('batch_import.results.partial_success', { success: uploadResult.successCount, error: uploadResult.errorCount });
       icon = <WarningOutlined />;
     } else if (isAllFailed) {
-      title = t('batch_import.results.all_failed_at_server', { count: uploadResult.errorCount });
+      console.log('📝 翻译调试 - errorCount:', uploadResult.errorCount);
+      console.log('📝 翻译调试 - 翻译键:', 'batch_import.results.all_failed_at_server');
+      console.log('📝 翻译调试 - 参数:', { count: uploadResult.errorCount });
+      
+      // 使用正确的翻译方式，确保参数被替换
+      title = t('payroll:batch_import.results.all_failed_at_server', { count: uploadResult.errorCount });
       icon = <CloseCircleOutlined />;
     } else {
       title = t('batch_import.results.no_records_processed_at_server');
@@ -1298,12 +1449,7 @@ const PayrollBulkImportPage: React.FC = () => {
     };
   }, [message, t]);
 
-  // 获取活动状态的ID
-  const getActiveStatusId = (): number | undefined => {
-    // 这里应该从系统配置或常量中获取状态ID
-    // 因为我们使用了lookup表，所以需要根据实际配置获取
-    return PAYROLL_PERIOD_STATUS.ACTIVE;
-  };
+
 
   return (
     <PageHeaderLayout pageTitle={t('batch_import.page_title')}>
@@ -1331,7 +1477,18 @@ const PayrollBulkImportPage: React.FC = () => {
             <Form layout="vertical">
               <Form.Item 
                 label={t('batch_import.label.period_selection')} 
-                help={t('batch_import.help.period_selection')}
+                help={
+                  <div>
+                    <div>{t('batch_import.help.period_selection')}</div>
+                    <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
+                      💡 提示：现在显示所有状态的薪资周期。
+                      <Tag color="green" style={{ margin: '0 4px', fontSize: '11px' }}>活动</Tag>
+                      <Tag color="blue" style={{ margin: '0 4px', fontSize: '11px' }}>已关闭</Tag>
+                      <Tag color="gray" style={{ margin: '0 4px', fontSize: '11px' }}>已归档</Tag>
+                      状态的周期都可以导入数据。
+                    </div>
+                  </div>
+                }
                 required
               >
                 <Select
@@ -1354,19 +1511,44 @@ const PayrollBulkImportPage: React.FC = () => {
                     }
                   }}
                 >
-                  {payrollPeriods.map(period => (
-                    <Option key={period.id} value={period.id}>
-                      {period.name} ({period.start_date} ~ {period.end_date})
-                      {period.status_lookup && period.status_lookup.value_code !== 'ACTIVE' && (
-                        <Tag color={
-                          period.status_lookup.value_code === 'CLOSED' ? 'blue' : 
-                          period.status_lookup.value_code === 'ARCHIVED' ? 'gray' : 'gold'
-                        } style={{ marginLeft: 8 }}>
-                          {period.status_lookup.display_name}
-                        </Tag>
-                      )}
-                    </Option>
-                  ))}
+                  {payrollPeriods.map(period => {
+                    // 获取状态信息 - 添加详细调试日志
+                    console.log(`🔍 渲染薪资周期选项: ${period.name}`);
+                    console.log('  - period对象:', JSON.stringify(period, null, 2));
+                    console.log('  - status_lookup_value_id:', period.status_lookup_value_id);
+                    console.log('  - status_lookup存在:', !!period.status_lookup);
+                    console.log('  - status_lookup内容:', period.status_lookup);
+                    
+                    const statusCode = period.status_lookup?.code;
+                    const statusName = period.status_lookup?.name;
+                    
+                    console.log('  - 提取的statusCode:', statusCode);
+                    console.log('  - 提取的statusName:', statusName);
+                    console.log('  - statusCode类型:', typeof statusCode);
+                    console.log('  - statusName类型:', typeof statusName);
+                    
+                    const statusColor = 
+                      statusCode === 'ACTIVE' || statusCode === 'PLANNED' ? 'green' :
+                      statusCode === 'CLOSED' ? 'blue' : 
+                      statusCode === 'ARCHIVED' ? 'gray' : 'gold';
+                    
+                    console.log('  - 计算的statusColor:', statusColor);
+                    console.log('  - 最终显示的状态名:', statusName || '未知状态');
+                    console.log('  ---');
+                    
+                    return (
+                      <Option key={period.id} value={period.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>
+                            {period.name} ({period.start_date} ~ {period.end_date})
+                          </span>
+                          <Tag color={statusColor} style={{ marginLeft: 8 }}>
+                            {statusName || '未知状态'}
+                          </Tag>
+                        </div>
+                      </Option>
+                    );
+                  })}
                 </Select>
               </Form.Item>
 

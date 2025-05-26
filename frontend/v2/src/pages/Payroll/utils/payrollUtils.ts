@@ -100,10 +100,10 @@ export const getPayrollEntryStatusDisplay = (statusId: number, t: TFunction): st
 
 // --- PayrollPeriod Statuses ---
 export const PAYROLL_PERIOD_STATUS_OPTIONS: StatusOption[] = [
-  { id: 101, display_name_key: 'payroll_period_status.planned', color: 'default' },
-  { id: 102, display_name_key: 'payroll_period_status.active', color: 'blue' },
-  { id: 103, display_name_key: 'payroll_period_status.closed', color: 'red' },
-  { id: 104, display_name_key: 'payroll_period_status.archived', color: 'cyan' },
+  { id: 137, display_name_key: 'payroll_period_status.planned', color: 'default' },    // 计划中
+  { id: 134, display_name_key: 'payroll_period_status.active', color: 'green' },       // 活动
+  { id: 135, display_name_key: 'payroll_period_status.closed', color: 'blue' },        // 已关闭
+  { id: 136, display_name_key: 'payroll_period_status.archived', color: 'gray' },      // 已归档
 ];
 
 /**
@@ -114,13 +114,7 @@ export const PAYROLL_PERIOD_STATUS_OPTIONS: StatusOption[] = [
 export const getPayrollPeriodStatusInfo = (statusId?: number): { key: string; params?: Record<string, any>; color: string } => {
   if (statusId === undefined || statusId === null) return { key: 'status.na', color: 'default' };
   
-  // 处理旧的状态ID值，映射到新的状态ID
-  let mappedStatusId = statusId;
-  if (statusId === 1) mappedStatusId = 102; // 旧版活动 -> 新版活动(102)
-  if (statusId === 2) mappedStatusId = 103; // 旧版关闭 -> 新版关闭(103)
-  if (statusId === 3) mappedStatusId = 104; // 旧版归档 -> 新版归档(104)
-  
-  const status = PAYROLL_PERIOD_STATUS_OPTIONS.find(opt => opt.id === mappedStatusId);
+  const status = PAYROLL_PERIOD_STATUS_OPTIONS.find(opt => opt.id === statusId);
   return status 
     ? { key: status.display_name_key, color: status.color } 
     : { key: 'status.unknown_status_param', params: { statusId }, color: 'default' };

@@ -1,10 +1,10 @@
-// 薪资周期状态ID常量
-// 这些值需要与数据库中的lookup_values表中的ID值匹配
+// 薪资周期状态ID常量 - 已弃用，请使用动态状态工具
+// @deprecated 使用 dynamicStatusUtils 中的函数动态获取状态ID
 export const PAYROLL_PERIOD_STATUS = {
-  ACTIVE: 134,   // 活动状态
-  CLOSED: 135,   // 已关闭状态
-  ARCHIVED: 136, // 已归档状态
-  PLANNED: 137,  // 计划中状态
+  ACTIVE: 134,   // 活动状态 - 仅用于向后兼容
+  CLOSED: 135,   // 已关闭状态 - 仅用于向后兼容
+  ARCHIVED: 136, // 已归档状态 - 仅用于向后兼容
+  PLANNED: 137,  // 计划中状态 - 仅用于向后兼容
 };
 
 // 薪资周期状态代码常量

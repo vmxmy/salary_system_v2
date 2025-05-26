@@ -899,4 +899,76 @@ export const lookupService = {
       return null;
     }
   },
+
+  // 添加获取薪资周期状态选项的方法
+  getPayrollPeriodStatusOptions: async (): Promise<LookupItem[]> => {
+    try {
+      const response = await apiClient.get<ActualApiLookupValueListResponse>(`/${API_BASE_PATH}`, {
+        params: {
+          lookup_type_code: 'PAYROLL_PERIOD_STATUS',
+          size: 100
+        }
+      });
+      return response.data.data
+        .filter(item => item.is_active !== false)
+        .map(apiItem => ({
+          value: apiItem.id,
+          label: apiItem.name || apiItem.label || '',
+          code: apiItem.code,
+          id: apiItem.id,
+          name: apiItem.name || apiItem.label || '',
+        }));
+    } catch (error) {
+      console.error('Error fetching payroll period status options:', error);
+      throw error;
+    }
+  },
+
+  // 添加获取薪资运行状态选项的方法
+  getPayrollRunStatusOptions: async (): Promise<LookupItem[]> => {
+    try {
+      const response = await apiClient.get<ActualApiLookupValueListResponse>(`/${API_BASE_PATH}`, {
+        params: {
+          lookup_type_code: 'PAYROLL_RUN_STATUS',
+          size: 100
+        }
+      });
+      return response.data.data
+        .filter(item => item.is_active !== false)
+        .map(apiItem => ({
+          value: apiItem.id,
+          label: apiItem.name || apiItem.label || '',
+          code: apiItem.code,
+          id: apiItem.id,
+          name: apiItem.name || apiItem.label || '',
+        }));
+    } catch (error) {
+      console.error('Error fetching payroll run status options:', error);
+      throw error;
+    }
+  },
+
+  // 添加获取薪资条目状态选项的方法
+  getPayrollEntryStatusOptions: async (): Promise<LookupItem[]> => {
+    try {
+      const response = await apiClient.get<ActualApiLookupValueListResponse>(`/${API_BASE_PATH}`, {
+        params: {
+          lookup_type_code: 'PAYROLL_ENTRY_STATUS',
+          size: 100
+        }
+      });
+      return response.data.data
+        .filter(item => item.is_active !== false)
+        .map(apiItem => ({
+          value: apiItem.id,
+          label: apiItem.name || apiItem.label || '',
+          code: apiItem.code,
+          id: apiItem.id,
+          name: apiItem.name || apiItem.label || '',
+        }));
+    } catch (error) {
+      console.error('Error fetching payroll entry status options:', error);
+      throw error;
+    }
+  },
 };

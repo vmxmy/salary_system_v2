@@ -38,7 +38,7 @@ import { getPayrollPeriodNameTranslation } from '../utils/payrollFormatUtils';
 import TableActionButton from '../../../components/common/TableActionButton';
 import type { PayrollPeriod, ApiListMeta } from '../types/payrollTypes';
 import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
-import { PAYROLL_PERIOD_STATUS_OPTIONS, getPayrollPeriodStatusInfo } from '../utils/payrollUtils';
+import { getPayrollPeriodStatusOptions, getPayrollPeriodStatusInfo, type DynamicStatusOption } from '../utils/dynamicStatusUtils';
 
 const PayrollPeriodsPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common']);
@@ -63,11 +63,14 @@ const PayrollPeriodsPage: React.FC = () => {
 
   const requiredPermissionsMemo = React.useMemo(() => [P_PAYROLL_PERIOD_MANAGE], []);
 
-  // 使用新的getPayrollPeriodStatusInfo函数
-  const getStatusDisplayForPage = useCallback((statusId?: number) => {
-    const statusInfo = getPayrollPeriodStatusInfo(statusId);
-    return { text: t(statusInfo.key, statusInfo.params), color: statusInfo.color };
-  }, [t]);
+  // 状态选项状态
+  const [statusOptions, setStatusOptions] = useState<DynamicStatusOption[]>([]);
+  
+  // 获取状态显示信息的异步函数
+  const getStatusDisplayForPage = useCallback(async (statusId?: number) => {
+    const statusInfo = await getPayrollPeriodStatusInfo(statusId);
+    return { text: statusInfo.name, color: statusInfo.color };
+  }, []);
 
   const memoizedInitialValues = React.useMemo(() => {
     if (!currentPeriod) {
@@ -77,6 +80,8 @@ const PayrollPeriodsPage: React.FC = () => {
       name: currentPeriod.name,
       start_date: currentPeriod.start_date,
       end_date: currentPeriod.end_date,
+      pay_date: currentPeriod.pay_date,
+      frequency_lookup_value_id: currentPeriod.frequency_lookup_value_id,
       status_lookup_value_id: currentPeriod.status_lookup_value_id,
     };
   }, [currentPeriod]);
@@ -105,6 +110,19 @@ const PayrollPeriodsPage: React.FC = () => {
     fetchPeriods();
   }, []);
 
+  // 加载状态选项
+  useEffect(() => {
+    const loadStatusOptions = async () => {
+      try {
+        const options = await getPayrollPeriodStatusOptions();
+        setStatusOptions(options);
+      } catch (error) {
+        console.error('Failed to load status options:', error);
+      }
+    };
+    loadStatusOptions();
+  }, []);
+
   // 监听start_date变化自动生成名称
   useEffect(() => {
     // 只有当创建新周期时才进行自动生成
@@ -128,11 +146,18 @@ const PayrollPeriodsPage: React.FC = () => {
         name: period.name,
         start_date: dayjs(period.start_date),
         end_date: dayjs(period.end_date),
+        pay_date: dayjs(period.pay_date),
+        frequency_lookup_value_id: period.frequency_lookup_value_id,
         status_lookup_value_id: period.status_lookup_value_id,
       });
     } else {
       setCurrentPeriod(null);
       form.resetFields();
+      // 设置新建时的默认值
+      form.setFieldsValue({
+        frequency_lookup_value_id: 117, // 默认月度
+        status_lookup_value_id: 137, // 默认计划中
+      });
     }
     setIsModalVisible(true);
   }, [form]);
@@ -146,29 +171,52 @@ const PayrollPeriodsPage: React.FC = () => {
 
   const handleFormFinish = useCallback(async (values: PayrollPeriodFormData) => {
     console.log('[PayrollPeriodsPage:handleFormFinish] Called. Values:', values, 'CurrentPeriod:', currentPeriod);
+    console.log('[PayrollPeriodsPage:handleFormFinish] Detailed values:', {
+      frequency_lookup_value_id: values.frequency_lookup_value_id,
+      status_lookup_value_id: values.status_lookup_value_id,
+      pay_date: values.pay_date?.format('YYYY-MM-DD'),
+    });
     setModalLoading(true);
-    setError(null); 
+    setError(null);
 
     const apiPayload = {
       name: values.name,
       start_date: values.start_date.format('YYYY-MM-DD'),
       end_date: values.end_date.format('YYYY-MM-DD'),
-      status_lookup_value_id: values.status_lookup_value_id,
+      pay_date: values.pay_date.format('YYYY-MM-DD'),
+      frequency_lookup_value_id: Number(values.frequency_lookup_value_id),
+      status_lookup_value_id: Number(values.status_lookup_value_id),
     };
+    
+    console.log('[PayrollPeriodsPage:handleFormFinish] API Payload:', apiPayload);
+    console.log('[PayrollPeriodsPage:handleFormFinish] frequency_lookup_value_id final value:', apiPayload.frequency_lookup_value_id);
 
     try {
       if (currentPeriod && currentPeriod.id) {
         await updatePayrollPeriod(currentPeriod.id, apiPayload as Partial<PayrollPeriod>);
-        message.success(t('periods_page.message.update_success'));
+        message.success("工资期间更新成功！");
       } else {
         await createPayrollPeriod(apiPayload as Partial<PayrollPeriod>);
-        message.success(t('periods_page.message.create_success'));
+        message.success("工资期间创建成功！");
       }
       handleModalCancel();
       fetchPeriods(meta?.page || 1, meta?.size || 10); 
       console.log('[PayrollPeriodsPage:handleFormFinish] Success.');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || (currentPeriod ? t('periods_page.message.update_failed') : t('periods_page.message.create_failed'));
+      let errorMessage: string;
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        } else if (err.response.data.detail.msg) {
+          errorMessage = err.response.data.detail.msg;
+        } else if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
+        } else {
+          errorMessage = JSON.stringify(err.response.data.detail);
+        }
+      } else {
+        errorMessage = err.message || (currentPeriod ? "更新失败" : "创建失败");
+      }
       console.error('[PayrollPeriodsPage:handleFormFinish] Error:', errorMessage, 'Original error:', err);
       setError(errorMessage); 
       message.error(errorMessage); 
@@ -183,7 +231,7 @@ const PayrollPeriodsPage: React.FC = () => {
     setError(null);
     try {
       await deletePayrollPeriod(periodId);
-      message.success(t('periods_page.message.delete_success'));
+      message.success("工资期间删除成功！");
       if (periods.length === 1 && meta && meta.page > 1) {
         fetchPeriods(meta.page - 1, meta.size);
       } else {
@@ -191,7 +239,20 @@ const PayrollPeriodsPage: React.FC = () => {
       }
       console.log('[PayrollPeriodsPage:handleDeletePeriod] Success.');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || t('periods_page.message.delete_failed');
+      let errorMessage: string;
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        } else if (err.response.data.detail.msg) {
+          errorMessage = err.response.data.detail.msg;
+        } else if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
+        } else {
+          errorMessage = JSON.stringify(err.response.data.detail);
+        }
+      } else {
+        errorMessage = err.message || "删除失败";
+      }
       console.error('[PayrollPeriodsPage:handleDeletePeriod] Error:', errorMessage, 'Original error:', err);
       setError(errorMessage);
       message.error(errorMessage);
@@ -205,7 +266,7 @@ const PayrollPeriodsPage: React.FC = () => {
 
   const columns: ColumnsType<PayrollPeriod> = [
     {
-      title: t('periods_page.table.column.id'),
+      title: t('payroll_periods_page.table.column_id'),
       dataIndex: 'id',
       key: 'id',
       sorter: numberSorter<PayrollPeriod>('id'),
@@ -214,7 +275,7 @@ const PayrollPeriodsPage: React.FC = () => {
       width: 80,
     },
     {
-      title: t('periods_page.table.column.name'),
+      title: t('payroll_periods_page.table.column_period_name'),
       dataIndex: 'name',
       key: 'name',
       sorter: stringSorter<PayrollPeriod>('name'),
@@ -223,7 +284,7 @@ const PayrollPeriodsPage: React.FC = () => {
       width: 200,
     },
     {
-      title: t('periods_page.table.column.start_date'),
+      title: t('payroll_periods_page.table.column_start_date'),
       dataIndex: 'start_date',
       key: 'start_date',
       sorter: dateSorter<PayrollPeriod>('start_date'),
@@ -232,7 +293,7 @@ const PayrollPeriodsPage: React.FC = () => {
       render: (date: string) => date ? format(new Date(date), 'yyyy-MM-dd') : '',
     },
     {
-      title: t('periods_page.table.column.end_date'),
+      title: t('payroll_periods_page.table.column_end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
       sorter: dateSorter<PayrollPeriod>('end_date'),
@@ -241,22 +302,25 @@ const PayrollPeriodsPage: React.FC = () => {
       render: (date: string) => date ? format(new Date(date), 'yyyy-MM-dd') : '',
     },
     {
-      title: t('periods_page.table.column.status'),
+      title: t('payroll_periods_page.table.column_status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
-      filters: PAYROLL_PERIOD_STATUS_OPTIONS.map(option => ({
-        text: t(option.display_name_key),
+      filters: statusOptions.map(option => ({
+        text: option.name,
         value: option.id,
       })),
       onFilter: (value, record) => record.status_lookup_value_id === value,
       render: (statusId: number) => {
-        const status = getStatusDisplayForPage(statusId);
-        return <Tag color={status.color}>{status.text}</Tag>;
+        // 同步查找状态信息，避免异步渲染问题
+        const status = statusOptions.find(opt => opt.id === statusId);
+        const statusText = status ? status.name : `未知状态(${statusId})`;
+        const statusColor = status ? status.color : 'default';
+        return <Tag color={statusColor}>{statusText}</Tag>;
       },
       width: 120,
     },
     {
-      title: t('periods_page.table.column.actions'),
+      title: t('payroll_periods_page.table.column_actions'),
       key: 'actions',
       align: 'center',
       width: 120,
@@ -265,18 +329,18 @@ const PayrollPeriodsPage: React.FC = () => {
           <TableActionButton
             actionType="edit"
             onClick={() => showModal(record)}
-            tooltipTitle={t('periods_page.tooltip.edit_period')}
+            tooltipTitle={t('periods_page.tooltip_edit_period', { ns: 'payroll' })}
           />
           <Popconfirm
-            title={t('periods_page.confirm.delete_title')}
-            description={t('periods_page.confirm.delete_description', { periodName: record.name })}
+            title="确认删除"
+            description={`确定要删除工资期间 "${record.name}" 吗？此操作不可撤销。`}
             onConfirm={() => handleDeletePeriod(record.id)}
-            okText={t('common:action.yes')}
-            cancelText={t('common:action.no')}
+            okText={t('button.yes', { ns: 'common' })}
+            cancelText={t('button.no', { ns: 'common' })}
           >
             <TableActionButton
               actionType="delete"
-              tooltipTitle={t('periods_page.tooltip.delete_period')}
+              tooltipTitle={t('periods_page.tooltip_delete_period', { ns: 'payroll' })}
             />
           </Popconfirm>
         </Space>
@@ -289,10 +353,10 @@ const PayrollPeriodsPage: React.FC = () => {
     periods || [], 
     columns, 
     {
-      filename: t('periods_page.export.filename'),
-      sheetName: t('periods_page.export.sheetName'),
-      buttonText: t('periods_page.export.buttonText'),
-      successMessage: t('periods_page.export.successMessage')
+      filename: "工资期间数据",
+      sheetName: "工资期间",
+      buttonText: "导出Excel",
+      successMessage: "导出成功"
     }
   );
   
@@ -301,10 +365,10 @@ const PayrollPeriodsPage: React.FC = () => {
     columns,
     {
       storageKeyPrefix: 'payroll_periods_table',
-      buttonText: t('periods_page.columnControl.buttonText'),
-      tooltipTitle: t('periods_page.columnControl.tooltipTitle'),
-      dropdownTitle: t('periods_page.columnControl.dropdownTitle'),
-      resetText: t('periods_page.columnControl.resetText'),
+      buttonText: "列设置",
+      tooltipTitle: "自定义列",
+      dropdownTitle: "列显示",
+      resetText: "重置",
       requiredColumns: ['id', 'name', 'actions'] // ID、名称和操作列必须显示
     }
   );
@@ -338,7 +402,7 @@ const PayrollPeriodsPage: React.FC = () => {
   return (
     <PermissionGuard requiredPermissions={requiredPermissionsMemo} showError={true}>
       <PageHeaderLayout
-        pageTitle={<Typography.Title level={4} style={{ margin: 0 }}>{t('periods_page.title')}</Typography.Title>}
+        pageTitle={<Typography.Title level={4} style={{ margin: 0 }}>{t('payroll_periods_page.title')}</Typography.Title>}
         actions={
           <Space>
             <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
@@ -351,7 +415,7 @@ const PayrollPeriodsPage: React.FC = () => {
               </Button>
             </PermissionGuard>
             <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
-              <Tooltip title={t('periods_page.export.tooltipTitle')}>
+              <Tooltip title="导出Excel">
                 <ExportButton />
               </Tooltip>
             </PermissionGuard>
@@ -360,7 +424,7 @@ const PayrollPeriodsPage: React.FC = () => {
         }
       >
         {/* Content for PageHeaderLayout children goes here */}
-        {error && <Alert message={t('common.error_alert_title')} description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
+        {error && <Alert message="错误" description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
         <Table
           columns={visibleColumns}
           dataSource={periods}
@@ -373,31 +437,34 @@ const PayrollPeriodsPage: React.FC = () => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
             onChange: (page, pageSize) => fetchPeriods(page, pageSize),
-            showTotal: (total, range) => t('common.pagination_total', { start: range[0], end: range[1], total }),
+            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
           }}
           scroll={{ x: 'max-content' }}
         />
         {isModalVisible && (
           <Modal
-            title={currentPeriod ? t('periods_page.modal.title_edit') : t('periods_page.modal.title_add')}
+            title={currentPeriod ? "编辑工资期间" : t('payroll_periods_page.modal_title_create', { ns: 'common' })}
             open={isModalVisible}
             onCancel={handleModalCancel}
             confirmLoading={modalLoading}
             footer={[
               <Button key="back" onClick={handleModalCancel} disabled={modalLoading}>
-                {t('common.button_cancel')}
+                {t('button.cancel', { ns: 'common' })}
               </Button>,
               <Button key="submit" type="primary" loading={modalLoading} onClick={() => form.submit()}>
-                {currentPeriod ? t('common.button_save_changes') : t('common.button_create')}
+                {currentPeriod ? t('button.save_changes', { ns: 'common' }) : t('button.create', { ns: 'common' })}
               </Button>,
             ]}
             destroyOnHidden
           >
-            {error && <Alert message={t('common.error_alert_title')} description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
+            {error && <Alert message="错误" description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
             <PayrollPeriodForm 
               form={form} 
               onFinish={handleFormFinish} 
-              initialValues={memoizedInitialValues} 
+              initialValues={currentPeriod ? memoizedInitialValues : {
+                frequency_lookup_value_id: 117,
+                status_lookup_value_id: 137
+              }} 
               onStartDateChange={handleStartDateChange} 
             />
           </Modal>

@@ -2,7 +2,7 @@
 工资相关的CRUD操作。
 """
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_, and_, select
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import date, datetime
 from sqlalchemy.orm import selectinload
@@ -16,6 +16,7 @@ from ..pydantic_models.payroll import (
 from ..models.hr import Employee
 from .config import get_payroll_component_definitions # 新增导入
 from .hr import get_employee_by_name_and_id_number, get_employee
+from ..models.config import PayrollComponentDefinition
 
 # PayrollPeriod CRUD
 def get_payroll_periods(
@@ -45,11 +46,20 @@ def get_payroll_periods(
     query = query.order_by(PayrollPeriod.start_date.desc())
     
     total = query.count()
-    query = query.offset(skip).limit(limit)
+    
+    # 预加载关联的 status_lookup 和 frequency 数据
+    query = query.options(
+        selectinload(PayrollPeriod.status_lookup),
+        selectinload(PayrollPeriod.frequency)
+    ).offset(skip).limit(limit)
+    
     return query.all(), total
 
 def get_payroll_period(db: Session, period_id: int) -> Optional[PayrollPeriod]:
-    return db.query(PayrollPeriod).filter(PayrollPeriod.id == period_id).first()
+    return db.query(PayrollPeriod).options(
+        selectinload(PayrollPeriod.status_lookup),
+        selectinload(PayrollPeriod.frequency)
+    ).filter(PayrollPeriod.id == period_id).first()
 
 def create_payroll_period(db: Session, payroll_period: PayrollPeriodCreate) -> PayrollPeriod:
     existing = db.query(PayrollPeriod).filter(
@@ -63,7 +73,9 @@ def create_payroll_period(db: Session, payroll_period: PayrollPeriodCreate) -> P
     db.add(db_payroll_period)
     db.commit()
     db.refresh(db_payroll_period)
-    return db_payroll_period
+    
+    # 重新查询以获取关联数据
+    return get_payroll_period(db, db_payroll_period.id)
 
 def update_payroll_period(db: Session, period_id: int, payroll_period: PayrollPeriodUpdate) -> Optional[PayrollPeriod]:
     db_payroll_period = get_payroll_period(db, period_id)
@@ -88,7 +100,9 @@ def update_payroll_period(db: Session, period_id: int, payroll_period: PayrollPe
         setattr(db_payroll_period, key, value)
     db.commit()
     db.refresh(db_payroll_period)
-    return db_payroll_period
+    
+    # 重新查询以获取关联数据
+    return get_payroll_period(db, period_id)
 
 def delete_payroll_period(db: Session, period_id: int) -> bool:
     db_payroll_period = get_payroll_period(db, period_id)
@@ -382,19 +396,60 @@ def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool
     return entry
 
 def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) -> PayrollEntry:
-    # 获取组件定义
-    personal_deduction_result = get_payroll_component_definitions(db, component_type='PERSONAL_DEDUCTION', is_active=True, limit=1000)
-    employer_deduction_result = get_payroll_component_definitions(db, component_type='EMPLOYER_DEDUCTION', is_active=True, limit=1000)
-    earning_result = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    # 获取组件定义 - 使用更可靠的查询方式
+    from sqlalchemy import select
+    from ..models.config import PayrollComponentDefinition
     
-    all_personal_deduction_components = personal_deduction_result["data"]
-    all_employer_deduction_components = employer_deduction_result["data"]
-    all_earning_components = earning_result["data"]
+    # 直接使用SQLAlchemy查询，避免CRUD函数可能的问题
+    personal_deduction_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'PERSONAL_DEDUCTION',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    # 打印生成的SQL
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        compiled_sql = personal_deduction_query.compile(compile_kwargs={"literal_binds": True})
+        logger.info(f"编译后的个人扣除项SQL: {compiled_sql}")
+    except Exception as e:
+        logger.error(f"编译SQL时出错: {e}")
+        
+    # 强制刷新会话，确保获取最新数据
+    try:
+        db.expire_all() # 使所有持久化实例过期，下次访问时会从数据库重新加载
+        logger.info("数据库会话已强制刷新 (expire_all)")
+    except Exception as e:
+        logger.error(f"强制刷新会话时出错: {e}")
+
+    employer_deduction_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'EMPLOYER_DEDUCTION',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    earning_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'EARNING',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    all_personal_deduction_components = db.execute(personal_deduction_query).scalars().all()
+    all_employer_deduction_components = db.execute(employer_deduction_query).scalars().all()
+    all_earning_components = db.execute(earning_query).scalars().all()
     
     component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
     component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
     component_map.update({comp.code: comp.name for comp in all_earning_components})
 
+    # 添加调试日志
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"个人扣除项组件数量: {len(all_personal_deduction_components)}")
+    logger.info(f"个人扣除项代码列表: {[comp.code for comp in all_personal_deduction_components]}")
+    logger.info(f"雇主扣除项组件数量: {len(all_employer_deduction_components)}")
+    logger.info(f"收入项组件数量: {len(all_earning_components)}")
+    logger.info(f"component_map包含的所有代码: {list(component_map.keys())}")
+    logger.info(f"是否包含SOCIAL_INSURANCE_ADJUSTMENT: {'SOCIAL_INSURANCE_ADJUSTMENT' in component_map}")
+    
     # 排除 employee_info 字段，因为它不是 PayrollEntry 模型的字段
     db_data_dict = payroll_entry_data.model_dump(exclude={'employee_info'})
 
@@ -440,14 +495,25 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
     if not db_payroll_entry:
         return None
 
-    # 获取组件定义 (与create中类似)
-    personal_deduction_result = get_payroll_component_definitions(db, component_type='PERSONAL_DEDUCTION', is_active=True, limit=1000)
-    employer_deduction_result = get_payroll_component_definitions(db, component_type='EMPLOYER_DEDUCTION', is_active=True, limit=1000)
-    earning_result = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    # 获取组件定义 - 使用直接查询方式
+    personal_deduction_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'PERSONAL_DEDUCTION',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
     
-    all_personal_deduction_components = personal_deduction_result["data"]
-    all_employer_deduction_components = employer_deduction_result["data"]
-    all_earning_components = earning_result["data"]
+    employer_deduction_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'EMPLOYER_DEDUCTION',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    earning_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'EARNING',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    all_personal_deduction_components = db.execute(personal_deduction_query).scalars().all()
+    all_employer_deduction_components = db.execute(employer_deduction_query).scalars().all()
+    all_earning_components = db.execute(earning_query).scalars().all()
     
     component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
     component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
@@ -490,14 +556,25 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
     if not db_payroll_entry:
         return None
 
-    # 获取组件定义 (与create/update中类似)
-    personal_deduction_result = get_payroll_component_definitions(db, component_type='PERSONAL_DEDUCTION', is_active=True, limit=1000)
-    employer_deduction_result = get_payroll_component_definitions(db, component_type='EMPLOYER_DEDUCTION', is_active=True, limit=1000)
-    earning_result = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    # 获取组件定义 - 使用直接查询方式
+    personal_deduction_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'PERSONAL_DEDUCTION',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
     
-    all_personal_deduction_components = personal_deduction_result["data"]
-    all_employer_deduction_components = employer_deduction_result["data"]
-    all_earning_components = earning_result["data"]
+    employer_deduction_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'EMPLOYER_DEDUCTION',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    earning_query = select(PayrollComponentDefinition).where(
+        PayrollComponentDefinition.type == 'EARNING',
+        PayrollComponentDefinition.is_active == True
+    ).order_by(PayrollComponentDefinition.display_order.asc())
+    
+    all_personal_deduction_components = db.execute(personal_deduction_query).scalars().all()
+    all_employer_deduction_components = db.execute(employer_deduction_query).scalars().all()
+    all_earning_components = db.execute(earning_query).scalars().all()
     
     component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
     component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})

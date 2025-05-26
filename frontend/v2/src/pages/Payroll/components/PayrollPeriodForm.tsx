@@ -21,6 +21,8 @@ export interface PayrollPeriodFormData {
   name: string;
   start_date: Dayjs; // Ensure Dayjs
   end_date: Dayjs;   // Ensure Dayjs
+  pay_date: Dayjs;   // 支付日期
+  frequency_lookup_value_id: number; // 频率ID
   status_lookup_value_id: number; // Changed from status to match Pydantic model
 }
 
@@ -33,15 +35,20 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
   isEditMode = false,
   onStartDateChange,
 }) => {
-  const { t } = useTranslation(); // Added
+  const { t } = useTranslation('common'); // Added with namespace
 
   const handleSubmit = (values: any) => {
+    console.log('[PayrollPeriodForm:handleSubmit] Raw form values:', values);
+    console.log('[PayrollPeriodForm:handleSubmit] frequency_lookup_value_id type:', typeof values.frequency_lookup_value_id);
     const transformedValues: PayrollPeriodFormData = {
       name: values.name,
       start_date: values.start_date, // Already Dayjs objects from DatePicker
       end_date: values.end_date,     // Already Dayjs objects from DatePicker
+      pay_date: values.pay_date,     // Already Dayjs objects from DatePicker
+      frequency_lookup_value_id: values.frequency_lookup_value_id,
       status_lookup_value_id: values.status_lookup_value_id,
     };
+    console.log('[PayrollPeriodForm:handleSubmit] Transformed values:', transformedValues);
     onFinish(transformedValues);
   };
 
@@ -50,8 +57,13 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
     ...initialValues,
     start_date: initialValues.start_date ? dayjs(initialValues.start_date) : undefined,
     end_date: initialValues.end_date ? dayjs(initialValues.end_date) : undefined,
-    status_lookup_value_id: initialValues.status_lookup_value_id,
-  } : {};
+    pay_date: initialValues.pay_date ? dayjs(initialValues.pay_date) : undefined,
+    frequency_lookup_value_id: initialValues.frequency_lookup_value_id || 117, // 确保有默认值
+    status_lookup_value_id: initialValues.status_lookup_value_id || 137, // 确保有默认值
+  } : {
+    frequency_lookup_value_id: 117, // 默认月度
+    status_lookup_value_id: 137 // 默认计划中
+  };
 
   return (
     <Form
@@ -104,6 +116,30 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
           </Form.Item>
         </Col>
       </Row>
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name="pay_date"
+            label={t('payroll_period_form.label.pay_date')}
+            rules={[{ required: true, message: t('payroll_period_form.validation.pay_date_required') }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name="frequency_lookup_value_id"
+            label={t('payroll_period_form.label.frequency')}
+            rules={[{ required: true, message: t('payroll_period_form.validation.frequency_required') }]}
+          >
+            <Select placeholder={t('payroll_period_form.placeholder.frequency')}>
+              <Select.Option value={117}>月度</Select.Option>
+              <Select.Option value={118}>季度</Select.Option>
+              <Select.Option value={119}>年度</Select.Option>
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
       <Form.Item
         name="status_lookup_value_id" // Changed from "status"
         label={t('payroll_period_form.label.status')}
@@ -112,7 +148,7 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         <Select placeholder={t('payroll_period_form.placeholder.status')}>
           {PAYROLL_PERIOD_STATUS_OPTIONS.map((statusOpt) => (
             <Select.Option key={statusOpt.id} value={statusOpt.id}>
-              {t(statusOpt.display_name_key)}
+              {String(t(statusOpt.display_name_key, { ns: 'common' }))}
             </Select.Option>
           ))}
         </Select>

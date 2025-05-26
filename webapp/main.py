@@ -36,7 +36,6 @@ from typing import List, Optional, Dict, Any, Sequence
 import os
 import json
 import logging
-from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 from fastapi.responses import FileResponse, HTMLResponse
@@ -124,7 +123,7 @@ app.add_middleware(
 )
 
 # 数据库连接
-# 首先尝试加载项目根目录的.env文件
+# 配置已从 webapp/.env 文件加载
 DATABASE_URL = settings.DATABASE_URL  # 从配置获取
 if not DATABASE_URL:
     logger.warning("DATABASE_URL environment variable not set! Attempting to construct from components.") # Changed to warning

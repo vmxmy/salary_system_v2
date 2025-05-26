@@ -389,5 +389,40 @@
   },
   "records_total": "总记录数: {{total}}",
   "records_valid": "有效记录: {{count}}",
-  "records_invalid": "无效记录: {{count}}"
+  "records_invalid": "无效记录: {{count}}",
+  "payroll_period_form": {
+    "label": {
+      "name": "期间名称",
+      "start_date": "开始日期",
+      "end_date": "结束日期",
+      "pay_date": "支付日期",
+      "frequency": "支付频率",
+      "status": "状态"
+    },
+    "validation": {
+      "name_required": "请输入期间名称！",
+      "start_date_required": "请选择开始日期！",
+      "end_date_required": "请选择结束日期！",
+      "end_date_before_start_date": "结束日期不能早于开始日期！",
+      "pay_date_required": "请选择支付日期！",
+      "frequency_required": "请选择支付频率！",
+      "status_required": "请选择状态！"
+    },
+    "placeholder": {
+      "name": "例如：2024年7月工资周期",
+      "frequency": "选择支付频率",
+      "status": "选择周期状态"
+    },
+    "button": {
+      "cancel": "取消",
+      "save_changes": "保存更改",
+      "create_period": "创建周期"
+    }
+  },
+  "payroll_period_status": {
+    "planned": "计划中",
+    "active": "进行中",
+    "closed": "已关闭",
+    "archived": "已存档"
+  }
 }

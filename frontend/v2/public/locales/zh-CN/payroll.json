@@ -142,7 +142,9 @@
     "confirm": {
       "delete_title": "确认删除",
       "delete_description": "确定要删除此工资周期吗？此操作不可撤销。"
-    }
+    },
+    "tooltip_edit_period": "编辑工资周期(page)",
+    "tooltip_delete_period": "删除工资周期(page)"
   },
   "runs_page": {
     "title": "工资计算批次",
@@ -729,15 +731,29 @@
     "validation": {
       "file_required": "请选择要上传的文件。",
       "payroll_period_required": "请选择工资周期。",
+      "period_required": "请选择工资周期。",
       "mapping_required": "请完成所有必填字段的映射。",
       "mapping_invalid": "字段映射存在错误，请检查。",
       "preview_required": "请预览并确认导入数据。",
-      "total_deductions_mismatch": "扣发合计与明细项目之和不一致。",
-      "net_pay_mismatch": "实发工资与(应发工资 - 总扣除额)不一致。"
+      "no_data_to_upload": "没有可上传的数据。",
+      "no_valid_data_to_upload": "没有有效的数据可上传。",
+      "json_not_array": "JSON数据必须是数组格式。",
+      "missing_employee_match_info": "缺少员工匹配信息（姓名和身份证号）。",
+      "invalid_amount": "金额格式无效。",
+      "earnings_required": "至少需要一个收入项。",
+      "total_deductions_mismatch": "扣发合计与五险一金+个税之和不一致。",
+      "gross_pay_mismatch": "应发工资与收入项明细之和不一致。",
+      "net_pay_mismatch": "实发工资与(应发工资 - 总扣除额)不一致。",
+      "batch_has_errors": "批次数据中存在验证错误。"
     },
     "message": {
-      "upload_success": "文件上传成功，请进行字段映射。",
-      "upload_failed": "文件上传失败，请重试。",
+      "upload_success": "成功上传 {count} 条记录",
+      "upload_failed": "批量上传失败",
+      "upload_failed_prefix": "批量上传失败: ",
+      "upload_failed_with_errors": "上传失败，发现 {count} 个错误",
+      "upload_failed_with_details": "上传失败，详细信息请查看错误列表",
+      "upload_partial_success": "部分上传成功：成功 {success} 条，失败 {error} 条",
+      "upload_in_progress": "正在上传数据，请稍候...",
       "mapping_success": "字段映射完成，请预览数据。",
       "mapping_failed": "字段映射失败，请检查。",
       "import_success": "数据导入成功。",
@@ -750,8 +766,10 @@
       "import_confirm_cancel": "取消",
       "download_template_success": "模板下载成功。",
       "download_template_failed": "模板下载失败，请重试。",
-      "file_parsed_success": "文件解析成功，请预览数据。",
-      "table_converted_success": "表格数据已成功转换。"
+      "file_parsed_success": "文件解析成功，共 {count} 条记录",
+      "file_parse_error": "文件解析失败",
+      "table_converted_success": "表格数据已成功转换，共 {count} 条记录",
+      "use_table_converter_first": "请先在表格转换器中完成数据转换"
     },
     "tab": {
       "valid_records": "有效记录 ({count})",
@@ -789,7 +807,31 @@
       "title": "导入结果",
       "total_records": "总记录数: {total}",
       "valid_records": "有效记录: {valid}",
-      "invalid_records": "无效记录: {invalid}"
+      "invalid_records": "无效记录: {invalid}",
+      "all_success": "全部成功！共导入 {count} 条记录",
+      "partial_success": "部分成功：成功 {success} 条，失败 {error} 条",
+      "all_failed_at_server": "服务器处理失败，共 {count} 条记录未能导入",
+      "no_records_processed_at_server": "服务器未处理任何记录"
+    },
+    "button": {
+      "upload": "上传",
+      "next": "下一步",
+      "previous": "上一步",
+      "import": "开始导入",
+      "download_template": "下载模板",
+      "parse_and_preview": "解析并预览",
+      "import_another_file": "导入其他文件",
+      "show_error_details": "显示错误详情",
+      "hide_error_details": "隐藏错误详情"
+    },
+    "results_table": {
+      "title_failed_records": "失败记录详情",
+      "title_successfully_imported_records_preview": "成功导入记录预览（前100条）",
+      "status_valid": "有效",
+      "status_invalid": "无效",
+      "employee_id": "员工ID",
+      "employee_name": "员工姓名",
+      "error_message": "错误信息"
     }
   },
   "payroll_components": {
@@ -857,7 +899,8 @@
       "petition_allowance": "信访工作人员岗位津贴",
       "back_pay": "补发工资",
       "probation_salary": "试用期工资",
-      "basic_salary": "基本工资"
+      "basic_salary": "基本工资",
+      "township_allowance": "乡镇工作补贴"
     },
     "deductions": {
       "title": "扣除项",

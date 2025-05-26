@@ -44,8 +44,8 @@ class PayrollPeriod(PayrollPeriodBase):
     """工资周期响应模型"""
     id: int = Field(..., description="Primary key")
     
-    # 添加状态关联对象
-    status: Optional[LookupValue] = Field(None, description="Status lookup value details")
+    # 添加状态关联对象 - 字段名与数据库模型保持一致
+    status_lookup: Optional[LookupValue] = Field(None, description="Status lookup value details")
     
     @classmethod
     def from_orm(cls, db_obj):
