@@ -1,9 +1,18 @@
 import sys
 import os
+
+# 添加项目根目录到Python路径，确保可以导入webapp模块
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 print(f"--- main.py DEBUG ---")
 print(f"CWD: {os.getcwd()}")
 print(f"sys.path: {sys.path}")
 print(f"PYTHONPATH env: {os.environ.get('PYTHONPATH')}")
+print(f"current_dir: {current_dir}")
+print(f"project_root: {project_root}")
 print(f"---------------------")
 
 # Import os module
@@ -11,12 +20,9 @@ print(f"---------------------")
 # print("==== sys.path ====", sys.path)
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response
 import bcrypt
-try:
-    # 尝试相对导入（在webapp目录下运行时）
-    from .auth import get_password_hash
-except ImportError:
-    # 回退到绝对导入（在项目根目录运行时）
-    from webapp.auth import get_password_hash
+
+# 现在可以安全地使用绝对导入
+from webapp.auth import get_password_hash
 # print("admin hash:", get_password_hash("admin"))
 # print("==== bcrypt module path:", bcrypt.__file__)
 # print("==== has __about__:", hasattr(bcrypt, "__about__"))
@@ -63,24 +69,24 @@ logger.setLevel(logging.INFO) # Set logger level to INFO
 # logging.basicConfig(level=logging.DEBUG) # Configured in webapp/core/config.py
 
 
-# Import modules - 使用相对导入
-from . import auth, models_db, schemas, models
-from .database import get_db
-from .core.config import settings
+# Import modules - 使用绝对导入
+from webapp import auth, models_db, schemas, models
+from webapp.database import get_db
+from webapp.core.config import settings
 
 # Import v2 API routers
-from .v2.routers import employees_router as v2_employees_router
-from .v2.routers import departments_router as v2_departments_router
-from .v2.routers import personnel_categories_router as v2_personnel_categories_router
-from .v2.routers import positions_router as v2_positions_router
-from .v2.routers import lookup_router as v2_lookup_router
-from .v2.routers import config_router as v2_config_router
-from .v2.routers import payroll_router as v2_payroll_router
-from .v2.routers import security_router as v2_security_router
-from .v2.routers import auth_router as v2_auth_router
+from webapp.v2.routers import employees_router as v2_employees_router
+from webapp.v2.routers import departments_router as v2_departments_router
+from webapp.v2.routers import personnel_categories_router as v2_personnel_categories_router
+from webapp.v2.routers import positions_router as v2_positions_router
+from webapp.v2.routers import lookup_router as v2_lookup_router
+from webapp.v2.routers import config_router as v2_config_router
+from webapp.v2.routers import payroll_router as v2_payroll_router
+from webapp.v2.routers import security_router as v2_security_router
+from webapp.v2.routers import auth_router as v2_auth_router
 
 # 导入所有Pydantic模型
-from .pydantic_models import (
+from webapp.pydantic_models import (
     # 员工模型
     EmployeeBase, EmployeeCreate, EmployeeUpdate, EmployeeInDBBase,
     EmployeeResponse, EmployeeListResponse,
@@ -136,7 +142,7 @@ if not DATABASE_URL:
 AUTO_INIT_DB = os.getenv("AUTO_INIT_DB", "false").lower() == "true"
 if AUTO_INIT_DB:
     logger.info("AUTO_INIT_DB is true, attempting to auto-initialize database...") # Minor wording change
-    from .scripts.init_app import initialize_database
+    from webapp.scripts.init_app import initialize_database
     try:
         initialize_database()
     except Exception as e:
