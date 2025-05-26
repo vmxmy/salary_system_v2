@@ -29,8 +29,7 @@ import {
   getPayrollPeriods, 
   createPayrollPeriod, 
   updatePayrollPeriod, 
-  deletePayrollPeriod,
-  testTranslations
+  deletePayrollPeriod
 } from '../services/payrollApi';
 import PayrollPeriodForm, { type PayrollPeriodFormData } from '../components/PayrollPeriodForm';
 import PermissionGuard from '../../../components/common/PermissionGuard';
@@ -333,10 +332,6 @@ const PayrollPeriodsPage: React.FC = () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('[PayrollPeriodsPage] i18n loaded namespaces:', i18n.options.ns);
       console.log('[PayrollPeriodsPage] i18n current language:', i18n.language);
-      
-      // 测试翻译函数的结果
-      const testResults = testTranslations();
-      console.log('[PayrollPeriodsPage] Translation test results from utility:', testResults);
     }
   }, [t]);
 

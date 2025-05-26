@@ -190,6 +190,26 @@ def get_employee_by_id_number(db: Session, id_number: str) -> Optional[Employee]
     return db.query(Employee).filter(Employee.id_number == id_number).first()
 
 
+def get_employee_by_name_and_id_number(db: Session, last_name: str, first_name: str, id_number: str) -> Optional[Employee]:
+    """
+    根据姓名和身份证号获取员工。
+
+    Args:
+        db: 数据库会话
+        last_name: 姓
+        first_name: 名
+        id_number: 身份证号
+
+    Returns:
+        员工对象，如果不存在则返回None
+    """
+    return db.query(Employee).filter(
+        Employee.last_name == last_name,
+        Employee.first_name == first_name,
+        Employee.id_number == id_number
+    ).first()
+
+
 def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
     """
     创建员工。

@@ -62,6 +62,13 @@ const PayrollComponentsPage: React.FC = () => {
   const [form] = Form.useForm();
   const [componentTypes, setComponentTypes] = useState<string[]>([]);
   const [typeInfo, setTypeInfo] = useState<Record<string, { text: string, color: string }>>({});
+  
+  // 分页状态
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
   // 获取类型对应的中文名称和颜色
   const getTypeInfo = (type: string): { text: string; color: string } => {
@@ -120,11 +127,22 @@ const PayrollComponentsPage: React.FC = () => {
   };
 
   // 加载薪资字段数据
-  const fetchComponents = async () => {
+  const fetchComponents = async (page = 1, size = 10) => {
     setLoading(true);
     try {
-      const response = await payrollApi.getPayrollComponentDefinitions({ size: 100 });
+      const response = await payrollApi.getPayrollComponentDefinitions({ 
+        page, 
+        size,
+        sort_by: 'display_order',
+        sort_order: 'asc'
+      });
       setComponents(response.data);
+      setPagination(prev => ({
+        ...prev,
+        current: page,
+        pageSize: size,
+        total: response.meta?.total || 0,
+      }));
       
       // 提取所有唯一的类型值
       const uniqueTypes = Array.from(new Set(response.data.map(comp => comp.type)));
@@ -326,20 +344,20 @@ const PayrollComponentsPage: React.FC = () => {
     },
     {
       title: t('common.status'),
-      dataIndex: 'is_enabled',
-      key: 'is_enabled',
-      render: (isEnabled: boolean) => (
-        <Tag color={isEnabled ? 'green' : 'red'}>
-          {isEnabled ? t('common.active') : t('common.inactive')}
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'green' : 'red'}>
+          {isActive ? t('common.active') : t('common.inactive')}
         </Tag>
       ),
       sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
-        Number(a.is_enabled) - Number(b.is_enabled),
+        Number(a.is_active) - Number(b.is_active),
       filters: [
         { text: t('common.active'), value: true },
         { text: t('common.inactive'), value: false },
       ],
-      onFilter: (value: any, record: PayrollComponentDefinition) => record.is_enabled === value,
+      onFilter: (value: any, record: PayrollComponentDefinition) => record.is_active === value,
     },
     {
       title: t('common.actions'),
@@ -393,7 +411,7 @@ const PayrollComponentsPage: React.FC = () => {
     form.setFieldsValue({
       ...component,
       type: component.type,
-      is_enabled: component.is_enabled,
+      is_active: component.is_active,
       is_taxable: component.is_taxable,
       is_social_security_base: component.is_social_security_base,
       is_housing_fund_base: component.is_housing_fund_base,
@@ -408,7 +426,7 @@ const PayrollComponentsPage: React.FC = () => {
     form.resetFields();
     form.setFieldsValue({
       type: componentTypes.length > 0 ? componentTypes[0] : 'EARNING',
-      is_enabled: true,
+      is_active: true,
       is_taxable: true,
       is_social_security_base: false,
       is_housing_fund_base: false,
@@ -433,7 +451,7 @@ const PayrollComponentsPage: React.FC = () => {
       }
       
       setModalVisible(false);
-      fetchComponents();
+      fetchComponents(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('Form validation failed or API error:', error);
     }
@@ -444,7 +462,7 @@ const PayrollComponentsPage: React.FC = () => {
     try {
       await payrollApi.deletePayrollComponentDefinition(id);
       message.success(t('payroll_components.delete_success'));
-      fetchComponents();
+      fetchComponents(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('Error deleting component:', error);
       message.error(t('common.error.delete'));
@@ -477,9 +495,23 @@ const PayrollComponentsPage: React.FC = () => {
           rowKey="id"
           loading={loading}
           pagination={{
-            pageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
-            showTotal: (total) => t('common.total_items', { count: total })
+            showQuickJumper: true,
+            showTotal: (total, range) => 
+              t('common.pagination.show_total', { 
+                range0: range[0], 
+                range1: range[1], 
+                total 
+              }),
+            onChange: (page, size) => {
+              fetchComponents(page, size);
+            },
+            onShowSizeChange: (current, size) => {
+              fetchComponents(1, size);
+            },
           }}
         />
       </Card>
@@ -555,7 +587,7 @@ const PayrollComponentsPage: React.FC = () => {
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
-                name="is_enabled"
+                name="is_active"
                 label={t('common.status')}
                 valuePropName="checked"
               >

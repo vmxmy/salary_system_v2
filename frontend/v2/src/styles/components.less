@@ -314,6 +314,71 @@
   }
 }
 
+// ===== 侧边栏分组样式 =====
+.ant-layout-sider {
+  .ant-menu-inline {
+    // 核心业务模块 - 仪表盘和员工管理
+    .ant-menu-item:nth-child(1),
+    .ant-menu-submenu:nth-child(2) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+    }
+    
+    // 薪资管理模块
+    .ant-menu-submenu:nth-child(3) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+    }
+    
+    // 管理功能模块 - 经理视图
+    .ant-menu-submenu:nth-child(4) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+    }
+    
+    // 系统配置模块 - 系统管理和组织架构
+    .ant-menu-submenu:nth-child(5),
+    .ant-menu-submenu:nth-child(6) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+    }
+    
+    // 个人功能模块 - 个人中心 (最后一个，不需要下边框)
+    .ant-menu-submenu:last-child {
+      margin-top: 8px;
+    }
+    
+    // 一级菜单项样式增强
+    > .ant-menu-item,
+    > .ant-menu-submenu > .ant-menu-submenu-title {
+      font-weight: 600;
+      font-size: 14px;
+      
+      // 图标样式
+      .anticon {
+        font-size: 16px;
+        margin-right: 12px;
+      }
+    }
+    
+    // 二级菜单项样式
+    .ant-menu-submenu .ant-menu-item {
+      font-weight: 400;
+      font-size: 13px;
+      padding-left: 48px !important;
+      
+      .anticon {
+        font-size: 14px;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
 // ===== 面包屑样式 =====
 .ant-breadcrumb {
   font-size: @font-size-base;

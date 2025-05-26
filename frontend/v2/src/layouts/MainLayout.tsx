@@ -366,40 +366,21 @@ const MainLayout: React.FC = () => {
 
   const siderMenuItems = useMemo(() => {
     console.log('[MainLayout:SiderMenu] Building menu, ready state:', ready);
-    const baseItems = [
-      {
-        key: '/dashboard',
-        icon: <DashboardOutlined />,
-        label: <Link to="/dashboard" id="tour-dashboard-link">{t('pageTitle:dashboard')}</Link>,
-      },
-      {
-        key: '/admin',
-        icon: <SettingOutlined />,
-        label: t('pageTitle:system_management'),
-        children: adminChildren,
-      },
-      organizationMenuItem,
-      hrManagementMenuItem,
-      {
-        key: '/employee-info',
-        icon: <SolutionOutlined />,
-        label: t('pageTitle:employee_center'),
-        children: [
-          {
-            key: '/employee-info/my-info',
-            label: <Link to="/employee-info/my-info">{t('pageTitle:my_info')}</Link>,
-            icon: <UserOutlined />,
-          },
-          {
-            key: '/employee-info/my-payslips',
-            label: <Link to="/employee-info/my-payslips">{t('pageTitle:my_payslips')}</Link>,
-            icon: <ProfileOutlined />,
-          },
-        ],
-      },
-    ];
+    
+    // ========== 核心业务模块 ==========
+    const coreBusinessItems = [];
+    
+    // 1. 仪表盘 - 最重要的入口
+    coreBusinessItems.push({
+      key: '/dashboard',
+      icon: <DashboardOutlined />,
+      label: <Link to="/dashboard" id="tour-dashboard-link">{t('pageTitle:dashboard')}</Link>,
+    });
 
-    // 在构建薪资管理菜单项的部分添加薪资字段管理
+    // 2. 员工管理 - 核心业务功能
+    coreBusinessItems.push(hrManagementMenuItem);
+
+    // 3. 薪资管理 - 核心业务功能
     const currentPayrollManagementChildren = [];
     if (hasPermission(P_PAYROLL_PERIOD_VIEW)) {
       currentPayrollManagementChildren.push({
@@ -415,7 +396,6 @@ const MainLayout: React.FC = () => {
         icon: <CalculatorOutlined />,
       });
     }
-    // Add payroll entry menu item
     if (hasPermission(P_PAYROLL_ENTRY_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/entry',
@@ -423,8 +403,6 @@ const MainLayout: React.FC = () => {
         icon: <EditOutlined />,
       });
     }
-    
-    // Add payroll bulk import menu item
     if (hasPermission(P_PAYROLL_ENTRY_BULK_IMPORT)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/bulk-import',
@@ -432,8 +410,6 @@ const MainLayout: React.FC = () => {
         icon: <UploadOutlined />,
       });
     }
-    
-    // Add payroll components management menu item
     if (hasPermission(P_PAYROLL_COMPONENT_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/components',
@@ -444,15 +420,20 @@ const MainLayout: React.FC = () => {
     
     const currentPayrollManagementMenuItem = currentPayrollManagementChildren.length > 0 ? {
       key: '/finance/payroll',
-      label: t('pageTitle:payroll_management'), // Top level menu item for payroll
+      label: t('pageTitle:payroll_management'),
       icon: <DollarCircleOutlined />,
       children: currentPayrollManagementChildren,
     } : null;
 
-    // 创建经理模块的菜单项
-    const managerChildren = [];
+    if (currentPayrollManagementMenuItem) {
+      coreBusinessItems.push(currentPayrollManagementMenuItem);
+    }
 
-    // 添加下属管理菜单项
+    // ========== 管理功能模块 ==========
+    const managementItems = [];
+
+    // 4. 经理视图 - 管理功能
+    const managerChildren = [];
     if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
       managerChildren.push({
         key: '/manager/subordinates',
@@ -460,8 +441,6 @@ const MainLayout: React.FC = () => {
         icon: <TeamOutlined />,
       });
     }
-
-    // 添加请假审批菜单项
     if (hasPermission(P_MANAGER_LEAVE_APPROVALS_VIEW)) {
       managerChildren.push({
         key: '/manager/leave-approvals',
@@ -470,7 +449,6 @@ const MainLayout: React.FC = () => {
       });
     }
 
-    // 如果有子菜单项，则返回经理视图菜单项
     const managerMenuItem = managerChildren.length > 0 ? {
       key: '/manager',
       label: t('pageTitle:manager_view'),
@@ -478,19 +456,61 @@ const MainLayout: React.FC = () => {
       children: managerChildren,
     } : null;
 
-    // 构建最终菜单项
-    const finalItems = [...baseItems];
-    
-    if (currentPayrollManagementMenuItem) {
-      finalItems.push(currentPayrollManagementMenuItem);
-    }
-    
     if (managerMenuItem) {
-      finalItems.push(managerMenuItem);
+      managementItems.push(managerMenuItem);
     }
+
+    // ========== 系统配置模块 ==========
+    const systemConfigItems = [];
+
+    // 5. 系统管理 - 保持原有结构
+    systemConfigItems.push({
+      key: '/admin',
+      icon: <SettingOutlined />,
+      label: t('pageTitle:system_management'),
+      children: adminChildren,
+    });
+
+    // 6. 组织架构 - 保持独立
+    systemConfigItems.push(organizationMenuItem);
+
+    // ========== 个人功能模块 ==========
+    const personalItems = [];
+
+    // 6. 个人中心 - 个人功能
+    personalItems.push({
+      key: '/employee-info',
+      icon: <SolutionOutlined />,
+      label: t('pageTitle:employee_center'),
+      children: [
+        {
+          key: '/employee-info/my-info',
+          label: <Link to="/employee-info/my-info">{t('pageTitle:my_info')}</Link>,
+          icon: <UserOutlined />,
+        },
+        {
+          key: '/employee-info/my-payslips',
+          label: <Link to="/employee-info/my-payslips">{t('pageTitle:my_payslips')}</Link>,
+          icon: <ProfileOutlined />,
+        },
+      ],
+    });
+
+    // ========== 构建最终菜单 ==========
+    // 按照业务重要性和逻辑关系排序：
+    // 1. 核心业务模块：仪表盘、员工管理、薪资管理
+    // 2. 管理功能模块：经理视图
+    // 3. 系统配置模块：系统管理、组织架构
+    // 4. 个人功能模块：个人中心
+    const finalItems = [
+      ...coreBusinessItems,      // 核心业务优先
+      ...managementItems,        // 管理功能其次
+      ...systemConfigItems,      // 系统配置再次
+      ...personalItems,          // 个人功能最后
+    ];
     
     return finalItems;
-  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, organizationMenuItem, hrManagementMenuItem, t, ready]); // Added t and ready
+  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, t, ready]);
   
   // 获取当前选中的菜单项key
   const selectedKeys = useMemo(() => {

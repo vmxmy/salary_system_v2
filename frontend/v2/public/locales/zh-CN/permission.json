@@ -3,7 +3,7 @@
       "title": "权限管理",
       "button": {
         "create_permission": "创建权限",
-        "export_excel": "导出Excel",
+        "export_excel": "导出 EXCEL",
         "column_control": "列显示",
         "reset": "重置"
       },
@@ -18,7 +18,7 @@
       "tooltip": {
         "edit_permission": "编辑权限",
         "delete_permission": "删除权限",
-        "export_excel": "导出Excel表格",
+        "export_excel": "导出 EXCEL",
         "column_control": "控制显示的列"
       },
       "modal": {

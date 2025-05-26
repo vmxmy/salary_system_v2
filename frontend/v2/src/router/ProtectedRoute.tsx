@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'; // Correctly imported
 import { usePermissions } from '../hooks/usePermissions'; // Correctly imported
 // import MainLayout from '../layouts/MainLayout'; // MainLayout will be handled by routes.tsx
 import { Spin } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 interface ProtectedRouteProps {
   children: React.ReactNode; // Added children prop
@@ -20,6 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   permissionMatchMode = 'all', // Default to 'all' if not specified
   // renderMainLayout = true, // Removed from destructuring
 }) => {
+  const { t } = useTranslation();
   const location = useLocation();
   
   // Subscribe to necessary state slices from authStore
@@ -60,7 +62,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (isEffectivelyLoading) {
     console.log('[ProtectedRoute] Effective loading is true. Rendering spinner.');
     return (
-      <Spin spinning={true} size="large" tip="加载用户信息中...">
+      <Spin spinning={true} size="large" tip={t('common:loading.user_info', '加载用户信息中...')}>
         {/* Render minimal content or adjust layout if Spin should cover children conceptually */}
         {/* For a full-page spinner scenario, children might be null or a div with min-height */}
         <div style={{ width: '100%', height: '100vh' }} /> 

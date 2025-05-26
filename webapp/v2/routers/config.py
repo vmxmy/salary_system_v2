@@ -320,7 +320,7 @@ async def get_payroll_components(
 
         try:
             # 获取工资组件定义列表
-            components, total = crud.get_payroll_component_definitions(
+            result = crud.get_payroll_component_definitions(
                 db=db,
                 component_type=component_type,
                 is_active=is_active,
@@ -329,19 +329,8 @@ async def get_payroll_components(
                 limit=size
             )
 
-            # 计算总页数
-            total_pages = (total + size - 1) // size if total > 0 else 1
-
             # 返回标准响应格式
-            return {
-                "data": components,
-                "meta": {
-                    "page": page,
-                    "size": size,
-                    "total": total,
-                    "totalPages": total_pages
-                }
-            }
+            return result
         except Exception as e:
             # 如果发生错误，返回空列表
             logging.error(f"Error getting payroll components: {str(e)}")

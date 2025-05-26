@@ -5,7 +5,7 @@
       "export": {
         "filename": "员工列表",
         "sheet_name": "员工数据",
-        "button_text": "导出Excel",
+        "button_text": "导出 EXCEL",
         "success_message": "员工列表导出成功"
       },
       "column_control": {

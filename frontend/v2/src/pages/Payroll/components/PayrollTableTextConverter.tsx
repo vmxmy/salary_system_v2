@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Input, Button, Table, Select, Card, Alert, Space, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { nanoid } from 'nanoid';
+import i18n from '../../../i18n';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -43,7 +44,7 @@ const PayrollTableTextConverter: React.FC = () => {
     { key: 'earnings_details.bonus.amount', label: '绩效奖金', required: false },
     { key: 'earnings_details.allowance.amount', label: '岗位津贴', required: false },
     { key: 'earnings_details.overtime.amount', label: '加班费', required: false },
-    { key: 'deductions_details.tax.amount', label: '个人所得税', required: false },
+    { key: 'deductions_details.tax.amount', label: i18n.t('components.deductions.personal_income_tax', { ns: 'payroll' }), required: false },
     { key: 'deductions_details.insurance.amount', label: '社会保险', required: false },
     { key: 'deductions_details.fund.amount', label: '公积金', required: false },
   ];
@@ -81,6 +82,7 @@ const PayrollTableTextConverter: React.FC = () => {
     '岗位津贴': 'earnings_details.allowance.amount',
     '津贴': 'earnings_details.allowance.amount',
     '加班费': 'earnings_details.overtime.amount',
+    [t('components.deductions.personal_income_tax')]: 'deductions_details.tax.amount',
     '个人所得税': 'deductions_details.tax.amount',
     '所得税': 'deductions_details.tax.amount',
     '个税': 'deductions_details.tax.amount',
@@ -252,7 +254,7 @@ const PayrollTableTextConverter: React.FC = () => {
                 }
               } else if (category === 'deductions_details') {
                 switch (itemType) {
-                  case 'tax': itemName = '个人所得税'; break;
+                  case 'tax': itemName = t('components.deductions.personal_income_tax'); break;
                   case 'insurance': itemName = '社会保险'; break;
                   case 'fund': itemName = '公积金'; break;
                   default: itemName = itemType; break;

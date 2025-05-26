@@ -10,6 +10,7 @@ export interface StatusOption {
 
 // --- PayrollRun Statuses ---
 export const PAYROLL_RUN_STATUS_OPTIONS: StatusOption[] = [
+  { id: 60, display_name_key: 'payroll_run_status.pending_calculation', color: 'default' }, // 待计算
   { id: 201, display_name_key: 'payroll_run_status.draft', color: 'default' },
   { id: 202, display_name_key: 'payroll_run_status.processing', color: 'blue' },
   { id: 203, display_name_key: 'payroll_run_status.pending_review', color: 'orange' },
@@ -22,11 +23,11 @@ export const PAYROLL_RUN_STATUS_OPTIONS: StatusOption[] = [
 
 // 创建一个接受翻译函数的版本
 export const getPayrollRunStatusInfo = (statusId?: number): { key: string; params?: Record<string, any>; color: string } => {
-  if (statusId === undefined || statusId === null) return { key: 'status.na', color: 'default' };
+  if (statusId === undefined || statusId === null) return { key: 'run.common.status_na', color: 'default' };
   const status = PAYROLL_RUN_STATUS_OPTIONS.find(opt => opt.id === statusId);
   return status 
     ? { key: status.display_name_key, color: status.color } 
-    : { key: 'status.unknown_status_param', params: { statusId }, color: 'default' };
+    : { key: 'run.common.unknown_status_param', params: { statusId }, color: 'default' };
 };
 
 // 组件示例用法:

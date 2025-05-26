@@ -102,6 +102,10 @@ class PayrollRun(PayrollRunBase):
     """工资运行批次响应模型"""
     id: int = Field(..., description="Primary key")
     run_date: datetime = Field(..., description="Timestamp of the payroll run execution")
+    
+    # 添加关联对象
+    payroll_period: Optional['PayrollPeriod'] = Field(None, description="Associated payroll period details")
+    status: Optional[LookupValue] = Field(None, description="Status lookup value details")
 
     class Config:
         from_attributes = True
@@ -134,7 +138,8 @@ class PayrollEntryBase(BaseModel):
 
 class PayrollEntryCreate(PayrollEntryBase):
     """创建工资明细模型"""
-    pass
+    # 可选的员工匹配信息，用于批量导入时根据姓名+身份证匹配员工
+    employee_info: Optional[Dict[str, str]] = Field(None, description="员工匹配信息，包含last_name, first_name, id_number")
 
 
 class PayrollEntryUpdate(BaseModel):
@@ -186,9 +191,22 @@ class PayrollEntry(PayrollEntryBase):
 class PayrollEntryListResponse(BaseModel):
     """工资明细列表响应模型"""
     data: List[PayrollEntry]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
+    meta: Optional[Dict[str, Any]] = None
+
+
+# 批量导入相关模型
+class BulkCreatePayrollEntriesPayload(BaseModel):
+    """批量创建工资明细的请求模型"""
+    payroll_period_id: int = Field(..., description="工资周期ID")
+    entries: List[PayrollEntryCreate] = Field(..., description="工资明细列表")
+    overwrite_mode: bool = Field(False, description="是否启用覆盖模式，允许更新已存在的工资明细")
+
+class BulkCreatePayrollEntriesResult(BaseModel):
+    """批量创建工资明细的响应模型"""
+    success_count: int = Field(..., description="成功创建的记录数")
+    error_count: int = Field(..., description="失败的记录数")
+    errors: List[Dict[str, Any]] = Field([], description="错误详情列表")
+    created_entries: List[PayrollEntry] = Field([], description="成功创建的工资明细列表")
 
 
 # PayrollComponentDefinition Models

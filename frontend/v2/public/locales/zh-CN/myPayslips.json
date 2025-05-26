@@ -18,7 +18,7 @@
   "export": {
     "filename": "我的薪资单",
     "sheetName": "薪资单数据",
-    "buttonText": "导出工资单",
+    "buttonText": "导出 EXCEL",
     "successMessage": "工资单导出成功",
     "tooltipTitle": "导出工资单到Excel"
   },

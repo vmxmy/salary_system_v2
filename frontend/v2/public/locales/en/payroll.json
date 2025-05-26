@@ -502,7 +502,8 @@
       "total_earnings_mismatch": "Sum of earnings details doesn't match total earnings in {{record}}",
       "total_deductions_mismatch": "Sum of deductions details doesn't match total deductions in {{record}}",
       "no_valid_data_to_upload": "No valid data to upload",
-      "period_required": "A payroll period must be selected"
+      "period_required": "A payroll period must be selected",
+      "invalid_records_warning": "Found {{count}} invalid records, highlighted in red in the table"
     },
     "message": {
       "file_parsed_success": "Successfully parsed {{count}} records",
@@ -561,7 +562,8 @@
       "copy_json": "Copy JSON",
       "use_json": "Use This JSON",
       "json_parse_error": "JSON parse error, cannot use result",
-      "ignore_field": "Ignore this field"
+      "ignore_field": "Ignore this field",
+      "convert_success": "Successfully converted {{count}} records"
     }
   },
   "payroll_components": {
@@ -581,5 +583,34 @@
     "create_success": "Component created successfully",
     "update_success": "Component updated successfully",
     "delete_success": "Component deleted successfully"
+  },
+  "components": {
+    "earnings": {
+      "basic_salary": "Basic Salary",
+      "performance_bonus": "Performance Bonus",
+      "position_allowance": "Position Allowance",
+      "back_pay": "Back Pay",
+      "probation_salary": "Probation Salary",
+      "position_tech_grade_salary": "Position/Technical Grade Salary",
+      "grade_position_level_salary": "Grade/Position Level Salary",
+      "grade_salary": "Grade Salary",
+      "position_salary_general": "Position Salary",
+      "staff_salary_grade": "Staff Salary Grade",
+      "basic_performance_award": "Basic Performance Award",
+      "basic_performance_salary": "Basic Performance Salary",
+      "reform_allowance_1993": "1993 Reform Allowance",
+      "only_child_parent_bonus": "Only Child Parent Bonus",
+      "civil_standard_allowance": "Civil Standard Allowance",
+      "traffic_allowance": "Traffic Allowance",
+      "petition_allowance": "Petition Work Allowance"
+    },
+    "deductions": {
+      "personal_income_tax": "Personal Income Tax",
+      "pension_personal_amount": "Personal Pension Insurance",
+      "medical_ins_personal_amount": "Personal Medical Insurance",
+      "occupational_pension_personal_amount": "Personal Occupational Pension",
+      "unemployment_personal_amount": "Personal Unemployment Insurance",
+      "housing_fund_personal": "Personal Housing Fund"
+    }
   }
 }

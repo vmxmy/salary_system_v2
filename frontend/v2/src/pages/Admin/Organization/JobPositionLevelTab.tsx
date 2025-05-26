@@ -299,7 +299,7 @@ const JobPositionLevelTab: React.FC = () => {
     {
       filename: '职务级别数据',
       sheetName: '职务级别',
-      buttonText: '导出数据',
+      buttonText: '导出 EXCEL',
       successMessage: '导出成功'
     }
   );

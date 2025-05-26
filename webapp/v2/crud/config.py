@@ -531,8 +531,7 @@ def get_payroll_component_definitions(
         query = query.where(
             or_(
                 PayrollComponentDefinition.code.ilike(search_term),
-                PayrollComponentDefinition.name.ilike(search_term),
-                PayrollComponentDefinition.description.ilike(search_term)
+                PayrollComponentDefinition.name.ilike(search_term)
             )
         )
     

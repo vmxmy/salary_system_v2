@@ -15,7 +15,8 @@ from ..pydantic_models.payroll import (
     PayrollRunCreate, PayrollRunUpdate, PayrollRun, PayrollRunListResponse,
     PayrollEntryCreate, PayrollEntryUpdate, PayrollEntry, PayrollEntryListResponse,
     PayrollRunPatch, PayrollEntryPatch, PayrollComponentDefinitionListResponse,
-    PayrollComponentDefinition, PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate
+    PayrollComponentDefinition, PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate,
+    BulkCreatePayrollEntriesPayload, BulkCreatePayrollEntriesResult
 )
 from ...auth import require_permissions, get_current_user
 from ..utils import create_error_response
@@ -930,6 +931,58 @@ async def delete_payroll_entry(
         )
 
 
+@router.post("/payroll-entries/bulk", response_model=BulkCreatePayrollEntriesResult, status_code=status.HTTP_201_CREATED)
+async def bulk_create_payroll_entries(
+    payload: BulkCreatePayrollEntriesPayload,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_BULK_IMPORT"]))
+):
+    """
+    批量创建工资明细。
+
+    - **payload**: 包含工资周期ID、工资明细列表和覆盖模式的请求数据
+    - 需要批量导入权限
+    """
+    try:
+        # 批量创建工资明细
+        created_entries, errors = crud.bulk_create_payroll_entries(
+            db=db,
+            payroll_period_id=payload.payroll_period_id,
+            entries=payload.entries,
+            overwrite_mode=payload.overwrite_mode
+        )
+
+        # 构建响应
+        result = BulkCreatePayrollEntriesResult(
+            success_count=len(created_entries),
+            error_count=len(errors),
+            errors=errors,
+            created_entries=created_entries
+        )
+
+        return result
+    except ValueError as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="Unprocessable Entity",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
 # 添加薪资组件定义的API转发路由
 @router.get(
     "/payroll-component-definitions",
@@ -937,7 +990,7 @@ async def delete_payroll_entry(
     summary="获取薪资组件定义列表",
     description="获取所有薪资组件定义，支持按类型和启用状态过滤，以及自定义排序"
 )
-async def get_payroll_component_definitions(
+def get_payroll_component_definitions(
     type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
     is_enabled: Optional[bool] = Query(None, description="是否启用"),
     sort_by: str = Query("display_order", description="排序字段"),
@@ -952,7 +1005,7 @@ async def get_payroll_component_definitions(
     """
     from ..routers.config import get_payroll_component_definitions as config_get_payroll_component_definitions
     
-    # 转发请求到config模块的API，删除await关键字，因为是同步函数
+    # 转发请求到config模块的API
     return config_get_payroll_component_definitions(
         type=type,
         is_enabled=is_enabled,
@@ -970,7 +1023,7 @@ async def get_payroll_component_definitions(
     summary="获取单个薪资组件定义",
     description="根据ID获取特定薪资组件定义的详细信息"
 )
-async def get_payroll_component_definition(
+def get_payroll_component_definition(
     component_id: int = Path(..., description="薪资组件定义ID"),
     current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"])),
     db: Session = Depends(get_db_v2)
@@ -980,7 +1033,7 @@ async def get_payroll_component_definition(
     """
     from ..routers.config import get_payroll_component_definition as config_get_payroll_component_definition
     
-    # 获取组件定义，删除await关键字，因为是同步函数
+    # 获取组件定义
     return config_get_payroll_component_definition(
         component_id=component_id,
         current_user=current_user,
@@ -994,7 +1047,7 @@ async def get_payroll_component_definition(
     summary="创建薪资组件定义",
     description="创建新的薪资组件定义"
 )
-async def create_payroll_component_definition(
+def create_payroll_component_definition(
     component: PayrollComponentDefinitionCreate,
     current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
     db: Session = Depends(get_db_v2)
@@ -1004,7 +1057,7 @@ async def create_payroll_component_definition(
     """
     from ..routers.config import create_payroll_component as config_create_payroll_component
     
-    # 转发请求到config模块，删除await关键字，因为是同步函数
+    # 转发请求到config模块
     return config_create_payroll_component(
         component=component,
         current_user=current_user,
@@ -1017,7 +1070,7 @@ async def create_payroll_component_definition(
     summary="更新薪资组件定义",
     description="更新指定ID的薪资组件定义"
 )
-async def update_payroll_component_definition(
+def update_payroll_component_definition(
     component_id: int,
     component: PayrollComponentDefinitionUpdate,
     current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
@@ -1028,7 +1081,7 @@ async def update_payroll_component_definition(
     """
     from ..routers.config import update_payroll_component as config_update_payroll_component
     
-    # 转发请求到config模块，删除await关键字，因为是同步函数
+    # 转发请求到config模块
     return config_update_payroll_component(
         component_id=component_id,
         component=component,
@@ -1042,7 +1095,7 @@ async def update_payroll_component_definition(
     summary="删除薪资组件定义",
     description="删除指定ID的薪资组件定义"
 )
-async def delete_payroll_component_definition(
+def delete_payroll_component_definition(
     component_id: int,
     current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
     db: Session = Depends(get_db_v2)
@@ -1052,7 +1105,7 @@ async def delete_payroll_component_definition(
     """
     from ..routers.config import delete_payroll_component as config_delete_payroll_component
     
-    # 转发请求到config模块，删除await关键字，因为是同步函数
+    # 转发请求到config模块
     return config_delete_payroll_component(
         component_id=component_id,
         current_user=current_user,

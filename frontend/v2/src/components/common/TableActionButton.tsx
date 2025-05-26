@@ -1,5 +1,4 @@
-import React, { forwardRef } from 'react';
-import type { HTMLAttributes } from 'react';
+import React from 'react';
 import { Button, Tooltip } from 'antd';
 import type { ButtonProps } from 'antd';
 import { 
@@ -18,19 +17,6 @@ interface TableActionButtonProps extends ButtonProps {
   actionType: 'edit' | 'delete' | 'add' | 'view' | 'upload' | 'download' | 'approve' | 'copy' | 'print';
   tooltipTitle?: string;
 }
-
-// Wrapper component that forwards ref
-const TooltipWrapper = forwardRef<
-  HTMLSpanElement, 
-  { children: React.ReactNode } & HTMLAttributes<HTMLSpanElement>
->(({ children, ...props }, ref) => {
-  return (
-    <span {...props} ref={ref}>
-      {children}
-    </span>
-  );
-});
-TooltipWrapper.displayName = 'TooltipWrapper';
 
 /**
  * 表格操作按钮组件，基于链接型样式，用于表格的操作列
@@ -103,17 +89,15 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
 
   return (
     <Tooltip title={finalTooltipTitle}>
-      <TooltipWrapper>
-        <Button
-          type="link"
-          icon={icon}
-          onClick={onClick}
-          disabled={disabled}
-          danger={isDanger}
-          style={customStyle}
-          {...rest}
-        />
-      </TooltipWrapper>
+      <Button
+        type="link"
+        icon={icon}
+        onClick={onClick}
+        disabled={disabled}
+        danger={isDanger}
+        style={customStyle}
+        {...rest}
+      />
     </Tooltip>
   );
 };

@@ -246,7 +246,7 @@ const PayrollRunsPage: React.FC = () => {
         dataIndex: ['payroll_period', 'name'],
         key: 'payroll_period_name',
         sorter: true,
-        render: (name: string, record: PayrollRun) => name || record.payroll_period_id,
+        render: (_: any, record: PayrollRun) => record.payroll_period?.name || record.payroll_period_id,
       },
       {
         title: t('runs_page.table.column.run_date'),
@@ -267,10 +267,10 @@ const PayrollRunsPage: React.FC = () => {
       },
       {
         title: t('runs_page.table.column.employee_count'),
-        dataIndex: 'employee_ids',
+        dataIndex: 'total_employees',
         key: 'employee_count',
-        sorter: (a, b) => (a.employee_ids?.length || 0) - (b.employee_ids?.length || 0),
-        render: (employee_ids?: number[]) => employee_ids?.length || 0,
+        sorter: (a, b) => (a.total_employees || 0) - (b.total_employees || 0),
+        render: (total_employees?: number) => total_employees || 0,
       },
       {
         title: t('runs_page.table.column.notes'),

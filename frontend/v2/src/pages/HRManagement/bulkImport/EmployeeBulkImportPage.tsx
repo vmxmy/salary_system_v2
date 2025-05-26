@@ -478,7 +478,7 @@ const EmployeeBulkImportPage: React.FC = () => {
     return (
       <Tooltip 
         title={<div className={styles.validationErrorsInTable}><ul>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul></div>}
-        overlayInnerStyle={{ whiteSpace: 'normal', maxWidth: 400 }}
+        styles={{ body: { whiteSpace: 'normal', maxWidth: 400 } }}
       >
         <CloseCircleOutlined style={{ color: 'red' }} />
       </Tooltip>
@@ -617,25 +617,7 @@ const EmployeeBulkImportPage: React.FC = () => {
               >
                 {t('bulk_import.button.parse_and_preview')}
               </Button>
-              <Paragraph type="secondary" className={styles.helperText}>
-                {t('bulk_import.help.data_format_guidance_intro')}
-                <pre>
-                  {`[
-  {
-    "employee_code": "E001",
-    "first_name": "张",
-    "last_name": "三",
-    "id_number": "11010119900101001X",
-    "hire_date": "2024-01-15",
-    "status_lookup_value_name": "在职",
-    "email": "zhangsan@example.com",
-    // ... other necessary and optional fields based on CreateEmployeePayload in types.ts
-  },
-  // ...more employee records
-]`}
-                </pre>
-                {t('bulk_import.notes.refer_to_documentation_for_fields')}
-              </Paragraph>
+
               <Form.Item 
                 label={t('bulk_import.label.overwrite_mode')} 
                 labelCol={{ span: 24 }}

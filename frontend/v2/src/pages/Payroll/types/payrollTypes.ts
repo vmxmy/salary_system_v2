@@ -36,6 +36,7 @@ export interface PayrollRun {
   created_at?: string;
   updated_at?: string;
   payroll_period?: PayrollPeriod; // Optional: if period details are fetched/included
+  total_employees?: number; // Total number of employees in this run
 }
 
 // Payload for POST /v2/payroll-runs
@@ -143,7 +144,7 @@ export interface PayrollComponentDefinition {
   data_type?: 'numeric' | 'percentage' | 'boolean' | 'string'; // Data type of the component's value
   is_fixed?: boolean; // Is the value fixed system-wide or employee-specific/variable?
   is_employee_specific?: boolean; // Does this component apply to specific employees only?
-  is_enabled: boolean; // Is this component currently active/enabled? (replaces deprecated status field)
+  is_active: boolean; // Is this component currently active/enabled? (replaces deprecated status field)
   is_taxable?: boolean; // 是否计税
   is_social_security_base?: boolean; // 是否为社保基数项
   is_housing_fund_base?: boolean; // 是否为公积金基数项
@@ -157,11 +158,21 @@ export interface PayrollComponentDefinition {
 // Raw payroll entry data for bulk import
 export interface RawPayrollEntryData {
   _clientId?: string;
-  employee_id: number;
+  employee_id?: number;  // 改为可选
+  employee_code?: string | null;  // 员工编号，非必填
   employee_name?: string;
+  employee_full_name?: string;  // 完整姓名，需要拆分
+  last_name?: string;  // 姓
+  first_name?: string;  // 名
+  id_number?: string;  // 身份证号
+  employee_info?: {  // 员工匹配信息
+    last_name: string;
+    first_name: string;
+    id_number: string;
+  };
   department_name?: string;
   position_name?: string;
-  total_earnings: number;
+  gross_pay: number;  // 应发工资
   total_deductions: number;
   net_pay: number;
   status_lookup_value_id?: number;
@@ -179,14 +190,21 @@ export interface ValidatedPayrollEntryData extends RawPayrollEntryData {}
 // Payload for creating payroll entries
 export interface CreatePayrollEntryPayload {
   employee_id: number;
+  payroll_period_id: number; // 添加必需的payroll_period_id字段
   payroll_run_id: number;
-  total_earnings: number;
+  gross_pay: number;
   total_deductions: number;
   net_pay: number;
   status_lookup_value_id: number;
   remarks?: string;
   earnings_details: Record<string, { amount: number, name?: string }>;
   deductions_details?: Record<string, { amount: number, name?: string }>;
+  // 可选的员工匹配信息，用于批量导入时根据姓名+身份证匹配员工
+  employee_info?: {
+    last_name: string;
+    first_name: string;
+    id_number: string;
+  };
 }
 
 // Payload for bulk creating payroll entries
@@ -194,4 +212,16 @@ export interface BulkCreatePayrollEntriesPayload {
   payroll_period_id: number;
   entries: CreatePayrollEntryPayload[];
   overwrite_mode?: boolean;
+}
+
+// Result for bulk creating payroll entries
+export interface BulkCreatePayrollEntriesResult {
+  success_count: number;
+  error_count: number;
+  errors: Array<{
+    index: number;
+    employee_id?: number;
+    error: string;
+  }>;
+  created_entries: PayrollEntry[];
 } 

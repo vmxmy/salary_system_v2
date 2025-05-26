@@ -15,6 +15,7 @@ from ..pydantic_models.payroll import (
 )
 from ..models.hr import Employee
 from .config import get_payroll_component_definitions # 新增导入
+from .hr import get_employee_by_name_and_id_number, get_employee
 
 # PayrollPeriod CRUD
 def get_payroll_periods(
@@ -117,18 +118,56 @@ def get_payroll_runs(
     if initiated_by_user_id:
         query = query.filter(PayrollRun.initiated_by_user_id == initiated_by_user_id)
     total = query.count()
-    query = query.order_by(PayrollRun.run_date.desc()).offset(skip).limit(limit)
-    return query.all(), total
+    
+    # 加载关联的 payroll_period 和 status 数据
+    query = query.options(
+        selectinload(PayrollRun.payroll_period),
+        selectinload(PayrollRun.status)
+    ).order_by(PayrollRun.run_date.desc()).offset(skip).limit(limit)
+    
+    runs = query.all()
+    
+    # 计算每个 run 的员工数量
+    for run in runs:
+        # 计算该 run 下的员工数量
+        employee_count = db.query(PayrollEntry.employee_id).filter(
+            PayrollEntry.payroll_run_id == run.id
+        ).distinct().count()
+        
+        # 动态添加 total_employees 属性
+        run.total_employees = employee_count
+    
+    return runs, total
 
 def get_payroll_run(db: Session, run_id: int) -> Optional[PayrollRun]:
-    return db.query(PayrollRun).filter(PayrollRun.id == run_id).first()
+    run = db.query(PayrollRun).options(
+        selectinload(PayrollRun.payroll_period),
+        selectinload(PayrollRun.status)
+    ).filter(PayrollRun.id == run_id).first()
+    
+    if run:
+        # 计算该 run 下的员工数量
+        employee_count = db.query(PayrollEntry.employee_id).filter(
+            PayrollEntry.payroll_run_id == run.id
+        ).distinct().count()
+        
+        # 动态添加 total_employees 属性
+        run.total_employees = employee_count
+    
+    return run
 
-def create_payroll_run(db: Session, payroll_run: PayrollRunCreate) -> PayrollRun:
-    db_payroll_run = PayrollRun(**payroll_run.model_dump())
+def create_payroll_run(db: Session, payroll_run: PayrollRunCreate, initiated_by_user_id: Optional[int] = None) -> PayrollRun:
+    run_data = payroll_run.model_dump()
+    if initiated_by_user_id:
+        run_data['initiated_by_user_id'] = initiated_by_user_id
+    
+    db_payroll_run = PayrollRun(**run_data)
     db.add(db_payroll_run)
     db.commit()
     db.refresh(db_payroll_run)
-    return db_payroll_run
+    
+    # 加载关联数据并返回
+    return get_payroll_run(db, db_payroll_run.id)
 
 def update_payroll_run(db: Session, run_id: int, payroll_run: PayrollRunUpdate) -> Optional[PayrollRun]:
     db_payroll_run = get_payroll_run(db, run_id)
@@ -276,21 +315,24 @@ def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool
                  entry.employee_name = None
 
         # 获取所有激活的扣除和法定类型的薪资组件定义，并创建映射
-        all_deduction_components, _ = get_payroll_component_definitions(
+        personal_deduction_result = get_payroll_component_definitions(
             db, 
-            component_type='DEDUCTION', 
+            component_type='PERSONAL_DEDUCTION', 
             is_active=True, 
             limit=1000 # 假设组件定义不会超过1000个
         )
-        all_statutory_components, _ = get_payroll_component_definitions(
+        employer_deduction_result = get_payroll_component_definitions(
             db,
-            component_type='STATUTORY',
+            component_type='EMPLOYER_DEDUCTION',
             is_active=True,
             limit=1000
         )
         
-        component_map = {comp.code: comp.name for comp in all_deduction_components}
-        component_map.update({comp.code: comp.name for comp in all_statutory_components})
+        all_personal_deduction_components = personal_deduction_result["data"]
+        all_employer_deduction_components = employer_deduction_result["data"]
+        
+        component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
+        component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
 
         # 为 earnings_details 也从 component_map 更新/确认 name (如果需要统一来源)
         # 注意：当前 earnings_details 在DB中本身就可能包含 name 和 amount
@@ -341,15 +383,20 @@ def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool
 
 def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) -> PayrollEntry:
     # 获取组件定义
-    all_deduction_components, _ = get_payroll_component_definitions(db, component_type='DEDUCTION', is_active=True, limit=1000)
-    all_statutory_components, _ = get_payroll_component_definitions(db, component_type='STATUTORY', is_active=True, limit=1000)
-    all_earning_components, _ = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    personal_deduction_result = get_payroll_component_definitions(db, component_type='PERSONAL_DEDUCTION', is_active=True, limit=1000)
+    employer_deduction_result = get_payroll_component_definitions(db, component_type='EMPLOYER_DEDUCTION', is_active=True, limit=1000)
+    earning_result = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
     
-    component_map = {comp.code: comp.name for comp in all_deduction_components}
-    component_map.update({comp.code: comp.name for comp in all_statutory_components})
+    all_personal_deduction_components = personal_deduction_result["data"]
+    all_employer_deduction_components = employer_deduction_result["data"]
+    all_earning_components = earning_result["data"]
+    
+    component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
+    component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
     component_map.update({comp.code: comp.name for comp in all_earning_components})
 
-    db_data_dict = payroll_entry_data.model_dump()
+    # 排除 employee_info 字段，因为它不是 PayrollEntry 模型的字段
+    db_data_dict = payroll_entry_data.model_dump(exclude={'employee_info'})
 
     # 规范化 earnings_details
     if "earnings_details" in db_data_dict and isinstance(db_data_dict["earnings_details"], dict):
@@ -363,7 +410,7 @@ def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) ->
             
             processed_earnings[code] = {
                 "name": component_name, 
-                "amount": item_input['amount'] # Access amount from the dict representation of PayrollItemInput
+                "amount": float(item_input['amount']) # Convert Decimal to float for JSON serialization
             }
         db_data_dict["earnings_details"] = processed_earnings
 
@@ -377,7 +424,7 @@ def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) ->
             
             processed_deductions[code] = {
                 "name": component_name,
-                "amount": item_input['amount'] # Access amount
+                "amount": float(item_input['amount']) # Convert Decimal to float for JSON serialization
             }
         db_data_dict["deductions_details"] = processed_deductions
         
@@ -394,15 +441,19 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
         return None
 
     # 获取组件定义 (与create中类似)
-    all_deduction_components, _ = get_payroll_component_definitions(db, component_type='DEDUCTION', is_active=True, limit=1000)
-    all_statutory_components, _ = get_payroll_component_definitions(db, component_type='STATUTORY', is_active=True, limit=1000)
-    all_earning_components, _ = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    personal_deduction_result = get_payroll_component_definitions(db, component_type='PERSONAL_DEDUCTION', is_active=True, limit=1000)
+    employer_deduction_result = get_payroll_component_definitions(db, component_type='EMPLOYER_DEDUCTION', is_active=True, limit=1000)
+    earning_result = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
     
-    component_map = {comp.code: comp.name for comp in all_deduction_components}
-    component_map.update({comp.code: comp.name for comp in all_statutory_components})
+    all_personal_deduction_components = personal_deduction_result["data"]
+    all_employer_deduction_components = employer_deduction_result["data"]
+    all_earning_components = earning_result["data"]
+    
+    component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
+    component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
     component_map.update({comp.code: comp.name for comp in all_earning_components})
 
-    update_data = payroll_entry_data.model_dump(exclude_unset=True)
+    update_data = payroll_entry_data.model_dump(exclude_unset=True, exclude={'employee_info'})
 
     # 规范化 earnings_details (如果存在于 update_data)
     if "earnings_details" in update_data and isinstance(update_data["earnings_details"], dict):
@@ -411,7 +462,7 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
             component_name = component_map.get(code)
             if component_name is None:
                 raise ValueError(f"无效的收入项代码: {code}")
-            processed_earnings[code] = {"name": component_name, "amount": item_input['amount']}
+            processed_earnings[code] = {"name": component_name, "amount": float(item_input['amount'])}
         update_data["earnings_details"] = processed_earnings
 
     # 规范化 deductions_details (如果存在于 update_data)
@@ -421,7 +472,7 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
             component_name = component_map.get(code)
             if component_name is None:
                 raise ValueError(f"无效的扣除项代码: {code}")
-            processed_deductions[code] = {"name": component_name, "amount": item_input['amount']}
+            processed_deductions[code] = {"name": component_name, "amount": float(item_input['amount'])}
         update_data["deductions_details"] = processed_deductions
 
     for key, value in update_data.items():
@@ -440,15 +491,19 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
         return None
 
     # 获取组件定义 (与create/update中类似)
-    all_deduction_components, _ = get_payroll_component_definitions(db, component_type='DEDUCTION', is_active=True, limit=1000)
-    all_statutory_components, _ = get_payroll_component_definitions(db, component_type='STATUTORY', is_active=True, limit=1000)
-    all_earning_components, _ = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
+    personal_deduction_result = get_payroll_component_definitions(db, component_type='PERSONAL_DEDUCTION', is_active=True, limit=1000)
+    employer_deduction_result = get_payroll_component_definitions(db, component_type='EMPLOYER_DEDUCTION', is_active=True, limit=1000)
+    earning_result = get_payroll_component_definitions(db, component_type='EARNING', is_active=True, limit=1000)
     
-    component_map = {comp.code: comp.name for comp in all_deduction_components}
-    component_map.update({comp.code: comp.name for comp in all_statutory_components})
+    all_personal_deduction_components = personal_deduction_result["data"]
+    all_employer_deduction_components = employer_deduction_result["data"]
+    all_earning_components = earning_result["data"]
+    
+    component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
+    component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
     component_map.update({comp.code: comp.name for comp in all_earning_components})
     
-    update_values = entry_data.model_dump(exclude_unset=True)
+    update_values = entry_data.model_dump(exclude_unset=True, exclude={'employee_info'})
     changed_fields = False
 
     # 规范化传入的 details 字段 (如果存在)
@@ -458,7 +513,7 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
             component_name = component_map.get(code)
             if component_name is None:
                 raise ValueError(f"无效的收入项代码(PATCH): {code}")
-            processed_earnings_patch[code] = {"name": component_name, "amount": item_input['amount']}
+            processed_earnings_patch[code] = {"name": component_name, "amount": float(item_input['amount'])}
         
         current_earnings = getattr(db_payroll_entry, "earnings_details", {}) or {}
         current_earnings.update(processed_earnings_patch) # Merge
@@ -472,7 +527,7 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
             component_name = component_map.get(code)
             if component_name is None:
                 raise ValueError(f"无效的扣除项代码(PATCH): {code}")
-            processed_deductions_patch[code] = {"name": component_name, "amount": item_input['amount']}
+            processed_deductions_patch[code] = {"name": component_name, "amount": float(item_input['amount'])}
 
         current_deductions = getattr(db_payroll_entry, "deductions_details", {}) or {}
         current_deductions.update(processed_deductions_patch) # Merge
@@ -502,10 +557,12 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
     return db_payroll_entry
 
 def delete_payroll_entry(db: Session, entry_id: int) -> bool:
-    db_payroll_entry = get_payroll_entry(db, entry_id)
-    if not db_payroll_entry:
+    """删除工资明细"""
+    entry = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id).first()
+    if not entry:
         return False
-    db.delete(db_payroll_entry)
+    
+    db.delete(entry)
     db.commit()
     return True
 
@@ -567,3 +624,134 @@ def get_payroll_entries_for_bank_export(
         formatted_results.append( (entry, emp_code, full_name, acc_number, bank_name_val) )
     
     return formatted_results
+
+def bulk_create_payroll_entries(
+    db: Session, 
+    payroll_period_id: int, 
+    entries: List[PayrollEntryCreate], 
+    overwrite_mode: bool = False
+) -> Tuple[List[PayrollEntry], List[Dict[str, Any]]]:
+    """
+    批量创建工资明细
+    
+    Args:
+        db: 数据库会话
+        payroll_period_id: 工资周期ID
+        entries: 工资明细创建数据列表
+        overwrite_mode: 是否启用覆盖模式
+    
+    Returns:
+        Tuple[成功创建的工资明细列表, 错误信息列表]
+    """
+    created_entries = []
+    errors = []
+    
+    # 验证工资周期是否存在
+    period = db.query(PayrollPeriod).filter(PayrollPeriod.id == payroll_period_id).first()
+    if not period:
+        raise ValueError(f"Payroll period with ID {payroll_period_id} not found")
+    
+    # 获取或创建默认的PayrollRun
+    default_run = db.query(PayrollRun).filter(
+        PayrollRun.payroll_period_id == payroll_period_id
+    ).first()
+    
+    if not default_run:
+        # 创建默认的PayrollRun
+        from datetime import datetime
+        from .config import get_lookup_value_by_code, get_lookup_type_by_code
+        
+        # 获取"待计算"状态的ID
+        # 首先获取PAYROLL_RUN_STATUS类型的ID
+        payroll_run_status_type = get_lookup_type_by_code(db, "PAYROLL_RUN_STATUS")
+        if not payroll_run_status_type:
+            raise ValueError("PAYROLL_RUN_STATUS lookup type not found")
+        
+        pending_status = get_lookup_value_by_code(db, payroll_run_status_type.id, "PRUN_PENDING_CALC")
+        if not pending_status:
+            raise ValueError("PAYROLL_RUN_STATUS lookup value 'PRUN_PENDING_CALC' not found")
+        
+        run_data = PayrollRunCreate(
+            payroll_period_id=payroll_period_id,
+            status_lookup_value_id=pending_status.id
+        )
+        default_run = create_payroll_run(db, run_data)
+    
+    for i, entry_data in enumerate(entries):
+        try:
+            # 首先尝试根据employee_id获取员工
+            employee = None
+            if hasattr(entry_data, 'employee_id') and entry_data.employee_id:
+                employee = get_employee(db, entry_data.employee_id)
+            
+            # 如果没有提供employee_id或找不到员工，尝试使用姓名+身份证匹配
+            if not employee and hasattr(entry_data, 'employee_info') and entry_data.employee_info:
+                info = entry_data.employee_info
+                if info.get('last_name') and info.get('first_name') and info.get('id_number'):
+                    employee = get_employee_by_name_and_id_number(
+                        db, 
+                        info['last_name'], 
+                        info['first_name'], 
+                        info['id_number']
+                    )
+                    if employee:
+                        entry_data.employee_id = employee.id
+            
+            # 如果还是找不到员工，记录错误
+            if not employee:
+                errors.append({
+                    "index": i,
+                    "employee_id": getattr(entry_data, 'employee_id', None),
+                    "error": "Employee not found"
+                })
+                continue
+                
+            # 设置payroll_run_id和payroll_period_id
+            entry_data.payroll_run_id = default_run.id
+            entry_data.payroll_period_id = payroll_period_id
+            
+            # 创建一个不包含employee_info的数据字典，用于传递给create_payroll_entry
+            entry_dict = entry_data.dict(exclude={'employee_info'})
+            clean_entry_data = PayrollEntryCreate(**entry_dict)
+            
+            # 检查是否已存在相同的工资明细
+            existing_entry = None
+            if overwrite_mode:
+                existing_entry = db.query(PayrollEntry).filter(
+                    PayrollEntry.employee_id == clean_entry_data.employee_id,
+                    PayrollEntry.payroll_period_id == payroll_period_id,
+                    PayrollEntry.payroll_run_id == default_run.id
+                ).first()
+            
+            if existing_entry and overwrite_mode:
+                # 更新现有记录
+                for field, value in clean_entry_data.dict(exclude_unset=True).items():
+                    if hasattr(existing_entry, field):
+                        setattr(existing_entry, field, value)
+                existing_entry.updated_at = func.now()
+                db.commit()
+                db.refresh(existing_entry)
+                created_entries.append(existing_entry)
+            elif existing_entry and not overwrite_mode:
+                # 记录错误：记录已存在
+                errors.append({
+                    "index": i,
+                    "employee_id": clean_entry_data.employee_id,
+                    "error": f"Payroll entry already exists for employee {clean_entry_data.employee_id} in this period"
+                })
+            else:
+                # 创建新记录
+                db_entry = create_payroll_entry(db, clean_entry_data)
+                created_entries.append(db_entry)
+                
+        except Exception as e:
+            # 记录错误
+            errors.append({
+                "index": i,
+                "employee_id": getattr(entry_data, 'employee_id', None),
+                "error": str(e)
+            })
+            # 回滚当前事务中的更改
+            db.rollback()
+    
+    return created_entries, errors

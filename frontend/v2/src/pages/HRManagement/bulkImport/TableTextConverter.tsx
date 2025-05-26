@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Input, Button, Table, Select, Card, Alert, Space, message } from 'antd';
+import { Input, Button, Table, Select, Card, Alert, Space, App } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { nanoid } from 'nanoid';
 
@@ -20,16 +20,31 @@ interface ApiField {
   required: boolean;
 }
 
-const TableTextConverter: React.FC = () => {
-  const { t } = useTranslation(['hr', 'common']);
+interface TableTextConverterProps {
+  namespace?: string;
+  defaultApiFields?: ApiField[];
+  predefinedMappingRules?: Record<string, string>;
+  processResultRecord?: (record: Record<string, any>) => Record<string, any>;
+  onConvertToJson?: (jsonData: any[]) => void;
+}
+
+const TableTextConverter: React.FC<TableTextConverterProps> = ({
+  namespace = 'hr',
+  defaultApiFields: propDefaultApiFields,
+  predefinedMappingRules: propPredefinedMappingRules,
+  processResultRecord,
+  onConvertToJson
+}) => {
+  const { t } = useTranslation([namespace, 'common']);
+  const { message } = App.useApp();
   const [tableText, setTableText] = useState<string>('');
   const [parsedData, setParsedData] = useState<any[]>([]);
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
   const [jsonResult, setJsonResult] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  // 默认API字段映射
-  const defaultApiFields: ApiField[] = [
+  // 默认API字段映射 - 如果没有传入则使用HR字段
+  const defaultHRApiFields: ApiField[] = [
     { key: 'employee_code', label: '员工代码', required: false },
     { key: 'first_name', label: '名', required: true },
     { key: 'last_name', label: '姓', required: true },
@@ -58,8 +73,11 @@ const TableTextConverter: React.FC = () => {
     { key: 'bank_account_number', label: '收款人账号', required: false },
   ];
 
-  // 预设的字段映射规则
-  const predefinedMappingRules: Record<string, string> = {
+  // 使用传入的字段定义或默认HR字段
+  const defaultApiFields = propDefaultApiFields || defaultHRApiFields;
+
+  // 预设的字段映射规则 - 如果没有传入则使用HR映射规则
+  const defaultHRMappingRules: Record<string, string> = {
     '序号': '',
     '姓名': 'fullname', // 确保映射到fullname
     '性别': 'gender_lookup_value_name',
@@ -114,6 +132,9 @@ const TableTextConverter: React.FC = () => {
     '收款人账号': 'bank_account_number',
     '收款人开户银行': 'bank_name',
   };
+
+  // 使用传入的映射规则或默认HR映射规则
+  const predefinedMappingRules = propPredefinedMappingRules || defaultHRMappingRules;
 
   // 解析表格文本
   const parseTableText = () => {
@@ -424,38 +445,44 @@ const TableTextConverter: React.FC = () => {
         return { ...jsonRow, ...nameData };
       });
       
-      // 添加必填字段的默认值
+      // 添加必填字段的默认值和应用自定义处理函数
       const finalData = jsonData.map(item => {
-        const typedItem = item as Record<string, any>;
+        let typedItem = item as Record<string, any>;
         
-        // 如果没有hire_date但有first_work_date，使用first_work_date作为hire_date
-        if (!typedItem.hire_date && typedItem.first_work_date) {
-          typedItem.hire_date = typedItem.first_work_date;
-        }
-        
-        // 如果没有hire_date，使用当前日期
-        if (!typedItem.hire_date) {
-          const today = new Date();
-          const year = today.getFullYear();
-          const month = String(today.getMonth() + 1).padStart(2, '0');
-          const day = String(today.getDate()).padStart(2, '0');
-          typedItem.hire_date = `${year}-${month}-${day}`;
-        }
-        
-        // 始终将员工状态设置为"在职"，无论是否已提供
-        typedItem.status_lookup_value_name = typedItem.status_lookup_value_name || '在职';
-        
-        // 确保必填字段有值
-        if (!typedItem.first_name && !typedItem.last_name && typedItem._fullname) {
-          const { first_name, last_name } = splitName(typedItem._fullname);
-          typedItem.first_name = first_name;
-          typedItem.last_name = last_name;
-        }
-        
-        // 确保身份证号格式正确
-        if (typedItem.id_number) {
-          // 移除空格
-          typedItem.id_number = typedItem.id_number.replace(/\s/g, '');
+        // 如果传入了自定义处理函数，先应用它
+        if (processResultRecord) {
+          typedItem = processResultRecord(typedItem);
+        } else {
+          // 默认的HR处理逻辑
+          // 如果没有hire_date但有first_work_date，使用first_work_date作为hire_date
+          if (!typedItem.hire_date && typedItem.first_work_date) {
+            typedItem.hire_date = typedItem.first_work_date;
+          }
+          
+          // 如果没有hire_date，使用当前日期
+          if (!typedItem.hire_date) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            typedItem.hire_date = `${year}-${month}-${day}`;
+          }
+          
+          // 始终将员工状态设置为"在职"，无论是否已提供
+          typedItem.status_lookup_value_name = typedItem.status_lookup_value_name || '在职';
+          
+          // 确保必填字段有值
+          if (!typedItem.first_name && !typedItem.last_name && typedItem._fullname) {
+            const { first_name, last_name } = splitName(typedItem._fullname);
+            typedItem.first_name = first_name;
+            typedItem.last_name = last_name;
+          }
+          
+          // 确保身份证号格式正确
+          if (typedItem.id_number) {
+            // 移除空格
+            typedItem.id_number = typedItem.id_number.replace(/\s/g, '');
+          }
         }
         
         return typedItem;
@@ -463,6 +490,11 @@ const TableTextConverter: React.FC = () => {
       
       setJsonResult(JSON.stringify(finalData, null, 2));
       setError(null);
+      
+      // 如果传入了回调函数，调用它
+      if (onConvertToJson) {
+        onConvertToJson(finalData);
+      }
     } catch (err: any) {
       setError(`转换错误: ${err.message}`);
     }

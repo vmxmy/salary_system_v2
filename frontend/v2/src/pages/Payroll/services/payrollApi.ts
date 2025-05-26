@@ -11,14 +11,14 @@ import type {
   PayrollEntryPatch,
   CreatePayrollEntryPayload,
   BulkCreatePayrollEntriesPayload,
-  PayrollComponentDefinition
+  PayrollComponentDefinition,
+  BulkCreatePayrollEntriesResult
 } from '../types/payrollTypes';
-import i18n from 'i18next';
 
 const PAYROLL_PERIODS_ENDPOINT = '/payroll-periods';
 const PAYROLL_RUNS_ENDPOINT = '/payroll-runs';
 const PAYROLL_ENTRIES_ENDPOINT = '/payroll-entries';
-const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/payroll-component-definitions';
+const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/config/payroll-components';
 
 /**
  * Fetches a list of payroll periods.
@@ -302,11 +302,11 @@ export const createPayrollEntry = async (data: CreatePayrollEntryPayload): Promi
 /**
  * Bulk creates payroll entries.
  * @param data The bulk creation payload with payroll period ID and entries array.
- * @returns A promise that resolves to an array of created payroll entries.
+ * @returns A promise that resolves to the bulk creation result.
  */
-export const bulkCreatePayrollEntries = async (data: BulkCreatePayrollEntriesPayload): Promise<ApiListResponse<PayrollEntry>> => {
+export const bulkCreatePayrollEntries = async (data: BulkCreatePayrollEntriesPayload): Promise<BulkCreatePayrollEntriesResult> => {
   try {
-    const response = await apiClient.post<ApiListResponse<PayrollEntry>>(`${PAYROLL_ENTRIES_ENDPOINT}/bulk`, data);
+    const response = await apiClient.post<BulkCreatePayrollEntriesResult>(`${PAYROLL_ENTRIES_ENDPOINT}/bulk`, data);
     return response.data;
   } catch (error) {
     console.error('Error bulk creating payroll entries:', error);
@@ -320,14 +320,13 @@ export const bulkCreatePayrollEntries = async (data: BulkCreatePayrollEntriesPay
  * @returns 包含组件定义列表的Promise
  */
 export const getPayrollComponentDefinitions = async (params?: {
-  type?: string;
-  is_enabled?: boolean;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
+  component_type?: string;
+  is_active?: boolean;
+  search?: string;
+  page?: number;
   size?: number;
 }): Promise<ApiListResponse<PayrollComponentDefinition>> => {
   try {
-    // 先尝试从后端获取组件定义
     const response = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>(
       PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT, 
       { params }
@@ -335,136 +334,8 @@ export const getPayrollComponentDefinitions = async (params?: {
     return response.data;
   } catch (error) {
     console.error('Error fetching payroll component definitions:', error);
-    
-    // 如果后端API不存在，使用本地预定义的组件定义作为备用
-    const fallbackComponents: PayrollComponentDefinition[] = [
-      {
-        id: 1,
-        code: 'BASIC_SALARY',
-        name: '基本工资',
-        type: 'EARNING',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 1
-      },
-      {
-        id: 6,
-        code: 'PERFORMANCE_BONUS',
-        name: '绩效奖金',
-        type: 'EARNING',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 2
-      },
-      {
-        id: 10,
-        code: 'POSITION_ALLOWANCE',
-        name: '岗位津贴',
-        type: 'EARNING',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 3
-      },
-      {
-        id: 9,
-        code: 'BACK_PAY',
-        name: '补发工资',
-        type: 'EARNING',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 4
-      },
-      {
-        id: 60,
-        code: 'PERSONAL_INCOME_TAX',
-        name: '个人所得税',
-        type: 'PERSONAL_DEDUCTION',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 1
-      },
-      {
-        id: 40,
-        code: 'PENSION_PERSONAL_AMOUNT',
-        name: '养老保险个人应缴金额',
-        type: 'PERSONAL_DEDUCTION',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 2
-      },
-      {
-        id: 34,
-        code: 'MEDICAL_INS_PERSONAL_AMOUNT',
-        name: '医疗保险个人缴纳金额',
-        type: 'PERSONAL_DEDUCTION',
-        data_type: 'numeric',
-        is_fixed: false,
-        is_employee_specific: true,
-        is_enabled: true,
-        sort_order: 3
-      }
-    ];
-    
-    // 根据参数过滤组件
-    let filteredComponents = [...fallbackComponents];
-    if (params?.type) {
-      filteredComponents = filteredComponents.filter(comp => comp.type === params.type);
-    }
-    if (params?.is_enabled !== undefined) {
-      filteredComponents = filteredComponents.filter(comp => comp.is_enabled === params.is_enabled);
-    }
-    
-    // 返回本地备用数据
-    console.warn('Using fallback component definitions due to API error');
-    return {
-      data: filteredComponents,
-      meta: {
-        page: 1,
-        size: filteredComponents.length,
-        total: filteredComponents.length,
-        totalPages: 1
-      }
-    };
+    throw error; // 直接抛出错误，让调用方处理
   }
-};
-
-// Test function for i18n
-export const testTranslations = () => {
-  // 使用已导入的i18n实例，而不是重新require
-  
-  // 测试各种访问方式
-  const results = {
-    direct: {
-      withNamespace: i18n.t('periods_page.button.add_period', { ns: 'payroll' }),
-      withoutNamespace: i18n.t('periods_page.button.add_period')
-    },
-    nestedKeys: {
-      fullPath: i18n.t('payroll:periods_page.button.add_period'),
-      parentPath: i18n.t('payroll:periods_page.button'),
-      directKey: i18n.t('add_period', { ns: 'payroll.periods_page.button' })
-    },
-    alternatives: {
-      createPeriod: i18n.t('periods_page.button.create_period', { ns: 'payroll' }),
-      commonButton: i18n.t('button.create', { ns: 'common' })
-    },
-    loadedNamespaces: i18n.options.ns,
-    availableLanguages: i18n.options.preload,
-    currentLanguage: i18n.language
-  };
-  
-  return results;
 };
 
 /**

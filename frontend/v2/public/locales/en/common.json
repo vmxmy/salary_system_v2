@@ -46,7 +46,9 @@
     "add_child": "Add child",
     "export_data": "Export data",
     "column_settings": "Column settings",
-    "export_excel": "Export Excel"
+    "export_excel": "Export Excel",
+    "back": "Back",
+    "upload": "Upload"
   },
   "label": {
     "username": "Username",
@@ -214,5 +216,11 @@
     "emergencyContactName": "Emergency Contact",
     "emergencyContactPhone": "Emergency Contact Phone",
     "emergencyContactRelation": "Emergency Contact Relation"
+  },
+  "records_total": "Total Records: {{total}}",
+  "records_valid": "Valid Records: {{count}}",
+  "records_invalid": "Invalid Records: {{count}}",
+  "loading": {
+    "user_info": "Loading user information..."
   }
 }

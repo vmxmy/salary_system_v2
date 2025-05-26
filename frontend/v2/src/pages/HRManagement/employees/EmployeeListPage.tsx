@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, message, Modal, Space, Tooltip, Input } from 'antd';
-import { PlusOutlined, DownloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
@@ -509,7 +509,7 @@ const EmployeeListPage: React.FC = () => {
     }
   );
 
-  const { visibleColumns, ColumnControl, clearColumnStorage } = useColumnControl(
+  const { visibleColumns, ColumnControl } = useColumnControl(
     tableColumnsConfigForControls, // Use the generated config
     {
       storageKeyPrefix: 'employee_list_table',
@@ -613,35 +613,6 @@ const EmployeeListPage: React.FC = () => {
               <ExportButton />
             )}
             <ColumnControl />
-            {process.env.NODE_ENV === 'development' && (
-              <Button
-                type="default"
-                icon={<SettingOutlined />}
-                onClick={() => {
-                  clearColumnStorage();
-                  message.success('列设置已重置，请刷新页面');
-                }}
-                style={{ marginLeft: 8 }}
-              >
-                重置列设置
-              </Button>
-            )}
-            {process.env.NODE_ENV === 'development' && (
-              <Button
-                type="default"
-                icon={<SettingOutlined />}
-                onClick={() => {
-                  // 获取本地存储中的列设置
-                  const storageKey = 'employee_list_table_columns';
-                  const columnSettings = localStorage.getItem(storageKey);
-                  console.log('当前列设置:', columnSettings ? JSON.parse(columnSettings) : '未找到列设置');
-                  message.info('列设置信息已打印到控制台');
-                }}
-                style={{ marginLeft: 8 }}
-              >
-                查看列设置
-              </Button>
-            )}
           </Space>
         }
       >

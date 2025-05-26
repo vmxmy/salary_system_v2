@@ -857,4 +857,46 @@ export const lookupService = {
       return null;
     }
   },
+
+  // 获取薪资条目状态选项
+  getPayrollEntryStatusesLookup: async (): Promise<LookupItem[]> => {
+    const typeCode = await getTypeCodeBySystemCode('PAYROLL_ENTRY_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载薪资条目状态选项：类型定义缺失或Code不匹配');
+    return [];
+  },
+
+  // 获取薪资运行状态选项
+  getPayrollRunStatusesLookup: async (): Promise<LookupItem[]> => {
+    const typeCode = await getTypeCodeBySystemCode('PAYROLL_RUN_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载薪资运行状态选项：类型定义缺失或Code不匹配');
+    return [];
+  },
+
+  // 获取薪资周期状态选项
+  getPayrollPeriodStatusesLookup: async (): Promise<LookupItem[]> => {
+    const typeCode = await getTypeCodeBySystemCode('PAYROLL_PERIOD_STATUS');
+    if (typeCode) {
+      return fetchLookupValuesByType(typeCode);
+    }
+    message.error('无法加载薪资周期状态选项：类型定义缺失或Code不匹配');
+    return [];
+  },
+
+  // 根据类型代码和值代码获取特定的lookup值ID
+  getLookupValueIdByCode: async (typeCode: string, valueCode: string): Promise<number | null> => {
+    try {
+      const lookupValues = await fetchLookupValuesByType(typeCode);
+      const foundValue = lookupValues.find(item => item.code === valueCode);
+      return foundValue ? Number(foundValue.id) : null;
+    } catch (error) {
+      console.error(`Error finding lookup value ID for type: ${typeCode}, code: ${valueCode}`, error);
+      return null;
+    }
+  },
 };
