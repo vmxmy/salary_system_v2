@@ -387,7 +387,7 @@ const JobPositionLevelTab: React.FC = () => {
               antdMessage.error('表单验证失败');
             });
         }}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" name="jobPositionLevelForm">
           <Form.Item

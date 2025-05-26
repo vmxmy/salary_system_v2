@@ -1,0 +1,159 @@
+@import '../../../styles/variables.less';
+
+// 筛选区域
+.filterSection {
+  margin-bottom: @spacing-lg;
+  padding: @spacing-lg;
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+}
+
+// 表格样式
+.employeeTable {
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  
+  // 表格头部优化
+  :global(.ant-table-thead > tr > th) {
+    background: @table-header-bg;
+    color: @table-header-color;
+    font-weight: 600;
+    border-bottom: 2px solid @border-color-split;
+    
+    &:before {
+      display: none;
+    }
+  }
+  
+  // 表格行优化
+  :global(.ant-table-tbody > tr) {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: @table-row-hover-bg;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    > td {
+      border-bottom: 1px solid @border-color-split;
+      padding: @spacing-md @spacing-lg;
+    }
+  }
+  
+  // 分页优化
+  :global(.ant-pagination) {
+    margin: @spacing-lg 0 0 0;
+    text-align: right;
+    
+    .ant-pagination-total-text {
+      color: @text-color-secondary;
+      font-size: @font-size-sm;
+    }
+  }
+}
+
+// 操作按钮优化
+.actionButtons {
+  :global(.ant-btn) {
+    border-radius: @border-radius-base;
+    font-weight: 500;
+    
+    &.ant-btn-primary {
+      background: @primary-color;
+      border-color: @primary-color;
+      
+      &:hover {
+        background: @primary-color-hover;
+        border-color: @primary-color-hover;
+      }
+    }
+    
+    &.ant-btn-danger {
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+      }
+    }
+  }
+}
+
+// 状态标签优化
+:global(.ant-tag) {
+  border-radius: @border-radius-sm;
+  font-weight: 500;
+  padding: 2px 8px;
+  
+  &.ant-tag-success {
+    background: fade(@success-color, 10%);
+    border-color: @success-color;
+    color: @success-color;
+  }
+  
+  &.ant-tag-warning {
+    background: fade(@warning-color, 10%);
+    border-color: @warning-color;
+    color: @warning-color;
+  }
+  
+  &.ant-tag-error {
+    background: fade(@error-color, 10%);
+    border-color: @error-color;
+    color: @error-color;
+  }
+}
+
+// 加载状态
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .filterSection {
+    padding: @spacing-md;
+  }
+  
+  .employeeTable {
+    :global(.ant-table-tbody > tr > td) {
+      padding: @spacing-sm;
+      font-size: @font-size-sm;
+    }
+  }
+  
+  .actionButtons {
+    :global(.ant-space) {
+      width: 100%;
+      justify-content: center;
+      
+      .ant-space-item {
+        margin-bottom: @spacing-sm;
+      }
+    }
+  }
+}
+
+// 动画效果
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filterSection,
+.employeeTable {
+  animation: fadeInUp 0.3s ease-out;
+} 

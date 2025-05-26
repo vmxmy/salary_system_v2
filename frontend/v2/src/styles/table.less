@@ -1,0 +1,260 @@
+@import './variables.less';
+
+// 通用表格样式
+.enhanced-table {
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  
+  // 表格头部优化
+  :global(.ant-table-thead > tr > th) {
+    background: @table-header-bg;
+    color: @table-header-color;
+    font-weight: 600;
+    border-bottom: 2px solid @border-color-split;
+    padding: @spacing-md @spacing-lg;
+    
+    &:before {
+      display: none;
+    }
+    
+    &:hover {
+      background: @table-header-bg;
+    }
+  }
+  
+  // 表格行优化
+  :global(.ant-table-tbody > tr) {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: @table-row-hover-bg;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    > td {
+      border-bottom: 1px solid @border-color-split;
+      padding: @spacing-md @spacing-lg;
+      
+      // 金额字段使用等宽字体
+      &.amount-cell {
+        font-family: @code-family;
+        font-weight: 600;
+        text-align: right;
+        
+        &.positive {
+          color: @success-color;
+        }
+        
+        &.negative {
+          color: @error-color;
+        }
+        
+        &.neutral {
+          color: @text-color;
+        }
+      }
+      
+      // 状态字段
+      &.status-cell {
+        text-align: center;
+      }
+      
+      // 操作字段
+      &.action-cell {
+        text-align: center;
+        
+        .ant-btn {
+          margin: 0 @spacing-xs;
+        }
+      }
+    }
+  }
+  
+  // 分页优化
+  :global(.ant-pagination) {
+    margin: @spacing-lg 0 0 0;
+    text-align: right;
+    
+    .ant-pagination-total-text {
+      color: @text-color-secondary;
+      font-size: @font-size-sm;
+    }
+    
+    .ant-pagination-item {
+      border-radius: @border-radius-sm;
+      
+      &.ant-pagination-item-active {
+        background: @primary-color;
+        border-color: @primary-color;
+        
+        a {
+          color: white;
+        }
+      }
+    }
+    
+    .ant-pagination-prev,
+    .ant-pagination-next {
+      border-radius: @border-radius-sm;
+      
+      &:hover {
+        border-color: @primary-color;
+        color: @primary-color;
+      }
+    }
+  }
+}
+
+// 表格容器通用样式
+.table-container {
+  .enhanced-table();
+  padding: @spacing-lg;
+  
+  // 响应式设计
+  @media (max-width: 768px) {
+    padding: @spacing-md;
+    
+    :global(.ant-table-tbody > tr > td) {
+      padding: @spacing-sm;
+      font-size: @font-size-sm;
+    }
+  }
+  
+  // 动画效果
+  animation: fadeInUp 0.3s ease-out;
+}
+
+// 状态标签通用样式
+:global(.ant-tag) {
+  border-radius: @border-radius-sm;
+  font-weight: 500;
+  padding: 2px 8px;
+  
+  &.ant-tag-success,
+  &.ant-tag-green {
+    background: fade(@success-color, 10%);
+    border-color: @success-color;
+    color: @success-color;
+  }
+  
+  &.ant-tag-processing,
+  &.ant-tag-blue {
+    background: fade(@primary-color, 10%);
+    border-color: @primary-color;
+    color: @primary-color;
+  }
+  
+  &.ant-tag-warning,
+  &.ant-tag-orange {
+    background: fade(@warning-color, 10%);
+    border-color: @warning-color;
+    color: @warning-color;
+  }
+  
+  &.ant-tag-error,
+  &.ant-tag-red {
+    background: fade(@error-color, 10%);
+    border-color: @error-color;
+    color: @error-color;
+  }
+  
+  &.ant-tag-default,
+  &.ant-tag-gray {
+    background: fade(@text-color-disabled, 10%);
+    border-color: @text-color-disabled;
+    color: @text-color-disabled;
+  }
+  
+  &.ant-tag-purple {
+    background: fade(#722ed1, 10%);
+    border-color: #722ed1;
+    color: #722ed1;
+  }
+  
+  &.ant-tag-cyan {
+    background: fade(#13c2c2, 10%);
+    border-color: #13c2c2;
+    color: #13c2c2;
+  }
+}
+
+// 操作按钮通用样式
+:global(.ant-btn) {
+  border-radius: @border-radius-base;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &.ant-btn-primary {
+    background: @primary-color;
+    border-color: @primary-color;
+    
+    &:hover {
+      background: @primary-color-hover;
+      border-color: @primary-color-hover;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+    }
+  }
+  
+  &.ant-btn-text {
+    &:hover {
+      background: fade(@primary-color, 10%);
+      color: @primary-color;
+      transform: translateY(-1px);
+    }
+  }
+  
+  &.ant-btn-danger {
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+    }
+  }
+  
+  &:not(.ant-btn-primary):not(.ant-btn-danger):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 筛选下拉框样式
+.filter-dropdown {
+  padding: @spacing-sm;
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  
+  .ant-input {
+    margin-bottom: @spacing-sm;
+    border-radius: @border-radius-base;
+  }
+  
+  .ant-btn {
+    border-radius: @border-radius-base;
+    font-weight: 500;
+    
+    &.ant-btn-primary {
+      background: @primary-color;
+      border-color: @primary-color;
+      
+      &:hover {
+        background: @primary-color-hover;
+        border-color: @primary-color-hover;
+      }
+    }
+  }
+}
+
+// 动画定义
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

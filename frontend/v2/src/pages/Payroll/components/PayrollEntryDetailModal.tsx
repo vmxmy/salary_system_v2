@@ -200,7 +200,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       onCancel={onClose}
       footer={null}
       width={800}
-      destroyOnClose // 使用 destroyOnClose 确保模态框关闭后状态重置
+      destroyOnHidden // 使用 destroyOnHidden 确保模态框关闭后状态重置
     >
       {loading && <Spin />}
       {error && <Alert message={t('common:error.genericTitle')} description={error} type="error" showIcon />}

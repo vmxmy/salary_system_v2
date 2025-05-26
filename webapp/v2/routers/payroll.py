@@ -642,10 +642,11 @@ async def export_payroll_run_bank_file(
 @router.get("/payroll-entries", response_model=PayrollEntryListResponse)
 async def get_payroll_entries(
     period_id: Optional[int] = None,
-    run_id: Optional[int] = None,
+    actual_run_id: Optional[int] = Query(None, alias="payroll_run_id"),
     employee_id: Optional[int] = None,
     status_id: Optional[int] = None,
     include_employee_details: bool = Query(False, description="是否包含员工姓名等详细信息"),
+    include_payroll_period: bool = Query(False, description="是否包含工资周期信息"),
     search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
@@ -660,6 +661,7 @@ async def get_payroll_entries(
     - **employee_id**: 员工ID，用于过滤特定员工的明细
     - **status_id**: 状态ID，用于过滤特定状态的明细
     - **include_employee_details**: 是否包含员工姓名等详细信息
+    - **include_payroll_period**: 是否包含工资周期信息
     - **search**: 搜索关键词，用于按员工姓名、工号等信息搜索
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
@@ -672,11 +674,12 @@ async def get_payroll_entries(
         entries, total = crud.get_payroll_entries(
             db=db,
             period_id=period_id,
-            run_id=run_id,
+            run_id=actual_run_id,
             employee_id=employee_id,
             status_id=status_id,
-            search=search,
             include_employee_details=include_employee_details,
+            include_payroll_period=include_payroll_period,
+            search=search,
             skip=skip,
             limit=size
         )

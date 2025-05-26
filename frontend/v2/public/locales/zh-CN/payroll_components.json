@@ -36,6 +36,9 @@
     "description": "描述",
     "validation": {
       "required": "必填项"
+    },
+    "pagination": {
+      "show_total": "第 {range0}-{range1} 条 / 共 {total} 条"
     }
   },
   "payroll_components": {

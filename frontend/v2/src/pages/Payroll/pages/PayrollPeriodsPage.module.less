@@ -1,18 +1,15 @@
-@import '../../styles/variables.less';
+@import '../../../styles/variables.less';
 
-.roleTagsContainer {
-  display: flex;
-  gap: 4px; // antd v4+ supports gap directly with flex
-  flex-wrap: wrap;
-  max-width: 300px;
+// 页面容器
+.pageContainer {
+  padding: @spacing-lg;
 }
 
-// 表格容器
-.tableContainer {
+// 表格样式
+.periodsTable {
   background: white;
   border-radius: @border-radius-base;
   box-shadow: @box-shadow-card;
-  padding: @spacing-lg;
   
   // 表格头部优化
   :global(.ant-table-thead > tr > th) {
@@ -54,31 +51,28 @@
   }
 }
 
-// 页面标题自定义样式
-.pageTitleCustom {
-  margin: 0 !important;
-  color: @heading-color;
-  font-weight: 600;
-}
-
-// 表单区域标题
-.formSectionHeader {
-  display: block;
-  margin: @spacing-lg 0 @spacing-md 0;
-  color: @text-color;
-  font-size: @font-size-base;
-}
-
 // 状态标签优化
 :global(.ant-tag) {
   border-radius: @border-radius-sm;
   font-weight: 500;
   padding: 2px 8px;
   
+  &.ant-tag-blue {
+    background: fade(@primary-color, 10%);
+    border-color: @primary-color;
+    color: @primary-color;
+  }
+  
   &.ant-tag-green {
     background: fade(@success-color, 10%);
     border-color: @success-color;
     color: @success-color;
+  }
+  
+  &.ant-tag-orange {
+    background: fade(@warning-color, 10%);
+    border-color: @warning-color;
+    color: @warning-color;
   }
   
   &.ant-tag-red {
@@ -126,40 +120,75 @@
   }
 }
 
-// 表单优化
-:global(.ant-form) {
-  .ant-form-item-label > label {
-    font-weight: 500;
-    color: @text-color;
-  }
-  
-  .ant-input,
-  .ant-select-selector,
-  .ant-input-number {
+// 操作按钮优化
+.actionButtons {
+  :global(.ant-btn) {
     border-radius: @border-radius-base;
+    font-weight: 500;
     
-    &:focus,
-    &:hover {
+    &.ant-btn-primary {
+      background: @primary-color;
       border-color: @primary-color;
-      box-shadow: 0 0 0 2px fade(@primary-color, 20%);
+      
+      &:hover {
+        background: @primary-color-hover;
+        border-color: @primary-color-hover;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+      }
+    }
+    
+    &.ant-btn-text {
+      &:hover {
+        background: fade(@primary-color, 10%);
+        color: @primary-color;
+      }
     }
   }
+}
+
+// 警告提示优化
+:global(.ant-alert) {
+  border-radius: @border-radius-base;
+  margin-bottom: @spacing-lg;
   
-  .ant-switch {
-    &.ant-switch-checked {
-      background-color: @primary-color;
-    }
+  &.ant-alert-error {
+    background: fade(@error-color, 5%);
+    border-color: fade(@error-color, 20%);
+  }
+  
+  &.ant-alert-warning {
+    background: fade(@warning-color, 5%);
+    border-color: fade(@warning-color, 20%);
+  }
+  
+  &.ant-alert-success {
+    background: fade(@success-color, 5%);
+    border-color: fade(@success-color, 20%);
   }
 }
 
 // 响应式设计
 @media (max-width: 768px) {
-  .tableContainer {
+  .pageContainer {
     padding: @spacing-md;
-    
+  }
+  
+  .periodsTable {
     :global(.ant-table-tbody > tr > td) {
       padding: @spacing-sm;
       font-size: @font-size-sm;
+    }
+  }
+  
+  .actionButtons {
+    :global(.ant-space) {
+      width: 100%;
+      justify-content: center;
+      
+      .ant-space-item {
+        margin-bottom: @spacing-sm;
+      }
     }
   }
 }
@@ -176,6 +205,6 @@
   }
 }
 
-.tableContainer {
+.periodsTable {
   animation: fadeInUp 0.3s ease-out;
 } 

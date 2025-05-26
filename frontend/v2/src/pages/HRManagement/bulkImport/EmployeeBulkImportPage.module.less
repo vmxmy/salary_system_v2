@@ -1,42 +1,98 @@
-/* 恢复使用 Less 变量 - 第三步：恢复间距变量 */
-@import (reference) '../../../styles/variables.less';
-@import (reference) '../../../styles/theme.less';
+// 员工批量导入页面样式
+@import '../../../styles/variables.less';
 
-/* 最小化文件，逐步恢复变量引用 */
-
+// 成功图标
 .successIcon {
-  color: green;
+  color: @success-color;
+  font-size: 16px;
 }
 
+// 错误列表
 .errorList {
   margin: 0;
-  padding-left: 15px;
+  padding-left: @spacing-md;
+  
+  li {
+    color: @error-color;
+    font-size: 12px;
+    margin-bottom: @spacing-xs;
+  }
 }
 
+// 步骤条样式
 .stepsContainer {
-  margin-bottom: @margin-lg; // 24px
+  margin-bottom: @spacing-xl;
+  
+  .ant-steps-item {
+    .ant-steps-item-title {
+      font-weight: 600;
+      color: @text-color;
+    }
+    
+    &.ant-steps-item-active {
+      .ant-steps-item-title {
+        color: @primary-color;
+      }
+    }
+    
+    &.ant-steps-item-finish {
+      .ant-steps-item-title {
+        color: @success-color;
+      }
+    }
+  }
 }
 
+// JSON输入区域
 .jsonInputArea {
-  min-height: 120px;
+  min-height: 200px;
+  font-family: @font-family-code;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: @border-radius-base;
+  
+  &:focus {
+    border-color: @primary-color;
+    box-shadow: 0 0 0 2px fade(@primary-color, 20%);
+  }
 }
 
+// 上传按钮
 .uploadButton {
-  margin-top: @margin-md; // 16px
+  margin-top: @spacing-lg;
+  border-radius: @border-radius-base;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &.ant-btn-primary {
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px fade(@primary-color, 30%);
+    }
+  }
 }
 
+// 帮助文本
 .helperText {
-  margin-top: @margin-lg; // 24px
+  margin-top: @spacing-xl;
+  color: @text-color-secondary;
+  font-size: 14px;
 }
 
+// 表单项间距
 .formItemMargin {
-  margin-bottom: @margin-md; // 16px
+  margin-bottom: @spacing-lg;
 }
 
-/* 居中的表单标签 */
+// 居中的表单标签
 .centeredFormLabel {
   :global(.ant-form-item-label) {
     text-align: center;
+    
+    label {
+      font-weight: 600;
+      color: @text-color;
+    }
   }
   
   :global(.ant-form-item-control-input-content) {
@@ -45,9 +101,9 @@
   }
 }
 
-/* 结果相关样式暂时保持硬编码值 */
+// 结果相关样式
 .resultMessage {
-  margin-top: 20px;
+  margin-top: @spacing-xl;
 }
 
 .resultSpace {
@@ -55,46 +111,151 @@
 }
 
 .resultTableTitle {
-  margin-top: 20px;
+  margin-top: @spacing-xl;
+  color: @heading-color;
+  font-weight: 600;
 }
 
+// 标签页内容容器
 .tabContentContainer {
-  /* 暂时为空 */
+  padding: @spacing-lg 0;
+  
+  .ant-form-item {
+    margin-bottom: @spacing-lg;
+  }
 }
 
+// 上传进度容器
 .uploadProgressContainer {
-  margin-top: @margin-lg;
-  margin-bottom: @margin-lg;
-  padding: @padding-md;
+  margin-top: @spacing-xl;
+  margin-bottom: @spacing-xl;
+  padding: @spacing-lg;
   border: 1px solid @border-color-split;
   border-radius: @border-radius-base;
+  background: @background-color-light;
 }
 
-/* 表格中的验证错误样式保持硬编码 */
+// 表格中的验证错误样式
 .validationErrorsInTable {
   max-height: 100px;
   overflow-y: auto;
   font-size: 12px;
-  padding: 8px 12px;
-  border: 1px solid #f0f0f0;
-  border-radius: 2px;
-  background-color: #fff;
-  margin-top: 8px;
+  padding: @spacing-sm @spacing-md;
+  border: 1px solid @border-color-split;
+  border-radius: @border-radius-sm;
+  background-color: white;
+  margin-top: @spacing-sm;
 
   ul {
     margin-bottom: 0;
-    padding-left: 18px;
+    padding-left: @spacing-lg;
   }
 
   li {
-    margin-bottom: 4px;
+    margin-bottom: @spacing-xs;
+    color: @error-color;
   }
 }
 
+// 批量导入容器
 .bulkImportContainer {
-  /* 暂时为空 */
+  .ant-card {
+    border-radius: @border-radius-base;
+    box-shadow: @box-shadow-card;
+    
+    .ant-card-head {
+      border-bottom: 1px solid @border-color-split;
+      
+      .ant-card-head-title {
+        font-weight: 600;
+        color: @heading-color;
+      }
+    }
+  }
 }
 
+// 标签页容器
 .tabsContainer {
-  margin-bottom: @margin-md; // 16px
+  margin-bottom: @spacing-lg;
+  
+  .ant-tabs-tab {
+    font-weight: 500;
+    
+    &.ant-tabs-tab-active {
+      .ant-tabs-tab-btn {
+        color: @primary-color;
+        font-weight: 600;
+      }
+    }
+  }
+  
+  .ant-tabs-ink-bar {
+    background: @primary-color;
+  }
+}
+
+// 表格样式优化
+.tableContainer {
+  .ant-table {
+    .ant-table-thead > tr > th {
+      background: @table-header-bg;
+      color: @table-header-color;
+      font-weight: 600;
+      border-bottom: 2px solid @border-color-base;
+    }
+    
+    .ant-table-tbody > tr {
+      transition: all 0.2s ease;
+      
+      &:hover > td {
+        background: @table-row-hover-bg;
+      }
+      
+      &.invalidRow > td {
+        background: fade(@error-color, 10%);
+        border-left: 3px solid @error-color;
+      }
+    }
+  }
+}
+
+// 表单样式优化
+.ant-form {
+  .ant-form-item-label > label {
+    font-weight: 600;
+    color: @text-color;
+  }
+  
+  .ant-input,
+  .ant-select-selector {
+    border-radius: @border-radius-base;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: @primary-color-hover;
+    }
+    
+    &:focus,
+    &.ant-select-focused .ant-select-selector {
+      border-color: @primary-color;
+      box-shadow: 0 0 0 2px fade(@primary-color, 20%);
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .stepsContainer {
+    .ant-steps {
+      flex-direction: column;
+    }
+  }
+  
+  .uploadButton {
+    width: 100%;
+  }
+  
+  .tabContentContainer {
+    padding: @spacing-md 0;
+  }
 } 

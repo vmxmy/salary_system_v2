@@ -23,7 +23,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import utc from 'dayjs/plugin/utc';
 import ActionButton from '../../../components/common/ActionButton';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import type { ColumnsType } from 'antd/es/table';
 import { 
   getPayrollPeriods, 
@@ -401,8 +401,9 @@ const PayrollPeriodsPage: React.FC = () => {
 
   return (
     <PermissionGuard requiredPermissions={requiredPermissionsMemo} showError={true}>
-      <PageHeaderLayout
-        pageTitle={<Typography.Title level={4} style={{ margin: 0 }}>{t('payroll_periods_page.title')}</Typography.Title>}
+      <PageLayout
+        title={t('payroll_periods_page.title')}
+
         actions={
           <Space>
             <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
@@ -469,7 +470,7 @@ const PayrollPeriodsPage: React.FC = () => {
             />
           </Modal>
         )}
-      </PageHeaderLayout>
+      </PageLayout>
     </PermissionGuard>
   );
 };

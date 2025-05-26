@@ -3,7 +3,7 @@ import { Table, Button, Space, Typography, Modal, message, Tooltip } from 'antd'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
 import TableActionButton from '../../../components/common/TableActionButton';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import type { ColumnsType } from 'antd/es/table';
 import { getPermissions, createPermission, updatePermission, deletePermission } from '../../../api/permissions';
 import type { Permission, CreatePermissionPayload, UpdatePermissionPayload } from '../../../api/types';
@@ -183,29 +183,27 @@ const PermissionListPage: React.FC = () => {
   };
 
   return (
-    <div>
-      <PageHeaderLayout
-        pageTitle={<Title level={4} className={styles.pageTitleCustom}>{t('list_page.title')}</Title>}
-        actions={
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-              shape="round"
-            >
-              {t('list_page.button.create_permission')}
-            </Button>
-            <Tooltip title={t('list_page.tooltip.export_excel')}>
-              <ExportButton />
-            </Tooltip>
-            <ColumnControl />
-          </Space>
-        }
-      >
-        <></> {/* Empty children */}
-      </PageHeaderLayout>
-      <Table
+    <PageLayout
+      title={t('list_page.title')}
+      actions={
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            shape="round"
+          >
+            {t('list_page.button.create_permission')}
+          </Button>
+          <Tooltip title={t('list_page.tooltip.export_excel')}>
+            <ExportButton />
+          </Tooltip>
+          <ColumnControl />
+        </Space>
+      }
+    >
+      <div className={styles.tableContainer}>
+        <Table
         columns={visibleColumns}
         dataSource={permissions}
         loading={isLoading}
@@ -231,7 +229,8 @@ const PermissionListPage: React.FC = () => {
           isLoading={createMutation.isPending || updateMutation.isPending || deleteMutation.isPending}
         />
       )}
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 

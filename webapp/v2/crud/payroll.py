@@ -233,6 +233,7 @@ def get_payroll_entries(
     status_id: Optional[int] = None,
     search: Optional[str] = None, # For employee name/code search
     include_employee_details: bool = False, # 新增参数，控制是否关联员工详情
+    include_payroll_period: bool = False, # 新增参数，控制是否关联工资周期信息
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[PayrollEntry], int]:
@@ -276,26 +277,14 @@ def get_payroll_entries(
                 Employee.id, Employee.first_name, Employee.last_name, Employee.employee_code
             )
         )
-        
-    # 执行查询并返回结果
-    entries = query.all()
     
-    # 处理返回的PayrollEntry对象，加入employee_name属性
-    if include_employee_details:
-        for entry in entries:
-            if entry.employee:
-                # 确保entry对象可以添加额外的属性
-                # 合并姓和名为全名，添加空格分隔
-                last_name = entry.employee.last_name or ''
-                first_name = entry.employee.first_name or ''
-                if last_name and first_name:
-                    entry.employee_name = f"{last_name} {first_name}"
-                else:
-                    entry.employee_name = (last_name + first_name).strip()
-            else:
-                entry.employee_name = None
+    # 如果需要包含工资周期信息，使用options加载关联的工资周期和运行批次数据
+    if include_payroll_period:
+        query = query.options(
+            selectinload(PayrollEntry.payroll_run).selectinload(PayrollRun.payroll_period)
+        )
     
-    return entries, total
+    return query.all(), total
 
 def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool = True) -> Optional[PayrollEntry]:
     query = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id)

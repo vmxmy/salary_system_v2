@@ -16,7 +16,7 @@ import {
   Col,
   Row,
 } from 'antd';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import { PlusOutlined, ClusterOutlined } from '@ant-design/icons';
 import TableActionButton from '../../../components/common/TableActionButton';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
@@ -437,20 +437,19 @@ const DepartmentsPage: React.FC = () => {
     },
   ];
 
-  return (
-    <>
-      <PageHeaderLayout
-        pageTitle={<Title level={4}>{t('title')}</Title>}
-        actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal()} shape="round">
-            {t('button.create_top_level_department')}
-          </Button>
-        }
-      >
-        <></>
-      </PageHeaderLayout>
 
-      <Table
+
+  return (
+    <PageLayout
+      title={t('title')}
+      actions={
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal()} shape="round">
+          {t('button.create_top_level_department')}
+        </Button>
+      }
+    >
+      <div className={styles.tableContainer}>
+        <Table
         columns={columns}
         dataSource={departmentsTree}
         loading={isLoading}
@@ -538,7 +537,8 @@ const DepartmentsPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+      </div>
+    </PageLayout>
   );
 };
 

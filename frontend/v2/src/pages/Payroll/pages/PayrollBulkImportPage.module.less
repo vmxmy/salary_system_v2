@@ -1,10 +1,39 @@
+@import '../../../styles/variables.less';
+
 .stepsContainer {
-  margin-bottom: 24px;
+  margin-bottom: @spacing-xl;
+  
+  .ant-steps-item {
+    .ant-steps-item-title {
+      font-weight: 600;
+      color: @text-color;
+    }
+    
+    &.ant-steps-item-active {
+      .ant-steps-item-title {
+        color: @primary-color;
+      }
+    }
+    
+    &.ant-steps-item-finish {
+      .ant-steps-item-title {
+        color: @success-color;
+      }
+    }
+  }
 }
 
 .jsonInputArea {
-  font-family: monospace;
+  font-family: @font-family-code;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: @border-radius-base;
   min-height: 200px;
+  
+  &:focus {
+    border-color: @primary-color;
+    box-shadow: 0 0 0 2px fade(@primary-color, 20%);
+  }
 }
 
 .helperText {
@@ -43,7 +72,11 @@
 }
 
 .tabContentContainer {
-  padding: 16px 0;
+  padding: @spacing-lg 0;
+  
+  .ant-form-item {
+    margin-bottom: @spacing-lg;
+  }
 }
 
 .uploadButton {
@@ -61,5 +94,287 @@
   
   td {
     border-bottom-color: #ffccc7;
+  }
+}
+
+.tableContainer {
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  overflow: hidden;
+  
+  .ant-table {
+    .ant-table-thead > tr > th {
+      background: @table-header-bg;
+      color: @table-header-color;
+      font-weight: 600;
+      border-bottom: 2px solid @border-color-base;
+    }
+    
+    .ant-table-tbody > tr {
+      transition: all 0.2s ease;
+      
+      &:hover > td {
+        background: @table-row-hover-bg;
+      }
+      
+      &.invalidRow > td {
+        background: fade(@error-color, 10%);
+        border-left: 3px solid @error-color;
+      }
+    }
+  }
+}
+
+.validationErrors {
+  .ant-alert {
+    margin-bottom: @spacing-sm;
+    border-radius: @border-radius-sm;
+  }
+  
+  .errorItem {
+    padding: @spacing-xs @spacing-sm;
+    margin-bottom: @spacing-xs;
+    background: fade(@error-color, 5%);
+    border-left: 3px solid @error-color;
+    border-radius: @border-radius-sm;
+    font-size: 12px;
+    color: @error-color;
+  }
+}
+
+.resultContainer {
+  text-align: center;
+  padding: @spacing-xxl 0;
+  
+  .resultIcon {
+    font-size: 64px;
+    margin-bottom: @spacing-lg;
+    
+    &.success {
+      color: @success-color;
+    }
+    
+    &.error {
+      color: @error-color;
+    }
+    
+    &.warning {
+      color: @warning-color;
+    }
+  }
+  
+  .resultTitle {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: @spacing-md;
+    color: @heading-color;
+  }
+  
+  .resultDescription {
+    font-size: 16px;
+    color: @text-color-secondary;
+    margin-bottom: @spacing-xl;
+  }
+  
+  .resultStats {
+    display: flex;
+    justify-content: center;
+    gap: @spacing-xl;
+    margin-bottom: @spacing-xl;
+    
+    .statItem {
+      text-align: center;
+      
+      .statNumber {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: @spacing-xs;
+        
+        &.success {
+          color: @success-color;
+        }
+        
+        &.error {
+          color: @error-color;
+        }
+        
+        &.total {
+          color: @primary-color;
+        }
+      }
+      
+      .statLabel {
+        font-size: 14px;
+        color: @text-color-secondary;
+      }
+    }
+  }
+}
+
+.errorDetailsTable {
+  margin-top: @spacing-lg;
+  
+  .ant-table-thead > tr > th {
+    background: fade(@error-color, 10%);
+    color: @error-color;
+    font-weight: 600;
+  }
+  
+  .ant-table-tbody > tr > td {
+    font-size: 12px;
+  }
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: @spacing-xl;
+  
+  .ant-btn {
+    border-radius: @border-radius-base;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    
+    &.ant-btn-primary {
+      background: @primary-color;
+      border-color: @primary-color;
+      
+      &:hover {
+        background: @primary-color-hover;
+        border-color: @primary-color-hover;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px fade(@primary-color, 30%);
+      }
+    }
+    
+    &.ant-btn-default {
+      &:hover {
+        border-color: @primary-color;
+        color: @primary-color;
+      }
+    }
+  }
+}
+
+.loadingContainer {
+  text-align: center;
+  padding: @spacing-xxl 0;
+  
+  .ant-spin {
+    .ant-spin-dot {
+      font-size: 32px;
+    }
+  }
+  
+  .loadingText {
+    margin-top: @spacing-lg;
+    font-size: 16px;
+    color: @text-color-secondary;
+  }
+}
+
+.ant-form {
+  .ant-form-item-label > label {
+    font-weight: 600;
+    color: @text-color;
+  }
+  
+  .ant-input,
+  .ant-select-selector {
+    border-radius: @border-radius-base;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: @primary-color-hover;
+    }
+    
+    &:focus,
+    &.ant-select-focused .ant-select-selector {
+      border-color: @primary-color;
+      box-shadow: 0 0 0 2px fade(@primary-color, 20%);
+    }
+  }
+}
+
+.ant-tabs {
+  .ant-tabs-tab {
+    font-weight: 500;
+    
+    &.ant-tabs-tab-active {
+      .ant-tabs-tab-btn {
+        color: @primary-color;
+        font-weight: 600;
+      }
+    }
+  }
+  
+  .ant-tabs-ink-bar {
+    background: @primary-color;
+  }
+}
+
+@media (max-width: 768px) {
+  .stepsContainer {
+    .ant-steps {
+      flex-direction: column;
+    }
+  }
+  
+  .resultStats {
+    flex-direction: column;
+    gap: @spacing-lg;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: @spacing-md;
+    
+    .ant-btn {
+      width: 100%;
+    }
+  }
+  
+  .tabContentContainer {
+    padding: @spacing-md 0;
+  }
+}
+
+.ant-card {
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  
+  .ant-card-head {
+    border-bottom: 1px solid @border-color-split;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+      color: @heading-color;
+    }
+  }
+  
+  .ant-card-body {
+    padding: @spacing-xl;
+  }
+}
+
+.ant-alert {
+  border-radius: @border-radius-base;
+  
+  &.ant-alert-warning {
+    background: fade(@warning-color, 10%);
+    border: 1px solid fade(@warning-color, 30%);
+  }
+  
+  &.ant-alert-success {
+    background: fade(@success-color, 10%);
+    border: 1px solid fade(@success-color, 30%);
+  }
+  
+  &.ant-alert-error {
+    background: fade(@error-color, 10%);
+    border: 1px solid fade(@error-color, 30%);
   }
 } 

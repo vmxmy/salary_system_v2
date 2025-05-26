@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography, App } from 'antd';
 import { SearchOutlined, PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import TableActionButton from '../../components/common/TableActionButton';
-import PageHeaderLayout from '../../components/common/PageHeaderLayout';
+import PageLayout from '../../components/common/PageLayout';
 import type { InputRef } from 'antd';
 import type { ColumnType, TablePaginationConfig } from 'antd/lib/table/interface';
 import type { FilterValue, SorterResult } from 'antd/lib/table/interface';
@@ -461,28 +461,28 @@ const UserListPage: React.FC = () => {
     }
   );
 
+
+
   return (
-    <div>
-      <PageHeaderLayout
-        pageTitle={<Title level={4} className={styles.pageTitleCustom}>{t('user_list_page.title')}</Title>}
-        actions={
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={showCreateUserModal}
-              shape="round"
-            >
-              {t('user_list_page.button.create_user')}
-            </Button>
-            {ExportButton && <ExportButton />}
-            {ColumnControl && <ColumnControl />}
-          </Space>
-        }
-      >
-        <></>
-      </PageHeaderLayout>
-      <Table
+    <PageLayout
+      title={t('user_list_page.title')}
+      actions={
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateUserModal}
+            shape="round"
+          >
+            {t('user_list_page.button.create_user')}
+          </Button>
+          {ExportButton && <ExportButton />}
+          {ColumnControl && <ColumnControl />}
+        </Space>
+      }
+    >
+      <div className={styles.tableContainer}>
+        <Table
         columns={visibleColumns}
         dataSource={users}
         loading={loading}
@@ -594,7 +594,8 @@ const UserListPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 

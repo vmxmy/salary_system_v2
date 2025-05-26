@@ -1,6 +1,12 @@
 // 额外变量
 // 这些变量是对 theme.less 中 Ant Design 主题变量的补充
 
+// 引入主题变量
+@import './theme.less';
+
+// ===== 基础间距单位 =====
+@spacing-unit: 8px; // 基础间距单位
+
 // ===== 应用特定颜色 =====
 @app-primary-light: lighten(@primary-color, 20%);
 @app-primary-dark: darken(@primary-color, 10%);
@@ -44,6 +50,9 @@
 @font-size-xl: 18px;
 @font-size-xxl: 20px;
 @font-size-xxxl: 24px;
+
+// ===== 字体家族扩展 =====
+@font-family-code: @code-family; // 代码字体，引用 theme.less 中的 @code-family
 
 // ===== 行高 =====
 @line-height-tight: 1.2;
@@ -98,7 +107,7 @@
 @form-label-font-weight: 500;
 @form-error-color-light: lighten(@error-color, 40%);
 @form-disabled-bg: #f5f5f5;
-@form-disabled-color: @disabled-color;
+@form-disabled-color: #bfbfbf;
 
 // ===== 按钮特定变量 =====
 @btn-padding-horizontal-sm: 8px;
@@ -139,3 +148,21 @@
 @drawer-header-padding: 16px 24px;
 @drawer-body-padding: 24px;
 @drawer-footer-padding: 16px 24px;
+
+// 注意：基础设计系统变量已在 theme.less 中定义
+// 这里只保留额外的扩展变量，避免重复定义
+
+// ===== 主题变量的扩展 =====
+// 主色调的悬停和激活状态（theme.less 中缺失）
+@primary-color-hover: #40a9ff;
+@primary-color-active: #096dd9;
+
+// 文本颜色扩展（theme.less 中缺失）
+@text-color-disabled: #bfbfbf;
+
+// 背景颜色扩展（theme.less 中缺失）
+@background-color-base: #f5f5f5;
+
+// 阴影系统（theme.less 中缺失）
+@box-shadow-base: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+@box-shadow-card: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);

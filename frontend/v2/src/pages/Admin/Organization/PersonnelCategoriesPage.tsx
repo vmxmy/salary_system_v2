@@ -488,7 +488,7 @@ const PersonnelCategoriesPage: React.FC = () => {
                       message.error(t('common:message.form_validation_error'));
                     });
                 }}
-                destroyOnClose
+                destroyOnHidden
               >
                 <Form form={form} layout="vertical" name="personnelCategoryForm">
                   <Form.Item

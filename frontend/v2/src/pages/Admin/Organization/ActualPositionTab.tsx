@@ -361,7 +361,7 @@ const ActualPositionTab: React.FC = () => {
               antdMessage.error(t('common:message.form_validation_error'));
             });
         }}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" name="positionForm">
           <Form.Item

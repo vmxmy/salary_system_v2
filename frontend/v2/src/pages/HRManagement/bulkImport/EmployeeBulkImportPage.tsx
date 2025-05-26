@@ -18,7 +18,7 @@ import {
 } from 'antd';
 import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, TableOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import { useNavigate } from 'react-router-dom';
 import { employeeService } from '../../../services/employeeService';
 import styles from './EmployeeBulkImportPage.module.less';
@@ -783,7 +783,19 @@ const EmployeeBulkImportPage: React.FC = () => {
   }
 
   return (
-    <PageHeaderLayout pageTitle={t('hr:bulk_import.page_title')} icon={<UserAddOutlined />}>
+    <PageLayout
+      title={t('hr:bulk_import.page_title')}
+      actions={
+        <Space>
+          <Button
+            onClick={() => navigate('/hr/employees')}
+            shape="round"
+          >
+            {t('bulk_import.button.back_to_employees')}
+          </Button>
+        </Space>
+      }
+    >
       <div className={styles.bulkImportContainer}>
         <Tabs 
           activeKey={activeTab} 
@@ -792,7 +804,7 @@ const EmployeeBulkImportPage: React.FC = () => {
           items={tabItems}
         /> 
       </div>
-    </PageHeaderLayout>
+    </PageLayout>
   );
 };
 

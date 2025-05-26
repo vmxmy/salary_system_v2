@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Table, Spin, Alert, Typography, Button, Tag, Tooltip, Breadcrumb, Space, Input } from 'antd';
-import { EyeOutlined, HomeOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Spin, Alert, Typography, Button, Tag, Tooltip, Breadcrumb, Space, Input, DatePicker, Select } from 'antd';
+import { EyeOutlined, HomeOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
@@ -11,9 +11,12 @@ import type { ColumnsType } from 'antd/es/table';
 import { getPayrollEntryStatusInfo } from '../Payroll/utils/payrollUtils';
 import EmployeeName from '../../components/common/EmployeeName';
 import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
+import PageLayout from '../../components/common/PageLayout';
 import styles from './MyPayslips.module.less';
 
 const { Title } = Typography;
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const MyPayslipsPage: React.FC = () => {
   const { t, ready } = useTranslation(['common', 'myPayslips']);
@@ -44,6 +47,7 @@ const MyPayslipsPage: React.FC = () => {
         page,
         size: pageSize,
         include_employee_details: true,
+        include_payroll_period: true,
         sort_by: 'id',
         sort_order: 'desc',
       });
@@ -70,7 +74,7 @@ const MyPayslipsPage: React.FC = () => {
   const columns: ColumnsType<PayrollEntry> = [
     {
       title: t('myPayslips:column.payrollPeriod'),
-      dataIndex: ['payroll_run', 'payroll_period', 'name'],
+      dataIndex: 'payroll_run',
       key: 'payrollPeriodName',
       sorter: true,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -106,7 +110,20 @@ const MyPayslipsPage: React.FC = () => {
         const periodName = record.payroll_run?.payroll_period?.name || '';
         return periodName.toLowerCase().includes((value as string).toLowerCase());
       },
-      render: (name, record) => name || `${t('myPayslips:periodIdPrefix')}${record.payroll_run?.payroll_period_id || 'N/A'}`,
+      render: (payrollRun, record) => {
+        const periodName = record.payroll_run?.payroll_period?.name;
+        const periodId = record.payroll_run?.payroll_period_id;
+        
+        if (periodName) {
+          return periodName;
+        }
+        
+        if (periodId) {
+          return `${t('myPayslips:periodIdPrefix')}${periodId}`;
+        }
+        
+        return '-';
+      },
     },
     {
       title: t('myPayslips:column.runDate'),
@@ -139,7 +156,10 @@ const MyPayslipsPage: React.FC = () => {
       dataIndex: 'net_pay',
       key: 'netPay',
       sorter: (a, b) => (a.net_pay || 0) - (b.net_pay || 0),
-      render: (amount) => amount?.toFixed(2) || '0.00',
+      render: (amount) => {
+        const numValue = typeof amount === 'number' ? amount : Number(amount);
+        return !isNaN(numValue) ? numValue.toFixed(2) : '0.00';
+      }
     },
     {
       title: t('myPayslips:column.paymentDate'),
@@ -205,10 +225,7 @@ const MyPayslipsPage: React.FC = () => {
     }
   );
 
-  const breadcrumbItems = [
-    { key: 'home', href: '/', title: <HomeOutlined /> },
-    { key: 'my-payslips', title: t('myPayslips:title') },
-  ];
+
 
   if (!ready || (loading && !payslips.length)) {
     return <Spin tip={t('common:loading.generic_loading_text')} className={styles.loadingSpin}><div className={styles.loadingSpinContent} /></Spin>;
@@ -219,27 +236,22 @@ const MyPayslipsPage: React.FC = () => {
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <Breadcrumb className={styles.pageBreadcrumb}>
-        {breadcrumbItems.map(item => (
-          <Breadcrumb.Item key={item.key}>
-            {item.href ? <Link to={item.href}>{item.title}</Link> : item.title}
-          </Breadcrumb.Item>
-        ))}
-      </Breadcrumb>
-      <div className={styles.pageHeader}>
-        <Title level={2} className={styles.pageHeaderTitle}>{t('myPayslips:title')}</Title>
+    <PageLayout
+      title={t('myPayslips:title')}
+      actions={
         <Space>
           <Tooltip title={t('myPayslips:export.tooltipTitle', '导出工资单到Excel')}>
             <ExportButton />
           </Tooltip>
           <ColumnControl />
         </Space>
-      </div>
+      }
+    >
       {error && payslips.length > 0 && (
          <Alert message={t('common:error.genericTitle')} description={error} type="warning" showIcon closable className={styles.warningAlert} />
       )}
-      <Table
+      <div className={styles.tableContainer}>
+        <Table
         columns={visibleColumns}
         dataSource={payslips}
         rowKey="id"
@@ -254,8 +266,9 @@ const MyPayslipsPage: React.FC = () => {
             `${t('common:pagination.totalRecords', { count: total })} (${t('common:pagination.showingRange', { start: range[0], end: range[1] })})`,
           onChange: fetchPayslips,
         }: false}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: 'max-content'         }}
       />
+      </div>
       <PayrollEntryDetailModal
         entryId={currentEntryId}
         visible={isDetailModalVisible}
@@ -264,7 +277,7 @@ const MyPayslipsPage: React.FC = () => {
           setCurrentEntryId(null);
         }}
       />
-    </div>
+    </PageLayout>
   );
 };
 

@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Space, Table, Button, Modal, Form, Input, Select, Switch, message, Popconfirm, Card, Typography, Row, Col, Divider, Tag, InputNumber } from 'antd';
 import type { InputRef } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilterFilled, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilterFilled, DownloadOutlined, SettingOutlined, HomeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useTableExport, useColumnControl } from '../../../components/common/TableUtils';
+import PageLayout from '../../../components/common/PageLayout';
 import * as payrollApi from '../services/payrollApi';
 import * as configApi from '../../../api/config';
 import type { LookupValue } from '../../../api/types';
 import type { PayrollComponentDefinition } from '../types/payrollTypes';
 import type { ColumnType } from 'antd/es/table';
+import styles from './PayrollComponentsPage.module.less';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -132,9 +134,7 @@ const PayrollComponentsPage: React.FC = () => {
     try {
       const response = await payrollApi.getPayrollComponentDefinitions({ 
         page, 
-        size,
-        sort_by: 'display_order',
-        sort_order: 'asc'
+        size
       });
       setComponents(response.data);
       setPagination(prev => ({
@@ -469,26 +469,26 @@ const PayrollComponentsPage: React.FC = () => {
     }
   };
 
+
+
   return (
-    <div>
-      <PageHeader
-        title={t('payroll_components.title')}
-        extra={
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-            >
-              {t('payroll_components.add')}
-            </Button>
-            {ExportButton && <ExportButton />}
-            {ColumnControl && <ColumnControl />}
-          </Space>
-        }
-      />
-      
-      <Card>
+    <PageLayout
+      title={t('payroll_components.title')}
+      actions={
+        <Space className={styles.actionButtons}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            {t('payroll_components.add')}
+          </Button>
+          {ExportButton && <ExportButton />}
+          {ColumnControl && <ColumnControl />}
+        </Space>
+      }
+    >
+      <div className={styles.tableContainer}>
         <Table
           dataSource={components}
           columns={controlledColumns}
@@ -514,7 +514,7 @@ const PayrollComponentsPage: React.FC = () => {
             },
           }}
         />
-      </Card>
+      </div>
 
       {/* 编辑/添加模态框 */}
       <Modal
@@ -635,7 +635,7 @@ const PayrollComponentsPage: React.FC = () => {
           </Row>
         </Form>
       </Modal>
-    </div>
+    </PageLayout>
   );
 };
 

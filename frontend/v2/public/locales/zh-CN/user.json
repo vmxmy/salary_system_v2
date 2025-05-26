@@ -1,4 +1,8 @@
 {
+  "breadcrumb": {
+    "admin_management": "系统管理",
+    "user_list": "用户列表"
+  },
   "title": "用户管理",
   "user_list_page": {
     "title": "用户列表",

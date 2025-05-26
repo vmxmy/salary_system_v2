@@ -20,7 +20,7 @@ import {
 } from 'antd';
 import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, PlaySquareOutlined, TableOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import { useNavigate } from 'react-router-dom';
 import styles from './PayrollBulkImportPage.module.less';
 import { nanoid } from 'nanoid';
@@ -1452,7 +1452,19 @@ const PayrollBulkImportPage: React.FC = () => {
 
 
   return (
-    <PageHeaderLayout pageTitle={t('batch_import.page_title')}>
+    <PageLayout
+      title={t('batch_import.page_title')}
+      actions={
+        <Space>
+          <Button
+            onClick={() => navigate('/payroll/entries')}
+            shape="round"
+          >
+            {t('batch_import.button.back_to_entries')}
+          </Button>
+        </Space>
+      }
+    >
       <Card>
         <Steps current={currentStep} className={styles.stepsContainer}>
           <Step title={t('batch_import.steps.input_data')} icon={<FileTextOutlined />} />
@@ -1678,7 +1690,7 @@ const PayrollBulkImportPage: React.FC = () => {
 
         {currentStep === 3 && renderResultContent()}
       </Card>
-    </PageHeaderLayout>
+    </PageLayout>
   );
 };
 

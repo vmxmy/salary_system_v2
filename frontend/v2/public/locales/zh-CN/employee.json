@@ -1,4 +1,8 @@
 {
+    "breadcrumb": {
+      "hr_management": "人力资源管理",
+      "employee_list": "员工列表"
+    },
     "list_page": {
       "title": "员工列表",
       "loading_lookups": "正在加载筛选选项...",
@@ -75,7 +79,8 @@
           "id_number": "请输入身份证号",
           "salary_level": "请选择工资级别",
           "salary_grade": "请选择工资档次", 
-          "ref_salary_level": "请选择参照正编薪级"
+          "ref_salary_level": "请选择参照正编薪级",
+          "job_title": "请输入职位名称"
         },
         "button": {
           "search": "查询",

@@ -115,6 +115,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
           }
         }
         
+        console.log('Raw data from getPayrollEntries API:', JSON.stringify(response.data, null, 2));
         setEntries(response.data);
         setMeta(response.meta);
       } else {

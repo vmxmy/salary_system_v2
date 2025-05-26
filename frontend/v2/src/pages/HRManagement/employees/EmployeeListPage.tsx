@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Modal, Space, Tooltip, Input } from 'antd';
-import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, message, Modal, Space, Tooltip, Input, Card } from 'antd';
+import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
+import PageLayout from '../../../components/common/PageLayout';
 import EmployeeTable from '../components/EmployeeTable';
 import type { Employee, EmployeeQuery } from '../types';
 import type { SorterResult, ColumnsType } from 'antd/es/table/interface';
@@ -15,6 +15,7 @@ import EmployeeName from '../../../components/common/EmployeeName';
 import Highlighter from 'react-highlight-words';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { useEmployeePermissions } from '../../../hooks/useEmployeePermissions';
+import styles from './EmployeeListPage.module.less';
 
 // Function to generate table column configurations
 const generateEmployeeTableColumnsConfig = (
@@ -585,8 +586,8 @@ const EmployeeListPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeaderLayout
-        pageTitle={t('pageTitle:employee_list')}
+      <PageLayout
+        title={t('pageTitle:employee_list')}
         actions={
           <Space>
             {canCreate && (
@@ -648,7 +649,7 @@ const EmployeeListPage: React.FC = () => {
             {loadingLookups ? t('employee:list_page.loading_lookups') : t('employee:list_page.lookup_data_error')}
           </div>
         )}
-      </PageHeaderLayout>
+      </PageLayout>
     </div>
   );
 };

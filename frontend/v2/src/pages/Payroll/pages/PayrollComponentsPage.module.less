@@ -1,11 +1,4 @@
-@import '../../styles/variables.less';
-
-.roleTagsContainer {
-  display: flex;
-  gap: 4px; // antd v4+ supports gap directly with flex
-  flex-wrap: wrap;
-  max-width: 300px;
-}
+@import '../../../styles/variables.less';
 
 // 表格容器
 .tableContainer {
@@ -54,19 +47,31 @@
   }
 }
 
-// 页面标题自定义样式
-.pageTitleCustom {
-  margin: 0 !important;
-  color: @heading-color;
-  font-weight: 600;
-}
-
-// 表单区域标题
-.formSectionHeader {
-  display: block;
-  margin: @spacing-lg 0 @spacing-md 0;
-  color: @text-color;
-  font-size: @font-size-base;
+// 操作按钮优化
+.actionButtons {
+  :global(.ant-btn) {
+    border-radius: @border-radius-base;
+    font-weight: 500;
+    
+    &.ant-btn-primary {
+      background: @primary-color;
+      border-color: @primary-color;
+      
+      &:hover {
+        background: @primary-color-hover;
+        border-color: @primary-color-hover;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+      }
+    }
+    
+    &.ant-btn-text {
+      &:hover {
+        background: fade(@primary-color, 10%);
+        color: @primary-color;
+      }
+    }
+  }
 }
 
 // 状态标签优化
@@ -85,6 +90,36 @@
     background: fade(@error-color, 10%);
     border-color: @error-color;
     color: @error-color;
+  }
+  
+  &.ant-tag-blue {
+    background: fade(@primary-color, 10%);
+    border-color: @primary-color;
+    color: @primary-color;
+  }
+  
+  &.ant-tag-orange {
+    background: fade(@warning-color, 10%);
+    border-color: @warning-color;
+    color: @warning-color;
+  }
+  
+  &.ant-tag-purple {
+    background: fade(#722ed1, 10%);
+    border-color: #722ed1;
+    color: #722ed1;
+  }
+  
+  &.ant-tag-cyan {
+    background: fade(#13c2c2, 10%);
+    border-color: #13c2c2;
+    color: #13c2c2;
+  }
+  
+  &.ant-tag-gray {
+    background: fade(@text-color-disabled, 10%);
+    border-color: @text-color-disabled;
+    color: @text-color-disabled;
   }
 }
 
@@ -160,6 +195,17 @@
     :global(.ant-table-tbody > tr > td) {
       padding: @spacing-sm;
       font-size: @font-size-sm;
+    }
+  }
+  
+  .actionButtons {
+    :global(.ant-space) {
+      width: 100%;
+      justify-content: center;
+      
+      .ant-space-item {
+        margin-bottom: @spacing-sm;
+      }
     }
   }
 }

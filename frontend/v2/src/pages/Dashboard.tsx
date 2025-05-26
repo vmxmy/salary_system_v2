@@ -1,93 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Spin, Empty } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, UserOutlined, AuditOutlined, MoneyCollectOutlined, DollarCircleOutlined } from '@ant-design/icons';
-import { Line, Pie, Column, Gauge, type LineConfig, type PieConfig, type ColumnConfig, type GaugeConfig } from '@ant-design/charts';
-import { employeeService } from '../services/employeeService';
-// 假设我们有一个API服务来获取数据，这里我们先用模拟函数替代
-// import { getDashboardKpis, getSalaryTrend, getDepartmentSalaryDistribution, getEmployeeGradeDistribution } from '../services/dashboardService';
+import { Row, Col, Card, Statistic, Typography, Spin, Empty, Table, Tag, Progress } from 'antd';
+import { 
+  ArrowUpOutlined, 
+  ArrowDownOutlined, 
+  UserOutlined, 
+  AuditOutlined, 
+  MoneyCollectOutlined, 
+  DollarCircleOutlined,
+  TeamOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  TrophyOutlined
+} from '@ant-design/icons';
+import { 
+  Line, 
+  Pie, 
+  Column, 
+  Area,
+  type PieConfig, 
+  type ColumnConfig
+} from '@ant-design/charts';
+import { 
+  dashboardService, 
+  type DashboardKpiData,
+  type SalaryTrendItem,
+  type DepartmentSalaryItem,
+  type EmployeeGradeItem,
+  type PayrollStatusItem,
+  type RecentPayrollRun
+} from '../services/dashboardService';
 
 const { Title, Text } = Typography;
-
-// 模拟 API 数据类型 (实际项目中应从后端 API 定义获取)
-interface KpiData {
-  totalEmployees: number;
-  totalEmployeesLastMonth: number;
-  monthlyPayroll: number;
-  monthlyPayrollLastMonth: number;
-  pendingApprovals: number;
-  averageSalary: number;
-  averageSalaryLastMonth: number;
-}
-
-interface SalaryTrendItem {
-  month: string;
-  totalPayroll: number;
-}
-
-interface DepartmentSalaryItem {
-  department: string;
-  totalPayroll: number;
-}
-
-interface EmployeeGradeItem {
-  grade: string;
-  count: number;
-}
-
-// 模拟 API 调用 (实际项目中会是异步的，并从API获取)
-const mockFetchKpis = (): Promise<KpiData> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        totalEmployees: 1320,
-        totalEmployeesLastMonth: 1250,
-        monthlyPayroll: 1250000,
-        monthlyPayrollLastMonth: 1200000,
-        pendingApprovals: 5,
-        averageSalary: 8333,
-        averageSalaryLastMonth: 8275,
-      });
-    }, 500);
-  });
-};
-
-const mockFetchSalaryTrend = (): Promise<SalaryTrendItem[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { month: '10-13', totalPayroll: 500000 },
-        { month: '10-14', totalPayroll: 450000 },
-        { month: '10-15', totalPayroll: 300000 },
-        { month: '10-16', totalPayroll: 600000 },
-      ]);
-    }, 700);
-  });
-};
-
-const mockFetchDepartmentSalary = (): Promise<DepartmentSalaryItem[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { department: 'PD', totalPayroll: 1600 },
-        { department: 'FE', totalPayroll: 1000 },
-        { department: 'UX', totalPayroll: 400 },
-      ]);
-    }, 600);
-  });
-};
-
-const mockFetchEmployeeGrades = (): Promise<EmployeeGradeItem[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { grade: 'P4', count: 60 },
-        { grade: 'P5', count: 50 },
-        { grade: 'P6', count: 30 },
-        { grade: 'P7', count: 10 },
-      ]);
-    }, 800);
-  });
-};
 
 const cardBaseStyle: React.CSSProperties = {
   borderRadius: '12px',
@@ -109,10 +52,12 @@ const chartCardStyle: React.CSSProperties = {
 };
 
 const DashboardPage: React.FC = () => {
-  const [kpiData, setKpiData] = useState<KpiData | null>(null);
+  const [kpiData, setKpiData] = useState<DashboardKpiData | null>(null);
   const [salaryTrend, setSalaryTrend] = useState<SalaryTrendItem[]>([]);
   const [departmentSalary, setDepartmentSalary] = useState<DepartmentSalaryItem[]>([]);
   const [employeeGrades, setEmployeeGrades] = useState<EmployeeGradeItem[]>([]);
+  const [payrollStatus, setPayrollStatus] = useState<PayrollStatusItem[]>([]);
+  const [recentPayrollRuns, setRecentPayrollRuns] = useState<RecentPayrollRun[]>([]);
   const [loadingKpis, setLoadingKpis] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState(true);
 
@@ -120,51 +65,36 @@ const DashboardPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoadingKpis(true);
-        
-        const employeeResponse = await employeeService.getEmployees({ page: 1, size: 1 }); 
-        console.log('Employee API Response:', employeeResponse); 
-        const realTotalEmployees = employeeResponse.meta?.total || 0;
-        console.log('Real Total Employees:', realTotalEmployees); 
-
-        // Get other KPI data from mock (as current requirement is only for totalEmployees)
-        // mockFetchKpis is assumed to be defined in the file and returns Promise<KpiData>
-        const otherMockKpis = await mockFetchKpis(); 
-
-        setKpiData({
-          ...otherMockKpis, // Spread all values from the mock KpiData structure
-          totalEmployees: realTotalEmployees, // Override with the real totalEmployees count
-        });
-
+        const kpis = await dashboardService.getKpiData();
+        setKpiData(kpis);
       } catch (error) {
-        console.error("Failed to fetch KPI data:", error);
-        // Fallback: If API fails, try to set KpiData with full mock data
-        try {
-          const kpis = await mockFetchKpis(); // Use mock data as a fallback
-          setKpiData(kpis);
-        } catch (mockError) {
-          console.error("Failed to fetch mock KPI data after API error:", mockError);
-          setKpiData(null); // Or set to a state indicating an error
-        }
+        console.error("获取KPI数据失败:", error);
       } finally {
         setLoadingKpis(false);
       }
 
       try {
         setLoadingCharts(true);
-        const [trend, dept, grades] = await Promise.all([
-          mockFetchSalaryTrend(),
-          mockFetchDepartmentSalary(),
-          mockFetchEmployeeGrades(),
+        const [trend, dept, grades, status, recent] = await Promise.all([
+          dashboardService.getSalaryTrend(),
+          dashboardService.getDepartmentSalaryDistribution(),
+          dashboardService.getEmployeeGradeDistribution(),
+          dashboardService.getPayrollStatusDistribution(),
+          dashboardService.getRecentPayrollRuns(),
         ]);
+        
         setSalaryTrend(trend);
         setDepartmentSalary(dept);
         setEmployeeGrades(grades);
+        setPayrollStatus(status);
+        setRecentPayrollRuns(recent);
       } catch (error) {
-        console.error("Failed to fetch chart data:", error);
+        console.error("获取图表数据失败:", error);
       } finally {
         setLoadingCharts(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -173,13 +103,10 @@ const DashboardPage: React.FC = () => {
     return parseFloat(((current - previous) / previous * 100).toFixed(1));
   };
   
-  const renderStatisticChange = (change: number, isKpiGauge: boolean = false) => {
-    if (change === 0 && !isKpiGauge) return null;
+  const renderStatisticChange = (change: number) => {
+    if (change === 0) return null;
     const isPositive = change >= 0;
     const color = isPositive ? '#3f8600' : '#cf1322';
-    if (isKpiGauge) {
-        return <Text style={{ fontSize: '12px', color, marginLeft: '4px' }}>{isPositive ? '↑' : '↓'}{Math.abs(change)}%</Text>;
-    }
     return (
       <span style={{ color, fontSize: '11px', marginLeft: '4px' }}> 
         {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {Math.abs(change)}%
@@ -187,76 +114,132 @@ const DashboardPage: React.FC = () => {
     );
   };
 
-  const salaryTrendConfig: LineConfig = {
+  // 薪资趋势图配置
+  const salaryTrendConfig = {
     data: salaryTrend,
     xField: 'month',
     yField: 'totalPayroll',
     height: 280,
-    point: { size: 5, shape: 'diamond' },
-    label: {
+    smooth: true,
+    areaStyle: {
+      fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff',
+    },
+    line: {
+      color: '#1890ff',
+    },
+    point: {
+      size: 4,
+      shape: 'circle',
       style: {
-        fill: '#aaa',
+        fill: '#1890ff',
+        stroke: '#ffffff',
+        lineWidth: 2,
       },
     },
     tooltip: {
-      formatter: (datum: any) => ({ name: '薪资总额', value: `${(datum.totalPayroll / 10000).toFixed(2)} 万` }),
+      formatter: (datum: any) => ({
+        name: '薪资总额',
+        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+      }),
     },
     yAxis: {
       label: {
-        formatter: (v: any) => `${(parseFloat(v) / 10000).toFixed(0)} 万`,
+        formatter: (v: any) => `${(parseFloat(v) / 10000).toFixed(0)}万`,
       },
     },
   };
 
+  // 部门薪资分布图配置
   const departmentSalaryConfig: PieConfig = {
     data: departmentSalary,
     angleField: 'totalPayroll',
-    colorField: 'department',
-    radius: 0.75,
+    colorField: 'departmentName',
+    radius: 0.8,
     innerRadius: 0.6,
     height: 280,
     label: {
-      formatter: (datum: any) => {
-          if (datum && typeof datum.department === 'string' && typeof datum.totalPayroll === 'number') {
-              return `${datum.department}\n${datum.totalPayroll}`;
-          }
-          return '';
-      },
+      type: 'inner',
+      offset: '-30%',
+      content: ({ percent }: any) => `${(percent * 100).toFixed(0)}%`,
       style: {
+        fontSize: 12,
         textAlign: 'center',
-        fontSize: 11,
       },
     },
-    interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
-    legend: { layout: 'horizontal', position: 'bottom', itemSpacing: 8 },
+    legend: {
+      layout: 'horizontal',
+      position: 'bottom',
+      itemSpacing: 8,
+    },
     tooltip: {
-        formatter: (datum: any) => ({ name: datum.department, value: `${datum.totalPayroll}` }),
-    }
+      formatter: (datum: any) => ({
+        name: datum.departmentName,
+        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+      }),
+    },
+    interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
   };
 
+  // 员工职级分布图配置
   const employeeGradeConfig: ColumnConfig = {
     data: employeeGrades,
-    xField: 'grade',
+    xField: 'gradeName',
     yField: 'count',
     height: 280,
+    columnStyle: {
+      radius: [4, 4, 0, 0],
+    },
     label: {
       position: 'top',
       style: {
         fill: '#333333',
-        opacity: 0.7,
+        opacity: 0.8,
       },
     },
-    xAxis: {
-      label: {
-        autoHide: true,
-        autoRotate: false,
-      },
-    },
-    meta: {
-      grade: { alias: '职级' },
-      count: { alias: '人数' },
+    color: '#52c41a',
+    tooltip: {
+      formatter: (datum: any) => ({
+        name: datum.gradeName,
+        value: `${datum.count} 人 (${datum.percentage.toFixed(1)}%)`,
+      }),
     },
   };
+
+  // 最近薪资运行表格列配置
+  const payrollRunColumns = [
+    {
+      title: '薪资周期',
+      dataIndex: 'periodName',
+      key: 'periodName',
+      ellipsis: true,
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        const colorMap: Record<string, string> = {
+          '已完成': 'success',
+          '进行中': 'processing',
+          '待审批': 'warning',
+          '已取消': 'error',
+        };
+        return <Tag color={colorMap[status] || 'default'}>{status}</Tag>;
+      },
+    },
+    {
+      title: '总金额',
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      render: (amount: number) => `${(amount / 10000).toFixed(2)}万`,
+    },
+    {
+      title: '员工数',
+      dataIndex: 'employeeCount',
+      key: 'employeeCount',
+      render: (count: number) => `${count}人`,
+    },
+  ];
 
   if (loadingKpis || !kpiData) {
     return (
@@ -268,143 +251,162 @@ const DashboardPage: React.FC = () => {
     );
   }
   
-  const employeeChange = kpiData ? getStatisticChange(kpiData.totalEmployees, kpiData.totalEmployeesLastMonth) : 0;
-  const payrollChange = kpiData ? getStatisticChange(kpiData.monthlyPayroll, kpiData.monthlyPayrollLastMonth) : 0;
-  const avgSalaryChange = kpiData ? getStatisticChange(kpiData.averageSalary, kpiData.averageSalaryLastMonth) : 0;
+  const employeeChange = getStatisticChange(kpiData.totalEmployees, kpiData.totalEmployeesLastMonth);
+  const payrollChange = getStatisticChange(kpiData.monthlyPayroll, kpiData.monthlyPayrollLastMonth);
+  const avgSalaryChange = getStatisticChange(kpiData.averageSalary, kpiData.averageSalaryLastMonth);
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+      {/* KPI 指标卡片 */}
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={12} md={12} lg={6}>
-          {kpiData ? (
-            <Card style={kpiCardStyle} hoverable>
-              <div>
-                <Statistic
-                  title="员工人数"
-                  value={kpiData.totalEmployees} 
-                  valueStyle={{ color: employeeChange >= 0 ? '#3f8600' : '#cf1322' }}
-                  formatter={() => ( 
-                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                      <UserOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
-                      <span style={{ fontSize: '22px' }}>{kpiData?.totalEmployees.toLocaleString()}</span>
-                    </span>
-                  )}
-                />
-              </div>
-              <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-                较上期 {renderStatisticChange(employeeChange)}
-              </div>
-            </Card>
-          ) : (
-            <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}>
-              <Spin />
-            </Card>
-          )}
+          <Card style={kpiCardStyle} hoverable>
+            <div>
+              <Statistic
+                title="员工总数"
+                value={kpiData.totalEmployees} 
+                valueStyle={{ color: employeeChange >= 0 ? '#3f8600' : '#cf1322' }}
+                formatter={() => ( 
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <UserOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
+                    <span style={{ fontSize: '22px' }}>{kpiData.totalEmployees.toLocaleString()}</span>
+                  </span>
+                )}
+              />
+            </div>
+            <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
+              较上期 {renderStatisticChange(employeeChange)}
+            </div>
+          </Card>
         </Col>
+        
         <Col xs={24} sm={12} md={12} lg={6}>
-          {kpiData ? (
-            <Card style={kpiCardStyle} hoverable>
-              <div>
-                <Statistic
-                  title="本月薪资"
-                  value={kpiData.monthlyPayroll}
-                  precision={2}
-                  valueStyle={{ color: payrollChange >= 0 ? '#3f8600' : '#cf1322' }}
-                  formatter={(value) => (
-                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                      <MoneyCollectOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
-                      <span style={{ fontSize: '22px' }}>{(Number(value)/10000).toFixed(2)}</span>
-                      <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>万元</span>
-                    </span>
-                  )}
-                />
-              </div>
-              <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-                  较上期 {renderStatisticChange(payrollChange)}
-              </div>
-            </Card>
-          ) : (
-            <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}>
-               <Spin />
-            </Card>
-          )}
+          <Card style={kpiCardStyle} hoverable>
+            <div>
+              <Statistic
+                title="本月薪资总额"
+                value={kpiData.monthlyPayroll}
+                precision={2}
+                valueStyle={{ color: payrollChange >= 0 ? '#3f8600' : '#cf1322' }}
+                formatter={(value) => (
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <MoneyCollectOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
+                    <span style={{ fontSize: '22px' }}>{(Number(value)/10000).toFixed(2)}</span>
+                    <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>万元</span>
+                  </span>
+                )}
+              />
+            </div>
+            <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
+              较上期 {renderStatisticChange(payrollChange)}
+            </div>
+          </Card>
         </Col>
+        
         <Col xs={24} sm={12} md={12} lg={6}>
-          {kpiData ? (
-            <Card style={kpiCardStyle} hoverable>
-              <div>
-                <Statistic
-                  title="平均薪资"
-                  value={kpiData.averageSalary}
-                  precision={0}
-                  valueStyle={{ color: avgSalaryChange >=0 ? '#3f8600' : '#cf1322' }}
-                  formatter={(value) => (
-                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                      <DollarCircleOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
-                      <span style={{ fontSize: '22px' }}>{Number(value).toLocaleString()}</span>
-                      <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>元</span>
-                    </span>
-                  )}
-                />
-              </div>
-              <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-                  较上期 {renderStatisticChange(avgSalaryChange)}
-              </div>
-            </Card>
-          ) : (
-            <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}> 
-              <Spin />
-            </Card>
-          )}
+          <Card style={kpiCardStyle} hoverable>
+            <div>
+              <Statistic
+                title="平均薪资"
+                value={kpiData.averageSalary}
+                precision={0}
+                valueStyle={{ color: avgSalaryChange >= 0 ? '#3f8600' : '#cf1322' }}
+                formatter={(value) => (
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <DollarCircleOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
+                    <span style={{ fontSize: '22px' }}>{Number(value).toLocaleString()}</span>
+                    <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>元</span>
+                  </span>
+                )}
+              />
+            </div>
+            <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
+              较上期 {renderStatisticChange(avgSalaryChange)}
+            </div>
+          </Card>
         </Col>
+        
         <Col xs={24} sm={12} md={12} lg={6}>
-          {kpiData ? (
-            <Card style={kpiCardStyle} hoverable>
-              <div>
-                <Statistic
-                  title="待办任务"
-                  value={kpiData.pendingApprovals}
-                  valueStyle={{ color: kpiData.pendingApprovals > 0 ? '#cf1322' : '#3f8600' }}
-                  formatter={(value) => ( 
-                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                      <AuditOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
-                      <span style={{ fontSize: '22px' }}>{Number(value).toLocaleString()}</span>
-                    </span>
-                  )}
-                />
-              </div>
-              <div style={{ height: 'calc(11px + 4px)' }}></div>
-            </Card>
-          ) : (
-            <Card style={{...kpiCardStyle, justifyContent: 'center', alignItems: 'center' }}>
-              <Spin />
-            </Card>
-          )}
+          <Card style={kpiCardStyle} hoverable>
+            <div>
+              <Statistic
+                title="待办任务"
+                value={kpiData.pendingApprovals}
+                valueStyle={{ color: kpiData.pendingApprovals > 0 ? '#cf1322' : '#3f8600' }}
+                formatter={(value) => ( 
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <AuditOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
+                    <span style={{ fontSize: '22px' }}>{Number(value).toLocaleString()}</span>
+                  </span>
+                )}
+              />
+            </div>
+            <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
+              {kpiData.activePayrollRuns > 0 && `${kpiData.activePayrollRuns} 个进行中`}
+            </div>
+          </Card>
         </Col>
       </Row>
 
-      <Spin spinning={loadingCharts && !loadingKpis} tip="图表加载中...">
-        <div>
-          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-            <Col span={24}>
-              <Card title={<Title level={5} style={{ margin: 0 }}>薪资总额趋势 (近6个月)</Title>} style={chartCardStyle}>
-                {(!loadingCharts && salaryTrend.length > 0) ? <Line {...salaryTrendConfig} /> : <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>{loadingCharts ? <Spin/> : <Empty description="暂无薪资趋势数据" />}</div>}
-              </Card>
-            </Col>
-          </Row>
-          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-            <Col xs={24} sm={24} md={12}>
-              <Card title={<Title level={5} style={{ margin: 0 }}>部门薪资占比</Title>} style={chartCardStyle}>
-                {(!loadingCharts && departmentSalary.length > 0) ? <Pie {...departmentSalaryConfig} /> : <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>{loadingCharts ? <Spin/> : <Empty description="暂无部门薪资数据" />}</div>}
-              </Card>
-            </Col>
-            <Col xs={24} sm={24} md={12}>
-              <Card title={<Title level={5} style={{ margin: 0 }}>员工职级分布</Title>} style={chartCardStyle}>
-                {(!loadingCharts && employeeGrades.length > 0) ? <Column {...employeeGradeConfig} /> : <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>{loadingCharts ? <Spin/> : <Empty description="暂无员工职级数据" />}</div>}
-              </Card>
-            </Col>
-          </Row>
-        </div>
+      <Spin spinning={loadingCharts} tip="图表加载中...">
+        {/* 薪资趋势图 */}
+        <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+          <Col span={24}>
+            <Card title={<Title level={5} style={{ margin: 0 }}>💰 薪资总额趋势 (近6个月)</Title>} style={chartCardStyle}>
+              {(!loadingCharts && salaryTrend.length > 0) ? 
+                <Area {...salaryTrendConfig} /> : 
+                <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
+                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资趋势数据" />}
+                </div>
+              }
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 部门分布和职级分布 */}
+        <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+          <Col xs={24} sm={24} md={12}>
+            <Card title={<Title level={5} style={{ margin: 0 }}>🏢 部门薪资占比</Title>} style={chartCardStyle}>
+              {(!loadingCharts && departmentSalary.length > 0) ? 
+                <Pie {...departmentSalaryConfig} /> : 
+                <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
+                  {loadingCharts ? <Spin/> : <Empty description="暂无部门薪资数据" />}
+                </div>
+              }
+            </Card>
+          </Col>
+          
+          <Col xs={24} sm={24} md={12}>
+            <Card title={<Title level={5} style={{ margin: 0 }}>🎯 员工职级分布</Title>} style={chartCardStyle}>
+              {(!loadingCharts && employeeGrades.length > 0) ? 
+                <Column {...employeeGradeConfig} /> : 
+                <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
+                  {loadingCharts ? <Spin/> : <Empty description="暂无员工职级数据" />}
+                </div>
+              }
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 最近薪资运行记录 */}
+        <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+          <Col span={24}>
+            <Card title={<Title level={5} style={{ margin: 0 }}>📋 最近薪资运行记录</Title>} style={chartCardStyle}>
+              {(!loadingCharts && recentPayrollRuns.length > 0) ? 
+                <Table
+                  dataSource={recentPayrollRuns}
+                  columns={payrollRunColumns}
+                  pagination={false}
+                  size="small"
+                  rowKey="id"
+                /> : 
+                <div style={{height: '200px', display:'flex', justifyContent:'center', alignItems:'center'}}>
+                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资运行记录" />}
+                </div>
+              }
+            </Card>
+          </Col>
+        </Row>
       </Spin>
     </div>
   );

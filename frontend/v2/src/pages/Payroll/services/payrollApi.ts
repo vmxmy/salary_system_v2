@@ -211,6 +211,7 @@ export const getPayrollEntries = async (params?: {
   payroll_run_id?: number;
   employee_id?: number;
   include_employee_details?: boolean;
+  include_payroll_period?: boolean;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }): Promise<ApiListResponse<PayrollEntry>> => {

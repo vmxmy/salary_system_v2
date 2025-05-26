@@ -1,3 +1,118 @@
+@import '../../../styles/variables.less';
+
+// 表格容器样式
+.tableContainer {
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  overflow: hidden;
+  
+  .ant-table {
+    .ant-table-thead > tr > th {
+      background: @table-header-bg;
+      color: @table-header-color;
+      font-weight: 600;
+      border-bottom: 2px solid @border-color-base;
+    }
+    
+    .ant-table-tbody > tr {
+      transition: all 0.2s ease;
+      
+      &:hover > td {
+        background: @table-row-hover-bg;
+      }
+    }
+  }
+}
+
+// 页面标题样式
 .pageTitleCustom {
-  margin-bottom: 0 !important; // Use !important if truly needed to override antd default, otherwise try without
+  margin: 0 !important;
+  color: @heading-color;
+  font-weight: 600;
+}
+
+// 操作按钮样式
+.actionButtons {
+  .ant-btn {
+    border-radius: @border-radius-base;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    
+    &.ant-btn-primary {
+      background: @primary-color;
+      border-color: @primary-color;
+      
+      &:hover {
+        background: @primary-color-hover;
+        border-color: @primary-color-hover;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px fade(@primary-color, 30%);
+      }
+    }
+  }
+}
+
+// 模态框样式优化
+:global(.ant-modal) {
+  .ant-modal-header {
+    border-bottom: 1px solid @border-color-split;
+    padding: @spacing-lg @spacing-xl;
+    
+    .ant-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: @heading-color;
+    }
+  }
+  
+  .ant-modal-body {
+    padding: @spacing-xl;
+  }
+  
+  .ant-modal-footer {
+    border-top: 1px solid @border-color-split;
+    padding: @spacing-md @spacing-xl;
+    
+    .ant-btn {
+      margin-left: @spacing-sm;
+      
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
+}
+
+// 表单样式优化
+.ant-form {
+  .ant-form-item-label > label {
+    font-weight: 600;
+    color: @text-color;
+  }
+  
+  .ant-input,
+  .ant-select-selector {
+    border-radius: @border-radius-base;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: @primary-color-hover;
+    }
+    
+    &:focus,
+    &.ant-select-focused .ant-select-selector {
+      border-color: @primary-color;
+      box-shadow: 0 0 0 2px fade(@primary-color, 20%);
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .actionButtons {
+    .ant-btn {
+      margin-bottom: @spacing-sm;
+    }
+  }
 } 

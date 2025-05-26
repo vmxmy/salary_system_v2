@@ -14,7 +14,7 @@ import {
 import { PlusOutlined, CheckCircleOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import PermissionGuard from '../../../components/common/PermissionGuard';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { format } from 'date-fns';
@@ -320,25 +320,22 @@ const PayrollRunsPage: React.FC = () => {
     ], [PAID_STATUS_ID, t, handleViewDetails, showEditModal, handleDeleteRun, handleMarkAsPaid, handleExportBankFile]);
 
   return (
-    <div style={{ padding: '24px' }}>
-      <PageHeaderLayout
-        pageTitle={t('runs_page.title')}
-        actions={
-          <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={showCreateModal}
-              shape="round"
-            >
-              {t('runs_page.button.create_run')}
-            </Button>
-          </PermissionGuard>
-        }
-      >
-        <></>
-      </PageHeaderLayout>
-
+    <PageLayout
+      title={t('runs_page.title')}
+      
+      actions={
+        <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateModal}
+            shape="round"
+          >
+            {t('runs_page.button.create_run')}
+          </Button>
+        </PermissionGuard>
+      }
+    >
       {error && <Alert message={`${t('runs_page.alert_error_prefix')}${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
       
       <Table
@@ -363,7 +360,7 @@ const PayrollRunsPage: React.FC = () => {
         onCancel={handleModalCancel}
         confirmLoading={modalLoading} 
         footer={null} 
-        destroyOnClose
+        destroyOnHidden
         width={650} 
       >
         {modalError && <Alert message={`${t('runs_page.alert_modal_error_prefix')}${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}
@@ -375,7 +372,7 @@ const PayrollRunsPage: React.FC = () => {
           isEditMode={!!currentRun}
         />
       </Modal>
-    </div>
+    </PageLayout>
   );
 };
 

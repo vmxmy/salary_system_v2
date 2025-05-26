@@ -252,7 +252,10 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
         "department_name", 
         "position_name",
         "personnel_category_name",
-        "job_position_level_lookup_value_name"
+        "job_position_level_lookup_value_name",
+        "salary_level_lookup_value_name", # 添加薪资级别名称
+        "salary_grade_lookup_value_name", # 添加薪资等级名称
+        "ref_salary_level_lookup_value_name" # 添加参考薪资级别名称
     }
     
     employee_data = employee.model_dump(exclude_none=True, exclude=fields_to_exclude)
@@ -287,6 +290,16 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
     # 处理职务级别
     if not employee_data.get('job_position_level_lookup_value_id') and employee.job_position_level_lookup_value_name:
         employee_data['job_position_level_lookup_value_id'] = _resolve_lookup_id(db, employee.job_position_level_lookup_value_name, "JOB_POSITION_LEVEL")
+
+    # 处理薪资级别相关字段
+    if not employee_data.get('salary_level_lookup_value_id') and employee.salary_level_lookup_value_name:
+        employee_data['salary_level_lookup_value_id'] = _resolve_lookup_id(db, employee.salary_level_lookup_value_name, "SALARY_LEVEL")
+
+    if not employee_data.get('salary_grade_lookup_value_id') and employee.salary_grade_lookup_value_name:
+        employee_data['salary_grade_lookup_value_id'] = _resolve_lookup_id(db, employee.salary_grade_lookup_value_name, "SALARY_GRADE")
+
+    if not employee_data.get('ref_salary_level_lookup_value_id') and employee.ref_salary_level_lookup_value_name:
+        employee_data['ref_salary_level_lookup_value_id'] = _resolve_lookup_id(db, employee.ref_salary_level_lookup_value_name, "REF_SALARY_LEVEL")
     
     # 处理department和position
     logger.debug(f"原始字段值 - 部门名称: '{employee.department_name}', 职位名称: '{employee.position_name}', 人员类别: '{employee.personnel_category_name}'")
@@ -1158,7 +1171,10 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
                 "department_name", 
                 "position_name",
                 "personnel_category_name",
-                "job_position_level_lookup_value_name"
+                "job_position_level_lookup_value_name",
+                "salary_level_lookup_value_name", # 添加薪资级别名称
+                "salary_grade_lookup_value_name", # 添加薪资等级名称
+                "ref_salary_level_lookup_value_name" # 添加参考薪资级别名称
             }
             employee_orm_data = emp_in.model_dump(exclude_none=True, exclude=fields_to_exclude)
 
@@ -1277,27 +1293,30 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
             # 处理lookup字段
             logger.debug(f"处理lookup字段: 工资级别: {emp_in.salary_level_lookup_value_name}, 工资档次: {emp_in.salary_grade_lookup_value_name}, 参照正编薪级: {emp_in.ref_salary_level_lookup_value_name}")
             
-            # 处理新增的lookup字段，并记录日志
+            # 处理薪资级别相关字段
             if not employee_orm_data.get('salary_level_lookup_value_id') and emp_in.salary_level_lookup_value_name:
                 salary_level_id = _resolve_lookup_id(db, emp_in.salary_level_lookup_value_name, "SALARY_LEVEL")
                 if salary_level_id is None:
                     logger.warning(f"无法解析工资级别 '{emp_in.salary_level_lookup_value_name}'")
+                    # current_record_errors.append(f"工资级别 '{emp_in.salary_level_lookup_value_name}' 无法解析") # 可选：如果这是硬性要求
                 else:
                     logger.debug(f"成功解析工资级别 '{emp_in.salary_level_lookup_value_name}' 为ID: {salary_level_id}")
                     employee_orm_data['salary_level_lookup_value_id'] = salary_level_id
-                
+            
             if not employee_orm_data.get('salary_grade_lookup_value_id') and emp_in.salary_grade_lookup_value_name:
                 salary_grade_id = _resolve_lookup_id(db, emp_in.salary_grade_lookup_value_name, "SALARY_GRADE")
                 if salary_grade_id is None:
                     logger.warning(f"无法解析工资档次 '{emp_in.salary_grade_lookup_value_name}'")
+                    # current_record_errors.append(f"工资档次 '{emp_in.salary_grade_lookup_value_name}' 无法解析") # 可选
                 else:
                     logger.debug(f"成功解析工资档次 '{emp_in.salary_grade_lookup_value_name}' 为ID: {salary_grade_id}")
                     employee_orm_data['salary_grade_lookup_value_id'] = salary_grade_id
-                
+            
             if not employee_orm_data.get('ref_salary_level_lookup_value_id') and emp_in.ref_salary_level_lookup_value_name:
                 ref_salary_level_id = _resolve_lookup_id(db, emp_in.ref_salary_level_lookup_value_name, "REF_SALARY_LEVEL")
                 if ref_salary_level_id is None:
                     logger.warning(f"无法解析参照正编薪级 '{emp_in.ref_salary_level_lookup_value_name}'")
+                    # current_record_errors.append(f"参照正编薪级 '{emp_in.ref_salary_level_lookup_value_name}' 无法解析") # 可选
                 else:
                     logger.debug(f"成功解析参照正编薪级 '{emp_in.ref_salary_level_lookup_value_name}' 为ID: {ref_salary_level_id}")
                     employee_orm_data['ref_salary_level_lookup_value_id'] = ref_salary_level_id

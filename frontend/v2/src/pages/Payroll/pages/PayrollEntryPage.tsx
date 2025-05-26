@@ -17,7 +17,7 @@ import {
 import { PlusOutlined, ImportOutlined, FileExcelOutlined, EditOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
+import PageLayout from '../../../components/common/PageLayout';
 import PermissionGuard from '../../../components/common/PermissionGuard';
 import { P_PAYROLL_ENTRY_VIEW, P_PAYROLL_ENTRY_EDIT_DETAILS, P_PAYROLL_ENTRY_BULK_IMPORT } from '../constants/payrollPermissions';
 import { getPayrollPeriods, getPayrollEntries } from '../services/payrollApi';
@@ -286,7 +286,34 @@ const PayrollEntryPage: React.FC = () => {
   };
 
   return (
-    <PageHeaderLayout pageTitle={pageTitle}>
+    <PageLayout
+      title={pageTitle}
+      actions={
+        <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_EDIT_DETAILS]}>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddEntry}
+              disabled={!selectedPeriodId}
+              shape="round"
+            >
+              {t('payroll:entry_page.button.add_entry')}
+            </Button>
+            <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_BULK_IMPORT]}>
+              <Button
+                icon={<ImportOutlined />}
+                onClick={handleBulkImport}
+                shape="round"
+              >
+                {t('payroll:entry_page.button.batch_import')}
+              </Button>
+            </PermissionGuard>
+            <ExportButton />
+          </Space>
+        </PermissionGuard>
+      }
+    >
       <Card>
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={6}>
@@ -309,31 +336,7 @@ const PayrollEntryPage: React.FC = () => {
               ))}
             </Select>
           </Col>
-          <Col flex="auto" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_EDIT_DETAILS]}>
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleAddEntry}
-                  disabled={!selectedPeriodId}
-                  shape="round"
-                >
-                  {t('payroll:entry_page.button.add_entry')}
-                </Button>
-                <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_BULK_IMPORT]}>
-                <Button
-                  icon={<ImportOutlined />}
-                    onClick={handleBulkImport}
-                  shape="round"
-                >
-                  {t('payroll:entry_page.button.batch_import')}
-                </Button>
-                </PermissionGuard>
-                <ExportButton />
-              </Space>
-            </PermissionGuard>
-          </Col>
+
         </Row>
 
         <Table
@@ -362,7 +365,7 @@ const PayrollEntryPage: React.FC = () => {
           />
         )}
       </Card>
-    </PageHeaderLayout>
+    </PageLayout>
   );
 };
 

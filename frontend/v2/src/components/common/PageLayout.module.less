@@ -1,0 +1,75 @@
+@import '../../styles/variables.less';
+
+.pageContainer {
+  min-height: 100vh;
+  background: @background-color-light;
+  padding: @spacing-lg;
+  
+  .breadcrumb {
+    margin-bottom: @spacing-md;
+    padding: @spacing-sm @spacing-md;
+    background: white;
+    border-radius: @border-radius-base;
+    box-shadow: @box-shadow-card;
+  }
+  
+  .pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @spacing-lg;
+    padding: @spacing-lg;
+    background: white;
+    border-radius: @border-radius-base;
+    box-shadow: @box-shadow-card;
+    
+    .pageHeaderLeft {
+      flex: 1;
+      
+      .pageTitle {
+        margin: 0;
+        color: @text-color;
+        font-weight: 600;
+        font-size: 24px;
+      }
+    }
+    
+    .pageHeaderRight {
+      flex-shrink: 0;
+    }
+  }
+  
+  .pageContent {
+    .pageCard {
+      border-radius: @border-radius-base;
+      box-shadow: @box-shadow-card;
+      border: none;
+      
+      :global(.ant-card-body) {
+        padding: @spacing-lg;
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: @spacing-md;
+    
+    .pageHeader {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: @spacing-md;
+      
+      .pageHeaderRight {
+        width: 100%;
+        
+        :global(.ant-space) {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+    }
+  }
+} 

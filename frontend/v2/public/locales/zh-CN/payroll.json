@@ -1,4 +1,11 @@
 {
+  "breadcrumb": {
+    "payroll_management": "薪资管理",
+    "payroll_periods": "工资周期",
+    "payroll_runs": "工资计算批次",
+    "payroll_components": "薪资字段",
+    "payroll_entries": "工资录入"
+  },
   "common": {
     "status_na": "不适用",
     "pagination_total": "共 {total} 条",
@@ -10,6 +17,14 @@
     }
   },
   "pagination_total": "共 {total} 条",
+  "periods_page": {
+    "title": "工资周期管理",
+    "button": {
+      "add_period": "新建工资周期"
+    },
+    "tooltip_edit_period": "编辑工资周期",
+    "tooltip_delete_period": "删除工资周期"
+  },
   "page_title": {
     "management": "薪资管理",
     "calculation": "薪资核算",
@@ -58,93 +73,16 @@
       "archived": "已存档"
     }
   },
-  "periods_page": {
+  "payroll_periods_page": {
     "title": "工资周期管理",
-    "button": {
-      "create_period": "新建工资周期",
-      "add_period": "新建工资周期",
-      "add_period": {
-        "add_period": "新建工资周期"
-      }
-    },
-    "error_fetch_periods": "无法获取工资周期数据",
-    "message": {
-      "update_success": "工资周期已成功更新！",
-      "create_success": "工资周期已成功创建！",
-      "delete_success": "工资周期已成功删除！",
-      "update_failed": "更新失败",
-      "create_failed": "创建失败",
-      "delete_failed": "删除失败"
-    },
     "table": {
-      "column": {
-        "id": "ID",
-        "name": "周期名称",
-        "period_name": "周期名称",
-        "start_date": "开始日期",
-        "end_date": "结束日期",
-        "status": "状态",
-        "actions": "操作"
-      }
-    },
-    "tooltip": {
-      "edit_period": "编辑工资周期",
-      "delete_period": "删除工资周期"
-    },
-    "popconfirm_delete": {
-      "title": "确认删除",
-      "description": "确定要删除工资周期 \"{periodName}\" 吗?",
-      "ok_text": "确认",
-      "cancel_text": "取消"
-    },
-    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
-    "modal_title": {
-      "create": "新建工资周期",
-      "edit": "编辑工资周期"
-    },
-    "form": {
-      "label": {
-        "name": "周期名称",
-        "start_date": "开始日期",
-        "end_date": "结束日期",
-        "status": "状态"
-      },
-      "validation": {
-        "name_required": "请输入周期名称!",
-        "start_date_required": "请选择开始日期!",
-        "end_date_required": "请选择结束日期!",
-        "end_date_before_start_date": "结束日期不能早于开始日期!",
-        "status_required": "请选择状态!"
-      },
-      "placeholder": {
-        "name": "例如：2024年7月工资周期",
-        "status": "选择周期状态"
-      },
-      "button": {
-        "cancel": "取消",
-        "save_changes": "保存更改",
-        "create_period": "创建周期"
-      }
-    },
-    "export": {
-      "filename": "工资计算期间",
-      "sheetName": "工资计算期间",
-      "buttonText": "导出 EXCEL",
-      "successMessage": "导出成功",
-      "tooltipTitle": "导出到Excel"
-    },
-    "columnControl": {
-      "buttonText": "列设置",
-      "tooltipTitle": "自定义显示列",
-      "dropdownTitle": "列显示",
-      "resetText": "重置"
-    },
-    "confirm": {
-      "delete_title": "确认删除",
-      "delete_description": "确定要删除此工资周期吗？此操作不可撤销。"
-    },
-    "tooltip_edit_period": "编辑工资周期(page)",
-    "tooltip_delete_period": "删除工资周期(page)"
+      "column_id": "ID",
+      "column_period_name": "周期名称",
+      "column_start_date": "开始日期",
+      "column_end_date": "结束日期",
+      "column_status": "状态",
+      "column_actions": "操作"
+    }
   },
   "runs_page": {
     "title": "工资计算批次",

@@ -180,6 +180,9 @@ class PayrollEntry(PayrollEntryBase):
     calculated_at: datetime = Field(..., description="Timestamp when this entry was calculated")
     employee_name: Optional[str] = Field(None, description="Employee full name (last_name + first_name)")
     
+    # 添加关联对象
+    payroll_run: Optional['PayrollRun'] = Field(None, description="Associated payroll run details")
+    
     # For response, details will include name and amount
     earnings_details: Dict[str, Any] = Field({}, description="JSONB object storing individual earning items with name and amount")
     deductions_details: Dict[str, Any] = Field({}, description="JSONB object storing individual deduction items with name and amount")

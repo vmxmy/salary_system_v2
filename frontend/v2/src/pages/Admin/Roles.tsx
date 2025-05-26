@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Input, Space, Typography, message, Form, Modal, Transfer, Tooltip } from 'antd';
 import { PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import TableActionButton from '../../components/common/TableActionButton';
-import PageHeaderLayout from '../../components/common/PageHeaderLayout';
+import PageLayout from '../../components/common/PageLayout';
 import type { ColumnsType } from 'antd/lib/table';
 import { getRoles, createRole, updateRole, deleteRole } from '../../api/roles';
 import { getPermissions as apiGetPermissions } from '../../api/permissions';
@@ -310,41 +310,41 @@ const RoleListPage: React.FC = () => {
   };
 
   return (
-    <div>
-      <PageHeaderLayout
-        pageTitle={<Title level={2}>{t('page_title')}</Title>}
-        actions={
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={showCreateModal}
-            >
-              {t('button.create_role')}
-            </Button>
-            <Tooltip title={t('tooltip.export_excel')}>
-              <ExportButton />
-            </Tooltip>
-            <ColumnControl />
-          </Space>
-        }
-      >
-        <></>
-      </PageHeaderLayout>
-      <Table
-        columns={visibleColumns}
-        dataSource={roles}
-        rowKey="id"
-        loading={loading}
-        pagination={{ 
-          showSizeChanger: true, 
-          showQuickJumper: true,
-          showTotal: (total) => t('pagination.total', { total }), 
-          pageSizeOptions: ['10', '20', '50', '100'],
-        }}
-        bordered
-        scroll={{ x: 'max-content' }}
-      />
+    <PageLayout
+      title={t('page_title')}
+      actions={
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateModal}
+            shape="round"
+          >
+            {t('button.create_role')}
+          </Button>
+          <Tooltip title={t('tooltip.export_excel')}>
+            <ExportButton />
+          </Tooltip>
+          <ColumnControl />
+        </Space>
+      }
+    >
+      <div className={styles.tableContainer}>
+        <Table
+          columns={visibleColumns}
+          dataSource={roles}
+          rowKey="id"
+          loading={loading}
+          pagination={{ 
+            showSizeChanger: true, 
+            showQuickJumper: true,
+            showTotal: (total) => t('pagination.total', { total }), 
+            pageSizeOptions: ['10', '20', '50', '100'],
+          }}
+          bordered
+          scroll={{ x: 'max-content' }}
+        />
+      </div>
       <Modal
         title={editingRole 
           ? t('modal.role_form.title.edit') 
@@ -405,7 +405,7 @@ const RoleListPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageLayout>
   );
 };
 

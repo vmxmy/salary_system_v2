@@ -75,10 +75,17 @@ const PayrollRunDetailPage: React.FC = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <Breadcrumb style={{ marginBottom: '16px' }}>
-        <Breadcrumb.Item><Link to="/finance/payroll/runs">{t('payroll_run_detail_page.breadcrumb_runs_management')}</Link></Breadcrumb.Item>
-        <Breadcrumb.Item>{t('payroll_run_detail_page.breadcrumb_current_page', { runId: runDetails.id })}</Breadcrumb.Item>
-      </Breadcrumb>
+      <Breadcrumb 
+        style={{ marginBottom: '16px' }}
+        items={[
+          {
+            title: <Link to="/finance/payroll/runs">{t('payroll_run_detail_page.breadcrumb_runs_management')}</Link>
+          },
+          {
+            title: t('payroll_run_detail_page.breadcrumb_current_page', { runId: runDetails.id })
+          }
+        ]}
+      />
 
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

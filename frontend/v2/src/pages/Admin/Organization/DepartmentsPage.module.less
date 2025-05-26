@@ -1,11 +1,4 @@
-@import '../../styles/variables.less';
-
-.roleTagsContainer {
-  display: flex;
-  gap: 4px; // antd v4+ supports gap directly with flex
-  flex-wrap: wrap;
-  max-width: 300px;
-}
+@import '../../../styles/variables.less';
 
 // 表格容器
 .tableContainer {
@@ -54,37 +47,19 @@
   }
 }
 
-// 页面标题自定义样式
-.pageTitleCustom {
-  margin: 0 !important;
-  color: @heading-color;
-  font-weight: 600;
-}
-
-// 表单区域标题
-.formSectionHeader {
-  display: block;
-  margin: @spacing-lg 0 @spacing-md 0;
-  color: @text-color;
-  font-size: @font-size-base;
-}
-
-// 状态标签优化
-:global(.ant-tag) {
-  border-radius: @border-radius-sm;
-  font-weight: 500;
-  padding: 2px 8px;
-  
-  &.ant-tag-green {
-    background: fade(@success-color, 10%);
-    border-color: @success-color;
-    color: @success-color;
+// 树形表格特殊样式
+.tree-table {
+  :global(.ant-table-row-expand-icon) {
+    color: @primary-color;
+    
+    &:hover {
+      color: @primary-color-hover;
+    }
   }
   
-  &.ant-tag-red {
-    background: fade(@error-color, 10%);
-    border-color: @error-color;
-    color: @error-color;
+  // 部门层级缩进
+  :global(.ant-table-row-indent) {
+    width: 20px;
   }
 }
 
@@ -135,7 +110,8 @@
   
   .ant-input,
   .ant-select-selector,
-  .ant-input-number {
+  .ant-picker,
+  .ant-tree-select-selector {
     border-radius: @border-radius-base;
     
     &:focus,
