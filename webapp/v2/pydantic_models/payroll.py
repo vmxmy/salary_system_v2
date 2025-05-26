@@ -1,7 +1,7 @@
 """
 工资相关的Pydantic模型。
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from typing import Optional, List, Dict, Any, Literal, ForwardRef
 from datetime import date, datetime
 from decimal import Decimal
@@ -258,43 +258,54 @@ class PayrollComponentDefinition(PayrollComponentDefinitionBase):
     data_type: Literal["numeric", "percentage", "boolean", "string"] = Field("numeric", description="数据类型")
     is_fixed: bool = Field(False, description="是否为固定值")
     is_employee_specific: bool = Field(True, description="是否员工特定")
-    is_enabled: bool = Field(..., description="是否启用，等同于is_active")
-    sort_order: int = Field(..., description="排序顺序，等同于display_order")
     description: Optional[str] = Field(None, description="详细描述")
     calculation_logic: Optional[str] = Field(None, description="计算逻辑")
     created_at: Optional[datetime] = Field(None, description="创建时间")
     updated_at: Optional[datetime] = Field(None, description="更新时间")
 
+    @computed_field
+    @property
+    def is_enabled(self) -> bool:
+        """是否启用，等同于is_active"""
+        return self.is_active
+
+    @computed_field
+    @property
+    def sort_order(self) -> int:
+        """排序顺序，等同于display_order"""
+        return self.display_order
+    
     class Config:
         from_attributes = True
         
-    # 将数据库字段映射到前端期望的字段
-    @classmethod
-    def from_db_model(cls, db_model):
-        """从数据库模型转换为API响应模型"""
-        return cls(
-            id=db_model.id,
-            code=db_model.code,
-            name=db_model.name,
-            type=db_model.type,
-            calculation_method=db_model.calculation_method,
-            calculation_parameters=db_model.calculation_parameters,
-            is_taxable=db_model.is_taxable,
-            is_social_security_base=db_model.is_social_security_base,
-            is_housing_fund_base=db_model.is_housing_fund_base,
-            display_order=db_model.display_order,
-            is_active=db_model.is_active,
-            effective_date=db_model.effective_date,
-            end_date=db_model.end_date,
-            # 额外前端需要的字段
-            data_type="numeric",  # 默认为numeric类型
-            is_fixed=False,       # 默认为非固定
-            is_employee_specific=True,  # 默认为员工特定
-            is_enabled=db_model.is_active,  # 等同于is_active
-            sort_order=db_model.display_order,  # 等同于display_order
-            description=None,     # 暂无描述字段
-            calculation_logic=db_model.calculation_method  # 计算方法作为计算逻辑
-        )
+    # @classmethod
+    # def from_db_model(cls, db_model): # Comment out or remove existing from_db_model
+    #     """将数据库模型转换为Pydantic模型"""
+    #     data = {
+    #         "id": db_model.id,
+    #         "code": db_model.code,
+    #         "name": db_model.name,
+    #         "type": db_model.type,
+    #         "calculation_method": db_model.calculation_method,
+    #         "calculation_parameters": db_model.calculation_parameters,
+    #         "is_taxable": db_model.is_taxable,
+    #         "is_social_security_base": db_model.is_social_security_base,
+    #         "is_housing_fund_base": db_model.is_housing_fund_base,
+    #         "effective_date": db_model.effective_date,
+    #         "end_date": db_model.end_date,
+    #         "display_order": db_model.display_order, 
+    #         "is_active": db_model.is_active,      
+    #         # "is_enabled": db_model.is_active, # No longer needed here
+    #         # "sort_order": db_model.display_order, # No longer needed here
+    #         "data_type": getattr(db_model, 'data_type', "numeric"), 
+    #         "is_fixed": getattr(db_model, 'is_fixed', False),
+    #         "is_employee_specific": getattr(db_model, 'is_employee_specific', True),
+    #         "description": getattr(db_model, 'description', None),
+    #         "calculation_logic": getattr(db_model, 'calculation_logic', None),
+    #         "created_at": getattr(db_model, 'created_at', None),
+    #         "updated_at": getattr(db_model, 'updated_at', None),
+    #     }
+    #     return cls(**data)
 
 
 class PayrollComponentDefinitionListResponse(BaseModel):

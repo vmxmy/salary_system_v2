@@ -69,6 +69,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
     { key: 'phone_number', label: '电话号码', required: false },
     { key: 'hire_date', label: '入职日期', required: false },
     { key: 'department_name', label: '部门', required: false },
+    { key: 'job_position_level_lookup_value_name', label: '职务级别', required: false },
     { key: 'bank_name', label: '收款人开户银行', required: false },
     { key: 'bank_account_number', label: '收款人账号', required: false },
   ];
@@ -95,6 +96,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
     '工资级别': 'salary_level_lookup_value_name',
     '工资档次': 'salary_grade_lookup_value_name',
     '参照正编薪级': 'ref_salary_level_lookup_value_name',
+    '职务级别': 'job_position_level_lookup_value_name',
     '开户银行': 'bank_name',
     '银行账号': 'bank_account_number',
     '银行卡号': 'bank_account_number',

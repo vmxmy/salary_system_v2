@@ -450,8 +450,13 @@ async def update_payroll_component(
     """
     try:
         # 更新工资组件定义
-        db_component = crud.update_payroll_component_definition(db, component_id, component)
-        if not db_component:
+        update_data = component.model_dump(exclude_unset=True)
+        updated_component = crud.update_payroll_component_definition(
+            db=db,
+            component_id=component_id,
+            component_data=update_data
+        )
+        if not updated_component:
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -463,7 +468,7 @@ async def update_payroll_component(
             )
 
         # 返回标准响应格式
-        return {"data": db_component}
+        return {"data": updated_component}
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -1090,7 +1095,7 @@ def get_payroll_component_definitions(
     data = []
     for item in result["data"]:
         data.append(
-            PayrollComponentDefinition.from_db_model(item)
+            PayrollComponentDefinition.model_validate(item)
         )
     
     return {
@@ -1116,7 +1121,7 @@ def get_payroll_component_definition(
     if not component:
         raise HTTPException(status_code=404, detail="薪资组件定义不存在")
     
-    return PayrollComponentDefinition.from_db_model(component)
+    return PayrollComponentDefinition.model_validate(component)
 
 # 添加获取薪资组件类型的API端点
 @router.get("/payroll-component-types", response_model=LookupValueListResponse)

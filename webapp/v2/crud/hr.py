@@ -239,8 +239,7 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
     # 从 Pydantic 模型提取员工数据，排除不属于 Employee 模型的字段
     fields_to_exclude = {
         "appraisals", 
-        # 排除银行相关字段，因为这些字段不在 Employee 模型中
-        "bank_name", 
+        "bank_name",
         "bank_account_number",
         # 排除其他用于解析的名称字段
         "gender_lookup_value_name", 
@@ -478,8 +477,7 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
     # 更新员工的直接字段，排除不属于Employee模型的字段
     fields_to_exclude = {
         "appraisals", 
-        # 排除银行相关字段，因为这些字段不在Employee模型中
-        "bank_name", 
+        "bank_name",
         "bank_account_number"
     }
     update_data = employee.model_dump(exclude_unset=True, exclude=fields_to_exclude)
@@ -1148,6 +1146,8 @@ def create_bulk_employees(db: Session, employees_in: List[EmployeeCreate], overw
             # Exclude _name fields as they are resolved to _id fields, and exclude appraisals.
             fields_to_exclude = {
                 "appraisals", 
+                "bank_name",
+                "bank_account_number",
                 "gender_lookup_value_name", 
                 "status_lookup_value_name",
                 "employment_type_lookup_value_name", 

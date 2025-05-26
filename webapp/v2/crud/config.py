@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, Dict, Any
 from datetime import date
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_
+import logging
 
 from ..models.config import LookupType, LookupValue, SystemParameter, PayrollComponentDefinition, TaxBracket, SocialSecurityRate
 from ..pydantic_models.config import (
@@ -593,18 +594,25 @@ def update_payroll_component_definition(
     component_id: int,
     component_data: Dict[str, Any]
 ) -> Optional[PayrollComponentDefinition]:
-    """更新薪资组件定义"""
-    component = get_payroll_component_definition_by_id(db, component_id)
-    if not component:
+    """
+    更新薪资组件定义。
+    """
+    # Log received data at the beginning of the CRUD function
+    logging.info(f"CRUD update_payroll_component_definition: Received component_id: {component_id}")
+    logging.info(f"CRUD update_payroll_component_definition: Received component_data type: {type(component_data)}")
+    logging.info(f"CRUD update_payroll_component_definition: Received component_data content: {str(component_data)[:500]}...") # Log first 500 chars
+
+    db_component = db.query(PayrollComponentDefinition).filter(PayrollComponentDefinition.id == component_id).first()
+    if not db_component:
         return None
         
     for key, value in component_data.items():
-        if hasattr(component, key):
-            setattr(component, key, value)
+        if hasattr(db_component, key):
+            setattr(db_component, key, value)
             
     db.commit()
-    db.refresh(component)
-    return component
+    db.refresh(db_component)
+    return db_component
 
 def delete_payroll_component_definition(
     db: Session,

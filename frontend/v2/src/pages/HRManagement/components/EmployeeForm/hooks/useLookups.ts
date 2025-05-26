@@ -24,6 +24,7 @@ export const useLookups = () => {
   const [politicalStatusOptions, setPoliticalStatusOptions] = useState<LookupItem[]>([]);
   const [contractTypeOptions, setContractTypeOptions] = useState<LookupItem[]>([]);
   const [statusOptions, setStatusOptions] = useState<LookupItem[]>([]);
+  const [jobPositionLevelOptions, setJobPositionLevelOptions] = useState<LookupItem[]>([]);
 
   // 获取所有查询数据
   useEffect(() => {
@@ -40,7 +41,8 @@ export const useLookups = () => {
           maritals, 
           politicals, 
           contractTypesData, 
-          empStatuses
+          empStatuses,
+          jobLevels
         ] = await Promise.all([
           lookupService.getDepartmentsLookup(),
           lookupService.getPersonnelCategoriesLookup(),
@@ -52,6 +54,7 @@ export const useLookups = () => {
           lookupService.getPoliticalStatusesLookup(),
           lookupService.getContractTypesLookup(),
           lookupService.getEmployeeStatusesLookup(),
+          lookupService.getJobPositionLevelsLookup(),
         ]);
         
         setDepartmentOptions(transformToTreeData(depts));
@@ -64,6 +67,7 @@ export const useLookups = () => {
         setPoliticalStatusOptions(politicals);
         setContractTypeOptions(contractTypesData);
         setStatusOptions(empStatuses);
+        setJobPositionLevelOptions(jobLevels);
       } catch (error) {
         antdMessage.error(t('common:message.data_loading_error'));
         console.error('Failed to load lookups:', error);
@@ -84,6 +88,7 @@ export const useLookups = () => {
     maritalStatusOptions,
     politicalStatusOptions,
     contractTypeOptions,
-    statusOptions
+    statusOptions,
+    jobPositionLevelOptions
   };
 }; 

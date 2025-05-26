@@ -88,17 +88,27 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
     ...initialValues,
     run_date: initialValues.run_date ? dayjs(initialValues.run_date) : undefined,
     employee_ids_str: initialValues.employee_ids?.join(', ') || (initialValues.employee_ids_str || ''),
-  } : {};
+    status_lookup_value_id: isEditMode 
+      ? initialValues?.status_lookup_value_id 
+      : (PAYROLL_RUN_STATUS_OPTIONS.find(opt => opt.display_name_key === 'payroll_run_status.draft')?.id || 
+         (PAYROLL_RUN_STATUS_OPTIONS.length > 0 ? PAYROLL_RUN_STATUS_OPTIONS[0].id : undefined) || 
+         201) // Fallback
+  } : {
+    // Default values for a new form if initialValues is not provided
+    status_lookup_value_id: PAYROLL_RUN_STATUS_OPTIONS.find(opt => opt.display_name_key === 'payroll_run_status.draft')?.id || 
+                           (PAYROLL_RUN_STATUS_OPTIONS.length > 0 ? PAYROLL_RUN_STATUS_OPTIONS[0].id : undefined) || 
+                           201 // Fallback
+  };
 
   // Use the first status from the imported options as default for new runs, if applicable
   // const defaultStatusForNewRun = !isEditMode && PAYROLL_RUN_STATUS_OPTIONS.length > 0 ? PAYROLL_RUN_STATUS_OPTIONS[0].id : undefined;
   // Find 'Draft' status by its translation key
-  const draftStatusObject = PAYROLL_RUN_STATUS_OPTIONS.find(
-    opt => opt.display_name_key === 'payroll_run_status.draft' 
-  );
-  const initialStatusValue = isEditMode 
-    ? initialValues?.status_lookup_value_id 
-    : (draftStatusObject?.id || (PAYROLL_RUN_STATUS_OPTIONS.length > 0 ? PAYROLL_RUN_STATUS_OPTIONS[0].id : undefined) || 201); // Fallback to first option or hardcoded 201
+  // const draftStatusObject = PAYROLL_RUN_STATUS_OPTIONS.find(
+  //   opt => opt.display_name_key === 'payroll_run_status.draft' 
+  // );
+  // const initialStatusValue = isEditMode 
+  //   ? initialValues?.status_lookup_value_id 
+  //   : (draftStatusObject?.id || (PAYROLL_RUN_STATUS_OPTIONS.length > 0 ? PAYROLL_RUN_STATUS_OPTIONS[0].id : undefined) || 201); // Fallback to first option or hardcoded 201
 
   return (
     <Form
@@ -137,7 +147,6 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
             name="status_lookup_value_id"
             label={isEditMode ? t('payroll_run_form.label.status_edit_mode') : t('payroll_run_form.label.status_create_mode')}
             rules={[{ required: true, message: t('payroll_run_form.validation.status_required') }]}
-            initialValue={initialStatusValue}
           >
             <Select placeholder={t('payroll_run_form.placeholder.status')}>
               {PAYROLL_RUN_STATUS_OPTIONS.map(status => (

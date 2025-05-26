@@ -369,13 +369,30 @@ export const updatePayrollComponentDefinition = async (
   componentData: Partial<PayrollComponentDefinition>
 ): Promise<ApiSingleResponse<PayrollComponentDefinition>> => {
   try {
+    // Log the data being sent to the backend
+    console.log('Attempting to update payroll component definition with ID:', id);
+    console.log('Data being sent to backend:', JSON.stringify(componentData, null, 2));
+
     const response = await apiClient.put<ApiSingleResponse<PayrollComponentDefinition>>(
       `${PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT}/${id}`,
       componentData
     );
+    // Log successful response
+    console.log('Successfully updated payroll component definition. Response status:', response.status);
+    console.log('Response data:', JSON.stringify(response.data, null, 2));
     return response.data;
-  } catch (error) {
-    console.error('Error updating payroll component definition:', error);
+  } catch (error: any) {
+    console.error(`Error updating payroll component definition ${id}:`, error);
+    // Enhanced error logging
+    if (error.response) {
+      console.error('Error response status:', error.response.status);
+      console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
+      console.error('Error response headers:', JSON.stringify(error.response.headers, null, 2));
+    } else if (error.request) {
+      console.error('Error request - no response received:', error.request);
+    } else {
+      console.error('Error message - an issue occurred in setting up the request:', error.message);
+    }
     throw error;
   }
 };

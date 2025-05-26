@@ -245,6 +245,43 @@
     "tooltip_delete_period": "删除工资期间",
     "pagination_show_total": "显示 {range0}-{range1}，共 {total} 条"
   },
+  "payroll_run_form": {
+    "validation": {
+      "status_required": "payroll_run_form.validation.status_required",
+      "payroll_period_required": "payroll_run_form.validation.payroll_period_required",
+      "run_date_required": "payroll_run_form.validation.run_date_required"
+    },
+    "placeholder": {
+      "status": "payroll_run_form.placeholder.status",
+      "employee_ids": "payroll_run_form.placeholder.employee_ids",
+      "notes": "payroll_run_form.placeholder.notes",
+      "payroll_period": "payroll_run_form.placeholder.payroll_period"
+    },
+    "label": {
+      "employee_ids": "payroll_run_form.label.employee_ids",
+      "notes": "payroll_run_form.label.notes",
+      "payroll_period": "payroll_run_form.label.payroll_period",
+      "run_date": "payroll_run_form.label.run_date",
+      "status_edit_mode": "payroll_run_form.label.status_edit_mode",
+      "status_create_mode": "payroll_run_form.label.status_create_mode"
+    },
+    "tooltip": {
+      "employee_ids": "payroll_run_form.tooltip.employee_ids"
+    },
+    "button": {
+      "save_changes": "payroll_run_form.button.save_changes"
+    }
+  },
+  "payroll_run_status": {
+    "pending_calculation": "payroll_run_status.pending_calculation",
+    "draft": "payroll_run_status.draft",
+    "processing": "payroll_run_status.processing",
+    "pending_review": "payroll_run_status.pending_review",
+    "approved": "payroll_run_status.approved",
+    "paid": "payroll_run_status.paid",
+    "cancelled": "payroll_run_status.cancelled",
+    "error": "payroll_run_status.error"
+  },
   "payroll_runs_page": {
     "table": {
       "column_id": "ID",
@@ -266,9 +303,6 @@
     "button_mark_as_paid": "标记为已支付",
     "button_export_bank_file": "导出银行文件",
     "pagination_show_total": "显示 {range0}-{range1}，共 {total} 条"
-  },
-  "payroll_run_status": {
-    "approved_for_payment": "已批准付款"
   },
   "myInfo": {
     "title": "我的信息"
