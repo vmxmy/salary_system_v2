@@ -1,0 +1,58 @@
+[
+  {
+    "employee_full_name": "张三",
+    "id_number": "123456789012345678",
+    "gross_pay": 6299.80,
+    "total_deductions": 6290.58,
+    "net_pay": 0.00,
+    "earnings_details": {
+      "POSITION_TECH_GRADE_SALARY": {
+        "amount": 1234.56,
+        "name": "职务/技术等级工资"
+      },
+      "GRADE_POSITION_LEVEL_SALARY": {
+        "amount": 2345.67,
+        "name": "级别/岗位级别工资"
+      },
+      "STAFF_SALARY_GRADE": {
+        "amount": 1789.23,
+        "name": "薪级工资"
+      },
+      "BASIC_PERFORMANCE_SALARY": {
+        "amount": 930.34,
+        "name": "基础性绩效工资"
+      }
+    },
+    "deductions_details": {
+      "PENSION_PERSONAL_AMOUNT": {
+        "amount": 1500.00,
+        "name": "个人缴养老保险费"
+      },
+      "MEDICAL_INS_PERSONAL_AMOUNT": {
+        "amount": 1200.00,
+        "name": "个人缴医疗保险费"
+      },
+      "OCCUPATIONAL_PENSION_PERSONAL_AMOUNT": {
+        "amount": 800.00,
+        "name": "个人缴职业年金"
+      },
+      "UNEMPLOYMENT_PERSONAL_AMOUNT": {
+        "amount": 150.00,
+        "name": "个人缴失业保险费"
+      },
+      "HOUSING_FUND_PERSONAL": {
+        "amount": 1200.00,
+        "name": "个人缴住房公积金"
+      },
+      "PERSONAL_INCOME_TAX": {
+        "amount": 1440.58,
+        "name": "个人所得税"
+      },
+      "SOCIAL_INSURANCE_ADJUSTMENT": {
+        "amount": 9.22,
+        "name": "补扣社保"
+      }
+    },
+    "remarks": "测试新验证逻辑：扣发合计=五险一金+个税，实发合计=应发合计-所有扣款项"
+  }
+] 

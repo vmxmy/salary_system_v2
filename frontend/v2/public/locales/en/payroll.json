@@ -610,7 +610,8 @@
       "medical_ins_personal_amount": "Personal Medical Insurance",
       "occupational_pension_personal_amount": "Personal Occupational Pension",
       "unemployment_personal_amount": "Personal Unemployment Insurance",
-      "housing_fund_personal": "Personal Housing Fund"
+      "housing_fund_personal": "Personal Housing Fund",
+      "social_insurance_adjustment": "Social Insurance Adjustment"
     }
   }
 }

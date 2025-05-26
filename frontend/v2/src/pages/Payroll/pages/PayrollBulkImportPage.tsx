@@ -261,7 +261,7 @@ const PayrollBulkImportPage: React.FC = () => {
       '个人缴失业保险费': 'deductions_details.UNEMPLOYMENT_PERSONAL_AMOUNT.amount',
       [t('components.deductions.housing_fund_personal')]: 'deductions_details.HOUSING_FUND_PERSONAL.amount',
       '个人缴住房公积金': 'deductions_details.HOUSING_FUND_PERSONAL.amount',
-      '补扣社保': 'deductions_details.PENSION_PERSONAL_AMOUNT.amount', // 可以根据具体情况调整
+      '补扣社保': 'deductions_details.SOCIAL_INSURANCE_ADJUSTMENT.amount', // 社保补扣专用字段
       
       // 扣除项 - 税收类
       [t('components.deductions.personal_income_tax')]: 'deductions_details.PERSONAL_INCOME_TAX.amount',
@@ -490,7 +490,9 @@ const PayrollBulkImportPage: React.FC = () => {
     const toNumber = (value: any): number => {
       if (typeof value === 'number') return value;
       if (typeof value === 'string') {
-        const num = parseFloat(value);
+        // 移除逗号、空格和其他非数字字符（保留小数点和负号）
+        const cleanValue = value.replace(/[,\s]/g, '').trim();
+        const num = parseFloat(cleanValue);
         return isNaN(num) ? 0 : num;
       }
       return 0;
@@ -590,15 +592,11 @@ const PayrollBulkImportPage: React.FC = () => {
         amount = toNumber(item.amount);
       }
       
-      // 如果金额为0或无效，删除该项（但在验证时会考虑原始数据）
-      if (amount === 0) {
-        delete record.deductions_details[key];
-      } else {
-        record.deductions_details[key] = {
-          amount: amount,
-          name: getComponentName(key, 'deductions')
-        };
-      }
+      // 保留所有扣除项，包括金额为0的项（特别是标准扣发项如失业保险）
+      record.deductions_details[key] = {
+        amount: amount,
+        name: getComponentName(key, 'deductions')
+      };
     });
 
     // 计算总收入和总扣除
@@ -734,11 +732,37 @@ const PayrollBulkImportPage: React.FC = () => {
       errors.push(t('batch_import.validation.invalid_amount', { record: recordDescription, field: 'net_pay' }));
     }
 
-    // 验证净工资计算是否正确
-    const calculatedNetPay = record.gross_pay - record.total_deductions;
-    if (Math.abs(calculatedNetPay - record.net_pay) > 0.01) { // 允许0.01的浮点误差
-      errors.push(t('batch_import.validation.net_pay_mismatch', { record: recordDescription }));
+    // 计算所有扣款项总和（包括补扣类项目）
+    let allDeductionsSum = 0;
+    const allDeductionsBreakdown: string[] = [];
+    
+    if (record.deductions_details && Object.keys(record.deductions_details).length > 0) {
+      Object.entries(record.deductions_details).forEach(([key, item]: [string, any]) => {
+        if (item && typeof item.amount === 'number' && !isNaN(item.amount)) {
+          allDeductionsSum += item.amount;
+          allDeductionsBreakdown.push(`${key}: ${item.amount}`);
+        }
+      });
     }
+    
+    // 验证净工资计算是否正确：实发合计 = 应发合计 - 所有扣款项
+    const calculatedNetPay = record.gross_pay - allDeductionsSum;
+    console.log(`\n=== 净工资验证详情 (${recordDescription}) ===`);
+    console.log('应发工资 (gross_pay):', record.gross_pay);
+    console.log('所有扣款项明细:', allDeductionsBreakdown);
+    console.log('所有扣款项总和:', allDeductionsSum);
+    console.log('计算的净工资 (gross_pay - allDeductionsSum):', calculatedNetPay);
+    console.log('记录中的净工资 (net_pay):', record.net_pay);
+    console.log('差异:', Math.abs(calculatedNetPay - record.net_pay));
+    
+    if (Math.abs(calculatedNetPay - record.net_pay) > 0.01) { // 允许0.01的浮点误差
+      console.log('❌ 净工资验证失败!');
+      console.log(`预期: ${calculatedNetPay.toFixed(2)}, 实际: ${record.net_pay.toFixed(2)}, 差额: ${Math.abs(calculatedNetPay - record.net_pay).toFixed(2)}`);
+      errors.push(t('batch_import.validation.net_pay_mismatch', { record: recordDescription }));
+    } else {
+      console.log('✅ 净工资验证通过');
+    }
+    console.log('=== 净工资验证结束 ===\n');
 
     // 验证收入项
     if (!record.earnings_details || Object.keys(record.earnings_details).length === 0) {
@@ -777,20 +801,110 @@ const PayrollBulkImportPage: React.FC = () => {
       console.log('=== 验证详情结束 ===\n');
     }
 
-    // 如果有扣减项，验证扣减项总和是否与total_deductions匹配
+    // 如果有扣减项，验证扣发合计是否正确（扣发合计 = 五险一金 + 个税）
     if (record.deductions_details && Object.keys(record.deductions_details).length > 0) {
-      let deductionsSum = 0;
-      Object.values(record.deductions_details).forEach(item => {
+      let standardDeductionsSum = 0; // 五险一金 + 个税（计入扣发合计）
+      let adjustmentSum = 0; // 补扣类项目总和（不计入扣发合计）
+      const standardDeductionsBreakdown: string[] = [];
+      const adjustmentBreakdown: string[] = [];
+      
+      // 定义标准扣发项（五险一金 + 个税）
+      const standardDeductionComponents = [
+        'PENSION_PERSONAL_AMOUNT',           // 个人缴养老保险费
+        'MEDICAL_INS_PERSONAL_AMOUNT',       // 个人缴医疗保险费
+        'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT', // 个人缴职业年金
+        'UNEMPLOYMENT_PERSONAL_AMOUNT',      // 个人缴失业保险费
+        'HOUSING_FUND_PERSONAL',            // 个人缴住房公积金
+        'PERSONAL_INCOME_TAX'               // 个人所得税
+      ];
+      
+      Object.entries(record.deductions_details).forEach(([key, item]) => {
         if (typeof item.amount !== 'number' || isNaN(item.amount)) {
           errors.push(t('batch_import.validation.invalid_amount', { record: recordDescription, field: 'deductions_details' }));
         } else {
-          deductionsSum += item.amount;
+          // 判断是否为标准扣发项（五险一金+个税）
+          const isInStandardComponents = standardDeductionComponents.includes(key);
+          const hasPensionKeyword = key.includes('PENSION');
+          const hasMedicalKeyword = key.includes('MEDICAL');
+          const hasUnemploymentKeyword = key.includes('UNEMPLOYMENT');
+          const hasHousingFundKeyword = key.includes('HOUSING_FUND');
+          const hasIncomeTaxKeyword = key.includes('PERSONAL_INCOME_TAX');
+          
+          // 添加中文字段名支持
+          const chineseStandardFields = [
+            '个人缴养老保险费',
+            '个人缴医疗保险费',
+            '个人缴职业年金',
+            '个人缴失业保险费',
+            '个人缴住房公积金',
+            '个人所得税'
+          ];
+          const isChineseStandardField = chineseStandardFields.includes(key);
+          
+          const isStandardDeduction = isInStandardComponents || 
+                                    hasPensionKeyword || 
+                                    hasMedicalKeyword || 
+                                    hasUnemploymentKeyword || 
+                                    hasHousingFundKeyword || 
+                                    hasIncomeTaxKeyword ||
+                                    isChineseStandardField;
+          
+          console.log(`判断字段 "${key}":`, {
+            amount: item.amount,
+            isInStandardComponents,
+            hasPensionKeyword,
+            hasMedicalKeyword,
+            hasUnemploymentKeyword,
+            hasHousingFundKeyword,
+            hasIncomeTaxKeyword,
+            isChineseStandardField,
+            结果: isStandardDeduction ? '标准扣发项' : '补扣项'
+          });
+          
+          if (isStandardDeduction) {
+            standardDeductionsSum += item.amount;
+            standardDeductionsBreakdown.push(`${key}: ${item.amount} (五险一金+个税)`);
+          } else {
+            adjustmentSum += item.amount;
+            adjustmentBreakdown.push(`${key}: ${item.amount} (补扣项)`);
+          }
         }
       });
       
-      if (Math.abs(deductionsSum - record.total_deductions) > 0.01) { // 允许0.01的浮点误差
+      // 详细日志输出
+      console.log(`\n=== 扣发合计验证详情 (${recordDescription}) ===`);
+      console.log('原始扣发合计 (total_deductions):', record.total_deductions);
+      console.log('扣发项原始数据:', JSON.stringify(record.deductions_details, null, 2));
+      console.log('\n--- 字段分类处理 ---');
+      console.log('五险一金+个税明细:', standardDeductionsBreakdown.length > 0 ? standardDeductionsBreakdown : '无');
+      console.log('补扣项明细:', adjustmentBreakdown.length > 0 ? adjustmentBreakdown : '无');
+      console.log('\n--- 计算结果 ---');
+      console.log('五险一金+个税总和 (standardDeductionsSum):', standardDeductionsSum);
+      console.log('补扣项总和 (adjustmentSum):', adjustmentSum);
+      console.log('所有扣发项总和:', standardDeductionsSum + adjustmentSum);
+      console.log('验证公式: 扣发合计 应该等于 五险一金+个税');
+      console.log(`验证计算: ${record.total_deductions} 应该等于 ${standardDeductionsSum}`);
+      console.log('差异:', Math.abs(standardDeductionsSum - record.total_deductions));
+      
+      // 验证扣发合计 = 五险一金 + 个税
+      if (Math.abs(standardDeductionsSum - record.total_deductions) > 0.01) { // 允许0.01的浮点误差
+        console.log('\n❌ 扣发合计验证失败!');
+        console.log(`预期扣发合计: ${record.total_deductions.toFixed(2)}`);
+        console.log(`实际五险一金+个税: ${standardDeductionsSum.toFixed(2)}`);
+        console.log(`差额: ${Math.abs(standardDeductionsSum - record.total_deductions).toFixed(2)}`);
+        console.log(`补扣项总和: ${adjustmentSum.toFixed(2)} (不计入扣发合计)`);
+        console.log('\n可能的原因:');
+        console.log('1. 某些扣发项的字段名未被正确识别为五险一金或个税');
+        console.log('2. 数据中的扣发合计计算方式与系统验证逻辑不一致');
+        console.log('3. 请检查上面的"扣发项原始数据"中的字段名是否都是英文标准字段名');
         errors.push(t('batch_import.validation.total_deductions_mismatch', { record: recordDescription }));
+      } else {
+        console.log('\n✅ 扣发合计验证通过');
+        if (adjustmentSum > 0) {
+          console.log(`ℹ️ 补扣项总和: ${adjustmentSum.toFixed(2)} (已正确排除在扣发合计之外)`);
+        }
       }
+      console.log('=== 扣发合计验证结束 ===\n');
     }
 
     return errors;

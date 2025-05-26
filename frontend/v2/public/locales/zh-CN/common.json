@@ -389,8 +389,5 @@
   },
   "records_total": "总记录数: {{total}}",
   "records_valid": "有效记录: {{count}}",
-  "records_invalid": "无效记录: {{count}}",
-  "loading": {
-    "user_info": "加载用户信息中..."
-  }
+  "records_invalid": "无效记录: {{count}}"
 }

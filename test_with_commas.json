@@ -1,0 +1,28 @@
+[
+  {
+    "employee_code": "00003",
+    "employee_full_name": "汪琳",
+    "id_number": "510103197108310040",
+    "gross_pay": "29,121",
+    "net_pay": "22,821.20",
+    "total_deductions": "6,290.58",
+    "earnings_details": {
+      "POSITION_TECH_GRADE_SALARY": "2,770",
+      "GRADE_POSITION_LEVEL_SALARY": "4,049",
+      "BASIC_PERFORMANCE_AWARD": "6,920",
+      "REFORM_ALLOWANCE_1993": "116",
+      "CIVIL_STANDARD_ALLOWANCE": "6,618",
+      "TRAFFIC_ALLOWANCE": "1,040",
+      "BACK_PAY": "7,608"
+    },
+    "deductions_details": {
+      "补扣社保": "9.22",
+      "个人缴养老保险费": "1,613.76",
+      "个人缴医疗保险费": "403.44",
+      "个人缴职业年金": "806.88",
+      "个人缴住房公积金": "3,303.00",
+      "个人所得税": "163.50"
+    },
+    "remarks": "测试包含逗号分隔符的数据格式"
+  }
+] 

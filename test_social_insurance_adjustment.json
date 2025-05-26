@@ -1,0 +1,27 @@
+[
+  {
+    "employee_code": "00003",
+    "employee_full_name": "汪琳",
+    "id_number": "510103197108310040",
+    "gross_pay": 29121,
+    "total_deductions": 6299.80,
+    "net_pay": 22821.20,
+    "earnings_details": {
+      "POSITION_TECH_GRADE_SALARY": {"amount": 2770},
+      "GRADE_POSITION_LEVEL_SALARY": {"amount": 4049},
+      "BASIC_PERFORMANCE_AWARD": {"amount": 6920},
+      "REFORM_ALLOWANCE_1993": {"amount": 116},
+      "CIVIL_STANDARD_ALLOWANCE": {"amount": 6618},
+      "TRAFFIC_ALLOWANCE": {"amount": 1040}
+    },
+    "deductions_details": {
+      "SOCIAL_INSURANCE_ADJUSTMENT": {"amount": 9.22},
+      "PENSION_PERSONAL_AMOUNT": {"amount": 1613.76},
+      "MEDICAL_INS_PERSONAL_AMOUNT": {"amount": 403.44},
+      "OCCUPATIONAL_PENSION_PERSONAL_AMOUNT": {"amount": 806.88},
+      "HOUSING_FUND_PERSONAL": {"amount": 3303.00},
+      "PERSONAL_INCOME_TAX": {"amount": 163.50}
+    },
+    "remarks": "测试补扣社保字段映射"
+  }
+] 

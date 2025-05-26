@@ -1,0 +1,67 @@
+[
+  {
+    "employee_code": "00003",
+    "employee_full_name": "汪琳",
+    "id_number": "510103197108310040",
+    "gross_pay": 29121,
+    "net_pay": 22821.20,
+    "total_deductions": 6290.58,
+    "earnings_details": {
+      "POSITION_TECH_GRADE_SALARY": {
+        "amount": 2770,
+        "name": "职务/技术等级工资"
+      },
+      "GRADE_POSITION_LEVEL_SALARY": {
+        "amount": 4049,
+        "name": "级别/岗位级别工资"
+      },
+      "BASIC_PERFORMANCE_AWARD": {
+        "amount": 6920,
+        "name": "基础绩效奖"
+      },
+      "REFORM_ALLOWANCE_1993": {
+        "amount": 116,
+        "name": "93年工改保留补贴"
+      },
+      "CIVIL_STANDARD_ALLOWANCE": {
+        "amount": 6618,
+        "name": "公务员规范性津贴补贴"
+      },
+      "TRAFFIC_ALLOWANCE": {
+        "amount": 1040,
+        "name": "公务交通补贴"
+      },
+      "BACK_PAY": {
+        "amount": 7608,
+        "name": "一次性补扣发"
+      }
+    },
+    "deductions_details": {
+      "SOCIAL_INSURANCE_ADJUSTMENT": {
+        "amount": 9.22,
+        "name": "补扣社保"
+      },
+      "PENSION_PERSONAL_AMOUNT": {
+        "amount": 1613.76,
+        "name": "个人缴养老保险费"
+      },
+      "MEDICAL_INS_PERSONAL_AMOUNT": {
+        "amount": 403.44,
+        "name": "个人缴医疗保险费"
+      },
+      "OCCUPATIONAL_PENSION_PERSONAL_AMOUNT": {
+        "amount": 806.88,
+        "name": "个人缴职业年金"
+      },
+      "HOUSING_FUND_PERSONAL": {
+        "amount": 3303.00,
+        "name": "个人缴住房公积金"
+      },
+      "PERSONAL_INCOME_TAX": {
+        "amount": 163.50,
+        "name": "个人所得税"
+      }
+    },
+    "remarks": "验证用户提供的薪资数据计算逻辑"
+  }
+] 
