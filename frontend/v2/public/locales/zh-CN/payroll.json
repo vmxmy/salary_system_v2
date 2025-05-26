@@ -732,7 +732,8 @@
       "mapping_required": "请完成所有必填字段的映射。",
       "mapping_invalid": "字段映射存在错误，请检查。",
       "preview_required": "请预览并确认导入数据。",
-      "total_deductions_mismatch": "扣发合计与明细项目之和不一致。"
+      "total_deductions_mismatch": "扣发合计与明细项目之和不一致。",
+      "net_pay_mismatch": "实发工资与(应发工资 - 总扣除额)不一致。"
     },
     "message": {
       "upload_success": "文件上传成功，请进行字段映射。",
@@ -749,7 +750,8 @@
       "import_confirm_cancel": "取消",
       "download_template_success": "模板下载成功。",
       "download_template_failed": "模板下载失败，请重试。",
-      "file_parsed_success": "文件解析成功，请预览数据。"
+      "file_parsed_success": "文件解析成功，请预览数据。",
+      "table_converted_success": "表格数据已成功转换。"
     },
     "tab": {
       "valid_records": "有效记录 ({count})",
@@ -827,7 +829,8 @@
     "copy_json": "复制JSON",
     "use_json": "使用此JSON",
     "json_parse_error": "JSON解析错误，无法使用结果",
-    "ignore_field": "忽略此字段"
+    "ignore_field": "忽略此字段",
+    "convert_success": "成功转换{count}条记录"
   },
   "components": {
     "earnings": {
@@ -853,7 +856,8 @@
       "position_allowance": "岗位职务补贴",
       "petition_allowance": "信访工作人员岗位津贴",
       "back_pay": "补发工资",
-      "probation_salary": "试用期工资"
+      "probation_salary": "试用期工资",
+      "basic_salary": "基本工资"
     },
     "deductions": {
       "title": "扣除项",
