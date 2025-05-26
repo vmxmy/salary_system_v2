@@ -73,6 +73,15 @@ const PayrollRunDetailPage: React.FC = () => {
 
   const statusInfo = getPayrollRunStatusInfo(runDetails.status_lookup_value_id);
 
+  // 生成批次名称：使用周期名称 + 运行日期
+  const generateRunName = (run: PayrollRun): string => {
+    const periodName = run.payroll_period?.name || `周期ID: ${run.payroll_period_id}`;
+    const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
+    return `${periodName} - ${runDate}`;
+  };
+
+  const runName = generateRunName(runDetails);
+
   return (
     <div style={{ padding: '24px' }}>
       <Breadcrumb 
@@ -82,7 +91,7 @@ const PayrollRunDetailPage: React.FC = () => {
             title: <Link to="/finance/payroll/runs">{t('payroll_run_detail_page.breadcrumb_runs_management')}</Link>
           },
           {
-            title: t('payroll_run_detail_page.breadcrumb_current_page', { runId: runDetails.id })
+            title: t('payroll_run_detail_page.breadcrumb_current_page', { runName })
           }
         ]}
       />
@@ -90,7 +99,7 @@ const PayrollRunDetailPage: React.FC = () => {
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <Title level={3} style={{ marginBottom: 0 }}>
-            {t('payroll_run_detail_page.card_title', { runId: runDetails.id })}
+            {t('payroll_run_detail_page.card_title', { runName })}
           </Title>
           <Space>
             <Link to={`/finance/payroll/runs`}>

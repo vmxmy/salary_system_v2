@@ -60,11 +60,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
 
   // 声明扩展的PayrollEntry类型，包含我们需要的字段
   type ExtendedPayrollEntry = PayrollEntry & {
-    base_salary?: number | string;
-    allowances?: number | string;
-    deductions?: number | string;
-    gross_pay?: number | string;
-    taxes?: number | string;
+    employee_name?: string;
   };
 
   const fetchEntries = useCallback(async (page = 1, pageSize = 10) => {
@@ -253,36 +249,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       ),
     },
     {
-      title: t('payroll:payroll_entries_table.column.baseSalary'),
-      dataIndex: 'base_salary',
-      key: 'base_salary',
-      width: 110,
-      align: 'right',
-      sorter: (a, b) => (Number(a.base_salary) || 0) - (Number(b.base_salary) || 0),
-      sortDirections: ['descend', 'ascend'],
-      render: (salary) => (Number(salary) || 0).toFixed(2),
-    },
-    {
-      title: t('payroll:payroll_entries_table.column.allowances'),
-      dataIndex: 'allowances',
-      key: 'allowances',
-      width: 110,
-      align: 'right',
-      sorter: (a, b) => (Number(a.allowances) || 0) - (Number(b.allowances) || 0),
-      sortDirections: ['descend', 'ascend'],
-      render: (allowances) => (Number(allowances) || 0).toFixed(2),
-    },
-    {
-      title: t('payroll:payroll_entries_table.column.deductions'),
-      dataIndex: 'deductions',
-      key: 'deductions',
-      width: 110,
-      align: 'right',
-      sorter: (a, b) => (Number(a.deductions) || 0) - (Number(b.deductions) || 0),
-      sortDirections: ['descend', 'ascend'],
-      render: (deductions) => (Number(deductions) || 0).toFixed(2),
-    },
-    {
       title: t('payroll:payroll_entries_table.column.grossPay'),
       dataIndex: 'gross_pay',
       key: 'gross_pay',
@@ -293,15 +259,16 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       render: (grossPay) => (Number(grossPay) || 0).toFixed(2),
     },
     {
-      title: t('payroll:payroll_entries_table.column.taxes'),
-      dataIndex: 'taxes',
-      key: 'taxes',
+      title: t('payroll:payroll_entries_table.column.deductions'),
+      dataIndex: 'total_deductions',
+      key: 'total_deductions',
       width: 110,
       align: 'right',
-      sorter: (a, b) => (Number(a.taxes) || 0) - (Number(b.taxes) || 0),
+      sorter: (a, b) => (Number(a.total_deductions) || 0) - (Number(b.total_deductions) || 0),
       sortDirections: ['descend', 'ascend'],
-      render: (taxes) => (Number(taxes) || 0).toFixed(2),
+      render: (deductions) => (Number(deductions) || 0).toFixed(2),
     },
+
     {
       title: t('payroll:payroll_entries_table.column.netPay'),
       dataIndex: 'net_pay',
@@ -453,19 +420,13 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
               // 计算各项合计
               let totalNetPay = 0;
               let totalGrossPay = 0;
-              let totalBaseSalary = 0;
-              let totalAllowances = 0;
               let totalDeductions = 0;
-              let totalTaxes = 0;
               
               (pageData as ExtendedPayrollEntry[]).forEach(entry => {
                 // 确保所有值都是数字类型，避免 toFixed 错误
                 totalNetPay += Number(entry.net_pay) || 0;
                 totalGrossPay += Number(entry.gross_pay) || 0;
-                totalBaseSalary += Number(entry.base_salary) || 0;
-                totalAllowances += Number(entry.allowances) || 0;
-                totalDeductions += Number(entry.deductions || entry.total_deductions) || 0; // 兼容两种字段名
-                totalTaxes += Number(entry.taxes) || 0;
+                totalDeductions += Number(entry.total_deductions) || 0;
               });
               
               return (
@@ -475,24 +436,15 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
                       <Typography.Text strong>{t('payroll:payroll_entries_table.summary_total')}</Typography.Text>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={2} align="right">
-                      <Typography.Text strong>{Number(totalBaseSalary).toFixed(2)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={3} align="right">
-                      <Typography.Text strong>{Number(totalAllowances).toFixed(2)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={4} align="right">
-                      <Typography.Text strong>{Number(totalDeductions).toFixed(2)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={5} align="right">
                       <Typography.Text strong>{Number(totalGrossPay).toFixed(2)}</Typography.Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={6} align="right">
-                      <Typography.Text strong>{Number(totalTaxes).toFixed(2)}</Typography.Text>
+                    <Table.Summary.Cell index={3} align="right">
+                      <Typography.Text strong>{Number(totalDeductions).toFixed(2)}</Typography.Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={7} align="right">
+                    <Table.Summary.Cell index={4} align="right">
                       <Typography.Text type="danger" strong>{Number(totalNetPay).toFixed(2)}</Typography.Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={8} colSpan={2} />
+                    <Table.Summary.Cell index={5} colSpan={2} />
                   </Table.Summary.Row>
                 </Table.Summary>
               );

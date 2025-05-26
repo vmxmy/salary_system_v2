@@ -30,7 +30,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
   const { hasPermission } = usePermissions();
   const canEditJobHistory = hasPermission('employee_job_history:edit');
   const canDeleteJobHistory = hasPermission('employee_job_history:delete');
-  const naText = t('employee:detail_page.common_value.na', 'N/A');
+  const naText = '';
   const dashText = t('employee:detail_page.common_value.dash', '-');
   
   // 使用表格搜索功能

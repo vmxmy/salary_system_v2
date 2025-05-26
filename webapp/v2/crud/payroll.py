@@ -17,6 +17,23 @@ from ..models.hr import Employee
 from .config import get_payroll_component_definitions # 新增导入
 from .hr import get_employee_by_name_and_id_number, get_employee
 from ..models.config import PayrollComponentDefinition
+from decimal import Decimal
+
+
+def convert_decimals_to_float(obj):
+    """
+    递归地将对象中的所有Decimal类型转换为float类型，以解决JSON序列化问题
+    """
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {key: convert_decimals_to_float(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_decimals_to_float(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_decimals_to_float(item) for item in obj)
+    else:
+        return obj
 
 # PayrollPeriod CRUD
 def get_payroll_periods(
@@ -456,7 +473,7 @@ def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) ->
                 "name": component_name, 
                 "amount": float(item_input['amount']) # Convert Decimal to float for JSON serialization
             }
-        db_data_dict["earnings_details"] = processed_earnings
+        db_data_dict["earnings_details"] = convert_decimals_to_float(processed_earnings)
 
     # 规范化 deductions_details
     if "deductions_details" in db_data_dict and isinstance(db_data_dict["deductions_details"], dict):
@@ -470,7 +487,7 @@ def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) ->
                 "name": component_name,
                 "amount": float(item_input['amount']) # Convert Decimal to float for JSON serialization
             }
-        db_data_dict["deductions_details"] = processed_deductions
+        db_data_dict["deductions_details"] = convert_decimals_to_float(processed_deductions)
         
     db_payroll_entry = PayrollEntry(**db_data_dict)
     # Ensure `calculated_at` and `updated_at` (if added to model with server_default) are handled by DB
@@ -518,7 +535,7 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
             if component_name is None:
                 raise ValueError(f"无效的收入项代码: {code}")
             processed_earnings[code] = {"name": component_name, "amount": float(item_input['amount'])}
-        update_data["earnings_details"] = processed_earnings
+        update_data["earnings_details"] = convert_decimals_to_float(processed_earnings)
 
     # 规范化 deductions_details (如果存在于 update_data)
     if "deductions_details" in update_data and isinstance(update_data["deductions_details"], dict):
@@ -528,10 +545,12 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
             if component_name is None:
                 raise ValueError(f"无效的扣除项代码: {code}")
             processed_deductions[code] = {"name": component_name, "amount": float(item_input['amount'])}
-        update_data["deductions_details"] = processed_deductions
+        update_data["deductions_details"] = convert_decimals_to_float(processed_deductions)
 
     for key, value in update_data.items():
-        setattr(db_payroll_entry, key, value)
+        # 确保所有值都经过Decimal转换处理
+        converted_value = convert_decimals_to_float(value)
+        setattr(db_payroll_entry, key, converted_value)
     
     if hasattr(db_payroll_entry, 'updated_at'):
         db_payroll_entry.updated_at = datetime.utcnow()
@@ -582,7 +601,11 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
             processed_earnings_patch[code] = {"name": component_name, "amount": float(item_input['amount'])}
         
         current_earnings = getattr(db_payroll_entry, "earnings_details", {}) or {}
+        # 确保现有数据也转换为float
+        current_earnings = convert_decimals_to_float(current_earnings)
         current_earnings.update(processed_earnings_patch) # Merge
+        # 再次确保合并后的数据也完全转换为float
+        current_earnings = convert_decimals_to_float(current_earnings)
         setattr(db_payroll_entry, "earnings_details", current_earnings)
         update_values.pop("earnings_details") 
         changed_fields = True 
@@ -596,7 +619,11 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
             processed_deductions_patch[code] = {"name": component_name, "amount": float(item_input['amount'])}
 
         current_deductions = getattr(db_payroll_entry, "deductions_details", {}) or {}
+        # 确保现有数据也转换为float
+        current_deductions = convert_decimals_to_float(current_deductions)
         current_deductions.update(processed_deductions_patch) # Merge
+        # 再次确保合并后的数据也完全转换为float
+        current_deductions = convert_decimals_to_float(current_deductions)
         setattr(db_payroll_entry, "deductions_details", current_deductions)
         update_values.pop("deductions_details")
         changed_fields = True
@@ -605,8 +632,10 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
         # if value is None and key not in entry_data.model_fields_set: 
         #     continue
         current_db_value = getattr(db_payroll_entry, key)
-        if current_db_value != value:
-            setattr(db_payroll_entry, key, value)
+        # 确保所有值都经过Decimal转换处理
+        converted_value = convert_decimals_to_float(value)
+        if current_db_value != converted_value:
+            setattr(db_payroll_entry, key, converted_value)
             changed_fields = True
     
     if changed_fields and hasattr(db_payroll_entry, 'updated_at'):
@@ -791,13 +820,27 @@ def bulk_create_payroll_entries(
             
             if existing_entry and overwrite_mode:
                 # 更新现有记录
-                for field, value in clean_entry_data.dict(exclude_unset=True).items():
-                    if hasattr(existing_entry, field):
-                        setattr(existing_entry, field, value)
-                existing_entry.updated_at = func.now()
-                db.commit()
-                db.refresh(existing_entry)
-                created_entries.append(existing_entry)
+                # 将 clean_entry_data (PayrollEntryCreate) 转换为 PayrollEntryUpdate
+                # 注意：PayrollEntryUpdate 可能有不同的字段或验证规则
+                # 这里我们假设 PayrollEntryCreate 的字段是 PayrollEntryUpdate 的子集
+                # 或者说，所有在 clean_entry_data 中的字段都适用于更新
+                update_payload_dict = clean_entry_data.model_dump(exclude_unset=True)
+                
+                # PayrollEntryUpdate 可能需要一些额外的处理来确保 Decimal 被正确处理
+                # 我们期望 update_payroll_entry 函数内部会处理好 Decimal 到 float 的转换
+                update_data_for_function = PayrollEntryUpdate(**update_payload_dict)
+
+                updated_entry = update_payroll_entry(db, existing_entry.id, update_data_for_function)
+                if updated_entry:
+                    created_entries.append(updated_entry)
+                else:
+                    # 如果更新失败（虽然理论上不应该，因为我们已经找到了existing_entry）
+                    # 可以记录一个更具体的错误
+                    errors.append({
+                        "index": i,
+                        "employee_id": clean_entry_data.employee_id,
+                        "error": f"Failed to update existing payroll entry for employee {clean_entry_data.employee_id}"
+                    })
             elif existing_entry and not overwrite_mode:
                 # 记录错误：记录已存在
                 errors.append({

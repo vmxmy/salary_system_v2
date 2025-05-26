@@ -113,7 +113,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
     },
     { title: '单位', dataIndex: 'unit', key: 'unit', responsive: ['md'] }, // Redundant due to inclusion above, but can be a separate column
     { title: '年度', dataIndex: 'year', key: 'year', responsive: ['md'] },
-    { title: '有效期至', dataIndex: 'validityDate', key: 'validityDate', render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : 'N/A', responsive: ['lg'] },
+    { title: '有效期至', dataIndex: 'validityDate', key: 'validityDate', render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : '', responsive: ['lg'] },
     {
       title: '操作',
       key: 'action',

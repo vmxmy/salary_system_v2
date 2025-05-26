@@ -26,7 +26,7 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
     return <p>{t('employee:detail_page.job_info_tab.no_data', 'No employee job data available.')}</p>;
   }
 
-  const naText = t('employee:detail_page.common_value.na', 'N/A');
+  const naText = '';
 
   const calculateSeniority = (hire_date?: string | dayjs.Dayjs): string => { // Renamed hireDate to hire_date
     if (!hire_date) return naText;

@@ -11,6 +11,7 @@ interface FieldMapping {
   required: boolean;
   type: 'string' | 'date' | 'number' | 'boolean';
   specialHandler?: string;
+  isIgnored?: boolean; // 标识是否为忽略字段
 }
 
 interface ApiField {
@@ -161,7 +162,15 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       // 创建字段映射
       const fieldMappings: FieldMapping[] = headers.map(header => {
         // 尝试从预设规则中匹配
-        const apiField = predefinedMappingRules[header] || '';
+        let apiField = predefinedMappingRules[header] || '';
+        let isIgnored = false;
+        
+        // 处理忽略字段标识
+        if (apiField === '__IGNORE_FIELD__') {
+          isIgnored = true;
+          apiField = ''; // 转换为空字符串，但保留标识信息
+        }
+        
         const apiFieldInfo = defaultApiFields.find(f => f.key === apiField);
         
         // 调试信息
@@ -198,7 +207,8 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
           apiField: apiField,
           required: apiFieldInfo?.required || false,
           type: fieldType,
-          specialHandler: specialHandler
+          specialHandler: specialHandler,
+          isIgnored: isIgnored
         };
       });
       
@@ -274,6 +284,12 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
             console.log(`🎯 处理绩效字段: ${mapping.tableField}`);
             console.log(`🎯 映射目标: ${mapping.apiField}`);
             console.log(`🎯 原始值: ${row[mapping.tableField]}`);
+          }
+          
+          // 跳过忽略字段
+          if (mapping.isIgnored) {
+            console.log(`🚫 忽略字段: ${mapping.tableField} (已标记为忽略)`);
+            return;
           }
           
           if (mapping.apiField) {
@@ -479,38 +495,57 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
               columns={[
                 {
                   title: '表格字段',
-                  dataIndex: 'tableField'
+                  dataIndex: 'tableField',
+                  render: (text, record: any) => (
+                    <span style={{ 
+                      color: record.isIgnored ? '#999' : 'inherit',
+                      textDecoration: record.isIgnored ? 'line-through' : 'none'
+                    }}>
+                      {text}
+                      {record.isIgnored && <span style={{ color: '#ff9500', marginLeft: 8 }}>🚫 已忽略</span>}
+                    </span>
+                  )
                 },
                 {
                   title: 'API字段',
                   dataIndex: 'apiField',
-                  render: (text, record: any) => (
-                    <Select
-                      style={{ width: '100%' }}
-                      value={text}
-                      onChange={value => updateFieldMapping(record.key, value)}
-                      showSearch
-                      optionFilterProp="children"
-                      filterOption={(input, option) => {
-                        if (!option?.children) return false;
-                        // 将children转换为字符串进行搜索
-                        const searchText = String(option.children).toLowerCase();
-                        return searchText.includes(input.toLowerCase());
-                      }}
-                      placeholder="选择API字段或搜索..."
-                    >
-                      <Option value="">忽略此字段</Option>
-                      {defaultApiFields.map(field => (
-                        <Option key={field.key} value={field.key}>
-                          {field.label} {field.required ? '(必填)' : ''} 
-                          <span style={{ color: '#999', fontSize: '12px' }}>
-                            {field.key.includes('earnings_details') ? ' [收入]' : 
-                             field.key.includes('deductions_details') ? ' [扣除]' : ' [基础]'}
-                          </span>
-                        </Option>
-                      ))}
-                    </Select>
-                  )
+                  render: (text, record: any) => {
+                    if (record.isIgnored) {
+                      return (
+                        <span style={{ color: '#ff9500', fontWeight: 'bold' }}>
+                          🚫 忽略此字段 (预设规则)
+                        </span>
+                      );
+                    }
+                    
+                    return (
+                      <Select
+                        style={{ width: '100%' }}
+                        value={text}
+                        onChange={value => updateFieldMapping(record.key, value)}
+                        showSearch
+                        optionFilterProp="children"
+                        filterOption={(input, option) => {
+                          if (!option?.children) return false;
+                          // 将children转换为字符串进行搜索
+                          const searchText = String(option.children).toLowerCase();
+                          return searchText.includes(input.toLowerCase());
+                        }}
+                        placeholder="选择API字段或搜索..."
+                      >
+                        <Option value="">忽略此字段</Option>
+                        {defaultApiFields.map(field => (
+                          <Option key={field.key} value={field.key}>
+                            {field.label} {field.required ? '(必填)' : ''} 
+                            <span style={{ color: '#999', fontSize: '12px' }}>
+                              {field.key.includes('earnings_details') ? ' [收入]' : 
+                               field.key.includes('deductions_details') ? ' [扣除]' : ' [基础]'}
+                            </span>
+                          </Option>
+                        ))}
+                      </Select>
+                    );
+                  }
                 },
                 {
                   title: '数据类型',

@@ -146,7 +146,7 @@ const EmployeeBulkImportPage: React.FC = () => {
 
   const validateRecord = (record: RawEmployeeData, index: number): string[] => {
     const errors: string[] = [];
-    const recordDescription = `Record ${index} (ID: ${record.id_number || 'N/A'}, Name: ${record.last_name || ''}${record.first_name || ''})`;
+            const recordDescription = `Record ${index} (ID: ${record.id_number || ''}, Name: ${record.last_name || ''}${record.first_name || ''})`;
 
     // console.log(`[DEBUG ${recordDescription}] Validating:`, JSON.parse(JSON.stringify(record)));
 

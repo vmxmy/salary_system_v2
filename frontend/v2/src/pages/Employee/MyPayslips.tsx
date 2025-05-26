@@ -134,7 +134,7 @@ const MyPayslipsPage: React.FC = () => {
         const bDate = b.payroll_run?.run_date ? new Date(b.payroll_run.run_date).getTime() : 0;
         return aDate - bDate;
       },
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A',
+      render: (date) => date ? new Date(date).toLocaleDateString() : '',
     },
     {
       title: t('myPayslips:column.employeeName'),

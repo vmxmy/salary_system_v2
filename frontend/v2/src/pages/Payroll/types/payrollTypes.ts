@@ -82,7 +82,7 @@ export interface PayrollEntry {
   payroll_run_id: number;
   employee_id: number;
   employee_name?: string; // Denormalized for display, or fetch separately
-  total_earnings: number;
+  gross_pay: number; // 应发工资 - 数据库实际字段
   total_deductions: number;
   net_pay: number;
   status_lookup_value_id: number;
@@ -157,35 +157,41 @@ export interface PayrollComponentDefinition {
 
 // Raw payroll entry data for bulk import
 export interface RawPayrollEntryData {
-  _clientId?: string;
-  employee_id?: number;  // 改为可选
-  employee_code?: string | null;  // 员工编号，非必填
-  employee_name?: string;
-  employee_full_name?: string;  // 完整姓名，需要拆分
-  last_name?: string;  // 姓
-  first_name?: string;  // 名
-  id_number?: string;  // 身份证号
-  employee_info?: {  // 员工匹配信息
+  _clientId?: string; // 唯一客户端ID，用于表格行的key
+  originalIndex?: number; // 原始数据中的索引
+  employee_id?: number | null;
+  employee_code?: string | null;
+  employee_name?: string; // 将用于显示的员工姓名
+  employee_full_name?: string; // 原始导入的员工全名
+  last_name?: string; // 拆分后的姓
+  first_name?: string; // 拆分后的名
+  id_number?: string;
+  department_name?: string; 
+  position_name?: string;
+  gross_pay: number; // 应发工资
+  total_deductions: number; // 扣发合计
+  net_pay: number; // 实发工资
+  earnings_details: Record<string, { amount: number; name?: string }>; // 收入明细
+  deductions_details: Record<string, { amount: number; name?: string }>; // 扣除明细
+  status_lookup_value_id?: number | null;
+  status_lookup_value_name?: string;
+  remarks?: string;
+  payroll_period_id?: number;
+  payroll_run_id?: number;
+  total_earnings?: number; // 用于表格显示的总收入，通常等于gross_pay
+  employee_info?: { // 用于后端匹配员工
     last_name: string;
     first_name: string;
     id_number: string;
   };
-  department_name?: string;
-  position_name?: string;
-  gross_pay: number;  // 应发工资
-  total_deductions: number;
-  net_pay: number;
-  status_lookup_value_id?: number;
-  status_lookup_value_name?: string;
-  remarks?: string;
-  earnings_details: Record<string, { amount: number, name?: string }>;
-  deductions_details?: Record<string, { amount: number, name?: string }>;
-  validationErrors?: string[];
-  originalIndex?: number;
+  personnel_type?: 'REGULAR' | 'HIRED' | 'UNKNOWN'; // 新增：标准化的人员类型
+  raw_personnel_identity?: string; // 新增：原始的人员身份文本，用于processPayrollRecord
 }
 
 // Interface for validated payroll entry data
-export interface ValidatedPayrollEntryData extends RawPayrollEntryData {}
+export interface ValidatedPayrollEntryData extends RawPayrollEntryData {
+  validationErrors?: string[]; // 添加可选的验证错误数组
+}
 
 // Payload for creating payroll entries
 export interface CreatePayrollEntryPayload {

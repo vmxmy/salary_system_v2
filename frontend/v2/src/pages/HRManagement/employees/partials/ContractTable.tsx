@@ -24,7 +24,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
 
   const canEditContract = hasPermission('employee_contract:edit');
   const canDeleteContract = hasPermission('employee_contract:delete');
-  const naText = t('employee:detail_page.common_value.na', 'N/A');
+  const naText = '';
 
   const columns: ColumnsType<ContractItem> = [
     {

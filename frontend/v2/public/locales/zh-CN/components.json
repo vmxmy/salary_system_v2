@@ -1,0 +1,46 @@
+{
+  "earnings": {
+    "performance_salary": "绩效工资",
+    "allowance_general": "补助",
+    "basic_performance": "基础绩效",
+    "general_allowance": "津贴",
+    "quarterly_performance_assessment": "季度绩效考核薪酬",
+    "annual_fixed_salary_total": "固定薪酬全年应发数",
+    "position_tech_grade_salary": "职务/技术等级工资",
+    "grade_position_level_salary": "级别/岗位级别工资",
+    "grade_salary": "级别工资",
+    "position_salary_general": "岗位工资",
+    "staff_salary_grade": "薪级工资",
+    "basic_salary": "基本工资",
+    "basic_performance_award": "基础绩效奖",
+    "basic_performance_salary": "基础性绩效工资",
+    "performance_bonus": "奖励性绩效工资",
+    "reform_allowance_1993": "93年工改保留补贴",
+    "only_child_parent_bonus": "独生子女父母奖励金",
+    "civil_standard_allowance": "公务员规范性津贴补贴",
+    "traffic_allowance": "公务交通补贴",
+    "position_allowance": "岗位职务补贴",
+    "petition_allowance": "信访工作人员岗位津贴",
+    "township_allowance": "乡镇工作补贴",
+    "back_pay": "补发工资",
+    "probation_salary": "试用期工资"
+  },
+  "deductions": {
+        "one_time_deduction_adjustment": "一次性补扣发",
+    "performance_bonus_deduction_adjustment": "绩效奖金补扣发", 
+    "reward_performance_deduction_adjustment": "奖励绩效补扣发",
+    "refund_deduction_adjustment": "补扣（退）款",
+    "medical_2022_deduction_adjustment": "补扣2022年医保款",
+    "pension_personal_amount": "个人缴养老保险费",
+    "medical_ins_personal_amount": "个人缴医疗保险费",
+    "occupational_pension_personal_amount": "个人缴职业年金",
+    "unemployment_personal_amount": "个人缴失业保险费",
+    "housing_fund_personal": "个人缴住房公积金",
+    "personal_income_tax": "个人所得税",
+    "social_insurance_adjustment": "补扣社保"
+  },
+  "flags": {
+    "unified_payroll": "工资统发",
+    "fiscal_support": "财政供养"
+  }
+} 

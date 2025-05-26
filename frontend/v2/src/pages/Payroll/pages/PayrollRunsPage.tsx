@@ -234,12 +234,26 @@ const PayrollRunsPage: React.FC = () => {
     fetchRuns(pagination.current, pagination.pageSize);
   }, [fetchRuns]);
   
+  // 生成批次名称的函数
+  const generateRunName = (run: PayrollRun): string => {
+    const periodName = run.payroll_period?.name || `周期ID: ${run.payroll_period_id}`;
+    const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
+    return `${periodName} - ${runDate}`;
+  };
+
   const columns: ColumnsType<PayrollRun> = React.useMemo(() => [
       {
         title: t('runs_page.table.column.id'),
         dataIndex: 'id',
         key: 'id',
         sorter: (a, b) => a.id - b.id,
+        width: 80,
+      },
+      {
+        title: t('runs_page.table.column.batch_name'),
+        key: 'batch_name',
+        sorter: true,
+        render: (_: any, record: PayrollRun) => generateRunName(record),
       },
       {
         title: t('runs_page.table.column.payroll_period'),

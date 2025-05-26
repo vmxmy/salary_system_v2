@@ -342,8 +342,8 @@
   "payroll_run_detail_page": {
     "spin_loading": "加载中...",
     "breadcrumb_runs_management": "工资计算批次管理",
-    "breadcrumb_current_page": "计算批次详情 (ID: {runId})",
-    "card_title": "工资计算批次详情: #{runId}",
+    "breadcrumb_current_page": "计算批次详情 ({runName})",
+    "card_title": "工资计算批次详情: {runName}",
     "button_back_to_list": "返回列表",
     "desc_label_id": "ID",
     "desc_label_payroll_period": "工资周期",

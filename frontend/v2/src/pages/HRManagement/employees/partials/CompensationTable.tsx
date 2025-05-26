@@ -26,7 +26,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
 
   const canEdit = hasPermission('employee_compensation:edit');
   const canDelete = hasPermission('employee_compensation:delete');
-  const naText = t('employee:detail_page.common_value.na', 'N/A'); // +
+  const naText = ''; // +
   const zeroDecimalText = t('employee:detail_page.common_value.zero_decimal', '0.00'); // +
   const defaultCurrencyText = t('employee:detail_page.compensation_tab.default_currency', 'CNY'); // +
 

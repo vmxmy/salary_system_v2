@@ -27,18 +27,18 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
   }
 
   const getGenderText = (genderId?: number) => {
-    if (genderId === undefined || genderId === null) return t('employee:detail_page.common_value.na', 'N/A');
+    if (genderId === undefined || genderId === null) return '';
     const genderKey = Object.keys(Gender).find(key => Gender[key as keyof typeof Gender] === String(genderId));
     return genderKey ? t(`employee:gender.${genderKey.toLowerCase()}`, genderKey) : String(genderId);
   };
 
   const getStatusText = (statusId?: number) => {
-    if (statusId === undefined || statusId === null) return t('employee:detail_page.common_value.na', 'N/A');
+    if (statusId === undefined || statusId === null) return '';
     const statusKey = Object.keys(EmploymentStatus).find(key => EmploymentStatus[key as keyof typeof EmploymentStatus] === String(statusId));
     return statusKey ? t(`employee:list_page.table.status_text.${statusKey.toLowerCase()}`, statusKey) : String(statusId);
   };
 
-  const naText = t('employee:detail_page.common_value.na', 'N/A');
+  const naText = '';
 
   return (
     <Descriptions title={t('employee:detail_page.tabs.basic_info')} bordered column={2} layout="vertical">

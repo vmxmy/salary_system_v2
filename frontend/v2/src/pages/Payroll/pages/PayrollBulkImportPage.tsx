@@ -130,14 +130,18 @@ const PayrollBulkImportPage: React.FC = () => {
   // 动态生成字段映射规则
   const payrollMappingRules = useMemo(() => {
     const mappingRules: Record<string, string> = {
-      // 忽略字段（非工资相关）
-      [t('batch_import.mapping.serial_number')]: '',
-      [t('batch_import.mapping.personnel_identity')]: '',
-      [t('batch_import.mapping.personnel_level')]: '',
-      [t('batch_import.mapping.salary_unified')]: '',
-      [t('batch_import.mapping.fiscal_support')]: '',
-      [t('batch_import.mapping.department')]: '',
-      [t('batch_import.mapping.department_name')]: '',
+      // 忽略字段（非工资相关）- 使用特殊标识便于审核
+      [t('batch_import.mapping.serial_number')]: '__IGNORE_FIELD__',
+      // [t('batch_import.mapping.personnel_identity')]: '__IGNORE_FIELD__', // 保留这个给下面更具体的映射
+      [t('batch_import.mapping.personnel_level')]: '__IGNORE_FIELD__',
+      [t('batch_import.mapping.salary_unified')]: '__IGNORE_FIELD__',
+      [t('batch_import.mapping.fiscal_support')]: '__IGNORE_FIELD__',
+      [t('batch_import.mapping.department')]: '__IGNORE_FIELD__',
+      [t('batch_import.mapping.department_name')]: '__IGNORE_FIELD__',
+      
+      // 新增：映射"人员身份"到一个内部字段
+      [t('batch_import.mapping.personnel_identity')]: 'raw_personnel_identity',
+      '人员身份': 'raw_personnel_identity', // 直接中文映射
       
       // 员工匹配字段
       [t('batch_import.mapping.personnel_number')]: 'employee_code',
@@ -236,16 +240,14 @@ const PayrollBulkImportPage: React.FC = () => {
       [t('components.earnings.petition_allowance')]: 'earnings_details.PETITION_ALLOWANCE.amount',
       '信访工作人员岗位津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
       '信访工作人员岗位工作津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
+      '信访岗位津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
+      '信访津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
       [t('components.earnings.township_allowance')]: 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
       '乡镇工作补贴': 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
       
       // 收入项 - 补发类
       [t('components.earnings.back_pay')]: 'earnings_details.BACK_PAY.amount',
       '补发工资': 'earnings_details.BACK_PAY.amount',
-      '一次性补扣发': 'earnings_details.BACK_PAY.amount',
-      '绩效奖金补扣发': 'earnings_details.PERFORMANCE_BONUS_BACK_PAY.amount',
-      '奖励绩效补扣发': 'earnings_details.PERFORMANCE_BONUS_BACK_PAY.amount',
-      '奖励绩效补发': 'earnings_details.PERFORMANCE_BONUS_BACK_PAY.amount',
       
       // 收入项 - 试用期
       [t('components.earnings.probation_salary')]: 'earnings_details.PROBATION_SALARY.amount',
@@ -268,6 +270,26 @@ const PayrollBulkImportPage: React.FC = () => {
       // 扣除项 - 税收类
       [t('components.deductions.personal_income_tax')]: 'deductions_details.PERSONAL_INCOME_TAX.amount',
       '个人所得税': 'deductions_details.PERSONAL_INCOME_TAX.amount',
+      
+      // === 聘用人员专用字段映射 ===
+      // 收入项 - 聘用人员特有
+      '绩效工资': 'earnings_details.PERFORMANCE_SALARY.amount',
+      '补助': 'earnings_details.ALLOWANCE_GENERAL.amount',
+      '基础绩效': 'earnings_details.BASIC_PERFORMANCE.amount',
+      '津贴': 'earnings_details.GENERAL_ALLOWANCE.amount',
+      '季度绩效考核薪酬': 'earnings_details.QUARTERLY_PERFORMANCE_ASSESSMENT.amount',
+      '固定薪酬全年应发数': 'earnings_details.ANNUAL_FIXED_SALARY_TOTAL.amount',
+      
+      // 扣除调整项 - 聘用人员特有
+      '一次性补扣发': 'deductions_details.ONE_TIME_DEDUCTION_ADJUSTMENT.amount',
+      '绩效奖金补扣发': 'deductions_details.PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT.amount',
+      '奖励绩效补扣发': 'deductions_details.REWARD_PERFORMANCE_DEDUCTION_ADJUSTMENT.amount',
+      '补扣（退）款': 'deductions_details.REFUND_DEDUCTION_ADJUSTMENT.amount',
+      '补扣2022年医保款': 'deductions_details.MEDICAL_2022_DEDUCTION_ADJUSTMENT.amount',
+      
+      // 标识类字段 - 聘用人员特有（这些字段会被忽略，不参与计算）
+      '工资统发': '__IGNORE_FIELD__', // 忽略标识字段
+      '财政供养': '__IGNORE_FIELD__', // 忽略标识字段
     };
     
     // 合并映射规则
@@ -496,6 +518,19 @@ const PayrollBulkImportPage: React.FC = () => {
     console.log(`\n=== 开始处理记录: ${record.employee_full_name || record.employee_name || 'Unknown'} ===`);
     console.log('原始记录:', JSON.stringify(record, null, 2));
     
+    // 新增：处理人员类型 (personnel_type)
+    let personnelType: 'REGULAR' | 'HIRED' | 'UNKNOWN' = 'UNKNOWN';
+    const rawIdentity = record.raw_personnel_identity as string || '';
+    if (rawIdentity) {
+      if (rawIdentity.includes('正编') || rawIdentity.includes('在编') || rawIdentity.includes('事业') || rawIdentity.includes('行政')) {
+        personnelType = 'REGULAR';
+      } else if (rawIdentity.includes('聘用') || rawIdentity.includes('合同') || rawIdentity.includes('派遣') || rawIdentity.includes('员额') || rawIdentity.includes('临聘')) {
+        personnelType = 'HIRED';
+      }
+    }
+    record.personnel_type = personnelType;
+    console.log(`识别到的人员身份: "${rawIdentity}", 标准化类型: ${personnelType}`);
+    
     // 检查是否有月奖励绩效相关字段
     const possiblePerformanceFields = Object.keys(record).filter(key => 
       key.includes('奖励') || key.includes('绩效') || key.includes('PERFORMANCE')
@@ -717,7 +752,10 @@ const PayrollBulkImportPage: React.FC = () => {
       record.status_lookup_value_id = defaultPayrollEntryStatusId; // 使用动态获取的状态ID
     }
     
-    console.log('最终处理结果:');
+    console.log('最终处理结果 (包含 personnel_type):', {
+      ...record,
+      personnel_type: record.personnel_type // 确保在日志中也输出
+    });
     console.log('- gross_pay:', record.gross_pay);
     console.log('- total_deductions:', record.total_deductions);
     console.log('- net_pay:', record.net_pay);
@@ -788,7 +826,43 @@ const PayrollBulkImportPage: React.FC = () => {
 
   const validateRecord = (record: RawPayrollEntryData, index: number): string[] => {
     const errors: string[] = [];
-    const recordDescription = `Record ${index} (Employee: ${record.employee_name || 'Unknown'})`;
+    const recordDescription = `Record ${index} (Employee: ${record.employee_name || 'Unknown'}, Type: ${record.personnel_type || 'N/A'})`;
+
+    // --- Helper: Calculate sums from deduction_details ---
+    let allDeductionsSum = 0;
+    let standardDeductionsSum = 0; // For REGULAR staff: social insurance + tax
+    const allDeductionsBreakdown: string[] = [];
+    const standardDeductionsBreakdown: string[] = [];
+
+    if (record.deductions_details && Object.keys(record.deductions_details).length > 0) {
+      const standardDeductionComponentCodes = [
+        'PENSION_PERSONAL_AMOUNT',           
+        'MEDICAL_INS_PERSONAL_AMOUNT',       
+        'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT', 
+        'UNEMPLOYMENT_PERSONAL_AMOUNT',      
+        'HOUSING_FUND_PERSONAL',            
+        'PERSONAL_INCOME_TAX'               
+      ];
+      // Keywords for broader matching if needed, can be refined
+      const standardKeywords = ['PENSION', 'MEDICAL', 'UNEMPLOYMENT', 'HOUSING_FUND', 'TAX'];
+
+      Object.entries(record.deductions_details).forEach(([key, item]: [string, any]) => {
+        if (item && typeof item.amount === 'number' && !isNaN(item.amount)) {
+          allDeductionsSum += item.amount;
+          allDeductionsBreakdown.push(`${key}: ${item.amount}`);
+
+          const isStandardByCode = standardDeductionComponentCodes.includes(key);
+          const isStandardByKeyword = standardKeywords.some(kw => key.toUpperCase().includes(kw));
+          // TODO: Add Chinese name matching from componentDefinitions if more robust matching is needed
+
+          if (isStandardByCode || isStandardByKeyword) {
+            standardDeductionsSum += item.amount;
+            standardDeductionsBreakdown.push(`${key}: ${item.amount} (Standard)`);
+          }
+        }
+      });
+    }
+    // --- End Helper ---
 
     // 验证员工匹配信息
     if (!record.employee_id) {
@@ -811,28 +885,15 @@ const PayrollBulkImportPage: React.FC = () => {
       errors.push(t('batch_import.validation.invalid_amount', { record: recordDescription, field: 'net_pay' }));
     }
 
-    // 计算所有扣款项总和（包括补扣类项目）
-    let allDeductionsSum = 0;
-    const allDeductionsBreakdown: string[] = [];
-    
-    if (record.deductions_details && Object.keys(record.deductions_details).length > 0) {
-      Object.entries(record.deductions_details).forEach(([key, item]: [string, any]) => {
-        if (item && typeof item.amount === 'number' && !isNaN(item.amount)) {
-          allDeductionsSum += item.amount;
-          allDeductionsBreakdown.push(`${key}: ${item.amount}`);
-        }
-      });
-    }
-    
-    // 验证净工资计算是否正确：实发合计 = 应发合计 - 所有扣款项
-    const calculatedNetPay = record.gross_pay - allDeductionsSum;
+    // 验证净工资计算是否正确：实发合计 = 应发合计 - 所有扣款项 (使用函数开头计算的allDeductionsSum)
+    // 注意：allDeductionsSum 和 allDeductionsBreakdown 已经在函数开头计算过，这里直接复用
+    const calculatedNetPay = record.gross_pay - allDeductionsSum; // 复用函数开头的 allDeductionsSum
     console.log(`\n=== 净工资验证详情 (${recordDescription}) ===`);
     console.log('应发工资 (gross_pay):', record.gross_pay);
-    console.log('所有扣款项明细:', allDeductionsBreakdown);
-    console.log('所有扣款项总和:', allDeductionsSum);
+    console.log('所有扣款项明细 (复用):', allDeductionsBreakdown); // 复用函数开头的 allDeductionsBreakdown
+    console.log('所有扣款项总和 (复用):', allDeductionsSum);
     console.log('计算的净工资 (gross_pay - allDeductionsSum):', calculatedNetPay);
     console.log('记录中的净工资 (net_pay):', record.net_pay);
-    console.log('差异:', Math.abs(calculatedNetPay - record.net_pay));
     
     if (Math.abs(calculatedNetPay - record.net_pay) > 0.01) { // 允许0.01的浮点误差
       console.log('❌ 净工资验证失败!');
@@ -880,113 +941,69 @@ const PayrollBulkImportPage: React.FC = () => {
       console.log('=== 验证详情结束 ===\n');
     }
 
-    // 如果有扣减项，验证扣发合计是否正确（扣发合计 = 五险一金 + 个税）
-    if (record.deductions_details && Object.keys(record.deductions_details).length > 0) {
-      let standardDeductionsSum = 0; // 五险一金 + 个税（计入扣发合计）
-      let adjustmentSum = 0; // 补扣类项目总和（不计入扣发合计）
-      const standardDeductionsBreakdown: string[] = [];
-      const adjustmentBreakdown: string[] = [];
-      
-      // 定义标准扣发项（五险一金 + 个税）
-      const standardDeductionComponents = [
-        'PENSION_PERSONAL_AMOUNT',           // 个人缴养老保险费
-        'MEDICAL_INS_PERSONAL_AMOUNT',       // 个人缴医疗保险费
-        'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT', // 个人缴职业年金
-        'UNEMPLOYMENT_PERSONAL_AMOUNT',      // 个人缴失业保险费
-        'HOUSING_FUND_PERSONAL',            // 个人缴住房公积金
-        'PERSONAL_INCOME_TAX'               // 个人所得税
-      ];
-      
-      Object.entries(record.deductions_details).forEach(([key, item]) => {
-        if (typeof item.amount !== 'number' || isNaN(item.amount)) {
-          errors.push(t('batch_import.validation.invalid_amount', { record: recordDescription, field: 'deductions_details' }));
-        } else {
-          // 判断是否为标准扣发项（五险一金+个税）
-          const isInStandardComponents = standardDeductionComponents.includes(key);
-          const hasPensionKeyword = key.includes('PENSION');
-          const hasMedicalKeyword = key.includes('MEDICAL');
-          const hasUnemploymentKeyword = key.includes('UNEMPLOYMENT');
-          const hasHousingFundKeyword = key.includes('HOUSING_FUND');
-          const hasIncomeTaxKeyword = key.includes('PERSONAL_INCOME_TAX');
-          
-          // 添加中文字段名支持
-          const chineseStandardFields = [
-            '个人缴养老保险费',
-            '个人缴医疗保险费',
-            '个人缴职业年金',
-            '个人缴失业保险费',
-            '个人缴住房公积金',
-            '个人所得税'
-          ];
-          const isChineseStandardField = chineseStandardFields.includes(key);
-          
-          const isStandardDeduction = isInStandardComponents || 
-                                    hasPensionKeyword || 
-                                    hasMedicalKeyword || 
-                                    hasUnemploymentKeyword || 
-                                    hasHousingFundKeyword || 
-                                    hasIncomeTaxKeyword ||
-                                    isChineseStandardField;
-          
-          console.log(`判断字段 "${key}":`, {
-            amount: item.amount,
-            isInStandardComponents,
-            hasPensionKeyword,
-            hasMedicalKeyword,
-            hasUnemploymentKeyword,
-            hasHousingFundKeyword,
-            hasIncomeTaxKeyword,
-            isChineseStandardField,
-            结果: isStandardDeduction ? '标准扣发项' : '补扣项'
-          });
-          
-          if (isStandardDeduction) {
-            standardDeductionsSum += item.amount;
-            standardDeductionsBreakdown.push(`${key}: ${item.amount} (五险一金+个税)`);
-          } else {
-            adjustmentSum += item.amount;
-            adjustmentBreakdown.push(`${key}: ${item.amount} (补扣项)`);
-          }
-        }
-      });
-      
-      // 详细日志输出
-      console.log(`\n=== 扣发合计验证详情 (${recordDescription}) ===`);
-      console.log('原始扣发合计 (total_deductions):', record.total_deductions);
-      console.log('扣发项原始数据:', JSON.stringify(record.deductions_details, null, 2));
-      console.log('\n--- 字段分类处理 ---');
-      console.log('五险一金+个税明细:', standardDeductionsBreakdown.length > 0 ? standardDeductionsBreakdown : '无');
-      console.log('补扣项明细:', adjustmentBreakdown.length > 0 ? adjustmentBreakdown : '无');
-      console.log('\n--- 计算结果 ---');
-      console.log('五险一金+个税总和 (standardDeductionsSum):', standardDeductionsSum);
-      console.log('补扣项总和 (adjustmentSum):', adjustmentSum);
-      console.log('所有扣发项总和:', standardDeductionsSum + adjustmentSum);
-      console.log('验证公式: 扣发合计 应该等于 五险一金+个税');
-      console.log(`验证计算: ${record.total_deductions} 应该等于 ${standardDeductionsSum}`);
-      console.log('差异:', Math.abs(standardDeductionsSum - record.total_deductions));
-      
-      // 验证扣发合计 = 五险一金 + 个税
-      if (Math.abs(standardDeductionsSum - record.total_deductions) > 0.01) { // 允许0.01的浮点误差
-        console.log('\n❌ 扣发合计验证失败!');
-        console.log(`预期扣发合计: ${record.total_deductions.toFixed(2)}`);
-        console.log(`实际五险一金+个税: ${standardDeductionsSum.toFixed(2)}`);
-        console.log(`差额: ${Math.abs(standardDeductionsSum - record.total_deductions).toFixed(2)}`);
-        console.log(`补扣项总和: ${adjustmentSum.toFixed(2)} (不计入扣发合计)`);
-        console.log('\n可能的原因:');
-        console.log('1. 某些扣发项的字段名未被正确识别为五险一金或个税');
-        console.log('2. 数据中的扣发合计计算方式与系统验证逻辑不一致');
-        console.log('3. 请检查上面的"扣发项原始数据"中的字段名是否都是英文标准字段名');
-        errors.push(t('batch_import.validation.total_deductions_mismatch', { record: recordDescription }));
-      } else {
-        console.log('\n✅ 扣发合计验证通过');
-        if (adjustmentSum > 0) {
-          console.log(`ℹ️ 补扣项总和: ${adjustmentSum.toFixed(2)} (已正确排除在扣发合计之外)`);
-        }
+    // --- Type-Specific Validations ---
+    if (record.personnel_type === 'REGULAR') {
+      validateRegularSpecifics(record, errors, recordDescription, standardDeductionsSum, allDeductionsSum, t);
+    } else if (record.personnel_type === 'HIRED') {
+      validateHiredSpecifics(record, errors, recordDescription, standardDeductionsSum, allDeductionsSum, t);
+    } else {
+      // Handle UNKNOWN or other types if necessary, perhaps with a generic or lenient check
+      console.warn(`Skipping type-specific deduction validation for unknown personnel_type: ${record.personnel_type}`, recordDescription);
+      // As a fallback for UNKNOWN, we could check if total_deductions matches allDeductionsSum
+      if (Math.abs(allDeductionsSum - record.total_deductions) > 0.01) {
+        errors.push(t('batch_import.validation.total_deductions_mismatch_details_sum_unknown_type', { record: recordDescription }));
       }
-      console.log('=== 扣发合计验证结束 ===\n');
     }
 
     return errors;
+  };
+
+  // Helper function for REGULAR staff specific validations
+  const validateRegularSpecifics = (
+    record: RawPayrollEntryData, 
+    errors: string[], 
+    recordDescription: string,
+    standardDeductionsSum: number, // Calculated sum of only standard social insurance & tax
+    allDeductionsSum: number, // Calculated sum of ALL deduction items
+    t: Function // Pass translation function
+  ) => {
+    console.log(`\n🛡️ Running REGULAR specific validations for ${recordDescription}`);
+    // 正编人员: 扣发合计 (total_deductions) == 五险一金 + 个人所得税 (standardDeductionsSum)
+    if (Math.abs(standardDeductionsSum - record.total_deductions) > 0.01) {
+      console.log('\n❌ REGULAR: 扣发合计验证失败!');
+      console.log(`  预期扣发合计 (用户提供): ${record.total_deductions.toFixed(2)}`);
+      console.log(`  计算的标准扣除总和 (五险一金+税): ${standardDeductionsSum.toFixed(2)}`);
+      console.log(`  计算的所有扣除总和 (参考): ${allDeductionsSum.toFixed(2)}`);
+      console.log(`  差异 (用户扣发合计 vs 标准扣除): ${Math.abs(standardDeductionsSum - record.total_deductions).toFixed(2)}`);
+      errors.push(t('batch_import.validation.regular.total_deductions_mismatch_standard', { record: recordDescription }));
+    } else {
+      console.log('\n✅ REGULAR: 扣发合计验证通过 (等于标准五险一金+税).');
+    }
+    // TODO: Add other REGULAR specific validations (e.g., required fields, value ranges)
+  };
+
+  // Helper function for HIRED staff specific validations
+  const validateHiredSpecifics = (
+    record: RawPayrollEntryData, 
+    errors: string[], 
+    recordDescription: string,
+    standardDeductionsSum: number, // Calculated sum of only standard social insurance & tax (for reference)
+    allDeductionsSum: number, // Calculated sum of ALL deduction items
+    t: Function // Pass translation function
+  ) => {
+    console.log(`\n🛡️ Running HIRED specific validations for ${recordDescription}`);
+    // 聘用人员: 扣发合计 (total_deductions) == 所有扣除明细的总和 (allDeductionsSum)
+    if (Math.abs(allDeductionsSum - record.total_deductions) > 0.01) {
+      console.log('\n❌ HIRED: 扣发合计验证失败!');
+      console.log(`  预期扣发合计 (用户提供): ${record.total_deductions.toFixed(2)}`);
+      console.log(`  计算的所有扣除总和: ${allDeductionsSum.toFixed(2)}`);
+      console.log(`  计算的标准扣除总和 (参考): ${standardDeductionsSum.toFixed(2)}`);
+      console.log(`  差异 (用户扣发合计 vs 所有明细总和): ${Math.abs(allDeductionsSum - record.total_deductions).toFixed(2)}`);
+      errors.push(t('batch_import.validation.hired.total_deductions_mismatch_all_details', { record: recordDescription }));
+    } else {
+      console.log('\n✅ HIRED: 扣发合计验证通过 (等于所有扣除明细总和).');
+    }
+    // TODO: Add other HIRED specific validations
   };
 
   const handleParseAndPreview = () => {
@@ -1250,13 +1267,20 @@ const PayrollBulkImportPage: React.FC = () => {
       }
     });
 
+    // 安全的数字格式化函数
+    const formatCurrency = (value: any): string => {
+      if (value == null || value === '') return '-';
+      const num = typeof value === 'number' ? value : parseFloat(value);
+      return isNaN(num) ? '-' : `¥${num.toFixed(2)}`;
+    };
+
     // 生成收入项列
     const earningsColumns = Array.from(earningsFields).map(field => ({
       title: getComponentName(field, 'earnings'),
       dataIndex: ['earnings_details', field, 'amount'],
       key: `earnings_${field}`,
       width: 120,
-      render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-'
+      render: (text: any) => formatCurrency(text)
     }));
 
     // 生成扣除项列
@@ -1265,14 +1289,14 @@ const PayrollBulkImportPage: React.FC = () => {
       dataIndex: ['deductions_details', field, 'amount'],
       key: `deductions_${field}`,
       width: 120,
-      render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-'
+      render: (text: any) => formatCurrency(text)
     }));
 
     // 汇总列
     const summaryColumns = [
-      { title: t('batch_import.table_header.total_earnings'), dataIndex: 'total_earnings', key: 'total_earnings', width: 120, render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-' },
-      { title: t('batch_import.table_header.total_deductions'), dataIndex: 'total_deductions', key: 'total_deductions', width: 120, render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-' },
-      { title: t('batch_import.table_header.net_pay'), dataIndex: 'net_pay', key: 'net_pay', width: 120, render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-' },
+      { title: t('batch_import.table_header.total_earnings'), dataIndex: 'total_earnings', key: 'total_earnings', width: 120, render: (text: any) => formatCurrency(text) },
+      { title: t('batch_import.table_header.total_deductions'), dataIndex: 'total_deductions', key: 'total_deductions', width: 120, render: (text: any) => formatCurrency(text) },
+      { title: t('batch_import.table_header.net_pay'), dataIndex: 'net_pay', key: 'net_pay', width: 120, render: (text: any) => formatCurrency(text) },
     ];
 
     // 其他列
@@ -1296,15 +1320,22 @@ const PayrollBulkImportPage: React.FC = () => {
     if (parsedData && parsedData.length > 0) {
       return generateDynamicColumns(parsedData);
     }
+    // 安全的数字格式化函数（用于默认列）
+    const formatCurrencyDefault = (value: any): string => {
+      if (value == null || value === '') return '-';
+      const num = typeof value === 'number' ? value : parseFloat(value);
+      return isNaN(num) ? '-' : `¥${num.toFixed(2)}`;
+    };
+
     // 默认静态列（用于初始状态）
     return [
       { title: t('batch_import.table_header.employee_id'), dataIndex: 'employee_id', key: 'employee_id', width: 120 },
       { title: t('batch_import.table_header.employee_name'), dataIndex: 'employee_name', key: 'employee_name', width: 120 },
       { title: t('batch_import.table_header.department'), dataIndex: 'department_name', key: 'department_name', width: 150, render: (text: any) => text || '-' },
       { title: t('batch_import.table_header.position'), dataIndex: 'position_name', key: 'position_name', width: 150, render: (text: any) => text || '-' },
-      { title: t('batch_import.table_header.total_earnings'), dataIndex: 'total_earnings', key: 'total_earnings', width: 120, render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-' },
-      { title: t('batch_import.table_header.total_deductions'), dataIndex: 'total_deductions', key: 'total_deductions', width: 120, render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-' },
-      { title: t('batch_import.table_header.net_pay'), dataIndex: 'net_pay', key: 'net_pay', width: 120, render: (text: number) => text != null ? `¥${text.toFixed(2)}` : '-' },
+      { title: t('batch_import.table_header.total_earnings'), dataIndex: 'total_earnings', key: 'total_earnings', width: 120, render: (text: any) => formatCurrencyDefault(text) },
+      { title: t('batch_import.table_header.total_deductions'), dataIndex: 'total_deductions', key: 'total_deductions', width: 120, render: (text: any) => formatCurrencyDefault(text) },
+      { title: t('batch_import.table_header.net_pay'), dataIndex: 'net_pay', key: 'net_pay', width: 120, render: (text: any) => formatCurrencyDefault(text) },
       { title: t('batch_import.table_header.status'), dataIndex: 'status_lookup_value_name', key: 'status_lookup_value_name', width: 100, render: (text: any) => text || '-' },
       { title: t('batch_import.table_header.remarks'), dataIndex: 'remarks', key: 'remarks', width: 200, render: (text: any) => text || '-' },
       {
