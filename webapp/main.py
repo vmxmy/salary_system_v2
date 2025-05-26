@@ -11,7 +11,12 @@ print(f"---------------------")
 # print("==== sys.path ====", sys.path)
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, status, Body, Response
 import bcrypt
-from webapp.auth import get_password_hash
+try:
+    # 尝试相对导入（在webapp目录下运行时）
+    from .auth import get_password_hash
+except ImportError:
+    # 回退到绝对导入（在项目根目录运行时）
+    from webapp.auth import get_password_hash
 # print("admin hash:", get_password_hash("admin"))
 # print("==== bcrypt module path:", bcrypt.__file__)
 # print("==== has __about__:", hasattr(bcrypt, "__about__"))
