@@ -169,8 +169,9 @@ function EnhancedProTable<T extends Record<string, any>>({
       defaultButtons.push(...customToolbarButtons);
     }
     
-    // 添加高级功能按钮
-    if (enableAdvancedFeatures) {
+    // 不添加自定义的高级功能按钮，避免与 ProTable 的 options 工具栏重复
+    // 如果需要自定义按钮，请通过 customToolbarButtons 传入
+    if (false) {
       defaultButtons.push(
         <Tooltip key="refresh" title={t('common:table.refresh', '刷新')}>
           <Button

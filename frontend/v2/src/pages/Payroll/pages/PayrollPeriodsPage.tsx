@@ -543,7 +543,8 @@ const PayrollPeriodsPage: React.FC = () => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
             onChange: (page: number, pageSize: number) => fetchPeriods(page, pageSize),
-            showTotal: (total: number, range: [number, number]) => `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
+            showTotal: (total: number, range: [number, number]) => 
+              `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
           }}
           scroll={{ x: 'max-content' }}
           enableAdvancedFeatures={true}

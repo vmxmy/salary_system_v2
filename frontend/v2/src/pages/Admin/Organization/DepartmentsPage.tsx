@@ -15,13 +15,14 @@ import {
   Col,
   Row,
 } from 'antd';
-import PageLayout from '../../../components/common/PageLayout';
+
 import { PlusOutlined, ClusterOutlined } from '@ant-design/icons';
 import TableActionButton from '../../../components/common/TableActionButton';
 import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import type { ProColumns } from '@ant-design/pro-components';
 import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -436,16 +437,11 @@ const DepartmentsPage: React.FC = () => {
 
 
   return (
-    <PageLayout
-      title={t('title')}
-      actions={
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showCreateModal()} shape="round">
-          {t('button.create_top_level_department')}
-        </Button>
-      }
-    >
-      <div className={styles.tableContainer}>
-        <EnhancedProTable<DepartmentPageItem>
+    <>
+      <OrganizationManagementTableTemplate<DepartmentPageItem>
+        pageTitle={t('title')}
+        addButtonText={t('button.create_top_level_department')}
+        onAddClick={() => showCreateModal()}
         columns={columns}
         dataSource={departmentsTree}
         loading={isLoading}
@@ -461,8 +457,7 @@ const DepartmentsPage: React.FC = () => {
         bordered
         onChange={handleTableChange}
         search={false}
-        enableAdvancedFeatures={true}
-        showToolbar={false}
+        onRefresh={handleRefresh}
       />
       
       <Modal
@@ -536,8 +531,7 @@ const DepartmentsPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-      </div>
-    </PageLayout>
+    </>
   );
 };
 

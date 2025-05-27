@@ -3,6 +3,7 @@ import { Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, App,
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
 import type { ProColumns } from '@ant-design/pro-components';
 import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
@@ -314,16 +315,10 @@ const JobPositionLevelTab: React.FC = () => {
 
   return (
     <>
-      <div className={styles.sectionHeader}>
-        <Title level={3} className={styles.sectionHeaderTitle}>职务级别管理</Title>
-        <Space>
-          <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-            新增职务级别
-          </Button>
-        </Space>
-      </div>
-      
-      <EnhancedProTable<JobPositionLevelPageItem>
+      <OrganizationManagementTableTemplate<JobPositionLevelPageItem>
+        pageTitle="职务级别管理"
+        addButtonText="新增职务级别"
+        onAddClick={showCreateModal}
         columns={columns}
         dataSource={jobPositionLevels}
         loading={isLoading}
@@ -333,21 +328,9 @@ const JobPositionLevelTab: React.FC = () => {
           showSizeChanger: true,
           showQuickJumper: true,
         }}
-        enableAdvancedFeatures={true}
-        showToolbar={true}
         search={false}
-        title="职务级别管理"
         onRefresh={handleRefresh}
-        customToolbarButtons={[
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={showCreateModal}
-          >
-            新增职务级别
-          </Button>
-        ]}
+        showPageTitle={true}
       />
 
       <Modal

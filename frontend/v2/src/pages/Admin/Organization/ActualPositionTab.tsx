@@ -3,6 +3,7 @@ import { Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, App,
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
 import type { ProColumns } from '@ant-design/pro-components';
 import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
@@ -293,16 +294,10 @@ const ActualPositionTab: React.FC = () => {
 
   return (
     <>
-      <div className={styles.sectionHeader}>
-        <Title level={3} className={styles.sectionHeaderTitle}>{t('position.title', '实际职位管理')}</Title>
-        <Space>
-          <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-            {t('position.button.add', '新增职位')}
-          </Button>
-        </Space>
-      </div>
-      
-      <EnhancedProTable<PositionPageItem>
+      <OrganizationManagementTableTemplate<PositionPageItem>
+        pageTitle={t('position.title', '实际职位管理')}
+        addButtonText={t('position.button.add', '新增职位')}
+        onAddClick={showCreateModal}
         columns={columns}
         dataSource={positions}
         loading={isLoading}
@@ -312,21 +307,9 @@ const ActualPositionTab: React.FC = () => {
           showSizeChanger: true,
           showQuickJumper: true,
         }}
-        enableAdvancedFeatures={true}
-        showToolbar={true}
         search={false}
-        title={t('position.title', '实际职位管理')}
         onRefresh={handleRefresh}
-        customToolbarButtons={[
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={showCreateModal}
-          >
-            {t('position.button.add', '新增职位')}
-          </Button>
-        ]}
+        showPageTitle={true}
       />
 
       <Modal

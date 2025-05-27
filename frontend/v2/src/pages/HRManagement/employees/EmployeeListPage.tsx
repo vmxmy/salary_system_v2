@@ -3,8 +3,8 @@ import { Button, message, Modal, Space, Tooltip, Input, Card } from 'antd';
 import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import PageLayout from '../../../components/common/PageLayout';
-import EmployeeTable from '../components/EmployeeTable';
+
+import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
 import type { Employee, EmployeeQuery } from '../types';
 import type { SorterResult } from 'antd/es/table/interface';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -423,40 +423,7 @@ const EmployeeListPage: React.FC = () => {
     }
   }, [t]);
 
-  // 批量删除处理函数
-  const handleBatchDelete = useCallback(async () => {
-    if (selectedRowKeys.length === 0) {
-      message.warning(t('employee:list_page.message.no_employees_selected'));
-      return;
-    }
 
-    Modal.confirm({
-      title: t('employee:list_page.batch_delete_confirm.title'),
-      content: t('employee:list_page.batch_delete_confirm.content', { count: selectedRowKeys.length }),
-      okText: t('employee:list_page.batch_delete_confirm.ok_text'),
-      okType: 'danger',
-      cancelText: t('employee:list_page.batch_delete_confirm.cancel_text'),
-      onOk: async () => {
-        setLoadingData(true);
-        try {
-          // 逐个删除选中的员工
-          const deletePromises = selectedRowKeys.map(id => 
-            employeeService.deleteEmployee(String(id))
-          );
-          await Promise.all(deletePromises);
-          
-          message.success(t('employee:list_page.message.batch_delete_success', { count: selectedRowKeys.length }));
-          setSelectedRowKeys([]); // 清空选择
-          fetchAllEmployees(); // 重新获取数据
-        } catch (error) {
-          message.error(t('employee:list_page.message.batch_delete_failed'));
-          console.error('Failed to batch delete employees:', error);
-        } finally {
-          setLoadingData(false);
-        }
-      },
-    });
-  }, [selectedRowKeys, t, fetchAllEmployees]);
 
   // 定义删除处理函数
   const handleDelete = useCallback(async (employeeId: string) => {
@@ -558,69 +525,66 @@ const EmployeeListPage: React.FC = () => {
   // and `filteredEmployees` would be derived from `allEmployees` using those filters.
   // For now, we pass `allEmployees` directly.
 
+  // 构建批量删除配置
+  const batchDeleteConfig = canDelete ? {
+    enabled: true,
+    buttonText: '批量删除 ({count})',
+    confirmTitle: '确认批量删除',
+    confirmContent: '确定要删除选中的 {count} 个员工吗？此操作不可撤销。',
+    confirmOkText: '确定删除',
+    confirmCancelText: '取消',
+    onBatchDelete: async (selectedKeys: React.Key[]) => {
+      // 逐个删除选中的员工
+      const deletePromises = selectedKeys.map(id => 
+        employeeService.deleteEmployee(String(id))
+      );
+      await Promise.all(deletePromises);
+      setSelectedRowKeys([]); // 清空选择
+      fetchAllEmployees(); // 重新获取数据
+    },
+    successMessage: '成功删除 {count} 个员工',
+    errorMessage: '批量删除失败',
+    noSelectionMessage: '请选择要删除的员工',
+  } : undefined;
+
   return (
     <div>
-      <PageLayout
-        title={t('pageTitle:employee_list')}
-        actions={
-          <Space>
-            {canCreate && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/hr/employees/new')}
-                shape="round"
-              >
-                {t('pageTitle:create_employee')}
-              </Button>
-            )}
-            {canDelete && selectedRowKeys.length > 0 && (
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={handleBatchDelete}
-                shape="round"
-              >
-                {t('employee:list_page.batch_delete_button', { count: selectedRowKeys.length })}
-              </Button>
-            )}
-            {/* ProTable 内置了导出和列控制功能 */}
-          </Space>
-        }
-      >
-        {lookupMaps && lookupMaps.departmentMap && lookupMaps.personnelCategoryMap ? (
-          (() => {
-            console.log('[EmployeeListPage] Rendering EmployeeTable. allEmployees.length:', allEmployees.length);
-            return (
-              <EmployeeTable
-                employees={allEmployees} // Pass all employees
-                loading={combinedLoading}
-                total={allEmployees.length} // Total is the length of all employees
-                columns={tableColumnsConfigForControls} // 使用 ProColumns 配置
-                selectedRowKeys={selectedRowKeys}
-                onSelectionChange={setSelectedRowKeys}
-                onPageChange={handleTableChange} // Still useful for logging or other side effects
-                onDelete={handleDelete}
-                onEdit={(employee: Employee) => navigate(`/hr/employees/${employee.id}/edit`, { state: { employeeData: employee } })}
-                onViewDetails={(id: string) => navigate(`/hr/employees/${id}`)}
-                genderLookupMap={lookupMaps.genderMap || new Map()}
-                statusLookupMap={lookupMaps.statusMap || new Map()}
-                departmentLookupMap={lookupMaps.departmentMap}
-                personnelCategoryMap={lookupMaps.personnelCategoryMap}
-                educationLevelLookupMap={lookupMaps.educationLevelMap || new Map()}
-                employmentTypeLookupMap={lookupMaps.employmentTypeMap || new Map()}
-                maritalStatusLookupMap={lookupMaps.maritalStatusMap || new Map()}
-                politicalStatusLookupMap={lookupMaps.politicalStatusMap || new Map()}
-                contractTypeLookupMap={lookupMaps.contractTypeMap || new Map()}
-              />
-            );
-          })()
-        ) : (
-          <div style={{ textAlign: 'center', padding: '20px' }}>
-            {loadingLookups ? t('employee:list_page.loading_lookups') : t('employee:list_page.lookup_data_error')}
-          </div>
-        )}
-      </PageLayout>
+      {lookupMaps && lookupMaps.departmentMap && lookupMaps.personnelCategoryMap ? (
+        (() => {
+          console.log('[EmployeeListPage] Rendering OrganizationManagementTableTemplate. allEmployees.length:', allEmployees.length);
+          return (
+            <OrganizationManagementTableTemplate<Employee>
+              pageTitle={t('pageTitle:employee_list')}
+              addButtonText={t('pageTitle:create_employee')}
+              onAddClick={() => navigate('/hr/employees/new')}
+              showAddButton={canCreate}
+              batchDelete={batchDeleteConfig}
+              columns={tableColumnsConfigForControls}
+              dataSource={allEmployees}
+              loading={combinedLoading}
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: true,
+                pageSizeOptions: ['10', '20', '50', '100', '200'],
+                showTotal: (total: number) => `共 ${total} 条`,
+              }}
+              rowKey="id"
+              bordered
+              scroll={{ x: 'max-content' }}
+              rowSelection={{
+                selectedRowKeys,
+                onChange: setSelectedRowKeys,
+              }}
+              onChange={handleTableChange}
+              onRefresh={fetchAllEmployees}
+            />
+          );
+        })()
+      ) : (
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          {loadingLookups ? t('employee:list_page.loading_lookups') : t('employee:list_page.lookup_data_error')}
+        </div>
+      )}
     </div>
   );
 };

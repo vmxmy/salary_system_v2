@@ -367,7 +367,8 @@ const PayrollRunsPage: React.FC = () => {
           pageSize: meta?.size,
           total: meta?.total,
           showSizeChanger: true,
-          showTotal: (total: number, range: [number, number]) => t('runs_page.pagination_show_total', { range0: range[0], range1: range[1], total }),
+          showTotal: (total: number, range: [number, number]) => 
+            `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
         }}
 
         scroll={{ x: 'max-content' }}

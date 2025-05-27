@@ -209,7 +209,7 @@ const MyPayslipsPage: React.FC = () => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
             showTotal: (total: number, range: [number, number]) =>
-              `${t('common:pagination.totalRecords', { count: total })} (${t('common:pagination.showingRange', { start: range[0], end: range[1] })})`,
+              `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
             onChange: fetchPayslips,
           } : false}
           scroll={{ x: 'max-content' }}

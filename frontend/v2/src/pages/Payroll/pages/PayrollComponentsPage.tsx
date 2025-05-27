@@ -503,11 +503,7 @@ const PayrollComponentsPage: React.FC = () => {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total: number, range: [number, number]) => 
-              t('common.pagination.show_total', { 
-                range0: range[0], 
-                range1: range[1], 
-                total 
-              }),
+              `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
             onChange: (page: number, size?: number) => {
               fetchComponents(page, size || pagination.pageSize);
             },

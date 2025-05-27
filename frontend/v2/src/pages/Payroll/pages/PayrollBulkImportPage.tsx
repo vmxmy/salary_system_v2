@@ -40,6 +40,17 @@ import TableTextConverter from '../../../components/common/TableTextConverter';
 import { getPayrollPeriodStatusIdByCode } from '../utils/dynamicStatusUtils';
 import { lookupService } from '../../../services/lookupService';
 
+// 环境配置和业务规则
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const ENABLE_PRODUCTION_RESTRICTIONS = IS_PRODUCTION; // 可以通过环境变量控制
+
+// 薪资周期状态常量（这些值应该与后端lookup_values表中的实际ID对应）
+const PAYROLL_PERIOD_STATUS = {
+  ACTIVE: 'ACTIVE',     // 活动状态 - 允许导入
+  CLOSED: 'CLOSED',     // 已关闭 - 生产环境禁止导入
+  ARCHIVED: 'ARCHIVED'  // 已归档 - 生产环境禁止导入
+} as const;
+
 interface UploadResult {
   successCount: number;
   errorCount: number;
@@ -415,6 +426,30 @@ const PayrollBulkImportPage: React.FC = () => {
     }
   };
 
+  // 过滤薪资周期的函数（根据环境和业务规则）
+  const filterPayrollPeriods = (periods: PayrollPeriod[]): PayrollPeriod[] => {
+    if (!ENABLE_PRODUCTION_RESTRICTIONS) {
+      // 开发环境：显示所有周期
+      return periods;
+    }
+    
+    // 生产环境：只显示活动状态的周期
+    return periods.filter(period => {
+      const statusCode = period.status_lookup?.code;
+      return statusCode === PAYROLL_PERIOD_STATUS.ACTIVE;
+    });
+  };
+
+  // 检查周期是否允许导入数据
+  const isPeriodImportAllowed = (period: PayrollPeriod): boolean => {
+    if (!ENABLE_PRODUCTION_RESTRICTIONS) {
+      return true; // 开发环境允许所有周期
+    }
+    
+    const statusCode = period.status_lookup?.code;
+    return statusCode === PAYROLL_PERIOD_STATUS.ACTIVE;
+  };
+
   // 加载薪资周期数据
   useEffect(() => {
     const fetchPayrollPeriods = async () => {
@@ -423,10 +458,11 @@ const PayrollBulkImportPage: React.FC = () => {
         console.log('🚀 开始获取薪资周期数据...');
         console.log('📡 API调用参数:', { size: 100 });
         
-        // 获取所有薪资周期，不进行状态过滤，以便用户可以选择任何月份
+        // 获取薪资周期，在生产环境中只显示活动状态的周期
         const response = await payrollApi.getPayrollPeriods({
           size: 100, // 修改为最大允许值100，降低超出限制的风险
-          // 显示所有状态的薪资周期，让用户自由选择
+          // TODO: 在生产环境中应该添加状态过滤，只显示活动状态的薪资周期
+          // status_lookup_value_id: ACTIVE_STATUS_ID, // 取消注释以启用生产环境限制
         });
         
         console.log('📡 API响应状态:', response ? 'SUCCESS' : 'FAILED');
@@ -457,6 +493,9 @@ const PayrollBulkImportPage: React.FC = () => {
           return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
         });
         
+        // 根据环境和业务规则过滤薪资周期
+        const filteredPeriods = filterPayrollPeriods(sortedPeriods);
+        
         console.log('🔄 排序后的周期数据:');
         sortedPeriods.forEach((period, index) => {
           console.log(`  ${index + 1}. ${period.name}:`);
@@ -464,7 +503,11 @@ const PayrollBulkImportPage: React.FC = () => {
           console.log(`     - status_lookup: ${JSON.stringify(period.status_lookup)}`);
         });
         
-        setPayrollPeriods(sortedPeriods);
+        if (ENABLE_PRODUCTION_RESTRICTIONS) {
+          console.log(`🔒 生产环境限制：从 ${sortedPeriods.length} 个周期中过滤出 ${filteredPeriods.length} 个活动周期`);
+        }
+        
+        setPayrollPeriods(filteredPeriods);
         // 记录获取到的总数
         console.log(`✅ 成功加载${sortedPeriods.length}个薪资周期，总共${response.meta?.total || 0}个`);
         console.log('📅 薪资周期列表:', sortedPeriods.map(p => `${p.name} (${p.status_lookup?.name || 'Unknown'})`));
@@ -1152,6 +1195,15 @@ const PayrollBulkImportPage: React.FC = () => {
       return;
     }
     
+    // 生产环境额外安全检查：确保选中的周期允许导入
+    if (ENABLE_PRODUCTION_RESTRICTIONS) {
+      const selectedPeriod = payrollPeriods.find(p => p.id === selectedPeriodId);
+      if (selectedPeriod && !isPeriodImportAllowed(selectedPeriod)) {
+        message.error('生产环境限制：只能向活动状态的薪资周期导入数据');
+        return;
+      }
+    }
+    
     const validRecords = parsedData.filter(record => !record.validationErrors || record.validationErrors.length === 0);
 
     if (validRecords.length === 0) {
@@ -1702,18 +1754,26 @@ const PayrollBulkImportPage: React.FC = () => {
                   <div>
                     <div>{t('batch_import.help.period_selection')}</div>
                     <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
-                      💡 提示：现在显示所有状态的薪资周期。
-                      <Tag color="green" style={{ margin: '0 4px', fontSize: '11px' }}>活动</Tag>
-                      <Tag color="blue" style={{ margin: '0 4px', fontSize: '11px' }}>已关闭</Tag>
-                      <Tag color="gray" style={{ margin: '0 4px', fontSize: '11px' }}>已归档</Tag>
-                      状态的周期都可以导入数据。
+                      {ENABLE_PRODUCTION_RESTRICTIONS ? (
+                        <>
+                          🔒 生产环境：仅显示
+                          <Tag color="green" style={{ margin: '0 4px', fontSize: '11px' }}>活动</Tag>
+                          状态的薪资周期，确保数据安全。
+                        </>
+                      ) : (
+                        <>
+                          💡 开发环境：显示所有状态的薪资周期。
+                          <Tag color="green" style={{ margin: '0 4px', fontSize: '11px' }}>活动</Tag>
+                          <Tag color="blue" style={{ margin: '0 4px', fontSize: '11px' }}>已关闭</Tag>
+                          <Tag color="gray" style={{ margin: '0 4px', fontSize: '11px' }}>已归档</Tag>
+                          <br />
+                          <span style={{ color: '#ff7a00', fontSize: '11px' }}>
+                            ⚠️ 注意：生产环境将只允许向活动状态的薪资周期导入数据
+                          </span>
+                        </>
+                      )}
                     </div>
-                    <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
-                      📊 员工统计：
-                      <span style={{ color: '#52c41a', margin: '0 4px' }}>🗄️ 有员工</span>
-                      <span style={{ color: '#8c8c8c', margin: '0 4px' }}>📝 无员工</span>
-                      <span style={{ color: '#1890ff', margin: '0 4px' }}>⏳ 统计中</span>
-                    </div>
+
                   </div>
                 }
                 required

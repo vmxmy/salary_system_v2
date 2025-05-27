@@ -11,6 +11,7 @@ import EmployeeName from '../../../components/common/EmployeeName';
 import TableActionButton from '../../../components/common/TableActionButton';
 import UnifiedTabs from '../../../components/common/UnifiedTabs';
 import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
 
 import {
   getPersonnelCategories,
@@ -404,16 +405,11 @@ const PersonnelCategoriesPage: React.FC = () => {
           label: t('tab.personnel_category_management'),
           children: (
             <>
-              <div className={pageStyles.sectionHeader}>
-                <Title level={3} className={pageStyles.sectionHeaderTitle}>{t('title.current_personnel_categories')}</Title>
-                <Space>
-                  <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
-                    {t('button.add_personnel_category')}
-                  </Button>
-                </Space>
-              </div>
               {activeTabKey === '1' && (
-                <EnhancedProTable<PersonnelCategoryPageItem>
+                <OrganizationManagementTableTemplate<PersonnelCategoryPageItem>
+                  pageTitle={t('title.current_personnel_categories')}
+                  addButtonText={t('button.add_personnel_category')}
+                  onAddClick={showCreateModal}
                   columns={columns}
                   dataSource={personnelCategoriesTree}
                   loading={isLoading}
@@ -423,21 +419,9 @@ const PersonnelCategoriesPage: React.FC = () => {
                     showSizeChanger: true,
                     showQuickJumper: true,
                   }}
-                  enableAdvancedFeatures={true}
-                  showToolbar={true}
                   search={false}
-                  title={t('title.current_personnel_categories')}
                   onRefresh={handleRefresh}
-                  customToolbarButtons={[
-                    <Button
-                      key="create"
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={showCreateModal}
-                    >
-                      {t('button.add_personnel_category')}
-                    </Button>
-                  ]}
+                  showPageTitle={true}
                 />
               )}
 

@@ -49,6 +49,9 @@
     "next": "下一步",
     "add_child": "添加子项",
     "export_data": "导出 EXCEL",
+    "export": "导出",
+    "import": "导入",
+    "filter": "筛选",
     "column_settings": "列设置",
     "export_excel": "导出 EXCEL",
     "apply": "应用",
@@ -140,6 +143,10 @@
   },
   "table": {
     "empty_data": "暂无数据",
+    "noData": "暂无数据",
+    "loading": "加载中...",
+    "refresh": "刷新",
+    "fullscreen": "全屏",
     "column_actions": "操作",
     "cell_empty": "-",
     "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
@@ -242,8 +249,7 @@
     "popconfirm_delete_description": "确定要删除此工资期间吗？此操作不可撤销。",
     "popconfirm_ok_text": "确认删除",
     "popconfirm_cancel_text": "取消",
-    "tooltip_delete_period": "删除工资期间",
-    "pagination_show_total": "显示 {range0}-{range1}，共 {total} 条"
+    "tooltip_delete_period": "删除工资期间"
   },
   "payroll_run_form": {
     "validation": {
@@ -301,8 +307,7 @@
     "tooltip_edit_run": "编辑工资发放",
     "tooltip_delete_run": "删除工资发放",
     "button_mark_as_paid": "标记为已支付",
-    "button_export_bank_file": "导出银行文件",
-    "pagination_show_total": "显示 {range0}-{range1}，共 {total} 条"
+    "button_export_bank_file": "导出银行文件"
   },
   "myInfo": {
     "title": "我的信息"
@@ -362,7 +367,6 @@
     "section_title_entries": "工资条目"
   },
   "payroll_entries_table": {
-    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
     "column_entry_id": "条目ID",
     "column_employee_id": "员工ID",
     "column_employee_name": "员工姓名",

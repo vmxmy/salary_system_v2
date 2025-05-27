@@ -75,6 +75,7 @@
   },
   "payroll_periods_page": {
     "title": "工资周期管理",
+    "modal_title_create": "创建薪资周期",
     "table": {
       "column_id": "ID",
       "column_period_name": "周期名称",

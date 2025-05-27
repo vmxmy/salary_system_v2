@@ -1,4 +1,19 @@
 {
   "configpage.title": "系统配置",
-  "configpage.tabs.chatbot": "AI 聊天机器人"
+  "configpage.tabs.chatbot": "AI 聊天机器人",
+  "user_management": {
+    "title": "用户管理"
+  },
+  "role_management": {
+    "title": "角色管理"
+  },
+  "permission_management": {
+    "title": "权限管理"
+  },
+  "system_config": {
+    "title": "系统配置"
+  },
+  "organization": {
+    "title": "组织架构管理"
+  }
 } 
