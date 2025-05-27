@@ -477,7 +477,8 @@
       "parse_and_preview": "Parse and Preview Data",
       "show_error_details": "Show Error Details",
       "hide_error_details": "Hide Error Details",
-      "view_details": "View Details"
+      "view_details": "View Details",
+      "back_to_entries": "Back to Entries"
     },
     "placeholder": {
       "paste_json_here": "Paste JSON data here...",

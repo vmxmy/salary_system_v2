@@ -649,7 +649,11 @@
       "previous": "上一步",
       "import": "开始导入",
       "download_template": "下载模板",
-      "parse_and_preview": "解析并预览"
+      "parse_and_preview": "解析并预览",
+      "import_another_file": "导入其他文件",
+      "show_error_details": "显示错误详情",
+      "hide_error_details": "隐藏错误详情",
+      "back_to_entries": "返回记录列表"
     },
     "placeholder": {
       "select_payroll_period": "选择工资周期",
@@ -779,7 +783,8 @@
       "parse_and_preview": "解析并预览",
       "import_another_file": "导入其他文件",
       "show_error_details": "显示错误详情",
-      "hide_error_details": "隐藏错误详情"
+      "hide_error_details": "隐藏错误详情",
+      "back_to_entries": "返回记录列表"
     },
     "results_table": {
       "title_failed_records": "失败记录详情",
