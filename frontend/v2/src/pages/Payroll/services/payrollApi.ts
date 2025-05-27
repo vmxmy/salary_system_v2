@@ -112,7 +112,7 @@ export const deletePayrollPeriod = async (periodId: number): Promise<void> => {
 export const getPayrollRuns = async (params?: {
   page?: number;
   size?: number;
-  payroll_period_id?: number;
+  period_id?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }): Promise<ApiListResponse<PayrollRun>> => {

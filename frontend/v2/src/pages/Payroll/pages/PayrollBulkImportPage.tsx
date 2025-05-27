@@ -18,7 +18,7 @@ import {
   Select,
   Tag
 } from 'antd';
-import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, PlaySquareOutlined, TableOutlined } from '@ant-design/icons';
+import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, PlaySquareOutlined, TableOutlined, DatabaseOutlined, FileAddOutlined, PartitionOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageLayout from '../../../components/common/PageLayout';
 import { useNavigate } from 'react-router-dom';
@@ -77,6 +77,9 @@ const PayrollBulkImportPage: React.FC = () => {
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
   const [loadingPeriods, setLoadingPeriods] = useState<boolean>(false);
   
+  // 添加薪资周期数据统计状态
+  const [periodDataStats, setPeriodDataStats] = useState<Record<number, { count: number; loading: boolean }>>({});
+  
   // 添加组件定义状态
   const [componentDefinitions, setComponentDefinitions] = useState<PayrollComponentDefinition[]>([]);
   const [loadingComponents, setLoadingComponents] = useState<boolean>(false);
@@ -97,12 +100,12 @@ const PayrollBulkImportPage: React.FC = () => {
       { key: 'remarks', label: t('batch_import.fields.remarks'), required: false },
     ];
     
-    // 动态添加收入字段 - 使用工具函数判断类型
+    // 动态添加收入字段 - 使用工具函数判断类型，包含STAT类型的统计字段
     const earningFields = componentDefinitions
-      .filter(comp => isEarningComponentType(comp.type))
+      .filter(comp => isEarningComponentType(comp.type) || comp.type === 'STAT')
       .map(comp => ({
         key: `earnings_details.${comp.code}.amount`,
-        label: comp.name,
+        label: comp.name + (comp.type === 'STAT' ? ' (统计)' : ''),
         required: false
       }));
     
@@ -176,9 +179,9 @@ const PayrollBulkImportPage: React.FC = () => {
       [t('batch_import.mapping.description')]: 'remarks',
     };
     
-    // 动态添加收入项映射规则
+    // 动态添加收入项映射规则（包含STAT统计字段）
     componentDefinitions
-      .filter(comp => isEarningComponentType(comp.type))
+      .filter(comp => isEarningComponentType(comp.type) || comp.type === 'STAT')
       .forEach(comp => {
         // 使用组件code作为映射目标
         mappingRules[comp.name] = `earnings_details.${comp.code}.amount`;
@@ -278,7 +281,6 @@ const PayrollBulkImportPage: React.FC = () => {
       '基础绩效': 'earnings_details.BASIC_PERFORMANCE.amount',
       '津贴': 'earnings_details.GENERAL_ALLOWANCE.amount',
       '季度绩效考核薪酬': 'earnings_details.QUARTERLY_PERFORMANCE_ASSESSMENT.amount',
-      '固定薪酬全年应发数': 'earnings_details.ANNUAL_FIXED_SALARY_TOTAL.amount',
       
       // 扣除调整项 - 聘用人员特有
       '一次性补扣发': 'deductions_details.ONE_TIME_DEDUCTION_ADJUSTMENT.amount',
@@ -286,6 +288,10 @@ const PayrollBulkImportPage: React.FC = () => {
       '奖励绩效补扣发': 'deductions_details.REWARD_PERFORMANCE_DEDUCTION_ADJUSTMENT.amount',
       '补扣（退）款': 'deductions_details.REFUND_DEDUCTION_ADJUSTMENT.amount',
       '补扣2022年医保款': 'deductions_details.MEDICAL_2022_DEDUCTION_ADJUSTMENT.amount',
+      
+      // 统计字段 - 不参与收入计算，但需要存储
+      '固定薪酬全年应发数': 'earnings_details.ANNUAL_FIXED_SALARY_TOTAL.amount',
+      '1季度绩效考核薪酬': 'earnings_details.QUARTERLY_PERFORMANCE_Q1.amount',
       
       // 标识类字段 - 聘用人员特有（这些字段会被忽略，不参与计算）
       '工资统发': '__IGNORE_FIELD__', // 忽略标识字段
@@ -319,7 +325,8 @@ const PayrollBulkImportPage: React.FC = () => {
   const getComponentName = (key: string, type: 'earnings' | 'deductions'): string => {
     const filteredComponents = componentDefinitions.filter(comp => {
       if (type === 'earnings') {
-        return isEarningComponentType(comp.type) && comp.code === key;
+        // 对于收入类型，包含真正的收入项和统计字段
+        return (isEarningComponentType(comp.type) || comp.type === 'STAT') && comp.code === key;
       } else {
         return isDeductionComponentType(comp.type) && comp.code === key;
       }
@@ -331,6 +338,83 @@ const PayrollBulkImportPage: React.FC = () => {
     return key; // 如果找不到匹配的组件，返回原始key
   };
   
+  // 获取薪资周期数据统计的函数 - 使用PayrollRun的total_employees字段
+  const fetchPeriodDataStats = async (periodIds: number[]) => {
+    console.log('🔍 开始获取薪资周期数据统计...');
+    
+    // 初始化加载状态
+    const initialStats: Record<number, { count: number; loading: boolean }> = {};
+    periodIds.forEach(id => {
+      initialStats[id] = { count: 0, loading: true };
+    });
+    setPeriodDataStats(initialStats);
+    
+    // 并发获取所有周期的数据统计
+    const statsPromises = periodIds.map(async (periodId) => {
+      try {
+        console.log(`📊 获取周期 ${periodId} 的数据统计...`);
+        
+        // 获取该周期下的所有payroll_run（后端已经计算好total_employees）
+        const runsResponse = await payrollApi.getPayrollRuns({
+          period_id: periodId,
+          size: 100 // 获取该周期下的所有run
+        });
+        
+        let totalCount = 0;
+        
+        // 如果有payroll_run，直接使用后端计算好的total_employees字段
+        if (runsResponse.data && runsResponse.data.length > 0) {
+          // 直接累加所有run的total_employees（这是最简单快速的方法）
+          // 注意：这可能会重复计算同一员工在多个run中的情况，但通常一个周期只有一个run
+          totalCount = runsResponse.data.reduce((sum, run) => {
+            return sum + (run.total_employees || 0);
+          }, 0);
+          
+          console.log(`📊 周期 ${periodId} 的run列表:`, runsResponse.data.map(run => ({
+            id: run.id,
+            total_employees: run.total_employees,
+            run_date: run.run_date
+          })));
+          console.log(`📊 周期 ${periodId} 累计员工数: ${totalCount}`);
+          
+          // 如果该周期有多个run，我们需要去重统计（但这种情况很少见）
+          if (runsResponse.data.length > 1) {
+            console.log(`⚠️ 周期 ${periodId} 有多个run，可能存在员工重复计算`);
+            // 如果真的需要精确去重，可以在这里添加去重逻辑
+            // 但为了性能，我们暂时使用简单累加
+          }
+        }
+        
+        console.log(`📊 周期 ${periodId} 有 ${totalCount} 个员工的薪资记录`);
+        return { periodId, count: totalCount };
+      } catch (error) {
+        console.error(`❌ 获取周期 ${periodId} 数据统计失败:`, error);
+        return { periodId, count: 0 };
+      }
+    });
+    
+    try {
+      const results = await Promise.all(statsPromises);
+      
+      // 更新统计数据
+      const newStats: Record<number, { count: number; loading: boolean }> = {};
+      results.forEach(({ periodId, count }) => {
+        newStats[periodId] = { count, loading: false };
+      });
+      
+      setPeriodDataStats(newStats);
+      console.log('✅ 薪资周期数据统计获取完成:', newStats);
+    } catch (error) {
+      console.error('❌ 获取薪资周期数据统计失败:', error);
+      // 设置所有为非加载状态
+      const errorStats: Record<number, { count: number; loading: boolean }> = {};
+      periodIds.forEach(id => {
+        errorStats[id] = { count: 0, loading: false };
+      });
+      setPeriodDataStats(errorStats);
+    }
+  };
+
   // 加载薪资周期数据
   useEffect(() => {
     const fetchPayrollPeriods = async () => {
@@ -384,6 +468,12 @@ const PayrollBulkImportPage: React.FC = () => {
         // 记录获取到的总数
         console.log(`✅ 成功加载${sortedPeriods.length}个薪资周期，总共${response.meta?.total || 0}个`);
         console.log('📅 薪资周期列表:', sortedPeriods.map(p => `${p.name} (${p.status_lookup?.name || 'Unknown'})`));
+        
+        // 获取每个周期的数据统计
+        if (sortedPeriods.length > 0) {
+          const periodIds = sortedPeriods.map(p => p.id);
+          fetchPeriodDataStats(periodIds);
+        }
         
         // 详细检查所有周期的数据结构
         console.log('🔍 详细检查所有薪资周期的数据结构:');
@@ -710,10 +800,13 @@ const PayrollBulkImportPage: React.FC = () => {
     let totalEarnings = 0;
     let totalDeductions = 0;
     
-    // 计算总收入
-    Object.values(record.earnings_details).forEach((item: any) => {
+    // 计算总收入（排除统计字段）
+    Object.entries(record.earnings_details).forEach(([key, item]: [string, any]) => {
       if (item && typeof item.amount === 'number') {
-        totalEarnings += item.amount;
+        // 排除统计字段，不计入收入总和
+        if (key !== 'ANNUAL_FIXED_SALARY_TOTAL' && key !== 'QUARTERLY_PERFORMANCE_Q1') {
+          totalEarnings += item.amount;
+        }
       }
     });
     
@@ -908,7 +1001,7 @@ const PayrollBulkImportPage: React.FC = () => {
     if (!record.earnings_details || Object.keys(record.earnings_details).length === 0) {
       errors.push(t('batch_import.validation.earnings_required'));
     } else {
-      // 验证收入项总和是否与gross_pay匹配
+      // 验证收入项总和是否与gross_pay匹配（排除统计字段）
       let earningsSum = 0;
       const earningsBreakdown: string[] = [];
       
@@ -916,8 +1009,13 @@ const PayrollBulkImportPage: React.FC = () => {
         if (typeof item.amount !== 'number' || isNaN(item.amount)) {
           errors.push(t('batch_import.validation.invalid_amount', { record: recordDescription, field: 'earnings_details' }));
         } else {
-          earningsSum += item.amount;
-          earningsBreakdown.push(`${key}: ${item.amount}`);
+          // 排除统计字段，不计入收入总和验证
+          if (key !== 'ANNUAL_FIXED_SALARY_TOTAL' && key !== 'QUARTERLY_PERFORMANCE_Q1') {
+            earningsSum += item.amount;
+            earningsBreakdown.push(`${key}: ${item.amount}`);
+          } else {
+            earningsBreakdown.push(`${key}: ${item.amount} (统计字段，不计入总和)`);
+          }
         }
       });
       
@@ -1191,8 +1289,17 @@ const PayrollBulkImportPage: React.FC = () => {
       
       let extractedErrorMessage = t('common:error.unknown');
       let detailedErrorMessage = '';
+      let isDuplicateError = false;
       
-      if (error.response?.data?.detail) {
+      // 检查是否是重复记录错误
+      const errorString = JSON.stringify(error.response?.data || error.message || error);
+      if (errorString.includes('duplicate key value violates unique constraint') || 
+          errorString.includes('uq_payroll_entries_employee_period_run') ||
+          errorString.includes('already exists')) {
+        isDuplicateError = true;
+        extractedErrorMessage = '检测到重复的薪资记录';
+        detailedErrorMessage = '部分员工在当前薪资周期中已存在薪资记录。请启用覆盖模式以更新现有记录。';
+      } else if (error.response?.data?.detail) {
         if (typeof error.response.data.detail === 'string') {
           extractedErrorMessage = error.response.data.detail;
           detailedErrorMessage = error.response.data.detail;
@@ -1213,14 +1320,34 @@ const PayrollBulkImportPage: React.FC = () => {
         detailedErrorMessage = String(error.message);
       }
 
-      message.error(`${t('batch_import.message.upload_failed_prefix')} ${extractedErrorMessage}`);
+      // 显示不同类型的错误消息
+      if (isDuplicateError) {
+        message.error({
+          content: (
+            <div>
+              <div style={{ marginBottom: 8 }}>
+                <strong>❌ 导入失败：检测到重复记录</strong>
+              </div>
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                部分员工在当前薪资周期中已存在记录
+              </div>
+              <div style={{ fontSize: '12px', color: '#1890ff', marginTop: 4 }}>
+                💡 解决方案：在JSON输入页面启用"覆盖模式"开关
+              </div>
+            </div>
+          ),
+          duration: 8
+        });
+      } else {
+        message.error(`${t('batch_import.message.upload_failed_prefix')} ${extractedErrorMessage}`);
+      }
       
       setUploadResult({
         successCount: 0,
         errorCount: validRecords.length,
         errors: validRecords.map(record => ({ 
             record,
-            error: extractedErrorMessage 
+            error: isDuplicateError ? '该员工在当前薪资周期已存在记录，请启用覆盖模式' : extractedErrorMessage 
         })),
         createdEntries: [] 
       });
@@ -1357,7 +1484,23 @@ const PayrollBulkImportPage: React.FC = () => {
       key: 'error',
       render: (error: any) => {
         if (error === null || error === undefined) return '-';
-        return typeof error === 'object' ? JSON.stringify(error) : String(error);
+        const errorText = typeof error === 'object' ? JSON.stringify(error) : String(error);
+        
+        // 检查是否是重复记录错误
+        if (errorText.includes('已存在记录') || errorText.includes('覆盖模式') || errorText.includes('duplicate')) {
+          return (
+            <div>
+              <div style={{ color: '#ff4d4f', marginBottom: 4 }}>
+                🔄 {errorText}
+              </div>
+              <div style={{ fontSize: '12px', color: '#1890ff' }}>
+                💡 解决方案：返回第一步，在JSON输入页面启用"覆盖模式"开关
+              </div>
+            </div>
+          );
+        }
+        
+        return errorText;
       }
     },
   ];
@@ -1416,6 +1559,41 @@ const PayrollBulkImportPage: React.FC = () => {
       >
         {uploadResult.errors.length > 0 && (
           <div style={{ marginTop: 24 }}>
+            {/* 检查是否有重复记录错误，显示特殊提示 */}
+            {uploadResult.errors.some(err => 
+              String(err.error).includes('已存在记录') || 
+              String(err.error).includes('覆盖模式') || 
+              String(err.error).includes('duplicate')
+            ) && (
+              <Alert
+                message="检测到重复记录"
+                description={
+                  <div>
+                    <p>部分员工在当前薪资周期中已存在薪资记录。</p>
+                    <p><strong>解决方案：</strong></p>
+                    <ol style={{ marginLeft: 16, marginBottom: 0 }}>
+                      <li>点击下方"重新导入"按钮返回第一步</li>
+                      <li>在"JSON输入"标签页中找到"覆盖模式"开关</li>
+                      <li>启用覆盖模式开关</li>
+                      <li>重新执行导入操作</li>
+                    </ol>
+                  </div>
+                }
+                type="warning"
+                showIcon
+                style={{ marginBottom: 16 }}
+                action={
+                  <Button 
+                    size="small" 
+                    type="primary" 
+                    onClick={handleStartAgain}
+                  >
+                    重新导入
+                  </Button>
+                }
+              />
+            )}
+            
             <Button 
               type="link" 
               onClick={() => setShowDetailedErrors(!showDetailedErrors)}
@@ -1530,6 +1708,12 @@ const PayrollBulkImportPage: React.FC = () => {
                       <Tag color="gray" style={{ margin: '0 4px', fontSize: '11px' }}>已归档</Tag>
                       状态的周期都可以导入数据。
                     </div>
+                    <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
+                      📊 员工统计：
+                      <span style={{ color: '#52c41a', margin: '0 4px' }}>🗄️ 有员工</span>
+                      <span style={{ color: '#8c8c8c', margin: '0 4px' }}>📝 无员工</span>
+                      <span style={{ color: '#1890ff', margin: '0 4px' }}>⏳ 统计中</span>
+                    </div>
                   </div>
                 }
                 required
@@ -1555,39 +1739,72 @@ const PayrollBulkImportPage: React.FC = () => {
                   }}
                 >
                   {payrollPeriods.map(period => {
-                    // 获取状态信息 - 添加详细调试日志
-                    console.log(`🔍 渲染薪资周期选项: ${period.name}`);
-                    console.log('  - period对象:', JSON.stringify(period, null, 2));
-                    console.log('  - status_lookup_value_id:', period.status_lookup_value_id);
-                    console.log('  - status_lookup存在:', !!period.status_lookup);
-                    console.log('  - status_lookup内容:', period.status_lookup);
-                    
+                    // 获取状态信息
                     const statusCode = period.status_lookup?.code;
                     const statusName = period.status_lookup?.name;
-                    
-                    console.log('  - 提取的statusCode:', statusCode);
-                    console.log('  - 提取的statusName:', statusName);
-                    console.log('  - statusCode类型:', typeof statusCode);
-                    console.log('  - statusName类型:', typeof statusName);
                     
                     const statusColor = 
                       statusCode === 'ACTIVE' || statusCode === 'PLANNED' ? 'green' :
                       statusCode === 'CLOSED' ? 'blue' : 
                       statusCode === 'ARCHIVED' ? 'gray' : 'gold';
                     
-                    console.log('  - 计算的statusColor:', statusColor);
-                    console.log('  - 最终显示的状态名:', statusName || '未知状态');
-                    console.log('  ---');
+                    // 获取数据统计信息
+                    const dataStats = periodDataStats[period.id];
+                    const isLoadingStats = dataStats?.loading ?? true;
+                    const recordCount = dataStats?.count ?? 0;
+                    
+                    // 确定数据状态图标和颜色
+                    let dataIcon;
+                    let dataColor;
+                    let dataText;
+                    
+                    if (isLoadingStats) {
+                      dataIcon = <LoadingOutlined style={{ fontSize: '12px' }} />;
+                      dataColor = '#1890ff';
+                      dataText = '统计中...';
+                    } else if (recordCount > 0) {
+                      dataIcon = <DatabaseOutlined style={{ fontSize: '12px' }} />;
+                      dataColor = '#52c41a';
+                      dataText = `${recordCount}人`;
+                    } else {
+                      dataIcon = <FileAddOutlined style={{ fontSize: '12px' }} />;
+                      dataColor = '#8c8c8c';
+                      dataText = '无数据';
+                    }
                     
                     return (
                       <Option key={period.id} value={period.id}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>
-                            {period.name} ({period.start_date} ~ {period.end_date})
-                          </span>
-                          <Tag color={statusColor} style={{ marginLeft: 8 }}>
-                            {statusName || '未知状态'}
-                          </Tag>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: '400px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                            <span style={{ 
+                              color: recordCount > 0 ? '#52c41a' : '#8c8c8c',
+                              fontWeight: recordCount > 0 ? '500' : 'normal'
+                            }}>
+                              {period.name}
+                            </span>
+                            <span style={{ 
+                              color: '#666', 
+                              fontSize: '12px', 
+                              marginLeft: 8 
+                            }}>
+                              ({period.start_date} ~ {period.end_date})
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 4,
+                              color: dataColor,
+                              fontSize: '12px'
+                            }}>
+                              {dataIcon}
+                              <span>{dataText}</span>
+                            </div>
+                            <Tag color={statusColor} style={{ margin: 0, fontSize: '11px' }}>
+                              {statusName || '未知状态'}
+                            </Tag>
+                          </div>
                         </div>
                       </Option>
                     );
@@ -1636,12 +1853,39 @@ const PayrollBulkImportPage: React.FC = () => {
                         />
                         
                         <Form.Item 
-                          label={t('batch_import.label.overwrite_mode')} 
-                          help={t('batch_import.help.overwrite_mode')}
+                          label={
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span>{t('batch_import.label.overwrite_mode')}</span>
+                              {!overwriteMode && (
+                                <Tag color="orange" style={{ fontSize: '11px' }}>
+                                  💡 重复记录时需要启用
+                                </Tag>
+                              )}
+                            </div>
+                          }
+                          help={
+                            <div>
+                              <div>{t('batch_import.help.overwrite_mode')}</div>
+                              <div style={{ marginTop: 4, fontSize: '12px', color: '#ff7a00' }}>
+                                ⚠️ 如果遇到"重复记录"错误，请启用此开关以覆盖现有数据
+                              </div>
+                            </div>
+                          }
                           valuePropName="checked"
-                          style={{ marginTop: 16 }}
+                          style={{ 
+                            marginTop: 16,
+                            padding: overwriteMode ? '12px' : '12px',
+                            border: overwriteMode ? '2px solid #52c41a' : '1px solid #d9d9d9',
+                            borderRadius: '6px',
+                            backgroundColor: overwriteMode ? '#f6ffed' : '#fafafa'
+                          }}
                         >
-                          <Switch checked={overwriteMode} onChange={setOverwriteMode} />
+                          <Switch 
+                            checked={overwriteMode} 
+                            onChange={setOverwriteMode}
+                            checkedChildren="已启用"
+                            unCheckedChildren="已关闭"
+                          />
                         </Form.Item>
 
                         <Form.Item>

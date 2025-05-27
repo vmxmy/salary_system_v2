@@ -434,7 +434,7 @@ def create_payroll_entry(db: Session, payroll_entry_data: PayrollEntryCreate) ->
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
     earning_query = select(PayrollComponentDefinition).where(
-        PayrollComponentDefinition.type == 'EARNING',
+        PayrollComponentDefinition.type.in_(['EARNING', 'STAT']),
         PayrollComponentDefinition.is_active == True
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
@@ -513,7 +513,7 @@ def update_payroll_entry(db: Session, entry_id: int, payroll_entry_data: Payroll
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
     earning_query = select(PayrollComponentDefinition).where(
-        PayrollComponentDefinition.type == 'EARNING',
+        PayrollComponentDefinition.type.in_(['EARNING', 'STAT']),
         PayrollComponentDefinition.is_active == True
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
@@ -576,7 +576,7 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
     earning_query = select(PayrollComponentDefinition).where(
-        PayrollComponentDefinition.type == 'EARNING',
+        PayrollComponentDefinition.type.in_(['EARNING', 'STAT']),
         PayrollComponentDefinition.is_active == True
     ).order_by(PayrollComponentDefinition.display_order.asc())
     

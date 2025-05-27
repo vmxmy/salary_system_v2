@@ -14,7 +14,7 @@ import {
   Select,
   Tooltip
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, DatabaseOutlined, FileAddOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { format } from 'date-fns';
@@ -28,7 +28,9 @@ import {
   getPayrollPeriods, 
   createPayrollPeriod, 
   updatePayrollPeriod, 
-  deletePayrollPeriod
+  deletePayrollPeriod,
+  getPayrollRuns,
+  getPayrollEntries
 } from '../services/payrollApi';
 import PayrollPeriodForm, { type PayrollPeriodFormData } from '../components/PayrollPeriodForm';
 import PermissionGuard from '../../../components/common/PermissionGuard';
@@ -66,10 +68,90 @@ const PayrollPeriodsPage: React.FC = () => {
   // 状态选项状态
   const [statusOptions, setStatusOptions] = useState<DynamicStatusOption[]>([]);
   
+  // 添加薪资周期数据统计状态
+  const [periodDataStats, setPeriodDataStats] = useState<Record<number, { count: number; loading: boolean }>>({});
+  
   // 获取状态显示信息的异步函数
   const getStatusDisplayForPage = useCallback(async (statusId?: number) => {
     const statusInfo = await getPayrollPeriodStatusInfo(statusId);
     return { text: statusInfo.name, color: statusInfo.color };
+  }, []);
+
+  // 获取薪资周期数据统计的函数 - 使用PayrollRun的total_employees字段
+  const fetchPeriodDataStats = useCallback(async (periodIds: number[]) => {
+    console.log('🔍 开始获取薪资周期数据统计...');
+    
+    // 初始化加载状态
+    const initialStats: Record<number, { count: number; loading: boolean }> = {};
+    periodIds.forEach(id => {
+      initialStats[id] = { count: 0, loading: true };
+    });
+    setPeriodDataStats(initialStats);
+    
+    // 并发获取所有周期的数据统计
+    const statsPromises = periodIds.map(async (periodId) => {
+      try {
+        console.log(`📊 获取周期 ${periodId} 的数据统计...`);
+        
+        // 获取该周期下的所有payroll_run（后端已经计算好total_employees）
+        const runsResponse = await getPayrollRuns({
+          period_id: periodId,
+          size: 100 // 获取该周期下的所有run
+        });
+        
+        let totalCount = 0;
+        
+        // 如果有payroll_run，直接使用后端计算好的total_employees字段
+        if (runsResponse.data && runsResponse.data.length > 0) {
+          // 直接累加所有run的total_employees（这是最简单快速的方法）
+          // 注意：这可能会重复计算同一员工在多个run中的情况，但通常一个周期只有一个run
+          totalCount = runsResponse.data.reduce((sum, run) => {
+            return sum + (run.total_employees || 0);
+          }, 0);
+          
+          console.log(`📊 周期 ${periodId} 的run列表:`, runsResponse.data.map(run => ({
+            id: run.id,
+            total_employees: run.total_employees,
+            run_date: run.run_date
+          })));
+          console.log(`📊 周期 ${periodId} 累计员工数: ${totalCount}`);
+          
+          // 如果该周期有多个run，我们需要去重统计（但这种情况很少见）
+          if (runsResponse.data.length > 1) {
+            console.log(`⚠️ 周期 ${periodId} 有多个run，可能存在员工重复计算`);
+            // 如果真的需要精确去重，可以在这里添加去重逻辑
+            // 但为了性能，我们暂时使用简单累加
+          }
+        }
+        
+        console.log(`📊 周期 ${periodId} 有 ${totalCount} 个员工的薪资记录`);
+        return { periodId, count: totalCount };
+      } catch (error) {
+        console.error(`❌ 获取周期 ${periodId} 数据统计失败:`, error);
+        return { periodId, count: 0 };
+      }
+    });
+    
+    try {
+      const results = await Promise.all(statsPromises);
+      
+      // 更新统计数据
+      const newStats: Record<number, { count: number; loading: boolean }> = {};
+      results.forEach(({ periodId, count }) => {
+        newStats[periodId] = { count, loading: false };
+      });
+      
+      setPeriodDataStats(newStats);
+      console.log('✅ 薪资周期数据统计获取完成:', newStats);
+    } catch (error) {
+      console.error('❌ 获取薪资周期数据统计失败:', error);
+      // 设置所有为非加载状态
+      const errorStats: Record<number, { count: number; loading: boolean }> = {};
+      periodIds.forEach(id => {
+        errorStats[id] = { count: 0, loading: false };
+      });
+      setPeriodDataStats(errorStats);
+    }
   }, []);
 
   const memoizedInitialValues = React.useMemo(() => {
@@ -95,6 +177,12 @@ const PayrollPeriodsPage: React.FC = () => {
       console.log(`[PayrollPeriodsPage:fetchPeriods] Success. Received ${response.data.length} periods. Meta:`, response.meta);
       setPeriods(response.data);
       setMeta(response.meta);
+      
+      // 获取每个周期的数据统计
+      if (response.data.length > 0) {
+        const periodIds = response.data.map(p => p.id);
+        fetchPeriodDataStats(periodIds);
+      }
     } catch (err: any) {
       console.error(`[PayrollPeriodsPage:fetchPeriods] Error fetching periods (page: ${page}):`, err.message, err.response?.data);
       setError(err.message || t('periods_page.error_fetch_periods'));
@@ -103,7 +191,7 @@ const PayrollPeriodsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, fetchPeriodDataStats]);
 
   useEffect(() => {
     console.log('[PayrollPeriodsPage:useEffect-fetchPeriods] Triggered. Calling fetchPeriods().');
@@ -318,6 +406,51 @@ const PayrollPeriodsPage: React.FC = () => {
         const statusText = status ? status.name : `未知状态(${record.status_lookup_value_id})`;
         const statusColor = status ? status.color : 'default';
         return <Tag color={statusColor}>{statusText}</Tag>;
+      },
+      search: false,
+    },
+    {
+      title: '员工人数',
+      dataIndex: 'data_stats',
+      key: 'data_stats',
+      width: 120,
+      align: 'center',
+      valueType: 'text',
+      render: (_, record) => {
+        // 获取数据统计信息
+        const dataStats = periodDataStats[record.id];
+        const isLoadingStats = dataStats?.loading ?? true;
+        const recordCount = dataStats?.count ?? 0;
+        
+        // 确定数据状态图标和颜色
+        if (isLoadingStats) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <LoadingOutlined style={{ fontSize: '12px', color: '#1890ff' }} />
+              <span style={{ fontSize: '12px', color: '#1890ff' }}>统计中</span>
+            </div>
+          );
+        } else if (recordCount > 0) {
+          return (
+            <Tooltip title={`该薪资周期共有 ${recordCount} 个员工的薪资记录`}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <DatabaseOutlined style={{ fontSize: '14px', color: '#52c41a' }} />
+                <span style={{ fontSize: '12px', color: '#52c41a', fontWeight: '500' }}>
+                  {recordCount}人
+                </span>
+              </div>
+            </Tooltip>
+          );
+        } else {
+          return (
+            <Tooltip title="该薪资周期暂无员工薪资记录">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <FileAddOutlined style={{ fontSize: '14px', color: '#8c8c8c' }} />
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>无数据</span>
+              </div>
+            </Tooltip>
+          );
+        }
       },
       search: false,
     },

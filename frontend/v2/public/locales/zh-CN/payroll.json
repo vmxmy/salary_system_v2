@@ -638,7 +638,7 @@
       "upload": "上传文件",
       "mapping": "字段映射",
       "preview": "预览数据",
-      "preview_data_count": "预览数据 ({count} 条)"
+      "preview_data_count": "预览数据 ({{count}} 条)"
     },
     "button": {
       "upload": "上传",
@@ -686,33 +686,33 @@
       "batch_has_errors": "批次数据中存在验证错误。"
     },
     "message": {
-      "upload_success": "成功上传 {count} 条记录",
+      "upload_success": "成功上传 {{count}} 条记录",
       "upload_failed": "批量上传失败",
       "upload_failed_prefix": "批量上传失败: ",
-      "upload_failed_with_errors": "上传失败，发现 {count} 个错误",
+      "upload_failed_with_errors": "上传失败，发现 {{count}} 个错误",
       "upload_failed_with_details": "上传失败，详细信息请查看错误列表",
-      "upload_partial_success": "部分上传成功：成功 {success} 条，失败 {error} 条",
+      "upload_partial_success": "部分上传成功：成功 {{success}} 条，失败 {{error}} 条",
       "upload_in_progress": "正在上传数据，请稍候...",
       "mapping_success": "字段映射完成，请预览数据。",
       "mapping_failed": "字段映射失败，请检查。",
       "import_success": "数据导入成功。",
       "import_failed": "数据导入失败，请检查。",
-      "import_failed_message": "数据导入失败: {message}",
+      "import_failed_message": "数据导入失败: {{message}}",
       "import_confirm": "确定要导入数据吗？",
       "import_confirm_title": "确认导入",
-      "import_confirm_content": "您即将导入 {count} 条记录，其中 {validCount} 条有效，{invalidCount} 条无效。确定继续吗？",
+      "import_confirm_content": "您即将导入 {{count}} 条记录，其中 {{validCount}} 条有效，{{invalidCount}} 条无效。确定继续吗？",
       "import_confirm_ok": "确认导入",
       "import_confirm_cancel": "取消",
       "download_template_success": "模板下载成功。",
       "download_template_failed": "模板下载失败，请重试。",
-      "file_parsed_success": "文件解析成功，共 {count} 条记录",
+      "file_parsed_success": "文件解析成功，共 {{count}} 条记录",
       "file_parse_error": "文件解析失败",
-      "table_converted_success": "表格数据已成功转换，共 {count} 条记录",
+      "table_converted_success": "表格数据已成功转换，共 {{count}} 条记录",
       "use_table_converter_first": "请先在表格转换器中完成数据转换"
     },
     "tab": {
-      "valid_records": "有效记录 ({count})",
-      "invalid_records": "无效记录 ({count})",
+      "valid_records": "有效记录 ({{count}})",
+      "invalid_records": "无效记录 ({{count}})",
       "table_input": "表格粘贴导入",
       "json_input": "JSON格式导入"
     },
@@ -744,12 +744,12 @@
     },
     "results": {
       "title": "导入结果",
-      "total_records": "总记录数: {total}",
-      "valid_records": "有效记录: {valid}",
-      "invalid_records": "无效记录: {invalid}",
-      "all_success": "全部成功！共导入 {count} 条记录",
-      "partial_success": "部分成功：成功 {success} 条，失败 {error} 条",
-      "all_failed_at_server": "服务器处理失败，共 {count} 条记录未能导入",
+      "total_records": "总记录数: {{total}}",
+      "valid_records": "有效记录: {{valid}}",
+      "invalid_records": "无效记录: {{invalid}}",
+      "all_success": "全部成功！共导入 {{count}} 条记录",
+      "partial_success": "部分成功：成功 {{success}} 条，失败 {{error}} 条",
+      "all_failed_at_server": "服务器处理失败，共 {{count}} 条记录未能导入",
       "no_records_processed_at_server": "服务器未处理任何记录"
     },
     "button": {
@@ -811,7 +811,7 @@
     "use_json": "使用此JSON",
     "json_parse_error": "JSON解析错误，无法使用结果",
     "ignore_field": "忽略此字段",
-    "convert_success": "成功转换{count}条记录"
+    "convert_success": "成功转换{{count}}条记录"
   },
   "components": {
     "earnings": {

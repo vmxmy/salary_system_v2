@@ -242,10 +242,14 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
     const newMappings = [...fieldMappings];
     const selectedApiField = defaultApiFields.find(f => f.key === apiField);
     
+    // 检查是否选择了忽略字段
+    const isIgnored = apiField === '' || apiField === '__IGNORE_FIELD__';
+    
     newMappings[index] = {
       ...newMappings[index],
-      apiField,
-      required: selectedApiField?.required || false
+      apiField: isIgnored ? '' : apiField,
+      required: selectedApiField?.required || false,
+      isIgnored: isIgnored
     };
     
     setFieldMappings(newMappings);
@@ -524,7 +528,10 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                     
                     return (
                       <Select
-                        style={{ width: '100%' }}
+                        style={{ 
+                          width: '100%',
+                          backgroundColor: record.apiField === '' ? '#fff7e6' : 'inherit' // 忽略字段使用橙色背景
+                        }}
                         value={record.apiField}
                         onChange={value => updateFieldMapping(record.key, value)}
                         showSearch
@@ -537,7 +544,9 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                         }}
                         placeholder="选择API字段或搜索..."
                       >
-                        <Option value="">忽略此字段</Option>
+                        <Option value="" style={{ backgroundColor: '#fff7e6', color: '#d46b08' }}>
+                          🚫 忽略此字段
+                        </Option>
                         {defaultApiFields.map(field => (
                           <Option key={field.key} value={field.key}>
                             {field.label} {field.required ? '(必填)' : ''} 

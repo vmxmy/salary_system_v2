@@ -13,10 +13,8 @@ export const isEarningComponentType = (type: string): boolean => {
   const lowerType = type.toLowerCase();
   return lowerType === 'earning' || 
          lowerType.includes('earning') || 
-         lowerType === 'benefit' || 
-         (lowerType === 'stat' && 
-          !lowerType.includes('deduction') && 
-          !lowerType.includes('tax'));
+         lowerType === 'benefit';
+  // 移除 STAT 类型的判断，因为 STAT 类型应该是统计字段，不是收入项
 };
 
 /**
