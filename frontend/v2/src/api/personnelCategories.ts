@@ -109,3 +109,19 @@ export const getAllPersonnelCategoriesFlat = async (): Promise<PersonnelCategory
   console.log('getAllPersonnelCategoriesFlat result:', allPersonnelCategories);
   return allPersonnelCategories;
 };
+
+/**
+ * Get personnel categories tree structure.
+ * Fetches all personnel categories in a hierarchical tree structure.
+ * @param is_active Optional filter for active/inactive categories
+ */
+export const getPersonnelCategoriesTree = async (is_active?: boolean): Promise<{data: PersonnelCategory[]}> => {
+  const queryParams = new URLSearchParams();
+  if (is_active !== undefined) {
+    queryParams.append('is_active', String(is_active));
+  }
+  
+  const queryString = queryParams.toString();
+  const response = await apiClient.get<{data: PersonnelCategory[]}>(`/personnel-categories/tree${queryString ? `?${queryString}` : ''}`);
+  return response.data;
+};

@@ -165,7 +165,7 @@ export interface Employee {
   // New fields based on discussion
   interrupted_service_years?: number | null; // Added: '工龄间断年限'
   personnel_category_id?: number | null; // Modified: Made optional/nullable, matches CreateEmployeePayload
-  personnel_category_name?: string; 
+  personnelCategoryName?: string; // Standardized to camelCase to match backend computed field
 
   // Sub-module arrays as per API schema
   job_history_records?: JobHistoryItem[];

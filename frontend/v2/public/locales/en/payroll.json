@@ -257,13 +257,16 @@
   "entries_table": {
     "error_fetch": "Unable to fetch payroll entry data",
     "message": {
-      "view_details_todo": "View payroll entry details for employee {employeeIdentifier} (ID: {entryId}) - Functionality to be implemented",
-      "edit_entry_todo": "Edit payroll entry for employee {employeeIdentifier} (ID: {entryId}) - Functionality to be implemented"
+      "view_details_todo": "View payroll entry details for employee {employeeIdentifier} (ID: {entryId}) - Feature to be implemented",
+      "edit_entry_todo": "Edit payroll entry for employee {employeeIdentifier} (ID: {entryId}) - Feature to be implemented"
     },
     "column": {
       "entry_id": "Entry ID",
       "employee_id": "Employee ID",
       "employee_name": "Employee Name",
+      "department": "Department",
+      "personnel_identity": "Personnel Identity",
+      "payroll_period": "Payroll Period",
       "total_earnings": "Total Earnings",
       "total_deductions": "Total Deductions",
       "net_pay": "Net Pay",

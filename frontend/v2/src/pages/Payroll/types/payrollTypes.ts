@@ -76,12 +76,16 @@ export interface PayrollItemDetail {
   // Add other common fields if any, like type, category, etc.
 }
 
+// Import Employee type from HRManagement module
+import type { Employee } from '../../HRManagement/types';
+
 // Corresponds to the PayrollEntry Pydantic model/database table
 export interface PayrollEntry {
   id: number;
   payroll_run_id: number;
+  payroll_period_id: number;
   employee_id: number;
-  employee_name?: string; // Denormalized for display, or fetch separately
+  employee?: Employee; // Embed the full Employee object
   gross_pay: number; // 应发工资 - 数据库实际字段
   total_deductions: number;
   net_pay: number;
@@ -93,7 +97,6 @@ export interface PayrollEntry {
   created_at?: string;
   updated_at?: string;
   payroll_run?: PayrollRun; // Optional: if run details are fetched/included
-  // employee?: Employee; // Optional: if employee details are fetched/included
 }
 
 // For PATCH /v2/payroll-entries/{entryId} (e.g., manual adjustments)

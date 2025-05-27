@@ -667,29 +667,29 @@ async def get_payroll_entries(
     - **size**: 每页记录数，最大100
     """
     try:
-        # 计算跳过的记录数
         skip = (page - 1) * size
-
-        # 获取工资明细列表
-        entries, total = crud.get_payroll_entries(
+        
+        entries_orm, total = crud.get_payroll_entries(
             db=db,
+            skip=skip,
+            limit=size,
             period_id=period_id,
             run_id=actual_run_id,
             employee_id=employee_id,
             status_id=status_id,
+            search_term=search,
             include_employee_details=include_employee_details,
-            include_payroll_period=include_payroll_period,
-            search=search,
-            skip=skip,
-            limit=size
+            include_payroll_period=include_payroll_period
         )
 
-        # 计算总页数
-        total_pages = (total + size - 1) // size if total > 0 else 1
+        data = []
+        for entry_orm in entries_orm:
+            entry_pydantic = PayrollEntry.model_validate(entry_orm)
+            data.append(entry_pydantic)
 
-        # 返回标准响应格式
+        total_pages = (total + size - 1) // size if total > 0 else 1
         return {
-            "data": entries,
+            "data": data,
             "meta": {
                 "page": page,
                 "size": size,

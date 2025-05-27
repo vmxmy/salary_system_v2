@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_, select
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import date, datetime
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from ..models.payroll import PayrollPeriod, PayrollRun, PayrollEntry
 from ..pydantic_models.payroll import (
@@ -245,22 +245,17 @@ def delete_payroll_run(db: Session, run_id: int) -> bool:
 def get_payroll_entries(
     db: Session,
     employee_id: Optional[int] = None,
-    period_id: Optional[int] = None,
-    run_id: Optional[int] = None,
-    status_id: Optional[int] = None,
-    search: Optional[str] = None, # For employee name/code search
-    include_employee_details: bool = False, # 新增参数，控制是否关联员工详情
-    include_payroll_period: bool = False, # 新增参数，控制是否关联工资周期信息
+    period_id: Optional[int] = None, 
+    run_id: Optional[int] = None, 
+    status_id: Optional[int] = None, 
+    search_term: Optional[str] = None,
+    include_employee_details: bool = False, 
+    include_payroll_period: bool = False, 
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[PayrollEntry], int]:
     query = db.query(PayrollEntry)
-    
-    # 如果需要包含员工详情，则JOIN Employee表
-    if include_employee_details:
-        query = query.join(Employee, PayrollEntry.employee_id == Employee.id)
-        
-    # 应用过滤条件
+
     if employee_id:
         query = query.filter(PayrollEntry.employee_id == employee_id)
     if period_id:
@@ -270,38 +265,53 @@ def get_payroll_entries(
     if status_id:
         query = query.filter(PayrollEntry.status_lookup_value_id == status_id)
     
-    # 如果提供了搜索关键词且关联了Employee表，添加名称搜索条件
-    if search and include_employee_details:
-        search_term = f"%{search}%"
-        query = query.filter(
+    # Join Employee if searching by name or if details are requested for sorting/filtering before pagination
+    # This join is primarily for filtering/sorting. Eager loading for response fields is separate.
+    if search_term and not search_term.isdigit():
+        query = query.join(PayrollEntry.employee).filter(
             or_(
-                Employee.first_name.ilike(search_term),
-                Employee.last_name.ilike(search_term),
-                Employee.employee_code.ilike(search_term)
+                Employee.first_name.ilike(f"%{search_term}%"), 
+                Employee.last_name.ilike(f"%{search_term}%"),
+                (Employee.first_name + " " + Employee.last_name).ilike(f"%{search_term}%"),
+                (Employee.last_name + " " + Employee.first_name).ilike(f"%{search_term}%"),
+                PayrollEntry.remarks.ilike(f"%{search_term}%") # Keep remarks search
             )
         )
-    
-    # 获取总记录数
+    elif search_term and search_term.isdigit():
+         query = query.filter(PayrollEntry.employee_id == int(search_term))
+
     total = query.count()
     
-    # 排序并应用分页
-    query = query.order_by(PayrollEntry.id.desc()).offset(skip).limit(limit)
-    
-    # 如果需要包含员工详情，使用options加载关联的员工数据，包括员工姓名
+    query = query.order_by(PayrollEntry.id.desc())
+
+    options = []
     if include_employee_details:
-        query = query.options(
-            selectinload(PayrollEntry.employee).load_only(
-                Employee.id, Employee.first_name, Employee.last_name, Employee.employee_code
+        options.append(
+            selectinload(PayrollEntry.employee).options(
+                joinedload(Employee.current_department),
+                selectinload(Employee.personnel_category),
+                selectinload(Employee.actual_position),
+                selectinload(Employee.status), # For Employee.status -> LookupValue
+                selectinload(Employee.gender), # For Employee.gender -> LookupValue
+                selectinload(Employee.job_position_level), # Eager load job_position_level for EmployeeWithNames
+                # Add any other relationships needed for EmployeeWithNames or its base Employee fields
             )
         )
     
-    # 如果需要包含工资周期信息，使用options加载关联的工资周期和运行批次数据
+    # Always load payroll_run, and conditionally its period
     if include_payroll_period:
-        query = query.options(
-            selectinload(PayrollEntry.payroll_run).selectinload(PayrollRun.payroll_period)
-        )
-    
-    return query.all(), total
+        options.append(selectinload(PayrollEntry.payroll_run).selectinload(PayrollRun.payroll_period).selectinload(PayrollPeriod.status_lookup))
+    else:
+        options.append(selectinload(PayrollEntry.payroll_run).selectinload(PayrollRun.status))
+        
+    # Always load entry's own status
+    options.append(selectinload(PayrollEntry.status))
+
+    if options:
+        query = query.options(*options)
+        
+    entries = query.offset(skip).limit(limit).all()
+    return entries, total
 
 def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool = True) -> Optional[PayrollEntry]:
     query = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id)

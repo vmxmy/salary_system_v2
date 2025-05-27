@@ -40,6 +40,7 @@ export const getPayrollPeriods = async (params?: Record<string, any>): Promise<A
     const response = await apiClient.get<ApiListResponse<PayrollPeriod>>(PAYROLL_PERIODS_ENDPOINT, { params });
     console.log('Payroll periods response:', response.status, response.statusText);
     console.log('Payroll periods data count:', response.data.data.length);
+    console.log('[payrollApi.ts] getPayrollPeriods - Full periods received:', JSON.stringify(response.data.data, null, 2));
     return response.data;
   } catch (error: any) {
     console.error('Error fetching payroll periods:', error);
@@ -311,6 +312,20 @@ export const bulkCreatePayrollEntries = async (data: BulkCreatePayrollEntriesPay
     return response.data;
   } catch (error) {
     console.error('Error bulk creating payroll entries:', error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a payroll entry.
+ * @param entryId The ID of the payroll entry to delete.
+ * @returns A promise that resolves when the payroll entry is deleted.
+ */
+export const deletePayrollEntry = async (entryId: number): Promise<void> => {
+  try {
+    await apiClient.delete(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`);
+  } catch (error) {
+    console.error(`Error deleting payroll entry ${entryId}:`, error);
     throw error;
   }
 };

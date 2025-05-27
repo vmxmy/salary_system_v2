@@ -194,9 +194,9 @@ class Employee(EmployeeBase):
     job_position_level: Optional[LookupValue] = Field(None, description="Resolved job position level lookup value")
     
     # Resolved related objects
-    department: Optional["Department"] = Field(None, description="Resolved department object")
-    personnel_category: Optional["PersonnelCategorySchema"] = Field(None, description="Resolved personnel category object")
-    actual_position: Optional["Position"] = Field(None, description="Resolved actual position object")
+    current_department: Optional['DepartmentBase'] = Field(None, description="Resolved department object (base details) from ORM's current_department")
+    personnel_category: Optional['PersonnelCategoryBase'] = Field(None, description="Resolved personnel category object (base details)")
+    actual_position: Optional['PositionBase'] = Field(None, description="Resolved actual position object (base details)")
     
     appraisals: List["EmployeeAppraisal"] = Field(default_factory=list, description="List of employee appraisals")
     job_history: List["EmployeeJobHistory"] = Field(default_factory=list, description="List of employee job history records")
@@ -207,10 +207,33 @@ class Employee(EmployeeBase):
 
 class EmployeeWithNames(Employee):
     """员工响应模型，包含部门和职位名称"""
-    departmentName: Optional[str] = Field(None, description="Current department name")
-    personnelCategoryName: Optional[str] = Field(None, description="Current personnel category name")
-    actualPositionName: Optional[str] = Field(None, description="Current actual position name")
-    jobPositionLevelName: Optional[str] = Field(None, description="Current job position level name")
+    @computed_field
+    @property
+    def actualPositionName(self) -> Optional[str]:
+        if self.actual_position:
+            return self.actual_position.name
+        return None
+
+    @computed_field
+    @property
+    def jobPositionLevelName(self) -> Optional[str]:
+        if self.job_position_level:
+            return self.job_position_level.name # Assuming LookupValue has a .name attribute
+        return None
+
+    @computed_field
+    @property
+    def departmentName(self) -> Optional[str]:
+        if self.current_department:
+            return self.current_department.name
+        return None
+
+    @computed_field
+    @property
+    def personnelCategoryName(self) -> Optional[str]:
+        if self.personnel_category:
+            return self.personnel_category.name
+        return None
 
     class Config:
         from_attributes = True
@@ -233,6 +256,9 @@ class DepartmentBase(BaseModel):
     effective_date: date = Field(..., description="Department definition effective date")
     end_date: Optional[date] = Field(None, description="Department definition end date")
     is_active: bool = Field(True, description="Whether the department is currently active")
+
+    class Config:
+        from_attributes = True
 
 
 class DepartmentCreate(DepartmentBase):
@@ -297,6 +323,9 @@ class PersonnelCategoryBase(BaseModel):
     effective_date: date = Field(..., description="Personnel category definition effective date")
     end_date: Optional[date] = Field(None, description="Personnel category definition end date")
     is_active: bool = Field(True, description="Whether the personnel category is currently in use")
+
+    class Config:
+        from_attributes = True
 
 
 class PersonnelCategoryCreate(PersonnelCategoryBase):
@@ -409,6 +438,9 @@ class PositionBase(BaseModel):
     end_date: Optional[date] = Field(None, description="Position definition end date")
     is_active: bool = Field(True, description="Whether the position is currently in use")
 
+    class Config:
+        from_attributes = True
+
 
 class PositionCreate(PositionBase):
     """创建职务模型"""
@@ -468,12 +500,13 @@ PersonnelCategorySchema.model_rebuild()
 PositionChildrenItem.model_rebuild()
 Position.model_rebuild()
 
+EmployeeAppraisal.model_rebuild()
 Employee.model_rebuild()
 EmployeeJobHistory.model_rebuild()
+EmployeeWithNames.model_rebuild()
 
 # Ensure other models that might use ForwardRef also call model_rebuild()
 # Example for EmployeeAppraisal and LookupValue if they were to use ForwardRef, though they might not need it here.
-EmployeeAppraisal.model_rebuild() # Added for the moved models
 # LookupValue.model_rebuild() # If LookupValue has self-references or forward refs to resolve
 
 # 在文件末尾添加批量创建的响应模型
@@ -494,3 +527,5 @@ class BulkEmployeeCreateResult(BaseModel):
     total_count: int = Field(..., description="总记录数量")
     created_employees: List[Employee] = Field(..., description="成功创建/更新的员工列表")
     failed_records: List[BulkEmployeeFailedRecord] = Field(..., description="失败的记录列表")
+
+BulkEmployeeCreateResult.model_rebuild()

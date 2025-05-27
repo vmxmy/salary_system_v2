@@ -8,6 +8,8 @@ from decimal import Decimal
 
 # 导入LookupValue模型
 from .config import LookupValue
+# 导入 EmployeeWithNames 模型
+from .hr import EmployeeWithNames
 
 # Helper model for detail items in create/update payloads
 class PayrollItemInput(BaseModel):
@@ -178,10 +180,10 @@ class PayrollEntry(PayrollEntryBase):
     """工资明细响应模型"""
     id: int = Field(..., description="Primary key")
     calculated_at: datetime = Field(..., description="Timestamp when this entry was calculated")
-    employee_name: Optional[str] = Field(None, description="Employee full name (last_name + first_name)")
     
     # 添加关联对象
     payroll_run: Optional['PayrollRun'] = Field(None, description="Associated payroll run details")
+    employee: Optional[EmployeeWithNames] = Field(None, description="Associated employee details with names")
     
     # For response, details will include name and amount
     earnings_details: Dict[str, Any] = Field({}, description="JSONB object storing individual earning items with name and amount")

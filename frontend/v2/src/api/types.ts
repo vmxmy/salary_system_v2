@@ -190,6 +190,8 @@ export interface PersonnelCategory {
   effective_date: string;
   end_date?: string | null;
   is_active: boolean;
+  parent_category?: PersonnelCategory | null;
+  child_categories?: PersonnelCategory[];
 }
 
 export interface CreatePersonnelCategoryPayload {
