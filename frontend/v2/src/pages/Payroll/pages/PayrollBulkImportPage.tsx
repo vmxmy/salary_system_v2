@@ -16,7 +16,9 @@ import {
   Spin,
   Form,
   Select,
-  Tag
+  Tag,
+  Row,
+  Col
 } from 'antd';
 import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, PlaySquareOutlined, TableOutlined, DatabaseOutlined, FileAddOutlined, PartitionOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -83,6 +85,7 @@ const PayrollBulkImportPage: React.FC = () => {
   const [validationSummary, setValidationSummary] = useState<ValidationSummary>({ totalRecords: 0, validRecords: 0, invalidRecords: 0 });
   const [activeTab, setActiveTab] = useState<string>('table'); // 默认显示表格输入
   const [overwriteMode, setOverwriteMode] = useState<boolean>(false);
+  const [validationEnabled, setValidationEnabled] = useState<boolean>(true); // 默认启用校验
   const [showDetailedErrors, setShowDetailedErrors] = useState<boolean>(false);
   const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
@@ -932,7 +935,7 @@ const PayrollBulkImportPage: React.FC = () => {
         originalIndex: index, 
       };
       
-      const fieldErrors = validateRecord(typedRecord, index); 
+      const fieldErrors = validationEnabled ? validateRecord(typedRecord, index) : []; 
       
       const validatedRecord: ValidatedPayrollEntryData = {
         ...typedRecord,
@@ -1959,7 +1962,36 @@ const PayrollBulkImportPage: React.FC = () => {
                           </Button>
                         </Form.Item>
 
-
+                        <Row gutter={16} align="middle" style={{ marginTop: '10px', marginBottom: '20px' }}>
+                          <Col>
+                            <Tooltip title={t('batch_import.help.overwrite_mode')}>
+                              <Form.Item 
+                                label={t('batch_import.options.overwrite_mode')} 
+                                valuePropName="checked"
+                                style={{ marginBottom: 0 }}
+                              >
+                                <Switch 
+                                  checked={overwriteMode}
+                                  onChange={setOverwriteMode} 
+                                />
+                              </Form.Item>
+                            </Tooltip>
+                          </Col>
+                          <Col>
+                            <Tooltip title={t('batch_import.help.validation_mode_tooltip')}> 
+                              <Form.Item 
+                                label={t('batch_import.options.validation_mode_label')} 
+                                valuePropName="checked"
+                                style={{ marginBottom: 0 }}
+                              >
+                                <Switch 
+                                  checked={validationEnabled}
+                                  onChange={setValidationEnabled} 
+                                />
+                              </Form.Item>
+                            </Tooltip>
+                          </Col>
+                        </Row>
                       </div>
                     )
                   }

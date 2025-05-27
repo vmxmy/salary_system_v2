@@ -489,10 +489,26 @@
       "overwrite_mode": "Overwrite Mode"
     },
     "help": {
-      "json_input": "Please enter JSON data in the required format",
-      "period_selection": "Select which payroll period to import records into",
-      "overwrite_mode": "When enabled, existing payroll records for employees will be overwritten",
-      "data_format_guidance_intro": "Example data format:"
+      "file_upload": "Supports .xlsx, .xls, .csv files.",
+      "payroll_period": "Select the payroll period to import data into.",
+      "notes": "Any notes regarding this import.",
+      "period_selection": "Please select the payroll period for this import.",
+      "overwrite_mode": "Enabling overwrite mode will replace existing records for the same employee in the same payroll period.",
+      "validation_mode_tooltip": "Choose whether to perform frontend validation on the imported data. Backend services will always perform final validation regardless of this setting."
+    },
+    "options": {
+      "select_period": "Select Payroll Period",
+      "select_period_placeholder": "Search or select a payroll period",
+      "overwrite_mode": "Overwrite Mode",
+      "validation_mode_label": "Enable Validation",
+      "show_detailed_errors": "Show Detailed Errors",
+      "parse_and_preview": "Parse & Preview",
+      "upload_data": "Upload Data",
+      "re_upload": "Re-upload",
+      "start_again": "Start Over",
+      "export_errors": "Export Error Records",
+      "export_all": "Export All with Errors",
+      "export_template": "Download Import Template"
     },
     "validation": {
       "no_data_to_upload": "No data to upload",

@@ -668,7 +668,22 @@
       "payroll_period": "选择要导入数据的工资周期。",
       "notes": "关于此次导入的任何说明。",
       "period_selection": "请选择本次导入数据对应的工资周期。",
-      "overwrite_mode": "启用覆盖模式将会替换已存在的相同员工在同薪资周期的记录。"
+      "overwrite_mode": "启用覆盖模式将会替换已存在的相同员工在同薪资周期的记录。",
+      "validation_mode_tooltip": "选择是否在前端对导入数据进行校验。无论此处如何选择，后端服务始终会执行最终校验。"
+    },
+    "options": {
+      "select_period": "选择工资周期",
+      "select_period_placeholder": "请搜索或选择一个工资周期",
+      "overwrite_mode": "覆盖模式",
+      "validation_mode_label": "启用校验",
+      "show_detailed_errors": "显示详细错误信息",
+      "parse_and_preview": "解析并预览",
+      "upload_data": "上传数据",
+      "re_upload": "重新上传",
+      "start_again": "重新开始",
+      "export_errors": "导出错误记录",
+      "export_all": "导出所有含错误记录",
+      "export_template": "下载导入模板"
     },
     "validation": {
       "file_required": "请选择要上传的文件。",
