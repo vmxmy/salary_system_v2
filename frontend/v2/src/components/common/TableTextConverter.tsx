@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Input, Button, Alert, message, Table, Select, Card } from 'antd';
+import { Input, Button, Alert, message, Select, Card } from 'antd';
 import { useTranslation } from 'react-i18next';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from './EnhancedProTable';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -490,18 +492,19 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       {showMappingInterface && (
         <>
           <Card title="字段映射" style={{ marginTop: 16 }}>
-            <Table
+            <EnhancedProTable<FieldMapping & { key: number }>
               dataSource={fieldMappings.map((m, i) => ({ ...m, key: i }))}
               columns={[
                 {
                   title: '表格字段',
                   dataIndex: 'tableField',
-                  render: (text, record: any) => (
+                  valueType: 'text',
+                  render: (_, record) => (
                     <span style={{ 
                       color: record.isIgnored ? '#999' : 'inherit',
                       textDecoration: record.isIgnored ? 'line-through' : 'none'
                     }}>
-                      {text}
+                      {record.tableField}
                       {record.isIgnored && <span style={{ color: '#ff9500', marginLeft: 8 }}>🚫 已忽略</span>}
                     </span>
                   )
@@ -509,7 +512,8 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                 {
                   title: 'API字段',
                   dataIndex: 'apiField',
-                  render: (text, record: any) => {
+                  valueType: 'select',
+                  render: (_, record) => {
                     if (record.isIgnored) {
                       return (
                         <span style={{ color: '#ff9500', fontWeight: 'bold' }}>
@@ -521,7 +525,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                     return (
                       <Select
                         style={{ width: '100%' }}
-                        value={text}
+                        value={record.apiField}
                         onChange={value => updateFieldMapping(record.key, value)}
                         showSearch
                         optionFilterProp="children"
@@ -549,11 +553,15 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                 },
                 {
                   title: '数据类型',
-                  dataIndex: 'type'
+                  dataIndex: 'type',
+                  valueType: 'text'
                 }
-              ]}
+              ] as ProColumns<FieldMapping & { key: number }>[]}
               pagination={false}
               size="small"
+              search={false}
+              enableAdvancedFeatures={false}
+              showToolbar={false}
             />
           </Card>
           

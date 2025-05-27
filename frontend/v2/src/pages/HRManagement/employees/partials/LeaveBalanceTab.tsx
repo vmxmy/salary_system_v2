@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Select, message, Progress, Spin, Alert, Space, InputNumber, DatePicker } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Button, Modal, Form, Select, message, Progress, Spin, Alert, Space, InputNumber, DatePicker } from 'antd';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../../components/common/EnhancedProTable';
 import { PlusOutlined } from '@ant-design/icons';
 import TableActionButton from '../../../../components/common/TableActionButton';
 import { employeeService } from '../../../../services/employeeService';
-import { LeaveType } from '../../types'; // Enum used as value
-import type { LeaveBalanceItem, LeaveBalancePageResult } from '../../types'; // Types
+import { LeaveType } from '../../types';
+import type { LeaveBalanceItem, LeaveBalancePageResult } from '../../types';
 import { usePermissions } from '../../../../hooks/usePermissions';
-import dayjs from 'dayjs'; // Restore dayjs import
+import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-// import { useEmployeeDetails } from '../../../../hooks/useEmployeeDetails'; // Commented out: Source file not definitively located
-// import { formatDate } from '../../../../utils/dateUtils'; // Commented out: Source file not definitively located
 
 interface LeaveBalanceTabProps {
   employeeId: string;
@@ -68,9 +67,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
     setIsModalVisible(true);
   };
 
-
   const handleModalOk = async () => {
-    // TODO: Implement actual create/update/adjust API call in employeeService
     try {
       if (editingRecord) {
         message.success('假期余额调整成功 (模拟)');
@@ -78,7 +75,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
         message.success('假期余额添加成功 (模拟)');
       }
       setIsModalVisible(false);
-      fetchLeaveBalances(currentPage, pageSize); // Refresh
+      fetchLeaveBalances(currentPage, pageSize);
     } catch (errorInfo) {
       console.log('表单校验失败:', errorInfo);
       message.error('表单校验失败，请检查输入。');
@@ -93,15 +90,38 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
     fetchLeaveBalances(pagination.current, pagination.pageSize);
   };
 
-  const columns: ColumnsType<LeaveBalanceItem> = [
-    { title: '假期类型', dataIndex: 'leaveTypeName', key: 'leaveTypeName' }, // Assuming leaveTypeName is provided
-    { title: '总额度', dataIndex: 'total_entitlement', key: 'total_entitlement', render: (val, rec) => `${val} ${rec.unit}` },
-    { title: '已用', dataIndex: 'taken', key: 'taken', render: (val, rec) => `${val} ${rec.unit}` },
+  const handleRefresh = async () => {
+    await fetchLeaveBalances(currentPage, pageSize);
+  };
+
+  const columns: ProColumns<LeaveBalanceItem>[] = [
+    { 
+      title: '假期类型', 
+      dataIndex: 'leaveTypeName', 
+      key: 'leaveTypeName',
+      search: false,
+    },
+    { 
+      title: '总额度', 
+      dataIndex: 'total_entitlement', 
+      key: 'total_entitlement', 
+      render: (_, record) => `${record.total_entitlement} ${record.unit}`,
+      search: false,
+    },
+    { 
+      title: '已用', 
+      dataIndex: 'taken', 
+      key: 'taken', 
+      render: (_, record) => `${record.taken} ${record.unit}`,
+      search: false,
+    },
     {
       title: '余额',
       dataIndex: 'balance',
       key: 'balance',
-      render: (balance, record) => {
+      search: false,
+      render: (_, record) => {
+        const balance = record.total_entitlement - record.taken;
         const percent = record.total_entitlement > 0 ? (record.taken / record.total_entitlement) * 100 : 0;
         return (
           <Space direction="vertical" style={{width: '100%'}}>
@@ -111,23 +131,41 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
         );
       },
     },
-    { title: '单位', dataIndex: 'unit', key: 'unit', responsive: ['md'] }, // Redundant due to inclusion above, but can be a separate column
-    { title: '年度', dataIndex: 'year', key: 'year', responsive: ['md'] },
-    { title: '有效期至', dataIndex: 'validityDate', key: 'validityDate', render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : '', responsive: ['lg'] },
+    { 
+      title: '单位', 
+      dataIndex: 'unit', 
+      key: 'unit', 
+      hideInTable: true,
+      search: false,
+    },
+    { 
+      title: '年度', 
+      dataIndex: 'year', 
+      key: 'year',
+      search: false,
+    },
+    { 
+      title: '有效期至', 
+      dataIndex: 'validityDate', 
+      key: 'validityDate', 
+      render: (_, record) => dayjs(record.validity_date).isValid() ? dayjs(record.validity_date).format('YYYY-MM-DD') : '',
+      search: false,
+    },
     {
       title: '操作',
       key: 'action',
       fixed: 'right',
       width: 150,
+      search: false,
       render: (_, record) => (
         <Space size="middle">
           {hasPermission('leave:adjust_balance') && (
-            <TableActionButton actionType="edit" onClick={() => handleAddOrAdjust(record)} tooltipTitle={t('adjust_balance')} />
+            <TableActionButton 
+              actionType="edit" 
+              onClick={() => handleAddOrAdjust(record)} 
+              tooltipTitle={t('adjust_balance')} 
+            />
           )}
-          {/* Delete might not be a standard operation for balances; consider if needed */}
-          {/* {hasPermission('leave:manage_balance_records') && (
-            <ActionButton actionType="delete" onClick={() => handleDelete(record.id)} danger tooltipTitle="移除假期余额记录" />
-          )} */}
         </Space>
       ),
     },
@@ -151,17 +189,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
 
   return (
     <div>
-      {hasPermission('leave:adjust_balance') && (
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => handleAddOrAdjust()}
-          style={{ marginBottom: 16 }}
-        >
-          添加/调整假期余额
-        </Button>
-      )}
-      <Table
+      <EnhancedProTable<LeaveBalanceItem>
         columns={columns}
         dataSource={leaveBalances}
         rowKey="id"
@@ -169,12 +197,34 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
         pagination={{
           current: currentPage,
           pageSize: pageSize,
-          total: totalRecords, // totalRecords 已经根据 meta.total_items 设置
+          total: totalRecords,
           showSizeChanger: true,
+          onChange: (page: number, size?: number) => {
+            setCurrentPage(page);
+            setPageSize(size || 10);
+            fetchLeaveBalances(page, size || 10);
+          },
         }}
-        onChange={handleTableChange}
         scroll={{ x: 'max-content' }}
+        enableAdvancedFeatures={true}
+        showToolbar={true}
+        search={false}
+        title="假期余额"
+        onRefresh={handleRefresh}
+        customToolbarButtons={[
+          hasPermission('leave:adjust_balance') && (
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => handleAddOrAdjust()}
+            >
+              添加/调整假期余额
+            </Button>
+          )
+        ].filter(Boolean)}
       />
+      
       <Modal
         title={editingRecord ? '调整假期余额' : '添加假期余额'}
         open={isModalVisible}
@@ -182,15 +232,14 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
         onCancel={handleModalCancel}
         okText="保存"
         cancelText="取消"
-        destroyOnHidden
+        destroyOnClose
         width={600}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="leaveTypeId" label="假期类型" rules={[{ required: true, message: '请选择假期类型' }]}>
             <Select placeholder="选择假期类型">
-              {/* TODO: Populate with lookupService.getLeaveTypesLookup() */}
               {Object.values(LeaveType).map(lt => (
-                <Select.Option key={lt} value={lt}>{lt}</Select.Option> // TODO: Map to Chinese label
+                <Select.Option key={lt} value={lt}>{lt}</Select.Option>
               ))}
             </Select>
           </Form.Item>
@@ -200,16 +249,16 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
           <Form.Item name="taken" label="已用额度" rules={[{ required: true, message: '请输入已用额度' }]}>
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
-           <Form.Item name="unit" label="单位" rules={[{ required: true, message: '请选择单位' }]}>
+          <Form.Item name="unit" label="单位" rules={[{ required: true, message: '请选择单位' }]}>
             <Select placeholder="选择单位">
-              <Select.Option value="days">天</Select.Option>
-              <Select.Option value="hours">小时</Select.Option>
+              <Select.Option value="天">天</Select.Option>
+              <Select.Option value="小时">小时</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="year" label="年度 (可选)">
-            <InputNumber style={{ width: '100%' }} placeholder="例如: 2023"/>
+          <Form.Item name="year" label="年度" rules={[{ required: true, message: '请输入年度' }]}>
+            <InputNumber style={{ width: '100%' }} min={2020} max={2030} />
           </Form.Item>
-          <Form.Item name="validity_date" label="有效期至 (可选)">
+          <Form.Item name="validity_date" label="有效期至">
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
         </Form>

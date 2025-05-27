@@ -1,42 +1,41 @@
 import React from 'react';
-import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Button, Popconfirm, Space, Tag, Typography } from 'antd';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../../components/common/EnhancedProTable';
 import TableActionButton from '../../../../components/common/TableActionButton';
-import type { CompensationItem } from '../../types'; // Removed PayFrequency enum import
+import type { CompensationItem } from '../../types';
 import dayjs from 'dayjs';
 import { usePermissions } from '../../../../hooks/usePermissions';
-import { useTranslation } from 'react-i18next'; // +
-import type { LookupMaps } from '../../../../hooks/useLookupMaps'; // +
+import { useTranslation } from 'react-i18next';
+import type { LookupMaps } from '../../../../hooks/useLookupMaps';
 
 const { Text } = Typography;
-
-// Removed getPayFrequencyLabel helper function
 
 interface CompensationTableProps {
   dataSource: CompensationItem[];
   loading: boolean;
   onEdit: (record: CompensationItem) => void;
   onDelete: (id: number) => void;
-  lookupMaps: LookupMaps | null; // +
+  lookupMaps: LookupMaps | null;
 }
 
-const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loading, onEdit, onDelete, lookupMaps }) => { // +
-  const { t } = useTranslation(['employee', 'common']); // +
+const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loading, onEdit, onDelete, lookupMaps }) => {
+  const { t } = useTranslation(['employee', 'common']);
   const { hasPermission } = usePermissions();
 
   const canEdit = hasPermission('employee_compensation:edit');
   const canDelete = hasPermission('employee_compensation:delete');
-  const naText = ''; // +
-  const zeroDecimalText = t('employee:detail_page.common_value.zero_decimal', '0.00'); // +
-  const defaultCurrencyText = t('employee:detail_page.compensation_tab.default_currency', 'CNY'); // +
+  const naText = '';
+  const zeroDecimalText = t('employee:detail_page.common_value.zero_decimal', '0.00');
+  const defaultCurrencyText = t('employee:detail_page.compensation_tab.default_currency', 'CNY');
 
-  const columns: ColumnsType<CompensationItem> = [
+  const columns: ProColumns<CompensationItem>[] = [
     {
       title: t('employee:detail_page.compensation_tab.table.column_effective_date', 'Effective Date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
       sorter: (a, b) => dayjs(a.effective_date).unix() - dayjs(b.effective_date).unix(),
-      render: (text) => dayjs(text).isValid() ? dayjs(text).format('YYYY-MM-DD') : naText,
+      render: (_, record) => dayjs(record.effective_date).isValid() ? dayjs(record.effective_date).format('YYYY-MM-DD') : naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_basic_salary', 'Basic Salary'),
@@ -44,7 +43,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       key: 'basic_salary',
       align: 'right',
       sorter: (a, b) => a.basic_salary - b.basic_salary,
-      render: (val) => typeof val === 'number' ? val.toFixed(2) : naText,
+      render: (_, record) => typeof record.basic_salary === 'number' ? record.basic_salary.toFixed(2) : naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_allowances', 'Allowances'),
@@ -52,7 +51,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       key: 'allowances',
       align: 'right',
       sorter: (a, b) => (a.allowances || 0) - (b.allowances || 0),
-      render: (val) => typeof val === 'number' ? val.toFixed(2) : (val === null || val === undefined ? zeroDecimalText : naText), 
+      render: (_, record) => typeof record.allowances === 'number' ? record.allowances.toFixed(2) : (record.allowances === null || record.allowances === undefined ? zeroDecimalText : naText),
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_total_salary', 'Total Salary'),
@@ -60,15 +59,15 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       key: 'total_salary',
       align: 'right',
       sorter: (a, b) => (a.total_salary || 0) - (b.total_salary || 0),
-      render: (val) => typeof val === 'number' ? val.toFixed(2) : naText,
+      render: (_, record) => typeof record.total_salary === 'number' ? record.total_salary.toFixed(2) : naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_pay_frequency', 'Pay Frequency'),
       dataIndex: 'pay_frequency_lookup_value_id',
       key: 'pay_frequency_lookup_value_id',
       sorter: true,
-      render: (id: number) => {
-        return lookupMaps?.payFrequencyMap?.get(id) || id?.toString() || naText;
+      render: (_, record) => {
+        return lookupMaps?.payFrequencyMap?.get(record.pay_frequency_lookup_value_id) || record.pay_frequency_lookup_value_id?.toString() || naText;
       },
     },
     {
@@ -76,11 +75,11 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       dataIndex: 'currency',
       key: 'currency',
       sorter: true,
-      render: (text) => text || defaultCurrencyText,
+      render: (_, record) => record.currency || defaultCurrencyText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_change_reason', 'Reason for Change'),
-      dataIndex: 'change_reason', // Corrected: types.ts uses change_reason
+      dataIndex: 'change_reason',
       key: 'change_reason',
       sorter: true,
       ellipsis: true,
@@ -126,7 +125,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
   }
 
   return (
-    <Table
+    <EnhancedProTable<CompensationItem>
       columns={columns}
       dataSource={dataSource}
       loading={loading}
@@ -134,6 +133,10 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       pagination={false}
       scroll={{ x: 'max-content' }}
       size="small"
+      enableAdvancedFeatures={true}
+      showToolbar={true}
+      search={false}
+      title={t('employee:detail_page.compensation_tab.table_title', '薪酬记录')}
     />
   );
 };

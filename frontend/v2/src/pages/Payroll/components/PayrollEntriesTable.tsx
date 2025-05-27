@@ -1,42 +1,38 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Table,
   Tag,
-  Button,
   Alert,
   Spin,
   Space,
-  // Modal, // For future edit/view detail modal
-  // Form,  // For future edit form
   message,
   Tooltip,
   Typography
 } from 'antd';
-import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import TableActionButton from '../../../components/common/TableActionButton';
-import type { ColumnsType } from 'antd/es/table';
-import { format } from 'date-fns';
-import dayjs from 'dayjs';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 
 import type { PayrollEntry, ApiListMeta } from '../types/payrollTypes';
-import { getPayrollEntries /*, updatePayrollEntryDetails */ } from '../services/payrollApi';
+import { getPayrollEntries } from '../services/payrollApi';
 import PermissionGuard from '../../../components/common/PermissionGuard';
-import { getPayrollEntryStatusInfo } from '../utils/payrollUtils'; // Updated import
+import { getPayrollEntryStatusInfo } from '../utils/payrollUtils';
 import {
   P_PAYROLL_ENTRY_VIEW,
   P_PAYROLL_ENTRY_EDIT_DETAILS
-} from '../constants/payrollPermissions'; // Import permissions
-import PayrollEntryDetailModal from './PayrollEntryDetailModal'; // Uncommented and imported
-// import PayrollEntryEditForm from './PayrollEntryEditForm'; // To be created later
-import { employeeService } from '../../../services/employeeService'; // 引入员工服务
+} from '../constants/payrollPermissions';
+import PayrollEntryDetailModal from './PayrollEntryDetailModal';
+import { employeeService } from '../../../services/employeeService';
 import EmployeeName from '../../../components/common/EmployeeName';
 import employeeCacheService from '../../../services/employeeCacheService';
-import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 
 interface PayrollEntriesTableProps {
   payrollRunId: number;
 }
+
+type ExtendedPayrollEntry = PayrollEntry & {
+  employee_name?: string;
+};
 
 const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId }) => {
   const { t } = useTranslation(['payroll', 'common']);
@@ -50,18 +46,8 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   const [loadingEmployeeNames, setLoadingEmployeeNames] = useState<boolean>(false);
 
   // States for modals
-  const [isViewModalVisible, setIsViewModalVisible] = useState<boolean>(false); // Uncommented
-  // const [isEditModalVisible, setIsEditModalVisible] = useState<boolean>(false);
-  const [currentEntryId, setCurrentEntryId] = useState<number | null>(null); // Using entryId
-  // const [form] = Form.useForm();
-
-  // 使用表格搜索功能
-  const { getColumnSearch } = useTableSearch();
-
-  // 声明扩展的PayrollEntry类型，包含我们需要的字段
-  type ExtendedPayrollEntry = PayrollEntry & {
-    employee_name?: string;
-  };
+  const [isViewModalVisible, setIsViewModalVisible] = useState<boolean>(false);
+  const [currentEntryId, setCurrentEntryId] = useState<number | null>(null);
 
   const fetchEntries = useCallback(async (page = 1, pageSize = 10) => {
     setLoading(true);
@@ -71,8 +57,8 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         payroll_run_id: payrollRunId, 
         page, 
         size: pageSize,
-        include_employee_details: true, // 使用后端员工信息数据
-        sort_by: 'employee_id', // Default sort
+        include_employee_details: true,
+        sort_by: 'employee_id',
         sort_order: 'asc',
       });
       
@@ -111,7 +97,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
           }
         }
         
-        console.log('Raw data from getPayrollEntries API:', JSON.stringify(response.data, null, 2));
         setEntries(response.data);
         setMeta(response.meta);
       } else {
@@ -200,48 +185,41 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   }, [entries, fetchEmployeeNames]);
 
   useEffect(() => {
-    if (payrollRunId) {
-      fetchEntries();
-    }
-  }, [payrollRunId, fetchEntries]);
+    fetchEntries();
+  }, [fetchEntries]);
 
   const handleViewEntryDetails = (entry: PayrollEntry) => {
-    setCurrentEntryId(entry.id); // Set the ID of the entry to view
-    setIsViewModalVisible(true); // Show the detail modal
-    // message.info(t('payroll_entries_table.message_view_details_todo', { employeeIdentifier: entry.employee_name || entry.employee_id, entryId: entry.id }));
+    setCurrentEntryId(entry.id);
+    setIsViewModalVisible(true);
+    console.log('View entry translation key:', 'payroll:payroll_entries_table.message.view_entry_details');
   };
 
   const handleEditEntry = (entry: PayrollEntry) => {
-    // setCurrentEntry(entry);
-    // form.setFieldsValue({ ...entry, /* map fields for form */ });
-    // setIsEditModalVisible(true);
-    // 修正翻译键路径
-    message.info(t('payroll:payroll_entries_table.message.edit_entry_todo', { employeeIdentifier: entry.employee_name || entry.employee_id, entryId: entry.id }));
+    message.info(t('payroll:payroll_entries_table.message.edit_entry_todo'));
     console.log('Edit entry translation key:', 'payroll:payroll_entries_table.message.edit_entry_todo');
   };
 
-  const columns: ColumnsType<ExtendedPayrollEntry> = [
+  const columns: ProColumns<ExtendedPayrollEntry>[] = [
     {
       title: t('payroll:payroll_entries_table.column.employeeId'),
       dataIndex: 'employee_id',
       key: 'employee_id',
       width: 90,
-      sorter: numberSorter<ExtendedPayrollEntry>('employee_id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('employee_id'),
+      valueType: 'digit',
+      sorter: (a, b) => a.employee_id - b.employee_id,
+      search: false,
     },
     {
       title: t('payroll:payroll_entries_table.column.employeeName'),
       dataIndex: 'employee_name',
       key: 'employee_name',
       width: 130,
-      sorter: stringSorter<ExtendedPayrollEntry>('employee_name'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('employee_name'),
-      render: (name, record) => (
+      valueType: 'text',
+      sorter: (a, b) => (a.employee_name || '').localeCompare(b.employee_name || ''),
+      render: (_, record) => (
         <EmployeeName
           employeeId={record.employee_id}
-          employeeName={name}
+          employeeName={record.employee_name}
           showId={false}
           showLoading={true}
           className="payroll-entry-employee-name"
@@ -254,9 +232,10 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       key: 'gross_pay',
       width: 110,
       align: 'right',
+      valueType: 'money',
       sorter: (a, b) => (Number(a.gross_pay) || 0) - (Number(b.gross_pay) || 0),
-      sortDirections: ['descend', 'ascend'],
-      render: (grossPay) => (Number(grossPay) || 0).toFixed(2),
+      render: (_, record) => (Number(record.gross_pay) || 0).toFixed(2),
+      search: false,
     },
     {
       title: t('payroll:payroll_entries_table.column.deductions'),
@@ -264,22 +243,23 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       key: 'total_deductions',
       width: 110,
       align: 'right',
+      valueType: 'money',
       sorter: (a, b) => (Number(a.total_deductions) || 0) - (Number(b.total_deductions) || 0),
-      sortDirections: ['descend', 'ascend'],
-      render: (deductions) => (Number(deductions) || 0).toFixed(2),
+      render: (_, record) => (Number(record.total_deductions) || 0).toFixed(2),
+      search: false,
     },
-
     {
       title: t('payroll:payroll_entries_table.column.netPay'),
       dataIndex: 'net_pay',
       key: 'net_pay',
       width: 110,
       align: 'right',
-      render: (netPay) => (
-        <Typography.Text strong>{(Number(netPay) || 0).toFixed(2)}</Typography.Text>
+      valueType: 'money',
+      render: (_, record) => (
+        <Typography.Text strong>{(Number(record.net_pay) || 0).toFixed(2)}</Typography.Text>
       ),
-      sorter: numberSorter<ExtendedPayrollEntry>('net_pay'),
-      sortDirections: ['descend', 'ascend'],
+      sorter: (a, b) => (Number(a.net_pay) || 0) - (Number(b.net_pay) || 0),
+      search: false,
     },
     {
       title: t('payroll:payroll_entries_table.column.status'),
@@ -287,22 +267,24 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       key: 'status',
       width: 100,
       align: 'center',
-      filters: [
-        { text: t('payroll:status.draft'), value: 1 },
-        { text: t('payroll:status.finalized'), value: 2 },
-        { text: t('payroll:status.paid'), value: 3 },
-      ],
-      onFilter: (value, record) => record.status_lookup_value_id === value,
-      render: (statusId: number) => {
-        const statusInfo = getPayrollEntryStatusInfo(statusId);
+      valueType: 'select',
+      valueEnum: {
+        1: { text: t('payroll:status.draft'), status: 'default' },
+        2: { text: t('payroll:status.finalized'), status: 'processing' },
+        3: { text: t('payroll:status.paid'), status: 'success' },
+      },
+      render: (_, record) => {
+        const statusInfo = getPayrollEntryStatusInfo(record.status_lookup_value_id);
         return <Tag color={statusInfo.color}>{t(`payroll:${statusInfo.key}`, statusInfo.params)}</Tag>;
       },
+      search: false,
     },
     {
       title: t('common:label.actions'),
       key: 'actions',
       width: 100,
       align: 'center',
+      valueType: 'option',
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -325,32 +307,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
     },
   ];
 
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    entries || [], 
-    columns, 
-    {
-      filename: t('payroll:payroll_entries_table.export.filename', '工资条目'),
-      sheetName: t('payroll:payroll_entries_table.export.sheetName', '工资条目'),
-      buttonText: t('payroll:payroll_entries_table.export.buttonText', '导出工资条目'),
-      successMessage: t('payroll:payroll_entries_table.export.successMessage', '导出成功')
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'payroll_entries_table',
-      buttonText: t('payroll:payroll_entries_table.columnControl.buttonText', '列设置'),
-      tooltipTitle: t('payroll:payroll_entries_table.columnControl.tooltipTitle', '自定义显示列'),
-      dropdownTitle: t('payroll:payroll_entries_table.columnControl.dropdownTitle', '列显示'),
-      resetText: t('payroll:payroll_entries_table.columnControl.resetText', '重置'),
-      requiredColumns: ['employee_name', 'net_pay', 'actions'] // 员工姓名、净工资和操作列始终显示
-    }
-  );
-
-  if (loading && !entries.length) { // Show full page spinner only on initial load
+  if (loading && !entries.length) {
     return <Spin tip={t('payroll:payroll_entries_table.spin_loading_entries')} style={{ display: 'block', marginTop: '20px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
@@ -381,14 +338,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
                 ({t('payroll:payroll_entries_table.total_entries', { count: meta.total })})
               </span>}
             </Typography.Title>
-            <Space>
-              <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_VIEW]}>
-                <Tooltip title={t('payroll:payroll_entries_table.export.tooltipTitle', '导出到Excel')}>
-                  <ExportButton />
-                </Tooltip>
-              </PermissionGuard>
-              <ColumnControl />
-            </Space>
           </div>
           
           {loadingEmployeeNames && (
@@ -400,8 +349,8 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
             />
           )}
           
-          <Table
-            columns={visibleColumns}
+          <EnhancedProTable<ExtendedPayrollEntry>
+            columns={columns}
             dataSource={entries as ExtendedPayrollEntry[]}
             rowKey="id"
             loading={loading}
@@ -411,56 +360,29 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
               total: meta.total,
               showSizeChanger: true,
               pageSizeOptions: ['10', '20', '50', '100'],
-              showTotal: (total) => t('common:pagination.total_records', { count: total }),
-              onChange: (page, pageSize) => fetchEntries(page, pageSize),
+              showTotal: (total: number) => t('common:pagination.total_records', { count: total }),
+              onChange: (page: number, pageSize: number) => fetchEntries(page, pageSize),
             } : false}
             scroll={{ x: 'max-content' }}
             size="middle"
-            summary={pageData => {
-              // 计算各项合计
-              let totalNetPay = 0;
-              let totalGrossPay = 0;
-              let totalDeductions = 0;
-              
-              (pageData as ExtendedPayrollEntry[]).forEach(entry => {
-                // 确保所有值都是数字类型，避免 toFixed 错误
-                totalNetPay += Number(entry.net_pay) || 0;
-                totalGrossPay += Number(entry.gross_pay) || 0;
-                totalDeductions += Number(entry.total_deductions) || 0;
-              });
-              
-              return (
-                <Table.Summary fixed>
-                  <Table.Summary.Row>
-                    <Table.Summary.Cell index={0} colSpan={2} align="right">
-                      <Typography.Text strong>{t('payroll:payroll_entries_table.summary_total')}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={2} align="right">
-                      <Typography.Text strong>{Number(totalGrossPay).toFixed(2)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={3} align="right">
-                      <Typography.Text strong>{Number(totalDeductions).toFixed(2)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={4} align="right">
-                      <Typography.Text type="danger" strong>{Number(totalNetPay).toFixed(2)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={5} colSpan={2} />
-                  </Table.Summary.Row>
-                </Table.Summary>
-              );
-            }}
+            enableAdvancedFeatures={true}
+            showToolbar={true}
+            search={false}
           />
+          
+          {/* Modal for viewing entry details */}
+          {isViewModalVisible && currentEntryId && (
+            <PayrollEntryDetailModal
+              entryId={currentEntryId}
+              visible={isViewModalVisible}
+              onClose={() => {
+                setIsViewModalVisible(false);
+                setCurrentEntryId(null);
+              }}
+            />
+          )}
         </>
       )}
-      
-      <PayrollEntryDetailModal 
-        entryId={currentEntryId}
-        visible={isViewModalVisible}
-        onClose={() => {
-          setIsViewModalVisible(false);
-          setCurrentEntryId(null);
-        }}
-      />
     </div>
   );
 };

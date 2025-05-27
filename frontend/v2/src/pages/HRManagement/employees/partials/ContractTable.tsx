@@ -1,12 +1,13 @@
 import React from 'react';
-import { Table, Button, Popconfirm, Space, Tag, Typography } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import TableActionButton from '../../../../components/common/TableActionButton';
 import type { ContractItem } from '../../types';
 import dayjs from 'dayjs';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import { useTranslation } from 'react-i18next';
 import type { LookupMaps } from '../../../../hooks/useLookupMaps';
+import EnhancedProTable from '../../../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
 
 const { Text } = Typography;
 
@@ -26,7 +27,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
   const canDeleteContract = hasPermission('employee_contract:delete');
   const naText = '';
 
-  const columns: ColumnsType<ContractItem> = [
+  const columns: ProColumns<ContractItem>[] = [
     {
       title: t('employee:detail_page.contracts_tab.table.column_contract_number', '合同编号'),
       dataIndex: 'contract_number',
@@ -39,7 +40,8 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       dataIndex: 'contract_type_lookup_value_id',
       key: 'contract_type_lookup_value_id',
       sorter: true,
-      render: (id: number) => {
+      render: (_, record) => {
+        const id = record.contract_type_lookup_value_id;
         const typeText = lookupMaps?.contractTypeMap?.get(id) || String(id);
         return <Tag>{typeText || naText}</Tag>;
       },
@@ -49,21 +51,28 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       dataIndex: 'start_date',
       key: 'start_date',
       sorter: true,
-      render: (date: string | dayjs.Dayjs) => dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD') : naText,
+      render: (_, record) => {
+        const date = record.start_date;
+        return dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD') : naText;
+      },
     },
     {
       title: t('employee:detail_page.contracts_tab.table.column_end_date', '结束日期'),
       dataIndex: 'end_date',
       key: 'end_date',
       sorter: true,
-      render: (date: string | dayjs.Dayjs) => dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD') : naText,
+      render: (_, record) => {
+        const date = record.end_date;
+        return dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD') : naText;
+      },
     },
     {
       title: t('employee:detail_page.contracts_tab.table.column_status', '状态'),
       dataIndex: 'contract_status_lookup_value_id',
       key: 'contract_status_lookup_value_id',
       sorter: true,
-      render: (id: number) => {
+      render: (_, record) => {
+        const id = record.contract_status_lookup_value_id;
         const statusText = lookupMaps?.contractStatusMap?.get(id) || String(id);
         let color = 'default';
         if (statusText && statusText.includes(t('common:status.active','激活'))) color = 'success';
@@ -111,7 +120,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
   ];
 
   return (
-    <Table
+    <EnhancedProTable<ContractItem>
       columns={columns}
       dataSource={dataSource}
       loading={loading}

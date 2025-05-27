@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Table,
   Tag,
   Button,
   Alert,
@@ -18,8 +17,8 @@ import PageLayout from '../../../components/common/PageLayout';
 import PermissionGuard from '../../../components/common/PermissionGuard';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { format } from 'date-fns';
-import type { ColumnsType } from 'antd/es/table';
-import type { TablePaginationConfig } from 'antd/es/table/interface';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 import dayjs from 'dayjs';
 
 import type { PayrollRun, ApiListMeta, PayrollPeriod, UpdatePayrollRunPayload, CreatePayrollRunPayload } from '../types/payrollTypes';
@@ -230,9 +229,7 @@ const PayrollRunsPage: React.FC = () => {
     navigate(`/finance/payroll/runs/${runId}`);
   };
 
-  const handleTableChange = React.useCallback((pagination: TablePaginationConfig) => {
-    fetchRuns(pagination.current, pagination.pageSize);
-  }, [fetchRuns]);
+
   
   // 生成批次名称的函数
   const generateRunName = (run: PayrollRun): string => {
@@ -241,41 +238,46 @@ const PayrollRunsPage: React.FC = () => {
     return `${periodName} - ${runDate}`;
   };
 
-  const columns: ColumnsType<PayrollRun> = React.useMemo(() => [
+  const columns: ProColumns<PayrollRun>[] = React.useMemo(() => [
       {
         title: t('runs_page.table.column.id'),
         dataIndex: 'id',
         key: 'id',
-        sorter: (a, b) => a.id - b.id,
+        sorter: (a: PayrollRun, b: PayrollRun) => a.id - b.id,
         width: 80,
+        valueType: 'digit',
       },
       {
         title: t('runs_page.table.column.batch_name'),
         key: 'batch_name',
         sorter: true,
-        render: (_: any, record: PayrollRun) => generateRunName(record),
+        valueType: 'text',
+        render: (_, record: PayrollRun) => generateRunName(record),
       },
       {
         title: t('runs_page.table.column.payroll_period'),
         dataIndex: ['payroll_period', 'name'],
         key: 'payroll_period_name',
         sorter: true,
-        render: (_: any, record: PayrollRun) => record.payroll_period?.name || record.payroll_period_id,
+        valueType: 'text',
+        render: (_, record: PayrollRun) => record.payroll_period?.name || record.payroll_period_id,
       },
       {
         title: t('runs_page.table.column.run_date'),
         dataIndex: 'run_date',
         key: 'run_date',
-        sorter: (a, b) => dayjs(a.run_date).unix() - dayjs(b.run_date).unix(),
-        render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+        sorter: (a: PayrollRun, b: PayrollRun) => dayjs(a.run_date).unix() - dayjs(b.run_date).unix(),
+        valueType: 'date',
+        render: (_, record: PayrollRun) => dayjs(record.run_date).format('YYYY-MM-DD'),
       },
       {
         title: t('runs_page.table.column.status'),
         dataIndex: 'status_lookup_value_id',
         key: 'status',
         sorter: true,
-        render: (statusId?: number) => {
-          const statusInfo = getPayrollRunStatusInfo(statusId);
+        valueType: 'select',
+        render: (_, record: PayrollRun) => {
+          const statusInfo = getPayrollRunStatusInfo(record.status_lookup_value_id);
           return <Tag color={statusInfo.color}>{t(statusInfo.key, statusInfo.params)}</Tag>;
         },
       },
@@ -283,8 +285,9 @@ const PayrollRunsPage: React.FC = () => {
         title: t('runs_page.table.column.employee_count'),
         dataIndex: 'total_employees',
         key: 'employee_count',
-        sorter: (a, b) => (a.total_employees || 0) - (b.total_employees || 0),
-        render: (total_employees?: number) => total_employees || 0,
+        sorter: (a: PayrollRun, b: PayrollRun) => (a.total_employees || 0) - (b.total_employees || 0),
+        valueType: 'digit',
+        render: (_, record: PayrollRun) => record.total_employees || 0,
       },
       {
         title: t('runs_page.table.column.notes'),
@@ -292,11 +295,13 @@ const PayrollRunsPage: React.FC = () => {
         key: 'notes',
         sorter: true,
         ellipsis: true,
+        valueType: 'text',
       },
       {
         title: t('runs_page.table.column.actions'),
         key: 'actions',
         align: 'center',
+        valueType: 'option',
         render: (_, record: PayrollRun) => (
           <Space size="middle">
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_VIEW]}>
@@ -352,7 +357,7 @@ const PayrollRunsPage: React.FC = () => {
     >
       {error && <Alert message={`${t('runs_page.alert_error_prefix')}${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
       
-      <Table
+      <EnhancedProTable<PayrollRun>
         columns={columns}
         dataSource={runs}
         rowKey="id"
@@ -362,10 +367,13 @@ const PayrollRunsPage: React.FC = () => {
           pageSize: meta?.size,
           total: meta?.total,
           showSizeChanger: true,
-          showTotal: (total, range) => t('runs_page.pagination_show_total', { range0: range[0], range1: range[1], total }),
+          showTotal: (total: number, range: [number, number]) => t('runs_page.pagination_show_total', { range0: range[0], range1: range[1], total }),
         }}
-        onChange={handleTableChange}
+
         scroll={{ x: 'max-content' }}
+        enableAdvancedFeatures={true}
+        showToolbar={true}
+        search={false}
       />
 
       <Modal

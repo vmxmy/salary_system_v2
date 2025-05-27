@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Input, Button, Table, Select, Card, Alert, Space, App } from 'antd';
+import { Input, Button, Select, Card, Alert, Space, App } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { nanoid } from 'nanoid';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -530,23 +532,25 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       {parsedData.length > 0 && (
         <>
           <Card title="字段映射" style={{ marginTop: 16 }}>
-            <Table
+            <EnhancedProTable<FieldMapping & { key: number }>
               dataSource={fieldMappings.map((m, i) => ({ ...m, key: i }))}
               columns={[
                 {
                   title: '表格字段',
-                  dataIndex: 'tableField'
+                  dataIndex: 'tableField',
+                  valueType: 'text'
                 },
                 {
                   title: 'API字段',
                   dataIndex: 'apiField',
-                  render: (text, record: any) => {
+                  valueType: 'select',
+                  render: (_, record) => {
                     // 调试: 查看渲染下拉列表时的字段数组
                     console.log('渲染下拉列表时的字段:', defaultApiFields);
                     return (
                       <Select
                         style={{ width: '100%' }}
-                        value={text}
+                        value={record.apiField}
                         onChange={value => updateFieldMapping(record.key, value)}
                       >
                         <Option value="">忽略此字段</Option>
@@ -562,11 +566,15 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                 {
                   title: '数据类型',
                   dataIndex: 'type',
-                  render: (text) => text
+                  valueType: 'text',
+                  render: (_, record) => record.type
                 }
-              ]}
+              ] as ProColumns<FieldMapping & { key: number }>[]}
               pagination={false}
               size="small"
+              search={false}
+              enableAdvancedFeatures={false}
+              showToolbar={false}
             />
           </Card>
           

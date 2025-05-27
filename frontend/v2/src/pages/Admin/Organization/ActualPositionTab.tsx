@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, App, Popconfirm, Tooltip } from 'antd';
+import { Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, App, Popconfirm, Tooltip } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
+import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
@@ -10,7 +12,6 @@ import dayjs from 'dayjs';
 import { getPositions, createPosition, updatePosition, deletePosition } from '../../../api/positions';
 import type { Position, CreatePositionPayload, UpdatePositionPayload } from '../../../api/types';
 import TableActionButton from '../../../components/common/TableActionButton';
-import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 import styles from './ActualPositionTab.module.less';
 
 const { Title } = Typography;
@@ -33,8 +34,7 @@ const ActualPositionTab: React.FC = () => {
   const { t } = useTranslation(['organization', 'common']);
   const { message: antdMessage } = App.useApp();
   
-  // 使用表格搜索功能
-  const { getColumnSearch } = useTableSearch();
+
   
   const [positions, setPositions] = useState<PositionPageItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -170,68 +170,76 @@ const ActualPositionTab: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<PositionPageItem> = [
+  const columns: ProColumns<PositionPageItem>[] = [
     { 
       title: t('common:label.id'), 
       dataIndex: 'id', 
       key: 'id', 
       width: 80,
-      sorter: numberSorter<PositionPageItem>('id'),
-      ...getColumnSearch('id'),
+      sorter: (a, b) => a.id - b.id,
+      valueType: 'digit',
     },
     { 
       title: t('common:label.code'), 
       dataIndex: 'code', 
       key: 'code', 
       width: 150,
-      sorter: stringSorter<PositionPageItem>('code'),
-      ...getColumnSearch('code'),
+      sorter: (a, b) => (a.code || '').localeCompare(b.code || ''),
+      valueType: 'text',
     },
     { 
       title: t('common:label.name'), 
       dataIndex: 'name', 
       key: 'name',
-      sorter: stringSorter<PositionPageItem>('name'),
-      ...getColumnSearch('name'),
-      render: (text: string, record: PositionPageItem) => (
-        <a onClick={() => showEditModal(record)}>{text}</a>
+      sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
+      valueType: 'text',
+      render: (_, record) => (
+        <a onClick={() => showEditModal(record)}>{record.name}</a>
       ),
     },
     { 
       title: t('common:label.description'), 
       dataIndex: 'description', 
       key: 'description',
-      ...getColumnSearch('description'),
+      valueType: 'text',
+      ellipsis: true,
     },
     {
       title: t('common:label.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
       width: 120,
-      sorter: dateSorter<PositionPageItem>('effective_date'),
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('common:table.cell_empty'),
+      sorter: (a, b) => new Date(a.effective_date || '').getTime() - new Date(b.effective_date || '').getTime(),
+      valueType: 'date',
+      render: (_, record) => record.effective_date ? format(new Date(record.effective_date), 'yyyy-MM-dd') : t('common:table.cell_empty'),
     },
     {
       title: t('common:label.end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
       width: 120,
-      sorter: dateSorter<PositionPageItem>('end_date'),
-      render: (text?: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('common:table.cell_empty'),
+      sorter: (a, b) => {
+        const aDate = a.end_date ? new Date(a.end_date).getTime() : 0;
+        const bDate = b.end_date ? new Date(b.end_date).getTime() : 0;
+        return aDate - bDate;
+      },
+      valueType: 'date',
+      render: (_, record) => record.end_date ? format(new Date(record.end_date), 'yyyy-MM-dd') : t('common:table.cell_empty'),
     },
     {
       title: t('common:status.active'),
       dataIndex: 'is_active',
       key: 'is_active',
       width: 80,
-      filters: [
-        { text: t('common:status.active_yes'), value: true },
-        { text: t('common:status.active_no'), value: false },
-      ],
-      onFilter: (value, record) => record.is_active === value,
-      render: (isActive: boolean) => (
+      search: false,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: t('common:status.active_yes'), status: 'Success' },
+        false: { text: t('common:status.active_no'), status: 'Error' },
+      },
+      render: (_, record) => (
         <Switch 
-          checked={isActive} 
+          checked={record.is_active} 
           disabled={true} 
         />
       ),
@@ -239,9 +247,9 @@ const ActualPositionTab: React.FC = () => {
     {
       title: t('common:label.actions'),
       key: 'actions',
-      align: 'center',
       width: 150,
-      render: (_: any, record: PositionPageItem) => (
+      search: false,
+      render: (_, record) => (
         <Space size="small">
           <TableActionButton 
             actionType="edit"
@@ -266,30 +274,9 @@ const ActualPositionTab: React.FC = () => {
     },
   ];
 
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    positions || [], 
-    columns, 
-    {
-      filename: t('position.export.filename', '实际职位数据'),
-      sheetName: t('position.export.sheetName', '实际职位'),
-      buttonText: t('common:button.export_data', '导出数据'),
-      successMessage: t('position.export.successMessage', '导出成功')
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'actual_position_table',
-      buttonText: t('common:button.column_settings', '列设置'),
-      tooltipTitle: t('position.columnControl.tooltipTitle', '自定义显示列'),
-      dropdownTitle: t('position.columnControl.dropdownTitle', '列显示'),
-      resetText: t('common:button.reset', '重置'),
-      requiredColumns: ['id', 'name', 'actions'] // ID、名称和操作列必须显示
-    }
-  );
+  const handleRefresh = async () => {
+    await fetchData();
+  };
 
   // 表格变化处理函数，处理分页、筛选、排序等变化
   const handleTableChange = (
@@ -312,37 +299,34 @@ const ActualPositionTab: React.FC = () => {
           <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
             {t('position.button.add', '新增职位')}
           </Button>
-          <Tooltip title={t('position.export.tooltipTitle', '导出到Excel')}>
-            <ExportButton />
-          </Tooltip>
-          <ColumnControl />
         </Space>
       </div>
       
-      <Table
-        columns={visibleColumns}
+      <EnhancedProTable<PositionPageItem>
+        columns={columns}
         dataSource={positions}
         loading={isLoading}
-        pagination={{ 
-          showSizeChanger: true, 
-          pageSizeOptions: ['10', '20', '50', '100'],
-          showTotal: (total) => t('common:pagination.total', { total }),
-          current: tableParams.pagination?.current,
-          pageSize: tableParams.pagination?.pageSize,
-          total: positions.length,
-          onChange: (page, pageSize) => {
-            setTableParams(prev => ({
-              ...prev,
-              pagination: {
-                ...prev.pagination,
-                current: page,
-                pageSize: pageSize
-              }
-            }));
-          }
-        }}
         rowKey="id"
-        onChange={handleTableChange}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        enableAdvancedFeatures={true}
+        showToolbar={true}
+        search={false}
+        title={t('position.title', '实际职位管理')}
+        onRefresh={handleRefresh}
+        customToolbarButtons={[
+          <Button
+            key="create"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateModal}
+          >
+            {t('position.button.add', '新增职位')}
+          </Button>
+        ]}
       />
 
       <Modal

@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import PageLayout from '../../../components/common/PageLayout';
 import EmployeeTable from '../components/EmployeeTable';
 import type { Employee, EmployeeQuery } from '../types';
-import type { SorterResult, ColumnsType } from 'antd/es/table/interface';
+import type { SorterResult } from 'antd/es/table/interface';
+import type { ProColumns } from '@ant-design/pro-components';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import { employeeService } from '../../../services/employeeService';
-import { useTableExport, useColumnControl, stringSorter, numberSorter, dateSorter, useTableSearch } from '../../../components/common/TableUtils';
+import { stringSorter, numberSorter, dateSorter, useTableSearch } from '../../../components/common/TableUtils';
 import type { Dayjs } from 'dayjs';
 import EmployeeName from '../../../components/common/EmployeeName';
 import Highlighter from 'react-highlight-words';
@@ -30,8 +31,8 @@ const generateEmployeeTableColumnsConfig = (
   onEdit: (employee: Employee) => void,
   onDelete: (employeeId: string) => void,
   onViewDetails: (employeeId: string) => void
-): ColumnsType<Employee> => {
-  const columns: ColumnsType<Employee> = [
+): ProColumns<Employee>[] => {
+  const columns: ProColumns<Employee>[] = [
     {
       title: t('employee:list_page.table.column.full_name'),
       key: 'fullName',
@@ -499,49 +500,22 @@ const EmployeeListPage: React.FC = () => {
     [t, getColumnSearch, lookupMaps, canViewDetail, canUpdate, canDelete, navigate, handleDelete]
   );
 
-  const { ExportButton } = useTableExport(
-    allEmployees || [], 
-    tableColumnsConfigForControls, // Use the generated config
-    {
-      filename: t('employee:list_page.export.filename'),
-      sheetName: t('employee:list_page.export.sheet_name'),
-      buttonText: t('employee:list_page.export.button_text'),
-      successMessage: t('employee:list_page.export.success_message')
-    }
-  );
-
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    tableColumnsConfigForControls, // Use the generated config
-    {
-      storageKeyPrefix: 'employee_list_table',
-      buttonText: t('employee:list_page.column_control.button_text'),
-      tooltipTitle: t('employee:list_page.column_control.tooltip'),
-      dropdownTitle: t('employee:list_page.column_control.dropdown_title'),
-      resetText: t('employee:list_page.column_control.reset_text'),
-      requiredColumns: ['fullName', 'employee_code', 'status', 'action', 'actualPositionName', 'personnel_category_id']
-    }
-  );
+  // ProTable 内置了导出和列控制功能，无需使用传统工具函数
 
   // 添加调试日志
   useEffect(() => {
     console.log('📋 [EmployeeListPage] tableColumnsConfigForControls length:', tableColumnsConfigForControls.length);
-    console.log('📋 [EmployeeListPage] visibleColumns length:', visibleColumns.length);
     
     // 检查是否包含银行信息字段
     const hasBankNameColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_name');
     const hasBankAccountColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_account_number');
-    const visibleBankNameColumn = visibleColumns.some(col => col.key === 'bank_name');
-    const visibleBankAccountColumn = visibleColumns.some(col => col.key === 'bank_account_number');
     
     console.log('🏦 [EmployeeListPage] 列配置中包含银行名称字段:', hasBankNameColumn);
     console.log('🏦 [EmployeeListPage] 列配置中包含银行账号字段:', hasBankAccountColumn);
-    console.log('👁️ [EmployeeListPage] 可见列中包含银行名称字段:', visibleBankNameColumn);
-    console.log('👁️ [EmployeeListPage] 可见列中包含银行账号字段:', visibleBankAccountColumn);
     
     // 输出所有列的key
     console.log('📝 [EmployeeListPage] 所有列的keys:', tableColumnsConfigForControls.map(col => col.key));
-    console.log('👁️ [EmployeeListPage] 可见列的keys:', visibleColumns.map(col => col.key));
-  }, [tableColumnsConfigForControls, visibleColumns]);
+  }, [tableColumnsConfigForControls]);
 
   useEffect(() => {
     if (errorLookups) {
@@ -610,10 +584,7 @@ const EmployeeListPage: React.FC = () => {
                 {t('employee:list_page.batch_delete_button', { count: selectedRowKeys.length })}
               </Button>
             )}
-            {canExport && (
-              <ExportButton />
-            )}
-            <ColumnControl />
+            {/* ProTable 内置了导出和列控制功能 */}
           </Space>
         }
       >
@@ -625,7 +596,7 @@ const EmployeeListPage: React.FC = () => {
                 employees={allEmployees} // Pass all employees
                 loading={combinedLoading}
                 total={allEmployees.length} // Total is the length of all employees
-                columns={visibleColumns} // 新增：传递经过列控制处理后的可见列
+                columns={tableColumnsConfigForControls} // 使用 ProColumns 配置
                 selectedRowKeys={selectedRowKeys}
                 onSelectionChange={setSelectedRowKeys}
                 onPageChange={handleTableChange} // Still useful for logging or other side effects

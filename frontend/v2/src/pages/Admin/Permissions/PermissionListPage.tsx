@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Typography, Modal, message, Tooltip } from 'antd';
+import { Button, Space, Typography, Modal, message, Tooltip } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 import TableActionButton from '../../../components/common/TableActionButton';
 import PageLayout from '../../../components/common/PageLayout';
-import type { ColumnsType } from 'antd/es/table';
 import { getPermissions, createPermission, updatePermission, deletePermission } from '../../../api/permissions';
 import type { Permission, CreatePermissionPayload, UpdatePermissionPayload } from '../../../api/types';
 import PermissionForm from './components/PermissionForm';
 import { useTranslation } from 'react-i18next';
-import { useTableSearch, numberSorter, stringSorter, useTableExport, useColumnControl } from '../../../components/common/TableUtils';
 import styles from './PermissionListPage.module.less';
 
 const { Title } = Typography;
@@ -24,9 +24,6 @@ const PermissionListPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
-  
-  // 使用通用表格搜索钩子
-  const { getColumnSearch } = useTableSearch();
 
   const { data: permissions, isLoading, error: fetchError } = useQuery<Permission[], Error>({
     queryKey: ['permissions'],
@@ -86,65 +83,49 @@ const PermissionListPage: React.FC = () => {
     message.error(`${t('list_page.message.load_list_error_prefix')}${fetchError.message}`);
   }
 
-  const columns: ColumnsType<Permission> = [
+  const columns: ProColumns<Permission>[] = [
     {
       title: t('list_page.table.column.id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: numberSorter<Permission>('id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('id'),
+      sorter: (a, b) => a.id - b.id,
+      valueType: 'digit',
     },
     {
       title: t('list_page.table.column.code'),
       dataIndex: 'code',
       key: 'code',
-      sorter: stringSorter<Permission>('code'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('code'),
+      sorter: (a, b) => a.code.localeCompare(b.code),
+      valueType: 'text',
     },
     {
       title: t('list_page.table.column.description'),
       dataIndex: 'description',
       key: 'description',
-      ...getColumnSearch('description'),
+      valueType: 'text',
+      ellipsis: true,
     },
     {
       title: t('list_page.table.column.actions'),
       key: 'actions',
+      search: false,
       render: (_, record) => (
         <Space size="middle">
-          <TableActionButton actionType="edit" onClick={() => handleEdit(record)} tooltipTitle={t('list_page.tooltip.edit_permission')} />
-          <TableActionButton actionType="delete" danger onClick={() => handleDeleteConfirmation(record)} tooltipTitle={t('list_page.tooltip.delete_permission')} />
+          <TableActionButton 
+            actionType="edit" 
+            onClick={() => handleEdit(record)} 
+            tooltipTitle={t('list_page.tooltip.edit_permission')} 
+          />
+          <TableActionButton 
+            actionType="delete" 
+            danger 
+            onClick={() => handleDeleteConfirmation(record)} 
+            tooltipTitle={t('list_page.tooltip.delete_permission')} 
+          />
         </Space>
       ),
     },
   ];
-
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    permissions || [], 
-    columns, 
-    {
-      filename: '权限列表', 
-      sheetName: '权限数据',
-      buttonText: t('list_page.button.export_excel'),
-      successMessage: t('list_page.message.export_success')
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'permissions_table',
-      buttonText: t('list_page.button.column_control'),
-      tooltipTitle: t('list_page.tooltip.column_control'),
-      dropdownTitle: t('list_page.dropdown.column_control_title'),
-      resetText: t('list_page.button.reset'),
-      requiredColumns: ['id', 'actions'] // ID和操作列始终显示
-    }
-  );
 
   const handleCreate = () => {
     setEditingPermission(null);
@@ -182,6 +163,10 @@ const PermissionListPage: React.FC = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['permissions'] });
+  };
+
   return (
     <PageLayout
       title={t('list_page.title')}
@@ -195,41 +180,43 @@ const PermissionListPage: React.FC = () => {
           >
             {t('list_page.button.create_permission')}
           </Button>
-          <Tooltip title={t('list_page.tooltip.export_excel')}>
-            <ExportButton />
-          </Tooltip>
-          <ColumnControl />
         </Space>
       }
     >
-      <div className={styles.tableContainer}>
-        <Table
-        columns={visibleColumns}
-        dataSource={permissions}
+      <EnhancedProTable<Permission>
+        columns={columns}
+        dataSource={permissions || []}
         loading={isLoading}
         rowKey="id"
-        bordered
-        pagination={{ 
-          pageSize: 10, 
-          showSizeChanger: true, 
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
           showQuickJumper: true,
-          pageSizeOptions: ['10', '20', '50', '100', '200'],
-          showTotal: (total) => `共 ${total} 条记录`,
         }}
+        enableAdvancedFeatures={true}
+        showToolbar={true}
+        search={false}
+        title={t('list_page.table.title', '权限列表')}
+        onRefresh={handleRefresh}
+        customToolbarButtons={[
+          <Button
+            key="create"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+          >
+            {t('list_page.button.create_permission')}
+          </Button>
+        ]}
       />
-      {isModalOpen && (
-        <PermissionForm
-          visible={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingPermission(null);
-          }}
-          initialData={editingPermission}
-          onSubmit={handleFormSubmit}
-          isLoading={createMutation.isPending || updateMutation.isPending || deleteMutation.isPending}
-        />
-      )}
-      </div>
+
+      <PermissionForm
+        visible={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleFormSubmit}
+        initialData={editingPermission}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
     </PageLayout>
   );
 };

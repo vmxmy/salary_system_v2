@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, message, Popconfirm, TreeSelect, Select, Tooltip } from 'antd';
+import { Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, message, Popconfirm, TreeSelect, Select, Tooltip } from 'antd';
 import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import type { ProColumns } from '@ant-design/pro-components';
+import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs'; // For DatePicker default values
 import EmployeeName from '../../../components/common/EmployeeName';
 import TableActionButton from '../../../components/common/TableActionButton';
 import UnifiedTabs from '../../../components/common/UnifiedTabs';
-import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 
 import {
   getPersonnelCategories,
@@ -75,9 +76,6 @@ interface PersonnelCategoryFormValues extends Omit<CreatePersonnelCategoryPayloa
 
 const PersonnelCategoriesPage: React.FC = () => {
   const { t } = useTranslation(['personnelCategory', 'common']);
-  
-  // 使用通用表格搜索钩子
-  const { getColumnSearch } = useTableSearch();
   
   const [personnelCategories, setPersonnelCategories] = useState<PersonnelCategoryPageItem[]>([]);
   const [personnelCategoriesTree, setPersonnelCategoriesTree] = useState<PersonnelCategoryPageItem[]>([]);
@@ -273,32 +271,29 @@ const PersonnelCategoriesPage: React.FC = () => {
   };
 
   // 表格列定义
-  const columns: ColumnsType<PersonnelCategoryPageItem> = [
+  const columns: ProColumns<PersonnelCategoryPageItem>[] = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
-      sorter: numberSorter<PersonnelCategoryPageItem>('id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('id'),
+      sorter: (a, b) => a.id - b.id,
+      valueType: 'digit',
     },
     {
       title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
       width: 150,
-      sorter: stringSorter<PersonnelCategoryPageItem>('code'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('code'),
+      sorter: (a, b) => (a.code || '').localeCompare(b.code || ''),
+      valueType: 'text',
     },
     {
       title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
-      sorter: stringSorter<PersonnelCategoryPageItem>('name'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('name'),
+      sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
+      valueType: 'text',
       ellipsis: true,
     },
     {
@@ -306,54 +301,60 @@ const PersonnelCategoriesPage: React.FC = () => {
       dataIndex: 'parent_category_id',
       key: 'parent_category_id',
       width: 150,
-      render: (id?: number) => id || t('table.column.value_na_or_dash'),
-      sorter: numberSorter<PersonnelCategoryPageItem>('parent_category_id'),
-      sortDirections: ['descend', 'ascend'],
+      render: (_, record) => record.parent_category_id || t('table.column.value_na_or_dash'),
+      sorter: (a, b) => (a.parent_category_id || 0) - (b.parent_category_id || 0),
       ellipsis: true,
+      search: false,
     },
     {
       title: t('table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
-      sorter: dateSorter<PersonnelCategoryPageItem>('effective_date'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('effective_date'),
+      render: (_, record) => record.effective_date ? format(new Date(record.effective_date), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
+      sorter: (a, b) => new Date(a.effective_date || '').getTime() - new Date(b.effective_date || '').getTime(),
       width: 120,
       ellipsis: true,
+      valueType: 'date',
     },
     {
       title: t('table.column.end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
-      render: (text: string | null) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
-      sorter: dateSorter<PersonnelCategoryPageItem>('end_date'),
-      sortDirections: ['descend', 'ascend'],
+      render: (_, record) => record.end_date ? format(new Date(record.end_date), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
+      sorter: (a, b) => {
+        const aDate = a.end_date ? new Date(a.end_date).getTime() : 0;
+        const bDate = b.end_date ? new Date(b.end_date).getTime() : 0;
+        return aDate - bDate;
+      },
       width: 120,
       ellipsis: true,
+      valueType: 'date',
+      search: false,
     },
     {
       title: t('table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
-      render: (isActive: boolean, record: PersonnelCategoryPageItem) => (
+      render: (_, record) => (
         <Switch 
-          checked={isActive} 
+          checked={record.is_active} 
           onChange={(checked) => handleStatusChange(checked, record)}
           disabled={record.children && record.children.length > 0}
         />
       ),
       width: 100,
-      filters: [
-        { text: t('table.filter.active'), value: true },
-        { text: t('table.filter.inactive'), value: false },
-      ],
-      onFilter: (value, record) => record.is_active === value,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: t('table.filter.active'), status: 'Success' },
+        false: { text: t('table.filter.inactive'), status: 'Error' },
+      },
+      search: false,
     },
     {
       title: t('table.column.actions'),
       key: 'action',
       width: 180,
+      search: false,
       render: (_, record) => (
         <Space size="small">
           <TableActionButton 
@@ -386,30 +387,9 @@ const PersonnelCategoriesPage: React.FC = () => {
     },
   ];
   
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    personnelCategoriesTree || [], 
-    columns, 
-    {
-      filename: t('export.filename'),
-      sheetName: t('export.sheetName'),
-      buttonText: t('common:button.export_data'),
-      successMessage: t('export.successMessage')
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'personnel_categories_table',
-      buttonText: t('common:button.column_settings'),
-      tooltipTitle: t('columnControl.tooltipTitle'),
-      dropdownTitle: t('columnControl.dropdownTitle'),
-      resetText: t('common:button.reset'),
-      requiredColumns: ['id', 'name', 'action'] // ID、名称和操作列必须显示
-    }
-  );
+  const handleRefresh = async () => {
+    await fetchData();
+  };
 
   return (
     <UnifiedTabs
@@ -430,42 +410,34 @@ const PersonnelCategoriesPage: React.FC = () => {
                   <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
                     {t('button.add_personnel_category')}
                   </Button>
-                  <Tooltip title={t('export.tooltipTitle')}>
-                    <ExportButton />
-                  </Tooltip>
-                  <ColumnControl />
                 </Space>
               </div>
               {activeTabKey === '1' && (
-                <Table
-                  columns={visibleColumns}
+                <EnhancedProTable<PersonnelCategoryPageItem>
+                  columns={columns}
                   dataSource={personnelCategoriesTree}
                   loading={isLoading}
+                  rowKey="id"
                   pagination={{
+                    defaultPageSize: 10,
                     showSizeChanger: true,
                     showQuickJumper: true,
-                    pageSizeOptions: ['10', '20', '50', '100'],
-                    showTotal: (total) => t('pagination.total', { total }),
-                    current: tableParams.pagination?.current,
-                    pageSize: tableParams.pagination?.pageSize,
-                    onChange: (page, pageSize) => {
-                      setTableParams(prev => ({
-                        ...prev,
-                        pagination: {
-                          ...prev.pagination,
-                          current: page,
-                          pageSize: pageSize
-                        }
-                      }));
-                    }
                   }}
-                  rowKey="id"
-                  expandable={{ defaultExpandAllRows: true }}
-                  onChange={handleTableChange}
-                  className={treeTableStyles['tree-table']}
-                  bordered
-                  scroll={{ x: 'max-content' }}
-                  tableLayout="fixed"
+                  enableAdvancedFeatures={true}
+                  showToolbar={true}
+                  search={false}
+                  title={t('title.current_personnel_categories')}
+                  onRefresh={handleRefresh}
+                  customToolbarButtons={[
+                    <Button
+                      key="create"
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={showCreateModal}
+                    >
+                      {t('button.add_personnel_category')}
+                    </Button>
+                  ]}
                 />
               )}
 

@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography, App } from 'antd';
+import { Button, Input, Space, Tag, Tooltip, Modal, Form, Switch, Select, message, Typography, App } from 'antd';
 import { SearchOutlined, PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import TableActionButton from '../../components/common/TableActionButton';
 import PageLayout from '../../components/common/PageLayout';
+import EnhancedProTable from '../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
 import type { InputRef } from 'antd';
-import type { ColumnType, TablePaginationConfig } from 'antd/lib/table/interface';
-import type { FilterValue, SorterResult } from 'antd/lib/table/interface';
 import { getUsers, createUser, updateUser, deleteUser } from '../../api/users';
 import { getRoles } from '../../api/roles';
 import type { User as ApiUser, Role as ApiRole, ApiResponse, CreateUserPayload, UpdateUserPayload } from '../../api/types';
 import { format } from 'date-fns';
-import type { TableParams } from '../../types/antd';
 import { useTranslation } from 'react-i18next';
-import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../components/common/TableUtils';
-import type { ColumnsType } from 'antd/lib/table';
 import styles from './Users.module.less';
 
 const { Title } = Typography;
@@ -55,16 +52,11 @@ const UserListPage: React.FC = () => {
   const { t } = useTranslation(['user', 'common']);
   const [users, setUsers] = useState<PageUser[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [tableParams, setTableParams] = useState<TableParams>({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-      total: 0,
-    },
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
   });
-
-  // 使用通用表格搜索工具
-  const { getColumnSearch } = useTableSearch();
 
   // Modal states for Create/Edit User
   const [isUserModalOpen, setIsUserModalOpen] = useState<boolean>(false);
@@ -84,12 +76,12 @@ const UserListPage: React.FC = () => {
   const [allApiUsersForEdit, setAllApiUsersForEdit] = useState<ApiUser[]>([]);
 
 
-  const fetchUsers = async (params: TableParams = tableParams) => {
+  const fetchUsers = async () => {
     setLoading(true);
     try {
       const apiParams: { page?: number; size?: number; sort?: string; [key: string]: any } = {
-        page: params.pagination?.current,
-        size: params.pagination?.pageSize,
+        page: pagination.current,
+        size: pagination.pageSize,
       };
 
       const apiResponse: ApiResponse<ApiUser[]> = await getUsers(apiParams);
@@ -106,35 +98,26 @@ const UserListPage: React.FC = () => {
           created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('table.value.not_applicable'),
         }));
         setUsers(pageUsers);
-        setTableParams({
-          ...params,
-          pagination: {
-            ...params.pagination,
-            total: apiResponse.meta?.total || 0,
-          },
-        });
+        setPagination(prev => ({
+          ...prev,
+          total: apiResponse.meta?.total || 0,
+        }));
       } else {
         console.error('getUsers response data is not an array or response is invalid:', apiResponse);
         setUsers([]);
-        setTableParams(prev => ({
+        setPagination(prev => ({
           ...prev,
-          pagination: {
-            ...prev.pagination,
-            total: 0,
-            current: 1,
-          }
+          total: 0,
+          current: 1,
         }));
       }
     } catch (error) {
       console.error('获取用户列表失败:', error);
       setUsers([]);
-      setTableParams(prev => ({
+      setPagination(prev => ({
         ...prev,
-        pagination: {
-          ...prev.pagination,
-          total: 0,
-          current: 1,
-        }
+        total: 0,
+        current: 1,
       }));
     } finally {
       setLoading(false);
@@ -155,31 +138,13 @@ const UserListPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers(tableParams);
+    fetchUsers();
     fetchAllRoles(); // Fetch roles for the modal
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableParams.pagination?.current, tableParams.pagination?.pageSize]);
+  }, [pagination.current, pagination.pageSize]);
 
-  const handleTableChange = (
-    newPagination: TablePaginationConfig,
-    filters: Record<string, FilterValue | null>,
-    sorter: SorterResult<PageUser> | SorterResult<PageUser>[],
-  ) => {
-    const sort = Array.isArray(sorter) ? sorter[0] : sorter;
-    setTableParams(prev => ({
-      ...prev,
-      pagination: newPagination,
-      filters,
-      sortField: sort.field as string,
-      sortOrder: sort.order as string,
-    }));
-    
-    fetchUsers({ 
-        pagination: newPagination,
-        filters,
-        sortField: sort.field as string,
-        sortOrder: sort.order as string,
-    });
+  const handleRefresh = async () => {
+    await fetchUsers();
   };
 
   const showCreateUserModal = () => {
@@ -222,8 +187,8 @@ const UserListPage: React.FC = () => {
       message.success(t('message.create_user_success', { username: newUser.username }));
       setIsUserModalOpen(false);
       userForm.resetFields();
-      setTableParams(prev => ({ ...prev, pagination: { ...prev.pagination, current: 1 }}));
-      fetchUsers({ ...tableParams, pagination: { ...tableParams.pagination, current: 1 } });
+      setPagination(prev => ({ ...prev, current: 1 }));
+      fetchUsers();
 
     } catch (error: any) {
       console.error("创建用户失败:", error);
@@ -281,7 +246,7 @@ const UserListPage: React.FC = () => {
       const updatedUser = await updateUser(editingUser.id, cleanedPayload); // updateUser will need to be adapted
       message.success(t('message.update_user_success', { username: updatedUser.username }));
       setIsUserModalOpen(false);
-      fetchUsers(tableParams); // Refresh with current params
+      fetchUsers(); // Refresh with current params
     } catch (error: any) {
       console.error("更新用户失败:", error);
       let errorMsg = t('message.update_user_error.default');
@@ -326,21 +291,18 @@ const UserListPage: React.FC = () => {
         try {
           await deleteUser(userId);
           message.success(t('message.delete_user_success', { username }));
-          // Refresh users list - fetch with current params, or reset to page 1 if current page might be empty
-          const newTotal = tableParams.pagination?.total ? tableParams.pagination.total - 1 : 0;
-          const newCurrentPage = (users.length === 1 && (tableParams.pagination?.current || 1) > 1) ? 
-                                 (tableParams.pagination?.current || 1) - 1 : 
-                                 (tableParams.pagination?.current || 1);
+          // Refresh users list
+          const newTotal = pagination.total ? pagination.total - 1 : 0;
+          const newCurrentPage = (users.length === 1 && pagination.current > 1) ? 
+                                 pagination.current - 1 : 
+                                 pagination.current;
 
-          const newTableParams = {
-            ...tableParams, 
-            pagination: {
-              ...tableParams.pagination, 
-              total: newTotal,
-              current: newCurrentPage
-            }
-          };
-          fetchUsers(newTableParams);
+          setPagination(prev => ({
+            ...prev,
+            total: newTotal,
+            current: newCurrentPage
+          }));
+          fetchUsers();
         } catch (error: any) {
           console.error("删除用户失败:", error);
           const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.delete_user_error.default');
@@ -350,41 +312,39 @@ const UserListPage: React.FC = () => {
     });
   };
 
-  // 使用通用表格工具定义列
-  const initialColumns: ColumnsType<PageUser> = [
+  // 定义 ProTable 列
+  const columns: ProColumns<PageUser>[] = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
-      sorter: numberSorter<PageUser>('id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('id'),
+      sorter: (a, b) => a.id - b.id,
+      valueType: 'digit',
     },
     {
       title: t('table.column.username'),
       dataIndex: 'username',
       key: 'username',
-      sorter: stringSorter<PageUser>('username'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('username'),
+      sorter: (a, b) => a.username.localeCompare(b.username),
+      valueType: 'text',
     },
     {
       title: t('table.column.employee_id'),
       dataIndex: 'employee_id',
       key: 'employee_id',
       width: 120,
-      sorter: numberSorter<PageUser>('employee_id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('employee_id'),
+      sorter: (a, b) => (a.employee_id || 0) - (b.employee_id || 0),
+      valueType: 'digit',
     },
     {
       title: t('table.column.roles'),
       dataIndex: 'roles',
       key: 'roles',
-      render: (roles: string[]) => (
+      search: false,
+      render: (_, record) => (
         <div className={styles.roleTagsContainer}>
-          {roles.map((role, index) => (
+          {record.roles.map((role, index) => (
             <Tag color="blue" key={index}>
               {role}
             </Tag>
@@ -397,8 +357,9 @@ const UserListPage: React.FC = () => {
       dataIndex: 'is_active',
       key: 'is_active',
       width: 100,
-      render: (isActive: boolean) => (
-        isActive ? 
+      search: false,
+      render: (_, record) => (
+        record.is_active ? 
           <Tag color="green">{t('table.value.active')}</Tag> : 
           <Tag color="red">{t('table.value.inactive')}</Tag>
       ),
@@ -408,13 +369,14 @@ const UserListPage: React.FC = () => {
       dataIndex: 'created_at',
       key: 'created_at',
       width: 180,
-      sorter: dateSorter<PageUser>('created_at'),
-      sortDirections: ['descend', 'ascend'],
+      search: false,
+      valueType: 'dateTime',
     },
     {
       title: t('table.column.actions'),
       key: 'action',
       width: 120,
+      search: false,
       render: (_, record) => (
         <Space size="middle">
           <TableActionButton
@@ -440,26 +402,7 @@ const UserListPage: React.FC = () => {
     },
   ];
 
-  // 使用表格导出功能
-  const { ExportButton } = useTableExport(
-    users,
-    initialColumns,
-    {
-      filename: t('user:user_list_page.export.filename'),
-      sheetName: t('user:user_list_page.export.sheet_name'),
-      buttonText: t('common:action.export'),
-    }
-  );
 
-  // 使用列设置功能
-  const { ColumnControl, visibleColumns } = useColumnControl(
-    initialColumns,
-    {
-      storageKeyPrefix: 'user_list_table',
-      buttonText: t('common:action.columns'),
-      tooltipTitle: t('common:tooltip.column_settings')
-    }
-  );
 
 
 
@@ -476,20 +419,38 @@ const UserListPage: React.FC = () => {
           >
             {t('user_list_page.button.create_user')}
           </Button>
-          {ExportButton && <ExportButton />}
-          {ColumnControl && <ColumnControl />}
         </Space>
       }
     >
       <div className={styles.tableContainer}>
-        <Table
-        columns={visibleColumns}
-        dataSource={users}
-        loading={loading}
-        onChange={handleTableChange}
-        pagination={tableParams.pagination}
-        rowKey="key"
-      />
+        <EnhancedProTable<PageUser>
+          columns={columns}
+          dataSource={users}
+          loading={loading}
+          rowKey="key"
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+          enableAdvancedFeatures={true}
+          showToolbar={true}
+          search={false}
+          title={t('user_list_page.title')}
+          onRefresh={handleRefresh}
+          customToolbarButtons={[
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showCreateUserModal}
+            >
+              {t('user_list_page.button.create_user')}
+            </Button>
+          ]}
+        />
       <Modal
         title={editingUser ? t('modal.title.edit_user') : t('modal.title.create_user')}
         open={isUserModalOpen}

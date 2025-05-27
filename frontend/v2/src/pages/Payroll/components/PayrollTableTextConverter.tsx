@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Input, Button, Table, Select, Card, Alert, Space, message } from 'antd';
+import { Input, Button, Select, Card, Alert, Space, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { nanoid } from 'nanoid';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 import i18n from '../../../i18n';
 
 const { TextArea } = Input;
@@ -351,20 +353,22 @@ const PayrollTableTextConverter: React.FC = () => {
       {parsedData.length > 0 && (
         <>
           <Card title={t('batch_import.table_converter.field_mapping', '字段映射')} style={{ marginTop: 16 }}>
-            <Table
+            <EnhancedProTable
               dataSource={fieldMappings.map((m, i) => ({ ...m, key: i }))}
               columns={[
                 {
                   title: t('batch_import.table_converter.table_field', '表格字段'),
-                  dataIndex: 'tableField'
+                  dataIndex: 'tableField',
+                  valueType: 'text',
                 },
                 {
                   title: t('batch_import.table_converter.api_field', 'API字段'),
                   dataIndex: 'apiField',
-                  render: (text, record: any) => (
+                  valueType: 'select',
+                  render: (_, record: any) => (
                     <Select
                       style={{ width: '100%' }}
-                      value={text}
+                      value={record.apiField}
                       onChange={value => updateFieldMapping(record.key, value)}
                     >
                       <Option value="">{t('batch_import.table_converter.ignore_field', '忽略此字段')}</Option>
@@ -379,11 +383,15 @@ const PayrollTableTextConverter: React.FC = () => {
                 {
                   title: t('batch_import.table_converter.data_type', '数据类型'),
                   dataIndex: 'type',
-                  render: (text) => text
+                  valueType: 'text',
+                  render: (_, record: any) => record.type
                 }
-              ]}
+              ] as ProColumns<any>[]}
               pagination={false}
               size="small"
+              search={false}
+              enableAdvancedFeatures={false}
+              showToolbar={false}
             />
           </Card>
           

@@ -10,6 +10,7 @@ import type { Employee, JobHistoryItem, ContractItem, CompensationItem, LeaveBal
 import { useLookupMaps, type LookupMaps, type RawLookups } from '../../../hooks/useLookupMaps';
 import EmployeeName from '../../../components/common/EmployeeName';
 import UnifiedTabs from '../../../components/common/UnifiedTabs';
+import ContractInfoTab from './partials/ContractInfoTab';
 // import { usePermissions } from '../../../../hooks/usePermissions'; // TODO: Integrate permissions
 
 // Updated BasicInfoTabPlaceholder
@@ -365,7 +366,7 @@ const EmployeeDetailPage: React.FC = () => {
       {
         key: 'contracts',
         label: t('employee:detail_page.tabs.contracts'),
-        children: <ContractsTabPlaceholder data={employee.contracts} lookupMaps={lookupMaps} />,
+        children: <ContractInfoTab employeeId={String(employee.id)} />,
       },
       {
         key: 'compensation',

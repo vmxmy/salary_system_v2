@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { Space, Table, Button, Modal, Form, Input, Select, Switch, message, Popconfirm, Card, Typography, Row, Col, Divider, Tag, InputNumber } from 'antd';
+import { Space, Button, Modal, Form, Input, Select, Switch, message, Popconfirm, Card, Typography, Row, Col, Divider, Tag, InputNumber } from 'antd';
 import type { InputRef } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilterFilled, DownloadOutlined, SettingOutlined, HomeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,8 @@ import * as payrollApi from '../services/payrollApi';
 import * as configApi from '../../../api/config';
 import type { LookupValue } from '../../../api/types';
 import type { PayrollComponentDefinition } from '../types/payrollTypes';
-import type { ColumnType } from 'antd/es/table';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
 import styles from './PayrollComponentsPage.module.less';
 
 const { Title } = Typography;
@@ -231,7 +232,7 @@ const PayrollComponentsPage: React.FC = () => {
   });
 
   // 表格列定义
-  const initialColumns: ColumnType<PayrollComponentDefinition>[] = [
+  const initialColumns: ProColumns<PayrollComponentDefinition>[] = [
     {
       title: t('payroll_components.code'),
       dataIndex: 'code',
@@ -252,8 +253,8 @@ const PayrollComponentsPage: React.FC = () => {
       title: t('payroll_components.type'),
       dataIndex: 'type',
       key: 'type',
-      render: (type: string) => {
-        const { text, color } = getTypeInfo(type);
+      render: (_, record) => {
+        const { text, color } = getTypeInfo(record.type);
         return <Tag color={color}>{text}</Tag>;
       },
       sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
@@ -268,8 +269,8 @@ const PayrollComponentsPage: React.FC = () => {
       title: t('payroll_components.is_taxable'),
       dataIndex: 'is_taxable',
       key: 'is_taxable',
-      render: (isTaxable: boolean) => (
-        isTaxable ? t('common.yes') : t('common.no')
+      render: (_, record) => (
+        record.is_taxable ? t('common.yes') : t('common.no')
       ),
       sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
         Number(a.is_taxable) - Number(b.is_taxable),
@@ -346,9 +347,9 @@ const PayrollComponentsPage: React.FC = () => {
       title: t('common.status'),
       dataIndex: 'is_active',
       key: 'is_active',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? t('common.active') : t('common.inactive')}
+      render: (_, record) => (
+        <Tag color={record.is_active ? 'green' : 'red'}>
+          {record.is_active ? t('common.active') : t('common.inactive')}
         </Tag>
       ),
       sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
@@ -386,24 +387,25 @@ const PayrollComponentsPage: React.FC = () => {
     },
   ];
 
-  const { ExportButton } = useTableExport(
-    components,
-    initialColumns,
-    {
-      filename: t('payroll_components.export.filename', { ns: 'payroll_components' }),
-      sheetName: t('payroll_components.export.sheet_name', { ns: 'payroll_components' }),
-      buttonText: t('common:action.export'),
-    }
-  );
+  // 暂时禁用导出和列控制功能，因为它们与 ProTable 不兼容
+  // const { ExportButton } = useTableExport(
+  //   components,
+  //   initialColumns,
+  //   {
+  //     filename: t('payroll_components.export.filename', { ns: 'payroll_components' }),
+  //     sheetName: t('payroll_components.export.sheet_name', { ns: 'payroll_components' }),
+  //     buttonText: t('common:action.export'),
+  //   }
+  // );
 
-  const { ColumnControl, visibleColumns: controlledColumns } = useColumnControl(
-    initialColumns,
-    {
-      storageKeyPrefix: 'payrollComponentsTable',
-      buttonText: t('common:action.columns'),
-      tooltipTitle: t('common:tooltip.column_settings')
-    }
-  );
+  // const { ColumnControl, visibleColumns: controlledColumns } = useColumnControl(
+  //   initialColumns,
+  //   {
+  //     storageKeyPrefix: 'payrollComponentsTable',
+  //     buttonText: t('common:action.columns'),
+  //     tooltipTitle: t('common:tooltip.column_settings')
+  //   }
+  // );
 
   // 打开编辑模态框
   const handleEdit = (component: PayrollComponentDefinition) => {
@@ -483,15 +485,15 @@ const PayrollComponentsPage: React.FC = () => {
           >
             {t('payroll_components.add')}
           </Button>
-          {ExportButton && <ExportButton />}
-          {ColumnControl && <ColumnControl />}
+          {/* {ExportButton && <ExportButton />} */}
+          {/* {ColumnControl && <ColumnControl />} */}
         </Space>
       }
     >
       <div className={styles.tableContainer}>
-        <Table
+        <EnhancedProTable<PayrollComponentDefinition>
           dataSource={components}
-          columns={controlledColumns}
+          columns={initialColumns}
           rowKey="id"
           loading={loading}
           pagination={{
@@ -500,16 +502,16 @@ const PayrollComponentsPage: React.FC = () => {
             total: pagination.total,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
+            showTotal: (total: number, range: [number, number]) => 
               t('common.pagination.show_total', { 
                 range0: range[0], 
                 range1: range[1], 
                 total 
               }),
-            onChange: (page, size) => {
-              fetchComponents(page, size);
+            onChange: (page: number, size?: number) => {
+              fetchComponents(page, size || pagination.pageSize);
             },
-            onShowSizeChange: (current, size) => {
+            onShowSizeChange: (current: number, size: number) => {
               fetchComponents(1, size);
             },
           }}

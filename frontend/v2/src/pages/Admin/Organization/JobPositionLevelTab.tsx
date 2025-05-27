@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, App, Popconfirm, Tooltip, InputNumber } from 'antd';
+import { Button, Modal, Form, Input, Switch, DatePicker, Space, Typography, App, Popconfirm, Tooltip, InputNumber } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
+import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
@@ -10,7 +12,6 @@ import dayjs from 'dayjs';
 import { lookupService } from '../../../services/lookupService';
 import type { LookupItem } from '../../../pages/HRManagement/types';
 import TableActionButton from '../../../components/common/TableActionButton';
-import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter } from '../../../components/common/TableUtils';
 import styles from './ActualPositionTab.module.less';
 
 const { Title } = Typography;
@@ -43,8 +44,7 @@ const JobPositionLevelTab: React.FC = () => {
   const { t } = useTranslation(['organization', 'common']);
   const { message: antdMessage } = App.useApp();
   
-  // 使用表格搜索功能
-  const { getColumnSearch } = useTableSearch();
+
   
   const [jobPositionLevels, setJobPositionLevels] = useState<JobPositionLevelPageItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -191,73 +191,76 @@ const JobPositionLevelTab: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<JobPositionLevelPageItem> = [
+  const columns: ProColumns<JobPositionLevelPageItem>[] = [
     { 
       title: 'ID', 
       dataIndex: 'id', 
       key: 'id', 
       width: 80,
-      sorter: numberSorter<JobPositionLevelPageItem>('id'),
-      ...getColumnSearch('id'),
+      sorter: (a, b) => a.id - b.id,
+      valueType: 'digit',
     },
     { 
       title: '代码', 
       dataIndex: 'code', 
       key: 'code', 
       width: 150,
-      sorter: stringSorter<JobPositionLevelPageItem>('code'),
-      ...getColumnSearch('code'),
+      sorter: (a, b) => (a.code || '').localeCompare(b.code || ''),
+      valueType: 'text',
     },
     { 
       title: '名称', 
       dataIndex: 'name', 
       key: 'name',
-      sorter: stringSorter<JobPositionLevelPageItem>('name'),
-      ...getColumnSearch('name'),
-      render: (text: string, record: JobPositionLevelPageItem) => (
-        <a onClick={() => showEditModal(record)}>{text}</a>
+      sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
+      valueType: 'text',
+      render: (_, record) => (
+        <a onClick={() => showEditModal(record)}>{record.name}</a>
       ),
     },
     { 
       title: '显示标签', 
       dataIndex: 'label', 
       key: 'label',
-      sorter: stringSorter<JobPositionLevelPageItem>('label'),
-      ...getColumnSearch('label'),
+      sorter: (a, b) => (a.label || '').localeCompare(b.label || ''),
+      valueType: 'text',
     },
     { 
       title: '值', 
       dataIndex: 'value', 
       key: 'value', 
       width: 100,
-      ...getColumnSearch('value'),
+      valueType: 'text',
     },
     { 
       title: '描述', 
       dataIndex: 'description', 
       key: 'description',
-      ...getColumnSearch('description'),
+      valueType: 'text',
+      ellipsis: true,
     },
     {
       title: '排序',
       dataIndex: 'sort_order',
       key: 'sort_order',
       width: 80,
-      sorter: numberSorter<JobPositionLevelPageItem>('sort_order'),
+      sorter: (a, b) => (a.sort_order || 0) - (b.sort_order || 0),
+      valueType: 'digit',
     },
     {
       title: '状态',
       dataIndex: 'is_active',
       key: 'is_active',
       width: 80,
-      filters: [
-        { text: '活跃', value: true },
-        { text: '非活跃', value: false },
-      ],
-      onFilter: (value, record) => record.is_active === value,
-      render: (isActive: boolean, record: JobPositionLevelPageItem) => (
+      search: false,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: '活跃', status: 'Success' },
+        false: { text: '非活跃', status: 'Error' },
+      },
+      render: (_, record) => (
         <Switch 
-          checked={isActive} 
+          checked={record.is_active} 
           onChange={(checked) => handleStatusChange(checked, record)}
         />
       ),
@@ -265,9 +268,9 @@ const JobPositionLevelTab: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      align: 'center',
       width: 150,
-      render: (_: any, record: JobPositionLevelPageItem) => (
+      search: false,
+      render: (_, record) => (
         <Space size="small">
           <TableActionButton 
             actionType="edit"
@@ -292,30 +295,9 @@ const JobPositionLevelTab: React.FC = () => {
     },
   ];
 
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    jobPositionLevels || [], 
-    columns, 
-    {
-      filename: '职务级别数据',
-      sheetName: '职务级别',
-      buttonText: '导出 EXCEL',
-      successMessage: '导出成功'
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'job_position_level_table',
-      buttonText: '列设置',
-      tooltipTitle: '自定义显示列',
-      dropdownTitle: '列显示',
-      resetText: '重置',
-      requiredColumns: ['id', 'name', 'actions'] // ID、名称和操作列必须显示
-    }
-  );
+  const handleRefresh = async () => {
+    await fetchData();
+  };
 
   // 表格变化处理函数，处理分页、筛选、排序等变化
   const handleTableChange = (
@@ -338,37 +320,34 @@ const JobPositionLevelTab: React.FC = () => {
           <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
             新增职务级别
           </Button>
-          <Tooltip title="导出到Excel">
-            <ExportButton />
-          </Tooltip>
-          <ColumnControl />
         </Space>
       </div>
       
-      <Table
-        columns={visibleColumns}
+      <EnhancedProTable<JobPositionLevelPageItem>
+        columns={columns}
         dataSource={jobPositionLevels}
         loading={isLoading}
-        pagination={{ 
-          showSizeChanger: true, 
-          pageSizeOptions: ['10', '20', '50', '100'],
-          showTotal: (total) => `共 ${total} 条记录`,
-          current: tableParams.pagination?.current,
-          pageSize: tableParams.pagination?.pageSize,
-          total: jobPositionLevels.length,
-          onChange: (page, pageSize) => {
-            setTableParams(prev => ({
-              ...prev,
-              pagination: {
-                ...prev.pagination,
-                current: page,
-                pageSize: pageSize
-              }
-            }));
-          }
-        }}
         rowKey="id"
-        onChange={handleTableChange}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        enableAdvancedFeatures={true}
+        showToolbar={true}
+        search={false}
+        title="职务级别管理"
+        onRefresh={handleRefresh}
+        customToolbarButtons={[
+          <Button
+            key="create"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={showCreateModal}
+          >
+            新增职务级别
+          </Button>
+        ]}
       />
 
       <Modal

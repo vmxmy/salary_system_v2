@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Table,
   Button,
   Modal,
   Form,
@@ -19,13 +18,14 @@ import {
 import PageLayout from '../../../components/common/PageLayout';
 import { PlusOutlined, ClusterOutlined } from '@ant-design/icons';
 import TableActionButton from '../../../components/common/TableActionButton';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue } from 'antd/es/table/interface';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import EmployeeName from '../../../components/common/EmployeeName';
-import { useTableSearch, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 
 // 导入样式文件
 import styles from './TreeTable.module.less';
@@ -167,8 +167,7 @@ const DepartmentsPage: React.FC = () => {
   const [modalLoading, setModalLoading] = useState<boolean>(false);
   const [form] = Form.useForm<DepartmentFormValues>();
 
-  // 使用通用表格搜索工具
-  const { getColumnSearch } = useTableSearch();
+
 
   const fetchAllFlatDataForSelector = useCallback(async () => {
     // This fetches all (active) departments for the parent selector
@@ -326,70 +325,63 @@ const DepartmentsPage: React.FC = () => {
     return {};
   };
 
-  const columns: ColumnsType<DepartmentPageItem> = [
+  const columns: ProColumns<DepartmentPageItem>[] = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
-      rowScope: 'row', // 将ID列设置为行头
-      sorter: numberSorter<DepartmentPageItem>('id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('id'),
+      sorter: (a: DepartmentPageItem, b: DepartmentPageItem) => a.id - b.id,
     },
     {
       title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
       width: 150,
-      sorter: stringSorter<DepartmentPageItem>('code'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('code'),
+      sorter: (a: DepartmentPageItem, b: DepartmentPageItem) => (a.code || '').localeCompare(b.code || ''),
     },
     {
       title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
-      onCell: nameColumnOnCell, // 只保留名称列的样式设置
-      sorter: stringSorter<DepartmentPageItem>('name'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('name'),
+      sorter: (a: DepartmentPageItem, b: DepartmentPageItem) => (a.name || '').localeCompare(b.name || ''),
+      onCell: nameColumnOnCell, // 保留名称列的样式设置
     },
     {
       title: t('table.column.parent_department_id'),
       dataIndex: 'parent_department_id',
       key: 'parent_department_id',
       width: 120,
-      render: (id?: number) => id || t('table.column.value_na_or_dash'),
-      sorter: numberSorter<DepartmentPageItem>('parent_department_id'),
-      sortDirections: ['descend', 'ascend'],
+      valueType: 'digit',
+      render: (_, record) => record.parent_department_id || t('table.column.value_na_or_dash'),
+      sorter: (a: DepartmentPageItem, b: DepartmentPageItem) => (a.parent_department_id || 0) - (b.parent_department_id || 0),
     },
     {
       title: t('table.column.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
-      render: (text: string) => text ? format(new Date(text), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
-      sorter: dateSorter<DepartmentPageItem>('effective_date'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('effective_date'),
+      valueType: 'date',
+      render: (_, record) => record.effective_date ? format(new Date(record.effective_date), 'yyyy-MM-dd') : t('table.column.value_na_or_dash'),
+      sorter: (a: DepartmentPageItem, b: DepartmentPageItem) => new Date(a.effective_date || '').getTime() - new Date(b.effective_date || '').getTime(),
     },
     {
       title: t('table.column.is_active'),
       dataIndex: 'is_active',
       key: 'is_active',
-      render: (isActive: boolean) => <Switch checked={isActive} disabled />,
+      valueType: 'switch',
+      render: (_, record) => <Switch checked={record.is_active} disabled />,
       width: 80,
       filters: [
         { text: t('table.filter.active'), value: true },
         { text: t('table.filter.inactive'), value: false },
       ],
-      onFilter: (value, record) => record.is_active === value,
+      onFilter: (value: any, record: DepartmentPageItem) => record.is_active === value,
     },
     {
       title: t('table.column.actions'),
       key: 'action',
       width: 180,
-      render: (_, record) => (
+      render: (_: any, record: DepartmentPageItem) => (
         <>
           {record.depth === 0 ? (
             <Space size="small">
@@ -437,6 +429,10 @@ const DepartmentsPage: React.FC = () => {
     },
   ];
 
+  const handleRefresh = async () => {
+    await fetchData();
+  };
+
 
 
   return (
@@ -449,7 +445,7 @@ const DepartmentsPage: React.FC = () => {
       }
     >
       <div className={styles.tableContainer}>
-        <Table
+        <EnhancedProTable<DepartmentPageItem>
         columns={columns}
         dataSource={departmentsTree}
         loading={isLoading}
@@ -457,13 +453,16 @@ const DepartmentsPage: React.FC = () => {
           showSizeChanger: true,
           showQuickJumper: true,
           pageSizeOptions: ['10', '20', '50', '100'],
-          showTotal: (total) => t('pagination.total', { total }),
+          showTotal: (total: number) => t('pagination.total', { total }),
         }}
         rowKey="id"
         expandable={{ defaultExpandAllRows: true }}
         className={styles['tree-table']}
         bordered
         onChange={handleTableChange}
+        search={false}
+        enableAdvancedFeatures={true}
+        showToolbar={false}
       />
       
       <Modal

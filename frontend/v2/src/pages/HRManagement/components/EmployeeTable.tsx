@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Table, Space, Button, Tag, Popconfirm, Tooltip, Input } from 'antd';
+import { Space, Button, Tag, Popconfirm, Tooltip, Input } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/es/table/interface';
 import { useTranslation } from 'react-i18next';
 import type { Employee } from '../types';
@@ -9,12 +9,14 @@ import { usePermissions } from '../../../hooks/usePermissions';
 import type { Dayjs } from 'dayjs';
 import EmployeeName from '../../../components/common/EmployeeName';
 import TableActionButton from '../../../components/common/TableActionButton';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
 
 interface EmployeeTableProps {
   employees: Employee[];
   loading: boolean;
   total: number;
-  columns: ColumnsType<Employee>; // 新增：接收外部传入的列配置
+  columns: ProColumns<Employee>[]; // 新增：接收外部传入的列配置
   currentPage?: number;
   pageSize?: number;
   selectedRowKeys?: React.Key[];
@@ -91,7 +93,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
   return (
     <div className="employee-table-container">
-      <Table
+      <EnhancedProTable<Employee>
         columns={columns} // 直接使用外部传入的列配置
         dataSource={employees}
         loading={loading}

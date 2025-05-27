@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button, Input, Space, Typography, message, Form, Modal, Transfer, Tooltip } from 'antd';
+import { Button, Input, Space, Typography, message, Form, Modal, Transfer, Tooltip } from 'antd';
 import { PlusOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import TableActionButton from '../../components/common/TableActionButton';
 import PageLayout from '../../components/common/PageLayout';
-import type { ColumnsType } from 'antd/lib/table';
+import EnhancedProTable from '../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
 import { getRoles, createRole, updateRole, deleteRole } from '../../api/roles';
 import { getPermissions as apiGetPermissions } from '../../api/permissions';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../api/types';
 import { useTranslation } from 'react-i18next';
-import { useTableSearch, numberSorter, stringSorter, useTableExport, useColumnControl } from '../../components/common/TableUtils';
 import styles from './Roles.module.less'; // 导入样式
 
 const { Title } = Typography;
@@ -26,8 +26,7 @@ const RoleListPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [form] = Form.useForm<RoleFormValues>();
 
-  // 使用通用表格搜索钩子
-  const { getColumnSearch } = useTableSearch();
+
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -211,48 +210,48 @@ const RoleListPage: React.FC = () => {
     }
   };
 
-  // Table columns definition
-  const columns: ColumnsType<Role> = [
+  // ProTable 列定义
+  const columns: ProColumns<Role>[] = [
     {
       title: t('table.column.id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: numberSorter<Role>('id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('id'),
       width: 80,
+      sorter: (a, b) => a.id - b.id,
+      valueType: 'digit',
     },
     {
       title: t('table.column.code'),
       dataIndex: 'code',
       key: 'code',
-      sorter: stringSorter<Role>('code'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('code'),
       width: 150,
+      sorter: (a, b) => a.code.localeCompare(b.code),
+      valueType: 'text',
     },
     {
       title: t('table.column.name'),
       dataIndex: 'name',
       key: 'name',
-      sorter: stringSorter<Role>('name'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('name'),
       width: 200,
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      valueType: 'text',
     },
     {
       title: t('table.column.permissions'),
       dataIndex: 'permissions',
       key: 'permissions',
-      render: (permissions: Permission[]) => {
-        if (!permissions || permissions.length === 0) return '-';
-        return permissions.map(p => p.code).join(', ');
-      },
       width: 300,
+      search: false,
+      render: (_, record) => {
+        if (!record.permissions || record.permissions.length === 0) return '-';
+        return record.permissions.map(p => p.code).join(', ');
+      },
     },
     {
       title: t('table.column.actions'),
       key: 'actions',
+      width: 120,
+      search: false,
       render: (_, record) => (
         <Space size="middle">
           <TableActionButton
@@ -268,34 +267,12 @@ const RoleListPage: React.FC = () => {
           />
         </Space>
       ),
-      width: 120,
     },
   ];
 
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    roles || [], 
-    columns, 
-    {
-      filename: '角色列表', 
-      sheetName: '角色数据',
-      buttonText: t('button.export_excel'),
-      successMessage: t('message.export_success')
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'roles_table',
-      buttonText: t('button.column_control'),
-      tooltipTitle: t('tooltip.column_control'),
-      dropdownTitle: t('dropdown.column_control_title'),
-      resetText: t('button.reset'),
-      requiredColumns: ['id', 'actions'] // ID和操作列始终显示
-    }
-  );
+  const handleRefresh = async () => {
+    await fetchRoles();
+  };
 
   // 显示删除确认对话框
   const showDeleteConfirm = (role: Role) => {
@@ -322,27 +299,35 @@ const RoleListPage: React.FC = () => {
           >
             {t('button.create_role')}
           </Button>
-          <Tooltip title={t('tooltip.export_excel')}>
-            <ExportButton />
-          </Tooltip>
-          <ColumnControl />
         </Space>
       }
     >
       <div className={styles.tableContainer}>
-        <Table
-          columns={visibleColumns}
+        <EnhancedProTable<Role>
+          columns={columns}
           dataSource={roles}
           rowKey="id"
           loading={loading}
-          pagination={{ 
-            showSizeChanger: true, 
+          pagination={{
+            defaultPageSize: 10,
+            showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => t('pagination.total', { total }), 
-            pageSizeOptions: ['10', '20', '50', '100'],
           }}
-          bordered
-          scroll={{ x: 'max-content' }}
+          enableAdvancedFeatures={true}
+          showToolbar={true}
+          search={false}
+          title={t('page_title')}
+          onRefresh={handleRefresh}
+          customToolbarButtons={[
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showCreateModal}
+            >
+              {t('button.create_role')}
+            </Button>
+          ]}
         />
       </div>
       <Modal

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { 
   Button, 
   Modal, 
-  Table, 
   Space, 
   Popconfirm, 
   message, 
@@ -24,7 +23,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import utc from 'dayjs/plugin/utc';
 import ActionButton from '../../../components/common/ActionButton';
 import PageLayout from '../../../components/common/PageLayout';
-import type { ColumnsType } from 'antd/es/table';
+import type { ProColumns } from '@ant-design/pro-components';
 import { 
   getPayrollPeriods, 
   createPayrollPeriod, 
@@ -39,6 +38,7 @@ import TableActionButton from '../../../components/common/TableActionButton';
 import type { PayrollPeriod, ApiListMeta } from '../types/payrollTypes';
 import { useTableSearch, useTableExport, useColumnControl, numberSorter, stringSorter, dateSorter } from '../../../components/common/TableUtils';
 import { getPayrollPeriodStatusOptions, getPayrollPeriodStatusInfo, type DynamicStatusOption } from '../utils/dynamicStatusUtils';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 
 const PayrollPeriodsPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common']);
@@ -264,66 +264,69 @@ const PayrollPeriodsPage: React.FC = () => {
   // 添加表格搜索功能
   const { getColumnSearch } = useTableSearch();
 
-  const columns: ColumnsType<PayrollPeriod> = [
+  const columns: ProColumns<PayrollPeriod>[] = [
     {
       title: t('payroll_periods_page.table.column_id'),
       dataIndex: 'id',
       key: 'id',
-      sorter: numberSorter<PayrollPeriod>('id'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('id'),
+      sorter: (a, b) => a.id - b.id,
       width: 80,
+      valueType: 'digit',
+      search: false,
     },
     {
       title: t('payroll_periods_page.table.column_period_name'),
       dataIndex: 'name',
       key: 'name',
-      sorter: stringSorter<PayrollPeriod>('name'),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearch('name'),
+      sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
       width: 200,
+      valueType: 'text',
     },
     {
       title: t('payroll_periods_page.table.column_start_date'),
       dataIndex: 'start_date',
       key: 'start_date',
-      sorter: dateSorter<PayrollPeriod>('start_date'),
-      sortDirections: ['descend', 'ascend'],
+      sorter: (a, b) => new Date(a.start_date || '').getTime() - new Date(b.start_date || '').getTime(),
       width: 130,
-      render: (date: string) => date ? format(new Date(date), 'yyyy-MM-dd') : '',
+      valueType: 'date',
+      render: (_, record) => record.start_date ? format(new Date(record.start_date), 'yyyy-MM-dd') : '',
+      search: false,
     },
     {
       title: t('payroll_periods_page.table.column_end_date'),
       dataIndex: 'end_date',
       key: 'end_date',
-      sorter: dateSorter<PayrollPeriod>('end_date'),
-      sortDirections: ['descend', 'ascend'],
+      sorter: (a, b) => new Date(a.end_date || '').getTime() - new Date(b.end_date || '').getTime(),
       width: 130,
-      render: (date: string) => date ? format(new Date(date), 'yyyy-MM-dd') : '',
+      valueType: 'date',
+      render: (_, record) => record.end_date ? format(new Date(record.end_date), 'yyyy-MM-dd') : '',
+      search: false,
     },
     {
       title: t('payroll_periods_page.table.column_status'),
       dataIndex: 'status_lookup_value_id',
       key: 'status',
-      filters: statusOptions.map(option => ({
-        text: option.name,
-        value: option.id,
-      })),
-      onFilter: (value, record) => record.status_lookup_value_id === value,
-      render: (statusId: number) => {
+      width: 120,
+      valueType: 'select',
+      valueEnum: statusOptions.reduce((acc, option) => {
+        acc[option.id] = { text: option.name, status: option.color };
+        return acc;
+      }, {} as Record<number, { text: string; status: string }>),
+      render: (_, record) => {
         // 同步查找状态信息，避免异步渲染问题
-        const status = statusOptions.find(opt => opt.id === statusId);
-        const statusText = status ? status.name : `未知状态(${statusId})`;
+        const status = statusOptions.find(opt => opt.id === record.status_lookup_value_id);
+        const statusText = status ? status.name : `未知状态(${record.status_lookup_value_id})`;
         const statusColor = status ? status.color : 'default';
         return <Tag color={statusColor}>{statusText}</Tag>;
       },
-      width: 120,
+      search: false,
     },
     {
       title: t('payroll_periods_page.table.column_actions'),
       key: 'actions',
       align: 'center',
       width: 120,
+      valueType: 'option',
       render: (_, record) => (
         <Space size="middle">
           <TableActionButton
@@ -348,30 +351,7 @@ const PayrollPeriodsPage: React.FC = () => {
     },
   ];
   
-  // 添加表格导出功能
-  const { ExportButton } = useTableExport(
-    periods || [], 
-    columns, 
-    {
-      filename: "工资期间数据",
-      sheetName: "工资期间",
-      buttonText: "导出Excel",
-      successMessage: "导出成功"
-    }
-  );
-  
-  // 添加列控制功能
-  const { visibleColumns, ColumnControl } = useColumnControl(
-    columns,
-    {
-      storageKeyPrefix: 'payroll_periods_table',
-      buttonText: "列设置",
-      tooltipTitle: "自定义列",
-      dropdownTitle: "列显示",
-      resetText: "重置",
-      requiredColumns: ['id', 'name', 'actions'] // ID、名称和操作列必须显示
-    }
-  );
+  // ProTable 内置了导出和列控制功能，无需单独配置
 
   const pageTitle = t('periods_page.title');
   const actions = (
@@ -405,29 +385,21 @@ const PayrollPeriodsPage: React.FC = () => {
         title={t('payroll_periods_page.title')}
 
         actions={
-          <Space>
-            <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => showModal()}
-              >
-                {t('button.create', { ns: 'common' })}
-              </Button>
-            </PermissionGuard>
-            <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
-              <Tooltip title="导出Excel">
-                <ExportButton />
-              </Tooltip>
-            </PermissionGuard>
-            <ColumnControl />
-          </Space>
+          <PermissionGuard requiredPermissions={requiredPermissionsMemo}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => showModal()}
+            >
+              {t('button.create', { ns: 'common' })}
+            </Button>
+          </PermissionGuard>
         }
       >
         {/* Content for PageHeaderLayout children goes here */}
         {error && <Alert message="错误" description={error} type="error" showIcon closable style={{ marginBottom: 16 }} onClose={() => setError(null)} />}
-        <Table
-          columns={visibleColumns}
+        <EnhancedProTable<PayrollPeriod>
+          columns={columns}
           dataSource={periods}
           rowKey="id"
           loading={loading}
@@ -437,10 +409,13 @@ const PayrollPeriodsPage: React.FC = () => {
             total: meta?.total || 0,
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
-            onChange: (page, pageSize) => fetchPeriods(page, pageSize),
-            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
+            onChange: (page: number, pageSize: number) => fetchPeriods(page, pageSize),
+            showTotal: (total: number, range: [number, number]) => `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
           }}
           scroll={{ x: 'max-content' }}
+          enableAdvancedFeatures={true}
+          showToolbar={true}
+          search={false}
         />
         {isModalVisible && (
           <Modal

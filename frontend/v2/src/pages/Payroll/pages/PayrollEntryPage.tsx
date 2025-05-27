@@ -6,7 +6,6 @@ import {
   DatePicker, 
   Select, 
   Input, 
-  Table, 
   Button, 
   Space, 
   Tag, 
@@ -26,12 +25,8 @@ import { getPayrollEntryStatusInfo } from '../utils/payrollUtils';
 import { employeeService } from '../../../services/employeeService';
 import PayrollEntryFormModal from '../components/PayrollEntryFormModal';
 import dayjs from 'dayjs';
-import { 
-  useTableSearch, 
-  stringSorter, 
-  numberSorter, 
-  useTableExport,
-} from '../../../components/common/TableUtils';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -51,8 +46,6 @@ const PayrollEntryPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [sorter, setSorter] = useState<any>(null);
-
-  const { getColumnSearch } = useTableSearch();
 
   // 获取薪资周期
   const fetchPayrollPeriods = useCallback(async () => {
@@ -169,44 +162,49 @@ const PayrollEntryPage: React.FC = () => {
   };
 
   // 表格列定义
-  const columns: any[] = [
+  const columns: ProColumns<PayrollEntry>[] = [
     {
       title: t('payroll:entry_page.table.column.employee_id'),
       dataIndex: 'employee_id',
       key: 'employee_id',
       width: 120,
-      sorter: true,
-      ...getColumnSearch('employee_id'),
+      valueType: 'digit',
+      search: false,
     },
     {
       title: t('payroll:entry_page.table.column.employee_name'),
       dataIndex: 'employee_name',
       key: 'employee_name',
       width: 180,
-      render: (text: string, record: PayrollEntry) => record.employee_name || t('common:notAvailable'),
-      sorter: true,
-      ...getColumnSearch('employee_name'),
+      valueType: 'text',
+      render: (_, record) => record.employee_name || t('common:notAvailable'),
     },
     {
       title: t('payroll:entry_page.table.column.department'),
       key: 'department_name',
       width: 150,
-      render: (text: any, record: any) => record.employee?.department_name || t('common:notAvailable'),
+      valueType: 'text',
+      search: false,
+      render: (_, record) => (record as any).employee?.department_name || t('common:notAvailable'),
     },
     {
       title: t('payroll:entry_page.table.column.position'),
       key: 'position_name',
       width: 150,
-      render: (text: any, record: any) => record.employee?.position_name || t('common:notAvailable'),
+      valueType: 'text',
+      search: false,
+      render: (_, record) => (record as any).employee?.position_name || t('common:notAvailable'),
     },
     {
       title: t('payroll:entry_page.table.column.total_earnings'),
       dataIndex: 'total_earnings',
       key: 'total_earnings',
       width: 120,
-      sorter: true,
-      render: (text: any) => {
-        const num = typeof text === 'number' ? text : Number(text);
+      valueType: 'money',
+      search: false,
+      render: (_, record) => {
+        const totalEarnings = (record as any).total_earnings || record.gross_pay;
+        const num = typeof totalEarnings === 'number' ? totalEarnings : Number(totalEarnings);
         return !isNaN(num) ? num.toFixed(2) : '0.00';
       },
     },
@@ -215,8 +213,10 @@ const PayrollEntryPage: React.FC = () => {
       dataIndex: 'total_deductions',
       key: 'total_deductions',
       width: 120,
-      render: (text: any) => {
-        const num = typeof text === 'number' ? text : Number(text);
+      valueType: 'money',
+      search: false,
+      render: (_, record) => {
+        const num = typeof record.total_deductions === 'number' ? record.total_deductions : Number(record.total_deductions);
         return !isNaN(num) ? num.toFixed(2) : '0.00';
       },
     },
@@ -225,8 +225,10 @@ const PayrollEntryPage: React.FC = () => {
       dataIndex: 'net_pay',
       key: 'net_pay',
       width: 120,
-      render: (text: any) => {
-        const num = typeof text === 'number' ? text : Number(text);
+      valueType: 'money',
+      search: false,
+      render: (_, record) => {
+        const num = typeof record.net_pay === 'number' ? record.net_pay : Number(record.net_pay);
         return !isNaN(num) ? num.toFixed(2) : '0.00';
       },
     },
@@ -235,8 +237,10 @@ const PayrollEntryPage: React.FC = () => {
       dataIndex: 'status_lookup_value_id',
       key: 'status',
       width: 120,
-      render: (statusId: number) => {
-        const statusInfo = getPayrollEntryStatusInfo(statusId);
+      valueType: 'select',
+      search: false,
+      render: (_, record) => {
+        const statusInfo = getPayrollEntryStatusInfo(record.status_lookup_value_id);
         const statusText = statusInfo.key.startsWith('status.') 
           ? t(`common:${statusInfo.key}`, statusInfo.params) 
           : t(statusInfo.key, statusInfo.params);
@@ -247,7 +251,8 @@ const PayrollEntryPage: React.FC = () => {
       title: t('payroll:entry_page.table.column.actions'),
       key: 'actions',
       width: 120,
-      render: (_: any, record: PayrollEntry) => (
+      valueType: 'option',
+      render: (_, record) => (
         <Space size="small">
           <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_EDIT_DETAILS]}>
             <Tooltip title={t('payroll:entry_page.tooltip.edit_entry')}>
@@ -263,14 +268,7 @@ const PayrollEntryPage: React.FC = () => {
     },
   ];
 
-  const { ExportButton } = useTableExport(
-    entries, 
-    columns.filter(col => col.key !== 'actions'),
-    { 
-      filename: t('payroll:entry_page.export.filename', '工资条目导出'),
-      sheetName: t('payroll:entry_page.export.sheet_name', '工资条目'),
-    }
-  );
+  // 导出功能已内置在 ProTable 中
 
   const pageTitle = t('payroll:entry_page.title');
 
@@ -309,7 +307,6 @@ const PayrollEntryPage: React.FC = () => {
                 {t('payroll:entry_page.button.batch_import')}
               </Button>
             </PermissionGuard>
-            <ExportButton />
           </Space>
         </PermissionGuard>
       }
@@ -339,7 +336,7 @@ const PayrollEntryPage: React.FC = () => {
 
         </Row>
 
-        <Table
+        <EnhancedProTable<PayrollEntry>
           columns={columns}
           dataSource={entries}
           rowKey="id"
@@ -350,9 +347,12 @@ const PayrollEntryPage: React.FC = () => {
             total: meta?.total || 0,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => t('common:table.total_items', { total }),
+            showTotal: (total: number) => t('common:table.total_items', { total }),
           }}
           onChange={handleTableChange}
+          search={false}
+          enableAdvancedFeatures={true}
+          showToolbar={true}
         />
 
         {isModalVisible && (

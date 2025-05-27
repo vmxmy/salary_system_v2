@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Spin, Empty, Table, Tag, Progress } from 'antd';
+import { Row, Col, Card, Statistic, Typography, Spin, Empty, Tag, Progress } from 'antd';
+import type { ProColumns } from '@ant-design/pro-components';
+import EnhancedProTable from '../components/common/EnhancedProTable';
 import { 
   ArrowUpOutlined, 
   ArrowDownOutlined, 
@@ -206,38 +208,48 @@ const DashboardPage: React.FC = () => {
   };
 
   // 最近薪资运行表格列配置
-  const payrollRunColumns = [
+  const payrollRunColumns: ProColumns<RecentPayrollRun>[] = [
     {
       title: '薪资周期',
       dataIndex: 'periodName',
       key: 'periodName',
       ellipsis: true,
+      valueType: 'text',
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => {
+      valueType: 'select',
+      valueEnum: {
+        '已完成': { text: '已完成', status: 'Success' },
+        '进行中': { text: '进行中', status: 'Processing' },
+        '待审批': { text: '待审批', status: 'Warning' },
+        '已取消': { text: '已取消', status: 'Error' },
+      },
+      render: (_, record) => {
         const colorMap: Record<string, string> = {
           '已完成': 'success',
           '进行中': 'processing',
           '待审批': 'warning',
           '已取消': 'error',
         };
-        return <Tag color={colorMap[status] || 'default'}>{status}</Tag>;
+        return <Tag color={colorMap[record.status] || 'default'}>{record.status}</Tag>;
       },
     },
     {
       title: '总金额',
       dataIndex: 'totalAmount',
       key: 'totalAmount',
-      render: (amount: number) => `${(amount / 10000).toFixed(2)}万`,
+      valueType: 'money',
+      render: (_, record) => `${(record.totalAmount / 10000).toFixed(2)}万`,
     },
     {
       title: '员工数',
       dataIndex: 'employeeCount',
       key: 'employeeCount',
-      render: (count: number) => `${count}人`,
+      valueType: 'digit',
+      render: (_, record) => `${record.employeeCount}人`,
     },
   ];
 
@@ -393,12 +405,15 @@ const DashboardPage: React.FC = () => {
           <Col span={24}>
             <Card title={<Title level={5} style={{ margin: 0 }}>📋 最近薪资运行记录</Title>} style={chartCardStyle}>
               {(!loadingCharts && recentPayrollRuns.length > 0) ? 
-                <Table
+                <EnhancedProTable
                   dataSource={recentPayrollRuns}
                   columns={payrollRunColumns}
                   pagination={false}
                   size="small"
                   rowKey="id"
+                  search={false}
+                  enableAdvancedFeatures={false}
+                  showToolbar={false}
                 /> : 
                 <div style={{height: '200px', display:'flex', justifyContent:'center', alignItems:'center'}}>
                   {loadingCharts ? <Spin/> : <Empty description="暂无薪资运行记录" />}
