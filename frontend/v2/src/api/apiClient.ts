@@ -1,5 +1,7 @@
 import axios from 'axios';
+import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore'; // For accessing the auth token
+import { createPerformanceInterceptors } from '../utils/apiPerformanceMonitor';
 
 // 工具函数：检测和处理网络连接或服务器错误
 export const isServerUnavailableError = (error: any): boolean => {
@@ -60,29 +62,35 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
+  timeout: 30000, // 30秒超时
 });
 
-// Request interceptor to add the auth token to headers
+// 获取性能监控拦截器
+const performanceInterceptors = createPerformanceInterceptors();
+
+// Request interceptor to add the auth token to headers and performance monitoring
 apiClient.interceptors.request.use(
   (config) => {
+    // 性能监控
+    config = performanceInterceptors.request(config);
+    
     const token = useAuthStore.getState().authToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      // Added for diagnostics
-      console.log(`ApiClient请求: ${config.method?.toUpperCase()} ${config.url}`); 
+      console.log(`ApiClient请求: ${config.method?.toUpperCase()} ${config.url}`);
     } else {
-      // Added for diagnostics
       console.warn(`ApiClient未认证请求: ${config.method?.toUpperCase()} ${config.url}`);
     }
     
-    // 记录请求详情
-    console.log('ApiClient请求详情:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data,
-      params: config.params
-    });
+    // 只在开发环境记录详细请求信息
+    if (import.meta.env.DEV) {
+      console.log('ApiClient请求详情:', {
+        url: config.url,
+        method: config.method,
+        hasData: !!config.data,
+        hasParams: !!config.params
+      });
+    }
     
     return config;
   },
@@ -92,15 +100,25 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Optional: Response interceptor for global error handling (e.g., 401 redirects)
+// Response interceptor for global error handling and performance monitoring
 apiClient.interceptors.response.use(
   (response) => {
-    // 记录成功响应详情
+    // 性能监控
+    response = performanceInterceptors.response(response);
+    
     console.log(`ApiClient响应成功 (${response.status}) 请求: ${response.config.method?.toUpperCase()} ${response.config.url}`);
-    console.log('响应数据:', response.data);
+    
+    // 只在开发环境记录响应数据
+    if (import.meta.env.DEV && response.data) {
+      console.log('响应数据大小:', JSON.stringify(response.data).length + ' 字符');
+    }
+    
     return response;
   },
   async (error) => {
+    // 性能监控
+    performanceInterceptors.error(error);
+    
     // 记录错误响应详情
     if (error.response) {
       const { status, data, config } = error.response;
@@ -151,21 +169,13 @@ apiClient.interceptors.response.use(
         );
       } else {
         console.warn('ApiClient: Detected 401, attempting logout.', error.config.url);
-        // 确保 logoutAction 是异步的，并且正确处理
-        try {
-          await useAuthStore.getState().logoutAction();
-          window.location.href = '/login';
-        } catch (logoutError) {
-          console.error("ApiClient: Error during logoutAction: ", logoutError);
-          // 即使登出失败，也尝试跳转到登录页作为后备
-          window.location.href = '/login';
-        }
+        
+        // Clear the auth token and redirect to login
+        useAuthStore.getState().logoutAction();
+        
+        // Redirect to login page
+        window.location.href = '/login';
       }
-    } 
-    
-    // 添加全局500错误处理
-    else if (error.response && error.response.status === 500) {
-      console.error('Server Error 500:', error.response.data);
     }
     
     return Promise.reject(error);

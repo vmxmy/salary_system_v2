@@ -1,22 +1,6 @@
-/* 注意：字体定义已移至 global.less 文件中统一管理 */
-
-/* 全局样式设置 */
-body {
-  font-weight: 400; /* 使用常规字重作为默认值 */
-}
-
-/* 标题样式设置 */
-.ant-typography h1,
-.ant-typography h2,
-.ant-typography h3,
-.ant-typography h4,
-.ant-typography h5 {
-  font-weight: 700 !important; /* 使用粗体字重 */
-}
-
+/* 基本默认样式 */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }

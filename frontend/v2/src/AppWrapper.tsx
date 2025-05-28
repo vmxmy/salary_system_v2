@@ -74,14 +74,34 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   useEffect(() => {
     if (authToken) {
       // console.log('[AppWrapper:useEffect-fetchHrLookups] Auth token present. Fetching essential HR lookups.');
-      fetchHrLookups('genders');
-      fetchHrLookups('maritalStatuses');
-      fetchHrLookups('educationLevels');
-      fetchHrLookups('employmentTypes');
-      fetchHrLookups('employeeStatuses');
-      fetchHrLookups('departments');
-      fetchHrLookups('personnelCategories');
-      // console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups fetch calls initiated.');
+      
+      // 🚀 优化：分批加载，减少并发请求
+      const loadLookupsBatch = async () => {
+        try {
+          // 第一批：最重要的基础数据
+          await Promise.all([
+            fetchHrLookups('genders'),
+            fetchHrLookups('departments'),
+            fetchHrLookups('personnelCategories')
+          ]);
+          
+          // 延迟100ms后加载第二批
+          setTimeout(async () => {
+            await Promise.all([
+              fetchHrLookups('maritalStatuses'),
+              fetchHrLookups('educationLevels'),
+              fetchHrLookups('employmentTypes'),
+              fetchHrLookups('employeeStatuses')
+            ]);
+          }, 100);
+          
+        } catch (error) {
+          console.error('批量加载 HR lookups 失败:', error);
+        }
+      };
+      
+      loadLookupsBatch();
+      // console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups batch loading initiated.');
     } else {
       // console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
     }

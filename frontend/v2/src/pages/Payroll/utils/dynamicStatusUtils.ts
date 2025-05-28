@@ -21,7 +21,7 @@ const getStatusColor = (code: string): string => {
     case 'ARCHIVED':
       return 'gray';
     
-    // 薪资运行状态颜色
+    // 薪资审核状态颜色
     case 'DRAFT':
       return 'default';
     case 'PROCESSING':
@@ -85,7 +85,7 @@ export const getPayrollPeriodStatusOptions = async (): Promise<DynamicStatusOpti
 };
 
 /**
- * 获取薪资运行状态选项
+ * 获取薪资审核状态选项
  */
 export const getPayrollRunStatusOptions = async (): Promise<DynamicStatusOption[]> => {
   if (payrollRunStatusCache) {
@@ -150,7 +150,7 @@ export const getPayrollPeriodStatusInfo = async (statusId?: number): Promise<{ n
 };
 
 /**
- * 根据状态ID获取薪资运行状态信息
+ * 根据状态ID获取薪资审核状态信息
  */
 export const getPayrollRunStatusInfo = async (statusId?: number): Promise<{ name: string; color: string }> => {
   if (statusId === undefined || statusId === null) {

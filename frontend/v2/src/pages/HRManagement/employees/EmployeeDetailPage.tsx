@@ -133,7 +133,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
                 </Descriptions.Item>
                 <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_personnel_category')}>
                     {lookupMaps?.personnelCategoryMap.get(String(employee.personnel_category_id)) || 
-                     employee.personnel_category_name || 
+                     employee.personnelCategoryName || 
                      String(employee.personnel_category_id ?? naText)}
                 </Descriptions.Item>
                 <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_actual_position')}>

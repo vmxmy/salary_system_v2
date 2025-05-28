@@ -8,6 +8,7 @@ from datetime import date
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_
 import logging
+from sqlalchemy.exc import IntegrityError
 
 from ..models.config import LookupType, LookupValue, SystemParameter, PayrollComponentDefinition, TaxBracket, SocialSecurityRate
 from ..pydantic_models.config import (
@@ -503,7 +504,7 @@ def get_payroll_component_definitions(
     limit: int = 100
 ) -> Dict[str, Any]:
     """
-    获取薪资组件定义列表
+    获取薪资字段定义列表
     
     Args:
         db: 数据库会话
@@ -571,23 +572,38 @@ def get_payroll_component_definitions(
     }
 
 def get_payroll_component_definition_by_id(db: Session, component_id: int) -> Optional[PayrollComponentDefinition]:
-    """根据ID获取薪资组件定义"""
+    """根据ID获取薪资字段定义"""
     return db.query(PayrollComponentDefinition).filter(PayrollComponentDefinition.id == component_id).first()
 
 def get_payroll_component_definition_by_code(db: Session, code: str) -> Optional[PayrollComponentDefinition]:
-    """根据编码获取薪资组件定义"""
+    """根据编码获取薪资字段定义"""
     return db.query(PayrollComponentDefinition).filter(PayrollComponentDefinition.code == code).first()
 
 def create_payroll_component_definition(
     db: Session, 
     component_data: Dict[str, Any]
 ) -> PayrollComponentDefinition:
-    """创建新的薪资组件定义"""
-    new_component = PayrollComponentDefinition(**component_data)
-    db.add(new_component)
-    db.commit()
-    db.refresh(new_component)
-    return new_component
+    """创建新的薪资字段定义"""
+    # 检查编码是否已存在
+    existing_component = get_payroll_component_definition_by_code(db, component_data.get('code'))
+    if existing_component:
+        raise ValueError(f"薪资字段编码 '{component_data.get('code')}' 已存在，请使用不同的编码")
+    
+    try:
+        new_component = PayrollComponentDefinition(**component_data)
+        db.add(new_component)
+        db.commit()
+        db.refresh(new_component)
+        return new_component
+    except IntegrityError as e:
+        db.rollback()
+        if "payroll_component_definitions_code_key" in str(e):
+            raise ValueError(f"薪资字段编码 '{component_data.get('code')}' 已存在，请使用不同的编码")
+        else:
+            raise ValueError(f"数据完整性错误: {str(e)}")
+    except Exception as e:
+        db.rollback()
+        raise ValueError(f"创建薪资字段失败: {str(e)}")
 
 def update_payroll_component_definition(
     db: Session,
@@ -595,7 +611,7 @@ def update_payroll_component_definition(
     component_data: Dict[str, Any]
 ) -> Optional[PayrollComponentDefinition]:
     """
-    更新薪资组件定义。
+    更新薪资字段定义。
     """
     # Log received data at the beginning of the CRUD function
     logging.info(f"CRUD update_payroll_component_definition: Received component_id: {component_id}")
@@ -618,7 +634,7 @@ def delete_payroll_component_definition(
     db: Session,
     component_id: int
 ) -> bool:
-    """删除薪资组件定义"""
+    """删除薪资字段定义"""
     component = get_payroll_component_definition_by_id(db, component_id)
     if not component:
         return False

@@ -73,16 +73,16 @@ export const dashboardService = {
         console.warn('获取薪资周期数据失败:', error);
       }
 
-      // 获取薪资运行数据
+      // 获取薪资审核数据
       let payrollRuns: any[] = [];
       try {
         const payrollRunsResponse = await apiClient.get('/payroll-runs?page=1&size=10');
         payrollRuns = payrollRunsResponse.data?.data || [];
       } catch (error) {
-        console.warn('获取薪资运行数据失败:', error);
+        console.warn('获取薪资审核数据失败:', error);
       }
 
-      // 计算当月薪资总额（从最近的薪资运行中获取）
+      // 计算当月薪资总额（从最近的薪资审核中获取）
       let monthlyPayroll = 0;
       let activePayrollRuns = 0;
       let completedPayrollRuns = 0;
@@ -105,7 +105,7 @@ export const dashboardService = {
       const averageSalary = totalEmployees > 0 ? monthlyPayroll / totalEmployees : 0;
       const averageSalaryLastMonth = totalEmployeesLastMonth > 0 ? monthlyPayrollLastMonth / totalEmployeesLastMonth : 0;
 
-      // 待办任务数量（待审批的薪资运行）
+      // 待办任务数量（待审批的薪资审核）
       const pendingApprovals = payrollRuns.filter((run: any) => 
         run.status_name === '待审批' || run.status_name === 'Pending Approval'
       ).length;
@@ -149,7 +149,7 @@ export const dashboardService = {
 
       for (const period of periods) {
         try {
-          // 获取该周期的薪资运行数据
+          // 获取该周期的薪资审核数据
           const runsResponse = await apiClient.get(`/payroll-runs?period_id=${period.id}`);
           const runs = runsResponse.data?.data || [];
 
@@ -164,7 +164,7 @@ export const dashboardService = {
             employeeCount: employeeCount || Math.floor(Math.random() * 100 + 50), // 模拟数据
           });
         } catch (error) {
-          console.warn(`获取周期 ${period.id} 的薪资运行数据失败:`, error);
+          console.warn(`获取周期 ${period.id} 的薪资审核数据失败:`, error);
           // 添加模拟数据
           trendData.push({
             month: period.name || `周期${period.id}`,
@@ -363,7 +363,7 @@ export const dashboardService = {
     }
   },
 
-  // 获取最近的薪资运行记录
+  // 获取最近的薪资审核记录
   async getRecentPayrollRuns(): Promise<RecentPayrollRun[]> {
     try {
       const response = await apiClient.get('/payroll-runs?page=1&size=5');
@@ -371,14 +371,14 @@ export const dashboardService = {
 
       return payrollRuns.map((run: any) => ({
         id: run.id,
-        periodName: run.period_name || `薪资运行 ${run.id}`,
+        periodName: run.period_name || `薪资审核 ${run.id}`,
         status: run.status_name || '未知',
         totalAmount: run.total_amount || 0,
         employeeCount: run.employee_count || 0,
         createdAt: run.created_at || new Date().toISOString(),
       }));
     } catch (error) {
-      console.error('获取最近薪资运行记录失败:', error);
+      console.error('获取最近薪资审核记录失败:', error);
       // 返回模拟数据
       return [
         { id: 1, periodName: '2024年3月薪资', status: '已完成', totalAmount: 1200000, employeeCount: 125, createdAt: '2024-03-01T00:00:00Z' },

@@ -80,7 +80,8 @@ const MainLayout: React.FC = () => {
     'user',
     'personnelCategory'
   ]); // 确保包含所有可能需要的命名空间
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false); // 侧边栏默认展开
+  const [openKeys, setOpenKeys] = useState<string[]>([]); // 添加openKeys状态
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -545,17 +546,24 @@ const MainLayout: React.FC = () => {
     return selectedKey ? [selectedKey] : ['/dashboard'];
   }, [location.pathname, siderMenuItems]);
 
-  // 获取当前需要展开的父菜单项key
+  // 获取当前需要展开的父菜单项key - 修改为默认展开所有有子菜单的项
   const defaultOpenKeys = useMemo(() => {
-    const currentPath = location.pathname;
-    const openKeyItem = siderMenuItems.find(item => {
-      if (!item) return false; // Skip null items
-      // Check if children exists and is an array before trying to access .some
-      return 'children' in item && item.children && Array.isArray(item.children) && item.children.some(child => child && child.key === currentPath);
+    // 获取所有有子菜单的菜单项的key，让它们默认展开
+    const openKeys: string[] = [];
+    siderMenuItems.forEach(item => {
+      if (item && 'children' in item && item.children && Array.isArray(item.children) && item.children.length > 0) {
+        openKeys.push(item.key as string);
+      }
     });
-    return (openKeyItem && openKeyItem.key) ? [openKeyItem.key as string] : [];
-  }, [location.pathname, siderMenuItems]);
+    return openKeys;
+  }, [siderMenuItems]);
 
+  // 初始化openKeys状态，让所有有子菜单的菜单项默认展开
+  useEffect(() => {
+    if (defaultOpenKeys.length > 0 && openKeys.length === 0) {
+      setOpenKeys(defaultOpenKeys);
+    }
+  }, [defaultOpenKeys, openKeys.length]);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -568,7 +576,8 @@ const MainLayout: React.FC = () => {
           mode="inline"
           defaultSelectedKeys={['/dashboard']}
           selectedKeys={selectedKeys}
-          defaultOpenKeys={defaultOpenKeys}
+          openKeys={openKeys}
+          onOpenChange={(keys) => setOpenKeys(keys)}
           items={siderMenuItems}
         />
       </Sider>

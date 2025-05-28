@@ -13,7 +13,7 @@ from ..pydantic_models.payroll import (
     PayrollRunCreate, PayrollRunUpdate, PayrollRunPatch,
     PayrollEntryCreate, PayrollEntryUpdate, PayrollEntryPatch
 )
-from ..models.hr import Employee
+from ..models.hr import Employee, Department, PersonnelCategory
 from .config import get_payroll_component_definitions # 新增导入
 from .hr import get_employee_by_name_and_id_number, get_employee
 from ..models.config import PayrollComponentDefinition
@@ -249,11 +249,21 @@ def get_payroll_entries(
     run_id: Optional[int] = None, 
     status_id: Optional[int] = None, 
     search_term: Optional[str] = None,
+    department_name: Optional[str] = None,
+    personnel_category_name: Optional[str] = None,
+    min_gross_pay: Optional[float] = None,
+    max_gross_pay: Optional[float] = None,
+    min_net_pay: Optional[float] = None,
+    max_net_pay: Optional[float] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = "asc",
     include_employee_details: bool = False, 
     include_payroll_period: bool = False, 
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[PayrollEntry], int]:
+    from ..models.hr import Employee
+    
     query = db.query(PayrollEntry)
 
     if employee_id:
@@ -265,24 +275,90 @@ def get_payroll_entries(
     if status_id:
         query = query.filter(PayrollEntry.status_lookup_value_id == status_id)
     
-    # Join Employee if searching by name or if details are requested for sorting/filtering before pagination
-    # This join is primarily for filtering/sorting. Eager loading for response fields is separate.
-    if search_term and not search_term.isdigit():
-        query = query.join(PayrollEntry.employee).filter(
-            or_(
-                Employee.first_name.ilike(f"%{search_term}%"), 
-                Employee.last_name.ilike(f"%{search_term}%"),
-                (Employee.first_name + " " + Employee.last_name).ilike(f"%{search_term}%"),
-                (Employee.last_name + " " + Employee.first_name).ilike(f"%{search_term}%"),
-                PayrollEntry.remarks.ilike(f"%{search_term}%") # Keep remarks search
+    # 薪资范围筛选
+    if min_gross_pay is not None:
+        query = query.filter(PayrollEntry.gross_pay >= min_gross_pay)
+    if max_gross_pay is not None:
+        query = query.filter(PayrollEntry.gross_pay <= max_gross_pay)
+    if min_net_pay is not None:
+        query = query.filter(PayrollEntry.net_pay >= min_net_pay)
+    if max_net_pay is not None:
+        query = query.filter(PayrollEntry.net_pay <= max_net_pay)
+    
+    # 需要join Employee表的筛选条件
+    need_employee_join = (
+        search_term or 
+        department_name or 
+        personnel_category_name or 
+        include_employee_details
+    )
+    
+    if need_employee_join:
+        query = query.join(PayrollEntry.employee)
+        
+        # 部门筛选
+        if department_name:
+            query = query.join(Employee.current_department).filter(
+                Department.name.ilike(f"%{department_name}%")
             )
-        )
-    elif search_term and search_term.isdigit():
-         query = query.filter(PayrollEntry.employee_id == int(search_term))
+        
+        # 人员类别筛选
+        if personnel_category_name:
+            query = query.join(Employee.personnel_category).filter(
+                PersonnelCategory.name.ilike(f"%{personnel_category_name}%")
+            )
+    
+    # 搜索筛选
+    if search_term:
+        if search_term.isdigit():
+            query = query.filter(PayrollEntry.employee_id == int(search_term))
+        else:
+            query = query.filter(
+                or_(
+                    Employee.first_name.ilike(f"%{search_term}%"), 
+                    Employee.last_name.ilike(f"%{search_term}%"),
+                    (Employee.first_name + " " + Employee.last_name).ilike(f"%{search_term}%"),
+                    (Employee.last_name + " " + Employee.first_name).ilike(f"%{search_term}%"),
+                    PayrollEntry.remarks.ilike(f"%{search_term}%")
+                )
+            )
 
     total = query.count()
     
-    query = query.order_by(PayrollEntry.id.desc())
+    # 排序处理
+    if sort_by:
+        sort_column = None
+        if sort_by == 'employee_name':
+            # 按员工姓名排序
+            if need_employee_join:
+                sort_column = Employee.last_name
+            else:
+                query = query.join(PayrollEntry.employee)
+                sort_column = Employee.last_name
+        elif sort_by == 'department':
+            # 按部门排序
+            if not department_name:  # 如果还没有join Department
+                query = query.join(PayrollEntry.employee).join(Employee.current_department)
+            sort_column = Department.name
+        elif sort_by == 'personnel_category':
+            # 按人员类别排序
+            if not personnel_category_name:  # 如果还没有join PersonnelCategory
+                query = query.join(PayrollEntry.employee).join(Employee.personnel_category)
+            sort_column = PersonnelCategory.name
+        elif hasattr(PayrollEntry, sort_by):
+            # PayrollEntry表的直接字段
+            sort_column = getattr(PayrollEntry, sort_by)
+        
+        if sort_column is not None:
+            if sort_order.lower() == 'desc':
+                query = query.order_by(sort_column.desc())
+            else:
+                query = query.order_by(sort_column.asc())
+        else:
+            # 默认排序
+            query = query.order_by(PayrollEntry.id.desc())
+    else:
+        query = query.order_by(PayrollEntry.id.desc())
 
     options = []
     if include_employee_details:
@@ -344,7 +420,7 @@ def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool
             if hasattr(entry, 'employee_name'):
                  entry.employee_name = None
 
-        # 获取所有激活的扣除和法定类型的薪资组件定义，并创建映射
+        # 获取所有激活的扣除和法定类型的薪资字段定义，并创建映射
         personal_deduction_result = get_payroll_component_definitions(
             db, 
             component_type='PERSONAL_DEDUCTION', 
@@ -677,12 +753,12 @@ def get_payroll_entries_for_bank_export(
 ) -> List[Tuple[PayrollEntry, Optional[str], Optional[str], Optional[str], Optional[str]]]: 
     # Tuple: (PayrollEntry, employee_code, employee_name, bank_account_number, bank_name)
     """
-    获取指定工资计算批次中所有符合条件的工资条目，用于银行代发文件生成。
+    获取指定薪资审核中所有符合条件的工资条目，用于银行代发文件生成。
     包含员工工号、姓名和银行账户信息（优先获取主账户）。
 
     Args:
         db: 数据库会话
-        run_id: 工资计算批次ID
+        run_id: 薪资审核ID
 
     Returns:
         一个元组列表: (PayrollEntry对象, 员工工号, 员工姓名, 银行账号, 开户行名称)

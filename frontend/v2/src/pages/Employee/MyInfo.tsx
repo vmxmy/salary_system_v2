@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty, Breadcrumb } from 'antd';
+import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty } from 'antd';
 import { UserOutlined, HomeOutlined, ProfileOutlined, SolutionOutlined, WalletOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuthStore } from '../../store/authStore';
 import { employeeService } from '../../services/employeeService';
@@ -10,6 +9,7 @@ import type { Employee, LookupValue, Department, PersonnelCategory, Position } f
 import useHrLookupStore from '../../store/hrLookupStore';
 import EmployeeName from '../../components/common/EmployeeName';
 import UnifiedTabs from '../../components/common/UnifiedTabs';
+import StandardDetailPageTemplate from '../../components/common/StandardDetailPageTemplate';
 import styles from './MyInfo.module.less';
 
 const { Title, Text } = Typography;
@@ -26,7 +26,7 @@ const getLookupDisplayName = <T extends { id: number; name?: string; label?: str
 };
 
 const MyInfoPage: React.FC = () => {
-  const { t } = useTranslation(['common', 'employee', 'myInfo']);
+  const { t } = useTranslation(['common', 'employee', 'myInfo', 'pageTitle']);
   const employeeId = useAuthStore(state => state.currentUser?.employee_id);
   const currentUserForDisplay = useAuthStore(state => state.currentUser);
 
@@ -108,11 +108,10 @@ const MyInfoPage: React.FC = () => {
 
     if (employeeId) {
       setError(null);
-      setFetchAttempted(false);
     }
 
     fetchEmployeeData();
-  }, [employeeId, t]);
+  }, [employeeId]);
 
   if (loading && !employee) {
     return <Spin tip={t('common:loading.generic_loading_text')} className={styles.loadingSpin}><div className={styles.loadingSpinContent} /></Spin>;
@@ -178,7 +177,7 @@ const MyInfoPage: React.FC = () => {
           <Card title={t('myInfo:sectionTitles.employment')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
               <Descriptions.Item label={t('employee:department')}>{employee.departmentName || getLookupDisplayName(employee.department_id, departments)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:personnelCategory')}>{employee.personnel_category_name || getLookupDisplayName(employee.personnel_category_id, personnelCategories)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:personnelCategory')}>{employee.personnelCategoryName || getLookupDisplayName(employee.personnel_category_id, personnelCategories)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:actualPosition')}>{employee.actual_position_name || getLookupDisplayName(employee.actual_position_id, actualPositions)}</Descriptions.Item>
               <Descriptions.Item label={t('employee:hireDate')}>{employee.hire_date ? String(employee.hire_date) : ''}</Descriptions.Item>
               <Descriptions.Item label={t('employee:probationEndDate')}>{employee.probationEndDate ? String(employee.probationEndDate) : ''}</Descriptions.Item>
@@ -228,47 +227,48 @@ const MyInfoPage: React.FC = () => {
     }
   ];
 
-  return (
-    <div className={styles.pageContainer}>
-      <Breadcrumb 
-        className={styles.pageBreadcrumb}
-        items={[
-          {
-            key: 'home',
-            title: <Link to="/"><HomeOutlined /></Link>,
-          },
-          {
-            key: 'my-info',
-            title: t('myInfo:title'),
-          },
-        ]}
-      />
+  const renderEmployeeDetails = () => {
+    if (!employee) return null;
 
-      {/* Card 1: Employee Overview - Stays above Tabs */}
-      <Card className={styles.overviewCard}>
-        <div className={styles.overviewHeader}>
-          <Avatar size={64} src={employee.avatar} icon={<UserOutlined />} className={styles.overviewAvatar} />
-          <div>
-            <Title level={3} className={styles.overviewTitle}>
-              <EmployeeName 
-                employeeId={employee.id} 
-                employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
-                showId={false}
-              />
-            </Title>
-            <Text type="secondary">{t('myInfo:employeeId', 'Employee ID:')} {employee.employee_code || employeeId}</Text>
+    return (
+      <>
+        {/* Card 1: Employee Overview - Stays above Tabs */}
+        <Card className={styles.overviewCard}>
+          <div className={styles.overviewHeader}>
+            <Avatar size={64} src={employee.avatar} icon={<UserOutlined />} className={styles.overviewAvatar} />
+            <div className={styles.overviewInfo}>
+              <Title level={4} className={styles.overviewName}>
+                <EmployeeName employeeId={employee.id} showId={false} />
+              </Title>
+              <Text type="secondary" className={styles.overviewId}>
+                {t('myInfo:employeeIdLabel', 'Employee ID')}: {employee.employee_code || employee.id}
+              </Text>
+              {currentUserForDisplay?.username && (
+                 <Text type="secondary" className={styles.overviewUsername}>
+                   {t('myInfo:usernameLabel', 'Username')}: {currentUserForDisplay.username}
+                 </Text>
+              )}
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+        <UnifiedTabs items={tabItems} type="card" className={styles.detailsTabs} />
+      </>
+    );
+  };
 
-      <UnifiedTabs 
-        defaultActiveKey="personalContact" 
-        items={tabItems} 
-        size="large"
-        type="line"
-      />
-
-    </div>
+  return (
+    <StandardDetailPageTemplate
+      pageTitleKey="pageTitle:my_info"
+      isLoading={loading}
+      error={error}
+      data={employee}
+      breadcrumbs={[
+        { key: 'home', title: <HomeOutlined />, path: '/' },
+        { key: 'my-info', title: t('pageTitle:my_info') },
+      ]}
+    >
+      {renderEmployeeDetails()}
+    </StandardDetailPageTemplate>
   );
 };
 

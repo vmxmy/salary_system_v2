@@ -222,5 +222,27 @@
   "records_invalid": "Invalid Records: {{count}}",
   "loading": {
     "user_info": "Loading user information..."
-  }
+  },
+  "delete_confirm": {
+    "title": "Confirm Delete",
+    "content": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+    "ok_text": "Delete",
+    "cancel_text": "Cancel"
+  },
+  "action": {
+    "title": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "create": "Create"
+  },
+  "hidden": "Hidden",
+  "visible": "Visible",
+  "theme_toggle": "Toggle theme",
+  "language_toggle": "Toggle language",
+  "language_switched": "Language switched",
+  "theme_switched_to_light": "Switched to light theme",
+  "theme_switched_to_dark": "Switched to dark theme",
+  "expand_sidebar": "Expand sidebar",
+  "collapse_sidebar": "Collapse sidebar"
 }

@@ -1,0 +1,66 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Payroll System Debugging Guide
+
+## Common Issues and Solutions
+
+### Employee Name Display Problems
+
+**Symptoms:**
+- Employee names show as empty, `[object Object]`, or undefined
+- Table renders but specific columns are blank
+
+**Root Causes & Solutions:**
+
+1. **Render Function Conflicts**
+   - Check if `...getColumnSearch()` is overriding custom render functions
+   - Solution: Remove getColumnSearch from columns with custom render logic
+
+2. **Data Structure Mismatches**
+   - API returns nested `employee` object with `first_name`/`last_name`
+   - Code tries to access `employee_first_name`/`employee_last_name` directly
+   - Solution: Access nested properties correctly: `record.employee?.first_name`
+
+3. **Missing Employee Details in API Response**
+   - Ensure `include_employee_details: true` in API requests
+   - Check API response structure in network tab
+
+### Debugging Workflow
+
+1. **Add Console Logging**
+   ```javascript
+   render: (_, record) => {
+     console.log('Employee render - record:', record);
+     console.log('Employee object:', record.employee);
+     // ... render logic
+   }
+   ```
+
+2. **Check Column Configuration**
+   ```javascript
+   console.log('Generated columns:', columns);
+   const employeeCol = columns.find(col => col.key === 'employee_name');
+   console.log('Employee column config:', employeeCol);
+   ```
+
+3. **Verify API Response Structure**
+   ```javascript
+   console.log('API response structure:', response.data[0]);
+   console.log('Employee data keys:', Object.keys(response.data[0]));
+   ```
+
+## Key Files for Payroll Issues
+
+- Main payroll page: [frontend/v2/src/pages/Payroll/pages/PayrollEntryPage.tsx](mdc:frontend/v2/src/pages/Payroll/pages/PayrollEntryPage.tsx)
+- Payroll API service: [frontend/v2/src/pages/Payroll/services/payrollApi.ts](mdc:frontend/v2/src/pages/Payroll/services/payrollApi.ts)
+- Payroll types: [frontend/v2/src/pages/Payroll/types/payrollTypes.ts](mdc:frontend/v2/src/pages/Payroll/types/payrollTypes.ts)
+- Standard list template: [frontend/v2/src/components/common/StandardListPageTemplate.tsx](mdc:frontend/v2/src/components/common/StandardListPageTemplate.tsx)
+
+## Performance Warnings
+
+Watch for these console warnings:
+- `columns.render return cell props is deprecated with perf issue, please use onCell instead`
+- Usually indicates render function conflicts or improper return values

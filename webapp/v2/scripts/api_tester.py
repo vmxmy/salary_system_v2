@@ -268,7 +268,7 @@ API_ENDPOINTS = {
     "security": {
         "GET_USERS": {
             "url": "/v2/users",
-            "description": "获取用户列表",
+            "description": "获取用户管理",
             "params": {"page": 1, "size": 10}
         },
         "GET_USER": {

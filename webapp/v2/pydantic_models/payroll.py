@@ -216,7 +216,7 @@ class BulkCreatePayrollEntriesResult(BaseModel):
 
 # PayrollComponentDefinition Models
 class PayrollComponentDefinitionBase(BaseModel):
-    """薪资组件定义基础模型"""
+    """薪资字段定义基础模型"""
     code: str = Field(..., description="组件唯一编码，如'BASIC_SALARY'，'HOUSING_ALLOWANCE'")
     name: str = Field(..., description="显示名称，如'基本工资'，'住房津贴'")
     type: Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
@@ -234,12 +234,12 @@ class PayrollComponentDefinitionBase(BaseModel):
 
 
 class PayrollComponentDefinitionCreate(PayrollComponentDefinitionBase):
-    """创建薪资组件定义模型"""
+    """创建薪资字段定义模型"""
     pass
 
 
 class PayrollComponentDefinitionUpdate(BaseModel):
-    """更新薪资组件定义模型"""
+    """更新薪资字段定义模型"""
     code: Optional[str] = Field(None, description="组件唯一编码")
     name: Optional[str] = Field(None, description="显示名称")
     type: Optional[Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
@@ -257,7 +257,7 @@ class PayrollComponentDefinitionUpdate(BaseModel):
 
 
 class PayrollComponentDefinition(PayrollComponentDefinitionBase):
-    """薪资组件定义响应模型"""
+    """薪资字段定义响应模型"""
     id: int = Field(..., description="主键ID")
     # 前端需要的额外字段
     data_type: Literal["numeric", "percentage", "boolean", "string"] = Field("numeric", description="数据类型")
@@ -314,7 +314,7 @@ class PayrollComponentDefinition(PayrollComponentDefinitionBase):
 
 
 class PayrollComponentDefinitionListResponse(BaseModel):
-    """薪资组件定义列表响应模型"""
+    """薪资字段定义列表响应模型"""
     data: List[PayrollComponentDefinition]
     meta: Dict[str, Any] = Field(
         default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}

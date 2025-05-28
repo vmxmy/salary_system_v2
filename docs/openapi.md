@@ -3592,7 +3592,7 @@
                     "Payroll"
                 ],
                 "summary": "Patch Payroll Run Endpoint",
-                "description": "部分更新工资计算批次信息，例如标记为已发放。\n\n- **run_id**: 工资计算批次ID\n- 需要 Super Admin, Payroll Admin, 或 Finance Admin 角色",
+                "description": "部分更新薪资审核信息，例如标记为已发放。\n\n- **run_id**: 薪资审核ID\n- 需要 Super Admin, Payroll Admin, 或 Finance Admin 角色",
                 "operationId": "patch_payroll_run_endpoint_v2_payroll_runs__run_id__patch",
                 "security": [
                     {
@@ -3695,7 +3695,7 @@
                     "Payroll"
                 ],
                 "summary": "Export Payroll Run Bank File",
-                "description": "为指定的工资计算批次生成银行代发文件 (CSV格式)。\n\n- **run_id**: 工资计算批次ID\n- 需要 Super Admin, Payroll Admin, 或 Finance Admin 角色",
+                "description": "为指定的薪资审核生成银行代发文件 (CSV格式)。\n\n- **run_id**: 薪资审核ID\n- 需要 Super Admin, Payroll Admin, 或 Finance Admin 角色",
                 "operationId": "export_payroll_run_bank_file_v2_payroll_runs__run_id__bank_export_get",
                 "security": [
                     {
@@ -4133,7 +4133,7 @@
                     "Security"
                 ],
                 "summary": "Get Users",
-                "description": "获取用户列表，支持分页、搜索和过滤。\n\n- **is_active**: 是否激活，用于过滤激活或未激活的用户\n- **role_id**: 角色ID，用于过滤特定角色的用户\n- **search**: 搜索关键字，可以匹配用户名\n- **page**: 页码，从1开始\n- **size**: 每页记录数，最大100\n- 需要SUPER_ADMIN角色",
+                "description": "获取用户管理，支持分页、搜索和过滤。\n\n- **is_active**: 是否激活，用于过滤激活或未激活的用户\n- **role_id**: 角色ID，用于过滤特定角色的用户\n- **search**: 搜索关键字，可以匹配用户名\n- **page**: 页码，从1开始\n- **size**: 每页记录数，最大100\n- 需要SUPER_ADMIN角色",
                 "operationId": "get_users_v2_users_get",
                 "security": [
                     {
@@ -9654,7 +9654,7 @@
                     "data"
                 ],
                 "title": "UserListResponse",
-                "description": "用户列表响应模型"
+                "description": "用户管理响应模型"
             },
             "UserRoleAssignRequest": {
                 "properties": {

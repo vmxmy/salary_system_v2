@@ -40,7 +40,7 @@ async def get_users(
     current_user = Depends(require_permissions(["P_USER_VIEW_LIST"])) # MODIFIED
 ):
     """
-    获取用户列表，支持分页、搜索和过滤。
+    获取用户管理，支持分页、搜索和过滤。
 
     - **is_active**: 是否激活，用于过滤激活或未激活的用户
     - **role_id**: 角色ID，用于过滤特定角色的用户
@@ -53,7 +53,7 @@ async def get_users(
         # 计算跳过的记录数
         skip = (page - 1) * size
 
-        # 获取用户列表
+        # 获取用户管理
         users, total = crud.get_users(
             db=db,
             is_active=is_active,

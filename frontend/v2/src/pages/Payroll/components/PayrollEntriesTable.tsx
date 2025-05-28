@@ -373,7 +373,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
           {/* Modal for viewing entry details */}
           {isViewModalVisible && currentEntryId && (
             <PayrollEntryDetailModal
-              entryId={currentEntryId}
+              entryId={String(currentEntryId)}
               visible={isViewModalVisible}
               onClose={() => {
                 setIsViewModalVisible(false);

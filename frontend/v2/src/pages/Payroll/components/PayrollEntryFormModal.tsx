@@ -99,11 +99,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   
   const payrollConfig = usePayrollConfigStore();
   
-  // 当模态框可见时，加载薪资组件定义
+  // 当模态框可见时，加载薪资字段定义
   useEffect(() => {
     if (visible) {
       payrollConfig.fetchComponentDefinitions().then(() => {
-        console.log('加载到的薪资组件定义 (payrollConfig.componentDefinitions):', JSON.stringify(payrollConfig.componentDefinitions, null, 2));
+        console.log('加载到的薪资字段定义 (payrollConfig.componentDefinitions):', JSON.stringify(payrollConfig.componentDefinitions, null, 2));
       });
     }
   }, [visible, payrollConfig.fetchComponentDefinitions]); // 依赖 fetchComponentDefinitions 以确保其稳定
@@ -132,10 +132,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       }));
   }, [payrollConfig.componentDefinitions]);
   
-  // 当模态框可见时，打印可用的薪资组件
+  // 当模态框可见时，打印可用的薪资字段
   useEffect(() => {
     if (visible && payrollConfig.componentDefinitions.length > 0) {
-      console.log('系统中可用的所有薪资组件:', 
+      console.log('系统中可用的所有薪资字段:', 
         payrollConfig.componentDefinitions.map(comp => ({
           code: comp.code,
           name: comp.name,

@@ -1,0 +1,720 @@
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { Space, Button, Modal, Form, Input, Select, Switch, Popconfirm, Card, Typography, Row, Col, Divider, Tag, InputNumber, App } from 'antd';
+import type { InputRef } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilterFilled, DownloadOutlined, SettingOutlined, HomeOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
+import { useTableExport, useColumnControl } from '../../../components/common/TableUtils';
+import PageLayout from '../../../components/common/PageLayout';
+import * as payrollApi from '../services/payrollApi';
+import * as configApi from '../../../api/config';
+import type { LookupValue } from '../../../api/types';
+import type { PayrollComponentDefinition } from '../types/payrollTypes';
+import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import type { ProColumns } from '@ant-design/pro-components';
+import styles from './PayrollComponentsPage.module.less';
+
+const { Title } = Typography;
+const { Option } = Select;
+
+// 内联PageHeader组件定义
+interface PageHeaderProps {
+  /**
+   * 页面标题
+   */
+  title: string;
+  /**
+   * 子标题或描述文本
+   */
+  subtitle?: string;
+  /**
+   * 额外操作按钮区域
+   */
+  extra?: React.ReactNode;
+}
+
+/**
+ * 通用页面头部组件，包含标题和操作按钮区域
+ */
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, extra }) => {
+  return (
+    <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+      <Col>
+        <Space direction="vertical" size={4}>
+          <Title level={4} style={{ margin: 0 }}>{title}</Title>
+          {subtitle && <Typography.Text type="secondary">{subtitle}</Typography.Text>}
+        </Space>
+      </Col>
+      {extra && (
+        <Col>
+          {extra}
+        </Col>
+      )}
+    </Row>
+  );
+};
+
+/**
+ * 薪资字段管理页面组件
+ */
+const PayrollComponentsPage: React.FC = () => {
+  const { t } = useTranslation(['payroll_components', 'common']);
+  const { message } = App.useApp(); // 使用 App.useApp() 获取 message 实例
+  const [loading, setLoading] = useState(false);
+  const [components, setComponents] = useState<PayrollComponentDefinition[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingComponent, setEditingComponent] = useState<PayrollComponentDefinition | null>(null);
+  const [form] = Form.useForm();
+  const [componentTypes, setComponentTypes] = useState<string[]>([]);
+  const [typeInfo, setTypeInfo] = useState<Record<string, { text: string, color: string }>>({});
+  
+  // 分页状态
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+
+  // 获取类型对应的中文名称和颜色
+  const getTypeInfo = (type: string): { text: string; color: string } => {
+    // 如果已经从lookup中获取到了类型信息，则使用lookup中的值
+    if (typeInfo[type]) {
+      return typeInfo[type];
+    }
+    
+    // 默认值
+    let text = type;
+    let color = 'default';
+    
+    // 根据类型返回对应的中文名称和颜色
+    switch(type.toUpperCase()) {
+      case 'EARNING':
+        text = '收入项';
+        color = 'green';
+        break;
+      case 'STAT':
+      case 'STATUTORY':
+        text = '统计项';
+        color = 'blue';
+        break;
+      case 'DEDUCTION':
+        text = '扣除项';
+        color = 'red';
+        break;
+      case 'EMPLOYER_DEDUCTION':
+        text = '单位扣除项';
+        color = 'orange';
+        break;
+      case 'PERSONAL_DEDUCTION':
+        text = '个人扣除项';
+        color = 'purple';
+        break;
+      case 'BENEFIT':
+        text = '福利项';
+        color = 'cyan';
+        break;
+      case 'OTHER':
+        text = '其他';
+        color = 'gray';
+        break;
+      default:
+        // 兼容旧数据
+        if (type === 'Earning') {
+          text = '收入项';
+          color = 'green';
+        } else if (type === 'Deduction') {
+          text = '扣除项';
+          color = 'red';
+        }
+    }
+    
+    return { text, color };
+  };
+
+  // 加载薪资字段数据
+  const fetchComponents = async (page = 1, size = 10) => {
+    setLoading(true);
+    try {
+      const response = await payrollApi.getPayrollComponentDefinitions({ 
+        page, 
+        size
+      });
+      setComponents(response.data);
+      setPagination(prev => ({
+        ...prev,
+        current: page,
+        pageSize: size,
+        total: response.meta?.total || 0,
+      }));
+      
+      // 提取所有唯一的类型值
+      const uniqueTypes = Array.from(new Set(response.data.map(comp => comp.type)));
+      setComponentTypes(uniqueTypes);
+    } catch (error) {
+      console.error('Error fetching payroll components:', error);
+      message.error(t('common.error.fetch'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 获取薪资字段类型
+  const fetchComponentTypes = async () => {
+    try {
+      console.log('🔄 开始获取薪资字段类型...');
+      const response = await configApi.getPayrollComponentTypes();
+      console.log('✅ 获取薪资字段类型成功:', response);
+      
+      const typesMap: Record<string, { text: string, color: string }> = {};
+      
+      response.data.forEach((type: any) => {
+        const typeCode = type.code || type.value_code;
+        const typeName = type.name || type.value_name;
+        typesMap[typeCode] = {
+          text: typeName,
+          color: getTypeInfo(typeCode).color // 继续使用现有的颜色映射
+        };
+      });
+      
+      console.log('📋 处理后的类型映射:', typesMap);
+      setTypeInfo(typesMap);
+    } catch (error) {
+      console.error('❌ 获取薪资字段类型失败:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchComponents();
+    fetchComponentTypes();
+  }, []);
+
+  // 搜索输入框引用
+  const searchInput = useRef<InputRef>(null);
+
+  // 获取列搜索属性
+  const getColumnSearchProps = (dataIndex: keyof PayrollComponentDefinition) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          ref={searchInput}
+          placeholder={t('common.search')}
+          value={selectedKeys[0]}
+          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => confirm()}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            {t('common.search')}
+          </Button>
+          <Button
+            onClick={() => clearFilters && clearFilters()}
+            size="small"
+            style={{ width: 90 }}
+          >
+            {t('common.reset')}
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value: any, record: PayrollComponentDefinition) => {
+      const recordValue = record[dataIndex];
+      return recordValue
+        ? String(recordValue).toLowerCase().includes(String(value).toLowerCase())
+        : false;
+    },
+    filterDropdownProps: {
+      onOpenChange: (visible: boolean) => {
+        if (visible) {
+          setTimeout(() => searchInput.current?.select(), 100);
+        }
+      },
+    },
+  });
+
+  // 表格列定义
+  const initialColumns: ProColumns<PayrollComponentDefinition>[] = [
+    {
+      title: t('payroll_components.code'),
+      dataIndex: 'code',
+      key: 'code',
+      sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
+        a.code.localeCompare(b.code),
+      ...getColumnSearchProps('code'),
+    },
+    {
+      title: t('payroll_components.name'),
+      dataIndex: 'name',
+      key: 'name',
+      sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
+        a.name.localeCompare(b.name),
+      ...getColumnSearchProps('name'),
+    },
+    {
+      title: t('payroll_components.type'),
+      dataIndex: 'type',
+      key: 'type',
+      render: (_, record) => {
+        const { text, color } = getTypeInfo(record.type);
+        return <Tag color={color}>{text}</Tag>;
+      },
+      sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
+        a.type.localeCompare(b.type),
+      filters: Object.entries(typeInfo).map(([typeCode, typeData]) => ({
+        text: typeData.text,
+        value: typeCode,
+      })),
+      onFilter: (value: any, record: PayrollComponentDefinition) => record.type === String(value),
+    },
+    {
+      title: t('payroll_components.is_taxable'),
+      dataIndex: 'is_taxable',
+      key: 'is_taxable',
+      render: (_, record) => (
+        record.is_taxable ? t('common.yes') : t('common.no')
+      ),
+      sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
+        Number(a.is_taxable) - Number(b.is_taxable),
+      filters: [
+        { text: t('common.yes'), value: true },
+        { text: t('common.no'), value: false },
+      ],
+      onFilter: (value: any, record: PayrollComponentDefinition) => record.is_taxable === value,
+    },
+    {
+      title: t('payroll_components.sort_order'),
+      dataIndex: 'sort_order',
+      key: 'sort_order',
+      sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
+        (a.sort_order || 0) - (b.sort_order || 0),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+        <div style={{ padding: 8 }}>
+          <Space direction="vertical">
+            <InputNumber
+              placeholder={t('common.min')}
+              value={selectedKeys[0]}
+              onChange={val => setSelectedKeys(val ? [val] : [])}
+              style={{ width: 120, marginRight: 8 }}
+            />
+            <InputNumber
+              placeholder={t('common.max')}
+              value={selectedKeys[1]}
+              onChange={val => setSelectedKeys(selectedKeys[0] !== undefined ? [selectedKeys[0], val] : [])}
+              style={{ width: 120, marginRight: 8 }}
+            />
+            <Space>
+              <Button
+                type="primary"
+                onClick={() => confirm()}
+                icon={<FilterFilled />}
+                size="small"
+                style={{ width: 90 }}
+              >
+                {t('common.filter')}
+              </Button>
+              <Button
+                onClick={() => clearFilters && clearFilters()}
+                size="small"
+                style={{ width: 90 }}
+              >
+                {t('common.reset')}
+              </Button>
+            </Space>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <FilterFilled style={{ color: filtered ? '#1890ff' : undefined }} />
+      ),
+      onFilter: (value: any, record: PayrollComponentDefinition) => {
+        const selectedKeys = value as number[];
+        const min = selectedKeys[0];
+        const max = selectedKeys[1];
+        const sortOrder = record.sort_order || 0;
+        
+        if (min !== undefined && max !== undefined) {
+          return sortOrder >= min && sortOrder <= max;
+        }
+        if (min !== undefined) {
+          return sortOrder >= min;
+        }
+        if (max !== undefined) {
+          return sortOrder <= max;
+        }
+        return true;
+      },
+    },
+    {
+      title: t('common.status'),
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (_, record) => (
+        <Tag color={record.is_active ? 'green' : 'red'}>
+          {record.is_active ? t('common.active') : t('common.inactive')}
+        </Tag>
+      ),
+      sorter: (a: PayrollComponentDefinition, b: PayrollComponentDefinition) =>
+        Number(a.is_active) - Number(b.is_active),
+      filters: [
+        { text: t('common.active'), value: true },
+        { text: t('common.inactive'), value: false },
+      ],
+      onFilter: (value: any, record: PayrollComponentDefinition) => record.is_active === value,
+    },
+    {
+      title: t('common.actions'),
+      key: 'actions',
+      render: (_: any, record: PayrollComponentDefinition) => (
+        <Space size="small">
+          <Button 
+            type="text" 
+            icon={<EditOutlined />} 
+            onClick={() => handleEdit(record)}
+          />
+          <Popconfirm
+            title={t('common.confirmDelete')}
+            onConfirm={() => handleDelete(record.id)}
+            okText={t('common.yes')}
+            cancelText={t('common.no')}
+          >
+            <Button 
+              type="text" 
+              danger 
+              icon={<DeleteOutlined />} 
+            />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  // 暂时禁用导出和列控制功能，因为它们与 ProTable 不兼容
+  // const { ExportButton } = useTableExport(
+  //   components,
+  //   initialColumns,
+  //   {
+  //     filename: t('payroll_components.export.filename', { ns: 'payroll_components' }),
+  //     sheetName: t('payroll_components.export.sheet_name', { ns: 'payroll_components' }),
+  //     buttonText: t('common:action.export'),
+  //   }
+  // );
+
+  // const { ColumnControl, visibleColumns: controlledColumns } = useColumnControl(
+  //   initialColumns,
+  //   {
+  //     storageKeyPrefix: 'payrollComponentsTable',
+  //     buttonText: t('common:action.columns'),
+  //     tooltipTitle: t('common:tooltip.column_settings')
+  //   }
+  // );
+
+  // 打开编辑模态框
+  const handleEdit = (component: PayrollComponentDefinition) => {
+    setEditingComponent(component);
+    form.setFieldsValue({
+      ...component,
+      type: component.type,
+      is_active: component.is_active,
+      is_taxable: component.is_taxable,
+      is_social_security_base: component.is_social_security_base,
+      is_housing_fund_base: component.is_housing_fund_base,
+      sort_order: component.sort_order || 0,
+    });
+    setModalVisible(true);
+  };
+
+  // 打开添加模态框
+  const handleAdd = () => {
+    setEditingComponent(null);
+    form.resetFields();
+    const defaultType = Object.keys(typeInfo).length > 0 ? Object.keys(typeInfo)[0] : 'EARNING';
+    const today = new Date().toISOString().split('T')[0]; // 格式化为 YYYY-MM-DD
+    form.setFieldsValue({
+      type: defaultType,
+      is_active: true,
+      is_taxable: true,
+      is_social_security_base: false,
+      is_housing_fund_base: false,
+      sort_order: 0,
+      effective_date: today,
+    });
+    setModalVisible(true);
+  };
+
+  // 处理模态框确认
+  const handleModalOk = async () => {
+    let values: any = null;
+    
+    try {
+      values = await form.validateFields();
+      
+      // 映射前端字段名到后端期望的字段名
+      const mappedValues = {
+        ...values,
+        display_order: values.sort_order, // 后端期望 display_order，前端使用 sort_order
+      };
+      
+      // 移除前端特有的字段
+      delete mappedValues.sort_order;
+      
+      console.log('提交的数据:', mappedValues);
+      
+      if (editingComponent) {
+        // 更新
+        await payrollApi.updatePayrollComponentDefinition(editingComponent.id, mappedValues);
+        message.success(t('payroll_components.update_success'));
+      } else {
+        // 创建
+        await payrollApi.createPayrollComponentDefinition(mappedValues);
+        message.success(t('payroll_components.create_success'));
+      }
+      
+      setModalVisible(false);
+      fetchComponents(pagination.current, pagination.pageSize);
+    } catch (error: any) {
+      console.error('Form validation failed or API error:', error);
+      
+      // 处理不同类型的错误
+      let errorMessage = editingComponent 
+        ? t('payroll_components.update_failed') 
+        : t('payroll_components.create_failed');
+      
+      if (error.response?.status === 422) {
+        // 处理422错误（数据验证错误）
+        const errorDetail = error.response?.data?.detail;
+        if (typeof errorDetail === 'string') {
+          errorMessage = errorDetail;
+        } else if (errorDetail?.error?.details) {
+          errorMessage = errorDetail.error.details;
+        } else if (errorDetail?.details) {
+          errorMessage = errorDetail.details;
+        } else {
+          // 检查是否是编码重复错误
+          const errorText = JSON.stringify(error.response.data).toLowerCase();
+          if (errorText.includes('已存在') || errorText.includes('duplicate') || errorText.includes('unique')) {
+            errorMessage = values?.code 
+              ? `编码 "${values.code}" 已存在，请使用不同的编码`
+              : '编码已存在，请使用不同的编码';
+          }
+        }
+      } else if (error.response?.status === 400) {
+        // 处理400错误（请求错误）
+        errorMessage = '请求数据格式错误，请检查输入内容';
+      } else if (error.response?.status === 500) {
+        // 处理500错误（服务器内部错误）
+        errorMessage = '服务器内部错误，请稍后重试或联系管理员';
+      } else if (error.message) {
+        // 使用错误消息
+        errorMessage = error.message;
+      }
+      
+      message.error(errorMessage);
+    }
+  };
+
+  // 处理删除
+  const handleDelete = async (id: number) => {
+    try {
+      await payrollApi.deletePayrollComponentDefinition(id);
+      message.success(t('payroll_components.delete_success'));
+      fetchComponents(pagination.current, pagination.pageSize);
+    } catch (error) {
+      console.error('Error deleting component:', error);
+      message.error(t('common.error.delete'));
+    }
+  };
+
+
+
+  return (
+    <PageLayout
+      title={t('payroll_components.title')}
+      actions={
+        <Space className={styles.actionButtons}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            {t('payroll_components.add')}
+          </Button>
+          {/* {ExportButton && <ExportButton />} */}
+          {/* {ColumnControl && <ColumnControl />} */}
+        </Space>
+      }
+    >
+      <div className={styles.tableContainer}>
+        <EnhancedProTable<PayrollComponentDefinition>
+          dataSource={components}
+          columns={initialColumns}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total: number, range: [number, number]) => 
+              `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+            onChange: (page: number, size?: number) => {
+              fetchComponents(page, size || pagination.pageSize);
+            },
+            onShowSizeChange: (current: number, size: number) => {
+              fetchComponents(1, size);
+            },
+          }}
+        />
+      </div>
+
+      {/* 编辑/添加模态框 */}
+      <Modal
+        title={editingComponent ? t('payroll_components.edit') : t('payroll_components.add')}
+        open={modalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setModalVisible(false)}
+        width={700}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="code"
+                label={t('payroll_components.code')}
+                rules={[{ required: true, message: t('common.validation.required') }]}
+              >
+                <Input disabled={!!editingComponent} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label={t('payroll_components.name')}
+                rules={[{ required: true, message: t('common.validation.required') }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="type"
+                label={t('payroll_components.type')}
+                rules={[{ required: true, message: t('common.validation.required') }]}
+              >
+                <Select>
+                  {Object.keys(typeInfo).length > 0 ? (
+                    Object.entries(typeInfo).map(([typeCode, typeData]) => (
+                      <Option key={typeCode} value={typeCode}>{typeData.text}</Option>
+                    ))
+                  ) : (
+                    <>
+                      <Option value="EARNING">收入项</Option>
+                      <Option value="DEDUCTION">扣除项</Option>
+                    </>
+                  )}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="sort_order"
+                label={t('payroll_components.sort_order')}
+                rules={[{ required: true, message: t('common.validation.required') }]}
+              >
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="effective_date"
+                label="生效日期"
+                rules={[{ required: true, message: t('common.validation.required') }]}
+              >
+                <Input type="date" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="end_date"
+                label="结束日期"
+              >
+                <Input type="date" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider>{t('payroll_components.options')}</Divider>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="is_active"
+                label={t('common.status')}
+                valuePropName="checked"
+              >
+                <Switch checkedChildren={t('common.active')} unCheckedChildren={t('common.inactive')} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="is_taxable"
+                label={t('payroll_components.is_taxable')}
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="is_social_security_base"
+                label={t('payroll_components.is_social_security_base')}
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="is_housing_fund_base"
+                label={t('payroll_components.is_housing_fund_base')}
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col span={16}>
+              <Form.Item
+                name="description"
+                label={t('common.description')}
+              >
+                <Input.TextArea rows={2} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+    </PageLayout>
+  );
+};
+
+export default PayrollComponentsPage; 

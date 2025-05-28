@@ -3,15 +3,16 @@ import type { RouteObject } from 'react-router-dom';
 import { Navigate, Outlet } from 'react-router-dom';
 import AppProtectedRoute from './ProtectedRoute'; // This is the main guard component
 import MainLayout from '../layouts/MainLayout';
+import ProLayoutWrapper from '../layouts/ProLayoutWrapper';
 import i18n from '../i18n'; // Import i18n instance
 
 // 导入页面组件
 import LoginPage from '../pages/LoginPage';
 // import DashboardPage from '../pages/Dashboard'; // Original
 const DashboardPage = lazy(() => import('../pages/Dashboard'));
-import UserListPage from '../pages/Admin/Users';
-import RoleListPage from '../pages/Admin/Roles';
-import PermissionListPage from '../pages/Admin/Permissions/PermissionListPage';
+import UsersPageV2 from '../pages/Admin/UsersV2';
+import RolesPageV2 from '../pages/Admin/RolesV2';
+import PermissionListPageV2 from '../pages/Admin/Permissions/PermissionListPageV2';
 import ConfigPage from '../pages/Admin/Config';
 import LeavePage from '../pages/Leave';
 // import PayrollPage from '../pages/Payroll'; // This line will be removed as PayrollPage.tsx is not the new module entry
@@ -41,6 +42,8 @@ const DepartmentsPage = lazy(() => import('../pages/Admin/Organization/Departmen
 
 // Lazy load the new bulk import page
 const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
+
+
 
 // RouteObject 本身就包含 element, path, children, index
 // 我们将 meta 附加到自定义的 RouteConfig 上
@@ -72,7 +75,7 @@ export const routes: AppRouteObject[] = [
     path: '/',
     element: (
       <AppProtectedRoute>
-        <MainLayout />
+        <ProLayoutWrapper />
       </AppProtectedRoute>
     ),
     children: [
@@ -94,9 +97,9 @@ export const routes: AppRouteObject[] = [
         meta: { title: 'system_management', requiredRoles: ['SUPER_ADMIN', 'ADMIN'] },
         children: [
           { index: true, element: <Navigate to="users" replace /> },
-          { path: 'users', element: <UserListPage />, meta: { title: 'user_management', requiredPermissions: ['user:list'] } },
-          { path: 'roles', element: <RoleListPage />, meta: { title: 'role_management', requiredPermissions: ['role:list'] } },
-          { path: 'permissions', element: <PermissionListPage />, meta: { title: 'permission_management', requiredPermissions: ['permission:list'] } },
+          { path: 'users', element: <UsersPageV2 />, meta: { title: 'user_management', requiredPermissions: ['user:list'] } },
+          { path: 'roles', element: <RolesPageV2 />, meta: { title: 'role_management', requiredPermissions: ['role:list'] } },
+          { path: 'permissions', element: <PermissionListPageV2 />, meta: { title: 'permission_management', requiredPermissions: ['permission:list'] } },
           { path: 'config', element: <ConfigPage />, meta: { title: 'system_configuration' } },
           {
             path: 'organization',
@@ -106,6 +109,8 @@ export const routes: AppRouteObject[] = [
               { index: true, element: <Navigate to="departments" replace /> },
               { path: 'departments', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Departments...</div>}><DepartmentsPage /></React.Suspense>, meta: { title: 'department_management' } },
               { path: 'job-titles', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'job_title_management' } },
+              { path: 'personnel-categories', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'personnel_categories_management' } },
+              { path: 'positions', element: <React.Suspense fallback={<div className="suspense">Loading Positions...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'positions_management' } },
             ],
           },
         ],
@@ -195,6 +200,21 @@ export const routes: AppRouteObject[] = [
           { index: true, element: <Navigate to="my-info" replace /> },
           { path: 'my-info', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Info...</div>}><MyInfo /></React.Suspense>, meta: { title: 'my_info' } },
           { path: 'my-payslips', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Payslips...</div>}><MyPayslips /></React.Suspense>, meta: { title: 'my_payslips' } },
+        ],
+      },
+      {
+        path: 'personal', 
+        element: (
+          <AppProtectedRoute> 
+            <React.Suspense fallback={<div className="page-loading-suspense">Loading Personal Section...</div>}>
+              <Outlet />
+            </React.Suspense>
+          </AppProtectedRoute>
+        ),
+        meta: { title: 'personal_center' },
+        children: [
+          { index: true, element: <Navigate to="leave" replace /> },
+          { path: 'leave', element: <LeavePage />, meta: { title: 'leave_application' } },
         ],
       },
     ],

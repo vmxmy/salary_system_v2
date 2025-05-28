@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-调试薪资组件定义获取问题
+调试薪资字段定义获取问题
 """
 import sys
 import os
@@ -12,11 +12,11 @@ from sqlalchemy import select
 from webapp.v2.models.config import PayrollComponentDefinition
 
 def debug_payroll_components():
-    """调试薪资组件定义获取"""
+    """调试薪资字段定义获取"""
     db = next(get_db_v2())
     
     try:
-        print("=== 调试薪资组件定义获取 ===")
+        print("=== 调试薪资字段定义获取 ===")
         
         # 1. 直接查询数据库
         print("\n1. 直接查询数据库中的SOCIAL_INSURANCE_ADJUSTMENT:")

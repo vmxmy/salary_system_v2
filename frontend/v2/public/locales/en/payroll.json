@@ -43,6 +43,158 @@
         "archived": "Archived"
     }
   },
+  "payroll_periods_page": {
+    "title": "Payroll Period Management",
+    "description": "Manage payroll periods and set time ranges for salary calculations",
+    "button": {
+      "add_period": "Create New Payroll Period"
+    },
+    "table": {
+      "column_id": "ID",
+      "column_period_name": "Period Name",
+      "column_frequency": "Pay Frequency",
+      "column_start_date": "Start Date",
+      "column_end_date": "End Date",
+      "column_pay_date": "Pay Date",
+      "column_status": "Status",
+      "column_actions": "Actions"
+    },
+    "search": {
+      "name_placeholder": "Enter period name to search",
+      "date_range": "Date Range"
+    },
+    "form": {
+      "name": "Period Name",
+      "frequency": "Pay Frequency",
+      "status": "Status",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "pay_date": "Pay Date",
+      "name_required": "Please enter period name",
+      "name_max_length": "Period name cannot exceed 100 characters",
+      "frequency_required": "Please select pay frequency",
+      "status_required": "Please select status",
+      "start_date_required": "Please select start date",
+      "end_date_required": "Please select end date",
+      "pay_date_required": "Please select pay date"
+    },
+    "message": {
+      "get_periods_failed": "Failed to fetch payroll periods list",
+      "get_periods_failed_empty_response": "Failed to fetch payroll periods list: server returned empty data",
+      "create_success": "Payroll period created successfully",
+      "create_failed": "Failed to create payroll period",
+      "update_success": "Payroll period updated successfully",
+      "update_failed": "Failed to update payroll period",
+      "delete_success": "Payroll period deleted successfully",
+      "delete_failed": "Failed to delete payroll period",
+      "load_aux_data_failed": "Failed to load auxiliary data"
+    },
+    "delete_confirm": {
+      "title": "Confirm Delete Payroll Period",
+      "content": "Are you sure you want to delete this payroll period? This action cannot be undone.",
+      "ok_text": "Confirm Delete",
+      "cancel_text": "Cancel"
+    },
+    "loading_lookups": "Loading basic data...",
+    "lookup_data_error": "Failed to load basic data"
+  },
+  "runs_page": {
+    "title": "Payroll Review",
+    "description": "Manage payroll calculation batches, execute and track payroll calculation processes",
+    "button": {
+      "create_run": "Create New Calculation Batch",
+      "mark_as_paid": "Mark as Paid",
+      "export_bank_file": "Export Bank File"
+    },
+    "error_fetch_runs": "Unable to fetch payroll review data",
+    "message": {
+      "update_success": "Payroll review updated successfully!",
+      "create_success": "Payroll review created successfully!",
+      "delete_success": "Payroll review deleted successfully!",
+      "mark_as_paid_success": "Calculation batch #{runId} has been successfully marked as paid!",
+      "exporting_bank_file": "Exporting bank file (batch #{runId})...",
+      "export_bank_file_success": "Bank file (batch #{runId}) download started!",
+      "already_paid": "This calculation batch has already been marked as paid."
+    },
+    "error": {
+      "update_failed": "Failed to update calculation batch",
+      "create_failed": "Failed to create calculation batch",
+      "delete_failed": "Failed to delete calculation batch",
+      "mark_as_paid_failed": "Failed to mark as paid",
+      "export_bank_file_failed_prefix": "Failed to export bank file: ",
+      "export_bank_file_failed_default": "Failed to export bank file"
+    },
+    "popconfirm": {
+      "delete_title": "Confirm Delete",
+      "delete_content": "Are you sure you want to delete this payroll review? This action cannot be undone.",
+      "delete_ok_text": "Delete",
+      "delete_cancel_text": "Cancel",
+      "mark_as_paid_title": "Confirm Operation",
+      "mark_as_paid_content": "Are you sure you want to mark calculation batch #{runId} as paid?",
+      "mark_as_paid_ok_text": "Mark as Paid"
+    },
+    "default_bank_export_filename_prefix": "bank_export_run_",
+    "table": {
+      "column": {
+        "id": "ID",
+        "batch_name": "Batch Name",
+        "payroll_period": "Payroll Period",
+        "run_date": "Calculation Date",
+        "status": "Status",
+        "employee_count": "Employee Count",
+        "notes": "Notes",
+        "actions": "Actions"
+      },
+      "action_details": "Details"
+    },
+    "tooltip": {
+      "edit_run": "Edit Calculation Batch",
+      "delete_run": "Delete Calculation Batch"
+    },
+    "alert_error_prefix": "Error: ",
+    "alert_modal_error_prefix": "Operation Failed: ",
+    "modal_title": {
+      "create": "Create New Payroll Review",
+      "edit": "Edit Payroll Review"
+    },
+    "modal_title_create": "Create New Payroll Review",
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
+    "loading_runs": "Loading calculation batches...",
+    "lookup_data_error": "Failed to load basic data",
+    "form": {
+      "error": {
+        "load_periods_failed": "Unable to load payroll periods list",
+        "load_periods_failed_with_message": "Unable to load payroll periods list: {message}"
+      },
+      "label": {
+        "payroll_period": "Payroll Period",
+        "run_date": "Calculation Date",
+        "status_edit_mode": "Status",
+        "status_create_mode": "Initial Status",
+        "employee_ids": "Employee IDs (optional, comma-separated)",
+        "notes": "Notes (optional)"
+      },
+      "validation": {
+        "payroll_period_required": "Please select payroll period!",
+        "run_date_required": "Please select calculation date!",
+        "status_required": "Please select status!"
+      },
+      "tooltip": {
+        "employee_ids": "Enter employee numeric IDs, separated by commas. Example: 101,102,105"
+      },
+      "placeholder": {
+        "payroll_period": "Select a payroll period",
+        "status": "Select status",
+        "employee_ids": "e.g.: 1, 2, 3, 4, 5\nLeave blank to include all applicable employees in the selected payroll period (if backend supports this logic)",
+        "notes": "Any notes about this calculation"
+      },
+      "button": {
+        "cancel": "Cancel",
+        "save_changes": "Save Changes",
+        "create_run": "Create Calculation Batch"
+      }
+    }
+  },
   "periods_page": {
     "title": "Payroll Period Management",
     "button": {
@@ -633,6 +785,40 @@
       "unemployment_personal_amount": "Personal Unemployment Insurance",
       "housing_fund_personal": "Personal Housing Fund",
       "social_insurance_adjustment": "Social Insurance Adjustment"
+    }
+  },
+  "entry_detail_modal": {
+    "title": "Payroll Entry Details",
+    "loading": "Loading details...",
+    "error_prefix": "Error: ",
+    "error_fetch_details": "Unable to fetch payroll entry details",
+    "not_found": "Payroll entry data not found",
+    "basic_info_title": "Basic Information",
+    "salary_summary_title": "Salary Summary",
+    "earnings_details_title": "Earnings Details",
+    "deductions_details_title": "Deductions Details",
+    "time_info_title": "Time Information",
+    "employee_id": "Employee ID",
+    "employee_name": "Employee Name",
+    "department": "Department",
+    "personnel_category": "Personnel Category",
+    "payroll_period": "Payroll Period",
+    "status": "Status",
+    "gross_pay": "Gross Pay",
+    "total_deductions": "Total Deductions",
+    "net_pay": "Net Pay",
+    "created_at": "Created At",
+    "updated_at": "Updated At",
+    "notes": "Notes",
+    "earnings_table": {
+      "component_name": "Earnings Component",
+      "amount": "Amount",
+      "description": "Description"
+    },
+    "deductions_table": {
+      "component_name": "Deduction Component",
+      "amount": "Amount",
+      "description": "Description"
     }
   }
 }

@@ -86,9 +86,13 @@ export interface PayrollEntry {
   payroll_period_id: number;
   employee_id: number;
   employee?: Employee; // Embed the full Employee object
+  employee_name?: string; // 员工姓名，用于表格显示
+  employee_first_name?: string; // 新增：员工名
+  employee_last_name?: string; // 新增：员工姓
   gross_pay: number; // 应发工资 - 数据库实际字段
   total_deductions: number;
   net_pay: number;
+  total_earnings?: number; // 总收入，通常等于gross_pay，用于显示
   status_lookup_value_id: number;
   status?: LookupValue; // Optional: if status details are fetched/included
   remarks?: string;
@@ -122,6 +126,7 @@ export interface LookupValue {
   lookup_type_code?: string;
   code: string;            // 例如：'ACTIVE', 'CLOSED'
   name: string;            // 显示名称，例如：'活动', '已关闭'
+  display_name?: string;   // 显示名称，兼容性属性
   description?: string;    // 描述
   sort_order?: number;     // 排序顺序
   is_active?: boolean;     // 是否活动

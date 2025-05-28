@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
-  Card, 
   Tag, 
-  message, 
   Tooltip,
   Modal,
   Typography,
   Badge,
   Checkbox,
   Button,
-  Space
+  Space,
+  App
 } from 'antd';
 import { PlusOutlined, ImportOutlined, FileExcelOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -20,12 +19,18 @@ import { getPersonnelCategoriesTree } from '../../../api/personnelCategories';
 import type { PersonnelCategory } from '../../../api/types';
 import type { PayrollPeriod, PayrollEntry, ApiListMeta } from '../types/payrollTypes';
 import { getPayrollEntryStatusInfo, PAYROLL_ENTRY_STATUS_OPTIONS } from '../utils/payrollUtils';
-import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
+import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
+import PayrollPeriodSelector from '../../../components/common/PayrollPeriodSelector';
 import dayjs from 'dayjs';
-import type { ProColumns } from '@ant-design/pro-components';
+import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import PermissionGuard from '../../../components/common/PermissionGuard';
 import { employeeService } from '../../../services/employeeService';
 import PayrollEntryFormModal from '../components/PayrollEntryFormModal';
+import PayrollEntryDetailModal from '../components/PayrollEntryDetailModal';
+import { stringSorter, numberSorter, dateSorter, useTableSearch } from '../../../components/common/TableUtils';
+import TableActionButton from '../../../components/common/TableActionButton';
+
+
 
 // Helper function to convert snake_case or camelCase to Title Case
 const toTitleCase = (str: string) => {
@@ -64,36 +69,230 @@ const flattenPersonnelCategories = (categories: PersonnelCategory[], parentPrefi
   return result;
 };
 
+// 生成薪资记录表格列配置
+const generatePayrollEntryTableColumns = (
+  t: (key: string) => string,
+  getColumnSearch: (dataIndex: keyof PayrollEntry) => any,
+  lookupMaps: any,
+  permissions: {
+    canViewDetail: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  },
+  onEdit: (entry: PayrollEntry) => void,
+  onDelete: (entryId: string) => void,
+  onViewDetails: (entryId: string) => void
+): ProColumns<PayrollEntry>[] => {
+  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - Called to generate table columns');
+  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - permissions:', permissions);
+  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - lookupMaps keys:', lookupMaps ? Object.keys(lookupMaps) : 'no lookupMaps');
+  
+  const columns: ProColumns<PayrollEntry>[] = [
+    {
+      title: t('payroll:entries_table.column.employee_id'),
+      dataIndex: 'employee_id',
+      key: 'employee_id',
+      sorter: numberSorter<PayrollEntry>('employee_id'),
+      width: 120,
+      ...getColumnSearch('employee_id'),
+    },
+    {
+      title: t('payroll:entries_table.column.employee_name'),
+      key: 'employee_name',
+      sorter: (a, b) => {
+        const nameA = `${a.employee?.last_name || ''}${a.employee?.first_name || ''}`.trim().toLowerCase();
+        const nameB = `${b.employee?.last_name || ''}${b.employee?.first_name || ''}`.trim().toLowerCase();
+        return nameA.localeCompare(nameB);
+      },
+      width: 150,
+      render: (_, record) => {
+        console.log('[PayrollEntryPage.tsx] === EMPLOYEE NAME RENDER FUNCTION CALLED ===');
+        console.log('[PayrollEntryPage.tsx] Rendering name for record:', JSON.parse(JSON.stringify(record))); // Log the whole record
+        console.log('[PayrollEntryPage.tsx] employee_first_name type:', typeof record.employee_first_name, 'value:', record.employee_first_name);
+        console.log('[PayrollEntryPage.tsx] employee_last_name type:', typeof record.employee_last_name, 'value:', record.employee_last_name);
+        
+        // 检查 employee 对象的结构
+        if (record.employee) {
+          console.log('[PayrollEntryPage.tsx] employee object exists:', JSON.parse(JSON.stringify(record.employee)));
+          console.log('[PayrollEntryPage.tsx] employee object keys:', Object.keys(record.employee));
+          console.log('[PayrollEntryPage.tsx] employee.first_name:', record.employee.first_name);
+          console.log('[PayrollEntryPage.tsx] employee.last_name:', record.employee.last_name);
+        } else {
+          console.log('[PayrollEntryPage.tsx] employee object does not exist');
+        }
+
+        // 修正逻辑：从 employee 对象中获取姓名（API实际返回的结构）
+        let firstName = '';
+        let lastName = '';
+        
+        // 检查 employee 对象并从中获取姓名
+        if (record.employee) {
+          firstName = record.employee.first_name || '';
+          lastName = record.employee.last_name || '';
+        }
+        
+        console.log('[PayrollEntryPage.tsx] 🔍 DIRECT ACCESS - employee.first_name:', record.employee?.first_name, 'employee.last_name:', record.employee?.last_name);
+
+        console.log('[PayrollEntryPage.tsx] firstName after processing:', typeof firstName, firstName);
+        console.log('[PayrollEntryPage.tsx] lastName after processing:', typeof lastName, lastName);
+
+        // 临时测试：直接返回简单字符串
+        const testResult = `${lastName}${firstName}`.trim();
+        console.log('[PayrollEntryPage.tsx] 🎯 FINAL RESULT before return:', testResult);
+        
+        if (!firstName && !lastName) {
+          console.warn('[PayrollEntryPage.tsx] WARN: first_name and last_name are both empty or missing for employee_id:', record.employee_id);
+          return <span style={{ color: '#999', fontStyle: 'italic' }}>未设置姓名</span>;
+        }
+        
+        const fullName = `${lastName}${firstName}`.trim();
+        console.log('[PayrollEntryPage.tsx] Constructed fullName:', typeof fullName, fullName, 'for employee_id:', record.employee_id);
+        
+        return fullName;
+      },
+    },
+    {
+      title: t('payroll:entries_table.column.department'),
+      key: 'department',
+      width: 150,
+      render: (_, record) => record.employee?.departmentName || '',
+      filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[1],
+      })) : [],
+      onFilter: (value, record) => record.employee?.departmentName === value,
+    },
+    {
+      title: t('payroll:entries_table.column.personnel_category'),
+      key: 'personnel_identity',
+      width: 180,
+      render: (_, record) => record.employee?.personnelCategoryName || '',
+      filters: [],
+      onFilter: (value, record) => record.employee?.personnelCategoryName === value,
+    },
+    {
+      title: t('payroll:entries_table.column.gross_pay'),
+      dataIndex: 'gross_pay',
+      key: 'gross_pay',
+      sorter: numberSorter<PayrollEntry>('gross_pay'),
+      width: 120,
+      render: (value: any) => {
+        const numValue = Number(value);
+        return `¥${!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}`;
+      },
+    },
+    {
+      title: t('payroll:entries_table.column.total_deductions'),
+      dataIndex: 'total_deductions',
+      key: 'total_deductions',
+      sorter: numberSorter<PayrollEntry>('total_deductions'),
+      width: 120,
+      render: (value: any) => {
+        const numValue = Number(value);
+        return `¥${!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}`;
+      },
+    },
+    {
+      title: t('payroll:entries_table.column.net_pay'),
+      dataIndex: 'net_pay',
+      key: 'net_pay',
+      sorter: numberSorter<PayrollEntry>('net_pay'),
+      width: 120,
+      render: (value: any) => {
+        const numValue = Number(value);
+        return `¥${!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}`;
+      },
+    },
+    {
+      title: t('payroll:entries_table.column.status'),
+      dataIndex: 'status_lookup_value_id',
+      key: 'status',
+      width: 100,
+      render: (statusId: number) => {
+        const statusInfo = getPayrollEntryStatusInfo(statusId);
+        return (
+          <Badge 
+            status={statusInfo.color === 'green' ? 'success' : statusInfo.color === 'red' ? 'error' : 'default'} 
+            text={t(statusInfo.key)} 
+          />
+        );
+      },
+      filters: PAYROLL_ENTRY_STATUS_OPTIONS.map(option => ({
+        text: t(option.display_name_key),
+        value: option.id,
+      })),
+      onFilter: (value, record) => record.status_lookup_value_id === value,
+    },
+    {
+      title: t('payroll:entries_table.column.actions'),
+      key: 'action',
+      width: 150,
+      fixed: 'right',
+      render: (_: string, record: PayrollEntry) => (
+        <Space size="small">
+          {permissions.canViewDetail && (
+            <TableActionButton 
+              actionType="view" 
+              onClick={() => onViewDetails(String(record.id))} 
+              tooltipTitle={t('common:action.view')} 
+            />
+          )}
+          {permissions.canUpdate && (
+            <TableActionButton 
+              actionType="edit" 
+              onClick={() => onEdit(record)} 
+              tooltipTitle={t('common:action.edit')} 
+            />
+          )}
+          {permissions.canDelete && (
+            <TableActionButton 
+              actionType="delete" 
+              danger 
+              onClick={() => onDelete(String(record.id))} 
+              tooltipTitle={t('common:action.delete')} 
+            />
+          )}
+        </Space>
+      ),
+    },
+  ];
+  
+  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - Generated', columns.length, 'columns');
+  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - Employee name column:', columns.find(col => col.key === 'employee_name'));
+  
+  return columns;
+};
+
 const PayrollEntryPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common', 'employee']);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
+  const { message } = App.useApp();
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
-  const [entries, setEntries] = useState<PayrollEntry[]>([]);
-  const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState<boolean>(false);
   const [currentEntry, setCurrentEntry] = useState<PayrollEntry | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [sorter, setSorter] = useState<any>(null);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [dynamicColumns, setDynamicColumns] = useState<ProColumns<PayrollEntry>[]>([]);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [allPayrollEntries, setAllPayrollEntries] = useState<PayrollEntry[]>([]);
+  const [loadingData, setLoadingData] = useState<boolean>(false);
   const [personnelCategoriesTree, setPersonnelCategoriesTree] = useState<PersonnelCategory[]>([]);
+  
+  // 模拟权限配置
+  const permissions = {
+    canViewList: true,
+    canViewDetail: true,
+    canCreate: true,
+    canUpdate: true,
+    canDelete: true,
+    canExport: true,
+  };
 
-  // 获取薪资周期
-  const fetchPayrollPeriods = useCallback(async () => {
-    try {
-      const response = await getPayrollPeriods({ page: 1, size: 100 });
-      setPeriods(response.data);
-      console.log('[PayrollEntryPage.tsx] fetchPayrollPeriods - Periods state updated:', JSON.stringify(response.data, null, 2));
-      if (response.data.length > 0 && !selectedPeriodId) { // Default select first period only if none is selected
-        setSelectedPeriodId(response.data[0].id);
-      }
-    } catch (error) {
-      message.error(t('payroll:entry_page.error_fetch_periods'));
-    }
-  }, [t, selectedPeriodId]); // Added selectedPeriodId to dependency array
+  // 模拟查找映射数据 - 添加假数据确保表格能渲染
+  const lookupMaps = {
+    departmentMap: new Map([['default', '默认部门']]),
+    statusMap: new Map([['default', '默认状态']]),
+  };
+
+  const { getColumnSearch } = useTableSearch();
 
   // 获取人员类别树形数据
   const fetchPersonnelCategoriesTree = useCallback(async () => {
@@ -107,270 +306,62 @@ const PayrollEntryPage: React.FC = () => {
     }
   }, []);
 
-  // 获取工资明细列表
-  const fetchPayrollEntries = useCallback(async (page = 1, size = 10, periodIdToFetch?: number | null, currentSorter?: any) => {
-    const targetPeriodId = periodIdToFetch ?? selectedPeriodId;
-    if (!targetPeriodId) {
-      setEntries([]);
-      setMeta(null);
-      setDynamicColumns(generateDynamicColumns([], periods, t, personnelCategoriesTree)); // Set default columns if no periodId
-      return;
-    }
+  // 获取薪资记录数据
+  const fetchPayrollEntries = useCallback(async (periodId: number) => {
+    if (!periodId) return;
     
-    setLoading(true);
+    console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - Called for periodId:', periodId);
+    setLoadingData(true);
     try {
-      const params: any = { page, size, include_employee_details: true, payroll_period_id: targetPeriodId };
-      if (currentSorter && currentSorter.field) {
-        let fieldKey = currentSorter.field;
-        if (Array.isArray(fieldKey)) fieldKey = fieldKey.join('.');
-        params.sort_by = fieldKey;
-        params.sort_order = currentSorter.order === 'descend' ? 'desc' : 'asc';
-      }
+      const requestParams = { 
+        page: 1, 
+        size: 100, 
+        include_employee_details: true,
+        period_id: periodId 
+      };
       
-      const response = await getPayrollEntries(params);
-      setEntries(response.data);
-      setMeta(response.meta);
-      setCurrentPage(page);
-      setPageSize(size);
-    } catch (error) {
-      message.error(t('payroll:entry_page.error_fetch_entries'));
-    } finally {
-      setLoading(false);
-    }
-  }, [t, selectedPeriodId, personnelCategoriesTree]); // selectedPeriodId and personnelCategoriesTree are dependencies here
-
-  // 动态生成列定义
-  const generateDynamicColumns = useCallback((data: PayrollEntry[], currentPeriods: PayrollPeriod[], translate: typeof t, categoriesTree: PersonnelCategory[]): ProColumns<PayrollEntry>[] => {
-    if (!data || data.length === 0) {
-      return [
-        { title: translate('payroll:entries_table.column.employee_id'), dataIndex: 'employee_id', key: 'employee_id', sorter: true },
-        { title: translate('payroll:entries_table.column.employee_name'), dataIndex: 'employee_name', key: 'employee_name', sorter: true },
-        { title: translate('payroll:entries_table.column.status'), dataIndex: 'status_lookup_value_id', key: 'status_lookup_value_id', sorter: true },
-      ];
-    }
-
-    const firstEntry = data[0];
-    const keys = Object.keys(firstEntry) as Array<keyof PayrollEntry>;
-
-    const generatedColumns: ProColumns<PayrollEntry>[] = keys
-      .filter(key => key !== 'earnings_details' && key !== 'deductions_details' && key !== 'payroll_run' && key !== 'created_at' && key !== 'updated_at' && key !== 'status' && key !== 'remarks' && key !== 'employee') // exclude 'employee' object itself from direct column generation
-      .map(key => {
-        let columnTitle = toTitleCase(String(key)); 
-
-        if (key === 'employee_id') {
-          columnTitle = translate('payroll:entries_table.column.employee_id');
-        } else if (key === 'payroll_period_id') {
-          columnTitle = translate('payroll:entries_table.column.payroll_period');
-        } else if (key === 'gross_pay') {
-          columnTitle = translate('payroll:entries_table.column.gross_pay');
-        } else if (key === 'total_deductions') {
-          columnTitle = translate('payroll:entries_table.column.total_deductions');
-        } else if (key === 'net_pay') {
-          columnTitle = translate('payroll:entries_table.column.net_pay');
-        } else if (key === 'status_lookup_value_id') {
-          columnTitle = translate('payroll:entries_table.column.status');
-        }
-        // Note: employee_name is handled by a manually inserted column
-
-        const column: ProColumns<PayrollEntry> = {
-          title: columnTitle,
-          dataIndex: String(key),
-          key: String(key),
-          sorter: true, // Default sorter for all dynamic columns
-          filters: true, // Default filter for all dynamic columns
-          filterSearch: true, // Allow searching in filter dropdowns
-          ellipsis: true,
-        };
-
-        if (key === 'id') {
-            column.width = 80;
-        } else if (key === 'employee_id') {
-          column.width = 120;
-        } else if (key === 'payroll_period_id') {
-          column.filters = currentPeriods.map(p => ({ text: p.name, value: p.id }));
-          column.onFilter = (value, record) => record.payroll_period_id === value;
-          column.render = (_, record) => {
-            const period = currentPeriods.find(p => p.id === record.payroll_period_id);
-            if (!period) {
-              console.warn(
-                `[PayrollEntryPage.tsx] generateDynamicColumns - Period name not found for ID: ${record.payroll_period_id}. ` +
-                `Current entry ID: ${record.id}. ` +
-                `currentPeriods being used:`, JSON.stringify(currentPeriods.map(p => ({id: p.id, name: p.name})), null, 2)
-              );
-            }
-            return period ? period.name : record.payroll_period_id;
-          };
-          column.width = 150;
-        } else if (key === 'gross_pay' || key === 'total_deductions' || key === 'net_pay') {
-          column.valueType = 'money';
-          column.align = 'right';
-          column.width = 130;
-          // sorter and filters: true should work well with valueType: 'money'
-        } else if (key === 'status_lookup_value_id') {
-          const statusOptions = PAYROLL_ENTRY_STATUS_OPTIONS.map(s => ({
-            text: translate(s.display_name_key),
-            value: s.id,
-          }));
-          column.filters = statusOptions;
-          column.onFilter = (value, record) => record.status_lookup_value_id === value;
-          column.render = (_, record) => {
-            const statusInfo = getPayrollEntryStatusInfo(record.status_lookup_value_id);
-            return <Tag color={statusInfo.color}>{translate(statusInfo.key, statusInfo.params)}</Tag>;
-          };
-          column.width = 120;
-        }
-        return column;
-      });
-
-    // Manually add/override specific columns after dynamic generation
-    let columns = [...generatedColumns];
-
-    // Unique values for Department and Personnel Category filters
-    const uniqueDepartments = Array.from(new Set(data.map(item => item.employee?.departmentName).filter((name): name is string => !!name)))
-      .map(name => ({ text: name, value: name }));
-    const uniquePersonnelCategories = Array.from(new Set(data.map(item => item.employee?.personnelCategoryName).filter((name): name is string => !!name)))
-      .map(name => ({ text: name, value: name }));
-
-
-    // Employee Name Column (manual override or insertion)
-    const employeeNameColumn: ProColumns<PayrollEntry> = {
-      title: translate('payroll:entries_table.column.employee_name'),
-      key: 'employee_name',
-      sorter: (a, b) => {
-        const nameA = `${a.employee?.last_name || ''}${a.employee?.first_name || ''}`.trim(); // LastNameFirstName
-        const nameB = `${b.employee?.last_name || ''}${b.employee?.first_name || ''}`.trim(); // LastNameFirstName
-        return nameA.localeCompare(nameB);
-      },
-      filters: true, 
-      filterSearch: true,
-      ellipsis: true,
-      width: 150,
-      render: (_, record) => {
-        const firstName = record.employee?.first_name;
-        const lastName = record.employee?.last_name;
-        if (lastName && firstName) {
-          return `${lastName}${firstName}`; // LastNameFirstName
-        }
-        if (lastName) {
-          return lastName;
-        }
-        if (firstName) {
-          return firstName;
-        }
-        return translate('common:notAvailable');
-      },
-    };
-
-    // Department Column
-    const departmentColumn: ProColumns<PayrollEntry> = {
-      title: translate('payroll:entries_table.column.department'),
-      key: 'department',
-      dataIndex: ['employee', 'departmentName'],
-      sorter: (a, b) => String(a.employee?.departmentName || '').localeCompare(String(b.employee?.departmentName || '')),
-      filters: uniqueDepartments.length > 0 ? uniqueDepartments : undefined,
-      onFilter: uniqueDepartments.length > 0 ? (value, record) => record.employee?.departmentName === value : undefined,
-      filterSearch: true,
-      ellipsis: true,
-      width: 180,
-      render: (_, record) => record.employee?.departmentName || translate('common:notAvailable'),
-    };
-
-    // Personnel Identity/Category Column
-    const personnelIdentityColumn: ProColumns<PayrollEntry> = {
-      title: translate('payroll:entries_table.column.personnel_identity'),
-      key: 'personnel_identity',
-      dataIndex: ['employee', 'personnelCategoryName'],
-      sorter: (a, b) => String(a.employee?.personnelCategoryName || '').localeCompare(String(b.employee?.personnelCategoryName || '')),
-      filters: categoriesTree.length > 0 ? flattenPersonnelCategories(categoriesTree) : uniquePersonnelCategories.length > 0 ? uniquePersonnelCategories : undefined,
-      onFilter: (value, record) => record.employee?.personnelCategoryName === value,
-      filterSearch: true,
-      ellipsis: true,
-      width: 180,
-      render: (_, record) => record.employee?.personnelCategoryName || translate('common:notAvailable'),
-    };
-
-    // Find and replace or insert these columns
-    // Helper to insert or replace a column
-    const upsertColumn = (existingColumns: ProColumns<PayrollEntry>[], newColumn: ProColumns<PayrollEntry>, afterKey?: string) => {
-      const index = existingColumns.findIndex(col => col.key === newColumn.key);
-      if (index > -1) {
-        existingColumns[index] = { ...existingColumns[index], ...newColumn }; // Merge, preferring newColumn properties
+      const response = await getPayrollEntries(requestParams);
+      console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - API response received:', response);
+      
+      if (response && response.data) {
+        console.log(`[PayrollEntryPage.tsx] fetchPayrollEntries - ${response.data.length} entries received`);
+        
+        // 详细检查前3条数据的结构
+        response.data.slice(0, 3).forEach((entry, index) => {
+          console.log(`[PayrollEntryPage.tsx] fetchPayrollEntries - Entry ${index + 1} detailed structure:`, {
+            id: entry.id,
+            employee_id: entry.employee_id,
+            employee_first_name: entry.employee_first_name,
+            employee_last_name: entry.employee_last_name,
+            employee_first_name_type: typeof entry.employee_first_name,
+            employee_last_name_type: typeof entry.employee_last_name,
+            has_employee_object: !!entry.employee,
+            employee_object_keys: entry.employee ? Object.keys(entry.employee) : 'no employee object',
+            all_keys: Object.keys(entry)
+          });
+        });
+        
+        setAllPayrollEntries(response.data);
+        console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - Data set to state successfully');
       } else {
-        if (afterKey) {
-          const afterIndex = existingColumns.findIndex(col => col.key === afterKey);
-          if (afterIndex > -1) {
-            existingColumns.splice(afterIndex + 1, 0, newColumn);
-          } else {
-            existingColumns.push(newColumn); // Fallback: add to end
-          }
-        } else {
-          existingColumns.unshift(newColumn); // Default: add to beginning if no afterKey
-        }
+        console.error('[PayrollEntryPage.tsx] fetchPayrollEntries - No data in API response or response itself is null.');
+        setAllPayrollEntries([]);
       }
-    };
-    
-    // Upsert Employee ID to ensure it has filters if it was dynamically generated
-    const employeeIdCol = columns.find(c => c.key === 'employee_id');
-    if (employeeIdCol) {
-        employeeIdCol.sorter = true; // Already set for dynamic, but good to be explicit
-        employeeIdCol.filters = true; 
-        employeeIdCol.filterSearch = true;
+    } catch (error) {
+      console.error('[PayrollEntryPage.tsx] fetchPayrollEntries - Error fetching payroll entries:', error);
+      setAllPayrollEntries([]);
+    } finally {
+      setLoadingData(false);
+      console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - Finished for periodId:', periodId);
     }
-
-
-    // Upsert key columns (Name, Department, Personnel Category)
-    // Typically, we want Employee ID, then Name, then other employee details
-    upsertColumn(columns, employeeNameColumn, 'employee_id'); // Insert after employee_id
-    upsertColumn(columns, departmentColumn, 'employee_name'); // Insert after employee_name
-    upsertColumn(columns, personnelIdentityColumn, 'department'); // Insert after department
-
-
-    // Action Column (ensure it's last and has no sorting/filtering)
-    columns.push({
-      title: translate('payroll:entries_table.column.actions'),
-      key: 'actions',
-      width: 100,
-      fixed: 'right',
-      valueType: 'option',
-      render: (_, record) => (
-        <Space size="small">
-          <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_EDIT_DETAILS]}>
-            <Tooltip title={translate('payroll:entry_page.tooltip.edit_entry')}>
-              <Button icon={<EditOutlined />} size="small" onClick={() => handleEditEntry(record)} />
-            </Tooltip>
-          </PermissionGuard>
-        </Space>
-      ),
-    });
-
-    return columns;
   }, []);
 
-  // Fetch initial data and set up columns
-  useEffect(() => {
-    fetchPayrollPeriods();
-    fetchPersonnelCategoriesTree(); // Fetch personnel categories tree on mount
-  }, [fetchPayrollPeriods, fetchPersonnelCategoriesTree]); // Initial fetch for periods
-
-  useEffect(() => {
-    // Fetch entries when selectedPeriodId changes or on initial load if selectedPeriodId is already set
+  // 创建一个包装函数来适配StandardListPageTemplate的fetchData接口
+  const fetchDataWrapper = useCallback(async () => {
     if (selectedPeriodId) {
-      fetchPayrollEntries(currentPage, pageSize, selectedPeriodId, sorter);
+      await fetchPayrollEntries(selectedPeriodId);
     }
-  }, [selectedPeriodId, currentPage, pageSize, sorter, fetchPayrollEntries]);
-  
-  useEffect(() => {
-    // Regenerate columns when entries or periods data changes
-    // Ensure periods are available for the payroll_period_id column rendering/filtering
-    if (entries.length > 0 && periods.length > 0) {
-      setDynamicColumns(generateDynamicColumns(entries, periods, t, personnelCategoriesTree));
-    } else if (periods.length > 0) { // If no entries but periods loaded, show default columns
-       setDynamicColumns(generateDynamicColumns([], periods, t, personnelCategoriesTree));
-    }
-    // If periods are not loaded yet, columns dependent on them (like payroll_period_id filter) might be empty
-    // This will naturally update once periods are fetched and this effect re-runs.
-  }, [entries, periods, t, generateDynamicColumns, personnelCategoriesTree]);
-
+  }, [selectedPeriodId, fetchPayrollEntries]);
 
   // 处理编辑工资明细
   const handleEditEntry = (entry: PayrollEntry) => {
@@ -387,90 +378,142 @@ const PayrollEntryPage: React.FC = () => {
   // 处理表单提交成功后的操作
   const handleFormSuccess = () => {
     setIsModalVisible(false);
-    fetchPayrollEntries(currentPage, pageSize, selectedPeriodId, sorter);
+    if (selectedPeriodId) {
+      fetchPayrollEntries(selectedPeriodId); // 重新获取数据
+    }
     message.success(t('payroll:entry_page.message.operation_success'));
   };
 
-  // 处理批量导入
-  const handleBulkImport = () => {
-    navigate('/payroll/bulk-import');
+  // 处理删除单个记录
+  const handleDeleteEntry = useCallback(async (entryId: string) => {
+    await deletePayrollEntry(Number(entryId));
+    if (selectedPeriodId) {
+      fetchPayrollEntries(selectedPeriodId); // 重新获取数据
+    }
+  }, [selectedPeriodId, fetchPayrollEntries]);
+
+  // 处理查看详情
+  const handleViewDetails = useCallback((entryId: string) => {
+    setSelectedEntryId(entryId);
+    setIsDetailModalVisible(true);
+  }, []);
+
+  // 处理薪资周期选择变化
+  const handlePeriodChange = (value: number | null) => {
+    setSelectedPeriodId(value);
   };
 
-  // 处理批量删除
-  const handleBatchDelete = async (selectedKeys: React.Key[]) => {
-    const deletePromises = selectedKeys.map(id => deletePayrollEntry(Number(id)));
-    await Promise.all(deletePromises);
-    setSelectedRowKeys([]);
-    fetchPayrollEntries(currentPage, pageSize, selectedPeriodId, sorter);
-  };
+  // 薪资周期加载完成的回调（现在由组件内部自动选择有数据的周期）
+  const handlePeriodsLoaded = useCallback((periods: any[]) => {
+    console.log(`📋 薪资周期加载完成，共 ${periods.length} 个周期`);
+    // 不再手动选择第一个周期，由 PayrollPeriodSelector 自动选择最近一个有数据的周期
+  }, []);
 
-  const pageTitle = t('payroll:entry_page.title'); // Changed to use i18n key again for consistency
+  // 当选择的周期改变时，重新获取数据
+  useEffect(() => {
+    if (selectedPeriodId) {
+      console.log('[PayrollEntryPage.tsx] useEffect - selectedPeriodId changed to:', selectedPeriodId, 'Fetching entries...');
+      fetchPayrollEntries(selectedPeriodId);
+    } else {
+      console.log('[PayrollEntryPage.tsx] useEffect - selectedPeriodId is null, clearing entries.');
+      setAllPayrollEntries([]); // 如果没有选择周期，清空数据
+    }
+  }, [selectedPeriodId, fetchPayrollEntries]);
 
-  // 处理表格变化事件，用于排序和分页
-  const handleTableChange = (paginationParams: any, filtersParams: any, newSorter: any) => {
-    const { current, pageSize: newPageSize } = paginationParams;
-    setCurrentPage(current);
-    setPageSize(newPageSize);
-    setSorter(newSorter); // Sorter state is updated, useEffect for fetchPayrollEntries will pick it up
-  };
+  // 初始化时获取人员类别数据
+  useEffect(() => {
+    fetchPersonnelCategoriesTree();
+  }, [fetchPersonnelCategoriesTree]);
 
-  // 构建额外的工具栏按钮
-  const extraButtons = [
-    <PermissionGuard key="bulk-import" requiredPermissions={[P_PAYROLL_ENTRY_BULK_IMPORT]}>
-      <Button icon={<ImportOutlined />} onClick={handleBulkImport} shape="round">
-        {t('payroll:entry_page.button.batch_import')}
-      </Button>
-    </PermissionGuard>
-  ];
+  // 调试：监控传递给表格的数据变化
+  useEffect(() => {
+    console.log('[PayrollEntryPage.tsx] RENDER - Table data updated:', {
+      allPayrollEntriesLength: allPayrollEntries.length,
+      loadingData,
+      selectedPeriodId,
+      lookupMapsKeys: lookupMaps ? Object.keys(lookupMaps) : 'no lookupMaps',
+      lookupMapsHasData: lookupMaps && Object.keys(lookupMaps).length > 0,
+      departmentMapSize: lookupMaps?.departmentMap?.size || 0,
+      statusMapSize: lookupMaps?.statusMap?.size || 0,
+      firstEntryStructure: allPayrollEntries.length > 0 ? {
+        id: allPayrollEntries[0].id,
+        employee_id: allPayrollEntries[0].employee_id,
+        employee_first_name: allPayrollEntries[0].employee_first_name,
+        employee_last_name: allPayrollEntries[0].employee_last_name,
+        employee_first_name_type: typeof allPayrollEntries[0].employee_first_name,
+        employee_last_name_type: typeof allPayrollEntries[0].employee_last_name,
+        all_keys: Object.keys(allPayrollEntries[0])
+      } : 'no entries'
+    });
 
-  // 构建批量删除配置
-  const batchDeleteConfig = {
-    enabled: true,
-    buttonText: t('payroll:entry_page.batch_delete_button_text'),
-    confirmTitle: t('payroll:entry_page.batch_delete_confirm_title'),
-    confirmContent: t('payroll:entry_page.batch_delete_confirm_content'),
-    confirmOkText: t('payroll:entry_page.batch_delete_confirm_ok_text'),
-    confirmCancelText: t('payroll:entry_page.batch_delete_confirm_cancel_text'),
-    onBatchDelete: handleBatchDelete,
-    successMessage: t('payroll:entry_page.batch_delete_success_message'),
-    errorMessage: t('payroll:entry_page.batch_delete_error_message'),
-    noSelectionMessage: t('payroll:entry_page.batch_delete_no_selection_message'),
-  };
-
-  // 行选择配置
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: (newSelectedRowKeys: React.Key[]) => setSelectedRowKeys(newSelectedRowKeys),
-    getCheckboxProps: (record: PayrollEntry) => ({ disabled: false }),
-  };
+    // 🚀 额外调试：检查即将传递给StandardListPageTemplate的数据
+    if (allPayrollEntries.length > 0) {
+      console.log('[PayrollEntryPage.tsx] 🚀 StandardListPageTemplate props:', {
+        dataSourceLength: allPayrollEntries.length,
+        lookupMapsDetails: {
+          departmentMapSize: lookupMaps?.departmentMap?.size,
+          statusMapSize: lookupMaps?.statusMap?.size,
+          hasData: lookupMaps && Object.keys(lookupMaps).length > 0
+        },
+        loadingData,
+        permissions,
+        firstEntryEmployeeData: {
+          employee_first_name: allPayrollEntries[0].employee?.first_name,
+          employee_last_name: allPayrollEntries[0].employee?.last_name
+        }
+      });
+    }
+  }, [allPayrollEntries, loadingData, selectedPeriodId]);
 
   return (
     <>
       <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_VIEW]}>
-        <OrganizationManagementTableTemplate<PayrollEntry>
-          pageTitle={pageTitle} 
-          addButtonText={t('payroll:entry_page.button.add_entry')}
+        {/* 薪资周期选择器 */}
+        <PayrollPeriodSelector
+          value={selectedPeriodId}
+          onChange={handlePeriodChange}
+          onPeriodsLoaded={handlePeriodsLoaded}
+          mode="card"
+          showSelectedStatus={true}
+          showDataStats={true}
+          autoSelectLatestWithData={true}
+          style={{ maxWidth: 400, marginBottom: 16 }}
+        />
+
+        <StandardListPageTemplate<PayrollEntry>
+          translationNamespaces={['payroll', 'common', 'employee']}
+          pageTitleKey="payroll:entry_page.title"
+          addButtonTextKey="payroll:entry_page.button.add_entry"
+          dataSource={allPayrollEntries}
+          loadingData={loadingData}
+          permissions={permissions}
+          lookupMaps={lookupMaps}
+          loadingLookups={false}
+          errorLookups={null}
+          fetchData={fetchDataWrapper}
+          deleteItem={handleDeleteEntry}
           onAddClick={handleAddEntry}
-          showAddButton={!!selectedPeriodId} 
-          extraButtons={extraButtons}
-          batchDelete={batchDeleteConfig}
-          rowSelection={rowSelection}
-          columns={dynamicColumns} 
-          dataSource={entries}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: meta?.total || 0,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total: number) => t('common:table.total_items', { total }),
+          onEditClick={handleEditEntry}
+          onViewDetailsClick={handleViewDetails}
+          generateTableColumns={generatePayrollEntryTableColumns}
+          deleteConfirmConfig={{
+            titleKey: 'payroll:entry_page.delete_confirm.title',
+            contentKey: 'payroll:entry_page.delete_confirm.content',
+            okTextKey: 'payroll:entry_page.delete_confirm.ok_text',
+            cancelTextKey: 'payroll:entry_page.delete_confirm.cancel_text',
+            successMessageKey: 'payroll:entry_page.message.delete_success',
+            errorMessageKey: 'payroll:entry_page.message.delete_failed',
           }}
-          onChange={handleTableChange}
-          search={false} 
-          enableAdvancedFeatures={true}
-          showToolbar={true}
+          exportConfig={{
+            filenamePrefix: t('payroll:entry_page.title'),
+            sheetName: t('payroll:entry_page.title'),
+            buttonText: '导出Excel',
+            successMessage: '薪资记录导出成功',
+          }}
+          lookupErrorMessageKey="payroll:entry_page.message.load_aux_data_failed"
+          lookupLoadingMessageKey="payroll:entry_page.loading_lookups"
+          lookupDataErrorMessageKey="payroll:entry_page.lookup_data_error"
+          rowKey="id"
         />
       </PermissionGuard>
 
@@ -481,6 +524,17 @@ const PayrollEntryPage: React.FC = () => {
           entry={currentEntry}
           onClose={() => setIsModalVisible(false)}
           onSuccess={handleFormSuccess}
+        />
+      )}
+
+      {isDetailModalVisible && (
+        <PayrollEntryDetailModal
+          visible={isDetailModalVisible}
+          entryId={selectedEntryId}
+          onClose={() => {
+            setIsDetailModalVisible(false);
+            setSelectedEntryId(null);
+          }}
         />
       )}
     </>

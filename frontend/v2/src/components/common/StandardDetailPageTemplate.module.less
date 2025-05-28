@@ -1,0 +1,68 @@
+.pageContainer {
+  padding: 16px 24px; // Consistent padding
+  background-color: var(--ant-layout-body-background, #f0f2f5); // Use Ant variable or fallback
+  min-height: calc(100vh - 64px - 48px); // Adjust based on actual header/footer height if they are fixed
+  display: flex;
+  flex-direction: column;
+}
+
+.pageHeader {
+  background-color: var(--ant-component-background, #fff); // Use Ant variable or fallback
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--ant-border-color-split, #f0f0f0); // Use Ant variable
+  margin: -16px -24px 16px -24px; // Adjust to make it full-width relative to pageContainer padding
+}
+
+.pageBreadcrumb {
+  margin-bottom: 8px; // Add some space below breadcrumbs
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pageTitle {
+  margin-bottom: 0 !important; // Override default margin of Typography.Title
+  font-size: 20px; // Standard page title size
+}
+
+.headerActions {
+  // Styles for actions if needed
+}
+
+.contentArea {
+  background-color: var(--ant-component-background, #fff);
+  padding: 24px;
+  border-radius: var(--ant-border-radius-lg, 8px); // Use Ant variable
+  box-shadow: var(--ant-box-shadow-secondary, 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)); // Use Ant variable
+  flex-grow: 1; // Allow content to fill available space
+}
+
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1; // Take up available space
+  padding: 24px;
+  background-color: var(--ant-component-background, #fff);
+  border-radius: var(--ant-border-radius-lg, 8px);
+  box-shadow: var(--ant-box-shadow-secondary, 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05));
+  margin: 0; // Remove default margin if any
+}
+
+// Ensure Spin takes up space if its container has flex properties
+.loadingContainer > .ant-spin-nested-loading > .ant-spin-container {
+  display: contents; /* Allows spin tip to be centered if spin itself is also flex item */
+}
+.loadingContainer > .ant-spin-nested-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} 

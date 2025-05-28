@@ -39,7 +39,15 @@
     },
     "pagination": {
       "show_total": "第 {range0}-{range1} 条 / 共 {total} 条"
-    }
+    },
+    "view_details": "查看详情",
+    "button": {
+      "close": "关闭"
+    },
+    "loading": "加载中...",
+    "view": "查看",
+    "edit": "编辑",
+    "delete": "删除"
   },
   "payroll_components": {
     "title": "薪资字段管理",
@@ -61,6 +69,73 @@
     "export": {
       "filename": "薪资字段",
       "sheet_name": "薪资字段数据"
+    }
+  },
+  "page": {
+    "payroll_components": {
+      "title": "薪资组成项",
+      "description": "管理系统中的所有薪资组成部分，例如基本工资、奖金、扣除项等。",
+      "add_component": "添加薪资项",
+      "table": {
+        "name": "名称",
+        "type": "类型",
+        "category": "类别",
+        "calculation_method": "计算方法",
+        "status": "状态",
+        "actions": "操作"
+      },
+      "form": {
+        "name": {
+          "label": "名称",
+          "placeholder": "请输入薪资项名称"
+        },
+        "type": {
+          "label": "类型",
+          "placeholder": "请选择类型",
+          "options": {
+            "earning": "收入项",
+            "deduction": "扣除项"
+          }
+        },
+        "category": {
+          "label": "类别",
+          "placeholder": "请选择类别"
+        },
+        "calculation_method": {
+          "label": "计算方法",
+          "placeholder": "请选择计算方法",
+          "options": {
+            "fixed": "固定金额",
+            "percentage": "百分比",
+            "formula": "公式计算"
+          }
+        },
+        "value": {
+          "label": "值/百分比/公式",
+          "placeholder": "请输入具体数值、百分比或计算公式"
+        },
+        "taxable": {
+          "label": "是否计税"
+        },
+        "description": {
+          "label": "描述",
+          "placeholder": "请输入薪资项描述信息"
+        }
+      },
+      "status": {
+        "active": "启用",
+        "inactive": "禁用"
+      },
+      "filter": {
+        "all": "全部",
+        "active": "已启用",
+        "inactive": "已禁用"
+      },
+      "details": {
+        "title": "薪资项详情",
+        "created_at": "创建于",
+        "updated_at": "更新于"
+      }
     }
   }
 }

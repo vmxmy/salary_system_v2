@@ -211,13 +211,40 @@ export const getPayrollEntries = async (params?: {
   size?: number;
   payroll_run_id?: number;
   employee_id?: number;
-  include_employee_details?: boolean;
-  include_payroll_period?: boolean;
+  status_id?: number;
+  period_id?: number;
+  department_name?: string;
+  personnel_category_name?: string;
+  min_gross_pay?: number;
+  max_gross_pay?: number;
+  min_net_pay?: number;
+  max_net_pay?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
+  search?: string;
+  include_employee_details?: boolean;
+  include_payroll_period?: boolean;
 }): Promise<ApiListResponse<PayrollEntry>> => {
   try {
+    console.log('🔍 [payrollApi] getPayrollEntries called with params:', params);
     const response = await apiClient.get<ApiListResponse<PayrollEntry>>(PAYROLL_ENTRIES_ENDPOINT, { params });
+    
+    console.log('🔍 [payrollApi] API response status:', response.status);
+    console.log('🔍 [payrollApi] API response data count:', response.data.data.length);
+    
+    // 检查第一条记录的结构
+    if (response.data.data.length > 0) {
+      const firstEntry = response.data.data[0];
+      console.log('🔍 [payrollApi] First entry structure:', {
+        id: firstEntry.id,
+        employee_id: firstEntry.employee_id,
+        has_employee: !!firstEntry.employee,
+        employee_keys: firstEntry.employee ? Object.keys(firstEntry.employee) : null,
+        employee_first_name: firstEntry.employee?.first_name,
+        employee_last_name: firstEntry.employee?.last_name
+      });
+    }
+    
     return response.data;
   } catch (error) {
     console.error('Error fetching payroll entries:', error);
@@ -331,7 +358,7 @@ export const deletePayrollEntry = async (entryId: number): Promise<void> => {
 };
 
 /**
- * 获取薪资组件定义列表
+ * 获取薪资字段定义列表
  * @param params 查询参数，如分类、排序等
  * @returns 包含组件定义列表的Promise
  */
@@ -355,9 +382,9 @@ export const getPayrollComponentDefinitions = async (params?: {
 };
 
 /**
- * 创建新的薪资组件定义
+ * 创建新的薪资字段定义
  * @param componentData 组件定义数据
- * @returns 创建的薪资组件定义
+ * @returns 创建的薪资字段定义
  */
 export const createPayrollComponentDefinition = async (
   componentData: Partial<PayrollComponentDefinition>
@@ -375,10 +402,10 @@ export const createPayrollComponentDefinition = async (
 };
 
 /**
- * 更新薪资组件定义
+ * 更新薪资字段定义
  * @param id 组件定义ID
  * @param componentData 更新的组件定义数据
- * @returns 更新后的薪资组件定义
+ * @returns 更新后的薪资字段定义
  */
 export const updatePayrollComponentDefinition = async (
   id: number,
@@ -414,7 +441,7 @@ export const updatePayrollComponentDefinition = async (
 };
 
 /**
- * 删除薪资组件定义
+ * 删除薪资字段定义
  * @param id 组件定义ID
  * @returns 操作成功返回true
  */

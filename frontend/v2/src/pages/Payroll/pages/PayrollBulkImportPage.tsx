@@ -39,6 +39,7 @@ import type {
   BulkCreatePayrollEntriesResult
 } from '../types/payrollTypes';
 import TableTextConverter from '../../../components/common/TableTextConverter';
+import PayrollPeriodSelector from '../../../components/common/PayrollPeriodSelector';
 import { getPayrollPeriodStatusIdByCode } from '../utils/dynamicStatusUtils';
 import { lookupService } from '../../../services/lookupService';
 
@@ -552,7 +553,7 @@ const PayrollBulkImportPage: React.FC = () => {
     fetchPayrollPeriods();
   }, [message, t]);
   
-  // 加载薪资组件定义
+  // 加载薪资字段定义
   useEffect(() => {
     const fetchComponentDefinitions = async () => {
       setLoadingComponents(true);
@@ -562,17 +563,17 @@ const PayrollBulkImportPage: React.FC = () => {
           is_enabled: true,
           size: 100  // 增加分页大小以获取更多组件
         });
-        console.log('获取的薪资组件定义:', response);
+        console.log('获取的薪资字段定义:', response);
         console.log('API响应元数据:', response.meta);
         setComponentDefinitions(response.data);
         
         if (response.data.length > 0) {
-          console.log(`成功加载${response.data.length}个薪资组件定义`);
+          console.log(`成功加载${response.data.length}个薪资字段定义`);
           if (response.meta && response.meta.total > response.data.length) {
             console.warn(`注意：总共有${response.meta.total}个组件，但只加载了${response.data.length}个`);
           }
         } else {
-          console.warn('加载的薪资组件定义为空');
+          console.warn('加载的薪资字段定义为空');
         }
       } catch (error: any) {
         console.error('Error fetching payroll component definitions:', error);
@@ -581,11 +582,11 @@ const PayrollBulkImportPage: React.FC = () => {
         
         // 显示用户友好的错误信息
         if (error.response?.status === 403) {
-          message.error(t('batch_import.error_permission_denied', { defaultValue: '权限不足，无法获取薪资组件定义' }));
+          message.error(t('batch_import.error_permission_denied', { defaultValue: '权限不足，无法获取薪资字段定义' }));
         } else if (error.response?.status === 404) {
           message.error(t('batch_import.error_api_not_found', { defaultValue: 'API端点不存在，请联系管理员' }));
         } else {
-          message.error(t('batch_import.error_fetch_components', { defaultValue: '获取薪资组件定义失败，请稍后重试' }));
+          message.error(t('batch_import.error_fetch_components', { defaultValue: '获取薪资字段定义失败，请稍后重试' }));
         }
         
         // 设置空数组，避免页面崩溃
@@ -912,7 +913,7 @@ const PayrollBulkImportPage: React.FC = () => {
     }
   };
 
-  const handlePeriodChange = (value: number) => {
+  const handlePeriodChange = (value: number | null) => {
     setSelectedPeriodId(value);
     const selectedPeriod = payrollPeriods.find(p => p.id === value);
     console.log('🎯 用户选择薪资周期:', {
@@ -1751,129 +1752,14 @@ const PayrollBulkImportPage: React.FC = () => {
         {currentStep === 0 && (
           <>
             <Form layout="vertical">
-              <Form.Item 
-                label={t('batch_import.label.period_selection')} 
-                help={
-                  <div>
-                    <div>{t('batch_import.help.period_selection')}</div>
-                    <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
-                      {ENABLE_PRODUCTION_RESTRICTIONS ? (
-                        <>
-                          🔒 生产环境：仅显示
-                          <Tag color="green" style={{ margin: '0 4px', fontSize: '11px' }}>活动</Tag>
-                          状态的薪资周期，确保数据安全。
-                        </>
-                      ) : (
-                        <>
-                          💡 开发环境：显示所有状态的薪资周期。
-                          <Tag color="green" style={{ margin: '0 4px', fontSize: '11px' }}>活动</Tag>
-                          <Tag color="blue" style={{ margin: '0 4px', fontSize: '11px' }}>已关闭</Tag>
-                          <Tag color="gray" style={{ margin: '0 4px', fontSize: '11px' }}>已归档</Tag>
-                          <br />
-                          <span style={{ color: '#ff7a00', fontSize: '11px' }}>
-                            ⚠️ 注意：生产环境将只允许向活动状态的薪资周期导入数据
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                  </div>
-                }
-                required
-              >
-                <Select
-                  placeholder={t('runs_page.form.placeholder.payroll_period')}
-                  onChange={handlePeriodChange}
-                  value={selectedPeriodId}
-                  loading={loadingPeriods}
-                  style={{ width: '100%' }}
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) => 
-                    (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                  }
-                  popupMatchSelectWidth={false}
-                  styles={{
-                    popup: {
-                      root: {
-                        minWidth: '300px'
-                      }
-                    }
-                  }}
-                >
-                  {payrollPeriods.map(period => {
-                    // 获取状态信息
-                    const statusCode = period.status_lookup?.code;
-                    const statusName = period.status_lookup?.name;
-                    
-                    const statusColor = 
-                      statusCode === 'ACTIVE' || statusCode === 'PLANNED' ? 'green' :
-                      statusCode === 'CLOSED' ? 'blue' : 
-                      statusCode === 'ARCHIVED' ? 'gray' : 'gold';
-                    
-                    // 获取数据统计信息
-                    const dataStats = periodDataStats[period.id];
-                    const isLoadingStats = dataStats?.loading ?? true;
-                    const recordCount = dataStats?.count ?? 0;
-                    
-                    // 确定数据状态图标和颜色
-                    let dataIcon;
-                    let dataColor;
-                    let dataText;
-                    
-                    if (isLoadingStats) {
-                      dataIcon = <LoadingOutlined style={{ fontSize: '12px' }} />;
-                      dataColor = '#1890ff';
-                      dataText = '统计中...';
-                    } else if (recordCount > 0) {
-                      dataIcon = <DatabaseOutlined style={{ fontSize: '12px' }} />;
-                      dataColor = '#52c41a';
-                      dataText = `${recordCount}人`;
-                    } else {
-                      dataIcon = <FileAddOutlined style={{ fontSize: '12px' }} />;
-                      dataColor = '#8c8c8c';
-                      dataText = '无数据';
-                    }
-                    
-                    return (
-                      <Option key={period.id} value={period.id}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: '400px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                            <span style={{ 
-                              color: recordCount > 0 ? '#52c41a' : '#8c8c8c',
-                              fontWeight: recordCount > 0 ? '500' : 'normal'
-                            }}>
-                              {period.name}
-                            </span>
-                            <span style={{ 
-                              color: '#666', 
-                              fontSize: '12px', 
-                              marginLeft: 8 
-                            }}>
-                              ({period.start_date} ~ {period.end_date})
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: 4,
-                              color: dataColor,
-                              fontSize: '12px'
-                            }}>
-                              {dataIcon}
-                              <span>{dataText}</span>
-                            </div>
-                            <Tag color={statusColor} style={{ margin: 0, fontSize: '11px' }}>
-                              {statusName || '未知状态'}
-                            </Tag>
-                          </div>
-                        </div>
-                      </Option>
-                    );
-                  })}
-                </Select>
-              </Form.Item>
+              <PayrollPeriodSelector
+                value={selectedPeriodId}
+                onChange={handlePeriodChange}
+                mode="form"
+                required={true}
+                showDataStats={true}
+                enableProductionRestrictions={ENABLE_PRODUCTION_RESTRICTIONS}
+              />
 
               <Tabs 
                 activeKey={activeTab} 
@@ -1915,42 +1801,6 @@ const PayrollBulkImportPage: React.FC = () => {
                           autoSize={{ minRows: 10, maxRows: 20 }}
                         />
                         
-                        <Form.Item 
-                          label={
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span>{t('batch_import.label.overwrite_mode')}</span>
-                              {!overwriteMode && (
-                                <Tag color="orange" style={{ fontSize: '11px' }}>
-                                  💡 重复记录时需要启用
-                                </Tag>
-                              )}
-                            </div>
-                          }
-                          help={
-                            <div>
-                              <div>{t('batch_import.help.overwrite_mode')}</div>
-                              <div style={{ marginTop: 4, fontSize: '12px', color: '#ff7a00' }}>
-                                ⚠️ 如果遇到"重复记录"错误，请启用此开关以覆盖现有数据
-                              </div>
-                            </div>
-                          }
-                          valuePropName="checked"
-                          style={{ 
-                            marginTop: 16,
-                            padding: overwriteMode ? '12px' : '12px',
-                            border: overwriteMode ? '2px solid #52c41a' : '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            backgroundColor: overwriteMode ? '#f6ffed' : '#fafafa'
-                          }}
-                        >
-                          <Switch 
-                            checked={overwriteMode} 
-                            onChange={setOverwriteMode}
-                            checkedChildren="已启用"
-                            unCheckedChildren="已关闭"
-                          />
-                        </Form.Item>
-
                         <Form.Item>
                           <Button 
                             type="primary" 

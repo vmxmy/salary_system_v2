@@ -87,7 +87,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
         response.data.map(async (emp) => {
           // 如果员工缺少部门、人员身份或实际任职信息，则尝试获取详情
           if (!emp.departmentName && !(emp as any).department_name && 
-              (!emp.personnel_category_name || !emp.actual_position_name)) {
+              (!emp.personnelCategoryName || !emp.actual_position_name)) {
             try {
               const details = await employeeService.getEmployeeById(String(emp.id));
               console.log(`获取员工 ${emp.id} 的详细信息:`, details);
@@ -134,7 +134,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
   const options = useMemo(() => {
     return employees.map(employee => {
       const departmentName = employee.departmentName || '';
-      const personnelCategoryName = employee.personnel_category_name || '';
+      const personnelCategoryName = employee.personnelCategoryName || '';
       const positionName = employee.actual_position_name || '';
       
       // 完整的员工信息标签

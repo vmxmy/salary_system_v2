@@ -868,13 +868,13 @@ export const lookupService = {
     return [];
   },
 
-  // 获取薪资运行状态选项
+  // 获取薪资审核状态选项
   getPayrollRunStatusesLookup: async (): Promise<LookupItem[]> => {
     const typeCode = await getTypeCodeBySystemCode('PAYROLL_RUN_STATUS');
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载薪资运行状态选项：类型定义缺失或Code不匹配');
+    message.error('无法加载薪资审核状态选项：类型定义缺失或Code不匹配');
     return [];
   },
 
@@ -924,7 +924,7 @@ export const lookupService = {
     }
   },
 
-  // 添加获取薪资运行状态选项的方法
+  // 添加获取薪资审核状态选项的方法
   getPayrollRunStatusOptions: async (): Promise<LookupItem[]> => {
     try {
       const response = await apiClient.get<ActualApiLookupValueListResponse>(`/${API_BASE_PATH}`, {

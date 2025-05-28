@@ -2,8 +2,8 @@ import React, { lazy } from 'react';
 import { Navigate } from 'react-router-dom';
 import type { AppRouteObject } from '../../router/routes'; // Assuming AppRouteObject is exported from main router
 // import i18n from '../../i18n'; // 移除此导入
-import PayrollPeriodsPage from './pages/PayrollPeriodsPage';
-import PayrollRunsPage from './pages/PayrollRunsPage';
+import PayrollPeriodsPageV2 from './pages/PayrollPeriodsPageV2';
+import PayrollRunsPageV2 from './pages/PayrollRunsPageV2';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
 import PayrollBulkImportPage from './pages/PayrollBulkImportPage';
@@ -14,7 +14,7 @@ import {
   P_PAYROLL_ENTRY_VIEW,
   P_PAYROLL_ENTRY_BULK_IMPORT,
   P_PAYROLL_COMPONENT_VIEW
-} from './constants/payrollPermissions'; // 添加薪资组件查看权限
+} from './constants/payrollPermissions'; // 添加薪资字段查看权限
 
 // Lazy load page components
 // const PayrollPeriodsPage = lazy(() => import('./pages/PayrollPeriodsPage'));
@@ -24,7 +24,7 @@ import {
 
 // Placeholder for PayrollRunDetailPage until it's created
 // const PayrollRunDetailPagePlaceholder: React.FC = () => (
-//   React.createElement('div', null, '工资计算批次详情页 (占位符)')
+//   React.createElement('div', null, '薪资审核详情页 (占位符)')
 // );
 
 export const payrollRoutes: AppRouteObject[] = [
@@ -34,7 +34,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'periods',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Periods...') }, React.createElement(PayrollPeriodsPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Periods...') }, React.createElement(PayrollPeriodsPageV2)),
     meta: {
       title: 'pageTitle:payroll_periods', // 修改为使用pageTitle命名空间
       requiredPermissions: [P_PAYROLL_PERIOD_VIEW],
@@ -42,7 +42,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'runs',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPageV2)),
     meta: {
       title: 'payroll:page_title.payroll_runs', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW],

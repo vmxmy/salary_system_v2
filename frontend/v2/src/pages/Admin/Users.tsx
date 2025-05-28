@@ -112,7 +112,7 @@ const UserListPage: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error('获取用户列表失败:', error);
+      console.error('获取用户管理失败:', error);
       setUsers([]);
       setPagination(prev => ({
         ...prev,

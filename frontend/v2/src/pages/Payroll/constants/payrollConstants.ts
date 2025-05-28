@@ -15,7 +15,7 @@ export const PAYROLL_PERIOD_STATUS_CODES = {
   PLANNED: 'PLANNED'
 };
 
-// 薪资运行状态ID常量
+// 薪资审核状态ID常量
 export const PAYROLL_RUN_STATUS = {
   DRAFT: 2001, // 假设DRAFT状态的ID是2001
   IN_PROGRESS: 2002, // 假设IN_PROGRESS状态的ID是2002

@@ -16,9 +16,9 @@ import {
   Spin,
   Form
 } from 'antd';
-import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, TableOutlined } from '@ant-design/icons';
+import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, UserAddOutlined, PlaySquareOutlined, TableOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import PageLayout from '../../../components/common/PageLayout';
+import PageHeaderLayout from '../../../components/common/PageHeaderLayout';
 import { useNavigate } from 'react-router-dom';
 import { employeeService } from '../../../services/employeeService';
 import styles from './EmployeeBulkImportPage.module.less';
@@ -783,28 +783,31 @@ const EmployeeBulkImportPage: React.FC = () => {
   }
 
   return (
-    <PageLayout
-      title={t('hr:bulk_import.page_title')}
+    <PageHeaderLayout
+      pageTitle={t('hr:bulk_import.page_title')}
       actions={
         <Space>
           <Button
             onClick={() => navigate('/hr/employees')}
             shape="round"
+            icon={<ArrowLeftOutlined />}
           >
             {t('bulk_import.button.back_to_employees')}
           </Button>
         </Space>
       }
     >
-      <div className={styles.bulkImportContainer}>
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab} 
-          className={styles.tabsContainer}
-          items={tabItems}
-        /> 
-      </div>
-    </PageLayout>
+      <Card className={styles.mainContentCard}>
+        <div className={styles.bulkImportContainer}>
+          <Tabs 
+            activeKey={activeTab} 
+            onChange={setActiveTab} 
+            className={styles.tabsContainer}
+            items={tabItems}
+          /> 
+        </div>
+      </Card>
+    </PageHeaderLayout>
   );
 };
 

@@ -1,7 +1,7 @@
 import apiClient from './index';
 import type { User, ApiResponse, Role, CreateUserPayload, UpdateUserPayload } from './types'; // Added CreateUserPayload, UpdateUserPayload
 
-// 获取用户列表
+// 获取用户管理
 // 假设 API 返回 ApiResponse<User[]> 结构
 export const getUsers = async (params?: { page?: number; size?: number; [key: string]: any }): Promise<ApiResponse<User[]>> => {
   const response = await apiClient.get<ApiResponse<User[]>>('/users', { params });

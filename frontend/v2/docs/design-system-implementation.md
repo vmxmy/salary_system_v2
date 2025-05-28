@@ -52,7 +52,7 @@
 - ✅ 使用了统一的表格样式
 - ✅ 添加了面包屑导航
 
-### 4. 薪资组件页面 (PayrollComponentsPage)
+### 4. 薪资字段页面 (PayrollComponentsPage)
 - ✅ 应用了 PageLayout 组件
 - ✅ 使用了统一的表格样式
 - ✅ 添加了面包屑导航

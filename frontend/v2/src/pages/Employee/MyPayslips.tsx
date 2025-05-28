@@ -221,7 +221,7 @@ const MyPayslipsPage: React.FC = () => {
         />
       </div>
       <PayrollEntryDetailModal
-        entryId={currentEntryId}
+        entryId={currentEntryId ? String(currentEntryId) : null}
         visible={isDetailModalVisible}
         onClose={() => {
           setIsDetailModalVisible(false);

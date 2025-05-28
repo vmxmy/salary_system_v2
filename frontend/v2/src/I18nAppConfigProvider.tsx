@@ -247,8 +247,8 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
 
   return (
     <Suspense fallback={<Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />}>
-      {/* 你之前提到要启用 customTheme，这里取消注释 */}
-      <ConfigProvider locale={antdLocale} theme={customTheme}>
+      {/* 移除自定义主题，使用系统默认主题 */}
+      <ConfigProvider locale={antdLocale}>
         {children}
       </ConfigProvider>
     </Suspense>

@@ -66,7 +66,7 @@ class User(UserBase):
 
 
 class UserListResponse(BaseModel):
-    """用户列表响应模型"""
+    """用户管理响应模型"""
     data: List[User]
     meta: Dict[str, Any] = Field(
         default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}

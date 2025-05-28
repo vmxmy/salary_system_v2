@@ -89,13 +89,13 @@
 
 记录员工薪酬变更历史。
 
-#### employee_payroll_components 表（员工薪资组件）
+#### employee_payroll_components 表（员工薪资字段）
 
-存储分配给员工的薪资组件信息。
+存储分配给员工的薪资字段信息。
 
 ### Payroll模式主要表
 
-#### payroll_runs 表（薪资运行）
+#### payroll_runs 表（薪资审核）
 
 记录薪资计算批次信息。
 
@@ -116,7 +116,7 @@
 - `id`: 主键
 - `employee_id`: 员工ID
 - `payroll_period_id`: 薪酬周期ID
-- `payroll_run_id`: 薪资运行ID
+- `payroll_run_id`: 薪资审核ID
 - `gross_pay`: 总收入
 - `total_deductions`: 总扣除
 - `net_pay`: 净发工资
@@ -143,9 +143,9 @@
 
 系统中使用的各种枚举值，关联到lookup_types表。
 
-#### payroll_component_definitions 表（薪资组件定义）
+#### payroll_component_definitions 表（薪资字段定义）
 
-定义系统中使用的各种薪资组件（如基本工资、津贴、奖金等）。
+定义系统中使用的各种薪资字段（如基本工资、津贴、奖金等）。
 
 #### social_security_rates 表（社保费率）
 

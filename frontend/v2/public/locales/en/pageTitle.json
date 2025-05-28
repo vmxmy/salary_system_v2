@@ -21,7 +21,9 @@
   "payroll_management": "Payroll Management",
   "payroll_calculation": "Payroll Calculation",
   "payroll_periods": "Payroll Periods",
-  "payroll_runs": "Payroll Runs",
+  "create_payroll_period": "Create Payroll Period",
+  "edit_payroll_period": "Edit Payroll Period",
+  "payroll_runs": "Payroll Review",
   "payroll_run_detail": "Payroll Run Detail",
   "payroll_entry": "Payroll Entry",
   "manager_view": "Manager View",
@@ -37,5 +39,7 @@
   "periods": "Payroll Periods",
   "bulk_import_employees": "Bulk Import Employees",
   "subordinates": "Subordinates",
-  "leave_approvals": "Leave Approvals"
+  "leave_approvals": "Leave Approvals",
+  "test_pages": "Test Pages",
+  "employee_list_v3": "Employee List V3"
 }

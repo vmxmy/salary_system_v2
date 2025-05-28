@@ -1,168 +1,87 @@
-// 额外变量
-// 这些变量是对 theme.less 中 Ant Design 主题变量的补充
+// 基础变量定义 - Ant Design 默认主题变量
+// 这些是最常用的基本变量，在整个应用中被引用
 
-// 引入主题变量
-@import './theme.less';
+// ===== 圆角 =====
+@border-radius-base: 2px;
+@border-radius-sm: 2px;
+@border-radius-lg: 4px;
 
-// ===== 基础间距单位 =====
-@spacing-unit: 8px; // 基础间距单位
-
-// ===== 应用特定颜色 =====
-@app-primary-light: lighten(@primary-color, 20%);
-@app-primary-dark: darken(@primary-color, 10%);
-@app-primary-bg: fade(@primary-color, 5%);
-
-@app-success-light: lighten(@success-color, 20%);
-@app-success-dark: darken(@success-color, 10%);
-@app-success-bg: fade(@success-color, 5%);
-
-@app-warning-light: lighten(@warning-color, 20%);
-@app-warning-dark: darken(@warning-color, 10%);
-@app-warning-bg: fade(@warning-color, 5%);
-
-@app-error-light: lighten(@error-color, 20%);
-@app-error-dark: darken(@error-color, 10%);
-@app-error-bg: fade(@error-color, 5%);
-
-// ===== 背景颜色 =====
-@bg-light: #f9f9f9;
-@bg-lighter: #fafafa;
-@bg-lightest: #fcfcfc;
-@bg-dark: #f0f0f0;
-@bg-darker: #e8e8e8;
-
-// ===== 文本颜色 =====
-@text-light: lighten(@text-color, 10%);
-@text-lighter: lighten(@text-color, 20%);
-@text-lightest: lighten(@text-color, 30%);
-@text-dark: darken(@text-color, 10%);
-@text-darker: darken(@text-color, 20%);
-
-// ===== 边框颜色 =====
-@border-light: lighten(@border-color-base, 10%);
-@border-lighter: lighten(@border-color-base, 20%);
-@border-dark: darken(@border-color-base, 10%);
-@border-darker: darken(@border-color-base, 20%);
-
-// ===== 字体大小扩展 =====
-@font-size-xs: 10px;
-@font-size-xxs: 8px;
-@font-size-xl: 18px;
-@font-size-xxl: 20px;
-@font-size-xxxl: 24px;
-
-// ===== 字体家族扩展 =====
-@font-family-code: @code-family; // 代码字体，引用 theme.less 中的 @code-family
-
-// ===== 行高 =====
-@line-height-tight: 1.2;
-@line-height-base: 1.5;
-@line-height-loose: 1.8;
-
-// ===== 字重 =====
-@font-weight-light: 300;
-@font-weight-normal: 400;
-@font-weight-medium: 500;
-@font-weight-semibold: 600;
-@font-weight-bold: 700;
-
-// ===== 间距扩展 =====
-@spacing-xxs: @spacing-unit / 4; // 2px
-@spacing-xxxl: @spacing-unit * 8; // 64px
-@spacing-xxxxl: @spacing-unit * 12; // 96px
-
-// ===== Z-index 层级 =====
-@z-index-dropdown: 1000;
-@z-index-sticky: 1020;
-@z-index-fixed: 1030;
-@z-index-modal-backdrop: 1040;
-@z-index-modal: 1050;
-@z-index-popover: 1060;
-@z-index-tooltip: 1070;
-
-// ===== 动画时间 =====
-@animation-duration-slow: 0.5s;
-@animation-duration-base: 0.3s;
-@animation-duration-fast: 0.2s;
-@animation-duration-faster: 0.1s;
-
-// ===== 表格特定变量 =====
-@table-stripe-bg: #fafafa;
-@table-hover-bg-light: lighten(@table-row-hover-bg, 2%);
-@table-header-sort-bg: #f5f5f5;
-@table-header-filter-bg: #f5f5f5;
-@table-footer-bg: #fafafa;
-@table-expanded-row-bg: #fbfbfb;
-@table-padding-vertical-sm: 4px;
-@table-padding-horizontal-sm: 8px;
-@table-padding-vertical-md: 8px;
-@table-padding-horizontal-md: 16px;
-@table-padding-vertical-lg: 12px;
-@table-padding-horizontal-lg: 24px;
-
-// ===== 表单特定变量 =====
-@form-item-margin-bottom-sm: 12px;
-@form-item-margin-bottom-md: 16px;
-@form-item-margin-bottom-lg: 24px;
-@form-label-font-weight: 500;
-@form-error-color-light: lighten(@error-color, 40%);
-@form-disabled-bg: #f5f5f5;
-@form-disabled-color: #bfbfbf;
-
-// ===== 按钮特定变量 =====
-@btn-padding-horizontal-sm: 8px;
-@btn-padding-horizontal-md: 16px;
-@btn-padding-horizontal-lg: 24px;
-@btn-border-width: 1px;
-@btn-border-style: solid;
-@btn-shadow: 0 2px 0 rgba(0, 0, 0, 0.015);
-@btn-primary-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
-@btn-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
-
-// ===== 卡片特定变量 =====
-@card-padding-sm: 12px;
-@card-padding-md: 16px;
-@card-padding-lg: 24px;
-@card-border-width: 1px;
-@card-border-style: solid;
-@card-border-color: @border-color-split;
-@card-border-radius: @border-radius-base;
-@card-head-padding-sm: 8px 12px;
-@card-head-padding-md: 12px 16px;
-@card-head-padding-lg: 16px 24px;
-@card-hover-shadow: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);
-
-// ===== 模态框特定变量 =====
-@modal-header-padding-sm: 12px 16px;
-@modal-header-padding-md: 16px 24px;
-@modal-header-padding-lg: 24px 32px;
-@modal-body-padding-sm: 12px 16px;
-@modal-body-padding-md: 16px 24px;
-@modal-body-padding-lg: 24px 32px;
-@modal-footer-padding-sm: 8px 16px;
-@modal-footer-padding-md: 12px 24px;
-@modal-footer-padding-lg: 16px 32px;
-@modal-mask-bg: rgba(0, 0, 0, 0.45);
-
-// ===== 抽屉特定变量 =====
-@drawer-header-padding: 16px 24px;
-@drawer-body-padding: 24px;
-@drawer-footer-padding: 16px 24px;
-
-// 注意：基础设计系统变量已在 theme.less 中定义
-// 这里只保留额外的扩展变量，避免重复定义
-
-// ===== 主题变量的扩展 =====
-// 主色调的悬停和激活状态（theme.less 中缺失）
+// ===== 基础颜色 =====
+@primary-color: #1890ff;
 @primary-color-hover: #40a9ff;
 @primary-color-active: #096dd9;
+@success-color: #52c41a;
+@warning-color: #faad14;
+@error-color: #f5222d;
+@info-color: #1677ff;
 
-// 文本颜色扩展（theme.less 中缺失）
-@text-color-disabled: #bfbfbf;
+// ===== 文本颜色 =====
+@text-color: rgba(0, 0, 0, 0.85);
+@text-color-secondary: rgba(0, 0, 0, 0.45);
+@text-color-disabled: rgba(0, 0, 0, 0.25);
+@heading-color: rgba(0, 0, 0, 0.85);
+@disabled-color: rgba(0, 0, 0, 0.25);
 
-// 背景颜色扩展（theme.less 中缺失）
+// ===== 边框颜色 =====
+@border-color-base: #d9d9d9;
+@border-color-split: #f0f0f0;
+
+// ===== 背景颜色 =====
+@body-background: #f0f2f5;
+@component-background: #ffffff;
+@background-color-light: #f5f5f5;
 @background-color-base: #f5f5f5;
 
-// 阴影系统（theme.less 中缺失）
+// ===== 字体 =====
+@font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+  'Noto Color Emoji';
+@font-family-code: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+@code-family: @font-family-code; // 别名，兼容旧代码
+@font-size-base: 14px;
+@font-size-sm: 12px;
+@font-size-lg: 16px;
+
+// ===== 行高 =====
+@line-height-base: 1.5;
+
+// ===== 间距 =====
+@spacing-unit: 8px;
+@spacing-xs: @spacing-unit / 2; // 4px
+@spacing-sm: @spacing-unit; // 8px
+@spacing-md: @spacing-unit * 2; // 16px
+@spacing-lg: @spacing-unit * 3; // 24px
+@spacing-xl: @spacing-unit * 4; // 32px
+@spacing-xxl: @spacing-unit * 5; // 40px
+
+// Ant Design 内置间距
+@padding-xs: 8px;
+@padding-sm: 12px;
+@padding-md: 16px;
+@padding-lg: 24px;
+@padding-xl: 32px;
+
+@margin-xs: 8px;
+@margin-sm: 12px;
+@margin-md: 16px;
+@margin-lg: 24px;
+@margin-xl: 32px;
+
+// ===== 表格相关 =====
+@table-header-bg: #fafafa;
+@table-header-color: @heading-color;
+@table-row-hover-bg: #f5f5f5;
+@table-selected-row-bg: #e6f7ff;
+
+// ===== 表单相关 =====
+@form-item-margin-bottom: 24px;
+@form-vertical-label-padding: 0 0 8px;
+@form-vertical-label-margin: 0;
+
+// ===== 阴影 =====
 @box-shadow-base: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
 @box-shadow-card: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);
+
+// ===== 卡片相关 =====
+@card-padding-base: 24px;
+@card-shadow: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);

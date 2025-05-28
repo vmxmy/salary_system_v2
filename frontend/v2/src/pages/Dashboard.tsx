@@ -160,8 +160,6 @@ const DashboardPage: React.FC = () => {
     innerRadius: 0.6,
     height: 280,
     label: {
-      type: 'inner',
-      offset: '-30%',
       content: ({ percent }: any) => `${(percent * 100).toFixed(0)}%`,
       style: {
         fontSize: 12,
@@ -207,7 +205,7 @@ const DashboardPage: React.FC = () => {
     },
   };
 
-  // 最近薪资运行表格列配置
+  // 最近薪资审核表格列配置
   const payrollRunColumns: ProColumns<RecentPayrollRun>[] = [
     {
       title: '薪资周期',
@@ -400,10 +398,10 @@ const DashboardPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* 最近薪资运行记录 */}
+        {/* 最近薪资审核记录 */}
         <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
           <Col span={24}>
-            <Card title={<Title level={5} style={{ margin: 0 }}>📋 最近薪资运行记录</Title>} style={chartCardStyle}>
+            <Card title={<Title level={5} style={{ margin: 0 }}>📋 最近薪资审核记录</Title>} style={chartCardStyle}>
               {(!loadingCharts && recentPayrollRuns.length > 0) ? 
                 <EnhancedProTable
                   dataSource={recentPayrollRuns}
@@ -416,7 +414,7 @@ const DashboardPage: React.FC = () => {
                   showToolbar={false}
                 /> : 
                 <div style={{height: '200px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资运行记录" />}
+                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资审核记录" />}
                 </div>
               }
             </Card>

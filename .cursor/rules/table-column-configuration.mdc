@@ -1,0 +1,63 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# React Table Column Configuration Best Practices
+
+## Avoid Render Function Conflicts
+
+When configuring table columns in Ant Design Pro or similar table components, be careful about render function conflicts:
+
+### ❌ Problematic Pattern
+```javascript
+{
+  title: 'Employee Name',
+  key: 'employee_name',
+  render: (_, record) => `${record.employee?.last_name}${record.employee?.first_name}`,
+  ...getColumnSearch('employee_name'), // This will overwrite the render function above!
+}
+```
+
+### ✅ Correct Approaches
+
+**Option 1: Use custom render without search**
+```javascript
+{
+  title: 'Employee Name',
+  key: 'employee_name',
+  render: (_, record) => `${record.employee?.last_name}${record.employee?.first_name}`,
+  // No getColumnSearch for custom rendered columns
+}
+```
+
+**Option 2: Use dataIndex with search (for simple fields)**
+```javascript
+{
+  title: 'Employee Code',
+  dataIndex: 'employee_code',
+  key: 'employee_code',
+  ...getColumnSearch('employee_code'), // Safe because no custom render
+}
+```
+
+## Key Rules
+
+1. **Never combine custom `render` functions with `...getColumnSearch()`** - The spread operator will overwrite your render function
+2. **Use `getColumnSearch` only for columns with `dataIndex`** that don't need custom rendering
+3. **For complex rendering logic**, implement custom render and skip search functionality, or implement custom search logic
+4. **Always check console for warnings** like "columns.render return cell props is deprecated"
+
+## Debugging Table Rendering Issues
+
+When table cells show empty, `[object Object]`, or unexpected content:
+
+1. **Check for render function conflicts** (most common cause)
+2. **Verify data structure** in console logs
+3. **Ensure column keys match data structure**
+4. **Test render function independently**
+
+## Related Files
+
+- Table utilities: [frontend/v2/src/components/common/TableUtils.tsx](mdc:frontend/v2/src/components/common/TableUtils.tsx)
+- Payroll table example: [frontend/v2/src/pages/Payroll/pages/PayrollEntryPage.tsx](mdc:frontend/v2/src/pages/Payroll/pages/PayrollEntryPage.tsx)

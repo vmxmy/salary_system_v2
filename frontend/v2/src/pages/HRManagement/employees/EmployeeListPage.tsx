@@ -10,7 +10,7 @@ import type { SorterResult } from 'antd/es/table/interface';
 import type { ProColumns } from '@ant-design/pro-components';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import { employeeService } from '../../../services/employeeService';
-import { stringSorter, numberSorter, dateSorter, useTableSearch } from '../../../components/common/TableUtils';
+import { stringSorter, numberSorter, dateSorter, useTableSearch, useTableExport } from '../../../components/common/TableUtils';
 import type { Dayjs } from 'dayjs';
 import EmployeeName from '../../../components/common/EmployeeName';
 import Highlighter from 'react-highlight-words';
@@ -37,7 +37,18 @@ const generateEmployeeTableColumnsConfig = (
       title: t('employee:list_page.table.column.full_name'),
       key: 'fullName',
       dataIndex: 'last_name',
-      render: (_text: any, record: Employee) => `${record.last_name || ''}${record.first_name || ''}`,
+      render: (_text: any, record: Employee) => {
+        const firstName = record.first_name || '';
+        const lastName = record.last_name || '';
+        const fullName = `${lastName}${firstName}`;
+        
+        // 如果姓名为空，显示占位符
+        if (!fullName.trim()) {
+          return <span style={{ color: '#999', fontStyle: 'italic' }}>未设置姓名</span>;
+        }
+        
+        return fullName;
+      },
       sorter: (a, b) => {
         const nameA = `${a.last_name || ''}${a.first_name || ''}`.trim().toLowerCase();
         const nameB = `${b.last_name || ''}${b.first_name || ''}`.trim().toLowerCase();
@@ -408,7 +419,6 @@ const EmployeeListPage: React.FC = () => {
       const response = await employeeService.getEmployees(query);
       
       if (response && response.data) {
-        console.log('[EmployeeListPage] fetchAllEmployees - Response received. Data length:', response.data.length, 'Meta:', response.meta);
         setAllEmployees(response.data);
       } else {
         console.log('[EmployeeListPage] fetchAllEmployees - No data in response.');
@@ -466,6 +476,34 @@ const EmployeeListPage: React.FC = () => {
     ),
     [t, getColumnSearch, lookupMaps, canViewDetail, canUpdate, canDelete, navigate, handleDelete]
   );
+
+  // 生成带有当前日期时间的文件名
+  const generateExportFilename = () => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('zh-CN').replace(/\//g, '-');
+    const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false }).replace(/:/g, '-');
+    return `${t('pageTitle:employee_list')}_${dateStr}_${timeStr}`;
+  };
+
+  // 为导出创建简化的列配置（避免ProColumns类型兼容性问题）
+  const exportColumns = React.useMemo(() => {
+    return tableColumnsConfigForControls
+      .filter(col => col.key !== 'action') // 排除操作列
+      .map(col => ({
+        title: col.title,
+        dataIndex: col.dataIndex,
+        key: col.key,
+        render: col.render,
+      }));
+  }, [tableColumnsConfigForControls]);
+
+  // 配置导出功能
+  const { ExportButton } = useTableExport(allEmployees, exportColumns as any, {
+    filename: generateExportFilename(),
+    sheetName: t('pageTitle:employee_list'),
+    buttonText: '导出Excel',
+    successMessage: '员工数据导出成功',
+  });
 
   // ProTable 内置了导出和列控制功能，无需使用传统工具函数
 
@@ -558,6 +596,7 @@ const EmployeeListPage: React.FC = () => {
               addButtonText={t('pageTitle:create_employee')}
               onAddClick={() => navigate('/hr/employees/new')}
               showAddButton={canCreate}
+              extraButtons={canExport ? [<ExportButton key="export" />] : []}
               batchDelete={batchDeleteConfig}
               columns={tableColumnsConfigForControls}
               dataSource={allEmployees}

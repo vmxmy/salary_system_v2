@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Space, Typography, Modal, message } from 'antd';
+import { Button, Space, Typography, Modal, message, App } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import EnhancedProTable from './EnhancedProTable';
 import type { EnhancedProTableProps } from './EnhancedProTable';
@@ -61,6 +61,8 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
   ...tableProps
 }: OrganizationManagementTableTemplateProps<T>) {
   
+  const { modal } = App.useApp();
+  
   // 批量删除处理函数
   const handleBatchDelete = async () => {
     if (!batchDelete || !rowSelection?.selectedRowKeys || rowSelection.selectedRowKeys.length === 0) {
@@ -68,7 +70,7 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
       return;
     }
 
-    Modal.confirm({
+    modal.confirm({
       title: batchDelete.confirmTitle,
       content: batchDelete.confirmContent.replace('{count}', String(rowSelection.selectedRowKeys.length)),
       okText: batchDelete.confirmOkText,

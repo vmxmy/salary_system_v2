@@ -23,7 +23,7 @@ def get_users(
     limit: int = 100
 ) -> Tuple[List[User], int]:
     """
-    获取用户列表。
+    获取用户管理。
 
     Args:
         db: 数据库会话
@@ -34,7 +34,7 @@ def get_users(
         limit: 返回的记录数
 
     Returns:
-        用户列表和总记录数
+        用户管理和总记录数
     """
     query = db.query(User).options(
         selectinload(User.roles).selectinload(Role.permissions),

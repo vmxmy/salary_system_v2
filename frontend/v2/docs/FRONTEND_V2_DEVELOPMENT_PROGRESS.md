@@ -66,7 +66,7 @@
 
 - [ ] **用户管理 (`src/pages/Admin/Users/`)**:
   - [ ] `UserListPage.tsx` (已有 `UserListPage` 在 `routes.tsx` 中引用，需创建或完善文件):
-    - [ ] 使用 `react-query` 调用 `api/users.ts` 中的 `getUsers` (待实现) 获取用户列表。
+    - [ ] 使用 `react-query` 调用 `api/users.ts` 中的 `getUsers` (待实现) 获取用户管理。
     - [ ] 使用 Ant Design `Table` 展示用户数据。
     - [ ] 实现分页 (如果 API 支持)。
     - [ ] 添加"创建用户"按钮 (功能后续实现)。

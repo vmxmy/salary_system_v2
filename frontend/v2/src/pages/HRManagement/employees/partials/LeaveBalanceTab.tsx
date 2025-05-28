@@ -232,7 +232,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
         onCancel={handleModalCancel}
         okText="保存"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
         width={600}
       >
         <Form form={form} layout="vertical">

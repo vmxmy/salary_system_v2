@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Button, Input, Space, message, Dropdown, Checkbox, Tooltip, Divider } from 'antd';
+import { Button, Input, Space, message, Dropdown, Checkbox, Tooltip, Divider, App } from 'antd';
 import { SearchOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import type { InputRef } from 'antd';
 import type { ColumnType } from 'antd/es/table';
@@ -127,16 +127,20 @@ export const getColumnSearchProps = <T extends object>(
   setSearchText: React.Dispatch<React.SetStateAction<string>>,
   searchedColumn: string,
   setSearchedColumn: React.Dispatch<React.SetStateAction<string>>,
-  searchInputRef: React.RefObject<InputRef | null>
+  searchInputRef: React.RefObject<InputRef | null>,
+  translations: {
+    placeholder: string;
+    searchButton: string;
+    resetButton: string;
+    closeButton: string;
+  }
 ): ColumnType<T> => {
-  const { t } = useTranslation(['common']);
-  
   return {
   filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
     <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
       <Input
         ref={searchInputRef as React.RefObject<InputRef>}
-        placeholder={t('common:search.placeholder', { field: String(dataIndex) })}
+        placeholder={translations.placeholder}
         value={selectedKeys[0]}
         onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
         onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex as string, setSearchText, setSearchedColumn)}
@@ -150,14 +154,14 @@ export const getColumnSearchProps = <T extends object>(
           size="small"
           style={{ width: 90 }}
         >
-          {t('common:button.search', '搜索')}
+          {translations.searchButton}
         </Button>
         <Button
           onClick={() => clearFilters && handleReset(clearFilters, setSearchText)}
           size="small"
           style={{ width: 90 }}
         >
-          {t('common:button.reset', '重置')}
+          {translations.resetButton}
         </Button>
         <Button
           type="link"
@@ -167,7 +171,7 @@ export const getColumnSearchProps = <T extends object>(
             close();
           }}
         >
-          {t('common:button.close', '关闭')}
+          {translations.closeButton}
         </Button>
       </Space>
     </div>
@@ -236,6 +240,7 @@ export const useTableSearch = () => {
   const [searchText, setSearchText] = useState<string>('');
   const [searchedColumn, setSearchedColumn] = useState<string>('');
   const searchInput = useRef<InputRef>(null);
+  const { t } = useTranslation(['common']);
 
   const getColumnSearch = <T extends object>(dataIndex: keyof T): ColumnType<T> => 
     getColumnSearchProps<T>(
@@ -244,7 +249,13 @@ export const useTableSearch = () => {
       setSearchText, 
       searchedColumn, 
       setSearchedColumn, 
-      searchInput
+      searchInput,
+      {
+        placeholder: t('common:search.placeholder', `搜索${String(dataIndex)}`),
+        searchButton: t('common:button.search', '搜索'),
+        resetButton: t('common:button.reset', '重置'),
+        closeButton: t('common:button.close', '关闭'),
+      }
     );
 
   return {
@@ -284,6 +295,7 @@ export const useTableExport = <T extends object>(
   options?: ExportOptions
 ) => {
   const { t } = useTranslation(['common']);
+  const { message } = App.useApp();
   
   const defaultOptions: ExportOptions = {
     filename: t('common:export.filename', '导出数据'),
@@ -450,6 +462,7 @@ export const useColumnControl = <T extends object>(
   options?: ColumnControlOptions
 ) => {
   const { t } = useTranslation(['common']);
+  const { message } = App.useApp();
   
   const defaultOptions: ColumnControlOptions = {
     storageKeyPrefix: 'table_columns',

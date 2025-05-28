@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-更新薪资组件定义表的约束，支持新的类型分类。
+更新薪资字段定义表的约束，支持新的类型分类。
 """
 import sys
 import os
@@ -117,7 +117,7 @@ def update_constraint():
                 AND type = 'DEDUCTION';
             """))
             
-        print("薪资组件定义表的约束和分类已成功更新！")
+        print("薪资字段定义表的约束和分类已成功更新！")
         
     except SQLAlchemyError as e:
         print(f"更新失败: {e}")

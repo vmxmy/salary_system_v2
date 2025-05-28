@@ -14,8 +14,8 @@ export const getLookupValues = async (typeCode: string, options?: any): Promise<
 }
 
 /**
- * 获取薪资组件类型
- * @returns 薪资组件类型列表响应
+ * 获取薪资字段类型
+ * @returns 薪资字段类型列表响应
  */
 export const getPayrollComponentTypes = async (): Promise<PaginatedResponse<LookupValue>> => {
   const url = `/config/payroll-component-types`;

@@ -258,4 +258,27 @@
   .tabContentContainer {
     padding: @spacing-md 0;
   }
+}
+
+// 主内容卡片样式 - 符合StandardListPageTemplate设计
+.mainContentCard {
+  background: white;
+  border-radius: @border-radius-base;
+  box-shadow: @box-shadow-card;
+  overflow: hidden;
+  margin-bottom: @spacing-lg;
+  
+  .ant-card-body {
+    padding: @spacing-xl;
+  }
+  
+  .ant-card-head {
+    background: @table-header-bg;
+    border-bottom: 2px solid @border-color-base;
+    
+    .ant-card-head-title {
+      color: @table-header-color;
+      font-weight: 600;
+    }
+  }
 } 

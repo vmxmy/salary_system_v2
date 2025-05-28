@@ -53,10 +53,17 @@
     "import": "导入",
     "filter": "筛选",
     "column_settings": "列设置",
+    "column_setting": "列设置",
+    "density": "密度",
+    "fullscreen": "全屏",
+    "exit_fullscreen": "退出全屏",
     "export_excel": "导出 EXCEL",
     "apply": "应用",
     "back": "返回",
-    "upload": "上传"
+    "upload": "上传",
+    "expand": "展开",
+    "collapse": "收起",
+    "update": "更新"
   },
   "label": {
     "username": "用户名",
@@ -79,7 +86,69 @@
   "placeholder": {
     "select": "请选择",
     "input": "请输入",
-    "search": "请输入搜索内容"
+    "search": "请输入搜索内容",
+    "start_date": "开始日期",
+    "end_date": "结束日期"
+  },
+  "lookup_select": {
+    "placeholder": {
+      "employee_status": "请选择员工状态",
+      "gender": "请选择性别",
+      "education_level": "请选择学历",
+      "employment_type": "请选择雇佣类型",
+      "contract_type": "请选择合同类型",
+      "marital_status": "请选择婚姻状况",
+      "political_status": "请选择政治面貌",
+      "department": "请选择部门",
+      "personnel_category": "请选择人员类别",
+      "position": "请选择职位"
+    },
+    "error": {
+      "load_failed": "加载{{type}}数据失败"
+    },
+    "no_data": "暂无数据"
+  },
+  "employee_selector": {
+    "placeholder": {
+      "single": "请选择员工",
+      "multiple": "请选择员工"
+    },
+    "error": {
+      "load_failed": "加载员工数据失败"
+    },
+    "no_data": "暂无员工数据"
+  },
+  "date_range_picker": {
+    "quick_select": "快捷选择",
+    "start_date": "开始日期",
+    "end_date": "结束日期"
+  },
+  "form_builder": {
+    "validation": {
+      "default_required_template": "请输入{fieldName}"
+    }
+  },
+  "data_table": {
+    "density": {
+      "compact": "紧凑",
+      "default": "默认",
+      "comfortable": "宽松"
+    },
+    "column": {
+      "index": "序号"
+    }
+  },
+  "search_form": {
+    "expand": "展开",
+    "collapse": "收起"
+  },
+  "modal_form": {
+    "title": {
+      "create": "新增",
+      "edit": "编辑",
+      "view": "查看",
+      "default": "表单"
+    }
   },
   "tooltip": {
     "edit": "编辑",
@@ -88,6 +157,7 @@
     "column_settings": "自定义显示列"
   },
   "action": {
+    "title": "操作",
     "edit": "编辑",
     "delete": "删除",
     "view": "查看",
@@ -100,6 +170,11 @@
     "operation_success": "操作成功",
     "operation_failed": "操作失败",
     "operation_failed_prefix": "操作失败: ",
+    "create_success": "创建成功",
+    "update_success": "更新成功",
+    "delete_success": "删除成功",
+    "refresh_success": "刷新成功",
+    "export_success": "导出成功",
     "create_success_default": "创建成功",
     "update_success_default": "更新成功",
     "delete_success_default": "删除成功",
@@ -126,6 +201,12 @@
     "please_try_again": "请稍后重试"
   },
   "modal": {
+    "title": {
+      "create": "新增",
+      "edit": "编辑",
+      "view": "查看",
+      "default": "表单"
+    },
     "confirm_delete": {
       "title": "确认删除",
       "title_item": "确认删除 {itemName}?",
@@ -150,8 +231,23 @@
     "column_actions": "操作",
     "cell_empty": "-",
     "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
-    "total_items": "共 {total} 条记录"
+    "total_items": "共 {total} 条记录",
+    "column": {
+      "index": "序号"
+    },
+    "density": {
+      "compact": "紧凑",
+      "default": "默认",
+      "comfortable": "宽松"
+    }
   },
+  "export": {
+    "excel": "导出 Excel",
+    "csv": "导出 CSV",
+    "pdf": "导出 PDF"
+  },
+  "hidden": "隐藏",
+  "visible": "显示",
   "currency": {
     "symbol": "¥"
   },
@@ -172,8 +268,12 @@
   },
   "user_menu": {
     "profile": "个人中心",
+    "settings": "系统设置",
     "logout": "退出登录",
     "default_user_text": "用户"
+  },
+  "pageTitle": {
+    "home": "首页"
   },
   "page": {
     "admin_config": {
@@ -346,9 +446,9 @@
   },
   "payroll_run_detail_page": {
     "spin_loading": "加载中...",
-    "breadcrumb_runs_management": "工资计算批次管理",
+    "breadcrumb_runs_management": "薪资审核管理",
     "breadcrumb_current_page": "计算批次详情 ({runName})",
-    "card_title": "工资计算批次详情: {runName}",
+    "card_title": "薪资审核详情: {runName}",
     "button_back_to_list": "返回列表",
     "desc_label_id": "ID",
     "desc_label_payroll_period": "工资周期",
@@ -462,5 +562,26 @@
     "active": "进行中",
     "closed": "已关闭",
     "archived": "已存档"
-  }
+  },
+  "delete_confirm": {
+    "title": "确认删除",
+    "content": "确定要删除 {{name}} 吗？此操作无法撤销。",
+    "ok_text": "删除",
+    "cancel_text": "取消"
+  },
+  "modal": {
+    "title": {
+      "create": "新增",
+      "edit": "编辑",
+      "view": "查看",
+      "default": "表单"
+    }
+  },
+  "theme_toggle": "切换主题",
+  "language_toggle": "切换语言",
+  "language_switched": "语言已切换",
+  "theme_switched_to_light": "已切换到浅色主题",
+  "theme_switched_to_dark": "已切换到深色主题",
+  "expand_sidebar": "展开侧边栏",
+  "collapse_sidebar": "收起侧边栏"
 }

@@ -1,6 +1,16 @@
 // @ts-ignore
 window.VITE_ENV_DEBUG = import.meta.env;
 
+// 导入并初始化警告抑制
+import { initWarningSuppress } from './utils/suppressWarnings';
+import { initReactWarningSuppress } from './utils/reactWarningSuppress';
+
+// 在开发环境中启用警告抑制
+if (import.meta.env.DEV) {
+  initWarningSuppress();
+  initReactWarningSuppress();
+}
+
 import React from 'react'; // 确保导入 React
 // import { StrictMode } from 'react'; // StrictMode 将在 AppWrapper 中处理
 import ReactDOM from 'react-dom/client';
@@ -9,7 +19,7 @@ import { store } from './store'; // 导入我们创建的 store
 import AppWrapper from './AppWrapper';
 import { createBrowserRouter } from 'react-router-dom'; // 导入 react-router-dom 的 createBrowserRouter
 import { routes } from './router/routes'; // 从 routes.tsx 导入路由配置数组
-import './styles/global.less'; // 修正后缀名为 .less
+import './styles/index.less'; // 只导入 index.less，它会再导入其他需要的样式
 
 // i18n 初始化
 import './i18n'; // 导入并初始化 i18n 配置

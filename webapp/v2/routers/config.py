@@ -408,8 +408,11 @@ async def create_payroll_component(
     - 需要Super Admin或Config Admin角色
     """
     try:
+        # 将Pydantic模型转换为字典
+        component_data = component.model_dump()
+        
         # 创建工资组件定义
-        db_component = crud.create_payroll_component_definition(db, component)
+        db_component = crud.create_payroll_component_definition(db, component_data)
 
         # 返回标准响应格式
         return {"data": db_component}
@@ -1055,8 +1058,8 @@ async def delete_social_security_rate(
 @router.get(
     "/v2/payroll-component-definitions",
     response_model=PayrollComponentDefinitionListResponse,
-    summary="获取薪资组件定义列表",
-    description="获取所有薪资组件定义，支持按类型和启用状态过滤，以及自定义排序"
+    summary="获取薪资字段定义列表",
+    description="获取所有薪资字段定义，支持按类型和启用状态过滤，以及自定义排序"
 )
 def get_payroll_component_definitions(
     type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
@@ -1070,7 +1073,7 @@ def get_payroll_component_definitions(
     db: Session = Depends(get_db_v2)
 ):
     """
-    获取薪资组件定义列表，支持分页、过滤和排序
+    获取薪资字段定义列表，支持分页、过滤和排序
     """
     # 调整数据库字段与API字段的映射
     db_sort_by = sort_by
@@ -1106,30 +1109,30 @@ def get_payroll_component_definitions(
 @router.get(
     "/v2/payroll-component-definitions/{component_id}",
     response_model=PayrollComponentDefinition,
-    summary="获取单个薪资组件定义",
-    description="根据ID获取特定薪资组件定义的详细信息"
+    summary="获取单个薪资字段定义",
+    description="根据ID获取特定薪资字段定义的详细信息"
 )
 def get_payroll_component_definition(
-    component_id: int = Path(..., description="薪资组件定义ID"),
+    component_id: int = Path(..., description="薪资字段定义ID"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_v2)
 ):
     """
-    获取特定薪资组件定义
+    获取特定薪资字段定义
     """
     component = crud.get_payroll_component_definition_by_id(db, component_id)
     if not component:
-        raise HTTPException(status_code=404, detail="薪资组件定义不存在")
+        raise HTTPException(status_code=404, detail="薪资字段定义不存在")
     
     return PayrollComponentDefinition.model_validate(component)
 
-# 添加获取薪资组件类型的API端点
+# 添加获取薪资字段类型的API端点
 @router.get("/payroll-component-types", response_model=LookupValueListResponse)
 async def get_payroll_component_types(
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user),
 ):
-    """获取薪资组件类型列表"""
+    """获取薪资字段类型列表"""
     # 首先获取PAYROLL_COMPONENT_TYPE的type_id
     lookup_type = crud.get_lookup_type_by_code(db, "PAYROLL_COMPONENT_TYPE")
     if not lookup_type:

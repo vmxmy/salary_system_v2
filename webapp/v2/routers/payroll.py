@@ -477,9 +477,9 @@ async def patch_payroll_run_endpoint(
     current_user = Depends(require_permissions(["P_PAYROLL_RUN_MARK_AS_PAID"]))
 ):
     """
-    部分更新工资计算批次信息，例如标记为已发放。
+    部分更新薪资审核信息，例如标记为已发放。
 
-    - **run_id**: 工资计算批次ID
+    - **run_id**: 薪资审核ID
     - 需要 Super Admin, Payroll Admin, 或 Finance Admin 角色
     """
     try:
@@ -580,9 +580,9 @@ async def export_payroll_run_bank_file(
     current_user = Depends(require_permissions(["P_PAYROLL_RUN_EXPORT_BANK_FILE"]))
 ):
     """
-    为指定的工资计算批次生成银行代发文件 (CSV格式)。
+    为指定的薪资审核生成银行代发文件 (CSV格式)。
 
-    - **run_id**: 工资计算批次ID
+    - **run_id**: 薪资审核ID
     - 需要 Super Admin, Payroll Admin, 或 Finance Admin 角色
     """
     try:
@@ -645,6 +645,14 @@ async def get_payroll_entries(
     actual_run_id: Optional[int] = Query(None, alias="payroll_run_id"),
     employee_id: Optional[int] = None,
     status_id: Optional[int] = None,
+    department_name: Optional[str] = Query(None, description="部门名称筛选"),
+    personnel_category_name: Optional[str] = Query(None, description="人员类别筛选"),
+    min_gross_pay: Optional[float] = Query(None, description="最小应发工资"),
+    max_gross_pay: Optional[float] = Query(None, description="最大应发工资"),
+    min_net_pay: Optional[float] = Query(None, description="最小实发工资"),
+    max_net_pay: Optional[float] = Query(None, description="最大实发工资"),
+    sort_by: Optional[str] = Query(None, description="排序字段"),
+    sort_order: Optional[str] = Query("asc", description="排序方向: asc 或 desc"),
     include_employee_details: bool = Query(False, description="是否包含员工姓名等详细信息"),
     include_payroll_period: bool = Query(False, description="是否包含工资周期信息"),
     search: Optional[str] = None,
@@ -660,6 +668,14 @@ async def get_payroll_entries(
     - **run_id**: 工资运行批次ID，用于过滤特定运行批次的明细
     - **employee_id**: 员工ID，用于过滤特定员工的明细
     - **status_id**: 状态ID，用于过滤特定状态的明细
+    - **department_name**: 部门名称筛选
+    - **personnel_category_name**: 人员类别筛选
+    - **min_gross_pay**: 最小应发工资
+    - **max_gross_pay**: 最大应发工资
+    - **min_net_pay**: 最小实发工资
+    - **max_net_pay**: 最大实发工资
+    - **sort_by**: 排序字段
+    - **sort_order**: 排序方向
     - **include_employee_details**: 是否包含员工姓名等详细信息
     - **include_payroll_period**: 是否包含工资周期信息
     - **search**: 搜索关键词，用于按员工姓名、工号等信息搜索
@@ -678,6 +694,14 @@ async def get_payroll_entries(
             employee_id=employee_id,
             status_id=status_id,
             search_term=search,
+            department_name=department_name,
+            personnel_category_name=personnel_category_name,
+            min_gross_pay=min_gross_pay,
+            max_gross_pay=max_gross_pay,
+            min_net_pay=min_net_pay,
+            max_net_pay=max_net_pay,
+            sort_by=sort_by,
+            sort_order=sort_order,
             include_employee_details=include_employee_details,
             include_payroll_period=include_payroll_period
         )
@@ -986,12 +1010,12 @@ async def bulk_create_payroll_entries(
         )
 
 
-# 添加薪资组件定义的API转发路由
+# 添加薪资字段定义的API转发路由
 @router.get(
     "/payroll-component-definitions",
     response_model=PayrollComponentDefinitionListResponse,
-    summary="获取薪资组件定义列表",
-    description="获取所有薪资组件定义，支持按类型和启用状态过滤，以及自定义排序"
+    summary="获取薪资字段定义列表",
+    description="获取所有薪资字段定义，支持按类型和启用状态过滤，以及自定义排序"
 )
 def get_payroll_component_definitions(
     type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
@@ -1004,7 +1028,7 @@ def get_payroll_component_definitions(
     db: Session = Depends(get_db_v2)
 ):
     """
-    获取薪资组件定义列表，转发到config模块API
+    获取薪资字段定义列表，转发到config模块API
     """
     from ..routers.config import get_payroll_component_definitions as config_get_payroll_component_definitions
     
@@ -1023,16 +1047,16 @@ def get_payroll_component_definitions(
 @router.get(
     "/payroll-component-definitions/{component_id}",
     response_model=PayrollComponentDefinition,
-    summary="获取单个薪资组件定义",
-    description="根据ID获取特定薪资组件定义的详细信息"
+    summary="获取单个薪资字段定义",
+    description="根据ID获取特定薪资字段定义的详细信息"
 )
 def get_payroll_component_definition(
-    component_id: int = Path(..., description="薪资组件定义ID"),
+    component_id: int = Path(..., description="薪资字段定义ID"),
     current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"])),
     db: Session = Depends(get_db_v2)
 ):
     """
-    获取单个薪资组件定义，转发到config模块API
+    获取单个薪资字段定义，转发到config模块API
     """
     from ..routers.config import get_payroll_component_definition as config_get_payroll_component_definition
     
@@ -1047,8 +1071,8 @@ def get_payroll_component_definition(
     "/payroll-component-definitions",
     response_model=Dict[str, PayrollComponentDefinition],
     status_code=status.HTTP_201_CREATED,
-    summary="创建薪资组件定义",
-    description="创建新的薪资组件定义"
+    summary="创建薪资字段定义",
+    description="创建新的薪资字段定义"
 )
 def create_payroll_component_definition(
     component: PayrollComponentDefinitionCreate,
@@ -1056,7 +1080,7 @@ def create_payroll_component_definition(
     db: Session = Depends(get_db_v2)
 ):
     """
-    创建薪资组件定义，转发到config模块API
+    创建薪资字段定义，转发到config模块API
     """
     from ..routers.config import create_payroll_component as config_create_payroll_component
     
@@ -1070,8 +1094,8 @@ def create_payroll_component_definition(
 @router.put(
     "/payroll-component-definitions/{component_id}",
     response_model=Dict[str, PayrollComponentDefinition],
-    summary="更新薪资组件定义",
-    description="更新指定ID的薪资组件定义"
+    summary="更新薪资字段定义",
+    description="更新指定ID的薪资字段定义"
 )
 def update_payroll_component_definition(
     component_id: int,
@@ -1080,7 +1104,7 @@ def update_payroll_component_definition(
     db: Session = Depends(get_db_v2)
 ):
     """
-    更新薪资组件定义，转发到config模块API
+    更新薪资字段定义，转发到config模块API
     """
     from ..routers.config import update_payroll_component as config_update_payroll_component
     
@@ -1095,8 +1119,8 @@ def update_payroll_component_definition(
 @router.delete(
     "/payroll-component-definitions/{component_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="删除薪资组件定义",
-    description="删除指定ID的薪资组件定义"
+    summary="删除薪资字段定义",
+    description="删除指定ID的薪资字段定义"
 )
 def delete_payroll_component_definition(
     component_id: int,
@@ -1104,7 +1128,7 @@ def delete_payroll_component_definition(
     db: Session = Depends(get_db_v2)
 ):
     """
-    删除薪资组件定义，转发到config模块API
+    删除薪资字段定义，转发到config模块API
     """
     from ..routers.config import delete_payroll_component as config_delete_payroll_component
     
