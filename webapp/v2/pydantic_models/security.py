@@ -175,9 +175,13 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 class TokenResponseWithFullUser(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: User # User model from this file, now includes roles and permissions
+    """包含完整用户信息的令牌响应模型"""
+    access_token: str = Field(..., description="JWT access token")
+    token_type: str = Field(default="bearer", description="Token type")
+    user: User = Field(..., description="Complete user information")
+
+    class Config:
+        title = "TokenResponse"
 
 
 # 新增：用于用户分配角色的请求体

@@ -11,6 +11,7 @@ from ..pydantic_models.config import (
     LookupTypeCreate, LookupTypeUpdate, LookupType, LookupTypeListResponse,
     LookupValueCreate, LookupValueUpdate, LookupValue, LookupValueListResponse
 )
+from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
 from ..utils import create_error_response
 
@@ -73,7 +74,7 @@ async def get_lookup_types(
         )
 
 
-@router.get("/types/{lookup_type_id}", response_model=Dict[str, LookupType])
+@router.get("/types/{lookup_type_id}", response_model=DataResponse[LookupType])
 async def get_lookup_type(
     lookup_type_id: int,
     db: Session = Depends(get_db_v2),
@@ -99,7 +100,7 @@ async def get_lookup_type(
             )
 
         # 返回标准响应格式
-        return {"data": lookup_type}
+        return DataResponse[LookupType](data=lookup_type)
     except HTTPException:
         raise
     except Exception as e:
@@ -114,7 +115,7 @@ async def get_lookup_type(
         )
 
 
-@router.post("/types", response_model=Dict[str, LookupType], status_code=status.HTTP_201_CREATED)
+@router.post("/types", response_model=DataResponse[LookupType], status_code=status.HTTP_201_CREATED)
 async def create_lookup_type(
     lookup_type: LookupTypeCreate,
     db: Session = Depends(get_db_v2),
@@ -130,7 +131,7 @@ async def create_lookup_type(
         db_lookup_type = crud.create_lookup_type(db, lookup_type)
 
         # 返回标准响应格式
-        return {"data": db_lookup_type}
+        return DataResponse[LookupType](data=db_lookup_type)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -153,7 +154,7 @@ async def create_lookup_type(
         )
 
 
-@router.put("/types/{lookup_type_id}", response_model=Dict[str, LookupType])
+@router.put("/types/{lookup_type_id}", response_model=DataResponse[LookupType])
 async def update_lookup_type(
     lookup_type_id: int,
     lookup_type: LookupTypeUpdate,
@@ -181,7 +182,7 @@ async def update_lookup_type(
             )
 
         # 返回标准响应格式
-        return {"data": db_lookup_type}
+        return DataResponse[LookupType](data=db_lookup_type)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -324,7 +325,7 @@ async def get_lookup_values(
         )
 
 
-@router.get("/values/{lookup_value_id}", response_model=Dict[str, LookupValue])
+@router.get("/values/{lookup_value_id}", response_model=DataResponse[LookupValue])
 async def get_lookup_value(
     lookup_value_id: int,
     db: Session = Depends(get_db_v2),
@@ -350,7 +351,7 @@ async def get_lookup_value(
             )
 
         # 返回标准响应格式
-        return {"data": lookup_value}
+        return DataResponse[LookupValue](data=lookup_value)
     except HTTPException:
         raise
     except Exception as e:
@@ -365,7 +366,7 @@ async def get_lookup_value(
         )
 
 
-@router.post("/values", response_model=Dict[str, LookupValue], status_code=status.HTTP_201_CREATED)
+@router.post("/values", response_model=DataResponse[LookupValue], status_code=status.HTTP_201_CREATED)
 async def create_lookup_value(
     lookup_value: LookupValueCreate,
     db: Session = Depends(get_db_v2),
@@ -381,7 +382,7 @@ async def create_lookup_value(
         db_lookup_value = crud.create_lookup_value(db, lookup_value)
 
         # 返回标准响应格式
-        return {"data": db_lookup_value}
+        return DataResponse[LookupValue](data=db_lookup_value)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -404,7 +405,7 @@ async def create_lookup_value(
         )
 
 
-@router.put("/values/{lookup_value_id}", response_model=Dict[str, LookupValue])
+@router.put("/values/{lookup_value_id}", response_model=DataResponse[LookupValue])
 async def update_lookup_value(
     lookup_value_id: int,
     lookup_value: LookupValueUpdate,
@@ -432,7 +433,7 @@ async def update_lookup_value(
             )
 
         # 返回标准响应格式
-        return {"data": db_lookup_value}
+        return DataResponse[LookupValue](data=db_lookup_value)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(

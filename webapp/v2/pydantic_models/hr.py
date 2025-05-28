@@ -25,9 +25,8 @@ class EmployeeAppraisalCreate(EmployeeAppraisalBase):
 
 class EmployeeAppraisalUpdate(BaseModel):
     """更新员工年度考核模型"""
-    # Making 'id' optional for update, as it's part of the record to identify for update, not something to change.
-    # employee_id might not be changeable once an appraisal is linked, or it might. For now, keeping it optional if allowed by DB constraints.
-    id: Optional[int] = Field(None, description="Primary key, used to identify existing record for update") # Added ID for updates
+    # id字段应该通过URL路径提供，而不是请求体 - 符合RESTful设计原则
+    # 使用PUT /employee-appraisals/{appraisal_id}的方式更新特定考核记录
     employee_id: Optional[int] = Field(None, description="Foreign key to employees")
     appraisal_year: Optional[int] = Field(None, description="Year of appraisal")
     appraisal_result_lookup_id: Optional[int] = Field(None, description="Foreign key to appraisal result lookup value")
@@ -46,14 +45,14 @@ class EmployeeAppraisal(EmployeeAppraisalBase):
         from_attributes = True
 
 class EmployeeAppraisalListResponse(BaseModel):
-    """员工年度考核列表响应模型"""
+    """员工考核列表响应模型"""
     data: List[EmployeeAppraisal]
     meta: Dict[str, Any] = Field(
         default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
     )
 
     class Config:
-        from_attributes = True
+        title = "EmployeeAppraisalList"
 
 # Employee Models
 class EmployeeBase(BaseModel):
@@ -107,8 +106,8 @@ class EmployeeBase(BaseModel):
 
 class EmployeeCreate(EmployeeBase):
     """创建员工模型"""
-    # 添加id字段，用于覆盖模式下更新现有员工
-    id: Optional[int] = Field(None, description="员工ID，仅用于覆盖模式下更新现有员工")
+    # 移除id字段 - POST接口严格用于创建新员工，不支持通过id更新现有员工
+    # 如需更新现有员工，请使用PUT /{employee_id}接口
     
     # Fields for resolving lookups by name
     gender_lookup_value_name: Optional[str] = Field(None, description="Gender name, e.g., '男', '女'")
@@ -369,7 +368,7 @@ class PersonnelCategoryListResponse(BaseModel):
     )
 
     class Config:
-        from_attributes = True
+        title = "PersonnelCategoryList"
 
 
 # EmployeeJobHistory Models
@@ -424,7 +423,7 @@ class EmployeeJobHistoryListResponse(BaseModel):
     )
 
     class Config:
-        from_attributes = True
+        title = "EmployeeJobHistoryList"
 
 
 # Position Models (实际职务，原 job_titles 中扩展出的概念)

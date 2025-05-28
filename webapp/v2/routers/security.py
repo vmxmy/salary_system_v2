@@ -19,6 +19,7 @@ from ..pydantic_models.security import (
     PermissionCreate, PermissionUpdate, Permission, PermissionListResponse,
     UserRoleCreate, RolePermissionCreate, UserRoleAssignRequest
 )
+from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions # MODIFIED: require_role removed as it will be replaced
 from ..utils import create_error_response
 
@@ -88,7 +89,7 @@ async def get_users(
         )
 
 
-@router.get("/users/{user_id}", response_model=Dict[str, User])
+@router.get("/users/{user_id}", response_model=DataResponse[User])
 async def get_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
@@ -115,7 +116,7 @@ async def get_user(
             )
 
         # 返回标准响应格式
-        return {"data": user}
+        return DataResponse[User](data=user)
     except HTTPException:
         raise
     except Exception as e:
@@ -130,7 +131,7 @@ async def get_user(
         )
 
 
-@router.post("/users", response_model=Dict[str, User], status_code=status.HTTP_201_CREATED)
+@router.post("/users", response_model=DataResponse[User], status_code=status.HTTP_201_CREATED)
 async def create_user(
     user: UserCreate,
     db: Session = Depends(get_db_v2),
@@ -151,7 +152,7 @@ async def create_user(
             logger.error(f"Error creating user: {e}", exc_info=True)
             raise
         # 返回标准响应格式
-        return {"data": db_user}
+        return DataResponse[User](data=db_user)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -174,7 +175,7 @@ async def create_user(
         )
 
 
-@router.put("/users/{user_id}", response_model=Dict[str, User])
+@router.put("/users/{user_id}", response_model=DataResponse[User])
 async def update_user(
     user_id: int,
     user: UserUpdate,
@@ -202,32 +203,27 @@ async def update_user(
             )
 
         # 返回标准响应格式
-        return {"data": db_user}
+        return DataResponse[User](data=db_user)
     except ValueError as e:
-        # 特定的业务逻辑错误 (例如，用户名已存在，员工关联问题等)
-        # 这些通常是由于客户端输入不当或违反业务规则造成的，适合用 400 或 422
-        # logging.info(f"ValueError during user update for user_id {user_id}: {str(e)}") # Optional: Log as info or warning
+        # 返回标准错误响应格式
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, # Or status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=create_error_response(
-                status_code=422, # Or 400
-                message="Validation Error", # A more generic message for the category
-                details=str(e) # The specific error message from CRUD
+                status_code=422,
+                message="Unprocessable Entity",
+                details=str(e)
             )
         )
     except HTTPException:
-        # If it's already an HTTPException (e.g., from permission checks), re-raise it.
         raise
     except Exception as e:
-        # 捕获所有其他意外错误，记录它们，并返回500
-        logging.exception(f"Unexpected error updating user {user_id}: {e}")
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
                 status_code=500,
                 message="Internal Server Error",
-                details="An unexpected error occurred while updating the user."
+                details=str(e)
             )
         )
 
@@ -274,7 +270,7 @@ async def delete_user(
         )
 
 
-@router.post("/users/{user_id}/roles", response_model=Dict[str, User], status_code=status.HTTP_200_OK)
+@router.post("/users/{user_id}/roles", response_model=DataResponse[User], status_code=status.HTTP_200_OK)
 async def assign_roles_to_user_endpoint(
     user_id: int,
     user_role_assign_request: UserRoleAssignRequest, 
@@ -299,7 +295,7 @@ async def assign_roles_to_user_endpoint(
                     details=f"User with ID {user_id} not found"
                 )
             )
-        return {"data": updated_user}
+        return DataResponse[User](data=updated_user)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -412,7 +408,7 @@ async def get_roles(
         )
 
 
-@router.get("/roles/{role_id}", response_model=Dict[str, Role])
+@router.get("/roles/{role_id}", response_model=DataResponse[Role])
 async def get_role(
     role_id: int,
     db: Session = Depends(get_db_v2),
@@ -438,7 +434,7 @@ async def get_role(
             )
 
         # 返回标准响应格式
-        return {"data": role}
+        return DataResponse[Role](data=role)
     except HTTPException:
         raise
     except Exception as e:
@@ -453,7 +449,7 @@ async def get_role(
         )
 
 
-@router.post("/roles", response_model=Dict[str, Role], status_code=status.HTTP_201_CREATED)
+@router.post("/roles", response_model=DataResponse[Role], status_code=status.HTTP_201_CREATED)
 async def create_role(
     role: RoleCreate,
     db: Session = Depends(get_db_v2),
@@ -469,7 +465,7 @@ async def create_role(
         db_role = crud.create_role(db, role)
 
         # 返回标准响应格式
-        return {"data": db_role}
+        return DataResponse[Role](data=db_role)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -492,7 +488,7 @@ async def create_role(
         )
 
 
-@router.put("/roles/{role_id}", response_model=Dict[str, Role])
+@router.put("/roles/{role_id}", response_model=DataResponse[Role])
 async def update_role(
     role_id: int,
     role: RoleUpdate,
@@ -520,7 +516,7 @@ async def update_role(
             )
 
         # 返回标准响应格式
-        return {"data": db_role}
+        return DataResponse[Role](data=db_role)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -763,7 +759,7 @@ async def get_permissions(
         )
 
 
-@router.get("/permissions/{permission_id}", response_model=Dict[str, Permission])
+@router.get("/permissions/{permission_id}", response_model=DataResponse[Permission])
 async def get_permission(
     permission_id: int,
     db: Session = Depends(get_db_v2),
@@ -789,7 +785,7 @@ async def get_permission(
             )
 
         # 返回标准响应格式
-        return {"data": permission}
+        return DataResponse[Permission](data=permission)
     except HTTPException:
         raise
     except Exception as e:
@@ -804,7 +800,7 @@ async def get_permission(
         )
 
 
-@router.post("/permissions", response_model=Dict[str, Permission], status_code=status.HTTP_201_CREATED)
+@router.post("/permissions", response_model=DataResponse[Permission], status_code=status.HTTP_201_CREATED)
 async def create_permission(
     permission: PermissionCreate,
     db: Session = Depends(get_db_v2),
@@ -820,7 +816,7 @@ async def create_permission(
         db_permission = crud.create_permission(db, permission)
 
         # 返回标准响应格式
-        return {"data": db_permission}
+        return DataResponse[Permission](data=db_permission)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -843,7 +839,7 @@ async def create_permission(
         )
 
 
-@router.put("/permissions/{permission_id}", response_model=Dict[str, Permission])
+@router.put("/permissions/{permission_id}", response_model=DataResponse[Permission])
 async def update_permission(
     permission_id: int,
     permission: PermissionUpdate,
@@ -871,7 +867,7 @@ async def update_permission(
             )
 
         # 返回标准响应格式
-        return {"data": db_permission}
+        return DataResponse[Permission](data=db_permission)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(

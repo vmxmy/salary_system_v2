@@ -18,6 +18,7 @@ from ..pydantic_models.payroll import (
     PayrollComponentDefinition, PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate,
     BulkCreatePayrollEntriesPayload, BulkCreatePayrollEntriesResult
 )
+from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions, get_current_user
 from ..utils import create_error_response
 
@@ -92,7 +93,7 @@ async def get_payroll_periods(
         )
 
 
-@router.get("/payroll-periods/{period_id}", response_model=Dict[str, PayrollPeriod])
+@router.get("/payroll-periods/{period_id}", response_model=DataResponse[PayrollPeriod])
 async def get_payroll_period(
     period_id: int,
     db: Session = Depends(get_db_v2),
@@ -118,7 +119,7 @@ async def get_payroll_period(
             )
 
         # 返回标准响应格式
-        return {"data": period}
+        return DataResponse[PayrollPeriod](data=period)
     except HTTPException:
         raise
     except Exception as e:
@@ -133,7 +134,7 @@ async def get_payroll_period(
         )
 
 
-@router.post("/payroll-periods", response_model=Dict[str, PayrollPeriod], status_code=status.HTTP_201_CREATED)
+@router.post("/payroll-periods", response_model=DataResponse[PayrollPeriod], status_code=status.HTTP_201_CREATED)
 async def create_payroll_period(
     period: PayrollPeriodCreate,
     db: Session = Depends(get_db_v2),
@@ -149,7 +150,7 @@ async def create_payroll_period(
         db_period = crud.create_payroll_period(db, period)
 
         # 返回标准响应格式
-        return {"data": db_period}
+        return DataResponse[PayrollPeriod](data=db_period)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -172,7 +173,7 @@ async def create_payroll_period(
         )
 
 
-@router.put("/payroll-periods/{period_id}", response_model=Dict[str, PayrollPeriod])
+@router.put("/payroll-periods/{period_id}", response_model=DataResponse[PayrollPeriod])
 async def update_payroll_period(
     period_id: int,
     period: PayrollPeriodUpdate,
@@ -200,7 +201,7 @@ async def update_payroll_period(
             )
 
         # 返回标准响应格式
-        return {"data": db_period}
+        return DataResponse[PayrollPeriod](data=db_period)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -336,7 +337,7 @@ async def get_payroll_runs(
         )
 
 
-@router.get("/payroll-runs/{run_id}", response_model=Dict[str, PayrollRun])
+@router.get("/payroll-runs/{run_id}", response_model=DataResponse[PayrollRun])
 async def get_payroll_run(
     run_id: int,
     db: Session = Depends(get_db_v2),
@@ -362,7 +363,7 @@ async def get_payroll_run(
             )
 
         # 返回标准响应格式
-        return {"data": run}
+        return DataResponse[PayrollRun](data=run)
     except HTTPException:
         raise
     except Exception as e:
@@ -377,7 +378,7 @@ async def get_payroll_run(
         )
 
 
-@router.post("/payroll-runs", response_model=Dict[str, PayrollRun], status_code=status.HTTP_201_CREATED)
+@router.post("/payroll-runs", response_model=DataResponse[PayrollRun], status_code=status.HTTP_201_CREATED)
 async def create_payroll_run(
     run: PayrollRunCreate,
     db: Session = Depends(get_db_v2),
@@ -393,7 +394,7 @@ async def create_payroll_run(
         db_run = crud.create_payroll_run(db, run, current_user.id)
 
         # 返回标准响应格式
-        return {"data": db_run}
+        return DataResponse[PayrollRun](data=db_run)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -416,7 +417,7 @@ async def create_payroll_run(
         )
 
 
-@router.put("/payroll-runs/{run_id}", response_model=Dict[str, PayrollRun])
+@router.put("/payroll-runs/{run_id}", response_model=DataResponse[PayrollRun])
 async def update_payroll_run(
     run_id: int,
     run: PayrollRunUpdate,
@@ -444,7 +445,7 @@ async def update_payroll_run(
             )
 
         # 返回标准响应格式
-        return {"data": db_run}
+        return DataResponse[PayrollRun](data=db_run)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -469,7 +470,7 @@ async def update_payroll_run(
         )
 
 
-@router.patch("/payroll-runs/{run_id}", response_model=Dict[str, PayrollRun])
+@router.patch("/payroll-runs/{run_id}", response_model=DataResponse[PayrollRun])
 async def patch_payroll_run_endpoint(
     run_id: int,
     run_data: PayrollRunPatch,
@@ -497,7 +498,7 @@ async def patch_payroll_run_endpoint(
         # Audit log placeholder
         # audit_logger.info(f"User {current_user.username} patched payroll run {run_id}. Data: {run_data.model_dump(exclude_unset=True)}")
         
-        return {"data": db_payroll_run}
+        return DataResponse[PayrollRun](data=db_payroll_run)
     except ValueError as e: 
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -733,7 +734,7 @@ async def get_payroll_entries(
         )
 
 
-@router.get("/payroll-entries/{entry_id}", response_model=Dict[str, PayrollEntry])
+@router.get("/payroll-entries/{entry_id}", response_model=DataResponse[PayrollEntry])
 async def get_payroll_entry(
     entry_id: int,
     include_employee_details: bool = Query(True, description="是否包含员工姓名等详细信息"),
@@ -761,7 +762,7 @@ async def get_payroll_entry(
             )
 
         # 返回标准响应格式
-        return {"data": entry}
+        return DataResponse[PayrollEntry](data=entry)
     except HTTPException:
         raise
     except Exception as e:
@@ -776,7 +777,7 @@ async def get_payroll_entry(
         )
 
 
-@router.post("/payroll-entries", response_model=Dict[str, PayrollEntry], status_code=status.HTTP_201_CREATED)
+@router.post("/payroll-entries", response_model=DataResponse[PayrollEntry], status_code=status.HTTP_201_CREATED)
 async def create_payroll_entry(
     entry: PayrollEntryCreate,
     db: Session = Depends(get_db_v2),
@@ -792,7 +793,7 @@ async def create_payroll_entry(
         db_entry = crud.create_payroll_entry(db, entry)
 
         # 返回标准响应格式
-        return {"data": db_entry}
+        return DataResponse[PayrollEntry](data=db_entry)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -815,7 +816,7 @@ async def create_payroll_entry(
         )
 
 
-@router.patch("/payroll-entries/{entry_id}", response_model=Dict[str, PayrollEntry])
+@router.patch("/payroll-entries/{entry_id}", response_model=DataResponse[PayrollEntry])
 async def patch_payroll_entry_details(
     entry_id: int,
     entry_data: PayrollEntryPatch,
@@ -838,7 +839,7 @@ async def patch_payroll_entry_details(
                     details=f"Payroll entry with ID {entry_id} not found"
                 )
             )
-        return {"data": db_entry}
+        return DataResponse[PayrollEntry](data=db_entry)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -853,7 +854,7 @@ async def patch_payroll_entry_details(
         )
 
 
-@router.put("/payroll-entries/{entry_id}", response_model=Dict[str, PayrollEntry])
+@router.put("/payroll-entries/{entry_id}", response_model=DataResponse[PayrollEntry])
 async def update_payroll_entry(
     entry_id: int,
     entry: PayrollEntryUpdate,
@@ -881,7 +882,7 @@ async def update_payroll_entry(
             )
 
         # 返回标准响应格式
-        return {"data": db_entry}
+        return DataResponse[PayrollEntry](data=db_entry)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -1069,7 +1070,7 @@ def get_payroll_component_definition(
 
 @router.post(
     "/payroll-component-definitions",
-    response_model=Dict[str, PayrollComponentDefinition],
+    response_model=DataResponse[PayrollComponentDefinition],
     status_code=status.HTTP_201_CREATED,
     summary="创建薪资字段定义",
     description="创建新的薪资字段定义"
@@ -1093,7 +1094,7 @@ def create_payroll_component_definition(
 
 @router.put(
     "/payroll-component-definitions/{component_id}",
-    response_model=Dict[str, PayrollComponentDefinition],
+    response_model=DataResponse[PayrollComponentDefinition],
     summary="更新薪资字段定义",
     description="更新指定ID的薪资字段定义"
 )

@@ -202,11 +202,24 @@ const PayrollRunsPageV2: React.FC = () => {
 
   // 获取数据
   const fetchData = useCallback(async () => {
+    console.log('[PayrollRunsPageV2] 🚀 fetchData started at:', new Date().toISOString());
+    console.log('[PayrollRunsPageV2] 📊 Current loadingData state before setLoadingData(true):', loadingData);
     setLoadingData(true);
+    const fetchStartTime = Date.now();
+    
     try {
+      console.log('[PayrollRunsPageV2] 📡 Making API request to getPayrollRuns');
       const response = await getPayrollRuns({
         page: 1,
         size: 100,
+      });
+      
+      const fetchEndTime = Date.now();
+      console.log('[PayrollRunsPageV2] ⏱️ API call completed in', (fetchEndTime - fetchStartTime) / 1000, 'seconds');
+      console.log('[PayrollRunsPageV2] ✅ API response received:', {
+        hasData: !!response.data,
+        dataCount: response.data?.length || 0,
+        response
       });
       
       if (response.data) {
@@ -214,12 +227,23 @@ const PayrollRunsPageV2: React.FC = () => {
       } else {
         setDataSource([]);
       }
-    } catch (error) {
-      console.error('Failed to fetch payroll runs:', error);
+    } catch (error: any) {
+      const fetchEndTime = Date.now();
+      console.error('[PayrollRunsPageV2] ❌ Failed to fetch payroll runs after', (fetchEndTime - fetchStartTime) / 1000, 'seconds');
+      console.error('[PayrollRunsPageV2] ❌ Error details:', {
+        error,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      });
       message.error(t('runs_page.error_fetch_runs'));
       setDataSource([]);
     } finally {
+      console.log('[PayrollRunsPageV2] 🏁 fetchData completed, setting loadingData to false at:', new Date().toISOString());
+      console.log('[PayrollRunsPageV2] 📊 Current loadingData state before setLoadingData(false):', loadingData);
       setLoadingData(false);
+      console.log('[PayrollRunsPageV2] ✅ LoadingData should now be false');
     }
   }, [t]);
 
@@ -332,7 +356,7 @@ const PayrollRunsPageV2: React.FC = () => {
         loadingData={loadingData}
         permissions={permissions}
         lookupMaps={lookupMaps}
-        loadingLookups={true}
+        loadingLookups={loadingLookups}
         errorLookups={errorLookups}
         fetchData={fetchData}
         deleteItem={deleteItem}

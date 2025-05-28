@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Tag,
   Button,
@@ -38,9 +38,16 @@ import {
   P_PAYROLL_RUN_VIEW
 } from '../constants/payrollPermissions';
 
+// ✅ 调试开关：设置为true时使用模拟数据，跳过真实API调用
+const USE_MOCK_API = false; // 可以临时改为true进行调试
+
 const PayrollRunsPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common']);
-  console.log('[PayrollRunsPage] Rendering. Component instance created/re-rendered.');
+  console.log('[PayrollRunsPage] 🚀 Component rendering started');
+  console.log('[PayrollRunsPage] 📊 Translation function available:', !!t);
+  
+  const fetchCallCountRef = useRef(0);
+  
   const [runs, setRuns] = useState<PayrollRun[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -54,7 +61,37 @@ const PayrollRunsPage: React.FC = () => {
   const [form] = Form.useForm<PayrollRunFormData>();
   const navigate = useNavigate();
 
+  console.log('[PayrollRunsPage] 🔄 Current state:', {
+    runsCount: runs.length,
+    loading,
+    error,
+    meta,
+    isModalVisible,
+    modalLoading,
+    fetchCallCount: fetchCallCountRef.current
+  });
+
+  // ✅ 使用useRef保存最新值，避免依赖问题
+  const metaRef = useRef(meta);
+  const currentRunRef = useRef(currentRun);
+  
+  // 更新ref值
+  metaRef.current = meta;
+  currentRunRef.current = currentRun;
+
   const fetchRuns = useCallback(async (page = 1, pageSize = 10, payrollPeriodId?: number) => {
+    fetchCallCountRef.current += 1;
+    const fetchStartTime = Date.now();
+    console.log('[PayrollRunsPage] 🚨 fetchRuns call #', fetchCallCountRef.current, 'at', new Date().toISOString());
+    
+    // ✅ 检测潜在的无限循环
+    if (fetchCallCountRef.current > 10) {
+      console.error('[PayrollRunsPage] ❌ 检测到潜在的无限循环！fetchRuns调用次数超过10次');
+      return;
+    }
+    
+    console.log('[PayrollRunsPage] 📡 fetchRuns called with params:', { page, pageSize, payrollPeriodId });
+    console.log('[PayrollRunsPage] 📊 Current loading state before setLoading(true):', loading);
     setLoading(true);
     setError(null);
     try {
@@ -62,21 +99,80 @@ const PayrollRunsPage: React.FC = () => {
       if (payrollPeriodId) {
         params.payroll_period_id = payrollPeriodId;
       }
-      const response = await getPayrollRuns(params);
+      console.log('[PayrollRunsPage] 📡 Making API request to getPayrollRuns with params:', params);
+      console.log('[PayrollRunsPage] ⏱️ Starting API call at:', new Date().toISOString());
+      
+      let response;
+      
+      if (USE_MOCK_API) {
+        // ✅ 模拟API调用，用于调试
+        console.log('[PayrollRunsPage] 🎭 Using MOCK API data');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟1秒延迟
+        response = {
+          data: [
+            {
+              id: 1,
+              payroll_period_id: 1,
+              payroll_period: { 
+                id: 1, 
+                name: '2024年1月',
+                start_date: '2024-01-01',
+                end_date: '2024-01-31',
+                pay_date: '2024-02-05',
+                frequency_lookup_value_id: 101,
+                is_active: true
+              } as PayrollPeriod,
+              run_date: '2024-01-15',
+              status_lookup_value_id: 201,
+              total_employees: 10,
+              notes: '模拟数据测试',
+              created_at: '2024-01-01T00:00:00Z',
+              updated_at: '2024-01-01T00:00:00Z'
+            } as PayrollRun
+          ],
+          meta: { page: 1, size: 10, total: 1, totalPages: 1 }
+        };
+      } else {
+        // 真实API调用
+        response = await getPayrollRuns(params);
+      }
+      
+      const fetchEndTime = Date.now();
+      console.log('[PayrollRunsPage] ⏱️ API call completed in', (fetchEndTime - fetchStartTime) / 1000, 'seconds');
+      console.log('[PayrollRunsPage] ✅ API response received:', {
+        dataCount: response.data?.length || 0,
+        meta: response.meta,
+        fullResponse: response
+      });
       setRuns(response.data);
       setMeta(response.meta);
+      console.log('[PayrollRunsPage] 📋 State updated - runs count:', response.data?.length || 0);
     } catch (err: any) {
-      setError(err.message || t('runs_page.error_fetch_runs'));
+      const fetchEndTime = Date.now();
+      console.error('[PayrollRunsPage] ❌ API request failed after', (fetchEndTime - fetchStartTime) / 1000, 'seconds');
+      console.error('[PayrollRunsPage] ❌ API request failed:', {
+        error: err,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        timestamp: new Date().toISOString()
+      });
+      // 移除t函数的使用，使用固定字符串避免依赖问题
+      setError(err.message || 'Failed to fetch payroll runs');
       setRuns([]);
       setMeta(null);
     } finally {
+      console.log('[PayrollRunsPage] 🏁 fetchRuns completed, setting loading to false at:', new Date().toISOString());
+      console.log('[PayrollRunsPage] 📊 Current loading state before setLoading(false):', loading);
       setLoading(false);
+      console.log('[PayrollRunsPage] ✅ Loading state should now be false');
     }
-  }, [t]);
+  }, []); // ❌ 移除t依赖，避免无限重渲染
 
   useEffect(() => {
+    console.log('[PayrollRunsPage] 🔧 useEffect triggered, calling fetchRuns');
     fetchRuns();
-  }, [fetchRuns]);
+  }, []); // ✅ 确保只在组件挂载时执行一次，不依赖fetchRuns
 
   const showCreateModal = () => {
     setCurrentRun(null); 
@@ -126,41 +222,41 @@ const PayrollRunsPage: React.FC = () => {
     };
   
     try {
-      if (currentRun && currentRun.id) {
+      if (currentRunRef.current && currentRunRef.current.id) {
         const updatePayload: UpdatePayrollRunPayload = { ...commonPayload };
-        await updatePayrollRun(currentRun.id, updatePayload);
-        message.success(t('runs_page.message_update_success'));
+        await updatePayrollRun(currentRunRef.current.id, updatePayload);
+        message.success('Update successful');
       } else {
         const createPayload: CreatePayrollRunPayload = { ...commonPayload };
         await createPayrollRun(createPayload);
-        message.success(t('runs_page.message_create_success'));
+        message.success('Create successful');
       }
       handleModalCancel();
-      fetchRuns(meta?.page || 1, meta?.size || 10);
+      fetchRuns(metaRef.current?.page || 1, metaRef.current?.size || 10);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || (currentRun ? t('runs_page.error_update_failed') : t('runs_page.error_create_failed'));
+      const errorMessage = err.response?.data?.detail || err.message || (currentRunRef.current ? 'Update failed' : 'Create failed');
       setModalError(errorMessage);
       message.error(errorMessage);
     } finally {
       setModalLoading(false);
     }
-  }, [currentRun, meta, fetchRuns, handleModalCancel, t]);
+  }, [handleModalCancel]); // ✅ 只依赖稳定的handleModalCancel
 
   const handleDeleteRun = async (runId: number) => {
     Modal.confirm({
-      title: t('runs_page.popconfirm_delete_title'),
-      content: t('runs_page.popconfirm_delete_content'),
-      okText: t('runs_page.popconfirm_ok_text'),
+      title: 'Delete Confirmation',
+      content: 'Are you sure you want to delete this payroll run?',
+      okText: 'Delete',
       okType: 'danger',
-      cancelText: t('runs_page.popconfirm_cancel_text'),
+      cancelText: 'Cancel',
       onOk: async () => {
         try {
           setLoading(true);
           await deletePayrollRun(runId);
-          message.success(t('runs_page.message_delete_success'));
-          fetchRuns(meta?.page || 1, meta?.size || 10);
+          message.success('Delete successful');
+          fetchRuns(metaRef.current?.page || 1, metaRef.current?.size || 10);
         } catch (err: any) {
-          const errorMessage = err.response?.data?.detail || err.message || t('runs_page.error_delete_failed');
+          const errorMessage = err.response?.data?.detail || err.message || 'Delete failed';
           message.error(errorMessage);
           setError(errorMessage);
         } finally {
@@ -174,15 +270,15 @@ const PayrollRunsPage: React.FC = () => {
 
   const handleMarkAsPaid = async (run: PayrollRun) => {
     if (run.status_lookup_value_id === PAID_STATUS_ID) {
-      message.info(t('runs_page.message_already_paid'));
+      message.info('Already marked as paid');
       return;
     }
 
     Modal.confirm({
-      title: t('runs_page.popconfirm_mark_as_paid_title'),
-      content: t('runs_page.popconfirm_mark_as_paid_content', { runId: run.id }),
-      okText: t('runs_page.popconfirm_mark_as_paid_ok_text'),
-      cancelText: t('runs_page.popconfirm_cancel_text'),
+      title: 'Mark as Paid Confirmation',
+      content: `Are you sure you want to mark run ${run.id} as paid?`,
+      okText: 'Mark as Paid',
+      cancelText: 'Cancel',
       onOk: async () => {
         try {
           setLoading(true);
@@ -191,10 +287,10 @@ const PayrollRunsPage: React.FC = () => {
             paid_at: dayjs().toISOString(),
           };
           await updatePayrollRun(run.id, payload);
-          message.success(t('runs_page.message_mark_as_paid_success', { runId: run.id }));
-          fetchRuns(meta?.page || 1, meta?.size || 10);
+          message.success(`Run ${run.id} marked as paid successfully`);
+          fetchRuns(metaRef.current?.page || 1, metaRef.current?.size || 10);
         } catch (err: any) {
-          const errorMessage = err.response?.data?.detail || err.message || t('runs_page.error_mark_as_paid_failed');
+          const errorMessage = err.response?.data?.detail || err.message || 'Mark as paid failed';
           message.error(errorMessage);
           setError(errorMessage);
         } finally {
@@ -206,22 +302,22 @@ const PayrollRunsPage: React.FC = () => {
 
   const handleExportBankFile = async (run: PayrollRun) => {
     const exportMessageKey = `export-${run.id}`;
-    message.loading({ content: t('runs_page.message_exporting_bank_file', {runId: run.id}), key: exportMessageKey, duration: 0 });
+    message.loading({ content: `Exporting bank file for run ${run.id}...`, key: exportMessageKey, duration: 0 });
 
     try {
       const blob = await exportPayrollRunBankFile(run.id);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${t('runs_page.default_bank_export_filename_prefix')}${run.id}.csv`);
+      link.setAttribute('download', `payroll_run_${run.id}.csv`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-      message.success({ content: t('runs_page.message_export_bank_file_success', {runId: run.id}), key: exportMessageKey, duration: 3 });
+      message.success({ content: `Bank file for run ${run.id} exported successfully`, key: exportMessageKey, duration: 3 });
     } catch (err: any) {
-      const errorDetail = err.response?.data?.detail || err.message || t('runs_page.error_export_bank_file_failed_default');
-      message.error({ content: t('runs_page.error_export_bank_file_failed_prefix') + errorDetail, key: exportMessageKey, duration: 5 });
+      const errorDetail = err.response?.data?.detail || err.message || 'Export failed';
+      message.error({ content: 'Export bank file failed: ' + errorDetail, key: exportMessageKey, duration: 5 });
     }
   };
 
@@ -240,7 +336,7 @@ const PayrollRunsPage: React.FC = () => {
 
   const columns: ProColumns<PayrollRun>[] = React.useMemo(() => [
       {
-        title: t('runs_page.table.column.id'),
+        title: 'ID',
         dataIndex: 'id',
         key: 'id',
         sorter: (a: PayrollRun, b: PayrollRun) => a.id - b.id,
@@ -248,14 +344,14 @@ const PayrollRunsPage: React.FC = () => {
         valueType: 'digit',
       },
       {
-        title: t('runs_page.table.column.batch_name'),
+        title: 'Batch Name',
         key: 'batch_name',
         sorter: true,
         valueType: 'text',
         render: (_, record: PayrollRun) => generateRunName(record),
       },
       {
-        title: t('runs_page.table.column.payroll_period'),
+        title: 'Payroll Period',
         dataIndex: ['payroll_period', 'name'],
         key: 'payroll_period_name',
         sorter: true,
@@ -263,7 +359,7 @@ const PayrollRunsPage: React.FC = () => {
         render: (_, record: PayrollRun) => record.payroll_period?.name || record.payroll_period_id,
       },
       {
-        title: t('runs_page.table.column.run_date'),
+        title: 'Run Date',
         dataIndex: 'run_date',
         key: 'run_date',
         sorter: (a: PayrollRun, b: PayrollRun) => dayjs(a.run_date).unix() - dayjs(b.run_date).unix(),
@@ -271,18 +367,18 @@ const PayrollRunsPage: React.FC = () => {
         render: (_, record: PayrollRun) => dayjs(record.run_date).format('YYYY-MM-DD'),
       },
       {
-        title: t('runs_page.table.column.status'),
+        title: 'Status',
         dataIndex: 'status_lookup_value_id',
         key: 'status',
         sorter: true,
         valueType: 'select',
         render: (_, record: PayrollRun) => {
           const statusInfo = getPayrollRunStatusInfo(record.status_lookup_value_id);
-          return <Tag color={statusInfo.color}>{t(statusInfo.key, statusInfo.params)}</Tag>;
+          return <Tag color={statusInfo.color}>{statusInfo.key}</Tag>;
         },
       },
       {
-        title: t('runs_page.table.column.employee_count'),
+        title: 'Employee Count',
         dataIndex: 'total_employees',
         key: 'employee_count',
         sorter: (a: PayrollRun, b: PayrollRun) => (a.total_employees || 0) - (b.total_employees || 0),
@@ -290,7 +386,7 @@ const PayrollRunsPage: React.FC = () => {
         render: (_, record: PayrollRun) => record.total_employees || 0,
       },
       {
-        title: t('runs_page.table.column.notes'),
+        title: 'Notes',
         dataIndex: 'notes',
         key: 'notes',
         sorter: true,
@@ -298,7 +394,7 @@ const PayrollRunsPage: React.FC = () => {
         valueType: 'text',
       },
       {
-        title: t('runs_page.table.column.actions'),
+        title: 'Actions',
         key: 'actions',
         align: 'center',
         valueType: 'option',
@@ -308,21 +404,21 @@ const PayrollRunsPage: React.FC = () => {
                 <TableActionButton 
                   actionType="view" 
                   onClick={() => handleViewDetails(record.id)} 
-                  tooltipTitle={t('runs_page.table.action_details')}
+                  tooltipTitle="View Details"
                 />
             </PermissionGuard>
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <TableActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle={t('runs_page.tooltip.edit_run')} />
+              <TableActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle="Edit Run" />
             </PermissionGuard>
             <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <TableActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle={t('runs_page.tooltip.delete_run')} />
+              <TableActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle="Delete Run" />
             </PermissionGuard>
             {record.status_lookup_value_id !== PAID_STATUS_ID && (
               <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MARK_AS_PAID]}>
                   <TableActionButton
                       actionType="approve"
                       onClick={() => handleMarkAsPaid(record)}
-                      tooltipTitle={t('runs_page.button.mark_as_paid')}
+                      tooltipTitle="Mark as Paid"
                   />
               </PermissionGuard>
             )}
@@ -330,17 +426,17 @@ const PayrollRunsPage: React.FC = () => {
               <TableActionButton
                 actionType="download"
                 onClick={() => handleExportBankFile(record)}
-                tooltipTitle={t('runs_page.button.export_bank_file')}
+                tooltipTitle="Export Bank File"
               />
             </PermissionGuard>
           </Space>
         ),
       },
-    ], [PAID_STATUS_ID, t, handleViewDetails, showEditModal, handleDeleteRun, handleMarkAsPaid, handleExportBankFile]);
+    ], [PAID_STATUS_ID, handleViewDetails, showEditModal, handleDeleteRun, handleMarkAsPaid, handleExportBankFile]); // ✅ 移除t依赖
 
   return (
     <PageLayout
-      title={t('runs_page.title')}
+      title="Payroll Runs"
       
       actions={
         <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
@@ -350,12 +446,12 @@ const PayrollRunsPage: React.FC = () => {
             onClick={showCreateModal}
             shape="round"
           >
-            {t('runs_page.button.create_run')}
+            Create New Run
           </Button>
         </PermissionGuard>
       }
     >
-      {error && <Alert message={`${t('runs_page.alert_error_prefix')}${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
+      {error && <Alert message={`Error: ${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
       
       <EnhancedProTable<PayrollRun>
         columns={columns}
@@ -378,22 +474,24 @@ const PayrollRunsPage: React.FC = () => {
       />
 
       <Modal
-        title={currentRun ? t('runs_page.modal_title_edit') : t('runs_page.modal_title_create')}
+        title={currentRun ? 'Edit Payroll Run' : 'Create New Payroll Run'}
         open={isModalVisible}
         onCancel={handleModalCancel}
         confirmLoading={modalLoading} 
         footer={null} 
-        destroyOnHidden
+        destroyOnClose={true}
         width={650} 
       >
-        {modalError && <Alert message={`${t('runs_page.alert_modal_error_prefix')}${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}
-        <PayrollRunForm
-          form={form}
-          onFinish={handleFormFinish}
-          initialValues={currentRun ? { ...currentRun, employee_ids_str: currentRun.employee_ids?.join(', ') } : {}}
-          loading={modalLoading} 
-          isEditMode={!!currentRun}
-        />
+        {modalError && <Alert message={`Modal Error: ${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}
+        {isModalVisible && (
+          <PayrollRunForm
+            form={form}
+            onFinish={handleFormFinish}
+            initialValues={currentRun ? { ...currentRun, employee_ids_str: currentRun.employee_ids?.join(', ') } : {}}
+            loading={modalLoading} 
+            isEditMode={!!currentRun}
+          />
+        )}
       </Modal>
     </PageLayout>
   );

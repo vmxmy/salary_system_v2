@@ -118,10 +118,54 @@ export const getPayrollRuns = async (params?: {
   sort_order?: 'asc' | 'desc';
 }): Promise<ApiListResponse<PayrollRun>> => {
   try {
-    const response = await apiClient.get<ApiListResponse<PayrollRun>>(PAYROLL_RUNS_ENDPOINT, { params });
+    console.log('[payrollApi.ts] 📡 getPayrollRuns called with params:', params);
+    console.log('[payrollApi.ts] 📡 Request URL:', `${apiClient.defaults.baseURL}${PAYROLL_RUNS_ENDPOINT}`);
+    
+    // ✅ 添加超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.error('[payrollApi.ts] ⏱️ API request timeout after 30 seconds');
+      controller.abort();
+    }, 30000); // 30秒超时
+    
+    const response = await apiClient.get<ApiListResponse<PayrollRun>>(PAYROLL_RUNS_ENDPOINT, { 
+      params,
+      signal: controller.signal 
+    });
+    
+    clearTimeout(timeoutId); // 清除超时计时器
+    
+    console.log('[payrollApi.ts] ✅ getPayrollRuns response:', {
+      status: response.status,
+      statusText: response.statusText,
+      dataCount: response.data.data?.length || 0,
+      meta: response.data.meta,
+      data: response.data.data
+    });
+    
     return response.data;
-  } catch (error) {
-    console.error('Error fetching payroll runs:', error);
+  } catch (error: any) {
+    // ✅ 更详细的错误处理
+    if (error.name === 'AbortError') {
+      console.error('[payrollApi.ts] ❌ getPayrollRuns request aborted (timeout)');
+      throw new Error('API request timeout - please check your network connection');
+    } else if (error.response) {
+      // 服务器返回了错误响应
+      console.error('[payrollApi.ts] ❌ getPayrollRuns server error:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+    } else if (error.request) {
+      // 请求已发送但没有收到响应
+      console.error('[payrollApi.ts] ❌ getPayrollRuns no response received:', error.request);
+    } else {
+      // 设置请求时发生错误
+      console.error('[payrollApi.ts] ❌ getPayrollRuns request setup error:', error.message);
+    }
+    
+    console.error('[payrollApi.ts] ❌ getPayrollRuns full error:', error);
     throw error;
   }
 };

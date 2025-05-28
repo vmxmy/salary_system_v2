@@ -3,10 +3,11 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Path
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any, List
+from typing import Optional, List
 from datetime import datetime
-
 import logging
+
+# Set up logging for this module
 logger = logging.getLogger(__name__)
 
 from webapp.v2.database import get_db_v2
@@ -15,18 +16,9 @@ from webapp.v2.pydantic_models.hr import (
     EmployeeCreate, EmployeeUpdate, Employee as EmployeeResponseSchema, 
     EmployeeListResponse, EmployeeWithNames, BulkEmployeeCreateResult, BulkEmployeeFailedRecord
 )
+from webapp.v2.pydantic_models.common import DataResponse
 from webapp import auth
-from webapp.v2.pydantic_models import security as v2_security_schemas
 from webapp.v2.utils import create_error_response
-from fastapi.security import HTTPAuthorizationCredentials
-
-# For Test 8 (Commented out as it's old test code)
-# def local_factory_using_imported_get_current_user(required_permission: str = "P_EMPLOYEE_VIEW_DETAIL"): 
-# ... (rest of old Test 8 code commented or removed)
-
-# For Test 11: Simplified local factory (Commented out as it's old test code)
-# def simplified_local_permission_factory():
-# ... (rest of old Test 11 code commented or removed)
 
 router = APIRouter(
     prefix="/employees",
@@ -183,61 +175,69 @@ async def get_employees(
         )
 
 
-@router.get("/{employee_id}", response_model=EmployeeResponseSchema)
+@router.get("/{employee_id}", response_model=DataResponse[EmployeeResponseSchema])
 async def get_employee(
     employee_id: int = Path(..., title="The ID of the employee to get", ge=1),
     db: Session = Depends(get_db_v2),
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(auth.bearer_scheme)
+    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_VIEW_DETAIL"]))
 ):
-    logger.info(f"$$$ DIRECT DEPENDENCY TEST: get_employee ROUTE for id: {employee_id} entered.")
-    
-    # Directly call the explicit auth check function from auth.py
-    current_user = await auth.explicit_auth_check(
-        db=db,
-        credentials=creds,
-        required_permissions=["P_EMPLOYEE_VIEW_DETAIL"]
-    )
+    """
+    根据ID获取员工详情。
 
-    # logger.info(f"$$$ DIRECT DEPENDENCY TEST: User '{current_user.username}' authenticated by explicit_auth_check. Permissions: {current_user.all_permission_codes}")
+    - **employee_id**: 员工ID
+    """
+    try:
+        employee_orm = v2_hr_crud.get_employee(db=db, employee_id=employee_id)
+        
+        if employee_orm is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail=create_error_response(
+                    status_code=404,
+                    message="Not Found",
+                    details=f"Employee with ID {employee_id} not found"
+                )
+            )
 
-    employee_orm = v2_hr_crud.get_employee(db=db, employee_id=employee_id)
-    
-    if employee_orm is None:
-        # logger.warning(f"DIRECT DEPENDENCY TEST: Employee with ID {employee_id} not found in DB.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with id {employee_id} not found")
-    
-    # logger.info(f"DIRECT DEPENDENCY TEST: Employee {employee_id} ({employee_orm.first_name} {employee_orm.last_name}) found. Preparing details.")
+        # Initialize data from ORM model
+        employee_data_for_response = EmployeeResponseSchema.model_validate(employee_orm).model_dump()
 
-    # Initialize data from ORM model, Pydantic will pick up matching fields
-    # The EmployeeResponseSchema (aliased as Employee) already has bank_name and bank_account_number as Optional fields.
-    employee_data_for_response = EmployeeResponseSchema.model_validate(employee_orm).model_dump()
+        # Fetch and add bank account details
+        primary_bank_account_orm = None
+        if employee_orm.bank_accounts:
+            # Find the primary bank account
+            for acc_orm in employee_orm.bank_accounts:
+                if acc_orm.is_primary:
+                    primary_bank_account_orm = acc_orm
+                    break
+            if not primary_bank_account_orm and employee_orm.bank_accounts:
+                primary_bank_account_orm = employee_orm.bank_accounts[0]
 
-    # Fetch and add bank account details
-    primary_bank_account_orm = None
-    if employee_orm.bank_accounts: # This is the relationship field on Employee ORM model
-        # Attempt to find the primary bank account
-        for acc_orm in employee_orm.bank_accounts:
-            if acc_orm.is_primary:
-                primary_bank_account_orm = acc_orm
-                break
-        if not primary_bank_account_orm and employee_orm.bank_accounts: # If no primary, take the first one
-            primary_bank_account_orm = employee_orm.bank_accounts[0]
+        if primary_bank_account_orm:
+            employee_data_for_response['bank_name'] = primary_bank_account_orm.bank_name
+            employee_data_for_response['bank_account_number'] = primary_bank_account_orm.account_number
+        else:
+            employee_data_for_response['bank_name'] = None
+            employee_data_for_response['bank_account_number'] = None
 
-    if primary_bank_account_orm:
-        # logger.info(f"Found bank account for employee {employee_id}: Name='{primary_bank_account_orm.bank_name}', Number='{primary_bank_account_orm.account_number}'")
-        employee_data_for_response['bank_name'] = primary_bank_account_orm.bank_name
-        employee_data_for_response['bank_account_number'] = primary_bank_account_orm.account_number
-    else:
-        # logger.info(f"No bank account found or no primary bank account for employee {employee_id}. Bank details will be null.")
-        # Ensure these are explicitly None if not found, though Pydantic model optionality should handle it.
-        employee_data_for_response['bank_name'] = None
-        employee_data_for_response['bank_account_number'] = None
+        # 创建EmployeeResponseSchema实例并返回标准响应格式
+        employee_response = EmployeeResponseSchema(**employee_data_for_response)
+        return DataResponse[EmployeeResponseSchema](data=employee_response)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving employee {employee_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details="An error occurred while retrieving employee information"
+            )
+        )
 
-    # logger.info(f"Returning employee data for employee {employee_id}: {employee_data_for_response}")
-    return employee_data_for_response
 
-
-@router.post("/", response_model=Dict[str, EmployeeResponseSchema], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=DataResponse[EmployeeResponseSchema], status_code=status.HTTP_201_CREATED)
 async def create_employee(
     employee: EmployeeCreate,
     db: Session = Depends(get_db_v2),
@@ -247,13 +247,14 @@ async def create_employee(
     创建新员工。
     
     - 需要SUPER_ADMIN或HR_ADMIN角色
+    - 严格用于创建新员工，如需更新现有员工请使用PUT /{employee_id}接口
     """
     try:
         # 创建员工
         db_employee = v2_hr_crud.create_employee(db, employee)
         
         # 返回标准响应格式
-        return {"data": db_employee}
+        return DataResponse[EmployeeResponseSchema](data=db_employee)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -354,7 +355,7 @@ async def create_bulk_employees_api(
         )
 
 
-@router.put("/{employee_id}", response_model=Dict[str, EmployeeResponseSchema])
+@router.put("/{employee_id}", response_model=DataResponse[EmployeeResponseSchema])
 async def update_employee(
     employee_id: int,
     employee: EmployeeUpdate,
@@ -386,7 +387,7 @@ async def update_employee(
             )
         
         # 返回标准响应格式
-        return {"data": db_employee}
+        return DataResponse[EmployeeResponseSchema](data=db_employee)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(

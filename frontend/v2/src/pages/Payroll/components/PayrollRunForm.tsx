@@ -58,20 +58,36 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
   const [periodsError, setPeriodsError] = useState<string | null>(null);
 
   const fetchPeriodsForSelect = useCallback(async () => {
+    console.log('[PayrollRunForm] 📡 fetchPeriodsForSelect started');
     setLoadingPeriods(true);
     setPeriodsError(null);
     try {
       // Fetch all active/open periods, or a reasonable subset for selection
+      console.log('[PayrollRunForm] 📡 Making API request to getPayrollPeriods with size: 100');
       const response = await getPayrollPeriods({ size: 100 }); // 符合后端API限制
+      console.log('[PayrollRunForm] ✅ getPayrollPeriods API response:', {
+        dataCount: response.data?.length || 0,
+        data: response.data,
+        meta: response.meta
+      });
       setPayrollPeriods(response.data);
+      console.log('[PayrollRunForm] 📋 PayrollPeriods state updated with count:', response.data?.length || 0);
     } catch (err: any) {
-      const errorMessage = t('payroll_run_form.error.load_periods_failed_with_message', { message: err.message });
-      setPeriodsError(t('payroll_run_form.error.load_periods_failed'));
+      console.error('[PayrollRunForm] ❌ getPayrollPeriods API failed:', {
+        error: err,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      // 使用固定错误信息，避免t函数依赖问题
+      const errorMessage = 'Failed to load payroll periods: ' + (err.message || 'Unknown error');
+      setPeriodsError('Failed to load payroll periods');
       message.error(errorMessage);
     } finally {
+      console.log('[PayrollRunForm] 🏁 fetchPeriodsForSelect completed, setting loadingPeriods to false');
       setLoadingPeriods(false);
     }
-  }, [t]);
+  }, []); // ✅ 移除t依赖，避免无限重渲染
 
   useEffect(() => {
     fetchPeriodsForSelect();

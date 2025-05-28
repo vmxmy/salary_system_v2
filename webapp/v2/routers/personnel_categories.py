@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any, List
 from ..database import get_db_v2
 from ..crud import hr as crud
 from ..pydantic_models.hr import PersonnelCategoryCreate, PersonnelCategoryUpdate, PersonnelCategorySchema, PersonnelCategoryListResponse
+from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
 from ..utils import create_error_response
 from ..models.hr import PersonnelCategory
@@ -76,52 +77,43 @@ async def get_personnel_categories(
         )
 
 
-@router.get("/tree", response_model=Dict[str, List[PersonnelCategorySchema]])
+@router.get("/tree", response_model=DataResponse[List[PersonnelCategorySchema]])
 async def get_personnel_categories_tree(
     is_active: Optional[bool] = None,
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_VIEW"]))
 ):
     """
-    获取人员类别的完整树形结构，不分页。
+    获取人员类别的树形结构。
 
-    - **is_active**: 是否激活，用于过滤激活或未激活的人员类别
-    
-    返回值：
-    - data: 包含根节点（parent_category_id为NULL）的人员类别树形结构列表
+    - **is_active**: 是否只获取活跃的人员类别
     """
     try:
-        # 使用递归构建树形结构
+        # 递归构建树形结构
         def build_category_tree(parent_id: Optional[int] = None) -> List[PersonnelCategorySchema]:
-            """递归构建人员类别树"""
-            # 查询当前层级的人员类别
-            query = db.query(PersonnelCategory).filter(
-                PersonnelCategory.parent_category_id == parent_id
+            categories, _ = crud.get_personnel_categories(
+                db=db,
+                parent_id=parent_id,
+                is_active=is_active,
+                skip=0,
+                limit=1000  # 假设不会有超过1000个同级类别
             )
             
-            if is_active is not None:
-                query = query.filter(PersonnelCategory.is_active == is_active)
-            
-            # 按名称排序
-            categories = query.order_by(PersonnelCategory.name).all()
-            
-            result = []
+            tree_categories = []
             for category in categories:
-                # 转换为 Pydantic 模型
-                category_dict = PersonnelCategorySchema.model_validate(category)
-                
                 # 递归获取子类别
-                category_dict.child_categories = build_category_tree(category.id)
-                
-                result.append(category_dict)
+                children = build_category_tree(category.id)
+                # 创建包含子类别的PersonnelCategorySchema
+                category_dict = category.__dict__.copy()
+                category_dict['child_categories'] = children
+                tree_categories.append(PersonnelCategorySchema(**category_dict))
             
-            return result
-        
-        # 从根节点开始构建树
-        tree_data = build_category_tree(parent_id=None)
+            return tree_categories
+
+        tree_data = build_category_tree()
         
         # 返回标准响应格式
-        return {"data": tree_data}
+        return DataResponse[List[PersonnelCategorySchema]](data=tree_data)
         
     except Exception as e:
         # 返回标准错误响应格式
@@ -135,7 +127,7 @@ async def get_personnel_categories_tree(
         )
 
 
-@router.get("/{personnel_category_id}", response_model=Dict[str, PersonnelCategorySchema])
+@router.get("/{personnel_category_id}", response_model=DataResponse[PersonnelCategorySchema])
 async def get_personnel_category(
     personnel_category_id: int,
     db: Session = Depends(get_db_v2),
@@ -161,7 +153,7 @@ async def get_personnel_category(
             )
 
         # 返回标准响应格式
-        return {"data": personnel_category}
+        return DataResponse[PersonnelCategorySchema](data=personnel_category)
     except HTTPException:
         raise
     except Exception as e:
@@ -176,7 +168,7 @@ async def get_personnel_category(
         )
 
 
-@router.post("/", response_model=Dict[str, PersonnelCategorySchema], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=DataResponse[PersonnelCategorySchema], status_code=status.HTTP_201_CREATED)
 async def create_personnel_category(
     personnel_category: PersonnelCategoryCreate,
     db: Session = Depends(get_db_v2),
@@ -192,7 +184,7 @@ async def create_personnel_category(
         db_personnel_category = crud.create_personnel_category(db, personnel_category)
 
         # 返回标准响应格式
-        return {"data": db_personnel_category}
+        return DataResponse[PersonnelCategorySchema](data=db_personnel_category)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -215,7 +207,7 @@ async def create_personnel_category(
         )
 
 
-@router.put("/{personnel_category_id}", response_model=Dict[str, PersonnelCategorySchema])
+@router.put("/{personnel_category_id}", response_model=DataResponse[PersonnelCategorySchema])
 async def update_personnel_category(
     personnel_category_id: int,
     personnel_category: PersonnelCategoryUpdate,
@@ -243,7 +235,7 @@ async def update_personnel_category(
             )
 
         # 返回标准响应格式
-        return {"data": db_personnel_category}
+        return DataResponse[PersonnelCategorySchema](data=db_personnel_category)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(

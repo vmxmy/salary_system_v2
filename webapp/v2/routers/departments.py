@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any
 from ..database import get_db_v2
 from ..crud import hr as crud
 from ..pydantic_models.hr import DepartmentCreate, DepartmentUpdate, Department, DepartmentListResponse
+from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
 from ..utils import create_error_response
 
@@ -75,7 +76,7 @@ async def get_departments(
         )
 
 
-@router.get("/{department_id}", response_model=Dict[str, Department])
+@router.get("/{department_id}", response_model=DataResponse[Department])
 async def get_department(
     department_id: int,
     db: Session = Depends(get_db_v2),
@@ -101,7 +102,7 @@ async def get_department(
             )
         
         # 返回标准响应格式
-        return {"data": department}
+        return DataResponse[Department](data=department)
     except HTTPException:
         raise
     except Exception as e:
@@ -116,7 +117,7 @@ async def get_department(
         )
 
 
-@router.post("/", response_model=Dict[str, Department], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=DataResponse[Department], status_code=status.HTTP_201_CREATED)
 async def create_department(
     department: DepartmentCreate,
     db: Session = Depends(get_db_v2),
@@ -132,7 +133,7 @@ async def create_department(
         db_department = crud.create_department(db, department)
         
         # 返回标准响应格式
-        return {"data": db_department}
+        return DataResponse[Department](data=db_department)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -155,7 +156,7 @@ async def create_department(
         )
 
 
-@router.put("/{department_id}", response_model=Dict[str, Department])
+@router.put("/{department_id}", response_model=DataResponse[Department])
 async def update_department(
     department_id: int,
     department: DepartmentUpdate,
@@ -183,7 +184,7 @@ async def update_department(
             )
         
         # 返回标准响应格式
-        return {"data": db_department}
+        return DataResponse[Department](data=db_department)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(

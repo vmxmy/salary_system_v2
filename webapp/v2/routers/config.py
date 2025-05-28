@@ -19,6 +19,7 @@ from ..pydantic_models.config import (
 )
 # 从payroll模块导入PayrollComponentDefinition
 from ..pydantic_models.payroll import PayrollComponentDefinition
+from ..pydantic_models.common import DataResponse
 from ..pydantic_models.security import User
 from ...auth import get_current_user, require_permissions
 from ..utils import create_error_response
@@ -82,7 +83,7 @@ async def get_system_parameters(
         )
 
 
-@router.get("/parameters/{parameter_id}", response_model=Dict[str, SystemParameter])
+@router.get("/parameters/{parameter_id}", response_model=DataResponse[SystemParameter])
 async def get_system_parameter(
     parameter_id: str,
     db: Session = Depends(get_db_v2),
@@ -115,7 +116,7 @@ async def get_system_parameter(
             )
 
         # 返回标准响应格式
-        return {"data": parameter}
+        return DataResponse[SystemParameter](data=parameter)
     except HTTPException:
         raise
     except Exception as e:
@@ -130,7 +131,7 @@ async def get_system_parameter(
         )
 
 
-@router.post("/parameters", response_model=Dict[str, SystemParameter], status_code=status.HTTP_201_CREATED)
+@router.post("/parameters", response_model=DataResponse[SystemParameter], status_code=status.HTTP_201_CREATED)
 async def create_system_parameter(
     parameter: SystemParameterCreate,
     db: Session = Depends(get_db_v2),
@@ -146,7 +147,7 @@ async def create_system_parameter(
         db_parameter = crud.create_system_parameter(db, parameter)
 
         # 返回标准响应格式
-        return {"data": db_parameter}
+        return DataResponse[SystemParameter](data=db_parameter)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -169,7 +170,7 @@ async def create_system_parameter(
         )
 
 
-@router.put("/parameters/{parameter_id}", response_model=Dict[str, SystemParameter])
+@router.put("/parameters/{parameter_id}", response_model=DataResponse[SystemParameter])
 async def update_system_parameter(
     parameter_id: str,
     parameter: SystemParameterUpdate,
@@ -213,7 +214,7 @@ async def update_system_parameter(
             )
 
         # 返回标准响应格式
-        return {"data": db_parameter}
+        return DataResponse[SystemParameter](data=db_parameter)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -295,7 +296,7 @@ async def delete_system_parameter(
 
 
 # PayrollComponentDefinition endpoints
-@router.get("/payroll-components", response_model=PayrollComponentDefinitionListResponse)
+@router.get("/payroll-component-definitions", response_model=PayrollComponentDefinitionListResponse)
 async def get_payroll_components(
     component_type: Optional[str] = None,
     is_active: Optional[bool] = None,
@@ -355,7 +356,7 @@ async def get_payroll_components(
         )
 
 
-@router.get("/payroll-components/{component_id}", response_model=Dict[str, PayrollComponentDefinition])
+@router.get("/payroll-component-definitions/{component_id}", response_model=DataResponse[PayrollComponentDefinition])
 async def get_payroll_component(
     component_id: int,
     db: Session = Depends(get_db_v2),
@@ -381,7 +382,7 @@ async def get_payroll_component(
             )
 
         # 返回标准响应格式
-        return {"data": component}
+        return DataResponse[PayrollComponentDefinition](data=component)
     except HTTPException:
         raise
     except Exception as e:
@@ -396,7 +397,7 @@ async def get_payroll_component(
         )
 
 
-@router.post("/payroll-components", response_model=Dict[str, PayrollComponentDefinition], status_code=status.HTTP_201_CREATED)
+@router.post("/payroll-component-definitions", response_model=DataResponse[PayrollComponentDefinition], status_code=status.HTTP_201_CREATED)
 async def create_payroll_component(
     component: PayrollComponentDefinitionCreate,
     db: Session = Depends(get_db_v2),
@@ -415,7 +416,7 @@ async def create_payroll_component(
         db_component = crud.create_payroll_component_definition(db, component_data)
 
         # 返回标准响应格式
-        return {"data": db_component}
+        return DataResponse[PayrollComponentDefinition](data=db_component)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -438,7 +439,7 @@ async def create_payroll_component(
         )
 
 
-@router.put("/payroll-components/{component_id}", response_model=Dict[str, PayrollComponentDefinition])
+@router.put("/payroll-component-definitions/{component_id}", response_model=DataResponse[PayrollComponentDefinition])
 async def update_payroll_component(
     component_id: int,
     component: PayrollComponentDefinitionUpdate,
@@ -471,7 +472,7 @@ async def update_payroll_component(
             )
 
         # 返回标准响应格式
-        return {"data": updated_component}
+        return DataResponse[PayrollComponentDefinition](data=updated_component)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -496,7 +497,7 @@ async def update_payroll_component(
         )
 
 
-@router.delete("/payroll-components/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/payroll-component-definitions/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_payroll_component(
     component_id: int,
     db: Session = Depends(get_db_v2),
@@ -610,7 +611,7 @@ async def get_tax_brackets(
         )
 
 
-@router.get("/tax-brackets/{bracket_id}", response_model=Dict[str, TaxBracket])
+@router.get("/tax-brackets/{bracket_id}", response_model=DataResponse[TaxBracket])
 async def get_tax_bracket(
     bracket_id: int,
     db: Session = Depends(get_db_v2),
@@ -636,7 +637,7 @@ async def get_tax_bracket(
             )
 
         # 返回标准响应格式
-        return {"data": tax_bracket}
+        return DataResponse[TaxBracket](data=tax_bracket)
     except HTTPException:
         raise
     except Exception as e:
@@ -651,7 +652,7 @@ async def get_tax_bracket(
         )
 
 
-@router.post("/tax-brackets", response_model=Dict[str, TaxBracket], status_code=status.HTTP_201_CREATED)
+@router.post("/tax-brackets", response_model=DataResponse[TaxBracket], status_code=status.HTTP_201_CREATED)
 async def create_tax_bracket(
     tax_bracket: TaxBracketCreate,
     db: Session = Depends(get_db_v2),
@@ -667,7 +668,7 @@ async def create_tax_bracket(
         db_tax_bracket = crud.create_tax_bracket(db, tax_bracket)
 
         # 返回标准响应格式
-        return {"data": db_tax_bracket}
+        return DataResponse[TaxBracket](data=db_tax_bracket)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -690,7 +691,7 @@ async def create_tax_bracket(
         )
 
 
-@router.put("/tax-brackets/{bracket_id}", response_model=Dict[str, TaxBracket])
+@router.put("/tax-brackets/{bracket_id}", response_model=DataResponse[TaxBracket])
 async def update_tax_bracket(
     bracket_id: int,
     tax_bracket: TaxBracketUpdate,
@@ -718,7 +719,7 @@ async def update_tax_bracket(
             )
 
         # 返回标准响应格式
-        return {"data": db_tax_bracket}
+        return DataResponse[TaxBracket](data=db_tax_bracket)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -870,7 +871,7 @@ async def get_social_security_rates(
         )
 
 
-@router.get("/social-security-rates/{rate_id}", response_model=Dict[str, SocialSecurityRate])
+@router.get("/social-security-rates/{rate_id}", response_model=DataResponse[SocialSecurityRate])
 async def get_social_security_rate(
     rate_id: int,
     db: Session = Depends(get_db_v2),
@@ -896,7 +897,7 @@ async def get_social_security_rate(
             )
 
         # 返回标准响应格式
-        return {"data": rate}
+        return DataResponse[SocialSecurityRate](data=rate)
     except HTTPException:
         raise
     except Exception as e:
@@ -911,7 +912,7 @@ async def get_social_security_rate(
         )
 
 
-@router.post("/social-security-rates", response_model=Dict[str, SocialSecurityRate], status_code=status.HTTP_201_CREATED)
+@router.post("/social-security-rates", response_model=DataResponse[SocialSecurityRate], status_code=status.HTTP_201_CREATED)
 async def create_social_security_rate(
     rate: SocialSecurityRateCreate,
     db: Session = Depends(get_db_v2),
@@ -927,7 +928,7 @@ async def create_social_security_rate(
         db_rate = crud.create_social_security_rate(db, rate)
 
         # 返回标准响应格式
-        return {"data": db_rate}
+        return DataResponse[SocialSecurityRate](data=db_rate)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -950,7 +951,7 @@ async def create_social_security_rate(
         )
 
 
-@router.put("/social-security-rates/{rate_id}", response_model=Dict[str, SocialSecurityRate])
+@router.put("/social-security-rates/{rate_id}", response_model=DataResponse[SocialSecurityRate])
 async def update_social_security_rate(
     rate_id: int,
     rate: SocialSecurityRateUpdate,
@@ -978,7 +979,7 @@ async def update_social_security_rate(
             )
 
         # 返回标准响应格式
-        return {"data": db_rate}
+        return DataResponse[SocialSecurityRate](data=db_rate)
     except ValueError as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -1054,77 +1055,6 @@ async def delete_social_security_rate(
             )
         )
 
-
-@router.get(
-    "/v2/payroll-component-definitions",
-    response_model=PayrollComponentDefinitionListResponse,
-    summary="获取薪资字段定义列表",
-    description="获取所有薪资字段定义，支持按类型和启用状态过滤，以及自定义排序"
-)
-def get_payroll_component_definitions(
-    type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
-    is_enabled: Optional[bool] = Query(None, description="是否启用"),
-    search: Optional[str] = Query(None, description="搜索关键字，可匹配代码、名称或描述"),
-    sort_by: str = Query("display_order", description="排序字段"),
-    sort_order: str = Query("asc", description="排序方向，asc或desc"),
-    page: int = Query(1, ge=1, description="页码"),
-    size: int = Query(10, ge=1, le=100, description="每页记录数"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_v2)
-):
-    """
-    获取薪资字段定义列表，支持分页、过滤和排序
-    """
-    # 调整数据库字段与API字段的映射
-    db_sort_by = sort_by
-    if sort_by == "sort_order":
-        db_sort_by = "display_order"
-    elif sort_by == "is_enabled":
-        db_sort_by = "is_active"
-        
-    # 调用CRUD方法获取数据
-    result = crud.get_payroll_component_definitions(
-        db=db,
-        component_type=type,
-        is_active=is_enabled,
-        search=search,
-        sort_by=db_sort_by,
-        sort_order=sort_order,
-        skip=(page - 1) * size,
-        limit=size
-    )
-    
-    # 处理返回数据，将数据库模型映射为前端期望的格式
-    data = []
-    for item in result["data"]:
-        data.append(
-            PayrollComponentDefinition.model_validate(item)
-        )
-    
-    return {
-        "data": data,
-        "meta": result["meta"]
-    }
-
-@router.get(
-    "/v2/payroll-component-definitions/{component_id}",
-    response_model=PayrollComponentDefinition,
-    summary="获取单个薪资字段定义",
-    description="根据ID获取特定薪资字段定义的详细信息"
-)
-def get_payroll_component_definition(
-    component_id: int = Path(..., description="薪资字段定义ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_v2)
-):
-    """
-    获取特定薪资字段定义
-    """
-    component = crud.get_payroll_component_definition_by_id(db, component_id)
-    if not component:
-        raise HTTPException(status_code=404, detail="薪资字段定义不存在")
-    
-    return PayrollComponentDefinition.model_validate(component)
 
 # 添加获取薪资字段类型的API端点
 @router.get("/payroll-component-types", response_model=LookupValueListResponse)
