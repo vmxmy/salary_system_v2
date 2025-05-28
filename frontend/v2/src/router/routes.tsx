@@ -8,8 +8,10 @@ import i18n from '../i18n'; // Import i18n instance
 
 // 导入页面组件
 import LoginPage from '../pages/LoginPage';
-// import DashboardPage from '../pages/Dashboard'; // Original
-const DashboardPage = lazy(() => import('../pages/Dashboard'));
+// Legacy Dashboard (旧版仪表盘)
+const DashboardPageLegacy = lazy(() => import('../pages/Dashboard'));
+// New optimized Dashboard V3 (新版优化仪表盘)
+const DashboardV3 = lazy(() => import('../pages/Dashboard/DashboardV3'));
 import UsersPageV2 from '../pages/Admin/UsersV2';
 import RolesPageV2 from '../pages/Admin/RolesV2';
 import PermissionListPageV2 from '../pages/Admin/Permissions/PermissionListPageV2';
@@ -42,8 +44,6 @@ const DepartmentsPage = lazy(() => import('../pages/Admin/Organization/Departmen
 
 // Lazy load the new bulk import page
 const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
-
-
 
 // RouteObject 本身就包含 element, path, children, index
 // 我们将 meta 附加到自定义的 RouteConfig 上
@@ -82,8 +82,13 @@ export const routes: AppRouteObject[] = [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       {
         path: 'dashboard',
-        element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Dashboard...</div>}><DashboardPage /></React.Suspense>,
+        element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Dashboard...</div>}><DashboardV3 /></React.Suspense>,
         meta: { title: 'dashboard' },
+      },
+      {
+        path: 'legacy-dashboard',
+        element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Legacy Dashboard...</div>}><DashboardPageLegacy /></React.Suspense>,
+        meta: { title: 'legacy_dashboard' },
       },
       {
         path: 'admin',
