@@ -158,7 +158,7 @@ const UsersPageV2: React.FC = () => {
   // 调试权限信息
   console.log('🔍 [UsersV2] 当前用户权限:', userPermissions);
   console.log('🔍 [UsersV2] 当前用户角色代码:', userRoleCodes);
-  console.log('🔍 [UsersV2] 是否有 P_USER_VIEW_LIST 权限:', hasPermission('P_USER_VIEW_LIST'));
+  console.log('🔍 [UsersV2] 是否有 user:view_list 权限:', hasPermission('user:view_list'));
   
   // 状态管理
   const [dataSource, setDataSource] = useState<PageUser[]>([]);
@@ -269,9 +269,9 @@ const UsersPageV2: React.FC = () => {
   useEffect(() => {
     console.log('🔍 [UsersV2] useEffect 触发，开始获取数据');
     console.log('🔍 [UsersV2] fetchData 函数:', typeof fetchData);
-    console.log('🔍 [UsersV2] 当前权限状态:', { userPermissions, hasPermission: hasPermission('P_USER_VIEW_LIST') });
+    console.log('🔍 [UsersV2] 当前权限状态:', { userPermissions, hasPermission: hasPermission('user:view_list') });
     
-    if (hasPermission('P_USER_VIEW_LIST')) {
+    if (hasPermission('user:view_list')) {
       console.log('🔍 [UsersV2] 权限检查通过，开始调用 fetchData');
       fetchData();
     } else {
@@ -288,7 +288,7 @@ const UsersPageV2: React.FC = () => {
   });
 
   return (
-    <PermissionGuard requiredPermissions={['P_USER_VIEW_LIST']} showError={true}>
+    <PermissionGuard requiredPermissions={['user:view_list']} showError={true}>
       <StandardListPageTemplate<PageUser>
         translationNamespaces={['user', 'pageTitle', 'common']}
         pageTitleKey="pageTitle:user_management"

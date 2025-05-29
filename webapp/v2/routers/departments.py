@@ -26,7 +26,7 @@ async def get_departments(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_DEPARTMENT_VIEW"]))
+    current_user = Depends(require_permissions(["department:view"]))
 ):
     """
     获取部门列表，支持分页、搜索和过滤。
@@ -80,7 +80,7 @@ async def get_departments(
 async def get_department(
     department_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_DEPARTMENT_VIEW"]))
+    current_user = Depends(require_permissions(["department:view"]))
 ):
     """
     根据ID获取部门详情。
@@ -121,12 +121,12 @@ async def get_department(
 async def create_department(
     department: DepartmentCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_DEPARTMENT_MANAGE"]))
+    current_user = Depends(require_permissions(["department:manage"]))
 ):
     """
     创建新部门。
     
-    - 需要 P_DEPARTMENT_MANAGE 权限
+    - 需要 department:manage 权限
     """
     try:
         # 创建部门
@@ -161,13 +161,13 @@ async def update_department(
     department_id: int,
     department: DepartmentUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_DEPARTMENT_MANAGE"]))
+    current_user = Depends(require_permissions(["department:manage"]))
 ):
     """
     更新部门信息。
     
     - **department_id**: 部门ID
-    - 需要 P_DEPARTMENT_MANAGE 权限
+    - 需要 department:manage 权限
     """
     try:
         # 更新部门
@@ -213,13 +213,13 @@ async def update_department(
 async def delete_department(
     department_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_DEPARTMENT_MANAGE"]))
+    current_user = Depends(require_permissions(["department:manage"]))
 ):
     """
     删除部门。
     
     - **department_id**: 部门ID
-    - 需要 P_DEPARTMENT_MANAGE 权限
+    - 需要 department:manage 权限
     """
     try:
         # 删除部门

@@ -18,7 +18,7 @@ from webapp.v2.pydantic_models.hr import (
 )
 from webapp.v2.pydantic_models.common import DataResponse
 from webapp import auth
-from webapp.v2.utils import create_error_response
+from webapp.v2 import utils
 
 router = APIRouter(
     prefix="/employees",
@@ -28,14 +28,17 @@ router = APIRouter(
 
 @router.get("/", response_model=EmployeeListResponse)
 async def get_employees(
-    search: Optional[str] = None,
-    status_id: Optional[int] = None,
-    department_id: Optional[int] = None,
-    ids: Optional[str] = Query(None, description="逗号分隔的员工ID列表，用于批量获取指定员工"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
+    search: Optional[str] = Query(None, description="Search term"),
+    employee_code: Optional[str] = Query(None, description="Employee code"),
+    name: Optional[str] = Query(None, description="Employee name"),
+    department_id: Optional[int] = Query(None, description="Department ID"),
+    status_id: Optional[int] = Query(None, description="Status ID"),
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    employee_ids: Optional[str] = Query(None, description="Comma-separated list of employee IDs"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_VIEW_LIST"]))
+    current_user = Depends(auth.require_permissions(["employee:view_list"]))
 ):
     """
     获取员工列表，支持分页、搜索和过滤。
@@ -47,18 +50,18 @@ async def get_employees(
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
     """
-    logger.info(f"Received request for /employees with page: {page}, size: {size}, search: '{search}', status_id: {status_id}, department_id: {department_id}, ids: '{ids}'")
+    logger.info(f"Received request for /employees with page: {page}, size: {size}, search: '{search}', status_id: {status_id}, department_id: {department_id}, ids: '{employee_ids}'")
     try:
         # 解析ids参数
-        employee_ids = None
-        if ids:
+        employee_ids_list = None
+        if employee_ids:
             try:
-                employee_ids = [int(id_str.strip()) for id_str in ids.split(',') if id_str.strip()]
+                employee_ids_list = [int(id_str.strip()) for id_str in employee_ids.split(',') if id_str.strip()]
                 # 限制批量获取的员工数量，避免过大的请求
-                if len(employee_ids) > 100:
+                if len(employee_ids_list) > 100:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=create_error_response(
+                        detail=utils.create_error_response(
                             status_code=400,
                             message="Bad Request",
                             details="Too many employee IDs requested. Maximum is 100."
@@ -67,7 +70,7 @@ async def get_employees(
             except ValueError:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=create_error_response(
+                    detail=utils.create_error_response(
                         status_code=400,
                         message="Bad Request",
                         details="Invalid employee ID format in 'ids' parameter."
@@ -75,14 +78,14 @@ async def get_employees(
                 )
         
         # 计算跳过的记录数 (仅在不使用ids时应用分页)
-        skip = (page - 1) * size if not employee_ids else 0
+        skip = (page - 1) * size if not employee_ids_list else 0
         
         # 获取员工列表和总数
         # v2_hr_crud.get_employees now returns Tuple[List[ORM_Employee], int]
-        if employee_ids:
+        if employee_ids_list:
             # 如果提供了employee_ids，则直接获取这些ID的员工
             employees_orms = []
-            for emp_id in employee_ids:
+            for emp_id in employee_ids_list:
                 emp = v2_hr_crud.get_employee(db=db, employee_id=emp_id)
                 if emp:
                     employees_orms.append(emp)
@@ -155,10 +158,10 @@ async def get_employees(
         return {
             "data": processed_employees,
             "meta": {
-                "page": page if not employee_ids else 1,
-                "size": size if not employee_ids else len(processed_employees),
+                "page": page if not employee_ids_list else 1,
+                "size": size if not employee_ids_list else len(processed_employees),
                 "total": total,
-                "totalPages": total_pages if not employee_ids else 1
+                "totalPages": total_pages if not employee_ids_list else 1
             }
         }
     except Exception as e:
@@ -179,7 +182,7 @@ async def get_employees(
 async def get_employee(
     employee_id: int = Path(..., title="The ID of the employee to get", ge=1),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_VIEW_DETAIL"]))
+    current_user = Depends(auth.require_permissions(["employee:view_detail"]))
 ):
     """
     根据ID获取员工详情。
@@ -192,7 +195,7 @@ async def get_employee(
         if employee_orm is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, 
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Employee with ID {employee_id} not found"
@@ -229,7 +232,7 @@ async def get_employee(
         logger.error(f"Error retrieving employee {employee_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details="An error occurred while retrieving employee information"
@@ -241,7 +244,7 @@ async def get_employee(
 async def create_employee(
     employee: EmployeeCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_CREATE"]))
+    current_user = Depends(auth.require_permissions(["employee:create"]))
 ):
     """
     创建新员工。
@@ -259,7 +262,7 @@ async def create_employee(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -270,7 +273,7 @@ async def create_employee(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -283,19 +286,19 @@ async def create_bulk_employees_api(
     employees_in: List[EmployeeCreate],
     overwrite_mode: bool = Query(False, description="是否启用覆盖模式，允许更新已存在的员工记录"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_CREATE"]))
+    current_user = Depends(auth.require_permissions(["employee:create"]))
 ):
     """
     批量创建新员工。
     
-    - 需要与创建单个员工相同的权限 (例如 P_EMPLOYEE_CREATE)。
+    - 需要与创建单个员工相同的权限。
     - 请求体应该是一个包含多个员工对象的JSON数组。
     - **overwrite_mode**: 如果设置为True，将允许更新已存在的员工记录（根据身份证号和员工代码匹配）。
     """
     if not employees_in:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=400,
                 message="Bad Request",
                 details="Input employee list cannot be empty."
@@ -337,7 +340,7 @@ async def create_bulk_employees_api(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity during bulk creation",
                 details=str(e)
@@ -347,7 +350,7 @@ async def create_bulk_employees_api(
         logger.error(f"Error in create_bulk_employees_api endpoint: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error during bulk creation",
                 details=str(e)
@@ -360,7 +363,7 @@ async def update_employee(
     employee_id: int,
     employee: EmployeeUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_UPDATE"]))
+    current_user = Depends(auth.require_permissions(["employee:update"]))
 ):
     """
     更新员工信息。
@@ -379,7 +382,7 @@ async def update_employee(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Employee with ID {employee_id} not found"
@@ -392,7 +395,7 @@ async def update_employee(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -405,7 +408,7 @@ async def update_employee(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -417,7 +420,7 @@ async def update_employee(
 async def delete_employee(
     employee_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(auth.require_permissions(["P_EMPLOYEE_DELETE"]))
+    current_user = Depends(auth.require_permissions(["employee:delete"]))
 ):
     """
     删除员工。
@@ -432,7 +435,7 @@ async def delete_employee(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Employee with ID {employee_id} not found"
@@ -448,7 +451,7 @@ async def delete_employee(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)

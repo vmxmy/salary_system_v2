@@ -17,6 +17,7 @@
     "active_no": "否"
   },
   "notAvailable": "不可用",
+  "unavailable": "不可用",
   "boolean": {
     "true": "是",
     "false": "否"

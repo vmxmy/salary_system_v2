@@ -9,6 +9,11 @@ import {
   SettingOutlined,
   ApartmentOutlined,
   SolutionOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  TableOutlined,
+  CalculatorOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 
@@ -138,6 +143,55 @@ export const menuData: AppMenuDataItem[] = [
         path: '/manager/leave-approvals',
         name: '请假审批',
         component: './Manager/LeaveApprovals',
+      },
+    ],
+  },
+  {
+    path: '/reports',
+    name: '报表管理',
+    icon: <BarChartOutlined />,
+    children: [
+      {
+        path: '/reports/designer',
+        name: '报表设计器',
+        icon: <TableOutlined />,
+        component: './Admin/ReportManagement/ReportDesigner',
+      },
+      {
+        path: '/reports/templates',
+        name: '报表模板',
+        icon: <FileTextOutlined />,
+        component: './Admin/ReportManagement/ReportTemplates',
+      },
+      {
+        path: '/reports/calculated-fields',
+        name: '计算字段',
+        icon: <CalculatorOutlined />,
+        component: './Admin/ReportManagement/CalculatedFields',
+      },
+      {
+        path: '/reports/data-sources',
+        name: '数据源管理',
+        icon: <DatabaseOutlined />,
+        component: './Admin/ReportManagement/DataSources',
+      },
+      {
+        path: '/reports/viewer',
+        name: '报表查看',
+        icon: <BarChartOutlined />,
+        component: './Admin/ReportManagement/ReportViewer',
+      },
+      {
+        path: '/reports/templates/:id',
+        name: '报表模板详情',
+        hideInMenu: true,
+        component: './Admin/ReportManagement/ReportTemplateDetail',
+      },
+      {
+        path: '/reports/templates/:id/edit',
+        name: '编辑报表模板',
+        hideInMenu: true,
+        component: './Admin/ReportManagement/ReportDesigner',
       },
     ],
   },

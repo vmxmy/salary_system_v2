@@ -39,7 +39,7 @@ async def get_payroll_periods(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_PERIOD_VIEW"]))
+    current_user = Depends(require_permissions(["payroll_period:view"]))
 ):
     """
     获取工资周期列表，支持分页、搜索和过滤。
@@ -97,7 +97,7 @@ async def get_payroll_periods(
 async def get_payroll_period(
     period_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_PERIOD_VIEW"]))
+    current_user = Depends(require_permissions(["payroll_period:view"]))
 ):
     """
     根据ID获取工资周期详情。
@@ -138,7 +138,7 @@ async def get_payroll_period(
 async def create_payroll_period(
     period: PayrollPeriodCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_PERIOD_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_period:manage"]))
 ):
     """
     创建新工资周期。
@@ -178,7 +178,7 @@ async def update_payroll_period(
     period_id: int,
     period: PayrollPeriodUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_PERIOD_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_period:manage"]))
 ):
     """
     更新工资周期信息。
@@ -230,7 +230,7 @@ async def update_payroll_period(
 async def delete_payroll_period(
     period_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_PERIOD_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_period:manage"]))
 ):
     """
     删除工资周期。
@@ -287,7 +287,7 @@ async def get_payroll_runs(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_VIEW"]))
+    current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
     """
     获取工资运行批次列表，支持分页和过滤。
@@ -341,7 +341,7 @@ async def get_payroll_runs(
 async def get_payroll_run(
     run_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_VIEW"]))
+    current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
     """
     根据ID获取工资运行批次详情。
@@ -382,7 +382,7 @@ async def get_payroll_run(
 async def create_payroll_run(
     run: PayrollRunCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
 ):
     """
     创建新工资运行批次。
@@ -422,7 +422,7 @@ async def update_payroll_run(
     run_id: int,
     run: PayrollRunUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
 ):
     """
     更新工资运行批次信息。
@@ -475,7 +475,7 @@ async def patch_payroll_run_endpoint(
     run_id: int,
     run_data: PayrollRunPatch,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_MARK_AS_PAID"]))
+    current_user = Depends(require_permissions(["payroll_run:mark_paid"]))
 ):
     """
     部分更新薪资审核信息，例如标记为已发放。
@@ -526,7 +526,7 @@ async def patch_payroll_run_endpoint(
 async def delete_payroll_run(
     run_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
 ):
     """
     删除工资运行批次。
@@ -578,7 +578,7 @@ async def delete_payroll_run(
 async def export_payroll_run_bank_file(
     run_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_RUN_EXPORT_BANK_FILE"]))
+    current_user = Depends(require_permissions(["payroll_run:export_bank"]))
 ):
     """
     为指定的薪资审核生成银行代发文件 (CSV格式)。
@@ -660,7 +660,7 @@ async def get_payroll_entries(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_VIEW"]))
+    current_user = Depends(require_permissions(["payroll_entry:view"]))
 ):
     """
     获取工资明细列表，支持分页和过滤。
@@ -739,7 +739,7 @@ async def get_payroll_entry(
     entry_id: int,
     include_employee_details: bool = Query(True, description="是否包含员工姓名等详细信息"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_VIEW"]))
+    current_user = Depends(require_permissions(["payroll_entry:view"]))
 ):
     """
     根据ID获取工资明细详情。
@@ -781,7 +781,7 @@ async def get_payroll_entry(
 async def create_payroll_entry(
     entry: PayrollEntryCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_entry:manage"]))
 ):
     """
     创建新工资明细。
@@ -821,11 +821,11 @@ async def patch_payroll_entry_details(
     entry_id: int,
     entry_data: PayrollEntryPatch,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_EDIT_DETAILS"]))
+    current_user = Depends(require_permissions(["payroll_entry:edit_details"]))
 ):
     """
     部分更新工资条目详情（例如，调整金额、备注）。
-    需要 P_PAYROLL_ENTRY_EDIT_DETAILS 权限。
+    需要 payroll_entry:edit_details 权限。
     """
     try:
         # Ensure PayrollEntryPatch is defined and crud.patch_payroll_entry exists
@@ -859,7 +859,7 @@ async def update_payroll_entry(
     entry_id: int,
     entry: PayrollEntryUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_entry:manage"]))
 ):
     """
     更新工资明细信息。
@@ -911,7 +911,7 @@ async def update_payroll_entry(
 async def delete_payroll_entry(
     entry_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_MANAGE"]))
+    current_user = Depends(require_permissions(["payroll_entry:manage"]))
 ):
     """
     删除工资明细。
@@ -963,7 +963,7 @@ async def delete_payroll_entry(
 async def bulk_create_payroll_entries(
     payload: BulkCreatePayrollEntriesPayload,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PAYROLL_ENTRY_BULK_IMPORT"]))
+    current_user = Depends(require_permissions(["payroll_entry:bulk_import"]))
 ):
     """
     批量创建工资明细。
@@ -1025,7 +1025,7 @@ def get_payroll_component_definitions(
     sort_order: str = Query("asc", description="排序方向，asc或desc"),
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(10, ge=1, le=100, description="每页记录数"),
-    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"])),
+    current_user = Depends(require_permissions(["payroll_component:view"])),
     db: Session = Depends(get_db_v2)
 ):
     """
@@ -1053,7 +1053,7 @@ def get_payroll_component_definitions(
 )
 def get_payroll_component_definition(
     component_id: int = Path(..., description="薪资字段定义ID"),
-    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_VIEW"])),
+    current_user = Depends(require_permissions(["payroll_component:view"])),
     db: Session = Depends(get_db_v2)
 ):
     """
@@ -1077,7 +1077,7 @@ def get_payroll_component_definition(
 )
 def create_payroll_component_definition(
     component: PayrollComponentDefinitionCreate,
-    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
+    current_user = Depends(require_permissions(["payroll_component:manage"])),
     db: Session = Depends(get_db_v2)
 ):
     """
@@ -1101,7 +1101,7 @@ def create_payroll_component_definition(
 def update_payroll_component_definition(
     component_id: int,
     component: PayrollComponentDefinitionUpdate,
-    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
+    current_user = Depends(require_permissions(["payroll_component:manage"])),
     db: Session = Depends(get_db_v2)
 ):
     """
@@ -1125,7 +1125,7 @@ def update_payroll_component_definition(
 )
 def delete_payroll_component_definition(
     component_id: int,
-    current_user = Depends(require_permissions(["P_PAYROLL_COMPONENT_MANAGE"])),
+    current_user = Depends(require_permissions(["payroll_component:manage"])),
     db: Session = Depends(get_db_v2)
 ):
     """

@@ -113,8 +113,8 @@ export const employeeService = {
 
   async getEmployeeById(id: string): Promise<Employee | null> {
     try {
-      const response = await apiClient.get<Employee>(`/employees/${id}`);
-      return response.data;
+      const response = await apiClient.get<{data: Employee}>(`/employees/${id}`);
+      return response.data.data;
     } catch (error) {
       console.error(`Error fetching employee with id ${id}:`, error);
       return null;

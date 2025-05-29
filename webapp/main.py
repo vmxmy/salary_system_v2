@@ -83,6 +83,7 @@ from webapp.v2.routers import config_router as v2_config_router
 from webapp.v2.routers import payroll_router as v2_payroll_router
 from webapp.v2.routers import security_router as v2_security_router
 from webapp.v2.routers import auth_router as v2_auth_router
+from webapp.v2.routers import reports_router as v2_reports_router
 
 # 导入所有Pydantic模型
 from webapp.pydantic_models import (
@@ -409,6 +410,13 @@ app.include_router(
     v2_positions_router,
     prefix=settings.API_V2_PREFIX,
     tags=["Positions V2"]
+)
+
+# Include the new reports router
+app.include_router(
+    v2_reports_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Reports"]
 )
 
 # --- Removed API Routers with /api/v1 prefix ---

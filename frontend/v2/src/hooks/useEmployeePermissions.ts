@@ -24,68 +24,68 @@ export const useEmployeePermissions = () => {
     }
 
     return {
-      // 列表查看权限 - 检查多种可能的权限名称
+      // 列表查看权限 - 使用新的现代权限格式
       canViewList: hasAnyPermission([
-        'P_EMPLOYEE_VIEW_LIST',
-        'P_HR_EMPLOYEE_VIEW',
-        'P_EMPLOYEE_VIEW',
+        'employee:view_list',
+        'employee:view',
+        'hr:employee_view',
         'EMPLOYEE_LIST_VIEW'
       ]),
 
       // 详情查看权限
       canViewDetail: hasAnyPermission([
-        'P_EMPLOYEE_VIEW_DETAIL',
-        'P_EMPLOYEE_VIEW',
-        'P_HR_EMPLOYEE_DETAIL',
+        'employee:view_detail',
+        'employee:view',
+        'hr:employee_detail',
         'EMPLOYEE_DETAIL_VIEW'
       ]),
 
       // 创建权限
       canCreate: hasAnyPermission([
-        'P_EMPLOYEE_CREATE',
-        'P_HR_EMPLOYEE_CREATE',
-        'P_EMPLOYEE_ADD',
+        'employee:create',
+        'hr:employee_create',
+        'employee:add',
         'EMPLOYEE_CREATE'
       ]),
 
       // 更新权限
       canUpdate: hasAnyPermission([
-        'P_EMPLOYEE_UPDATE',
-        'P_EMPLOYEE_EDIT',
-        'P_HR_EMPLOYEE_UPDATE',
-        'P_HR_EMPLOYEE_EDIT',
+        'employee:update',
+        'employee:edit',
+        'hr:employee_update',
+        'hr:employee_edit',
         'EMPLOYEE_UPDATE',
         'EMPLOYEE_EDIT'
       ]),
 
       // 删除权限
       canDelete: hasAnyPermission([
-        'P_EMPLOYEE_DELETE',
-        'P_HR_EMPLOYEE_DELETE',
+        'employee:delete',
+        'hr:employee_delete',
         'EMPLOYEE_DELETE'
       ]),
 
       // 导出权限
       canExport: hasAnyPermission([
-        'P_EMPLOYEE_EXPORT',
-        'P_HR_EMPLOYEE_EXPORT',
-        'P_EMPLOYEE_DOWNLOAD',
+        'employee:export',
+        'hr:employee_export',
+        'employee:download',
         'EMPLOYEE_EXPORT'
       ]),
 
       // 批量导入权限
       canBulkImport: hasAnyPermission([
-        'P_EMPLOYEE_BULK_IMPORT',
-        'P_EMPLOYEE_IMPORT',
-        'P_HR_EMPLOYEE_IMPORT',
+        'employee:bulk_import',
+        'employee:import',
+        'hr:employee_import',
         'EMPLOYEE_IMPORT'
       ]),
 
       // 模块访问权限
       canViewModule: hasAnyPermission([
-        'P_EMPLOYEE_MODULE_VIEW',
-        'P_HR_MODULE_VIEW',
-        'P_EMPLOYEE_ACCESS',
+        'employee:module_view',
+        'hr:module_view',
+        'employee:access',
         'HR_MODULE_ACCESS'
       ]),
     };

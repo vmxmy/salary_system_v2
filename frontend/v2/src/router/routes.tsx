@@ -28,6 +28,14 @@ import { payrollRoutes } from '../pages/Payroll/index'; // This imports from Pay
 // Import the Manager module routes
 import { managerRoutes } from '../pages/Manager/routes';
 
+// Import Report Management components (lazy loaded)
+const ReportDesigner = lazy(() => import('../pages/Admin/ReportManagement/ReportDesigner'));
+const ReportTemplates = lazy(() => import('../pages/Admin/ReportManagement/ReportTemplates'));
+const CalculatedFields = lazy(() => import('../pages/Admin/ReportManagement/CalculatedFields'));
+const DataSources = lazy(() => import('../pages/Admin/ReportManagement/DataSources'));
+const ReportViewer = lazy(() => import('../pages/Admin/ReportManagement/ReportViewer'));
+const ReportTemplateDetail = lazy(() => import('../pages/Admin/ReportManagement/ReportTemplateDetail'));
+
 // Placeholder for HR, Finance, Manager sections - replace with actual components
 // const HRDashboardPage = lazy(() => import('../pages/HR/HRDashboardPage'));
 // const FinanceDashboardPage = lazy(() => import('../pages/Finance/FinanceDashboardPage'));
@@ -152,7 +160,7 @@ export const routes: AppRouteObject[] = [
           {
             path: 'employees/bulk-import',
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><EmployeeBulkImportPage /></React.Suspense>,
-            meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['P_EMPLOYEE_CREATE'] }
+            meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['employee:create'] }
           },
           // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: 'HR仪表盘' } },
           // EmployeeListPage import is removed, new routes handle /hr/employees
@@ -174,7 +182,7 @@ export const routes: AppRouteObject[] = [
           {
             path: 'payroll',
             element: <Outlet />,
-            meta: { title: 'payroll_calculation', requiredPermissions: ['P_PAYROLL_MODULE_VIEW'] },
+            meta: { title: 'payroll_calculation', requiredPermissions: ['payroll_run:view'] },
             children: payrollRoutes, // These are the routes from Payroll/routes.ts
           }
         ],
@@ -190,6 +198,55 @@ export const routes: AppRouteObject[] = [
         ),
         meta: { title: 'manager_view', requiredRoles: ['MANAGER', 'SUPER_ADMIN'] },
         children: managerRoutes,
+      },
+      {
+        path: 'reports',
+        element: (
+          <AppProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER']}>
+            <React.Suspense fallback={<div className="page-loading-suspense">Loading Reports Section...</div>}>
+              <Outlet />
+            </React.Suspense>
+          </AppProtectedRoute>
+        ),
+        meta: { title: 'report_management', requiredRoles: ['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER'] },
+        children: [
+          { index: true, element: <Navigate to="viewer" replace /> },
+          { 
+            path: 'designer', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Designer...</div>}><ReportDesigner /></React.Suspense>, 
+            meta: { title: 'report_designer', requiredPermissions: ['report:design'] } 
+          },
+          { 
+            path: 'templates', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Templates...</div>}><ReportTemplates /></React.Suspense>, 
+            meta: { title: 'report_templates', requiredPermissions: ['report:view_templates'] } 
+          },
+          { 
+            path: 'templates/:id', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Template Detail...</div>}><ReportTemplateDetail /></React.Suspense>, 
+            meta: { title: 'report_template_detail', requiredPermissions: ['report:view_template_detail'] } 
+          },
+          { 
+            path: 'templates/:id/edit', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Designer...</div>}><ReportDesigner /></React.Suspense>, 
+            meta: { title: 'edit_report_template', requiredPermissions: ['report:edit_template'] } 
+          },
+          { 
+            path: 'calculated-fields', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Calculated Fields...</div>}><CalculatedFields /></React.Suspense>, 
+            meta: { title: 'calculated_fields', requiredPermissions: ['report:view_calculated_fields'] } 
+          },
+          { 
+            path: 'data-sources', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Data Sources...</div>}><DataSources /></React.Suspense>, 
+            meta: { title: 'data_sources', requiredPermissions: ['report:view_datasources'] } 
+          },
+          { 
+            path: 'viewer', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Viewer...</div>}><ReportViewer /></React.Suspense>, 
+            meta: { title: 'report_viewer', requiredPermissions: ['report:view'] } 
+          },
+        ],
       },
       {
         path: 'employee-info', 

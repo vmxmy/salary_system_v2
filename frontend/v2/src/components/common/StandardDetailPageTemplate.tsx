@@ -86,13 +86,13 @@ const StandardDetailPageTemplate = <T extends object | null | undefined>({
   return (
     <div className={styles.pageContainer}>
       <div className={styles.pageHeader}>
-        <Breadcrumb className={styles.pageBreadcrumb}>
-          {currentBreadcrumbs.map(item => (
-            <Breadcrumb.Item key={item.key}>
-              {item.path ? <Link to={item.path}>{item.title}</Link> : item.title}
-            </Breadcrumb.Item>
-          ))}
-        </Breadcrumb>
+        <Breadcrumb 
+          className={styles.pageBreadcrumb}
+          items={currentBreadcrumbs.map(item => ({
+            key: item.key,
+            title: item.path ? <Link to={item.path}>{item.title}</Link> : item.title,
+          }))}
+        />
         <div className={styles.headerContent}>
             <Title level={3} className={styles.pageTitle}>{t(pageTitleKey)}</Title>
             {headerActions && <Space className={styles.headerActions}>{headerActions}</Space>}

@@ -42,6 +42,14 @@ class User(BaseV2):
     employee = relationship("Employee", back_populates="user")
     roles = relationship("Role", secondary=user_roles, back_populates="users")
     payroll_runs = relationship("PayrollRun", back_populates="initiated_by")
+    
+    # 报表系统关系
+    created_data_sources = relationship("ReportDataSource", back_populates="creator")
+    created_calculated_fields = relationship("ReportCalculatedField", back_populates="creator")
+    created_report_templates = relationship("ReportTemplate", back_populates="creator")
+    report_executions = relationship("ReportExecution", back_populates="executor")
+    
+    # 注意：报表相关权限通过Permission系统管理，不需要直接关系
 
     @property
     def all_permission_codes(self) -> Set[str]:

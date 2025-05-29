@@ -97,3 +97,17 @@ def create_error_response(
         error["errors"] = field_errors
         
     return {"error": error}
+
+def standardize_request_args(session: Session, **kwargs) -> Dict[str, Any]:
+    """
+    标准化请求参数。
+    
+    Args:
+        session: 数据库会话
+        **kwargs: 其他关键字参数
+        
+    Returns:
+        标准化后的参数字典
+    """
+    # 这里添加具体的参数标准化逻辑
+    return kwargs 

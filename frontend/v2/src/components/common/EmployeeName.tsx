@@ -97,7 +97,7 @@ const EmployeeName: React.FC<EmployeeNameProps> = ({
       return <span>{t('employee:employee_id_format', { id: employeeId })}</span>;
     }
 
-    return <Tag>{t('common:common.unavailable')}</Tag>;
+    return <Tag>{t('common:unavailable')}</Tag>;
   };
 
   return (

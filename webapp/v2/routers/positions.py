@@ -24,7 +24,7 @@ async def get_all_positions(
     size: int = Query(10, ge=1, le=1000, description="Page size"), # UNCOMMENTED, changed le to 1000
     is_active: Optional[bool] = Query(None, description="Filter by active status"), # UNCOMMENTED
     db: Session = Depends(get_db_v2), # UNCOMMENTED
-    current_user = Depends(require_permissions(["P_POSITION_VIEW"])) # UNCOMMENTED, assuming P_POSITION_VIEW permission
+    current_user = Depends(require_permissions(["job_title:view"])) # UNCOMMENTED, assuming job_title:view permission
 ):
     """
     获取实际任职列表，支持分页、搜索和按激活状态过滤。
@@ -68,7 +68,7 @@ async def get_all_positions(
 async def create_position(
     position_data: PositionCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_POSITION_MANAGE"]))
+    current_user = Depends(require_permissions(["job_title:manage"]))
 ):
     """
     创建新的实际任职。
@@ -123,7 +123,7 @@ async def create_position(
 async def get_position_by_id(
     position_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_POSITION_VIEW"]))
+    current_user = Depends(require_permissions(["job_title:view"]))
 ):
     """
     根据ID获取实际任职详情。
@@ -157,7 +157,7 @@ async def update_position(
     position_id: int,
     position_data: PositionUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_POSITION_MANAGE"]))
+    current_user = Depends(require_permissions(["job_title:manage"]))
 ):
     """
     更新实际任职信息。
@@ -232,7 +232,7 @@ async def update_position(
 async def delete_position(
     position_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_POSITION_MANAGE"]))
+    current_user = Depends(require_permissions(["job_title:manage"]))
 ):
     """
     删除实际任职。

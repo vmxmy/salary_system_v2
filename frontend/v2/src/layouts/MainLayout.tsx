@@ -32,6 +32,7 @@ import { allAppRoutes, type AppRouteObject } from '../router/routes'; // Import 
 import LanguageSwitcher from '../components/common/LanguageSwitcher'; // Import LanguageSwitcher
 import { useTranslation } from 'react-i18next'; // Import useTranslation
 import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Standard image import
+import { useEmployeePermissions } from '../hooks/useEmployeePermissions';
 
 // Import payroll permissions
 import { P_PAYROLL_PERIOD_VIEW, P_PAYROLL_RUN_VIEW, P_PAYROLL_ENTRY_VIEW, P_PAYROLL_ENTRY_BULK_IMPORT, P_PAYROLL_COMPONENT_VIEW } from '../pages/Payroll/constants/payrollPermissions';
@@ -320,6 +321,9 @@ const MainLayout: React.FC = () => {
     children: organizationChildren, 
   }), [organizationChildren, t, ready]); // Added t and ready
 
+  // 添加员工权限hook
+  const { canCreate: canCreateEmployee } = useEmployeePermissions();
+
   const hrManagementChildren = useMemo(() => {
     console.log('[MainLayout:HRMenu] ready state:', ready);
     const children = [
@@ -336,8 +340,7 @@ const MainLayout: React.FC = () => {
     ];
 
     // Conditionally add Bulk Import if user has permission
-    // Assuming P_EMPLOYEE_CREATE is the correct permission for bulk import as well
-    if (hasPermission('P_EMPLOYEE_CREATE')) { 
+    if (canCreateEmployee) { 
       children.push({
         label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">{t('pageTitle:bulk_import_employees')}</Link>,
         key: '/hr/employees/bulk-import',
@@ -356,7 +359,7 @@ const MainLayout: React.FC = () => {
     }
 
     return children;
-  }, [t, ready, hasPermission]); // Added hasPermission to dependency array
+  }, [t, ready, hasPermission, canCreateEmployee]); // Added hasPermission and canCreateEmployee to dependency array
 
   const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',

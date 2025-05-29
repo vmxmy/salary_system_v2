@@ -27,7 +27,7 @@ async def get_personnel_categories(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_VIEW"]))
+    current_user = Depends(require_permissions(["personnel_category:view"]))
 ):
     """
     获取人员类别列表，支持分页、搜索和过滤。
@@ -81,7 +81,7 @@ async def get_personnel_categories(
 async def get_personnel_categories_tree(
     is_active: Optional[bool] = None,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_VIEW"]))
+    current_user = Depends(require_permissions(["personnel_category:view"]))
 ):
     """
     获取人员类别的树形结构。
@@ -131,7 +131,7 @@ async def get_personnel_categories_tree(
 async def get_personnel_category(
     personnel_category_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_VIEW"]))
+    current_user = Depends(require_permissions(["personnel_category:view"]))
 ):
     """
     根据ID获取人员类别详情。
@@ -172,12 +172,12 @@ async def get_personnel_category(
 async def create_personnel_category(
     personnel_category: PersonnelCategoryCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_MANAGE"]))
+    current_user = Depends(require_permissions(["personnel_category:manage"]))
 ):
     """
     创建新人员类别。
 
-    - 需要 P_PERSONNEL_CATEGORY_MANAGE 权限
+    - 需要 personnel_category:manage 权限
     """
     try:
         # 创建人员类别
@@ -212,13 +212,13 @@ async def update_personnel_category(
     personnel_category_id: int,
     personnel_category: PersonnelCategoryUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_MANAGE"]))
+    current_user = Depends(require_permissions(["personnel_category:manage"]))
 ):
     """
     更新人员类别信息。
 
     - **personnel_category_id**: 人员类别ID
-    - 需要 P_PERSONNEL_CATEGORY_MANAGE 权限
+    - 需要 personnel_category:manage 权限
     """
     try:
         # 更新人员类别
@@ -264,13 +264,13 @@ async def update_personnel_category(
 async def delete_personnel_category(
     personnel_category_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERSONNEL_CATEGORY_MANAGE"]))
+    current_user = Depends(require_permissions(["personnel_category:manage"]))
 ):
     """
     删除人员类别。
 
     - **personnel_category_id**: 人员类别ID
-    - 需要 P_PERSONNEL_CATEGORY_MANAGE 权限
+    - 需要 personnel_category:manage 权限
     """
     try:
         # 删除人员类别

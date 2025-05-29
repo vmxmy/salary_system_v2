@@ -6,9 +6,9 @@ import type { AppRouteObject } from '../../router/routes';
 import SubordinatesPage from './Subordinates';
 import LeaveApprovalsPage from './LeaveApprovals';
 
-// Manager module permissions (placeholder for now)
-export const P_MANAGER_SUBORDINATES_VIEW = 'P_MANAGER_SUBORDINATES_VIEW';
-export const P_MANAGER_LEAVE_APPROVALS_VIEW = 'P_MANAGER_LEAVE_APPROVALS_VIEW';
+// Manager module permissions (updated to match database)
+export const P_MANAGER_SUBORDINATES_VIEW = 'manager:view_subordinates';
+export const P_MANAGER_LEAVE_APPROVALS_VIEW = 'manager:view_leave_approvals';
 
 export const managerRoutes: AppRouteObject[] = [
   {

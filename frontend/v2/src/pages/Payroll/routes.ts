@@ -85,7 +85,6 @@ export const payrollRoutes: AppRouteObject[] = [
   //   element: <React.Suspense fallback={<div>Loading Payroll Entries...</div>}><PayrollEntriesPage /></React.Suspense>,
   //   meta: {
   //     title: '工资条目管理',
-  //     // requiredPermissions: ['P_PAYROLL_ENTRY_VIEW'],
   //   },
   // },
 ]; 

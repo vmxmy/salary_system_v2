@@ -1,9 +1,10 @@
 """
 配置相关的ORM模型。
 """
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, UniqueConstraint, Identity, Numeric, BigInteger, Date, CheckConstraint
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, UniqueConstraint, Identity, Numeric, BigInteger, Date, CheckConstraint, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql import func
 
 from ..database import BaseV2
 

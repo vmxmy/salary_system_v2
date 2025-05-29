@@ -297,3 +297,210 @@ class SocialSecurityRateListResponse(BaseModel):
     meta: Dict[str, Any] = Field(
         default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
     )
+
+
+# 报表管理相关模型
+class ReportTemplateBase(BaseModel):
+    """报表模板基础模型"""
+    name: str = Field(..., description="报表名称", max_length=255)
+    title: Optional[str] = Field(None, description="自定义标题", max_length=500)
+    description: Optional[str] = Field(None, description="报表描述")
+    category: Optional[str] = Field(None, description="报表分类", max_length=100)
+    template_config: Dict[str, Any] = Field(..., description="报表配置JSON")
+    is_active: bool = Field(True, description="是否激活")
+    is_public: bool = Field(False, description="是否公开模板")
+    sort_order: int = Field(0, description="排序顺序")
+
+
+class ReportTemplateCreate(ReportTemplateBase):
+    """创建报表模板请求模型"""
+    pass
+
+
+class ReportTemplateUpdate(BaseModel):
+    """更新报表模板请求模型"""
+    name: Optional[str] = Field(None, description="报表名称", max_length=255)
+    title: Optional[str] = Field(None, description="自定义标题", max_length=500)
+    description: Optional[str] = Field(None, description="报表描述")
+    category: Optional[str] = Field(None, description="报表分类", max_length=100)
+    template_config: Optional[Dict[str, Any]] = Field(None, description="报表配置JSON")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+    is_public: Optional[bool] = Field(None, description="是否公开模板")
+    sort_order: Optional[int] = Field(None, description="排序顺序")
+
+
+class ReportTemplateResponse(ReportTemplateBase):
+    """报表模板响应模型"""
+    id: int = Field(..., description="模板ID")
+    created_by: int = Field(..., description="创建者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class ReportFieldBase(BaseModel):
+    """报表字段基础模型"""
+    field_name: str = Field(..., description="字段名称", max_length=255)
+    field_alias: Optional[str] = Field(None, description="自定义字段别名", max_length=255)
+    data_source: str = Field(..., description="数据源表名", max_length=255)
+    field_type: str = Field(..., description="字段类型", max_length=50)
+    display_order: int = Field(0, description="显示顺序")
+    is_visible: bool = Field(True, description="是否可见")
+    formatting_config: Optional[Dict[str, Any]] = Field(None, description="格式化配置")
+    calculation_formula: Optional[str] = Field(None, description="计算公式")
+    width: Optional[int] = Field(None, description="列宽度")
+    is_sortable: bool = Field(True, description="是否可排序")
+    is_filterable: bool = Field(True, description="是否可筛选")
+
+
+class ReportFieldCreate(ReportFieldBase):
+    """创建报表字段请求模型"""
+    template_id: int = Field(..., description="报表模板ID")
+
+
+class ReportFieldUpdate(BaseModel):
+    """更新报表字段请求模型"""
+    field_name: Optional[str] = Field(None, description="字段名称", max_length=255)
+    field_alias: Optional[str] = Field(None, description="自定义字段别名", max_length=255)
+    data_source: Optional[str] = Field(None, description="数据源表名", max_length=255)
+    field_type: Optional[str] = Field(None, description="字段类型", max_length=50)
+    display_order: Optional[int] = Field(None, description="显示顺序")
+    is_visible: Optional[bool] = Field(None, description="是否可见")
+    formatting_config: Optional[Dict[str, Any]] = Field(None, description="格式化配置")
+    calculation_formula: Optional[str] = Field(None, description="计算公式")
+    width: Optional[int] = Field(None, description="列宽度")
+    is_sortable: Optional[bool] = Field(None, description="是否可排序")
+    is_filterable: Optional[bool] = Field(None, description="是否可筛选")
+
+
+class ReportFieldResponse(ReportFieldBase):
+    """报表字段响应模型"""
+    id: int = Field(..., description="字段ID")
+    template_id: int = Field(..., description="报表模板ID")
+
+    class Config:
+        from_attributes = True
+
+
+class CalculatedFieldBase(BaseModel):
+    """计算字段基础模型"""
+    name: str = Field(..., description="计算字段名称", max_length=255)
+    alias: str = Field(..., description="字段别名", max_length=255)
+    formula: str = Field(..., description="计算公式")
+    return_type: str = Field(..., description="返回类型", max_length=50)
+    description: Optional[str] = Field(None, description="字段描述")
+    is_global: bool = Field(False, description="是否全局可用")
+    is_active: bool = Field(True, description="是否激活")
+    category: Optional[str] = Field(None, description="字段分类", max_length=100)
+
+
+class CalculatedFieldCreate(CalculatedFieldBase):
+    """创建计算字段请求模型"""
+    pass
+
+
+class CalculatedFieldUpdate(BaseModel):
+    """更新计算字段请求模型"""
+    name: Optional[str] = Field(None, description="计算字段名称", max_length=255)
+    alias: Optional[str] = Field(None, description="字段别名", max_length=255)
+    formula: Optional[str] = Field(None, description="计算公式")
+    return_type: Optional[str] = Field(None, description="返回类型", max_length=50)
+    description: Optional[str] = Field(None, description="字段描述")
+    is_global: Optional[bool] = Field(None, description="是否全局可用")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+    category: Optional[str] = Field(None, description="字段分类", max_length=100)
+
+
+class CalculatedFieldResponse(CalculatedFieldBase):
+    """计算字段响应模型"""
+    id: int = Field(..., description="字段ID")
+    created_by: int = Field(..., description="创建者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class ReportDataSourceBase(BaseModel):
+    """报表数据源基础模型"""
+    name: str = Field(..., description="数据源名称", max_length=255)
+    table_name: str = Field(..., description="数据表名", max_length=255)
+    schema_name: str = Field(..., description="模式名", max_length=100)
+    description: Optional[str] = Field(None, description="数据源描述")
+    is_active: bool = Field(True, description="是否激活")
+    sort_order: int = Field(0, description="排序顺序")
+    access_permissions: Optional[Dict[str, Any]] = Field(None, description="访问权限配置")
+
+
+class ReportDataSourceCreate(ReportDataSourceBase):
+    """创建报表数据源请求模型"""
+    pass
+
+
+class ReportDataSourceUpdate(BaseModel):
+    """更新报表数据源请求模型"""
+    name: Optional[str] = Field(None, description="数据源名称", max_length=255)
+    table_name: Optional[str] = Field(None, description="数据表名", max_length=255)
+    schema_name: Optional[str] = Field(None, description="模式名", max_length=100)
+    description: Optional[str] = Field(None, description="数据源描述")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+    sort_order: Optional[int] = Field(None, description="排序顺序")
+    access_permissions: Optional[Dict[str, Any]] = Field(None, description="访问权限配置")
+
+
+class ReportDataSourceResponse(ReportDataSourceBase):
+    """报表数据源响应模型"""
+    id: int = Field(..., description="数据源ID")
+
+    class Config:
+        from_attributes = True
+
+
+# 报表预览和生成相关模型
+class ReportPreviewRequest(BaseModel):
+    """报表预览请求模型"""
+    template_id: Optional[int] = Field(None, description="模板ID")
+    template_config: Optional[Dict[str, Any]] = Field(None, description="临时模板配置")
+    filters: Optional[Dict[str, Any]] = Field(None, description="筛选条件")
+    limit: int = Field(100, description="预览行数限制", ge=1, le=1000)
+
+
+class ReportPreviewResponse(BaseModel):
+    """报表预览响应模型"""
+    columns: List[Dict[str, Any]] = Field(..., description="列定义")
+    data: List[Dict[str, Any]] = Field(..., description="数据行")
+    total_count: int = Field(..., description="总行数")
+    preview_count: int = Field(..., description="预览行数")
+
+
+class ReportExportRequest(BaseModel):
+    """报表导出请求模型"""
+    template_id: int = Field(..., description="模板ID")
+    export_format: str = Field(..., description="导出格式", pattern="^(excel|csv|pdf)$")
+    filters: Optional[Dict[str, Any]] = Field(None, description="筛选条件")
+    filename: Optional[str] = Field(None, description="文件名")
+
+
+# 数据源字段信息模型
+class DataSourceFieldInfo(BaseModel):
+    """数据源字段信息"""
+    field_name: str = Field(..., description="字段名")
+    field_type: str = Field(..., description="字段类型")
+    is_nullable: bool = Field(..., description="是否可为空")
+    comment: Optional[str] = Field(None, description="字段注释")
+
+
+class DataSourceInfo(BaseModel):
+    """数据源信息"""
+    schema_name: str = Field(..., description="模式名")
+    table_name: str = Field(..., description="表名")
+    table_comment: Optional[str] = Field(None, description="表注释")
+    fields: List[DataSourceFieldInfo] = Field(..., description="字段列表")
+
+
+class ReportTemplateWithFields(ReportTemplateResponse):
+    """包含字段的报表模板响应模型"""
+    report_fields: List[ReportFieldResponse] = Field([], description="报表字段列表")

@@ -21,7 +21,7 @@ from ..pydantic_models.security import (
 )
 from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions # MODIFIED: require_role removed as it will be replaced
-from ..utils import create_error_response
+from .. import utils
 
 router = APIRouter(
     prefix="",
@@ -38,7 +38,7 @@ async def get_users(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_VIEW_LIST"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:view_list"]))
 ):
     """
     获取用户管理，支持分页、搜索和过滤。
@@ -81,7 +81,7 @@ async def get_users(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -93,7 +93,7 @@ async def get_users(
 async def get_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_VIEW_DETAIL"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:view_detail"]))
 ):
     """
     根据ID获取用户详情。
@@ -108,7 +108,7 @@ async def get_user(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"User with ID {user_id} not found"
@@ -123,7 +123,7 @@ async def get_user(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -135,7 +135,7 @@ async def get_user(
 async def create_user(
     user: UserCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_CREATE"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:create"]))
 ):
     """
     创建新用户。
@@ -157,7 +157,7 @@ async def create_user(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -167,7 +167,7 @@ async def create_user(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -180,7 +180,7 @@ async def update_user(
     user_id: int,
     user: UserUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_UPDATE"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:update"]))
 ):
     """
     更新用户信息。
@@ -195,7 +195,7 @@ async def update_user(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"User with ID {user_id} not found"
@@ -208,7 +208,7 @@ async def update_user(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -220,7 +220,7 @@ async def update_user(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -232,7 +232,7 @@ async def update_user(
 async def delete_user(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_DELETE"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:delete"]))
 ):
     """
     删除用户。
@@ -247,7 +247,7 @@ async def delete_user(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"User with ID {user_id} not found"
@@ -262,7 +262,7 @@ async def delete_user(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -275,7 +275,7 @@ async def assign_roles_to_user_endpoint(
     user_id: int,
     user_role_assign_request: UserRoleAssignRequest, 
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_MANAGE_ROLES"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:manage_roles"]))
 ):
     """
     为指定用户分配角色列表，替换其现有所有角色。
@@ -289,7 +289,7 @@ async def assign_roles_to_user_endpoint(
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"User with ID {user_id} not found"
@@ -299,7 +299,7 @@ async def assign_roles_to_user_endpoint(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity", 
                 details=str(e)
@@ -310,7 +310,7 @@ async def assign_roles_to_user_endpoint(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -322,7 +322,7 @@ async def assign_roles_to_user_endpoint(
 async def get_user_roles(
     user_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_USER_MANAGE_ROLES"])) # MODIFIED
+    current_user = Depends(require_permissions(["user:manage_roles"]))
 ):
     """
     获取指定用户拥有的所有角色。
@@ -335,7 +335,7 @@ async def get_user_roles(
         if not db_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"User with ID {user_id} not found"
@@ -347,7 +347,7 @@ async def get_user_roles(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -362,7 +362,7 @@ async def get_roles(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_VIEW_LIST"])) # MODIFIED (get_current_user replaced)
+    current_user = Depends(require_permissions(["role:view_list"]))
 ):
     """
     获取角色列表，支持分页和搜索。
@@ -400,7 +400,7 @@ async def get_roles(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -412,7 +412,7 @@ async def get_roles(
 async def get_role(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_VIEW_DETAIL"])) # MODIFIED (get_current_user replaced)
+    current_user = Depends(require_permissions(["role:view_detail"]))
 ):
     """
     根据ID获取角色详情。
@@ -426,7 +426,7 @@ async def get_role(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Role with ID {role_id} not found"
@@ -441,7 +441,7 @@ async def get_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -453,7 +453,7 @@ async def get_role(
 async def create_role(
     role: RoleCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_CREATE"])) # MODIFIED
+    current_user = Depends(require_permissions(["role:create"]))
 ):
     """
     创建新角色。
@@ -470,7 +470,7 @@ async def create_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -480,7 +480,7 @@ async def create_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -493,7 +493,7 @@ async def update_role(
     role_id: int,
     role: RoleUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_UPDATE"])) # MODIFIED
+    current_user = Depends(require_permissions(["role:update"]))
 ):
     """
     更新角色信息。
@@ -508,7 +508,7 @@ async def update_role(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Role with ID {role_id} not found"
@@ -521,7 +521,7 @@ async def update_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -533,7 +533,7 @@ async def update_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -545,7 +545,7 @@ async def update_role(
 async def delete_role(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_DELETE"])) # MODIFIED
+    current_user = Depends(require_permissions(["role:delete"]))
 ):
     """
     删除角色。
@@ -560,7 +560,7 @@ async def delete_role(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Role with ID {role_id} not found"
@@ -574,7 +574,7 @@ async def delete_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -587,7 +587,7 @@ async def assign_permission_to_role(
     role_id: int,
     permission_id: int = Body(..., embed=True),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_MANAGE_PERMISSIONS"])) # MODIFIED
+    current_user = Depends(require_permissions(["role:manage_permissions"]))
 ):
     """
     为角色分配权限。
@@ -607,7 +607,7 @@ async def assign_permission_to_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -617,7 +617,7 @@ async def assign_permission_to_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -630,7 +630,7 @@ async def remove_permission_from_role(
     role_id: int,
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_MANAGE_PERMISSIONS"])) # MODIFIED
+    current_user = Depends(require_permissions(["role:manage_permissions"]))
 ):
     """
     从角色中移除权限。
@@ -646,7 +646,7 @@ async def remove_permission_from_role(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Role permission with role_id {role_id} and permission_id {permission_id} not found"
@@ -661,7 +661,7 @@ async def remove_permission_from_role(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -673,7 +673,7 @@ async def remove_permission_from_role(
 async def get_role_permissions(
     role_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_ROLE_MANAGE_PERMISSIONS"])) # MODIFIED (get_current_user replaced)
+    current_user = Depends(require_permissions(["role:manage_permissions"]))
 ):
     """
     获取指定角色所拥有的所有权限。
@@ -686,7 +686,7 @@ async def get_role_permissions(
         if not db_role:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Role with ID {role_id} not found"
@@ -698,7 +698,7 @@ async def get_role_permissions(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -713,7 +713,7 @@ async def get_permissions(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERMISSION_VIEW_LIST"])) # MODIFIED (get_current_user replaced)
+    current_user = Depends(require_permissions(["permission:view_list"]))
 ):
     """
     获取权限列表，支持分页和搜索。
@@ -751,7 +751,7 @@ async def get_permissions(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -763,7 +763,7 @@ async def get_permissions(
 async def get_permission(
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERMISSION_VIEW_DETAIL"])) # MODIFIED (get_current_user replaced)
+    current_user = Depends(require_permissions(["permission:view_detail"]))
 ):
     """
     根据ID获取权限详情。
@@ -777,7 +777,7 @@ async def get_permission(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Permission with ID {permission_id} not found"
@@ -792,7 +792,7 @@ async def get_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -804,7 +804,7 @@ async def get_permission(
 async def create_permission(
     permission: PermissionCreate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERMISSION_CREATE"])) # MODIFIED
+    current_user = Depends(require_permissions(["permission:create"]))
 ):
     """
     创建新权限。
@@ -821,7 +821,7 @@ async def create_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -831,7 +831,7 @@ async def create_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -844,7 +844,7 @@ async def update_permission(
     permission_id: int,
     permission: PermissionUpdate,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERMISSION_UPDATE"])) # MODIFIED
+    current_user = Depends(require_permissions(["permission:update"]))
 ):
     """
     更新权限信息。
@@ -859,7 +859,7 @@ async def update_permission(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Permission with ID {permission_id} not found"
@@ -872,7 +872,7 @@ async def update_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=422,
                 message="Unprocessable Entity",
                 details=str(e)
@@ -884,7 +884,7 @@ async def update_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)
@@ -896,7 +896,7 @@ async def update_permission(
 async def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db_v2),
-    current_user = Depends(require_permissions(["P_PERMISSION_DELETE"])) # MODIFIED
+    current_user = Depends(require_permissions(["permission:delete"]))
 ):
     """
     删除权限。
@@ -911,7 +911,7 @@ async def delete_permission(
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=create_error_response(
+                detail=utils.create_error_response(
                     status_code=404,
                     message="Not Found",
                     details=f"Permission with ID {permission_id} not found"
@@ -924,7 +924,7 @@ async def delete_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=409,
                 message="Conflict",
                 details=str(e)
@@ -936,7 +936,7 @@ async def delete_permission(
         # 返回标准错误响应格式
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=create_error_response(
+            detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
                 details=str(e)

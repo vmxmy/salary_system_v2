@@ -1,7 +1,7 @@
 """
 配置相关的CRUD操作。
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, select, asc, desc
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import date
@@ -10,7 +10,10 @@ from sqlalchemy import or_
 import logging
 from sqlalchemy.exc import IntegrityError
 
-from ..models.config import LookupType, LookupValue, SystemParameter, PayrollComponentDefinition, TaxBracket, SocialSecurityRate
+from ..models.config import (
+    LookupType, LookupValue, SystemParameter, PayrollComponentDefinition, 
+    TaxBracket, SocialSecurityRate
+)
 from ..pydantic_models.config import (
     LookupTypeCreate, LookupTypeUpdate, LookupValueCreate, LookupValueUpdate,
     SystemParameterCreate, SystemParameterUpdate,
