@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 import FormBuilder from './FormBuilder';
 import type { FormFieldConfig, FormLayoutConfig } from './FormBuilder';
 
-const { Panel } = Collapse;
 const { Title } = Typography;
 
 // 搜索表单配置

@@ -14,6 +14,7 @@ import {
   TableOutlined,
   CalculatorOutlined,
   DatabaseOutlined,
+  CodeOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 
@@ -24,6 +25,8 @@ export type { MenuDataItem };
 export interface AppMenuDataItem extends MenuDataItem {
   /** 菜单名称 */
   name?: string;
+  /** 翻译key */
+  titleKey?: string;
   /** 图标 */
   icon?: React.ReactNode;
   /** 路径 */
@@ -46,46 +49,72 @@ export interface AppMenuDataItem extends MenuDataItem {
   groupTitle?: string;
 }
 
+// 🌐 菜单国际化转换函数
+export const transformMenuDataWithI18n = (
+  data: AppMenuDataItem[], 
+  t: (key: string) => string
+): MenuDataItem[] => {
+  return data.map(item => {
+    const transformedItem: MenuDataItem = {
+      ...item,
+      name: item.titleKey ? t(item.titleKey) : item.name,
+    };
+
+    if (item.children) {
+      transformedItem.children = transformMenuDataWithI18n(item.children, t);
+    }
+
+    return transformedItem;
+  });
+};
+
 // 📋 菜单数据配置
 export const menuData: AppMenuDataItem[] = [
   {
     path: '/dashboard',
     name: '仪表盘',
+    titleKey: 'dashboard',
     icon: <DashboardOutlined />,
     component: './Dashboard',
   },
   {
     path: '/hr',
     name: '员工管理',
+    titleKey: 'hr',
     icon: <TeamOutlined />,
     children: [
       {
         path: '/hr/employees',
         name: '员工档案',
+        titleKey: 'hrEmployees',
         icon: <TeamOutlined />,
         component: './HRManagement/employees/EmployeeListPage',
       },
       {
         path: '/hr/employees/new',
         name: '创建员工',
+        titleKey: 'hrEmployeesNew',
         icon: <UserAddOutlined />,
         component: './HRManagement/employees/CreateEmployeePage',
       },
       {
         path: '/hr/employees/bulk-import',
         name: '员工批量导入',
+        titleKey: 'hrEmployeesBulkImport',
         icon: <UploadOutlined />,
         component: './HRManagement/bulkImport/EmployeeBulkImportPage',
       },
       {
         path: '/hr/employees/:id',
         name: '员工详情',
+        titleKey: 'hrEmployeesDetail',
         hideInMenu: true,
         component: './HRManagement/employees/EmployeeDetailPage',
       },
       {
         path: '/hr/employees/:id/edit',
         name: '编辑员工',
+        titleKey: 'hrEmployeesEdit',
         hideInMenu: true,
         component: './HRManagement/employees/EditEmployeePage',
       },
@@ -94,36 +123,43 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/payroll',
     name: '薪资管理',
+    titleKey: 'payroll',
     icon: <DollarCircleOutlined />,
     children: [
       {
         path: '/finance/payroll/periods',
         name: '薪资周期',
+        titleKey: 'payrollPeriods',
         component: './Payroll/pages/PayrollPeriodsPage',
       },
       {
         path: '/finance/payroll/runs',
         name: '薪资审核',
+        titleKey: 'payrollRuns',
         component: './Payroll/pages/PayrollRunsPage',
       },
       {
         path: '/finance/payroll/entry',
         name: '薪资条目',
+        titleKey: 'payrollEntry',
         component: './Payroll/pages/PayrollEntryPage',
       },
       {
         path: '/finance/payroll/components',
         name: '薪资字段',
+        titleKey: 'payrollComponents',
         component: './Payroll/pages/PayrollComponentsPage',
       },
       {
         path: '/finance/payroll/bulk-import',
         name: '薪资批量导入',
+        titleKey: 'payrollBulkImport',
         component: './Payroll/pages/PayrollBulkImportPage',
       },
       {
         path: '/finance/payroll/runs/:id',
         name: '薪资审核详情',
+        titleKey: 'payrollRunDetail',
         hideInMenu: true,
         component: './Payroll/pages/PayrollRunDetailPage',
       },
@@ -132,16 +168,19 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/manager',
     name: '经理视图',
+    titleKey: 'manager',
     icon: <UserSwitchOutlined />,
     children: [
       {
         path: '/manager/subordinates',
         name: '下属管理',
+        titleKey: 'managerSubordinates',
         component: './Manager/Subordinates',
       },
       {
         path: '/manager/leave-approvals',
         name: '请假审批',
+        titleKey: 'managerLeaveApprovals',
         component: './Manager/LeaveApprovals',
       },
     ],
@@ -149,47 +188,62 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/reports',
     name: '报表管理',
+    titleKey: 'reports',
     icon: <BarChartOutlined />,
     children: [
       {
         path: '/reports/designer',
         name: '报表设计器',
+        titleKey: 'reportsDesigner',
         icon: <TableOutlined />,
-        component: './Admin/ReportManagement/ReportDesigner',
+        component: './Admin/ReportManagement/components/ReportDesigner',
       },
       {
         path: '/reports/templates',
         name: '报表模板',
+        titleKey: 'reportsTemplates',
         icon: <FileTextOutlined />,
         component: './Admin/ReportManagement/ReportTemplates',
       },
       {
         path: '/reports/calculated-fields',
         name: '计算字段',
+        titleKey: 'reportsCalculatedFields',
         icon: <CalculatorOutlined />,
         component: './Admin/ReportManagement/CalculatedFields',
       },
       {
+        path: '/reports/custom-query',
+        name: '自定义查询',
+        titleKey: 'reportsCustomQuery',
+        icon: <CodeOutlined />,
+        component: './Admin/ReportManagement/CustomQueryPage',
+      },
+      {
         path: '/reports/data-sources',
         name: '数据源管理',
+        titleKey: 'reportsDataSources',
         icon: <DatabaseOutlined />,
         component: './Admin/ReportManagement/DataSources',
       },
       {
         path: '/reports/viewer',
         name: '报表查看',
+        titleKey: 'reportsViewer',
         icon: <BarChartOutlined />,
         component: './Admin/ReportManagement/ReportViewer',
       },
       {
         path: '/reports/templates/:id',
         name: '报表模板详情',
+        titleKey: 'reportsTemplateDetail',
         hideInMenu: true,
         component: './Admin/ReportManagement/ReportTemplateDetail',
       },
       {
         path: '/reports/templates/:id/edit',
         name: '编辑报表模板',
+        titleKey: 'reportsTemplateEdit',
         hideInMenu: true,
         component: './Admin/ReportManagement/ReportDesigner',
       },
@@ -198,26 +252,31 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/admin',
     name: '系统管理',
+    titleKey: 'admin',
     icon: <SettingOutlined />,
     children: [
       {
         path: '/admin/users',
         name: '用户管理',
+        titleKey: 'adminUsers',
         component: './Admin/Users',
       },
       {
         path: '/admin/roles',
         name: '角色管理',
+        titleKey: 'adminRoles',
         component: './Admin/Roles',
       },
       {
         path: '/admin/permissions',
         name: '权限管理',
+        titleKey: 'adminPermissions',
         component: './Admin/Permissions/PermissionListPage',
       },
       {
         path: '/admin/config',
         name: '系统配置',
+        titleKey: 'adminConfig',
         component: './Admin/Config',
       },
     ],
@@ -225,21 +284,25 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/organization',
     name: '组织架构',
+    titleKey: 'organization',
     icon: <ApartmentOutlined />,
     children: [
       {
         path: '/admin/organization/departments',
         name: '部门管理',
+        titleKey: 'organizationDepartments',
         component: './Admin/Organization/DepartmentsPage',
       },
       {
         path: '/admin/organization/personnel-categories',
         name: '人员类别',
+        titleKey: 'organizationPersonnelCategories',
         component: './Admin/Organization/PersonnelCategoriesPage',
       },
       {
         path: '/admin/organization/positions',
         name: '实际职务',
+        titleKey: 'organizationPositions',
         component: './Admin/Organization/ActualPositionTab',
       },
     ],
@@ -247,11 +310,13 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/test',
     name: '测试页面',
+    titleKey: 'test',
     icon: <SolutionOutlined />,
     children: [
       {
         path: '/test/employee-list-v3',
         name: '员工列表V3',
+        titleKey: 'testEmployeeListV3',
         component: './HRManagement/employees/EmployeeListPageV3',
       },
     ],
@@ -259,21 +324,25 @@ export const menuData: AppMenuDataItem[] = [
   {
     path: '/personal',
     name: '个人中心',
+    titleKey: 'personal',
     icon: <SolutionOutlined />,
     children: [
       {
         path: '/employee-info/my-info',
         name: '我的信息',
+        titleKey: 'personalMyInfo',
         component: './Employee/MyInfo',
       },
       {
         path: '/employee-info/my-payslips',
         name: '我的工资单',
+        titleKey: 'personalMyPayslips',
         component: './Employee/MyPayslips',
       },
       {
         path: '/personal/leave',
         name: '我的请假',
+        titleKey: 'personalLeave',
         component: './Employee/MyLeave',
       },
     ],

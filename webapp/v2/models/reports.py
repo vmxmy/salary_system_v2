@@ -1,54 +1,171 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, JSON, DECIMAL
+from sqlalchemy import Column, BigInteger, Integer, String, Text, Boolean, DateTime, ForeignKey, JSON, DECIMAL, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB
 from ..database import BaseV2 as Base
 
 
 class ReportDataSource(Base):
-    """报表数据源模型"""
+    """报表数据源模型 - 增强版"""
     __tablename__ = "report_data_sources"
+    __table_args__ = (
+        Index('idx_data_source_type_active', 'source_type', 'is_active'),
+        Index('idx_data_source_category', 'category'),
+        Index('idx_data_source_schema_table', 'schema_name', 'table_name'),
+        {'schema': 'config'}
+    )
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False, comment="数据源名称")
-    table_name = Column(String(100), nullable=False, comment="表名")
+    id = Column(BigInteger, primary_key=True, index=True)
+    
+    # 基础信息
+    name = Column(String(200), nullable=False, comment="数据源名称")
+    code = Column(String(100), unique=True, nullable=False, comment="数据源编码")
+    description = Column(Text, comment="数据源描述")
+    category = Column(String(50), comment="数据源分类")
+    
+    # 数据库连接信息
+    connection_type = Column(String(50), nullable=False, default="postgresql", comment="连接类型")
     schema_name = Column(String(100), nullable=False, default="public", comment="模式名")
-    description = Column(Text, comment="描述")
-    connection_config = Column(JSON, comment="连接配置")
-    is_active = Column(Boolean, default=True, comment="是否激活")
-    created_by = Column(Integer, ForeignKey("security.users.id"), comment="创建者")
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
+    table_name = Column(String(255), comment="表名")
+    view_name = Column(String(100), comment="视图名")
+    custom_query = Column(Text, comment="自定义查询SQL")
+    
+    # 数据源类型：table, view, query, procedure
+    source_type = Column(String(20), nullable=False, default="table", comment="数据源类型")
+    
+    # 连接配置
+    connection_config = Column(JSONB, comment="连接配置信息")
+    
+    # 字段映射和配置
+    field_mapping = Column(JSONB, comment="字段映射配置")
+    default_filters = Column(JSONB, comment="默认筛选条件")
+    sort_config = Column(JSONB, comment="默认排序配置")
+    
+    # 权限和访问控制
+    access_level = Column(String(20), default="public", comment="访问级别: public, private, restricted")
+    allowed_roles = Column(JSONB, comment="允许访问的角色列表")
+    allowed_users = Column(JSONB, comment="允许访问的用户列表")
+    
+    # 缓存和性能配置
+    cache_enabled = Column(Boolean, default=False, comment="是否启用缓存")
+    cache_duration = Column(Integer, default=3600, comment="缓存时长(秒)")
+    max_rows = Column(Integer, default=10000, comment="最大返回行数")
+    
+    # 状态和显示
+    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
+    is_system = Column(Boolean, default=False, nullable=False, comment="是否系统内置")
+    sort_order = Column(Integer, default=0, nullable=False, comment="排序顺序")
+    tags = Column(JSONB, comment="标签")
+    
+    # 统计信息
+    field_count = Column(Integer, default=0, comment="字段数量")
+    usage_count = Column(Integer, default=0, comment="使用次数")
+    last_used_at = Column(DateTime(timezone=True), comment="最后使用时间")
+    last_sync_at = Column(DateTime(timezone=True), comment="最后同步时间")
+    
+    # 审计字段
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
+    updated_by = Column(BigInteger, ForeignKey("security.users.id"), comment="更新者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
 
     # 关系
-    creator = relationship("User", back_populates="created_data_sources")
+    creator = relationship("User", foreign_keys=[created_by], back_populates="created_data_sources")
+    updater = relationship("User", foreign_keys=[updated_by])
     fields = relationship("ReportDataSourceField", back_populates="data_source", cascade="all, delete-orphan")
     templates = relationship("ReportTemplate", back_populates="data_source")
+    access_logs = relationship("ReportDataSourceAccessLog", back_populates="data_source")
 
 
 class ReportDataSourceField(Base):
-    """报表数据源字段模型"""
+    """报表数据源字段模型 - 增强版"""
     __tablename__ = "report_data_source_fields"
+    __table_args__ = (
+        Index('idx_ds_field_source_name', 'data_source_id', 'field_name'),
+        Index('idx_ds_field_visible_sortable', 'is_visible', 'sort_order'),
+        {'schema': 'config'}
+    )
 
-    id = Column(Integer, primary_key=True, index=True)
-    data_source_id = Column(Integer, ForeignKey("report_data_sources.id"), nullable=False)
-    field_name = Column(String(100), nullable=False, comment="字段名")
+    id = Column(BigInteger, primary_key=True, index=True)
+    data_source_id = Column(BigInteger, ForeignKey("config.report_data_sources.id"), nullable=False)
+    
+    # 基础字段信息
+    field_name = Column(String(100), nullable=False, comment="原始字段名")
+    field_alias = Column(String(100), comment="字段别名")
     field_type = Column(String(50), nullable=False, comment="字段类型")
+    data_type = Column(String(50), comment="数据库数据类型")
+    
+    # 显示配置
+    display_name_zh = Column(String(200), comment="中文显示名称")
+    display_name_en = Column(String(200), comment="英文显示名称")
+    description = Column(Text, comment="字段描述")
+    
+    # 字段属性
     is_nullable = Column(Boolean, default=True, comment="是否可为空")
-    comment = Column(String(200), comment="字段注释")
-    display_name_zh = Column(String(100), comment="中文显示名称")
-    display_name_en = Column(String(100), comment="英文显示名称")
+    is_primary_key = Column(Boolean, default=False, comment="是否主键")
+    is_foreign_key = Column(Boolean, default=False, comment="是否外键")
+    is_indexed = Column(Boolean, default=False, comment="是否有索引")
+    
+    # 显示和权限控制
     is_visible = Column(Boolean, default=True, comment="是否可见")
+    is_searchable = Column(Boolean, default=True, comment="是否可搜索")
+    is_sortable = Column(Boolean, default=True, comment="是否可排序")
+    is_filterable = Column(Boolean, default=True, comment="是否可筛选")
+    is_exportable = Column(Boolean, default=True, comment="是否可导出")
+    
+    # 分组和分类
+    field_group = Column(String(50), comment="字段分组")
+    field_category = Column(String(50), comment="字段分类")
     sort_order = Column(Integer, default=0, comment="排序顺序")
+    
+    # 格式化配置
+    format_config = Column(JSONB, comment="格式化配置")
+    validation_rules = Column(JSONB, comment="验证规则")
+    lookup_config = Column(JSONB, comment="查找表配置")
+    
+    # 统计配置
+    enable_aggregation = Column(Boolean, default=False, comment="是否启用聚合")
+    aggregation_functions = Column(JSONB, comment="可用聚合函数")
+    
+    # 审计字段
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
 
     # 关系
     data_source = relationship("ReportDataSource", back_populates="fields")
 
 
+class ReportDataSourceAccessLog(Base):
+    """数据源访问日志"""
+    __tablename__ = "report_data_source_access_logs"
+    __table_args__ = {'schema': 'config'}
+    
+    id = Column(BigInteger, primary_key=True, index=True)
+    data_source_id = Column(BigInteger, ForeignKey("config.report_data_sources.id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("security.users.id"), nullable=False)
+    
+    access_type = Column(String(20), nullable=False, comment="访问类型: view, query, export")
+    access_result = Column(String(20), nullable=False, comment="访问结果: success, failed, denied")
+    query_params = Column(JSONB, comment="查询参数")
+    result_count = Column(Integer, comment="返回记录数")
+    execution_time = Column(DECIMAL(10, 3), comment="执行时间(秒)")
+    error_message = Column(Text, comment="错误信息")
+    ip_address = Column(String(45), comment="IP地址")
+    user_agent = Column(String(500), comment="用户代理")
+    
+    accessed_at = Column(DateTime(timezone=True), server_default=func.now(), comment="访问时间")
+    
+    # 关系
+    data_source = relationship("ReportDataSource", back_populates="access_logs")
+    user = relationship("User")
+
+
 class ReportCalculatedField(Base):
     """报表计算字段模型"""
     __tablename__ = "report_calculated_fields"
+    __table_args__ = {'schema': 'config'}
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, index=True)
     name = Column(String(100), nullable=False, comment="字段名称")
     alias = Column(String(100), nullable=False, comment="字段别名")
     formula = Column(Text, nullable=False, comment="计算公式")
@@ -59,7 +176,7 @@ class ReportCalculatedField(Base):
     is_global = Column(Boolean, default=True, comment="是否全局字段")
     is_active = Column(Boolean, default=True, comment="是否激活")
     category = Column(String(50), comment="分类")
-    created_by = Column(Integer, ForeignKey("security.users.id"), comment="创建者")
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
 
@@ -70,21 +187,22 @@ class ReportCalculatedField(Base):
 class ReportTemplate(Base):
     """报表模板模型"""
     __tablename__ = "report_templates"
+    __table_args__ = {'schema': 'config'}
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False, comment="模板名称")
-    title = Column(String(200), comment="自定义标题")
+    id = Column(BigInteger, primary_key=True, index=True)
+    name = Column(String(255), nullable=False, comment="模板名称")
+    title = Column(String(500), comment="自定义标题")
     description = Column(Text, comment="描述")
-    category = Column(String(50), comment="分类")
-    data_source_id = Column(Integer, ForeignKey("report_data_sources.id"), comment="数据源ID")
-    template_config = Column(JSON, comment="模板配置")
-    is_active = Column(Boolean, default=True, comment="是否激活")
-    is_public = Column(Boolean, default=False, comment="是否公开")
-    sort_order = Column(Integer, default=0, comment="排序顺序")
-    usage_count = Column(Integer, default=0, comment="使用次数")
-    created_by = Column(Integer, ForeignKey("security.users.id"), comment="创建者")
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
+    category = Column(String(100), comment="分类")
+    data_source_id = Column(BigInteger, ForeignKey("config.report_data_sources.id"), comment="数据源ID")
+    template_config = Column(JSONB, nullable=False, comment="模板配置")
+    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
+    is_public = Column(Boolean, default=False, nullable=False, comment="是否公开")
+    sort_order = Column(Integer, default=0, nullable=False, comment="排序顺序")
+    usage_count = Column(Integer, default=0, nullable=False, comment="使用次数")
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
 
     # 关系
     creator = relationship("User", back_populates="created_report_templates")
@@ -96,9 +214,10 @@ class ReportTemplate(Base):
 class ReportTemplateField(Base):
     """报表模板字段模型"""
     __tablename__ = "report_template_fields"
+    __table_args__ = {'schema': 'config'}
 
-    id = Column(Integer, primary_key=True, index=True)
-    template_id = Column(Integer, ForeignKey("report_templates.id"), nullable=False)
+    id = Column(BigInteger, primary_key=True, index=True)
+    template_id = Column(BigInteger, ForeignKey("config.report_templates.id"), nullable=False)
     field_name = Column(String(100), nullable=False, comment="字段名")
     field_alias = Column(String(100), comment="字段别名")
     data_source = Column(String(50), nullable=False, comment="数据源类型")
@@ -108,7 +227,7 @@ class ReportTemplateField(Base):
     is_sortable = Column(Boolean, default=True, comment="是否可排序")
     is_filterable = Column(Boolean, default=True, comment="是否可筛选")
     width = Column(Integer, comment="列宽")
-    formatting_config = Column(JSON, comment="格式化配置")
+    formatting_config = Column(JSONB, comment="格式化配置")
     calculation_formula = Column(Text, comment="计算公式")
 
     # 关系
@@ -118,18 +237,87 @@ class ReportTemplateField(Base):
 class ReportExecution(Base):
     """报表执行记录模型"""
     __tablename__ = "report_executions"
+    __table_args__ = {'schema': 'config'}
 
-    id = Column(Integer, primary_key=True, index=True)
-    template_id = Column(Integer, ForeignKey("report_templates.id"), nullable=False)
-    execution_params = Column(JSON, comment="执行参数")
+    id = Column(BigInteger, primary_key=True, index=True)
+    template_id = Column(BigInteger, ForeignKey("config.report_templates.id"), nullable=False)
+    execution_params = Column(JSONB, comment="执行参数")
     status = Column(String(20), default="pending", comment="执行状态")
     result_count = Column(Integer, comment="结果数量")
     execution_time = Column(DECIMAL(10, 3), comment="执行时间(秒)")
     error_message = Column(Text, comment="错误信息")
     file_path = Column(String(500), comment="导出文件路径")
-    executed_by = Column(Integer, ForeignKey("security.users.id"), comment="执行者")
-    executed_at = Column(DateTime(timezone=True), server_default=func.now(), comment="执行时间")
+    file_size = Column(BigInteger, comment="文件大小(字节)")
+    file_format = Column(String(20), comment="文件格式")
+    executed_by = Column(BigInteger, ForeignKey("security.users.id"), comment="执行者")
+    executed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="执行时间")
 
     # 关系
     template = relationship("ReportTemplate", back_populates="executions")
-    executor = relationship("User", back_populates="report_executions") 
+    executor = relationship("User", back_populates="report_executions")
+
+
+class ReportPermission(Base):
+    """报表权限模型"""
+    __tablename__ = "report_permissions"
+    __table_args__ = (
+        Index('idx_report_permissions_subject', 'subject_type', 'subject_id'),
+        Index('idx_report_permissions_object', 'object_type', 'object_id'),
+        Index('idx_report_permissions_type', 'permission_type'),
+        {'schema': 'config'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    
+    # 权限主体
+    subject_type = Column(String(20), nullable=False, comment="主体类型: user, role, department")
+    subject_id = Column(BigInteger, nullable=False, comment="主体ID")
+    
+    # 权限对象
+    object_type = Column(String(20), nullable=False, comment="对象类型: data_source, template, field")
+    object_id = Column(BigInteger, nullable=False, comment="对象ID")
+    
+    # 权限类型
+    permission_type = Column(String(20), nullable=False, comment="权限类型: read, write, execute, export, admin")
+    
+    # 权限配置
+    is_granted = Column(Boolean, default=True, comment="是否授权")
+    conditions = Column(JSONB, comment="权限条件")
+    
+    # 审计字段
+    granted_by = Column(BigInteger, ForeignKey("security.users.id"), comment="授权者")
+    granted_at = Column(DateTime(timezone=True), server_default=func.now(), comment="授权时间")
+    expires_at = Column(DateTime(timezone=True), comment="过期时间")
+
+    # 关系
+    grantor = relationship("User", foreign_keys=[granted_by])
+
+
+class ReportUserPreference(Base):
+    """用户偏好设置模型"""
+    __tablename__ = "report_user_preferences"
+    __table_args__ = (
+        Index('idx_user_preferences_user', 'user_id'),
+        Index('idx_user_preferences_type', 'preference_type'),
+        # 唯一约束
+        Index('uq_user_preference', 'user_id', 'preference_type', 'object_type', 'object_id', unique=True),
+        {'schema': 'config'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("security.users.id"), nullable=False)
+    
+    # 偏好类型
+    preference_type = Column(String(50), nullable=False, comment="偏好类型: layout, filter, sort, export")
+    object_type = Column(String(20), comment="对象类型: template, data_source")
+    object_id = Column(BigInteger, comment="对象ID")
+    
+    # 偏好配置
+    preference_config = Column(JSONB, nullable=False, comment="偏好配置")
+    
+    # 审计字段
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
+
+    # 关系
+    user = relationship("User", back_populates="report_preferences") 

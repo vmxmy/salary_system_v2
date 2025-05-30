@@ -58,7 +58,7 @@ class Employee(BaseV2):
     __table_args__ = {'schema': 'hr'}
 
     id = Column(BigInteger, Identity(always=True), primary_key=True)
-    employee_code = Column(String(50), nullable=False, unique=True)
+    employee_code = Column(String(50), nullable=True, unique=True)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     date_of_birth = Column(Date, nullable=True)

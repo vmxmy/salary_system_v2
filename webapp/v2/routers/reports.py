@@ -16,10 +16,11 @@ from ..pydantic_models.reports import (
     ReportDataSource, ReportDataSourceCreate, ReportDataSourceUpdate,
     ReportDataSourceField, ReportDataSourceFieldCreate, ReportDataSourceFieldUpdate,
     ReportCalculatedField, ReportCalculatedFieldCreate, ReportCalculatedFieldUpdate,
-    ReportTemplate, ReportTemplateCreate, ReportTemplateUpdate,
+    ReportTemplate, ReportTemplateCreate, ReportTemplateUpdate, ReportTemplateListItem,
     ReportTemplateField, ReportTemplateFieldCreate, ReportTemplateFieldUpdate,
     ReportExecution, ReportExecutionCreate,
-    DataSourceFieldDetection, DetectedField, ReportQuery, ReportData
+    DataSourceFieldDetection, DetectedField, ReportQuery, ReportData,
+    DataSourceConnectionTest, DataSourceConnectionTestResponse
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -61,10 +62,18 @@ async def get_data_source(
 async def create_data_source(
     data_source: ReportDataSourceCreate,
     db: Session = Depends(get_db_v2),
-    current_user: User = Depends(require_permission("report:create_datasource"))
+    current_user: User = Depends(get_current_user)
 ):
     """创建数据源"""
-    return ReportDataSourceCRUD.create(db, data_source, current_user.id)
+    if not has_permission(current_user, "report:create_datasource"):
+        raise HTTPException(status_code=403, detail="无权创建数据源")
+    
+    try:
+        return ReportDataSourceCRUD.create(db, data_source, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"创建数据源失败: {str(e)}")
 
 
 @router.put("/data-sources/{data_source_id}", response_model=ReportDataSource)
@@ -106,6 +115,24 @@ async def delete_data_source(
     return {"message": "数据源删除成功"}
 
 
+@router.post("/data-sources/test-connection")
+async def test_data_source_connection(
+    connection_test: DataSourceConnectionTest,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(require_permission("report:test_connection"))
+):
+    """测试数据源连接"""
+    try:
+        result = ReportDataSourceCRUD.test_connection(db, connection_test)
+        return result
+    except Exception as e:
+        return DataSourceConnectionTestResponse(
+            success=False,
+            message=f"连接测试失败: {str(e)}",
+            error_details=str(e)
+        )
+
+
 @router.post("/data-sources/detect-fields", response_model=List[DetectedField])
 async def detect_data_source_fields(
     detection: DataSourceFieldDetection,
@@ -114,6 +141,119 @@ async def detect_data_source_fields(
 ):
     """检测数据源字段"""
     return ReportDataSourceCRUD.detect_fields(db, detection)
+
+
+@router.post("/data-sources/{data_source_id}/sync-fields")
+async def sync_data_source_fields(
+    data_source_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """同步数据源字段"""
+    # 先获取数据源检查权限
+    data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
+    if not data_source:
+        raise HTTPException(status_code=404, detail="数据源不存在")
+    
+    # 检查同步字段权限
+    if not can_edit_datasource(current_user, data_source.created_by):
+        raise HTTPException(status_code=403, detail="无权同步此数据源的字段")
+    
+    try:
+        # 执行字段同步
+        synced_fields = ReportDataSourceCRUD.sync_fields(db, data_source_id)
+        return {
+            "message": "字段同步成功",
+            "synced_count": len(synced_fields),
+            "fields": synced_fields
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"字段同步失败: {str(e)}")
+
+
+@router.get("/data-sources/{data_source_id}/statistics")
+async def get_data_source_statistics(
+    data_source_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取数据源统计信息"""
+    # 先获取数据源检查权限
+    data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
+    if not data_source:
+        raise HTTPException(status_code=404, detail="数据源不存在")
+    
+    # 检查访问权限
+    if not has_permission(current_user, "report:admin") and data_source.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="无权访问此数据源")
+    
+    try:
+        statistics = ReportDataSourceCRUD.get_statistics(db, data_source_id)
+        return statistics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取统计信息失败: {str(e)}")
+
+
+@router.get("/data-sources/{data_source_id}/access-logs")
+async def get_data_source_access_logs(
+    data_source_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取数据源访问日志"""
+    # 先获取数据源检查权限
+    data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
+    if not data_source:
+        raise HTTPException(status_code=404, detail="数据源不存在")
+    
+    # 检查访问权限
+    if not has_permission(current_user, "report:admin") and data_source.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="无权访问此数据源")
+    
+    try:
+        access_logs = ReportDataSourceCRUD.get_access_logs(db, data_source_id, skip, limit)
+        return access_logs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取访问日志失败: {str(e)}")
+
+
+@router.get("/data-sources/{data_source_id}/preview")
+async def preview_data_source_data(
+    data_source_id: int,
+    limit: int = Query(10, ge=1, le=100),
+    filters: Optional[str] = Query(None, description="JSON格式的筛选条件"),
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """预览数据源数据"""
+    # 先获取数据源检查权限
+    data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
+    if not data_source:
+        raise HTTPException(status_code=404, detail="数据源不存在")
+    
+    # 检查访问权限
+    if not has_permission(current_user, "report:admin") and data_source.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="无权访问此数据源")
+    
+    try:
+        import json
+        filter_dict = {}
+        if filters:
+            try:
+                filter_dict = json.loads(filters)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="筛选条件格式错误")
+        
+        preview_data = ReportDataSourceCRUD.preview_data(db, data_source_id, limit, filter_dict)
+        return {
+            "data": preview_data,
+            "total_count": len(preview_data),
+            "limit": limit
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"预览数据失败: {str(e)}")
 
 
 # 数据源字段管理
@@ -239,7 +379,7 @@ async def test_calculated_field_formula(
 
 
 # 报表模板管理
-@router.get("/templates", response_model=List[ReportTemplate])
+@router.get("/templates", response_model=List[ReportTemplateListItem])
 async def get_report_templates(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -247,8 +387,32 @@ async def get_report_templates(
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """获取报表模板列表"""
-    return ReportTemplateCRUD.get_all(db, skip=skip, limit=limit, is_public=is_public)
+    """获取报表模板列表 (摘要信息)"""
+    # Add permission check if needed, e.g., require_permission("report:view_templates")
+    # For now, allowing any authenticated user to list templates, filtering public/private later if needed.
+    
+    templates_orm = ReportTemplateCRUD.get_all(db, skip=skip, limit=limit, is_public=is_public)
+    
+    # Manually construct the list of ReportTemplateListItem from ORM objects
+    # This ensures only the fields defined in ReportTemplateListItem are returned.
+    templates_list = [
+        ReportTemplateListItem.from_orm(template)
+        for template in templates_orm
+    ]
+    # Add filtering based on current_user's access to non-public templates if necessary here
+    # For example, if template.is_public is False, check if current_user.id == template.created_by
+    # or if user has admin rights.
+    
+    # Example of further filtering (if not handled by CRUD or a permission utility):
+    # accessible_templates = []
+    # for template_data in templates_list:
+    #     orm_template = next((t for t in templates_orm if t.id == template_data.id), None)
+    #     if orm_template:
+    #         if orm_template.is_public or (current_user and orm_template.created_by == current_user.id) or has_permission(current_user, "report:admin"):
+    #             accessible_templates.append(template_data)
+    # return accessible_templates
+    
+    return templates_list # Return the list of Pydantic models
 
 
 @router.get("/templates/{template_id}", response_model=ReportTemplate)
@@ -416,3 +580,47 @@ async def query_report_data(
         page=query.page,
         page_size=query.page_size
     ) 
+
+
+@router.post("/data-sources/preview-multi")
+async def preview_multi_datasource_data(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """预览多数据源关联数据"""
+    try:
+        # 验证权限
+        if not has_permission(current_user, "report:view"):
+            raise HTTPException(status_code=403, detail="无权访问")
+        
+        # 提取参数
+        data_sources = request.get("dataSources", [])
+        joins = request.get("joins", [])
+        fields = request.get("fields", [])
+        filters = request.get("filters", {})
+        limit = request.get("pageSize", 20)
+        offset = request.get("offset", 0)
+        
+        if len(data_sources) < 1:
+            raise HTTPException(status_code=400, detail="至少需要一个数据源")
+        
+        # 构建多数据源查询
+        from ..crud.reports import ReportDataSourceCRUD
+        result = ReportDataSourceCRUD.preview_multi_datasource_data(
+            db=db,
+            data_source_ids=[int(ds_id) for ds_id in data_sources],
+            joins=joins,
+            fields=fields,
+            filters=filters,
+            limit=limit,
+            offset=offset
+        )
+        
+        return {
+            "data": result["data"],
+            "total_count": result["total"],
+            "success": True
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"多数据源查询失败: {str(e)}") 

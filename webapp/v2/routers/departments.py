@@ -6,7 +6,13 @@ from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
 
 from ..database import get_db_v2
-from ..crud import hr as crud
+from ..crud import (
+    get_departments as crud_get_departments,
+    get_department as crud_get_department,
+    create_department as crud_create_department,
+    update_department as crud_update_department,
+    delete_department as crud_delete_department
+)
 from ..pydantic_models.hr import DepartmentCreate, DepartmentUpdate, Department, DepartmentListResponse
 from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
@@ -42,7 +48,7 @@ async def get_departments(
         skip = (page - 1) * size
         
         # 获取部门列表
-        departments, total = crud.get_departments(
+        departments, total = crud_get_departments(
             db=db,
             parent_id=parent_id,
             is_active=is_active,
@@ -89,7 +95,7 @@ async def get_department(
     """
     try:
         # 获取部门
-        department = crud.get_department(db, department_id)
+        department = crud_get_department(db, department_id)
         if not department:
             # 返回标准错误响应格式
             raise HTTPException(
@@ -130,7 +136,7 @@ async def create_department(
     """
     try:
         # 创建部门
-        db_department = crud.create_department(db, department)
+        db_department = crud_create_department(db, department)
         
         # 返回标准响应格式
         return DataResponse[Department](data=db_department)
@@ -171,7 +177,7 @@ async def update_department(
     """
     try:
         # 更新部门
-        db_department = crud.update_department(db, department_id, department)
+        db_department = crud_update_department(db, department_id, department)
         if not db_department:
             # 返回标准错误响应格式
             raise HTTPException(
@@ -223,7 +229,7 @@ async def delete_department(
     """
     try:
         # 删除部门
-        success = crud.delete_department(db, department_id)
+        success = crud_delete_department(db, department_id)
         if not success:
             # 返回标准错误响应格式
             raise HTTPException(

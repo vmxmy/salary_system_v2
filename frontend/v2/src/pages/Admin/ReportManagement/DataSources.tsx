@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { message, Tag, Space, Button, Tooltip } from 'antd';
+import { Tag, Space, Button, Tooltip, Modal, Drawer, App } from 'antd';
 import { 
   DatabaseOutlined, 
   CheckCircleOutlined, 
@@ -8,110 +8,77 @@ import {
   CopyOutlined,
   EyeOutlined,
   EditOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ProColumns } from '@ant-design/pro-components';
 import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
 import type { StandardListPageTemplateProps } from '../../../components/common/StandardListPageTemplate';
-
-// 数据源数据类型
-interface DataSource {
-  id: string;
-  name: string;
-  description?: string;
-  connection_type: string;
-  schema_name: string;
-  table_name: string;
-  field_count: number;
-  is_active: boolean;
-  creator_name: string;
-  created_at: string;
-  updated_at: string;
-}
+import { dataSourceAPI, type DataSource } from '../../../api/reports';
+import type { ReportDataSource } from './types';
+import DataSourceForm from './components/DataSourceForm.tsx';
+import DataSourceDetails from './components/DataSourceDetails.tsx';
+import FieldManagement from './components/FieldManagement.tsx';
 
 const DataSources: React.FC = () => {
   const { t } = useTranslation(['reportManagement', 'common']);
-  const [data, setData] = useState<DataSource[]>([]);
+  const { message } = App.useApp();
+  const [data, setData] = useState<ReportDataSource[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [detailsDrawerVisible, setDetailsDrawerVisible] = useState(false);
+  const [fieldsDrawerVisible, setFieldsDrawerVisible] = useState(false);
+  const [currentItem, setCurrentItem] = useState<ReportDataSource | null>(null);
+  const [editMode, setEditMode] = useState<'create' | 'edit'>('create');
 
-  // 模拟数据加载
+  // 加载数据源列表
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: DataSource[] = [
-        {
-          id: '1',
-          name: '员工基础信息表',
-          description: '包含员工基本信息的主表',
-          connection_type: 'postgresql',
-          schema_name: 'hr',
-          table_name: 'employees',
-          field_count: 15,
-          is_active: true,
-          creator_name: 'admin',
-          created_at: '2024-01-10 09:00:00',
-          updated_at: '2024-01-15 14:30:00',
-        },
-        {
-          id: '2',
-          name: '薪资发放记录表',
-          description: '员工薪资发放的历史记录',
-          connection_type: 'postgresql',
-          schema_name: 'payroll',
-          table_name: 'salary_records',
-          field_count: 20,
-          is_active: true,
-          creator_name: 'hr_manager',
-          created_at: '2024-01-08 16:20:00',
-          updated_at: '2024-01-12 11:45:00',
-        },
-        {
-          id: '3',
-          name: '部门结构表',
-          description: '组织架构和部门信息',
-          connection_type: 'postgresql',
-          schema_name: 'org',
-          table_name: 'departments',
-          field_count: 8,
-          is_active: false,
-          creator_name: 'admin',
-          created_at: '2024-01-05 10:15:00',
-          updated_at: '2024-01-10 09:30:00',
-        },
-        {
-          id: '4',
-          name: '考勤记录表',
-          description: '员工考勤打卡记录',
-          connection_type: 'mysql',
-          schema_name: 'attendance',
-          table_name: 'attendance_records',
-          field_count: 12,
-          is_active: true,
-          creator_name: 'hr_admin',
-          created_at: '2024-01-12 14:20:00',
-          updated_at: '2024-01-18 16:45:00',
-        },
-        {
-          id: '5',
-          name: '绩效评估表',
-          description: '员工绩效考核数据',
-          connection_type: 'postgresql',
-          schema_name: 'performance',
-          table_name: 'evaluations',
-          field_count: 18,
-          is_active: true,
-          creator_name: 'manager',
-          created_at: '2024-01-15 11:30:00',
-          updated_at: '2024-01-20 09:15:00',
-        }
-      ];
-      
-      setData(mockData);
+      const response = await dataSourceAPI.getDataSources();
+      // 转换API数据格式为组件需要的格式
+      const transformedData: ReportDataSource[] = response.data.map(item => ({
+        id: item.id,
+        code: item.code,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        connection_type: item.connection_type,
+        schema_name: item.schema_name,
+        table_name: item.table_name,
+        view_name: item.view_name,
+        custom_query: item.custom_query,
+        source_type: item.source_type,
+        connection_config: item.connection_config,
+        field_mapping: item.field_mapping,
+        default_filters: item.default_filters,
+        sort_config: item.sort_config,
+        access_level: item.access_level,
+        allowed_roles: item.allowed_roles?.map(String),
+        allowed_users: item.allowed_users,
+        cache_enabled: item.cache_enabled,
+        cache_duration: item.cache_duration,
+        max_rows: item.max_rows,
+        is_active: item.is_active,
+        is_system: item.is_system,
+        sort_order: item.sort_order,
+        tags: item.tags,
+        field_count: item.field_count,
+        usage_count: item.usage_count,
+        last_used_at: item.last_used_at,
+        last_sync_at: item.last_sync_at,
+        created_by: item.created_by,
+        updated_by: item.updated_by,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        fields: item.fields
+      }));
+      setData(transformedData);
     } catch (error) {
+      console.error('Failed to fetch data sources:', error);
       message.error(t('loadDataFailed'));
     } finally {
       setLoading(false);
@@ -125,53 +92,152 @@ const DataSources: React.FC = () => {
   // 删除数据源
   const deleteItem = useCallback(async (id: string) => {
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setData(prev => prev.filter(item => item.id !== id));
+      await dataSourceAPI.deleteDataSource(Number(id));
+      setData(prev => prev.filter(item => item.id !== Number(id)));
+      message.success(t('deleteDataSourceSuccess'));
     } catch (error) {
+      console.error('Failed to delete data source:', error);
       throw new Error(t('deleteDataSourceFailed'));
     }
   }, [t]);
 
   // 处理新增
   const handleAdd = () => {
-    message.info(t('addDataSource'));
-    // 这里可以打开新增对话框或跳转到新增页面
+    setCurrentItem(null);
+    setEditMode('create');
+    setEditModalVisible(true);
   };
 
   // 处理编辑
-  const handleEdit = (item: DataSource) => {
-    message.info(t('editDataSource'));
-    // 这里可以打开编辑对话框或跳转到编辑页面
+  const handleEdit = (item: ReportDataSource) => {
+    setCurrentItem(item);
+    setEditMode('edit');
+    setEditModalVisible(true);
   };
 
   // 处理查看详情
   const handleViewDetails = (id: string) => {
-    const item = data.find(d => d.id === id);
-    message.info(t('viewDataSourceDetails'));
-    // 这里可以打开详情对话框或跳转到详情页面
+    const item = data.find(d => d.id === Number(id));
+    if (item) {
+      setCurrentItem(item);
+      setDetailsDrawerVisible(true);
+    }
+  };
+
+  // 处理字段管理
+  const handleManageFields = (item: ReportDataSource) => {
+    setCurrentItem(item);
+    setFieldsDrawerVisible(true);
   };
 
   // 测试连接
-  const handleTestConnection = (item: DataSource) => {
-    message.loading(t('testingConnection'), 2);
-    setTimeout(() => {
-      message.success(t('connectionTestSuccess'));
-    }, 2000);
+  const handleTestConnection = async (item: ReportDataSource) => {
+    try {
+      message.loading(t('testingConnection'), 0);
+      const response = await dataSourceAPI.testConnection({
+        connection_type: item.connection_type,
+        connection_config: item.connection_config || {},
+        schema_name: item.schema_name,
+        table_name: item.table_name
+      });
+      message.destroy();
+      
+      if (response.data.success) {
+        message.success(t('connectionTestSuccess'));
+      } else {
+        message.error(response.data.message || t('connectionTestFailed'));
+      }
+    } catch (error) {
+      message.destroy();
+      console.error('Connection test failed:', error);
+      message.error(t('connectionTestFailed'));
+    }
+  };
+
+  // 同步字段
+  const handleSyncFields = async (item: ReportDataSource) => {
+    try {
+      message.loading(t('syncingFields'), 0);
+      await dataSourceAPI.syncFields(item.id!);
+      message.destroy();
+      message.success(t('syncFieldsSuccess'));
+      // 重新加载数据
+      fetchData();
+    } catch (error) {
+      message.destroy();
+      console.error('Sync fields failed:', error);
+      message.error(t('syncFieldsFailed'));
+    }
   };
 
   // 复制数据源
-  const handleCopy = (item: DataSource) => {
-    message.success(t('copyDataSource'));
+  const handleCopy = (item: ReportDataSource) => {
+    const copiedItem = {
+      ...item,
+      id: undefined,
+      code: `${item.code}_copy`,
+      name: `${item.name} (副本)`,
+      created_at: undefined,
+      updated_at: undefined
+    };
+    setCurrentItem(copiedItem);
+    setEditMode('create');
+    setEditModalVisible(true);
   };
 
   // 切换启用状态
-  const handleToggleStatus = (item: DataSource) => {
-    const newStatus = !item.is_active;
-    setData(prev => prev.map(d => 
-      d.id === item.id ? { ...d, is_active: newStatus } : d
-    ));
-    message.success(newStatus ? t('dataSourceEnabled') : t('dataSourceDisabled'));
+  const handleToggleStatus = async (item: ReportDataSource) => {
+    try {
+      const newStatus = !item.is_active;
+      await dataSourceAPI.updateDataSource(item.id!, { is_active: newStatus });
+      setData(prev => prev.map(d => 
+        d.id === item.id ? { ...d, is_active: newStatus } : d
+      ));
+      message.success(newStatus ? t('dataSourceEnabled') : t('dataSourceDisabled'));
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      message.error(t('updateStatusFailed'));
+    }
+  };
+
+  // 处理表单提交
+  const handleFormSubmit = async (values: any) => {
+    try {
+      if (editMode === 'create') {
+        const response = await dataSourceAPI.createDataSource(values);
+        const newItem: ReportDataSource = {
+          ...response.data,
+          allowed_roles: response.data.allowed_roles?.map(String)
+        };
+        setData(prev => [...prev, newItem]);
+        message.success(t('createDataSourceSuccess'));
+      } else {
+        const response = await dataSourceAPI.updateDataSource(currentItem!.id!, values);
+        const updatedItem: ReportDataSource = {
+          ...response.data,
+          allowed_roles: response.data.allowed_roles?.map(String)
+        };
+        setData(prev => prev.map(item => 
+          item.id === currentItem!.id ? updatedItem : item
+        ));
+        message.success(t('updateDataSourceSuccess'));
+      }
+      setEditModalVisible(false);
+      setCurrentItem(null);
+    } catch (error: any) {
+      console.error('Failed to save data source:', error);
+      
+      // 提取后端返回的错误信息
+      let errorMessage = editMode === 'create' ? t('createDataSourceFailed') : t('updateDataSourceFailed');
+      
+      if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      message.error(errorMessage);
+    }
   };
 
   // 生成表格列配置
@@ -282,7 +348,7 @@ const DataSources: React.FC = () => {
               border: 'none',
               padding: 0
             }}
-            onClick={() => handleToggleStatus(record)}
+            onClick={() => handleToggleStatus(record as ReportDataSource)}
           >
             {isActive ? t('active') : t('inactive')}
           </Button>
@@ -290,10 +356,10 @@ const DataSources: React.FC = () => {
       },
       {
         title: t('creator'),
-        dataIndex: 'creator_name',
-        key: 'creator_name',
+        dataIndex: 'created_by',
+        key: 'created_by',
         width: 120,
-        ...getColumnSearch('creator_name'),
+        render: (createdBy: number) => createdBy || '-',
       },
       {
         title: t('createdAt'),
@@ -317,7 +383,7 @@ const DataSources: React.FC = () => {
         title: t('actions'),
         key: 'action',
         fixed: 'right',
-        width: 200,
+        width: 250,
         render: (_, record: DataSource) => (
           <Space size="small">
             <Tooltip title={t('testConnection')}>
@@ -325,7 +391,23 @@ const DataSources: React.FC = () => {
                 type="text"
                 size="small"
                 icon={<LinkOutlined />}
-                onClick={() => handleTestConnection(record)}
+                onClick={() => handleTestConnection(record as ReportDataSource)}
+              />
+            </Tooltip>
+            <Tooltip title={t('syncFields')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<SyncOutlined />}
+                onClick={() => handleSyncFields(record as ReportDataSource)}
+              />
+            </Tooltip>
+            <Tooltip title={t('manageFields')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<SettingOutlined />}
+                onClick={() => handleManageFields(record as ReportDataSource)}
               />
             </Tooltip>
             <Tooltip title={t('copy')}>
@@ -333,7 +415,7 @@ const DataSources: React.FC = () => {
                 type="text"
                 size="small"
                 icon={<CopyOutlined />}
-                onClick={() => handleCopy(record)}
+                onClick={() => handleCopy(record as ReportDataSource)}
               />
             </Tooltip>
             {permissions.canViewDetail && (
@@ -342,7 +424,7 @@ const DataSources: React.FC = () => {
                   type="text"
                   size="small"
                   icon={<EyeOutlined />}
-                  onClick={() => onViewDetails(record.id)}
+                  onClick={() => onViewDetails(record.id.toString())}
                 />
               </Tooltip>
             )}
@@ -352,7 +434,7 @@ const DataSources: React.FC = () => {
                   type="text"
                   size="small"
                   icon={<EditOutlined />}
-                  onClick={() => onEdit(record)}
+                  onClick={() => handleEdit(record as ReportDataSource)}
                 />
               </Tooltip>
             )}
@@ -363,7 +445,7 @@ const DataSources: React.FC = () => {
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
-                  onClick={() => onDelete(record.id)}
+                  onClick={() => onDelete(record.id.toString())}
                 />
               </Tooltip>
             )}
@@ -371,7 +453,7 @@ const DataSources: React.FC = () => {
         ),
       },
     ];
-  }, [handleTestConnection, handleCopy, handleToggleStatus]);
+  }, [handleTestConnection, handleCopy, handleToggleStatus, handleSyncFields, handleManageFields, handleEdit]);
 
   // 权限配置
   const permissions = {
@@ -405,7 +487,7 @@ const DataSources: React.FC = () => {
     translationNamespaces: ['reportManagement', 'common'],
     pageTitleKey: 'dataSourceManagement',
     addButtonTextKey: 'addDataSource',
-    dataSource: data,
+    dataSource: data as DataSource[],
     loadingData: loading,
     permissions,
     lookupMaps: { initialized: true }, // 提供非空对象避免显示错误消息
@@ -414,7 +496,7 @@ const DataSources: React.FC = () => {
     fetchData,
     deleteItem,
     onAddClick: handleAdd,
-    onEditClick: handleEdit,
+    onEditClick: (item: DataSource) => handleEdit(item as ReportDataSource),
     onViewDetailsClick: handleViewDetails,
     generateTableColumns,
     deleteConfirmConfig,
@@ -425,7 +507,34 @@ const DataSources: React.FC = () => {
     rowKey: 'id',
   };
 
-  return <StandardListPageTemplate {...templateProps} />;
+  return (
+    <>
+      <StandardListPageTemplate {...templateProps} />
+      
+      {/* 数据源表单模态框 */}
+      <DataSourceForm
+        visible={editModalVisible}
+        mode={editMode}
+        initialValues={currentItem}
+        onSubmit={handleFormSubmit}
+        onCancel={() => setEditModalVisible(false)}
+      />
+      
+      {/* 数据源详情抽屉 */}
+      <DataSourceDetails
+        visible={detailsDrawerVisible}
+        dataSource={currentItem}
+        onClose={() => setDetailsDrawerVisible(false)}
+      />
+      
+      {/* 字段管理抽屉 */}
+      <FieldManagement
+        visible={fieldsDrawerVisible}
+        dataSource={currentItem}
+        onClose={() => setFieldsDrawerVisible(false)}
+      />
+    </>
+  );
 };
 
 export default DataSources;

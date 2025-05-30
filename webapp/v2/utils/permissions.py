@@ -110,6 +110,24 @@ def can_delete_datasource(user: User, datasource_creator_id: int = None) -> bool
     
     return False
 
+def can_sync_fields(user: User, datasource_creator_id: int = None) -> bool:
+    """检查是否可以同步数据源字段"""
+    # 管理员权限
+    if has_permission(user, "report:admin"):
+        return True
+    
+    # 同步字段权限 + 自己创建的
+    if has_permission(user, "report:sync_fields"):
+        if datasource_creator_id is None or datasource_creator_id == user.id:
+            return True
+    
+    # 编辑权限也可以同步字段
+    if has_permission(user, "report:edit_datasource"):
+        if datasource_creator_id is None or datasource_creator_id == user.id:
+            return True
+    
+    return False
+
 def can_manage_global_fields(user: User) -> bool:
     """检查是否可以管理全局计算字段"""
     return has_permission(user, "report:manage_global_fields")

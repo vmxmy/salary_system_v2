@@ -137,6 +137,7 @@
   },
   "user_menu": {
     "profile": "Profile",
+    "settings": "Settings",
     "logout": "Logout",
     "default_user_text": "User"
   },
@@ -244,5 +245,12 @@
   "theme_switched_to_light": "Switched to light theme",
   "theme_switched_to_dark": "Switched to dark theme",
   "expand_sidebar": "Expand sidebar",
-  "collapse_sidebar": "Collapse sidebar"
+  "collapse_sidebar": "Collapse sidebar",
+  "pageTitle": {
+    "home": "Home"
+  },
+  "auth": {
+    "logout_success": "Logout successful",
+    "logout_failed": "Logout failed"
+  }
 }

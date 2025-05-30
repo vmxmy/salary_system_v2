@@ -6,7 +6,13 @@ from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any, List
 
 from ..database import get_db_v2
-from ..crud import hr as crud
+from ..crud import (
+    get_personnel_categories as crud_get_personnel_categories,
+    get_personnel_category as crud_get_personnel_category,
+    create_personnel_category as crud_create_personnel_category,
+    update_personnel_category as crud_update_personnel_category,
+    delete_personnel_category as crud_delete_personnel_category
+)
 from ..pydantic_models.hr import PersonnelCategoryCreate, PersonnelCategoryUpdate, PersonnelCategorySchema, PersonnelCategoryListResponse
 from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
@@ -43,7 +49,7 @@ async def get_personnel_categories(
         skip = (page - 1) * size
 
         # 获取人员类别列表
-        personnel_categories, total = crud.get_personnel_categories(
+        personnel_categories, total = crud_get_personnel_categories(
             db=db,
             parent_id=parent_id,
             is_active=is_active,
@@ -91,7 +97,7 @@ async def get_personnel_categories_tree(
     try:
         # 递归构建树形结构
         def build_category_tree(parent_id: Optional[int] = None) -> List[PersonnelCategorySchema]:
-            categories, _ = crud.get_personnel_categories(
+            categories, _ = crud_get_personnel_categories(
                 db=db,
                 parent_id=parent_id,
                 is_active=is_active,
@@ -140,7 +146,7 @@ async def get_personnel_category(
     """
     try:
         # 获取人员类别
-        personnel_category = crud.get_personnel_category(db, personnel_category_id)
+        personnel_category = crud_get_personnel_category(db, personnel_category_id)
         if not personnel_category:
             # 返回标准错误响应格式
             raise HTTPException(
@@ -181,7 +187,7 @@ async def create_personnel_category(
     """
     try:
         # 创建人员类别
-        db_personnel_category = crud.create_personnel_category(db, personnel_category)
+        db_personnel_category = crud_create_personnel_category(db, personnel_category)
 
         # 返回标准响应格式
         return DataResponse[PersonnelCategorySchema](data=db_personnel_category)
@@ -222,7 +228,7 @@ async def update_personnel_category(
     """
     try:
         # 更新人员类别
-        db_personnel_category = crud.update_personnel_category(db, personnel_category_id, personnel_category)
+        db_personnel_category = crud_update_personnel_category(db, personnel_category_id, personnel_category)
         if not db_personnel_category:
             # 返回标准错误响应格式
             raise HTTPException(
@@ -274,7 +280,7 @@ async def delete_personnel_category(
     """
     try:
         # 删除人员类别
-        success = crud.delete_personnel_category(db, personnel_category_id)
+        success = crud_delete_personnel_category(db, personnel_category_id)
         if not success:
             # 返回标准错误响应格式
             raise HTTPException(

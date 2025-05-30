@@ -19,7 +19,8 @@ import {
   Switch,
   Descriptions,
   List,
-  Alert
+  Alert,
+  Drawer
 } from 'antd';
 import {
   PlusOutlined,
@@ -33,6 +34,8 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useTranslation } from 'react-i18next';
+import { dataSourceAPI } from '../../api/reports';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -69,6 +72,7 @@ interface DataSourceField {
 }
 
 const DataSources: React.FC = () => {
+  const { t } = useTranslation('reportManagement');
   const [form] = Form.useForm();
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,68 +84,21 @@ const DataSources: React.FC = () => {
   const [selectedSourceFields, setSelectedSourceFields] = useState<DataSourceField[]>([]);
   const [selectedSourceName, setSelectedSourceName] = useState('');
   const [syncLoading, setSyncLoading] = useState<number | null>(null);
+  const [selectedSource, setSelectedSource] = useState<DataSource | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   useEffect(() => {
     loadDataSources();
   }, []);
 
   const loadDataSources = async () => {
-    setLoading(true);
     try {
-      // 模拟API调用
-      const mockData: DataSource[] = [
-        {
-          id: 1,
-          name: '员工信息表',
-          table_name: 'employees',
-          schema_name: 'hr',
-          connection_type: 'postgresql',
-          description: '包含所有员工的基础信息',
-          is_active: true,
-          sync_status: 'success',
-          last_sync_at: '2024-01-20T14:30:00Z',
-          created_by: 1,
-          created_at: '2024-01-01T10:00:00Z',
-          updated_at: '2024-01-20T14:30:00Z',
-          creator_name: '管理员',
-          field_count: 25
-        },
-        {
-          id: 2,
-          name: '薪资条目表',
-          table_name: 'payroll_entries',
-          schema_name: 'payroll',
-          connection_type: 'postgresql',
-          description: '薪资计算详细数据',
-          is_active: true,
-          sync_status: 'success',
-          last_sync_at: '2024-01-20T14:35:00Z',
-          created_by: 1,
-          created_at: '2024-01-05T11:00:00Z',
-          updated_at: '2024-01-20T14:35:00Z',
-          creator_name: '管理员',
-          field_count: 18
-        },
-        {
-          id: 3,
-          name: '部门信息表',
-          table_name: 'departments',
-          schema_name: 'hr',
-          connection_type: 'postgresql',
-          description: '组织架构部门数据',
-          is_active: true,
-          sync_status: 'failed',
-          last_sync_at: '2024-01-19T09:00:00Z',
-          created_by: 2,
-          created_at: '2024-01-10T14:20:00Z',
-          updated_at: '2024-01-19T09:00:00Z',
-          creator_name: 'HR专员',
-          field_count: 8
-        }
-      ];
-      setDataSources(mockData);
-    } catch (error) {
-      message.error('加载数据源失败');
+      setLoading(true);
+      const response = await dataSourceAPI.getDataSources();
+      setDataSources(response.data);
+    } catch (error: any) {
+      console.error('Failed to load data sources:', error);
+      message.error(`加载数据源失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -171,77 +128,53 @@ const DataSources: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      message.success('删除成功');
-      loadDataSources();
-    } catch (error) {
-      message.error('删除失败');
-    }
-  };
-
-  const handleSync = async (id: number) => {
-    setSyncLoading(id);
-    try {
-      // 模拟同步操作
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      message.success('同步成功');
-      loadDataSources();
-    } catch (error) {
-      message.error('同步失败');
-    } finally {
-      setSyncLoading(null);
-    }
-  };
-
-  const handleViewFields = async (source: DataSource) => {
-    setSelectedSourceName(source.name);
-    // 模拟加载字段数据
-    const mockFields: DataSourceField[] = [
-      {
-        field_name: 'id',
-        field_type: 'BIGINT',
-        is_nullable: false,
-        is_primary_key: true,
-        comment: '主键ID'
-      },
-      {
-        field_name: 'employee_code',
-        field_type: 'VARCHAR',
-        is_nullable: false,
-        length: 50,
-        comment: '员工编号'
-      },
-      {
-        field_name: 'name',
-        field_type: 'VARCHAR',
-        is_nullable: false,
-        length: 100,
-        comment: '姓名'
-      },
-      {
-        field_name: 'department_id',
-        field_type: 'BIGINT',
-        is_nullable: true,
-        comment: '部门ID'
-      },
-      {
-        field_name: 'hire_date',
-        field_type: 'DATE',
-        is_nullable: true,
-        comment: '入职日期'
-      },
-      {
-        field_name: 'basic_salary',
-        field_type: 'DECIMAL',
-        is_nullable: true,
-        precision: 10,
-        scale: 2,
-        comment: '基本工资'
+  const handleDelete = async (record: DataSource) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除数据源"${record.name}"吗？`,
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await dataSourceAPI.deleteDataSource(record.id);
+          message.success('删除成功');
+          await loadDataSources();
+        } catch (error: any) {
+          console.error('Failed to delete data source:', error);
+          message.error(`删除失败: ${error.response?.data?.detail || error.message}`);
+        }
       }
-    ];
-    setSelectedSourceFields(mockFields);
-    setFieldsModalVisible(true);
+    });
+  };
+
+  const handleSync = async (record: DataSource) => {
+    try {
+      setLoading(true);
+      await dataSourceAPI.syncFields(record.id);
+      message.success('数据源同步成功');
+      await loadDataSources(); // 重新加载数据
+    } catch (error: any) {
+      console.error('Failed to sync data source:', error);
+      message.error(`同步失败: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewFields = async (record: DataSource) => {
+    try {
+      setLoading(true);
+      const response = await dataSourceAPI.getDataSourceFields(record.id);
+      setSelectedSource(record);
+      setSelectedSourceFields(response.data);
+      setSelectedSourceName(record.name);
+      setDrawerVisible(true);
+    } catch (error: any) {
+      console.error('Failed to load fields:', error);
+      message.error(`加载字段信息失败: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns: ColumnsType<DataSource> = [
@@ -335,7 +268,7 @@ const DataSources: React.FC = () => {
             <Button
               type="text"
               icon={<SyncOutlined spin={syncLoading === record.id} />}
-              onClick={() => handleSync(record.id)}
+              onClick={() => handleSync(record)}
               loading={syncLoading === record.id}
             />
           </Tooltip>
@@ -349,7 +282,7 @@ const DataSources: React.FC = () => {
           <Popconfirm
             title="确定要删除这个数据源吗？"
             description="删除后所有使用此数据源的报表将受到影响"
-            onConfirm={() => handleDelete(record.id)}
+            onConfirm={() => handleDelete(record)}
             okText="确定"
             cancelText="取消"
           >
@@ -587,16 +520,12 @@ const DataSources: React.FC = () => {
       </Modal>
 
       {/* 字段查看对话框 */}
-      <Modal
+      <Drawer
         title={`数据源字段 - ${selectedSourceName}`}
-        open={fieldsModalVisible}
-        onCancel={() => setFieldsModalVisible(false)}
+        placement="right"
+        onClose={() => setDrawerVisible(false)}
+        open={drawerVisible}
         width={1000}
-        footer={[
-          <Button key="close" onClick={() => setFieldsModalVisible(false)}>
-            关闭
-          </Button>
-        ]}
       >
         <Alert
           message="字段信息"
@@ -613,7 +542,7 @@ const DataSources: React.FC = () => {
           size="small"
           scroll={{ y: 400 }}
         />
-      </Modal>
+      </Drawer>
     </div>
   );
 };

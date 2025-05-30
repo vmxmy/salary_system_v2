@@ -29,7 +29,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
-import { menuData, transformMenuData, getBreadcrumbNameMap } from '../config/menuConfig';
+import { menuData, transformMenuDataWithI18n, getBreadcrumbNameMap } from '../config/menuConfig';
 import { defaultProLayoutSettings, proLayoutExtendedSettings, getThemeConfig, type ThemeMode } from '../config/theme';
 import type { AppMenuDataItem } from '../config/menuConfig';
 import hyperchainLogo from '../assets/images/hyperchainLogo.svg';
@@ -54,7 +54,7 @@ const RightContent: React.FC<{
   const toggleLanguage = () => {
     const newLang = i18n.language === 'zh-CN' ? 'en' : 'zh-CN';
     i18n.changeLanguage(newLang);
-    message.success(t('common.language_switched'));
+    message.success(t('common:language_switched'));
   };
 
   // 👤 用户菜单
@@ -64,7 +64,7 @@ const RightContent: React.FC<{
       label: (
         <Space>
           <UserOutlined />
-          {t('user_menu.profile')}
+          {t('common:user_menu.profile')}
         </Space>
       ),
     },
@@ -73,7 +73,7 @@ const RightContent: React.FC<{
       label: (
         <Space>
           <SettingOutlined />
-          {t('user_menu.settings')}
+          {t('common:user_menu.settings')}
         </Space>
       ),
     },
@@ -85,7 +85,7 @@ const RightContent: React.FC<{
       label: (
         <Space>
           <LogoutOutlined />
-          {t('user_menu.logout')}
+          {t('common:user_menu.logout')}
         </Space>
       ),
       onClick: onLogout,
@@ -95,7 +95,7 @@ const RightContent: React.FC<{
   return (
     <Space size="middle">
       {/* 🌓 主题切换 */}
-      <Tooltip title={t('common.theme_toggle')}>
+      <Tooltip title={t('common:theme_toggle')}>
         <Switch
           checked={isDark}
           onChange={onThemeChange}
@@ -106,7 +106,7 @@ const RightContent: React.FC<{
       </Tooltip>
 
       {/* 🌐 语言切换 */}
-      <Tooltip title={t('common.language_toggle')}>
+      <Tooltip title={t('common:language_toggle')}>
         <Button
           type="text"
           icon={<GlobalOutlined />}
@@ -136,7 +136,7 @@ const RightContent: React.FC<{
 const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['menu', 'common']);
   const screens = useBreakpoint();
   
   // 🏪 状态管理
@@ -165,7 +165,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
       navTheme: checked ? 'realDark' : 'light', // 根据主题切换明暗色
     }));
     
-    message.success(t(`common.theme_switched_to_${newMode}`));
+    message.success(t(`common:theme_switched_to_${newMode}`));
   }, [t]);
 
   // 🚪 登出处理
@@ -173,9 +173,9 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     try {
       await logoutAction();
       navigate('/login', { replace: true });
-      message.success(t('auth.logout_success'));
+      message.success(t('common:auth.logout_success'));
     } catch (error) {
-      message.error(t('auth.logout_failed'));
+      message.error(t('common:auth.logout_failed'));
     }
   }, [logoutAction, navigate, t]);
 
@@ -232,7 +232,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     },
     menuDataRender: () => {
       console.log('Rendering menu data:', menuData);
-      const transformedData = transformMenuData(menuData);
+      const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(key));
       console.log('Transformed menu data:', transformedData);
       return transformedData;
     },
@@ -247,7 +247,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     breadcrumbRender: (routers: any[] = []) => [
       {
         path: '/',
-        breadcrumbName: t('pageTitle.home'),
+        breadcrumbName: t('common:pageTitle.home'),
       },
       ...routers,
     ],
@@ -272,7 +272,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
         {renderLogo()}
         {!props?.collapsed && (
           <span style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>
-            高新区财政人事薪资管理系统
+            人事薪资管理系统
           </span>
         )}
       </div>
@@ -287,7 +287,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
           width: 32,
           height: 32,
         }}
-        title={collapsed ? t('common.expand_sidebar') : t('common.collapse_sidebar')}
+        title={collapsed ? t('common:expand_sidebar') : t('common:collapse_sidebar')}
       />
     ),
     footerRender: () => (

@@ -75,11 +75,12 @@ try:
     from webapp.v2.models import hr
     from webapp.v2.models import config as model_config # alias to avoid conflict with alembic's config object
     from webapp.v2.models import security
+    from webapp.v2.models import reports
     # If specific models need to be imported directly (e.g. not covered by __init__.py):
     # from webapp.v2.models.hr import Employee, Position, PersonnelCategory # etc.
     # from webapp.v2.models.config import LookupValue # etc.
     # from webapp.v2.models.security import User # etc.
-    print("--- Alembic env.py: Successfully imported application model modules (hr, config, security). ---")
+    print("--- Alembic env.py: Successfully imported application model modules (hr, config, security, reports). ---")
 except ImportError as e:
     print(f"--- Alembic env.py: Error importing application model modules: {e}. Check paths and module names. ---")
     # Depending on your project structure, you might need to adjust the import paths

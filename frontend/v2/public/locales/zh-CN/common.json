@@ -268,8 +268,8 @@
     "hyperchain_logo_alt": "趣链科技 Logo"
   },
   "user_menu": {
-    "profile": "个人中心",
-    "settings": "系统设置",
+    "profile": "个人资料",
+    "settings": "设置",
     "logout": "退出登录",
     "default_user_text": "用户"
   },
@@ -584,5 +584,9 @@
   "theme_switched_to_light": "已切换到浅色主题",
   "theme_switched_to_dark": "已切换到深色主题",
   "expand_sidebar": "展开侧边栏",
-  "collapse_sidebar": "收起侧边栏"
+  "collapse_sidebar": "收起侧边栏",
+  "auth": {
+    "logout_success": "退出成功",
+    "logout_failed": "退出失败"
+  }
 }

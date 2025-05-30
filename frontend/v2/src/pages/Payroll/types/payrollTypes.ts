@@ -194,11 +194,16 @@ export interface RawPayrollEntryData {
   };
   personnel_type?: 'REGULAR' | 'HIRED' | 'UNKNOWN'; // 新增：标准化的人员类型
   raw_personnel_identity?: string; // 新增：原始的人员身份文本，用于processPayrollRecord
+  __isHiredPersonnel?: boolean; // 前端处理使用：标记是否为聘用人员
 }
 
 // Interface for validated payroll entry data
 export interface ValidatedPayrollEntryData extends RawPayrollEntryData {
   validationErrors?: string[]; // 添加可选的验证错误数组
+  __isValid: boolean; // 前端处理使用：标记记录是否有效
+  __errors: string[]; // 验证错误信息
+  __rowId: string; // 唯一行ID
+  __isNew: boolean; // 是否为新记录
 }
 
 // Payload for creating payroll entries

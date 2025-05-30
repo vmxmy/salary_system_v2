@@ -18,7 +18,9 @@ import {
   Modal,
   Form,
   Input,
-  Select
+  Select,
+  App,
+  Switch
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -31,13 +33,16 @@ import {
   SettingOutlined,
   FileTextOutlined,
   UserOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
+import { useTranslation } from 'react-i18next';
+import { reportTemplateAPI, reportExecutionAPI } from '../../../api/reports';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 const { TextArea } = Input;
 
 interface ReportTemplate {
@@ -103,93 +108,34 @@ const ReportTemplateDetail: React.FC = () => {
   const loadTemplateDetail = async () => {
     try {
       setLoading(true);
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await reportTemplateAPI.getTemplate(Number(id));
       
-      const mockTemplate: ReportTemplate = {
-        id: Number(id),
-        name: '员工薪资明细表',
-        title: '2024年员工薪资明细报表',
-        description: '包含员工基本信息和薪资详细信息的综合报表，支持按部门、时间等维度筛选',
-        category: 'salary',
+      // 转换API响应数据格式以匹配本地类型
+      const templateData: ReportTemplate = {
+        id: response.data.id,
+        name: response.data.name,
+        title: response.data.title || response.data.name,
+        description: response.data.description || '',
+        category: response.data.category || 'custom',
         template_config: {
-          fields: [
-            {
-              id: 1,
-              field_name: 'employee_code',
-              field_alias: '员工编号',
-              data_source: 'employees',
-              field_type: 'VARCHAR',
-              display_order: 1,
-              is_visible: true,
-              width: 120,
-              is_sortable: true,
-              is_filterable: true
-            },
-            {
-              id: 2,
-              field_name: 'name',
-              field_alias: '姓名',
-              data_source: 'employees',
-              field_type: 'VARCHAR',
-              display_order: 2,
-              is_visible: true,
-              width: 100,
-              is_sortable: true,
-              is_filterable: true
-            },
-            {
-              id: 3,
-              field_name: 'department',
-              field_alias: '部门',
-              data_source: 'employees',
-              field_type: 'VARCHAR',
-              display_order: 3,
-              is_visible: true,
-              width: 120,
-              is_sortable: true,
-              is_filterable: true
-            },
-            {
-              id: 4,
-              field_name: 'basic_salary',
-              field_alias: '基本工资',
-              data_source: 'payroll_entries',
-              field_type: 'DECIMAL',
-              display_order: 4,
-              is_visible: true,
-              width: 120,
-              is_sortable: true,
-              is_filterable: false
-            },
-            {
-              id: 5,
-              field_name: 'net_pay',
-              field_alias: '实发工资',
-              data_source: 'payroll_entries',
-              field_type: 'DECIMAL',
-              display_order: 5,
-              is_visible: true,
-              width: 120,
-              is_sortable: true,
-              is_filterable: false
-            }
-          ]
+          fields: response.data.fields || [],
+          settings: response.data.template_config
         },
-        is_active: true,
-        is_public: true,
-        sort_order: 1,
-        created_by: 1,
-        created_at: '2024-01-15T10:30:00Z',
-        updated_at: '2024-01-20T14:20:00Z',
-        creator_name: '管理员',
-        run_count: 156,
-        last_run_at: '2024-01-20T14:30:00Z'
+        is_active: response.data.is_active,
+        is_public: response.data.is_public,
+        sort_order: response.data.sort_order || 0,
+        created_by: response.data.created_by || 0,
+        created_at: response.data.created_at,
+        updated_at: response.data.updated_at,
+        creator_name: '未知', // API可能不返回此字段
+        run_count: response.data.usage_count || 0,
+        last_run_at: response.data.updated_at // 暂时使用更新时间
       };
       
-      setTemplate(mockTemplate);
-    } catch (error) {
-      message.error('加载报表模板失败');
+      setTemplate(templateData);
+    } catch (error: any) {
+      console.error('Failed to load template:', error);
+      message.error(`加载报表模板失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -197,37 +143,33 @@ const ReportTemplateDetail: React.FC = () => {
 
   const loadRunHistory = async () => {
     try {
-      // 模拟API调用
-      const mockHistory: RunHistory[] = [
-        {
-          id: 1,
-          run_at: '2024-01-20T14:30:00Z',
-          run_by: '张三',
-          status: 'success',
-          duration: 2.5,
-          record_count: 1250
-        },
-        {
-          id: 2,
-          run_at: '2024-01-19T10:15:00Z',
-          run_by: '李四',
-          status: 'success',
-          duration: 3.2,
-          record_count: 1248
-        },
-        {
-          id: 3,
-          run_at: '2024-01-18T16:45:00Z',
-          run_by: '王五',
-          status: 'failed',
-          duration: 0.8,
-          error_message: '数据源连接失败'
-        }
-      ];
+      // 获取该模板的执行历史
+      const response = await reportExecutionAPI.getExecutions({
+        limit: 10 // 最近10条记录
+      });
       
-      setRunHistory(mockHistory);
-    } catch (error) {
-      console.error('加载运行历史失败', error);
+      // 过滤出当前模板的执行记录
+      const templateHistory = response.data.filter(
+        (execution: any) => execution.template_id === Number(id)
+      );
+      
+      // 转换为本地数据格式
+      const historyData: RunHistory[] = templateHistory.map((execution: any) => ({
+        id: execution.id,
+        run_at: execution.executed_at,
+        run_by: execution.executed_by?.toString() || '未知',
+        status: execution.status === 'completed' ? 'success' : 
+                execution.status === 'failed' ? 'failed' : 'running',
+        duration: execution.execution_time || 0,
+        record_count: execution.result_count || 0,
+        error_message: execution.error_message
+      }));
+      
+      setRunHistory(historyData);
+    } catch (error: any) {
+      console.error('Failed to load run history:', error);
+      // 如果加载失败，设置为空数组而不显示错误
+      setRunHistory([]);
     }
   };
 
@@ -247,11 +189,12 @@ const ReportTemplateDetail: React.FC = () => {
       cancelText: '取消',
       onOk: async () => {
         try {
-          // 调用删除API
+          await reportTemplateAPI.deleteTemplate(Number(id));
           message.success('删除成功');
-          navigate('/reports/templates');
-        } catch (error) {
-          message.error('删除失败');
+          navigate('/admin/reports/templates');
+        } catch (error: any) {
+          console.error('Failed to delete template:', error);
+          message.error(`删除失败: ${error.response?.data?.detail || error.message}`);
         }
       }
     });
@@ -259,11 +202,24 @@ const ReportTemplateDetail: React.FC = () => {
 
   const handleCopy = async () => {
     try {
-      // 调用复制API
+      if (!template) return;
+      
+      const copyData = {
+        ...template,
+        name: `${template.name} - 副本`,
+        title: `${template.title || template.name} - 副本`,
+        is_active: false, // 副本默认不激活
+        created_by: undefined, // 清除创建者信息
+        created_at: undefined,
+        updated_at: undefined
+      };
+      
+      await reportTemplateAPI.createTemplate(copyData);
       message.success('复制成功');
-      navigate('/reports/templates');
-    } catch (error) {
-      message.error('复制失败');
+      navigate('/admin/reports/templates');
+    } catch (error: any) {
+      console.error('Failed to copy template:', error);
+      message.error(`复制失败: ${error.response?.data?.detail || error.message}`);
     }
   };
 
@@ -494,69 +450,87 @@ const ReportTemplateDetail: React.FC = () => {
         </Row>
 
         {/* 详情标签页 */}
-        <Tabs defaultActiveKey="info">
-          <TabPane tab="基本信息" key="info">
-            <Descriptions bordered column={2}>
-              <Descriptions.Item label="报表名称" span={2}>
-                {template.name}
-              </Descriptions.Item>
-              <Descriptions.Item label="显示标题" span={2}>
-                {template.title || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="描述" span={2}>
-                {template.description || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="创建人">
-                {template.creator_name}
-              </Descriptions.Item>
-              <Descriptions.Item label="创建时间">
-                {new Date(template.created_at).toLocaleString()}
-              </Descriptions.Item>
-              <Descriptions.Item label="更新时间" span={2}>
-                {new Date(template.updated_at).toLocaleString()}
-              </Descriptions.Item>
-              <Descriptions.Item label="排序顺序">
-                {template.sort_order}
-              </Descriptions.Item>
-            </Descriptions>
-          </TabPane>
-
-          <TabPane tab="字段配置" key="fields">
-            <Table
-              columns={fieldColumns}
-              dataSource={template.template_config.fields}
-              rowKey="id"
-              pagination={false}
-              size="small"
-            />
-          </TabPane>
-
-          <TabPane tab="运行历史" key="history">
-            <Table
-              columns={historyColumns}
-              dataSource={runHistory}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-              size="small"
-            />
-          </TabPane>
-
-          <TabPane tab="配置设置" key="settings">
-            <Alert
-              message="报表配置"
-              description="这里显示报表的高级配置信息，如数据源连接、查询优化等设置"
-              type="info"
-              showIcon
-              style={{ marginBottom: '16px' }}
-            />
-            <Descriptions bordered size="small">
-              <Descriptions.Item label="数据刷新频率">每日凌晨2点</Descriptions.Item>
-              <Descriptions.Item label="缓存策略">启用，24小时有效</Descriptions.Item>
-              <Descriptions.Item label="查询超时">30秒</Descriptions.Item>
-              <Descriptions.Item label="最大导出行数">50000</Descriptions.Item>
-            </Descriptions>
-          </TabPane>
-        </Tabs>
+        <Tabs 
+          defaultActiveKey="info"
+          items={[
+            {
+              key: 'info',
+              label: '基本信息',
+              children: (
+                <Descriptions bordered column={2}>
+                  <Descriptions.Item label="报表名称" span={2}>
+                    {template.name}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="显示标题" span={2}>
+                    {template.title || '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="描述" span={2}>
+                    {template.description || '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="创建人">
+                    {template.creator_name}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="创建时间">
+                    {new Date(template.created_at).toLocaleString()}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="更新时间" span={2}>
+                    {new Date(template.updated_at).toLocaleString()}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="排序顺序">
+                    {template.sort_order}
+                  </Descriptions.Item>
+                </Descriptions>
+              )
+            },
+            {
+              key: 'fields',
+              label: '字段配置',
+              children: (
+                <Table
+                  columns={fieldColumns}
+                  dataSource={template.template_config.fields}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                />
+              )
+            },
+            {
+              key: 'history',
+              label: '运行历史',
+              children: (
+                <Table
+                  columns={historyColumns}
+                  dataSource={runHistory}
+                  rowKey="id"
+                  pagination={{ pageSize: 10 }}
+                  size="small"
+                />
+              )
+            },
+            {
+              key: 'settings',
+              label: '配置设置',
+              children: (
+                <>
+                  <Alert
+                    message="报表配置"
+                    description="这里显示报表的高级配置信息，如数据源连接、查询优化等设置"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: '16px' }}
+                  />
+                  <Descriptions bordered size="small">
+                    <Descriptions.Item label="数据刷新频率">每日凌晨2点</Descriptions.Item>
+                    <Descriptions.Item label="缓存策略">启用，24小时有效</Descriptions.Item>
+                    <Descriptions.Item label="查询超时">30秒</Descriptions.Item>
+                    <Descriptions.Item label="最大导出行数">50000</Descriptions.Item>
+                  </Descriptions>
+                </>
+              )
+            }
+          ]}
+        />
       </Card>
 
       {/* 分享对话框 */}

@@ -12,6 +12,7 @@ REPORT_PERMISSIONS = [
     ("report:create_datasource", "创建数据源"),
     ("report:edit_datasource", "编辑数据源"),
     ("report:delete_datasource", "删除数据源"),
+    ("report:test_connection", "测试数据源连接"),
     ("report:detect_fields", "检测数据源字段"),
     
     # 计算字段管理
@@ -98,6 +99,7 @@ def init_report_permissions():
         # 为报表用户角色分配基础权限
         basic_permissions = [
             "report:view_datasources",
+            "report:test_connection",
             "report:view_calculated_fields", 
             "report:view_templates",
             "report:execute_report",

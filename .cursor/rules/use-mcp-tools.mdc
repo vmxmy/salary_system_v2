@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 当我在以下场景中需要技术支持时，请自动调用对应的MCP工具并按照规范格式返回结果：
 

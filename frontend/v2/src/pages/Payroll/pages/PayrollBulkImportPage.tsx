@@ -29,11 +29,11 @@ import { nanoid } from 'nanoid';
 import * as payrollApi from '../services/payrollApi';
 import { getPayrollComponentDefinitions } from '../../../services/payrollConfigService';
 import { isEarningComponentType, isDeductionComponentType } from '../../../utils/payrollUtils';
-import type { 
-  RawPayrollEntryData, 
-  ValidatedPayrollEntryData, 
-  PayrollPeriod, 
-  ApiListResponse, 
+import type {
+  RawPayrollEntryData,
+  ValidatedPayrollEntryData,
+  PayrollPeriod,
+  ApiListResponse,
   CreatePayrollEntryPayload,
   PayrollComponentDefinition,
   BulkCreatePayrollEntriesResult
@@ -42,6 +42,11 @@ import TableTextConverter from '../../../components/common/TableTextConverter';
 import PayrollPeriodSelector from '../../../components/common/PayrollPeriodSelector';
 import { getPayrollPeriodStatusIdByCode } from '../utils/dynamicStatusUtils';
 import { lookupService } from '../../../services/lookupService';
+import {
+  usePayrollApiFields,
+  usePayrollMappingRules,
+  getComponentName
+} from './components/PayrollFieldMapper';
 
 // 环境配置和业务规则
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -941,6 +946,10 @@ const PayrollBulkImportPage: React.FC = () => {
       const validatedRecord: ValidatedPayrollEntryData = {
         ...typedRecord,
         validationErrors: fieldErrors.length > 0 ? fieldErrors : undefined,
+        __isValid: fieldErrors.length === 0,
+        __errors: fieldErrors,
+        __rowId: nanoid(),
+        __isNew: true
       };
 
       if (fieldErrors.length > 0) {

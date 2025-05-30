@@ -29,12 +29,14 @@ import { payrollRoutes } from '../pages/Payroll/index'; // This imports from Pay
 import { managerRoutes } from '../pages/Manager/routes';
 
 // Import Report Management components (lazy loaded)
-const ReportDesigner = lazy(() => import('../pages/Admin/ReportManagement/ReportDesigner'));
 const ReportTemplates = lazy(() => import('../pages/Admin/ReportManagement/ReportTemplates'));
 const CalculatedFields = lazy(() => import('../pages/Admin/ReportManagement/CalculatedFields'));
 const DataSources = lazy(() => import('../pages/Admin/ReportManagement/DataSources'));
 const ReportViewer = lazy(() => import('../pages/Admin/ReportManagement/ReportViewer'));
 const ReportTemplateDetail = lazy(() => import('../pages/Admin/ReportManagement/ReportTemplateDetail'));
+const CustomQueryPage = lazy(() => import('../pages/Admin/ReportManagement/CustomQueryPage'));
+// 新版报表设计器组件
+const ReportDesigner = lazy(() => import('../pages/Admin/ReportManagement/components/ReportDesigner'));
 
 // Placeholder for HR, Finance, Manager sections - replace with actual components
 // const HRDashboardPage = lazy(() => import('../pages/HR/HRDashboardPage'));
@@ -235,6 +237,11 @@ export const routes: AppRouteObject[] = [
             path: 'calculated-fields', 
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Calculated Fields...</div>}><CalculatedFields /></React.Suspense>, 
             meta: { title: 'calculated_fields', requiredPermissions: ['report:view_calculated_fields'] } 
+          },
+          { 
+            path: 'custom-query', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Custom Query...</div>}><CustomQueryPage /></React.Suspense>, 
+            meta: { title: 'custom_query', requiredPermissions: ['report:custom_query'] } 
           },
           { 
             path: 'data-sources', 

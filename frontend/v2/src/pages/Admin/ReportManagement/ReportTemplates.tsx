@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { message, Tag, Space, Button, Tooltip, Badge } from 'antd';
+import { message, Tag, Space, Button, Tooltip, Badge, Card, App, Modal } from 'antd';
 import { 
   FileTextOutlined, 
   CheckCircleOutlined, 
@@ -11,16 +11,19 @@ import {
   EditOutlined,
   DeleteOutlined,
   ShareAltOutlined,
-  PlayCircleOutlined
+  PlayCircleOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { ProColumns } from '@ant-design/pro-components';
+import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
 import type { StandardListPageTemplateProps } from '../../../components/common/StandardListPageTemplate';
+import { useNavigate } from 'react-router-dom';
+import { reportTemplateAPI, type ReportTemplate as APIReportTemplate } from '../../../api/reports';
 
-// 报表模板数据类型
+// 报表模板数据类型 - 转换为与StandardListPageTemplate兼容的格式
 interface ReportTemplate {
-  id: string;
+  id: string; // 保持string类型以兼容StandardListPageTemplate
   name: string;
   description?: string;
   category: string;
@@ -38,109 +41,63 @@ const ReportTemplates: React.FC = () => {
   const { t } = useTranslation(['reportManagement', 'common']);
   const [data, setData] = useState<ReportTemplate[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // 模拟数据加载
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  // 转换API数据格式
+  const convertAPIDataToLocal = (apiTemplate: APIReportTemplate): ReportTemplate => ({
+    id: apiTemplate.id.toString(),
+    name: apiTemplate.name,
+    description: apiTemplate.description,
+    category: apiTemplate.category || 'custom',
+    is_active: apiTemplate.is_active,
+    is_public: apiTemplate.is_public,
+    creator_name: '未知', // API可能不直接返回创建者名称
+    field_count: apiTemplate.fields?.length || 0,
+    usage_count: apiTemplate.usage_count || 0,
+    last_used_at: apiTemplate.updated_at,
+    created_at: apiTemplate.created_at,
+    updated_at: apiTemplate.updated_at
+  });
+
+  const fetchData = async () => {
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setLoading(true);
       
-      const mockData: ReportTemplate[] = [
-        {
-          id: '1',
-          name: '员工薪资详细报表',
-          description: '包含员工基本信息和薪资详细构成的综合报表',
-          category: '薪资管理',
-          is_active: true,
-          is_public: false,
-          creator_name: 'admin',
-          field_count: 15,
-          usage_count: 245,
-          last_used_at: '2024-01-20 14:30:00',
-          created_at: '2024-01-10 09:00:00',
-          updated_at: '2024-01-15 10:30:00',
-        },
-        {
-          id: '2', 
-          name: '部门费用汇总表',
-          description: '各部门月度费用支出统计汇总',
-          category: '财务管理',
-          is_active: true,
-          is_public: true,
-          creator_name: 'finance_manager',
-          field_count: 10,
-          usage_count: 89,
-          last_used_at: '2024-01-19 16:45:00',
-          created_at: '2024-01-08 14:20:00',
-          updated_at: '2024-01-14 15:20:00',
-        },
-        {
-          id: '3',
-          name: '员工绩效考核表',
-          description: '季度员工绩效评估报表',
-          category: '人事管理',
-          is_active: false,
-          is_public: false,
-          creator_name: 'hr_admin',
-          field_count: 18,
-          usage_count: 34,
-          last_used_at: '2024-01-15 11:20:00',
-          created_at: '2024-01-05 10:15:00',
-          updated_at: '2024-01-12 09:45:00',
-        },
-        {
-          id: '4',
-          name: '考勤统计分析表',
-          description: '员工考勤数据统计与分析',
-          category: '人事管理',
-          is_active: true,
-          is_public: true,
-          creator_name: 'hr_manager',
-          field_count: 12,
-          usage_count: 156,
-          last_used_at: '2024-01-20 09:15:00',
-          created_at: '2024-01-12 16:30:00',
-          updated_at: '2024-01-18 14:10:00',
-        },
-        {
-          id: '5',
-          name: '年度薪资趋势分析',
-          description: '年度薪资水平变化趋势统计',
-          category: '统计分析',
-          is_active: true,
-          is_public: false,
-          creator_name: 'analyst',
-          field_count: 8,
-          usage_count: 67,
-          last_used_at: '2024-01-18 13:25:00',
-          created_at: '2024-01-15 11:00:00',
-          updated_at: '2024-01-20 10:15:00',
-        }
-      ];
+      const response = await reportTemplateAPI.getTemplates({
+        limit: 100 // 获取所有模板
+      });
       
-      setData(mockData);
-    } catch (error) {
-      message.error(t('loadDataFailed'));
+      const convertedData = response.data.map(convertAPIDataToLocal);
+      setData(convertedData);
+    } catch (error: any) {
+      console.error('Failed to load templates:', error);
+      message.error(`加载报表模板失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // 删除报表模板
-  const deleteItem = useCallback(async (id: string) => {
+  const deleteItem = async (id: string) => {
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setData(prev => prev.filter(item => item.id !== id));
-    } catch (error) {
-      throw new Error(t('deleteTemplateFailed'));
+      await reportTemplateAPI.deleteTemplate(Number(id));
+      message.success('删除成功');
+      await fetchData(); // 重新加载数据
+    } catch (error: any) {
+      console.error('Failed to delete template:', error);
+      throw new Error(`删除失败: ${error.response?.data?.detail || error.message}`);
     }
-  }, [t]);
+  };
+
+  const handleRun = async (record: ReportTemplate) => {
+    try {
+      await reportTemplateAPI.executeTemplate(Number(record.id));
+      message.success('报表执行成功');
+      navigate(`/admin/reports/viewer?templateId=${record.id}`);
+    } catch (error: any) {
+      console.error('Failed to execute template:', error);
+      message.error(`执行失败: ${error.response?.data?.detail || error.message}`);
+    }
+  };
 
   // 处理新增
   const handleAdd = () => {
@@ -169,14 +126,6 @@ const ReportTemplates: React.FC = () => {
   // 分享报表模板
   const handleShare = (item: ReportTemplate) => {
     message.info(t('shareTemplate'));
-  };
-
-  // 运行报表
-  const handleRunReport = (item: ReportTemplate) => {
-    message.loading(t('runningReport'), 2);
-    setTimeout(() => {
-      message.success(t('reportRunSuccess'));
-    }, 2000);
   };
 
   // 切换启用状态
@@ -366,7 +315,7 @@ const ReportTemplates: React.FC = () => {
                 type="text"
                 size="small"
                 icon={<PlayCircleOutlined />}
-                onClick={() => handleRunReport(record)}
+                onClick={() => handleRun(record)}
                 disabled={!record.is_active}
               />
             </Tooltip>
@@ -422,7 +371,7 @@ const ReportTemplates: React.FC = () => {
         ),
       },
     ];
-  }, [handleCopy, handleShare, handleRunReport, handleToggleStatus, handleTogglePublic]);
+  }, [handleCopy, handleShare, handleRun, handleToggleStatus, handleTogglePublic]);
 
   // 权限配置
   const permissions = {
@@ -453,28 +402,72 @@ const ReportTemplates: React.FC = () => {
   };
 
   const templateProps: StandardListPageTemplateProps<ReportTemplate> = {
-    translationNamespaces: ['reportManagement', 'common'],
-    pageTitleKey: 'reportTemplateManagement',
-    addButtonTextKey: 'addReportTemplate',
-    dataSource: data,
-    loadingData: loading,
-    permissions,
-    lookupMaps: { initialized: true }, // 提供非空对象避免显示错误消息
+    title: t('reportTemplates'),
+    data,
+    loading,
+    columns: generateTableColumns(
+      t,
+      getColumnSearch,
+      {},
+      permissions,
+      handleEdit,
+      deleteItem,
+      handleViewDetails
+    ),
+    totalItems: data.length,
+    searchConfig: {
+      placeholder: t('searchPlaceholder'),
+      searchFields: ['name', 'description'],
+    },
+    filterConfig: {
+      filters: [
+        {
+          key: 'category',
+          label: t('category'),
+          type: 'select',
+          options: [
+            { label: '薪资管理', value: '薪资管理' },
+            { label: '财务管理', value: '财务管理' },
+            { label: '人事管理', value: '人事管理' },
+            { label: '统计分析', value: '统计分析' },
+          ],
+        },
+        {
+          key: 'is_active',
+          label: t('status'),
+          type: 'select',
+          options: [
+            { label: t('active'), value: true },
+            { label: t('inactive'), value: false },
+          ],
+        },
+      ],
+    },
+    addButtonText: t('addReportTemplate'),
+    entityNameSingular: t('reportTemplate'),
+    entityNamePlural: t('reportTemplates'),
+    loadingDataMessageKey: 'loadingData',
+    noDataMessageKey: 'noDataMessage',
     loadingLookups: false,
     errorLookups: null,
-    fetchData,
-    deleteItem,
+    fetchData: fetchData,
+    deleteItem: deleteItem,
     onAddClick: handleAdd,
     onEditClick: handleEdit,
-    onViewDetailsClick: handleViewDetails,
-    generateTableColumns,
-    deleteConfirmConfig,
-    exportConfig,
-    lookupErrorMessageKey: 'lookupDataError',
-    lookupLoadingMessageKey: 'lookupDataLoading',
+    onViewDetails: handleViewDetails,
+    permissions,
+    getColumnSearch,
+    lookupMaps: {},
+    deleteConfirmMessageKey: 'deleteConfirmMessage',
+    deleteSuccessMessageKey: 'deleteSuccessMessage',
+    deleteErrorMessageKey: 'deleteErrorMessage',
     lookupDataErrorMessageKey: 'lookupDataErrorMessage',
-    rowKey: 'id',
+    rowKey: 'id'
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return <StandardListPageTemplate {...templateProps} />;
 };

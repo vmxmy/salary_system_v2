@@ -8,6 +8,7 @@ INSERT INTO security.permissions (code, description) VALUES
 ('report:create_datasource', '创建数据源'),
 ('report:edit_datasource', '编辑数据源'),
 ('report:delete_datasource', '删除数据源'),
+('report:test_connection', '测试数据源连接'),
 ('report:detect_fields', '检测数据源字段'),
 
 -- 计算字段管理权限

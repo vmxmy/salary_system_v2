@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 
 from ..database import get_db_v2
-from ..crud import hr as hr_crud # UNCOMMENTED
+from ..crud import get_positions
 from ..pydantic_models.hr import Position, PositionListResponse, PositionCreate, PositionUpdate # 添加导入PositionCreate和PositionUpdate
 from ...auth import require_permissions # UNCOMMENTED
 from ..utils import create_error_response # Added for standardized error responses
@@ -30,7 +30,7 @@ async def get_all_positions(
     获取实际任职列表，支持分页、搜索和按激活状态过滤。
     """
     try:
-        positions_orms, total = hr_crud.get_positions(
+        positions_orms, total = get_positions(
             db=db, 
             search=search, 
             skip=(page-1)*size, 

@@ -66,7 +66,7 @@ export const defaultProLayoutSettings: Partial<ProSettings> = {
   fixedHeader: false, // 不固定顶部头部
   fixSiderbar: true, // 固定侧边栏
   colorWeak: false,
-  title: '高新区财政人事薪资管理系统',
+  title: '人事薪资管理系统',
   navTheme: 'light', // 侧边栏主题：'light' 而不是 'realDark'
   splitMenus: false, // 是否拆分菜单
   menu: {

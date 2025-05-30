@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Code File Length Control Guidelines
+To ensure project readability, maintainability, and team collaboration efficiency, please adhere to the following file length control principles when writing code:
+
+Single Responsibility Principle (SRP) First: Each code file should be responsible for one clear, independent task. If a file contains multiple unrelated functions, regardless of the line count, it should be immediately considered for splitting.
+
+Ideal File Line Count: Most code files are recommended to be kept between 200-500 lines. This range has been proven to help in quickly understanding file content and reducing maintenance difficulty.
+
+Beware of Overly Large Files:
+
+500-800 lines: Still acceptable, but please carefully examine whether there are functional modules within that can be further abstracted or split.
+Over 800 lines: Usually indicates that the file is taking on too many responsibilities or contains overly complex logic. Please prioritize refactoring and splitting. Special cases (e.g., a small amount of auto-generated code, core configuration files) are exceptions, but their justification must be clearly explained during code review.
+Focus on Readability and Understandability: The ultimate goal is for the code to be easy to read and understand. If a file requires extensive scrolling to view its entirety, or its content structure is chaotic, even if the line count is within the suggested range, optimization should be considered.
+
+Method/Function Length: The length of a single method or function is recommended to be controlled between 10-50 lines, aiming to fit within one screen. Overly long methods should be split into smaller, more singularly responsible sub-functions.
+
+File Operation Limit: The maximum operation limit for reading and editing a single file at one time is 250 lines. If a task involves reading or modifying file content exceeding this limit, please ensure the task is broken down into multiple independent sub-tasks, with each sub-task handling no more than 250 lines of content. This helps mitigate operational risks and improves collaboration efficiency.
+
+When writing or reviewing code, please ask yourself:
+
+Does this file do only one thing?
+Can I generally understand its core functionality without scrolling the screen?
+If modifications are needed, can I quickly locate and understand the relevant logic without affecting other unrelated functionalities?
+Am I adhering to the 250-line limit for individual file read/edit operations, or should this task be broken down further?
+Following these guidelines will help us collectively build a healthier, more manageable, and extensible codebase

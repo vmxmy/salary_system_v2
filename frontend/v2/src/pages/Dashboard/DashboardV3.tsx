@@ -188,7 +188,7 @@ const DashboardV3: React.FC = () => {
     <Card 
       size="small" 
       style={{ marginBottom: 16 }}
-      bodyStyle={{ padding: '12px 16px' }}
+      styles={{ body: { padding: '12px 16px' } }}
     >
       <Row justify="space-between" align={isMobile ? "top" : "middle"} gutter={[0, 8]}>
         <Col xs={24} md={12}>
