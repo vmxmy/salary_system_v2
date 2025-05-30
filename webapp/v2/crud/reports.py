@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, func, and_, or_, inspect
 from ..models.reports import (
     ReportDataSource, ReportDataSourceField, ReportCalculatedField,
-    ReportTemplate, ReportTemplateField, ReportExecution
+    ReportTemplate, ReportTemplateField, ReportExecution, ReportView, ReportViewExecution
 )
 from ..pydantic_models.reports import (
     ReportDataSourceCreate, ReportDataSourceUpdate,
@@ -13,7 +13,8 @@ from ..pydantic_models.reports import (
     ReportTemplateFieldCreate, ReportTemplateFieldUpdate,
     ReportExecutionCreate,
     DataSourceFieldDetection, DetectedField,
-    DataSourceConnectionTest, DataSourceConnectionTestResponse
+    DataSourceConnectionTest, DataSourceConnectionTestResponse,
+    ReportViewCreate, ReportViewUpdate, ReportViewExecutionCreate
 )
 
 
@@ -601,9 +602,11 @@ class ReportDataSourceCRUD:
                     
                     if ds_id in data_sources:
                         table_alias = f"ds_{ds_id}"
-                        full_field = f"{table_alias}.{field_name}"
+                        # 使用双引号包裹字段别名，确保返回的字段名与前端期望的格式一致
+                        alias_name = f'"{field}"'
+                        full_field = f'{table_alias}.{field_name} AS {alias_name}'
                         select_fields.append(full_field)
-                        field_aliases[full_field] = field
+                        # 不需要field_aliases，因为我们直接使用AS子句
                         print(f"  -> Mapped to: {full_field}")
                     else:
                         print(f"  -> WARNING: Data source {ds_id} not found")
@@ -611,9 +614,9 @@ class ReportDataSourceCRUD:
                     # 没有数据源前缀，使用主数据源
                     main_ds_id = str(data_source_ids[0])
                     table_alias = f"ds_{main_ds_id}"
-                    full_field = f"{table_alias}.{field}"
+                    alias_name = f'"{main_ds_id}.{field}"'
+                    full_field = f'{table_alias}.{field} AS {alias_name}'
                     select_fields.append(full_field)
-                    field_aliases[full_field] = field
                     print(f"  -> Mapped to: {full_field} (using main data source)")
             
             if not select_fields:
@@ -718,12 +721,9 @@ class ReportDataSourceCRUD:
             for row in rows:
                 row_dict = {}
                 for i, col in enumerate(columns):
-                    # 使用字段别名
+                    # 字段名已经通过AS子句正确格式化，直接使用
                     col_name = str(col)
-                    if col_name in field_aliases:
-                        row_dict[field_aliases[col_name]] = row[i]
-                    else:
-                        row_dict[col_name] = row[i]
+                    row_dict[col_name] = row[i]
                 data.append(row_dict)
             
             print(f"Converted data sample: {data[:2] if data else 'No data'}")
@@ -1015,4 +1015,349 @@ class ReportExecutionCRUD:
                 db_execution.file_path = file_path
             db.commit()
             db.refresh(db_execution)
+        return db_execution 
+
+
+# 报表视图CRUD
+class ReportViewCRUD:
+    """报表视图CRUD操作"""
+    
+    @staticmethod
+    def get_all(db: Session, skip: int = 0, limit: int = 100, category: str = None, is_active: bool = None) -> List[ReportView]:
+        """获取报表视图列表"""
+        query = db.query(ReportView)
+        
+        if category:
+            query = query.filter(ReportView.category == category)
+        if is_active is not None:
+            query = query.filter(ReportView.is_active == is_active)
+            
+        return query.offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def get_by_id(db: Session, view_id: int) -> Optional[ReportView]:
+        """根据ID获取报表视图"""
+        return db.query(ReportView).filter(ReportView.id == view_id).first()
+    
+    @staticmethod
+    def get_by_view_name(db: Session, view_name: str) -> Optional[ReportView]:
+        """根据视图名称获取报表视图"""
+        return db.query(ReportView).filter(ReportView.view_name == view_name).first()
+    
+    @staticmethod
+    def create(db: Session, view_data: ReportViewCreate, created_by: int) -> ReportView:
+        """创建报表视图"""
+        from ..models.reports import ReportView
+        
+        db_view = ReportView(
+            **view_data.dict(),
+            created_by=created_by,
+            view_status="draft"
+        )
+        db.add(db_view)
+        db.commit()
+        db.refresh(db_view)
+        return db_view
+    
+    @staticmethod
+    def update(db: Session, view_id: int, view_data: ReportViewUpdate) -> Optional[ReportView]:
+        """更新报表视图"""
+        db_view = db.query(ReportView).filter(ReportView.id == view_id).first()
+        if not db_view:
+            return None
+        
+        update_data = view_data.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_view, field, value)
+        
+        # 如果SQL查询发生变化，重置视图状态
+        if 'sql_query' in update_data:
+            db_view.view_status = "draft"
+            db_view.sync_error = None
+        
+        db.commit()
+        db.refresh(db_view)
+        return db_view
+    
+    @staticmethod
+    def delete(db: Session, view_id: int) -> bool:
+        """删除报表视图"""
+        db_view = db.query(ReportView).filter(ReportView.id == view_id).first()
+        if not db_view:
+            return False
+        
+        # 先删除数据库中的视图
+        try:
+            ReportViewCRUD.drop_database_view(db, db_view.schema_name, db_view.view_name)
+        except Exception as e:
+            # 即使删除视图失败，也继续删除记录
+            print(f"Warning: Failed to drop database view {db_view.schema_name}.{db_view.view_name}: {e}")
+        
+        db.delete(db_view)
+        db.commit()
+        return True
+    
+    @staticmethod
+    def sync_view_to_database(db: Session, view_id: int, force_recreate: bool = False) -> bool:
+        """同步视图到数据库"""
+        from ..models.reports import ReportView
+        from sqlalchemy import text
+        import traceback
+        
+        db_view = db.query(ReportView).filter(ReportView.id == view_id).first()
+        if not db_view:
+            return False
+        
+        try:
+            # 检查视图是否已存在
+            check_sql = text("""
+                SELECT COUNT(*) 
+                FROM information_schema.views 
+                WHERE table_schema = :schema_name AND table_name = :view_name
+            """)
+            result = db.execute(check_sql, {
+                'schema_name': db_view.schema_name,
+                'view_name': db_view.view_name
+            })
+            view_exists = result.scalar() > 0
+            
+            # 如果视图存在且需要强制重新创建，先删除
+            if view_exists and force_recreate:
+                drop_sql = text(f"DROP VIEW IF EXISTS {db_view.schema_name}.{db_view.view_name}")
+                db.execute(drop_sql)
+                db.commit()
+            
+            # 创建或替换视图
+            create_sql = text(f"""
+                CREATE OR REPLACE VIEW {db_view.schema_name}.{db_view.view_name} AS
+                {db_view.sql_query}
+            """)
+            db.execute(create_sql)
+            db.commit()
+            
+            # 更新视图状态
+            db_view.view_status = "created"
+            db_view.last_sync_at = func.now()
+            db_view.sync_error = None
+            db.commit()
+            
+            return True
+            
+        except Exception as e:
+            # 更新错误状态
+            db_view.view_status = "error"
+            db_view.sync_error = str(e)
+            db.commit()
+            print(f"Error syncing view {db_view.view_name}: {e}")
+            print(traceback.format_exc())
+            return False
+    
+    @staticmethod
+    def drop_database_view(db: Session, schema_name: str, view_name: str):
+        """删除数据库视图"""
+        from sqlalchemy import text
+        
+        drop_sql = text(f"DROP VIEW IF EXISTS {schema_name}.{view_name}")
+        db.execute(drop_sql)
+        db.commit()
+    
+    @staticmethod
+    def validate_sql(db: Session, sql_query: str, schema_name: str = "reports") -> Dict[str, Any]:
+        """验证SQL查询"""
+        from sqlalchemy import text
+        import time
+        
+        try:
+            # 创建一个临时视图来验证SQL
+            temp_view_name = f"temp_validation_{int(time.time())}"
+            
+            # 先尝试执行查询以验证语法
+            validation_sql = text(f"EXPLAIN {sql_query}")
+            db.execute(validation_sql)
+            
+            # 获取列信息
+            columns_sql = text(f"""
+                SELECT column_name, data_type 
+                FROM (
+                    {sql_query}
+                ) AS temp_query
+                LIMIT 0
+            """)
+            
+            # 由于上面的查询可能不工作，我们使用另一种方法
+            # 创建临时视图并查询其结构
+            try:
+                create_temp_sql = text(f"""
+                    CREATE OR REPLACE VIEW {schema_name}.{temp_view_name} AS
+                    {sql_query}
+                """)
+                db.execute(create_temp_sql)
+                
+                # 查询视图列信息
+                columns_info_sql = text("""
+                    SELECT column_name, data_type
+                    FROM information_schema.columns
+                    WHERE table_schema = :schema_name AND table_name = :view_name
+                    ORDER BY ordinal_position
+                """)
+                result = db.execute(columns_info_sql, {
+                    'schema_name': schema_name,
+                    'view_name': temp_view_name
+                })
+                columns = [{'name': row[0], 'type': row[1]} for row in result.fetchall()]
+                
+                # 删除临时视图
+                drop_temp_sql = text(f"DROP VIEW IF EXISTS {schema_name}.{temp_view_name}")
+                db.execute(drop_temp_sql)
+                db.commit()
+                
+                return {
+                    'is_valid': True,
+                    'error_message': None,
+                    'columns': columns,
+                    'estimated_rows': None
+                }
+                
+            except Exception as inner_e:
+                # 清理临时视图
+                try:
+                    drop_temp_sql = text(f"DROP VIEW IF EXISTS {schema_name}.{temp_view_name}")
+                    db.execute(drop_temp_sql)
+                    db.commit()
+                except:
+                    pass
+                raise inner_e
+                
+        except Exception as e:
+            return {
+                'is_valid': False,
+                'error_message': str(e),
+                'columns': None,
+                'estimated_rows': None
+            }
+    
+    @staticmethod
+    def query_view_data(db: Session, view_id: int, filters: Dict = None, sorting: List = None, 
+                       page: int = 1, page_size: int = 20) -> Dict[str, Any]:
+        """查询视图数据"""
+        from sqlalchemy import text
+        import time
+        
+        start_time = time.time()
+        
+        db_view = db.query(ReportView).filter(ReportView.id == view_id).first()
+        if not db_view:
+            raise ValueError("报表视图不存在")
+        
+        if db_view.view_status != "created":
+            raise ValueError("视图尚未创建或创建失败")
+        
+        try:
+            # 构建查询SQL
+            base_sql = f"SELECT * FROM {db_view.schema_name}.{db_view.view_name}"
+            where_conditions = []
+            order_conditions = []
+            
+            # 添加筛选条件
+            if filters:
+                for field, value in filters.items():
+                    if value is not None and value != '':
+                        if isinstance(value, str):
+                            where_conditions.append(f"{field} ILIKE '%{value}%'")
+                        else:
+                            where_conditions.append(f"{field} = '{value}'")
+            
+            # 添加排序条件
+            if sorting:
+                for sort_item in sorting:
+                    field = sort_item.get('field')
+                    direction = sort_item.get('direction', 'asc').upper()
+                    if field:
+                        order_conditions.append(f"{field} {direction}")
+            
+            # 构建完整查询
+            query_sql = base_sql
+            if where_conditions:
+                query_sql += " WHERE " + " AND ".join(where_conditions)
+            if order_conditions:
+                query_sql += " ORDER BY " + ", ".join(order_conditions)
+            
+            # 获取总数
+            count_sql = f"SELECT COUNT(*) FROM ({query_sql}) AS count_query"
+            total_result = db.execute(text(count_sql))
+            total = total_result.scalar()
+            
+            # 添加分页
+            offset = (page - 1) * page_size
+            query_sql += f" LIMIT {page_size} OFFSET {offset}"
+            
+            # 执行查询
+            result = db.execute(text(query_sql))
+            columns = result.keys()
+            data = [dict(zip(columns, row)) for row in result.fetchall()]
+            
+            # 更新使用统计
+            db_view.usage_count += 1
+            db_view.last_used_at = func.now()
+            db.commit()
+            
+            execution_time = time.time() - start_time
+            
+            return {
+                'columns': [{'key': col, 'title': col, 'dataIndex': col} for col in columns],
+                'data': data,
+                'total': total,
+                'page': page,
+                'page_size': page_size,
+                'execution_time': round(execution_time, 3)
+            }
+            
+        except Exception as e:
+            raise ValueError(f"查询视图数据失败: {str(e)}")
+
+
+class ReportViewExecutionCRUD:
+    """报表视图执行记录CRUD操作"""
+    
+    @staticmethod
+    def create(db: Session, execution_data: ReportViewExecutionCreate, executed_by: int) -> ReportViewExecution:
+        """创建执行记录"""
+        from ..models.reports import ReportViewExecution
+        
+        db_execution = ReportViewExecution(
+            **execution_data.dict(),
+            executed_by=executed_by
+        )
+        db.add(db_execution)
+        db.commit()
+        db.refresh(db_execution)
+        return db_execution
+    
+    @staticmethod
+    def get_by_view_id(db: Session, view_id: int, skip: int = 0, limit: int = 100) -> List[ReportViewExecution]:
+        """获取指定视图的执行记录"""
+        return db.query(ReportViewExecution).filter(
+            ReportViewExecution.report_view_id == view_id
+        ).order_by(ReportViewExecution.executed_at.desc()).offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def update_execution_result(db: Session, execution_id: int, result_count: int = None, 
+                              execution_time: float = None, status: str = "success", 
+                              error_message: str = None) -> Optional[ReportViewExecution]:
+        """更新执行结果"""
+        db_execution = db.query(ReportViewExecution).filter(ReportViewExecution.id == execution_id).first()
+        if not db_execution:
+            return None
+        
+        if result_count is not None:
+            db_execution.result_count = result_count
+        if execution_time is not None:
+            db_execution.execution_time = execution_time
+        if status:
+            db_execution.status = status
+        if error_message:
+            db_execution.error_message = error_message
+        
+        db.commit()
+        db.refresh(db_execution)
         return db_execution 

@@ -15,6 +15,7 @@ import {
   CalculatorOutlined,
   DatabaseOutlined,
   CodeOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 
@@ -186,66 +187,17 @@ export const menuData: AppMenuDataItem[] = [
     ],
   },
   {
-    path: '/reports',
-    name: '报表管理',
-    titleKey: 'reports',
-    icon: <BarChartOutlined />,
+    path: '/view-reports',
+    name: '视图报表',
+    titleKey: 'viewReports',
+    icon: <EyeOutlined />,
     children: [
       {
-        path: '/reports/designer',
-        name: '报表设计器',
-        titleKey: 'reportsDesigner',
-        icon: <TableOutlined />,
-        component: './Admin/ReportManagement/components/ReportDesigner',
-      },
-      {
-        path: '/reports/templates',
-        name: '报表模板',
-        titleKey: 'reportsTemplates',
-        icon: <FileTextOutlined />,
-        component: './Admin/ReportManagement/ReportTemplates',
-      },
-      {
-        path: '/reports/calculated-fields',
-        name: '计算字段',
-        titleKey: 'reportsCalculatedFields',
-        icon: <CalculatorOutlined />,
-        component: './Admin/ReportManagement/CalculatedFields',
-      },
-      {
-        path: '/reports/custom-query',
-        name: '自定义查询',
-        titleKey: 'reportsCustomQuery',
-        icon: <CodeOutlined />,
-        component: './Admin/ReportManagement/CustomQueryPage',
-      },
-      {
-        path: '/reports/data-sources',
-        name: '数据源管理',
-        titleKey: 'reportsDataSources',
-        icon: <DatabaseOutlined />,
-        component: './Admin/ReportManagement/DataSources',
-      },
-      {
-        path: '/reports/viewer',
-        name: '报表查看',
-        titleKey: 'reportsViewer',
-        icon: <BarChartOutlined />,
-        component: './Admin/ReportManagement/ReportViewer',
-      },
-      {
-        path: '/reports/templates/:id',
-        name: '报表模板详情',
-        titleKey: 'reportsTemplateDetail',
-        hideInMenu: true,
-        component: './Admin/ReportManagement/ReportTemplateDetail',
-      },
-      {
-        path: '/reports/templates/:id/edit',
-        name: '编辑报表模板',
-        titleKey: 'reportsTemplateEdit',
-        hideInMenu: true,
-        component: './Admin/ReportManagement/ReportDesigner',
+        path: '/view-reports/management', // 修改子菜单路径以确保唯一性
+        name: '报表管理',
+        titleKey: 'viewReportsManagement',
+        icon: <EyeOutlined />, // 子菜单图标可以考虑移除或更改，以区分父菜单
+        component: './Admin/ReportView',
       },
     ],
   },
@@ -438,4 +390,4 @@ export const responsiveMenuConfig = {
     collapsed: false,
     onlyShowIcon: false,
   },
-}; 
+};

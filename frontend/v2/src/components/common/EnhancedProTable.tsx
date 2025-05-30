@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProTableProps, ActionType, ProColumns } from '@ant-design/pro-components';
+import type { SortOrder, FilterValue, TablePaginationConfig } from 'antd/es/table/interface';
+import type { Key } from 'react'; // ReactText is not a standard export from 'react'
 import { useTranslation } from 'react-i18next';
 import { Button, Space, Tooltip, message } from 'antd';
 import { ReloadOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined, ColumnHeightOutlined } from '@ant-design/icons';
@@ -75,7 +77,7 @@ interface EnhancedProTableProps<T extends Record<string, any>> {
   /** 工具栏渲染函数 */
   toolBarRender?: () => React.ReactNode[];
   /** 表格操作引用 */
-  actionRef?: React.MutableRefObject<ActionType | undefined>;
+  actionRef?: React.MutableRefObject<ActionType | undefined | null>; // More flexible for ProTable's actionRef
   /** 自定义空状态 */
   emptyText?: string;
   /** 是否显示边框 */
@@ -91,9 +93,18 @@ interface EnhancedProTableProps<T extends Record<string, any>> {
   /** 滚动配置 */
   scroll?: { x?: number | string; y?: number | string };
   /** 表格变化回调 */
-  onChange?: (pagination: any, filters: any, sorter: any, extra: any) => void;
-  /** 请求数据的函数 */
-  request?: (params: any) => Promise<{ data: T[]; success: boolean; total: number }>;
+  onChange?: (
+    pagination: TablePaginationConfig,
+    filters: Record<string, FilterValue | null>, // Correct type for antd table onChange filters
+    sorter: any, // SorterResult<T> | SorterResult<T>[]
+    extra: { currentDataSource: T[]; action: 'paginate' | 'sort' | 'filter' }
+  ) => void;
+  /** 请求数据的函数 - 更新为ProTable标准签名 */
+  request?: (
+    params: { pageSize?: number; current?: number; [key: string]: any; },
+    sort: Record<string, SortOrder>,
+    filter: Record<string, (string | number)[] | null> // Use (string | number)[] directly
+  ) => Promise<{ data: T[]; success: boolean; total?: number; }>;
   /** 刷新数据的回调函数 */
   onRefresh?: () => void | Promise<void>;
   /** 是否启用高级功能 */

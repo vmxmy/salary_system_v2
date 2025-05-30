@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict, Any
+import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from ..database import get_db_v2
@@ -10,7 +11,8 @@ from ..utils.permissions import (
 )
 from ..crud.reports import (
     ReportDataSourceCRUD, ReportDataSourceFieldCRUD, ReportCalculatedFieldCRUD,
-    ReportTemplateCRUD, ReportTemplateFieldCRUD, ReportExecutionCRUD
+    ReportTemplateCRUD, ReportTemplateFieldCRUD, ReportExecutionCRUD,
+    ReportViewCRUD, ReportViewExecutionCRUD
 )
 from ..pydantic_models.reports import (
     ReportDataSource, ReportDataSourceCreate, ReportDataSourceUpdate,
@@ -20,7 +22,11 @@ from ..pydantic_models.reports import (
     ReportTemplateField, ReportTemplateFieldCreate, ReportTemplateFieldUpdate,
     ReportExecution, ReportExecutionCreate,
     DataSourceFieldDetection, DetectedField, ReportQuery, ReportData,
-    DataSourceConnectionTest, DataSourceConnectionTestResponse
+    DataSourceConnectionTest, DataSourceConnectionTestResponse,
+    ReportViewListItem, ReportView, ReportViewCreate, ReportViewUpdate,
+    ReportViewSyncRequest, ReportViewValidationRequest, ReportViewValidationResponse,
+    ReportViewQueryRequest, ReportViewQueryResponse, ReportViewExecution,
+    ReportViewExecutionCreate
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -623,4 +629,262 @@ async def preview_multi_datasource_data(
             "success": True
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"多数据源查询失败: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"多数据源查询失败: {str(e)}")
+
+
+# ==================== 报表视图相关路由 ====================
+
+@router.get("/views", response_model=List[ReportViewListItem])
+async def get_report_views(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    category: Optional[str] = Query(None),
+    is_active: Optional[bool] = Query(None),
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取报表视图列表"""
+    from ..crud.reports import ReportViewCRUD
+    from ..pydantic_models.reports import ReportViewListItem
+    
+    views = ReportViewCRUD.get_all(db, skip=skip, limit=limit, category=category, is_active=is_active)
+    return [ReportViewListItem.from_orm(view) for view in views]
+
+
+@router.get("/views/{view_id}", response_model=ReportView)
+async def get_report_view(
+    view_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取报表视图详情"""
+    from ..crud.reports import ReportViewCRUD
+    
+    view = ReportViewCRUD.get_by_id(db, view_id)
+    if not view:
+        raise HTTPException(status_code=404, detail="报表视图不存在")
+    return view
+
+
+@router.post("/views", response_model=ReportView)
+async def create_report_view(
+    view_data: ReportViewCreate,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """创建报表视图"""
+    from ..crud.reports import ReportViewCRUD
+    
+    # 检查视图名称是否已存在
+    existing_view = ReportViewCRUD.get_by_view_name(db, view_data.view_name)
+    if existing_view:
+        raise HTTPException(status_code=400, detail="视图名称已存在")
+    
+    return ReportViewCRUD.create(db, view_data, current_user.id)
+
+
+@router.put("/views/{view_id}", response_model=ReportView)
+async def update_report_view(
+    view_id: int,
+    view_data: ReportViewUpdate,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """更新报表视图"""
+    from ..crud.reports import ReportViewCRUD
+    
+    updated_view = ReportViewCRUD.update(db, view_id, view_data)
+    if not updated_view:
+        raise HTTPException(status_code=404, detail="报表视图不存在")
+    return updated_view
+
+
+@router.delete("/views/{view_id}")
+async def delete_report_view(
+    view_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """删除报表视图"""
+    from ..crud.reports import ReportViewCRUD
+    
+    success = ReportViewCRUD.delete(db, view_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="报表视图不存在")
+    return {"message": "报表视图删除成功"}
+
+
+@router.post("/views/{view_id}/sync")
+async def sync_report_view(
+    view_id: int,
+    sync_request: ReportViewSyncRequest,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """同步报表视图到数据库"""
+    from ..crud.reports import ReportViewCRUD
+    
+    success = ReportViewCRUD.sync_view_to_database(db, view_id, sync_request.force_recreate)
+    if not success:
+        raise HTTPException(status_code=400, detail="视图同步失败")
+    return {"message": "视图同步成功"}
+
+
+@router.post("/views/validate-sql", response_model=ReportViewValidationResponse)
+async def validate_report_view_sql(
+    validation_request: ReportViewValidationRequest,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """验证报表视图SQL"""
+    from ..crud.reports import ReportViewCRUD
+    
+    result = ReportViewCRUD.validate_sql(
+        db, 
+        validation_request.sql_query, 
+        validation_request.schema_name
+    )
+    return ReportViewValidationResponse(**result)
+
+
+@router.post("/views/{view_id}/query", response_model=ReportViewQueryResponse)
+async def query_report_view_data(
+    view_id: int,
+    query_request: ReportViewQueryRequest,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """查询报表视图数据"""
+    from ..crud.reports import ReportViewCRUD
+    
+    try:
+        result = ReportViewCRUD.query_view_data(
+            db=db,
+            view_id=view_id,
+            filters=query_request.filters,
+            sorting=query_request.sorting,
+            page=query_request.page,
+            page_size=query_request.page_size
+        )
+        return ReportViewQueryResponse(**result)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/views/{view_id}/executions", response_model=List[ReportViewExecution])
+async def get_report_view_executions(
+    view_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取报表视图执行记录"""
+    from ..crud.reports import ReportViewExecutionCRUD
+    
+    executions = ReportViewExecutionCRUD.get_by_view_id(db, view_id, skip=skip, limit=limit)
+    return executions
+
+
+@router.post("/views/{view_id}/export")
+async def export_report_view_data(
+    view_id: int,
+    query_request: ReportViewQueryRequest,
+    export_format: str = Query("excel", regex="^(excel|csv|pdf)$"),
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """导出报表视图数据"""
+    from ..crud.reports import ReportViewCRUD, ReportViewExecutionCRUD
+    from ..pydantic_models.reports import ReportViewExecutionCreate
+    import tempfile
+    import os
+    from fastapi.responses import FileResponse
+    
+    try:
+        # 创建执行记录
+        execution_data = ReportViewExecutionCreate(
+            report_view_id=view_id,
+            execution_params=query_request.dict(),
+            export_format=export_format
+        )
+        execution = ReportViewExecutionCRUD.create(db, execution_data, current_user.id)
+        
+        # 查询数据（不分页，获取所有数据）
+        query_request.page_size = 10000  # 设置一个较大的值
+        result = ReportViewCRUD.query_view_data(
+            db=db,
+            view_id=view_id,
+            filters=query_request.filters,
+            sorting=query_request.sorting,
+            page=1,
+            page_size=query_request.page_size
+        )
+        
+        # 生成文件
+        view = ReportViewCRUD.get_by_id(db, view_id)
+        filename = f"{view.name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        if export_format == "excel":
+            import pandas as pd
+            # Create DataFrame
+            df = pd.DataFrame(result['data'])
+
+            # Convert timezone-aware datetimes to timezone-naive
+            for col in df.columns:
+                if pd.api.types.is_datetime64_any_dtype(df[col]):
+                    # Check if the datetime objects are timezone-aware
+                    # Accessing .dt can be slow on object dtypes, try to be more specific if possible
+                    # A common way to check is to see if the first non-null value has a tz attribute
+                    first_valid_index = df[col].first_valid_index()
+                    if first_valid_index is not None and hasattr(df[col][first_valid_index], 'tzinfo') and df[col][first_valid_index].tzinfo is not None:
+                        try:
+                            # Attempt to convert to UTC then remove timezone information
+                            # This standardizes the time before making it naive
+                            df[col] = df[col].dt.tz_convert(None) # More direct way to make naive if already localized or UTC
+                        except TypeError:
+                            # If already naive (though the error suggests they are aware)
+                            # or if conversion fails for some other reason, log and continue
+                            # This might happen if a column has mixed (aware and naive) datetimes, which is problematic
+                            print(f"Warning: Could not convert column {col} to timezone-naive for Excel export.")
+            
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
+            df.to_excel(temp_file.name, index=False)
+            filename += ".xlsx"
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            
+        elif export_format == "csv":
+            import pandas as pd
+            df = pd.DataFrame(result['data'])
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.csv')
+            df.to_csv(temp_file.name, index=False, encoding='utf-8-sig')
+            filename += ".csv"
+            media_type = "text/csv"
+            
+        else:  # pdf
+            # PDF导出需要额外的库，这里先返回错误
+            raise HTTPException(status_code=501, detail="PDF导出功能暂未实现")
+        
+        # 更新执行记录
+        file_size = os.path.getsize(temp_file.name)
+        ReportViewExecutionCRUD.update_execution_result(
+            db, execution.id, 
+            result_count=len(result['data']),
+            execution_time=result.get('execution_time'),
+            status="success"
+        )
+        
+        return FileResponse(
+            path=temp_file.name,
+            filename=filename,
+            media_type=media_type
+        )
+        
+    except Exception as e:
+        # 更新执行记录为失败状态
+        ReportViewExecutionCRUD.update_execution_result(
+            db, execution.id if 'execution' in locals() else None,
+            status="error",
+            error_message=str(e)
+        )
+        raise HTTPException(status_code=500, detail=f"导出失败: {str(e)}") 

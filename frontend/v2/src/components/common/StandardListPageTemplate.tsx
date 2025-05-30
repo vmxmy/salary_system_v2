@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button, message, Modal, Space, Tooltip, Input, Card, App } from 'antd';
 import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,15 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { stringSorter, numberSorter, dateSorter, useTableSearch, useTableExport } from './TableUtils';
 import type { Dayjs } from 'dayjs';
 import TableActionButton from './TableActionButton';
+
+// 查询参数接口
+export interface QueryParams {
+  filters?: Record<string, any>;
+  sorting?: Array<{ field: string; direction: 'asc' | 'desc' }>;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
 
 // 标准列表页面模板的属性接口
 export interface StandardListPageTemplateProps<T extends Record<string, any>> {
@@ -39,7 +48,7 @@ export interface StandardListPageTemplateProps<T extends Record<string, any>> {
   /** 查找数据错误 */
   errorLookups: any;
   /** 数据获取函数 */
-  fetchData: () => Promise<void>;
+  fetchData: (params?: QueryParams) => Promise<void>;
   /** 删除单个项目的函数 */
   deleteItem: (id: string) => Promise<void>;
   /** 新增按钮点击处理 */
@@ -98,6 +107,14 @@ export interface StandardListPageTemplateProps<T extends Record<string, any>> {
   lookupDataErrorMessageKey: string;
   /** 行键字段名 */
   rowKey?: string;
+  /** 总数据量（用于服务器端分页） */
+  total?: number;
+  /** 是否启用服务器端分页 */
+  serverSidePagination?: boolean;
+  /** 是否启用服务器端排序 */
+  serverSideSorting?: boolean;
+  /** 是否启用服务器端筛选 */
+  serverSideFiltering?: boolean;
 }
 
 // 标准列表页面模板组件
@@ -124,12 +141,26 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   lookupLoadingMessageKey,
   lookupDataErrorMessageKey,
   rowKey = 'id',
+  total,
+  serverSidePagination,
+  serverSideSorting,
+  serverSideFiltering,
 }: StandardListPageTemplateProps<T>): React.ReactElement => {
   const { t } = useTranslation(translationNamespaces);
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const isInitializedRef = useRef(false);
+  
+  // 服务器端查询参数状态
+  const [queryParams, setQueryParams] = useState<QueryParams>({
+    page: 1,
+    page_size: 20,
+    filters: {},
+    sorting: [],
+    search: '',
+  });
 
   const { getColumnSearch, searchText, searchedColumn } = useTableSearch();
 
@@ -145,14 +176,19 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
         try {
           await deleteItem(itemId);
           message.success(t(deleteConfirmConfig.successMessageKey));
-          fetchData(); // Refetch all data after deletion
+          // 根据是否启用服务器端功能决定如何刷新数据
+          if (serverSidePagination || serverSideSorting || serverSideFiltering) {
+            fetchData(queryParams);
+          } else {
+            fetchData();
+          }
         } catch (error) {
           message.error(t(deleteConfirmConfig.errorMessageKey));
           console.error('Failed to delete item:', error);
         }
       },
     });
-  }, [t, deleteItem, fetchData, deleteConfirmConfig, message, modal]);
+  }, [t, deleteItem, fetchData, deleteConfirmConfig, message, modal, queryParams, serverSidePagination, serverSideSorting, serverSideFiltering]);
 
   // Generate the full column configuration using React.useMemo
   const tableColumnsConfigForControls = React.useMemo(() => {
@@ -170,19 +206,28 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
       onViewDetailsClick
     );
     
-    // 🔍 调试：检查生成的列配置
-    console.log('[StandardListPageTemplate] 🔍 Generated columns:', columns.length);
-    const employeeNameCol = columns.find(col => col.key === 'employee_name');
-    console.log('[StandardListPageTemplate] 🔍 Employee name column:', {
-      exists: !!employeeNameCol,
-      hasRender: !!employeeNameCol?.render,
-      title: employeeNameCol?.title,
-      key: employeeNameCol?.key,
-      renderType: typeof employeeNameCol?.render
-    });
+    // 如果启用服务器端排序或筛选，需要修改列配置
+    if (serverSideSorting || serverSideFiltering) {
+      return columns.map(column => {
+        const newColumn = { ...column };
+        
+        // 对于服务器端排序，移除客户端排序函数
+        if (serverSideSorting && column.sorter) {
+          newColumn.sorter = true; // 启用排序但不提供排序函数
+        }
+        
+        // 对于服务器端筛选，确保筛选配置正确
+        if (serverSideFiltering && column.filters) {
+          // 保持筛选配置，但移除客户端筛选函数
+          newColumn.onFilter = undefined;
+        }
+        
+        return newColumn;
+      });
+    }
     
     return columns;
-  }, [t, getColumnSearch, lookupMaps, permissions.canViewDetail, permissions.canUpdate, permissions.canDelete, onEditClick, handleDelete, onViewDetailsClick, generateTableColumns]);
+  }, [t, getColumnSearch, lookupMaps, permissions.canViewDetail, permissions.canUpdate, permissions.canDelete, onEditClick, handleDelete, onViewDetailsClick, generateTableColumns, serverSideSorting, serverSideFiltering]);
 
   // 生成带有当前日期时间的文件名
   const generateExportFilename = () => {
@@ -205,12 +250,18 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   }, [tableColumnsConfigForControls]);
 
   // 配置导出功能
-  const { ExportButton } = useTableExport(dataSource, exportColumns as any, {
-    filename: generateExportFilename(),
-    sheetName: exportConfig.sheetName,
-    buttonText: exportConfig.buttonText,
-    successMessage: exportConfig.successMessage,
-  });
+  const { ExportButton } = useTableExport(
+    dataSource, // dataSource for client-side export
+    exportColumns as any, // columns for client-side export
+    {
+      filename: generateExportFilename(),
+      sheetName: exportConfig.sheetName,
+      buttonText: t(exportConfig.buttonText, '导出Excel'), // StandardListPage usually has a dedicated Excel export button text
+      successMessage: t(exportConfig.successMessage, '导出成功'),
+      supportedFormats: ['excel'], // Explicitly stating only excel for client mode
+      // onExportRequest is NOT provided, so it will use client-side Excel export by default
+    }
+  );
 
   useEffect(() => {
     if (errorLookups) {
@@ -221,23 +272,68 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
  
   // Fetch all data once lookups are loaded
   useEffect(() => {
-    if (!loadingLookups) {
+    if (!loadingLookups && !errorLookups && !isInitializedRef.current) {
+      console.log('[StandardListPageTemplate] 🚀 Initializing data fetch');
+      isInitializedRef.current = true;
+      // 根据是否启用服务器端功能决定传递参数
+      if (serverSidePagination || serverSideSorting || serverSideFiltering) {
+        fetchData(queryParams);
+      } else {
       fetchData();
+      }
     }
-  }, [fetchData, loadingLookups]); // Depends on fetchData and loadingLookups
+  }, [loadingLookups, errorLookups, fetchData, queryParams, serverSidePagination, serverSideSorting, serverSideFiltering]);
 
-  // Ant Table's onChange handler for client-side operations
+  // 表格变化处理函数 - 支持服务器端和客户端操作
   const handleTableChange = (
-    pagination: any, // pagination object from Ant Table
-    filters: Record<string, any | null>, // filters object from Ant Table
-    sorter: SorterResult<T> | SorterResult<T>[], // sorter object from Ant Table
-    extra: { currentDataSource: T[], action: string } // extra info
+    pagination: any,
+    filters: Record<string, any | null>,
+    sorter: SorterResult<T> | SorterResult<T>[],
+    extra: { currentDataSource: T[], action: string }
   ) => {
-    // For client-side pagination, sorting, and filtering,
-    // Ant Table handles these internally based on the full dataSource.
-    // This callback can be used to log changes or if any external state needs to be synced.
-    console.log('Ant Table onChange event:', { pagination, filters, sorter, extra });
-    // No need to set any state here for data fetching purposes when all data is client-side.
+    console.log('[StandardListPageTemplate] handleTableChange CALLED. Action:', extra.action, 'Filters:', JSON.stringify(filters), 'Sorter:', JSON.stringify(sorter));
+    // 如果启用了服务器端功能，处理服务器端查询
+    if (serverSidePagination || serverSideSorting || serverSideFiltering) {
+      const newParams: QueryParams = { ...queryParams };
+
+      // 处理分页
+      if (serverSidePagination && pagination) {
+        newParams.page = pagination.current || 1;
+        newParams.page_size = pagination.pageSize || 20;
+      }
+
+      // 处理排序
+      if (serverSideSorting && sorter) {
+        const sorters = Array.isArray(sorter) ? sorter : [sorter];
+        newParams.sorting = sorters
+          .filter(s => s.field && s.order)
+          .map(s => ({
+            field: String(s.field),
+            direction: s.order === 'ascend' ? 'asc' as const : 'desc' as const,
+          }));
+      }
+
+      // 处理筛选
+      if (serverSideFiltering && filters) {
+        console.log('[StandardListPageTemplate] handleTableChange - Raw filters from ProTable:', JSON.stringify(filters));
+        const activeFilters: Record<string, any> = {};
+        Object.entries(filters).forEach(([key, filterValue]) => {
+          // ProTable 通常将筛选值作为数组传递，即使是单选。
+          // 如果筛选值是 null 或空数组，则表示该列没有激活的筛选。
+          if (filterValue && (Array.isArray(filterValue) && filterValue.length > 0)) {
+            // 后端可能期望单个值或数组，这里我们保留数组，如果后端需要单个值，可以在 ReportViewData 中处理
+            activeFilters[key] = filterValue;
+          }
+        });
+        newParams.filters = activeFilters;
+        console.log('[StandardListPageTemplate] handleTableChange - Processed activeFilters for newParams:', JSON.stringify(activeFilters));
+      }
+
+      // 更新查询参数并触发数据获取
+      setQueryParams(newParams);
+      fetchData(newParams);
+    }
+    // 对于客户端操作，Ant Table 会自动处理，无需额外操作
   };
  
   const combinedLoading = loadingData || loadingLookups;
@@ -257,47 +353,68 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
       );
       await Promise.all(deletePromises);
       setSelectedRowKeys([]); // 清空选择
-      fetchData(); // 重新获取数据
+      // 根据是否启用服务器端功能决定如何刷新数据
+      if (serverSidePagination || serverSideSorting || serverSideFiltering) {
+        fetchData(queryParams);
+      } else {
+        fetchData();
+      }
     },
     successMessage: batchDeleteConfig.successMessage,
     errorMessage: batchDeleteConfig.errorMessage,
     noSelectionMessage: batchDeleteConfig.noSelectionMessage,
   } : undefined;
 
+  // 刷新数据函数
+  const handleRefresh = useCallback(() => {
+    if (serverSidePagination || serverSideSorting || serverSideFiltering) {
+      fetchData(queryParams);
+    } else {
+      fetchData();
+    }
+  }, [fetchData, queryParams, serverSidePagination, serverSideSorting, serverSideFiltering]);
+
+  // 分页配置
+  const paginationConfig = serverSidePagination ? {
+    current: queryParams.page,
+    pageSize: queryParams.page_size,
+    total: total || 0,
+    showSizeChanger: true,
+    showQuickJumper: true,
+    pageSizeOptions: ['10', '20', '50', '100', '200'],
+    showTotal: (total: number, range: [number, number]) => 
+      `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+  } : {
+    showSizeChanger: true,
+    showQuickJumper: true,
+    pageSizeOptions: ['10', '20', '50', '100', '200'],
+    showTotal: (total: number) => `共 ${total} 条`,
+  };
+
   return (
     <div>
-      {lookupMaps && Object.keys(lookupMaps).length > 0 ? (
-        (() => {
-          console.log('[StandardListPageTemplate] Rendering OrganizationManagementTableTemplate. dataSource.length:', dataSource.length);
-          return (
-            <OrganizationManagementTableTemplate<T>
-              pageTitle={t(pageTitleKey)}
-              addButtonText={t(addButtonTextKey)}
-              onAddClick={onAddClick}
-              showAddButton={permissions.canCreate}
-              extraButtons={permissions.canExport ? [<ExportButton key="export" />] : []}
-              batchDelete={finalBatchDeleteConfig}
-              columns={tableColumnsConfigForControls}
-              dataSource={dataSource}
-              loading={combinedLoading}
-              pagination={{
-                showSizeChanger: true,
-                showQuickJumper: true,
-                pageSizeOptions: ['10', '20', '50', '100', '200'],
-                showTotal: (total: number) => `共 ${total} 条`,
-              }}
-              rowKey={rowKey}
-              bordered
-              scroll={{ x: 'max-content' }}
-              rowSelection={{
-                selectedRowKeys,
-                onChange: setSelectedRowKeys,
-              }}
-              onChange={handleTableChange}
-              onRefresh={fetchData}
-            />
-          );
-        })()
+      {(lookupMaps && Object.keys(lookupMaps).length > 0) || (!loadingLookups && !errorLookups) ? (
+        <OrganizationManagementTableTemplate<T>
+          pageTitle={t(pageTitleKey)}
+          addButtonText={t(addButtonTextKey)}
+          onAddClick={onAddClick}
+          showAddButton={permissions.canCreate}
+          extraButtons={permissions.canExport ? [<ExportButton key="export" />] : []}
+          batchDelete={finalBatchDeleteConfig}
+          columns={tableColumnsConfigForControls}
+          dataSource={dataSource}
+          loading={combinedLoading}
+          pagination={paginationConfig}
+          rowKey={rowKey}
+          bordered
+          scroll={{ x: 'max-content' }}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
+          onChange={handleTableChange}
+          onRefresh={handleRefresh}
+        />
       ) : (
         <div style={{ textAlign: 'center', padding: '20px' }}>
           {loadingLookups ? t(lookupLoadingMessageKey) : t(lookupDataErrorMessageKey)}
@@ -308,3 +425,55 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
 };
 
 export default StandardListPageTemplate; 
+
+/*
+使用示例 - 启用服务器端功能：
+
+// 在组件中使用服务器端排序、筛选和分页
+const MyListPage = () => {
+  const [dataSource, setDataSource] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+
+  // 数据获取函数，支持查询参数
+  const fetchData = async (params?: QueryParams) => {
+    setLoading(true);
+    try {
+      const response = await api.getData({
+        page: params?.page || 1,
+        page_size: params?.page_size || 20,
+        filters: params?.filters || {},
+        sorting: params?.sorting || [],
+        search: params?.search || '',
+      });
+      setDataSource(response.data);
+      setTotal(response.total);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <StandardListPageTemplate
+      // ... 其他属性
+      dataSource={dataSource}
+      loadingData={loading}
+      total={total}
+      fetchData={fetchData}
+      // 启用服务器端功能
+      serverSidePagination={true}
+      serverSideSorting={true}
+      serverSideFiltering={true}
+      // ... 其他配置
+    />
+  );
+};
+
+注意事项：
+1. 当启用服务器端功能时，fetchData 函数必须支持 QueryParams 参数
+2. 需要提供 total 属性用于分页显示
+3. 列配置中的 sorter 和 filters 会自动适配服务器端模式
+4. 所有数据操作（删除、刷新等）都会自动使用当前的查询参数
+*/ 

@@ -498,4 +498,128 @@ class ReportTemplateListItem(BaseModel):
     created_by: Optional[int] = None # Or a User nested model if needed
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+
+# ==================== 报表视图相关模型 ====================
+
+class ReportViewBase(BaseModel):
+    """报表视图基础模型"""
+    name: str = Field(..., description="报表名称")
+    description: Optional[str] = Field(None, description="报表描述")
+    view_name: str = Field(..., description="视图名称")
+    sql_query: str = Field(..., description="SQL查询语句")
+    schema_name: str = Field("reports", description="视图所在模式")
+    is_active: bool = Field(True, description="是否激活")
+    is_public: bool = Field(False, description="是否公开")
+    category: Optional[str] = Field(None, description="报表分类")
+
+
+class ReportViewCreate(ReportViewBase):
+    """创建报表视图模型"""
+    pass
+
+
+class ReportViewUpdate(BaseModel):
+    """更新报表视图模型"""
+    name: Optional[str] = Field(None, description="报表名称")
+    description: Optional[str] = Field(None, description="报表描述")
+    sql_query: Optional[str] = Field(None, description="SQL查询语句")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+    is_public: Optional[bool] = Field(None, description="是否公开")
+    category: Optional[str] = Field(None, description="报表分类")
+
+
+class ReportView(ReportViewBase):
+    """报表视图响应模型"""
+    id: int
+    view_status: str = Field(..., description="视图状态")
+    last_sync_at: Optional[datetime] = Field(None, description="最后同步时间")
+    sync_error: Optional[str] = Field(None, description="同步错误信息")
+    usage_count: int = Field(0, description="使用次数")
+    last_used_at: Optional[datetime] = Field(None, description="最后使用时间")
+    created_by: Optional[int] = Field(None, description="创建者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class ReportViewListItem(BaseModel):
+    """报表视图列表项模型"""
+    id: int
+    name: str
+    description: Optional[str]
+    category: Optional[str]
+    view_status: str
+    usage_count: int
+    last_used_at: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ReportViewExecutionCreate(BaseModel):
+    """创建报表视图执行记录模型"""
+    report_view_id: int = Field(..., description="报表视图ID")
+    execution_params: Optional[Dict[str, Any]] = Field(None, description="执行参数")
+    export_format: Optional[str] = Field(None, description="导出格式")
+
+
+class ReportViewExecution(BaseModel):
+    """报表视图执行记录响应模型"""
+    id: int
+    report_view_id: int
+    execution_params: Optional[Dict[str, Any]]
+    result_count: Optional[int]
+    execution_time: Optional[float]
+    status: str
+    error_message: Optional[str]
+    export_format: Optional[str]
+    file_path: Optional[str]
+    file_size: Optional[int]
+    executed_by: Optional[int]
+    executed_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ReportViewQueryRequest(BaseModel):
+    """报表视图查询请求模型"""
+    filters: Optional[Dict[str, Any]] = Field(None, description="筛选条件")
+    sorting: Optional[List[Dict[str, str]]] = Field(None, description="排序条件")
+    page: int = Field(1, ge=1, description="页码")
+    page_size: int = Field(20, ge=1, le=1000, description="每页大小")
+
+
+class ReportViewQueryResponse(BaseModel):
+    """报表视图查询响应模型"""
+    columns: List[Dict[str, Any]] = Field(..., description="列信息")
+    data: List[Dict[str, Any]] = Field(..., description="数据")
+    total: int = Field(..., description="总记录数")
+    page: int = Field(..., description="当前页码")
+    page_size: int = Field(..., description="每页大小")
+    execution_time: Optional[float] = Field(None, description="执行时间")
+
+
+class ReportViewSyncRequest(BaseModel):
+    """报表视图同步请求模型"""
+    force_recreate: bool = Field(False, description="是否强制重新创建视图")
+
+
+class ReportViewValidationRequest(BaseModel):
+    """报表视图SQL验证请求模型"""
+    sql_query: str = Field(..., description="SQL查询语句")
+    schema_name: str = Field("reports", description="目标模式名")
+
+
+class ReportViewValidationResponse(BaseModel):
+    """报表视图SQL验证响应模型"""
+    is_valid: bool = Field(..., description="SQL是否有效")
+    error_message: Optional[str] = Field(None, description="错误信息")
+    columns: Optional[List[Dict[str, str]]] = Field(None, description="查询结果列信息")
+    estimated_rows: Optional[int] = Field(None, description="预估行数") 

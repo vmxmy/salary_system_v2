@@ -25,6 +25,8 @@ import {
   ProfileOutlined,
   UploadOutlined,
   EditOutlined,
+  DatabaseOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions } from '../hooks/usePermissions';
@@ -79,7 +81,8 @@ const MainLayout: React.FC = () => {
     'permission',
     'role',
     'user',
-    'personnelCategory'
+    'personnelCategory',
+    'menu'
   ]); // 确保包含所有可能需要的命名空间
   const [collapsed, setCollapsed] = useState(false); // 侧边栏默认展开
   const [openKeys, setOpenKeys] = useState<string[]>([]); // 添加openKeys状态
@@ -436,7 +439,7 @@ const MainLayout: React.FC = () => {
     // ========== 管理功能模块 ==========
     const managementItems = [];
 
-    // 4. 经理视图 - 管理功能
+    // 5. 经理视图 - 管理功能
     const managerChildren = [];
     if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
       managerChildren.push({
@@ -464,10 +467,19 @@ const MainLayout: React.FC = () => {
       managementItems.push(managerMenuItem);
     }
 
+    // 5. 视图报表 - 独立的报表管理功能
+    if (hasPermission('report:view_reports')) {
+      managementItems.push({
+        key: '/view-reports',
+        label: <Link to="/view-reports">{t('menu:viewReports')}</Link>,
+        icon: <DatabaseOutlined />,
+      });
+    }
+
     // ========== 系统配置模块 ==========
     const systemConfigItems = [];
 
-    // 5. 系统管理 - 保持原有结构
+    // 6. 系统管理 - 保持原有结构
     systemConfigItems.push({
       key: '/admin',
       icon: <SettingOutlined />,
@@ -475,13 +487,13 @@ const MainLayout: React.FC = () => {
       children: adminChildren,
     });
 
-    // 6. 组织架构 - 保持独立
+    // 7. 组织架构 - 保持独立
     systemConfigItems.push(organizationMenuItem);
 
     // ========== 个人功能模块 ==========
     const personalItems = [];
 
-    // 6. 个人中心 - 个人功能
+    // 8. 个人中心 - 个人功能
     personalItems.push({
       key: '/employee-info',
       icon: <SolutionOutlined />,
@@ -512,7 +524,7 @@ const MainLayout: React.FC = () => {
       ...systemConfigItems,      // 系统配置再次
       ...personalItems,          // 个人功能最后
     ];
-    
+
     return finalItems;
   }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, t, ready]);
   

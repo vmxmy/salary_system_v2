@@ -140,6 +140,16 @@ async def get_current_user(
 ) -> v2_security_schemas.User: # UPDATED return type annotation
     # logger.info(f"+++ ENTERING get_current_user at {datetime.now()} for token starting with: {credentials.credentials[:20] if credentials and credentials.credentials else 'NO_TOKEN_CREDENTIALS'}")
     # logger.info(f"+++ get_current_user successfully obtained db session from get_db_v2: {type(db)}")
+    
+    # 检查credentials是否为None
+    if credentials is None:
+        logger.warning("!!! NO CREDENTIALS PROVIDED (credentials is None). Raising 401.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated or credentials missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     token = credentials.credentials # Extract token from credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

@@ -25,6 +25,8 @@
   "reportsViewer": "报表查看",
   "reportsTemplateDetail": "报表模板详情",
   "reportsTemplateEdit": "编辑报表模板",
+  "viewReports": "视图报表",
+  "viewReportsManagement": "报表管理",
   "admin": "系统管理",
   "adminUsers": "用户管理",
   "adminRoles": "角色管理",

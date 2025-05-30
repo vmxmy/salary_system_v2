@@ -49,6 +49,8 @@ class User(BaseV2):
     created_report_templates = relationship("ReportTemplate", foreign_keys="[ReportTemplate.created_by]", back_populates="creator")
     report_executions = relationship("ReportExecution", foreign_keys="[ReportExecution.executed_by]", back_populates="executor")
     report_preferences = relationship("ReportUserPreference", back_populates="user")
+    created_report_views = relationship("ReportView", foreign_keys="[ReportView.created_by]", back_populates="creator")
+    report_view_executions = relationship("ReportViewExecution", foreign_keys="[ReportViewExecution.executed_by]", back_populates="executor")
     
     # 注意：报表相关权限通过Permission系统管理，不需要直接关系
 

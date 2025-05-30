@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Button, Input, Space, message, Dropdown, Checkbox, Tooltip, Divider, App } from 'antd';
-import { SearchOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
+import { Button, Input, Space, message, Dropdown, Checkbox, Tooltip, Divider, App, Menu } from 'antd';
+import { SearchOutlined, DownloadOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons';
 import type { InputRef } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import Highlighter from 'react-highlight-words';
@@ -283,77 +283,85 @@ export interface ExportOptions {
   sheetName?: string;
   /** 是否包含表头 */
   withHeader?: boolean;
-  /** 按钮文本 */
+  /** 按钮文本 - 如果是单一按钮模式 */
   buttonText?: string;
   /** 导出成功提示文本 */
   successMessage?: string;
+  /** 支持的导出格式列表，例如 ['excel', 'csv'] */
+  supportedFormats?: ExportFormat[];
+  /** 导出请求回调，如果提供，则优先使用此回调进行导出 */
+  onExportRequest?: (format: ExportFormat) => void;
+  /** 主按钮文本（当有多种格式时，作为下拉按钮的文本） */
+  dropdownButtonText?: string;
 }
 
+export type ExportFormat = 'excel' | 'csv' | 'pdf'; // 定义支持的格式类型
+
+// 辅助函数，获取格式对应的显示文本
+const getFormatLabel = (format: ExportFormat, t: (key: string, defaultText: string) => string): string => {
+  switch (format) {
+    case 'excel': return t('common:export.formatExcel', 'Excel (.xlsx)');
+    case 'csv': return t('common:export.formatCsv', 'CSV (.csv)');
+    case 'pdf': return t('common:export.formatPdf', 'PDF (.pdf)');
+    default:
+      // Type safety: this should not be reached if ExportFormat is exhaustive
+      const _exhaustiveCheck: never = format;
+      return String(_exhaustiveCheck).toUpperCase(); 
+  }
+};
+
 export const useTableExport = <T extends object>(
-  dataSource: T[],
-  columns: ColumnsType<T>,
+  // dataSource 和 columns 变为可选，因为服务器端导出时不需要它们
+  dataSource?: T[], 
+  columns?: ColumnsType<T>,
   options?: ExportOptions
 ) => {
   const { t } = useTranslation(['common']);
-  const { message } = App.useApp();
+  const { message } = App.useApp(); // Use message from App.useApp()
   
-  const defaultOptions: ExportOptions = {
+  const defaultOptions: Omit<Required<ExportOptions>, 'onExportRequest'> & { onExportRequest?: (format: ExportFormat) => void } = {
     filename: t('common:export.filename', '导出数据'),
     sheetName: t('common:export.sheetName', 'Sheet1'),
     withHeader: true,
     buttonText: t('common:button.export_excel', '导出Excel'),
     successMessage: t('common:export.success_message', '导出成功'),
+    supportedFormats: ['excel'],
+    dropdownButtonText: t('common:button.export', '导出'),
+    onExportRequest: undefined, // Explicitly undefined initially
   };
 
   const mergedOptions = { ...defaultOptions, ...options };
 
-  /**
-   * 导出表格数据到Excel
-   */
-  const exportToExcel = () => {
+  const clientExportToExcel = () => {
+    if (!dataSource || !columns) {
+      message.error(t('common:export.error_no_data_for_client_export', '客户端导出缺少数据或列定义'));
+      return;
+    }
     try {
-      // 转换数据为Excel兼容格式
       const excelData = dataSource.map(record => {
         const row: Record<string, any> = {};
-        
         columns.forEach(column => {
-          // 处理ColumnGroup的情况
           if ('dataIndex' in column && column.dataIndex && column.title) {
             const dataIndex = column.dataIndex as keyof T;
-            // 获取列显示的值
             let cellValue: any = record[dataIndex];
-            
-            // 处理自定义渲染
             if (column.render && typeof cellValue !== 'undefined') {
               const renderResult = column.render(cellValue, record, 0);
-              // 如果渲染结果是React元素，尝试提取文本内容
               if (React.isValidElement(renderResult)) {
-                // 安全地访问props
                 const props = renderResult.props as any;
                 cellValue = props?.children || cellValue;
               } else if (typeof renderResult === 'string' || typeof renderResult === 'number') {
                 cellValue = renderResult;
               }
             }
-            
             row[column.title as string] = cellValue;
           }
         });
-        
         return row;
       });
-
-      // 创建工作表
       const worksheet = XLSX.utils.json_to_sheet(excelData);
-      
-      // 创建工作簿
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, mergedOptions.sheetName);
-      
-      // 导出文件
       XLSX.writeFile(workbook, `${mergedOptions.filename}.xlsx`);
-      
-      // 显示成功消息
       message.success(mergedOptions.successMessage);
     } catch (error) {
       console.error(t('common:export.error_log', '导出Excel失败:'), error);
@@ -361,24 +369,74 @@ export const useTableExport = <T extends object>(
     }
   };
 
-  /**
-   * 导出按钮组件
-   */
-  const ExportButton: React.FC = () => (
-    <Tooltip title={mergedOptions.buttonText || t('common:tooltip.export_data', '导出数据')}> 
-      <Button 
-        icon={<DownloadOutlined />} 
-        onClick={exportToExcel}
-        shape="round"
-        type="default"
-      >
-        {mergedOptions.buttonText}
-      </Button>
-    </Tooltip>
-  );
+  const ExportButton: React.FC = () => {
+    const handleMenuClick = (e: { key: string }) => {
+      const format = e.key as ExportFormat;
+      if (mergedOptions.onExportRequest) {
+        mergedOptions.onExportRequest(format);
+      } else if (format === 'excel') {
+        clientExportToExcel();
+      } else {
+        message.warning(t('common:export.warn_no_handler', `未处理的导出格式: ${format}`), );
+      }
+    };
+
+    const menu = (
+      <Menu onClick={handleMenuClick}>
+        {mergedOptions.supportedFormats.map(format => (
+          <Menu.Item key={format}>
+            {getFormatLabel(format, t)}
+          </Menu.Item>
+        ))}
+      </Menu>
+    );
+
+    const exportCallback = mergedOptions.onExportRequest; // Store in a variable for type guarding
+    const hasExportCallback = typeof exportCallback === 'function';
+
+    const shouldUseDropdown = hasExportCallback && mergedOptions.supportedFormats.length > 1;
+    const singleFormatServerExport = hasExportCallback && mergedOptions.supportedFormats.length === 1;
+
+    if (shouldUseDropdown) {
+      return (
+        <Dropdown overlay={menu}>
+          <Button shape="round" type="default">
+            {mergedOptions.dropdownButtonText} <DownOutlined />
+          </Button>
+        </Dropdown>
+      );
+    } 
+    
+    const singleFormatToExport = mergedOptions.supportedFormats[0];
+    const singleButtonText = singleFormatServerExport 
+        ? getFormatLabel(singleFormatToExport, t)
+        : (singleFormatToExport === 'excel' && !hasExportCallback) 
+            ? mergedOptions.buttonText 
+            : getFormatLabel(singleFormatToExport, t); 
+
+    return (
+      <Tooltip title={singleButtonText || t('common:tooltip.export_data', '导出数据')}>
+        <Button
+          icon={<DownloadOutlined />}
+          onClick={() => {
+            if (hasExportCallback && exportCallback) { // Check exportCallback directly here
+              exportCallback(singleFormatToExport);
+            } else if (singleFormatToExport === 'excel' && !hasExportCallback) { // Ensure it's client export
+              clientExportToExcel();
+            } else {
+               message.warning(t('common:export.warn_no_handler', `未处理的导出格式: ${singleFormatToExport}`), );
+            }
+          }}
+          shape="round"
+          type="default"
+        >
+          {singleButtonText}
+        </Button>
+      </Tooltip>
+    );
+  };
 
   return {
-    exportToExcel,
     ExportButton,
   };
 };

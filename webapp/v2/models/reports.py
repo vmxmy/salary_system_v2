@@ -320,4 +320,79 @@ class ReportUserPreference(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
 
     # 关系
-    user = relationship("User", back_populates="report_preferences") 
+    user = relationship("User", back_populates="report_preferences")
+
+
+class ReportView(Base):
+    """基于SQL视图的简化报表模型"""
+    __tablename__ = "report_views"
+    __table_args__ = {'schema': 'config'}
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    name = Column(String(255), nullable=False, comment="报表名称")
+    description = Column(Text, comment="报表描述")
+    view_name = Column(String(100), nullable=False, unique=True, comment="视图名称")
+    sql_query = Column(Text, nullable=False, comment="SQL查询语句")
+    schema_name = Column(String(50), nullable=False, default="reports", comment="视图所在模式")
+    
+    # 报表配置
+    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
+    is_public = Column(Boolean, default=False, nullable=False, comment="是否公开")
+    category = Column(String(100), comment="报表分类")
+    
+    # 视图状态
+    view_status = Column(String(20), default="draft", comment="视图状态: draft, created, error")
+    last_sync_at = Column(DateTime(timezone=True), comment="最后同步时间")
+    sync_error = Column(Text, comment="同步错误信息")
+    
+    # 使用统计
+    usage_count = Column(Integer, default=0, nullable=False, comment="使用次数")
+    last_used_at = Column(DateTime(timezone=True), comment="最后使用时间")
+    
+    # 审计字段
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    creator = relationship("User", back_populates="created_report_views")
+    executions = relationship("ReportViewExecution", back_populates="report_view", cascade="all, delete-orphan")
+
+
+class ReportViewExecution(Base):
+    """报表视图执行记录"""
+    __tablename__ = "report_view_executions"
+    __table_args__ = {'schema': 'config'}
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    report_view_id = Column(BigInteger, ForeignKey("config.report_views.id"), nullable=False)
+    
+    # 执行参数
+    execution_params = Column(JSONB, comment="执行参数(筛选条件等)")
+    result_count = Column(Integer, comment="结果数量")
+    execution_time = Column(DECIMAL(10, 3), comment="执行时间(秒)")
+    
+    # 执行状态
+    status = Column(String(20), default="success", comment="执行状态: success, error")
+    error_message = Column(Text, comment="错误信息")
+    
+    # 导出信息
+    export_format = Column(String(20), comment="导出格式: excel, csv, pdf")
+    file_path = Column(String(500), comment="导出文件路径")
+    file_size = Column(BigInteger, comment="文件大小(字节)")
+    
+    # 审计字段
+    executed_by = Column(BigInteger, ForeignKey("security.users.id"), comment="执行者")
+    executed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="执行时间")
+
+    # 关系
+    report_view = relationship("ReportView", back_populates="executions")
+    executor = relationship("User", back_populates="report_view_executions")
+
+
+# 更新User模型的关系（需要在security模型中添加）
+# User.created_report_views = relationship("ReportView", back_populates="creator")
+# User.report_view_executions = relationship("ReportViewExecution", back_populates="executor")
+
+# 更新ReportView模型的关系
+ReportView.executions = relationship("ReportViewExecution", back_populates="report_view", cascade="all, delete-orphan") 
