@@ -46,17 +46,17 @@ const { Text } = Typography;
 
 // 简单的面包屑名称映射，后续可以从路由 meta 中获取 - THIS WILL BE DEPRECATED by new logic
 // const breadcrumbNameMap: Record<string, string> = {
-//   '/dashboard': '仪表盘',
-//   '/admin': '系统管理',
-//   '/admin/users': '用户管理',
-//   '/admin/roles': '角色管理',
-//   '/admin/config': '系统配置',
-//   '/admin/organization': '组织架构',
-//   '/admin/organization/departments': '部门管理',
-//   '/admin/organization/job-titles': '职位管理',
-//   '/admin/permissions': '权限管理',
-//   '/hr': '人事管理',
-//   '/hr/employees': '员工档案',
+//   '/dashboard': {t('common:auto_text_e4bbaa')},
+//   '/admin': {t('common:auto_text_e7b3bb')},
+//   '/admin/users': {t('common:auto_text_e794a8')},
+//   '/admin/roles': {t('common:auto_text_e8a792')},
+//   '/admin/config': {t('common:auto_text_e7b3bb')},
+//   '/admin/organization': {t('common:auto_text_e7bb84')},
+//   '/admin/organization/departments': {t('common:auto_text_e983a8')},
+//   '/admin/organization/job-titles': {t('common:auto_text_e8818c')},
+//   '/admin/permissions': {t('common:auto_text_e69d83')},
+//   '/hr': {t('common:auto_text_e4baba')},
+//   '/hr/employees': {t('common:auto_text_e59198')},
 //   // ...更多路径
 // };
 
@@ -106,26 +106,26 @@ const MainLayout: React.FC = () => {
   // Tour steps
   const steps: TourProps['steps'] = [
     {
-      title: t('tour:dashboard.title', '仪表盘概览'),
-      description: t('tour:dashboard.description', '这里是系统的概览和快捷入口，您可以快速了解关键数据和导航至各功能模块。'),
+      title: t('tour:dashboard.title', {t('common:auto_text_e4bbaa')}),
+      description: t('tour:dashboard.description', {t('common:auto____e8bf99')}),
       target: () => refDashboard.current,
-      nextButtonProps: { children: t('tour:common.next', '下一步') },
-      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      nextButtonProps: { children: t('tour:common.next', {t('common:auto_text_e4b88b')}) },
+      prevButtonProps: { children: t('tour:common.previous', {t('common:auto_text_e4b88a')}) },
     },
     {
-      title: t('tour:bulk_import.title', '批量导入员工'),
-      description: t('tour:bulk_import.description', '若您需要一次性添加多名员工信息，可以使用此功能通过上传文件快速完成。'),
+      title: t('tour:bulk_import.title', {t('common:auto_text_e689b9')}),
+      description: t('tour:bulk_import.description', {t('common:auto____e88ba5')}),
       target: () => refBulkImport.current,
-      nextButtonProps: { children: t('tour:common.next', '下一步') },
-      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      nextButtonProps: { children: t('tour:common.next', {t('common:auto_text_e4b88b')}) },
+      prevButtonProps: { children: t('tour:common.previous', {t('common:auto_text_e4b88a')}) },
       // disabled: !refBulkImport.current, // Example: Disable step if target is not available (though ref is assigned in useEffect)
     },
     {
-      title: t('tour:ai_robot.title', 'AI 助手'),
-      description: t('tour:ai_robot.description', '有任何疑问或需要操作指引吗？随时点击右下角的 AI 助手图标，它会尽力帮助您。'),
+      title: t('tour:ai_robot.title', {t('common:auto_ai__414920')}),
+      description: t('tour:ai_robot.description', {t('common:auto___ai____e69c89')}),
       target: () => refAiRobot.current,
-      nextButtonProps: { children: t('tour:common.finish', '完成') }, // Last step
-      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      nextButtonProps: { children: t('tour:common.finish', {t('common:auto_text_e5ae8c')}) }, // Last step
+      prevButtonProps: { children: t('tour:common.previous', {t('common:auto_text_e4b88a')}) },
       // disabled: !refAiRobot.current, // Example: Disable step if target is not available
     },
   ];
@@ -366,7 +366,7 @@ const MainLayout: React.FC = () => {
 
   const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',
-    label: ready ? (t('pageTitle:hr_management')) : '人力资源管理',
+    label: ready ? (t('pageTitle:hr_management')) : {t('common:auto_text_e4baba')},
     icon: <UsergroupAddOutlined />,
     children: hrManagementChildren,
   }), [hrManagementChildren, t, ready]);
@@ -610,7 +610,7 @@ const MainLayout: React.FC = () => {
           />
           <Space style={{ padding: '0 8px', borderRadius: '4px', border: '1px solid rgba(5, 5, 5, 0.06)' }}>
             <LanguageSwitcher />
-            <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu:default_user_text', '用户')}</Text>
+            <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu:default_user_text', {t('common:auto_text_e794a8')})}</Text>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Avatar style={{ cursor: 'pointer' }} icon={<UserOutlined />} /* src={currentUser?.avatar_url} // 假设有头像 */ />
             </Dropdown>
@@ -626,9 +626,9 @@ const MainLayout: React.FC = () => {
         </Content>
         <Footer style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 24px' }}>
           <span style={{ marginRight: '8px' }}>
-            {t('common:footer.copyright', '成都高新区财政国资局 人事工资信息管理系统')} ©{new Date().getFullYear()}
+            {t('common:footer.copyright', {t('common:auto___e68890')})} ©{new Date().getFullYear()}
           </span>
-          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt', '趣链科技 Logo')} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
+          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt', {t('common:auto__logo_e8b6a3')})} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
           <span style={{ verticalAlign: 'middle' }}>
           </span>
         </Footer>

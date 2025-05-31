@@ -256,8 +256,8 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     {
       filename: generateExportFilename(),
       sheetName: exportConfig.sheetName,
-      buttonText: t(exportConfig.buttonText, '导出Excel'), // StandardListPage usually has a dedicated Excel export button text
-      successMessage: t(exportConfig.successMessage, '导出成功'),
+      buttonText: t(exportConfig.buttonText, {t('components:auto_excel_e5afbc')}), // StandardListPage usually has a dedicated Excel export button text
+      successMessage: t(exportConfig.successMessage, {t('components:auto_text_e5afbc')}),
       supportedFormats: ['excel'], // Explicitly stating only excel for client mode
       // onExportRequest is NOT provided, so it will use client-side Excel export by default
     }
@@ -383,12 +383,12 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100', '200'],
     showTotal: (total: number, range: [number, number]) => 
-      `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+      {t('components:auto__range_0_range_1___total__e7acac')},
   } : {
     showSizeChanger: true,
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100', '200'],
-    showTotal: (total: number) => `共 ${total} 条`,
+    showTotal: (total: number) => {t('components:auto__total__e585b1')},
   };
 
   return (

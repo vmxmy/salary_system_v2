@@ -113,7 +113,7 @@ const RightContent: React.FC<{
           onClick={toggleLanguage}
           size="small"
         >
-          {i18n.language === 'zh-CN' ? '中' : 'EN'}
+          {i18n.language === 'zh-CN' ? {t('common:auto_text_e4b8ad')} : 'EN'}
         </Button>
       </Tooltip>
 
@@ -191,7 +191,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
 
   // 处理图片加载失败
   const handleLogoError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.log('Logo加载失败，使用文本替代');
+    console.log({t('common:auto_logo__4c6f67')});
     setLogoError(true);
     e.currentTarget.style.display = 'none';
   };
@@ -297,7 +297,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
           {!logoError ? (
             <img
               src={hyperchainLogo}
-              alt="趣链科技 Logo"
+              alt={t('common:auto__logo_e8b6a3')}
               style={{ height: 16 }}
               onError={handleLogoError}
             />

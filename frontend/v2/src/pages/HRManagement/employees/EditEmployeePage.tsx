@@ -97,13 +97,13 @@ const EditEmployeePage: React.FC = () => {
   const lastName = employeeData.last_name || '';
   const firstName = employeeData.first_name || '';
   const fullNameParts = [lastName, firstName].filter(Boolean);
-  const employeeDisplayName = fullNameParts.length > 0 ? fullNameParts.join('') : t('employee:edit_page.default_employee_name', '员工');
+  const employeeDisplayName = fullNameParts.length > 0 ? fullNameParts.join('') : t('employee:edit_page.default_employee_name', {t('hr:auto_text_e59198')});
 
   const breadcrumbItems = [
     { onClick: () => navigate('/'), title: <HomeOutlined /> },
     { onClick: () => navigate('/hr/employees'), title: t('pageTitle:hr_management') },
     { onClick: () => navigate('/hr/employees'), title: t('pageTitle:employee_list') },
-    { title: employeeDisplayName && employeeDisplayName !== t('employee:edit_page.default_employee_name', '员工') 
+    { title: employeeDisplayName && employeeDisplayName !== t('employee:edit_page.default_employee_name', {t('hr:auto_text_e59198')}) 
         ? t('employee:edit_page.breadcrumb_title_with_name', { employeeName: employeeDisplayName })
         : t('employee:edit_page.breadcrumb_title')
     }

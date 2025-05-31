@@ -288,8 +288,8 @@ const PayrollEntryPage: React.FC = () => {
 
   // 模拟查找映射数据 - 添加假数据确保表格能渲染
   const lookupMaps = {
-    departmentMap: new Map([['default', '默认部门']]),
-    statusMap: new Map([['default', '默认状态']]),
+    departmentMap: new Map([['default', {t('payroll:auto_text_e9bb98')}]]),
+    statusMap: new Map([['default', {t('payroll:auto_text_e9bb98')}]]),
   };
 
   const { getColumnSearch } = useTableSearch();
@@ -405,7 +405,7 @@ const PayrollEntryPage: React.FC = () => {
 
   // 薪资周期加载完成的回调（现在由组件内部自动选择有数据的周期）
   const handlePeriodsLoaded = useCallback((periods: any[]) => {
-    console.log(`📋 薪资周期加载完成，共 ${periods.length} 个周期`);
+    console.log({t('payroll:auto____periods_length__f09f93')});
     // 不再手动选择第一个周期，由 PayrollPeriodSelector 自动选择最近一个有数据的周期
   }, []);
 
@@ -507,8 +507,8 @@ const PayrollEntryPage: React.FC = () => {
           exportConfig={{
             filenamePrefix: t('payroll:entry_page.title'),
             sheetName: t('payroll:entry_page.title'),
-            buttonText: '导出Excel',
-            successMessage: '薪资记录导出成功',
+            buttonText: {t('payroll:auto_excel_e5afbc')},
+            successMessage: {t('payroll:auto_text_e896aa')},
           }}
           lookupErrorMessageKey="payroll:entry_page.message.load_aux_data_failed"
           lookupLoadingMessageKey="payroll:entry_page.loading_lookups"

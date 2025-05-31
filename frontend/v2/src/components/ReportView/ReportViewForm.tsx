@@ -105,7 +105,7 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
       
       // 检查SQL是否已验证
       if (!sqlValidation?.is_valid) {
-        message.warning('请先验证SQL查询语句');
+        message.warning({t('components:auto_sql_e8afb7')});
         return;
       }
 
@@ -123,18 +123,18 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
   // 同步视图到数据库
   const handleSyncView = async () => {
     if (!initialValues?.id) {
-      message.warning('请先保存报表视图');
+      message.warning({t('components:auto_text_e8afb7')});
       return;
     }
 
     try {
       setSyncing(true);
       await reportViewAPI.syncReportView(initialValues.id, { force_recreate: true });
-      message.success('视图同步成功');
+      message.success({t('components:auto_text_e8a786')});
       onSyncSuccess?.();
     } catch (error: any) {
       console.error('Failed to sync view:', error);
-      message.error(`同步失败: ${error.message}`);
+      message.error({t('components:auto__error_message__e5908c')});
     } finally {
       setSyncing(false);
     }
@@ -172,19 +172,19 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
         onFinish={handleSubmit}
       >
         {/* 基础信息 */}
-        <Card title="基础信息" style={{ marginBottom: 16 }}>
+        <Card title={t('components:auto_text_e59fba')} style={{ marginBottom: 16 }}>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="name"
-                label="报表名称"
+                label={t('components:auto_text_e68aa5')}
                 rules={[
-                  { required: true, message: '请输入报表名称' },
-                  { max: 255, message: '报表名称不能超过255个字符' },
+                  { required: true, message: {t('components:auto_text_e8afb7')} },
+                  { max: 255, message: {t('components:auto_255_e68aa5')} },
                 ]}
               >
                 <Input 
-                  placeholder="请输入报表名称"
+                  placeholder={t('components:auto_text_e8afb7')}
                   onChange={handleNameChange}
                 />
               </Form.Item>
@@ -192,17 +192,17 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
             <Col span={12}>
               <Form.Item
                 name="view_name"
-                label="视图名称"
+                label={t('components:auto_text_e8a786')}
                 rules={[
-                  { required: true, message: '请输入视图名称' },
-                  { max: 100, message: '视图名称不能超过100个字符' },
+                  { required: true, message: {t('components:auto_text_e8afb7')} },
+                  { max: 100, message: {t('components:auto_100_e8a786')} },
                   { 
                     pattern: /^[a-z][a-z0-9_]*$/,
-                    message: '视图名称只能包含小写字母、数字和下划线，且必须以字母开头'
+                    message: {t('components:auto____e8a786')}
                   },
                 ]}
               >
-                <Input placeholder="请输入视图名称（英文）" />
+                <Input placeholder={t('components:auto____e8afb7')} />
               </Form.Item>
             </Col>
           </Row>
@@ -211,34 +211,34 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
             <Col span={12}>
               <Form.Item
                 name="category"
-                label="报表分类"
+                label={t('components:auto_text_e68aa5')}
               >
-                <Select placeholder="请选择报表分类" allowClear>
-                  <Option value="工资报表">工资报表</Option>
-                  <Option value="考勤报表">考勤报表</Option>
-                  <Option value="人事报表">人事报表</Option>
-                  <Option value="统计报表">统计报表</Option>
+                <Select placeholder={t('components:auto_text_e8afb7')} allowClear>
+                  <Option value={t('components:auto_text_e5b7a5')}>工资报表</Option>
+                  <Option value={t('components:auto_text_e88083')}>考勤报表</Option>
+                  <Option value={t('components:auto_text_e4baba')}>人事报表</Option>
+                  <Option value={t('components:auto_text_e7bb9f')}>统计报表</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="schema_name"
-                label="数据库模式"
-                rules={[{ required: true, message: '请输入数据库模式' }]}
+                label={t('components:auto_text_e695b0')}
+                rules={[{ required: true, message: {t('components:auto_text_e8afb7')} }]}
               >
-                <Input placeholder="请输入数据库模式名称" />
+                <Input placeholder={t('components:auto_text_e8afb7')} />
               </Form.Item>
             </Col>
           </Row>
 
           <Form.Item
             name="description"
-            label="报表描述"
+            label={t('components:auto_text_e68aa5')}
           >
             <TextArea
               rows={3}
-              placeholder="请输入报表描述"
+              placeholder={t('components:auto_text_e8afb7')}
               maxLength={500}
               showCount
             />
@@ -248,19 +248,19 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
             <Col span={12}>
               <Form.Item
                 name="is_active"
-                label="是否启用"
+                label={t('components:auto_text_e698af')}
                 valuePropName="checked"
               >
-                <Switch checkedChildren="启用" unCheckedChildren="禁用" />
+                <Switch checkedChildren={t('components:auto_text_e590af')} unCheckedChildren={t('components:auto_text_e7a681')} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="is_public"
-                label="是否公开"
+                label={t('components:auto_text_e698af')}
                 valuePropName="checked"
               >
-                <Switch checkedChildren="公开" unCheckedChildren="私有" />
+                <Switch checkedChildren={t('components:auto_text_e585ac')} unCheckedChildren={t('components:auto_text_e7a781')} />
               </Form.Item>
             </Col>
           </Row>
@@ -268,7 +268,7 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
 
         {/* SQL编辑器 */}
         <Card 
-          title="SQL查询语句" 
+          title={t('components:auto_sql_53514c')} 
           style={{ marginBottom: 16 }}
           extra={
             mode === 'edit' && initialValues?.id && (
@@ -287,11 +287,11 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
           <Form.Item
             name="sql_query"
             rules={[
-              { required: true, message: '请输入SQL查询语句' },
+              { required: true, message: {t('components:auto_sql_e8afb7')} },
               {
                 validator: (_, value) => {
                   if (value && !sqlValidation?.is_valid) {
-                    return Promise.reject(new Error('SQL查询语句验证失败，请检查语法'));
+                    return Promise.reject(new Error({t('components:auto_sql__53514c')}));
                   }
                   return Promise.resolve();
                 },
@@ -321,7 +321,7 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
                   onClick={handleSubmit}
                   disabled={!sqlValidation?.is_valid}
                 >
-                  {mode === 'create' ? '创建报表' : '保存修改'}
+                  {mode === 'create' ? {t('components:auto_text_e5889b')} : {t('components:auto_text_e4bf9d')}}
                 </Button>
               </Space>
             </Col>

@@ -59,7 +59,7 @@ const generatePayrollRunTableColumns = (
 
   // 生成批次名称的函数
   const generateRunName = (run: PayrollRun): string => {
-    const periodName = run.payroll_period?.name || `周期ID: ${run.payroll_period_id}`;
+    const periodName = run.payroll_period?.name || {t('payroll:auto_id_run_payroll_period_id__e591a8')};
     const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
     return `${periodName} - ${runDate}`;
   };
@@ -386,20 +386,20 @@ const PayrollRunsPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的计算批次吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的计算批次',
+          buttonText: {t('payroll:auto_text_e689b9')},
+          confirmTitle: {t('payroll:auto_text_e7a1ae')},
+          confirmContent: {t('payroll:auto____e7a1ae')},
+          confirmOkText: {t('payroll:auto_text_e7a1ae')},
+          confirmCancelText: {t('payroll:auto_text_e58f96')},
+          successMessage: {t('payroll:auto_text_e689b9')},
+          errorMessage: {t('payroll:auto_text_e689b9')},
+          noSelectionMessage: {t('payroll:auto_text_e8afb7')},
         }}
         exportConfig={{
-          filenamePrefix: '薪资计算批次',
-          sheetName: '计算批次',
-          buttonText: '导出Excel',
-          successMessage: '薪资计算批次数据导出成功',
+          filenamePrefix: {t('payroll:auto_text_e896aa')},
+          sheetName: {t('payroll:auto_text_e8aea1')},
+          buttonText: {t('payroll:auto_excel_e5afbc')},
+          successMessage: {t('payroll:auto_text_e896aa')},
         }}
         lookupErrorMessageKey="runs_page.error_fetch_runs"
         lookupLoadingMessageKey="runs_page.loading_runs"

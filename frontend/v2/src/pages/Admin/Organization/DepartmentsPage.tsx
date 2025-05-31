@@ -62,11 +62,11 @@ interface DepartmentFormValues extends Omit<CreateDepartmentPayload, 'effective_
 
 // Helper function to convert flat list to tree structure for AntD Table/TreeSelect
 const buildTreeData = (departments: Department[], parentId: number | null = null, depth: number = 0): DepartmentPageItem[] => {
-  console.log(`构建树形数据 parentId=${parentId}, depth=${depth}, 数据条数=${departments.length}`);
+  console.log({t('admin:auto__parentid_parentid_depth_depth__departments_length__e69e84')});
   
   // 检查departments参数是否有效
   if (!Array.isArray(departments)) {
-    console.error('buildTreeData: departments不是数组', departments);
+    console.error({t('admin:auto_buildtreedata_departments_627569')}, departments);
     return [];
   }
   
@@ -77,7 +77,7 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
       const rootDept = departments.find(dept => dept.code === "GXQCZ");
       
       if (rootDept) {
-        console.log('找到指定根节点:', rootDept);
+        console.log({t('admin:auto___e689be')}, rootDept);
         const rootItem: DepartmentPageItem = {
           ...rootDept,
           key: rootDept.id,
@@ -93,7 +93,7 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
       const nullParentDepts = departments.filter(dept => dept.parent_department_id === null);
       
       if (nullParentDepts.length > 0) {
-        console.log('找到parent_department_id为null的记录:', nullParentDepts.length);
+        console.log({t('admin:auto_parent_department_idnull__e689be')}, nullParentDepts.length);
         return nullParentDepts.map(dept => ({
           ...dept,
           key: dept.id,
@@ -110,12 +110,12 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
         .map(dept => dept.parent_department_id)
         .filter(id => id !== null)));
       
-      console.log('所有被引用的父部门ID:', allRootParentIds);
+      console.log({t('admin:auto_id__e68980')}, allRootParentIds);
       
       // 如果找到了被引用但不在当前列表中的父部门ID
       if (allRootParentIds.length > 0) {
         // 方案1：将这些父部门ID的子部门直接作为顶层节点显示
-        console.log(`根部门ID=${rootId}不在返回数据中，将其子部门作为顶层节点显示`);
+        console.log({t('admin:auto_id_rootid___e6a0b9')});
         const topLevelDepts = departments.filter(dept => dept.parent_department_id === rootId);
         
         if (topLevelDepts.length > 0) {
@@ -144,12 +144,12 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
       
     // 如果是顶层调用，打印结果信息
     if (depth === 0) {
-      console.log(`顶层树形数据构建完成，节点数量: ${result.length}`);
+      console.log({t('admin:auto___result_length__e9a1b6')});
     }
     
     return result;
   } catch (error) {
-    console.error('构建树形数据出错:', error);
+    console.error({t('admin:auto___e69e84')}, error);
     return [];
   }
 };
@@ -191,11 +191,11 @@ const DepartmentsPage: React.FC = () => {
       });
       
       // 添加调试信息
-      console.log('API响应数据:', response);
-      console.log('返回数据条数:', response.data.length);
+      console.log({t('admin:auto_api__415049')}, response);
+      console.log({t('admin:auto___e8bf94')}, response.data.length);
       
       if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-        console.warn('API返回数据为空或格式不正确');
+        console.warn({t('admin:auto_api_415049')});
         setDepartmentsTree([]);
         setIsLoading(false);
         return;
@@ -203,7 +203,7 @@ const DepartmentsPage: React.FC = () => {
       
       // 确保数据格式正确
       const treeData = buildTreeData(response.data);
-      console.log('构建的树形数据:', treeData);
+      console.log({t('admin:auto___e69e84')}, treeData);
       
       setDepartmentsTree(treeData);
       
@@ -218,7 +218,7 @@ const DepartmentsPage: React.FC = () => {
         pagination: { ...prev.pagination, total: response.meta.total },
       }));
     } catch (error) {
-      console.error('获取部门列表失败，详细错误:', error);
+      console.error({t('admin:auto____e88eb7')}, error);
       message.error(t('message.fetch_list_error'));
     }
     setIsLoading(false);

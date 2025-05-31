@@ -70,7 +70,7 @@ const DashboardPage: React.FC = () => {
         const kpis = await dashboardService.getKpiData();
         setKpiData(kpis);
       } catch (error) {
-        console.error("获取KPI数据失败:", error);
+        console.error({t('common:auto_kpi__e88eb7')}, error);
       } finally {
         setLoadingKpis(false);
       }
@@ -91,7 +91,7 @@ const DashboardPage: React.FC = () => {
         setPayrollStatus(status);
         setRecentPayrollRuns(recent);
       } catch (error) {
-        console.error("获取图表数据失败:", error);
+        console.error({t('common:auto___e88eb7')}, error);
       } finally {
         setLoadingCharts(false);
       }
@@ -140,13 +140,13 @@ const DashboardPage: React.FC = () => {
     },
     tooltip: {
       formatter: (datum: any) => ({
-        name: '薪资总额',
-        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+        name: {t('common:auto_text_e896aa')},
+        value: {t('common:auto__datum_totalpayroll_10000_tofixed_2__247b28')},
       }),
     },
     yAxis: {
       label: {
-        formatter: (v: any) => `${(parseFloat(v) / 10000).toFixed(0)}万`,
+        formatter: (v: any) => {t('common:auto__parsefloat_v_10000_tofixed_0__247b28')},
       },
     },
   };
@@ -174,7 +174,7 @@ const DashboardPage: React.FC = () => {
     tooltip: {
       formatter: (datum: any) => ({
         name: datum.departmentName,
-        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+        value: {t('common:auto__datum_totalpayroll_10000_tofixed_2__247b28')},
       }),
     },
     interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
@@ -200,7 +200,7 @@ const DashboardPage: React.FC = () => {
     tooltip: {
       formatter: (datum: any) => ({
         name: datum.gradeName,
-        value: `${datum.count} 人 (${datum.percentage.toFixed(1)}%)`,
+        value: {t('common:auto__datum_count__datum_percentage_tofixed_1__247b64')},
       }),
     },
   };
@@ -208,53 +208,53 @@ const DashboardPage: React.FC = () => {
   // 最近薪资审核表格列配置
   const payrollRunColumns: ProColumns<RecentPayrollRun>[] = [
     {
-      title: '薪资周期',
+      title: {t('common:auto_text_e896aa')},
       dataIndex: 'periodName',
       key: 'periodName',
       ellipsis: true,
       valueType: 'text',
     },
     {
-      title: '状态',
+      title: {t('common:auto_text_e78ab6')},
       dataIndex: 'status',
       key: 'status',
       valueType: 'select',
       valueEnum: {
-        '已完成': { text: '已完成', status: 'Success' },
-        '进行中': { text: '进行中', status: 'Processing' },
-        '待审批': { text: '待审批', status: 'Warning' },
-        '已取消': { text: '已取消', status: 'Error' },
+        {t('common:auto_text_e5b7b2')}: { text: {t('common:auto_text_e5b7b2')}, status: 'Success' },
+        {t('common:auto_text_e8bf9b')}: { text: {t('common:auto_text_e8bf9b')}, status: 'Processing' },
+        {t('common:auto_text_e5be85')}: { text: {t('common:auto_text_e5be85')}, status: 'Warning' },
+        {t('common:auto_text_e5b7b2')}: { text: {t('common:auto_text_e5b7b2')}, status: 'Error' },
       },
       render: (_, record) => {
         const colorMap: Record<string, string> = {
-          '已完成': 'success',
-          '进行中': 'processing',
-          '待审批': 'warning',
-          '已取消': 'error',
+          {t('common:auto_text_e5b7b2')}: 'success',
+          {t('common:auto_text_e8bf9b')}: 'processing',
+          {t('common:auto_text_e5be85')}: 'warning',
+          {t('common:auto_text_e5b7b2')}: 'error',
         };
         return <Tag color={colorMap[record.status] || 'default'}>{record.status}</Tag>;
       },
     },
     {
-      title: '总金额',
+      title: {t('common:auto_text_e680bb')},
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       valueType: 'money',
-      render: (_, record) => `${(record.totalAmount / 10000).toFixed(2)}万`,
+      render: (_, record) => {t('common:auto__record_totalamount_10000_tofixed_2__247b28')},
     },
     {
-      title: '员工数',
+      title: {t('common:auto_text_e59198')},
       dataIndex: 'employeeCount',
       key: 'employeeCount',
       valueType: 'digit',
-      render: (_, record) => `${record.employeeCount}人`,
+      render: (_, record) => {t('common:auto__record_employeecount__247b72')},
     },
   ];
 
   if (loadingKpis || !kpiData) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
-        <Spin size="large" tip="加载仪表盘数据中...">
+        <Spin size="large" tip={t('common:auto___e58aa0')}>
           <div style={{ width: '100px', height: '100px' }} /> 
         </Spin>
       </div>
@@ -273,7 +273,7 @@ const DashboardPage: React.FC = () => {
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="员工总数"
+                title={t('common:auto_text_e59198')}
                 value={kpiData.totalEmployees} 
                 valueStyle={{ color: employeeChange >= 0 ? '#3f8600' : '#cf1322' }}
                 formatter={() => ( 
@@ -294,7 +294,7 @@ const DashboardPage: React.FC = () => {
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="本月薪资总额"
+                title={t('common:auto_text_e69cac')}
                 value={kpiData.monthlyPayroll}
                 precision={2}
                 valueStyle={{ color: payrollChange >= 0 ? '#3f8600' : '#cf1322' }}
@@ -317,7 +317,7 @@ const DashboardPage: React.FC = () => {
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="平均薪资"
+                title={t('common:auto_text_e5b9b3')}
                 value={kpiData.averageSalary}
                 precision={0}
                 valueStyle={{ color: avgSalaryChange >= 0 ? '#3f8600' : '#cf1322' }}
@@ -340,7 +340,7 @@ const DashboardPage: React.FC = () => {
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="待办任务"
+                title={t('common:auto_text_e5be85')}
                 value={kpiData.pendingApprovals}
                 valueStyle={{ color: kpiData.pendingApprovals > 0 ? '#cf1322' : '#3f8600' }}
                 formatter={(value) => ( 
@@ -352,13 +352,13 @@ const DashboardPage: React.FC = () => {
               />
             </div>
             <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-              {kpiData.activePayrollRuns > 0 && `${kpiData.activePayrollRuns} 个进行中`}
+              {kpiData.activePayrollRuns > 0 && {t('common:auto__kpidata_activepayrollruns__247b6b')}}
             </div>
           </Card>
         </Col>
       </Row>
 
-      <Spin spinning={loadingCharts} tip="图表加载中...">
+      <Spin spinning={loadingCharts} tip={t('common:auto___e59bbe')}>
         {/* 薪资趋势图 */}
         <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
           <Col span={24}>
@@ -366,7 +366,7 @@ const DashboardPage: React.FC = () => {
               {(!loadingCharts && salaryTrend.length > 0) ? 
                 <Area {...salaryTrendConfig} /> : 
                 <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资趋势数据" />}
+                  {loadingCharts ? <Spin/> : <Empty description={t('common:auto_text_e69a82')} />}
                 </div>
               }
             </Card>
@@ -380,7 +380,7 @@ const DashboardPage: React.FC = () => {
               {(!loadingCharts && departmentSalary.length > 0) ? 
                 <Pie {...departmentSalaryConfig} /> : 
                 <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无部门薪资数据" />}
+                  {loadingCharts ? <Spin/> : <Empty description={t('common:auto_text_e69a82')} />}
                 </div>
               }
             </Card>
@@ -391,7 +391,7 @@ const DashboardPage: React.FC = () => {
               {(!loadingCharts && employeeGrades.length > 0) ? 
                 <Column {...employeeGradeConfig} /> : 
                 <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无员工职级数据" />}
+                  {loadingCharts ? <Spin/> : <Empty description={t('common:auto_text_e69a82')} />}
                 </div>
               }
             </Card>
@@ -414,7 +414,7 @@ const DashboardPage: React.FC = () => {
                   showToolbar={false}
                 /> : 
                 <div style={{height: '200px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资审核记录" />}
+                  {loadingCharts ? <Spin/> : <Empty description={t('common:auto_text_e69a82')} />}
                 </div>
               }
             </Card>

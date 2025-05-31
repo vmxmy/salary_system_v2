@@ -74,7 +74,7 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
         <Col xs={24} sm={12} md={8} lg={6}>
           <StatisticCard
             statistic={{
-              title: '在编人员总数',
+              title: {t('dashboard:auto_text_e59ca8')},
               value: data.totalEmployees,
               icon: <UserOutlined style={{ color: '#1890ff' }} />,
               description: (
@@ -92,10 +92,10 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
         <Col xs={24} sm={12} md={8} lg={6}>
           <StatisticCard
             statistic={{
-              title: `${timeDimension === 'monthly' ? '月度' : timeDimension === 'quarterly' ? '季度' : '年度'}薪酬支出`,
+              title: `${timeDimension === 'monthly' ? {t('dashboard:auto_text_e69c88')} : timeDimension === 'quarterly' ? {t('dashboard:auto_text_e5ada3')} : {t('dashboard:auto_text_e5b9b4')}}薪酬支出`,
               value: data.monthlyPayroll,
               precision: 2,
-              suffix: '万元',
+              suffix: {t('dashboard:auto_text_e4b887')},
               valueStyle: { color: '#52c41a' },
               icon: <MoneyCollectOutlined style={{ color: '#52c41a' }} />,
               description: (
@@ -114,10 +114,10 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
         <Col xs={24} sm={12} md={8} lg={6}>
           <StatisticCard
             statistic={{
-              title: '人均薪酬水平',
+              title: {t('dashboard:auto_text_e4baba')},
               value: data.averageSalary,
               precision: 0,
-              suffix: '元',
+              suffix: {t('dashboard:auto_text_e58583')},
               valueStyle: { color: '#722ed1' },
               icon: <DollarCircleOutlined style={{ color: '#722ed1' }} />,
               description: (
@@ -135,14 +135,14 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
         <Col xs={24} sm={12} md={8} lg={6}>
           <StatisticCard
             statistic={{
-              title: '预算执行率',
+              title: {t('dashboard:auto_text_e9a284')},
               value: budgetExecution,
               precision: 1,
               suffix: '%',
               valueStyle: { color: budgetExecution > 90 ? '#ff4d4f' : budgetExecution > 75 ? '#fa8c16' : '#52c41a' },
               icon: <PercentageOutlined style={{ color: '#fa8c16' }} />,
               description: (
-                <Tooltip title="年度薪酬预算的执行进度，需控制在合理范围内">
+                <Tooltip title={t('dashboard:auto___e5b9b4')}>
                   <Text type="secondary">年度预算进度</Text>
                 </Tooltip>
               ),
@@ -155,7 +155,7 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
       {/* 政府部门特色指标 */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} sm={12} md={8}>
-          <Card size="small" title="💰 财政资金管理">
+          <Card size="small" title={t('dashboard:auto___f09f92')}>
             <Space direction="vertical" style={{ width: '100%' }}>
               <div>
                 <Text strong>财政拨款到位率</Text>
@@ -178,7 +178,7 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
         </Col>
 
         <Col xs={24} sm={12} md={8}>
-          <Card size="small" title="👥 编制管理">
+          <Card size="small" title={t('dashboard:auto___f09f91')}>
             <Space direction="vertical" style={{ width: '100%' }}>
               <div>
                 <Text strong>编制使用率</Text>
@@ -197,11 +197,11 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
         </Col>
 
         <Col xs={24} sm={12} md={8}>
-          <Card size="small" title="📋 审批监控">
+          <Card size="small" title={t('dashboard:auto___f09f93')}>
             <Row gutter={16}>
               <Col span={12}>
                 <Statistic
-                  title="待审批事项"
+                  title={t('dashboard:auto_text_e5be85')}
                   value={data.pendingApprovals}
                   valueStyle={{ 
                     color: data.pendingApprovals > 0 ? '#ff4d4f' : '#52c41a',
@@ -212,7 +212,7 @@ const KpiOverviewSection: React.FC<KpiOverviewSectionProps> = ({ data, timeDimen
               </Col>
               <Col span={12}>
                 <Statistic
-                  title="工资发放批次"
+                  title={t('dashboard:auto_text_e5b7a5')}
                   value={data.activePayrollRuns}
                   valueStyle={{ 
                     color: data.activePayrollRuns > 0 ? '#1890ff' : '#999',

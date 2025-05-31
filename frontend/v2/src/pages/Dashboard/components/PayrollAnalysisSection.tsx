@@ -42,13 +42,13 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     },
     tooltip: {
       formatter: (datum: any) => ({
-        name: '财政薪酬支出',
-        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+        name: {t('dashboard:auto_text_e8b4a2')},
+        value: {t('dashboard:auto__datum_totalpayroll_10000_tofixed_2__247b28')},
       }),
     },
     yAxis: {
       label: {
-        formatter: (v: any) => `${(parseFloat(v) / 10000).toFixed(0)}万`,
+        formatter: (v: any) => {t('dashboard:auto__parsefloat_v_10000_tofixed_0__247b28')},
       },
     },
     xAxis: {
@@ -68,7 +68,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
           lineDash: [4, 4],
         },
         text: {
-          content: '预算基准线',
+          content: {t('dashboard:auto_text_e9a284')},
           position: 'start',
           style: {
             fill: '#ff4d4f',
@@ -82,7 +82,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
   const departmentSalaryConfig = {
     data: departmentSalary.map(item => ({
       ...item,
-      departmentName: item.departmentName.replace('部门', '').replace('科', '科室').replace('处', '处室')
+      departmentName: item.departmentName.replace({t('dashboard:auto_text_e983a8')}, '').replace({t('dashboard:auto_text_e7a791')}, {t('dashboard:auto_text_e7a791')}).replace({t('dashboard:auto_text_e5a484')}, {t('dashboard:auto_text_e5a484')})
     })),
     angleField: 'totalPayroll',
     colorField: 'departmentName',
@@ -105,7 +105,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     tooltip: {
       formatter: (datum: any) => ({
         name: datum.departmentName,
-        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+        value: {t('dashboard:auto__datum_totalpayroll_10000_tofixed_2__247b28')},
       }),
     },
     interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
@@ -116,7 +116,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         },
-        content: '财政支出',
+        content: {t('dashboard:auto_text_e8b4a2')},
       },
       content: {
         style: {
@@ -124,7 +124,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         },
-        content: `${(departmentSalary.reduce((sum, item) => sum + item.totalPayroll, 0) / 10000).toFixed(1)}万`,
+        content: {t('dashboard:auto__departmentsalary_reduce_sum_item_sum_item_totalpayroll_0_10000_tofixed_1__247b28')},
       },
     },
   };
@@ -134,10 +134,10 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     data: employeeGrades.map(item => ({
       ...item,
       gradeName: item.gradeName
-        .replace('高级', '正高级')
-        .replace('中级', '副高级')
-        .replace('初级', '中级')
-        .replace('员工', '科员')
+        .replace({t('dashboard:auto_text_e9ab98')}, {t('dashboard:auto_text_e6ada3')})
+        .replace({t('dashboard:auto_text_e4b8ad')}, {t('dashboard:auto_text_e589af')})
+        .replace({t('dashboard:auto_text_e5889d')}, {t('dashboard:auto_text_e4b8ad')})
+        .replace({t('dashboard:auto_text_e59198')}, {t('dashboard:auto_text_e7a791')})
     })),
     xField: 'gradeName',
     yField: 'count',
@@ -156,19 +156,19 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     color: ({ gradeName }: any) => {
       // 政府职级配色方案
       const gradeColors = {
-        '正高级': '#722ed1', // 紫色 - 最高级
-        '副高级': '#1890ff', // 蓝色 - 高级
-        '中级': '#52c41a',   // 绿色 - 中级
-        '科员': '#faad14',   // 橙色 - 基础级
-        '办事员': '#f5222d', // 红色 - 初级
-        '其他': '#13c2c2'    // 青色 - 其他
+        {t('dashboard:auto_text_e6ada3')}: '#722ed1', // 紫色 - 最高级
+        {t('dashboard:auto_text_e589af')}: '#1890ff', // 蓝色 - 高级
+        {t('dashboard:auto_text_e4b8ad')}: '#52c41a',   // 绿色 - 中级
+        {t('dashboard:auto_text_e7a791')}: '#faad14',   // 橙色 - 基础级
+        {t('dashboard:auto_text_e58a9e')}: '#f5222d', // 红色 - 初级
+        {t('dashboard:auto_text_e585b6')}: '#13c2c2'    // 青色 - 其他
       };
       return gradeColors[gradeName as keyof typeof gradeColors] || '#999999';
     },
     tooltip: {
       formatter: (datum: any) => ({
-        name: `${datum.gradeName}职级`,
-        value: `${datum.count} 人 (${datum.percentage?.toFixed(1) || 0}%)`,
+        name: {t('dashboard:auto__datum_gradename__247b64')},
+        value: {t('dashboard:auto__datum_count__datum_percentage_tofixed_1_0__247b64')},
       }),
     },
     xAxis: {
@@ -180,19 +180,19 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     },
     yAxis: {
       label: {
-        formatter: (v: any) => `${v}人`,
+        formatter: (v: any) => {t('dashboard:auto__v__247b76')},
       },
     },
   };
 
   // 津贴补贴分析数据（模拟）
   const allowanceData = [
-    { type: '岗位津贴', amount: 180000, percentage: 35.2 },
-    { type: '地区补贴', amount: 120000, percentage: 23.5 },
-    { type: '交通补贴', amount: 80000, percentage: 15.7 },
-    { type: '通讯补贴', amount: 60000, percentage: 11.8 },
-    { type: '加班补贴', amount: 45000, percentage: 8.8 },
-    { type: '其他补贴', amount: 25000, percentage: 4.9 },
+    { type: {t('dashboard:auto_text_e5b297')}, amount: 180000, percentage: 35.2 },
+    { type: {t('dashboard:auto_text_e59cb0')}, amount: 120000, percentage: 23.5 },
+    { type: {t('dashboard:auto_text_e4baa4')}, amount: 80000, percentage: 15.7 },
+    { type: {t('dashboard:auto_text_e9809a')}, amount: 60000, percentage: 11.8 },
+    { type: {t('dashboard:auto_text_e58aa0')}, amount: 45000, percentage: 8.8 },
+    { type: {t('dashboard:auto_text_e585b6')}, amount: 25000, percentage: 4.9 },
   ];
 
   const allowanceConfig = {
@@ -216,7 +216,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     tooltip: {
       formatter: (datum: any) => ({
         name: datum.type,
-        value: `${(datum.amount / 10000).toFixed(2)} 万元 (${datum.percentage}%)`,
+        value: {t('dashboard:auto__datum_amount_10000_tofixed_2__datum_percentage__247b28')},
       }),
     },
     xAxis: {
@@ -228,7 +228,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
     },
     yAxis: {
       label: {
-        formatter: (v: any) => `${(parseFloat(v) / 10000).toFixed(0)}万`,
+        formatter: (v: any) => {t('dashboard:auto__parsefloat_v_10000_tofixed_0__247b28')},
       },
     },
   };
@@ -244,7 +244,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
                 <LineChartOutlined style={{ color: '#1890ff' }} />
                 <span>📈 财政薪酬支出趋势</span>
                 <span style={{ fontSize: '12px', color: '#999', fontWeight: 'normal' }}>
-                  (近6个{timeDimension === 'monthly' ? '月' : timeDimension === 'quarterly' ? '季度' : '年'})
+                  (近6个{timeDimension === 'monthly' ? {t('dashboard:auto_text_e69c88')} : timeDimension === 'quarterly' ? {t('dashboard:auto_text_e5ada3')} : {t('dashboard:auto_text_e5b9b4')}})
                 </span>
               </div>
             }
@@ -258,7 +258,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
               <Area {...salaryTrendConfig} />
             ) : (
               <div style={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Empty description="暂无财政薪酬支出数据" />
+                <Empty description={t('dashboard:auto_text_e69a82')} />
               </div>
             )}
           </Card>
@@ -286,7 +286,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
               <Pie {...departmentSalaryConfig} />
             ) : (
               <div style={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Empty description="暂无单位薪酬数据" />
+                <Empty description={t('dashboard:auto_text_e69a82')} />
               </div>
             )}
           </Card>
@@ -311,7 +311,7 @@ const PayrollAnalysisSection: React.FC<PayrollAnalysisSectionProps> = ({
               <Column {...employeeGradeConfig} />
             ) : (
               <div style={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Empty description="暂无职级分布数据" />
+                <Empty description={t('dashboard:auto_text_e69a82')} />
               </div>
             )}
           </Card>

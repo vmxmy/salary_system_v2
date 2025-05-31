@@ -103,7 +103,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   useEffect(() => {
     if (visible) {
       payrollConfig.fetchComponentDefinitions().then(() => {
-        console.log('加载到的薪资字段定义 (payrollConfig.componentDefinitions):', JSON.stringify(payrollConfig.componentDefinitions, null, 2));
+        console.log({t('payroll:auto__payrollconfig_componentdefinitions__e58aa0')}, JSON.stringify(payrollConfig.componentDefinitions, null, 2));
       });
     }
   }, [visible, payrollConfig.fetchComponentDefinitions]); // 依赖 fetchComponentDefinitions 以确保其稳定
@@ -135,7 +135,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   // 当模态框可见时，打印可用的薪资字段
   useEffect(() => {
     if (visible && payrollConfig.componentDefinitions.length > 0) {
-      console.log('系统中可用的所有薪资字段:', 
+      console.log({t('payroll:auto___e7b3bb')}, 
         payrollConfig.componentDefinitions.map(comp => ({
           code: comp.code,
           name: comp.name,
@@ -143,11 +143,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         }))
       );
       
-      console.log('可用的收入项组件:', 
+      console.log({t('payroll:auto___e58faf')}, 
         earningComponents.map(comp => comp.code)
       );
       
-      console.log('可用的扣缴项组件:', 
+      console.log({t('payroll:auto___e58faf')}, 
         deductionComponents.map(comp => comp.code)
       );
     }
@@ -158,26 +158,26 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     if (!employee) return '';
     // 尝试不同可能的字段名称
     return employee.department_name || employee.departmentName || 
-           (employee.department_id ? `部门ID: ${employee.department_id}` : '');
+           (employee.department_id ? {t('payroll:auto_id_employee_department_id__e983a8')} : '');
   };
 
   // 获取人员身份名称
   const getPersonnelCategoryName = (employee: any) => {
     if (!employee) return '';
     return employee.personnel_category_name || 
-           (employee.personnel_category_id ? `身份ID: ${employee.personnel_category_id}` : '');
+           (employee.personnel_category_id ? {t('payroll:auto_id_employee_personnel_category_id__e8baab')} : '');
   };
 
   // 获取实际任职名称
   const getActualPositionName = (employee: any) => {
     if (!employee) return '';
     return employee.actual_position_name || 
-           (employee.actual_position_id ? `职位ID: ${employee.actual_position_id}` : '');
+           (employee.actual_position_id ? {t('payroll:auto_id_employee_actual_position_id__e8818c')} : '');
   };
 
   // 处理员工选择
   const handleEmployeeSelect = (employeeId: number, employee: Employee) => {
-    console.log('选中的员工详细信息:', JSON.stringify(employee, null, 2));
+    console.log({t('payroll:auto___e98089')}, JSON.stringify(employee, null, 2));
     
     // 设置表单的员工ID和姓名
     form.setFieldsValue({
@@ -198,7 +198,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     setLoading(true);
     try {
       const employee = await employeeService.getEmployeeById(String(employeeId));
-      console.log('从API获取的员工详情:', JSON.stringify(employee, null, 2));
+      console.log({t('payroll:auto_api__e4bb8e')}, JSON.stringify(employee, null, 2));
       setEmployeeDetails(employee);
       
       // 设置表单中的员工姓名和部门
@@ -206,7 +206,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         employee_name: employee ? `${employee.last_name || ''}${employee.first_name || ''}` : '',
       });
     } catch (error) {
-      console.error('获取员工详情失败:', error);
+      console.error({t('payroll:auto___e88eb7')}, error);
       message.error(t('payroll:entry_form.error_fetch_employee'));
     } finally {
       setLoading(false);
@@ -219,10 +219,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       // payrollConfig.fetchComponentDefinitions(); // 已移到上面的useEffect
       
       if (entry) {
-        console.log('后台返回的工资明细 (entry):', JSON.stringify(entry, null, 2));
-        console.log('后台返回的扣缴项数据类型:', typeof entry.deductions_details, 
-                    '是否数组:', Array.isArray(entry.deductions_details), 
-                    '数据值:', JSON.stringify(entry.deductions_details, null, 2));
+        console.log({t('payroll:auto__entry__e5908e')}, JSON.stringify(entry, null, 2));
+        console.log({t('payroll:auto___e5908e')}, typeof entry.deductions_details, 
+                    {t('payroll:auto___e698af')}, Array.isArray(entry.deductions_details), 
+                    {t('payroll:auto___e695b0')}, JSON.stringify(entry.deductions_details, null, 2));
         
         // 编辑现有工资明细
         form.setFieldsValue({
@@ -243,7 +243,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             }));
           
           if (earningsArray.length < Object.keys(entry.earnings_details).length) {
-            console.warn('有无效的收入项被过滤掉：', 
+            console.warn({t('payroll:auto___e69c89')}, 
               Object.keys(entry.earnings_details).filter(key => 
                 !payrollConfig.componentDefinitions.some(c => c.code === key && c.type === 'EARNING')
               )
@@ -258,7 +258,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           );
           
           if (validItems.length < entry.earnings_details.length) {
-            console.warn('有无效的收入项被过滤掉：', 
+            console.warn({t('payroll:auto___e69c89')}, 
               entry.earnings_details
                 .filter(item => !payrollConfig.componentDefinitions.some(c => c.code === item.name && c.type === 'EARNING'))
                 .map(item => item.name)
@@ -271,10 +271,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         }
         
         // 处理扣除项 - 改进的处理逻辑
-        console.log('组件定义列表:', payrollConfig.componentDefinitions);
+        console.log({t('payroll:auto___e7bb84')}, payrollConfig.componentDefinitions);
         
         if (entry.deductions_details) {
-          console.log('处理前的扣缴项数据:', entry.deductions_details);
+          console.log({t('payroll:auto___e5a484')}, entry.deductions_details);
           
           // 统一处理对象格式和数组格式
           let deductionsArray: Array<PayrollItemDetail> = [];
@@ -283,11 +283,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             if (Array.isArray(entry.deductions_details)) {
               // 已经是数组，直接使用
               deductionsArray = [...entry.deductions_details];
-              console.log('扣缴项是数组格式，直接使用:', deductionsArray);
+              console.log({t('payroll:auto____e689a3')}, deductionsArray);
             } else {
               // 对象格式，转换为数组
               deductionsArray = Object.entries(entry.deductions_details).map(([key, value]) => {
-                console.log(`处理扣缴项 ${key}:`, value);
+                console.log({t('payroll:auto__key__e5a484')}, value);
                 // 安全处理value
                 const amount = typeof value === 'number' 
                   ? value 
@@ -301,7 +301,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                   description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
                 };
               });
-              console.log('扣缴项是对象格式，转换为数组:', deductionsArray);
+              console.log({t('payroll:auto____e689a3')}, deductionsArray);
             }
           }
           
@@ -313,7 +313,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           );
           
           if (validDeductions.length < deductionsArray.length) {
-            console.warn('有无效的扣缴项被过滤掉：', 
+            console.warn({t('payroll:auto___e69c89')}, 
               deductionsArray
                 .filter(item => !payrollConfig.componentDefinitions.some(c => 
                   c.code === item.name && (c.type === 'DEDUCTION' || c.type === 'STATUTORY')
@@ -322,10 +322,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             );
           }
           
-          console.log('处理后的有效扣缴项:', validDeductions);
+          console.log({t('payroll:auto___e5a484')}, validDeductions);
           setDeductions(validDeductions);
         } else {
-          console.log('未找到扣缴项数据，使用空数组');
+          console.log({t('payroll:auto___e69caa')});
           setDeductions([]);
         }
         
@@ -380,7 +380,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             description: earningComponents[0].description || ''
           };
           setEarnings([defaultEarning]);
-          message.info(`已自动添加默认收入项: ${earningComponents[0].name}`);
+          message.info({t('payroll:auto__earningcomponents_0_name__e5b7b2')});
           // 由于状态更新是异步的，我们不能立即继续提交，直接返回
           return;
         }
@@ -433,16 +433,16 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       };
       
       // 添加日志记录即将提交的数据
-      console.log('提交到后端的数据 (原始):', JSON.stringify(submitData, null, 2));
+      console.log({t('payroll:auto____e68f90')}, JSON.stringify(submitData, null, 2));
       
       // 确认金额被正确转换为数字
-      console.log('总收入(Number类型检查):', 
+      console.log({t('payroll:auto__number__e680bb')}, 
         typeof totalEarningsCalc, totalEarningsCalc
       );
-      console.log('总扣缴(Number类型检查):', 
+      console.log({t('payroll:auto__number__e680bb')}, 
         typeof totalDeductionsCalc, totalDeductionsCalc
       );
-      console.log('净工资(Number类型检查):', 
+      console.log({t('payroll:auto__number__e58780')}, 
         typeof netPayCalc, netPayCalc
       );
 
@@ -465,26 +465,26 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         }
       });
 
-      console.log('准备提交的数据 (清理后):', JSON.stringify(cleanSubmitData, null, 2));
+      console.log({t('payroll:auto____e58786')}, JSON.stringify(cleanSubmitData, null, 2));
       
       setSubmitting(true);
       
       try {
         if (entry) {
           // 更新现有工资明细
-          console.log(`开始更新工资条目ID ${entry.id}...`);
+          console.log({t('payroll:auto_id_entry_id__e5bc80')});
           const result = await updatePayrollEntryDetails(entry.id, cleanSubmitData);
-          console.log('更新工资条目成功，后端返回数据:', JSON.stringify(result, null, 2));
+          console.log({t('payroll:auto____e69bb4')}, JSON.stringify(result, null, 2));
           
           if (result && result.data) {
             // 验证返回的数据中是否包含我们提交的更改
             const returnedData = result.data;
-            console.log('返回的earnings_details:', JSON.stringify(returnedData.earnings_details, null, 2));
-            console.log('返回的deductions_details:', JSON.stringify(returnedData.deductions_details, null, 2));
-            console.log('返回的总计金额:', 
-              `总收入: ${returnedData.total_earnings}, ` +
-              `总扣缴: ${returnedData.total_deductions}, ` +
-              `净工资: ${returnedData.net_pay}`
+            console.log({t('payroll:auto_earnings_details__e8bf94')}, JSON.stringify(returnedData.earnings_details, null, 2));
+            console.log({t('payroll:auto_deductions_details__e8bf94')}, JSON.stringify(returnedData.deductions_details, null, 2));
+            console.log({t('payroll:auto___e8bf94')}, 
+              {t('payroll:auto__returneddata_total_earnings__e680bb')} +
+              {t('payroll:auto__returneddata_total_deductions__e680bb')} +
+              {t('payroll:auto__returneddata_net_pay__e58780')}
             );
             
             message.success(`${t('payroll:entry_form.message.update_success')} - ID: ${returnedData.id}`);
@@ -499,12 +499,12 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         
         onSuccess();
       } catch (error: any) {
-        console.error('保存工资明细失败:', error);
+        console.error({t('payroll:auto___e4bf9d')}, error);
         
         // 输出更详细的错误信息
         if (error.response) {
-          console.error('错误状态码:', error.response.status);
-          console.error('错误详情:', error.response.data);
+          console.error({t('payroll:auto___e99499')}, error.response.status);
+          console.error({t('payroll:auto___e99499')}, error.response.data);
           
           // 显示更有用的错误信息
           if (error.response.data && error.response.data.detail) {
@@ -519,7 +519,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         setSubmitting(false);
       }
     } catch (error) {
-      console.error('表单验证失败:', error);
+      console.error({t('payroll:auto___e8a1a8')}, error);
     }
   };
   
@@ -622,7 +622,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           form={form}
           layout="vertical"
           initialValues={{
-            status_lookup_value_id: PAYROLL_ENTRY_STATUS_OPTIONS[0]?.id || 301, // 默认为第一个状态或"待计算"状态
+            status_lookup_value_id: PAYROLL_ENTRY_STATUS_OPTIONS[0]?.id || 301, // 默认为第一个状态或{t('payroll:auto_text_e5be85')}状态
           }}
         >
           {/* 员工信息区域 */}

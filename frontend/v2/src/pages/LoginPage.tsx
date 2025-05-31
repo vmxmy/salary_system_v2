@@ -98,7 +98,7 @@ const LoginPage: React.FC = () => {
               <Form.Item>
                 <Alert 
                   message={t('auth:error.login_failed')} 
-                  description={loginError.includes('服务器错误') ? (
+                  description={loginError.includes({t('common:auto_text_e69c8d')}) ? (
                     <>
                       <div>{loginError}</div>
                       <div style={{ marginTop: 8 }}>

@@ -87,7 +87,7 @@ const EmployeeBulkImportPage: React.FC = () => {
         // 切换到JSON标签页
         setActiveTab('json');
         // 显示成功消息
-        message.success(`成功从表格转换了 ${jsonData.length} 条员工记录`);
+        message.success({t('hr:auto__jsondata_length__e68890')});
       }
     };
 
@@ -272,7 +272,7 @@ const EmployeeBulkImportPage: React.FC = () => {
       });
 
       // 添加详细日志以便调试
-      console.log("[BULK IMPORT DEBUG] 原始提交数据中的人员身份和实际任职字段:", 
+      console.log({t('hr:auto__bulk_import_debug___5b4255')}, 
         validRecords.map(r => ({ 
           id_number: r.id_number, 
           personnel_category_name: r.personnel_category_name, 
@@ -306,7 +306,7 @@ const EmployeeBulkImportPage: React.FC = () => {
           failed_records = []
         } = response as any;
 
-        console.log("[BULK IMPORT DEBUG] 解析API响应:", {
+        console.log({t('hr:auto__bulk_import_debug_api__5b4255')}, {
           success_count,
           failed_count,
           total_count,
@@ -355,15 +355,15 @@ const EmployeeBulkImportPage: React.FC = () => {
               // 如果后端返回的数据中这些字段为空，使用原始提交的数据
               if (!enhancedEmp.personnel_category_name) {
                 enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
+                console.log({t('hr:auto__bulk_import_debug__enhancedemp_personnel_category_name__5b4255')});
               }
               
               if (!enhancedEmp.position_name) {
                 enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
+                console.log({t('hr:auto__bulk_import_debug__enhancedemp_position_name__5b4255')});
               }
             } else {
-              console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
+              console.log({t('hr:auto__bulk_import_debug__id_emp_id_number__5b4255')});
             }
             
             return enhancedEmp;
@@ -411,15 +411,15 @@ const EmployeeBulkImportPage: React.FC = () => {
               // 如果后端返回的数据中这些字段为空，使用原始提交的数据
               if (!enhancedEmp.personnel_category_name) {
                 enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
+                console.log({t('hr:auto__bulk_import_debug__enhancedemp_personnel_category_name__5b4255')});
               }
               
               if (!enhancedEmp.position_name) {
                 enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
+                console.log({t('hr:auto__bulk_import_debug__enhancedemp_position_name__5b4255')});
               }
             } else {
-              console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
+              console.log({t('hr:auto__bulk_import_debug__id_emp_id_number__5b4255')});
             }
             
             return enhancedEmp;

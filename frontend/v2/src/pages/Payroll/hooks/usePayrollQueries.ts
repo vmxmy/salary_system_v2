@@ -146,7 +146,7 @@ export function useCreatePayrollEntry() {
   return useMutation({
     mutationFn: (data: CreatePayrollEntryPayload) => createPayrollEntry(data),
     onSuccess: (data, variables) => {
-      message.success('薪资记录创建成功');
+      message.success({t('payroll:auto_text_e896aa')});
       
       // 使相关查询失效
       queryClient.invalidateQueries({ 
@@ -161,8 +161,8 @@ export function useCreatePayrollEntry() {
       }
     },
     onError: (error: any) => {
-      console.error('创建薪资记录失败:', error);
-      message.error(`创建失败: ${error.message || '未知错误'}`);
+      console.error({t('payroll:auto___e5889b')}, error);
+      message.error(`创建失败: ${error.message || {t('payroll:auto_text_e69caa')}}`);
     },
   });
 }
@@ -177,7 +177,7 @@ export function useUpdatePayrollEntry() {
     mutationFn: ({ entryId, data }: { entryId: number; data: PayrollEntryPatch }) => 
       updatePayrollEntryDetails(entryId, data),
     onSuccess: () => {
-      message.success('薪资记录更新成功');
+      message.success({t('payroll:auto_text_e896aa')});
       
       // 使相关查询失效
       queryClient.invalidateQueries({ 
@@ -185,8 +185,8 @@ export function useUpdatePayrollEntry() {
       });
     },
     onError: (error: any) => {
-      console.error('更新薪资记录失败:', error);
-      message.error(`更新失败: ${error.message || '未知错误'}`);
+      console.error({t('payroll:auto___e69bb4')}, error);
+      message.error(`更新失败: ${error.message || {t('payroll:auto_text_e69caa')}}`);
     },
   });
 }
@@ -200,7 +200,7 @@ export function useDeletePayrollEntry() {
   return useMutation({
     mutationFn: (entryId: number) => deletePayrollEntry(entryId),
     onSuccess: () => {
-      message.success('薪资记录删除成功');
+      message.success({t('payroll:auto_text_e896aa')});
       
       // 使相关查询失效
       queryClient.invalidateQueries({ 
@@ -208,8 +208,8 @@ export function useDeletePayrollEntry() {
       });
     },
     onError: (error: any) => {
-      console.error('删除薪资记录失败:', error);
-      message.error(`删除失败: ${error.message || '未知错误'}`);
+      console.error({t('payroll:auto___e588a0')}, error);
+      message.error(`删除失败: ${error.message || {t('payroll:auto_text_e69caa')}}`);
     },
   });
 } 

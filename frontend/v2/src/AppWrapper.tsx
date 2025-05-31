@@ -96,7 +96,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
           }, 100);
           
         } catch (error) {
-          console.error('批量加载 HR lookups 失败:', error);
+          console.error({t('common:auto__hr_lookups___e689b9')}, error);
         }
       };
       

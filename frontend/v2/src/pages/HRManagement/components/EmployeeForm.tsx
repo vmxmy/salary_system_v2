@@ -601,8 +601,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 {contractTypeOptions.map(ct => <Option key={ct.value as React.Key} value={Number(ct.value)}>{ct.label}</Option>)}
               </Select>
             </Form.Item>
-            <Form.Item name="job_position_level_lookup_value_id" label="职务级别">
-              <Select placeholder="请选择职务级别" loading={loadingLookups} allowClear>
+            <Form.Item name="job_position_level_lookup_value_id" label={t('hr:auto_text_e8818c')}>
+              <Select placeholder={t('hr:auto_text_e8afb7')} loading={loadingLookups} allowClear>
                 {jobPositionLevelOptions.map(jpl => <Option key={jpl.value as React.Key} value={Number(jpl.value)}>{jpl.label}</Option>)}
               </Select>
             </Form.Item>

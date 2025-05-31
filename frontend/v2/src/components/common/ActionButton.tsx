@@ -61,19 +61,19 @@ const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
     switch (actionType) {
       case 'edit':
         icon = <EditOutlined />;
-        defaultTooltip = '编辑';
+        defaultTooltip = {t('components:auto_text_e7bc96')};
         break;
       case 'delete':
         icon = <DeleteOutlined />;
-        defaultTooltip = '删除';
+        defaultTooltip = {t('components:auto_text_e588a0')};
         break;
       case 'add':
         icon = <PlusOutlined />;
-        defaultTooltip = '添加';
+        defaultTooltip = {t('components:auto_text_e6b7bb')};
         break;
       case 'view':
         icon = <EyeOutlined />;
-        defaultTooltip = '查看';
+        defaultTooltip = {t('components:auto_text_e69fa5')};
         break;
       default:
         break;

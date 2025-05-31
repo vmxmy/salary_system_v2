@@ -213,7 +213,7 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
       updateLocale(lng);
       // Update dayjs locale as well (moved from i18n.ts for better sync with React lifecycle)
       if (lng === 'zh-CN') {
-        dayjs.locale('zh-cn'); // 使用小写的 'zh-cn'，这是 dayjs 的命名
+        dayjs.locale('zh-cn{t('common:auto____293b20')}zh-cn'，这是 dayjs 的命名
       } else if (lng === 'en') {
         dayjs.locale('en');
       } else {

@@ -57,7 +57,7 @@ const generateEmployeeTableColumnsConfig = (
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
           <Input
-            placeholder="搜索姓名"
+            placeholder={t('hr:auto_text_e6909c')}
             value={selectedKeys[0]}
             onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
             onPressEnter={() => confirm()}
@@ -236,7 +236,7 @@ const generateEmployeeTableColumnsConfig = (
       ...getColumnSearch('ref_salary_level_lookup_value_name'),
     },
     {
-      title: '职务级别',
+      title: {t('hr:auto_text_e8818c')},
       dataIndex: 'job_position_level_lookup_value_name',
       key: 'job_position_level',
       sorter: stringSorter<Employee>('job_position_level_lookup_value_name'),
@@ -501,8 +501,8 @@ const EmployeeListPage: React.FC = () => {
   const { ExportButton } = useTableExport(allEmployees, exportColumns as any, {
     filename: generateExportFilename(),
     sheetName: t('pageTitle:employee_list'),
-    buttonText: '导出Excel',
-    successMessage: '员工数据导出成功',
+    buttonText: {t('hr:auto_excel_e5afbc')},
+    successMessage: {t('hr:auto_text_e59198')},
   });
 
   // ProTable 内置了导出和列控制功能，无需使用传统工具函数
@@ -515,11 +515,11 @@ const EmployeeListPage: React.FC = () => {
     const hasBankNameColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_name');
     const hasBankAccountColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_account_number');
     
-    console.log('🏦 [EmployeeListPage] 列配置中包含银行名称字段:', hasBankNameColumn);
-    console.log('🏦 [EmployeeListPage] 列配置中包含银行账号字段:', hasBankAccountColumn);
+    console.log({t('hr:auto__employeelistpage___f09f8f')}, hasBankNameColumn);
+    console.log({t('hr:auto__employeelistpage___f09f8f')}, hasBankAccountColumn);
     
     // 输出所有列的key
-    console.log('📝 [EmployeeListPage] 所有列的keys:', tableColumnsConfigForControls.map(col => col.key));
+    console.log({t('hr:auto__employeelistpage_keys__f09f93')}, tableColumnsConfigForControls.map(col => col.key));
   }, [tableColumnsConfigForControls]);
 
   useEffect(() => {
@@ -566,11 +566,11 @@ const EmployeeListPage: React.FC = () => {
   // 构建批量删除配置
   const batchDeleteConfig = canDelete ? {
     enabled: true,
-    buttonText: '批量删除 ({count})',
-    confirmTitle: '确认批量删除',
-    confirmContent: '确定要删除选中的 {count} 个员工吗？此操作不可撤销。',
-    confirmOkText: '确定删除',
-    confirmCancelText: '取消',
+    buttonText: {t('hr:auto__count__e689b9')},
+    confirmTitle: {t('hr:auto_text_e7a1ae')},
+    confirmContent: {t('hr:auto__count____e7a1ae')},
+    confirmOkText: {t('hr:auto_text_e7a1ae')},
+    confirmCancelText: {t('hr:auto_text_e58f96')},
     onBatchDelete: async (selectedKeys: React.Key[]) => {
       // 逐个删除选中的员工
       const deletePromises = selectedKeys.map(id => 
@@ -580,9 +580,9 @@ const EmployeeListPage: React.FC = () => {
       setSelectedRowKeys([]); // 清空选择
       fetchAllEmployees(); // 重新获取数据
     },
-    successMessage: '成功删除 {count} 个员工',
-    errorMessage: '批量删除失败',
-    noSelectionMessage: '请选择要删除的员工',
+    successMessage: {t('hr:auto__count__e68890')},
+    errorMessage: {t('hr:auto_text_e689b9')},
+    noSelectionMessage: {t('hr:auto_text_e8afb7')},
   } : undefined;
 
   return (
@@ -605,7 +605,7 @@ const EmployeeListPage: React.FC = () => {
                 showSizeChanger: true,
                 showQuickJumper: true,
                 pageSizeOptions: ['10', '20', '50', '100', '200'],
-                showTotal: (total: number) => `共 ${total} 条`,
+                showTotal: (total: number) => {t('hr:auto__total__e585b1')},
               }}
               rowKey="id"
               bordered

@@ -29,14 +29,14 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
 
   const columns: ProColumns<ContractItem>[] = [
     {
-      title: t('employee:detail_page.contracts_tab.table.column_contract_number', '合同编号'),
+      title: t('employee:detail_page.contracts_tab.table.column_contract_number', {t('hr:auto_text_e59088')}),
       dataIndex: 'contract_number',
       key: 'contract_number',
       sorter: true,
       ellipsis: true,
     },
     {
-      title: t('employee:detail_page.contracts_tab.table.column_contract_type', '合同类型'),
+      title: t('employee:detail_page.contracts_tab.table.column_contract_type', {t('hr:auto_text_e59088')}),
       dataIndex: 'contract_type_lookup_value_id',
       key: 'contract_type_lookup_value_id',
       sorter: true,
@@ -47,7 +47,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       },
     },
     {
-      title: t('employee:detail_page.contracts_tab.table.column_start_date', '开始日期'),
+      title: t('employee:detail_page.contracts_tab.table.column_start_date', {t('hr:auto_text_e5bc80')}),
       dataIndex: 'start_date',
       key: 'start_date',
       sorter: true,
@@ -57,7 +57,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       },
     },
     {
-      title: t('employee:detail_page.contracts_tab.table.column_end_date', '结束日期'),
+      title: t('employee:detail_page.contracts_tab.table.column_end_date', {t('hr:auto_text_e7bb93')}),
       dataIndex: 'end_date',
       key: 'end_date',
       sorter: true,
@@ -67,7 +67,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       },
     },
     {
-      title: t('employee:detail_page.contracts_tab.table.column_status', '状态'),
+      title: t('employee:detail_page.contracts_tab.table.column_status', {t('hr:auto_text_e78ab6')}),
       dataIndex: 'contract_status_lookup_value_id',
       key: 'contract_status_lookup_value_id',
       sorter: true,
@@ -75,22 +75,22 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
         const id = record.contract_status_lookup_value_id;
         const statusText = lookupMaps?.contractStatusMap?.get(id) || String(id);
         let color = 'default';
-        if (statusText && statusText.includes(t('common:status.active','激活'))) color = 'success';
-        else if (statusText && statusText.includes(t('common:status.expired','已过期'))) color = 'warning';
-        else if (statusText && statusText.includes(t('common:status.terminated', '已终止'))) color = 'error';
+        if (statusText && statusText.includes(t('common:status.active',{t('hr:auto_text_e6bf80')}))) color = 'success';
+        else if (statusText && statusText.includes(t('common:status.expired',{t('hr:auto_text_e5b7b2')}))) color = 'warning';
+        else if (statusText && statusText.includes(t('common:status.terminated', {t('hr:auto_text_e5b7b2')}))) color = 'error';
         
         return <Tag color={color}>{statusText || naText}</Tag>;
       },
     },
     {
-      title: t('common:label.remarks', '备注'),
+      title: t('common:label.remarks', {t('hr:auto_text_e5a487')}),
       dataIndex: 'remarks',
       key: 'remarks',
       sorter: true,
       ellipsis: true,
     },
     {
-      title: t('common:label.actions', '操作'),
+      title: t('common:label.actions', {t('hr:auto_text_e6938d')}),
       key: 'actions',
       align: 'center',
       width: 120,
@@ -100,18 +100,18 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
             <TableActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
-              tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_edit_contract', '编辑合同')}
+              tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_edit_contract', {t('hr:auto_text_e7bc96')})}
             />
           )}
           {canDeleteContract && (
             <Popconfirm
-              title={t('employee:detail_page.contracts_tab.delete_confirm.title_popconfirm', '删除此合同？')}
-              description={t('common:modal.confirm_delete.content', '此操作无法撤销。')}
+              title={t('employee:detail_page.contracts_tab.delete_confirm.title_popconfirm', {t('hr:auto___e588a0')})}
+              description={t('common:modal.confirm_delete.content', {t('hr:auto___e6ada4')})}
               onConfirm={() => onDelete(record.id)}
-              okText={t('common:button.yes_delete', '是的，删除')}
-              cancelText={t('common:button.cancel', '取消')}
+              okText={t('common:button.yes_delete', {t('hr:auto___e698af')})}
+              cancelText={t('common:button.cancel', {t('hr:auto_text_e58f96')})}
             >
-              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_delete_contract', '删除合同')} />
+              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.contracts_tab.tooltip_delete_contract', {t('hr:auto_text_e588a0')})} />
             </Popconfirm>
           )}
         </Space>

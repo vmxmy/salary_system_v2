@@ -113,14 +113,14 @@
     "title_with_name_id": "{{name}} (Employee ID: {{employeeCode}})",
     "breadcrumb_loading": "Loading...",
     "alert": {
-        "message_info": "Information",
-        "description_employee_not_selected_or_found": "Employee not selected or found."
+      "message_info": "Information",
+      "description_employee_not_selected_or_found": "Employee not selected or found."
     },
     "page_container": {
-        "title_loading": "Loading...",
-        "title_error": "Error",
-        "title_employee_not_found": "Employee Not Found",
-        "alert_description_cannot_load_data": "Cannot load employee data."
+      "title_loading": "Loading...",
+      "title_error": "Error",
+      "title_employee_not_found": "Employee Not Found",
+      "alert_description_cannot_load_data": "Cannot load employee data."
     },
     "button_back_to_list": "Back to List",
     "message": {
@@ -132,10 +132,10 @@
     },
     "tooltip_edit_employee_info": "Edit Employee Information",
     "common_value": {
-        "dash": "-",
-        "na": "N/A",
-        "loading_basic_info": "Loading basic information...",
-        "zero_decimal": "0.00"
+      "dash": "-",
+      "na": "N/A",
+      "loading_basic_info": "Loading basic information...",
+      "zero_decimal": "0.00"
     },
     "contact_info": "Contact Information",
     "bank_info": "Banking Information",
@@ -168,7 +168,7 @@
       "label_education_level": "Education Level",
       "label_marital_status": "Marital Status",
       "label_political_status": "Political Status",
-      "label_residential_address": "Residential Address", 
+      "label_residential_address": "Residential Address",
       "label_notes": "Notes",
       "label_current_position_start_date": "Current Position Start Date (This Org)",
       "label_career_position_level_date": "Career Position Level Date (Career)",
@@ -246,23 +246,24 @@
   "form_upload": {
     "avatar_text": "Upload Avatar"
   },
-  "gender": { 
-      "male": "Male",
-      "female": "Female",
-      "other": "Other"
+  "gender": {
+    "male": "Male",
+    "female": "Female",
+    "other": "Other"
   },
-  "education_level": { 
-      "high_school": "High School",
-      "diploma": "Diploma",
-      "bachelor": "Bachelor's Degree",
-      "master": "Master's Degree",
-      "doctorate": "Doctorate",
-      "other": "Other Education"
+  "education_level": {
+    "high_school": "High School",
+    "diploma": "Diploma",
+    "bachelor": "Bachelor's Degree",
+    "master": "Master's Degree",
+    "doctorate": "Doctorate",
+    "other": "Other Education"
   },
   "employment_type": {
-      "full_time": "Full-time",
-      "part_time": "Part-time",
-      "contractor": "Contractor",
-      "intern": "Intern"
-  }
+    "full_time": "Full-time",
+    "part_time": "Part-time",
+    "contractor": "Contractor",
+    "intern": "Intern"
+  },
+  "auto__range_0_range_1___total__e7acac": "第 ${range[0]}-${range[1]} 条，共 ${total} 条"
 }

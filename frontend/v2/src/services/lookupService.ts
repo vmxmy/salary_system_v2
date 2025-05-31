@@ -12,7 +12,7 @@ import { employeeService } from './employeeService'; // 添加对employeeService
 interface LookupType {
   id: number;
   code: string; // This is the actual type_code we need for fetchLookupValuesByType
-  name: string; // This is the human-readable name we will use as a key, e.g., "性别"
+  name: string; // This is the human-readable name we will use as a key, e.g., {t('common:auto_text_e680a7')}
   description?: string;
 }
 
@@ -34,15 +34,15 @@ let fetchLookupTypesPromise: Promise<readonly LookupType[] | null> | null = null
 // Fetches all lookup types from the API and caches them
 export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType[] | null> => {
   if (cachedLookupTypes) {
-    // console.log('使用已缓存的lookup类型数据，共', cachedLookupTypes.length, '项');
+    // console.log({t('common:auto_lookup__e4bdbf')}, cachedLookupTypes.length, {t('common:auto_text_e9a1b9')});
     return cachedLookupTypes;
   }
   if (isFetchingLookupTypes && fetchLookupTypesPromise) {
-    // console.log('正在获取lookup类型数据，等待结果...');
+    // console.log({t('common:auto_lookup___e6ada3')});
     return fetchLookupTypesPromise;
   }
 
-  // console.log('🔍 开始请求所有lookup类型数据 GET /lookup/types');
+  // console.log({t('common:auto__lookup_get_lookup_types_f09f94')});
   isFetchingLookupTypes = true;
   fetchLookupTypesPromise = apiClient.get<LookupTypeListResponse>('/lookup/types', {
     params: {
@@ -51,7 +51,7 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
     }
   })
   .then(response => {
-    // console.log('✅ lookup类型API响应:', {
+    // console.log({t('common:auto__lookupapi__e29c85')}, {
     //   status: response.status,
     //   url: response.config.url,
     //   hasData: !!response.data,
@@ -61,11 +61,11 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
     
     // 详细输出响应数据的前几项
     if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-      // console.log('lookup类型数据预览:');
+      // console.log({t('common:auto_lookup__6c6f6f')});
       // response.data.data.slice(0, 3).forEach((item, index) => {
       //   console.log(`  ${index+1}. id=${item.id}, code="${item.code}", name="${item.name}"`);
       // });
-      // console.log(`  ... 共${response.data.data.length}项`);
+      // console.log({t('common:auto___response_data_data_length__20202e')});
     }
     
     // 调整判断条件以匹配新的 LookupTypeListResponse 结构
@@ -75,17 +75,17 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
       cachedLookupTypes = Object.freeze([...response.data.data]); // 从 response.data.data 获取数组
       return cachedLookupTypes;
     }
-    // console.error('❌ lookupService: 意外的API响应结构 /lookup/types:', response.data);
+    // console.error({t('common:auto__lookupservice_api_lookup_types__e29d8c')}, response.data);
     message.error('Failed to load lookup type definitions.');
     return null;
   })
   .catch(error => {
-    // console.error('❌ lookupService: 获取lookup类型失败:', error);
-    // console.error('错误详情:', error.message);
-    // console.error('请求配置:', error.config);
+    // console.error({t('common:auto__lookupservice_lookup__e29d8c')}, error);
+    // console.error({t('common:auto___e99499')}, error.message);
+    // console.error({t('common:auto___e8afb7')}, error.config);
     // if (error.response) {
-    //   console.error('响应数据:', error.response.data);
-    //   console.error('响应状态:', error.response.status);
+    //   console.error({t('common:auto___e5938d')}, error.response.data);
+    //   console.error({t('common:auto___e5938d')}, error.response.status);
     // }
     message.error('Error loading lookup type definitions.');
     return null;
@@ -118,7 +118,7 @@ const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | 
     
     // 如果仍未找到，检查是否有部分匹配
     if (!foundType) {
-      // console.log(`未找到不区分大小写的匹配，尝试部分匹配...`);
+      // console.log({t('common:auto____e69caa')});
       foundType = allTypes.find(type =>
         type.code?.includes(systemCodeKey) ||
         systemCodeKey.includes(type.code || '')
@@ -128,23 +128,23 @@ const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | 
     if (!foundType) {
       // 如果系统码是PAY_FREQUENCY，可以尝试其他变体名称
       if (systemCodeKey === 'PAY_FREQUENCY') {
-        // console.log(`特殊处理：尝试查找PAY_FREQUENCY的其他变体...`);
+        // console.log({t('common:auto__pay_frequency__e789b9')});
         foundType = allTypes.find(type =>
           type.code?.includes('PAY') ||
           type.code?.includes('FREQUENCY') ||
-          type.name?.includes('频率') ||
-          type.name?.includes('薪资') ||
-          type.name?.includes('工资')
+          type.name?.includes({t('common:auto_text_e9a291')}) ||
+          type.name?.includes({t('common:auto_text_e896aa')}) ||
+          type.name?.includes({t('common:auto_text_e5b7a5')})
         );
       }
       // 如果系统码是CONTRACT_STATUS，可以尝试其他变体名称
       else if (systemCodeKey === 'CONTRACT_STATUS') {
-        // console.log(`特殊处理：尝试查找CONTRACT_STATUS的其他变体...`);
+        // console.log({t('common:auto__contract_status__e789b9')});
         foundType = allTypes.find(type =>
           type.code?.includes('CONTRACT') ||
           type.code?.includes('STATUS') ||
-          type.name?.includes('合同') ||
-          type.name?.includes('状态')
+          type.name?.includes({t('common:auto_text_e59088')}) ||
+          type.name?.includes({t('common:auto_text_e78ab6')})
         );
       }
     }
@@ -262,12 +262,12 @@ interface LookupValueListResponse { // As per openapi.json
 // Mock data for lookups
 /*
 const mockPositions: PositionItem[] = [
-  { id: 'p1', name: '初级软件工程师', departmentId: 'frontend' },
-  { id: 'p2', name: '高级软件工程师', departmentId: 'frontend' },
-  { id: 'p3', name: '技术经理', departmentId: 'tech' },
-  { id: 'p4', name: '人力资源专员', departmentId: 'hr' },
-  { id: 'p5', name: '销售代表', departmentId: 'sales' },
-  { id: 'p6', name: '产品经理' }, // Global position
+  { id: 'p1', name: {t('common:auto_text_e5889d')}, departmentId: 'frontend' },
+  { id: 'p2', name: {t('common:auto_text_e9ab98')}, departmentId: 'frontend' },
+  { id: 'p3', name: {t('common:auto_text_e68a80')}, departmentId: 'tech' },
+  { id: 'p4', name: {t('common:auto_text_e4baba')}, departmentId: 'hr' },
+  { id: 'p5', name: {t('common:auto_text_e99480')}, departmentId: 'sales' },
+  { id: 'p6', name: {t('common:auto_text_e4baa7')} }, // Global position
 ];
 */
 
@@ -277,9 +277,9 @@ const mockGender: LookupItem[] = Object.values(Gender).map(g => ({
   value: g,
   label: (() => {
     switch (g) {
-      case Gender.MALE: return '男';
-      case Gender.FEMALE: return '女';
-      case Gender.OTHER: return '其他';
+      case Gender.MALE: return {t('common:auto_text_e794b7')};
+      case Gender.FEMALE: return {t('common:auto_text_e5a5b3')};
+      case Gender.OTHER: return {t('common:auto_text_e585b6')};
       default: return g;
     }
   })(),
@@ -289,12 +289,12 @@ const mockEducationLevels: LookupItem[] = Object.values(EducationLevel).map(el =
   value: el,
   label: (() => {
     switch (el) {
-      case EducationLevel.HIGH_SCHOOL: return '高中';
-      case EducationLevel.DIPLOMA: return '大专';
-      case EducationLevel.BACHELOR: return '本科';
-      case EducationLevel.MASTER: return '硕士';
-      case EducationLevel.DOCTORATE: return '博士';
-      case EducationLevel.OTHER: return '其他';
+      case EducationLevel.HIGH_SCHOOL: return {t('common:auto_text_e9ab98')};
+      case EducationLevel.DIPLOMA: return {t('common:auto_text_e5a4a7')};
+      case EducationLevel.BACHELOR: return {t('common:auto_text_e69cac')};
+      case EducationLevel.MASTER: return {t('common:auto_text_e7a195')};
+      case EducationLevel.DOCTORATE: return {t('common:auto_text_e58d9a')};
+      case EducationLevel.OTHER: return {t('common:auto_text_e585b6')};
       default: return el;
     }
   })(),
@@ -304,10 +304,10 @@ const mockEmploymentTypes: LookupItem[] = Object.values(EmploymentType).map(et =
   value: et,
   label: (() => {
     switch (et) {
-      case EmploymentType.FULL_TIME: return '全职';
-      case EmploymentType.PART_TIME: return '兼职';
-      case EmploymentType.CONTRACTOR: return '合同工';
-      case EmploymentType.INTERN: return '实习';
+      case EmploymentType.FULL_TIME: return {t('common:auto_text_e585a8')};
+      case EmploymentType.PART_TIME: return {t('common:auto_text_e585bc')};
+      case EmploymentType.CONTRACTOR: return {t('common:auto_text_e59088')};
+      case EmploymentType.INTERN: return {t('common:auto_text_e5ae9e')};
       default: return et;
     }
   })(),
@@ -317,10 +317,10 @@ const mockContractTypes: LookupItem[] = Object.values(ContractType).map(ct => ({
   value: ct,
   label: (() => {
     switch (ct) {
-      case ContractType.FIXED_TERM: return '固定期限';
-      case ContractType.PERMANENT: return '无固定期限';
-      case ContractType.PROJECT_BASED: return '项目制';
-      case ContractType.OTHER: return '其他';
+      case ContractType.FIXED_TERM: return {t('common:auto_text_e59bba')};
+      case ContractType.PERMANENT: return {t('common:auto_text_e697a0')};
+      case ContractType.PROJECT_BASED: return {t('common:auto_text_e9a1b9')};
+      case ContractType.OTHER: return {t('common:auto_text_e585b6')};
       default: return ct;
     }
   })(),
@@ -330,33 +330,33 @@ const mockMaritalStatuses: LookupItem[] = Object.values(MaritalStatus).map(s => 
 const mockPoliticalStatuses: LookupItem[] = Object.values(PoliticalStatus).map(s => ({ value: s, label: s }));
 
 const mockEmployeeStatuses: LookupItem[] = [
-  { value: 1, label: '在职', code: EmploymentStatus.ACTIVE },
-  { value: 2, label: '试用期', code: EmploymentStatus.PROBATION },
-  { value: 3, label: '休假', code: EmploymentStatus.LEAVE },
-  { value: 4, label: '离职', code: EmploymentStatus.TERMINATED },
-  { value: 5, label: '待入职', code: EmploymentStatus.PENDING },
+  { value: 1, label: {t('common:auto_text_e59ca8')}, code: EmploymentStatus.ACTIVE },
+  { value: 2, label: {t('common:auto_text_e8af95')}, code: EmploymentStatus.PROBATION },
+  { value: 3, label: {t('common:auto_text_e4bc91')}, code: EmploymentStatus.LEAVE },
+  { value: 4, label: {t('common:auto_text_e7a6bb')}, code: EmploymentStatus.TERMINATED },
+  { value: 5, label: {t('common:auto_text_e5be85')}, code: EmploymentStatus.PENDING },
 ];
 
 const mockLeaveTypesLookup: LookupItem[] = Object.values(LeaveType).map(lt => ({
   value: lt,
   label: (() => {
     switch (lt) {
-      case LeaveType.ANNUAL: return '年假';
-      case LeaveType.SICK: return '病假';
-      case LeaveType.MATERNITY: return '产假';
-      case LeaveType.PATERNITY: return '陪产假';
-      case LeaveType.UNPAID: return '无薪假';
-      case LeaveType.OTHER: return '其他假期';
+      case LeaveType.ANNUAL: return {t('common:auto_text_e5b9b4')};
+      case LeaveType.SICK: return {t('common:auto_text_e79785')};
+      case LeaveType.MATERNITY: return {t('common:auto_text_e4baa7')};
+      case LeaveType.PATERNITY: return {t('common:auto_text_e999aa')};
+      case LeaveType.UNPAID: return {t('common:auto_text_e697a0')};
+      case LeaveType.OTHER: return {t('common:auto_text_e585b6')};
       default: return lt;
     }
   })(),
 }));
 
 const mockPayFrequencies: LookupItem[] = [
-  { value: 'monthly', label: '月度' },
-  { value: 'bi_weekly', label: '双周' },
-  { value: 'weekly', label: '每周' },
-  { value: 'annually', label: '年度' },
+  { value: 'monthly', label: {t('common:auto_text_e69c88')} },
+  { value: 'bi_weekly', label: {t('common:auto_text_e58f8c')} },
+  { value: 'weekly', label: {t('common:auto_text_e6af8f')} },
+  { value: 'annually', label: {t('common:auto_text_e5b9b4')} },
 ];
 */
 
@@ -439,7 +439,7 @@ const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
 // Generic function to fetch lookup values by type code
 const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> => {
   if (!typeCode) { // Added a check for empty typeCode
-    // console.warn('❌ fetchLookupValuesByType: 被调用时typeCode为空');
+    // console.warn({t('common:auto__fetchlookupvaluesbytype_typecode_e29d8c')});
     return [];
   }
   
@@ -455,7 +455,7 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
       page: 1,
     };
     
-    // console.log(`API请求: GET ${apiPath}`, { params });
+    // console.log({t('common:auto_api_get_apipath__415049')}, { params });
     
     // Assuming the API returns a structure like { data: [...ApiLookupValue] }
     const response = await apiClient.get<ActualApiLookupValueListResponse>(apiPath, { params });
@@ -475,7 +475,7 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
       // response.data.data.slice(0, 3).forEach((item, index) => {
       //   console.log(`  ${index+1}. id=${item.id}, name="${item.name || item.label}", code="${item.code}"`);
       // });
-      // console.log(`  ... 共${response.data.data.length}项`);
+      // console.log({t('common:auto___response_data_data_length__20202e')});
     }
     
     if (response.data && Array.isArray(response.data.data)) {
@@ -489,16 +489,16 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
           name: apiItem.name || apiItem.label || '',
         }));
     }
-    // console.error(`❌ lookupService: 意外的API响应结构 type_code=${typeCode}:`, response.data);
+    // console.error({t('common:auto__lookupservice_api_type_code_typecode__e29d8c')}, response.data);
     message.error(`Failed to load lookup values for type: ${typeCode}`);
     return [];
   } catch (error: any) {
     // console.error(`❌ lookupService: 获取类型为"${typeCode}"的查找值时出错:`, error);
-    // console.error('错误详情:', error.message);
-    // console.error('请求配置:', error.config);
+    // console.error({t('common:auto___e99499')}, error.message);
+    // console.error({t('common:auto___e8afb7')}, error.config);
     // if (error.response) {
-    //   console.error('响应数据:', error.response.data);
-    //   console.error('响应状态:', error.response.status);
+    //   console.error({t('common:auto___e5938d')}, error.response.data);
+    //   console.error({t('common:auto___e5938d')}, error.response.status);
     // }
     message.error(`获取"${typeCode}"类型的查找值失败`);
     return [];
@@ -519,7 +519,7 @@ export const lookupService = {
         { params: { size: 100, is_active: true } } // CORRECTED size to 100
       );
       
-      console.log('getDepartmentsLookup API响应 (raw):', response.data);
+      console.log({t('common:auto_getdepartmentslookup_api_raw__676574')}, response.data);
 
       let rawDepartments: ApiDepartment[];
       // Check if data is nested under a 'data' property or if response itself is the array
@@ -529,7 +529,7 @@ export const lookupService = {
         rawDepartments = response.data as ApiDepartment[];
       } else {
         console.warn('Departments lookup: data array not found or not an array in response:', response.data);
-        message.error('获取部门列表失败：数据格式不正确');
+        message.error({t('common:auto___e88eb7')});
         return [];
       }
 
@@ -560,7 +560,7 @@ export const lookupService = {
 
     } catch (error) {
       console.error('Error fetching and processing departments lookup:', error);
-      message.error('获取部门列表失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      message.error({t('common:auto___e88eb7')} + (error instanceof Error ? error.message : {t('common:auto_text_e69caa')}));
       return [];
     }
   },
@@ -570,7 +570,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载员工状态选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -579,7 +579,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载性别选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -588,7 +588,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载学历选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -597,7 +597,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载雇佣类型选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -606,7 +606,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载合同类型选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -615,7 +615,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载婚姻状况选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -624,7 +624,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载政治面貌选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -632,7 +632,7 @@ export const lookupService = {
     try {
       // MODIFIED path and expected type
       const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>(`/personnel-categories/`, { params: { size: 100, page: 1 } }); // CORRECTED size to 100
-      console.log('getPersonnelCategoriesLookup API响应:', response.data);
+      console.log({t('common:auto_getpersonnelcategorieslookup_api__676574')}, response.data);
       
       let rawPersonnelCategories: PersonnelCategory[]; // MODIFIED
       if ('data' in response.data && Array.isArray(response.data.data)) {
@@ -667,7 +667,7 @@ export const lookupService = {
       return result;
     } catch (error) {
       // console.error('Error fetching personnel categories lookup:', error); // MODIFIED
-      message.error('获取人员类别列表失败'); // MODIFIED
+      message.error({t('common:auto_text_e88eb7')}); // MODIFIED
       return [];
     }
   },
@@ -677,7 +677,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载假期类型选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -689,7 +689,7 @@ export const lookupService = {
     
     // 不立即显示错误，而是尝试使用employeeService作为备选
     try {
-      // console.log('无法通过lookupService.getTypeCodeBySystemCode获取PAY_FREQUENCY，尝试使用employeeService.getPayFrequenciesLookup作为备选');
+      // console.log({t('common:auto_lookupservice_gettypecodebysystemcodepay_frequency_employeeservice_getpayfrequencieslookup_e697a0')});
       const frequenciesFromEmployeeService = await employeeService.getPayFrequenciesLookup();
       
       // 将从employeeService获取的数据转换为LookupItem[]
@@ -705,8 +705,8 @@ export const lookupService = {
         };
       });
     } catch (error) {
-      // console.error('通过备选employeeService获取发薪频率失败:', error);
-      message.error('无法加载发薪频率选项：类型定义缺失或Code不匹配');
+      // console.error({t('common:auto_employeeservice__e9809a')}, error);
+      message.error({t('common:auto__code_e697a0')});
       return [];
     }
   },
@@ -720,7 +720,7 @@ export const lookupService = {
     
     // 不立即显示错误，而是尝试使用employeeService作为备选
     try {
-      // console.log('无法通过lookupService.getTypeCodeBySystemCode获取CONTRACT_STATUS，尝试使用employeeService.getContractStatusesLookup作为备选');
+      // console.log({t('common:auto_lookupservice_gettypecodebysystemcodecontract_status_employeeservice_getcontractstatuseslookup_e697a0')});
       const statusesFromEmployeeService = await employeeService.getContractStatusesLookup();
       
       // 将从employeeService获取的数据转换为LookupItem[]
@@ -736,8 +736,8 @@ export const lookupService = {
         };
       });
     } catch (error) {
-      // console.error('通过备选employeeService获取合同状态失败:', error);
-      message.error('无法加载合同状态选项：类型定义缺失或Code不匹配');
+      // console.error({t('common:auto_employeeservice__e9809a')}, error);
+      message.error({t('common:auto__code_e697a0')});
       return [];
     }
   },
@@ -778,7 +778,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载职务级别选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -804,7 +804,7 @@ export const lookupService = {
         name: createdValue.name
       };
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || '创建失败';
+      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || {t('common:auto_text_e5889b')};
       throw new Error(errorMessage);
     }
   },
@@ -830,7 +830,7 @@ export const lookupService = {
         name: updatedValue.name
       };
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || '更新失败';
+      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || {t('common:auto_text_e69bb4')};
       throw new Error(errorMessage);
     }
   },
@@ -841,7 +841,7 @@ export const lookupService = {
       await apiClient.delete(`/lookup/values/${id}`);
       return true;
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || '删除失败';
+      const errorMessage = error?.response?.data?.detail?.details || error?.response?.data?.detail || error.message || {t('common:auto_text_e588a0')};
       throw new Error(errorMessage);
     }
   },
@@ -864,7 +864,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载薪资条目状态选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -874,7 +874,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载薪资审核状态选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 
@@ -884,7 +884,7 @@ export const lookupService = {
     if (typeCode) {
       return fetchLookupValuesByType(typeCode);
     }
-    message.error('无法加载薪资周期状态选项：类型定义缺失或Code不匹配');
+    message.error({t('common:auto__code_e697a0')});
     return [];
   },
 

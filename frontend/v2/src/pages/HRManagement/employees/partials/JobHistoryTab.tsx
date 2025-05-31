@@ -49,9 +49,9 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
       const result: JobHistoryPageResult = await employeeService.getEmployeeJobHistory(employeeId, { page: 1, pageSize: 100 });
       setJobHistory(result.data);
     } catch (err: any) {
-      console.error(t('employee:detail_page.job_history_tab.message.get_history_failed', '获取岗位历史失败:'), err);
-      setError(t('employee:detail_page.job_history_tab.message.get_history_failed_retry', '获取岗位历史失败，请稍后重试。'));
-      message.error(err.message || t('employee:detail_page.job_history_tab.message.get_history_failed', '获取岗位历史失败!'));
+      console.error(t('employee:detail_page.job_history_tab.message.get_history_failed', {t('hr:auto___e88eb7')}), err);
+      setError(t('employee:detail_page.job_history_tab.message.get_history_failed_retry', {t('hr:auto____e88eb7')}));
+      message.error(err.message || t('employee:detail_page.job_history_tab.message.get_history_failed', {t('hr:auto___e88eb7')}));
     } finally {
       setLoading(false);
     }
@@ -75,18 +75,18 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
 
   const handleDelete = async (id: number) => {
     Modal.confirm({
-      title: t('common:modal.confirm_delete.title', '确认删除'),
-      content: t('employee:detail_page.job_history_tab.delete_confirm.content', '确定要删除这条岗位历史记录吗？'),
-      okText: t('common:button.confirm', '确认'),
-      cancelText: t('common:button.cancel', '取消'),
+      title: t('common:modal.confirm_delete.title', {t('hr:auto_text_e7a1ae')}),
+      content: t('employee:detail_page.job_history_tab.delete_confirm.content', {t('hr:auto___e7a1ae')}),
+      okText: t('common:button.confirm', {t('hr:auto_text_e7a1ae')}),
+      cancelText: t('common:button.cancel', {t('hr:auto_text_e58f96')}),
       onOk: async () => {
         try {
           setLoading(true);
           await employeeService.deleteJobHistoryItem(employeeId, String(id));
-          message.success(t('employee:detail_page.job_history_tab.message.delete_success', '岗位历史记录删除成功'));
+          message.success(t('employee:detail_page.job_history_tab.message.delete_success', {t('hr:auto_text_e5b297')}));
           fetchJobHistory();
         } catch (error: any) {
-          message.error(error.message || t('employee:detail_page.job_history_tab.message.delete_failed', '删除失败'));
+          message.error(error.message || t('employee:detail_page.job_history_tab.message.delete_failed', {t('hr:auto_text_e588a0')}));
         } finally {
           setLoading(false);
         }
@@ -103,7 +103,7 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
           effectiveDate: dayjs(formValues.effectiveDate).isValid() ? dayjs(formValues.effectiveDate).format('YYYY-MM-DD') : '',
         };
         await employeeService.addJobHistoryItem(employeeId, createPayload);
-        message.success(t('employee:detail_page.job_history_tab.message.add_success', '岗位历史添加成功'));
+        message.success(t('employee:detail_page.job_history_tab.message.add_success', {t('hr:auto_text_e5b297')}));
       } else if (editingRecord) {
         const updatePayload: UpdateJobHistoryPayload = {
           ...formValues,
@@ -111,13 +111,13 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
           effectiveDate: dayjs(formValues.effectiveDate).isValid() ? dayjs(formValues.effectiveDate).format('YYYY-MM-DD') : undefined,
         };
         await employeeService.updateJobHistoryItem(employeeId, String(editingRecord.id), updatePayload);
-        message.success(t('employee:detail_page.job_history_tab.message.update_success', '岗位历史更新成功'));
+        message.success(t('employee:detail_page.job_history_tab.message.update_success', {t('hr:auto_text_e5b297')}));
       }
       setIsModalVisible(false);
       setEditingRecord(null);
       fetchJobHistory();
     } catch (error: any) {
-      message.error(error.message || t('common:message.operation_failed_default_retry', '操作失败，请重试'));
+      message.error(error.message || t('common:message.operation_failed_default_retry', {t('hr:auto___e6938d')}));
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
       <div style={{ textAlign: 'center', padding: '20px'}}>
         <Spin>
           <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>
-            {t('employee:detail_page.job_history_tab.loading_history', '加载岗位历史中...')}
+            {t('employee:detail_page.job_history_tab.loading_history', {t('hr:auto___e58aa0')})}
           </div>
         </Spin>
       </div>
@@ -141,7 +141,7 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
   }
 
   if (error && !jobHistory.length) {
-    return <Alert message={t('common:status.error', '错误')} description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
+    return <Alert message={t('common:status.error', {t('hr:auto_text_e99499')})} description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
   }
 
   return (
@@ -154,11 +154,11 @@ const JobHistoryTab: React.FC<JobHistoryTabProps> = ({ employeeId }) => {
           style={{ marginBottom: 16 }}
           disabled={loading}
         >
-          {t('employee:detail_page.job_history_tab.button_add_history', '添加岗位历史')}
+          {t('employee:detail_page.job_history_tab.button_add_history', {t('hr:auto_text_e6b7bb')})}
         </Button>
       )}
       {error && jobHistory.length > 0 && (
-         <Alert message={t('common:status.error', '错误')} description={error} type="warning" showIcon closable style={{ marginBottom: '16px' }} />
+         <Alert message={t('common:status.error', {t('hr:auto_text_e99499')})} description={error} type="warning" showIcon closable style={{ marginBottom: '16px' }} />
       )}
       <JobHistoryTable
         dataSource={jobHistory}

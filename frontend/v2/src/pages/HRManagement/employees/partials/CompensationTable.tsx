@@ -106,7 +106,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
             <TableActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
-              tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_edit_record', '编辑薪资记录')}
+              tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_edit_record', {t('hr:auto_text_e7bc96')})}
             />
           )}
           {canDelete && (
@@ -116,7 +116,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
               okText={t('common:button.yes', 'Yes')}
               cancelText={t('common:button.no', 'No')}
             >
-              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record', '删除薪资记录')} />
+              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record', {t('hr:auto_text_e588a0')})} />
             </Popconfirm>
           )}
         </Space>
@@ -136,7 +136,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       enableAdvancedFeatures={true}
       showToolbar={true}
       search={false}
-      title={t('employee:detail_page.compensation_tab.table_title', '薪酬记录')}
+      title={t('employee:detail_page.compensation_tab.table_title', {t('hr:auto_text_e896aa')})}
     />
   );
 };

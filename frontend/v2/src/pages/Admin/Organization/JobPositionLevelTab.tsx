@@ -71,7 +71,7 @@ const JobPositionLevelTab: React.FC = () => {
         setJobPositionLevels(levelsWithKeys);
       }
     } catch (error) {
-      antdMessage.error('获取职务级别数据失败');
+      antdMessage.error({t('admin:auto_text_e88eb7')});
       console.error('Failed to fetch job position levels:', error);
     }
     setIsLoading(false);
@@ -127,13 +127,13 @@ const JobPositionLevelTab: React.FC = () => {
           sort_order: values.sort_order,
           is_active: values.is_active
         });
-        antdMessage.success('更新职务级别成功');
+        antdMessage.success({t('admin:auto_text_e69bb4')});
       } else {
         // 创建新职务级别
         // 首先获取JOB_POSITION_LEVEL的lookup_type_id
         const lookupTypeId = await lookupService.getLookupTypeIdByCode('JOB_POSITION_LEVEL');
         if (!lookupTypeId) {
-          throw new Error('找不到职务级别类型定义');
+          throw new Error({t('admin:auto_text_e689be')});
         }
         
         await lookupService.createLookupValue({
@@ -146,14 +146,14 @@ const JobPositionLevelTab: React.FC = () => {
           sort_order: values.sort_order,
           is_active: values.is_active
         });
-        antdMessage.success('创建职务级别成功');
+        antdMessage.success({t('admin:auto_text_e5889b')});
       }
       setIsModalOpen(false);
       setEditingLevel(null);
       fetchData();
     } catch (error: any) {
-      const errorMsg = error.message || '操作失败';
-      antdMessage.error(`操作失败: ${errorMsg}`);
+      const errorMsg = error.message || {t('admin:auto_text_e6938d')};
+      antdMessage.error({t('admin:auto__errormsg__e6938d')});
       console.error('Job position level operation failed:', error);
     }
     setModalLoading(false);
@@ -172,10 +172,10 @@ const JobPositionLevelTab: React.FC = () => {
       );
       setJobPositionLevels(updatedLevels);
       
-      antdMessage.success(`${newIsActiveState ? '启用' : '禁用'}职务级别成功`);
+      antdMessage.success(`${newIsActiveState ? {t('admin:auto_text_e590af')} : {t('admin:auto_text_e7a681')}}职务级别成功`);
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || error.message || '状态更新失败';
-      antdMessage.error(`状态更新失败: ${errorMsg}`);
+      const errorMsg = error.response?.data?.detail || error.message || {t('admin:auto_text_e78ab6')};
+      antdMessage.error({t('admin:auto__errormsg__e78ab6')});
       console.error('Failed to update job position level status:', error);
     }
   };
@@ -183,11 +183,11 @@ const JobPositionLevelTab: React.FC = () => {
   const handleDeleteLevel = async (id: number) => {
     try {
       await lookupService.deleteLookupValue(id);
-      antdMessage.success('删除职务级别成功');
+      antdMessage.success({t('admin:auto_text_e588a0')});
       fetchData();
     } catch (error: any) {
-      const errorMsg = error.message || '删除失败';
-      antdMessage.error(`删除失败: ${errorMsg}`);
+      const errorMsg = error.message || {t('admin:auto_text_e588a0')};
+      antdMessage.error({t('admin:auto__errormsg__e588a0')});
       console.error('Failed to delete job position level:', error);
     }
   };
@@ -202,7 +202,7 @@ const JobPositionLevelTab: React.FC = () => {
       valueType: 'digit',
     },
     { 
-      title: '代码', 
+      title: {t('admin:auto_text_e4bba3')}, 
       dataIndex: 'code', 
       key: 'code', 
       width: 150,
@@ -210,7 +210,7 @@ const JobPositionLevelTab: React.FC = () => {
       valueType: 'text',
     },
     { 
-      title: '名称', 
+      title: {t('admin:auto_text_e5908d')}, 
       dataIndex: 'name', 
       key: 'name',
       sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
@@ -220,28 +220,28 @@ const JobPositionLevelTab: React.FC = () => {
       ),
     },
     { 
-      title: '显示标签', 
+      title: {t('admin:auto_text_e698be')}, 
       dataIndex: 'label', 
       key: 'label',
       sorter: (a, b) => (a.label || '').localeCompare(b.label || ''),
       valueType: 'text',
     },
     { 
-      title: '值', 
+      title: {t('admin:auto_text_e580bc')}, 
       dataIndex: 'value', 
       key: 'value', 
       width: 100,
       valueType: 'text',
     },
     { 
-      title: '描述', 
+      title: {t('admin:auto_text_e68f8f')}, 
       dataIndex: 'description', 
       key: 'description',
       valueType: 'text',
       ellipsis: true,
     },
     {
-      title: '排序',
+      title: {t('admin:auto_text_e68e92')},
       dataIndex: 'sort_order',
       key: 'sort_order',
       width: 80,
@@ -249,15 +249,15 @@ const JobPositionLevelTab: React.FC = () => {
       valueType: 'digit',
     },
     {
-      title: '状态',
+      title: {t('admin:auto_text_e78ab6')},
       dataIndex: 'is_active',
       key: 'is_active',
       width: 80,
       search: false,
       valueType: 'select',
       valueEnum: {
-        true: { text: '活跃', status: 'Success' },
-        false: { text: '非活跃', status: 'Error' },
+        true: { text: {t('admin:auto_text_e6b4bb')}, status: 'Success' },
+        false: { text: {t('admin:auto_text_e99d9e')}, status: 'Error' },
       },
       render: (_, record) => (
         <Switch 
@@ -267,7 +267,7 @@ const JobPositionLevelTab: React.FC = () => {
       ),
     },
     {
-      title: '操作',
+      title: {t('admin:auto_text_e6938d')},
       key: 'actions',
       width: 150,
       search: false,
@@ -275,20 +275,20 @@ const JobPositionLevelTab: React.FC = () => {
         <Space size="small">
           <TableActionButton 
             actionType="edit"
-            tooltipTitle="编辑"
+            tooltipTitle={t('admin:auto_text_e7bc96')}
             onClick={() => showEditModal(record)} 
           />
           <Popconfirm
-            title="确认删除"
+            title={t('admin:auto_text_e7a1ae')}
             description={`确定要删除职务级别 "${record.name}" 吗？`}
             onConfirm={() => handleDeleteLevel(record.id)}
-            okText="确认"
-            cancelText="取消"
+            okText={t('admin:auto_text_e7a1ae')}
+            cancelText={t('admin:auto_text_e58f96')}
           >
             <TableActionButton 
               actionType="delete"
               danger 
-              tooltipTitle="删除"
+              tooltipTitle={t('admin:auto_text_e588a0')}
             />
           </Popconfirm>
         </Space>
@@ -316,8 +316,8 @@ const JobPositionLevelTab: React.FC = () => {
   return (
     <>
       <OrganizationManagementTableTemplate<JobPositionLevelPageItem>
-        pageTitle="职务级别管理"
-        addButtonText="新增职务级别"
+        pageTitle={t('admin:auto_text_e8818c')}
+        addButtonText={t('admin:auto_text_e696b0')}
         onAddClick={showCreateModal}
         columns={columns}
         dataSource={jobPositionLevels}
@@ -334,7 +334,7 @@ const JobPositionLevelTab: React.FC = () => {
       />
 
       <Modal
-        title={editingLevel ? '编辑职务级别' : '新增职务级别'}
+        title={editingLevel ? {t('admin:auto_text_e7bc96')} : {t('admin:auto_text_e696b0')}}
         open={isModalOpen}
         onCancel={handleCancelModal}
         confirmLoading={modalLoading}
@@ -346,7 +346,7 @@ const JobPositionLevelTab: React.FC = () => {
             })
             .catch(info => {
               console.log('Validate Failed:', info);
-              antdMessage.error('表单验证失败');
+              antdMessage.error({t('admin:auto_text_e8a1a8')});
             });
         }}
         destroyOnHidden
@@ -354,49 +354,49 @@ const JobPositionLevelTab: React.FC = () => {
         <Form form={form} layout="vertical" name="jobPositionLevelForm">
           <Form.Item
             name="code"
-            label="代码"
-            rules={[{ required: true, message: '请输入职务级别代码' }]}
+            label={t('admin:auto_text_e4bba3')}
+            rules={[{ required: true, message: {t('admin:auto_text_e8afb7')} }]}
           >
-            <Input placeholder="例如: FIRST_LEVEL_RESEARCHER" />
+            <Input placeholder={t('admin:auto__first_level_researcher_e4be8b')} />
           </Form.Item>
           <Form.Item
             name="name"
-            label="名称"
-            rules={[{ required: true, message: '请输入职务级别名称' }]}
+            label={t('admin:auto_text_e5908d')}
+            rules={[{ required: true, message: {t('admin:auto_text_e8afb7')} }]}
           >
-            <Input placeholder="例如: 一级调研员" />
+            <Input placeholder={t('admin:auto___e4be8b')} />
           </Form.Item>
           <Form.Item
             name="label"
-            label="显示标签"
-            rules={[{ required: true, message: '请输入显示标签' }]}
+            label={t('admin:auto_text_e698be')}
+            rules={[{ required: true, message: {t('admin:auto_text_e8afb7')} }]}
           >
-            <Input placeholder="例如: 一级调研员" />
+            <Input placeholder={t('admin:auto___e4be8b')} />
           </Form.Item>
           <Form.Item
             name="value"
-            label="值"
-            rules={[{ required: true, message: '请输入值' }]}
+            label={t('admin:auto_text_e580bc')}
+            rules={[{ required: true, message: {t('admin:auto_text_e8afb7')} }]}
           >
-            <Input placeholder="例如: FIRST_LEVEL_RESEARCHER" />
+            <Input placeholder={t('admin:auto__first_level_researcher_e4be8b')} />
           </Form.Item>
           <Form.Item 
             name="description" 
-            label="描述"
+            label={t('admin:auto_text_e68f8f')}
           >
-            <Input.TextArea rows={3} placeholder="职务级别的详细描述" />
+            <Input.TextArea rows={3} placeholder={t('admin:auto_text_e8818c')} />
           </Form.Item>
           <Form.Item
             name="sort_order"
-            label="排序"
-            rules={[{ required: true, message: '请输入排序号' }]}
+            label={t('admin:auto_text_e68e92')}
+            rules={[{ required: true, message: {t('admin:auto_text_e8afb7')} }]}
           >
             <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
           </Form.Item>
           <Form.Item
             name="is_active"
             valuePropName="checked"
-            label="是否激活"
+            label={t('admin:auto_text_e698af')}
             initialValue={true}
           >
             <Switch />

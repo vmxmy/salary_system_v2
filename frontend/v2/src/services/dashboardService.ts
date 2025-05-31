@@ -70,7 +70,7 @@ export const dashboardService = {
         const payrollPeriodsResponse = await apiClient.get('/payroll-periods?page=1&size=5');
         payrollPeriods = payrollPeriodsResponse.data?.data || [];
       } catch (error) {
-        console.warn('获取薪资周期数据失败:', error);
+        console.warn({t('common:auto___e88eb7')}, error);
       }
 
       // 获取薪资审核数据
@@ -79,7 +79,7 @@ export const dashboardService = {
         const payrollRunsResponse = await apiClient.get('/payroll-runs?page=1&size=10');
         payrollRuns = payrollRunsResponse.data?.data || [];
       } catch (error) {
-        console.warn('获取薪资审核数据失败:', error);
+        console.warn({t('common:auto___e88eb7')}, error);
       }
 
       // 计算当月薪资总额（从最近的薪资审核中获取）
@@ -88,10 +88,10 @@ export const dashboardService = {
       let completedPayrollRuns = 0;
 
       payrollRuns.forEach((run: any) => {
-        if (run.status_name === '已完成' || run.status_name === 'Completed') {
+        if (run.status_name === {t('common:auto_text_e5b7b2')} || run.status_name === 'Completed') {
           monthlyPayroll += run.total_amount || 0;
           completedPayrollRuns++;
-        } else if (run.status_name === '进行中' || run.status_name === 'In Progress') {
+        } else if (run.status_name === {t('common:auto_text_e8bf9b')} || run.status_name === 'In Progress') {
           activePayrollRuns++;
         }
       });
@@ -103,7 +103,7 @@ export const dashboardService = {
 
       // 待办任务数量（待审批的薪资审核）
       const pendingApprovals = payrollRuns.filter((run: any) => 
-        run.status_name === '待审批' || run.status_name === 'Pending Approval'
+        run.status_name === {t('common:auto_text_e5be85')} || run.status_name === 'Pending Approval'
       ).length;
 
       return {
@@ -118,7 +118,7 @@ export const dashboardService = {
         completedPayrollRuns,
       };
     } catch (error) {
-      console.error('获取KPI数据失败:', error);
+      console.error({t('common:auto_kpi__e88eb7')}, error);
       // 返回默认数据
       return {
         totalEmployees: 0,
@@ -163,14 +163,14 @@ export const dashboardService = {
             });
           }
         } catch (error) {
-          console.warn(`获取周期 ${period.id} 的薪资审核数据失败:`, error);
+          console.warn({t('common:auto__period_id___e88eb7')}, error);
           // 不再添加模拟数据
         }
       }
 
       return trendData.reverse(); // 按时间顺序排列
     } catch (error) {
-      console.error('获取薪资趋势数据失败:', error);
+      console.error({t('common:auto___e88eb7')}, error);
       return []; // 返回空数组，不再使用模拟数据
     }
   },
@@ -201,21 +201,21 @@ export const dashboardService = {
           if (employeeCount > 0) {
             distributionData.push({
               department: dept.code || 'UNKNOWN',
-              departmentName: dept.name || '未知部门',
+              departmentName: dept.name || {t('common:auto_text_e69caa')},
               totalPayroll, // 依赖后端API
               employeeCount,
               averageSalary, // 依赖后端API
             });
           }
         } catch (error) {
-          console.warn(`获取部门 ${dept.name} 的员工数据失败:`, error);
+          console.warn({t('common:auto__dept_name___e88eb7')}, error);
           // 不再添加模拟数据
         }
       }
 
       return distributionData.sort((a, b) => b.employeeCount - a.employeeCount); // 按员工数量排序，因为薪资数据不真实
     } catch (error) {
-      console.error('获取部门薪资分布失败:', error);
+      console.error({t('common:auto___e88eb7')}, error);
       return []; // 返回空数组，不再使用模拟数据
     }
   },
@@ -251,7 +251,7 @@ export const dashboardService = {
 
       return gradeData.sort((a, b) => b.count - a.count); // 按数量排序，目前都为0
     } catch (error) {
-      console.error('获取员工职级分布失败:', error);
+      console.error({t('common:auto___e88eb7')}, error);
       return []; // 返回空数组，不再使用模拟数据
     }
   },
@@ -266,7 +266,7 @@ export const dashboardService = {
 
       payrollRuns.forEach((run: any) => {
         const status = run.status_code || 'unknown';
-        const statusName = run.status_name || '未知';
+        const statusName = run.status_name || {t('common:auto_text_e69caa')};
         const amount = run.total_amount || 0;
 
         if (statusMap.has(status)) {
@@ -294,7 +294,7 @@ export const dashboardService = {
 
       return statusData.sort((a, b) => b.count - a.count);
     } catch (error) {
-      console.error('获取薪资状态分布失败:', error);
+      console.error({t('common:auto___e88eb7')}, error);
       return []; // 返回空数组，不再使用模拟数据
     }
   },
@@ -307,14 +307,14 @@ export const dashboardService = {
 
       return payrollRuns.map((run: any) => ({
         id: run.id,
-        periodName: run.period_name || `薪资审核 ${run.id}`,
-        status: run.status_name || '未知',
+        periodName: run.period_name || {t('common:auto__run_id__e896aa')},
+        status: run.status_name || {t('common:auto_text_e69caa')},
         totalAmount: run.total_amount || 0,
         employeeCount: run.employee_count || 0,
         createdAt: run.created_at || new Date().toISOString(),
       }));
     } catch (error) {
-      console.error('获取最近薪资审核记录失败:', error);
+      console.error({t('common:auto___e88eb7')}, error);
       return []; // 返回空数组，不再使用模拟数据
     }
   },

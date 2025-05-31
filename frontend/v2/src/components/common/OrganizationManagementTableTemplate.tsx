@@ -66,7 +66,7 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
   // 批量删除处理函数
   const handleBatchDelete = async () => {
     if (!batchDelete || !rowSelection?.selectedRowKeys || rowSelection.selectedRowKeys.length === 0) {
-      message.warning(batchDelete?.noSelectionMessage || '请选择要删除的项目');
+      message.warning(batchDelete?.noSelectionMessage || {t('components:auto_text_e8afb7')});
       return;
     }
 

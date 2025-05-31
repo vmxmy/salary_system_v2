@@ -30,8 +30,8 @@ const useExamplePermissions = () => ({
 const useExampleLookupMaps = () => ({
   lookupMaps: {
     statusMap: new Map([
-      ['active', '激活'],
-      ['inactive', '停用'],
+      ['active', {t('components:auto_text_e6bf80')}],
+      ['inactive', {t('components:auto_text_e5819c')}],
     ]),
   },
   loadingLookups: false,
@@ -44,8 +44,8 @@ const exampleService = {
     // 模拟API调用
     return {
       data: [
-        { id: '1', name: '示例项目1', code: 'EX001', status: 'active', createTime: '2024-01-01' },
-        { id: '2', name: '示例项目2', code: 'EX002', status: 'inactive', createTime: '2024-01-02' },
+        { id: '1', name: {t('components:auto_1_e7a4ba')}, code: 'EX001', status: 'active', createTime: '2024-01-01' },
+        { id: '2', name: {t('components:auto_2_e7a4ba')}, code: 'EX002', status: 'inactive', createTime: '2024-01-02' },
       ],
     };
   },
@@ -71,21 +71,21 @@ const generateExampleTableColumns = (
 ): ProColumns<ExampleItem>[] => {
   return [
     {
-      title: '名称',
+      title: {t('components:auto_text_e5908d')},
       dataIndex: 'name',
       key: 'name',
       sorter: stringSorter<ExampleItem>('name'),
       ...getColumnSearch('name'),
     },
     {
-      title: '编码',
+      title: {t('components:auto_text_e7bc96')},
       dataIndex: 'code',
       key: 'code',
       sorter: stringSorter<ExampleItem>('code'),
       ...getColumnSearch('code'),
     },
     {
-      title: '状态',
+      title: {t('components:auto_text_e78ab6')},
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => lookupMaps?.statusMap?.get(status) || status,
@@ -96,14 +96,14 @@ const generateExampleTableColumns = (
       onFilter: (value, record) => record.status === value,
     },
     {
-      title: '创建时间',
+      title: {t('components:auto_text_e5889b')},
       dataIndex: 'createTime',
       key: 'createTime',
       render: (date: string) => date ? new Date(date).toLocaleDateString() : '',
       sorter: dateSorter<ExampleItem>('createTime'),
     },
     {
-      title: '操作',
+      title: {t('components:auto_text_e6938d')},
       key: 'action',
       width: 150,
       fixed: 'right',
@@ -113,14 +113,14 @@ const generateExampleTableColumns = (
             <TableActionButton 
               actionType="view" 
               onClick={() => onViewDetails(record.id)} 
-              tooltipTitle="查看" 
+              tooltipTitle={t('components:auto_text_e69fa5')} 
             />
           )}
           {permissions.canUpdate && (
             <TableActionButton 
               actionType="edit" 
               onClick={() => onEdit(record)} 
-              tooltipTitle="编辑" 
+              tooltipTitle={t('components:auto_text_e7bc96')} 
             />
           )}
           {permissions.canDelete && (
@@ -128,7 +128,7 @@ const generateExampleTableColumns = (
               actionType="delete" 
               danger 
               onClick={() => onDelete(record.id)} 
-              tooltipTitle="删除" 
+              tooltipTitle={t('components:auto_text_e588a0')} 
             />
           )}
         </Space>
@@ -209,20 +209,20 @@ const ExampleListPage: React.FC = () => {
       }}
       batchDeleteConfig={{
         enabled: true,
-        buttonText: '批量删除 ({count})',
-        confirmTitle: '确认批量删除',
-        confirmContent: '确定要删除选中的 {count} 个项目吗？此操作不可撤销。',
-        confirmOkText: '确定删除',
-        confirmCancelText: '取消',
-        successMessage: '成功删除 {count} 个项目',
-        errorMessage: '批量删除失败',
-        noSelectionMessage: '请选择要删除的项目',
+        buttonText: {t('components:auto__count__e689b9')},
+        confirmTitle: {t('components:auto_text_e7a1ae')},
+        confirmContent: {t('components:auto__count____e7a1ae')},
+        confirmOkText: {t('components:auto_text_e7a1ae')},
+        confirmCancelText: {t('components:auto_text_e58f96')},
+        successMessage: {t('components:auto__count__e68890')},
+        errorMessage: {t('components:auto_text_e689b9')},
+        noSelectionMessage: {t('components:auto_text_e8afb7')},
       }}
       exportConfig={{
-        filenamePrefix: '示例数据',
-        sheetName: '示例列表',
-        buttonText: '导出Excel',
-        successMessage: '示例数据导出成功',
+        filenamePrefix: {t('components:auto_text_e7a4ba')},
+        sheetName: {t('components:auto_text_e7a4ba')},
+        buttonText: {t('components:auto_excel_e5afbc')},
+        successMessage: {t('components:auto_text_e7a4ba')},
       }}
       lookupErrorMessageKey="example:message.load_aux_data_failed"
       lookupLoadingMessageKey="example:message.loading_lookups"

@@ -75,7 +75,7 @@ const PayrollRunDetailPage: React.FC = () => {
 
   // 生成批次名称：使用周期名称 + 运行日期
   const generateRunName = (run: PayrollRun): string => {
-    const periodName = run.payroll_period?.name || `周期ID: ${run.payroll_period_id}`;
+    const periodName = run.payroll_period?.name || {t('payroll:auto_id_run_payroll_period_id__e591a8')};
     const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
     return `${periodName} - ${runDate}`;
   };

@@ -65,15 +65,15 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
 
   // 如果没有提供tooltipTitle，根据actionType生成默认提示
   const defaultTooltip = {
-    edit: '编辑',
-    delete: '删除',
-    add: '添加',
-    view: '查看详情',
-    upload: '上传',
-    download: '下载',
-    approve: '审批',
-    copy: '复制',
-    print: '打印'
+    edit: {t('components:auto_text_e7bc96')},
+    delete: {t('components:auto_text_e588a0')},
+    add: {t('components:auto_text_e6b7bb')},
+    view: {t('components:auto_text_e69fa5')},
+    upload: {t('components:auto_text_e4b88a')},
+    download: {t('components:auto_text_e4b88b')},
+    approve: {t('components:auto_text_e5aea1')},
+    copy: {t('components:auto_text_e5a48d')},
+    print: {t('components:auto_text_e68993')}
   };
   
   const finalTooltipTitle = tooltipTitle || defaultTooltip[actionType];

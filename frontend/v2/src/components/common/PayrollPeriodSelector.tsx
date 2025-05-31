@@ -90,11 +90,11 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
     
     // 🛡️ 防御性编程：检查参数有效性
     if (!Array.isArray(periodIds) || !Array.isArray(periods)) {
-      console.error('❌ fetchPeriodDataStats: 无效的参数', { periodIds, periods });
+      console.error({t('components:auto__fetchperioddatastats__e29d8c')}, { periodIds, periods });
       return;
     }
     
-    console.log('🔍 开始获取薪资周期数据统计...');
+    console.log({t('components:auto____f09f94')});
     
     // 初始化加载状态
     const initialStats: Record<number, PeriodDataStats> = {};
@@ -106,7 +106,7 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
     // 并发获取所有周期的数据统计
     const statsPromises = periodIds.map(async (periodId) => {
       try {
-        console.log(`📊 获取周期 ${periodId} 的数据统计...`);
+        console.log({t('components:auto___periodid___f09f93')});
         
         // 获取该周期下的所有payroll_run
         const runsResponse = await payrollApi.getPayrollRuns({
@@ -122,14 +122,14 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
             return sum + (run.total_employees || 0);
           }, 0);
           
-          console.log(`📊 周期 ${periodId} 累计员工数: ${totalCount}`);
+          console.log({t('components:auto___periodid__totalcount__f09f93')});
         } else {
-          console.log(`📊 周期 ${periodId} 无数据或响应格式异常:`, runsResponse);
+          console.log({t('components:auto___periodid___f09f93')}, runsResponse);
         }
         
         return { periodId, count: totalCount };
       } catch (error) {
-        console.error(`❌ 获取周期 ${periodId} 数据统计失败:`, error);
+        console.error({t('components:auto___periodid___e29d8c')}, error);
         return { periodId, count: 0 };
       }
     });
@@ -144,33 +144,33 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
       });
       
       setPeriodDataStats(newStats);
-      console.log('✅ 薪资周期数据统计获取完成:', newStats);
+      console.log({t('components:auto____e29c85')}, newStats);
       
       // 🎯 自动选择最近一个有数据的周期
       if (autoSelectLatestWithData && !value && onChange && Array.isArray(periods)) {
         // 🛡️ 防御性编程：确保periods是有效数组
         const periodsWithData = periods.filter(period => {
           if (!period || typeof period.id === 'undefined') {
-            console.warn('⚠️ 发现无效的周期对象:', period);
+            console.warn({t('components:auto____e29aa0')}, period);
             return false;
           }
           const stats = newStats[period.id];
           return stats && stats.count > 0;
         });
         
-        console.log('🔍 有数据的周期:', periodsWithData.map(p => `${p.name}(${newStats[p.id]?.count || 0}人)`));
+        console.log({t('components:auto____f09f94')}, periodsWithData.map(p => {t('components:auto__p_name_newstats_p_id_count_0___247b70')}));
         
         if (periodsWithData.length > 0) {
           // 选择最近的有数据的周期（已按日期倒序排列）
           const selectedPeriod = periodsWithData[0];
-          console.log(`🎯 自动选择最近一个有数据的薪资周期: ${selectedPeriod.name} (${newStats[selectedPeriod.id]?.count || 0}人)`);
+          console.log({t('components:auto___selectedperiod_name_newstats_selectedperiod_id_count_0___f09f8e')});
           onChange(selectedPeriod.id);
         } else {
-          console.log('📝 没有找到有数据的薪资周期，保持未选择状态');
+          console.log({t('components:auto____f09f93')});
         }
       }
     } catch (error) {
-      console.error('❌ 获取薪资周期数据统计失败:', error);
+      console.error({t('components:auto____e29d8c')}, error);
       // 设置所有为非加载状态
       const errorStats: Record<number, PeriodDataStats> = {};
       periodIds.forEach(id => {
@@ -205,17 +205,17 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
     const fetchPayrollPeriods = async () => {
       setLoadingPeriods(true);
       try {
-        console.log('🚀 开始获取薪资周期数据...');
+        console.log({t('components:auto____f09f9a')});
         
         const response = await payrollApi.getPayrollPeriods({
           size: 100
         });
         
-        console.log('📦 原始薪资周期响应:', response);
+        console.log({t('components:auto____f09f93')}, response);
         
         // 🛡️ 防御性编程：检查响应数据
         if (!response || !response.data || !Array.isArray(response.data)) {
-          console.error('❌ 薪资周期响应数据格式异常:', response);
+          console.error({t('components:auto____e29d8c')}, response);
           setPayrollPeriods([]);
           return;
         }
@@ -225,17 +225,17 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
           return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
         });
         
-        console.log('📅 薪资周期排序结果:', sortedPeriods.map(p => `${p.name} (${p.start_date})`));
+        console.log({t('components:auto____f09f93')}, sortedPeriods.map(p => `${p.name} (${p.start_date})`));
         
         // 根据配置过滤薪资周期
         const filteredPeriods = filterPayrollPeriods(sortedPeriods);
         
         if (enableProductionRestrictions) {
-          console.log(`🔒 生产环境限制：从 ${sortedPeriods.length} 个周期中过滤出 ${filteredPeriods.length} 个可用周期`);
+          console.log({t('components:auto____sortedperiods_length__filteredperiods_length__f09f94')});
         }
         
         setPayrollPeriods(filteredPeriods);
-        console.log(`✅ 成功加载${filteredPeriods.length}个薪资周期`);
+        console.log({t('components:auto___filteredperiods_length__e29c85')});
         
         // 调用回调函数通知父组件薪资周期已加载
         if (onPeriodsLoaded) {
@@ -249,7 +249,7 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
           if (Array.isArray(periodIds) && Array.isArray(filteredPeriods)) {
             fetchPeriodDataStats(periodIds, filteredPeriods);
           } else {
-            console.error('❌ 无法获取薪资周期数据统计：数据格式异常', { periodIds, filteredPeriods });
+            console.error({t('components:auto____e29d8c')}, { periodIds, filteredPeriods });
           }
         }
       } catch (error) {
@@ -295,15 +295,15 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
     } else if (isLoadingStats) {
       dataIcon = <LoadingOutlined style={{ fontSize: '12px' }} />;
       dataColor = '#1890ff';
-      dataText = '统计中...';
+      dataText = {t('components:auto___e7bb9f')};
     } else if (recordCount > 0) {
       dataIcon = <DatabaseOutlined style={{ fontSize: '12px' }} />;
       dataColor = '#52c41a';
-      dataText = `${recordCount}人`;
+      dataText = {t('components:auto__recordcount__247b72')};
     } else {
       dataIcon = <FileAddOutlined style={{ fontSize: '12px' }} />;
       dataColor = '#8c8c8c';
-      dataText = '无数据';
+      dataText = {t('components:auto_text_e697a0')};
     }
     
     return (
@@ -338,7 +338,7 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
               </div>
             )}
             <Tag color={statusColor} style={{ margin: 0, fontSize: '11px' }}>
-              {statusName || '未知状态'}
+              {statusName || {t('components:auto_text_e69caa')}}
             </Tag>
           </div>
         </div>

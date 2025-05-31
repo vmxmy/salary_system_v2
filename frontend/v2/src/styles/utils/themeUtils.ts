@@ -116,7 +116,7 @@ export const getBreakpoints = () => {
 /**
  * 创建响应式媒体查询
  * @param breakpoint 断点名称
- * @param type 查询类型 ('min' 或 'max')
+ * @param type 查询类型 ('min{t('common:auto____20e688')}max')
  * @returns 媒体查询字符串
  */
 export const createMediaQuery = (

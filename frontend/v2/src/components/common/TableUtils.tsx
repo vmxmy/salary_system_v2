@@ -25,7 +25,7 @@ import { useTranslation } from 'react-i18next';
  *    // 在列定义中:
  *    const columns = [
  *      {
- *        title: '名称',
+ *        title: {t('components:auto_text_e5908d')},
  *        dataIndex: 'name',
  *        ...getColumnSearch('name'),
  *        sorter: stringSorter<DataType>('name'),
@@ -37,8 +37,8 @@ import { useTranslation } from 'react-i18next';
  *    ```typescript
  *    // 在组件中:
  *    const { ExportButton } = useTableExport(dataSource, columns, {
- *      filename: '导出数据',
- *      sheetName: '工作表1',
+ *      filename: {t('components:auto_text_e5afbc')},
+ *      sheetName: {t('components:auto_1_e5b7a5')},
  *    });
  *    
  *    // 在组件渲染中:
@@ -79,7 +79,7 @@ import { useTranslation } from 'react-i18next';
  *          sorter: numberSorter<DataType>('id'),
  *        },
  *        {
- *          title: '名称',
+ *          title: {t('components:auto_text_e5908d')},
  *          dataIndex: 'name',
  *          ...getColumnSearch('name'),
  *          sorter: stringSorter<DataType>('name'),
@@ -102,7 +102,7 @@ import { useTranslation } from 'react-i18next';
  *            pagination={{ 
  *              showSizeChanger: true, 
  *              showQuickJumper: true,
- *              showTotal: (total) => `共 ${total} 条记录`,
+ *              showTotal: (total) => {t('components:auto__total__e585b1')},
  *            }} 
  *          />
  *        </>
@@ -251,10 +251,10 @@ export const useTableSearch = () => {
       setSearchedColumn, 
       searchInput,
       {
-        placeholder: t('common:search.placeholder', `搜索${String(dataIndex)}`),
-        searchButton: t('common:button.search', '搜索'),
-        resetButton: t('common:button.reset', '重置'),
-        closeButton: t('common:button.close', '关闭'),
+        placeholder: t('common:search.placeholder', {t('components:auto__string_dataindex__e6909c')}),
+        searchButton: t('common:button.search', {t('components:auto_text_e6909c')}),
+        resetButton: t('common:button.reset', {t('components:auto_text_e9878d')}),
+        closeButton: t('common:button.close', {t('components:auto_text_e585b3')}),
       }
     );
 
@@ -320,13 +320,13 @@ export const useTableExport = <T extends object>(
   const { message } = App.useApp(); // Use message from App.useApp()
   
   const defaultOptions: Omit<Required<ExportOptions>, 'onExportRequest'> & { onExportRequest?: (format: ExportFormat) => void } = {
-    filename: t('common:export.filename', '导出数据'),
+    filename: t('common:export.filename', {t('components:auto_text_e5afbc')}),
     sheetName: t('common:export.sheetName', 'Sheet1'),
     withHeader: true,
-    buttonText: t('common:button.export_excel', '导出Excel'),
-    successMessage: t('common:export.success_message', '导出成功'),
+    buttonText: t('common:button.export_excel', {t('components:auto_excel_e5afbc')}),
+    successMessage: t('common:export.success_message', {t('components:auto_text_e5afbc')}),
     supportedFormats: ['excel'],
-    dropdownButtonText: t('common:button.export', '导出'),
+    dropdownButtonText: t('common:button.export', {t('components:auto_text_e5afbc')}),
     onExportRequest: undefined, // Explicitly undefined initially
   };
 
@@ -334,7 +334,7 @@ export const useTableExport = <T extends object>(
 
   const clientExportToExcel = () => {
     if (!dataSource || !columns) {
-      message.error(t('common:export.error_no_data_for_client_export', '客户端导出缺少数据或列定义'));
+      message.error(t('common:export.error_no_data_for_client_export', {t('components:auto_text_e5aea2')}));
       return;
     }
     try {
@@ -364,8 +364,8 @@ export const useTableExport = <T extends object>(
       XLSX.writeFile(workbook, `${mergedOptions.filename}.xlsx`);
       message.success(mergedOptions.successMessage);
     } catch (error) {
-      console.error(t('common:export.error_log', '导出Excel失败:'), error);
-      message.error(t('common:export.error_message', '导出失败，请重试'));
+      console.error(t('common:export.error_log', {t('components:auto_excel__e5afbc')}), error);
+      message.error(t('common:export.error_message', {t('components:auto___e5afbc')}));
     }
   };
 
@@ -377,7 +377,7 @@ export const useTableExport = <T extends object>(
       } else if (format === 'excel') {
         clientExportToExcel();
       } else {
-        message.warning(t('common:export.warn_no_handler', `未处理的导出格式: ${format}`), );
+        message.warning(t('common:export.warn_no_handler', {t('components:auto__format__e69caa')}), );
       }
     };
 
@@ -415,7 +415,7 @@ export const useTableExport = <T extends object>(
             : getFormatLabel(singleFormatToExport, t); 
 
     return (
-      <Tooltip title={singleButtonText || t('common:tooltip.export_data', '导出数据')}>
+      <Tooltip title={singleButtonText || t('common:tooltip.export_data', {t('components:auto_text_e5afbc')})}>
         <Button
           icon={<DownloadOutlined />}
           onClick={() => {
@@ -424,7 +424,7 @@ export const useTableExport = <T extends object>(
             } else if (singleFormatToExport === 'excel' && !hasExportCallback) { // Ensure it's client export
               clientExportToExcel();
             } else {
-               message.warning(t('common:export.warn_no_handler', `未处理的导出格式: ${singleFormatToExport}`), );
+               message.warning(t('common:export.warn_no_handler', {t('components:auto__singleformattoexport__e69caa')}), );
             }
           }}
           shape="round"
@@ -525,10 +525,10 @@ export const useColumnControl = <T extends object>(
   const defaultOptions: ColumnControlOptions = {
     storageKeyPrefix: 'table_columns',
     showReset: true,
-    buttonText: t('common:column_control.button_text', '列设置'),
-    tooltipTitle: t('common:column_control.tooltip_title', '自定义显示列'),
-    dropdownTitle: t('common:column_control.dropdown_title', '列显示'),
-    resetText: t('common:button.reset', '重置'),
+    buttonText: t('common:column_control.button_text', {t('components:auto_text_e58897')}),
+    tooltipTitle: t('common:column_control.tooltip_title', {t('components:auto_text_e887aa')}),
+    dropdownTitle: t('common:column_control.dropdown_title', {t('components:auto_text_e58897')}),
+    resetText: t('common:button.reset', {t('components:auto_text_e9878d')}),
     requiredColumns: [],
   };
 
@@ -630,14 +630,14 @@ export const useColumnControl = <T extends object>(
         });
       }, 0);
       
-      message.success(t('common:message.column_settings_applied', '列设置已应用'));
+      message.success(t('common:message.column_settings_applied', {t('components:auto_text_e58897')}));
     };
 
     const handleReset = () => {
       setSelectedKeys(allColumnKeys);
       setTempSelectedKeys(allColumnKeys);
       setVisibleColumnKeys(allColumnKeys);
-      message.success(t('common:message.column_settings_reset', '列设置已重置'));
+      message.success(t('common:message.column_settings_reset', {t('components:auto_text_e58897')}));
     };
 
     const stopPropagation = (e: React.MouseEvent) => {
@@ -674,7 +674,7 @@ export const useColumnControl = <T extends object>(
                 </Button>
               )}
               <Button type="primary" size="small" onClick={handleApply}>
-                {t('common:button.apply', '应用')}
+                {t('common:button.apply', {t('components:auto_text_e5ba94')})}
               </Button>
             </Space>
           </div>
@@ -684,7 +684,7 @@ export const useColumnControl = <T extends object>(
 
     return (
       <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
-        <Tooltip title={mergedOptions.tooltipTitle || t('common:tooltip.column_settings', '列设置')}> 
+        <Tooltip title={mergedOptions.tooltipTitle || t('common:tooltip.column_settings', {t('components:auto_text_e58897')})}> 
           <Button 
             icon={<SettingOutlined />} 
             shape="round" 
@@ -705,7 +705,7 @@ export const useColumnControl = <T extends object>(
     clearColumnStorage: () => {
       window.localStorage.removeItem(storageKey);
       setVisibleColumnKeys(allColumnKeys);
-      console.log(`清除了列设置本地存储: ${storageKey}`);
+      console.log({t('components:auto__storagekey__e6b885')});
     }
   };
 }; 

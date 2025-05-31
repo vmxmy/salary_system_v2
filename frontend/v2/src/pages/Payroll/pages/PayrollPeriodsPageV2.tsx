@@ -132,9 +132,9 @@ const generatePayrollPeriodTableColumns = (
         
         // 根据状态名称确定状态类型
         let statusType: 'active' | 'inactive' | 'pending' = 'active';
-        if (status.name.includes('关闭') || status.name.includes('完成')) {
+        if (status.name.includes({t('payroll:auto_text_e585b3')}) || status.name.includes({t('payroll:auto_text_e5ae8c')})) {
           statusType = 'inactive';
-        } else if (status.name.includes('草稿') || status.name.includes('计划')) {
+        } else if (status.name.includes({t('payroll:auto_text_e88d89')}) || status.name.includes({t('payroll:auto_text_e8aea1')})) {
           statusType = 'pending';
         }
         
@@ -147,7 +147,7 @@ const generatePayrollPeriodTableColumns = (
       onFilter: (value, record) => record.status_lookup_value_id === value,
     },
     {
-      title: '员工人数',
+      title: {t('payroll:auto_text_e59198')},
       dataIndex: 'data_stats',
       key: 'data_stats',
       width: 120,
@@ -167,7 +167,7 @@ const generatePayrollPeriodTableColumns = (
           );
         } else if (recordCount > 0) {
           return (
-            <Tooltip title={`该薪资周期共有 ${recordCount} 个员工的薪资记录`}>
+            <Tooltip title={{t('payroll:auto__recordcount__e8afa5')}}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 <DatabaseOutlined style={{ fontSize: '14px', color: '#52c41a' }} />
                 <span style={{ fontSize: '12px', color: '#52c41a', fontWeight: '500' }}>
@@ -178,7 +178,7 @@ const generatePayrollPeriodTableColumns = (
           );
         } else {
           return (
-            <Tooltip title="该薪资周期暂无员工薪资记录">
+            <Tooltip title={t('payroll:auto_text_e8afa5')}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 <FileAddOutlined style={{ fontSize: '14px', color: '#8c8c8c' }} />
                 <span style={{ fontSize: '12px', color: '#8c8c8c' }}>无数据</span>
@@ -256,7 +256,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
 
   // 获取薪资周期数据统计
   const fetchPeriodDataStats = useCallback(async (periodIds: number[]) => {
-    console.log('🔍 开始获取薪资周期数据统计...');
+    console.log({t('payroll:auto____f09f94')});
     
     // 初始化加载状态
     const initialStats: Record<number, { count: number; loading: boolean }> = {};
@@ -268,7 +268,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
     // 并发获取所有周期的数据统计
     const statsPromises = periodIds.map(async (periodId) => {
       try {
-        console.log(`📊 获取周期 ${periodId} 的数据统计...`);
+        console.log({t('payroll:auto___periodid___f09f93')});
         
         const runsResponse = await getPayrollRuns({
           period_id: periodId,
@@ -283,10 +283,10 @@ const PayrollPeriodsPageV2: React.FC = () => {
           }, 0);
         }
         
-        console.log(`📊 周期 ${periodId} 有 ${totalCount} 个员工的薪资记录`);
+        console.log({t('payroll:auto___periodid__totalcount__f09f93')});
         return { periodId, count: totalCount };
       } catch (error) {
-        console.error(`❌ 获取周期 ${periodId} 数据统计失败:`, error);
+        console.error({t('payroll:auto___periodid___e29d8c')}, error);
         return { periodId, count: 0 };
       }
     });
@@ -300,9 +300,9 @@ const PayrollPeriodsPageV2: React.FC = () => {
       });
       
       setPeriodDataStats(newStats);
-      console.log('✅ 薪资周期数据统计获取完成:', newStats);
+      console.log({t('payroll:auto____e29c85')}, newStats);
     } catch (error) {
-      console.error('❌ 获取薪资周期数据统计失败:', error);
+      console.error({t('payroll:auto____e29d8c')}, error);
       const errorStats: Record<number, { count: number; loading: boolean }> = {};
       periodIds.forEach(id => {
         errorStats[id] = { count: 0, loading: false };
@@ -406,20 +406,20 @@ const PayrollPeriodsPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的薪资周期吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的薪资周期',
+          buttonText: {t('payroll:auto_text_e689b9')},
+          confirmTitle: {t('payroll:auto_text_e7a1ae')},
+          confirmContent: {t('payroll:auto____e7a1ae')},
+          confirmOkText: {t('payroll:auto_text_e7a1ae')},
+          confirmCancelText: {t('payroll:auto_text_e58f96')},
+          successMessage: {t('payroll:auto_text_e689b9')},
+          errorMessage: {t('payroll:auto_text_e689b9')},
+          noSelectionMessage: {t('payroll:auto_text_e8afb7')},
         }}
         exportConfig={{
-          filenamePrefix: '薪资周期',
-          sheetName: '薪资周期',
-          buttonText: '导出Excel',
-          successMessage: '薪资周期数据导出成功',
+          filenamePrefix: {t('payroll:auto_text_e896aa')},
+          sheetName: {t('payroll:auto_text_e896aa')},
+          buttonText: {t('payroll:auto_excel_e5afbc')},
+          successMessage: {t('payroll:auto_text_e896aa')},
         }}
         lookupErrorMessageKey="payroll_periods_page.message.load_aux_data_failed"
         lookupLoadingMessageKey="payroll_periods_page.loading_lookups"

@@ -39,9 +39,9 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       setCurrentPage(result.meta.page);
       setPageSize(result.meta.size);
     } catch (err: any) {
-      console.error('获取假期余额失败:', err);
-      setError('获取假期余额失败，请稍后重试。');
-      message.error(err.response?.data?.message || '获取假期余额失败!');
+      console.error({t('hr:auto___e88eb7')}, err);
+      setError({t('hr:auto____e88eb7')});
+      message.error(err.response?.data?.message || {t('hr:auto___e88eb7')});
     } finally {
       setLoading(false);
     }
@@ -70,15 +70,15 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
   const handleModalOk = async () => {
     try {
       if (editingRecord) {
-        message.success('假期余额调整成功 (模拟)');
+        message.success({t('hr:auto____e58187')});
       } else {
-        message.success('假期余额添加成功 (模拟)');
+        message.success({t('hr:auto____e58187')});
       }
       setIsModalVisible(false);
       fetchLeaveBalances(currentPage, pageSize);
     } catch (errorInfo) {
-      console.log('表单校验失败:', errorInfo);
-      message.error('表单校验失败，请检查输入。');
+      console.log({t('hr:auto___e8a1a8')}, errorInfo);
+      message.error({t('hr:auto____e8a1a8')});
     }
   };
 
@@ -96,27 +96,27 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
 
   const columns: ProColumns<LeaveBalanceItem>[] = [
     { 
-      title: '假期类型', 
+      title: {t('hr:auto_text_e58187')}, 
       dataIndex: 'leaveTypeName', 
       key: 'leaveTypeName',
       search: false,
     },
     { 
-      title: '总额度', 
+      title: {t('hr:auto_text_e680bb')}, 
       dataIndex: 'total_entitlement', 
       key: 'total_entitlement', 
       render: (_, record) => `${record.total_entitlement} ${record.unit}`,
       search: false,
     },
     { 
-      title: '已用', 
+      title: {t('hr:auto_text_e5b7b2')}, 
       dataIndex: 'taken', 
       key: 'taken', 
       render: (_, record) => `${record.taken} ${record.unit}`,
       search: false,
     },
     {
-      title: '余额',
+      title: {t('hr:auto_text_e4bd99')},
       dataIndex: 'balance',
       key: 'balance',
       search: false,
@@ -132,27 +132,27 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       },
     },
     { 
-      title: '单位', 
+      title: {t('hr:auto_text_e58d95')}, 
       dataIndex: 'unit', 
       key: 'unit', 
       hideInTable: true,
       search: false,
     },
     { 
-      title: '年度', 
+      title: {t('hr:auto_text_e5b9b4')}, 
       dataIndex: 'year', 
       key: 'year',
       search: false,
     },
     { 
-      title: '有效期至', 
+      title: {t('hr:auto_text_e69c89')}, 
       dataIndex: 'validityDate', 
       key: 'validityDate', 
       render: (_, record) => dayjs(record.validity_date).isValid() ? dayjs(record.validity_date).format('YYYY-MM-DD') : '',
       search: false,
     },
     {
-      title: '操作',
+      title: {t('hr:auto_text_e6938d')},
       key: 'action',
       fixed: 'right',
       width: 150,
@@ -184,7 +184,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
   }
 
   if (error) {
-    return <Alert message="错误" description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
+    return <Alert message={t('hr:auto_text_e99499')} description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
   }
 
   return (
@@ -209,7 +209,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
         enableAdvancedFeatures={true}
         showToolbar={true}
         search={false}
-        title="假期余额"
+        title={t('hr:auto_text_e58187')}
         onRefresh={handleRefresh}
         customToolbarButtons={[
           hasPermission('leave:adjust_balance') && (
@@ -226,39 +226,39 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       />
       
       <Modal
-        title={editingRecord ? '调整假期余额' : '添加假期余额'}
+        title={editingRecord ? {t('hr:auto_text_e8b083')} : {t('hr:auto_text_e6b7bb')}}
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okText="保存"
-        cancelText="取消"
+        okText={t('hr:auto_text_e4bf9d')}
+        cancelText={t('hr:auto_text_e58f96')}
         destroyOnHidden
         width={600}
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="leaveTypeId" label="假期类型" rules={[{ required: true, message: '请选择假期类型' }]}>
-            <Select placeholder="选择假期类型">
+          <Form.Item name="leaveTypeId" label={t('hr:auto_text_e58187')} rules={[{ required: true, message: {t('hr:auto_text_e8afb7')} }]}>
+            <Select placeholder={t('hr:auto_text_e98089')}>
               {Object.values(LeaveType).map(lt => (
                 <Select.Option key={lt} value={lt}>{lt}</Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="total_entitlement" label="总额度" rules={[{ required: true, message: '请输入总额度' }]}>
+          <Form.Item name="total_entitlement" label={t('hr:auto_text_e680bb')} rules={[{ required: true, message: {t('hr:auto_text_e8afb7')} }]}>
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
-          <Form.Item name="taken" label="已用额度" rules={[{ required: true, message: '请输入已用额度' }]}>
+          <Form.Item name="taken" label={t('hr:auto_text_e5b7b2')} rules={[{ required: true, message: {t('hr:auto_text_e8afb7')} }]}>
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
-          <Form.Item name="unit" label="单位" rules={[{ required: true, message: '请选择单位' }]}>
-            <Select placeholder="选择单位">
-              <Select.Option value="天">天</Select.Option>
-              <Select.Option value="小时">小时</Select.Option>
+          <Form.Item name="unit" label={t('hr:auto_text_e58d95')} rules={[{ required: true, message: {t('hr:auto_text_e8afb7')} }]}>
+            <Select placeholder={t('hr:auto_text_e98089')}>
+              <Select.Option value={t('hr:auto_text_e5a4a9')}>天</Select.Option>
+              <Select.Option value={t('hr:auto_text_e5b08f')}>小时</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="year" label="年度" rules={[{ required: true, message: '请输入年度' }]}>
+          <Form.Item name="year" label={t('hr:auto_text_e5b9b4')} rules={[{ required: true, message: {t('hr:auto_text_e8afb7')} }]}>
             <InputNumber style={{ width: '100%' }} min={2020} max={2030} />
           </Form.Item>
-          <Form.Item name="validity_date" label="有效期至">
+          <Form.Item name="validity_date" label={t('hr:auto_text_e69c89')}>
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
         </Form>

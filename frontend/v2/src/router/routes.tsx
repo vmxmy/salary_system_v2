@@ -157,7 +157,7 @@ export const routes: AppRouteObject[] = [
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><EmployeeBulkImportPage /></React.Suspense>,
             meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['employee:create'] }
           },
-          // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: 'HR仪表盘' } },
+          // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: {t('common:auto_hr_4852e4')} } },
           // EmployeeListPage import is removed, new routes handle /hr/employees
           { path: 'leave', element: <LeavePage />, meta: { title: 'leave_management', requiredPermissions: ['leave:manage'] } },
         ],
@@ -173,7 +173,7 @@ export const routes: AppRouteObject[] = [
         ),
         meta: { title: 'finance_management', requiredRoles: ['FINANCE_MANAGER', 'ACCOUNTANT', 'SUPER_ADMIN'] },
         children: [
-          // { path: 'payroll', element: <PayrollPage />, meta: { title: '薪资管理', requiredPermissions: ['payroll:manage'] } }, // This is the old, incorrect payroll route
+          // { path: 'payroll', element: <PayrollPage />, meta: { title: {t('common:auto_text_e896aa')}, requiredPermissions: ['payroll:manage'] } }, // This is the old, incorrect payroll route
           {
             path: 'payroll',
             element: <Outlet />,
@@ -201,7 +201,7 @@ export const routes: AppRouteObject[] = [
             <Outlet /> {/* Parent route renders an Outlet for child routes */}
           </AppProtectedRoute>
         ),
-        meta: { title: 'view_reports' }, // Meta for the parent menu item "视图报表"
+        meta: { title: 'view_reports' }, // Meta for the parent menu item {t('common:auto_text_e8a786')}
         children: [
           { index: true, element: <Navigate to="management" replace /> }, // Default to management view
           {

@@ -35,16 +35,16 @@ const { useBreakpoint } = Grid;
 
 // 时间维度选项
 const TIME_DIMENSION_OPTIONS = [
-  { label: '月度', value: 'monthly' },
-  { label: '季度', value: 'quarterly' },
-  { label: '年度', value: 'yearly' }
+  { label: {t('dashboard:auto_text_e69c88')}, value: 'monthly' },
+  { label: {t('dashboard:auto_text_e5ada3')}, value: 'quarterly' },
+  { label: {t('dashboard:auto_text_e5b9b4')}, value: 'yearly' }
 ];
 
 // 仪表盘视图选项
 const DASHBOARD_VIEW_OPTIONS = [
-  { label: '💼 管理概览', value: 'management' },
-  { label: '📊 数据分析', value: 'analytics' },
-  { label: '⚠️ 风险监控', value: 'risk' }
+  { label: {t('dashboard:auto___f09f92')}, value: 'management' },
+  { label: {t('dashboard:auto___f09f93')}, value: 'analytics' },
+  { label: {t('dashboard:auto___e29aa0')}, value: 'risk' }
 ];
 
 interface DashboardData {
@@ -109,11 +109,11 @@ const DashboardV3: React.FC = () => {
       });
 
       if (!showLoading) {
-        message.success('📊 仪表盘数据已更新');
+        message.success({t('dashboard:auto___f09f93')});
       }
     } catch (error) {
-      console.error('获取仪表盘数据失败:', error);
-      message.error('❌ 获取仪表盘数据失败，请稍后重试');
+      console.error({t('dashboard:auto___e88eb7')}, error);
+      message.error({t('dashboard:auto____e29d8c')});
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -129,14 +129,14 @@ const DashboardV3: React.FC = () => {
   const handleTimeDimensionChange = useCallback((value: string) => {
     setTimeDimension(value);
     // 这里可以根据时间维度重新获取数据
-    message.info(`📅 已切换到${TIME_DIMENSION_OPTIONS.find(opt => opt.value === value)?.label}视图`);
+    message.info({t('dashboard:auto___time_dimension_options_find_opt_opt_value_value_label__f09f93')});
   }, []);
 
   // 处理视图切换
   const handleViewChange = useCallback((value: string) => {
     setDashboardView(value);
     const viewName = DASHBOARD_VIEW_OPTIONS.find(opt => opt.value === value)?.label;
-    message.info(`🔄 已切换到${viewName}`);
+    message.info({t('dashboard:auto___viewname__f09f94')});
   }, []);
 
   // 初始化数据
@@ -153,7 +153,7 @@ const DashboardV3: React.FC = () => {
         onChange={handleTimeDimensionChange}
         size={isMobile ? "small" : "small"}
       />
-      <Tooltip title="刷新数据">
+      <Tooltip title={t('dashboard:auto_text_e588b7')}>
         <Button
           type="text"
           icon={<ReloadOutlined spin={refreshing} />}
@@ -164,18 +164,18 @@ const DashboardV3: React.FC = () => {
       </Tooltip>
       {!isMobile && (
         <>
-          <Tooltip title="全屏显示">
+          <Tooltip title={t('dashboard:auto_text_e585a8')}>
             <Button
               type="text"
               icon={<FullscreenOutlined />}
-              onClick={() => message.info('🔍 全屏功能开发中')}
+              onClick={() => message.info({t('dashboard:auto___f09f94')})}
             />
           </Tooltip>
-          <Tooltip title="仪表盘设置">
+          <Tooltip title={t('dashboard:auto_text_e4bbaa')}>
             <Button
               type="text"
               icon={<SettingOutlined />}
-              onClick={() => message.info('⚙️ 设置功能开发中')}
+              onClick={() => message.info({t('dashboard:auto___e29a99')})}
             />
           </Tooltip>
         </>
@@ -196,7 +196,7 @@ const DashboardV3: React.FC = () => {
             <Title level={5} style={{ margin: 0 }}>
               📈 薪资管理仪表盘
             </Title>
-            <Tooltip title="根据不同角色需求切换视图">
+            <Tooltip title={t('dashboard:auto_text_e6a0b9')}>
               <QuestionCircleOutlined style={{ color: '#999' }} />
             </Tooltip>
           </Space>
@@ -224,7 +224,7 @@ const DashboardV3: React.FC = () => {
           alignItems: 'center', 
           height: '60vh' 
         }}>
-          <Spin size="large" tip="📊 正在加载仪表盘数据...">
+          <Spin size="large" tip={t('dashboard:auto____f09f93')}>
             <div style={{ width: 200, height: 100 }} />
           </Spin>
         </div>
@@ -232,7 +232,7 @@ const DashboardV3: React.FC = () => {
     }
 
     return (
-      <Spin spinning={refreshing} tip="🔄 数据更新中...">
+      <Spin spinning={refreshing} tip={t('dashboard:auto____f09f94')}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           {/* KPI 概览区域 - 所有视图都显示 */}
           <KpiOverviewSection 
@@ -301,7 +301,7 @@ const DashboardV3: React.FC = () => {
             {screens.lg && ' LG'}
             {screens.xl && ' XL'}
             {screens.xxl && ' XXL'}
-            {isMobile ? ' (移动端)' : ' (桌面端)'}
+            {isMobile ? {t('dashboard:auto____2028e7')} : {t('dashboard:auto____2028e6')}}
           </Text>
         </Card>
       )}

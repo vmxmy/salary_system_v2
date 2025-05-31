@@ -69,12 +69,12 @@ const ReportViewData: React.FC<ReportViewDataProps> = ({
       // 1. 视图状态检查
       if (reportView.view_status !== 'created') {
         const statusMessages = {
-          draft: '报表视图为草稿状态，请先同步视图定义到数据库。',
-          error: '报表视图存在错误，请检查SQL定义并尝试重新同步。',
+          draft: {t('components:auto____e68aa5')},
+          error: {t('components:auto__sql__e68aa5')},
         };
         const errorMessage =
           statusMessages[reportView.view_status as keyof typeof statusMessages] ||
-          `报表视图状态异常 (${reportView.view_status})，无法加载数据。`;
+          {t('components:auto__reportview_view_status___e68aa5')};
         
         console.warn('[ReportViewData] View status check failed:', {
           viewId: reportView.id,
@@ -179,14 +179,14 @@ const ReportViewData: React.FC<ReportViewDataProps> = ({
         
         // 如果响应格式不符合预期
         console.error('Unexpected API response format after attempting to unwrap:', response);
-        message.error('获取数据失败：响应数据格式不正确。');
+        message.error({t('components:auto____e88eb7')});
         if (initialLoading) setInitialLoading(false);
         return { data: [], success: false, total: 0 };
 
       } catch (error: any) {
         console.error('Failed to load report data (proTableRequest):', error);
-        const errorMsg = error?.response?.data?.message || error?.message || '未知错误';
-        message.error(`加载数据失败: ${errorMsg}`);
+        const errorMsg = error?.response?.data?.message || error?.message || {t('components:auto_text_e69caa')};
+        message.error({t('components:auto__errormsg__e58aa0')});
         if (initialLoading) setInitialLoading(false);
         return { data: [], success: false, total: 0 };
       }
@@ -206,7 +206,7 @@ const ReportViewData: React.FC<ReportViewDataProps> = ({
     const { params: proTableParams, sort: proTableSort, filter: proTableFilter } = latestTableParamsRef.current;
 
     if (!proTableParams) {
-      message.warning( '无法获取当前表格参数用于导出，请先查询数据。');
+      message.warning( {t('components:auto____e697a0')});
       return;
     }
     
@@ -255,7 +255,7 @@ const ReportViewData: React.FC<ReportViewDataProps> = ({
 
       console.log('[ReportViewData] Exporting data with API request params:', JSON.stringify(queryParamsForExport, null, 2));
 
-      message.loading({ content: `正在导出 ${format.toUpperCase()} 文件...`, key: 'exporting' });
+      message.loading({ content: {t('components:auto__format_touppercase___e6ada3')}, key: 'exporting' });
 
       const blob = await reportViewAPI.exportReportViewData(
         reportView.id,
@@ -277,11 +277,11 @@ const ReportViewData: React.FC<ReportViewDataProps> = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      message.success({ content: '导出成功', key: 'exporting' });
+      message.success({ content: {t('components:auto_text_e5afbc')}, key: 'exporting' });
     } catch (error: any) {
       console.error('Export failed:', error);
-      const errorMsg = error?.response?.data?.message || error?.message || '未知导出错误';
-      message.error({ content: `导出失败: ${errorMsg}`, key: 'exporting' });
+      const errorMsg = error?.response?.data?.message || error?.message || {t('components:auto_text_e69caa')};
+      message.error({ content: {t('components:auto__errormsg__e5afbc')}, key: 'exporting' });
     }
   }, [reportView.id, reportView.name]); // reportView.name 用于文件名, reportView.id 用于 API 调用
 

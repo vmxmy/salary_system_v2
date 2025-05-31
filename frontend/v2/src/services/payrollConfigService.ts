@@ -13,21 +13,21 @@ export const getPayrollComponentDefinitions = async (
   params?: Record<string, any>
 ): Promise<ApiListResponse<PayrollComponentDefinition>> => {
   try {
-    console.log('🌐 payrollConfigService: 开始API调用', PAYROLL_COMPONENTS_ENDPOINT);
-    console.log('🔧 payrollConfigService: 请求参数', params);
+    console.log({t('common:auto__payrollconfigservice_api_f09f8c')}, PAYROLL_COMPONENTS_ENDPOINT);
+    console.log({t('common:auto__payrollconfigservice__f09f94')}, params);
     
     const response = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>(
       PAYROLL_COMPONENTS_ENDPOINT, 
       { params }
     );
     
-    console.log('✅ payrollConfigService: API调用成功');
-    console.log('📦 payrollConfigService: 响应数据', response.data);
+    console.log({t('common:auto__payrollconfigservice_api_e29c85')});
+    console.log({t('common:auto__payrollconfigservice__f09f93')}, response.data);
     
     return response.data;
   } catch (error: any) {
-    console.error('❌ payrollConfigService: API调用失败', error);
-    console.error('❌ payrollConfigService: 错误详情', {
+    console.error({t('common:auto__payrollconfigservice_api_e29d8c')}, error);
+    console.error({t('common:auto__payrollconfigservice__e29d8c')}, {
       message: error?.message,
       status: error?.status,
       statusText: error?.statusText,

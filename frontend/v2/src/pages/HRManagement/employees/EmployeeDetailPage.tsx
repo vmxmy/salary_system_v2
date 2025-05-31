@@ -117,7 +117,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
                 ? t('employee:detail_page.job_info_tab.seniority_years_months', { years, months })
                 : t('employee:detail_page.job_info_tab.seniority_months', { months });
         } catch (error) {
-            console.error("计算司龄时出错:", error);
+            console.error({t('hr:auto___e8aea1')}, error);
             return naText;
         }
     };
@@ -141,7 +141,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
                      employee.actual_position_name || 
                      String(employee.actual_position_id ?? naText)}
                 </Descriptions.Item>
-                <Descriptions.Item label="职务级别">
+                <Descriptions.Item label={t('hr:auto_text_e8818c')}>
                     {lookupMaps?.jobPositionLevelMap.get(Number(employee.job_position_level_lookup_value_id)) || 
                      employee.job_position_level_lookup_value_name || 
                      employee.jobPositionLevelName ||
@@ -291,7 +291,7 @@ const EmployeeDetailPage: React.FC = () => {
           console.warn('[EmployeeDetailPage] fetchEmployee: No data received for employeeId:', employeeId);
         }
       } catch (err) {
-        console.error('[EmployeeDetailPage] fetchEmployee: 获取员工详情失败:', err);
+        console.error({t('hr:auto__employeedetailpage_fetchemployee___5b456d')}, err);
         setError(t('employee:detail_page.message.error_get_employee_detail_failed_retry'));
         message.error(t('employee:detail_page.message.error_get_employee_detail_failed'));
       } finally {

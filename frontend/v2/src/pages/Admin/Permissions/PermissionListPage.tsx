@@ -196,7 +196,7 @@ const PermissionListPage: React.FC = () => {
         enableAdvancedFeatures={true}
         showToolbar={true}
         search={false}
-        title={t('list_page.table.title', '权限列表')}
+        title={t('list_page.table.title', {t('admin:auto_text_e69d83')})}
         onRefresh={handleRefresh}
         customToolbarButtons={[
           <Button

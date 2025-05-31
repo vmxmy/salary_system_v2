@@ -141,7 +141,7 @@ function EnhancedProTable<T extends Record<string, any>>({
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100'],
     showTotal: (total: number, range: [number, number]) => 
-      `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+      {t('components:auto__range_0_range_1___total__e7acac')},
     ...pagination,
   } : false;
 
@@ -155,13 +155,13 @@ function EnhancedProTable<T extends Record<string, any>>({
     try {
       if (onRefresh) {
         await onRefresh();
-        message.success(t('common:table.refreshSuccess', '刷新成功'));
+        message.success(t('common:table.refreshSuccess', {t('components:auto_text_e588b7')}));
       } else if (tableActionRef.current?.reload) {
         tableActionRef.current.reload();
-        message.success(t('common:table.refreshSuccess', '刷新成功'));
+        message.success(t('common:table.refreshSuccess', {t('components:auto_text_e588b7')}));
       }
     } catch (error) {
-      message.error(t('common:table.refreshError', '刷新失败'));
+      message.error(t('common:table.refreshError', {t('components:auto_text_e588b7')}));
     }
   };
 
@@ -184,14 +184,14 @@ function EnhancedProTable<T extends Record<string, any>>({
     // 如果需要自定义按钮，请通过 customToolbarButtons 传入
     if (false) {
       defaultButtons.push(
-        <Tooltip key="refresh" title={t('common:table.refresh', '刷新')}>
+        <Tooltip key="refresh" title={t('common:table.refresh', {t('components:auto_text_e588b7')})}>
           <Button
             type="text"
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
           />
         </Tooltip>,
-        <Tooltip key="fullscreen" title={isFullscreen ? t('common:table.exitFullscreen', '退出全屏') : t('common:table.fullscreen', '全屏')}>
+        <Tooltip key="fullscreen" title={isFullscreen ? t('common:table.exitFullscreen', {t('components:auto_text_e98080')}) : t('common:table.fullscreen', {t('components:auto_text_e585a8')})}>
           <Button
             type="text"
             icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
@@ -224,7 +224,7 @@ function EnhancedProTable<T extends Record<string, any>>({
       bordered={bordered}
       size={size}
       locale={{
-        emptyText: emptyText || t('common:table.noData', '暂无数据'),
+        emptyText: emptyText || t('common:table.noData', {t('components:auto_text_e69a82')}),
       }}
       options={enableAdvancedFeatures ? {
         reload: true,

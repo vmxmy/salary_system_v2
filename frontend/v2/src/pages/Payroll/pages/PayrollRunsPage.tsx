@@ -86,7 +86,7 @@ const PayrollRunsPage: React.FC = () => {
     
     // ✅ 检测潜在的无限循环
     if (fetchCallCountRef.current > 10) {
-      console.error('[PayrollRunsPage] ❌ 检测到潜在的无限循环！fetchRuns调用次数超过10次');
+      console.error({t('payroll:auto__payrollrunspage__fetchruns10_5b5061')});
       return;
     }
     
@@ -115,7 +115,7 @@ const PayrollRunsPage: React.FC = () => {
               payroll_period_id: 1,
               payroll_period: { 
                 id: 1, 
-                name: '2024年1月',
+                name: {t('payroll:auto_20241_323032')},
                 start_date: '2024-01-01',
                 end_date: '2024-01-31',
                 pay_date: '2024-02-05',
@@ -125,7 +125,7 @@ const PayrollRunsPage: React.FC = () => {
               run_date: '2024-01-15',
               status_lookup_value_id: 201,
               total_employees: 10,
-              notes: '模拟数据测试',
+              notes: {t('payroll:auto_text_e6a8a1')},
               created_at: '2024-01-01T00:00:00Z',
               updated_at: '2024-01-01T00:00:00Z'
             } as PayrollRun
@@ -329,7 +329,7 @@ const PayrollRunsPage: React.FC = () => {
   
   // 生成批次名称的函数
   const generateRunName = (run: PayrollRun): string => {
-    const periodName = run.payroll_period?.name || `周期ID: ${run.payroll_period_id}`;
+    const periodName = run.payroll_period?.name || {t('payroll:auto_id_run_payroll_period_id__e591a8')};
     const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
     return `${periodName} - ${runDate}`;
   };
@@ -464,7 +464,7 @@ const PayrollRunsPage: React.FC = () => {
           total: meta?.total,
           showSizeChanger: true,
           showTotal: (total: number, range: [number, number]) => 
-            `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
+            {t('payroll:auto__range_0_range_1___total__e7acac')},
         }}
 
         scroll={{ x: 'max-content' }}

@@ -32,9 +32,9 @@ const usePayrollComponentLookups = () => {
     setLoadingLookups(true);
     setErrorLookups(null);
     try {
-      console.log('🔄 开始获取薪资字段类型...');
+      console.log({t('payroll:auto____f09f94')});
       const response = await configApi.getPayrollComponentTypes();
-      console.log('✅ 获取薪资字段类型成功:', response);
+      console.log({t('payroll:auto____e29c85')}, response);
       
       const typeMap = new Map();
       const typeInfo: Record<string, { text: string, color: string }> = {};
@@ -79,7 +79,7 @@ const usePayrollComponentLookups = () => {
         typeInfo,
       });
     } catch (error) {
-      console.error('❌ 获取薪资字段类型失败:', error);
+      console.error({t('payroll:auto____e29d8c')}, error);
       setErrorLookups(error);
     } finally {
       setLoadingLookups(false);
@@ -293,7 +293,7 @@ const PayrollComponentsPageNew: React.FC = () => {
       setViewingComponent(component);
       setDetailModalVisible(true);
     } else {
-      message.error('未找到对应的薪资字段信息');
+      message.error({t('payroll:auto_text_e69caa')});
     }
   };
 
@@ -310,7 +310,7 @@ const PayrollComponentsPageNew: React.FC = () => {
       
       delete mappedValues.sort_order;
       
-      console.log('提交的数据:', mappedValues);
+      console.log({t('payroll:auto___e68f90')}, mappedValues);
       
       if (editingComponent) {
         await payrollApi.updatePayrollComponentDefinition(editingComponent.id, mappedValues);
@@ -339,17 +339,17 @@ const PayrollComponentsPageNew: React.FC = () => {
           errorMessage = errorDetail.details;
         } else {
           const errorText = JSON.stringify(error.response.data).toLowerCase();
-          if (errorText.includes('已存在') || errorText.includes('duplicate') || errorText.includes('unique')) {
+          if (errorText.includes({t('payroll:auto_text_e5b7b2')}) || errorText.includes('duplicate') || errorText.includes('unique')) {
             const values = form.getFieldsValue();
             errorMessage = values?.code 
               ? `编码 "${values.code}" 已存在，请使用不同的编码`
-              : '编码已存在，请使用不同的编码';
+              : {t('payroll:auto___e7bc96')};
           }
         }
       } else if (error.response?.status === 400) {
-        errorMessage = '请求数据格式错误，请检查输入内容';
+        errorMessage = {t('payroll:auto___e8afb7')};
       } else if (error.response?.status === 500) {
-        errorMessage = '服务器内部错误，请稍后重试或联系管理员';
+        errorMessage = {t('payroll:auto___e69c8d')};
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -425,7 +425,7 @@ const PayrollComponentsPageNew: React.FC = () => {
           <Col span={12}>
             <Form.Item
               name="effective_date"
-              label="生效日期"
+              label={t('payroll:auto_text_e7949f')}
               rules={[{ required: true, message: t('common.validation.required') }]}
             >
               <Input type="date" />
@@ -434,7 +434,7 @@ const PayrollComponentsPageNew: React.FC = () => {
           <Col span={12}>
             <Form.Item
               name="end_date"
-              label="结束日期"
+              label={t('payroll:auto_text_e7bb93')}
             >
               <Input type="date" />
             </Form.Item>
@@ -636,7 +636,7 @@ const PayrollComponentsPageNew: React.FC = () => {
                   color={viewingComponent.is_active ? 'success' : 'error'}
                   style={{ fontSize: '12px', fontWeight: 500 }}
                 >
-                  {viewingComponent.is_active ? '✅ 启用' : '❌ 禁用'}
+                  {viewingComponent.is_active ? {t('payroll:auto___e29c85')} : {t('payroll:auto___e29d8c')}}
                 </Tag>
               </Col>
             </Row>
@@ -681,7 +681,7 @@ const PayrollComponentsPageNew: React.FC = () => {
                     fontWeight: 600,
                     color: viewingComponent.is_taxable ? '#52c41a' : '#ff4d4f'
                   }}>
-                    {viewingComponent.is_taxable ? '计税' : '不计税'}
+                    {viewingComponent.is_taxable ? {t('payroll:auto_text_e8aea1')} : {t('payroll:auto_text_e4b88d')}}
                   </div>
                 </div>
               </Col>
@@ -704,7 +704,7 @@ const PayrollComponentsPageNew: React.FC = () => {
                     fontWeight: 600,
                     color: viewingComponent.is_social_security_base ? '#52c41a' : '#ff4d4f'
                   }}>
-                    {viewingComponent.is_social_security_base ? '计入' : '不计入'}
+                    {viewingComponent.is_social_security_base ? {t('payroll:auto_text_e8aea1')} : {t('payroll:auto_text_e4b88d')}}
                   </div>
                 </div>
               </Col>
@@ -727,7 +727,7 @@ const PayrollComponentsPageNew: React.FC = () => {
                     fontWeight: 600,
                     color: viewingComponent.is_housing_fund_base ? '#52c41a' : '#ff4d4f'
                   }}>
-                    {viewingComponent.is_housing_fund_base ? '计入' : '不计入'}
+                    {viewingComponent.is_housing_fund_base ? {t('payroll:auto_text_e8aea1')} : {t('payroll:auto_text_e4b88d')}}
                   </div>
                 </div>
               </Col>
@@ -844,20 +844,20 @@ const PayrollComponentsPageNew: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的项目吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的项目',
+          buttonText: {t('payroll:auto_text_e689b9')},
+          confirmTitle: {t('payroll:auto_text_e7a1ae')},
+          confirmContent: {t('payroll:auto____e7a1ae')},
+          confirmOkText: {t('payroll:auto_text_e7a1ae')},
+          confirmCancelText: {t('payroll:auto_text_e58f96')},
+          successMessage: {t('payroll:auto_text_e689b9')},
+          errorMessage: {t('payroll:auto_text_e689b9')},
+          noSelectionMessage: {t('payroll:auto_text_e8afb7')},
         }}
         exportConfig={{
-          filenamePrefix: '薪资字段定义',
-          sheetName: '薪资字段',
-          buttonText: '导出Excel',
-          successMessage: '薪资字段数据导出成功',
+          filenamePrefix: {t('payroll:auto_text_e896aa')},
+          sheetName: {t('payroll:auto_text_e896aa')},
+          buttonText: {t('payroll:auto_excel_e5afbc')},
+          successMessage: {t('payroll:auto_text_e896aa')},
         }}
         lookupErrorMessageKey="common.error.fetch"
         lookupLoadingMessageKey="common.loading"

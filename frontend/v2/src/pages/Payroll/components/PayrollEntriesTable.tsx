@@ -63,7 +63,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       });
       
       if (response.data && response.data.length > 0) {
-        console.log('📊 获取到工资条目数据，条目数量:', response.data.length);
+        console.log({t('payroll:auto_____f09f93')}, response.data.length);
         
         // 筛选出需要获取详情的员工ID
         const employeeIds = response.data
@@ -72,13 +72,13 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
           
         // 如果有未获取到姓名的员工ID，尝试从缓存中获取
         if (employeeIds.length > 0) {
-          console.log('🔍 发现有员工姓名需要补充，尝试从缓存获取');
+          console.log({t('payroll:auto____f09f94')});
           const cachedEmployees = employeeCacheService.getEmployees(employeeIds);
           
           // 如果缓存中没有的员工ID，尝试批量获取
           const uncachedIds = employeeIds.filter(id => !cachedEmployees[id]);
           if (uncachedIds.length > 0) {
-            console.log('⌛ 从API批量获取员工信息:', uncachedIds.length, '个员工');
+            console.log({t('payroll:auto__api__e28c9b')}, uncachedIds.length, {t('payroll:auto_text_e4b8aa')});
             try {
               setLoadingEmployeeNames(true);
               const { employeeService } = await import('../../../services/employeeService');
@@ -87,10 +87,10 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
               // 缓存新获取的员工信息
               if (Object.keys(fetchedEmployees).length > 0) {
                 employeeCacheService.saveEmployees(fetchedEmployees);
-                console.log('✅ 成功缓存员工信息:', Object.keys(fetchedEmployees).length, '个员工');
+                console.log({t('payroll:auto____e29c85')}, Object.keys(fetchedEmployees).length, {t('payroll:auto_text_e4b8aa')});
               }
             } catch (error) {
-              console.error('❌ 获取员工信息失败:', error);
+              console.error({t('payroll:auto____e29d8c')}, error);
             } finally {
               setLoadingEmployeeNames(false);
             }
@@ -104,7 +104,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         setMeta(response.meta || { total: 0, page: 1, size: pageSize, totalPages: 0 });
       }
     } catch (err) {
-      console.error('获取工资条目数据失败:', err);
+      console.error({t('payroll:auto___e88eb7')}, err);
       setError(t('payroll:payroll_entries_table.error_fetch'));
     } finally {
       setLoading(false);
@@ -120,7 +120,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
     if (!uncachedIds.length) return;
     
     setLoadingEmployeeNames(true);
-    console.log('🔍 开始获取员工姓名信息, 员工ID:', uncachedIds);
+    console.log({t('payroll:auto___id__f09f94')}, uncachedIds);
     
     try {
       // 创建一个新的缓存对象，避免直接修改状态
@@ -140,7 +140,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
             return true;
           }
         } catch (err) {
-          console.error(`❌ 获取员工 ${id} 信息失败:`, err);
+          console.error({t('payroll:auto___id___e29d8c')}, err);
         }
         return false;
       });
@@ -149,7 +149,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       
       // 更新缓存
       setEmployeeCache(newCache);
-      console.log('✅ 员工姓名信息获取完成，更新缓存:', newCache);
+      console.log({t('payroll:auto_____e29c85')}, newCache);
       
       // 更新薪资条目数据，添加员工姓名
       setEntries(currentEntries => 
@@ -164,7 +164,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         })
       );
     } catch (err) {
-      console.error('❌ 批量获取员工姓名失败:', err);
+      console.error({t('payroll:auto____e29d8c')}, err);
     } finally {
       setLoadingEmployeeNames(false);
     }

@@ -14,18 +14,18 @@ const ConfigPage: React.FC = () => {
   const tabItems = [
     {
       key: 'chatbot',
-      label: t('configpage.tabs.chatbot', 'AI 聊天机器人'),
+      label: t('configpage.tabs.chatbot', {t('admin:auto_ai__414920')}),
       children: <ChatbotSettingsTab />
     },
     /*
     {
       key: 'general',
-      label: t('configpage.tabs.general', '通用设置'),
+      label: t('configpage.tabs.general', {t('admin:auto_text_e9809a')}),
       children: <div>这里是通用设置的内容...</div>
     },
     {
       key: 'notifications',
-      label: t('configpage.tabs.notifications', '通知设置'),
+      label: t('configpage.tabs.notifications', {t('admin:auto_text_e9809a')}),
       children: <div>这里是通知设置的内容...</div>
     }
     */
@@ -34,7 +34,7 @@ const ConfigPage: React.FC = () => {
   return (
     <div className={styles.configPageContainer}> {/* 应用样式 */}
       <Title level={2} className={styles.configPageTitle}> {/* 应用样式 */}
-        {t('configpage.title', '系统配置')}
+        {t('configpage.title', {t('admin:auto_text_e7b3bb')})}
       </Title>
       <Card>
         <UnifiedTabs 

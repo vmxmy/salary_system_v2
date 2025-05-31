@@ -41,56 +41,56 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
     {
       id: 1,
       type: 'budget_overrun',
-      title: '预算超支风险',
-      description: '某单位薪酬支出接近年度预算上限',
+      title: {t('dashboard:auto_text_e9a284')},
+      description: {t('dashboard:auto_text_e69f90')},
       level: 'high',
       affectedEmployees: 25,
       potentialCost: 150000,
       dueDate: '2024-06-01',
-      department: '财政局'
+      department: {t('dashboard:auto_text_e8b4a2')}
     },
     {
       id: 2,
       type: 'audit_finding',
-      title: '审计发现问题',
-      description: '津贴发放标准与规定不符',
+      title: {t('dashboard:auto_text_e5aea1')},
+      description: {t('dashboard:auto_text_e6b4a5')},
       level: 'high',
       affectedEmployees: 12,
       potentialCost: 80000,
       dueDate: '2024-05-25',
-      department: '人事局'
+      department: {t('dashboard:auto_text_e4baba')}
     },
     {
       id: 3,
       type: 'salary_standard_violation',
-      title: '薪酬标准违规',
-      description: '部分岗位薪酬超出国家标准',
+      title: {t('dashboard:auto_text_e896aa')},
+      description: {t('dashboard:auto_text_e983a8')},
       level: 'medium',
       affectedEmployees: 8,
       potentialCost: 45000,
       dueDate: '2024-06-10',
-      department: '组织部'
+      department: {t('dashboard:auto_text_e7bb84')}
     },
     {
       id: 4,
       type: 'fiscal_discipline',
-      title: '财政纪律检查',
-      description: '发现违规发放补贴情况',
+      title: {t('dashboard:auto_text_e8b4a2')},
+      description: {t('dashboard:auto_text_e58f91')},
       level: 'medium',
       affectedEmployees: 5,
       potentialCost: 30000,
       dueDate: '2024-06-15',
-      department: '纪委监委'
+      department: {t('dashboard:auto_text_e7baaa')}
     }
   ];
 
   // 政府部门证件到期提醒
   const expiringDocuments = [
-    { type: '公务员证', count: 15, nearestExpiry: '2024-06-05' },
-    { type: '职业资格证', count: 12, nearestExpiry: '2024-06-10' },
-    { type: '保密协议', count: 8, nearestExpiry: '2024-06-20' },
-    { type: '廉政承诺书', count: 6, nearestExpiry: '2024-07-01' },
-    { type: '任职文件', count: 4, nearestExpiry: '2024-07-15' }
+    { type: {t('dashboard:auto_text_e585ac')}, count: 15, nearestExpiry: '2024-06-05' },
+    { type: {t('dashboard:auto_text_e8818c')}, count: 12, nearestExpiry: '2024-06-10' },
+    { type: {t('dashboard:auto_text_e4bf9d')}, count: 8, nearestExpiry: '2024-06-20' },
+    { type: {t('dashboard:auto_text_e5bb89')}, count: 6, nearestExpiry: '2024-07-01' },
+    { type: {t('dashboard:auto_text_e4bbbb')}, count: 4, nearestExpiry: '2024-07-15' }
   ];
 
   // 获取风险级别颜色
@@ -134,7 +134,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '审计署合规率',
+                    title: {t('dashboard:auto_text_e5aea1')},
                     value: complianceData.auditCompliance,
                     precision: 1,
                     suffix: '%',
@@ -155,7 +155,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '财政纪律合规率',
+                    title: {t('dashboard:auto_text_e8b4a2')},
                     value: complianceData.fiscalDiscipline,
                     precision: 1,
                     suffix: '%',
@@ -176,7 +176,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '公务员法合规率',
+                    title: {t('dashboard:auto_text_e585ac')},
                     value: complianceData.civilServantLaw,
                     precision: 1,
                     suffix: '%',
@@ -197,7 +197,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '薪酬标准合规率',
+                    title: {t('dashboard:auto_text_e896aa')},
                     value: complianceData.salaryStandard,
                     precision: 1,
                     suffix: '%',
@@ -218,7 +218,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '预算执行合规率',
+                    title: {t('dashboard:auto_text_e9a284')},
                     value: complianceData.budgetCompliance,
                     precision: 1,
                     suffix: '%',
@@ -239,7 +239,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '廉政建设合规率',
+                    title: {t('dashboard:auto_text_e5bb89')},
                     value: complianceData.antiCorruption,
                     precision: 1,
                     suffix: '%',
@@ -372,8 +372,8 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={8}>
                   <Alert
-                    message="审计整改建议"
-                    description="建议建立薪酬发放审批流程，确保所有津贴补贴发放符合国家标准。"
+                    message={t('dashboard:auto_text_e5aea1')}
+                    description={t('dashboard:auto____e5bbba')}
                     type="info"
                     showIcon
                     icon={<AuditOutlined />}
@@ -381,8 +381,8 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
                 </Col>
                 <Col xs={24} md={8}>
                   <Alert
-                    message="财政纪律提醒"
-                    description="严格按照预算执行薪酬支出，避免超预算发放和违规发放。"
+                    message={t('dashboard:auto_text_e8b4a2')}
+                    description={t('dashboard:auto____e4b8a5')}
                     type="warning"
                     showIcon
                     icon={<BankOutlined />}
@@ -390,8 +390,8 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
                 </Col>
                 <Col xs={24} md={8}>
                   <Alert
-                    message="廉政风险防控"
-                    description="定期开展薪酬发放专项检查，防范廉政风险和违纪违法行为。"
+                    message={t('dashboard:auto_text_e5bb89')}
+                    description={t('dashboard:auto____e5ae9a')}
                     type="success"
                     showIcon
                     icon={<SafetyCertificateOutlined />}

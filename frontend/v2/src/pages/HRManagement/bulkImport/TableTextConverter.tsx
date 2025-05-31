@@ -47,33 +47,33 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
 
   // 默认API字段映射 - 如果没有传入则使用HR字段
   const defaultHRApiFields: ApiField[] = [
-    { key: 'employee_code', label: '员工代码', required: false },
-    { key: 'first_name', label: '名', required: true },
-    { key: 'last_name', label: '姓', required: true },
-    { key: 'fullname', label: '姓名(自动拆分)', required: false },
-    { key: 'id_number', label: '身份证号', required: true },
-    { key: 'date_of_birth', label: '出生日期', required: false },
-    { key: 'gender_lookup_value_name', label: '性别', required: false },
-    { key: 'ethnicity', label: '民族', required: false },
-    { key: 'education_level_lookup_value_name', label: '文化程度', required: false },
-    { key: 'first_work_date', label: '参加工作时间', required: false },
-    { key: 'years_of_service', label: '工龄', required: false },
-    { key: 'interrupted_service_years', label: '工龄间断年限', required: false },
-    { key: 'status_lookup_value_name', label: '员工状态', required: false },
-    { key: 'personnel_category_name', label: '人员类别', required: false },
-    { key: 'position_name', label: '实际任职', required: false },
-    { key: 'current_position_start_date', label: '实际任职时间(本单位)', required: false },
-    { key: 'career_position_level_date', label: '任职级时间(职业生涯)', required: false },
-    { key: 'salary_level_lookup_value_name', label: '工资级别', required: false },
-    { key: 'salary_grade_lookup_value_name', label: '工资档次', required: false },
-    { key: 'ref_salary_level_lookup_value_name', label: '参照正编薪级', required: false },
-    { key: 'email', label: '邮箱', required: false },
-    { key: 'phone_number', label: '电话号码', required: false },
-    { key: 'hire_date', label: '入职日期', required: false },
-    { key: 'department_name', label: '部门', required: false },
-    { key: 'job_position_level_lookup_value_name', label: '职务级别', required: false },
-    { key: 'bank_name', label: '收款人开户银行', required: false },
-    { key: 'bank_account_number', label: '收款人账号', required: false },
+    { key: 'employee_code', label: {t('hr:auto_text_e59198')}, required: false },
+    { key: 'first_name', label: {t('hr:auto_text_e5908d')}, required: true },
+    { key: 'last_name', label: {t('hr:auto_text_e5a793')}, required: true },
+    { key: 'fullname', label: {t('hr:auto____e5a793')}, required: false },
+    { key: 'id_number', label: {t('hr:auto_text_e8baab')}, required: true },
+    { key: 'date_of_birth', label: {t('hr:auto_text_e587ba')}, required: false },
+    { key: 'gender_lookup_value_name', label: {t('hr:auto_text_e680a7')}, required: false },
+    { key: 'ethnicity', label: {t('hr:auto_text_e6b091')}, required: false },
+    { key: 'education_level_lookup_value_name', label: {t('hr:auto_text_e69687')}, required: false },
+    { key: 'first_work_date', label: {t('hr:auto_text_e58f82')}, required: false },
+    { key: 'years_of_service', label: {t('hr:auto_text_e5b7a5')}, required: false },
+    { key: 'interrupted_service_years', label: {t('hr:auto_text_e5b7a5')}, required: false },
+    { key: 'status_lookup_value_name', label: {t('hr:auto_text_e59198')}, required: false },
+    { key: 'personnel_category_name', label: {t('hr:auto_text_e4baba')}, required: false },
+    { key: 'position_name', label: {t('hr:auto_text_e5ae9e')}, required: false },
+    { key: 'current_position_start_date', label: {t('hr:auto____e5ae9e')}, required: false },
+    { key: 'career_position_level_date', label: {t('hr:auto____e4bbbb')}, required: false },
+    { key: 'salary_level_lookup_value_name', label: {t('hr:auto_text_e5b7a5')}, required: false },
+    { key: 'salary_grade_lookup_value_name', label: {t('hr:auto_text_e5b7a5')}, required: false },
+    { key: 'ref_salary_level_lookup_value_name', label: {t('hr:auto_text_e58f82')}, required: false },
+    { key: 'email', label: {t('hr:auto_text_e982ae')}, required: false },
+    { key: 'phone_number', label: {t('hr:auto_text_e794b5')}, required: false },
+    { key: 'hire_date', label: {t('hr:auto_text_e585a5')}, required: false },
+    { key: 'department_name', label: {t('hr:auto_text_e983a8')}, required: false },
+    { key: 'job_position_level_lookup_value_name', label: {t('hr:auto_text_e8818c')}, required: false },
+    { key: 'bank_name', label: {t('hr:auto_text_e694b6')}, required: false },
+    { key: 'bank_account_number', label: {t('hr:auto_text_e694b6')}, required: false },
   ];
 
   // 使用传入的字段定义或默认HR字段
@@ -81,60 +81,60 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
 
   // 预设的字段映射规则 - 如果没有传入则使用HR映射规则
   const defaultHRMappingRules: Record<string, string> = {
-    '序号': '',
-    '姓名': 'fullname', // 确保映射到fullname
-    '性别': 'gender_lookup_value_name',
-    '民族': 'ethnicity',
-    '身份证号': 'id_number',
-    '出生日期': 'date_of_birth',
-    '文化程度': 'education_level_lookup_value_name',
-    '参加工作时间': 'first_work_date',
-    '工龄间断年限': 'interrupted_service_years',
-    '连续工龄': 'years_of_service',
-    '人员身份': 'personnel_category_name',
-    '实际任职': 'position_name',
-    '实际任职时间': 'current_position_start_date',
-    '任职级时间': 'career_position_level_date',
-    '工资级别': 'salary_level_lookup_value_name',
-    '工资档次': 'salary_grade_lookup_value_name',
-    '参照正编薪级': 'ref_salary_level_lookup_value_name',
-    '职务级别': 'job_position_level_lookup_value_name',
-    '开户银行': 'bank_name',
-    '银行账号': 'bank_account_number',
-    '银行卡号': 'bank_account_number',
-    '年度考核': '',
+    {t('hr:auto_text_e5ba8f')}: '',
+    {t('hr:auto_text_e5a793')}: 'fullname', // 确保映射到fullname
+    {t('hr:auto_text_e680a7')}: 'gender_lookup_value_name',
+    {t('hr:auto_text_e6b091')}: 'ethnicity',
+    {t('hr:auto_text_e8baab')}: 'id_number',
+    {t('hr:auto_text_e587ba')}: 'date_of_birth',
+    {t('hr:auto_text_e69687')}: 'education_level_lookup_value_name',
+    {t('hr:auto_text_e58f82')}: 'first_work_date',
+    {t('hr:auto_text_e5b7a5')}: 'interrupted_service_years',
+    {t('hr:auto_text_e8bf9e')}: 'years_of_service',
+    {t('hr:auto_text_e4baba')}: 'personnel_category_name',
+    {t('hr:auto_text_e5ae9e')}: 'position_name',
+    {t('hr:auto_text_e5ae9e')}: 'current_position_start_date',
+    {t('hr:auto_text_e4bbbb')}: 'career_position_level_date',
+    {t('hr:auto_text_e5b7a5')}: 'salary_level_lookup_value_name',
+    {t('hr:auto_text_e5b7a5')}: 'salary_grade_lookup_value_name',
+    {t('hr:auto_text_e58f82')}: 'ref_salary_level_lookup_value_name',
+    {t('hr:auto_text_e8818c')}: 'job_position_level_lookup_value_name',
+    {t('hr:auto_text_e5bc80')}: 'bank_name',
+    {t('hr:auto_text_e993b6')}: 'bank_account_number',
+    {t('hr:auto_text_e993b6')}: 'bank_account_number',
+    {t('hr:auto_text_e5b9b4')}: '',
     // 增加更多字段映射
-    '部门': 'department_name',
-    '所属部门': 'department_name',
-    '单位': 'department_name',
-    '手机': 'phone_number',
-    '手机号': 'phone_number',
-    '手机号码': 'phone_number',
-    '联系电话': 'phone_number',
-    '电话': 'phone_number',
-    '银行': 'bank_name',
-    '银行名称': 'bank_name',
-    '工资卡开户行': 'bank_name',
-    '账号': 'bank_account_number',
-    '卡号': 'bank_account_number',
-    '工资卡号': 'bank_account_number',
-    '员工代码': 'employee_code',
-    '工号': 'employee_code',
-    '职工编号': 'employee_code',
-    '入职日期': 'hire_date',
-    '入职时间': 'hire_date',
-    '邮箱': 'email',
-    '电子邮箱': 'email',
-    '电子邮件': 'email',
-    '婚姻状况': 'marital_status_lookup_value_name',
-    '政治面貌': 'political_status_lookup_value_name',
-    '合同类型': 'contract_type_lookup_value_name',
-    '员工状态': 'status_lookup_value_name',
-    '在职状态': 'status_lookup_value_name',
-    '用工类型': 'employment_type_lookup_value_name',
+    {t('hr:auto_text_e983a8')}: 'department_name',
+    {t('hr:auto_text_e68980')}: 'department_name',
+    {t('hr:auto_text_e58d95')}: 'department_name',
+    {t('hr:auto_text_e6898b')}: 'phone_number',
+    {t('hr:auto_text_e6898b')}: 'phone_number',
+    {t('hr:auto_text_e6898b')}: 'phone_number',
+    {t('hr:auto_text_e88194')}: 'phone_number',
+    {t('hr:auto_text_e794b5')}: 'phone_number',
+    {t('hr:auto_text_e993b6')}: 'bank_name',
+    {t('hr:auto_text_e993b6')}: 'bank_name',
+    {t('hr:auto_text_e5b7a5')}: 'bank_name',
+    {t('hr:auto_text_e8b4a6')}: 'bank_account_number',
+    {t('hr:auto_text_e58da1')}: 'bank_account_number',
+    {t('hr:auto_text_e5b7a5')}: 'bank_account_number',
+    {t('hr:auto_text_e59198')}: 'employee_code',
+    {t('hr:auto_text_e5b7a5')}: 'employee_code',
+    {t('hr:auto_text_e8818c')}: 'employee_code',
+    {t('hr:auto_text_e585a5')}: 'hire_date',
+    {t('hr:auto_text_e585a5')}: 'hire_date',
+    {t('hr:auto_text_e982ae')}: 'email',
+    {t('hr:auto_text_e794b5')}: 'email',
+    {t('hr:auto_text_e794b5')}: 'email',
+    {t('hr:auto_text_e5a99a')}: 'marital_status_lookup_value_name',
+    {t('hr:auto_text_e694bf')}: 'political_status_lookup_value_name',
+    {t('hr:auto_text_e59088')}: 'contract_type_lookup_value_name',
+    {t('hr:auto_text_e59198')}: 'status_lookup_value_name',
+    {t('hr:auto_text_e59ca8')}: 'status_lookup_value_name',
+    {t('hr:auto_text_e794a8')}: 'employment_type_lookup_value_name',
     // 添加截图中显示的字段
-    '收款人账号': 'bank_account_number',
-    '收款人开户银行': 'bank_name',
+    {t('hr:auto_text_e694b6')}: 'bank_account_number',
+    {t('hr:auto_text_e694b6')}: 'bank_name',
   };
 
   // 使用传入的映射规则或默认HR映射规则
@@ -163,7 +163,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
         
         // 设置特殊处理器
         let specialHandler: string | undefined = undefined;
-        if (header === '姓名' || apiField === 'fullname') {
+        if (header === {t('hr:auto_text_e5a793')} || apiField === 'fullname') {
           specialHandler = 'fullname';
           console.log(`为字段 '${header}' 设置了fullname特殊处理器`);
         }
@@ -194,16 +194,16 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       setParsedData(parsedRows);
       setError(null);
     } catch (err: any) {
-      setError(`解析错误: ${err.message}`);
+      setError({t('hr:auto__err_message__e8a7a3')});
       setParsedData([]);
     }
   };
 
   // 根据字段名猜测数据类型
   const getFieldType = (fieldName: string): 'string' | 'date' | 'number' | 'boolean' => {
-    if (fieldName.includes('日期') || fieldName.includes('时间')) {
+    if (fieldName.includes({t('hr:auto_text_e697a5')}) || fieldName.includes({t('hr:auto_text_e697b6')})) {
       return 'date';
-    } else if (fieldName.includes('年龄') || fieldName.includes('工龄')) {
+    } else if (fieldName.includes({t('hr:auto_text_e5b9b4')}) || fieldName.includes({t('hr:auto_text_e5b7a5')})) {
       return 'number';
     } else {
       return 'string';
@@ -217,7 +217,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
     
     // 设置特殊处理器
     let specialHandler: string | undefined = undefined;
-    if (newMappings[index].tableField === '姓名' || apiField === 'fullname') {
+    if (newMappings[index].tableField === {t('hr:auto_text_e5a793')} || apiField === 'fullname') {
       specialHandler = 'fullname';
       console.log(`为字段 '${newMappings[index].tableField}' 更新了fullname特殊处理器`);
     }
@@ -236,17 +236,17 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
   const splitName = (fullName: string) => {
     if (!fullName) return { last_name: '', first_name: '' };
     
-    // 假设中文姓名格式为"姓+名"，姓通常为1个字
+    // 假设中文姓名格式为{t('hr:auto___e5a793')}，姓通常为1个字
     // 复姓处理：常见复姓列表
-    const commonDoubleLastNames = ['欧阳', '太史', '端木', '上官', '司马', '东方', '独孤', '南宫', '万俟', '闻人', 
-                                  '夏侯', '诸葛', '尉迟', '公羊', '赫连', '澹台', '皇甫', '宗政', '濮阳', '公冶', 
-                                  '太叔', '申屠', '公孙', '慕容', '仲孙', '钟离', '长孙', '宇文', '司徒', '鲜于', 
-                                  '司空', '闾丘', '子车', '亓官', '司寇', '巫马', '公西', '颛孙', '壤驷', '公良', 
-                                  '漆雕', '乐正', '宰父', '谷梁', '拓跋', '夹谷', '轩辕', '令狐', '段干', '百里', 
-                                  '呼延', '东郭', '南门', '羊舌', '微生', '公户', '公玉', '公仪', '梁丘', '公仲', 
-                                  '公上', '公门', '公山', '公坚', '左丘', '公伯', '西门', '公祖', '第五', '公乘', 
-                                  '贯丘', '公皙', '南荣', '东里', '东宫', '仲长', '子书', '子桑', '即墨', '达奚', 
-                                  '褚师'];
+    const commonDoubleLastNames = [{t('hr:auto_text_e6aca7')}, {t('hr:auto_text_e5a4aa')}, {t('hr:auto_text_e7abaf')}, {t('hr:auto_text_e4b88a')}, {t('hr:auto_text_e58fb8')}, {t('hr:auto_text_e4b89c')}, {t('hr:auto_text_e78bac')}, {t('hr:auto_text_e58d97')}, {t('hr:auto_text_e4b887')}, {t('hr:auto_text_e997bb')}, 
+                                  {t('hr:auto_text_e5a48f')}, {t('hr:auto_text_e8afb8')}, {t('hr:auto_text_e5b089')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e8b5ab')}, {t('hr:auto_text_e6beb9')}, {t('hr:auto_text_e79a87')}, {t('hr:auto_text_e5ae97')}, {t('hr:auto_text_e6bfae')}, {t('hr:auto_text_e585ac')}, 
+                                  {t('hr:auto_text_e5a4aa')}, {t('hr:auto_text_e794b3')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e68595')}, {t('hr:auto_text_e4bbb2')}, {t('hr:auto_text_e9929f')}, {t('hr:auto_text_e995bf')}, {t('hr:auto_text_e5ae87')}, {t('hr:auto_text_e58fb8')}, {t('hr:auto_text_e9b29c')}, 
+                                  {t('hr:auto_text_e58fb8')}, {t('hr:auto_text_e997be')}, {t('hr:auto_text_e5ad90')}, {t('hr:auto_text_e4ba93')}, {t('hr:auto_text_e58fb8')}, {t('hr:auto_text_e5b7ab')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e9a29b')}, {t('hr:auto_text_e5a3a4')}, {t('hr:auto_text_e585ac')}, 
+                                  {t('hr:auto_text_e6bc86')}, {t('hr:auto_text_e4b990')}, {t('hr:auto_text_e5aeb0')}, {t('hr:auto_text_e8b0b7')}, {t('hr:auto_text_e68b93')}, {t('hr:auto_text_e5a4b9')}, {t('hr:auto_text_e8bda9')}, {t('hr:auto_text_e4bba4')}, {t('hr:auto_text_e6aeb5')}, {t('hr:auto_text_e799be')}, 
+                                  {t('hr:auto_text_e591bc')}, {t('hr:auto_text_e4b89c')}, {t('hr:auto_text_e58d97')}, {t('hr:auto_text_e7be8a')}, {t('hr:auto_text_e5beae')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e6a281')}, {t('hr:auto_text_e585ac')}, 
+                                  {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e5b7a6')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e8a5bf')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e7acac')}, {t('hr:auto_text_e585ac')}, 
+                                  {t('hr:auto_text_e8b4af')}, {t('hr:auto_text_e585ac')}, {t('hr:auto_text_e58d97')}, {t('hr:auto_text_e4b89c')}, {t('hr:auto_text_e4b89c')}, {t('hr:auto_text_e4bbb2')}, {t('hr:auto_text_e5ad90')}, {t('hr:auto_text_e5ad90')}, {t('hr:auto_text_e58db3')}, {t('hr:auto_text_e8bebe')}, 
+                                  {t('hr:auto_text_e8a49a')}];
     
     // 检查是否为复姓
     let lastName = '';
@@ -268,7 +268,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       firstName = fullName.substring(1);
     }
     
-    console.log(`拆分姓名: "${fullName}" => 姓: "${lastName}", 名: "${firstName}"`);
+    console.log(`拆分姓名: "${fullName}{t('hr:auto____203d3e')}${lastName}{t('hr:auto____2c20e5')}${firstName}"`);
     
     return {
       last_name: lastName,
@@ -285,7 +285,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       return dateStr;
     }
     
-    // 处理中文日期格式，如"2023年5月1日"
+    // 处理中文日期格式，如{t('hr:auto_202351_323032')}
     const chineseDatePattern = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
     const chineseMatch = dateStr.match(chineseDatePattern);
     if (chineseMatch) {
@@ -359,9 +359,9 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
     if (missingRelationFields.length > 0) {
       message.warning(`注意: 以下重要关联字段未映射，可能导致无法创建完整的员工工作历史: ${missingRelationFields.map(field => {
         switch(field) {
-          case 'department_name': return '部门';
-          case 'position_name': return '实际任职';
-          case 'personnel_category_name': return '人员身份';
+          case 'department_name': return {t('hr:auto_text_e983a8')};
+          case 'position_name': return {t('hr:auto_text_e5ae9e')};
+          case 'personnel_category_name': return {t('hr:auto_text_e4baba')};
           default: return field;
         }
       }).join(', ')}`);
@@ -408,36 +408,36 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
             // 特殊字段值处理
             if (mapping.apiField === 'status_lookup_value_name' && value) {
               // 标准化员工状态值
-              if (['在职', '正式', '正式员工', '正式职工'].includes(value)) {
-                value = '在职';
-              } else if (['离职', '已离职'].includes(value)) {
-                value = '离职';
-              } else if (['试用', '试用期'].includes(value)) {
-                value = '试用期';
+              if ([{t('hr:auto_text_e59ca8')}, {t('hr:auto_text_e6ada3')}, {t('hr:auto_text_e6ada3')}, {t('hr:auto_text_e6ada3')}].includes(value)) {
+                value = {t('hr:auto_text_e59ca8')};
+              } else if ([{t('hr:auto_text_e7a6bb')}, {t('hr:auto_text_e5b7b2')}].includes(value)) {
+                value = {t('hr:auto_text_e7a6bb')};
+              } else if ([{t('hr:auto_text_e8af95')}, {t('hr:auto_text_e8af95')}].includes(value)) {
+                value = {t('hr:auto_text_e8af95')};
               }
             } else if (mapping.apiField === 'gender_lookup_value_name' && value) {
               // 标准化性别值
-              if (['男', '男性', 'M', 'Male'].includes(value)) {
-                value = '男';
-              } else if (['女', '女性', 'F', 'Female'].includes(value)) {
-                value = '女';
+              if ([{t('hr:auto_text_e794b7')}, {t('hr:auto_text_e794b7')}, 'M', 'Male'].includes(value)) {
+                value = {t('hr:auto_text_e794b7')};
+              } else if ([{t('hr:auto_text_e5a5b3')}, {t('hr:auto_text_e5a5b3')}, 'F', 'Female'].includes(value)) {
+                value = {t('hr:auto_text_e5a5b3')};
               }
             }
             // 注释掉银行名称标准化逻辑，严格保留表格中的原始银行数据
             // else if (mapping.apiField === 'bank_name' && value) {
             //   // 标准化银行名称
-            //   if (value.includes('工商') || value.includes('ICBC')) {
-            //     value = '中国工商银行';
-            //   } else if (value.includes('建设') || value.includes('CCB')) {
-            //     value = '中国建设银行';
-            //   } else if (value.includes('农业') || value.includes('ABC')) {
-            //     value = '中国农业银行';
-            //   } else if (value.includes('中行') || value.includes('BOC')) {
-            //     value = '中国银行';
-            //   } else if (value.includes('交通') || value.includes('BOCOM')) {
-            //     value = '交通银行';
-            //   } else if (value.includes('邮政') || value.includes('PSBC')) {
-            //     value = '中国邮政储蓄银行';
+            //   if (value.includes({t('hr:auto_text_e5b7a5')}) || value.includes('ICBC')) {
+            //     value = {t('hr:auto_text_e4b8ad')};
+            //   } else if (value.includes({t('hr:auto_text_e5bbba')}) || value.includes('CCB')) {
+            //     value = {t('hr:auto_text_e4b8ad')};
+            //   } else if (value.includes({t('hr:auto_text_e5869c')}) || value.includes('ABC')) {
+            //     value = {t('hr:auto_text_e4b8ad')};
+            //   } else if (value.includes({t('hr:auto_text_e4b8ad')}) || value.includes('BOC')) {
+            //     value = {t('hr:auto_text_e4b8ad')};
+            //   } else if (value.includes({t('hr:auto_text_e4baa4')}) || value.includes('BOCOM')) {
+            //     value = {t('hr:auto_text_e4baa4')};
+            //   } else if (value.includes({t('hr:auto_text_e982ae')}) || value.includes('PSBC')) {
+            //     value = {t('hr:auto_text_e4b8ad')};
             //   }
             // }
             
@@ -472,8 +472,8 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
             typedItem.hire_date = `${year}-${month}-${day}`;
           }
           
-          // 始终将员工状态设置为"在职"，无论是否已提供
-          typedItem.status_lookup_value_name = typedItem.status_lookup_value_name || '在职';
+          // 始终将员工状态设置为{t('hr:auto_text_e59ca8')}，无论是否已提供
+          typedItem.status_lookup_value_name = typedItem.status_lookup_value_name || {t('hr:auto_text_e59ca8')};
           
           // 确保必填字段有值
           if (!typedItem.first_name && !typedItem.last_name && typedItem._fullname) {
@@ -500,18 +500,18 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
         onConvertToJson(finalData);
       }
     } catch (err: any) {
-      setError(`转换错误: ${err.message}`);
+      setError({t('hr:auto__err_message__e8bdac')});
     }
   };
 
   return (
-    <Card title="表格文本转换器">
+    <Card title={t('hr:auto_text_e8a1a8')}>
       <div style={{ marginBottom: 16 }}>
         <TextArea
           rows={10}
           value={tableText}
           onChange={e => setTableText(e.target.value)}
-          placeholder="请粘贴表格文本，格式如：序号,姓名,性别,民族,身份证号,..."
+          placeholder={t('hr:auto_________e8afb7')}
         />
       </div>
       
@@ -531,22 +531,22 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       
       {parsedData.length > 0 && (
         <>
-          <Card title="字段映射" style={{ marginTop: 16 }}>
+          <Card title={t('hr:auto_text_e5ad97')} style={{ marginTop: 16 }}>
             <EnhancedProTable<FieldMapping & { key: number }>
               dataSource={fieldMappings.map((m, i) => ({ ...m, key: i }))}
               columns={[
                 {
-                  title: '表格字段',
+                  title: {t('hr:auto_text_e8a1a8')},
                   dataIndex: 'tableField',
                   valueType: 'text'
                 },
                 {
-                  title: 'API字段',
+                  title: {t('hr:auto_api_415049')},
                   dataIndex: 'apiField',
                   valueType: 'select',
                   render: (_, record) => {
                     // 调试: 查看渲染下拉列表时的字段数组
-                    console.log('渲染下拉列表时的字段:', defaultApiFields);
+                    console.log({t('hr:auto___e6b8b2')}, defaultApiFields);
                     return (
                       <Select
                         style={{ width: '100%' }}
@@ -556,7 +556,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                         <Option value="">忽略此字段</Option>
                         {defaultApiFields.map(field => (
                           <Option key={field.key} value={field.key}>
-                            {field.label} {field.required ? '(必填)' : ''}
+                            {field.label} {field.required ? {t('hr:auto____28e5bf')} : ''}
                           </Option>
                         ))}
                       </Select>
@@ -564,7 +564,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   }
                 },
                 {
-                  title: '数据类型',
+                  title: {t('hr:auto_text_e695b0')},
                   dataIndex: 'type',
                   valueType: 'text',
                   render: (_, record) => record.type
@@ -587,7 +587,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
           </Button>
           
           {jsonResult && (
-            <Card title="JSON结果" style={{ marginTop: 16 }}>
+            <Card title={t('hr:auto_json_4a534f')} style={{ marginTop: 16 }}>
               <TextArea
                 rows={10}
                 value={jsonResult}
@@ -613,7 +613,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                         detail: { jsonData } 
                       }));
                     } catch (e) {
-                      setError('JSON解析错误，无法使用结果');
+                      setError({t('hr:auto_json__4a534f')});
                     }
                   }}
                 >

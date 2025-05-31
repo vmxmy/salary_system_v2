@@ -17,8 +17,8 @@ export const initialChatbotConfig: ChatbotConfig = {
   customJs: '',
   isEnabled: true,
   systemVariables: [
-    { key: 'scene', value_type: 'string', value: 'general', label: '对话场景' },
-    { key: 'lib_search_topk', value_type: 'number', value: 3, label: '知识库检索TopK' },
+    { key: 'scene', value_type: 'string', value: 'general', label: {t('common:auto_text_e5afb9')} },
+    { key: 'lib_search_topk', value_type: 'number', value: 3, label: {t('common:auto_topk_e79fa5')} },
   ],
 };
 

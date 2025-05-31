@@ -44,7 +44,7 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
   value = '',
   onChange,
   onValidate,
-  placeholder = '请输入SQL查询语句...',
+  placeholder = {t('components:auto_sql__e8afb7')},
   height = 300,
   readOnly = false,
   showValidation = true,
@@ -72,7 +72,7 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
   // 验证SQL
   const validateSql = async () => {
     if (!value.trim()) {
-      message.warning('请输入SQL语句');
+      message.warning({t('components:auto_sql_e8afb7')});
       return;
     }
 
@@ -87,7 +87,7 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
       onValidate?.(result);
 
       if (result.is_valid) {
-        message.success('SQL验证通过');
+        message.success({t('components:auto_sql_53514c')});
         // 如果验证通过，生成预览列
         if (result.columns) {
           const columns = result.columns.map((col, index) => ({
@@ -104,11 +104,11 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
           setPreviewColumns(columns);
         }
       } else {
-        message.error('SQL验证失败');
+        message.error({t('components:auto_sql_53514c')});
       }
     } catch (error: any) {
       console.error('SQL validation failed:', error);
-      message.error(`验证失败: ${error.message}`);
+      message.error({t('components:auto__error_message__e9aa8c')});
       setValidationResult({
         is_valid: false,
         error_message: error.message,
@@ -162,11 +162,11 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
   // SQL模板
   const sqlTemplates = [
     {
-      name: '基础查询',
+      name: {t('components:auto_text_e59fba')},
       template: 'SELECT * FROM schema.table_name WHERE condition = \'value\'',
     },
     {
-      name: '关联查询',
+      name: {t('components:auto_text_e585b3')},
       template: `SELECT 
   a.field1,
   b.field2
@@ -174,7 +174,7 @@ FROM schema.table_a a
 LEFT JOIN schema.table_b b ON a.id = b.a_id`,
     },
     {
-      name: '聚合查询',
+      name: {t('components:auto_text_e8819a')},
       template: `SELECT 
   field1,
   COUNT(*) as count,
@@ -194,7 +194,7 @@ GROUP BY field1`,
           <Alert
             type="success"
             icon={<CheckCircleOutlined />}
-            message="SQL验证通过"
+            message={t('components:auto_sql_53514c')}
             description={
               <div>
                 {validationResult.columns && (
@@ -221,7 +221,7 @@ GROUP BY field1`,
           <Alert
             type="error"
             icon={<ExclamationCircleOutlined />}
-            message="SQL验证失败"
+            message={t('components:auto_sql_53514c')}
             description={validationResult.error_message}
           />
         )}
@@ -311,7 +311,7 @@ GROUP BY field1`,
                 borderRadius: '6px',
               }}
             >
-              <Spin tip="验证中..." />
+              <Spin tip={t('components:auto___e9aa8c')} />
             </div>
           )}
         </div>
@@ -329,7 +329,7 @@ GROUP BY field1`,
               pagination={false}
               size="small"
               scroll={{ x: 'max-content' }}
-              locale={{ emptyText: '暂无数据，请执行查询查看结果' }}
+              locale={{ emptyText: {t('components:auto___e69a82')} }}
             />
           </div>
         )}

@@ -149,16 +149,16 @@ const generateUserTableColumns = (
 };
 
 const UsersPageV2: React.FC = () => {
-  console.log('🔍 [UsersV2] 组件开始渲染');
+  console.log({t('admin:auto__usersv2__f09f94')});
   
   const { t } = useTranslation(['user', 'pageTitle', 'common']);
   const permissions = useUserPermissions();
   const { userPermissions, userRoleCodes, hasPermission } = usePermissions();
   
   // 调试权限信息
-  console.log('🔍 [UsersV2] 当前用户权限:', userPermissions);
-  console.log('🔍 [UsersV2] 当前用户角色代码:', userRoleCodes);
-  console.log('🔍 [UsersV2] 是否有 user:view_list 权限:', hasPermission('user:view_list'));
+  console.log({t('admin:auto__usersv2___f09f94')}, userPermissions);
+  console.log({t('admin:auto__usersv2___f09f94')}, userRoleCodes);
+  console.log({t('admin:auto__usersv2__user_view_list___f09f94')}, hasPermission('user:view_list'));
   
   // 状态管理
   const [dataSource, setDataSource] = useState<PageUser[]>([]);
@@ -172,7 +172,7 @@ const UsersPageV2: React.FC = () => {
 
   // 获取数据
   const fetchData = useCallback(async () => {
-    console.log('🔍 [UsersV2] fetchData 开始执行');
+    console.log({t('admin:auto__usersv2_fetchdata__f09f94')});
     setLoadingData(true);
     setErrorLookups(null);
     try {
@@ -181,17 +181,17 @@ const UsersPageV2: React.FC = () => {
         size: 100,
       };
 
-      console.log('🔍 [UsersV2] 调用 getUsers API，参数:', apiParams);
-      console.log('🔍 [UsersV2] API 基础URL:', import.meta.env.VITE_API_BASE_URL);
-      console.log('🔍 [UsersV2] API 路径前缀:', import.meta.env.VITE_API_PATH_PREFIX);
+      console.log({t('admin:auto__usersv2__getusers_api___f09f94')}, apiParams);
+      console.log({t('admin:auto__usersv2_api_url__f09f94')}, import.meta.env.VITE_API_BASE_URL);
+      console.log({t('admin:auto__usersv2_api___f09f94')}, import.meta.env.VITE_API_PATH_PREFIX);
       
       const apiResponse = await getUsers(apiParams);
-      console.log('🔍 [UsersV2] API 响应:', apiResponse);
-      console.log('🔍 [UsersV2] API 响应类型:', typeof apiResponse);
-      console.log('🔍 [UsersV2] API 响应数据类型:', typeof apiResponse?.data);
+      console.log({t('admin:auto__usersv2_api___f09f94')}, apiResponse);
+      console.log({t('admin:auto__usersv2_api___f09f94')}, typeof apiResponse);
+      console.log({t('admin:auto__usersv2_api___f09f94')}, typeof apiResponse?.data);
       
       if (apiResponse && Array.isArray(apiResponse.data)) {
-        console.log('🔍 [UsersV2] 用户数据数量:', apiResponse.data.length);
+        console.log({t('admin:auto__usersv2___f09f94')}, apiResponse.data.length);
         setAllApiUsersForEdit(apiResponse.data);
         const pageUsers: PageUser[] = apiResponse.data.map((apiUser: ApiUser) => ({
           key: apiUser.id,
@@ -202,13 +202,13 @@ const UsersPageV2: React.FC = () => {
           is_active: apiUser.is_active,
           created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('table.value.not_applicable'),
         }));
-        console.log('🔍 [UsersV2] 处理后的页面用户数据:', pageUsers);
+        console.log({t('admin:auto__usersv2___f09f94')}, pageUsers);
         setDataSource(pageUsers);
         setErrorLookups(null);
-        console.log('🔍 [UsersV2] 数据设置完成，错误状态已清除');
+        console.log({t('admin:auto__usersv2___f09f94')});
       } else {
         console.error('🔍 [UsersV2] getUsers response data is not an array or response is invalid:', apiResponse);
-        console.error('🔍 [UsersV2] 响应结构分析:', {
+        console.error({t('admin:auto__usersv2___f09f94')}, {
           hasResponse: !!apiResponse,
           responseKeys: apiResponse ? Object.keys(apiResponse) : 'N/A',
           dataType: typeof apiResponse?.data,
@@ -218,7 +218,7 @@ const UsersPageV2: React.FC = () => {
       }
     } catch (error) {
       console.error('🔍 [UsersV2] Failed to fetch users:', error);
-      console.error('🔍 [UsersV2] 错误详情:', {
+      console.error({t('admin:auto__usersv2___f09f94')}, {
         message: error instanceof Error ? error.message : 'Unknown error',
         response: (error as any)?.response,
         status: (error as any)?.response?.status,
@@ -228,7 +228,7 @@ const UsersPageV2: React.FC = () => {
       setErrorLookups(error);
     } finally {
       setLoadingData(false);
-      console.log('🔍 [UsersV2] fetchData 执行完成');
+      console.log({t('admin:auto__usersv2_fetchdata__f09f94')});
     }
   }, [t]);
 
@@ -267,20 +267,20 @@ const UsersPageV2: React.FC = () => {
 
   // 初始化数据
   useEffect(() => {
-    console.log('🔍 [UsersV2] useEffect 触发，开始获取数据');
-    console.log('🔍 [UsersV2] fetchData 函数:', typeof fetchData);
-    console.log('🔍 [UsersV2] 当前权限状态:', { userPermissions, hasPermission: hasPermission('user:view_list') });
+    console.log({t('admin:auto__usersv2_useeffect___f09f94')});
+    console.log({t('admin:auto__usersv2_fetchdata___f09f94')}, typeof fetchData);
+    console.log({t('admin:auto__usersv2___f09f94')}, { userPermissions, hasPermission: hasPermission('user:view_list') });
     
     if (hasPermission('user:view_list')) {
-      console.log('🔍 [UsersV2] 权限检查通过，开始调用 fetchData');
+      console.log({t('admin:auto__usersv2___fetchdata_f09f94')});
       fetchData();
     } else {
-      console.log('🔍 [UsersV2] 权限检查失败，跳过 fetchData');
+      console.log({t('admin:auto__usersv2___fetchdata_f09f94')});
     }
   }, []); // 移除fetchData依赖，避免无限循环
 
   // 调试状态信息
-  console.log('🔍 [UsersV2] 渲染状态:', {
+  console.log({t('admin:auto__usersv2___f09f94')}, {
     dataSourceLength: dataSource.length,
     loadingData,
     errorLookups,
@@ -326,20 +326,20 @@ const UsersPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的用户吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的用户',
+          buttonText: {t('admin:auto_text_e689b9')},
+          confirmTitle: {t('admin:auto_text_e7a1ae')},
+          confirmContent: {t('admin:auto____e7a1ae')},
+          confirmOkText: {t('admin:auto_text_e7a1ae')},
+          confirmCancelText: {t('admin:auto_text_e58f96')},
+          successMessage: {t('admin:auto_text_e689b9')},
+          errorMessage: {t('admin:auto_text_e689b9')},
+          noSelectionMessage: {t('admin:auto_text_e8afb7')},
         }}
         exportConfig={{
-          filenamePrefix: '用户管理',
-          sheetName: '用户',
-          buttonText: '导出Excel',
-          successMessage: '用户数据导出成功',
+          filenamePrefix: {t('admin:auto_text_e794a8')},
+          sheetName: {t('admin:auto_text_e794a8')},
+          buttonText: {t('admin:auto_excel_e5afbc')},
+          successMessage: {t('admin:auto_text_e794a8')},
         }}
         lookupErrorMessageKey="message.fetch_users_error"
         lookupLoadingMessageKey="user_list_page.loading"

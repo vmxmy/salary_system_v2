@@ -112,7 +112,7 @@ const UserListPage: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error('获取用户管理失败:', error);
+      console.error({t('admin:auto___e88eb7')}, error);
       setUsers([]);
       setPagination(prev => ({
         ...prev,
@@ -191,7 +191,7 @@ const UserListPage: React.FC = () => {
       fetchUsers();
 
     } catch (error: any) {
-      console.error("创建用户失败:", error);
+      console.error({t('admin:auto___e5889b')}, error);
       const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.create_user_error.default');
       message.error(errorMsg);
     } finally {
@@ -248,7 +248,7 @@ const UserListPage: React.FC = () => {
       setIsUserModalOpen(false);
       fetchUsers(); // Refresh with current params
     } catch (error: any) {
-      console.error("更新用户失败:", error);
+      console.error({t('admin:auto___e69bb4')}, error);
       let errorMsg = t('message.update_user_error.default');
 
       // Attempt to get detailed message from backend
@@ -304,7 +304,7 @@ const UserListPage: React.FC = () => {
           }));
           fetchUsers();
         } catch (error: any) {
-          console.error("删除用户失败:", error);
+          console.error({t('admin:auto___e588a0')}, error);
           const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.delete_user_error.default');
           message.error(errorMsg);
         }

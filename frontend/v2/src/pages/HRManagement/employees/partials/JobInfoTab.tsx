@@ -38,9 +38,9 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
     const months = now.diff(start.add(years, 'year'), 'month'); // Corrected calculation for months
     
     if (years > 0) {
-      return `${years}${t('employee:detail_page.job_info_tab.seniority_year', ' 年 ')}${months}${t('employee:detail_page.job_info_tab.seniority_month', ' 个月')}`;
+      return `${years}${t('employee:detail_page.job_info_tab.seniority_year', {t('hr:auto____20e5b9')})}${months}${t('employee:detail_page.job_info_tab.seniority_month', {t('hr:auto___20e4b8')})}`;
     } else {
-      return `${months}${t('employee:detail_page.job_info_tab.seniority_month', ' 个月')}`;
+      return `${months}${t('employee:detail_page.job_info_tab.seniority_month', {t('hr:auto___20e4b8')})}`;
     }
   };
 
@@ -76,62 +76,62 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
 
   return (
     <Descriptions 
-      title={t('employee:detail_page.job_info_tab.title', '职位信息')} 
+      title={t('employee:detail_page.job_info_tab.title', {t('hr:auto_text_e8818c')})} 
       bordered 
       column={{ xs: 1, sm: 2 }} 
       layout="vertical"
       size="middle"
     >
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_department', '部门')}
+        label={t('employee:detail_page.job_info_tab.label_department', {t('hr:auto_text_e983a8')})}
       >
         {departmentText}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_personnel_category', '人员类别')}
+        label={t('employee:detail_page.job_info_tab.label_personnel_category', {t('hr:auto_text_e4baba')})}
       >
         {personnelCategoryText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_actual_position', '实际职位')}
+        label={t('employee:detail_page.job_info_tab.label_actual_position', {t('hr:auto_text_e5ae9e')})}
       >
         {actualPositionText}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_work_location', '工作地点')}
+        label={t('employee:detail_page.job_info_tab.label_work_location', {t('hr:auto_text_e5b7a5')})}
       >
         {employee.workLocation || naText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_hire_date', '入职日期')}
+        label={t('employee:detail_page.job_info_tab.label_hire_date', {t('hr:auto_text_e585a5')})}
       >
         {employee.hire_date ? dayjs(employee.hire_date).format('YYYY-MM-DD') : naText}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_employment_type', '雇佣类型')}
+        label={t('employee:detail_page.job_info_tab.label_employment_type', {t('hr:auto_text_e99b87')})}
       >
         {employmentTypeText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_seniority', '司龄')}
+        label={t('employee:detail_page.job_info_tab.label_seniority', {t('hr:auto_text_e58fb8')})}
       >
         {calculateSeniority(employee.hire_date)}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_probation_end_date', '试用期结束日期')}
+        label={t('employee:detail_page.job_info_tab.label_probation_end_date', {t('hr:auto_text_e8af95')})}
       >
         {employee.probationEndDate ? dayjs(employee.probationEndDate).format('YYYY-MM-DD') : naText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_reports_to', '汇报对象')}
+        label={t('employee:detail_page.job_info_tab.label_reports_to', {t('hr:auto_text_e6b187')})}
         span={2}
       >
         {reportsToText}

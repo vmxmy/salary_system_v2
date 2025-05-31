@@ -30,24 +30,24 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
   const pendingTasks = [
     {
       id: 1,
-      title: '薪资调整审批',
-      description: '技术部门薪资调整申请',
+      title: {t('dashboard:auto_text_e896aa')},
+      description: {t('dashboard:auto_text_e68a80')},
       priority: 'high',
       dueDate: '2024-05-30',
       type: 'approval'
     },
     {
       id: 2,
-      title: '考勤异常处理',
-      description: '张三 5月份加班时长异常',
+      title: {t('dashboard:auto_text_e88083')},
+      description: {t('dashboard:auto__5_e5bca0')},
       priority: 'medium',
       dueDate: '2024-05-29',
       type: 'attendance'
     },
     {
       id: 3,
-      title: '薪资发放确认',
-      description: '5月份薪资发放最终确认',
+      title: {t('dashboard:auto_text_e896aa')},
+      description: {t('dashboard:auto_5_35e69c')},
       priority: 'high',
       dueDate: '2024-05-28',
       type: 'payroll'
@@ -59,24 +59,24 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
     {
       id: 1,
       type: 'overtime',
-      title: '加班成本预警',
-      description: '本月加班成本超出预算15%',
+      title: {t('dashboard:auto_text_e58aa0')},
+      description: {t('dashboard:auto_15__e69cac')},
       level: 'warning',
       count: 8
     },
     {
       id: 2,
       type: 'attendance',
-      title: '考勤异常',
-      description: '未打卡员工数量异常',
+      title: {t('dashboard:auto_text_e88083')},
+      description: {t('dashboard:auto_text_e69caa')},
       level: 'error',
       count: 12
     },
     {
       id: 3,
       type: 'contract',
-      title: '合同到期提醒',
-      description: '30天内到期合同',
+      title: {t('dashboard:auto_text_e59088')},
+      description: {t('dashboard:auto_30_3330e5')},
       level: 'info',
       count: 5
     }
@@ -105,7 +105,7 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
   // 计算薪资发放进度
   const calculatePayrollProgress = () => {
     const total = recentPayrollRuns.length;
-    const completed = recentPayrollRuns.filter(run => run.status === '已完成').length;
+    const completed = recentPayrollRuns.filter(run => run.status === {t('dashboard:auto_text_e5b7b2')}).length;
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
 
@@ -142,7 +142,7 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
                     <Space>
                       <Text strong>{record.title}</Text>
                       <Tag color={getPriorityColor(record.priority)}>
-                        {record.priority === 'high' ? '高' : record.priority === 'medium' ? '中' : '低'}
+                        {record.priority === 'high' ? {t('dashboard:auto_text_e9ab98')} : record.priority === 'medium' ? {t('dashboard:auto_text_e4b8ad')} : {t('dashboard:auto_text_e4bd8e')}}
                       </Tag>
                     </Space>
                   ),
@@ -198,7 +198,7 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
                 <Col span={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}>
-                      {recentPayrollRuns.filter(run => run.status === '已完成').length}
+                      {recentPayrollRuns.filter(run => run.status === {t('dashboard:auto_text_e5b7b2')}).length}
                     </div>
                     <Text type="secondary">已完成</Text>
                   </div>
@@ -206,7 +206,7 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
                 <Col span={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>
-                      {recentPayrollRuns.filter(run => run.status === '进行中').length}
+                      {recentPayrollRuns.filter(run => run.status === {t('dashboard:auto_text_e8bf9b')}).length}
                     </div>
                     <Text type="secondary">进行中</Text>
                   </div>
@@ -214,7 +214,7 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
                 <Col span={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#faad14' }}>
-                      {recentPayrollRuns.filter(run => run.status === '待审批').length}
+                      {recentPayrollRuns.filter(run => run.status === {t('dashboard:auto_text_e5be85')}).length}
                     </div>
                     <Text type="secondary">待审批</Text>
                   </div>
@@ -307,9 +307,9 @@ const ManagementEfficiencySection: React.FC<ManagementEfficiencySectionProps> = 
                         <Space>
                           <span>{item.periodName}</span>
                           <Tag color={
-                            item.status === '已完成' ? 'success' :
-                            item.status === '进行中' ? 'processing' :
-                            item.status === '待审批' ? 'warning' : 'default'
+                            item.status === {t('dashboard:auto_text_e5b7b2')} ? 'success' :
+                            item.status === {t('dashboard:auto_text_e8bf9b')} ? 'processing' :
+                            item.status === {t('dashboard:auto_text_e5be85')} ? 'warning' : 'default'
                           }>
                             {item.status}
                           </Tag>

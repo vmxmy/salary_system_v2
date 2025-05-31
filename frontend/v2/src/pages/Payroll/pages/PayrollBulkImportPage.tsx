@@ -125,7 +125,7 @@ const PayrollBulkImportPage: React.FC = () => {
       .filter(comp => isEarningComponentType(comp.type) || comp.type === 'STAT')
       .map(comp => ({
         key: `earnings_details.${comp.code}.amount`,
-        label: comp.name + (comp.type === 'STAT' ? ' (统计)' : ''),
+        label: comp.name + (comp.type === 'STAT' ? {t('payroll:auto____2028e7')} : ''),
         required: false
       }));
     
@@ -139,14 +139,6 @@ const PayrollBulkImportPage: React.FC = () => {
       }));
 
     const result = [...baseFields, ...earningFields, ...deductionFields];
-    console.log('=== payrollApiFields 生成详情 ===');
-    console.log('componentDefinitions数量:', componentDefinitions.length);
-    console.log('基础字段数量:', baseFields.length);
-    console.log('收入字段数量:', earningFields.length);
-    console.log('扣除字段数量:', deductionFields.length);
-    console.log('总字段数量:', result.length);
-    console.log('生成的payrollApiFields:', result);
-    console.log('=== 详情结束 ===');
     return result;
       }, [componentDefinitions, t]);
   
@@ -162,9 +154,9 @@ const PayrollBulkImportPage: React.FC = () => {
       [t('batch_import.mapping.department')]: '__IGNORE_FIELD__',
       [t('batch_import.mapping.department_name')]: '__IGNORE_FIELD__',
       
-      // 新增：映射"人员身份"到一个内部字段
+      // 新增：映射{t('payroll:auto_text_e4baba')}到一个内部字段
       [t('batch_import.mapping.personnel_identity')]: 'raw_personnel_identity',
-      '人员身份': 'raw_personnel_identity', // 直接中文映射
+      {t('payroll:auto_text_e4baba')}: 'raw_personnel_identity', // 直接中文映射
       
       // 员工匹配字段
       [t('batch_import.mapping.personnel_number')]: 'employee_code',
@@ -219,103 +211,103 @@ const PayrollBulkImportPage: React.FC = () => {
     const specificMappings: Record<string, string> = {
       // 收入项 - 基础工资类（使用新的复合字段组件）
       [t('components.earnings.position_tech_grade_salary')]: 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
-      '职务/技术等级 工资': 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
-      '职务/技术等级工资': 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
+      {t('payroll:auto____e8818c')}: 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
+      {t('payroll:auto___e8818c')}: 'earnings_details.POSITION_TECH_GRADE_SALARY.amount',
       
       [t('components.earnings.grade_position_level_salary')]: 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
-      '级别/岗位级别 工资': 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
-      '级别/岗位级别工资': 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
+      {t('payroll:auto____e7baa7')}: 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
+      {t('payroll:auto___e7baa7')}: 'earnings_details.GRADE_POSITION_LEVEL_SALARY.amount',
       [t('components.earnings.grade_salary')]: 'earnings_details.GRADE_SALARY.amount',
-      '级别工资': 'earnings_details.GRADE_SALARY.amount',
+      {t('payroll:auto_text_e7baa7')}: 'earnings_details.GRADE_SALARY.amount',
       [t('components.earnings.position_salary_general')]: 'earnings_details.POSITION_SALARY_GENERAL.amount',
-      '岗位工资': 'earnings_details.POSITION_SALARY_GENERAL.amount',
+      {t('payroll:auto_text_e5b297')}: 'earnings_details.POSITION_SALARY_GENERAL.amount',
       
       [t('components.earnings.staff_salary_grade')]: 'earnings_details.STAFF_SALARY_GRADE.amount',
-      '薪级工资': 'earnings_details.STAFF_SALARY_GRADE.amount',
+      {t('payroll:auto_text_e896aa')}: 'earnings_details.STAFF_SALARY_GRADE.amount',
       [t('components.earnings.basic_salary')]: 'earnings_details.BASIC_SALARY.amount',
-      '基本工资': 'earnings_details.BASIC_SALARY.amount',
+      {t('payroll:auto_text_e59fba')}: 'earnings_details.BASIC_SALARY.amount',
       
       // 收入项 - 绩效类
       [t('components.earnings.basic_performance_award')]: 'earnings_details.BASIC_PERFORMANCE_AWARD.amount',
-      '基础绩效奖': 'earnings_details.BASIC_PERFORMANCE_AWARD.amount',
+      {t('payroll:auto_text_e59fba')}: 'earnings_details.BASIC_PERFORMANCE_AWARD.amount',
       [t('components.earnings.basic_performance_salary')]: 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
-      '月基础绩效': 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
-      '基础性绩效工资': 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
+      {t('payroll:auto_text_e69c88')}: 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
+      {t('payroll:auto_text_e59fba')}: 'earnings_details.BASIC_PERFORMANCE_SALARY.amount',
       [t('components.earnings.performance_bonus')]: 'earnings_details.PERFORMANCE_BONUS.amount',
-      '月奖励绩效': 'earnings_details.PERFORMANCE_BONUS.amount',
-      '奖励性绩效工资': 'earnings_details.PERFORMANCE_BONUS.amount',
-      '奖励绩效': 'earnings_details.PERFORMANCE_BONUS.amount',
-      '绩效奖励': 'earnings_details.PERFORMANCE_BONUS.amount',
+      {t('payroll:auto_text_e69c88')}: 'earnings_details.PERFORMANCE_BONUS.amount',
+      {t('payroll:auto_text_e5a596')}: 'earnings_details.PERFORMANCE_BONUS.amount',
+      {t('payroll:auto_text_e5a596')}: 'earnings_details.PERFORMANCE_BONUS.amount',
+      {t('payroll:auto_text_e7bba9')}: 'earnings_details.PERFORMANCE_BONUS.amount',
       
       // 收入项 - 津贴补贴类
       [t('components.earnings.reform_allowance_1993')]: 'earnings_details.REFORM_ALLOWANCE_1993.amount',
-      '93年工改保留补贴': 'earnings_details.REFORM_ALLOWANCE_1993.amount',
-      '九三年工改保留津补贴': 'earnings_details.REFORM_ALLOWANCE_1993.amount',
+      {t('payroll:auto_93_3933e5')}: 'earnings_details.REFORM_ALLOWANCE_1993.amount',
+      {t('payroll:auto_text_e4b99d')}: 'earnings_details.REFORM_ALLOWANCE_1993.amount',
       [t('components.earnings.only_child_parent_bonus')]: 'earnings_details.ONLY_CHILD_PARENT_BONUS.amount',
-      '独生子女父母奖励金': 'earnings_details.ONLY_CHILD_PARENT_BONUS.amount',
+      {t('payroll:auto_text_e78bac')}: 'earnings_details.ONLY_CHILD_PARENT_BONUS.amount',
       [t('components.earnings.civil_standard_allowance')]: 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
-      '公务员规范性津贴补贴': 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
-      '公务员规范后津补贴': 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
+      {t('payroll:auto_text_e585ac')}: 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
+      {t('payroll:auto_text_e585ac')}: 'earnings_details.CIVIL_STANDARD_ALLOWANCE.amount',
       [t('components.earnings.traffic_allowance')]: 'earnings_details.TRAFFIC_ALLOWANCE.amount',
-      '公务交通补贴': 'earnings_details.TRAFFIC_ALLOWANCE.amount',
+      {t('payroll:auto_text_e585ac')}: 'earnings_details.TRAFFIC_ALLOWANCE.amount',
       [t('components.earnings.position_allowance')]: 'earnings_details.POSITION_ALLOWANCE.amount',
-      '岗位职务补贴': 'earnings_details.POSITION_ALLOWANCE.amount',
+      {t('payroll:auto_text_e5b297')}: 'earnings_details.POSITION_ALLOWANCE.amount',
       [t('components.earnings.petition_allowance')]: 'earnings_details.PETITION_ALLOWANCE.amount',
-      '信访工作人员岗位津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
-      '信访工作人员岗位工作津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
-      '信访岗位津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
-      '信访津贴': 'earnings_details.PETITION_ALLOWANCE.amount',
+      {t('payroll:auto_text_e4bfa1')}: 'earnings_details.PETITION_ALLOWANCE.amount',
+      {t('payroll:auto_text_e4bfa1')}: 'earnings_details.PETITION_ALLOWANCE.amount',
+      {t('payroll:auto_text_e4bfa1')}: 'earnings_details.PETITION_ALLOWANCE.amount',
+      {t('payroll:auto_text_e4bfa1')}: 'earnings_details.PETITION_ALLOWANCE.amount',
       [t('components.earnings.township_allowance')]: 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
-      '乡镇工作补贴': 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
+      {t('payroll:auto_text_e4b9a1')}: 'earnings_details.TOWNSHIP_ALLOWANCE.amount',
       
       // 收入项 - 补发类
       [t('components.earnings.back_pay')]: 'earnings_details.BACK_PAY.amount',
-      '补发工资': 'earnings_details.BACK_PAY.amount',
+      {t('payroll:auto_text_e8a1a5')}: 'earnings_details.BACK_PAY.amount',
       
       // 收入项 - 试用期
       [t('components.earnings.probation_salary')]: 'earnings_details.PROBATION_SALARY.amount',
-      '见习试用期工资': 'earnings_details.PROBATION_SALARY.amount',
-      '试用期工资': 'earnings_details.PROBATION_SALARY.amount',
+      {t('payroll:auto_text_e8a781')}: 'earnings_details.PROBATION_SALARY.amount',
+      {t('payroll:auto_text_e8af95')}: 'earnings_details.PROBATION_SALARY.amount',
       
       // 扣除项 - 社保类
       [t('components.deductions.pension_personal_amount')]: 'deductions_details.PENSION_PERSONAL_AMOUNT.amount',
-      '个人缴养老保险费': 'deductions_details.PENSION_PERSONAL_AMOUNT.amount',
+      {t('payroll:auto_text_e4b8aa')}: 'deductions_details.PENSION_PERSONAL_AMOUNT.amount',
       [t('components.deductions.medical_ins_personal_amount')]: 'deductions_details.MEDICAL_INS_PERSONAL_AMOUNT.amount',
-      '个人缴医疗保险费': 'deductions_details.MEDICAL_INS_PERSONAL_AMOUNT.amount',
+      {t('payroll:auto_text_e4b8aa')}: 'deductions_details.MEDICAL_INS_PERSONAL_AMOUNT.amount',
       [t('components.deductions.occupational_pension_personal_amount')]: 'deductions_details.OCCUPATIONAL_PENSION_PERSONAL_AMOUNT.amount',
-      '个人缴职业年金': 'deductions_details.OCCUPATIONAL_PENSION_PERSONAL_AMOUNT.amount',
+      {t('payroll:auto_text_e4b8aa')}: 'deductions_details.OCCUPATIONAL_PENSION_PERSONAL_AMOUNT.amount',
       [t('components.deductions.unemployment_personal_amount')]: 'deductions_details.UNEMPLOYMENT_PERSONAL_AMOUNT.amount',
-      '个人缴失业保险费': 'deductions_details.UNEMPLOYMENT_PERSONAL_AMOUNT.amount',
+      {t('payroll:auto_text_e4b8aa')}: 'deductions_details.UNEMPLOYMENT_PERSONAL_AMOUNT.amount',
       [t('components.deductions.housing_fund_personal')]: 'deductions_details.HOUSING_FUND_PERSONAL.amount',
-      '个人缴住房公积金': 'deductions_details.HOUSING_FUND_PERSONAL.amount',
-      '补扣社保': 'deductions_details.SOCIAL_INSURANCE_ADJUSTMENT.amount', // 社保补扣专用字段
+      {t('payroll:auto_text_e4b8aa')}: 'deductions_details.HOUSING_FUND_PERSONAL.amount',
+      {t('payroll:auto_text_e8a1a5')}: 'deductions_details.SOCIAL_INSURANCE_ADJUSTMENT.amount', // 社保补扣专用字段
       
       // 扣除项 - 税收类
       [t('components.deductions.personal_income_tax')]: 'deductions_details.PERSONAL_INCOME_TAX.amount',
-      '个人所得税': 'deductions_details.PERSONAL_INCOME_TAX.amount',
+      {t('payroll:auto_text_e4b8aa')}: 'deductions_details.PERSONAL_INCOME_TAX.amount',
       
       // === 聘用人员专用字段映射 ===
       // 收入项 - 聘用人员特有
-      '绩效工资': 'earnings_details.PERFORMANCE_SALARY.amount',
-      '补助': 'earnings_details.ALLOWANCE_GENERAL.amount',
-      '基础绩效': 'earnings_details.BASIC_PERFORMANCE.amount',
-      '津贴': 'earnings_details.GENERAL_ALLOWANCE.amount',
-      '季度绩效考核薪酬': 'earnings_details.QUARTERLY_PERFORMANCE_ASSESSMENT.amount',
+      {t('payroll:auto_text_e7bba9')}: 'earnings_details.PERFORMANCE_SALARY.amount',
+      {t('payroll:auto_text_e8a1a5')}: 'earnings_details.ALLOWANCE_GENERAL.amount',
+      {t('payroll:auto_text_e59fba')}: 'earnings_details.BASIC_PERFORMANCE.amount',
+      {t('payroll:auto_text_e6b4a5')}: 'earnings_details.GENERAL_ALLOWANCE.amount',
+      {t('payroll:auto_text_e5ada3')}: 'earnings_details.QUARTERLY_PERFORMANCE_ASSESSMENT.amount',
       
       // 扣除调整项 - 聘用人员特有
-      '一次性补扣发': 'deductions_details.ONE_TIME_DEDUCTION_ADJUSTMENT.amount',
-      '绩效奖金补扣发': 'deductions_details.PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT.amount',
-      '奖励绩效补扣发': 'deductions_details.REWARD_PERFORMANCE_DEDUCTION_ADJUSTMENT.amount',
-      '补扣（退）款': 'deductions_details.REFUND_DEDUCTION_ADJUSTMENT.amount',
-      '补扣2022年医保款': 'deductions_details.MEDICAL_2022_DEDUCTION_ADJUSTMENT.amount',
+      {t('payroll:auto_text_e4b880')}: 'deductions_details.ONE_TIME_DEDUCTION_ADJUSTMENT.amount',
+      {t('payroll:auto_text_e7bba9')}: 'deductions_details.PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT.amount',
+      {t('payroll:auto_text_e5a596')}: 'deductions_details.REWARD_PERFORMANCE_DEDUCTION_ADJUSTMENT.amount',
+      {t('payroll:auto____e8a1a5')}: 'deductions_details.REFUND_DEDUCTION_ADJUSTMENT.amount',
+      {t('payroll:auto_2022_e8a1a5')}: 'deductions_details.MEDICAL_2022_DEDUCTION_ADJUSTMENT.amount',
       
       // 统计字段 - 不参与收入计算，但需要存储
-      '固定薪酬全年应发数': 'earnings_details.ANNUAL_FIXED_SALARY_TOTAL.amount',
-      '1季度绩效考核薪酬': 'earnings_details.QUARTERLY_PERFORMANCE_Q1.amount',
+      {t('payroll:auto_text_e59bba')}: 'earnings_details.ANNUAL_FIXED_SALARY_TOTAL.amount',
+      {t('payroll:auto_1_31e5ad')}: 'earnings_details.QUARTERLY_PERFORMANCE_Q1.amount',
       
       // 标识类字段 - 聘用人员特有（这些字段会被忽略，不参与计算）
-      '工资统发': '__IGNORE_FIELD__', // 忽略标识字段
-      '财政供养': '__IGNORE_FIELD__', // 忽略标识字段
+      {t('payroll:auto_text_e5b7a5')}: '__IGNORE_FIELD__', // 忽略标识字段
+      {t('payroll:auto_text_e8b4a2')}: '__IGNORE_FIELD__', // 忽略标识字段
     };
     
     // 合并映射规则
@@ -360,8 +352,6 @@ const PayrollBulkImportPage: React.FC = () => {
   
   // 获取薪资周期数据统计的函数 - 使用PayrollRun的total_employees字段
   const fetchPeriodDataStats = async (periodIds: number[]) => {
-    console.log('🔍 开始获取薪资周期数据统计...');
-    
     // 初始化加载状态
     const initialStats: Record<number, { count: number; loading: boolean }> = {};
     periodIds.forEach(id => {
@@ -372,8 +362,6 @@ const PayrollBulkImportPage: React.FC = () => {
     // 并发获取所有周期的数据统计
     const statsPromises = periodIds.map(async (periodId) => {
       try {
-        console.log(`📊 获取周期 ${periodId} 的数据统计...`);
-        
         // 获取该周期下的所有payroll_run（后端已经计算好total_employees）
         const runsResponse = await payrollApi.getPayrollRuns({
           period_id: periodId,
@@ -390,25 +378,15 @@ const PayrollBulkImportPage: React.FC = () => {
             return sum + (run.total_employees || 0);
           }, 0);
           
-          console.log(`📊 周期 ${periodId} 的run列表:`, runsResponse.data.map(run => ({
-            id: run.id,
-            total_employees: run.total_employees,
-            run_date: run.run_date
-          })));
-          console.log(`📊 周期 ${periodId} 累计员工数: ${totalCount}`);
-          
           // 如果该周期有多个run，我们需要去重统计（但这种情况很少见）
           if (runsResponse.data.length > 1) {
-            console.log(`⚠️ 周期 ${periodId} 有多个run，可能存在员工重复计算`);
             // 如果真的需要精确去重，可以在这里添加去重逻辑
             // 但为了性能，我们暂时使用简单累加
           }
         }
         
-        console.log(`📊 周期 ${periodId} 有 ${totalCount} 个员工的薪资记录`);
         return { periodId, count: totalCount };
       } catch (error) {
-        console.error(`❌ 获取周期 ${periodId} 数据统计失败:`, error);
         return { periodId, count: 0 };
       }
     });
@@ -423,9 +401,7 @@ const PayrollBulkImportPage: React.FC = () => {
       });
       
       setPeriodDataStats(newStats);
-      console.log('✅ 薪资周期数据统计获取完成:', newStats);
     } catch (error) {
-      console.error('❌ 获取薪资周期数据统计失败:', error);
       // 设置所有为非加载状态
       const errorStats: Record<number, { count: number; loading: boolean }> = {};
       periodIds.forEach(id => {
@@ -464,9 +440,6 @@ const PayrollBulkImportPage: React.FC = () => {
     const fetchPayrollPeriods = async () => {
       setLoadingPeriods(true);
       try {
-        console.log('🚀 开始获取薪资周期数据...');
-        console.log('📡 API调用参数:', { size: 100 });
-        
         // 获取薪资周期，在生产环境中只显示活动状态的周期
         const response = await payrollApi.getPayrollPeriods({
           size: 100, // 修改为最大允许值100，降低超出限制的风险
@@ -474,27 +447,15 @@ const PayrollBulkImportPage: React.FC = () => {
           // status_lookup_value_id: ACTIVE_STATUS_ID, // 取消注释以启用生产环境限制
         });
         
-        console.log('📡 API响应状态:', response ? 'SUCCESS' : 'FAILED');
-        console.log('📡 API响应完整数据:', JSON.stringify(response, null, 2));
-        
         // 特别检查第一个周期的status_lookup字段
         if (response.data && response.data.length > 0) {
           const firstPeriod = response.data[0] as any; // 使用any类型来检查字段
-          console.log('🔍 第一个周期的字段检查:');
-          console.log('  - 是否有status字段:', 'status' in firstPeriod);
-          console.log('  - 是否有status_lookup字段:', 'status_lookup' in firstPeriod);
-          console.log('  - status值:', firstPeriod.status);
-          console.log('  - status_lookup值:', firstPeriod.status_lookup);
-          console.log('  - 所有字段名:', Object.keys(firstPeriod));
-        }
-        console.log('📡 response.data类型:', typeof response.data);
-        console.log('📡 response.data是否为数组:', Array.isArray(response.data));
-        console.log('📡 response.data长度:', response.data?.length);
-        
-        if (response.data && response.data.length > 0) {
-          console.log('📡 第一个周期的原始数据:', JSON.stringify(response.data[0], null, 2));
-          console.log('📡 第一个周期的status_lookup:', response.data[0].status_lookup);
-          console.log('📡 第一个周期的status_lookup_value_id:', response.data[0].status_lookup_value_id);
+          console.log({t('payroll:auto____f09f94')});
+          console.log({t('payroll:auto__status__20202d')}, 'status' in firstPeriod);
+          console.log({t('payroll:auto__status_lookup__20202d')}, 'status_lookup' in firstPeriod);
+          console.log({t('payroll:auto__status__20202d')}, firstPeriod.status);
+          console.log({t('payroll:auto__status_lookup__20202d')}, firstPeriod.status_lookup);
+          console.log({t('payroll:auto____20202d')}, Object.keys(firstPeriod));
         }
         
         // 按日期倒序排列，最新的月份在前面
@@ -505,21 +466,9 @@ const PayrollBulkImportPage: React.FC = () => {
         // 根据环境和业务规则过滤薪资周期
         const filteredPeriods = filterPayrollPeriods(sortedPeriods);
         
-        console.log('🔄 排序后的周期数据:');
-        sortedPeriods.forEach((period, index) => {
-          console.log(`  ${index + 1}. ${period.name}:`);
-          console.log(`     - status_lookup_value_id: ${period.status_lookup_value_id}`);
-          console.log(`     - status_lookup: ${JSON.stringify(period.status_lookup)}`);
-        });
-        
-        if (ENABLE_PRODUCTION_RESTRICTIONS) {
-          console.log(`🔒 生产环境限制：从 ${sortedPeriods.length} 个周期中过滤出 ${filteredPeriods.length} 个活动周期`);
-        }
-        
-        setPayrollPeriods(filteredPeriods);
         // 记录获取到的总数
-        console.log(`✅ 成功加载${sortedPeriods.length}个薪资周期，总共${response.meta?.total || 0}个`);
-        console.log('📅 薪资周期列表:', sortedPeriods.map(p => `${p.name} (${p.status_lookup?.name || 'Unknown'})`));
+        console.log({t('payroll:auto___sortedperiods_length___response_meta_total_0__e29c85')});
+        console.log({t('payroll:auto____f09f93')}, sortedPeriods.map(p => `${p.name} (${p.status_lookup?.name || 'Unknown'})`));
         
         // 获取每个周期的数据统计
         if (sortedPeriods.length > 0) {
@@ -528,25 +477,23 @@ const PayrollBulkImportPage: React.FC = () => {
         }
         
         // 详细检查所有周期的数据结构
-        console.log('🔍 详细检查所有薪资周期的数据结构:');
         sortedPeriods.forEach((period, index) => {
-          console.log(`\n--- 薪资周期 ${index + 1}: ${period.name} ---`);
-          console.log('完整数据:', JSON.stringify(period, null, 2));
+          console.log({t('payroll:auto__n__index_1_period_name__5c6e2d')});
+          console.log({t('payroll:auto___e5ae8c')}, JSON.stringify(period, null, 2));
           console.log('status_lookup_value_id:', period.status_lookup_value_id);
-          console.log('status_lookup字段存在:', !!period.status_lookup);
+          console.log({t('payroll:auto_status_lookup__737461')}, !!period.status_lookup);
           if (period.status_lookup) {
-            console.log('status_lookup内容:', JSON.stringify(period.status_lookup, null, 2));
             console.log('status_lookup.id:', period.status_lookup.id);
             console.log('status_lookup.code:', period.status_lookup.code);
             console.log('status_lookup.name:', period.status_lookup.name);
           } else {
-            console.log('❌ status_lookup字段为空或未定义');
+            console.log({t('payroll:auto__status_lookup_e29d8c')});
           }
-          console.log('--- 结束 ---\n');
+          console.log({t('payroll:auto___n_2d2d2d')});
         });
         
         // 检查API响应的原始数据
-        console.log('🔍 API响应原始数据:', JSON.stringify(response, null, 2));
+        console.log({t('payroll:auto__api__f09f94')}, JSON.stringify(response, null, 2));
       } catch (error) {
         console.error('❌ Error fetching payroll periods:', error);
         message.error(t('periods_page.error_fetch_periods'));
@@ -568,30 +515,27 @@ const PayrollBulkImportPage: React.FC = () => {
           is_enabled: true,
           size: 100  // 增加分页大小以获取更多组件
         });
-        console.log('获取的薪资字段定义:', response);
-        console.log('API响应元数据:', response.meta);
         setComponentDefinitions(response.data);
         
         if (response.data.length > 0) {
-          console.log(`成功加载${response.data.length}个薪资字段定义`);
           if (response.meta && response.meta.total > response.data.length) {
-            console.warn(`注意：总共有${response.meta.total}个组件，但只加载了${response.data.length}个`);
+            console.warn({t('payroll:auto___response_meta_total___response_data_length__e6b3a8')});
           }
         } else {
-          console.warn('加载的薪资字段定义为空');
+          console.warn({t('payroll:auto_text_e58aa0')});
         }
       } catch (error: any) {
         console.error('Error fetching payroll component definitions:', error);
-        console.error('错误详情:', error.response?.data || error.message);
-        console.error('错误状态码:', error.response?.status);
+        console.error({t('payroll:auto___e99499')}, error.response?.data || error.message);
+        console.error({t('payroll:auto___e99499')}, error.response?.status);
         
         // 显示用户友好的错误信息
         if (error.response?.status === 403) {
-          message.error(t('batch_import.error_permission_denied', { defaultValue: '权限不足，无法获取薪资字段定义' }));
+          message.error(t('batch_import.error_permission_denied', { defaultValue: {t('payroll:auto___e69d83')} }));
         } else if (error.response?.status === 404) {
-          message.error(t('batch_import.error_api_not_found', { defaultValue: 'API端点不存在，请联系管理员' }));
+          message.error(t('batch_import.error_api_not_found', { defaultValue: {t('payroll:auto_api__415049')} }));
         } else {
-          message.error(t('batch_import.error_fetch_components', { defaultValue: '获取薪资字段定义失败，请稍后重试' }));
+          message.error(t('batch_import.error_fetch_components', { defaultValue: {t('payroll:auto___e88eb7')} }));
         }
         
         // 设置空数组，避免页面崩溃
@@ -608,12 +552,10 @@ const PayrollBulkImportPage: React.FC = () => {
   useEffect(() => {
     const fetchDefaultPayrollEntryStatusId = async () => {
       try {
-        console.log('开始获取默认薪资条目状态ID...');
-        // 首先尝试获取"已计算"状态的ID
+        // 首先尝试获取{t('payroll:auto_text_e5b7b2')}状态的ID
         const calculatedStatusId = await lookupService.getLookupValueIdByCode('PAYROLL_ENTRY_STATUS', 'CALCULATED');
         if (calculatedStatusId) {
           setDefaultPayrollEntryStatusId(calculatedStatusId);
-          console.log(`成功获取默认薪资条目状态ID (CALCULATED): ${calculatedStatusId}`);
           return;
         }
         
@@ -621,23 +563,20 @@ const PayrollBulkImportPage: React.FC = () => {
         const pentryCalculatedStatusId = await lookupService.getLookupValueIdByCode('PAYROLL_ENTRY_STATUS', 'PENTRY_CALCULATED');
         if (pentryCalculatedStatusId) {
           setDefaultPayrollEntryStatusId(pentryCalculatedStatusId);
-          console.log(`成功获取默认薪资条目状态ID (PENTRY_CALCULATED): ${pentryCalculatedStatusId}`);
           return;
         }
         
-        console.warn('未找到CALCULATED或PENTRY_CALCULATED状态，尝试获取第一个可用状态');
+        console.warn({t('payroll:auto_calculatedpentry_calculated__e69caa')});
         // 如果都找不到，获取第一个可用的状态
         const allStatuses = await lookupService.getPayrollEntryStatusesLookup();
         if (allStatuses.length > 0) {
           const firstStatusId = Number(allStatuses[0].id);
           setDefaultPayrollEntryStatusId(firstStatusId);
-          console.log(`使用第一个可用状态ID: ${firstStatusId} (${allStatuses[0].name})`);
         } else {
-          console.error('无法获取任何薪资条目状态');
+          console.error({t('payroll:auto_text_e697a0')});
           setDefaultPayrollEntryStatusId(null);
         }
       } catch (error) {
-        console.error('获取默认薪资条目状态ID失败:', error);
         setDefaultPayrollEntryStatusId(null);
       }
     };
@@ -658,15 +597,15 @@ const PayrollBulkImportPage: React.FC = () => {
   // 处理结果记录
   const processPayrollRecord = (record: Record<string, any>) => {
     console.log(`\n=== 开始处理记录: ${record.employee_full_name || record.employee_name || 'Unknown'} ===`);
-    console.log('原始记录:', JSON.stringify(record, null, 2));
+    console.log(JSON.stringify(record, null, 2));
     
     // 新增：处理人员类型 (personnel_type)
     let personnelType: 'REGULAR' | 'HIRED' | 'UNKNOWN' = 'UNKNOWN';
     const rawIdentity = record.raw_personnel_identity as string || '';
     if (rawIdentity) {
-      if (rawIdentity.includes('正编') || rawIdentity.includes('在编') || rawIdentity.includes('事业') || rawIdentity.includes('行政')) {
+      if (rawIdentity.includes({t('payroll:auto_text_e6ada3')}) || rawIdentity.includes({t('payroll:auto_text_e59ca8')}) || rawIdentity.includes({t('payroll:auto_text_e4ba8b')}) || rawIdentity.includes({t('payroll:auto_text_e8a18c')})) {
         personnelType = 'REGULAR';
-      } else if (rawIdentity.includes('聘用') || rawIdentity.includes('合同') || rawIdentity.includes('派遣') || rawIdentity.includes('员额') || rawIdentity.includes('临聘')) {
+      } else if (rawIdentity.includes({t('payroll:auto_text_e88198')}) || rawIdentity.includes({t('payroll:auto_text_e59088')}) || rawIdentity.includes({t('payroll:auto_text_e6b4be')}) || rawIdentity.includes({t('payroll:auto_text_e59198')}) || rawIdentity.includes({t('payroll:auto_text_e4b8b4')})) {
         personnelType = 'HIRED';
       }
     }
@@ -675,27 +614,27 @@ const PayrollBulkImportPage: React.FC = () => {
     
     // 检查是否有月奖励绩效相关字段
     const possiblePerformanceFields = Object.keys(record).filter(key => 
-      key.includes('奖励') || key.includes('绩效') || key.includes('PERFORMANCE')
+      key.includes({t('payroll:auto_text_e5a596')}) || key.includes({t('payroll:auto_text_e7bba9')}) || key.includes('PERFORMANCE')
     );
-    console.log('发现的绩效相关字段:', possiblePerformanceFields);
+    console.log(possiblePerformanceFields);
     possiblePerformanceFields.forEach(field => {
       console.log(`${field}: ${record[field]}`);
     });
     
     // 特别检查earnings_details中的PERFORMANCE_BONUS
     if (record.earnings_details) {
-      console.log('🎯 检查earnings_details中的绩效字段:');
+      console.log({t('payroll:auto__earnings_details__f09f8e')});
       Object.keys(record.earnings_details).forEach(key => {
-        if (key.includes('PERFORMANCE') || key.includes('绩效') || key.includes('奖励')) {
-          console.log(`🎯 发现绩效字段: ${key} = ${JSON.stringify(record.earnings_details[key])}`);
+        if (key.includes('PERFORMANCE') || key.includes({t('payroll:auto_text_e7bba9')}) || key.includes({t('payroll:auto_text_e5a596')})) {
+          console.log({t('payroll:auto___key_json_stringify_record_earnings_details_key__f09f8e')});
         }
       });
       
       // 特别检查PERFORMANCE_BONUS
       if (record.earnings_details.PERFORMANCE_BONUS) {
-        console.log('🎯 找到PERFORMANCE_BONUS字段:', record.earnings_details.PERFORMANCE_BONUS);
+        console.log({t('payroll:auto__performance_bonus__f09f8e')}, record.earnings_details.PERFORMANCE_BONUS);
       } else {
-        console.warn('⚠️ 未找到PERFORMANCE_BONUS字段');
+        console.warn({t('payroll:auto__performance_bonus_e29aa0')});
       }
     }
     
@@ -748,63 +687,57 @@ const PayrollBulkImportPage: React.FC = () => {
     };
 
     // 处理收入项，确保金额是数字
-    console.log('处理前的收入项:', JSON.stringify(record.earnings_details, null, 2));
+    console.log(JSON.stringify(record.earnings_details, null, 2));
     const originalEarningsKeys = Object.keys(record.earnings_details);
-    console.log('原始收入项字段数量:', originalEarningsKeys.length);
     
     // 特别检查PERFORMANCE_BONUS是否存在
     const hasPerformanceBonus = originalEarningsKeys.includes('PERFORMANCE_BONUS');
-    console.log('🎯 处理前是否有PERFORMANCE_BONUS:', hasPerformanceBonus);
     if (hasPerformanceBonus) {
-      console.log('🎯 PERFORMANCE_BONUS原始值:', record.earnings_details.PERFORMANCE_BONUS);
+      console.log({t('payroll:auto__performance_bonus__f09f8e')}, record.earnings_details.PERFORMANCE_BONUS);
     }
     
     Object.keys(record.earnings_details).forEach(key => {
       const item = record.earnings_details[key];
       let amount = 0;
       
-      console.log(`处理收入项 ${key}:`, item);
-      
       // 特别标记绩效字段
-      const isPerformanceField = key.includes('PERFORMANCE') || key.includes('绩效') || key.includes('奖励');
+      const isPerformanceField = key.includes('PERFORMANCE') || key.includes({t('payroll:auto_text_e7bba9')}) || key.includes({t('payroll:auto_text_e5a596')});
       if (isPerformanceField) {
-        console.log(`🎯 处理绩效收入项: ${key}`);
-        console.log(`🎯 原始item类型:`, typeof item);
-        console.log(`🎯 原始item值:`, JSON.stringify(item, null, 2));
+        console.log({t('payroll:auto___key__f09f8e')});
+        console.log(typeof item);
+        console.log(JSON.stringify(item, null, 2));
       }
       
       if (typeof item === 'number' || typeof item === 'string') {
         amount = toNumber(item);
         if (isPerformanceField) {
-          console.log(`🎯 直接转换: ${item} -> ${amount}`);
+          console.log({t('payroll:auto___item_amount__f09f8e')});
         }
       } else if (item && typeof item === 'object' && item.amount !== undefined) {
         amount = toNumber(item.amount);
         if (isPerformanceField) {
-          console.log(`🎯 从对象提取amount: ${item.amount} -> ${amount}`);
+          console.log({t('payroll:auto__amount_item_amount_amount__f09f8e')});
         }
       } else {
         if (isPerformanceField) {
-          console.error(`🚨 绩效字段无法处理的数据类型: ${typeof item}`, item);
+          console.error({t('payroll:auto___typeof_item__f09f9a')}, item);
         }
       }
       
-      console.log(`${key} 转换后金额:`, amount);
       if (isPerformanceField) {
-        console.log(`🎯 绩效字段转换后金额: ${key} = ${amount}`);
-        console.log(`🎯 金额是否为0: ${amount === 0}`);
-        console.log(`🎯 金额是否为NaN: ${isNaN(amount)}`);
+        console.log({t('payroll:auto___key_amount__f09f8e')});
+        console.log({t('payroll:auto__0_amount_0__f09f8e')});
+        console.log({t('payroll:auto__nan_isnan_amount__f09f8e')});
       }
       
       // 如果金额为0或无效，删除该项（但在验证时会考虑原始数据）
       if (amount === 0) {
-        console.log(`删除0值收入项: ${key}`);
         if (isPerformanceField) {
-          console.error(`🚨 删除了绩效字段: ${key} (金额为0)`);
-          console.error(`🚨 删除原因分析:`);
-          console.error(`  - 原始值:`, item);
-          console.error(`  - 转换后:`, amount);
-          console.error(`  - 是否严格等于0:`, amount === 0);
+          console.error({t('payroll:auto___key_0__f09f9a')});
+          console.error({t('payroll:auto____f09f9a')});
+          console.error({t('payroll:auto____20202d')}, item);
+          console.error({t('payroll:auto____20202d')}, amount);
+          console.error({t('payroll:auto__0__20202d')}, amount === 0);
         }
         delete record.earnings_details[key];
       } else {
@@ -812,22 +745,20 @@ const PayrollBulkImportPage: React.FC = () => {
           amount: amount,
           name: getComponentName(key, 'earnings')
         };
-        console.log(`保留收入项 ${key}:`, record.earnings_details[key]);
         if (isPerformanceField) {
-          console.log(`🎯 保留绩效字段: ${key} =`, record.earnings_details[key]);
+          console.log({t('payroll:auto___key__f09f8e')}, record.earnings_details[key]);
         }
       }
     });
     
-    console.log('处理后的收入项:', JSON.stringify(record.earnings_details, null, 2));
+    console.log(JSON.stringify(record.earnings_details, null, 2));
     
     // 再次检查PERFORMANCE_BONUS是否还存在
     const stillHasPerformanceBonus = Object.keys(record.earnings_details).includes('PERFORMANCE_BONUS');
-    console.log('🎯 处理后是否还有PERFORMANCE_BONUS:', stillHasPerformanceBonus);
     if (!hasPerformanceBonus && !stillHasPerformanceBonus) {
-      console.warn('⚠️ PERFORMANCE_BONUS字段从始至终都不存在');
+      console.warn({t('payroll:auto__performance_bonus_e29aa0')});
     } else if (hasPerformanceBonus && !stillHasPerformanceBonus) {
-      console.error('🚨 PERFORMANCE_BONUS字段在处理过程中丢失了！');
+      console.error({t('payroll:auto__performance_bonus__f09f9a')});
     }
 
     // 处理扣除项，确保金额是数字
@@ -897,16 +828,16 @@ const PayrollBulkImportPage: React.FC = () => {
       record.status_lookup_value_id = defaultPayrollEntryStatusId; // 使用动态获取的状态ID
     }
     
-    console.log('最终处理结果 (包含 personnel_type):', {
+    console.log({t('payroll:auto___personnel_type__e69c80')}, {
       ...record,
       personnel_type: record.personnel_type // 确保在日志中也输出
     });
     console.log('- gross_pay:', record.gross_pay);
     console.log('- total_deductions:', record.total_deductions);
     console.log('- net_pay:', record.net_pay);
-    console.log('- 收入项数量:', Object.keys(record.earnings_details).length);
-    console.log('- 扣除项数量:', Object.keys(record.deductions_details).length);
-    console.log('=== 记录处理完成 ===\n');
+    console.log({t('payroll:auto____2d20e6')}, Object.keys(record.earnings_details).length);
+    console.log({t('payroll:auto____2d20e6')}, Object.keys(record.deductions_details).length);
+    console.log({t('payroll:auto___n_3d3d3d')});
     
     return record;
   };
@@ -921,7 +852,7 @@ const PayrollBulkImportPage: React.FC = () => {
   const handlePeriodChange = (value: number | null) => {
     setSelectedPeriodId(value);
     const selectedPeriod = payrollPeriods.find(p => p.id === value);
-    console.log('🎯 用户选择薪资周期:', {
+    console.log({t('payroll:auto____f09f8e')}, {
       id: value,
       name: selectedPeriod?.name,
       status: selectedPeriod?.status_lookup?.name,
@@ -1037,21 +968,21 @@ const PayrollBulkImportPage: React.FC = () => {
     // 验证净工资计算是否正确：实发合计 = 应发合计 - 所有扣款项 (使用函数开头计算的allDeductionsSum)
     // 注意：allDeductionsSum 和 allDeductionsBreakdown 已经在函数开头计算过，这里直接复用
     const calculatedNetPay = record.gross_pay - allDeductionsSum; // 复用函数开头的 allDeductionsSum
-    console.log(`\n=== 净工资验证详情 (${recordDescription}) ===`);
-    console.log('应发工资 (gross_pay):', record.gross_pay);
-    console.log('所有扣款项明细 (复用):', allDeductionsBreakdown); // 复用函数开头的 allDeductionsBreakdown
-    console.log('所有扣款项总和 (复用):', allDeductionsSum);
-    console.log('计算的净工资 (gross_pay - allDeductionsSum):', calculatedNetPay);
-    console.log('记录中的净工资 (net_pay):', record.net_pay);
+    console.log({t('payroll:auto__n__recorddescription__5c6e3d')});
+    console.log({t('payroll:auto__gross_pay__e5ba94')}, record.gross_pay);
+    console.log({t('payroll:auto____e68980')}, allDeductionsBreakdown); // 复用函数开头的 allDeductionsBreakdown
+    console.log({t('payroll:auto____e68980')}, allDeductionsSum);
+    console.log({t('payroll:auto__gross_pay_alldeductionssum__e8aea1')}, calculatedNetPay);
+    console.log({t('payroll:auto__net_pay__e8aeb0')}, record.net_pay);
     
     if (Math.abs(calculatedNetPay - record.net_pay) > 0.01) { // 允许0.01的浮点误差
-      console.log('❌ 净工资验证失败!');
-      console.log(`预期: ${calculatedNetPay.toFixed(2)}, 实际: ${record.net_pay.toFixed(2)}, 差额: ${Math.abs(calculatedNetPay - record.net_pay).toFixed(2)}`);
+      console.log({t('payroll:auto____e29d8c')});
+      console.log({t('payroll:auto__calculatednetpay_tofixed_2__record_net_pay_tofixed_2__math_abs_calculatednetpay_record_net_pay_tofixed_2__e9a284')});
       errors.push(t('batch_import.validation.net_pay_mismatch', { record: recordDescription }));
     } else {
-      console.log('✅ 净工资验证通过');
+      console.log({t('payroll:auto___e29c85')});
     }
-    console.log('=== 净工资验证结束 ===\n');
+    console.log({t('payroll:auto___n_3d3d3d')});
 
     // 验证收入项
     if (!record.earnings_details || Object.keys(record.earnings_details).length === 0) {
@@ -1070,29 +1001,29 @@ const PayrollBulkImportPage: React.FC = () => {
             earningsSum += item.amount;
             earningsBreakdown.push(`${key}: ${item.amount}`);
           } else {
-            earningsBreakdown.push(`${key}: ${item.amount} (统计字段，不计入总和)`);
+            earningsBreakdown.push({t('payroll:auto__key_item_amount____247b6b')});
           }
         }
       });
       
       // 详细日志输出
-      console.log(`=== 收入项验证详情 (${recordDescription}) ===`);
-      console.log('原始应发工资 (gross_pay):', record.gross_pay);
-      console.log('收入项明细:', earningsBreakdown);
-      console.log('收入项总和 (earningsSum):', earningsSum);
-      console.log('差异 (Math.abs(earningsSum - record.gross_pay)):', Math.abs(earningsSum - record.gross_pay));
-      console.log('收入项数量:', Object.keys(record.earnings_details).length);
-      console.log('完整收入项对象:', JSON.stringify(record.earnings_details, null, 2));
+      console.log({t('payroll:auto___recorddescription__3d3d3d')});
+      console.log({t('payroll:auto__gross_pay__e58e9f')}, record.gross_pay);
+      console.log({t('payroll:auto___e694b6')}, earningsBreakdown);
+      console.log({t('payroll:auto__earningssum__e694b6')}, earningsSum);
+      console.log({t('payroll:auto__math_abs_earningssum_record_gross_pay__e5b7ae')}, Math.abs(earningsSum - record.gross_pay));
+      console.log({t('payroll:auto___e694b6')}, Object.keys(record.earnings_details).length);
+      console.log({t('payroll:auto___e5ae8c')}, JSON.stringify(record.earnings_details, null, 2));
       
       // 只有当收入项总和大于0且与应发工资不匹配时才报错
       // 这样可以处理某些收入项为空值被删除的情况
       if (earningsSum > 0 && Math.abs(earningsSum - record.gross_pay) > 0.01) {
-        console.log('❌ 验证失败: 收入项总和与应发工资不匹配');
+        console.log({t('payroll:auto____e29d8c')});
         errors.push(t('batch_import.validation.gross_pay_mismatch', { record: recordDescription }));
       } else {
-        console.log('✅ 验证通过: 收入项总和匹配');
+        console.log({t('payroll:auto____e29c85')});
       }
-      console.log('=== 验证详情结束 ===\n');
+      console.log({t('payroll:auto___n_3d3d3d')});
     }
 
     // --- Type-Specific Validations ---
@@ -1124,14 +1055,14 @@ const PayrollBulkImportPage: React.FC = () => {
     console.log(`\n🛡️ Running REGULAR specific validations for ${recordDescription}`);
     // 正编人员: 扣发合计 (total_deductions) == 五险一金 + 个人所得税 (standardDeductionsSum)
     if (Math.abs(standardDeductionsSum - record.total_deductions) > 0.01) {
-      console.log('\n❌ REGULAR: 扣发合计验证失败!');
-      console.log(`  预期扣发合计 (用户提供): ${record.total_deductions.toFixed(2)}`);
-      console.log(`  计算的标准扣除总和 (五险一金+税): ${standardDeductionsSum.toFixed(2)}`);
-      console.log(`  计算的所有扣除总和 (参考): ${allDeductionsSum.toFixed(2)}`);
-      console.log(`  差异 (用户扣发合计 vs 标准扣除): ${Math.abs(standardDeductionsSum - record.total_deductions).toFixed(2)}`);
+      console.log({t('payroll:auto__n_regular___5c6ee2')});
+      console.log({t('payroll:auto____record_total_deductions_tofixed_2__2020e9')});
+      console.log({t('payroll:auto_____standarddeductionssum_tofixed_2__2020e8')});
+      console.log({t('payroll:auto____alldeductionssum_tofixed_2__2020e8')});
+      console.log({t('payroll:auto____vs__math_abs_standarddeductionssum_record_total_deductions_tofixed_2__2020e5')});
       errors.push(t('batch_import.validation.regular.total_deductions_mismatch_standard', { record: recordDescription }));
     } else {
-      console.log('\n✅ REGULAR: 扣发合计验证通过 (等于标准五险一金+税).');
+      console.log({t('payroll:auto__n_regular_____5c6ee2')});
     }
     // TODO: Add other REGULAR specific validations (e.g., required fields, value ranges)
   };
@@ -1148,14 +1079,14 @@ const PayrollBulkImportPage: React.FC = () => {
     console.log(`\n🛡️ Running HIRED specific validations for ${recordDescription}`);
     // 聘用人员: 扣发合计 (total_deductions) == 所有扣除明细的总和 (allDeductionsSum)
     if (Math.abs(allDeductionsSum - record.total_deductions) > 0.01) {
-      console.log('\n❌ HIRED: 扣发合计验证失败!');
-      console.log(`  预期扣发合计 (用户提供): ${record.total_deductions.toFixed(2)}`);
-      console.log(`  计算的所有扣除总和: ${allDeductionsSum.toFixed(2)}`);
-      console.log(`  计算的标准扣除总和 (参考): ${standardDeductionsSum.toFixed(2)}`);
-      console.log(`  差异 (用户扣发合计 vs 所有明细总和): ${Math.abs(allDeductionsSum - record.total_deductions).toFixed(2)}`);
+      console.log({t('payroll:auto__n_hired___5c6ee2')});
+      console.log({t('payroll:auto____record_total_deductions_tofixed_2__2020e9')});
+      console.log({t('payroll:auto___alldeductionssum_tofixed_2__2020e8')});
+      console.log({t('payroll:auto____standarddeductionssum_tofixed_2__2020e8')});
+      console.log({t('payroll:auto____vs__math_abs_alldeductionssum_record_total_deductions_tofixed_2__2020e5')});
       errors.push(t('batch_import.validation.hired.total_deductions_mismatch_all_details', { record: recordDescription }));
     } else {
-      console.log('\n✅ HIRED: 扣发合计验证通过 (等于所有扣除明细总和).');
+      console.log({t('payroll:auto__n_hired____5c6ee2')});
     }
     // TODO: Add other HIRED specific validations
   };
@@ -1163,11 +1094,11 @@ const PayrollBulkImportPage: React.FC = () => {
   const handleParseAndPreview = () => {
     // 如果在表格输入标签，提示用户使用表格转换器
     if (activeTab === 'table') {
-      message.info(t('batch_import.message.use_table_converter_first', '请先在表格转换器中完成数据转换'));
+      message.info(t('batch_import.message.use_table_converter_first', {t('payroll:auto_text_e8afb7')}));
       return;
     }
     
-    console.log('=== 开始解析和预览数据 ===');
+    console.log({t('payroll:auto____3d3d3d')});
     
     if (!jsonInput.trim()) {
       setParseError(t('batch_import.validation.no_data_to_upload'));
@@ -1212,7 +1143,7 @@ const PayrollBulkImportPage: React.FC = () => {
     if (ENABLE_PRODUCTION_RESTRICTIONS) {
       const selectedPeriod = payrollPeriods.find(p => p.id === selectedPeriodId);
       if (selectedPeriod && !isPeriodImportAllowed(selectedPeriod)) {
-        message.error('生产环境限制：只能向活动状态的薪资周期导入数据');
+        message.error({t('payroll:auto___e7949f')});
         return;
       }
     }
@@ -1257,7 +1188,7 @@ const PayrollBulkImportPage: React.FC = () => {
         overwrite_mode: overwriteMode
       };
 
-      console.log('📤 准备上传薪资数据:', {
+      console.log({t('payroll:auto____f09f93')}, {
         payroll_period_id: selectedPeriodId,
         entries_count: payloadEntries.length,
         overwrite_mode: overwriteMode,
@@ -1265,30 +1196,29 @@ const PayrollBulkImportPage: React.FC = () => {
       });
       
       // 添加更详细的调试信息
-      console.log('📤 详细检查第一条记录的扣除项:');
       if (payloadEntries.length > 0) {
         const firstEntry = payloadEntries[0];
-        console.log('第一条记录完整数据:', JSON.stringify(firstEntry, null, 2));
+        console.log({t('payroll:auto___e7acac')}, JSON.stringify(firstEntry, null, 2));
         if (firstEntry.deductions_details) {
-          console.log('扣除项代码列表:', Object.keys(firstEntry.deductions_details));
+          console.log({t('payroll:auto___e689a3')}, Object.keys(firstEntry.deductions_details));
           Object.entries(firstEntry.deductions_details).forEach(([code, detail]) => {
             console.log(`  ${code}:`, detail);
           });
-          console.log('是否包含SOCIAL_INSURANCE_ADJUSTMENT:', 'SOCIAL_INSURANCE_ADJUSTMENT' in firstEntry.deductions_details);
+          console.log({t('payroll:auto_social_insurance_adjustment__e698af')}, 'SOCIAL_INSURANCE_ADJUSTMENT' in firstEntry.deductions_details);
         }
       }
 
       const response = await payrollApi.bulkCreatePayrollEntries(bulkPayload);
       
-      console.log('📥 批量上传响应:', response);
-      console.log('📥 响应类型:', typeof response);
-      console.log('📥 响应keys:', response ? Object.keys(response) : 'response is null/undefined');
+      console.log({t('payroll:auto____f09f93')}, response);
+      console.log({t('payroll:auto____f09f93')}, typeof response);
+      console.log({t('payroll:auto__keys__f09f93')}, response ? Object.keys(response) : 'response is null/undefined');
       
       // 使用新的响应格式
       const result = response;
       
       // 添加更多调试信息
-      console.log('📥 解析result:', {
+      console.log({t('payroll:auto__result__f09f93')}, {
         success_count: result?.success_count,
         error_count: result?.error_count,
         errors: result?.errors,
@@ -1297,28 +1227,26 @@ const PayrollBulkImportPage: React.FC = () => {
       
       // 添加详细的错误信息输出
       if (result?.errors && result.errors.length > 0) {
-        console.log('🚨 批量导入错误详情:');
         result.errors.forEach((err: any, index: number) => {
-          console.log(`  错误 ${index + 1}:`, {
+          console.log({t('payroll:auto___index_1__2020e9')}, {
             employee_id: err.employee_id,
             employee_name: err.employee_name,
             index: err.index,
             error: err.error,
-            detail: err.detail || err.message || '无详细信息'
+            detail: err.detail || err.message || {t('payroll:auto_text_e697a0')}
           });
         });
         
         // 检查第一个错误的详细信息
         if (result.errors[0]) {
-          console.log('🚨 第一个错误的完整对象:', JSON.stringify(result.errors[0], null, 2));
+          console.log({t('payroll:auto____f09f9a')}, JSON.stringify(result.errors[0], null, 2));
         }
       }
       
       try {
         // 检查result是否存在必需的字段
         if (!result || typeof result.success_count === 'undefined' || typeof result.error_count === 'undefined') {
-          console.error('❌ 响应数据缺少必需字段:', result);
-          throw new Error('响应数据格式不正确');
+          throw new Error({t('payroll:auto_text_e5938d')});
         }
         
         // 确保errors是数组
@@ -1335,7 +1263,6 @@ const PayrollBulkImportPage: React.FC = () => {
           createdEntries: createdEntries
         });
       } catch (resultError) {
-        console.error('❌ 处理响应数据时出错:', resultError);
         throw resultError;
       }
       
@@ -1362,8 +1289,8 @@ const PayrollBulkImportPage: React.FC = () => {
           errorString.includes('uq_payroll_entries_employee_period_run') ||
           errorString.includes('already exists')) {
         isDuplicateError = true;
-        extractedErrorMessage = '检测到重复的薪资记录';
-        detailedErrorMessage = '部分员工在当前薪资周期中已存在薪资记录。请启用覆盖模式以更新现有记录。';
+        extractedErrorMessage = {t('payroll:auto_text_e6a380')};
+        detailedErrorMessage = {t('payroll:auto____e983a8')};
       } else if (error.response?.data?.detail) {
         if (typeof error.response.data.detail === 'string') {
           extractedErrorMessage = error.response.data.detail;
@@ -1397,7 +1324,7 @@ const PayrollBulkImportPage: React.FC = () => {
                 部分员工在当前薪资周期中已存在记录
               </div>
               <div style={{ fontSize: '12px', color: '#1890ff', marginTop: 4 }}>
-                💡 解决方案：在JSON输入页面启用"覆盖模式"开关
+                💡 解决方案：在JSON输入页面启用{t('payroll:auto_text_e8a686')}开关
               </div>
             </div>
           ),
@@ -1412,7 +1339,7 @@ const PayrollBulkImportPage: React.FC = () => {
         errorCount: validRecords.length,
         errors: validRecords.map(record => ({ 
             record,
-            error: isDuplicateError ? '该员工在当前薪资周期已存在记录，请启用覆盖模式' : extractedErrorMessage 
+            error: isDuplicateError ? {t('payroll:auto___e8afa5')} : extractedErrorMessage 
         })),
         createdEntries: [] 
       });
@@ -1552,14 +1479,14 @@ const PayrollBulkImportPage: React.FC = () => {
         const errorText = typeof error === 'object' ? JSON.stringify(error) : String(error);
         
         // 检查是否是重复记录错误
-        if (errorText.includes('已存在记录') || errorText.includes('覆盖模式') || errorText.includes('duplicate')) {
+        if (errorText.includes({t('payroll:auto_text_e5b7b2')}) || errorText.includes({t('payroll:auto_text_e8a686')}) || errorText.includes('duplicate')) {
           return (
             <div>
               <div style={{ color: '#ff4d4f', marginBottom: 4 }}>
                 🔄 {errorText}
               </div>
               <div style={{ fontSize: '12px', color: '#1890ff' }}>
-                💡 解决方案：返回第一步，在JSON输入页面启用"覆盖模式"开关
+                💡 解决方案：返回第一步，在JSON输入页面启用{t('payroll:auto_text_e8a686')}开关
               </div>
             </div>
           );
@@ -1595,9 +1522,9 @@ const PayrollBulkImportPage: React.FC = () => {
       title = t('batch_import.results.partial_success', { success: uploadResult.successCount, error: uploadResult.errorCount });
       icon = <WarningOutlined />;
     } else if (isAllFailed) {
-      console.log('📝 翻译调试 - errorCount:', uploadResult.errorCount);
-      console.log('📝 翻译调试 - 翻译键:', 'batch_import.results.all_failed_at_server');
-      console.log('📝 翻译调试 - 参数:', { count: uploadResult.errorCount });
+      console.log({t('payroll:auto___errorcount__f09f93')}, uploadResult.errorCount);
+      console.log({t('payroll:auto_____f09f93')}, 'batch_import.results.all_failed_at_server');
+      console.log({t('payroll:auto_____f09f93')}, { count: uploadResult.errorCount });
       
       // 使用正确的翻译方式，确保参数被替换
       title = t('payroll:batch_import.results.all_failed_at_server', { count: uploadResult.errorCount });
@@ -1626,19 +1553,19 @@ const PayrollBulkImportPage: React.FC = () => {
           <div style={{ marginTop: 24 }}>
             {/* 检查是否有重复记录错误，显示特殊提示 */}
             {uploadResult.errors.some(err => 
-              String(err.error).includes('已存在记录') || 
-              String(err.error).includes('覆盖模式') || 
+              String(err.error).includes({t('payroll:auto_text_e5b7b2')}) || 
+              String(err.error).includes({t('payroll:auto_text_e8a686')}) || 
               String(err.error).includes('duplicate')
             ) && (
               <Alert
-                message="检测到重复记录"
+                message={t('payroll:auto_text_e6a380')}
                 description={
                   <div>
                     <p>部分员工在当前薪资周期中已存在薪资记录。</p>
                     <p><strong>解决方案：</strong></p>
                     <ol style={{ marginLeft: 16, marginBottom: 0 }}>
-                      <li>点击下方"重新导入"按钮返回第一步</li>
-                      <li>在"JSON输入"标签页中找到"覆盖模式"开关</li>
+                      <li>点击下方{t('payroll:auto_text_e9878d')}按钮返回第一步</li>
+                      <li>在{t('payroll:auto_json_4a534f')}标签页中找到{t('payroll:auto_text_e8a686')}开关</li>
                       <li>启用覆盖模式开关</li>
                       <li>重新执行导入操作</li>
                     </ol>

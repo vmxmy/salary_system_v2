@@ -45,7 +45,7 @@ export function initReactWarningSuppress() {
     originalConsoleError.apply(console, [message, ...optionalParams]);
   };
 
-  console.log('🔇 React 警告抑制已启用 - findDOMNode 警告将被忽略');
+  console.log({t('common:auto__react__finddomnode__f09f94')});
 }
 
 /**
@@ -54,5 +54,5 @@ export function initReactWarningSuppress() {
 export function restoreReactConsole() {
   console.warn = originalConsoleWarn;
   console.error = originalConsoleError;
-  console.log('�� React 警告抑制已禁用');
+  console.log({t('common:auto__react__efbfbd')});
 } 

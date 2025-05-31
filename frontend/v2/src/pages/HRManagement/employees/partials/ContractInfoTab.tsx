@@ -43,8 +43,8 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
       setCurrentPage(result.meta.page);
       setPageSize(result.meta.size);
     } catch (err: any) {
-      console.error('获取合同信息失败:', err);
-      const errorMessage = err.message || t('employee:detail_page.contracts_tab.message.get_contracts_failed_retry', '获取合同信息失败，请稍后重试。');
+      console.error({t('hr:auto___e88eb7')}, err);
+      const errorMessage = err.message || t('employee:detail_page.contracts_tab.message.get_contracts_failed_retry', {t('hr:auto____e88eb7')});
       setError(errorMessage);
       message.error(errorMessage);
     } finally {
@@ -70,15 +70,15 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
 
   const handleDelete = async (recordId: number) => {
     Modal.confirm({
-      title: t('common:modal.confirm_delete.title', '确认删除'),
-      content: t('employee:detail_page.contracts_tab.delete_confirm.content', '确定要删除这份合同记录吗？此操作无法撤销。'),
-      okText: t('common:modal.confirm_delete.ok_text', '确认删除'),
-      cancelText: t('common:button.cancel', '取消'),
+      title: t('common:modal.confirm_delete.title', {t('hr:auto_text_e7a1ae')}),
+      content: t('employee:detail_page.contracts_tab.delete_confirm.content', {t('hr:auto____e7a1ae')}),
+      okText: t('common:modal.confirm_delete.ok_text', {t('hr:auto_text_e7a1ae')}),
+      cancelText: t('common:button.cancel', {t('hr:auto_text_e58f96')}),
       onOk: async () => {
         try {
           setLoading(true);
           await employeeService.deleteContractItem(employeeId, String(recordId));
-          message.success(t('employee:detail_page.contracts_tab.message.delete_success', '合同记录删除成功'));
+          message.success(t('employee:detail_page.contracts_tab.message.delete_success', {t('hr:auto_text_e59088')}));
           // Refresh data, go to previous page if current page becomes empty
           const newTotalRecords = totalRecords - 1;
           const newTotalPages = Math.ceil(newTotalRecords / pageSize);
@@ -92,8 +92,8 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
             fetchContracts(currentPage, pageSize); // Refresh current page
           }
         } catch (err: any) {
-          console.error('删除合同记录失败:', err);
-          const errorMessage = err.message || t('employee:detail_page.contracts_tab.message.delete_failed', '删除合同记录失败!');
+          console.error({t('hr:auto___e588a0')}, err);
+          const errorMessage = err.message || t('employee:detail_page.contracts_tab.message.delete_failed', {t('hr:auto___e588a0')});
           message.error(errorMessage);
         } finally {
           setLoading(false);
@@ -107,10 +107,10 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
       setLoading(true);
       if (modalMode === 'edit' && editingRecord) {
         await employeeService.updateContractItem(employeeId, String(editingRecord.id), values as UpdateContractPayload);
-        message.success(t('employee:detail_page.contracts_tab.message.update_success', '合同信息更新成功'));
+        message.success(t('employee:detail_page.contracts_tab.message.update_success', {t('hr:auto_text_e59088')}));
       } else {
         await employeeService.addContractItem(employeeId, values as CreateContractPayload);
-        message.success(t('employee:detail_page.contracts_tab.message.add_success', '合同信息添加成功'));
+        message.success(t('employee:detail_page.contracts_tab.message.add_success', {t('hr:auto_text_e59088')}));
       }
       setIsModalVisible(false);
       setEditingRecord(null);
@@ -122,8 +122,8 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
         fetchContracts(currentPage, pageSize);
       }
     } catch (err: any) {
-      console.error('保存合同信息失败:', err);
-      const errorMessage = err.message || (modalMode === 'edit' ? t('employee:detail_page.contracts_tab.message.update_failed', '更新失败!') : t('employee:detail_page.contracts_tab.message.add_failed', '添加失败!'));
+      console.error({t('hr:auto___e4bf9d')}, err);
+      const errorMessage = err.message || (modalMode === 'edit' ? t('employee:detail_page.contracts_tab.message.update_failed', {t('hr:auto___e69bb4')}) : t('employee:detail_page.contracts_tab.message.add_failed', {t('hr:auto___e6b7bb')}));
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -139,13 +139,13 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
   if (loading && !contracts.length && currentPage === 1) {
     return <div style={{ textAlign: 'center', padding: '20px'}}>
       <Spin>
-        <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>{t('employee:detail_page.contracts_tab.loading', '加载合同信息中...')}</div>
+        <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>{t('employee:detail_page.contracts_tab.loading', {t('hr:auto___e58aa0')})}</div>
       </Spin>
     </div>;
   }
 
   if (error && !contracts.length) {
-    return <Alert message={t('common:status.error', '错误')} description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
+    return <Alert message={t('common:status.error', {t('hr:auto_text_e99499')})} description={error} type="error" showIcon style={{ margin: '16px 0'}} />;
   }
 
   const totalPages = totalRecords > 0 ? Math.ceil(totalRecords / pageSize) : 1;
@@ -160,7 +160,7 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
           style={{ marginBottom: 16 }}
           disabled={loading} // Disable add button while main table is loading
         >
-          {t('employee:detail_page.contracts_tab.button_add_contract', '添加合同')}
+          {t('employee:detail_page.contracts_tab.button_add_contract', {t('hr:auto_text_e6b7bb')})}
         </Button>
       )}
       <ContractTable
@@ -172,10 +172,10 @@ const ContractInfoTab: React.FC<ContractInfoTabProps> = ({ employeeId }) => {
       />
       {totalRecords > 0 && (
         <div style={{ marginTop: 16, textAlign: 'right' }}>
-          <Button onClick={() => fetchContracts(currentPage, pageSize)} disabled={loading} style={{marginRight: 8}}>{t('common:button.refresh', '刷新')}</Button>
-          <Button onClick={() => setCurrentPage(prev => Math.max(1, prev -1 ))} disabled={currentPage === 1 || loading}>{t('common:pagination.previous_page', '上一页')}</Button>
-          <span style={{ margin: '0 8px' }}>{t('common:pagination.page_info', '第 {currentPage} 页 / 共 {totalPages} 页', { currentPage, totalPages })}</span>
-          <Button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages || loading || totalPages === 0}>{t('common:pagination.next_page', '下一页')}</Button>
+          <Button onClick={() => fetchContracts(currentPage, pageSize)} disabled={loading} style={{marginRight: 8}}>{t('common:button.refresh', {t('hr:auto_text_e588b7')})}</Button>
+          <Button onClick={() => setCurrentPage(prev => Math.max(1, prev -1 ))} disabled={currentPage === 1 || loading}>{t('common:pagination.previous_page', {t('hr:auto_text_e4b88a')})}</Button>
+          <span style={{ margin: '0 8px' }}>{t('common:pagination.page_info', {t('hr:auto__currentpage___totalpages__e7acac')}, { currentPage, totalPages })}</span>
+          <Button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages || loading || totalPages === 0}>{t('common:pagination.next_page', {t('hr:auto_text_e4b88b')})}</Button>
         </div>
       )}
 

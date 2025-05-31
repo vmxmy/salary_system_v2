@@ -60,7 +60,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
             setSelectedEmployee(employee);
           }
         } catch (error) {
-          console.error('获取员工详情失败:', error);
+          console.error({t('components:auto___e88eb7')}, error);
         }
       };
       fetchEmployee();
@@ -80,7 +80,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
     try {
       // 通过姓名搜索员工
       const response = await employeeService.getEmployees({ name, size: 20 });
-      console.log('搜索员工结果:', JSON.stringify(response.data, null, 2));
+      console.log({t('components:auto___e6909c')}, JSON.stringify(response.data, null, 2));
       
       // 确保每个员工对象都包含必要的信息
       const employeesWithDetails = await Promise.all(
@@ -90,10 +90,10 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
               (!emp.personnelCategoryName || !emp.actual_position_name)) {
             try {
               const details = await employeeService.getEmployeeById(String(emp.id));
-              console.log(`获取员工 ${emp.id} 的详细信息:`, details);
+              console.log({t('components:auto__emp_id___e88eb7')}, details);
               return details || emp;
             } catch (err) {
-              console.error(`获取员工 ${emp.id} 详情失败:`, err);
+              console.error({t('components:auto__emp_id___e88eb7')}, err);
               return emp;
             }
           }
@@ -103,7 +103,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       
       setEmployees(employeesWithDetails || []);
     } catch (error) {
-      console.error('搜索员工失败:', error);
+      console.error({t('components:auto___e6909c')}, error);
       setEmployees([]);
     } finally {
       setLoading(false);
@@ -187,7 +187,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
   const internalChangeHandler: SelectProps<number, EmployeeOption>['onChange'] = (value, option) => {
     if (Array.isArray(option)) {
       // 多选模式，当前组件不支持
-      console.warn('EmployeeSelect: 多选模式未实现');
+      console.warn({t('components:auto_employeeselect__456d70')});
       return;
     }
     

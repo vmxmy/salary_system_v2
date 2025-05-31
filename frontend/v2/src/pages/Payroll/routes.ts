@@ -24,7 +24,7 @@ import {
 
 // Placeholder for PayrollRunDetailPage until it's created
 // const PayrollRunDetailPagePlaceholder: React.FC = () => (
-//   React.createElement('div', null, '薪资审核详情页 (占位符)')
+//   React.createElement('div', null, {t('payroll:auto____e896aa')})
 // );
 
 export const payrollRoutes: AppRouteObject[] = [
@@ -84,7 +84,7 @@ export const payrollRoutes: AppRouteObject[] = [
   //   path: 'entries',
   //   element: <React.Suspense fallback={<div>Loading Payroll Entries...</div>}><PayrollEntriesPage /></React.Suspense>,
   //   meta: {
-  //     title: '工资条目管理',
+  //     title: {t('payroll:auto_text_e5b7a5')},
   //   },
   // },
 ]; 

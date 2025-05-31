@@ -209,7 +209,7 @@ const MyPayslipsPage: React.FC = () => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
             showTotal: (total: number, range: [number, number]) =>
-              `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+              {t('employee:auto__range_0_range_1___total__e7acac')},
             onChange: fetchPayslips,
           } : false}
           scroll={{ x: 'max-content' }}

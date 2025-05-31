@@ -39,14 +39,14 @@ const useReportViewPermissions = () => ({
 const useReportViewLookupMaps = () => ({
   lookupMaps: {
     statusMap: new Map([
-      ['draft', '草稿'],
-      ['created', '已创建'],
-      ['error', '错误'],
+      ['draft', {t('admin:auto_text_e88d89')}],
+      ['created', {t('admin:auto_text_e5b7b2')}],
+      ['error', {t('admin:auto_text_e99499')}],
     ]),
     categoryMap: new Map([
-      ['工资报表', '工资报表'],
-      ['考勤报表', '考勤报表'],
-      ['人事报表', '人事报表'],
+      [{t('admin:auto_text_e5b7a5')}, {t('admin:auto_text_e5b7a5')}],
+      [{t('admin:auto_text_e88083')}, {t('admin:auto_text_e88083')}],
+      [{t('admin:auto_text_e4baba')}, {t('admin:auto_text_e4baba')}],
     ]),
   },
   loadingLookups: false,
@@ -69,7 +69,7 @@ const generateReportViewTableColumns = (
 ): ProColumns<ReportViewListItem>[] => {
   return [
     {
-      title: '报表名称',
+      title: {t('admin:auto_text_e68aa5')},
       dataIndex: 'name',
       key: 'name',
       width: 250,
@@ -90,7 +90,7 @@ const generateReportViewTableColumns = (
       ),
     },
     {
-      title: '分类',
+      title: {t('admin:auto_text_e58886')},
       dataIndex: 'category',
       key: 'category',
       width: 120,
@@ -102,15 +102,15 @@ const generateReportViewTableColumns = (
       onFilter: (value, record) => record.category === value,
     },
     {
-      title: '状态',
+      title: {t('admin:auto_text_e78ab6')},
       dataIndex: 'view_status',
       key: 'view_status',
       width: 100,
       render: (status: string) => {
         const statusConfig = {
-          draft: { color: 'default', text: '草稿' },
-          created: { color: 'success', text: '已创建' },
-          error: { color: 'error', text: '错误' },
+          draft: { color: 'default', text: {t('admin:auto_text_e88d89')} },
+          created: { color: 'success', text: {t('admin:auto_text_e5b7b2')} },
+          error: { color: 'error', text: {t('admin:auto_text_e99499')} },
         };
         const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
         return <Tag color={config.color}>{config.text}</Tag>;
@@ -122,7 +122,7 @@ const generateReportViewTableColumns = (
       onFilter: (value, record) => record.view_status === value,
     },
     {
-      title: '使用次数',
+      title: {t('admin:auto_text_e4bdbf')},
       dataIndex: 'usage_count',
       key: 'usage_count',
       width: 100,
@@ -131,7 +131,7 @@ const generateReportViewTableColumns = (
       sorter: (a, b) => (a.usage_count || 0) - (b.usage_count || 0),
     },
     {
-      title: '最后使用',
+      title: {t('admin:auto_text_e69c80')},
       dataIndex: 'last_used_at',
       key: 'last_used_at',
       width: 150,
@@ -139,7 +139,7 @@ const generateReportViewTableColumns = (
       sorter: dateSorter<ReportViewListItem>('last_used_at'),
     },
     {
-      title: '创建时间',
+      title: {t('admin:auto_text_e5889b')},
       dataIndex: 'created_at',
       key: 'created_at',
       width: 150,
@@ -147,7 +147,7 @@ const generateReportViewTableColumns = (
       sorter: dateSorter<ReportViewListItem>('created_at'),
     },
     {
-      title: '操作',
+      title: {t('admin:auto_text_e6938d')},
       key: 'action',
       width: 200,
       fixed: 'right',
@@ -157,14 +157,14 @@ const generateReportViewTableColumns = (
             <TableActionButton 
               actionType="view" 
               onClick={() => onViewDetails(record.id.toString())} 
-              tooltipTitle="查看数据" 
+              tooltipTitle={t('admin:auto_text_e69fa5')} 
             />
           )}
           {permissions.canUpdate && (
             <TableActionButton 
               actionType="edit" 
               onClick={() => onEdit(record)} 
-              tooltipTitle="编辑" 
+              tooltipTitle={t('admin:auto_text_e7bc96')} 
             />
           )}
           {permissions.canDelete && (
@@ -172,7 +172,7 @@ const generateReportViewTableColumns = (
               actionType="delete" 
               danger 
               onClick={() => onDelete(record.id.toString())} 
-              tooltipTitle="删除" 
+              tooltipTitle={t('admin:auto_text_e588a0')} 
             />
           )}
         </Space>
@@ -204,7 +204,7 @@ const ReportViewManagement: React.FC = () => {
       setDataSource(response || []);
     } catch (error: any) {
       console.error('Failed to fetch report views:', error);
-      message.error(`加载报表视图失败: ${error.message}`);
+      message.error({t('admin:auto__error_message__e58aa0')});
       setDataSource([]);
     } finally {
       setLoadingData(false);
@@ -232,7 +232,7 @@ const ReportViewManagement: React.FC = () => {
       setViewMode('edit');
     } catch (error: any) {
       console.error('Failed to load report view:', error);
-      message.error(`加载报表视图失败: ${error.message}`);
+      message.error({t('admin:auto__error_message__e58aa0')});
     } finally {
       setLoading(false);
     }
@@ -250,7 +250,7 @@ const ReportViewManagement: React.FC = () => {
       setViewMode('view');
     } catch (error: any) {
       console.error('Failed to load report view:', error);
-      message.error(`加载报表视图失败: ${error.message}`);
+      message.error({t('admin:auto__error_message__e58aa0')});
     } finally {
       setLoading(false);
     }
@@ -270,11 +270,11 @@ const ReportViewManagement: React.FC = () => {
     try {
       setLoading(true);
       await reportViewAPI.createReportView(values as ReportViewCreateForm);
-      message.success('创建成功');
+      message.success({t('admin:auto_text_e5889b')});
       handleBack();
     } catch (error: any) {
       console.error('Failed to create report view:', error);
-      message.error(`创建失败: ${error.message}`);
+      message.error({t('admin:auto__error_message__e5889b')});
     } finally {
       setLoading(false);
     }
@@ -287,11 +287,11 @@ const ReportViewManagement: React.FC = () => {
     try {
       setLoading(true);
       await reportViewAPI.updateReportView(currentRecord.id, values as ReportViewUpdateForm);
-      message.success('更新成功');
+      message.success({t('admin:auto_text_e69bb4')});
       handleBack();
     } catch (error: any) {
       console.error('Failed to update report view:', error);
-      message.error(`更新失败: ${error.message}`);
+      message.error({t('admin:auto__error_message__e69bb4')});
     } finally {
       setLoading(false);
     }
@@ -319,33 +319,33 @@ const ReportViewManagement: React.FC = () => {
             onViewDetailsClick={handleViewDetailsClick}
             generateTableColumns={generateReportViewTableColumns}
             deleteConfirmConfig={{
-              titleKey: '确认删除',
-              contentKey: '确定要删除这个报表视图吗？',
+              titleKey: {t('admin:auto_text_e7a1ae')},
+              contentKey: {t('admin:auto___e7a1ae')},
               okTextKey: 'common:button.confirm',
               cancelTextKey: 'common:button.cancel',
               successMessageKey: 'reportView:messages.delete_success',
-              errorMessageKey: '删除失败',
+              errorMessageKey: {t('admin:auto_text_e588a0')},
             }}
             batchDeleteConfig={{
               enabled: true,
-              buttonText: '批量删除',
-              confirmTitle: '确认批量删除',
-              confirmContent: '确定要删除选中的报表视图吗？',
-              confirmOkText: '确定',
-              confirmCancelText: '取消',
-              successMessage: '批量删除成功',
-              errorMessage: '批量删除失败',
-              noSelectionMessage: '请先选择要删除的项目',
+              buttonText: {t('admin:auto_text_e689b9')},
+              confirmTitle: {t('admin:auto_text_e7a1ae')},
+              confirmContent: {t('admin:auto___e7a1ae')},
+              confirmOkText: {t('admin:auto_text_e7a1ae')},
+              confirmCancelText: {t('admin:auto_text_e58f96')},
+              successMessage: {t('admin:auto_text_e689b9')},
+              errorMessage: {t('admin:auto_text_e689b9')},
+              noSelectionMessage: {t('admin:auto_text_e8afb7')},
             }}
             exportConfig={{
-              filenamePrefix: '报表视图列表',
-              sheetName: '报表视图',
-              buttonText: '导出',
-              successMessage: '导出成功',
+              filenamePrefix: {t('admin:auto_text_e68aa5')},
+              sheetName: {t('admin:auto_text_e68aa5')},
+              buttonText: {t('admin:auto_text_e5afbc')},
+              successMessage: {t('admin:auto_text_e5afbc')},
             }}
-            lookupErrorMessageKey="查找数据加载失败"
-            lookupLoadingMessageKey="加载中..."
-            lookupDataErrorMessageKey="查找数据加载失败"
+            lookupErrorMessageKey={t('admin:auto_text_e69fa5')}
+            lookupLoadingMessageKey={t('admin:auto___e58aa0')}
+            lookupDataErrorMessageKey={t('admin:auto_text_e69fa5')}
             rowKey="id"
           />
         );

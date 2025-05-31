@@ -33,7 +33,7 @@ export const processPayrollRecord = (
     earnings_details: {},
     deductions_details: {},
     raw_personnel_identity: record.raw_personnel_identity || '',
-    __isHiredPersonnel: record.raw_personnel_identity?.includes('聘用') || false
+    __isHiredPersonnel: record.raw_personnel_identity?.includes({t('payroll:auto_text_e88198')}) || false
   };
 
   // 处理收入详情

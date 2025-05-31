@@ -121,8 +121,8 @@ const generateReportViewTableColumns = (
               const currVal = Number(actualValue);
               return isNaN(currVal) ? String(actualValue) : `¥${currVal.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             case 'boolean':
-              if (actualValue === true || String(actualValue).toLowerCase() === 'true') return t('common:boolean.true', '是');
-              if (actualValue === false || String(actualValue).toLowerCase() === 'false') return t('common:boolean.false', '否');
+              if (actualValue === true || String(actualValue).toLowerCase() === 'true') return t('common:boolean.true', {t('components:auto_text_e698af')});
+              if (actualValue === false || String(actualValue).toLowerCase() === 'false') return t('common:boolean.false', {t('components:auto_text_e590a6')});
               return String(actualValue);
             default:
               return String(actualValue);
@@ -141,8 +141,8 @@ const generateReportViewTableColumns = (
       case 'boolean': 
         proColumn.valueType = 'select';
         proColumn.filters = [
-            { text: t('common:boolean.true', '是'), value: true },
-            { text: t('common:boolean.false', '否'), value: false },
+            { text: t('common:boolean.true', {t('components:auto_text_e698af')}), value: true },
+            { text: t('common:boolean.false', {t('components:auto_text_e590a6')}), value: false },
         ];
         break;
       default: proColumn.valueType = 'text'; break;
@@ -156,9 +156,9 @@ const generateReportViewTableColumns = (
 
 const defaultStatusRender = (status: string) => {
   const statusConfig: Record<string, {color: string, text: string}> = {
-    draft: { color: 'default', text: '草稿' },
-    created: { color: 'success', text: '已创建' },
-    error: { color: 'error', text: '错误' },
+    draft: { color: 'default', text: {t('components:auto_text_e88d89')} },
+    created: { color: 'success', text: {t('components:auto_text_e5b7b2')} },
+    error: { color: 'error', text: {t('components:auto_text_e99499')} },
   };
   const config = statusConfig[status] || { color: 'default', text: status };
   return <Tag color={config.color}>{config.text}</Tag>;
@@ -186,7 +186,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
     {
       supportedFormats: ['excel', 'csv'],
       onExportRequest: onExport,
-      dropdownButtonText: t('common:button.export', '导出'),
+      dropdownButtonText: t('common:button.export', {t('components:auto_text_e5afbc')}),
     }
   );
 
@@ -196,7 +196,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
 
   const BackButton = () => (
     <Button icon={<RollbackOutlined />} onClick={onBack}>
-      {t('common:button.backToList', '返回列表')}
+      {t('common:button.backToList', {t('components:auto_text_e8bf94')})}
     </Button>
   );
 
@@ -216,15 +216,15 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
             )}
             <Space size="middle" wrap style={{ fontSize: '12px', color: '#595959', marginTop: '4px' }}>
               {reportViewInfo.category && (
-                <span>{t('reportView:field.category', '分类')}: <strong>{reportViewInfo.category}</strong></span>
+                <span>{t('reportView:field.category', {t('components:auto_text_e58886')})}: <strong>{reportViewInfo.category}</strong></span>
               )}
               {reportViewInfo.usage_count !== undefined && (
-                <span>{t('reportView:field.usageCount', '使用次数')}: <strong>{reportViewInfo.usage_count}</strong></span>
+                <span>{t('reportView:field.usageCount', {t('components:auto_text_e4bdbf')})}: <strong>{reportViewInfo.usage_count}</strong></span>
               )}
               {reportViewInfo.last_used_at && (
-                <span>{t('reportView:field.lastUsedAt', '最后使用')}: <strong>{new Date(reportViewInfo.last_used_at).toLocaleString('zh-CN')}</strong></span>
+                <span>{t('reportView:field.lastUsedAt', {t('components:auto_text_e69c80')})}: <strong>{new Date(reportViewInfo.last_used_at).toLocaleString('zh-CN')}</strong></span>
               )}
-              <span>{t('reportView:field.createdAt', '创建时间')}: <strong>{new Date(reportViewInfo.created_at).toLocaleString('zh-CN')}</strong></span>
+              <span>{t('reportView:field.createdAt', {t('components:auto_text_e5889b')})}: <strong>{new Date(reportViewInfo.created_at).toLocaleString('zh-CN')}</strong></span>
             </Space>
           </Space>
         </Col>
@@ -242,21 +242,21 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
   if (reportViewInfo.view_status !== 'created') {
     const statusMessages = {
       'draft': {
-        title: '视图未创建',
-        message: '此报表视图还未同步到数据库，无法查看数据。',
-        suggestion: '请返回报表视图管理页面，点击"同步"按钮创建数据库视图。'
+        title: {t('components:auto_text_e8a786')},
+        message: {t('components:auto____e6ada4')},
+        suggestion: '请返回报表视图管理页面，点击{t('components:auto_text_e5908c')}按钮创建数据库视图。'
       },
       'error': {
-        title: '视图创建失败',
-        message: '数据库视图创建时发生错误，无法查看数据。',
-        suggestion: '请检查SQL语句是否正确，然后重新同步视图。'
+        title: {t('components:auto_text_e8a786')},
+        message: {t('components:auto____e695b0')},
+        suggestion: {t('components:auto_sql___e8afb7')}
       }
     };
     
     const statusInfo = statusMessages[reportViewInfo.view_status as keyof typeof statusMessages] || {
-      title: '视图状态异常',
-      message: `当前视图状态：${reportViewInfo.view_status}`,
-      suggestion: '请联系管理员检查视图状态。'
+      title: {t('components:auto_text_e8a786')},
+      message: {t('components:auto__reportviewinfo_view_status__e5bd93')},
+      suggestion: {t('components:auto___e8afb7')}
     };
     
     return (
@@ -276,7 +276,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
             </Text>
             {onBack && (
               <Button type="primary" icon={<RollbackOutlined />} onClick={onBack}>
-                {t('common:button.backToList', '返回列表')}
+                {t('common:button.backToList', {t('components:auto_text_e8bf94')})}
               </Button>
             )}
           </div>

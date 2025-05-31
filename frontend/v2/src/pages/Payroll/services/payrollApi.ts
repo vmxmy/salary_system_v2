@@ -317,7 +317,7 @@ export const getPayrollEntryById = async (entryId: number): Promise<ApiSingleRes
  */
 export const updatePayrollEntryDetails = async (entryId: number, data: PayrollEntryPatch): Promise<ApiSingleResponse<PayrollEntry>> => {
   try {
-    console.log(`准备发送PATCH请求到 ${PAYROLL_ENTRIES_ENDPOINT}/${entryId}，数据:`, JSON.stringify(data, null, 2));
+    console.log({t('payroll:auto_patch_payroll_entries_endpoint_entryid___e58786')}, JSON.stringify(data, null, 2));
     
     // 获取apiClient中配置的请求头
     const requestConfig = {
@@ -327,21 +327,21 @@ export const updatePayrollEntryDetails = async (entryId: number, data: PayrollEn
       headers: apiClient.defaults.headers
     };
     
-    console.log('请求配置:', JSON.stringify(requestConfig, null, 2));
+    console.log({t('payroll:auto___e8afb7')}, JSON.stringify(requestConfig, null, 2));
     
     // 验证earnings_details和deductions_details的结构是否符合后端期望
     if (data.earnings_details && Array.isArray(data.earnings_details)) {
-      console.error('警告: earnings_details是数组格式，但后端期望对象格式');
+      console.error({t('payroll:auto__earnings_details__e8ada6')});
     }
     
     if (data.deductions_details && Array.isArray(data.deductions_details)) {
-      console.error('警告: deductions_details是数组格式，但后端期望对象格式');
+      console.error({t('payroll:auto__deductions_details__e8ada6')});
     }
     
     const response = await apiClient.patch<ApiSingleResponse<PayrollEntry>>(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`, data);
     
-    console.log(`PATCH请求成功，状态码: ${response.status}，响应头:`, response.headers);
-    console.log(`响应数据:`, JSON.stringify(response.data, null, 2));
+    console.log({t('payroll:auto_patch__response_status___504154')}, response.headers);
+    console.log({t('payroll:auto___e5938d')}, JSON.stringify(response.data, null, 2));
     
     return response.data;
   } catch (error: any) {
@@ -349,8 +349,8 @@ export const updatePayrollEntryDetails = async (entryId: number, data: PayrollEn
     
     // 增加更详细的错误日志
     if (error.response) {
-      console.error(`PATCH请求失败，状态码: ${error.response.status}`);
-      console.error(`错误详情:`, JSON.stringify(error.response.data, null, 2));
+      console.error({t('payroll:auto_patch__error_response_status__504154')});
+      console.error({t('payroll:auto___e99499')}, JSON.stringify(error.response.data, null, 2));
     }
     
     throw error;

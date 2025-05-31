@@ -48,10 +48,10 @@ const ChatbotSettingsTab: React.FC = () => {
         try {
           systemVariablesArray = JSON.parse(values.systemVariables);
           if (!Array.isArray(systemVariablesArray)) {
-            throw new Error('System Variables 必须是一个 JSON 数组。');
+            throw new Error({t('admin:auto_system_variables__json___537973')});
           }
         } catch (e: any) {
-          message.error(`System Variables 格式无效: ${e.message}`);
+          message.error({t('admin:auto_system_variables__e_message__537973')});
           return;
         }
       }
@@ -65,17 +65,17 @@ const ChatbotSettingsTab: React.FC = () => {
       };
 
       dispatch(updateChatbotConfig(configToSave));
-      message.success('AI 机器人配置已保存!');
+      message.success({t('admin:auto_ai___414920')});
     } catch (error) {
-      console.error('[ChatbotSettingsTab-Redux-DEBUG] 保存配置失败:', error);
-      message.error('保存配置失败。');
+      console.error({t('admin:auto__chatbotsettingstab_redux_debug___5b4368')}, error);
+      message.error({t('admin:auto___e4bf9d')});
     }
   };
 
   const handleIsEnabledChange = (checked: boolean) => {
     console.log('[ChatbotSettingsTab-Redux-DEBUG] handleIsEnabledChange called with checked:', checked);
     dispatch(setChatbotEnabled(checked));
-    message.info(`AI 机器人已 ${checked ? '启用' : '禁用'}`);
+    message.info(`AI 机器人已 ${checked ? {t('admin:auto_text_e590af')} : {t('admin:auto_text_e7a681')}}`);
   };
 
   const initialFormValues = {
@@ -113,21 +113,21 @@ const ChatbotSettingsTab: React.FC = () => {
 
         {/* marginTop 和 marginBottom 可以通过 ConfigProvider 或 CSS 类调整 */}
         <Title level={5} className={styles.sectionTitle}>主要配置</Title> {/* 应用样式 */}
-        <Form.Item name="token" label="Token" rules={[{ required: true, message: '请输入 Token' }]} tooltip="Dify 服务提供的 API Token">
+        <Form.Item name="token" label="Token" rules={[{ required: true, message: {t('admin:auto__token_e8afb7')} }]} tooltip={t('admin:auto_dify__api_token_446966')}>
           <Input />
         </Form.Item>
-        <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, message: '请输入 Base URL' }]} tooltip="Dify 服务的基础 URL, 例如: http://dify.example.com">
+        <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, message: {t('admin:auto__base_url_e8afb7')} }]} tooltip={t('admin:auto_dify__url__http_dify_example_com_446966')}>
           <Input />
         </Form.Item>
 
         <Title level={5} className={styles.sectionTitle}>自定义</Title> {/* 应用样式 */}
-        <Form.Item name="customCss" label="自定义 CSS" tooltip="用于调整机器人聊天气泡和窗口样式的 CSS 代码">
-          <TextArea rows={6} placeholder={`/* 示例 */\n#dify-chatbot-bubble-button {\n  background-color: #1C64F2 !important;\n}\n#dify-chatbot-bubble-window {\n  width: 24rem !important;\n  height: 40rem !important;\n}`}/>
+        <Form.Item name="customCss" label={t('admin:auto__css_e887aa')} tooltip={t('admin:auto__css__e794a8')}>
+          <TextArea rows={6} placeholder={{t('admin:auto___n_dify_chatbot_bubble_button_n_background_color_1c64f2_important_n_n_dify_chatbot_bubble_window_n_width_24rem_important_n_height_40rem_important_n__2f2a20')}}/>
         </Form.Item>
-        <Form.Item name="customJs" label="自定义 JS" tooltip="用于调整机器人脚本行为的 JavaScript 代码">
-          <TextArea rows={6} placeholder="输入自定义 JavaScript 代码。注意：此功能可能影响机器人行为，请谨慎使用。"/>
+        <Form.Item name="customJs" label={t('admin:auto__js_e887aa')} tooltip={t('admin:auto__javascript__e794a8')}>
+          <TextArea rows={6} placeholder={t('admin:auto__javascript______e8be93')}/>
         </Form.Item>
-        <Form.Item name="systemVariables" label="系统变量 (JSON格式)" tooltip="传递给机器人的额外系统级变量，必须是有效的 JSON 字符串">
+        <Form.Item name="systemVariables" label={t('admin:auto__json__e7b3bb')} tooltip={t('admin:auto___json__e4bca0')}>
           <TextArea rows={4} placeholder='[ { "key": "variable_name", "value_type": "string", "value": "variable_value" } ]'/>
         </Form.Item>
         

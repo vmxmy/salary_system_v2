@@ -25,7 +25,7 @@ export const isServerUnavailableError = (error: any): boolean => {
 // 格式化错误消息，确保始终返回字符串
 export const formatErrorMessage = (error: any): string => {
   if (isServerUnavailableError(error)) {
-    return '服务器错误：可能是数据库未启动或后端服务不可用，请联系系统管理员。';
+    return {t('common:auto_____e69c8d')};
   }
   
   if (error.response?.data?.detail) {
@@ -38,7 +38,7 @@ export const formatErrorMessage = (error: any): string => {
     return String(error.message);
   }
   
-  return '发生未知错误';
+  return {t('common:auto_text_e58f91')};
 };
 
 // Define authentication verification URLs
@@ -77,14 +77,14 @@ apiClient.interceptors.request.use(
     const token = useAuthStore.getState().authToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(`ApiClient请求: ${config.method?.toUpperCase()} ${config.url}`);
+      console.log({t('common:auto_apiclient_config_method_touppercase_config_url__417069')});
     } else {
-      console.warn(`ApiClient未认证请求: ${config.method?.toUpperCase()} ${config.url}`);
+      console.warn({t('common:auto_apiclient_config_method_touppercase_config_url__417069')});
     }
     
     // 只在开发环境记录详细请求信息
     if (import.meta.env.DEV) {
-      console.log('ApiClient请求详情:', {
+      console.log({t('common:auto_apiclient__417069')}, {
         url: config.url,
         method: config.method,
         hasData: !!config.data,
@@ -95,7 +95,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('ApiClient请求错误:', error);
+    console.error({t('common:auto_apiclient__417069')}, error);
     return Promise.reject(error);
   }
 );
@@ -106,11 +106,11 @@ apiClient.interceptors.response.use(
     // 性能监控
     response = performanceInterceptors.response(response);
     
-    console.log(`ApiClient响应成功 (${response.status}) 请求: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    console.log({t('common:auto_apiclient_response_status__response_config_method_touppercase_response_config_url__417069')});
     
     // 只在开发环境记录响应数据
     if (import.meta.env.DEV && response.data) {
-      console.log('响应数据大小:', JSON.stringify(response.data).length + ' 字符');
+      console.log({t('common:auto___e5938d')}, JSON.stringify(response.data).length + {t('common:auto___20e5ad')});
     }
     
     return response;
@@ -122,21 +122,21 @@ apiClient.interceptors.response.use(
     // 记录错误响应详情
     if (error.response) {
       const { status, data, config } = error.response;
-      console.error(`ApiClient错误 (${status}) 请求: ${config.method?.toUpperCase()} ${config.url}`);
-      console.error('错误详情:', { data, url: config.url, method: config.method });
+      console.error({t('common:auto_apiclient_status__config_method_touppercase_config_url__417069')});
+      console.error({t('common:auto___e99499')}, { data, url: config.url, method: config.method });
         
       // 特殊处理404错误
       if (status === 404) {
-        console.error('HTTP 404 资源不存在:', {
+        console.error({t('common:auto_http_404___485454')}, {
           url: config.url,
           method: config.method,
-          message: '请求的资源不存在，请检查API路径是否正确',
+          message: {t('common:auto__api_e8afb7')},
           fullPath: `${config.baseURL}${config.url}`
         });
       }
       // 特殊处理405错误
       else if (status === 405) {
-        console.error('HTTP 405 方法不允许:', {
+        console.error({t('common:auto_http_405___485454')}, {
           url: config.url,
           method: config.method,
           allowedMethods: error.response.headers['allow'] || 'Not specified',
@@ -145,14 +145,14 @@ apiClient.interceptors.response.use(
       }
     } else if (error.request) {
       // 请求已发送但未收到响应
-      console.error('ApiClient未收到响应:', {
+      console.error({t('common:auto_apiclient__417069')}, {
         url: error.config?.url,
         method: error.config?.method,
         message: error.message
       });
     } else {
       // 设置请求时发生错误
-      console.error('ApiClient请求配置错误:', error.message);
+      console.error({t('common:auto_apiclient__417069')}, error.message);
     }
     
     // 处理401未授权错误

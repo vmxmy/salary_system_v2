@@ -273,8 +273,8 @@ const ListPage = <T extends Record<string, any>, Q extends Record<string, any> =
         appMessage.success(messages.exportSuccess || t('message.export_success'));
       } else {
         // 默认导出逻辑
-        console.log('导出数据:', format, exportData);
-        appMessage.success(`成功导出 ${exportData.length} 条数据为 ${format.toUpperCase()} 格式`);
+        console.log({t('components:auto___e5afbc')}, format, exportData);
+        appMessage.success({t('components:auto__exportdata_length__format_touppercase__e68890')});
       }
     } catch (error) {
       appMessage.error(messages.exportFailed || t('message.export_failed'));

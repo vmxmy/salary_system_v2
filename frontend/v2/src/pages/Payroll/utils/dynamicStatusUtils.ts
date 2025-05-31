@@ -139,14 +139,14 @@ export const getPayrollEntryStatusOptions = async (): Promise<DynamicStatusOptio
  */
 export const getPayrollPeriodStatusInfo = async (statusId?: number): Promise<{ name: string; color: string }> => {
   if (statusId === undefined || statusId === null) {
-    return { name: '未知状态', color: 'default' };
+    return { name: {t('payroll:auto_text_e69caa')}, color: 'default' };
   }
   
   const options = await getPayrollPeriodStatusOptions();
   const status = options.find(opt => opt.id === statusId);
   return status 
     ? { name: status.name, color: status.color }
-    : { name: `未知状态(${statusId})`, color: 'default' };
+    : { name: {t('payroll:auto__statusid__e69caa')}, color: 'default' };
 };
 
 /**
@@ -154,14 +154,14 @@ export const getPayrollPeriodStatusInfo = async (statusId?: number): Promise<{ n
  */
 export const getPayrollRunStatusInfo = async (statusId?: number): Promise<{ name: string; color: string }> => {
   if (statusId === undefined || statusId === null) {
-    return { name: '未知状态', color: 'default' };
+    return { name: {t('payroll:auto_text_e69caa')}, color: 'default' };
   }
   
   const options = await getPayrollRunStatusOptions();
   const status = options.find(opt => opt.id === statusId);
   return status 
     ? { name: status.name, color: status.color }
-    : { name: `未知状态(${statusId})`, color: 'default' };
+    : { name: {t('payroll:auto__statusid__e69caa')}, color: 'default' };
 };
 
 /**
@@ -169,14 +169,14 @@ export const getPayrollRunStatusInfo = async (statusId?: number): Promise<{ name
  */
 export const getPayrollEntryStatusInfo = async (statusId?: number): Promise<{ name: string; color: string }> => {
   if (statusId === undefined || statusId === null) {
-    return { name: '未知状态', color: 'default' };
+    return { name: {t('payroll:auto_text_e69caa')}, color: 'default' };
   }
   
   const options = await getPayrollEntryStatusOptions();
   const status = options.find(opt => opt.id === statusId);
   return status 
     ? { name: status.name, color: status.color }
-    : { name: `未知状态(${statusId})`, color: 'default' };
+    : { name: {t('payroll:auto__statusid__e69caa')}, color: 'default' };
 };
 
 /**

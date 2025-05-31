@@ -58,21 +58,21 @@ const createFlatMapFromTree = (
   idKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'id',
   nameKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'name'
 ): Map<string, string> => {
-  console.log(`\n========= 开始创建平面映射表 =========`);
-  console.log(`数据类型: ${nodes && nodes.length > 0 ? nodes[0].constructor.name : '未知'}`);
-  console.log(`ID字段: ${String(idKey)}, 名称字段: ${String(nameKey)}`);
-  console.log(`节点数量: ${nodes ? nodes.length : 0}`);
+  console.log({t('common:auto__n___5c6e3d')});
+  console.log(`数据类型: ${nodes && nodes.length > 0 ? nodes[0].constructor.name : {t('common:auto_text_e69caa')}}`);
+  console.log({t('common:auto_id_string_idkey__string_namekey__4944e5')});
+  console.log({t('common:auto__nodes_nodes_length_0__e88a82')});
   
   const flatMap = new Map<string, string>();
   
   // 检查输入是否为空数组
   if (!nodes || nodes.length === 0) {
-    console.warn('⚠️ createFlatMapFromTree: 输入为空数组');
+    console.warn({t('common:auto__createflatmapfromtree__e29aa0')});
     return flatMap;
   }
   
   // 输出前3个节点的详细结构
-  console.log('输入数据预览:');
+  console.log({t('common:auto___e8be93')});
   for (let i = 0; i < Math.min(3, nodes.length); i++) {
     const node = nodes[i];
     console.log(`节点[${i}]: {
@@ -92,7 +92,7 @@ const createFlatMapFromTree = (
       const nodeName = node[nameKey];
       
       if (nodeId === undefined || nodeId === null || nodeName === undefined || nodeName === null) {
-        console.warn(`⚠️ 节点缺少有效的ID或名称: id=${nodeId}, name=${nodeName}`, node);
+        console.warn({t('common:auto__id_id_nodeid_name_nodename__e29aa0')}, node);
         return;
       }
       
@@ -107,7 +107,7 @@ const createFlatMapFromTree = (
           return;
         }
       } else {
-        console.warn(`⚠️ 不支持的ID类型: ${typeof nodeId}`);
+        console.warn({t('common:auto__id_typeof_nodeid__e29aa0')});
         return;
       }
       
@@ -120,29 +120,29 @@ const createFlatMapFromTree = (
         node[childrenField].forEach(processNode);
       }
     } catch (err) {
-      console.error('❌ 处理节点时出错:', err, node);
+      console.error({t('common:auto____e29d8c')}, err, node);
     }
   };
   
   // 处理所有顶级节点及其子节点
   nodes.forEach(processNode);
   
-  console.log(`\n✅ 映射表创建完成:`);
-  console.log(`- 映射表项目数: ${flatMap.size}`);
+  console.log({t('common:auto__n___5c6ee2')});
+  console.log({t('common:auto___flatmap_size__2d20e6')});
   
   if (flatMap.size > 0) {
-    console.log('映射表内容预览:');
+    console.log({t('common:auto___e698a0')});
     const previewEntries = Array.from(flatMap.entries()).slice(0, 5);
     previewEntries.forEach(([key, value], index) => {
       console.log(`  ${index+1}. ${key} => "${value}"`);
     });
     
     if (flatMap.size > 5) {
-      console.log(`  ... 还有${flatMap.size - 5}项`);
+      console.log({t('common:auto___flatmap_size_5__20202e')});
     }
   }
   
-  console.log('========= 映射表创建结束 =========\n');
+  console.log({t('common:auto___n_3d3d3d')});
   
   return flatMap;
 };
@@ -161,7 +161,7 @@ export const useLookupMaps = (): UseLookupsResult => {
       setLoadingLookups(true);
       setErrorLookups(null);
       try {
-        console.log('开始获取所有lookups数据');
+        console.log({t('common:auto_lookups_e5bc80')});
         const [
           genders,
           statuses,
@@ -196,7 +196,7 @@ export const useLookupMaps = (): UseLookupsResult => {
 
         if (!isMounted) return; // 再次检查，避免在异步操作后组件已卸载
 
-        console.log('所有lookups API调用已返回', {
+        console.log({t('common:auto_lookups_api_e68980')}, {
           genders: genders.length,
           statuses: statuses.length,
           departments: departments.length,
@@ -212,12 +212,12 @@ export const useLookupMaps = (): UseLookupsResult => {
           positions: positions.length
         });
 
-        console.log('API返回的departments数据:', {
+        console.log({t('common:auto_apidepartments__415049')}, {
           departments: departments,
           length: departments.length,
           sample: departments.slice(0, 2)
         });
-        console.log('API返回的personnelCategories数据:', {
+        console.log({t('common:auto_apipersonnelcategories__415049')}, {
           personnelCategories: personnelCategories,
           length: personnelCategories.length,
           sample: personnelCategories.slice(0, 2)
@@ -228,13 +228,13 @@ export const useLookupMaps = (): UseLookupsResult => {
 
         // 创建部门和人员身份映射表
         const departmentMap = createFlatMapFromTree(departments);
-        console.log('departmentMap创建结果:', {
+        console.log({t('common:auto_departmentmap__646570')}, {
           size: departmentMap.size,
           entries: Array.from(departmentMap.entries()).slice(0, 3)
         });
         
         const personnelCategoryMap = createFlatMapFromTree(personnelCategories);
-        console.log('personnelCategoryMap创建结果:', {
+        console.log({t('common:auto_personnelcategorymap__706572')}, {
           size: personnelCategoryMap.size,
           entries: Array.from(personnelCategoryMap.entries()).slice(0, 3)
         });
@@ -284,7 +284,7 @@ export const useLookupMaps = (): UseLookupsResult => {
         }
       } catch (error) {
         if (isMounted) {
-          console.error('❌ useLookupMaps 获取数据失败:', error);
+          console.error({t('common:auto__uselookupmaps___e29d8c')}, error);
           setErrorLookups(error);
           setLoadingLookups(false);
         }

@@ -115,7 +115,7 @@ export interface Employee {
   first_work_date?: string | Dayjs; // Added: 'Initial employment date in career'
   
   nationality?: string;
-  ethnicity?: string; // Existed, confirmed for '民族'
+  ethnicity?: string; // Existed, confirmed for {t('hr:auto_text_e6b091')}
   education_level_lookup_value_id?: number;
   
   email?: string;
@@ -163,7 +163,7 @@ export interface Employee {
   notes?: string;
 
   // New fields based on discussion
-  interrupted_service_years?: number | null; // Added: '工龄间断年限'
+  interrupted_service_years?: number | null; // Added: {t('hr:auto_text_e5b7a5')}
   personnel_category_id?: number | null; // Modified: Made optional/nullable, matches CreateEmployeePayload
   personnelCategoryName?: string; // Standardized to camelCase to match backend computed field
 

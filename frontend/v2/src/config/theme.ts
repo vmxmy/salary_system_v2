@@ -66,8 +66,8 @@ export const defaultProLayoutSettings: Partial<ProSettings> = {
   fixedHeader: false, // 不固定顶部头部
   fixSiderbar: true, // 固定侧边栏
   colorWeak: false,
-  title: '人事薪资管理系统',
-  navTheme: 'light', // 侧边栏主题：'light' 而不是 'realDark'
+  title: {t('common:auto_text_e4baba')},
+  navTheme: 'light{t('common:auto____2c202f')}light{t('common:auto____20e880')}realDark'
   splitMenus: false, // 是否拆分菜单
   menu: {
     locale: false, // 是否国际化菜单

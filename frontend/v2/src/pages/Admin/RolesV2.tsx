@@ -204,20 +204,20 @@ const RolesPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的角色吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的角色',
+          buttonText: {t('admin:auto_text_e689b9')},
+          confirmTitle: {t('admin:auto_text_e7a1ae')},
+          confirmContent: {t('admin:auto____e7a1ae')},
+          confirmOkText: {t('admin:auto_text_e7a1ae')},
+          confirmCancelText: {t('admin:auto_text_e58f96')},
+          successMessage: {t('admin:auto_text_e689b9')},
+          errorMessage: {t('admin:auto_text_e689b9')},
+          noSelectionMessage: {t('admin:auto_text_e8afb7')},
         }}
         exportConfig={{
-          filenamePrefix: '角色列表',
-          sheetName: '角色',
-          buttonText: '导出Excel',
-          successMessage: '角色数据导出成功',
+          filenamePrefix: {t('admin:auto_text_e8a792')},
+          sheetName: {t('admin:auto_text_e8a792')},
+          buttonText: {t('admin:auto_excel_e5afbc')},
+          successMessage: {t('admin:auto_text_e8a792')},
         }}
         lookupErrorMessageKey="message.fetch_roles_error"
         lookupLoadingMessageKey="page_title"

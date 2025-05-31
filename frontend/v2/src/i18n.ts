@@ -8,10 +8,10 @@ import 'dayjs/locale/en';    // Import English locale for dayjs
 
 export const i18nInitOptions = {
   supportedLngs: ['en', 'zh-CN'], 
-  nonExplicitSupportedLngs: false, // 禁用回退到基础语言，不要自动将 'zh-CN' 简化为 'zh'
+  nonExplicitSupportedLngs: false, // 禁用回退到基础语言，不要自动将 'zh-CN{t('common:auto____20e7ae')}zh'
   load: 'currentOnly' as const, // 只加载完整的语言标签，不尝试加载基础语言
   fallbackLng: {
-    'default': ['zh-CN', 'en'], // 默认回退到 'zh-CN' 然后 'en'
+    'default': ['zh-CN', 'en{t('common:auto____5d2c20')}zh-CN{t('common:auto____20e784')}en'
     'zh': ['zh-CN'], // 确保zh回退到zh-CN
   },
   lng: 'zh-CN', 

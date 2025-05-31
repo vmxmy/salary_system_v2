@@ -114,11 +114,11 @@ const ActualPositionTab: React.FC = () => {
 
     try {
       if (editingPosition) {
-        console.log(`正在更新职位 ID:${editingPosition.id}，数据:`, payload);
+        console.log({t('admin:auto__id_editingposition_id___e6ada3')}, payload);
         await updatePosition(editingPosition.id, payload as UpdatePositionPayload);
         antdMessage.success(t('common:message.update_success_default'));
       } else {
-        console.log(`正在创建新职位，数据:`, payload);
+        console.log({t('admin:auto____e6ada3')}, payload);
         await createPosition(payload);
         antdMessage.success(t('common:message.create_success_default'));
       }
@@ -131,10 +131,10 @@ const ActualPositionTab: React.FC = () => {
       
       if (error.response?.status === 404) {
         errorMsg = `${t('common:message.api_not_found')} (404)`;
-        console.error('API路径不存在，请检查后端API接口:', error.config?.url);
+        console.error({t('admin:auto_api_api__415049')}, error.config?.url);
       } else if (error.response?.status === 405) {
         errorMsg = `${t('common:message.method_not_allowed')} (405)`;
-        console.error('HTTP方法不被允许，请检查API接口是否支持此操作:', error.config?.method, error.config?.url);
+        console.error({t('admin:auto_http_api__485454')}, error.config?.method, error.config?.url);
       } else {
         // 使用服务器返回的错误信息或默认消息
         errorMsg = error.response?.data?.detail?.details || 
@@ -295,8 +295,8 @@ const ActualPositionTab: React.FC = () => {
   return (
     <>
       <OrganizationManagementTableTemplate<PositionPageItem>
-        pageTitle={t('position.title', '实际职位管理')}
-        addButtonText={t('position.button.add', '新增职位')}
+        pageTitle={t('position.title', {t('admin:auto_text_e5ae9e')})}
+        addButtonText={t('position.button.add', {t('admin:auto_text_e696b0')})}
         onAddClick={showCreateModal}
         columns={columns}
         dataSource={positions}
@@ -352,14 +352,14 @@ const ActualPositionTab: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="effective_date"
-            label={t('position.form.effective_date', '生效日期')}
-            rules={[{ required: true, message: t('position.form.validation.effective_date_required', '请输入生效日期') }]}
+            label={t('position.form.effective_date', {t('admin:auto_text_e7949f')})}
+            rules={[{ required: true, message: t('position.form.validation.effective_date_required', {t('admin:auto_text_e8afb7')}) }]}
           >
             <DatePicker />
           </Form.Item>
           <Form.Item
             name="end_date"
-            label={t('position.form.end_date', '失效日期')}
+            label={t('position.form.end_date', {t('admin:auto_text_e5a4b1')})}
           >
             <DatePicker />
           </Form.Item>

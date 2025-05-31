@@ -16,7 +16,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
 
   if (loading) {
     return (
-      <Spin tip={t('employee:detail_page.common_value.loading_basic_info', '加载基本信息中...')}>
+      <Spin tip={t('employee:detail_page.common_value.loading_basic_info', {t('hr:auto___e58aa0')})}>
         <div style={{ height: 200, padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }} />
       </Spin>
     );
@@ -62,7 +62,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_mobile_phone')}>{employee.phone_number || naText}</Descriptions.Item>
 
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_email')} span={1}>{employee.email || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address', '居住地址')} span={1}>{employee.home_address || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address', {t('hr:auto_text_e5b185')})} span={1}>{employee.home_address || naText}</Descriptions.Item>
 
       <Descriptions.Item label={t('employee:form_label.bank_name')}>{employee.bank_name || naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:form_label.bank_account_number')}>{employee.bank_account_number || naText}</Descriptions.Item>
@@ -70,7 +70,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_status')}>
         {employee.status_lookup_value_id !== undefined ? <Tag color={employee.status_lookup_value_id === 1 ? 'green' : 'volcano'}>{getStatusText(employee.status_lookup_value_id)}</Tag> : naText}
       </Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_notes', '备注')} span={1}>{employee.notes || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_notes', {t('hr:auto_text_e5a487')})} span={1}>{employee.notes || naText}</Descriptions.Item>
     </Descriptions>
   );
 };

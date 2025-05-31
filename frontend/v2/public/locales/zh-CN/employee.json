@@ -1,495 +1,495 @@
 {
-    "breadcrumb": {
-      "hr_management": "人力资源管理",
-      "employee_list": "员工列表"
+  "breadcrumb": {
+    "hr_management": "人力资源管理",
+    "employee_list": "员工列表"
+  },
+  "employee_list": {
+    "title": "员工档案",
+    "button": {
+      "add_employee": "新增员工"
     },
-    "employee_list": {
-      "title": "员工档案",
-      "button": {
-        "add_employee": "新增员工"
+    "table": {
+      "column_name": "姓名",
+      "column_department": "部门",
+      "column_position": "职位",
+      "column_status": "状态",
+      "column_actions": "操作"
+    }
+  },
+  "list_page": {
+    "title": "员工列表",
+    "loading_lookups": "正在加载筛选选项...",
+    "export": {
+      "filename": "员工列表",
+      "sheet_name": "员工数据",
+      "button_text": "导出 EXCEL",
+      "success_message": "员工列表导出成功"
+    },
+    "column_control": {
+      "button_text": "列设置",
+      "tooltip": "自定义显示列",
+      "dropdown_title": "列显示",
+      "reset_text": "重置"
+    },
+    "pagination": {
+      "total": "共 {total} 条"
+    },
+    "message": {
+      "load_aux_data_failed": "加载筛选和显示所需的辅助数据失败。",
+      "get_employees_failed_empty_response": "获取员工数据失败：响应数据为空。",
+      "get_employees_failed": "获取员工列表失败。",
+      "delete_employee_failed": "删除员工失败",
+      "delete_employee_success": "员工删除成功。",
+      "no_employees_selected": "请先选择要删除的员工",
+      "batch_delete_success": "成功删除 {{count}} 个员工",
+      "batch_delete_failed": "批量删除员工失败"
+    },
+    "delete_confirm": {
+      "title": "确认删除",
+      "content": "确定要删除这个员工吗？删除后不可恢复。",
+      "ok_text": "删除",
+      "cancel_text": "取消"
+    },
+    "batch_delete_confirm": {
+      "title": "确认批量删除",
+      "content": "确定要删除选中的 {{count}} 个员工吗？删除后不可恢复。",
+      "ok_text": "删除",
+      "cancel_text": "取消"
+    },
+    "batch_delete_button": "删除选中 ({{count}})",
+    "filter_form": {
+      "label": {
+        "keyword": "关键词",
+        "status": "状态",
+        "hire_date_range": "入职日期范围",
+        "first_work_date_range": "参加工作时间范围",
+        "department": "部门",
+        "gender": "性别",
+        "education_level": "文化程度",
+        "employment_type": "雇佣类型",
+        "personnel_category": "人员身份",
+        "actual_position": "实际任职",
+        "marital_status": "婚姻状况",
+        "political_status": "政治面貌",
+        "contract_type": "合同类型",
+        "id_number": "身份证号",
+        "salary_level": "工资级别",
+        "salary_grade": "工资档次",
+        "ref_salary_level": "参照正编薪级"
       },
-      "table": {
-        "column_name": "姓名",
-        "column_department": "部门",
-        "column_position": "职位",
-        "column_status": "状态",
-        "column_actions": "操作"
+      "placeholder": {
+        "keyword": "搜索姓名、工号或职位",
+        "department": "请选择部门",
+        "status": "请选择状态",
+        "gender": "请选择性别",
+        "education_level": "请选择文化程度",
+        "employment_type": "请选择雇佣类型",
+        "personnel_category": "请选择人员身份",
+        "actual_position": "请输入实际任职",
+        "marital_status": "请选择婚姻状况",
+        "political_status": "请选择政治面貌",
+        "contract_type": "请选择合同类型",
+        "id_number": "请输入身份证号",
+        "salary_level": "请选择工资级别",
+        "salary_grade": "请选择工资档次",
+        "ref_salary_level": "请选择参照正编薪级",
+        "job_title": "请输入职位名称"
+      },
+      "button": {
+        "search": "查询",
+        "reset": "重置"
       }
     },
-    "list_page": {
-      "title": "员工列表",
-      "loading_lookups": "正在加载筛选选项...",
-      "export": {
-        "filename": "员工列表",
-        "sheet_name": "员工数据",
-        "button_text": "导出 EXCEL",
-        "success_message": "员工列表导出成功"
+    "table": {
+      "empty_text": "暂无员工数据",
+      "search_placeholder_prefix": "搜索",
+      "search_button": "搜索",
+      "reset_button": "重置",
+      "column": {
+        "full_name": "姓名",
+        "employee_code": "工号",
+        "gender": "性别",
+        "department": "部门",
+        "job_title": "实际任职",
+        "personnel_category": "人员身份",
+        "status": "状态",
+        "hire_date": "入职日期",
+        "id_number": "身份证号",
+        "ethnicity": "民族",
+        "nationality": "国籍",
+        "date_of_birth": "出生日期",
+        "education_level": "文化程度",
+        "marital_status": "婚姻状况",
+        "political_status": "政治面貌",
+        "first_work_date": "参加工作时间",
+        "interrupted_service_years": "工龄间断年限",
+        "email": "邮箱",
+        "phone_number": "手机号码",
+        "home_address": "家庭住址",
+        "salary_level": "工资级别",
+        "salary_grade": "工资档次",
+        "ref_salary_level": "参照正编薪级",
+        "actual_position": "实际任职",
+        "actual_position_start_date": "实际任职时间",
+        "career_position_level_date": "任职级时间",
+        "employment_type": "雇佣类型",
+        "contract_type": "合同类型",
+        "bank_name": "银行名称",
+        "bank_account_number": "银行账号",
+        "emergency_contact_name": "紧急联系人姓名",
+        "emergency_contact_phone": "紧急联系人电话",
+        "action": "操作"
       },
-      "column_control": {
-        "button_text": "列设置",
-        "tooltip": "自定义显示列",
-        "dropdown_title": "列显示",
-        "reset_text": "重置"
+      "cell_empty": "-",
+      "status_text": {
+        "active": "在职",
+        "inactive": "离职",
+        "probation": "试用期",
+        "on_leave": "休假"
       },
-      "pagination": {
-        "total": "共 {total} 条"
+      "unknown": {
+        "gender_param": "未知 ({genderId})",
+        "status_raw": "未知",
+        "status_param": "未知 ({statusId})",
+        "education_level_param": "未知 ({educationLevelId})"
       },
+      "action": {
+        "view_details": "查看详情",
+        "edit": "编辑",
+        "delete": "删除"
+      }
+    }
+  },
+  "form_shared": {
+    "button": {
+      "update_employee": "更新员工",
+      "create_employee": "创建员工"
+    }
+  },
+  "create_page": {
+    "title": "创建员工",
+    "message": {
+      "create_success": "员工创建成功!",
+      "create_fail_default": "创建员工失败，请稍后重试。",
+      "create_fail_403": "创建员工失败：您可能没有执行此操作的权限。请联系管理员。"
+    }
+  },
+  "edit_page": {
+    "title": "编辑员工",
+    "title_with_name": "编辑员工: {{employeeName}}",
+    "breadcrumb_title": "编辑员工",
+    "breadcrumb_title_with_name": "编辑: {{employeeName}}",
+    "error": {
+      "employee_not_found_edit": "未找到要编辑的员工信息。",
+      "employee_not_found": "未找到员工信息。",
+      "load_employee_failed_retry": "加载员工信息失败，请稍后重试。",
+      "load_employee_failed": "加载员工信息失败!",
+      "invalid_employee_id": "无效的员工ID。"
+    },
+    "message": {
+      "update_success": "员工信息更新成功!",
+      "update_fail_default": "更新员工信息失败，请稍后重试。"
+    },
+    "spin_tip_loading_data": "加载员工数据中...",
+    "alert": {
+      "message_error": "错误",
+      "message_info": "信息",
+      "description_no_data_to_edit": "没有可编辑的员工数据。"
+    },
+    "default_employee_name": "员工"
+  },
+  "detail_page": {
+    "title_default": "员工详情",
+    "title_with_name_id": "{{name}} (员工号: {{employeeCode}})",
+    "breadcrumb_loading": "加载中...",
+    "alert": {
+      "message_info": "信息",
+      "description_employee_not_selected_or_found": "未选择或未找到员工。"
+    },
+    "page_container": {
+      "title_loading": "加载中...",
+      "title_error": "错误",
+      "title_employee_not_found": "未找到员工",
+      "alert_description_cannot_load_data": "无法加载员工数据。"
+    },
+    "button_back_to_list": "返回列表",
+    "message": {
+      "load_lookups_failed": "加载页面辅助数据失败，部分信息可能无法正确显示。",
+      "employee_id_not_found": "未找到员工ID",
+      "error_employee_info_not_found": "未找到员工信息。",
+      "error_get_employee_detail_failed_retry": "获取员工详情失败，请稍后重试。",
+      "error_get_employee_detail_failed": "获取员工详情失败!"
+    },
+    "tooltip_edit_employee_info": "编辑员工信息",
+    "common_value": {
+      "dash": "-",
+      "na": "无",
+      "loading_basic_info": "加载基本信息中...",
+      "zero_decimal": "0.00"
+    },
+    "contact_info": "联系方式",
+    "bank_info": "银行信息",
+    "additional_info": "其他信息",
+    "tabs": {
+      "basic_info": "基本信息",
+      "job_info": "职位信息",
+      "job_history": "工作经历",
+      "contracts": "合同信息",
+      "compensation": "薪酬历史",
+      "leave_balances": "假期余额"
+    },
+    "basic_info_tab": {
+      "title": "基本信息",
+      "label_status": "状态",
+      "status_loading": "数据加载中...",
+      "label_full_name": "姓名",
+      "label_first_name": "名",
+      "label_last_name": "姓",
+      "label_employee_id": "员工号",
+      "label_gender": "性别",
+      "label_dob": "出生日期",
+      "label_department": "部门",
+      "label_job_title": "职位",
+      "label_actual_position": "实际职位",
+      "label_employment_type": "雇佣类型",
+      "label_employee_status": "员工状态",
+      "label_hire_date": "入职日期",
+      "label_current_position_start_date": "实际任职时间(本单位)",
+      "label_career_position_level_date": "任职级时间(职业生涯)",
+      "label_email": "邮箱",
+      "label_mobile_phone": "手机号",
+      "label_education_level": "最高学历",
+      "label_marital_status": "婚姻状况",
+      "label_political_status": "政治面貌",
+      "label_residential_address": "居住地址",
+      "label_notes": "备注",
+      "tooltip_current_position_start_date": "员工在当前单位担任该职级的开始日期",
+      "tooltip_career_position_level_date": "员工在整个职业生涯中首次担任该职级的时间",
+      "label_id_number": "身份证号",
+      "label_nationality": "国籍",
+      "label_ethnicity": "民族",
+      "label_first_work_date": "参加工作时间",
+      "label_interrupted_service_years": "工龄间断年限",
+      "label_salary_level": "工资级别",
+      "label_salary_grade": "工资档次",
+      "label_ref_salary_level": "参照正编薪级"
+    },
+    "job_info_tab": {
+      "title": "职位信息",
+      "loading": "加载职位信息中...",
+      "label_department": "部门",
+      "label_personnel_category": "人员类别",
+      "label_actual_position": "实际职位",
+      "label_position_code": "职位编码",
+      "label_work_location": "工作地点",
+      "label_hire_date": "入职日期",
+      "label_employment_type": "雇佣类型",
+      "label_seniority": "司龄",
+      "label_probation_end_date": "试用期结束日期",
+      "label_reports_to": "汇报对象",
+      "reports_to_id_prefix": "员工ID: {id}",
+      "seniority_year": "年",
+      "seniority_month": "月",
+      "seniority_years_months": "{{years}}年{{months}}个月",
+      "seniority_months": "{{months}}个月",
+      "department_position": "部门职位信息",
+      "employment_info": "雇佣信息",
+      "reporting_info": "汇报关系"
+    },
+    "job_history_tab": {
       "message": {
-        "load_aux_data_failed": "加载筛选和显示所需的辅助数据失败。",
-        "get_employees_failed_empty_response": "获取员工数据失败：响应数据为空。",
-        "get_employees_failed": "获取员工列表失败。",
-        "delete_employee_failed": "删除员工失败",
-        "delete_employee_success": "员工删除成功。",
-        "no_employees_selected": "请先选择要删除的员工",
-        "batch_delete_success": "成功删除 {{count}} 个员工",
-        "batch_delete_failed": "批量删除员工失败"
+        "get_history_failed_retry": "获取岗位历史失败，请稍后重试。",
+        "get_history_failed": "获取岗位历史失败！",
+        "delete_success": "岗位历史记录删除成功",
+        "delete_failed": "删除失败",
+        "add_success": "岗位历史添加成功",
+        "update_success": "岗位历史更新成功"
       },
       "delete_confirm": {
-        "title": "确认删除",
-        "content": "确定要删除这个员工吗？删除后不可恢复。",
-        "ok_text": "删除",
-        "cancel_text": "取消"
+        "content": "确定要删除这条岗位历史记录吗？",
+        "content_table": "确定要删除这条岗位历史记录吗？"
       },
-      "batch_delete_confirm": {
-        "title": "确认批量删除",
-        "content": "确定要删除选中的 {{count}} 个员工吗？删除后不可恢复。",
-        "ok_text": "删除",
-        "cancel_text": "取消"
-      },
-      "batch_delete_button": "删除选中 ({{count}})",
-      "filter_form": {
-        "label": {
-          "keyword": "关键词",
-          "status": "状态",
-          "hire_date_range": "入职日期范围",
-          "first_work_date_range": "参加工作时间范围",
-          "department": "部门",
-          "gender": "性别",
-          "education_level": "文化程度",
-          "employment_type": "雇佣类型",
-          "personnel_category": "人员身份",
-          "actual_position": "实际任职",
-          "marital_status": "婚姻状况",
-          "political_status": "政治面貌",
-          "contract_type": "合同类型",
-          "id_number": "身份证号",
-          "salary_level": "工资级别",
-          "salary_grade": "工资档次",
-          "ref_salary_level": "参照正编薪级"
-        },
-        "placeholder": {
-          "keyword": "搜索姓名、工号或职位",
-          "department": "请选择部门",
-          "status": "请选择状态",
-          "gender": "请选择性别",
-          "education_level": "请选择文化程度",
-          "employment_type": "请选择雇佣类型",
-          "personnel_category": "请选择人员身份",
-          "actual_position": "请输入实际任职",
-          "marital_status": "请选择婚姻状况",
-          "political_status": "请选择政治面貌",
-          "contract_type": "请选择合同类型",
-          "id_number": "请输入身份证号",
-          "salary_level": "请选择工资级别",
-          "salary_grade": "请选择工资档次", 
-          "ref_salary_level": "请选择参照正编薪级",
-          "job_title": "请输入职位名称"
-        },
-        "button": {
-          "search": "查询",
-          "reset": "重置"
-        }
-      },
+      "loading_history": "加载岗位历史中...",
+      "button_add_history": "添加岗位历史",
       "table": {
-        "empty_text": "暂无员工数据",
-        "search_placeholder_prefix": "搜索",
-        "search_button": "搜索",
-        "reset_button": "重置",
-        "column": {
-          "full_name": "姓名",
-          "employee_code": "工号",
-          "gender": "性别",
-          "department": "部门",
-          "job_title": "实际任职",
-          "personnel_category": "人员身份",
-          "status": "状态",
-          "hire_date": "入职日期",
-          "id_number": "身份证号",
-          "ethnicity": "民族",
-          "nationality": "国籍",
-          "date_of_birth": "出生日期",
-          "education_level": "文化程度",
-          "marital_status": "婚姻状况",
-          "political_status": "政治面貌",
-          "first_work_date": "参加工作时间",
-          "interrupted_service_years": "工龄间断年限",
-          "email": "邮箱",
-          "phone_number": "手机号码",
-          "home_address": "家庭住址",
-          "salary_level": "工资级别",
-          "salary_grade": "工资档次",
-          "ref_salary_level": "参照正编薪级",
-          "actual_position": "实际任职",
-          "actual_position_start_date": "实际任职时间",
-          "career_position_level_date": "任职级时间",
-          "employment_type": "雇佣类型",
-          "contract_type": "合同类型",
-          "bank_name": "银行名称",
-          "bank_account_number": "银行账号",
-          "emergency_contact_name": "紧急联系人姓名",
-          "emergency_contact_phone": "紧急联系人电话",
-          "action": "操作"
-        },
-        "cell_empty": "-",
-        "status_text": {
-          "active": "在职",
-          "inactive": "离职",
-          "probation": "试用期",
-          "on_leave": "休假"
-        },
-        "unknown": {
-          "gender_param": "未知 ({genderId})",
-          "status_raw": "未知",
-          "status_param": "未知 ({statusId})",
-          "education_level_param": "未知 ({educationLevelId})"
-        },
-        "action": {
-          "view_details": "查看详情",
-          "edit": "编辑",
-          "delete": "删除"
-        }
-      }
+        "column_department": "部门",
+        "column_job_title": "职位",
+        "column_start_date": "生效日期",
+        "column_end_date": "结束日期",
+        "column_employment_type": "雇佣类型",
+        "column_salary": "薪资"
+      },
+      "modal": {
+        "title_add": "添加岗位历史",
+        "title_edit": "编辑岗位历史",
+        "message_load_lookups_failed": "加载相关选项失败。",
+        "message_load_job_titles_failed": "无法加载职位数据。",
+        "loading_options": "加载选项中...",
+        "validation_department_required": "请选择部门！",
+        "validation_job_title_required": "请选择职位！",
+        "validation_start_date_required": "请选择开始日期！",
+        "validation_effective_date_required": "请输入生效日期！",
+        "validation_end_date_after_start_date": "结束日期必须在开始日期之后！",
+        "validation_employment_type_required": "请选择雇佣类型！",
+        "placeholder_select_department": "请选择部门",
+        "placeholder_select_job_title": "请选择职位",
+        "placeholder_select_employment_type": "请选择雇佣类型",
+        "placeholder_input_salary": "请输入薪资"
+      },
+      "tooltip_edit_history_param": "编辑岗位历史 (ID: {id})",
+      "tooltip_delete_history_param": "删除岗位历史 (ID: {id})"
     },
-    "form_shared": {
-      "button": {
-        "update_employee": "更新员工",
-        "create_employee": "创建员工"
-      }
-    },
-    "create_page": {
-      "title": "创建员工",
+    "contracts_tab": {
+      "loading": "加载合同信息中...",
+      "loading_or_no_data": "加载中或无合同数据...",
+      "no_records": "无合同记录。",
+      "to_conjunction": "至",
       "message": {
-        "create_success": "员工创建成功!",
-        "create_fail_default": "创建员工失败，请稍后重试。",
-        "create_fail_403": "创建员工失败：您可能没有执行此操作的权限。请联系管理员。"
+        "get_contracts_failed_retry": "获取合同信息失败，请稍后重试。",
+        "delete_success": "合同记录删除成功。",
+        "delete_failed": "删除合同记录失败!",
+        "update_success": "合同信息更新成功。",
+        "add_success": "合同信息添加成功。",
+        "update_failed": "更新合同信息失败!",
+        "add_failed": "添加合同信息失败!"
+      },
+      "delete_confirm": {
+        "content": "确定要删除这份合同记录吗？此操作无法撤销。",
+        "title_popconfirm": "删除此合同？"
+      },
+      "button_add_contract": "添加合同",
+      "table": {
+        "column_contract_number": "合同编号",
+        "column_contract_type": "合同类型",
+        "column_start_date": "开始日期",
+        "column_end_date": "结束日期",
+        "column_status": "状态",
+        "column_actions": "操作"
+      },
+      "tooltip_edit_contract": "编辑合同",
+      "tooltip_delete_contract": "删除合同",
+      "modal": {
+        "message_load_lookups_failed": "加载合同相关选项失败。",
+        "title_add": "添加新合同",
+        "title_edit": "编辑合同",
+        "loading_options": "加载选项中...",
+        "validation_contract_number_required": "请输入合同编号！",
+        "validation_contract_type_required": "请选择合同类型！",
+        "placeholder_select_contract_type": "请选择合同类型",
+        "validation_start_date_required": "请选择开始日期！",
+        "validation_end_date_required": "请选择结束日期！",
+        "validation_end_date_after_start_date": "结束日期必须在开始日期之后！",
+        "validation_status_required": "请选择状态！",
+        "placeholder_select_status": "请选择状态"
       }
     },
-    "edit_page": {
-      "title": "编辑员工",
-      "title_with_name": "编辑员工: {{employeeName}}",
-      "breadcrumb_title": "编辑员工",
-      "breadcrumb_title_with_name": "编辑: {{employeeName}}",
-      "error": {
-        "employee_not_found_edit": "未找到要编辑的员工信息。",
-        "employee_not_found": "未找到员工信息。",
-        "load_employee_failed_retry": "加载员工信息失败，请稍后重试。",
-        "load_employee_failed": "加载员工信息失败!",
-        "invalid_employee_id": "无效的员工ID。"
-      },
+    "compensation_tab": {
+      "loading_or_no_data": "加载中或无薪酬数据...",
+      "no_records": "无薪酬记录。",
+      "basic_prefix": "基本工资:",
+      "total_prefix": "总工资:",
+      "freq_prefix": "频率:",
       "message": {
-        "update_success": "员工信息更新成功!",
-        "update_fail_default": "更新员工信息失败，请稍后重试。"
+        "get_history_failed_retry": "获取薪酬历史失败，请稍后重试。",
+        "add_permission_denied": "您没有权限添加薪酬记录。",
+        "delete_success": "薪酬记录删除成功！",
+        "delete_failed": "删除薪酬记录失败。",
+        "add_success": "薪酬记录添加成功！",
+        "update_success": "薪酬记录更新成功！",
+        "save_failed": "保存薪酬记录失败。"
       },
-      "spin_tip_loading_data": "加载员工数据中...",
-      "alert": {
-        "message_error": "错误",
-        "message_info": "信息",
-        "description_no_data_to_edit": "没有可编辑的员工数据。"
+      "delete_confirm": {
+        "content": "确定要删除此薪酬记录吗？",
+        "content_table": "确定要删除此条薪资记录吗？"
       },
-      "default_employee_name": "员工"
+      "button_add_record": "添加薪酬记录",
+      "table": {
+        "column_effective_date": "生效日期",
+        "column_basic_salary": "基本工资",
+        "column_allowances": "津贴",
+        "column_total_salary": "总工资",
+        "column_pay_frequency": "支付频率",
+        "column_currency": "币种",
+        "column_change_reason": "变更原因"
+      },
+      "modal": {
+        "title_add": "添加薪酬记录",
+        "title_edit": "编辑薪酬记录",
+        "message_load_lookups_failed": "加载薪酬相关选项失败。",
+        "loading_options": "加载选项中...",
+        "validation_effective_date_required": "请选择生效日期！",
+        "validation_basic_salary_required": "请输入基本工资！",
+        "validation_basic_salary_positive": "基本工资必须为正数！",
+        "validation_total_salary_positive": "总工资必须为正数！",
+        "validation_pay_frequency_required": "请选择支付频率！",
+        "placeholder_select_pay_frequency": "请选择支付频率",
+        "validation_allowances_number": "请输入有效的津贴金额！",
+        "validation_currency_required": "请输入币种代码 (例如 CNY)！"
+      },
+      "tooltip_edit_record": "编辑薪资记录",
+      "tooltip_delete_record": "删除薪资记录",
+      "default_currency": "CNY"
     },
-    "detail_page": {
-      "title_default": "员工详情",
-      "title_with_name_id": "{{name}} (员工号: {{employeeCode}})",
-      "breadcrumb_loading": "加载中...",
-      "alert": {
-          "message_info": "信息",
-          "description_employee_not_selected_or_found": "未选择或未找到员工。"
-      },
-      "page_container": {
-          "title_loading": "加载中...",
-          "title_error": "错误",
-          "title_employee_not_found": "未找到员工",
-          "alert_description_cannot_load_data": "无法加载员工数据。"
-      },
-      "button_back_to_list": "返回列表",
-      "message": {
-        "load_lookups_failed": "加载页面辅助数据失败，部分信息可能无法正确显示。",
-        "employee_id_not_found": "未找到员工ID",
-        "error_employee_info_not_found": "未找到员工信息。",
-        "error_get_employee_detail_failed_retry": "获取员工详情失败，请稍后重试。",
-        "error_get_employee_detail_failed": "获取员工详情失败!"
-      },
-      "tooltip_edit_employee_info": "编辑员工信息",
-      "common_value": {
-          "dash": "-",
-          "na": "无",
-          "loading_basic_info": "加载基本信息中...",
-          "zero_decimal": "0.00"
-      },
-      "contact_info": "联系方式",
-      "bank_info": "银行信息",
-      "additional_info": "其他信息",
-      "tabs": {
-        "basic_info": "基本信息",
-        "job_info": "职位信息",
-        "job_history": "工作经历",
-        "contracts": "合同信息",
-        "compensation": "薪酬历史",
-        "leave_balances": "假期余额"
-      },
-      "basic_info_tab": {
-        "title": "基本信息",
-        "label_status": "状态",
-        "status_loading": "数据加载中...",
-        "label_full_name": "姓名",
-        "label_first_name": "名",
-        "label_last_name": "姓",
-        "label_employee_id": "员工号",
-        "label_gender": "性别",
-        "label_dob": "出生日期",
-        "label_department": "部门",
-        "label_job_title": "职位",
-        "label_actual_position": "实际职位",
-        "label_employment_type": "雇佣类型",
-        "label_employee_status": "员工状态",
-        "label_hire_date": "入职日期",
-        "label_current_position_start_date": "实际任职时间(本单位)",
-        "label_career_position_level_date": "任职级时间(职业生涯)",
-        "label_email": "邮箱",
-        "label_mobile_phone": "手机号",
-        "label_education_level": "最高学历",
-        "label_marital_status": "婚姻状况",
-        "label_political_status": "政治面貌",
-        "label_residential_address": "居住地址", 
-        "label_notes": "备注",
-        "tooltip_current_position_start_date": "员工在当前单位担任该职级的开始日期",
-        "tooltip_career_position_level_date": "员工在整个职业生涯中首次担任该职级的时间",
-        "label_id_number": "身份证号",
-        "label_nationality": "国籍",
-        "label_ethnicity": "民族",
-        "label_first_work_date": "参加工作时间",
-        "label_interrupted_service_years": "工龄间断年限",
-        "label_salary_level": "工资级别",
-        "label_salary_grade": "工资档次",
-        "label_ref_salary_level": "参照正编薪级"
-      },
-      "job_info_tab": {
-        "title": "职位信息",
-        "loading": "加载职位信息中...",
-        "label_department": "部门",
-        "label_personnel_category": "人员类别",
-        "label_actual_position": "实际职位",
-        "label_position_code": "职位编码",
-        "label_work_location": "工作地点",
-        "label_hire_date": "入职日期",
-        "label_employment_type": "雇佣类型",
-        "label_seniority": "司龄",
-        "label_probation_end_date": "试用期结束日期",
-        "label_reports_to": "汇报对象",
-        "reports_to_id_prefix": "员工ID: {id}",
-        "seniority_year": "年",
-        "seniority_month": "月",
-        "seniority_years_months": "{{years}}年{{months}}个月",
-        "seniority_months": "{{months}}个月",
-        "department_position": "部门职位信息",
-        "employment_info": "雇佣信息",
-        "reporting_info": "汇报关系"
-      },
-      "job_history_tab": {
-        "message": {
-          "get_history_failed_retry": "获取岗位历史失败，请稍后重试。",
-          "get_history_failed": "获取岗位历史失败！",
-          "delete_success": "岗位历史记录删除成功",
-          "delete_failed": "删除失败",
-          "add_success": "岗位历史添加成功",
-          "update_success": "岗位历史更新成功"
-        },
-        "delete_confirm": {
-          "content": "确定要删除这条岗位历史记录吗？",
-          "content_table": "确定要删除这条岗位历史记录吗？"
-        },
-        "loading_history": "加载岗位历史中...",
-        "button_add_history": "添加岗位历史",
-        "table": { 
-          "column_department": "部门",
-          "column_job_title": "职位",
-          "column_start_date": "生效日期",
-          "column_end_date": "结束日期",
-          "column_employment_type": "雇佣类型",
-          "column_salary": "薪资"
-        },
-        "modal": { 
-          "title_add": "添加岗位历史",
-          "title_edit": "编辑岗位历史",
-          "message_load_lookups_failed": "加载相关选项失败。",
-          "message_load_job_titles_failed": "无法加载职位数据。",
-          "loading_options": "加载选项中...",
-          "validation_department_required": "请选择部门！",
-          "validation_job_title_required": "请选择职位！",
-          "validation_start_date_required": "请选择开始日期！",
-          "validation_effective_date_required": "请输入生效日期！",
-          "validation_end_date_after_start_date": "结束日期必须在开始日期之后！",
-          "validation_employment_type_required": "请选择雇佣类型！",
-          "placeholder_select_department": "请选择部门",
-          "placeholder_select_job_title": "请选择职位",
-          "placeholder_select_employment_type": "请选择雇佣类型",
-          "placeholder_input_salary": "请输入薪资"
-        },
-        "tooltip_edit_history_param": "编辑岗位历史 (ID: {id})",
-        "tooltip_delete_history_param": "删除岗位历史 (ID: {id})"
-      },
-      "contracts_tab": {
-        "loading": "加载合同信息中...",
-        "loading_or_no_data": "加载中或无合同数据...",
-        "no_records": "无合同记录。",
-        "to_conjunction": "至",
-        "message": {
-          "get_contracts_failed_retry": "获取合同信息失败，请稍后重试。",
-          "delete_success": "合同记录删除成功。",
-          "delete_failed": "删除合同记录失败!",
-          "update_success": "合同信息更新成功。",
-          "add_success": "合同信息添加成功。",
-          "update_failed": "更新合同信息失败!",
-          "add_failed": "添加合同信息失败!"
-        },
-        "delete_confirm": {
-          "content": "确定要删除这份合同记录吗？此操作无法撤销。",
-          "title_popconfirm": "删除此合同？"
-        },
-        "button_add_contract": "添加合同",
-        "table": {
-          "column_contract_number": "合同编号",
-          "column_contract_type": "合同类型",
-          "column_start_date": "开始日期",
-          "column_end_date": "结束日期",
-          "column_status": "状态",
-          "column_actions": "操作"
-        },
-        "tooltip_edit_contract": "编辑合同",
-        "tooltip_delete_contract": "删除合同",
-        "modal": {
-          "message_load_lookups_failed": "加载合同相关选项失败。",
-          "title_add": "添加新合同",
-          "title_edit": "编辑合同",
-          "loading_options": "加载选项中...",
-          "validation_contract_number_required": "请输入合同编号！",
-          "validation_contract_type_required": "请选择合同类型！",
-          "placeholder_select_contract_type": "请选择合同类型",
-          "validation_start_date_required": "请选择开始日期！",
-          "validation_end_date_required": "请选择结束日期！",
-          "validation_end_date_after_start_date": "结束日期必须在开始日期之后！",
-          "validation_status_required": "请选择状态！",
-          "placeholder_select_status": "请选择状态"
-        }
-      },
-      "compensation_tab": {
-        "loading_or_no_data": "加载中或无薪酬数据...",
-        "no_records": "无薪酬记录。",
-        "basic_prefix": "基本工资:",
-        "total_prefix": "总工资:",
-        "freq_prefix": "频率:",
-        "message": {
-          "get_history_failed_retry": "获取薪酬历史失败，请稍后重试。",
-          "add_permission_denied": "您没有权限添加薪酬记录。",
-          "delete_success": "薪酬记录删除成功！",
-          "delete_failed": "删除薪酬记录失败。",
-          "add_success": "薪酬记录添加成功！",
-          "update_success": "薪酬记录更新成功！",
-          "save_failed": "保存薪酬记录失败。"
-        },
-        "delete_confirm": {
-          "content": "确定要删除此薪酬记录吗？",
-          "content_table": "确定要删除此条薪资记录吗？"
-        },
-        "button_add_record": "添加薪酬记录",
-        "table": {
-          "column_effective_date": "生效日期",
-          "column_basic_salary": "基本工资",
-          "column_allowances": "津贴",
-          "column_total_salary": "总工资",
-          "column_pay_frequency": "支付频率",
-          "column_currency": "币种",
-          "column_change_reason": "变更原因"
-        },
-        "modal": {
-          "title_add": "添加薪酬记录",
-          "title_edit": "编辑薪酬记录",
-          "message_load_lookups_failed": "加载薪酬相关选项失败。",
-          "loading_options": "加载选项中...",
-          "validation_effective_date_required": "请选择生效日期！",
-          "validation_basic_salary_required": "请输入基本工资！",
-          "validation_basic_salary_positive": "基本工资必须为正数！",
-          "validation_total_salary_positive": "总工资必须为正数！",
-          "validation_pay_frequency_required": "请选择支付频率！",
-          "placeholder_select_pay_frequency": "请选择支付频率",
-          "validation_allowances_number": "请输入有效的津贴金额！",
-          "validation_currency_required": "请输入币种代码 (例如 CNY)！"
-        },
-        "tooltip_edit_record": "编辑薪资记录",
-        "tooltip_delete_record": "删除薪资记录",
-        "default_currency": "CNY"
-      },
-      "leave_balances_tab": {
-        "loading_or_no_data": "加载中或无数据...",
-        "no_records": "无假期余额记录。",
-        "type_id_prefix": "类型ID: {id}",
-        "entitlement_prefix": "应有:",
-        "taken_prefix": "已休:"
-      }
-    },
-    "form_card": {
-      "title_basic_info": "基本信息",
-      "title_position_contract_info": "职位与合同信息",
-      "title_contact_bank_info": "联系方式与银行信息"
-    },
-    "form_steps": {
-      "basic_info": "基本信息",
-      "position_info": "职位合同",
-      "contact_info": "联系与银行"
-    },
-    "form_label": {
-      "id_number": "身份证号",
-      "nationality": "国籍",
-      "ethnicity": "民族",
-      "avatar": "头像",
-      "contract_type": "合同类型",
-      "home_address": "家庭住址",
-      "bank_name": "银行名称",
-      "bank_account_number": "银行账号",
-      "emergency_contact_name": "紧急联系人姓名",
-      "emergency_contact_phone": "紧急联系人电话"
-    },
-    "form_placeholder": {
-      "marital_status": "请选择婚姻状况",
-      "political_status": "请选择政治面貌",
-      "contract_type": "请选择合同类型"
-    },
-    "form_upload": {
-      "avatar_text": "上传头像"
-    },
-    "gender": { 
-        "male": "男",
-        "female": "女",
-        "other": "其他"
-    },
-    "education_level": { 
-        "high_school": "高中",
-        "diploma": "大专",
-        "bachelor": "本科",
-        "master": "硕士",
-        "doctorate": "博士",
-        "other": "其他学历"
-    },
-    "employment_type": {
-        "full_time": "全职",
-        "part_time": "兼职",
-        "contractor": "合同工",
-        "intern": "实习"
-    },
-    "page_title": {
-      "employee_files": "员工档案"
-    },
+    "leave_balances_tab": {
+      "loading_or_no_data": "加载中或无数据...",
+      "no_records": "无假期余额记录。",
+      "type_id_prefix": "类型ID: {id}",
+      "entitlement_prefix": "应有:",
+      "taken_prefix": "已休:"
+    }
+  },
+  "form_card": {
+    "title_basic_info": "基本信息",
+    "title_position_contract_info": "职位与合同信息",
+    "title_contact_bank_info": "联系方式与银行信息"
+  },
+  "form_steps": {
+    "basic_info": "基本信息",
+    "position_info": "职位合同",
+    "contact_info": "联系与银行"
+  },
+  "form_label": {
+    "id_number": "身份证号",
+    "nationality": "国籍",
+    "ethnicity": "民族",
+    "avatar": "头像",
+    "contract_type": "合同类型",
+    "home_address": "家庭住址",
+    "bank_name": "银行名称",
+    "bank_account_number": "银行账号",
+    "emergency_contact_name": "紧急联系人姓名",
+    "emergency_contact_phone": "紧急联系人电话"
+  },
+  "form_placeholder": {
+    "marital_status": "请选择婚姻状况",
+    "political_status": "请选择政治面貌",
+    "contract_type": "请选择合同类型"
+  },
+  "form_upload": {
+    "avatar_text": "上传头像"
+  },
+  "gender": {
+    "male": "男",
+    "female": "女",
+    "other": "其他"
+  },
+  "education_level": {
+    "high_school": "高中",
+    "diploma": "大专",
+    "bachelor": "本科",
+    "master": "硕士",
+    "doctorate": "博士",
+    "other": "其他学历"
+  },
+  "employment_type": {
+    "full_time": "全职",
+    "part_time": "兼职",
+    "contractor": "合同工",
+    "intern": "实习"
+  },
+  "page_title": {
+    "employee_files": "员工档案"
+  },
   "firstName": "名",
   "lastName": "姓",
   "dob": "出生日期",
@@ -528,5 +528,6 @@
     "hire_date": "入职日期"
   },
   "employee_id_format": "员工ID: {{id}}",
-  "employee_unavailable": "员工信息不可用"
+  "employee_unavailable": "员工信息不可用",
+  "auto__range_0_range_1___total__e7acac": "第 ${range[0]}-${range[1]} 条，共 ${total} 条"
 }
