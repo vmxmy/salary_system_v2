@@ -89,7 +89,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);

@@ -42,7 +42,7 @@ import {
 const USE_MOCK_API = false; // 可以临时改为true进行调试
 
 const PayrollRunsPage: React.FC = () => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   console.log('[PayrollRunsPage] 🚀 Component rendering started');
   console.log('[PayrollRunsPage] 📊 Translation function available:', !!t);
   

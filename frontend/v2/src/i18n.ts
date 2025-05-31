@@ -29,6 +29,7 @@ export const i18nInitOptions = {
     'myInfo', 
     'pageTitle',
     'payroll',
+    'payroll_runs',
     'permission',
     'role',
     'user',

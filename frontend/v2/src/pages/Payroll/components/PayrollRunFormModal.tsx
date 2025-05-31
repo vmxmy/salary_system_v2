@@ -19,7 +19,7 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
 

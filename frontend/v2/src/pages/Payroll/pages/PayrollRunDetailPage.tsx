@@ -24,7 +24,7 @@ import { getPayrollRunStatusInfo } from '../utils/payrollUtils';
 const { Title, /* Paragraph, Text */ } = Typography;
 
 const PayrollRunDetailPage: React.FC = () => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   const { runId } = useParams<{ runId: string }>();
   const [runDetails, setRunDetails] = useState<PayrollRun | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

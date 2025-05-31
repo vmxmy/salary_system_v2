@@ -23,7 +23,7 @@ export const PAYROLL_QUERY_KEYS = {
   PERIODS: 'payroll-periods',
   RUNS: 'payroll-runs',
   ENTRIES: 'payroll-entries',
-  COMPONENTS: 'payroll-components',
+  COMPONENTS: 'payroll-component-definitions',
 } as const;
 
 // 缓存配置

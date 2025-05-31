@@ -169,35 +169,6 @@ else:
 # 通过API端点管理: /api/config/mappings
 # --- Column Definitions --- END
 
-# --- dbt Background Task Runner --- START
-async def run_dbt_build(dbt_project_dir: str):
-    """Runs 'dbt build' in the specified dbt project directory as a background task."""
-    logger.info(f"[DBT Background Task] Starting dbt build for project: {dbt_project_dir}")
-    try:
-        command = ['dbt', 'build']
-        logger.info(f"[DBT Background Task] Executing command: {' '.join(command)} in {dbt_project_dir}")
-
-        result = subprocess.run(
-            command,
-            cwd=dbt_project_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-            env=os.environ.copy()
-        )
-
-        log_output = f"dbt stdout:\n{result.stdout}\ndbt stderr:\n{result.stderr}"
-        if result.returncode == 0:
-            logger.info(f"[DBT Background Task] dbt build completed successfully in {dbt_project_dir}.\n{log_output}")
-        else:
-            logger.error(f"[DBT Background Task] dbt build failed with return code {result.returncode} in {dbt_project_dir}.\n{log_output}")
-
-    except FileNotFoundError:
-        logger.error(f"[DBT Background Task] dbt command not found. Ensure dbt is installed and in PATH for the FastAPI process.")
-    except Exception as e:
-        logger.error(f"[DBT Background Task] An error occurred while running dbt build: {e}", exc_info=True)
-# --- dbt Background Task Runner --- END
-
 # --- Database Connection Helper Function (Commented out, using database.py now) ---
 # def get_db_connection():
 # // ... function body ...
@@ -274,32 +245,6 @@ if __name__ == "__main__":
 
     logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload_uvicorn}...")
     uvicorn.run("webapp.main:app", host=host, port=port, reload=reload_uvicorn)
-
-# --- Helper Function to Trigger dbt Build --- START ---
-def _trigger_dbt_build_if_project_valid(background_tasks: BackgroundTasks, dbt_project_dir: str) -> bool:
-    """
-    Checks if the dbt project directory is valid and adds the dbt build task
-    to background tasks if it is.
-
-    Args:
-        background_tasks: The BackgroundTasks instance.
-        dbt_project_dir: The path to the dbt project directory.
-
-    Returns:
-        True if the task was added, False otherwise.
-    """
-    logger.info(f"Checking for dbt project at calculated path: {dbt_project_dir}")
-    if not os.path.isdir(dbt_project_dir) or not os.path.exists(os.path.join(dbt_project_dir, 'dbt_project.yml')):
-         logger.error(f"dbt project directory not found or invalid at: {dbt_project_dir}. Skipping dbt run trigger.")
-         return False
-    else:
-         logger.info(f"Adding dbt build task to background for project: {dbt_project_dir}")
-         # Ensure run_dbt_build is accessible in this scope
-         # If run_dbt_build is defined later in the file, this might need adjustment
-         # or run_dbt_build should be defined before this helper.
-         background_tasks.add_task(run_dbt_build, dbt_project_dir)
-         return True
-# --- Helper Function to Trigger dbt Build --- END ---
 
 # === NEW DEBUGGING ENDPOINT ===
 @app.get("/api/debug/field-config/{employee_type_key}",

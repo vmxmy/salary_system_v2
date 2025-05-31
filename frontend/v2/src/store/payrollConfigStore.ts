@@ -26,7 +26,7 @@ const usePayrollConfigStore = create<PayrollConfigState>((set, get) => ({
         ...params
       };
       console.log('🔧 请求参数:', requestParams);
-      console.log('🌐 即将调用API: /config/payroll-components');
+      console.log('🌐 即将调用API: /config/payroll-component-definitions');
       
       const response: ApiListResponse<PayrollComponentDefinition> = await getPayrollComponentDefinitions(requestParams);
       

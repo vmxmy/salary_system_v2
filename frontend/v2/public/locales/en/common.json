@@ -168,7 +168,8 @@
     "sheetName": "Sheet1",
     "success_message": "Export successful",
     "error_message": "Export failed, please try again",
-    "error_log": "Export Excel failed:"
+    "error_log": "Export Excel failed:",
+    "formatExcel": "Excel (.xlsx)"
   },
   "column_control": {
     "button_text": "Column Settings",
@@ -252,5 +253,17 @@
   "auth": {
     "logout_success": "Logout successful",
     "logout_failed": "Logout failed"
+  },
+  "payroll_run_status": {
+    "approved_for_payment": "Approved for Payment"
+  },
+  "login_page_title": "Login to Salary System",
+  "username_required_message": "Please input your username!",
+  "password_required_message": "Please input your password!",
+  "error": {
+    "login_failed": "Login failed, please check your credentials"
+  },
+  "button": {
+    "refresh_and_retry": "Refresh and Retry"
   }
 }

@@ -61,8 +61,8 @@ export const dashboardService = {
       const employeeResponse = await employeeService.getEmployees({ page: 1, size: 1 });
       const totalEmployees = employeeResponse.meta?.total || 0;
 
-      // 模拟上月员工数（实际项目中应该从历史数据获取）
-      const totalEmployeesLastMonth = Math.max(0, totalEmployees - Math.floor(Math.random() * 50));
+      // TODO: 获取上月员工数，需要后端API支持
+      const totalEmployeesLastMonth = 0; 
 
       // 获取薪资周期数据
       let payrollPeriods: any[] = [];
@@ -96,12 +96,8 @@ export const dashboardService = {
         }
       });
 
-      // 如果没有真实薪资数据，使用模拟数据
-      if (monthlyPayroll === 0 && totalEmployees > 0) {
-        monthlyPayroll = totalEmployees * 8000 * (0.9 + Math.random() * 0.2); // 模拟平均薪资8000
-      }
-
-      const monthlyPayrollLastMonth = monthlyPayroll * (0.95 + Math.random() * 0.1); // 模拟上月数据
+      // TODO: 获取上月薪资总额，需要后端API支持
+      const monthlyPayrollLastMonth = 0; 
       const averageSalary = totalEmployees > 0 ? monthlyPayroll / totalEmployees : 0;
       const averageSalaryLastMonth = totalEmployeesLastMonth > 0 ? monthlyPayrollLastMonth / totalEmployeesLastMonth : 0;
 
@@ -112,12 +108,12 @@ export const dashboardService = {
 
       return {
         totalEmployees,
-        totalEmployeesLastMonth,
+        totalEmployeesLastMonth, // 依赖后端API
         monthlyPayroll,
-        monthlyPayrollLastMonth,
+        monthlyPayrollLastMonth, // 依赖后端API
         pendingApprovals,
         averageSalary,
-        averageSalaryLastMonth,
+        averageSalaryLastMonth, // 依赖 totalEmployeesLastMonth 和 monthlyPayrollLastMonth
         activePayrollRuns,
         completedPayrollRuns,
       };
@@ -157,36 +153,25 @@ export const dashboardService = {
           const employeeCount = runs.reduce((sum: number, run: any) => sum + (run.employee_count || 0), 0);
           const averageSalary = employeeCount > 0 ? totalPayroll / employeeCount : 0;
 
-          trendData.push({
-            month: period.name || `${period.start_date?.substring(5, 7)}-${period.start_date?.substring(8, 10)}`,
-            totalPayroll: totalPayroll || (Math.random() * 1000000 + 500000), // 模拟数据
-            averageSalary: averageSalary || (Math.random() * 5000 + 6000), // 模拟数据
-            employeeCount: employeeCount || Math.floor(Math.random() * 100 + 50), // 模拟数据
-          });
+          // 只有在获取到真实数据时才添加
+          if (runs.length > 0) {
+            trendData.push({
+              month: period.name || `${period.start_date?.substring(5, 7)}-${period.start_date?.substring(8, 10)}`,
+              totalPayroll: totalPayroll,
+              averageSalary: averageSalary,
+              employeeCount: employeeCount,
+            });
+          }
         } catch (error) {
           console.warn(`获取周期 ${period.id} 的薪资审核数据失败:`, error);
-          // 添加模拟数据
-          trendData.push({
-            month: period.name || `周期${period.id}`,
-            totalPayroll: Math.random() * 1000000 + 500000,
-            averageSalary: Math.random() * 5000 + 6000,
-            employeeCount: Math.floor(Math.random() * 100 + 50),
-          });
+          // 不再添加模拟数据
         }
       }
 
       return trendData.reverse(); // 按时间顺序排列
     } catch (error) {
       console.error('获取薪资趋势数据失败:', error);
-      // 返回模拟数据
-      return [
-        { month: '10月', totalPayroll: 850000, averageSalary: 8500, employeeCount: 100 },
-        { month: '11月', totalPayroll: 920000, averageSalary: 8800, employeeCount: 105 },
-        { month: '12月', totalPayroll: 980000, averageSalary: 9000, employeeCount: 109 },
-        { month: '1月', totalPayroll: 1050000, averageSalary: 9200, employeeCount: 114 },
-        { month: '2月', totalPayroll: 1120000, averageSalary: 9400, employeeCount: 119 },
-        { month: '3月', totalPayroll: 1200000, averageSalary: 9600, employeeCount: 125 },
-      ];
+      return []; // 返回空数组，不再使用模拟数据
     }
   },
 
@@ -199,66 +184,39 @@ export const dashboardService = {
 
       for (const dept of departments.slice(0, 8)) { // 限制最多8个部门，避免请求过多
         try {
-          // 获取该部门的员工数据（使用较小的size避免422错误）
+          // 获取该部门的员工数据
           const employeesResponse = await employeeService.getEmployees({
             page: 1,
-            size: 50, // 减小size避免422错误
+            size: 50, 
             department_id: dept.id?.toString(),
           });
 
           const employeeCount = employeesResponse.meta?.total || 0;
-
-          // 模拟计算部门薪资总额（实际项目中应该从薪资数据中获取）
-          const avgSalaryByDept: Record<string, number> = {
-            'PD': 12000,
-            'FE': 10000,
-            'BE': 11000,
-            'UX': 9000,
-            'QA': 8500,
-            'HR': 7500,
-            'Finance': 8000,
-            'IT': 9500,
-          };
-
-          const baseSalary = avgSalaryByDept[dept.code || ''] || 8000;
-          const totalPayroll = employeeCount * baseSalary * (0.9 + Math.random() * 0.2);
-          const averageSalary = employeeCount > 0 ? totalPayroll / employeeCount : 0;
+          
+          // TODO: 真实的部门薪资总额和平均薪资需要后端API支持
+          // 目前，我们将它们设置为0，或者后端可以直接提供这些聚合数据
+          const totalPayroll = 0; 
+          const averageSalary = 0;
 
           if (employeeCount > 0) {
             distributionData.push({
               department: dept.code || 'UNKNOWN',
               departmentName: dept.name || '未知部门',
-              totalPayroll,
+              totalPayroll, // 依赖后端API
               employeeCount,
-              averageSalary,
+              averageSalary, // 依赖后端API
             });
           }
         } catch (error) {
           console.warn(`获取部门 ${dept.name} 的员工数据失败:`, error);
-          // 添加模拟数据
-          const employeeCount = Math.floor(Math.random() * 30 + 10);
-          const baseSalary = 8000 + Math.random() * 4000;
-          distributionData.push({
-            department: dept.code || 'UNKNOWN',
-            departmentName: dept.name || '未知部门',
-            totalPayroll: employeeCount * baseSalary,
-            employeeCount,
-            averageSalary: baseSalary,
-          });
+          // 不再添加模拟数据
         }
       }
 
-      return distributionData.sort((a, b) => b.totalPayroll - a.totalPayroll);
+      return distributionData.sort((a, b) => b.employeeCount - a.employeeCount); // 按员工数量排序，因为薪资数据不真实
     } catch (error) {
       console.error('获取部门薪资分布失败:', error);
-      // 返回模拟数据
-      return [
-        { department: 'PD', departmentName: '产品部', totalPayroll: 360000, employeeCount: 30, averageSalary: 12000 },
-        { department: 'FE', departmentName: '前端部', totalPayroll: 250000, employeeCount: 25, averageSalary: 10000 },
-        { department: 'BE', departmentName: '后端部', totalPayroll: 330000, employeeCount: 30, averageSalary: 11000 },
-        { department: 'UX', departmentName: '设计部', totalPayroll: 180000, employeeCount: 20, averageSalary: 9000 },
-        { department: 'QA', departmentName: '测试部', totalPayroll: 170000, employeeCount: 20, averageSalary: 8500 },
-      ];
+      return []; // 返回空数组，不再使用模拟数据
     }
   },
 
@@ -270,48 +228,31 @@ export const dashboardService = {
       const gradeData: EmployeeGradeItem[] = [];
 
       // 获取总员工数
-      const totalEmployeesResponse = await employeeService.getEmployees({ page: 1, size: 1 });
-      const totalEmployees = totalEmployeesResponse.meta?.total || 0;
+      // const totalEmployeesResponse = await employeeService.getEmployees({ page: 1, size: 1 });
+      // const totalEmployees = totalEmployeesResponse.meta?.total || 0;
 
-      // 模拟不同职级的员工分布
-      const levelDistribution: Record<string, number> = {
-        'P4': 0.4,
-        'P5': 0.3,
-        'P6': 0.2,
-        'P7': 0.08,
-        'P8': 0.02,
-        'L1': 0.35,
-        'L2': 0.25,
-        'L3': 0.20,
-        'L4': 0.15,
-        'L5': 0.05,
-      };
-
+      // TODO: 真实的员工职级分布（各职级人数及百分比）需要后端API直接提供统计数据
+      // 目前，我们将它们设置为0，或者后端可以直接提供这些聚合数据
       for (const level of jobLevels.slice(0, 6)) { // 限制最多6个职级
-        const distributionRatio = levelDistribution[level.value] || 0.1;
-        const count = Math.floor(totalEmployees * distributionRatio);
+        // const distributionRatio = levelDistribution[level.value] || 0.1;
+        // const count = Math.floor(totalEmployees * distributionRatio);
+        const count = 0; // 依赖后端API
+        const percentage = 0; // 依赖后端API
 
-        if (count > 0) {
-          gradeData.push({
-            grade: level.value,
-            gradeName: level.label,
-            count,
-            percentage: (count / totalEmployees) * 100,
-          });
-        }
+        // if (count > 0) { // 暂时注释掉，因为count始终为0
+        gradeData.push({
+          grade: level.value,
+          gradeName: level.label,
+          count, // 依赖后端API
+          percentage, // 依赖后端API
+        });
+        // }
       }
 
-      return gradeData.sort((a, b) => b.count - a.count);
+      return gradeData.sort((a, b) => b.count - a.count); // 按数量排序，目前都为0
     } catch (error) {
       console.error('获取员工职级分布失败:', error);
-      // 返回模拟数据
-      return [
-        { grade: 'P4', gradeName: '初级工程师', count: 60, percentage: 40 },
-        { grade: 'P5', gradeName: '中级工程师', count: 45, percentage: 30 },
-        { grade: 'P6', gradeName: '高级工程师', count: 30, percentage: 20 },
-        { grade: 'P7', gradeName: '资深工程师', count: 12, percentage: 8 },
-        { grade: 'P8', gradeName: '专家工程师', count: 3, percentage: 2 },
-      ];
+      return []; // 返回空数组，不再使用模拟数据
     }
   },
 
@@ -354,12 +295,7 @@ export const dashboardService = {
       return statusData.sort((a, b) => b.count - a.count);
     } catch (error) {
       console.error('获取薪资状态分布失败:', error);
-      // 返回模拟数据
-      return [
-        { status: 'completed', statusName: '已完成', count: 8, totalAmount: 2400000 },
-        { status: 'pending', statusName: '待审批', count: 3, totalAmount: 900000 },
-        { status: 'processing', statusName: '进行中', count: 2, totalAmount: 600000 },
-      ];
+      return []; // 返回空数组，不再使用模拟数据
     }
   },
 
@@ -379,14 +315,7 @@ export const dashboardService = {
       }));
     } catch (error) {
       console.error('获取最近薪资审核记录失败:', error);
-      // 返回模拟数据
-      return [
-        { id: 1, periodName: '2024年3月薪资', status: '已完成', totalAmount: 1200000, employeeCount: 125, createdAt: '2024-03-01T00:00:00Z' },
-        { id: 2, periodName: '2024年2月薪资', status: '已完成', totalAmount: 1150000, employeeCount: 120, createdAt: '2024-02-01T00:00:00Z' },
-        { id: 3, periodName: '2024年1月薪资', status: '已完成', totalAmount: 1100000, employeeCount: 115, createdAt: '2024-01-01T00:00:00Z' },
-        { id: 4, periodName: '2023年12月薪资', status: '待审批', totalAmount: 1050000, employeeCount: 110, createdAt: '2023-12-01T00:00:00Z' },
-        { id: 5, periodName: '2023年11月薪资', status: '进行中', totalAmount: 1000000, employeeCount: 105, createdAt: '2023-11-01T00:00:00Z' },
-      ];
+      return []; // 返回空数组，不再使用模拟数据
     }
   },
 };

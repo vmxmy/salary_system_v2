@@ -187,7 +187,7 @@ const generatePayrollRunTableColumns = (
 };
 
 const PayrollRunsPageV2: React.FC = () => {
-  const { t } = useTranslation(['payroll', 'pageTitle', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'pageTitle', 'common']);
   const permissions = usePayrollRunPermissions();
   const { lookupMaps, loadingLookups, errorLookups } = useLookupMaps();
   const navigate = useNavigate();
@@ -349,7 +349,7 @@ const PayrollRunsPageV2: React.FC = () => {
   return (
     <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]} showError={true}>
       <StandardListPageTemplate<PayrollRun>
-        translationNamespaces={['payroll', 'pageTitle', 'common']}
+        translationNamespaces={['payroll_runs', 'pageTitle', 'common']}
         pageTitleKey="pageTitle:payroll_runs"
         addButtonTextKey="runs_page.button.create_run"
         dataSource={dataSource}

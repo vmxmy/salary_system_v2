@@ -1,0 +1,148 @@
+{
+  "runs_page": {
+    "title": "Payroll Calculation Runs",
+    "button": {
+      "create_run": "Create New Calculation Run",
+      "mark_as_paid": "Mark as Paid",
+      "export_bank_file": "Export Bank File"
+    },
+    "error_fetch_runs": "Unable to fetch payroll calculation run data",
+    "message": {
+      "update_success": "Payroll calculation run updated successfully!",
+      "create_success": "Payroll calculation run created successfully!",
+      "delete_success": "Payroll calculation run deleted successfully!",
+      "mark_as_paid_success": "Calculation run #{runId} successfully marked as paid!",
+      "exporting_bank_file": "Exporting bank file (Run #{runId})...",
+      "export_bank_file_success": "Bank file (Run #{runId}) download started!",
+      "already_paid": "This calculation run is already marked as paid."
+    },
+    "error": {
+      "update_failed": "Failed to update calculation run",
+      "create_failed": "Failed to create calculation run",
+      "delete_failed": "Failed to delete calculation run",
+      "mark_as_paid_failed": "Failed to mark as paid",
+      "export_bank_file_failed_prefix": "Export bank file failed: ",
+      "export_bank_file_failed_default": "Export bank file failed"
+    },
+    "popconfirm": {
+      "delete_title": "Confirm Delete",
+      "delete_content": "Are you sure you want to delete this payroll calculation run? This action cannot be undone.",
+      "delete_ok_text": "Delete",
+      "delete_cancel_text": "Cancel",
+      "mark_as_paid_title": "Confirm Action",
+      "mark_as_paid_content": "Are you sure you want to mark calculation run #{runId} as paid?",
+      "mark_as_paid_ok_text": "Mark as Paid"
+    },
+    "default_bank_export_filename_prefix": "bank_export_run_",
+    "table": {
+      "column": {
+        "id": "ID",
+        "payroll_period": "Payroll Period",
+        "run_date": "Run Date",
+        "status": "Status",
+        "employee_count": "Employee Count",
+        "notes": "Notes",
+        "actions": "Actions"
+      },
+      "action_details": "Details"
+    },
+    "tooltip": {
+      "edit_run": "Edit Calculation Run",
+      "delete_run": "Delete Calculation Run"
+    },
+    "alert_error_prefix": "Error: ",
+    "alert_modal_error_prefix": "Operation failed: ",
+    "modal_title": {
+      "create": "Create New Payroll Calculation Run",
+      "edit": "Edit Payroll Calculation Run"
+    },
+    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
+    "form": {
+      "error":{
+        "load_periods_failed": "Unable to load payroll period list",
+        "load_periods_failed_with_message": "Unable to load payroll period list: {message}"
+      },
+      "label": {
+        "payroll_period": "Payroll Period",
+        "run_date": "Run Date",
+        "status_edit_mode": "Status",
+        "status_create_mode": "Initial Status",
+        "employee_ids": "Include Employee IDs (Optional, comma-separated)",
+        "notes": "Notes (Optional)"
+      },
+      "validation": {
+        "payroll_period_required": "Please select a payroll period!",
+        "run_date_required": "Please select a run date!",
+        "status_required": "Please select a status!"
+      },
+      "tooltip": {
+        "employee_ids": "Enter numeric employee IDs, separated by commas. E.g., 101,102,105"
+      },
+      "placeholder": {
+        "payroll_period": "Select a payroll period",
+        "status": "Select status",
+        "employee_ids": "e.g. 1, 2, 3, 4, 5\nLeave blank to include all applicable employees within the selected payroll period (if backend supports this logic)",
+        "notes": "Any notes about this calculation"
+      },
+      "button": {
+        "cancel": "Cancel",
+        "save_changes": "Save Changes",
+        "create_run": "Create Calculation Run"
+      }
+    }
+  },
+  "run_detail_page": {
+    "title": "Calculation Run Details",
+    "error": {
+      "fetch_details": "Unable to fetch payroll calculation run details",
+      "invalid_run_id": "Invalid calculation run ID",
+      "no_run_id_provided": "No calculation run ID provided"
+    },
+    "spin_loading": "Loading...",
+    "alert": {
+      "error_prefix": "Error: ",
+      "not_found": "Payroll calculation run data not found."
+    },
+    "breadcrumb": {
+      "runs_management": "Payroll Calculation Runs Management",
+      "current_page": "Calculation Run Details (ID: {runId})"
+    },
+    "card_title": "Payroll Calculation Run Details: #{runId}",
+    "button_back_to_list": "Back to List",
+    "description": {
+      "id": "ID",
+      "payroll_period": "Payroll Period",
+      "run_date": "Run Date",
+      "status": "Status",
+      "employee_count": "Employee Count",
+      "created_by": "Created By User ID",
+      "created_at": "Created At",
+      "updated_at": "Last Updated At",
+      "paid_at": "Paid At",
+      "notes": "Notes"
+    },
+    "value": {
+      "na": "N/A",
+      "not_paid": "Not Paid",
+      "no_notes": "None",
+      "period_id_prefix": "ID: "
+    },
+    "section_title_entries": "Payroll Entries"
+  },
+  "payroll_run_form": {
+    "label": {
+      "payroll_period": "Payroll Period",
+      "run_date": "Run Date",
+      "status_edit_mode": "Status",
+      "employee_ids": "Employee ID Range",
+      "notes": "Notes"
+    },
+    "placeholder": {
+      "employee_ids": "Enter employee IDs, separated by commas (e.g. 101,102,105). Leave blank to include all applicable employees.",
+      "notes": "Enter any notes about this calculation (optional)"
+    },
+    "button": {
+      "save_changes": "Save Changes"
+    }
+  }
+} 
