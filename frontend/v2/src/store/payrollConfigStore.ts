@@ -16,7 +16,6 @@ const usePayrollConfigStore = create<PayrollConfigState>((set, get) => ({
   loading: false,
   error: null,
   fetchComponentDefinitions: async (params?: Record<string, any>) => {
-    console.log('🚀 开始加载薪资字段定义...');
     set({ loading: true, error: null });
     try {
       // 确保加载所有组件定义，设置较大的size参数
@@ -25,35 +24,15 @@ const usePayrollConfigStore = create<PayrollConfigState>((set, get) => ({
         is_enabled: true, // v2 API使用is_enabled参数
         ...params
       };
-      console.log('🔧 请求参数:', requestParams);
-      console.log('🌐 即将调用API: /config/payroll-components');
-      
       const response: ApiListResponse<PayrollComponentDefinition> = await getPayrollComponentDefinitions(requestParams);
       
-      console.log('📦 API响应:', response);
-      console.log(`💼 薪资字段定义加载成功，共 ${response.data.length} 个组件`);
-      
-      // 检查是否可能还有更多数据
-      if (response.data.length === 100 && response.meta?.total && response.meta.total > 100) {
-        console.warn(`⚠️ 注意：系统中共有 ${response.meta.total} 个组件定义，但只加载了前100个。如需加载全部，请考虑实现分页加载。`);
-      }
-      
       if (response.data && response.data.length > 0) {
-        console.log('📋 前5个组件定义:', response.data.slice(0, 5).map(def => ({ code: def.code, name: def.name, type: def.type })));
+        set({ componentDefinitions: response.data, loading: false });
       } else {
-        console.warn('⚠️ API返回的组件定义数组为空');
+        set({ error: 'API返回的组件定义数组为空', loading: false });
+        // Optionally, rethrow or handle more gracefully for UI
       }
-      
-      set({ componentDefinitions: response.data, loading: false });
     } catch (err: any) {
-      console.error("❌ 加载薪资字段定义失败:", err);
-      console.error("❌ 错误详情:", {
-        message: err.message,
-        status: err.status,
-        statusText: err.statusText,
-        response: err.response,
-        stack: err.stack
-      });
       set({ error: err.message || 'Failed to fetch component definitions', loading: false });
       // Optionally, rethrow or handle more gracefully for UI
     }

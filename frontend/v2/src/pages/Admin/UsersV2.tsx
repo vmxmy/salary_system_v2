@@ -149,16 +149,9 @@ const generateUserTableColumns = (
 };
 
 const UsersPageV2: React.FC = () => {
-  console.log('🔍 [UsersV2] 组件开始渲染');
-  
   const { t } = useTranslation(['user', 'pageTitle', 'common']);
   const permissions = useUserPermissions();
   const { userPermissions, userRoleCodes, hasPermission } = usePermissions();
-  
-  // 调试权限信息
-  console.log('🔍 [UsersV2] 当前用户权限:', userPermissions);
-  console.log('🔍 [UsersV2] 当前用户角色代码:', userRoleCodes);
-  console.log('🔍 [UsersV2] 是否有 user:view_list 权限:', hasPermission('user:view_list'));
   
   // 状态管理
   const [dataSource, setDataSource] = useState<PageUser[]>([]);
@@ -172,7 +165,6 @@ const UsersPageV2: React.FC = () => {
 
   // 获取数据
   const fetchData = useCallback(async () => {
-    console.log('🔍 [UsersV2] fetchData 开始执行');
     setLoadingData(true);
     setErrorLookups(null);
     try {
@@ -181,17 +173,9 @@ const UsersPageV2: React.FC = () => {
         size: 100,
       };
 
-      console.log('🔍 [UsersV2] 调用 getUsers API，参数:', apiParams);
-      console.log('🔍 [UsersV2] API 基础URL:', import.meta.env.VITE_API_BASE_URL);
-      console.log('🔍 [UsersV2] API 路径前缀:', import.meta.env.VITE_API_PATH_PREFIX);
-      
       const apiResponse = await getUsers(apiParams);
-      console.log('🔍 [UsersV2] API 响应:', apiResponse);
-      console.log('🔍 [UsersV2] API 响应类型:', typeof apiResponse);
-      console.log('🔍 [UsersV2] API 响应数据类型:', typeof apiResponse?.data);
       
       if (apiResponse && Array.isArray(apiResponse.data)) {
-        console.log('🔍 [UsersV2] 用户数据数量:', apiResponse.data.length);
         setAllApiUsersForEdit(apiResponse.data);
         const pageUsers: PageUser[] = apiResponse.data.map((apiUser: ApiUser) => ({
           key: apiUser.id,
@@ -202,33 +186,16 @@ const UsersPageV2: React.FC = () => {
           is_active: apiUser.is_active,
           created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('table.value.not_applicable'),
         }));
-        console.log('🔍 [UsersV2] 处理后的页面用户数据:', pageUsers);
         setDataSource(pageUsers);
         setErrorLookups(null);
-        console.log('🔍 [UsersV2] 数据设置完成，错误状态已清除');
       } else {
-        console.error('🔍 [UsersV2] getUsers response data is not an array or response is invalid:', apiResponse);
-        console.error('🔍 [UsersV2] 响应结构分析:', {
-          hasResponse: !!apiResponse,
-          responseKeys: apiResponse ? Object.keys(apiResponse) : 'N/A',
-          dataType: typeof apiResponse?.data,
-          isDataArray: Array.isArray(apiResponse?.data)
-        });
         setDataSource([]);
       }
     } catch (error) {
-      console.error('🔍 [UsersV2] Failed to fetch users:', error);
-      console.error('🔍 [UsersV2] 错误详情:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        response: (error as any)?.response,
-        status: (error as any)?.response?.status,
-        data: (error as any)?.response?.data
-      });
       setDataSource([]);
       setErrorLookups(error);
     } finally {
       setLoadingData(false);
-      console.log('🔍 [UsersV2] fetchData 执行完成');
     }
   }, [t]);
 
@@ -255,7 +222,6 @@ const UsersPageV2: React.FC = () => {
   // 处理查看详情
   const handleViewDetailsClick = useCallback((id: string) => {
     // 用户管理通常不需要详情页面，可以留空或实现简单的详情模态框
-    console.log('View user details:', id);
   }, []);
 
   // 表单成功回调
@@ -267,15 +233,8 @@ const UsersPageV2: React.FC = () => {
 
   // 初始化数据
   useEffect(() => {
-    console.log('🔍 [UsersV2] useEffect 触发，开始获取数据');
-    console.log('🔍 [UsersV2] fetchData 函数:', typeof fetchData);
-    console.log('🔍 [UsersV2] 当前权限状态:', { userPermissions, hasPermission: hasPermission('user:view_list') });
-    
     if (hasPermission('user:view_list')) {
-      console.log('🔍 [UsersV2] 权限检查通过，开始调用 fetchData');
       fetchData();
-    } else {
-      console.log('🔍 [UsersV2] 权限检查失败，跳过 fetchData');
     }
   }, []); // 移除fetchData依赖，避免无限循环
 

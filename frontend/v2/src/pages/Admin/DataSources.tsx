@@ -36,28 +36,12 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { useTranslation } from 'react-i18next';
 import { dataSourceAPI } from '../../api/reports';
+import type { DataSource } from '../../api/reports';
 
 const { Search } = Input;
 const { Option } = Select;
 const { TextArea } = Input;
 const { Title, Text } = Typography;
-
-interface DataSource {
-  id: number;
-  name: string;
-  table_name: string;
-  schema_name: string;
-  connection_type: string;
-  description?: string;
-  is_active: boolean;
-  sync_status?: string;
-  last_sync_at?: string;
-  created_by: number;
-  created_at: string;
-  updated_at: string;
-  creator_name?: string;
-  field_count?: number;
-}
 
 interface DataSourceField {
   field_name: string;
@@ -97,7 +81,6 @@ const DataSources: React.FC = () => {
       const response = await dataSourceAPI.getDataSources();
       setDataSources(response.data);
     } catch (error: any) {
-      console.error('Failed to load data sources:', error);
       message.error(`加载数据源失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
@@ -140,7 +123,6 @@ const DataSources: React.FC = () => {
           message.success('删除成功');
           await loadDataSources();
         } catch (error: any) {
-          console.error('Failed to delete data source:', error);
           message.error(`删除失败: ${error.response?.data?.detail || error.message}`);
         }
       }
@@ -154,7 +136,6 @@ const DataSources: React.FC = () => {
       message.success('数据源同步成功');
       await loadDataSources(); // 重新加载数据
     } catch (error: any) {
-      console.error('Failed to sync data source:', error);
       message.error(`同步失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
@@ -170,7 +151,6 @@ const DataSources: React.FC = () => {
       setSelectedSourceName(record.name);
       setDrawerVisible(true);
     } catch (error: any) {
-      console.error('Failed to load fields:', error);
       message.error(`加载字段信息失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
@@ -349,7 +329,7 @@ const DataSources: React.FC = () => {
   const filteredSources = dataSources.filter(source => {
     const matchesSearch = !searchText || 
       source.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      source.table_name.toLowerCase().includes(searchText.toLowerCase()) ||
+      source.table_name?.toLowerCase().includes(searchText.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchText.toLowerCase());
     const matchesStatus = !selectedStatus || 
       (selectedStatus === 'active' && source.is_active) ||

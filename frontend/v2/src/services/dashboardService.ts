@@ -69,18 +69,14 @@ export const dashboardService = {
       try {
         const payrollPeriodsResponse = await apiClient.get('/payroll-periods?page=1&size=5');
         payrollPeriods = payrollPeriodsResponse.data?.data || [];
-      } catch (error) {
-        console.warn('获取薪资周期数据失败:', error);
-      }
+      } catch (error) {}
 
       // 获取薪资审核数据
       let payrollRuns: any[] = [];
       try {
         const payrollRunsResponse = await apiClient.get('/payroll-runs?page=1&size=10');
         payrollRuns = payrollRunsResponse.data?.data || [];
-      } catch (error) {
-        console.warn('获取薪资审核数据失败:', error);
-      }
+      } catch (error) {}
 
       // 计算当月薪资总额（从最近的薪资审核中获取）
       let monthlyPayroll = 0;
@@ -122,7 +118,6 @@ export const dashboardService = {
         completedPayrollRuns,
       };
     } catch (error) {
-      console.error('获取KPI数据失败:', error);
       // 返回默认数据
       return {
         totalEmployees: 0,
@@ -164,7 +159,6 @@ export const dashboardService = {
             employeeCount: employeeCount || Math.floor(Math.random() * 100 + 50), // 模拟数据
           });
         } catch (error) {
-          console.warn(`获取周期 ${period.id} 的薪资审核数据失败:`, error);
           // 添加模拟数据
           trendData.push({
             month: period.name || `周期${period.id}`,
@@ -177,7 +171,6 @@ export const dashboardService = {
 
       return trendData.reverse(); // 按时间顺序排列
     } catch (error) {
-      console.error('获取薪资趋势数据失败:', error);
       // 返回模拟数据
       return [
         { month: '10月', totalPayroll: 850000, averageSalary: 8500, employeeCount: 100 },
@@ -234,7 +227,6 @@ export const dashboardService = {
             });
           }
         } catch (error) {
-          console.warn(`获取部门 ${dept.name} 的员工数据失败:`, error);
           // 添加模拟数据
           const employeeCount = Math.floor(Math.random() * 30 + 10);
           const baseSalary = 8000 + Math.random() * 4000;
@@ -250,7 +242,6 @@ export const dashboardService = {
 
       return distributionData.sort((a, b) => b.totalPayroll - a.totalPayroll);
     } catch (error) {
-      console.error('获取部门薪资分布失败:', error);
       // 返回模拟数据
       return [
         { department: 'PD', departmentName: '产品部', totalPayroll: 360000, employeeCount: 30, averageSalary: 12000 },
@@ -303,7 +294,6 @@ export const dashboardService = {
 
       return gradeData.sort((a, b) => b.count - a.count);
     } catch (error) {
-      console.error('获取员工职级分布失败:', error);
       // 返回模拟数据
       return [
         { grade: 'P4', gradeName: '初级工程师', count: 60, percentage: 40 },
@@ -353,7 +343,6 @@ export const dashboardService = {
 
       return statusData.sort((a, b) => b.count - a.count);
     } catch (error) {
-      console.error('获取薪资状态分布失败:', error);
       // 返回模拟数据
       return [
         { status: 'completed', statusName: '已完成', count: 8, totalAmount: 2400000 },
@@ -378,7 +367,6 @@ export const dashboardService = {
         createdAt: run.created_at || new Date().toISOString(),
       }));
     } catch (error) {
-      console.error('获取最近薪资审核记录失败:', error);
       // 返回模拟数据
       return [
         { id: 1, periodName: '2024年3月薪资', status: '已完成', totalAmount: 1200000, employeeCount: 125, createdAt: '2024-03-01T00:00:00Z' },

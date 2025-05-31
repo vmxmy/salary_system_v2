@@ -40,27 +40,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     // hasRole // Ensure hasRole is destructured if used directly for SUPER_ADMIN check later
   } = usePermissions(); // This hook internally subscribes to userRoleCodes and userPermissions
   
-  // Log initial data for debugging - All these will be removed/commented out
-  // console.log('[ProtectedRoute] Debug Info:');
-  // console.log('[ProtectedRoute] Current Location:', location.pathname);
-  // console.log('[ProtectedRoute] IsAuthenticated:', isAuthenticated);
-  // console.log('[ProtectedRoute] CurrentUser from store:', JSON.stringify(currentUser, null, 2));
-  // const rawRoleCodesFromStore = useAuthStore((state) => state.userRoleCodes);
-  // const rawPermissionsFromStore = useAuthStore((state) => state.userPermissions);
-  // console.log('[ProtectedRoute] Raw userRoleCodes from authStore state:', rawRoleCodesFromStore);
-  // console.log('[ProtectedRoute] Raw userPermissions from authStore state:', rawPermissionsFromStore);
-  // console.log('[ProtectedRoute] RoleCodes from usePermissions hook:', userRoleCodes);
-  // console.log('[ProtectedRoute] Route allowedRoles:', allowedRoles);
-  // console.log('[ProtectedRoute] Route requiredPermissions:', requiredPermissions);
-  // console.log('[ProtectedRoute] Route permissionMatchMode:', permissionMatchMode);
-
   // --- New Loading Logic ---
   // Determine if we are in a state where critical data (user details, roles, permissions) is still loading.
   const isEffectivelyLoading = isLoadingUser || (isAuthenticated && currentUser && !rbacDataInitialized);
-  // console.log(`[ProtectedRoute] Combined Loading Status: isEffectivelyLoading: ${isEffectivelyLoading} (isLoadingUser: ${isLoadingUser}, isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}, rbacDataInitialized: ${rbacDataInitialized})`);
 
   if (isEffectivelyLoading) {
-    console.log('[ProtectedRoute] Effective loading is true. Rendering spinner.');
     return (
       <Spin spinning={true} size="large" tip={t('common:loading.user_info', '加载用户信息中...')}>
         {/* Render minimal content or adjust layout if Spin should cover children conceptually */}
@@ -79,7 +63,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Authentication Check: If, after loading attempts, user is still not authenticated (no token)
   // OR if authenticated but currentUser object is missing (should not happen if loading logic is correct, but as a safeguard).
   if (!isAuthenticated || !currentUser) {
-    console.log(`ProtectedRoute: Authentication check failed post-loading. isAuthenticated: ${isAuthenticated}, currentUser: ${!!currentUser}. Redirecting to login.`);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -90,7 +73,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (allowedRoles && allowedRoles.length > 0) {
     // Ensure userRoleCodes is not null before calling .some()
     if (!userRoleCodes || !userRoleCodes.some(code => allowedRoles.includes(code))) {
-      console.log(`ProtectedRoute: Role check failed. User roles codes from usePermissions hook: ${userRoleCodes?.join(', ') || '[No role codes from hook]'}. Required: ${allowedRoles.join(', ')}`);
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
   }
@@ -101,7 +83,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     // It's crucial that usePermissions hook provides up-to-date userPermissions array here
     // Let's check if the permissions array from the hook is non-empty if permissions are required
     if (!currentPermissionsFromHook || currentPermissionsFromHook.length === 0) {
-      console.log(`ProtectedRoute: Permission check failed. User has no permissions according to usePermissions hook, but required permissions are: ${requiredPermissions.join(', ')}`);
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
     
@@ -113,13 +94,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
 
     if (!userHasRequiredPermissions) {
-      console.log(`ProtectedRoute: Permission check failed. Mode: ${permissionMatchMode}. User permissions from hook: ${currentPermissionsFromHook?.join(', ') || '[No permissions from hook]'}. Required: ${requiredPermissions.join(', ')}`);
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
   }
 
   // If all checks pass, render the children directly as loading is handled above.
-  // console.log('[ProtectedRoute] All checks passed. Rendering children.');
   return <>{children}</>; // Render children directly
 };
 

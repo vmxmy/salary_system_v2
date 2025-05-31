@@ -299,9 +299,7 @@ const PayrollEntryPage: React.FC = () => {
     try {
       const response = await getPersonnelCategoriesTree(true); // Only get active categories
       setPersonnelCategoriesTree(response.data);
-      console.log('[PayrollEntryPage.tsx] Personnel categories tree loaded:', response.data);
     } catch (error) {
-      console.error('Failed to fetch personnel categories tree:', error);
       // Not showing error message to user as this is not critical for the main functionality
     }
   }, []);
@@ -321,7 +319,6 @@ const PayrollEntryPage: React.FC = () => {
       };
       
       const response = await getPayrollEntries(requestParams);
-      console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - API response received:', response);
       
       if (response && response.data) {
         console.log(`[PayrollEntryPage.tsx] fetchPayrollEntries - ${response.data.length} entries received`);
@@ -405,8 +402,6 @@ const PayrollEntryPage: React.FC = () => {
 
   // 薪资周期加载完成的回调（现在由组件内部自动选择有数据的周期）
   const handlePeriodsLoaded = useCallback((periods: any[]) => {
-    console.log(`📋 薪资周期加载完成，共 ${periods.length} 个周期`);
-    // 不再手动选择第一个周期，由 PayrollPeriodSelector 自动选择最近一个有数据的周期
   }, []);
 
   // 当选择的周期改变时，重新获取数据

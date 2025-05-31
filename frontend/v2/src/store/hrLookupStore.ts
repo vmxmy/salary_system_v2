@@ -87,12 +87,10 @@ const useHrLookupStore = create<HrLookupState>((set, get) => ({
             break;
           default:
             const exhaustiveCheck: never = type;
-            console.warn(`Unhandled lookup type in fetchLookup: ${exhaustiveCheck}`);
             continue;
         }
         set((state) => ({ ...state, [type]: data }));
       } catch (err: any) {
-        console.error(`Error fetching ${type}:`, err);
         newErrors.set(type, err.message || `Failed to fetch ${type}`);
       }
       newLoading.delete(type);

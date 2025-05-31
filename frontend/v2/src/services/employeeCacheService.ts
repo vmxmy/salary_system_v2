@@ -25,7 +25,6 @@ export const employeeCacheService = {
       const cacheStr = localStorage.getItem(CACHE_KEY);
       return cacheStr ? JSON.parse(cacheStr) : {};
     } catch (error) {
-      console.error('Error loading employee cache from localStorage:', error);
       return {};
     }
   },
@@ -37,7 +36,6 @@ export const employeeCacheService = {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
     } catch (error) {
-      console.error('Error saving employee cache to localStorage:', error);
     }
   },
 

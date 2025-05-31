@@ -84,12 +84,8 @@ const MyInfoPage: React.FC = () => {
         try {
           setError(null);
           const data = await employeeService.getEmployeeById(String(employeeId));
-          console.log('MyInfo - Employee data received:', data);
-          console.log('MyInfo - first_name:', data?.first_name);
-          console.log('MyInfo - last_name:', data?.last_name);
           setEmployee(data);
         } catch (err: any) {
-          console.error('Error fetching employee details for MyInfo:', err);
           if (axios.isAxiosError(err) && err.response?.status === 401) {
             setError(t('myInfo.fetchErrorUnauthorized', 'Failed to load your information due to an authorization issue. Please try logging in again.'));
           } else {
