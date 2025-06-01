@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { getPayrollComponentDefinitions } from '../services/payrollConfigService';
 import type { PayrollComponentDefinition, ApiListResponse } from '../pages/Payroll/types/payrollTypes';
+import { useTranslation } from 'react-i18next';
 
 interface PayrollConfigState {
   componentDefinitions: PayrollComponentDefinition[];

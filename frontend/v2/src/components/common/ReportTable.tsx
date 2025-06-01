@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ProTable } from '@ant-design/pro-components';
 import { Card, Typography, Row, Col, Space, Button, Dropdown, Menu, message, Divider, Tooltip } from 'antd';
 import type { ProColumns, ProTableProps, ActionType } from '@ant-design/pro-components';
@@ -150,7 +151,6 @@ export function ReportTable<T extends Record<string, any>>({
     try {
       // 动态导入 xlsx-js-style（支持样式）
       import('xlsx-js-style').then((XLSX) => {
-        console.log('使用 xlsx-js-style 库进行导出');
                  const dataSource = restProps.dataSource || [];
          const worksheetData: any[][] = [];
          
@@ -350,7 +350,6 @@ export function ReportTable<T extends Record<string, any>>({
       });
     } catch (error) {
       message.error('导出失败，请重试');
-      console.error('Export error:', error);
     }
   };
 
@@ -405,7 +404,6 @@ export function ReportTable<T extends Record<string, any>>({
       message.success('CSV导出成功');
     } catch (error) {
       message.error('导出失败，请重试');
-      console.error('Export error:', error);
     }
   };
 

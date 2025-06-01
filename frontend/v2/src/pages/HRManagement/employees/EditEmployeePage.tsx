@@ -27,28 +27,21 @@ const EditEmployeePage: React.FC = () => {
   useEffect(() => {
     setLoadingData(true);
     setError(null);
-    console.log('[EditEmployeePage] useEffect triggered. idFromUrl:', idFromUrl, 'employeeFromState:', employeeFromState ? `Employee ID ${employeeFromState.id}`: 'null');
 
     if (employeeFromState && String(employeeFromState.id) === idFromUrl) {
-      console.log('[EditEmployeePage] Using employee data from route state:', employeeFromState);
       setEmployeeData(employeeFromState);
-      console.log('[EditEmployeePage] employeeData from route state, to be passed as initialValues:', JSON.parse(JSON.stringify(employeeFromState)));
       setLoadingData(false);
     } else if (idFromUrl) {
-      console.log(`[EditEmployeePage] Fetching employee data from API for ID: '${idFromUrl}' (Type: ${typeof idFromUrl})`);
       employeeService.getEmployeeById(idFromUrl)
         .then(data => {
           if (data) {
             setEmployeeData(data);
-            console.log('[EditEmployeePage] employeeData from API, to be passed as initialValues:', JSON.parse(JSON.stringify(data)));
           } else {
             setError(t('employee:edit_page.error.employee_not_found_edit'));
             message.error(t('employee:edit_page.error.employee_not_found'));
           }
         })
         .catch(err => {
-          console.error('Failed to load employee data:', err);
-          console.error(`Error details for ID '${idFromUrl}':`, err.message, err.response?.data);
           setError(t('employee:edit_page.error.load_employee_failed_retry'));
           message.error(t('employee:edit_page.error.load_employee_failed'));
         })
@@ -56,7 +49,6 @@ const EditEmployeePage: React.FC = () => {
           setLoadingData(false);
         });
     } else {
-      console.warn('[EditEmployeePage] No idFromUrl and no suitable employeeFromState. Invalid state.');
       setError(t('employee:edit_page.error.invalid_employee_id'));
       setLoadingData(false);
     }
@@ -70,7 +62,6 @@ const EditEmployeePage: React.FC = () => {
       message.success(t('employee:edit_page.message.update_success'));
       navigate(`/hr/employees/${idFromUrl}`);
     } catch (err: any) {
-      console.error('Failed to update employee data:', err);
       message.error(err.response?.data?.message || t('employee:edit_page.message.update_fail_default'));
     } finally {
       setSubmitting(false);
@@ -90,30 +81,25 @@ const EditEmployeePage: React.FC = () => {
   }
 
   // Log employeeData before constructing employeeDisplayName
-  console.log('[EditEmployeePage] employeeData received for display name construction:', JSON.parse(JSON.stringify(employeeData)));
-  console.log('[EditEmployeePage] employeeData.first_name:', employeeData.first_name);
-  console.log('[EditEmployeePage] employeeData.last_name:', employeeData.last_name);
 
   const lastName = employeeData.last_name || '';
   const firstName = employeeData.first_name || '';
   const fullNameParts = [lastName, firstName].filter(Boolean);
-  const employeeDisplayName = fullNameParts.length > 0 ? fullNameParts.join('') : t('employee:edit_page.default_employee_name', '员工');
+  const employeeDisplayName = fullNameParts.length > 0 ? fullNameParts.join('') : t('employee:edit_page.default_employee_name');
 
   const breadcrumbItems = [
     { onClick: () => navigate('/'), title: <HomeOutlined /> },
     { onClick: () => navigate('/hr/employees'), title: t('pageTitle:hr_management') },
     { onClick: () => navigate('/hr/employees'), title: t('pageTitle:employee_list') },
-    { title: employeeDisplayName && employeeDisplayName !== t('employee:edit_page.default_employee_name', '员工') 
-        ? t('employee:edit_page.breadcrumb_title_with_name', { employeeName: employeeDisplayName })
-        : t('employee:edit_page.breadcrumb_title')
+    { title: employeeDisplayName && employeeDisplayName !== t('employee:edit_page.default_employee_name')
+        ? t('employee:edit_page.breadcrumb_title_with_name', { employeeName: employeeDisplayName }): t('employee:edit_page.breadcrumb_title')
     }
   ];
 
   return (
     <PageContainer
       title={employeeDisplayName
-        ? t('employee:edit_page.title_with_name', { employeeName: employeeDisplayName })
-        : t('employee:edit_page.title')
+        ? t('employee:edit_page.title_with_name', { employeeName: employeeDisplayName }): t('employee:edit_page.title')
       }
       breadcrumbRender={false}
     >

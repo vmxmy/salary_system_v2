@@ -146,28 +146,19 @@ const LookupSelect: React.FC<LookupSelectProps> = ({
   const loadData = async () => {
     if (!config) {
       const error = new Error(`Unsupported lookup type: ${lookupType}`);
-      console.error('❌ LookupSelect:', error.message);
       onError?.(error);
       return;
     }
     
     setLoading(true);
     try {
-      console.log(`🔍 LookupSelect: 开始加载 ${lookupType} 数据`);
-      
       // 调用对应的服务方法
       const serviceMethod = lookupService[config.service as keyof typeof lookupService] as () => Promise<any[]>;
       const data = await serviceMethod();
       
-      console.log(`✅ LookupSelect: ${lookupType} 数据加载成功`, {
-        count: data.length,
-        sample: data.slice(0, 3)
-      });
-      
       setOptions(data);
       onDataLoaded?.(data);
     } catch (error) {
-      console.error(`❌ LookupSelect: ${lookupType} 数据加载失败:`, error);
       message.error(t('lookup_select.error.load_failed', { type: lookupType }));
       onError?.(error as Error);
     } finally {
@@ -184,7 +175,7 @@ const LookupSelect: React.FC<LookupSelectProps> = ({
   
   // 处理值变化
   const handleChange = (newValue: number | null) => {
-    console.log(`🎯 LookupSelect: ${lookupType} 值变化:`, newValue);
+    
     onChange?.(newValue);
   };
   
@@ -233,7 +224,7 @@ const LookupSelect: React.FC<LookupSelectProps> = ({
   // 获取占位符文本
   const getPlaceholder = () => {
     if (placeholder) return placeholder;
-    return t(config.placeholder, { defaultValue: `请选择${lookupType}` });
+    return t(config.placeholder, { defaultValue: t('components:auto__lookuptype__e8afb7') });
   };
   
   return (

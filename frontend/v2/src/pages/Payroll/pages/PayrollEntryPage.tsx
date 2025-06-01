@@ -83,9 +83,6 @@ const generatePayrollEntryTableColumns = (
   onDelete: (entryId: string) => void,
   onViewDetails: (entryId: string) => void
 ): ProColumns<PayrollEntry>[] => {
-  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - Called to generate table columns');
-  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - permissions:', permissions);
-  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - lookupMaps keys:', lookupMaps ? Object.keys(lookupMaps) : 'no lookupMaps');
   
   const columns: ProColumns<PayrollEntry>[] = [
     {
@@ -106,19 +103,10 @@ const generatePayrollEntryTableColumns = (
       },
       width: 150,
       render: (_, record) => {
-        console.log('[PayrollEntryPage.tsx] === EMPLOYEE NAME RENDER FUNCTION CALLED ===');
-        console.log('[PayrollEntryPage.tsx] Rendering name for record:', JSON.parse(JSON.stringify(record))); // Log the whole record
-        console.log('[PayrollEntryPage.tsx] employee_first_name type:', typeof record.employee_first_name, 'value:', record.employee_first_name);
-        console.log('[PayrollEntryPage.tsx] employee_last_name type:', typeof record.employee_last_name, 'value:', record.employee_last_name);
         
         // 检查 employee 对象的结构
         if (record.employee) {
-          console.log('[PayrollEntryPage.tsx] employee object exists:', JSON.parse(JSON.stringify(record.employee)));
-          console.log('[PayrollEntryPage.tsx] employee object keys:', Object.keys(record.employee));
-          console.log('[PayrollEntryPage.tsx] employee.first_name:', record.employee.first_name);
-          console.log('[PayrollEntryPage.tsx] employee.last_name:', record.employee.last_name);
         } else {
-          console.log('[PayrollEntryPage.tsx] employee object does not exist');
         }
 
         // 修正逻辑：从 employee 对象中获取姓名（API实际返回的结构）
@@ -131,22 +119,16 @@ const generatePayrollEntryTableColumns = (
           lastName = record.employee.last_name || '';
         }
         
-        console.log('[PayrollEntryPage.tsx] 🔍 DIRECT ACCESS - employee.first_name:', record.employee?.first_name, 'employee.last_name:', record.employee?.last_name);
 
-        console.log('[PayrollEntryPage.tsx] firstName after processing:', typeof firstName, firstName);
-        console.log('[PayrollEntryPage.tsx] lastName after processing:', typeof lastName, lastName);
 
         // 临时测试：直接返回简单字符串
         const testResult = `${lastName}${firstName}`.trim();
-        console.log('[PayrollEntryPage.tsx] 🎯 FINAL RESULT before return:', testResult);
         
         if (!firstName && !lastName) {
-          console.warn('[PayrollEntryPage.tsx] WARN: first_name and last_name are both empty or missing for employee_id:', record.employee_id);
           return <span style={{ color: '#999', fontStyle: 'italic' }}>未设置姓名</span>;
         }
         
         const fullName = `${lastName}${firstName}`.trim();
-        console.log('[PayrollEntryPage.tsx] Constructed fullName:', typeof fullName, fullName, 'for employee_id:', record.employee_id);
         
         return fullName;
       },
@@ -233,7 +215,7 @@ const generatePayrollEntryTableColumns = (
           {permissions.canViewDetail && (
             <TableActionButton 
               actionType="view" 
-              onClick={() => onViewDetails(String(record.id))} 
+              onClick={() => onViewDetails(String(record.id))}
               tooltipTitle={t('common:action.view')} 
             />
           )}
@@ -248,7 +230,7 @@ const generatePayrollEntryTableColumns = (
             <TableActionButton 
               actionType="delete" 
               danger 
-              onClick={() => onDelete(String(record.id))} 
+              onClick={() => onDelete(String(record.id))}
               tooltipTitle={t('common:action.delete')} 
             />
           )}
@@ -257,8 +239,6 @@ const generatePayrollEntryTableColumns = (
     },
   ];
   
-  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - Generated', columns.length, 'columns');
-  console.log('[PayrollEntryPage.tsx] 🎛️ generatePayrollEntryTableColumns - Employee name column:', columns.find(col => col.key === 'employee_name'));
   
   return columns;
 };
@@ -288,8 +268,8 @@ const PayrollEntryPage: React.FC = () => {
 
   // 模拟查找映射数据 - 添加假数据确保表格能渲染
   const lookupMaps = {
-    departmentMap: new Map([['default', '默认部门']]),
-    statusMap: new Map([['default', '默认状态']]),
+    departmentMap: new Map([['default', t('payroll:auto_text_e9bb98')]]),
+    statusMap: new Map([['default', t('payroll:auto_text_e9bb98')]]),
   };
 
   const { getColumnSearch } = useTableSearch();
@@ -308,7 +288,6 @@ const PayrollEntryPage: React.FC = () => {
   const fetchPayrollEntries = useCallback(async (periodId: number) => {
     if (!periodId) return;
     
-    console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - Called for periodId:', periodId);
     setLoadingData(true);
     try {
       const requestParams = { 
@@ -321,7 +300,6 @@ const PayrollEntryPage: React.FC = () => {
       const response = await getPayrollEntries(requestParams);
       
       if (response && response.data) {
-        console.log(`[PayrollEntryPage.tsx] fetchPayrollEntries - ${response.data.length} entries received`);
         
         // 详细检查前3条数据的结构
         response.data.slice(0, 3).forEach((entry, index) => {
@@ -339,17 +317,13 @@ const PayrollEntryPage: React.FC = () => {
         });
         
         setAllPayrollEntries(response.data);
-        console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - Data set to state successfully');
       } else {
-        console.error('[PayrollEntryPage.tsx] fetchPayrollEntries - No data in API response or response itself is null.');
         setAllPayrollEntries([]);
       }
     } catch (error) {
-      console.error('[PayrollEntryPage.tsx] fetchPayrollEntries - Error fetching payroll entries:', error);
       setAllPayrollEntries([]);
     } finally {
       setLoadingData(false);
-      console.log('[PayrollEntryPage.tsx] fetchPayrollEntries - Finished for periodId:', periodId);
     }
   }, []);
 
@@ -402,15 +376,14 @@ const PayrollEntryPage: React.FC = () => {
 
   // 薪资周期加载完成的回调（现在由组件内部自动选择有数据的周期）
   const handlePeriodsLoaded = useCallback((periods: any[]) => {
+    // 不再手动选择第一个周期，由 PayrollPeriodSelector 自动选择最近一个有数据的周期
   }, []);
 
   // 当选择的周期改变时，重新获取数据
   useEffect(() => {
     if (selectedPeriodId) {
-      console.log('[PayrollEntryPage.tsx] useEffect - selectedPeriodId changed to:', selectedPeriodId, 'Fetching entries...');
       fetchPayrollEntries(selectedPeriodId);
     } else {
-      console.log('[PayrollEntryPage.tsx] useEffect - selectedPeriodId is null, clearing entries.');
       setAllPayrollEntries([]); // 如果没有选择周期，清空数据
     }
   }, [selectedPeriodId, fetchPayrollEntries]);
@@ -502,8 +475,8 @@ const PayrollEntryPage: React.FC = () => {
           exportConfig={{
             filenamePrefix: t('payroll:entry_page.title'),
             sheetName: t('payroll:entry_page.title'),
-            buttonText: '导出Excel',
-            successMessage: '薪资记录导出成功',
+            buttonText: t('payroll:auto_excel_e5afbc'),
+            successMessage: t('payroll:auto_text_e896aa'),
           }}
           lookupErrorMessageKey="payroll:entry_page.message.load_aux_data_failed"
           lookupLoadingMessageKey="payroll:entry_page.loading_lookups"

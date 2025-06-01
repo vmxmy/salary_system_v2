@@ -74,8 +74,7 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
       setDataSource(response);
       setTotal(response.length);
     } catch (error: any) {
-      console.error('Failed to load report views:', error);
-      message.error(`加载报表视图失败: ${error.message}`);
+      message.error(t('components:auto__error_message__e58aa0'));
     } finally {
       setLoading(false);
     }
@@ -101,11 +100,10 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
   const handleDelete = async (record: ReportViewListItem) => {
     try {
       await reportViewAPI.deleteReportView(record.id);
-      message.success('删除成功');
+      message.success(t('components:auto_text_e588a0'));
       loadData();
     } catch (error: any) {
-      console.error('Failed to delete report view:', error);
-      message.error(`删除失败: ${error.message}`);
+      message.error(t('components:auto__error_message__e588a0'));
     }
   };
 
@@ -118,9 +116,9 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
   // 渲染状态标签
   const renderStatusTag = (status: string) => {
     const statusConfig = {
-      draft: { color: 'default', text: '草稿' },
-      created: { color: 'success', text: '已创建' },
-      error: { color: 'error', text: '错误' },
+      draft: { color: 'default', text: t('components:auto_text_e88d89') },
+      created: { color: 'success', text: t('components:auto_text_e5b7b2') },
+      error: { color: 'error', text: t('components:auto_text_e99499') },
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
@@ -130,7 +128,7 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
   // 表格列定义
   const columns: ColumnsType<ReportViewListItem> = [
     {
-      title: '报表名称',
+      title: t('components:auto_text_e68aa5'),
       dataIndex: 'name',
       key: 'name',
       width: 250,
@@ -149,21 +147,21 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
       ),
     },
     {
-      title: '分类',
+      title: t('components:auto_text_e58886'),
       dataIndex: 'category',
       key: 'category',
       width: 120,
       render: (text) => text || '-',
     },
     {
-      title: '状态',
+      title: t('components:auto_text_e78ab6'),
       dataIndex: 'view_status',
       key: 'view_status',
       width: 100,
       render: renderStatusTag,
     },
     {
-      title: '使用次数',
+      title: t('components:auto_text_e4bdbf'),
       dataIndex: 'usage_count',
       key: 'usage_count',
       width: 100,
@@ -171,27 +169,27 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
       render: (count) => <Text type="secondary">{count || 0}</Text>,
     },
     {
-      title: '最后使用',
+      title: t('components:auto_text_e69c80'),
       dataIndex: 'last_used_at',
       key: 'last_used_at',
       width: 150,
       render: (date) => date ? new Date(date).toLocaleString() : '-',
     },
     {
-      title: '创建时间',
+      title: t('components:auto_text_e5889b'),
       dataIndex: 'created_at',
       key: 'created_at',
       width: 150,
       render: (date) => new Date(date).toLocaleString(),
     },
     {
-      title: '操作',
+      title: t('components:auto_text_e6938d'),
       key: 'actions',
       width: 200,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="查看数据">
+          <Tooltip title={t('components:auto_text_e69fa5')}>
             <Button
               type="text"
               size="small"
@@ -199,7 +197,7 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
               onClick={() => onView?.(record)}
             />
           </Tooltip>
-          <Tooltip title="编辑">
+          <Tooltip title={t('components:auto_text_e7bc96')}>
             <Button
               type="text"
               size="small"
@@ -208,13 +206,13 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
             />
           </Tooltip>
           <Popconfirm
-            title="确认删除"
+            title={t('components:auto_text_e7a1ae')}
             description={`确定要删除报表视图"${record.name}"吗？`}
             onConfirm={() => handleDelete(record)}
-            okText="确定"
-            cancelText="取消"
+            okText={t('components:auto_text_e7a1ae')}
+            cancelText={t('components:auto_text_e58f96')}
           >
-            <Tooltip title="删除">
+            <Tooltip title={t('components:auto_text_e588a0')}>
               <Button
                 type="text"
                 size="small"
@@ -234,7 +232,7 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col span={8}>
           <Search
-            placeholder="搜索报表名称"
+            placeholder={t('components:auto_text_e6909c')}
             allowClear
             onSearch={handleSearch}
             style={{ width: '100%' }}
@@ -242,19 +240,19 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
         </Col>
         <Col span={4}>
           <Select
-            placeholder="选择分类"
+            placeholder={t('components:auto_text_e98089')}
             allowClear
             style={{ width: '100%' }}
             onChange={(value) => handleFilter('category', value)}
           >
-            <Option value="工资报表">工资报表</Option>
-            <Option value="考勤报表">考勤报表</Option>
-            <Option value="人事报表">人事报表</Option>
+            <Option value={t('components:auto_text_e5b7a5')}>工资报表</Option>
+            <Option value={t('components:auto_text_e88083')}>考勤报表</Option>
+            <Option value={t('components:auto_text_e4baba')}>人事报表</Option>
           </Select>
         </Col>
         <Col span={4}>
           <Select
-            placeholder="选择状态"
+            placeholder={t('components:auto_text_e98089')}
             allowClear
             style={{ width: '100%' }}
             onChange={(value) => handleFilter('view_status', value)}
@@ -295,7 +293,7 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
           total,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+          showTotal: (total, range) => t('components:auto__range_0_range_1___total__e7acac'),
           onChange: (page, pageSize) => {
             setPagination({ page, page_size: pageSize || 20 });
           },

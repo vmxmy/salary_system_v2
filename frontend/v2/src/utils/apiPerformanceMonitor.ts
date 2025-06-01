@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 /**
  * API性能监控工具
  * 用于监控和记录API请求的性能指标
@@ -45,11 +47,11 @@ class ApiPerformanceMonitor {
     
     if (duration > this.VERY_SLOW_REQUEST_THRESHOLD) {
       console.warn(
-        `🐌 极慢请求: ${method} ${url} - ${duration.toFixed(2)}ms (状态: ${status})`
+        i18n.t('common:auto___method_url_duration_tofixed_2_ms__status__f09f90')
       );
     } else if (duration > this.SLOW_REQUEST_THRESHOLD) {
       console.warn(
-        `⚠️ 慢请求警告: ${method} ${url} - ${duration.toFixed(2)}ms (状态: ${status})`
+        i18n.t('common:auto___method_url_duration_tofixed_2_ms__status__e29aa0')
       );
     }
   }
@@ -116,7 +118,6 @@ class ApiPerformanceMonitor {
    */
   clearMetrics() {
     this.metrics = [];
-    console.log('📊 API性能指标已清除');
   }
 
   /**
@@ -133,7 +134,6 @@ class ApiPerformanceMonitor {
       recommendations: this.generateRecommendations(stats),
     };
     
-    console.log('📊 API性能报告:', report);
     return report;
   }
 
@@ -144,15 +144,15 @@ class ApiPerformanceMonitor {
     const recommendations = [];
     
     if (stats?.slowRequestsPercentage > 20) {
-      recommendations.push('超过20%的请求响应较慢，建议检查后端性能或网络状况');
+      recommendations.push(i18n.t('common:auto_20___e8b685'));
     }
     
     if (stats?.verySlowRequestsCount > 0) {
-      recommendations.push('存在极慢请求，建议优先优化这些接口');
+      recommendations.push(i18n.t('common:auto___e5ad98'));
     }
     
     if (stats?.averageDuration > 500) {
-      recommendations.push('平均响应时间超过500ms，建议实施缓存策略');
+      recommendations.push(i18n.t('common:auto_500ms__e5b9b3'));
     }
     
     // 分析URL统计，找出最慢的接口
@@ -164,7 +164,7 @@ class ApiPerformanceMonitor {
       if (slowestUrls.length > 0) {
         recommendations.push(
           `最慢的接口: ${slowestUrls.map(([url, stat]: any) => 
-            `${url} (平均${stat.avgDuration.toFixed(2)}ms)`
+            i18n.t('common:auto__url__stat_avgduration_tofixed_2_ms__247b75')
           ).join(', ')}`
         );
       }
@@ -228,5 +228,4 @@ export const createPerformanceInterceptors = () => {
 // 在开发环境下，将监控器暴露到全局，方便调试
 if (import.meta.env.DEV) {
   (window as any).apiPerformanceMonitor = apiPerformanceMonitor;
-  console.log('📊 API性能监控器已启用，可通过 window.apiPerformanceMonitor 访问');
 } 

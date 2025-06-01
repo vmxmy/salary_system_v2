@@ -26,7 +26,6 @@ const CreateEmployeePage: React.FC = () => {
         navigate('/hr/employees');
       }
     } catch (error: any) {
-      console.error('CreateEmployeePage: Error creating employee:', error.message);
       let errorMessage = t('employee:create_page.message.create_fail_default');
       if (error.response?.status === 403) {
         errorMessage = t('employee:create_page.message.create_fail_403');

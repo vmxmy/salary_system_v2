@@ -33,65 +33,65 @@ const PayrollTableTextConverter: React.FC = () => {
 
   // 默认API字段映射
   const defaultApiFields: ApiField[] = [
-    { key: 'employee_id', label: '员工ID', required: true },
-    { key: 'employee_name', label: '员工姓名', required: true },
-    { key: 'department_name', label: '部门名称', required: false },
-    { key: 'position_name', label: '职位名称', required: false },
-    { key: 'total_earnings', label: '总收入', required: true },
-    { key: 'total_deductions', label: '总扣除', required: true },
-    { key: 'net_pay', label: '净工资', required: true },
-    { key: 'status_lookup_value_name', label: '状态', required: false },
-    { key: 'remarks', label: '备注', required: false },
-    { key: 'earnings_details.basic.amount', label: '基本工资', required: false },
-    { key: 'earnings_details.bonus.amount', label: '绩效奖金', required: false },
-    { key: 'earnings_details.allowance.amount', label: '岗位津贴', required: false },
-    { key: 'earnings_details.overtime.amount', label: '加班费', required: false },
+    { key: 'employee_id', label: t('payroll:auto_id_e59198'), required: true },
+    { key: 'employee_name', label: t('payroll:auto_text_e59198'), required: true },
+    { key: 'department_name', label: t('payroll:auto_text_e983a8'), required: false },
+    { key: 'position_name', label: t('payroll:auto_text_e8818c'), required: false },
+    { key: 'total_earnings', label: t('payroll:auto_text_e680bb'), required: true },
+    { key: 'total_deductions', label: t('payroll:auto_text_e680bb'), required: true },
+    { key: 'net_pay', label: t('payroll:auto_text_e58780'), required: true },
+    { key: 'status_lookup_value_name', label: t('payroll:auto_text_e78ab6'), required: false },
+    { key: 'remarks', label: t('payroll:auto_text_e5a487'), required: false },
+    { key: 'earnings_details.basic.amount', label: t('payroll:auto_text_e59fba'), required: false },
+    { key: 'earnings_details.bonus.amount', label: t('payroll:auto_text_e7bba9'), required: false },
+    { key: 'earnings_details.allowance.amount', label: t('payroll:auto_text_e5b297'), required: false },
+    { key: 'earnings_details.overtime.amount', label: t('payroll:auto_text_e58aa0'), required: false },
     { key: 'deductions_details.tax.amount', label: i18n.t('components.deductions.personal_income_tax', { ns: 'payroll' }), required: false },
-    { key: 'deductions_details.insurance.amount', label: '社会保险', required: false },
-    { key: 'deductions_details.fund.amount', label: '公积金', required: false },
+    { key: 'deductions_details.insurance.amount', label: t('payroll:auto_text_e7a4be'), required: false },
+    { key: 'deductions_details.fund.amount', label: t('payroll:auto_text_e585ac'), required: false },
   ];
 
   // 预设的字段映射规则
   const predefinedMappingRules: Record<string, string> = {
-    '序号': '',
-    '员工ID': 'employee_id',
-    '员工工号': 'employee_id',
-    '工号': 'employee_id',
-    '姓名': 'employee_name',
-    '员工姓名': 'employee_name',
-    '部门': 'department_name',
-    '部门名称': 'department_name',
-    '职位': 'position_name',
-    '职务': 'position_name',
-    '岗位': 'position_name',
-    '总收入': 'total_earnings',
-    '工资总额': 'total_earnings',
-    '总计收入': 'total_earnings',
-    '总扣除': 'total_deductions',
-    '扣除总额': 'total_deductions',
-    '总计扣除': 'total_deductions',
-    '净工资': 'net_pay',
-    '实发工资': 'net_pay',
-    '实发金额': 'net_pay',
-    '状态': 'status_lookup_value_name',
-    '备注': 'remarks',
-    '说明': 'remarks',
-    '基本工资': 'earnings_details.basic.amount',
-    '基本薪资': 'earnings_details.basic.amount',
-    '绩效奖金': 'earnings_details.bonus.amount',
-    '绩效': 'earnings_details.bonus.amount',
-    '奖金': 'earnings_details.bonus.amount',
-    '岗位津贴': 'earnings_details.allowance.amount',
-    '津贴': 'earnings_details.allowance.amount',
-    '加班费': 'earnings_details.overtime.amount',
+    [t('payroll:auto_text_e5ba8f')]: '',
+    [t('payroll:auto_id_e59198')]: 'employee_id',
+    [t('payroll:auto_text_e59198')]: 'employee_id',
+    [t('payroll:auto_text_e5b7a5')]: 'employee_id',
+    [t('payroll:auto_text_e5a793')]: 'employee_name',
+    [t('payroll:auto_text_e59198')]: 'employee_name',
+    [t('payroll:auto_text_e983a8')]: 'department_name',
+    [t('payroll:auto_text_e983a8')]: 'department_name',
+    [t('payroll:auto_text_e8818c')]: 'position_name',
+    [t('payroll:auto_text_e8818c')]: 'position_name',
+    [t('payroll:auto_text_e5b297')]: 'position_name',
+    [t('payroll:auto_text_e680bb')]: 'total_earnings',
+    [t('payroll:auto_text_e5b7a5')]: 'total_earnings',
+    [t('payroll:auto_text_e680bb')]: 'total_earnings',
+    [t('payroll:auto_text_e680bb')]: 'total_deductions',
+    [t('payroll:auto_text_e689a3')]: 'total_deductions',
+    [t('payroll:auto_text_e680bb')]: 'total_deductions',
+    [t('payroll:auto_text_e58780')]: 'net_pay',
+    [t('payroll:auto_text_e5ae9e')]: 'net_pay',
+    [t('payroll:auto_text_e5ae9e')]: 'net_pay',
+    [t('payroll:auto_text_e78ab6')]: 'status_lookup_value_name',
+    [t('payroll:auto_text_e5a487')]: 'remarks',
+    [t('payroll:auto_text_e8afb4')]: 'remarks',
+    [t('payroll:auto_text_e59fba')]: 'earnings_details.basic.amount',
+    [t('payroll:auto_text_e59fba')]: 'earnings_details.basic.amount',
+    [t('payroll:auto_text_e7bba9')]: 'earnings_details.bonus.amount',
+    [t('payroll:auto_text_e7bba9')]: 'earnings_details.bonus.amount',
+    [t('payroll:auto_text_e5a596')]: 'earnings_details.bonus.amount',
+    [t('payroll:auto_text_e5b297')]: 'earnings_details.allowance.amount',
+    [t('payroll:auto_text_e6b4a5')]: 'earnings_details.allowance.amount',
+    [t('payroll:auto_text_e58aa0')]: 'earnings_details.overtime.amount',
     [t('components.deductions.personal_income_tax')]: 'deductions_details.tax.amount',
-    '个人所得税': 'deductions_details.tax.amount',
-    '所得税': 'deductions_details.tax.amount',
-    '个税': 'deductions_details.tax.amount',
-    '社会保险': 'deductions_details.insurance.amount',
-    '社保': 'deductions_details.insurance.amount',
-    '公积金': 'deductions_details.fund.amount',
-    '住房公积金': 'deductions_details.fund.amount',
+    [t('payroll:auto_text_e4b8aa')]: 'deductions_details.tax.amount',
+    [t('payroll:auto_text_e68980')]: 'deductions_details.tax.amount',
+    [t('payroll:auto_text_e4b8aa')]: 'deductions_details.tax.amount',
+    [t('payroll:auto_text_e7a4be')]: 'deductions_details.insurance.amount',
+    [t('payroll:auto_text_e7a4be')]: 'deductions_details.insurance.amount',
+    [t('payroll:auto_text_e585ac')]: 'deductions_details.fund.amount',
+    [t('payroll:auto_text_e4bd8f')]: 'deductions_details.fund.amount',
   };
 
   // 解析表格文本
@@ -138,26 +138,26 @@ const PayrollTableTextConverter: React.FC = () => {
       setParsedData(parsedRows);
       setError(null);
     } catch (err: any) {
-      setError(`解析错误: ${err.message}`);
+      setError(t('payroll:auto__err_message__e8a7a3'));
       setParsedData([]);
     }
   };
 
   // 根据字段名猜测数据类型
   const getFieldType = (fieldName: string): 'string' | 'date' | 'number' | 'boolean' => {
-    if (fieldName.includes('日期') || fieldName.includes('时间')) {
+    if (fieldName.includes(t('payroll:auto_text_e697a5')) || fieldName.includes(t('payroll:auto_text_e697b6'))) {
       return 'date';
     } else if (
-      fieldName.includes('金额') || 
-      fieldName.includes('工资') || 
-      fieldName.includes('薪资') || 
-      fieldName.includes('收入') || 
-      fieldName.includes('扣除') || 
-      fieldName.includes('税') || 
-      fieldName.includes('津贴') || 
-      fieldName.includes('奖金') || 
-      fieldName.includes('公积金') || 
-      fieldName.includes('社保')
+      fieldName.includes(t('payroll:auto_text_e98791')) || 
+      fieldName.includes(t('payroll:auto_text_e5b7a5')) || 
+      fieldName.includes(t('payroll:auto_text_e896aa')) || 
+      fieldName.includes(t('payroll:auto_text_e694b6')) || 
+      fieldName.includes(t('payroll:auto_text_e689a3')) || 
+      fieldName.includes(t('payroll:auto_text_e7a88e')) || 
+      fieldName.includes(t('payroll:auto_text_e6b4a5')) || 
+      fieldName.includes(t('payroll:auto_text_e5a596')) || 
+      fieldName.includes(t('payroll:auto_text_e585ac')) || 
+      fieldName.includes(t('payroll:auto_text_e7a4be'))
     ) {
       return 'number';
     } else {
@@ -248,17 +248,17 @@ const PayrollTableTextConverter: React.FC = () => {
               let itemName = '';
               if (category === 'earnings_details') {
                 switch (itemType) {
-                  case 'basic': itemName = '基本工资'; break;
-                  case 'bonus': itemName = '绩效奖金'; break;
-                  case 'allowance': itemName = '岗位津贴'; break;
-                  case 'overtime': itemName = '加班费'; break;
+                  case 'basic': itemName = t('payroll:auto_text_e59fba'); break;
+                  case 'bonus': itemName = t('payroll:auto_text_e7bba9'); break;
+                  case 'allowance': itemName = t('payroll:auto_text_e5b297'); break;
+                  case 'overtime': itemName = t('payroll:auto_text_e58aa0'); break;
                   default: itemName = itemType; break;
                 }
               } else if (category === 'deductions_details') {
                 switch (itemType) {
                   case 'tax': itemName = t('components.deductions.personal_income_tax'); break;
-                  case 'insurance': itemName = '社会保险'; break;
-                  case 'fund': itemName = '公积金'; break;
+                  case 'insurance': itemName = t('payroll:auto_text_e7a4be'); break;
+                  case 'fund': itemName = t('payroll:auto_text_e585ac'); break;
                   default: itemName = itemType; break;
                 }
               }
@@ -312,7 +312,7 @@ const PayrollTableTextConverter: React.FC = () => {
         
         // 设置默认状态
         if (!jsonRow.status_lookup_value_name) {
-          jsonRow.status_lookup_value_name = '已计算';
+          jsonRow.status_lookup_value_name = t('payroll:auto_text_e5b7b2');
         }
         
         return jsonRow;
@@ -321,23 +321,23 @@ const PayrollTableTextConverter: React.FC = () => {
       setJsonResult(JSON.stringify(jsonData, null, 2));
       setError(null);
     } catch (err: any) {
-      setError(`转换错误: ${err.message}`);
+      setError(t('payroll:auto__err_message__e8bdac'));
     }
   };
 
   return (
-    <Card title={t('batch_import.table_converter.title', '表格文本转换器')}>
+    <Card title={t('batch_import.table_converter.title')}>
       <div style={{ marginBottom: 16 }}>
         <TextArea
           rows={10}
           value={tableText}
           onChange={e => setTableText(e.target.value)}
-          placeholder={t('batch_import.table_converter.placeholder', '请粘贴表格文本，格式如：序号,员工ID,姓名,部门,总收入,总扣除,净工资,...')}
+          placeholder={t('batch_import.table_converter.placeholder')}
         />
       </div>
       
       <Button type="primary" onClick={parseTableText}>
-        {t('batch_import.table_converter.parse_table', '解析表格')}
+        {t('batch_import.table_converter.parse_table')}
       </Button>
       
       {error && (
@@ -352,17 +352,17 @@ const PayrollTableTextConverter: React.FC = () => {
       
       {parsedData.length > 0 && (
         <>
-          <Card title={t('batch_import.table_converter.field_mapping', '字段映射')} style={{ marginTop: 16 }}>
+          <Card title={t('batch_import.table_converter.field_mapping')} style={{ marginTop: 16 }}>
             <EnhancedProTable
               dataSource={fieldMappings.map((m, i) => ({ ...m, key: i }))}
               columns={[
                 {
-                  title: t('batch_import.table_converter.table_field', '表格字段'),
+                  title: t('batch_import.table_converter.table_field'),
                   dataIndex: 'tableField',
                   valueType: 'text',
                 },
                 {
-                  title: t('batch_import.table_converter.api_field', 'API字段'),
+                  title: t('batch_import.table_converter.api_field'),
                   dataIndex: 'apiField',
                   valueType: 'select',
                   render: (_, record: any) => (
@@ -371,17 +371,17 @@ const PayrollTableTextConverter: React.FC = () => {
                       value={record.apiField}
                       onChange={value => updateFieldMapping(record.key, value)}
                     >
-                      <Option value="">{t('batch_import.table_converter.ignore_field', '忽略此字段')}</Option>
+                      <Option value="">{t('batch_import.table_converter.ignore_field')}</Option>
                       {defaultApiFields.map(field => (
                         <Option key={field.key} value={field.key}>
-                          {field.label} {field.required ? `(${t('common:required', '必填')})` : ''}
+                          {field.label} {field.required ? `(${t('common:required')})` : ''}
                         </Option>
                       ))}
                     </Select>
                   )
                 },
                 {
-                  title: t('batch_import.table_converter.data_type', '数据类型'),
+                  title: t('batch_import.table_converter.data_type'),
                   dataIndex: 'type',
                   valueType: 'text',
                   render: (_, record: any) => record.type
@@ -400,11 +400,11 @@ const PayrollTableTextConverter: React.FC = () => {
             onClick={convertToJson}
             style={{ marginTop: 16 }}
           >
-            {t('batch_import.table_converter.convert_to_json', '转换为JSON')}
+            {t('batch_import.table_converter.convert_to_json')}
           </Button>
           
           {jsonResult && (
-            <Card title={t('batch_import.table_converter.json_result', 'JSON结果')} style={{ marginTop: 16 }}>
+            <Card title={t('batch_import.table_converter.json_result')} style={{ marginTop: 16 }}>
               <TextArea
                 rows={10}
                 value={jsonResult}
@@ -414,7 +414,7 @@ const PayrollTableTextConverter: React.FC = () => {
                 <Button
                   onClick={() => navigator.clipboard.writeText(jsonResult)}
                 >
-                  {t('batch_import.table_converter.copy_json', '复制JSON')}
+                  {t('batch_import.table_converter.copy_json')}
                 </Button>
                 <Button
                   type="primary"
@@ -426,15 +426,15 @@ const PayrollTableTextConverter: React.FC = () => {
                       setFieldMappings([]);
                       setJsonResult('');
                       // 将JSON结果传递给父组件
-                      window.dispatchEvent(new CustomEvent('tableConverterResult', { 
-                        detail: { jsonData } 
+                      window.dispatchEvent(new CustomEvent('tableConverterResult', {
+                        detail: { jsonData }
                       }));
                     } catch (e) {
-                      setError(t('batch_import.table_converter.json_parse_error', 'JSON解析错误，无法使用结果'));
+                      setError(t('batch_import.table_converter.json_parse_error'));
                     }
                   }}
                 >
-                  {t('batch_import.table_converter.use_json', '使用此JSON')}
+                  {t('batch_import.table_converter.use_json')}
                 </Button>
               </Space>
             </Card>

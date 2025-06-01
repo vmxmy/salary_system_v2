@@ -17,8 +17,8 @@ export const initialChatbotConfig: ChatbotConfig = {
   customJs: '',
   isEnabled: true,
   systemVariables: [
-    { key: 'scene', value_type: 'string', value: 'general', label: '对话场景' },
-    { key: 'lib_search_topk', value_type: 'number', value: 3, label: '知识库检索TopK' },
+    { key: 'scene', value_type: 'string', value: 'general', label: 'Scene' },
+    { key: 'lib_search_topk', value_type: 'number', value: 3, label: 'Top K' },
   ],
 };
 
@@ -41,23 +41,18 @@ const chatbotConfigSlice = createSlice({
   initialState,
   reducers: {
     setHydratedChatbotState: (state, action: PayloadAction<ChatbotSliceState>) => {
-      console.log('[Redux-chatbotConfigSlice] setHydratedChatbotState called with:', action.payload);
       state.config = action.payload.config;
       state.isEnabled = action.payload.isEnabled;
       state.isConfigured = action.payload.isConfigured;
       state.isLoading = false; 
-      console.log('[Redux-chatbotConfigSlice] setHydratedChatbotState - state.isLoading is now:', state.isLoading);
     },
     setInitialChatbotState: (state) => {
-      console.log('[Redux-chatbotConfigSlice] setInitialChatbotState called. Resetting to default.');
       state.config = initialChatbotConfig;
       state.isEnabled = initialChatbotConfig.isEnabled !== undefined ? initialChatbotConfig.isEnabled : true;
       state.isConfigured = !!(initialChatbotConfig.token);
       state.isLoading = false; 
-      console.log('[Redux-chatbotConfigSlice] setInitialChatbotState - state.isLoading is now:', state.isLoading);
     },
     updateChatbotConfig: (state, action: PayloadAction<Partial<ChatbotConfig>>) => {
-      console.log('[Redux-chatbotConfigSlice] updateChatbotConfig called with:', action.payload);
       const newConfigCandidate = { ...state.config, ...action.payload };
       if (action.payload.systemVariables === undefined && state.config.systemVariables) {
         newConfigCandidate.systemVariables = state.config.systemVariables;
@@ -70,7 +65,6 @@ const chatbotConfigSlice = createSlice({
       state.isConfigured = !!(state.config.token);
     },
     setChatbotEnabled: (state, action: PayloadAction<boolean>) => {
-      console.log('[Redux-chatbotConfigSlice] setChatbotEnabled called with:', action.payload);
       state.isEnabled = action.payload;
     },
   },

@@ -38,7 +38,6 @@ const LoginPage: React.FC = () => {
   }, [isAuthenticated, clearLoginError, location.key]);
 
   const onFinish = async (values: any) => {
-    console.log('[LoginPage] onFinish called with values:', values);
     const credentials: LoginCredentials = {
       username: values.username,
       password: values.password,
@@ -47,7 +46,6 @@ const LoginPage: React.FC = () => {
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    console.log('Login form submission failed:', errorInfo);
   };
 
   if (!ready) {
@@ -98,24 +96,26 @@ const LoginPage: React.FC = () => {
               <Form.Item>
                 <Alert 
                   message={t('auth:error.login_failed')} 
-                  description={loginError.includes('服务器错误') ? (
-                    <>
-                      <div>{loginError}</div>
-                      <div style={{ marginTop: 8 }}>
-                        <Button 
-                          type="link" 
-                          size="small" 
-                          onClick={() => window.location.reload()}
-                        >
-                          {t('common:button.refresh_and_retry')}
-                        </Button>
-                      </div>
-                    </>
-                  ) : loginError}
-                  type="error" 
-                  showIcon 
-                  closable 
-                  onClose={clearLoginError} 
+                  description={
+                    loginError && typeof loginError === 'string' && loginError.includes(t('common:auto_text_e69c8d')) ? (
+                      <>
+                        <div>{loginError}</div>
+                        <div style={{ marginTop: 8 }}>
+                          <Button
+                            type="link"
+                            size="small"
+                            onClick={() => window.location.reload()}
+                          >
+                            {t('common:button.refresh_and_retry')}
+                          </Button>
+                        </div>
+                      </>
+                    ) : loginError
+                  }
+                  type="error"
+                  showIcon
+                  closable
+                  onClose={clearLoginError}
                 />
               </Form.Item>
             )}

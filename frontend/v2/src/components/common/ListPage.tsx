@@ -222,7 +222,6 @@ const ListPage = <T extends Record<string, any>, Q extends Record<string, any> =
         appMessage.error(messages.getListFailed);
       }
       setData([]);
-      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
@@ -259,7 +258,6 @@ const ListPage = <T extends Record<string, any>, Q extends Record<string, any> =
           handleRefresh();
         } catch (error) {
           appMessage.error(messages.deleteFailed || t('message.delete_failed'));
-          console.error('Failed to delete record:', error);
         }
       },
     });
@@ -272,13 +270,10 @@ const ListPage = <T extends Record<string, any>, Q extends Record<string, any> =
         await service.export(format, exportData);
         appMessage.success(messages.exportSuccess || t('message.export_success'));
       } else {
-        // 默认导出逻辑
-        console.log('导出数据:', format, exportData);
-        appMessage.success(`成功导出 ${exportData.length} 条数据为 ${format.toUpperCase()} 格式`);
+        appMessage.success(t('components:auto__exportdata_length__format_touppercase__e68890'));
       }
     } catch (error) {
       appMessage.error(messages.exportFailed || t('message.export_failed'));
-      console.error('Failed to export data:', error);
     }
   }, [service, messages, t]);
 
@@ -294,7 +289,6 @@ const ListPage = <T extends Record<string, any>, Q extends Record<string, any> =
       return true;
     } catch (error) {
       appMessage.error(messages.createFailed || t('message.create_failed'));
-      console.error('Failed to create record:', error);
       return false;
     }
   }, [service, messages, t, handleRefresh]);
@@ -313,7 +307,6 @@ const ListPage = <T extends Record<string, any>, Q extends Record<string, any> =
       return true;
     } catch (error) {
       appMessage.error(messages.updateFailed || t('message.update_failed'));
-      console.error('Failed to update record:', error);
       return false;
     }
   }, [service, editingRecord, getRecordId, messages, t, handleRefresh]);

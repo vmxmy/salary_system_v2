@@ -1,9 +1,11 @@
 import React from 'react';
 import { Result, Button } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore'; // 引入 authStore
 
 const UnauthorizedPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const authToken = useAuthStore((state) => state.authToken);
   const isAuthenticated = !!authToken; // 从 authToken 派生 isAuthenticated
@@ -20,10 +22,10 @@ const UnauthorizedPage: React.FC = () => {
     <Result
       status="403"
       title="403"
-      subTitle="抱歉，您没有权限访问此页面。"
+      subTitle={t('common:auto____e68ab1')}
       extra={
         <Button type="primary" onClick={handleBackHome}>
-          {isAuthenticated ? '返回首页' : '去登录'}
+          {isAuthenticated ?      t('common:auto_text_e8bf94'): t('common:auto_text_e58ebb')}
         </Button>
       }
     />

@@ -18,7 +18,7 @@ import type {
 const PAYROLL_PERIODS_ENDPOINT = '/payroll-periods';
 const PAYROLL_RUNS_ENDPOINT = '/payroll-runs';
 const PAYROLL_ENTRIES_ENDPOINT = '/payroll-entries';
-const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/config/payroll-components';
+const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/config/payroll-component-definitions';
 
 /**
  * Fetches a list of payroll periods.
@@ -28,32 +28,20 @@ const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/config/payroll-components';
 export const getPayrollPeriods = async (params?: Record<string, any>): Promise<ApiListResponse<PayrollPeriod>> => {
   try {
     // 添加详细日志
-    console.log('Fetching payroll periods with params:', JSON.stringify(params, null, 2));
-    console.log('Request URL:', `${apiClient.defaults.baseURL}${PAYROLL_PERIODS_ENDPOINT}`);
     
     // 确保status_lookup_value_id是数字类型
     if (params?.status_lookup_value_id) {
       params.status_lookup_value_id = Number(params.status_lookup_value_id);
-      console.log('Converted status_lookup_value_id to Number:', params.status_lookup_value_id, typeof params.status_lookup_value_id);
     }
     
     const response = await apiClient.get<ApiListResponse<PayrollPeriod>>(PAYROLL_PERIODS_ENDPOINT, { params });
-    console.log('Payroll periods response:', response.status, response.statusText);
-    console.log('Payroll periods data count:', response.data.data.length);
-    console.log('[payrollApi.ts] getPayrollPeriods - Full periods received:', JSON.stringify(response.data.data, null, 2));
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching payroll periods:', error);
     
     // 添加详细错误日志
     if (error.response) {
-      console.error('Error response status:', error.response.status);
-      console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
-      console.error('Error response headers:', JSON.stringify(error.response.headers, null, 2));
     } else if (error.request) {
-      console.error('Error request:', error.request);
     } else {
-      console.error('Error message:', error.message);
     }
     
     throw error; // Rethrow to be handled by the caller
@@ -70,7 +58,6 @@ export const createPayrollPeriod = async (data: Partial<PayrollPeriod>): Promise
     const response = await apiClient.post<ApiSingleResponse<PayrollPeriod>>(PAYROLL_PERIODS_ENDPOINT, data);
     return response.data;
   } catch (error) {
-    console.error('Error creating payroll period:', error);
     throw error;
   }
 };
@@ -86,7 +73,6 @@ export const updatePayrollPeriod = async (periodId: number, data: Partial<Payrol
     const response = await apiClient.put<ApiSingleResponse<PayrollPeriod>>(`${PAYROLL_PERIODS_ENDPOINT}/${periodId}`, data);
     return response.data;
   } catch (error) {
-    console.error(`Error updating payroll period ${periodId}:`, error);
     throw error;
   }
 };
@@ -100,7 +86,6 @@ export const deletePayrollPeriod = async (periodId: number): Promise<void> => {
   try {
     await apiClient.delete(`${PAYROLL_PERIODS_ENDPOINT}/${periodId}`);
   } catch (error) {
-    console.error(`Error deleting payroll period ${periodId}:`, error);
     throw error;
   }
 };
@@ -118,13 +103,10 @@ export const getPayrollRuns = async (params?: {
   sort_order?: 'asc' | 'desc';
 }): Promise<ApiListResponse<PayrollRun>> => {
   try {
-    console.log('[payrollApi.ts] 📡 getPayrollRuns called with params:', params);
-    console.log('[payrollApi.ts] 📡 Request URL:', `${apiClient.defaults.baseURL}${PAYROLL_RUNS_ENDPOINT}`);
     
     // ✅ 添加超时控制
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.error('[payrollApi.ts] ⏱️ API request timeout after 30 seconds');
       controller.abort();
     }, 30000); // 30秒超时
     
@@ -147,7 +129,6 @@ export const getPayrollRuns = async (params?: {
   } catch (error: any) {
     // ✅ 更详细的错误处理
     if (error.name === 'AbortError') {
-      console.error('[payrollApi.ts] ❌ getPayrollRuns request aborted (timeout)');
       throw new Error('API request timeout - please check your network connection');
     } else if (error.response) {
       // 服务器返回了错误响应
@@ -159,13 +140,10 @@ export const getPayrollRuns = async (params?: {
       });
     } else if (error.request) {
       // 请求已发送但没有收到响应
-      console.error('[payrollApi.ts] ❌ getPayrollRuns no response received:', error.request);
     } else {
       // 设置请求时发生错误
-      console.error('[payrollApi.ts] ❌ getPayrollRuns request setup error:', error.message);
     }
     
-    console.error('[payrollApi.ts] ❌ getPayrollRuns full error:', error);
     throw error;
   }
 };
@@ -178,7 +156,6 @@ export const createPayrollRun = async (data: CreatePayrollRunPayload): Promise<A
     const response = await apiClient.post<ApiSingleResponse<PayrollRun>>(PAYROLL_RUNS_ENDPOINT, data);
     return response.data;
   } catch (error) {
-    console.error('Error creating payroll run:', error);
     throw error;
   }
 };
@@ -194,7 +171,6 @@ export const getPayrollRunById = async (id: number, options?: { include_employee
     );
     return response.data;
   } catch (error) {
-    console.error(`Error fetching payroll run ${id}:`, error);
     throw error;
   }
 };
@@ -211,7 +187,6 @@ export const updatePayrollRun = async (id: number, data: UpdatePayrollRunPayload
     const response = await apiClient.put<ApiSingleResponse<PayrollRun>>(`${PAYROLL_RUNS_ENDPOINT}/${id}`, data);
     return response.data;
   } catch (error) {
-    console.error(`Error updating payroll run ${id}:`, error);
     throw error;
   }
 };
@@ -223,7 +198,6 @@ export const deletePayrollRun = async (id: number): Promise<void> => {
   try {
     await apiClient.delete(`${PAYROLL_RUNS_ENDPOINT}/${id}`);
   } catch (error) {
-    console.error(`Error deleting payroll run ${id}:`, error);
     throw error;
   }
 };
@@ -238,7 +212,6 @@ export const exportPayrollRunBankFile = async (id: number): Promise<Blob> => {
     });
     return response.data; 
   } catch (error) {
-    console.error(`Error exporting bank file for payroll run ${id}:`, error);
     throw error;
   }
 };
@@ -270,11 +243,8 @@ export const getPayrollEntries = async (params?: {
   include_payroll_period?: boolean;
 }): Promise<ApiListResponse<PayrollEntry>> => {
   try {
-    console.log('🔍 [payrollApi] getPayrollEntries called with params:', params);
     const response = await apiClient.get<ApiListResponse<PayrollEntry>>(PAYROLL_ENTRIES_ENDPOINT, { params });
     
-    console.log('🔍 [payrollApi] API response status:', response.status);
-    console.log('🔍 [payrollApi] API response data count:', response.data.data.length);
     
     // 检查第一条记录的结构
     if (response.data.data.length > 0) {
@@ -291,7 +261,6 @@ export const getPayrollEntries = async (params?: {
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching payroll entries:', error);
     throw error;
   }
 };
@@ -305,7 +274,6 @@ export const getPayrollEntryById = async (entryId: number): Promise<ApiSingleRes
     const response = await apiClient.get<ApiSingleResponse<PayrollEntry>>(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching payroll entry ${entryId}:`, error);
     throw error;
   }
 };
@@ -317,7 +285,6 @@ export const getPayrollEntryById = async (entryId: number): Promise<ApiSingleRes
  */
 export const updatePayrollEntryDetails = async (entryId: number, data: PayrollEntryPatch): Promise<ApiSingleResponse<PayrollEntry>> => {
   try {
-    console.log(`准备发送PATCH请求到 ${PAYROLL_ENTRIES_ENDPOINT}/${entryId}，数据:`, JSON.stringify(data, null, 2));
     
     // 获取apiClient中配置的请求头
     const requestConfig = {
@@ -327,30 +294,22 @@ export const updatePayrollEntryDetails = async (entryId: number, data: PayrollEn
       headers: apiClient.defaults.headers
     };
     
-    console.log('请求配置:', JSON.stringify(requestConfig, null, 2));
     
     // 验证earnings_details和deductions_details的结构是否符合后端期望
     if (data.earnings_details && Array.isArray(data.earnings_details)) {
-      console.error('警告: earnings_details是数组格式，但后端期望对象格式');
     }
     
     if (data.deductions_details && Array.isArray(data.deductions_details)) {
-      console.error('警告: deductions_details是数组格式，但后端期望对象格式');
     }
     
     const response = await apiClient.patch<ApiSingleResponse<PayrollEntry>>(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`, data);
     
-    console.log(`PATCH请求成功，状态码: ${response.status}，响应头:`, response.headers);
-    console.log(`响应数据:`, JSON.stringify(response.data, null, 2));
     
     return response.data;
   } catch (error: any) {
-    console.error(`Error updating payroll entry ${entryId}:`, error);
     
     // 增加更详细的错误日志
     if (error.response) {
-      console.error(`PATCH请求失败，状态码: ${error.response.status}`);
-      console.error(`错误详情:`, JSON.stringify(error.response.data, null, 2));
     }
     
     throw error;
@@ -367,7 +326,6 @@ export const createPayrollEntry = async (data: CreatePayrollEntryPayload): Promi
     const response = await apiClient.post<ApiSingleResponse<PayrollEntry>>(PAYROLL_ENTRIES_ENDPOINT, data);
     return response.data;
   } catch (error) {
-    console.error('Error creating payroll entry:', error);
     throw error;
   }
 };
@@ -382,7 +340,6 @@ export const bulkCreatePayrollEntries = async (data: BulkCreatePayrollEntriesPay
     const response = await apiClient.post<BulkCreatePayrollEntriesResult>(`${PAYROLL_ENTRIES_ENDPOINT}/bulk`, data);
     return response.data;
   } catch (error) {
-    console.error('Error bulk creating payroll entries:', error);
     throw error;
   }
 };
@@ -396,7 +353,6 @@ export const deletePayrollEntry = async (entryId: number): Promise<void> => {
   try {
     await apiClient.delete(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`);
   } catch (error) {
-    console.error(`Error deleting payroll entry ${entryId}:`, error);
     throw error;
   }
 };
@@ -420,7 +376,6 @@ export const getPayrollComponentDefinitions = async (params?: {
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching payroll component definitions:', error);
     throw error; // 直接抛出错误，让调用方处理
   }
 };
@@ -440,7 +395,6 @@ export const createPayrollComponentDefinition = async (
     );
     return response.data;
   } catch (error) {
-    console.error('Error creating payroll component definition:', error);
     throw error;
   }
 };
@@ -457,28 +411,18 @@ export const updatePayrollComponentDefinition = async (
 ): Promise<ApiSingleResponse<PayrollComponentDefinition>> => {
   try {
     // Log the data being sent to the backend
-    console.log('Attempting to update payroll component definition with ID:', id);
-    console.log('Data being sent to backend:', JSON.stringify(componentData, null, 2));
 
     const response = await apiClient.put<ApiSingleResponse<PayrollComponentDefinition>>(
       `${PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT}/${id}`,
       componentData
     );
     // Log successful response
-    console.log('Successfully updated payroll component definition. Response status:', response.status);
-    console.log('Response data:', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error: any) {
-    console.error(`Error updating payroll component definition ${id}:`, error);
     // Enhanced error logging
     if (error.response) {
-      console.error('Error response status:', error.response.status);
-      console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
-      console.error('Error response headers:', JSON.stringify(error.response.headers, null, 2));
     } else if (error.request) {
-      console.error('Error request - no response received:', error.request);
     } else {
-      console.error('Error message - an issue occurred in setting up the request:', error.message);
     }
     throw error;
   }
@@ -496,7 +440,6 @@ export const deletePayrollComponentDefinition = async (
     await apiClient.delete(`${PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT}/${id}`);
     return true;
   } catch (error) {
-    console.error('Error deleting payroll component definition:', error);
     throw error;
   }
 }; 

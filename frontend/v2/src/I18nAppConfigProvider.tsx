@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ConfigProvider, Spin, theme as antdTheme, type ThemeConfig } from 'antd';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
@@ -204,7 +205,7 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
 
   useEffect(() => {
     const updateLocale = (lng: string | undefined) => {
-      console.log('[I18nAppConfigProvider] Updating AntD locale based on i18n language:', lng);
+      
       setAntdLocale(getAntLocale(lng));
     };
 
@@ -213,24 +214,24 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
       updateLocale(lng);
       // Update dayjs locale as well (moved from i18n.ts for better sync with React lifecycle)
       if (lng === 'zh-CN') {
-        dayjs.locale('zh-cn'); // 使用小写的 'zh-cn'，这是 dayjs 的命名
+        dayjs.locale('zh-cn'); // 这是 dayjs 的命名
       } else if (lng === 'en') {
         dayjs.locale('en');
       } else {
         dayjs.locale('zh-cn'); // 默认使用中文
       }
-      console.log('[I18nAppConfigProvider] Dayjs locale set to:', dayjs.locale());
+      
     };
 
     // If i18next is already initialized, set the locale immediately.
     // Otherwise, wait for the initialized event.
     if (i18n.isInitialized) {
-      console.log('[I18nAppConfigProvider] i18next already initialized. Setting locale with language:', i18n.language);
+      
       handleLanguageChanged(i18n.language);
     } else {
-      console.log('[I18nAppConfigProvider] i18next not initialized yet. Waiting for initialized event.');
+      
       i18n.on('initialized', (options) => {
-        console.log('[I18nAppConfigProvider] i18next initialized event. Setting locale with language:', i18n.language, 'options:', options);
+        
         handleLanguageChanged(i18n.language);
       });
     }
@@ -242,8 +243,6 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
       i18n.off('languageChanged', handleLanguageChanged);
     };
   }, []);
-
-  console.log('[I18nAppConfigProvider] Rendering with antdLocale:', antdLocale);
 
   return (
     <Suspense fallback={<Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />}>

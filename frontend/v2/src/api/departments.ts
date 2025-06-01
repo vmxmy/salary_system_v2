@@ -77,7 +77,6 @@ export const getAllDepartmentsFlat = async (): Promise<Department[]> => {
       totalPages = response.meta.totalPages;
       currentPage++;
     } catch (error) {
-      console.error('Failed to fetch a page of departments for flat list:', error);
       // Depending on requirements, you might want to re-throw or return partial data
       break; // Stop fetching on error
     }

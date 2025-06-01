@@ -123,7 +123,6 @@ const RolesPageV2: React.FC = () => {
       setDataSource(apiResponse.data || []);
       setErrorLookups(null); // 确保清除错误状态
     } catch (error) {
-      console.error('Failed to fetch roles:', error);
       setDataSource([]);
       setErrorLookups(error);
     } finally {
@@ -151,7 +150,6 @@ const RolesPageV2: React.FC = () => {
   // 处理查看详情
   const handleViewDetailsClick = useCallback((id: string) => {
     // 角色管理通常不需要详情页面，可以留空或实现简单的详情模态框
-    console.log('View role details:', id);
   }, []);
 
   // 表单成功回调
@@ -204,20 +202,20 @@ const RolesPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的角色吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的角色',
+          buttonText: t('admin:batch_delete'),
+          confirmTitle: t('admin:confirm_batch_delete'),
+          confirmContent: t('admin:confirm_batch_delete_content'),
+          confirmOkText: t('admin:confirm'),
+          confirmCancelText: t('admin:cancel'),
+          successMessage: t('admin:batch_delete_success'),
+          errorMessage: t('admin:batch_delete_error'),
+          noSelectionMessage: t('admin:no_selection'),
         }}
         exportConfig={{
-          filenamePrefix: '角色列表',
-          sheetName: '角色',
-          buttonText: '导出Excel',
-          successMessage: '角色数据导出成功',
+          filenamePrefix: t('admin:roles'),
+          sheetName: t('admin:roles'),
+          buttonText: t('admin:export_excel'),
+          successMessage: t('admin:export_success'),
         }}
         lookupErrorMessageKey="message.fetch_roles_error"
         lookupLoadingMessageKey="page_title"

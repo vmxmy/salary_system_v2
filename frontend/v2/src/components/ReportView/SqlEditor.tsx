@@ -16,12 +16,16 @@ import {
   Tag,
   Table,
   message,
+  Input,
+  Dropdown,
+  Menu,
 } from 'antd';
 import {
   PlayCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
   ReloadOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { reportViewAPI } from '../../api/reportView';
@@ -44,18 +48,20 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
   value = '',
   onChange,
   onValidate,
-  placeholder = '请输入SQL查询语句...',
+  placeholder,
   height = 300,
   readOnly = false,
   showValidation = true,
   schemaName = 'reports',
 }) => {
-  const { t } = useTranslation(['reportView', 'common']);
+  const { t } = useTranslation(['reportView', 'common', 'components']);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<SqlValidationResponse | null>(null);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [previewColumns, setPreviewColumns] = useState<any[]>([]);
+
+  const finalPlaceholder = placeholder || t('components:sql_editor.placeholder');
 
   // 处理SQL变化
   const handleSqlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -72,7 +78,7 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
   // 验证SQL
   const validateSql = async () => {
     if (!value.trim()) {
-      message.warning('请输入SQL语句');
+      message.warning(t('components:auto_sql_e8afb7'));
       return;
     }
 
@@ -87,7 +93,7 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
       onValidate?.(result);
 
       if (result.is_valid) {
-        message.success('SQL验证通过');
+        message.success(t('components:auto_sql_53514c'));
         // 如果验证通过，生成预览列
         if (result.columns) {
           const columns = result.columns.map((col, index) => ({
@@ -104,11 +110,10 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
           setPreviewColumns(columns);
         }
       } else {
-        message.error('SQL验证失败');
+        message.error(t('components:auto_sql_53514c'));
       }
     } catch (error: any) {
-      console.error('SQL validation failed:', error);
-      message.error(`验证失败: ${error.message}`);
+      message.error(t('components:auto__error_message__e9aa8c'));
       setValidationResult({
         is_valid: false,
         error_message: error.message,
@@ -162,11 +167,11 @@ const SqlEditor: React.FC<SqlEditorProps> = ({
   // SQL模板
   const sqlTemplates = [
     {
-      name: '基础查询',
+      name: t('components:sql_editor.template_basic'),
       template: 'SELECT * FROM schema.table_name WHERE condition = \'value\'',
     },
     {
-      name: '关联查询',
+      name: t('components:sql_editor.template_join'),
       template: `SELECT 
   a.field1,
   b.field2
@@ -174,7 +179,7 @@ FROM schema.table_a a
 LEFT JOIN schema.table_b b ON a.id = b.a_id`,
     },
     {
-      name: '聚合查询',
+      name: t('components:sql_editor.template_aggregate'),
       template: `SELECT 
   field1,
   COUNT(*) as count,
@@ -194,7 +199,7 @@ GROUP BY field1`,
           <Alert
             type="success"
             icon={<CheckCircleOutlined />}
-            message="SQL验证通过"
+            message={t('components:sql_editor.validation_success')}
             description={
               <div>
                 {validationResult.columns && (
@@ -221,8 +226,8 @@ GROUP BY field1`,
           <Alert
             type="error"
             icon={<ExclamationCircleOutlined />}
-            message="SQL验证失败"
-            description={validationResult.error_message}
+            message={t('components:sql_editor.validation_failed')}
+            description={<Text type="danger">{validationResult.error_message}</Text>}
           />
         )}
       </div>
@@ -230,111 +235,66 @@ GROUP BY field1`,
   };
 
   return (
-    <div>
-      <Card
-        title={
+    <Card size="small" style={{ marginBottom: 24 }}>
+      <Row gutter={[16, 16]} align="middle">
+        <Col flex="auto">
+          <Title level={5} style={{ margin: 0 }}>{t('components:sql_editor.title')}</Title>
+        </Col>
+        <Col>
           <Space>
-            <Title level={5} style={{ margin: 0 }}>SQL编辑器</Title>
-            {validationResult?.is_valid && (
-              <Tag color="success" icon={<CheckCircleOutlined />}>
-                验证通过
-              </Tag>
-            )}
-          </Space>
-        }
-        extra={
-          <Space>
-            <Button size="small" onClick={formatSql}>
-              格式化
-            </Button>
+            <Dropdown
+              overlay={
+                <Menu>
+                  {sqlTemplates.map((templateItem, index) => (
+                    <Menu.Item key={index} onClick={() => insertTemplate(templateItem.template)}>
+                      {templateItem.name}
+                    </Menu.Item>
+                  ))}
+                </Menu>
+              }
+              trigger={['click']}
+            >
+              <Button>{t('components:sql_editor.templates')}<DownOutlined /></Button>
+            </Dropdown>
             <Button
               type="primary"
-              size="small"
               icon={<PlayCircleOutlined />}
-              loading={validating}
               onClick={validateSql}
+              loading={validating}
             >
-              验证SQL
+              {t('components:sql_editor.validate_and_preview')}
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={formatSql}
+            >
+              {t('components:sql_editor.format_sql')}
             </Button>
           </Space>
-        }
-      >
-        {/* SQL模板 */}
-        <Row gutter={8} style={{ marginBottom: 12 }}>
-          <Col span={24}>
-            <Text type="secondary">快速模板：</Text>
-            <Space style={{ marginLeft: 8 }}>
-              {sqlTemplates.map((template, index) => (
-                <Button
-                  key={index}
-                  size="small"
-                  type="link"
-                  onClick={() => insertTemplate(template.template)}
-                >
-                  {template.name}
-                </Button>
-              ))}
-            </Space>
-          </Col>
-        </Row>
-
-        {/* SQL编辑区域 */}
-        <div style={{ position: 'relative' }}>
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={handleSqlChange}
-            placeholder={placeholder}
-            readOnly={readOnly}
-            style={{
-              width: '100%',
-              height: `${height}px`,
-              padding: '12px',
-              border: '1px solid #d9d9d9',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-              lineHeight: '1.5',
-              resize: 'vertical',
-              outline: 'none',
-            }}
+        </Col>
+      </Row>
+      <Input.TextArea
+        ref={textareaRef}
+        value={value}
+        onChange={handleSqlChange}
+        placeholder={finalPlaceholder}
+        autoSize={{ minRows: Math.min(height / 20, 3), maxRows: Math.min(height / 20, 20) }}
+        style={{ marginTop: 16, fontFamily: 'monospace' }}
+        readOnly={readOnly}
+      />
+      {renderValidationResult()}
+      {validationResult?.is_valid && previewColumns.length > 0 && (
+        <Card title={t('components:sql_editor.preview_data')} size="small" style={{ marginTop: 16 }}>
+          <Table
+            columns={previewColumns}
+            dataSource={previewData}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+            size="small"
           />
-          {validating && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: 'rgba(255, 255, 255, 0.8)',
-                padding: '20px',
-                borderRadius: '6px',
-              }}
-            >
-              <Spin tip="验证中..." />
-            </div>
-          )}
-        </div>
-
-        {/* 验证结果 */}
-        {renderValidationResult()}
-
-        {/* 字段预览 */}
-        {validationResult?.is_valid && previewColumns.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <Title level={5}>字段预览</Title>
-            <Table
-              columns={previewColumns}
-              dataSource={[]}
-              pagination={false}
-              size="small"
-              scroll={{ x: 'max-content' }}
-              locale={{ emptyText: '暂无数据，请执行查询查看结果' }}
-            />
-          </div>
-        )}
-      </Card>
-    </div>
+        </Card>
+      )}
+    </Card>
   );
 };
 

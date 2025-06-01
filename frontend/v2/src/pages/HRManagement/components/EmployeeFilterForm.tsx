@@ -258,12 +258,25 @@ const EmployeeFilterForm: React.FC<EmployeeFilterFormProps> = ({
             </Select>
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={16} lg={18} style={{ textAlign: 'right', alignSelf: 'flex-end', paddingBottom: '8px' }}>
-          <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }} size="small">
-            {t('list_page.filter_form.button.search')}
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Form.Item name="pay_frequency_lookup_value_id" label={t('list_page.filter_form.label.pay_frequency')}>
+            <Select placeholder={t('list_page.filter_form.placeholder.pay_frequency')} allowClear loading={loading} size="small">
+              {payFrequencyOptions.map(option => (
+                <Select.Option key={option.value as React.Key} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} sm={24} md={24} lg={24} style={{ textAlign: 'right' }}>
+          <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
+            {t('common:button.search')}
           </Button>
-          <Button onClick={() => form.resetFields()} loading={loading} size="small">
-            {t('list_page.filter_form.button.reset')}
+          <Button onClick={() => form.resetFields()}>
+            {t('common:button.reset')}
           </Button>
         </Col>
       </Row>

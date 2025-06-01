@@ -40,7 +40,6 @@ const CompensationModal: React.FC<CompensationModalProps> = ({ visible, mode, in
         })));
       } catch (error) {
         message.error(t('employee:detail_page.compensation_tab.modal.message_load_lookups_failed', 'Failed to load lookup data for compensation.'));
-        console.error('Error fetching compensation lookups:', error);
       }
       setLookupsLoading(false);
     };
@@ -78,7 +77,6 @@ const CompensationModal: React.FC<CompensationModalProps> = ({ visible, mode, in
       await onSubmit(payload);
       setLoading(false);
     } catch (errorInfo) {
-      console.log('Validation Failed:', errorInfo);
       setLoading(false);
     }
   };

@@ -35,7 +35,7 @@ type ExtendedPayrollEntry = PayrollEntry & {
 };
 
 const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId }) => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   const [entries, setEntries] = useState<PayrollEntry[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -63,7 +63,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       });
       
       if (response.data && response.data.length > 0) {
-        console.log('📊 获取到工资条目数据，条目数量:', response.data.length);
         
         // 筛选出需要获取详情的员工ID
         const employeeIds = response.data
@@ -72,13 +71,11 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
           
         // 如果有未获取到姓名的员工ID，尝试从缓存中获取
         if (employeeIds.length > 0) {
-          console.log('🔍 发现有员工姓名需要补充，尝试从缓存获取');
           const cachedEmployees = employeeCacheService.getEmployees(employeeIds);
           
           // 如果缓存中没有的员工ID，尝试批量获取
           const uncachedIds = employeeIds.filter(id => !cachedEmployees[id]);
           if (uncachedIds.length > 0) {
-            console.log('⌛ 从API批量获取员工信息:', uncachedIds.length, '个员工');
             try {
               setLoadingEmployeeNames(true);
               const { employeeService } = await import('../../../services/employeeService');
@@ -87,10 +84,8 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
               // 缓存新获取的员工信息
               if (Object.keys(fetchedEmployees).length > 0) {
                 employeeCacheService.saveEmployees(fetchedEmployees);
-                console.log('✅ 成功缓存员工信息:', Object.keys(fetchedEmployees).length, '个员工');
               }
             } catch (error) {
-              console.error('❌ 获取员工信息失败:', error);
             } finally {
               setLoadingEmployeeNames(false);
             }
@@ -98,13 +93,12 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         }
         
         setEntries(response.data);
-        setMeta(response.meta);
+        setMeta(response.meta || { total: 0, page: 1, size: pageSize, totalPages: 0 });
       } else {
         setEntries([]);
         setMeta(response.meta || { total: 0, page: 1, size: pageSize, totalPages: 0 });
       }
     } catch (err) {
-      console.error('获取工资条目数据失败:', err);
       setError(t('payroll:payroll_entries_table.error_fetch'));
     } finally {
       setLoading(false);
@@ -120,7 +114,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
     if (!uncachedIds.length) return;
     
     setLoadingEmployeeNames(true);
-    console.log('🔍 开始获取员工姓名信息, 员工ID:', uncachedIds);
     
     try {
       // 创建一个新的缓存对象，避免直接修改状态
@@ -140,7 +133,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
             return true;
           }
         } catch (err) {
-          console.error(`❌ 获取员工 ${id} 信息失败:`, err);
         }
         return false;
       });
@@ -149,7 +141,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       
       // 更新缓存
       setEmployeeCache(newCache);
-      console.log('✅ 员工姓名信息获取完成，更新缓存:', newCache);
       
       // 更新薪资条目数据，添加员工姓名
       setEntries(currentEntries => 
@@ -164,7 +155,6 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         })
       );
     } catch (err) {
-      console.error('❌ 批量获取员工姓名失败:', err);
     } finally {
       setLoadingEmployeeNames(false);
     }
@@ -191,12 +181,10 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   const handleViewEntryDetails = (entry: PayrollEntry) => {
     setCurrentEntryId(entry.id);
     setIsViewModalVisible(true);
-    console.log('View entry translation key:', 'payroll:payroll_entries_table.message.view_entry_details');
   };
 
   const handleEditEntry = (entry: PayrollEntry) => {
     message.info(t('payroll:payroll_entries_table.message.edit_entry_todo'));
-    console.log('Edit entry translation key:', 'payroll:payroll_entries_table.message.edit_entry_todo');
   };
 
   const columns: ProColumns<ExtendedPayrollEntry>[] = [
@@ -312,7 +300,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   }
 
   if (error) {
-    return <Alert message={`${t('payroll:payroll_entries_table.alert_error_prefix')}${error}`} type="error" showIcon style={{ margin: '10px 0' }} />;
+    return <Alert message={`$t('payroll:payroll_entries_table.alert_error_prefix')${error}`} type="error" showIcon style={{ margin: '10px 0' }} />;
   }
 
   return (
@@ -333,7 +321,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <Typography.Title level={5} style={{ margin: 0 }}>
-              {t('payroll:payroll_entries_table.title')}
+              t('payroll:payroll_entries_table.title')
               {meta && <span style={{ fontSize: '14px', fontWeight: 'normal', marginLeft: 8 }}>
                 ({t('payroll:payroll_entries_table.total_entries', { count: meta.total })})
               </span>}

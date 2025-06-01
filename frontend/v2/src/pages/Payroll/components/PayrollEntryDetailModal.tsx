@@ -53,12 +53,10 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
   // 当模态框打开时，先加载薪资字段定义，然后再加载薪资条目详情
   useEffect(() => {
     if (visible) {
-      console.log('🚀 模态框打开，开始加载薪资字段定义...');
       setComponentDefinitionsLoaded(false);
       
       // 检查是否已经有组件定义
       if (payrollConfig.componentDefinitions.length > 0) {
-        console.log('💼 组件定义已存在，共', payrollConfig.componentDefinitions.length, '个组件');
         setComponentDefinitionsLoaded(true);
         return;
       }
@@ -66,13 +64,9 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       // 加载组件定义
       const loadComponentDefinitions = async () => {
         try {
-          console.log('🌐 开始调用 fetchComponentDefinitions...');
           await payrollConfig.fetchComponentDefinitions();
-          console.log('✅ 薪资字段定义加载成功，共', payrollConfig.componentDefinitions.length, '个组件');
-          console.log('💼 组件定义详情:', payrollConfig.componentDefinitions.map(def => ({ code: def.code, name: def.name, type: def.type })));
           setComponentDefinitionsLoaded(true);
         } catch (err) {
-          console.error('❌ 加载薪资字段定义失败:', err);
           setComponentDefinitionsLoaded(true); // 即使失败也设置为true，避免无限等待
         }
       };
@@ -85,11 +79,8 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
   const getComponentDisplayName = (code: string): string => {
     const definition = payrollConfig.componentDefinitions.find(def => def.code === code);
     if (definition) {
-      console.log(`🔍 找到组件定义: ${code} -> ${definition.name}`);
       return definition.name;
     }
-    console.warn(`⚠️ 未找到组件定义: ${code}，当前已加载 ${payrollConfig.componentDefinitions.length} 个组件定义`);
-    console.warn(`⚠️ 已加载的组件代码:`, payrollConfig.componentDefinitions.map(def => def.code));
     return code; // 如果找不到定义，返回原始代码
   };
 
@@ -98,7 +89,6 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     if (!employeeId) return;
     
     setLoadingEmployeeInfo(true);
-    console.log('🔍 开始获取员工详细信息, ID:', employeeId);
     
     try {
       const employee = await employeeService.getEmployeeById(String(employeeId));
@@ -110,13 +100,10 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
           displayName: `${employee.last_name || ''}${employee.first_name || ''}`
         };
         setEmployeeInfo(info);
-        console.log('✅ 员工详细信息获取成功:', info);
       } else {
-        console.warn('⚠️ 未找到员工信息, ID:', employeeId);
         setEmployeeInfo(null);
       }
     } catch (err) {
-      console.error('❌ 获取员工详细信息失败:', err);
       setEmployeeInfo(null);
     } finally {
       setLoadingEmployeeInfo(false);
@@ -129,11 +116,10 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     setError(null);
     try {
       const response = await getPayrollEntryById(Number(id));
-      console.log('PayrollEntry detail loaded:', response.data);
       setEntryDetails(response.data);
       
       // 增强的调试输出，检查员工信息详情
-      console.log('📊 工资条目详情数据:', {
+      console.log(t('payroll:auto____f09f93'), {
         id: response.data.id,
         employee_id: response.data.employee_id,
         employee_name: response.data.employee_name,
@@ -142,10 +128,10 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       });
       
       // Safe logging for earnings_details
-      console.log('💰 收入项详情:', {
+      console.log(t('payroll:auto____f09f92'), {
         isObject: typeof response.data.earnings_details === 'object' && !Array.isArray(response.data.earnings_details),
         isArray: Array.isArray(response.data.earnings_details),
-        count: Array.isArray(response.data.earnings_details) 
+        count: Array.isArray(response.data.earnings_details)
           ? response.data.earnings_details.length 
           : (typeof response.data.earnings_details === 'object' && response.data.earnings_details !== null ? Object.keys(response.data.earnings_details).length : 0),
         firstItem: Array.isArray(response.data.earnings_details) && response.data.earnings_details.length > 0
@@ -159,7 +145,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       });
       
       // Safe logging for deductions_details
-      console.log('💸 扣除项详情:', {
+      console.log(t('payroll:auto____f09f92'), {
         isObject: typeof response.data.deductions_details === 'object' && !Array.isArray(response.data.deductions_details),
         isArray: Array.isArray(response.data.deductions_details),
         count: Array.isArray(response.data.deductions_details)
@@ -176,7 +162,6 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       });
       
       // 检查原始API响应中的所有顶级字段
-      console.log('🔍 API返回数据的所有字段:', Object.keys(response.data));
       
       // 如果没有员工姓名，获取员工详细信息
       if (!response.data.employee_name && response.data.employee_id) {
@@ -255,17 +240,17 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     }
     return entry.employee_first_name && entry.employee_last_name 
       ? `${entry.employee_last_name}${entry.employee_first_name}`.trim()
-      : '未知';
+      : t('payroll:auto_text_e69caa');
   };
 
   // 获取部门名称
   const getDepartmentName = (entry: PayrollEntry) => {
-    return entry.employee?.departmentName || '未知部门';
+    return entry.employee?.departmentName || t('payroll:auto_text_e69caa');
   };
 
   // 获取人员类别名称
   const getPersonnelCategoryName = (entry: PayrollEntry) => {
-    return entry.employee?.personnelCategoryName || '未知类别';
+    return entry.employee?.personnelCategoryName || t('payroll:auto_text_e69caa');
   };
 
   // 收入项表格列配置
@@ -322,7 +307,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       destroyOnHidden
     >
       {(loading || !componentDefinitionsLoaded) && (
-        <Spin tip={!componentDefinitionsLoaded ? '正在加载组件定义...' : t('payroll:entry_detail_modal.loading')} style={{ display: 'block', marginTop: '50px' }}>
+        <Spin tip={!componentDefinitionsLoaded ? t('payroll:auto___e6ada3'): t('payroll:entry_detail_modal.loading')} style={{ display: 'block', marginTop: '50px' }}>
           <div style={{ padding: 50 }} />
         </Spin>
       )}
@@ -354,7 +339,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
                 {getPersonnelCategoryName(entryDetails)}
               </Descriptions.Item>
               <Descriptions.Item label={t('payroll:entry_detail_modal.payroll_period')}>
-                {entryDetails.payroll_run?.payroll_period?.name || `周期ID: ${entryDetails.payroll_period_id}`}
+                {entryDetails.payroll_run?.payroll_period?.name || t('payroll:auto_id_entrydetails_payroll_period_id__e591a8')}
               </Descriptions.Item>
               <Descriptions.Item label={t('payroll:entry_detail_modal.status')}>
                 {(() => {
@@ -437,10 +422,10 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
           <Card title={t('payroll:entry_detail_modal.time_info_title')}>
             <Descriptions bordered column={1}>
               <Descriptions.Item label={t('payroll:entry_detail_modal.created_at')}>
-                {entryDetails.created_at ? dayjs(entryDetails.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                {entryDetails.created_at ? dayjs(entryDetails.created_at).format('YYYY-MM-DD HH:mm:ss'): '-'}
               </Descriptions.Item>
               <Descriptions.Item label={t('payroll:entry_detail_modal.updated_at')}>
-                {entryDetails.updated_at ? dayjs(entryDetails.updated_at).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                {entryDetails.updated_at ? dayjs(entryDetails.updated_at).format('YYYY-MM-DD HH:mm:ss'): '-'}
               </Descriptions.Item>
               {entryDetails.remarks && (
                 <Descriptions.Item label={t('payroll:entry_detail_modal.notes')}>

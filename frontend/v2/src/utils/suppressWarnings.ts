@@ -41,7 +41,6 @@ export function initWarningSuppress() {
     }
   };
 
-  console.log('🔇 警告抑制已启用');
 }
 
 /**
@@ -50,5 +49,4 @@ export function initWarningSuppress() {
 export function restoreConsole() {
   console.warn = originalConsoleWarn;
   console.error = originalConsoleError;
-  console.log('🔊 警告抑制已禁用');
 } 

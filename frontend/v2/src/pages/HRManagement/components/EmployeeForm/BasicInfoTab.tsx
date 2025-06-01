@@ -166,7 +166,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
           {avatarFileList.length < 1 && (
             <div>
               <UploadOutlined />
-              <div style={{marginTop: 8}}>{t('employee:form_upload.avatar_text')}</div>
+              <div style={{marginTop: 8}}>t('employee:form_upload.avatar_text')</div>
             </div>
           )}
         </Upload>

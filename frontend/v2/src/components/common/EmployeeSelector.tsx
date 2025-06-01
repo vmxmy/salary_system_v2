@@ -133,12 +133,11 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const loadEmployees = async (page: number = 1, search: string = '', append: boolean = false) => {
     setLoading(true);
     try {
-      console.log(`🔍 EmployeeSelector: 开始加载员工数据`, { page, search, append });
-      
       const query = buildQuery(page, search);
-             const response = await employeeService.getEmployees(query);
+      const response = await employeeService.getEmployees(query);
       
-      console.log(`✅ EmployeeSelector: 员工数据加载成功`, {
+      // 假设这是用于调试的日志输出
+      console.log({
         page,
         count: response.data.length,
         total: response.meta.total,
@@ -167,7 +166,6 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       setCurrentPage(page);
       onDataLoaded?.(newEmployees);
     } catch (error) {
-      console.error('❌ EmployeeSelector: 员工数据加载失败:', error);
       message.error(t('employee_selector.error.load_failed'));
       onError?.(error as Error);
     } finally {
@@ -196,7 +194,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   
   // 处理值变化
   const handleChange = (newValue: number | number[] | null) => {
-    console.log('🎯 EmployeeSelector: 值变化:', newValue);
+    
     onChange?.(newValue);
   };
   
@@ -228,12 +226,12 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         <div style={{ fontSize: '12px', color: '#666' }}>
           <Space size={4}>
             <span>{employee.employee_code}</span>
-                         {employee.departmentName && (
-               <Tag color="blue">{employee.departmentName}</Tag>
-             )}
-             {employee.actualPositionName && (
-               <Tag color="green">{employee.actualPositionName}</Tag>
-             )}
+            {employee.departmentName && (
+              <Tag color="blue">{employee.departmentName}</Tag>
+            )}
+            {employee.actualPositionName && (
+              <Tag color="green">{employee.actualPositionName}</Tag>
+            )}
           </Space>
         </div>
       </div>
@@ -267,8 +265,8 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const getPlaceholder = () => {
     if (placeholder) return placeholder;
     return multiple 
-      ? t('employee_selector.placeholder.multiple', { defaultValue: '请选择员工' })
-      : t('employee_selector.placeholder.single', { defaultValue: '请选择员工' });
+      ? t('employee_selector.placeholder.multiple', { defaultValue: t('components:auto_text_e8afb7') })
+      : t('employee_selector.placeholder.single', { defaultValue: t('components:auto_text_e8afb7') });
   };
   
   return (
@@ -300,7 +298,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               color: '#999',
               fontSize: '12px'
             }}>
-              {loading ? '加载中...' : '滚动加载更多'}
+              {loading ?      t('components:auto___e58aa0'): t('components:auto_text_e6bb9a')}
             </div>
           )}
         </div>

@@ -48,8 +48,7 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
           label: item.label || item.value_name || String(item.id) 
         })));
       } catch (error) {
-        message.error(t('employee:detail_page.contracts_tab.modal.message_load_lookups_failed', '加载合同相关选项失败。'));
-        console.error('Error fetching contract lookups:', error);
+        message.error(t('employee:detail_page.contracts_tab.modal.message_load_lookups_failed'));
       }
       setLookupsLoading(false);
     };
@@ -87,14 +86,13 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
       setLoading(false);
       // onCancel(); // Usually called by parent after successful submission
     } catch (errorInfo) {
-      console.log('Validation Failed:', errorInfo);
       setLoading(false);
     }
   };
 
   return (
     <Modal
-      title={mode === 'add' ? t('employee:detail_page.contracts_tab.modal.title_add', '添加新合同') : t('employee:detail_page.contracts_tab.modal.title_edit', '编辑合同')}
+      title={mode === 'add' ? t('employee:detail_page.contracts_tab.modal.title_add') : t('employee:detail_page.contracts_tab.modal.title_edit')}
       open={visible}
       onOk={handleOk}
       onCancel={onCancel}
@@ -105,24 +103,24 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
       {lookupsLoading ? (
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <Spin>
-            <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>{t('employee:detail_page.contracts_tab.modal.loading_options', '加载选项中...')}</div>
+            <div style={{ padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }}>{t('employee:detail_page.contracts_tab.modal.loading_options')}</div>
           </Spin>
         </div>
       ) : (
         <Form form={form} layout="vertical" name="contractForm">
           <Form.Item
             name="contract_number"
-            label={t('employee:detail_page.contracts_tab.table.column_contract_number', '合同编号')}
-            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_contract_number_required', '请输入合同编号！') }]}
+            label={t('employee:detail_page.contracts_tab.table.column_contract_number')}
+            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_contract_number_required') }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="contract_type_lookup_value_id"
-            label={t('employee:detail_page.contracts_tab.table.column_contract_type', '合同类型')}
-            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_contract_type_required', '请选择合同类型！') }]}
+            label={t('employee:detail_page.contracts_tab.table.column_contract_type')}
+            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_contract_type_required') }]}
           >
-            <Select placeholder={t('employee:detail_page.contracts_tab.modal.placeholder_select_contract_type', '请选择合同类型')}>
+            <Select placeholder={t('employee:detail_page.contracts_tab.modal.placeholder_select_contract_type')}>
               {contractTypes.map((type: InternalLookupOption) => (
                 <Option key={type.value} value={Number(type.value)}>{type.label}</Option>
               ))}
@@ -130,16 +128,16 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
           </Form.Item>
           <Form.Item
             name="start_date"
-            label={t('employee:detail_page.contracts_tab.table.column_start_date', '开始日期')}
-            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_start_date_required', '请选择开始日期！') }]}
+            label={t('employee:detail_page.contracts_tab.table.column_start_date')}
+            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_start_date_required') }]}
           >
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item
             name="end_date"
-            label={t('employee:detail_page.contracts_tab.table.column_end_date', '结束日期')}
+            label={t('employee:detail_page.contracts_tab.table.column_end_date')}
             rules={[
-              { required: true, message: t('employee:detail_page.contracts_tab.modal.validation_end_date_required', '请选择结束日期！') },
+              { required: true, message: t('employee:detail_page.contracts_tab.modal.validation_end_date_required') },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || !getFieldValue('start_date')) {
@@ -148,7 +146,7 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
                   if (dayjs(value).isAfter(dayjs(getFieldValue('start_date')))) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error(t('employee:detail_page.contracts_tab.modal.validation_end_date_after_start_date', '结束日期必须在开始日期之后！')));
+                  return Promise.reject(new Error(t('employee:detail_page.contracts_tab.modal.validation_end_date_after_start_date')));
                 },
               }),
             ]}
@@ -157,10 +155,10 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
           </Form.Item>
           <Form.Item
             name="contract_status_lookup_value_id"
-            label={t('employee:detail_page.contracts_tab.table.column_status', '状态')}
-            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_status_required', '请选择状态！') }]}
+            label={t('employee:detail_page.contracts_tab.table.column_status')}
+            rules={[{ required: true, message: t('employee:detail_page.contracts_tab.modal.validation_status_required') }]}
           >
-            <Select placeholder={t('employee:detail_page.contracts_tab.modal.placeholder_select_status', '请选择状态')}>
+            <Select placeholder={t('employee:detail_page.contracts_tab.modal.placeholder_select_status')}>
               {contractStatuses.map((status: InternalLookupOption) => (
                 <Option key={status.value} value={Number(status.value)}>{status.label}</Option>
               ))}
@@ -168,9 +166,9 @@ const ContractModal: React.FC<ContractModalProps> = ({ visible, mode, initialDat
           </Form.Item>
           <Form.Item
             name="remarks"
-            label={t('common:label.remarks', '备注')}
+            label={t('common:label.remarks')}
           >
-            <Input.TextArea rows={3} />
+            <Input.TextArea rows={3} placeholder={t('common:placeholder.input_remarks')} />
           </Form.Item>
         </Form>
       )}

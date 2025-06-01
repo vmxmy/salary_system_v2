@@ -42,9 +42,7 @@ import {
 const USE_MOCK_API = false; // 可以临时改为true进行调试
 
 const PayrollRunsPage: React.FC = () => {
-  const { t } = useTranslation(['payroll', 'common']);
-  console.log('[PayrollRunsPage] 🚀 Component rendering started');
-  console.log('[PayrollRunsPage] 📊 Translation function available:', !!t);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   
   const fetchCallCountRef = useRef(0);
   
@@ -82,16 +80,12 @@ const PayrollRunsPage: React.FC = () => {
   const fetchRuns = useCallback(async (page = 1, pageSize = 10, payrollPeriodId?: number) => {
     fetchCallCountRef.current += 1;
     const fetchStartTime = Date.now();
-    console.log('[PayrollRunsPage] 🚨 fetchRuns call #', fetchCallCountRef.current, 'at', new Date().toISOString());
     
     // ✅ 检测潜在的无限循环
     if (fetchCallCountRef.current > 10) {
-      console.error('[PayrollRunsPage] ❌ 检测到潜在的无限循环！fetchRuns调用次数超过10次');
       return;
     }
     
-    console.log('[PayrollRunsPage] 📡 fetchRuns called with params:', { page, pageSize, payrollPeriodId });
-    console.log('[PayrollRunsPage] 📊 Current loading state before setLoading(true):', loading);
     setLoading(true);
     setError(null);
     try {
@@ -99,14 +93,11 @@ const PayrollRunsPage: React.FC = () => {
       if (payrollPeriodId) {
         params.payroll_period_id = payrollPeriodId;
       }
-      console.log('[PayrollRunsPage] 📡 Making API request to getPayrollRuns with params:', params);
-      console.log('[PayrollRunsPage] ⏱️ Starting API call at:', new Date().toISOString());
       
       let response;
       
       if (USE_MOCK_API) {
         // ✅ 模拟API调用，用于调试
-        console.log('[PayrollRunsPage] 🎭 Using MOCK API data');
         await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟1秒延迟
         response = {
           data: [
@@ -115,7 +106,7 @@ const PayrollRunsPage: React.FC = () => {
               payroll_period_id: 1,
               payroll_period: { 
                 id: 1, 
-                name: '2024年1月',
+                name: t('payroll:auto_20241_323032'),
                 start_date: '2024-01-01',
                 end_date: '2024-01-31',
                 pay_date: '2024-02-05',
@@ -125,7 +116,7 @@ const PayrollRunsPage: React.FC = () => {
               run_date: '2024-01-15',
               status_lookup_value_id: 201,
               total_employees: 10,
-              notes: '模拟数据测试',
+              notes: t('payroll:auto_text_e6a8a1'),
               created_at: '2024-01-01T00:00:00Z',
               updated_at: '2024-01-01T00:00:00Z'
             } as PayrollRun
@@ -138,7 +129,6 @@ const PayrollRunsPage: React.FC = () => {
       }
       
       const fetchEndTime = Date.now();
-      console.log('[PayrollRunsPage] ⏱️ API call completed in', (fetchEndTime - fetchStartTime) / 1000, 'seconds');
       console.log('[PayrollRunsPage] ✅ API response received:', {
         dataCount: response.data?.length || 0,
         meta: response.meta,
@@ -146,10 +136,8 @@ const PayrollRunsPage: React.FC = () => {
       });
       setRuns(response.data);
       setMeta(response.meta);
-      console.log('[PayrollRunsPage] 📋 State updated - runs count:', response.data?.length || 0);
     } catch (err: any) {
       const fetchEndTime = Date.now();
-      console.error('[PayrollRunsPage] ❌ API request failed after', (fetchEndTime - fetchStartTime) / 1000, 'seconds');
       console.error('[PayrollRunsPage] ❌ API request failed:', {
         error: err,
         message: err.message,
@@ -162,15 +150,11 @@ const PayrollRunsPage: React.FC = () => {
       setRuns([]);
       setMeta(null);
     } finally {
-      console.log('[PayrollRunsPage] 🏁 fetchRuns completed, setting loading to false at:', new Date().toISOString());
-      console.log('[PayrollRunsPage] 📊 Current loading state before setLoading(false):', loading);
       setLoading(false);
-      console.log('[PayrollRunsPage] ✅ Loading state should now be false');
     }
   }, []); // ❌ 移除t依赖，避免无限重渲染
 
   useEffect(() => {
-    console.log('[PayrollRunsPage] 🔧 useEffect triggered, calling fetchRuns');
     fetchRuns();
   }, []); // ✅ 确保只在组件挂载时执行一次，不依赖fetchRuns
 
@@ -329,7 +313,7 @@ const PayrollRunsPage: React.FC = () => {
   
   // 生成批次名称的函数
   const generateRunName = (run: PayrollRun): string => {
-    const periodName = run.payroll_period?.name || `周期ID: ${run.payroll_period_id}`;
+    const periodName = run.payroll_period?.name || t('payroll:auto_id_run_payroll_period_id__e591a8');
     const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
     return `${periodName} - ${runDate}`;
   };
@@ -464,7 +448,7 @@ const PayrollRunsPage: React.FC = () => {
           total: meta?.total,
           showSizeChanger: true,
           showTotal: (total: number, range: [number, number]) => 
-            `第 ${range[0]}-${range[1]} 条 / 共 ${total} 条`,
+            t('payroll:auto__range_0_range_1___total__e7acac'),
         }}
 
         scroll={{ x: 'max-content' }}

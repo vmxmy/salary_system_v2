@@ -66,18 +66,12 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   // 添加调试代码，打印employees数据
   useEffect(() => {
     if (employees && employees.length > 0) {
-      console.log('[员工列表数据调试] 第一条记录:', employees[0]);
-      console.log('[员工列表数据调试] 所有字段名:', Object.keys(employees[0]));
       
       // 检查所有员工记录是否有position_name字段
       const hasPositionName = employees.some(emp => emp.position_name);
       const hasActualPositionName = employees.some(emp => emp.actual_position_name);
       const hasBankName = employees.some(emp => emp.bank_name);
       const hasBankAccount = employees.some(emp => emp.bank_account_number);
-      console.log(`[员工列表数据调试] 是否存在position_name字段: ${hasPositionName}`);
-      console.log(`[员工列表数据调试] 是否存在actual_position_name字段: ${hasActualPositionName}`);
-      console.log(`[员工列表数据调试] 是否存在bank_name字段: ${hasBankName}`);
-      console.log(`[员工列表数据调试] 是否存在bank_account_number字段: ${hasBankAccount}`);
     }
   }, [employees]);
 
@@ -104,7 +98,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
           showSizeChanger: true,
           showQuickJumper: true,
           pageSizeOptions: ['10', '20', '50', '100', '200'],
-          showTotal: (total: number) => `共 ${total} 条`,
+          showTotal: (total: number) => t('hr:auto__total__e585b1'),
         }}
         onChange={handleTableChange}
         rowKey="id"

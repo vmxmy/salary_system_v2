@@ -63,7 +63,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   useEffect(() => {
     if (initialValues && Object.keys(initialValues).length > 0 && !loadingLookups) {
-      console.log('[EmployeeForm] Setting form values from initialValues');
       
       const processedValues: Record<string, any> = {
         ...initialValues,
@@ -107,7 +106,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   const handleFormSubmit = async () => { // Removed formValues parameter as we get all values from form instance
     if (process.env.NODE_ENV === 'development') {
-      console.log('[EmployeeForm] Form submission started');
     }
 
     const allFormData = form.getFieldsValue(true);
@@ -119,7 +117,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
     const missingFieldsTab1 = requiredFieldsTab1.filter(field => !allFormData[field]);
     if (missingFieldsTab1.length > 0) {
-      console.error('[EmployeeForm] Missing required fields in Basic Info tab:', missingFieldsTab1);
       antdMessage.error(t('common:message.missing_required_fields_in_tab_param', {tabName: t('employee:form_card.title_basic_info')}));
       setActiveTabKey('1');
       return;
@@ -127,7 +124,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
     const missingFieldsTab2 = requiredFieldsTab2.filter(field => !allFormData[field]);
     if (missingFieldsTab2.length > 0) {
-       console.error('[EmployeeForm] Missing required fields in Position & Contract Info tab:', missingFieldsTab2);
       antdMessage.error(t('common:message.missing_required_fields_in_tab_param', {tabName: t('employee:form_card.title_position_contract_info')}));
       setActiveTabKey('2');
       return;
@@ -135,7 +131,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     
     const missingFieldsTab3 = requiredFieldsTab3.filter(field => !allFormData[field]);
      if (missingFieldsTab3.length > 0) {
-       console.error('[EmployeeForm] Missing required fields in Contact & Bank Info tab:', missingFieldsTab3);
       antdMessage.error(t('common:message.missing_required_fields_in_tab_param', {tabName: t('employee:form_card.title_contact_bank_info')}));
       setActiveTabKey('3');
       return;
@@ -143,7 +138,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('[EmployeeForm] All form data before processing:', JSON.stringify(allFormData, null, 2));
     }
     
     const processedFinalPayload: Partial<CreateEmployeePayload | UpdateEmployeePayload> = {
@@ -156,7 +150,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       gender_lookup_value_name: allFormData.gender_lookup_value_id != null 
                                ? genderOptions.find(opt => opt.id === Number(allFormData.gender_lookup_value_id))?.name 
                                : undefined,
-      date_of_birth: allFormData.date_of_birth ? dayjs(allFormData.date_of_birth).utc().format('YYYY-MM-DD') : undefined,
+      date_of_birth: allFormData.date_of_birth ? dayjs(allFormData.date_of_birth).utc().format('YYYY-MM-DD'): undefined,
       id_number: allFormData.id_number,
       marital_status_lookup_value_id: allFormData.marital_status_lookup_value_id != null 
                                        ? Number(allFormData.marital_status_lookup_value_id)
@@ -178,7 +172,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                                        : undefined,
       nationality: allFormData.nationality,
       ethnicity: allFormData.ethnicity,
-      first_work_date: allFormData.first_work_date ? dayjs(allFormData.first_work_date).utc().format('YYYY-MM-DD') : undefined,
+      first_work_date: allFormData.first_work_date ? dayjs(allFormData.first_work_date).utc().format('YYYY-MM-DD'): undefined,
       interrupted_service_years: allFormData.interrupted_service_years != null ? Number(allFormData.interrupted_service_years) : undefined,
 
       avatar: allFormData.avatar || (avatarFileList.length > 0 && avatarFileList[0].url) || (avatarFileList.length > 0 && avatarFileList[0].response?.url) || undefined,
@@ -197,7 +191,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       position_name: allFormData.actual_position_id != null 
                    ? positionOptions.find(opt => opt.value === Number(allFormData.actual_position_id))?.label 
                    : undefined,
-      hire_date: allFormData.hire_date ? dayjs(allFormData.hire_date).utc().format('YYYY-MM-DD') : undefined,
+      hire_date: allFormData.hire_date ? dayjs(allFormData.hire_date).utc().format('YYYY-MM-DD'): undefined,
       status_lookup_value_id: allFormData.status_lookup_value_id != null 
                              ? Number(allFormData.status_lookup_value_id)
                              : undefined,
@@ -253,30 +247,25 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     });
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('[EmployeeForm] Payload prepared for submission:', JSON.stringify(processedFinalPayload, null, 2));
     }
 
     try {
         if (isEditMode && initialValues?.id) {
             if (process.env.NODE_ENV === 'development') {
-            console.log('[EmployeeForm] Executing update operation');
             }
             await onSubmit(processedFinalPayload as UpdateEmployeePayload); // Ensure type assertion
         } else {
             if (process.env.NODE_ENV === 'development') {
-            console.log('[EmployeeForm] Executing create operation');
             }
             // Additional check for create, though tab validation should cover this
             if (!processedFinalPayload.first_name || !processedFinalPayload.last_name || 
                 !processedFinalPayload.hire_date || !processedFinalPayload.status_lookup_value_id) { // check ID
-                console.error('[EmployeeForm] Critical missing required fields for employee creation just before submission');
                 antdMessage.error(t('common:message.missing_required_fields'));
                 return;
             }
             await onSubmit(processedFinalPayload as CreateEmployeePayload); // Ensure type assertion
         }
     } catch (error) {
-        console.error("[EmployeeForm] Error during onSubmit call:", error);
         // The onSubmit handler itself should show messages for API errors.
         // antdMessage.error(t('common:message.submission_error')); 
     }

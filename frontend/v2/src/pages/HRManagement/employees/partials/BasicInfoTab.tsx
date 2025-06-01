@@ -16,7 +16,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
 
   if (loading) {
     return (
-      <Spin tip={t('employee:detail_page.common_value.loading_basic_info', '加载基本信息中...')}>
+      <Spin tip={t('employee:detail_page.common_value.loading_basic_info')}>
         <div style={{ height: 200, padding: '30px', background: 'rgba(0, 0, 0, 0.05)' }} />
       </Spin>
     );
@@ -29,13 +29,13 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
   const getGenderText = (genderId?: number) => {
     if (genderId === undefined || genderId === null) return '';
     const genderKey = Object.keys(Gender).find(key => Gender[key as keyof typeof Gender] === String(genderId));
-    return genderKey ? t(`employee:gender.${genderKey.toLowerCase()}`, genderKey) : String(genderId);
+    return genderKey ? t(`employee:gender.${genderKey.toLowerCase()}`, { defaultValue: genderKey }) : String(genderId);
   };
 
   const getStatusText = (statusId?: number) => {
     if (statusId === undefined || statusId === null) return '';
     const statusKey = Object.keys(EmploymentStatus).find(key => EmploymentStatus[key as keyof typeof EmploymentStatus] === String(statusId));
-    return statusKey ? t(`employee:list_page.table.status_text.${statusKey.toLowerCase()}`, statusKey) : String(statusId);
+    return statusKey ? t(`employee:list_page.table.status_text.${statusKey.toLowerCase()}`, { defaultValue: statusKey }) : String(statusId);
   };
 
   const naText = '';
@@ -53,16 +53,16 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_id')}>{employee.employee_code || naText}</Descriptions.Item>
 
       <Descriptions.Item label={t('employee:form_label.id_number')}>{employee.id_number || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_dob')}>{employee.date_of_birth ? (dayjs(employee.date_of_birth).isValid() ? dayjs(employee.date_of_birth).format('YYYY-MM-DD') : String(employee.date_of_birth)) : naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_dob')}>{employee.date_of_birth ? (dayjs(employee.date_of_birth).isValid() ? dayjs(employee.date_of_birth).format('YYYY-MM-DD'): String(employee.date_of_birth)) : naText}</Descriptions.Item>
 
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_gender')}>{getGenderText(employee.gender_lookup_value_id)}</Descriptions.Item>
       <Descriptions.Item label={t('employee:form_label.nationality')}>{employee.nationality || naText}</Descriptions.Item> 
 
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_education_level')}>{employee.education_level_lookup_value_id ? t(`employee:education_level.${String(employee.education_level_lookup_value_id).toLowerCase()}`, String(employee.education_level_lookup_value_id)) : naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_education_level')}>{employee.education_level_lookup_value_id ? t(`employee:education_level.${String(employee.education_level_lookup_value_id).toLowerCase()}`, { defaultValue: String(employee.education_level_lookup_value_id) }) : naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_mobile_phone')}>{employee.phone_number || naText}</Descriptions.Item>
 
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_email')} span={1}>{employee.email || naText}</Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address', '居住地址')} span={1}>{employee.home_address || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address')} span={1}>{employee.home_address || naText}</Descriptions.Item>
 
       <Descriptions.Item label={t('employee:form_label.bank_name')}>{employee.bank_name || naText}</Descriptions.Item>
       <Descriptions.Item label={t('employee:form_label.bank_account_number')}>{employee.bank_account_number || naText}</Descriptions.Item>
@@ -70,7 +70,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ employee, loading }) => {
       <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_status')}>
         {employee.status_lookup_value_id !== undefined ? <Tag color={employee.status_lookup_value_id === 1 ? 'green' : 'volcano'}>{getStatusText(employee.status_lookup_value_id)}</Tag> : naText}
       </Descriptions.Item>
-      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_notes', '备注')} span={1}>{employee.notes || naText}</Descriptions.Item>
+      <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_notes')} span={1}>{employee.notes || naText}</Descriptions.Item>
     </Descriptions>
   );
 };

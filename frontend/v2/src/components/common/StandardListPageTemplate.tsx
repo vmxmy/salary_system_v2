@@ -184,7 +184,6 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
           }
         } catch (error) {
           message.error(t(deleteConfirmConfig.errorMessageKey));
-          console.error('Failed to delete item:', error);
         }
       },
     });
@@ -256,8 +255,8 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     {
       filename: generateExportFilename(),
       sheetName: exportConfig.sheetName,
-      buttonText: t(exportConfig.buttonText, '导出Excel'), // StandardListPage usually has a dedicated Excel export button text
-      successMessage: t(exportConfig.successMessage, '导出成功'),
+      buttonText: t(exportConfig.buttonText, t('components:auto_excel_e5afbc')), // StandardListPage usually has a dedicated Excel export button text
+      successMessage: t(exportConfig.successMessage, t('components:auto_text_e5afbc')),
       supportedFormats: ['excel'], // Explicitly stating only excel for client mode
       // onExportRequest is NOT provided, so it will use client-side Excel export by default
     }
@@ -266,14 +265,13 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   useEffect(() => {
     if (errorLookups) {
       message.error(t(lookupErrorMessageKey));
-      console.error('Error from lookups:', errorLookups);
     }
   }, [errorLookups, t, lookupErrorMessageKey, message]);
  
   // Fetch all data once lookups are loaded
   useEffect(() => {
     if (!loadingLookups && !errorLookups && !isInitializedRef.current) {
-      console.log('[StandardListPageTemplate] 🚀 Initializing data fetch');
+      
       isInitializedRef.current = true;
       // 根据是否启用服务器端功能决定传递参数
       if (serverSidePagination || serverSideSorting || serverSideFiltering) {
@@ -291,7 +289,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     sorter: SorterResult<T> | SorterResult<T>[],
     extra: { currentDataSource: T[], action: string }
   ) => {
-    console.log('[StandardListPageTemplate] handleTableChange CALLED. Action:', extra.action, 'Filters:', JSON.stringify(filters), 'Sorter:', JSON.stringify(sorter));
+    
     // 如果启用了服务器端功能，处理服务器端查询
     if (serverSidePagination || serverSideSorting || serverSideFiltering) {
       const newParams: QueryParams = { ...queryParams };
@@ -315,7 +313,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
 
       // 处理筛选
       if (serverSideFiltering && filters) {
-        console.log('[StandardListPageTemplate] handleTableChange - Raw filters from ProTable:', JSON.stringify(filters));
+        
         const activeFilters: Record<string, any> = {};
         Object.entries(filters).forEach(([key, filterValue]) => {
           // ProTable 通常将筛选值作为数组传递，即使是单选。
@@ -326,7 +324,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
           }
         });
         newParams.filters = activeFilters;
-        console.log('[StandardListPageTemplate] handleTableChange - Processed activeFilters for newParams:', JSON.stringify(activeFilters));
+        
       }
 
       // 更新查询参数并触发数据获取
@@ -383,12 +381,12 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100', '200'],
     showTotal: (total: number, range: [number, number]) => 
-      `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+      t('components:auto__range_0_range_1___total__e7acac'),
   } : {
     showSizeChanger: true,
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100', '200'],
-    showTotal: (total: number) => `共 ${total} 条`,
+    showTotal: (total: number) => t('components:auto__total__e585b1'),
   };
 
   return (
@@ -449,7 +447,6 @@ const MyListPage = () => {
       setDataSource(response.data);
       setTotal(response.total);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }

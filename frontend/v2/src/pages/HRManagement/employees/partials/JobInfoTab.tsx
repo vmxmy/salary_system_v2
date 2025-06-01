@@ -13,7 +13,8 @@ interface JobInfoTabProps {
   lookupMaps: LookupMaps | null; // + Add lookupMaps
 }
 
-const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }) => { // + Add lookupMaps to destructuring
+const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }) => {
+  // + Add lookupMaps to destructuring
   const { t } = useTranslation(['employee', 'common']);
 
   if (loading) {
@@ -38,20 +39,20 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
     const months = now.diff(start.add(years, 'year'), 'month'); // Corrected calculation for months
     
     if (years > 0) {
-      return `${years}${t('employee:detail_page.job_info_tab.seniority_year', ' 年 ')}${months}${t('employee:detail_page.job_info_tab.seniority_month', ' 个月')}`;
+      return `${years}${t('employee:detail_page.job_info_tab.seniority_year')}${months}${t('employee:detail_page.job_info_tab.seniority_month')}`;
     } else {
-      return `${months}${t('employee:detail_page.job_info_tab.seniority_month', ' 个月')}`;
+      return `${months}${t('employee:detail_page.job_info_tab.seniority_month')}`;
     }
   };
 
   // 获取部门名称
   const departmentText = employee.department_id !== undefined && employee.department_id !== null
-    ? lookupMaps?.departmentMap?.get(String(employee.department_id)) || employee.departmentName || String(employee.department_id)
+    ? (lookupMaps?.departmentMap?.get(String(employee.department_id)) || employee.departmentName || String(employee.department_id))
     : naText;
 
   // 获取人员身份/类别名称
   const personnelCategoryText = employee.personnel_category_id !== undefined && employee.personnel_category_id !== null
-    ? lookupMaps?.personnelCategoryMap?.get(String(employee.personnel_category_id)) || employee.personnelCategoryName || String(employee.personnel_category_id)
+    ? (lookupMaps?.personnelCategoryMap?.get(String(employee.personnel_category_id)) || employee.personnelCategoryName || String(employee.personnel_category_id))
     : naText;
 
   // 获取实际职位
@@ -59,7 +60,7 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
 
   // 获取雇佣类型
   const employmentTypeText = employee.employment_type_lookup_value_id !== undefined && employee.employment_type_lookup_value_id !== null
-    ? lookupMaps?.employmentTypeMap?.get(Number(employee.employment_type_lookup_value_id)) || String(employee.employment_type_lookup_value_id)
+    ? (lookupMaps?.employmentTypeMap?.get(Number(employee.employment_type_lookup_value_id)) || String(employee.employment_type_lookup_value_id))
     : naText;
   
   // 获取直接上级信息
@@ -76,62 +77,62 @@ const JobInfoTab: React.FC<JobInfoTabProps> = ({ employee, loading, lookupMaps }
 
   return (
     <Descriptions 
-      title={t('employee:detail_page.job_info_tab.title', '职位信息')} 
+      title={t('employee:detail_page.job_info_tab.title')} 
       bordered 
       column={{ xs: 1, sm: 2 }} 
       layout="vertical"
       size="middle"
     >
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_department', '部门')}
+        label={t('employee:detail_page.job_info_tab.label_department')}
       >
         {departmentText}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_personnel_category', '人员类别')}
+        label={t('employee:detail_page.job_info_tab.label_personnel_category')}
       >
         {personnelCategoryText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_actual_position', '实际职位')}
+        label={t('employee:detail_page.job_info_tab.label_actual_position')}
       >
         {actualPositionText}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_work_location', '工作地点')}
+        label={t('employee:detail_page.job_info_tab.label_work_location')}
       >
         {employee.workLocation || naText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_hire_date', '入职日期')}
+        label={t('employee:detail_page.job_info_tab.label_hire_date')}
       >
-        {employee.hire_date ? dayjs(employee.hire_date).format('YYYY-MM-DD') : naText}
+        {employee.hire_date ? dayjs(employee.hire_date).format('YYYY-MM-DD'): naText}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_employment_type', '雇佣类型')}
+        label={t('employee:detail_page.job_info_tab.label_employment_type')}
       >
         {employmentTypeText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_seniority', '司龄')}
+        label={t('employee:detail_page.job_info_tab.label_seniority')}
       >
         {calculateSeniority(employee.hire_date)}
       </Descriptions.Item>
       
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_probation_end_date', '试用期结束日期')}
+        label={t('employee:detail_page.job_info_tab.label_probation_end_date')}
       >
-        {employee.probationEndDate ? dayjs(employee.probationEndDate).format('YYYY-MM-DD') : naText}
+        {employee.probationEndDate ? dayjs(employee.probationEndDate).format('YYYY-MM-DD'): naText}
       </Descriptions.Item>
 
       <Descriptions.Item 
-        label={t('employee:detail_page.job_info_tab.label_reports_to', '汇报对象')}
+        label={t('employee:detail_page.job_info_tab.label_reports_to')}
         span={2}
       >
         {reportsToText}

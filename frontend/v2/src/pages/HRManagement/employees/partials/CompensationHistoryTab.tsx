@@ -45,7 +45,6 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
       setCurrentPage(result.meta.page);
       setPageSize(result.meta.size);
     } catch (err: any) {
-      console.error('Error fetching compensation history:', err);
       setError(err.message || t('employee:detail_page.compensation_tab.message.get_history_failed_retry', 'Failed to fetch compensation history. Please try again.'));
       setCompensations([]); // Clear data on error
       setTotalRecords(0);
@@ -88,7 +87,6 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
           fetchCompensations(currentPage, pageSize);
         } catch (deleteError: any) {
           message.error(deleteError.message || t('employee:detail_page.compensation_tab.message.delete_failed', 'Failed to delete compensation record.'));
-          console.error('Delete compensation error:', deleteError);
           setLoading(false);
         }
       },
@@ -108,7 +106,6 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
       fetchCompensations(1, pageSize);
     } catch (submitError: any) {
       message.error(submitError.message || t('employee:detail_page.compensation_tab.message.save_failed', 'Failed to save compensation record.'));
-      console.error('Submit compensation error:', submitError);
     }
   };
 

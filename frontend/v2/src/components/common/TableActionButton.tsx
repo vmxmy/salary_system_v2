@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Tooltip } from 'antd';
 import type { ButtonProps } from 'antd';
 import { 
@@ -64,19 +65,21 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
   }
 
   // 如果没有提供tooltipTitle，根据actionType生成默认提示
-  const defaultTooltip = {
-    edit: '编辑',
-    delete: '删除',
-    add: '添加',
-    view: '查看详情',
-    upload: '上传',
-    download: '下载',
-    approve: '审批',
-    copy: '复制',
-    print: '打印'
+  const { t } = useTranslation(['common', 'components']);
+
+  const defaultTooltip: Record<TableActionButtonProps['actionType'], string> = {
+    edit: 'common:button.edit',
+    delete: 'common:button.delete',
+    add: 'common:button.add',
+    view: 'common:button.view',
+    upload: 'common:button.upload',
+    download: 'common:button.download',
+    approve: 'common:button.approve',
+    copy: 'common:button.copy',
+    print: 'common:button.print',
   };
   
-  const finalTooltipTitle = tooltipTitle || defaultTooltip[actionType];
+  const finalTooltipTitle = tooltipTitle || t(defaultTooltip[actionType]);
   
   // 如果是删除按钮，自动添加danger属性
   const isDanger = actionType === 'delete';

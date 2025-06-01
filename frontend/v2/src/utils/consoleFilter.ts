@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 /**
  * 控制台过滤工具
  * 用于在开发环境中过滤特定的警告和错误信息
@@ -62,7 +64,7 @@ export function initConsoleFilter(config: Partial<ConsoleFilterConfig> = {}) {
     };
   }
 
-  console.log('🔇 控制台过滤器已启用，过滤规则:', {
+  console.log(i18n.t('common:auto_____f09f94'), {
     warnings: finalConfig.warningFilters,
     errors: finalConfig.errorFilters,
   });
@@ -73,5 +75,4 @@ export function initConsoleFilter(config: Partial<ConsoleFilterConfig> = {}) {
  */
 export function restoreConsole() {
   // 注意：这个方法只是示例，实际使用中需要保存原始方法的引用
-  console.warn('⚠️ 控制台过滤器已禁用，但无法完全恢复原始方法');
 } 

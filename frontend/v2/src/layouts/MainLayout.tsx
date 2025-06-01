@@ -47,17 +47,17 @@ const { Text } = Typography;
 
 // 简单的面包屑名称映射，后续可以从路由 meta 中获取 - THIS WILL BE DEPRECATED by new logic
 // const breadcrumbNameMap: Record<string, string> = {
-//   '/dashboard': '仪表盘',
-//   '/admin': '系统管理',
-//   '/admin/users': '用户管理',
-//   '/admin/roles': '角色管理',
-//   '/admin/config': '系统配置',
-//   '/admin/organization': '组织架构',
-//   '/admin/organization/departments': '部门管理',
-//   '/admin/organization/job-titles': '职位管理',
-//   '/admin/permissions': '权限管理',
-//   '/hr': '人事管理',
-//   '/hr/employees': '员工档案',
+//   '/dashboard': t('common:auto_text_e4bbaa'),
+//   '/admin': t('common:auto_text_e7b3bb'),
+//   '/admin/users': t('common:auto_text_e794a8'),
+//   '/admin/roles': t('common:auto_text_e8a792'),
+//   '/admin/config': t('common:auto_text_e7b3bb'),
+//   '/admin/organization': t('common:auto_text_e7bb84'),
+//   '/admin/organization/departments': t('common:auto_text_e983a8'),
+//   '/admin/organization/job-titles': t('common:auto_text_e8818c'),
+//   '/admin/permissions': t('common:auto_text_e69d83'),
+//   '/hr': t('common:auto_text_e4baba'),
+//   '/hr/employees': t('common:auto_text_e59198'),
 //   // ...更多路径
 // };
 
@@ -107,26 +107,26 @@ const MainLayout: React.FC = () => {
   // Tour steps
   const steps: TourProps['steps'] = [
     {
-      title: t('tour:dashboard.title', '仪表盘概览'),
-      description: t('tour:dashboard.description', '这里是系统的概览和快捷入口，您可以快速了解关键数据和导航至各功能模块。'),
+      title: t('tour:dashboard.title'),
+      description: t('tour:dashboard.description'),
       target: () => refDashboard.current,
-      nextButtonProps: { children: t('tour:common.next', '下一步') },
-      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      nextButtonProps: { children: t('tour:common.next') },
+      prevButtonProps: { children: t('tour:common.previous') },
     },
     {
-      title: t('tour:bulk_import.title', '批量导入员工'),
-      description: t('tour:bulk_import.description', '若您需要一次性添加多名员工信息，可以使用此功能通过上传文件快速完成。'),
+      title: t('tour:bulk_import.title'),
+      description: t('tour:bulk_import.description'),
       target: () => refBulkImport.current,
-      nextButtonProps: { children: t('tour:common.next', '下一步') },
-      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      nextButtonProps: { children: t('tour:common.next') },
+      prevButtonProps: { children: t('tour:common.previous') },
       // disabled: !refBulkImport.current, // Example: Disable step if target is not available (though ref is assigned in useEffect)
     },
     {
-      title: t('tour:ai_robot.title', 'AI 助手'),
-      description: t('tour:ai_robot.description', '有任何疑问或需要操作指引吗？随时点击右下角的 AI 助手图标，它会尽力帮助您。'),
+      title: t('tour:ai_robot.title'),
+      description: t('tour:ai_robot.description'),
       target: () => refAiRobot.current,
-      nextButtonProps: { children: t('tour:common.finish', '完成') }, // Last step
-      prevButtonProps: { children: t('tour:common.previous', '上一步') },
+      nextButtonProps: { children: t('tour:common.finish') }, // Last step
+      prevButtonProps: { children: t('tour:common.previous') },
       // disabled: !refAiRobot.current, // Example: Disable step if target is not available
     },
   ];
@@ -152,7 +152,6 @@ const MainLayout: React.FC = () => {
           // For now, proceeding if dashboard is found.
           setOpenTour(true);
         } else {
-          console.warn("Tour: Dashboard link not found, tour will not start.");
         }
       }, 1500); // Increased delay to allow Dify bot to potentially load
     }
@@ -180,12 +179,12 @@ const MainLayout: React.FC = () => {
   const userMenuItems = [
     {
       key: 'profile',
-      label: <Link to="/employee-info/my-info">{ready ? t('user_menu:profile') : 'Profile'}</Link>,
+      label: <Link to="/employee-info/my-info">{ready ?      t('user_menu:profile'): 'Profile'}</Link>,
       icon: <UserOutlined />,
     },
     {
       key: 'logout',
-      label: ready ? t('user_menu:logout') : 'Logout',
+      label: ready ?      t('user_menu:logout'): 'Logout',
       icon: <LogoutOutlined />,
       onClick: handleLogout,
     },
@@ -194,7 +193,6 @@ const MainLayout: React.FC = () => {
   // 生成面包屑
   const pathSnippets = location.pathname.split('/').filter((i) => i);
   const extraBreadcrumbItems = useMemo(() => {
-    console.log('[MainLayout:Breadcrumb] ready state:', ready, 'for pathname:', location.pathname);
     return pathSnippets
       .map((snippet, index) => {
         const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
@@ -291,21 +289,20 @@ const MainLayout: React.FC = () => {
   const organizationChildren = [
     // These labels come from route.meta.title via allAppRoutes, so they will be translated if link text is derived from it in Menu items.
     // Or, if Menu items are constructed with explicit labels, those labels need t()
-    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">{ready ? t('pageTitle:department_management') : 'Departments'}</Link>, icon: <BranchesOutlined /> },
-    { key: '/admin/organization/job-titles', label: <Link to="/admin/organization/job-titles">{ready ? t('pageTitle:job_title_management') : 'Job Titles'}</Link>, icon: <IdcardOutlined /> },
+    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">{ready ?      t('pageTitle:department_management'): 'Departments'}</Link>, icon: <BranchesOutlined /> },
+    { key: '/admin/organization/job-titles', label: <Link to="/admin/organization/job-titles">{ready ?      t('pageTitle:job_title_management'): 'Job Titles'}</Link>, icon: <IdcardOutlined /> },
   ];
 
   const adminChildren = useMemo(() => {
-    console.log('[MainLayout:AdminMenu] ready state:', ready);
     const baseAdminChildren = [
-      { key: '/admin/users', label: <Link to="/admin/users">{t('pageTitle:user_management')}</Link>, icon: <TeamOutlined /> },
-      { key: '/admin/roles', label: <Link to="/admin/roles">{t('pageTitle:role_management')}</Link>, icon: <UserSwitchOutlined /> },
-      { key: '/admin/config', label: <Link to="/admin/config">{t('pageTitle:system_configuration')}</Link>, icon: <ControlOutlined /> },
+      { key: '/admin/users', label: <Link to="/admin/users">t('pageTitle:user_management')</Link>, icon: <TeamOutlined /> },
+      { key: '/admin/roles', label: <Link to="/admin/roles">t('pageTitle:role_management')</Link>, icon: <UserSwitchOutlined /> },
+      { key: '/admin/config', label: <Link to="/admin/config">t('pageTitle:system_configuration')</Link>, icon: <ControlOutlined /> },
     ];
     if (hasRole('SUPER_ADMIN')) {
       const permissionsLink = {
         key: '/admin/permissions',
-        label: <Link to="/admin/permissions">{t('pageTitle:permission_management')}</Link>,
+        label: <Link to="/admin/permissions">t('pageTitle:permission_management')</Link>,
         icon: <SafetyOutlined />,
       };
       const rolesIndex = baseAdminChildren.findIndex(child => child.key === '/admin/roles');
@@ -329,15 +326,14 @@ const MainLayout: React.FC = () => {
   const { canCreate: canCreateEmployee } = useEmployeePermissions();
 
   const hrManagementChildren = useMemo(() => {
-    console.log('[MainLayout:HRMenu] ready state:', ready);
     const children = [
       {
         key: '/hr/employees',
-        label: <Link to="/hr/employees">{t('pageTitle:employee_files')}</Link>, 
+        label: <Link to="/hr/employees">t('pageTitle:employee_files')</Link>, 
         icon: <TeamOutlined />, 
       },
       {
-        label: <Link to="/hr/employees/new">{t('pageTitle:create_employee')}</Link>, // Ensure key matches path used in routes.tsx for creation
+        label: <Link to="/hr/employees/new">t('pageTitle:create_employee')</Link>, // Ensure key matches path used in routes.tsx for creation
         key: '/hr/employees/new', // Corrected from /hr/employees/create if routes.tsx uses /new
         icon: <UserAddOutlined />,
       },
@@ -346,7 +342,7 @@ const MainLayout: React.FC = () => {
     // Conditionally add Bulk Import if user has permission
     if (canCreateEmployee) { 
       children.push({
-        label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">{t('pageTitle:bulk_import_employees')}</Link>,
+        label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">t('pageTitle:bulk_import_employees')</Link>,
         key: '/hr/employees/bulk-import',
         icon: <UploadOutlined />, // Using UploadOutlined as an example
       });
@@ -357,7 +353,7 @@ const MainLayout: React.FC = () => {
     if (hasPermission('leave:manage')) { // Or appropriate permission for leave management visibility
       children.push({
         key: '/hr/leave', 
-        label: <Link to="/hr/leave">{t('pageTitle:leave_management')}</Link>,
+        label: <Link to="/hr/leave">t('pageTitle:leave_management')</Link>,
         icon: <CalendarOutlined />,
       });
     }
@@ -367,13 +363,12 @@ const MainLayout: React.FC = () => {
 
   const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',
-    label: ready ? (t('pageTitle:hr_management')) : '人力资源管理',
+    label: ready ?      t('pageTitle:hr_management'): 'HR Management',
     icon: <UsergroupAddOutlined />,
     children: hrManagementChildren,
   }), [hrManagementChildren, t, ready]);
 
   const siderMenuItems = useMemo(() => {
-    console.log('[MainLayout:SiderMenu] Building menu, ready state:', ready);
     
     // ========== 核心业务模块 ==========
     const coreBusinessItems = [];
@@ -382,7 +377,7 @@ const MainLayout: React.FC = () => {
     coreBusinessItems.push({
       key: '/dashboard',
       icon: <DashboardOutlined />,
-      label: <Link to="/dashboard" id="tour-dashboard-link">{t('pageTitle:dashboard')}</Link>,
+      label: <Link to="/dashboard" id="tour-dashboard-link">t('pageTitle:dashboard')</Link>,
     });
 
     // 2. 个人中心 - 个人功能
@@ -393,12 +388,12 @@ const MainLayout: React.FC = () => {
       children: [
         {
           key: '/employee-info/my-info',
-          label: <Link to="/employee-info/my-info">{t('pageTitle:my_info')}</Link>,
+          label: <Link to="/employee-info/my-info">t('pageTitle:my_info')</Link>,
           icon: <UserOutlined />,
         },
         {
           key: '/employee-info/my-payslips',
-          label: <Link to="/employee-info/my-payslips">{t('pageTitle:my_payslips')}</Link>,
+          label: <Link to="/employee-info/my-payslips">t('pageTitle:my_payslips')</Link>,
           icon: <ProfileOutlined />,
         },
       ],
@@ -413,7 +408,7 @@ const MainLayout: React.FC = () => {
         children: [
           {
             key: '/view-reports/management',
-            label: <Link to="/view-reports/management">{t('menu:viewReportsManagement')}</Link>,
+            label: <Link to="/view-reports/management">t('menu:viewReportsManagement')</Link>,
             icon: <EyeOutlined />,
           },
         ],
@@ -425,35 +420,35 @@ const MainLayout: React.FC = () => {
     if (hasPermission(P_PAYROLL_PERIOD_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/periods',
-        label: <Link to="/finance/payroll/periods">{t('pageTitle:payroll_periods')}</Link>,
+        label: <Link to="/finance/payroll/periods">t('pageTitle:payroll_periods')</Link>,
         icon: <CalendarOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_RUN_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/runs',
-        label: <Link to="/finance/payroll/runs">{t('pageTitle:payroll_runs')}</Link>,
+        label: <Link to="/finance/payroll/runs">t('pageTitle:payroll_runs')</Link>,
         icon: <CalculatorOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_ENTRY_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/entry',
-        label: <Link to="/finance/payroll/entry">{t('pageTitle:payroll_entry')}</Link>,
+        label: <Link to="/finance/payroll/entry">t('pageTitle:payroll_entry')</Link>,
         icon: <EditOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_ENTRY_BULK_IMPORT)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/bulk-import',
-        label: <Link to="/finance/payroll/bulk-import">{t('payroll:page_title.payroll_bulk_import')}</Link>,
+        label: <Link to="/finance/payroll/bulk-import">t('payroll:page_title.payroll_bulk_import')</Link>,
         icon: <UploadOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_COMPONENT_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/components',
-        label: <Link to="/finance/payroll/components">{t('payroll:page_title.payroll_components')}</Link>,
+        label: <Link to="/finance/payroll/components">t('payroll:page_title.payroll_components')</Link>,
         icon: <ProfileOutlined />,
       });
     }
@@ -483,14 +478,14 @@ const MainLayout: React.FC = () => {
     if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
       managerChildren.push({
         key: '/manager/subordinates',
-        label: <Link to="/manager/subordinates">{t('pageTitle:subordinates')}</Link>,
+        label: <Link to="/manager/subordinates">t('pageTitle:subordinates')</Link>,
         icon: <TeamOutlined />,
       });
     }
     if (hasPermission(P_MANAGER_LEAVE_APPROVALS_VIEW)) {
       managerChildren.push({
         key: '/manager/leave-approvals',
-        label: <Link to="/manager/leave-approvals">{t('pageTitle:leave_approvals')}</Link>,
+        label: <Link to="/manager/leave-approvals">t('pageTitle:leave_approvals')</Link>,
         icon: <CalendarOutlined />,
       });
     }
@@ -587,7 +582,7 @@ const MainLayout: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="light">
         <div style={{ height: '32px', margin: '16px', background: 'rgba(0, 0, 0, 0.05)', textAlign: 'center', lineHeight: '32px', color: '#454552', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          {collapsed ? t('common:sider.title.collapsed') : t('common:sider.title.full')}
+          {collapsed ?      t('common:sider.title.collapsed'): t('common:sider.title.full')}
         </div>
         <Menu
           theme="light"
@@ -613,7 +608,7 @@ const MainLayout: React.FC = () => {
           />
           <Space style={{ padding: '0 8px', borderRadius: '4px', border: '1px solid rgba(5, 5, 5, 0.06)' }}>
             <LanguageSwitcher />
-            <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu:default_user_text', '用户')}</Text>
+            <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu:default_user_text')}</Text>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Avatar style={{ cursor: 'pointer' }} icon={<UserOutlined />} /* src={currentUser?.avatar_url} // 假设有头像 */ />
             </Dropdown>
@@ -622,16 +617,16 @@ const MainLayout: React.FC = () => {
         <Content style={{ margin: '0 16px' }}>
           <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />
           <div style={{ padding: 24, minHeight: 360, background: '#fff', borderRadius: '8px' }}>
-            <React.Suspense fallback={<div className="page-loading-suspense">{t('common:loading.generic_loading_text', 'Loading page content...')}</div>}>
+            <React.Suspense fallback={<div className="page-loading-suspense">t('common:loading.generic_loading_text', 'Loading page content...')</div>}>
               <Outlet />
             </React.Suspense>
           </div>
         </Content>
         <Footer style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 24px' }}>
           <span style={{ marginRight: '8px' }}>
-            {t('common:footer.copyright', '成都高新区财政国资局 人事工资信息管理系统')} ©{new Date().getFullYear()}
+            t('common:footer.copyright') ©{new Date().getFullYear()}
           </span>
-          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt', '趣链科技 Logo')} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
+          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt')} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
           <span style={{ verticalAlign: 'middle' }}>
           </span>
         </Footer>

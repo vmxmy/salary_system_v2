@@ -35,7 +35,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       dataIndex: 'effective_date',
       key: 'effective_date',
       sorter: (a, b) => dayjs(a.effective_date).unix() - dayjs(b.effective_date).unix(),
-      render: (_, record) => dayjs(record.effective_date).isValid() ? dayjs(record.effective_date).format('YYYY-MM-DD') : naText,
+      render: (_, record) => dayjs(record.effective_date).isValid() ? dayjs(record.effective_date).format('YYYY-MM-DD'): naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_basic_salary', 'Basic Salary'),
@@ -106,7 +106,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
             <TableActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
-              tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_edit_record', '编辑薪资记录')}
+              tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_edit_record')}
             />
           )}
           {canDelete && (
@@ -116,7 +116,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
               okText={t('common:button.yes', 'Yes')}
               cancelText={t('common:button.no', 'No')}
             >
-              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record', '删除薪资记录')} />
+              <TableActionButton actionType="delete" danger tooltipTitle={t('employee:detail_page.compensation_tab.tooltip_delete_record')} />
             </Popconfirm>
           )}
         </Space>
@@ -136,7 +136,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       enableAdvancedFeatures={true}
       showToolbar={true}
       search={false}
-      title={t('employee:detail_page.compensation_tab.table_title', '薪酬记录')}
+      title={t('employee:detail_page.compensation_tab.table_title')}
     />
   );
 };

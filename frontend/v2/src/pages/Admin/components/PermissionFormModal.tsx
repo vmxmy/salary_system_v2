@@ -55,7 +55,6 @@ const PermissionFormModal: React.FC<PermissionFormModalProps> = ({
 
       onSuccess();
     } catch (error: any) {
-      console.error('Failed to save permission:', error);
       const errorMessage = isEditMode 
         ? `${t('list_page.message.update_error_prefix')}${error.message}`
         : `${t('list_page.message.create_error_prefix')}${error.message}`;

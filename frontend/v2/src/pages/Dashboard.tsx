@@ -1,35 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Spin, Empty, Tag, Progress } from 'antd';
+import { useTranslation } from 'react-i18next';
+import { Row, Col, Card, Statistic, Typography, Spin, Empty, Tag } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import EnhancedProTable from '../components/common/EnhancedProTable';
-import { 
-  ArrowUpOutlined, 
-  ArrowDownOutlined, 
-  UserOutlined, 
-  AuditOutlined, 
-  MoneyCollectOutlined, 
+import {
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  UserOutlined,
+  AuditOutlined,
+  MoneyCollectOutlined,
   DollarCircleOutlined,
-  TeamOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  TrophyOutlined
 } from '@ant-design/icons';
-import { 
-  Line, 
-  Pie, 
-  Column, 
+import {
   Area,
-  type PieConfig, 
-  type ColumnConfig
+  Pie,
+  Column,
+  type PieConfig,
+  type ColumnConfig,
 } from '@ant-design/charts';
-import { 
-  dashboardService, 
+import {
+  dashboardService,
   type DashboardKpiData,
   type SalaryTrendItem,
   type DepartmentSalaryItem,
   type EmployeeGradeItem,
   type PayrollStatusItem,
-  type RecentPayrollRun
+  type RecentPayrollRun,
 } from '../services/dashboardService';
 
 const { Title, Text } = Typography;
@@ -63,6 +59,8 @@ const DashboardPage: React.FC = () => {
   const [loadingKpis, setLoadingKpis] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState(true);
 
+  const { t } = useTranslation();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -70,7 +68,7 @@ const DashboardPage: React.FC = () => {
         const kpis = await dashboardService.getKpiData();
         setKpiData(kpis);
       } catch (error) {
-        console.error("获取KPI数据失败:", error);
+        // Handle error appropriately, e.g., show an error message
       } finally {
         setLoadingKpis(false);
       }
@@ -84,14 +82,14 @@ const DashboardPage: React.FC = () => {
           dashboardService.getPayrollStatusDistribution(),
           dashboardService.getRecentPayrollRuns(),
         ]);
-        
+
         setSalaryTrend(trend);
         setDepartmentSalary(dept);
         setEmployeeGrades(grades);
-        setPayrollStatus(status);
+        setPayrollStatus(status); // payrollStatus is not used in the JSX, consider if it's needed
         setRecentPayrollRuns(recent);
       } catch (error) {
-        console.error("获取图表数据失败:", error);
+        // Handle error appropriately
       } finally {
         setLoadingCharts(false);
       }
@@ -104,13 +102,13 @@ const DashboardPage: React.FC = () => {
     if (previous === 0) return 0;
     return parseFloat(((current - previous) / previous * 100).toFixed(1));
   };
-  
+
   const renderStatisticChange = (change: number) => {
     if (change === 0) return null;
     const isPositive = change >= 0;
     const color = isPositive ? '#3f8600' : '#cf1322';
     return (
-      <span style={{ color, fontSize: '11px', marginLeft: '4px' }}> 
+      <span style={{ color, fontSize: '11px', marginLeft: '4px' }}>
         {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {Math.abs(change)}%
       </span>
     );
@@ -140,13 +138,13 @@ const DashboardPage: React.FC = () => {
     },
     tooltip: {
       formatter: (datum: any) => ({
-        name: '薪资总额',
-        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+        name: t('common:auto_text_e896aa'),
+        value: `${(datum.totalPayroll / 10000).toFixed(2)} ${t('common:unit_wan_yuan')}`, // Corrected string interpolation
       }),
     },
     yAxis: {
       label: {
-        formatter: (v: any) => `${(parseFloat(v) / 10000).toFixed(0)}万`,
+        formatter: (v: number) => `${(v / 10000).toFixed(0)} ${t('common:unit_wan_yuan')}`, // Corrected string interpolation
       },
     },
   };
@@ -174,7 +172,7 @@ const DashboardPage: React.FC = () => {
     tooltip: {
       formatter: (datum: any) => ({
         name: datum.departmentName,
-        value: `${(datum.totalPayroll / 10000).toFixed(2)} 万元`,
+        value: `${(datum.totalPayroll / 10000).toFixed(2)} ${t('common:unit_wan_yuan')}`, // Corrected string interpolation
       }),
     },
     interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
@@ -200,7 +198,7 @@ const DashboardPage: React.FC = () => {
     tooltip: {
       formatter: (datum: any) => ({
         name: datum.gradeName,
-        value: `${datum.count} 人 (${datum.percentage.toFixed(1)}%)`,
+        value: `${datum.count} (${datum.percentage.toFixed(1)}%)`, // Corrected string interpolation
       }),
     },
   };
@@ -208,59 +206,62 @@ const DashboardPage: React.FC = () => {
   // 最近薪资审核表格列配置
   const payrollRunColumns: ProColumns<RecentPayrollRun>[] = [
     {
-      title: '薪资周期',
+      title: t('common:payroll_period'), // Adjusted translation key
       dataIndex: 'periodName',
       key: 'periodName',
       ellipsis: true,
       valueType: 'text',
     },
     {
-      title: '状态',
+      title: t('common:status'), // Adjusted translation key
       dataIndex: 'status',
       key: 'status',
       valueType: 'select',
       valueEnum: {
-        '已完成': { text: '已完成', status: 'Success' },
-        '进行中': { text: '进行中', status: 'Processing' },
-        '待审批': { text: '待审批', status: 'Warning' },
-        '已取消': { text: '已取消', status: 'Error' },
+        'Success': { text: t('common:status_success'), status: 'Success' }, // Use direct string keys, map to translated text
+        'Processing': { text: t('common:status_processing'), status: 'Processing' },
+        'Pending': { text: t('common:status_pending'), status: 'Warning' }, // Assuming '等待' maps to 'Pending'
+        'Error': { text: t('common:status_error'), status: 'Error' },
       },
       render: (_, record) => {
         const colorMap: Record<string, string> = {
-          '已完成': 'success',
-          '进行中': 'processing',
-          '待审批': 'warning',
-          '已取消': 'error',
+          [t('common:status_success')]: 'success',
+          [t('common:status_processing')]: 'processing',
+          [t('common:status_pending')]: 'warning',
+          [t('common:status_error')]: 'error',
         };
-        return <Tag color={colorMap[record.status] || 'default'}>{record.status}</Tag>;
+        // Use the actual status string from record.status for the color map lookup
+        // And use the translated text for display
+        const translatedStatusText = t(`common:status_${record.status.toLowerCase()}`);
+        return <Tag color={colorMap[translatedStatusText] || 'default'}>{translatedStatusText}</Tag>;
       },
     },
     {
-      title: '总金额',
+      title: t('common:total_amount'), // Adjusted translation key
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       valueType: 'money',
-      render: (_, record) => `${(record.totalAmount / 10000).toFixed(2)}万`,
+      render: (_, record) => `${(record.totalAmount / 10000).toFixed(2)} ${t('common:unit_wan_yuan')}`, // Corrected string interpolation
     },
     {
-      title: '员工数',
+      title: t('common:employee_count'), // Adjusted translation key
       dataIndex: 'employeeCount',
       key: 'employeeCount',
       valueType: 'digit',
-      render: (_, record) => `${record.employeeCount}人`,
+      render: (_, record) => `${record.employeeCount} ${t('common:unit_person')}`, // Corrected string interpolation
     },
   ];
 
   if (loadingKpis || !kpiData) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
-        <Spin size="large" tip="加载仪表盘数据中...">
-          <div style={{ width: '100px', height: '100px' }} /> 
+        <Spin size="large" tip={t('common:loading_data')}> {/* Adjusted translation key */}
+          <div style={{ width: '100px', height: '100px' }} />
         </Spin>
       </div>
     );
   }
-  
+
   const employeeChange = getStatisticChange(kpiData.totalEmployees, kpiData.totalEmployeesLastMonth);
   const payrollChange = getStatisticChange(kpiData.monthlyPayroll, kpiData.monthlyPayrollLastMonth);
   const avgSalaryChange = getStatisticChange(kpiData.averageSalary, kpiData.averageSalaryLastMonth);
@@ -273,10 +274,10 @@ const DashboardPage: React.FC = () => {
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="员工总数"
-                value={kpiData.totalEmployees} 
+                title={t('common:total_employees')} /* Adjusted translation key */
+                value={kpiData.totalEmployees}
                 valueStyle={{ color: employeeChange >= 0 ? '#3f8600' : '#cf1322' }}
-                formatter={() => ( 
+                formatter={() => (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <UserOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
                     <span style={{ fontSize: '22px' }}>{kpiData.totalEmployees.toLocaleString()}</span>
@@ -285,39 +286,39 @@ const DashboardPage: React.FC = () => {
               />
             </div>
             <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-              较上期 {renderStatisticChange(employeeChange)}
+              {t('common:compared_to_last_period')} {renderStatisticChange(employeeChange)}
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="本月薪资总额"
+                title={t('common:monthly_payroll_amount')} /* Adjusted translation key */
                 value={kpiData.monthlyPayroll}
                 precision={2}
                 valueStyle={{ color: payrollChange >= 0 ? '#3f8600' : '#cf1322' }}
                 formatter={(value) => (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <MoneyCollectOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
-                    <span style={{ fontSize: '22px' }}>{(Number(value)/10000).toFixed(2)}</span>
-                    <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>万元</span>
+                    <span style={{ fontSize: '22px' }}>{(Number(value) / 10000).toFixed(2)}</span>
+                    <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>{t('common:unit_wan_yuan')}</span> {/* Adjusted translation key */}
                   </span>
                 )}
               />
             </div>
             <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-              较上期 {renderStatisticChange(payrollChange)}
+              {t('common:compared_to_last_period')} {renderStatisticChange(payrollChange)}
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="平均薪资"
+                title={t('common:average_salary')} /* Adjusted translation key */
                 value={kpiData.averageSalary}
                 precision={0}
                 valueStyle={{ color: avgSalaryChange >= 0 ? '#3f8600' : '#cf1322' }}
@@ -325,25 +326,25 @@ const DashboardPage: React.FC = () => {
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <DollarCircleOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
                     <span style={{ fontSize: '22px' }}>{Number(value).toLocaleString()}</span>
-                    <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>元</span>
+                    <span style={{ fontSize: '12px', marginLeft: '4px', color: 'rgba(0,0,0,0.65)' }}>{t('common:unit_yuan')}</span> {/* Adjusted translation key */}
                   </span>
                 )}
               />
             </div>
             <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-              较上期 {renderStatisticChange(avgSalaryChange)}
+              {t('common:compared_to_last_period')} {renderStatisticChange(avgSalaryChange)}
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card style={kpiCardStyle} hoverable>
             <div>
               <Statistic
-                title="待办任务"
+                title={t('common:pending_approvals')} /* Adjusted translation key */
                 value={kpiData.pendingApprovals}
                 valueStyle={{ color: kpiData.pendingApprovals > 0 ? '#cf1322' : '#3f8600' }}
-                formatter={(value) => ( 
+                formatter={(value) => (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <AuditOutlined style={{ marginRight: '8px', fontSize: '20px' }} />
                     <span style={{ fontSize: '22px' }}>{Number(value).toLocaleString()}</span>
@@ -352,21 +353,21 @@ const DashboardPage: React.FC = () => {
               />
             </div>
             <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(0,0,0,0.45)' }}>
-              {kpiData.activePayrollRuns > 0 && `${kpiData.activePayrollRuns} 个进行中`}
+              {kpiData.activePayrollRuns > 0 && t('common:active_payroll_runs_count', { count: kpiData.activePayrollRuns })} {/* Adjusted translation key and usage */}
             </div>
           </Card>
         </Col>
       </Row>
 
-      <Spin spinning={loadingCharts} tip="图表加载中...">
+      <Spin spinning={loadingCharts} tip={t('common:loading_charts')}> {/* Adjusted translation key */}
         {/* 薪资趋势图 */}
         <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
           <Col span={24}>
-            <Card title={<Title level={5} style={{ margin: 0 }}>💰 薪资总额趋势 (近6个月)</Title>} style={chartCardStyle}>
-              {(!loadingCharts && salaryTrend.length > 0) ? 
-                <Area {...salaryTrendConfig} /> : 
-                <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资趋势数据" />}
+            <Card title={<Title level={5} style={{ margin: 0 }}>💰 {t('common:payroll_trend_title')}</Title>} style={chartCardStyle}> {/* Adjusted translation key */}
+              {(!loadingCharts && salaryTrend.length > 0) ?
+                <Area {...salaryTrendConfig} /> :
+                <div style={{ height: '312px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  {loadingCharts ? <Spin /> : <Empty description={t('common:no_data_available')} />} {/* Adjusted translation key */}
                 </div>
               }
             </Card>
@@ -376,22 +377,22 @@ const DashboardPage: React.FC = () => {
         {/* 部门分布和职级分布 */}
         <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
           <Col xs={24} sm={24} md={12}>
-            <Card title={<Title level={5} style={{ margin: 0 }}>🏢 部门薪资占比</Title>} style={chartCardStyle}>
-              {(!loadingCharts && departmentSalary.length > 0) ? 
-                <Pie {...departmentSalaryConfig} /> : 
-                <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无部门薪资数据" />}
+            <Card title={<Title level={5} style={{ margin: 0 }}>🏢 {t('common:department_salary_distribution_title')}</Title>} style={chartCardStyle}> {/* Adjusted translation key */}
+              {(!loadingCharts && departmentSalary.length > 0) ?
+                <Pie {...departmentSalaryConfig} /> :
+                <div style={{ height: '312px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  {loadingCharts ? <Spin /> : <Empty description={t('common:no_data_available')} />}
                 </div>
               }
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={24} md={12}>
-            <Card title={<Title level={5} style={{ margin: 0 }}>🎯 员工职级分布</Title>} style={chartCardStyle}>
-              {(!loadingCharts && employeeGrades.length > 0) ? 
-                <Column {...employeeGradeConfig} /> : 
-                <div style={{height: '312px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无员工职级数据" />}
+            <Card title={<Title level={5} style={{ margin: 0 }}>🎯 {t('common:employee_grade_distribution_title')}</Title>} style={chartCardStyle}> {/* Adjusted translation key */}
+              {(!loadingCharts && employeeGrades.length > 0) ?
+                <Column {...employeeGradeConfig} /> :
+                <div style={{ height: '312px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  {loadingCharts ? <Spin /> : <Empty description={t('common:no_data_available')} />}
                 </div>
               }
             </Card>
@@ -401,8 +402,8 @@ const DashboardPage: React.FC = () => {
         {/* 最近薪资审核记录 */}
         <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
           <Col span={24}>
-            <Card title={<Title level={5} style={{ margin: 0 }}>📋 最近薪资审核记录</Title>} style={chartCardStyle}>
-              {(!loadingCharts && recentPayrollRuns.length > 0) ? 
+            <Card title={<Title level={5} style={{ margin: 0 }}>📋 {t('common:recent_payroll_records_title')}</Title>} style={chartCardStyle}> {/* Adjusted translation key */}
+              {(!loadingCharts && recentPayrollRuns.length > 0) ?
                 <EnhancedProTable
                   dataSource={recentPayrollRuns}
                   columns={payrollRunColumns}
@@ -412,9 +413,9 @@ const DashboardPage: React.FC = () => {
                   search={false}
                   enableAdvancedFeatures={false}
                   showToolbar={false}
-                /> : 
-                <div style={{height: '200px', display:'flex', justifyContent:'center', alignItems:'center'}}>
-                  {loadingCharts ? <Spin/> : <Empty description="暂无薪资审核记录" />}
+                /> :
+                <div style={{ height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  {loadingCharts ? <Spin /> : <Empty description={t('common:no_data_available')} />}
                 </div>
               }
             </Card>

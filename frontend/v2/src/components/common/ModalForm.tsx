@@ -134,8 +134,7 @@ const ModalForm = forwardRef<ModalFormRef, ModalFormProps>(({
       if (success) {
         message.success(
           mode === 'create' 
-            ? t('message.create_success')
-            : t('message.update_success')
+            ?      t('message.create_success'): t('message.update_success')
         );
         
         if (closeOnSuccess) {
@@ -143,7 +142,6 @@ const ModalForm = forwardRef<ModalFormRef, ModalFormProps>(({
         }
       }
     } catch (error) {
-      console.error('Form validation failed:', error);
     }
   };
 
@@ -202,7 +200,7 @@ const ModalForm = forwardRef<ModalFormRef, ModalFormProps>(({
       maskClosable={false}
       footer={mode === 'view' ? [
         <button key="close" onClick={handleCancel}>
-          {t('button.close')}
+          t('button.close')
         </button>
       ] : undefined}
     >

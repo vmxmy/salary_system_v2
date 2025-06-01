@@ -177,4 +177,100 @@ export interface SearchParams {
   category?: string;
   is_active?: boolean;
   view_status?: string;
+}
+
+// 数据源接口
+export interface DataSource {
+  id: number;
+  name: string;
+  type: string; // e.g., 'PostgreSQL', 'MySQL', 'CSV'
+  connection_string: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  fields?: DataSourceField[]; // Associated fields
+  schema_name?: string; // 数据库schema名称
+  table_name?: string; // 表名
+  view_name?: string; // 视图名
+  field_count?: number; // 字段数量
+  sync_status?: 'success' | 'failed' | 'pending'; // 同步状态
+  last_sync_at?: string; // 最后同步时间
+}
+
+// 创建数据源的表单数据
+export interface DataSourceCreate {
+  name: string;
+  type: string;
+  connection_string: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+// 更新数据源的表单数据
+export interface DataSourceUpdate {
+  name?: string;
+  type?: string;
+  connection_string?: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+// 数据源字段接口
+export interface DataSourceField {
+  id: number;
+  data_source_id: number;
+  field_name: string;
+  data_type: string; // e.g., 'text', 'integer', 'timestamp'
+  description?: string;
+  is_filterable: boolean;
+  is_sortable: boolean;
+  created_at: string;
+  updated_at: string;
+  is_primary_key?: boolean; // 是否是主键
+  length?: number; // 字段长度 (如 VARCHAR(255) 中的 255)
+  precision?: number; // 数值精度 (如 DECIMAL(10,2) 中的 10)
+  scale?: number; // 小数位数 (如 DECIMAL(10,2) 中的 2)
+  is_nullable?: boolean; // 是否可为空
+  default_value?: string; // 默认值
+  comment?: string; // 字段注释
+}
+
+// 数据源字段检测请求
+export interface DataSourceFieldDetection {
+  data_source_id?: number;
+  connection_string?: string;
+  sql_query?: string; // Optional: for detecting fields from a specific query
+}
+
+// 数据源连接测试请求
+export interface DataSourceConnectionTest {
+  type: string;
+  connection_string: string;
+}
+
+// 数据源连接测试响应
+export interface DataSourceConnectionTestResponse {
+  success: boolean;
+  message: string;
+  detail?: string;
+}
+
+// 报表数据源统计信息
+export interface ReportDataSourceStatistics {
+  total_records: number;
+  last_synced_at?: string;
+  sync_status: 'success' | 'failed' | 'in_progress';
+  error_message?: string;
+}
+
+// 报表数据源访问日志
+export interface ReportDataSourceAccessLog {
+  id: number;
+  data_source_id: number;
+  accessed_by?: number; // User ID who accessed
+  accessed_at: string;
+  action: string; // e.g., 'query', 'export', 'sync'
+  details?: Record<string, any>;
+  ip_address?: string;
 } 

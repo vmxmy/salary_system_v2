@@ -39,19 +39,18 @@ const PermissionForm: React.FC<PermissionFormProps> = ({
     } catch (error) {
       // Error handling might be done by the mutation hook in the parent component
       // but a local message can also be shown.
-      console.error("Form submission error:", error);
       // message.error("Failed to save permission."); // Already handled by parent usually
     }
   };
 
   return (
     <Modal
-      title={isEditing ? t('form.title.edit') : t('form.title.create')}
+      title={isEditing ?      t('form.title.edit'): t('form.title.create')}
       open={visible} // Changed from visible to open for AntD v5 compatibility
       onCancel={onClose}
       footer={[
         <Button key="back" onClick={onClose} disabled={isLoading}>
-          {t('form.button.cancel')}
+          t('form.button.cancel')
         </Button>,
         <Button 
           key="submit" 
@@ -59,7 +58,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({
           loading={isLoading} 
           onClick={() => form.submit()}
         >
-          {isEditing ? t('form.button.save_changes') : t('form.button.create')}
+          {isEditing ?      t('form.button.save_changes'): t('form.button.create')}
         </Button>,
       ]}
       destroyOnHidden // Ensures form is reset when modal is closed and reopened for "create"

@@ -101,7 +101,7 @@ const generateUserTableColumns = (
       search: false,
       render: (_, record) => (
         record.is_active ? 
-          <Tag color="green">{t('table.value.active')}</Tag> : 
+          <Tag color="green">{t('table.value.active')}</Tag> :
           <Tag color="red">{t('table.value.inactive')}</Tag>
       ),
       filters: [
@@ -149,9 +149,15 @@ const generateUserTableColumns = (
 };
 
 const UsersPageV2: React.FC = () => {
-  const { t } = useTranslation(['user', 'pageTitle', 'common']);
+  const { t } = useTranslation(['user', 'pageTitle', 'common']); 
+  
   const permissions = useUserPermissions();
   const { userPermissions, userRoleCodes, hasPermission } = usePermissions();
+  
+  // 调试权限信息
+  // console.log(t('admin:auto__usersv2___f09f94'), userPermissions);
+  // console.log(t('admin:auto__usersv2___f09f94'), userRoleCodes);
+  // console.log(t('admin:auto__usersv2__user_view_list___f09f94'), hasPermission('user:view_list');
   
   // 状态管理
   const [dataSource, setDataSource] = useState<PageUser[]>([]);
@@ -165,6 +171,7 @@ const UsersPageV2: React.FC = () => {
 
   // 获取数据
   const fetchData = useCallback(async () => {
+    // console.log(t('admin:auto__usersv2_fetchdata__f09f94');
     setLoadingData(true);
     setErrorLookups(null);
     try {
@@ -173,9 +180,17 @@ const UsersPageV2: React.FC = () => {
         size: 100,
       };
 
+      // console.log(t('admin:auto__usersv2__getusers_api___f09f94'), apiParams);
+      // console.log(t('admin:auto__usersv2_api_url__f09f94'), import.meta.env.VITE_API_BASE_URL);
+      // console.log(t('admin:auto__usersv2_api___f09f94'), import.meta.env.VITE_API_PATH_PREFIX);
+      
       const apiResponse = await getUsers(apiParams);
+      // console.log(t('admin:auto__usersv2_api___f09f94'), apiResponse);
+      // console.log(t('admin:auto__usersv2_api___f09f94'), typeof apiResponse);
+      // console.log(t('admin:auto__usersv2_api___f09f94'), typeof apiResponse?.data);
       
       if (apiResponse && Array.isArray(apiResponse.data)) {
+        // console.log(t('admin:auto__usersv2___f09f94'), apiResponse.data.length);
         setAllApiUsersForEdit(apiResponse.data);
         const pageUsers: PageUser[] = apiResponse.data.map((apiUser: ApiUser) => ({
           key: apiUser.id,
@@ -186,16 +201,31 @@ const UsersPageV2: React.FC = () => {
           is_active: apiUser.is_active,
           created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('table.value.not_applicable'),
         }));
+        // console.log(t('admin:auto__usersv2___f09f94'), pageUsers);
         setDataSource(pageUsers);
         setErrorLookups(null);
+        // console.log(t('admin:auto__usersv2___f09f94');
       } else {
+        console.error(t('admin:auto__usersv2___f09f94'), {
+          hasResponse: !!apiResponse,
+          responseKeys: apiResponse ? Object.keys(apiResponse) : 'N/A',
+          dataType: typeof apiResponse?.data,
+          isDataArray: Array.isArray(apiResponse?.data)
+        });
         setDataSource([]);
       }
     } catch (error) {
+      console.error(t('admin:auto__usersv2___f09f94'), {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        response: (error as any)?.response,
+        status: (error as any)?.response?.status,
+        data: (error as any)?.response?.data
+      });
       setDataSource([]);
       setErrorLookups(error);
     } finally {
       setLoadingData(false);
+      // console.log(t('admin:auto__usersv2_fetchdata__f09f94');
     }
   }, [t]);
 
@@ -233,18 +263,25 @@ const UsersPageV2: React.FC = () => {
 
   // 初始化数据
   useEffect(() => {
+    // console.log(t('admin:auto__usersv2_useeffect___f09f94');
+    // console.log(t('admin:auto__usersv2_fetchdata___f09f94'), typeof fetchData);
+    // console.log(t('admin:auto__usersv2___f09f94'), { userPermissions, hasPermission: hasPermission('user:view_list') });
+    
     if (hasPermission('user:view_list')) {
+      // console.log(t('admin:auto__usersv2___fetchdata_f09f94');
       fetchData();
+    } else {
+      // console.log(t('admin:auto__usersv2___fetchdata_f09f94');
     }
-  }, []); // 移除fetchData依赖，避免无限循环
+  }, [fetchData, hasPermission, userPermissions]); // 添加 fetchData, hasPermission, userPermissions 作为依赖项
 
   // 调试状态信息
-  console.log('🔍 [UsersV2] 渲染状态:', {
-    dataSourceLength: dataSource.length,
-    loadingData,
-    errorLookups,
-    hasError: !!errorLookups
-  });
+  // console.log(t('admin:auto__usersv2___f09f94'), {
+  //   dataSourceLength: dataSource.length,
+  //   loadingData,
+  //   errorLookups,
+  //   hasError: !!errorLookups
+  // });
 
   return (
     <PermissionGuard requiredPermissions={['user:view_list']} showError={true}>
@@ -285,20 +322,20 @@ const UsersPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的用户吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的用户',
+          buttonText: t('admin:auto_text_e689b9'),
+          confirmTitle: t('admin:auto_text_e7a1ae'),
+          confirmContent: t('admin:auto____e7a1ae'),
+          confirmOkText: t('admin:auto_text_e7a1ae'),
+          confirmCancelText: t('admin:auto_text_e58f96'),
+          successMessage: t('admin:auto_text_e689b9'),
+          errorMessage: t('admin:auto_text_e689b9'),
+          noSelectionMessage: t('admin:auto_text_e8afb7'),
         }}
         exportConfig={{
-          filenamePrefix: '用户管理',
-          sheetName: '用户',
-          buttonText: '导出Excel',
-          successMessage: '用户数据导出成功',
+          filenamePrefix: t('admin:auto_text_e794a8'),
+          sheetName: t('admin:auto_text_e794a8'),
+          buttonText: t('admin:auto_excel_e5afbc'),
+          successMessage: t('admin:auto_text_e794a8'),
         }}
         lookupErrorMessageKey="message.fetch_users_error"
         lookupLoadingMessageKey="user_list_page.loading"

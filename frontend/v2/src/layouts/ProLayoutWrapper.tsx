@@ -48,7 +48,7 @@ const RightContent: React.FC<{
   currentUser: any;
   onLogout: () => void;
 }> = ({ isDark, onThemeChange, currentUser, onLogout }) => {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation(['common', 'components']);
 
   // 🔄 切换语言
   const toggleLanguage = () => {
@@ -150,7 +150,6 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   useEffect(() => {
     // 在小屏幕（md以下）自动收起侧边栏
     const shouldCollapse = !screens.md;
-    console.log('Screen breakpoints:', screens, 'Should collapse:', shouldCollapse);
     setCollapsed(shouldCollapse);
   }, [screens]);
 
@@ -191,7 +190,6 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
 
   // 处理图片加载失败
   const handleLogoError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.log('Logo加载失败，使用文本替代');
     setLogoError(true);
     e.currentTarget.style.display = 'none';
   };
@@ -220,7 +218,6 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     fixSiderbar: true,
     collapsed: collapsed, // 使用响应式的 collapsed 状态
     onCollapse: (value: boolean) => {
-      console.log('ProLayout onCollapse called with:', value);
       setCollapsed(value);
     },
     siderWidth: 220, // 设置合适的侧边栏宽度
@@ -231,9 +228,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
       defaultOpenKeys: ['/hr', '/payroll', '/manager', '/admin', '/organization', '/test', '/personal'],
     },
     menuDataRender: () => {
-      console.log('Rendering menu data:', menuData);
       const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(key));
-      console.log('Transformed menu data:', transformedData);
       return transformedData;
     },
     menuItemRender: (item: MenuDataItem, dom: React.ReactNode) => (
@@ -287,7 +282,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
           width: 32,
           height: 32,
         }}
-        title={collapsed ? t('common:expand_sidebar') : t('common:collapse_sidebar')}
+        title={collapsed ?      t('common:expand_sidebar'): t('common:collapse_sidebar')}
       />
     ),
     footerRender: () => (
@@ -297,7 +292,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
           {!logoError ? (
             <img
               src={hyperchainLogo}
-              alt="趣链科技 Logo"
+              alt={t('common:hyperchain_logo')}
               style={{ height: 16 }}
               onError={handleLogoError}
             />

@@ -2,6 +2,7 @@
 // 由 PayrollBulkImportPage 拆分
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Table, Tooltip, Tag, Typography } from 'antd';
 import type { DynamicTableProps } from './types';
 

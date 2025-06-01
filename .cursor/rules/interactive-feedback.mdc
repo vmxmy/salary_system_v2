@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 Whenever you want to ask a question, always call the MCP interactive_feedback.
 

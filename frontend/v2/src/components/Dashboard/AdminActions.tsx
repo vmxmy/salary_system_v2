@@ -25,16 +25,16 @@ const AdminActions: React.FC = () => {
 
   return (
     <div>
-      <h3>{t('dashboard.admin_actions.panel_title_example')}</h3>
+      <h3>t('dashboard.admin_actions.panel_title_example')</h3>
       <Space direction="vertical">
         {isAdmin && (
           <Button type="primary" danger>
-            {t('dashboard.admin_actions.super_admin_action_example')}
+            t('dashboard.admin_actions.super_admin_action_example')
           </Button>
         )}
         {canCreateUser && (
           <Button type="primary">
-            {t('dashboard.admin_actions.create_user_example')}
+            t('dashboard.admin_actions.create_user_example')
           </Button>
         )}
         {/* Example: A button that requires ALL of multiple permissions */}
@@ -43,7 +43,7 @@ const AdminActions: React.FC = () => {
         )} */}
         {canEditConfig && (
           <Button>
-            {t('dashboard.admin_actions.edit_config_example')}
+            t('dashboard.admin_actions.edit_config_example')
           </Button>
         )}
       </Space>

@@ -103,7 +103,6 @@ const UserListPage: React.FC = () => {
           total: apiResponse.meta?.total || 0,
         }));
       } else {
-        console.error('getUsers response data is not an array or response is invalid:', apiResponse);
         setUsers([]);
         setPagination(prev => ({
           ...prev,
@@ -112,7 +111,6 @@ const UserListPage: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error('获取用户管理失败:', error);
       setUsers([]);
       setPagination(prev => ({
         ...prev,
@@ -132,7 +130,6 @@ const UserListPage: React.FC = () => {
         setAllRoles(rolesResponse.data);
       }
     } catch (error) {
-      console.error("Failed to fetch roles:", error);
       message.error(t('message.fetch_roles_error'));
     }
   };
@@ -181,7 +178,6 @@ const UserListPage: React.FC = () => {
         Object.entries(payloadForApi).filter(([_, v]) => v !== undefined)
       ) as CreateUserPayload;
 
-      console.log("Submitting for create: ", cleanedPayloadForApi);
       const newUser = await createUser(cleanedPayloadForApi);
       
       message.success(t('message.create_user_success', { username: newUser.username }));
@@ -191,7 +187,6 @@ const UserListPage: React.FC = () => {
       fetchUsers();
 
     } catch (error: any) {
-      console.error("创建用户失败:", error);
       const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.create_user_error.default');
       message.error(errorMsg);
     } finally {
@@ -220,7 +215,7 @@ const UserListPage: React.FC = () => {
       // Construct payload based on new fields from UserFormUpdateValues
       const payload: UpdateUserPayload = {
         is_active: values.is_active,
-        role_ids: values.role_ids?.map(id => Number(id)),
+        role_ids: values.role_ids?.map(id => Number(id)) || [],
         employee_first_name: values.employee_first_name,
         employee_last_name: values.employee_last_name,
         employee_id_card: values.employee_id_card,
@@ -248,7 +243,6 @@ const UserListPage: React.FC = () => {
       setIsUserModalOpen(false);
       fetchUsers(); // Refresh with current params
     } catch (error: any) {
-      console.error("更新用户失败:", error);
       let errorMsg = t('message.update_user_error.default');
 
       // Attempt to get detailed message from backend
@@ -304,7 +298,6 @@ const UserListPage: React.FC = () => {
           }));
           fetchUsers();
         } catch (error: any) {
-          console.error("删除用户失败:", error);
           const errorMsg = error.response?.data?.detail || error.response?.data?.error?.message || t('message.delete_user_error.default');
           message.error(errorMsg);
         }
@@ -360,8 +353,8 @@ const UserListPage: React.FC = () => {
       search: false,
       render: (_, record) => (
         record.is_active ? 
-          <Tag color="green">{t('table.value.active')}</Tag> : 
-          <Tag color="red">{t('table.value.inactive')}</Tag>
+          <Tag color="green">t('table.value.active')</Tag> : 
+          <Tag color="red">t('table.value.inactive')</Tag>
       ),
     },
     {
@@ -417,7 +410,7 @@ const UserListPage: React.FC = () => {
             onClick={showCreateUserModal}
             shape="round"
           >
-            {t('user_list_page.button.create_user')}
+            t('user_list_page.button.create_user')
           </Button>
         </Space>
       }
@@ -447,12 +440,12 @@ const UserListPage: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={showCreateUserModal}
             >
-              {t('user_list_page.button.create_user')}
+              t('user_list_page.button.create_user')
             </Button>
           ]}
         />
       <Modal
-        title={editingUser ? t('modal.title.edit_user') : t('modal.title.create_user')}
+        title={editingUser ?      t('modal.title.edit_user'): t('modal.title.create_user')}
         open={isUserModalOpen}
         onCancel={handleUserModalCancel}
         onOk={() => userForm.submit()}
@@ -507,7 +500,7 @@ const UserListPage: React.FC = () => {
           )}
 
           <Typography.Text strong className={styles.formSectionHeader}>
-            {t('form.section.employee_association')}
+            t('form.section.employee_association')
           </Typography.Text>
           <Form.Item
             name="employee_last_name"

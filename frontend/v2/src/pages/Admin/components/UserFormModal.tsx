@@ -55,7 +55,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         setAllRoles(rolesResponse.data);
       }
     } catch (error) {
-      console.error("Failed to fetch roles:", error);
       message.error(t('message.fetch_roles_error'));
     }
   };
@@ -132,10 +131,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
 
       onSuccess();
     } catch (error: any) {
-      console.error('Failed to save user:', error);
       let errorMsg = isEditMode 
-        ? t('message.update_user_error.default')
-        : t('message.create_user_error.default');
+        ? `${t('message.update_user_error.default')}` : `${t('message.create_user_error.default')}`;
 
       // 尝试获取后端详细错误信息
       const backendError = error.response?.data;

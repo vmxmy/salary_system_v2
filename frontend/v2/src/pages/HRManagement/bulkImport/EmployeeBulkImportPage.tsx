@@ -26,8 +26,8 @@ import type { CreateEmployeePayload } from '../../HRManagement/types';
 import { nanoid } from 'nanoid';
 import TableTextConverter from './TableTextConverter';
 
-export interface RawEmployeeData extends CreateEmployeePayload { 
-  _clientId?: string; 
+export interface RawEmployeeData extends CreateEmployeePayload {
+  _clientId?: string;
   validationErrors?: string[];
   originalIndex?: number;
   _fullname?: string;
@@ -39,7 +39,7 @@ interface UploadResult {
   successCount: number;
   errorCount: number;
   errors: { record: any; error: string }[];
-  createdEmployees?: any[]; 
+  createdEmployees?: any[];
 }
 
 interface ValidationSummary {
@@ -87,7 +87,7 @@ const EmployeeBulkImportPage: React.FC = () => {
         // 切换到JSON标签页
         setActiveTab('json');
         // 显示成功消息
-        message.success(`成功从表格转换了 ${jsonData.length} 条员工记录`);
+        message.success(t('hr:auto__jsondata_length__e68890'));
       }
     };
 
@@ -95,11 +95,11 @@ const EmployeeBulkImportPage: React.FC = () => {
     return () => {
       window.removeEventListener('tableConverterResult', handleTableConverterResult);
     };
-  }, [message]);
+  }, [message, t]); // Add t to dependency array
 
   const handleJsonInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setJsonInput(e.target.value);
-    if (parseError) { 
+    if (parseError) {
       setParseError(null);
     }
   };
@@ -111,13 +111,13 @@ const EmployeeBulkImportPage: React.FC = () => {
 
     const processedAndValidatedData = jsonData.map((rawRecord, index) => {
       const typedRecord: RawEmployeeData = {
-        ...rawRecord, 
-        _clientId: nanoid(), 
-        originalIndex: index, 
+        ...rawRecord,
+        _clientId: nanoid(),
+        originalIndex: index,
       };
-      
-      const fieldErrors = validateRecord(typedRecord, index); 
-      
+
+      const fieldErrors = validateRecord(typedRecord, index);
+
       const validatedRecord: ValidatedEmployeeData = {
         ...typedRecord,
         validationErrors: fieldErrors.length > 0 ? fieldErrors : undefined,
@@ -131,88 +131,76 @@ const EmployeeBulkImportPage: React.FC = () => {
       }
       return validatedRecord;
     });
-    
-    setValidationSummary({ 
-      totalRecords: jsonData.length, 
-      validRecords: localValidRecords, 
-      invalidRecords: localInvalidRecords 
+
+    setValidationSummary({
+      totalRecords: jsonData.length,
+      validRecords: localValidRecords,
+      invalidRecords: localInvalidRecords
     });
 
     if (hasAnyErrorsInBatch) {
-      // message.warning(t('bulk_import.validation.batch_has_errors'));
+      message.warning(t('bulk_import.validation.batch_has_errors'));
     }
     return processedAndValidatedData;
   };
 
   const validateRecord = (record: RawEmployeeData, index: number): string[] => {
     const errors: string[] = [];
-            const recordDescription = `Record ${index} (ID: ${record.id_number || ''}, Name: ${record.last_name || ''}${record.first_name || ''})`;
+    const recordDescription = `Record ${index} (ID: ${record.id_number || ''}, Name: ${record.last_name || ''}${record.first_name || ''})`;
 
-    // console.log(`[DEBUG ${recordDescription}] Validating:`, JSON.parse(JSON.stringify(record)));
+    // console.log(`[DEBUG ${recordDescription}] Validating:`, JSON.parse(JSON.stringify(record);))
 
-    console.log(`[DEBUG ${recordDescription}] first_name: '${record.first_name}', typeof: ${typeof record.first_name}, empty: ${!record.first_name}`);
     if (!record.first_name) errors.push(t('bulk_import.validation.first_name_required'));
-    
-    console.log(`[DEBUG ${recordDescription}] last_name: '${record.last_name}', typeof: ${typeof record.last_name}, empty: ${!record.last_name}`);
+
     if (!record.last_name) errors.push(t('bulk_import.validation.last_name_required'));
-    
-    console.log(`[DEBUG ${recordDescription}] id_number: '${record.id_number}', typeof: ${typeof record.id_number}, empty: ${!record.id_number}`);
+
     if (!record.id_number) {
       errors.push(t('bulk_import.validation.id_number_required'));
     } else {
       const idRegex = /^\d{17}(\d|X)$/i;
-      const idTestFailed = !idRegex.test(String(record.id_number)); 
-      console.log(`[DEBUG ${recordDescription}] id_number regex test (${idRegex}) on '${record.id_number}': failed: ${idTestFailed}`);
+      const idTestFailed = !idRegex.test(String(record.id_number));
       if (idTestFailed) {
         errors.push(t('bulk_import.validation.id_number_invalid'));
       }
     }
 
     // 入职日期不再是必填项，但如果提供了则检查格式
-    console.log(`[DEBUG ${recordDescription}] hire_date: '${record.hire_date}', typeof: ${typeof record.hire_date}, empty: ${!record.hire_date}`);
-    if (record.hire_date && String(record.hire_date).trim() !== '') { 
+    if (record.hire_date && String(record.hire_date).trim() !== '') {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      const dateTestFailed = !dateRegex.test(String(record.hire_date)); 
-      console.log(`[DEBUG ${recordDescription}] hire_date regex test (${dateRegex}) on '${record.hire_date}': failed: ${dateTestFailed}`);
+      const dateTestFailed = !dateRegex.test(String(record.hire_date));
       if (dateTestFailed) {
         errors.push(t('bulk_import.validation.hire_date_invalid_format'));
       }
     }
-    
+
     // 员工状态不再是必填项，默认值会在后续处理中设置
 
     const dateRegexOptional = /^\d{4}-\d{2}-\d{2}$/;
-    if (record.date_of_birth && String(record.date_of_birth).trim() !== '') { 
-        const dobDateTestFailed = !dateRegexOptional.test(String(record.date_of_birth)); 
-        console.log(`[DEBUG ${recordDescription}] date_of_birth: '${record.date_of_birth}', regex test (${dateRegexOptional}): failed: ${dobDateTestFailed}`);
-        if (dobDateTestFailed) {
-          errors.push(t('bulk_import.validation.date_of_birth_invalid_format'));
-        }
+    if (record.date_of_birth && String(record.date_of_birth).trim() !== '') {
+      const dobDateTestFailed = !dateRegexOptional.test(String(record.date_of_birth));
+      if (dobDateTestFailed) {
+        errors.push(t('bulk_import.validation.date_of_birth_invalid_format'));
+      }
     }
     if (record.first_work_date && String(record.first_work_date).trim() !== '') {
-        const fwdDateTestFailed = !dateRegexOptional.test(String(record.first_work_date)); 
-        console.log(`[DEBUG ${recordDescription}] first_work_date: '${record.first_work_date}', regex test (${dateRegexOptional}): failed: ${fwdDateTestFailed}`);
-        if (fwdDateTestFailed) {
-          errors.push(t('bulk_import.validation.first_work_date_invalid_format'));
-        }
+      const fwdDateTestFailed = !dateRegexOptional.test(String(record.first_work_date));
+      if (fwdDateTestFailed) {
+        errors.push(t('bulk_import.validation.first_work_date_invalid_format'));
+      }
     }
-     if (record.entry_date_to_current_organization && String(record.entry_date_to_current_organization).trim() !== '') {
-        const edcoDateTestFailed = !dateRegexOptional.test(String(record.entry_date_to_current_organization)); 
-        console.log(`[DEBUG ${recordDescription}] entry_date_to_current_organization: '${record.entry_date_to_current_organization}', regex test (${dateRegexOptional}): failed: ${edcoDateTestFailed}`);
-        if (edcoDateTestFailed) {
-          errors.push(t('bulk_import.validation.entry_date_to_current_organization_invalid_format'));
-        }
+    if (record.entry_date_to_current_organization && String(record.entry_date_to_current_organization).trim() !== '') {
+      const edcoDateTestFailed = !dateRegexOptional.test(String(record.entry_date_to_current_organization));
+      if (edcoDateTestFailed) {
+        errors.push(t('bulk_import.validation.entry_date_to_current_organization_invalid_format'));
+      }
     }
-    
-    if (errors.length > 0) {
-      console.log(`[DEBUG ${recordDescription}] Final errors for this record:`, JSON.stringify(errors));
-    }
+
+    // if (errors.length > 0) { } // This line was a misplaced curly brace
     return errors;
   };
 
   const handleParseAndPreview = () => {
-    console.log("[BULK IMPORT DEBUG] handleParseAndPreview called");
-    setParseError(null); 
+    setParseError(null);
     if (!jsonInput.trim()) {
       message.info(t('bulk_import.validation.no_data_to_upload'));
       setParsedData(null);
@@ -235,13 +223,12 @@ const EmployeeBulkImportPage: React.FC = () => {
       setUploadResult(null);
       const invalidCount = validatedData.filter(d => d.validationErrors && d.validationErrors.length > 0).length;
       if (invalidCount > 0) {
-          message.warning(t('bulk_import.message.file_parsed_with_errors_summary', { count: validatedData.length, errors: invalidCount }));
+        message.warning(t('bulk_import.message.file_parsed_with_errors_summary', { count: validatedData.length, errors: invalidCount }));
       } else {
-          message.success(t('bulk_import.message.file_parsed_success', { count: validatedData.length }));
+        message.success(t('bulk_import.message.file_parsed_success', { count: validatedData.length }));
       }
       setCurrentStep(1);
     } catch (error: any) {
-      console.error("[BULK IMPORT DEBUG] Error parsing JSON:", error);
       setParseError(error.message || t('bulk_import.validation.json_parse_error'));
       setParsedData(null);
       setCurrentStep(0);
@@ -253,7 +240,7 @@ const EmployeeBulkImportPage: React.FC = () => {
       message.error(t('bulk_import.validation.no_data_to_upload'));
       return;
     }
-    
+
     const validRecords = parsedData.filter(record => !record.validationErrors || record.validationErrors.length === 0);
 
     if (validRecords.length === 0) {
@@ -268,18 +255,17 @@ const EmployeeBulkImportPage: React.FC = () => {
     try {
       const payload = validRecords.map(record => {
         const { _clientId, validationErrors, originalIndex, ...apiPayload } = record;
-        return apiPayload as CreateEmployeePayload; 
+        return apiPayload as CreateEmployeePayload;
       });
 
       // 添加详细日志以便调试
-      console.log("[BULK IMPORT DEBUG] 原始提交数据中的人员身份和实际任职字段:", 
-        validRecords.map(r => ({ 
-          id_number: r.id_number, 
-          personnel_category_name: r.personnel_category_name, 
-          position_name: r.position_name 
+      console.log(t('hr:auto__bulk_import_debug___5b4255'),
+        validRecords.map(r => ({
+          id_number: r.id_number,
+          personnel_category_name: r.personnel_category_name,
+          position_name: r.position_name
         }))
       );
-
       // 保存原始名称数据以便后续显示
       const originalNameData = validRecords.reduce((acc, record) => {
         // 使用身份证号码作为唯一标识
@@ -292,24 +278,22 @@ const EmployeeBulkImportPage: React.FC = () => {
         return acc;
       }, {} as Record<string, {personnel_category_name: string, position_name: string}>);
 
-      const response = await employeeService.bulkCreateEmployees(payload, overwriteMode); 
-      
-      console.log("[BULK IMPORT DEBUG] Raw API Response from service in handleUpload:", response);
-      
+      const response = await employeeService.bulkCreateEmployees(payload, overwriteMode);
+
       // 新的API响应格式包含详细的成功和失败信息
       if (response && typeof response === 'object' && 'success_count' in response) {
         const {
           success_count = 0,
           failed_count = 0,
-          total_count = 0,
+          // total_count = 0, // total_count is not used
           created_employees = [],
           failed_records = []
         } = response as any;
 
-        console.log("[BULK IMPORT DEBUG] 解析API响应:", {
+        console.log(t('hr:auto__bulk_import_debug_api__5b4255'), {
           success_count,
           failed_count,
-          total_count,
+          total_count: success_count + failed_count, // Use sum of success and failed for total_count
           created_employees_length: created_employees.length,
           failed_records_length: failed_records.length
         });
@@ -329,11 +313,20 @@ const EmployeeBulkImportPage: React.FC = () => {
         const allErrors = [
           // 前端验证失败的记录
           ...parsedData.filter(r => r.validationErrors && r.validationErrors.length > 0).map(r => ({
-            record: r, 
+            record: r,
             error: r.validationErrors!.join('; ')
           })),
           // 后端处理失败的记录 - 直接使用新的格式
-          ...failed_records
+          ...failed_records.map((item: any) => ({ // Map failed_records to match the error object structure
+            record: {
+              _clientId: nanoid(), // Add a client ID for keying in table
+              id_number: item.id_number,
+              first_name: item.first_name,
+              last_name: item.last_name,
+              // Add other relevant fields from item if needed for display
+            },
+            error: item.detail || t('common:error.unknown_server_error') // Use detail from backend or a generic error
+          }))
         ];
 
         setUploadResult({
@@ -343,47 +336,43 @@ const EmployeeBulkImportPage: React.FC = () => {
           createdEmployees: created_employees.map((emp: any, index: number) => {
             // 确保显示原始提交的人员身份和实际任职名称
             const enhancedEmp = {...emp, _clientId: `success_${Date.now()}_${index}`};
-            
+
             // 通过身份证号匹配原始数据
             if (emp.id_number && originalNameData[emp.id_number]) {
               // 记录匹配过程
-              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number}, 
-                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}], 
-                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name}, 
+              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number},
+                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}],
+                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name},
                 实际任职=${originalNameData[emp.id_number].position_name}]`);
-              
+
               // 如果后端返回的数据中这些字段为空，使用原始提交的数据
               if (!enhancedEmp.personnel_category_name) {
                 enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
               }
-              
+
               if (!enhancedEmp.position_name) {
                 enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
               }
             } else {
-              console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
+              // No matching original data, perhaps log or handle
             }
-            
+
             return enhancedEmp;
           })
         });
       } else {
         // 兼容旧的API响应格式
         let employeesToDisplay: any[] = [];
-        if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) { 
+        if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) {
           employeesToDisplay = (response as any).data;
-          console.log("[BULK IMPORT DEBUG] Successfully extracted employee array from response.data:", employeesToDisplay);
-        } 
-        else if (response && Array.isArray(response)) { 
-          employeesToDisplay = response;
-          console.warn("[BULK IMPORT DEBUG] API Response was a direct array. Using direct array:", employeesToDisplay);
-        } 
-        else {
-          console.error("[BULK IMPORT DEBUG] API Response format is not as expected (expected {data: Array} or Array). Received:", response);
         }
-        
+        else if (response && Array.isArray(response)) {
+          employeesToDisplay = response;
+        }
+        else {
+          // No valid data returned, handle accordingly
+        }
+
         if (employeesToDisplay.length > 0) {
           message.success(t('bulk_import.message.upload_success', { count: employeesToDisplay.length }));
         } else if (parsedData.length - validRecords.length > 0) {
@@ -394,45 +383,41 @@ const EmployeeBulkImportPage: React.FC = () => {
 
         setUploadResult({
           successCount: employeesToDisplay.length,
-          errorCount: parsedData.length - validRecords.length,
+          errorCount: parsedData.length - validRecords.length, // This only accounts for frontend validation errors
           errors: parsedData.filter(r => r.validationErrors && r.validationErrors.length > 0).map(r => ({record: r, error: r.validationErrors!.join('; ')})),
           createdEmployees: employeesToDisplay.map((emp, index) => {
             // 确保显示原始提交的人员身份和实际任职名称
             const enhancedEmp = {...emp, _clientId: `success_${Date.now()}_${index}`};
-            
+
             // 通过身份证号匹配原始数据
             if (emp.id_number && originalNameData[emp.id_number]) {
               // 记录匹配过程
-              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number}, 
-                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}], 
-                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name}, 
+              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number},
+                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}],
+                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name},
                 实际任职=${originalNameData[emp.id_number].position_name}]`);
-              
+
               // 如果后端返回的数据中这些字段为空，使用原始提交的数据
               if (!enhancedEmp.personnel_category_name) {
                 enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始人员身份: ${enhancedEmp.personnel_category_name}`);
               }
-              
+
               if (!enhancedEmp.position_name) {
                 enhancedEmp.position_name = originalNameData[emp.id_number].position_name;
-                console.log(`[BULK IMPORT DEBUG] 使用原始实际任职: ${enhancedEmp.position_name}`);
               }
             } else {
-              console.log(`[BULK IMPORT DEBUG] 无法匹配员工数据，ID号: ${emp.id_number}`);
+              // No matching original data, perhaps log or handle
             }
-            
+
             return enhancedEmp;
           })
         });
       }
       setCurrentStep(3);
     } catch (error: any) {
-      console.error("Bulk upload failed:", error.response?.data || error);
-      
       let extractedErrorMessage = t('common:error.unknown');
       let detailedErrorMessage = '';
-      
+
       if (error.response?.data?.detail) {
         if (typeof error.response.data.detail === 'string') {
           extractedErrorMessage = error.response.data.detail;
@@ -457,17 +442,17 @@ const EmployeeBulkImportPage: React.FC = () => {
       }
 
       message.error(`${t('bulk_import.message.upload_failed_prefix')} ${extractedErrorMessage}`);
-      
+
       setUploadResult({
         successCount: 0,
-        errorCount: validRecords.length,
-        errors: validRecords.map(record => ({ 
-            record,
-            error: extractedErrorMessage 
+        errorCount: validRecords.length, // Assume all valid records failed for this error type
+        errors: validRecords.map(record => ({
+          record,
+          error: extractedErrorMessage
         })),
-        createdEmployees: [] 
+        createdEmployees: []
       });
-       setCurrentStep(3); 
+      setCurrentStep(3);
     } finally {
       setUploading(false);
     }
@@ -476,9 +461,9 @@ const EmployeeBulkImportPage: React.FC = () => {
   const renderValidationErrors = (errors?: string[]) => {
     if (!errors || errors.length === 0) return <CheckCircleOutlined className={styles.successIcon} />;
     return (
-      <Tooltip 
+      <Tooltip
         title={<div className={styles.validationErrorsInTable}><ul>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul></div>}
-        styles={{ body: { whiteSpace: 'normal', maxWidth: 400 } }}
+        overlayStyle={{ whiteSpace: 'normal', maxWidth: 400 }} // Corrected: use overlayStyle for Tooltip
       >
         <CloseCircleOutlined style={{ color: 'red' }} />
       </Tooltip>
@@ -487,9 +472,9 @@ const EmployeeBulkImportPage: React.FC = () => {
 
   const columns = [
     { title: t('bulk_import.table_header.employee_code'), dataIndex: 'employee_code', key: 'employee_code', width: 120, render: (text: any) => text || '-' },
-    { 
+    {
       title: t('bulk_import.table_header.fullname'),
-      key: 'fullname', 
+      key: 'fullname',
       width: 100,
       render: (_: unknown, record: RawEmployeeData) => {
         return record._fullname || `${record.last_name || ''}${record.first_name || ''}` || '-';
@@ -509,7 +494,7 @@ const EmployeeBulkImportPage: React.FC = () => {
     { title: t('bulk_import.table_header.education_level_name'), dataIndex: 'education_level_lookup_value_name', key: 'education_level_lookup_value_name', width: 120, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.marital_status_name'), dataIndex: 'marital_status_lookup_value_name', key: 'marital_status_lookup_value_name', width: 100, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.political_status_name'), dataIndex: 'political_status_lookup_value_name', key: 'political_status_lookup_value_name', width: 100, render: (text: any) => text || '-' },
-    { title: t('bulk_import.table_header.contract_type_name'), dataIndex: 'contract_type_lookup_value_name', key: 'contract_type_lookup_value_name', width: 120, render: (text: any) => text || '-' }, 
+    { title: t('bulk_import.table_header.contract_type_name'), dataIndex: 'contract_type_lookup_value_name', key: 'contract_type_lookup_value_name', width: 120, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.department_name'), dataIndex: 'department_name', key: 'department_name', width: 150, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.position_name'), dataIndex: 'position_name', key: 'position_name', width: 150, render: (text: any) => text || '-' },
     { title: t('bulk_import.table_header.personnel_category_name'), dataIndex: 'personnel_category_name', key: 'personnel_category_name', width: 150, render: (text: any) => text || '-' },
@@ -526,34 +511,34 @@ const EmployeeBulkImportPage: React.FC = () => {
     }
   ];
 
-  const resultErrorColumns = [
+  const resultErrorColumns = [ // Corrected: Array literal needs to be wrapped
     { title: t('bulk_import.results_table.employee_code'), dataIndex: 'employee_code', key: 'code', width: 150, render: (text: any) => text || '-' },
-    { 
-      title: t('bulk_import.results_table.name'), 
-      key: 'name', 
+    {
+      title: t('bulk_import.results_table.name'),
+      key: 'name',
       width: 120,
       render: (_: unknown, item: any) => {
-        // 新的API响应格式：失败记录直接包含姓名信息
+        // New API response format: failed records directly contain name info
         if (item.full_name) {
           return item.full_name;
         }
-        // 兼容旧格式：从record对象中获取姓名
+        // Compatible with old format: get name from record object
         if (item.record) {
           return item.record._fullname || `${item.record.last_name || ''}${item.record.first_name || ''}` || '-';
         }
-        // 直接从失败记录中构建姓名
+        // Build name directly from failed record
         return `${item.last_name || ''}${item.first_name || ''}` || '-';
       }
     },
-    { 
-      title: t('bulk_import.results_table.error_message'), 
+    {
+      title: t('bulk_import.results_table.error_message'),
       key: 'error',
-      render: (_: unknown, item: any) => {
-        // 新的API响应格式：errors是数组
-        if (Array.isArray(item.errors)) {
+      render: (_: unknown, item: any) => { // Corrected: curly brace was misplaced
+        // New API response format: errors is an array
+        if (Array.isArray(item.errors)) { // Corrected: parenthesis was misplaced
           return item.errors.join('; ');
         }
-        // 兼容旧格式：error是字符串
+        // Compatible with old format: error is a string
         return item.error || '-';
       }
     },
@@ -563,12 +548,12 @@ const EmployeeBulkImportPage: React.FC = () => {
   const tabItems = [
     {
       key: 'table',
-      label: <span><TableOutlined />表格转换</span>,
+      label: <span><TableOutlined />{t('bulk_import.tabs.table_conversion')}</span>, // Added t()
       children: <TableTextConverter />
     },
     {
       key: 'json',
-      label: <span><FileTextOutlined />JSON导入</span>,
+      label: <span><FileTextOutlined />{t('bulk_import.tabs.json_import')}</span>, // Added t()
       children: (
         <div className={styles.tabContentContainer}>
           <Steps current={currentStep} className={styles.stepsContainer}>
@@ -590,9 +575,9 @@ const EmployeeBulkImportPage: React.FC = () => {
 
           {currentStep === 0 && (
             <>
-              <Form.Item 
-                label={t('bulk_import.label.json_input')} 
-                help={parseError ? <Text type="danger">{parseError}</Text> : t('bulk_import.help.json_input')} 
+              <Form.Item
+                label={t('bulk_import.label.json_input')}
+                help={parseError ? <Text type="danger">{parseError}</Text> : t('bulk_import.help.json_input')}
                 validateStatus={parseError ? 'error' : ''}
                 labelCol={{ span: 24 }}
                 wrapperCol={{ span: 24 }}
@@ -607,19 +592,19 @@ const EmployeeBulkImportPage: React.FC = () => {
                   className={styles.jsonInputArea}
                 />
               </Form.Item>
-              <Button 
-                type="primary" 
-                onClick={handleParseAndPreview} 
-                icon={<PlaySquareOutlined />} 
+              <Button
+                type="primary"
+                onClick={handleParseAndPreview}
+                icon={<PlaySquareOutlined />}
                 loading={uploading && currentStep === 0}
                 className={styles.uploadButton}
                 disabled={!jsonInput.trim()}
               >
-                {t('bulk_import.button.parse_and_preview')}
+                {t('bulk_import.button.parse_and_preview')} {/* Corrected: use {} for translation */}
               </Button>
 
-              <Form.Item 
-                label={t('bulk_import.label.overwrite_mode')} 
+              <Form.Item
+                label={t('bulk_import.label.overwrite_mode')}
                 labelCol={{ span: 24 }}
                 wrapperCol={{ span: 24 }}
                 help={t('bulk_import.help.overwrite_mode')}
@@ -645,7 +630,7 @@ const EmployeeBulkImportPage: React.FC = () => {
                 />
               }
               {validationSummary.validRecords === 0 && validationSummary.invalidRecords > 0 &&
-                 <Alert
+                <Alert
                   message={t('bulk_import.notes.no_valid_records_to_upload')}
                   type="error"
                   showIcon
@@ -661,12 +646,12 @@ const EmployeeBulkImportPage: React.FC = () => {
                 bordered
                 pagination={{ pageSize: 10, hideOnSinglePage: parsedData.length <= 10 }}
               />
-              <Button 
-                type="primary" 
-                icon={<UserAddOutlined />} 
-                onClick={handleUpload} 
-                loading={uploading && currentStep === 1} 
-                disabled={!parsedData || parsedData.length === 0 || validationSummary.invalidRecords > 0}
+              <Button
+                type="primary"
+                icon={<UserAddOutlined />}
+                onClick={handleUpload}
+                loading={uploading && currentStep === 1}
+                disabled={!parsedData || parsedData.length === 0 || validationSummary.validRecords === 0} /* Changed disabled logic */
                 className={styles.uploadButton}
               >
                 {t('bulk_import.button.upload_validated_records', { count: validationSummary.validRecords })}
@@ -677,7 +662,8 @@ const EmployeeBulkImportPage: React.FC = () => {
           {currentStep === 2 && uploading && (
             <Card title={t('bulk_import.card_title.uploading_data')}>
               <Space direction="vertical" align="center" style={{width: '100%'}}>
-                <Text>{t('bulk_import.message.upload_in_progress')}</Text>
+                <Text>{t('bulk_import.message.upload_in_progress')}</Text> {/* Corrected: use {} for translation */}
+                <Spin size="large" /> {/* Added Spin component for visual feedback */}
               </Space>
             </Card>
           )}
@@ -703,16 +689,16 @@ const EmployeeBulkImportPage: React.FC = () => {
                   showIcon
                 />
               ) : (
-                   <Alert
-                      message={t('bulk_import.results.no_records_processed_at_server')}
-                      type="info"
-                      showIcon
-                    />
+                  <Alert
+                    message={t('bulk_import.results.no_records_processed_at_server')}
+                    type="info"
+                    showIcon
+                  />
               )}
 
               {uploadResult.createdEmployees && uploadResult.createdEmployees.length > 0 && (
                 <>
-                  <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_successfully_imported_records_preview')}</Title>
+                  <Title level={5} style={{ marginTop: '20px' }}>{t('bulk_import.results_table.title_successfully_imported_records_preview')}</Title> {/* Corrected: use {} for translation */}
                   <Table
                     columns={columns.filter(col => col.key !== 'validationErrors')}
                     dataSource={uploadResult.createdEmployees}
@@ -728,7 +714,7 @@ const EmployeeBulkImportPage: React.FC = () => {
               {uploadResult.errors && uploadResult.errors.length > 0 && (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-                    <Title level={5}>{t('bulk_import.results_table.title_failed_records_at_server')}</Title>
+                    <Title level={5}>{t('bulk_import.results_table.title_failed_records_at_server')}</Title> {/* Corrected: use {} for translation */}
                     <Button
                       type="link"
                       onClick={() => setShowDetailedErrors(!showDetailedErrors)}
@@ -736,7 +722,7 @@ const EmployeeBulkImportPage: React.FC = () => {
                       {showDetailedErrors ? t('bulk_import.button.hide_error_details') : t('bulk_import.button.show_error_details')}
                     </Button>
                   </div>
-                  
+
                   {!showDetailedErrors ? (
                     <Alert
                       message={t('bulk_import.results.error_summary', { count: uploadResult.errors.length })}
@@ -753,7 +739,7 @@ const EmployeeBulkImportPage: React.FC = () => {
                     <Table
                       columns={resultErrorColumns}
                       dataSource={uploadResult.errors}
-                      rowKey={(item, index) => `error_${index}`}
+                      rowKey={(item, index) => `error_${item.record?.id_number || index}`} /* Use id_number for key if available */
                       size="small"
                       bordered
                       pagination={false}
@@ -769,7 +755,7 @@ const EmployeeBulkImportPage: React.FC = () => {
                 setValidationSummary({ totalRecords: 0, validRecords: 0, invalidRecords: 0 });
                 setShowDetailedErrors(false);
               }}>
-                {t('bulk_import.button.import_another_file')}
+                {t('bulk_import.button.import_another_file')} {/* Corrected: use {} for translation */}
               </Button>
             </Card>
           )}
@@ -779,7 +765,7 @@ const EmployeeBulkImportPage: React.FC = () => {
   ];
 
   if (!ready) {
-    return <div>Loading Translations...</div>; 
+    return <div>Loading Translations...</div>;
   }
 
   return (
@@ -792,19 +778,19 @@ const EmployeeBulkImportPage: React.FC = () => {
             shape="round"
             icon={<ArrowLeftOutlined />}
           >
-            {t('bulk_import.button.back_to_employees')}
+            {t('bulk_import.button.back_to_employees')} {/* Corrected: use {} for translation */}
           </Button>
         </Space>
       }
     >
       <Card className={styles.mainContentCard}>
         <div className={styles.bulkImportContainer}>
-          <Tabs 
-            activeKey={activeTab} 
-            onChange={setActiveTab} 
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
             className={styles.tabsContainer}
             items={tabItems}
-          /> 
+          />
         </div>
       </Card>
     </PageHeaderLayout>

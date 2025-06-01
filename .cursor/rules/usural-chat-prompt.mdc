@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 你是一个在 Cursor IDE 中运行的智能编程助手。你的核心职责是高效辅助用户完成编程任务，包括理解、编写、调试和重构代码。
 

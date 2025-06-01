@@ -1,114 +1,113 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Button, Input, Space, message, Dropdown, Checkbox, Tooltip, Divider, App, Menu } from 'antd';
+import { Button, Input, Space, Dropdown, Checkbox, Tooltip, Divider, App, Menu } from 'antd';
 import { SearchOutlined, DownloadOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons';
 import type { InputRef } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import Highlighter from 'react-highlight-words';
 import * as XLSX from 'xlsx';
 import type { ColumnsType } from 'antd/es/table';
-import type { CheckboxOptionType } from 'antd/es/checkbox/Group';
 import { useLocalStorage } from 'react-use';
 import { useTranslation } from 'react-i18next';
 
 /**
  * 通用表格增强工具 (TableUtils)
- * 
+ *
  * 提供一套完整的表格增强功能，简化在系统中添加表格搜索、排序、导出和列控制等功能。
- * 
+ *
  * @使用指南
- * 
+ *
  * 1. 搜索与排序:
- *    ```typescript
- *    // 在组件中:
- *    const { getColumnSearch } = useTableSearch();
- *    
- *    // 在列定义中:
- *    const columns = [
- *      {
- *        title: '名称',
- *        dataIndex: 'name',
- *        ...getColumnSearch('name'),
- *        sorter: stringSorter<DataType>('name'),
- *      }
- *    ];
- *    ```
- * 
+ * ```typescript
+ * // 在组件中:
+ * const { getColumnSearch } = useTableSearch();
+ *
+ * // 在列定义中:
+ * const columns = [
+ * {
+ * title: t('components:auto_text_e5908d'),
+ * dataIndex: 'name',
+ * ...getColumnSearch('name'),
+ * sorter: stringSorter<DataType>('name'),
+ * }
+ * ];
+ * ```
+ *
  * 2. 导出Excel:
- *    ```typescript
- *    // 在组件中:
- *    const { ExportButton } = useTableExport(dataSource, columns, {
- *      filename: '导出数据',
- *      sheetName: '工作表1',
- *    });
- *    
- *    // 在组件渲染中:
- *    return (
- *      <>
- *        <ExportButton />
- *        <Table columns={columns} dataSource={dataSource} />
- *      </>
- *    );
- *    ```
- * 
+ * ```typescript
+ * // 在组件中:
+ * const { ExportButton } = useTableExport(dataSource, columns, {
+ * filename: t('components:auto_text_e5afbc'),
+ * sheetName: t('components:auto_1_e5b7a5'),
+ * });
+ *
+ * // 在组件渲染中:
+ * return (
+ * <>
+ * <ExportButton />
+ * <Table columns={columns} dataSource={dataSource} />
+ * </>
+ * );
+ * ```
+ *
  * 3. 列控制:
- *    ```typescript
- *    // 在组件中:
- *    const { visibleColumns, ColumnControl } = useColumnControl(columns, {
- *      storageKeyPrefix: 'my_table',
- *      requiredColumns: ['id', 'actions'],
- *    });
- *    
- *    // 在组件渲染中:
- *    return (
- *      <>
- *        <ColumnControl />
- *        <Table columns={visibleColumns} dataSource={dataSource} />
- *      </>
- *    );
- *    ```
- * 
+ * ```typescript
+ * // 在组件中:
+ * const { visibleColumns, ColumnControl } = useColumnControl(columns, {
+ * storageKeyPrefix: 'my_table',
+ * requiredColumns: ['id', 'actions'],
+ * });
+ *
+ * // 在组件渲染中:
+ * return (
+ * <>
+ * <ColumnControl />
+ * <Table columns={visibleColumns} dataSource={dataSource} />
+ * </>
+ * );
+ * ```
+ *
  * 4. 完整集成示例:
- *    ```typescript
- *    const MyTable = () => {
- *      const { getColumnSearch } = useTableSearch();
- *      
- *      const columns = [
- *        {
- *          title: 'ID',
- *          dataIndex: 'id',
- *          sorter: numberSorter<DataType>('id'),
- *        },
- *        {
- *          title: '名称',
- *          dataIndex: 'name',
- *          ...getColumnSearch('name'),
- *          sorter: stringSorter<DataType>('name'),
- *        },
- *        // 其他列...
- *      ];
- *      
- *      const { ExportButton } = useTableExport(dataSource, columns);
- *      const { visibleColumns, ColumnControl } = useColumnControl(columns);
- *      
- *      return (
- *        <>
- *          <Space>
- *            <ExportButton />
- *            <ColumnControl />
- *          </Space>
- *          <Table 
- *            columns={visibleColumns} 
- *            dataSource={dataSource}
- *            pagination={{ 
- *              showSizeChanger: true, 
- *              showQuickJumper: true,
- *              showTotal: (total) => `共 ${total} 条记录`,
- *            }} 
- *          />
- *        </>
- *      );
- *    };
- *    ```
+ * ```typescript
+ * const MyTable = () => {
+ * const { getColumnSearch } = useTableSearch();
+ *
+ * const columns = [
+ * {
+ * title: 'ID',
+ * dataIndex: 'id',
+ * sorter: numberSorter<DataType>('id'),
+ * },
+ * {
+ * title: t('components:auto_text_e5908d'),
+ * dataIndex: 'name',
+ * ...getColumnSearch('name'),
+ * sorter: stringSorter<DataType>('name'),
+ * },
+ * // 其他列...
+ * ];
+ *
+ * const { ExportButton } = useTableExport(dataSource, columns);
+ * const { visibleColumns, ColumnControl } = useColumnControl(columns);
+ *
+ * return (
+ * <>
+ * <Space>
+ * <ExportButton />
+ * <ColumnControl />
+ * </Space>
+ * <Table
+ * columns={visibleColumns}
+ * dataSource={dataSource}
+ * pagination={{
+ * showSizeChanger: true,
+ * showQuickJumper: true,
+ * showTotal: (total) => t('components:auto__total__e585b1'),
+ * }}
+ * />
+ * </>
+ * );
+ * };
+ * ```
  */
 
 /**
@@ -119,6 +118,7 @@ import { useTranslation } from 'react-i18next';
  * @param searchedColumn 当前搜索的列
  * @param setSearchedColumn 设置当前搜索列的函数
  * @param searchInputRef 搜索输入框的引用
+ * @param translations 翻译文本对象
  * @returns 表格列搜索配置
  */
 export const getColumnSearchProps = <T extends object>(
@@ -136,73 +136,73 @@ export const getColumnSearchProps = <T extends object>(
   }
 ): ColumnType<T> => {
   return {
-  filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-    <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-      <Input
-        ref={searchInputRef as React.RefObject<InputRef>}
-        placeholder={translations.placeholder}
-        value={selectedKeys[0]}
-        onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-        onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex as string, setSearchText, setSearchedColumn)}
-        style={{ marginBottom: 8, display: 'block' }}
-      />
-      <Space>
-        <Button
-          type="primary"
-          onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex as string, setSearchText, setSearchedColumn)}
-          icon={<SearchOutlined />}
-          size="small"
-          style={{ width: 90 }}
-        >
-          {translations.searchButton}
-        </Button>
-        <Button
-          onClick={() => clearFilters && handleReset(clearFilters, setSearchText)}
-          size="small"
-          style={{ width: 90 }}
-        >
-          {translations.resetButton}
-        </Button>
-        <Button
-          type="link"
-          size="small"
-          onClick={() => {
-            confirm();
-            close();
-          }}
-        >
-          {translations.closeButton}
-        </Button>
-      </Space>
-    </div>
-  ),
-  filterIcon: (filtered: boolean) => (
-    <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
-  ),
-  onFilter: (value, record) => {
-    const recordValue = record[dataIndex];
-    return recordValue
-      ? String(recordValue).toLowerCase().includes((value as string).toLowerCase())
-      : false;
-  },
-  filterDropdownProps: {
-    onOpenChange: (visible: boolean) => {
-      if (visible) {
-        setTimeout(() => searchInputRef.current?.select(), 100);
-      }
-    },
-  },
-  render: (text) =>
-    searchedColumn === dataIndex as string ? (
-      <Highlighter
-        highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-        searchWords={[searchText]}
-        autoEscape
-        textToHighlight={text ? text.toString() : ''}
-      />
-    ) : (
-      text
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInputRef as React.RefObject<InputRef>}
+          placeholder={translations.placeholder}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex as string, setSearchText, setSearchedColumn)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex as string, setSearchText, setSearchedColumn)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            {translations.searchButton}
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters, setSearchText)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            {translations.resetButton}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm();
+              close();
+            }}
+          >
+            {translations.closeButton}
+          </Button>
+        </Space>
+      </div>
     ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value, record) => {
+      const recordValue = record[dataIndex];
+      return recordValue
+        ? String(recordValue).toLowerCase().includes((value as string).toLowerCase())
+        : false;
+    },
+    filterDropdownProps: {
+      onOpenChange: (visible: boolean) => {
+        if (visible) {
+          setTimeout(() => searchInputRef.current?.select(), 100);
+        }
+      },
+    },
+    render: (text) =>
+      searchedColumn === dataIndex as string ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ''}
+        />
+      ) : (
+        text
+      ),
   };
 };
 
@@ -240,21 +240,21 @@ export const useTableSearch = () => {
   const [searchText, setSearchText] = useState<string>('');
   const [searchedColumn, setSearchedColumn] = useState<string>('');
   const searchInput = useRef<InputRef>(null);
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation(['common', 'components']);
 
-  const getColumnSearch = <T extends object>(dataIndex: keyof T): ColumnType<T> => 
+  const getColumnSearch = <T extends object>(dataIndex: keyof T): ColumnType<T> =>
     getColumnSearchProps<T>(
-      dataIndex, 
-      searchText, 
-      setSearchText, 
-      searchedColumn, 
-      setSearchedColumn, 
+      dataIndex,
+      searchText,
+      setSearchText,
+      searchedColumn,
+      setSearchedColumn,
       searchInput,
       {
-        placeholder: t('common:search.placeholder', `搜索${String(dataIndex)}`),
-        searchButton: t('common:button.search', '搜索'),
-        resetButton: t('common:button.reset', '重置'),
-        closeButton: t('common:button.close', '关闭'),
+        placeholder: t('common:search.placeholder', 'Search...'),
+        searchButton: t('common:button.search', 'Search'),
+        resetButton: t('common:button.reset', 'Reset'),
+        closeButton: t('common:button.close', 'Close'),
       }
     );
 
@@ -272,8 +272,7 @@ export const useTableSearch = () => {
  * 表格数据导出功能
  * @param dataSource 表格数据源
  * @param columns 表格列配置
- * @param filename 导出的文件名（不含扩展名）
- * @param sheetName 工作表名称
+ * @param options 导出选项
  * @returns 导出相关函数和组件
  */
 export interface ExportOptions {
@@ -306,27 +305,27 @@ const getFormatLabel = (format: ExportFormat, t: (key: string, defaultText: stri
     default:
       // Type safety: this should not be reached if ExportFormat is exhaustive
       const _exhaustiveCheck: never = format;
-      return String(_exhaustiveCheck).toUpperCase(); 
+      return String(_exhaustiveCheck).toUpperCase();
   }
 };
 
 export const useTableExport = <T extends object>(
   // dataSource 和 columns 变为可选，因为服务器端导出时不需要它们
-  dataSource?: T[], 
+  dataSource?: T[],
   columns?: ColumnsType<T>,
   options?: ExportOptions
 ) => {
+  const { message } = App.useApp();
   const { t } = useTranslation(['common']);
-  const { message } = App.useApp(); // Use message from App.useApp()
-  
+
   const defaultOptions: Omit<Required<ExportOptions>, 'onExportRequest'> & { onExportRequest?: (format: ExportFormat) => void } = {
-    filename: t('common:export.filename', '导出数据'),
-    sheetName: t('common:export.sheetName', 'Sheet1'),
+    filename: t('common:export.filename_default', 'export'), // Adjusted translation key with fallback
+    sheetName: t('common:export.sheetName_default', 'Sheet1'), // Adjusted translation key with fallback
     withHeader: true,
-    buttonText: t('common:button.export_excel', '导出Excel'),
-    successMessage: t('common:export.success_message', '导出成功'),
+    buttonText: t('common:button.export_excel', 'Export Excel'),
+    successMessage: t('common:export.success_message', 'Export successful!'),
     supportedFormats: ['excel'],
-    dropdownButtonText: t('common:button.export', '导出'),
+    dropdownButtonText: t('common:button.export', 'Export'),
     onExportRequest: undefined, // Explicitly undefined initially
   };
 
@@ -334,7 +333,7 @@ export const useTableExport = <T extends object>(
 
   const clientExportToExcel = () => {
     if (!dataSource || !columns) {
-      message.error(t('common:export.error_no_data_for_client_export', '客户端导出缺少数据或列定义'));
+      message.error(t('common:export.error_no_data_for_client_export', 'No data or columns available for client-side export.'));
       return;
     }
     try {
@@ -364,8 +363,7 @@ export const useTableExport = <T extends object>(
       XLSX.writeFile(workbook, `${mergedOptions.filename}.xlsx`);
       message.success(mergedOptions.successMessage);
     } catch (error) {
-      console.error(t('common:export.error_log', '导出Excel失败:'), error);
-      message.error(t('common:export.error_message', '导出失败，请重试'));
+      message.error(t('common:export.error_message', 'Export failed.'));
     }
   };
 
@@ -377,19 +375,15 @@ export const useTableExport = <T extends object>(
       } else if (format === 'excel') {
         clientExportToExcel();
       } else {
-        message.warning(t('common:export.warn_no_handler', `未处理的导出格式: ${format}`), );
+        message.warning(t('common:export.warn_no_handler', 'No handler available for this export format.'));
       }
     };
 
-    const menu = (
-      <Menu onClick={handleMenuClick}>
-        {mergedOptions.supportedFormats.map(format => (
-          <Menu.Item key={format}>
-            {getFormatLabel(format, t)}
-          </Menu.Item>
-        ))}
-      </Menu>
-    );
+    // 直接创建符合 Ant Design Dropdown 菜单项类型 (ItemType[]) 的数组
+    const menuItems = mergedOptions.supportedFormats.map(format => ({
+      key: format,
+      label: getFormatLabel(format, t),
+    }));
 
     const exportCallback = mergedOptions.onExportRequest; // Store in a variable for type guarding
     const hasExportCallback = typeof exportCallback === 'function';
@@ -399,23 +393,23 @@ export const useTableExport = <T extends object>(
 
     if (shouldUseDropdown) {
       return (
-        <Dropdown overlay={menu}>
+        <Dropdown menu={{ items: menuItems }} trigger={['click']}> {/* Correct usage of menu prop */}
           <Button shape="round" type="default">
             {mergedOptions.dropdownButtonText} <DownOutlined />
           </Button>
         </Dropdown>
       );
-    } 
-    
+    }
+
     const singleFormatToExport = mergedOptions.supportedFormats[0];
-    const singleButtonText = singleFormatServerExport 
-        ? getFormatLabel(singleFormatToExport, t)
-        : (singleFormatToExport === 'excel' && !hasExportCallback) 
-            ? mergedOptions.buttonText 
-            : getFormatLabel(singleFormatToExport, t); 
+    const singleButtonText = singleFormatServerExport
+      ? getFormatLabel(singleFormatToExport, t)
+      : (singleFormatToExport === 'excel' && !hasExportCallback)
+        ? mergedOptions.buttonText
+        : getFormatLabel(singleFormatToExport, t);
 
     return (
-      <Tooltip title={singleButtonText || t('common:tooltip.export_data', '导出数据')}>
+      <Tooltip title={singleButtonText || t('common:tooltip.export_data', 'Export Data')}>
         <Button
           icon={<DownloadOutlined />}
           onClick={() => {
@@ -424,7 +418,7 @@ export const useTableExport = <T extends object>(
             } else if (singleFormatToExport === 'excel' && !hasExportCallback) { // Ensure it's client export
               clientExportToExcel();
             } else {
-               message.warning(t('common:export.warn_no_handler', `未处理的导出格式: ${singleFormatToExport}`), );
+              message.warning(t('common:export.warn_no_handler', 'No handler available for this export format.'));
             }
           }}
           shape="round"
@@ -458,31 +452,31 @@ export const getColumnSorterProps = <T extends object>(
 /**
  * 为数字类型字段创建排序器
  */
-export const numberSorter = <T extends object>(dataIndex: keyof T) => 
+export const numberSorter = <T extends object>(dataIndex: keyof T) =>
   (a: T, b: T) => {
     const aVal = a[dataIndex];
     const bVal = b[dataIndex];
-    return typeof aVal === 'number' && typeof bVal === 'number' 
-      ? aVal - bVal 
+    return typeof aVal === 'number' && typeof bVal === 'number'
+      ? aVal - bVal
       : 0;
   };
 
 /**
  * 为字符串类型字段创建排序器
  */
-export const stringSorter = <T extends object>(dataIndex: keyof T) => 
+export const stringSorter = <T extends object>(dataIndex: keyof T) =>
   (a: T, b: T) => {
     const aVal = a[dataIndex];
     const bVal = b[dataIndex];
-    return typeof aVal === 'string' && typeof bVal === 'string' 
-      ? aVal.localeCompare(bVal) 
+    return typeof aVal === 'string' && typeof bVal === 'string'
+      ? aVal.localeCompare(bVal)
       : 0;
   };
 
 /**
  * 为日期类型字段创建排序器
  */
-export const dateSorter = <T extends object>(dataIndex: keyof T) => 
+export const dateSorter = <T extends object>(dataIndex: keyof T) =>
   (a: T, b: T) => {
     const aVal = a[dataIndex];
     const bVal = b[dataIndex];
@@ -495,7 +489,7 @@ export const dateSorter = <T extends object>(dataIndex: keyof T) =>
 /**
  * 表格列控制钩子，允许用户选择显示或隐藏列
  * @param allColumns 所有可用的列
- * @param storageKey 本地存储的键名，用于保存用户的列选择
+ * @param options 列控制选项
  * @returns 当前显示的列和控制列显示的组件
  */
 export interface ColumnControlOptions {
@@ -519,16 +513,16 @@ export const useColumnControl = <T extends object>(
   allColumns: ColumnsType<T>,
   options?: ColumnControlOptions
 ) => {
-  const { t } = useTranslation(['common']);
   const { message } = App.useApp();
-  
+  const { t } = useTranslation(['common']);
+
   const defaultOptions: ColumnControlOptions = {
     storageKeyPrefix: 'table_columns',
     showReset: true,
-    buttonText: t('common:column_control.button_text', '列设置'),
-    tooltipTitle: t('common:column_control.tooltip_title', '自定义显示列'),
-    dropdownTitle: t('common:column_control.dropdown_title', '列显示'),
-    resetText: t('common:button.reset', '重置'),
+    buttonText: t('common:column_control.button_text', 'Column Settings'),
+    tooltipTitle: t('common:column_control.tooltip_title', 'Configure Visible Columns'),
+    dropdownTitle: t('common:column_control.dropdown_title', 'Select Columns'),
+    resetText: t('common:button.reset', 'Reset'),
     requiredColumns: [],
   };
 
@@ -560,41 +554,30 @@ export const useColumnControl = <T extends object>(
 
   // 获取所有列的key
   const allColumnKeys = allColumns.map((col, index) => getColumnKey(col, index));
-  
+
   // 获取必须显示的列键名
   const requiredColumnKeys = mergedOptions.requiredColumns || [];
-  
+
   // 从本地存储加载用户的列选择
   const [visibleColumnKeys, setVisibleColumnKeys] = useLocalStorage<string[]>(
     storageKey,
     allColumnKeys
   );
 
-  // 添加调试日志
-  useEffect(() => {
-    console.log('TableUtils: Column Control Debug Info', {
-      storageKey,
-      allColumnKeys,
-      requiredColumnKeys,
-      visibleColumnKeys: visibleColumnKeys || allColumnKeys
-    });
-  }, [storageKey, allColumnKeys, requiredColumnKeys, visibleColumnKeys]);
-
   // 确保visibleColumnKeys存在，如果不存在则使用所有列
   const safeVisibleColumnKeys = visibleColumnKeys || allColumnKeys;
-  
+
   // 计算当前应该显示的列
   const visibleColumns = allColumns.filter((col, index) => {
     // 获取列的唯一标识
     const colKey = getColumnKey(col, index);
-    
+
     // 如果是必须显示的列，或者在可见列列表中，则显示
     return requiredColumnKeys.includes(colKey) || safeVisibleColumnKeys.includes(colKey);
   });
 
   // 列选项组件
   const ColumnControl: React.FC = () => {
-    const { t } = useTranslation(['common']);
     const [selectedKeys, setSelectedKeys] = useState<string[]>(safeVisibleColumnKeys);
     const [tempSelectedKeys, setTempSelectedKeys] = useState<string[]>(safeVisibleColumnKeys);
 
@@ -609,35 +592,20 @@ export const useColumnControl = <T extends object>(
     };
 
     const handleApply = () => {
-      console.log('TableUtils: Applying column settings', {
-        tempSelectedKeys,
-        allColumnKeys,
-        requiredColumnKeys
-      });
-      
       // 确保至少有一列被选中，如果全部取消，则恢复所有列
       const keysToSave = tempSelectedKeys.length > 0 ? tempSelectedKeys : allColumnKeys;
-      
+
       setSelectedKeys(keysToSave);
       setVisibleColumnKeys(keysToSave);
-      
-      // 在下一个微任务中再次记录最终保存的列状态
-      setTimeout(() => {
-        console.log('TableUtils: Saved column settings', {
-          storageKey,
-          savedKeys: keysToSave,
-          storageKeys: window.localStorage.getItem(storageKey)
-        });
-      }, 0);
-      
-      message.success(t('common:message.column_settings_applied', '列设置已应用'));
+
+      message.success(t('common:message.column_settings_applied', 'Column settings applied successfully!'));
     };
 
     const handleReset = () => {
       setSelectedKeys(allColumnKeys);
       setTempSelectedKeys(allColumnKeys);
       setVisibleColumnKeys(allColumnKeys);
-      message.success(t('common:message.column_settings_reset', '列设置已重置'));
+      message.success(t('common:message.column_settings_reset', 'Column settings reset to default.'));
     };
 
     const stopPropagation = (e: React.MouseEvent) => {
@@ -654,7 +622,7 @@ export const useColumnControl = <T extends object>(
               options={allColumns.map((col, index) => {
                 // 获取列的唯一标识，与上面相同的逻辑
                 const colKey = getColumnKey(col, index);
-                
+
                 return {
                   label: col.title as React.ReactNode,
                   value: colKey,
@@ -674,7 +642,7 @@ export const useColumnControl = <T extends object>(
                 </Button>
               )}
               <Button type="primary" size="small" onClick={handleApply}>
-                {t('common:button.apply', '应用')}
+                {t('common:button.apply', 'Apply')}
               </Button>
             </Space>
           </div>
@@ -684,10 +652,10 @@ export const useColumnControl = <T extends object>(
 
     return (
       <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
-        <Tooltip title={mergedOptions.tooltipTitle || t('common:tooltip.column_settings', '列设置')}> 
-          <Button 
-            icon={<SettingOutlined />} 
-            shape="round" 
+        <Tooltip title={mergedOptions.tooltipTitle || t('common:tooltip.column_settings', 'Column Settings')}>
+          <Button
+            icon={<SettingOutlined />}
+            shape="round"
             type="default"
           >
             {mergedOptions.buttonText}
@@ -705,7 +673,6 @@ export const useColumnControl = <T extends object>(
     clearColumnStorage: () => {
       window.localStorage.removeItem(storageKey);
       setVisibleColumnKeys(allColumnKeys);
-      console.log(`清除了列设置本地存储: ${storageKey}`);
     }
   };
-}; 
+};

@@ -239,12 +239,10 @@ const MyInfoPage: React.FC = () => {
               <Title level={4} className={styles.overviewName}>
                 <EmployeeName employeeId={employee.id} showId={false} />
               </Title>
-              <Text type="secondary" className={styles.overviewId}>
-                {t('myInfo:employeeIdLabel', 'Employee ID')}: {employee.employee_code || employee.id}
+              <Text type="secondary" className={styles.overviewId}>      t('myInfo:employeeIdLabel', 'Employee ID'): {employee.employee_code || employee.id}
               </Text>
               {currentUserForDisplay?.username && (
-                 <Text type="secondary" className={styles.overviewUsername}>
-                   {t('myInfo:usernameLabel', 'Username')}: {currentUserForDisplay.username}
+                 <Text type="secondary" className={styles.overviewUsername}>      {t('myInfo:usernameLabel', 'Username')}: {currentUserForDisplay.username}
                  </Text>
               )}
             </div>

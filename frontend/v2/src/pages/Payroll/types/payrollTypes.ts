@@ -125,7 +125,7 @@ export interface LookupValue {
   lookup_type_id?: number;
   lookup_type_code?: string;
   code: string;            // 例如：'ACTIVE', 'CLOSED'
-  name: string;            // 显示名称，例如：'活动', '已关闭'
+  name: string;            // 显示名称，例如：t('payroll:auto_text_e6b4bb'), t('payroll:auto_text_e5b7b2')
   display_name?: string;   // 显示名称，兼容性属性
   description?: string;    // 描述
   sort_order?: number;     // 排序顺序

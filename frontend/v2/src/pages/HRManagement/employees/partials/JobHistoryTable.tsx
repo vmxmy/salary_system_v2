@@ -34,15 +34,15 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
 
   const columns: ProColumns<JobHistoryItem>[] = [
     {
-      title: t('employee:detail_page.job_history_tab.table.column_start_date', '生效日期'),
+      title: t('employee:detail_page.job_history_tab.table.column_start_date'),
       dataIndex: 'effectiveDate',
       key: 'effectiveDate',
       sorter: (a, b) => dayjs(a.effectiveDate).unix() - dayjs(b.effectiveDate).unix(),
-      render: (_, record) => dayjs(record.effectiveDate).isValid() ? dayjs(record.effectiveDate).format('YYYY-MM-DD') : naText,
+      render: (_, record) => dayjs(record.effectiveDate).isValid() ? dayjs(record.effectiveDate).format('YYYY-MM-DD'): naText,
       width: 120,
     },
     {
-      title: t('employee:detail_page.job_history_tab.table.column_department', '部门'),
+      title: t('employee:detail_page.job_history_tab.table.column_department'),
       dataIndex: 'department_id',
       key: 'department_id',
       sorter: (a, b) => {
@@ -54,7 +54,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       width: 150,
     },
     {
-      title: t('employee:detail_page.job_history_tab.table.column_job_title', '职位'),
+      title: t('employee:detail_page.job_history_tab.table.column_job_title'),
       dataIndex: 'personnel_category_id',
       key: 'personnel_category_id',
       sorter: (a, b) => {
@@ -66,7 +66,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       width: 150,
     },
     {
-      title: t('employee:detail_page.job_history_tab.table.column_employment_type', '雇佣类型'),
+      title: t('employee:detail_page.job_history_tab.table.column_employment_type'),
       dataIndex: 'employment_type_lookup_value_id',
       key: 'employment_type_lookup_value_id',
       valueType: 'select',
@@ -80,7 +80,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       width: 130,
     },
     {
-      title: t('employee:detail_page.job_history_tab.table.column_salary', '薪资'),
+      title: t('employee:detail_page.job_history_tab.table.column_salary'),
       dataIndex: 'salary',
       key: 'salary',
       sorter: (a, b) => (a.salary || 0) - (b.salary || 0),
@@ -89,7 +89,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       width: 100,
     },
     {
-      title: t('common:label.remarks', '备注'),
+      title: t('common:label.remarks'),
       dataIndex: 'remarks',
       key: 'remarks',
       ellipsis: true,
@@ -99,7 +99,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
 
   if (canEditJobHistory || canDeleteJobHistory) {
     columns.push({
-      title: t('common:label.actions', '操作'),
+      title: t('common:label.actions'),
       key: 'action',
       align: 'center',
       width: 100,
@@ -110,20 +110,20 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
             <TableActionButton
               actionType="edit"
               onClick={() => onEdit(record)}
-              tooltipTitle={t('employee:detail_page.job_history_tab.tooltip_edit_history_param', `编辑岗位历史 (ID: ${record.id})`, { id: record.id })}
+              tooltipTitle={t('employee:detail_page.job_history_tab.tooltip_edit_history_param', { id: record.id })}
             />
           )}
           {canDeleteJobHistory && (
             <Popconfirm
-              title={t('employee:detail_page.job_history_tab.delete_confirm.content_table', '确定删除这条岗位历史记录吗?')}
+              title={t('employee:detail_page.job_history_tab.delete_confirm.content_table')}
               onConfirm={() => onDelete(record.id)}
-              okText={t('common:button.confirm', '确定')}
-              cancelText={t('common:button.cancel', '取消')}
+              okText={t('common:button.confirm')}
+              cancelText={t('common:button.cancel')}
             >
               <TableActionButton
                 actionType="delete"
                 danger
-                tooltipTitle={t('employee:detail_page.job_history_tab.tooltip_delete_history_param', `删除岗位历史 (ID: ${record.id})`, { id: record.id })}
+                tooltipTitle={t('employee:detail_page.job_history_tab.tooltip_delete_history_param', { id: record.id })}
               />
             </Popconfirm>
           )}
@@ -144,7 +144,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       enableAdvancedFeatures={true}
       showToolbar={true}
       search={false}
-      title={t('employee:detail_page.job_history_tab.table_title', '工作历史记录')}
+      title={t('employee:detail_page.job_history_tab.table_title')}
     />
   );
 };

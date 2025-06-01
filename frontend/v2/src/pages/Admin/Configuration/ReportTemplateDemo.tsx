@@ -159,7 +159,6 @@ const ReportTemplateDemo: React.FC = () => {
   const saveTemplateConfig = async () => {
     try {
       // 这里应该调用实际的API来保存模板配置
-      console.log('保存模板配置:', templateConfig);
       message.success('模板配置保存成功');
     } catch (error) {
       message.error('保存失败');

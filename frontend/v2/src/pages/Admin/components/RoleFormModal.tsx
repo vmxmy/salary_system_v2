@@ -41,7 +41,6 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
       const permissionsArray = await apiGetPermissions();
       setAllPermissions(permissionsArray || []);
     } catch (error) {
-      console.error("Failed to fetch permissions:", error);
       message.error(t('message.fetch_permissions_error'));
       setAllPermissions([]);
     }
@@ -110,11 +109,9 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
 
       onSuccess();
     } catch (error: any) {
-      console.error("Role operation failed:", error);
       
       let errorToDisplay: string = isEditMode 
-        ? t('message.update_role_error') 
-        : t('message.create_role_error'); 
+        ? `${t('message.update_role_error')}` : `${t('message.create_role_error')}`; 
 
       if (error.response?.data) {
         const serverErrorData = error.response.data;
@@ -147,7 +144,6 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
 
         // For 500 errors, also log the full response data for easier debugging
         if (error.response.status === 500) {
-          console.error("Server 500 error response data:", serverErrorData);
         }
       }
       message.error(errorToDisplay);
@@ -159,8 +155,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
   return (
     <Modal
       title={isEditMode 
-        ? t('modal.role_form.title.edit') 
-        : t('modal.role_form.title.create')}
+        ? t('modal.role_form.title.edit') : t('modal.role_form.title.create')}
       open={visible}
       onOk={() => form.submit()}
       onCancel={onClose}
@@ -174,7 +169,6 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
         name="roleForm"
         onFinish={handleFinish}
         onValuesChange={(changedValues, allValues) => {
-          console.log('Form values changed by Transfer:', changedValues, allValues);
         }}
       >
         <Form.Item

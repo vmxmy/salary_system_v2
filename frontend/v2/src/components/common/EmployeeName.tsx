@@ -67,7 +67,6 @@ const EmployeeName: React.FC<EmployeeNameProps> = ({
           setName(employeeCacheService.getEmployeeFullName(employee));
         }
       } catch (error) {
-        console.error(`Error fetching employee ${idString}:`, error);
       } finally {
         setLoading(false);
       }

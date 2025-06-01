@@ -44,7 +44,6 @@ const RoleListPage: React.FC = () => {
       const apiResponse = await getRoles(); 
       setRoles(apiResponse.data || []); 
     } catch (error) {
-      console.error("Failed to fetch roles:", error);
       message.error(t('message.fetch_roles_error'));
       setRoles([]); 
     }
@@ -89,7 +88,6 @@ const RoleListPage: React.FC = () => {
       const permissionsArray = await apiGetPermissions(); // No arguments needed
       setAllPermissions(permissionsArray || []); // Directly use the returned array
     } catch (error) {
-      console.error("Failed to fetch permissions:", error);
       message.error(t('message.fetch_permissions_error'));
       setAllPermissions([]);
     }
@@ -114,10 +112,8 @@ const RoleListPage: React.FC = () => {
   };
 
   const handleFormSubmit = async (values: RoleFormValues) => {
-    console.log('Form submitted with raw values:', values); // Log raw form values
     setModalLoading(true);
     const submissionPermissionIds = selectedPermissions.map(idStr => parseInt(idStr, 10));
-    console.log('Submission permission IDs (numbers):', submissionPermissionIds); // Log numeric IDs
 
     try {
       if (editingRole) {
@@ -130,7 +126,6 @@ const RoleListPage: React.FC = () => {
           Object.entries(payload).filter(([_, v]) => v !== undefined)
         ) as UpdateRolePayload;
         
-        console.log('Cleaned payload to be sent to API:', cleanedPayload); // Log the payload
         await updateRole(editingRole.id, cleanedPayload);
         message.success(t('message.update_role_success'));
       } else {
@@ -152,11 +147,9 @@ const RoleListPage: React.FC = () => {
       form.resetFields();
       fetchRoles(); // Refresh the roles list
     } catch (error: any) {
-      console.error("Role operation failed:", error);
       
       let errorToDisplay: string = editingRole 
-        ? t('message.update_role_error') 
-        : t('message.create_role_error'); 
+        ? t('message.update_role_error'): t('message.create_role_error'); 
 
       if (error.response?.data) {
         const serverErrorData = error.response.data;
@@ -190,7 +183,6 @@ const RoleListPage: React.FC = () => {
 
         // For 500 errors, also log the full response data for easier debugging
         if (error.response.status === 500) {
-          console.error("Server 500 error response data:", serverErrorData);
         }
       }
       message.error(errorToDisplay);
@@ -204,7 +196,6 @@ const RoleListPage: React.FC = () => {
       message.success(t('message.delete_role_success'));
       fetchRoles();
     } catch (error: any) {
-      console.error("Failed to delete role:", error);
       const errorMsg = error.response?.data?.detail || t('message.delete_role_error');
       message.error(errorMsg);
     }
@@ -297,7 +288,7 @@ const RoleListPage: React.FC = () => {
             onClick={showCreateModal}
             shape="round"
           >
-            {t('button.create_role')}
+            t('button.create_role')
           </Button>
         </Space>
       }
@@ -325,15 +316,14 @@ const RoleListPage: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={showCreateModal}
             >
-              {t('button.create_role')}
+              t('button.create_role')
             </Button>
           ]}
         />
       </div>
       <Modal
         title={editingRole 
-          ? t('modal.role_form.title.edit') 
-          : t('modal.role_form.title.create')}
+          ? t('modal.role_form.title.edit'): t('modal.role_form.title.create')}
         open={isModalOpen}
         onOk={form.submit}
         onCancel={handleModalCancel}
@@ -347,7 +337,6 @@ const RoleListPage: React.FC = () => {
           name="roleForm"
           onFinish={handleFormSubmit}
           onValuesChange={(changedValues, allValues) => {
-            console.log('Form values changed by Transfer:', changedValues, allValues);
           }}
         >
           <Form.Item

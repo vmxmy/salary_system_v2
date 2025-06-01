@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RouterProvider, type createBrowserRouter } from 'react-router-dom';
 import { App } from 'antd';
 import { useAuthStore } from './store/authStore';
@@ -96,7 +97,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
           }, 100);
           
         } catch (error) {
-          console.error('批量加载 HR lookups 失败:', error);
         }
       };
       
@@ -138,14 +138,12 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     );
 
     if (chatbotIsLoading) {
-      console.log('[AppWrapper-Redux-DEBUG] Chatbot config is loading, deferring script management.');
       return;
     }
 
     const scriptIdToUse = chatbotConfigToken || 'dify-chatbot-default-id';
 
     const cleanupChatbotElements = () => {
-      console.log(`[AppWrapper-Redux-DEBUG] cleanupChatbotElements called for scriptId: ${scriptIdToUse}.`);
       const existingScript = document.getElementById(scriptIdToUse);
       if (existingScript) existingScript.remove();
       const existingConfigScript = document.getElementById('dify-chatbot-config');
@@ -161,7 +159,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     };
 
     if (chatbotIsEnabled && chatbotIsConfigured && chatbotConfigToken && DIFY_EMBED_SCRIPT_SRC && DIFY_EMBED_SCRIPT_SRC.trim() !== '') {
-      console.log('[AppWrapper-Redux-DEBUG] Conditions met: Injecting chatbot script and config.');
       cleanupChatbotElements();
 
       const configScript = document.createElement('script');
@@ -204,13 +201,8 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       embedScript.id = scriptIdToUse;
       embedScript.defer = true;
       embedScript.onload = () => {
-        console.log(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}) LOADED successfully.`);
-        console.log('[AppWrapper-Redux-DEBUG] window.difyChatbotConfig on embed script load:', (window as any).difyChatbotConfig);
-        console.log('[AppWrapper-Redux-DEBUG] Checking for Dify API on window (e.g., window.Dify):', (window as any).Dify);
-        console.log('[AppWrapper-Redux-DEBUG] Checking for Dify Chatbot instance (e.g., window.difyChatbot):', (window as any).difyChatbot);
       };
       embedScript.onerror = () => {
-        console.error(`[AppWrapper-Redux-DEBUG] Chatbot embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}) FAILED to load.`);
       };
       document.head.appendChild(embedScript);
       // console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}).`);

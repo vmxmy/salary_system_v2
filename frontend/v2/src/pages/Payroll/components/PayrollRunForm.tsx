@@ -52,18 +52,16 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
   loading: externalLoading = false,
   isEditMode = false, // Currently not differentiating much for edit mode
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['payroll_runs', 'common']);
   const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>([]);
   const [loadingPeriods, setLoadingPeriods] = useState<boolean>(true);
   const [periodsError, setPeriodsError] = useState<string | null>(null);
 
   const fetchPeriodsForSelect = useCallback(async () => {
-    console.log('[PayrollRunForm] 📡 fetchPeriodsForSelect started');
     setLoadingPeriods(true);
     setPeriodsError(null);
     try {
       // Fetch all active/open periods, or a reasonable subset for selection
-      console.log('[PayrollRunForm] 📡 Making API request to getPayrollPeriods with size: 100');
       const response = await getPayrollPeriods({ size: 100 }); // 符合后端API限制
       console.log('[PayrollRunForm] ✅ getPayrollPeriods API response:', {
         dataCount: response.data?.length || 0,
@@ -71,7 +69,6 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
         meta: response.meta
       });
       setPayrollPeriods(response.data);
-      console.log('[PayrollRunForm] 📋 PayrollPeriods state updated with count:', response.data?.length || 0);
     } catch (err: any) {
       console.error('[PayrollRunForm] ❌ getPayrollPeriods API failed:', {
         error: err,
@@ -84,7 +81,6 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
       setPeriodsError('Failed to load payroll periods');
       message.error(errorMessage);
     } finally {
-      console.log('[PayrollRunForm] 🏁 fetchPeriodsForSelect completed, setting loadingPeriods to false');
       setLoadingPeriods(false);
     }
   }, []); // ✅ 移除t依赖，避免无限重渲染
@@ -138,7 +134,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
         label={t('payroll_run_form.label.payroll_period')}
         rules={[{ required: true, message: t('payroll_run_form.validation.payroll_period_required') }]}
       >
-        <Select placeholder={t('payroll_run_form.placeholder.payroll_period')} loading={loadingPeriods} showSearch filterOption={(input, option) => (option?.children as unknown as string ?? '').toLowerCase().includes(input.toLowerCase()) }>
+        <Select placeholder={t('payroll_run_form.placeholder.payroll_period')} loading={loadingPeriods} showSearch filterOption={(input, option) => (option?.children as unknown as string ?? '').toLowerCase().includes(input.toLowerCase())}>
           {payrollPeriods.map(period => (
             <Option key={period.id} value={period.id}>
               {formatPayrollPeriodDisplay(period)}

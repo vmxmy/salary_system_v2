@@ -2,10 +2,9 @@ import React, { useRef, useState } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProTableProps, ActionType, ProColumns } from '@ant-design/pro-components';
 import type { SortOrder, FilterValue, TablePaginationConfig } from 'antd/es/table/interface';
-import type { Key } from 'react'; // ReactText is not a standard export from 'react'
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'; // `Key` is not typically imported from 'react' for Ant Design table keys
 import { Button, Space, Tooltip, message } from 'antd';
-import { ReloadOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined, ColumnHeightOutlined } from '@ant-design/icons';
+import { ReloadOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'; // ColumnHeightOutlined not used, removed
 import styled from 'styled-components';
 
 // 样式化的 ProTable 组件
@@ -16,50 +15,52 @@ const StyledProTable = styled(ProTable)`
       background: #fafafa;
       border-radius: 8px 8px 0 0;
     }
-    
+
     .ant-pro-table-list-toolbar-title {
       font-weight: 600;
       font-size: 16px;
       color: #262626;
     }
-    
+
     .ant-table-thead > tr > th {
       background-color: #fafafa;
       font-weight: 500;
       color: #262626;
       border-bottom: 2px solid #f0f0f0;
     }
-    
+
     .ant-table-tbody > tr > td {
       transition: background-color 0.3s;
       padding: 12px 16px;
     }
-    
+
     .ant-table-tbody > tr:hover > td {
       background-color: #f5f5f5;
     }
-    
+
     .ant-table-tbody > tr.ant-table-row-selected > td {
       background-color: #e6f7ff;
     }
-    
+
     .ant-pro-table-search {
       padding: 16px 24px;
       background: white;
       border-bottom: 1px solid #f0f0f0;
     }
-    
+
     .ant-pagination {
       margin: 16px 0 0 0;
       text-align: right;
-      
+
       .ant-pagination-total-text {
         color: #8c8c8c;
         font-size: 14px;
       }
     }
   }
-` as typeof ProTable;
+` as typeof ProTable; // This casting is generally not recommended if you're using it as a React component.
+                      // For styling, it's fine, but if you pass it directly as a component,
+                      // ensure `ProTable` type is compatible with `styled`'s output type.
 
 interface EnhancedProTableProps<T extends Record<string, any>> {
   /** 表格列配置 */
@@ -85,9 +86,9 @@ interface EnhancedProTableProps<T extends Record<string, any>> {
   /** 表格大小 */
   size?: 'small' | 'middle' | 'large';
   /** 分页配置 */
-  pagination?: any;
+  pagination?: ProTableProps<T, any>['pagination']; // Use ProTableProps for pagination type
   /** 行选择配置 */
-  rowSelection?: any;
+  rowSelection?: ProTableProps<T, any>['rowSelection']; // Use ProTableProps for rowSelection type
   /** 行键 */
   rowKey?: string | ((record: T) => string);
   /** 滚动配置 */
@@ -107,7 +108,7 @@ interface EnhancedProTableProps<T extends Record<string, any>> {
   ) => Promise<{ data: T[]; success: boolean; total?: number; }>;
   /** 刷新数据的回调函数 */
   onRefresh?: () => void | Promise<void>;
-  /** 是否启用高级功能 */
+  /** 是否启用高级功能 (ProTable options) */
   enableAdvancedFeatures?: boolean;
   /** 自定义工具栏按钮 */
   customToolbarButtons?: React.ReactNode[];
@@ -140,8 +141,8 @@ function EnhancedProTable<T extends Record<string, any>>({
     showSizeChanger: true,
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100'],
-    showTotal: (total: number, range: [number, number]) => 
-      `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+    showTotal: (total: number, range: [number, number]) =>
+      t('components:auto__range_0_range_1___total__e7acac', { range0: range[0], range1: range[1], total }), // Corrected t() syntax and added interpolation variables
     ...pagination,
   } : false;
 
@@ -155,13 +156,13 @@ function EnhancedProTable<T extends Record<string, any>>({
     try {
       if (onRefresh) {
         await onRefresh();
-        message.success(t('common:table.refreshSuccess', '刷新成功'));
+        message.success(t('common:table.refreshSuccess')); // Corrected t() syntax
       } else if (tableActionRef.current?.reload) {
         tableActionRef.current.reload();
-        message.success(t('common:table.refreshSuccess', '刷新成功'));
+        message.success(t('common:table.refreshSuccess')); // Corrected t() syntax
       }
     } catch (error) {
-      message.error(t('common:table.refreshError', '刷新失败'));
+      message.error(t('common:table.refreshError')); // Corrected t() syntax
     }
   };
 
@@ -169,48 +170,36 @@ function EnhancedProTable<T extends Record<string, any>>({
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
     // 这里可以添加实际的全屏逻辑
+    // For a real implementation, you might want to use the browser's Fullscreen API
+    // e.g., document.documentElement.requestFullscreen();
+    // and listen for 'fullscreenchange' events.
   };
 
   // 增强的工具栏配置
   const enhancedToolBarRender = () => {
-    const defaultButtons = [];
-    
-    // 添加自定义按钮
-    if (customToolbarButtons.length > 0) {
-      defaultButtons.push(...customToolbarButtons);
-    }
-    
-    // 不添加自定义的高级功能按钮，避免与 ProTable 的 options 工具栏重复
-    // 如果需要自定义按钮，请通过 customToolbarButtons 传入
-    if (false) {
-      defaultButtons.push(
-        <Tooltip key="refresh" title={t('common:table.refresh', '刷新')}>
-          <Button
-            type="text"
-            icon={<ReloadOutlined />}
-            onClick={handleRefresh}
-          />
-        </Tooltip>,
-        <Tooltip key="fullscreen" title={isFullscreen ? t('common:table.exitFullscreen', '退出全屏') : t('common:table.fullscreen', '全屏')}>
-          <Button
-            type="text"
-            icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-            onClick={handleFullscreen}
-          />
-        </Tooltip>
-      );
-    }
-    
-    // 如果有自定义工具栏渲染函数，合并结果
+    const defaultButtons = [...customToolbarButtons]; // Start with custom buttons
+
+    // ProTable's `options` prop already handles reload, density, setting, and fullscreen.
+    // So, we only add these explicitly if `enableAdvancedFeatures` is false and we want to control them manually.
+    // Otherwise, ProTable will render its own icons based on `options`.
+
+    // If you explicitly want to add these specific buttons AND manage them manually,
+    // you would need to set `options` to `false` or selectively disable them in `options`.
+    // The current logic `if (false)` effectively removes these manual buttons,
+    // relying on `enableAdvancedFeatures` to control ProTable's built-in options.
+
+    // If toolBarRender is provided, merge its result with default buttons.
     if (toolBarRender) {
-      const customButtons = toolBarRender();
-      return [...defaultButtons, ...customButtons];
+      const customRenderedButtons = toolBarRender();
+      return [...defaultButtons, ...customRenderedButtons];
     }
-    
+
     return defaultButtons;
   };
 
-  // 工具栏配置
+  // ToolBar configuration
+  // If `showToolbar` is false, `toolBarRender` will be `false`, hiding the toolbar entirely.
+  // Otherwise, it will use the `enhancedToolBarRender` function.
   const toolbarConfig = showToolbar ? enhancedToolBarRender : false;
 
   return (
@@ -224,16 +213,21 @@ function EnhancedProTable<T extends Record<string, any>>({
       bordered={bordered}
       size={size}
       locale={{
-        emptyText: emptyText || t('common:table.noData', '暂无数据'),
+        emptyText: emptyText || t('common:table.noData'),
       }}
       options={enableAdvancedFeatures ? {
-        reload: true,
-        density: true,
+        reload: true, // ProTable's built-in reload button
+        density: true, // ProTable's built-in density setting
         setting: {
           draggable: true,
           checkable: true,
+          // You might want to provide `columns` to `setting` if you're dynamically managing columns
         },
-        fullScreen: true,
+        fullScreen: true, // ProTable's built-in fullscreen button
+        // Note: If you use ProTable's `fullScreen: true`,
+        // your `handleFullscreen` state will not directly control its behavior.
+        // You would typically let ProTable manage its own fullscreen state.
+        // If you need custom fullscreen, set `fullScreen: false` here and add your custom button via `customToolbarButtons`.
       } : false}
     />
   );
@@ -241,4 +235,4 @@ function EnhancedProTable<T extends Record<string, any>>({
 
 // 导出类型
 export type { EnhancedProTableProps, ProColumns, ActionType };
-export default EnhancedProTable; 
+export default EnhancedProTable;

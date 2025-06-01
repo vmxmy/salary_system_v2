@@ -19,7 +19,7 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_runs', 'common']);
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
 
@@ -78,7 +78,6 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
 
       onSuccess();
     } catch (error: any) {
-      console.error('Failed to save payroll run:', error);
       const errorMessage = error.response?.data?.detail || error.message || (
         isEditMode 
           ? t('runs_page.error.update_failed')

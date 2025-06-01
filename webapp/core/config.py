@@ -72,9 +72,6 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "/tmp/salary_uploads"
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
 
-    # DBT设置
-    DBT_PROJECT_DIR: str = os.getenv("DBT_PROJECT_DIR", "./dbt")
-
     # 允许额外的环境变量通过，不会引发验证错误
     # 注意：env_file 设置为 None，因为我们已经手动加载了 .env 文件
     model_config = {

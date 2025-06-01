@@ -26,80 +26,6 @@ export type PresetRange =
   | 'last30Days'
   | 'last90Days';
 
-// 预设范围配置
-const PRESET_RANGES: Record<PresetRange, {
-  label: string;
-  getValue: () => [Dayjs, Dayjs];
-}> = {
-  today: {
-    label: '今天',
-    getValue: () => [dayjs().startOf('day'), dayjs().endOf('day')],
-  },
-  yesterday: {
-    label: '昨天',
-    getValue: () => [
-      dayjs().subtract(1, 'day').startOf('day'),
-      dayjs().subtract(1, 'day').endOf('day'),
-    ],
-  },
-  thisWeek: {
-    label: '本周',
-    getValue: () => [dayjs().startOf('week'), dayjs().endOf('week')],
-  },
-  lastWeek: {
-    label: '上周',
-    getValue: () => [
-      dayjs().subtract(1, 'week').startOf('week'),
-      dayjs().subtract(1, 'week').endOf('week'),
-    ],
-  },
-  thisMonth: {
-    label: '本月',
-    getValue: () => [dayjs().startOf('month'), dayjs().endOf('month')],
-  },
-  lastMonth: {
-    label: '上月',
-    getValue: () => [
-      dayjs().subtract(1, 'month').startOf('month'),
-      dayjs().subtract(1, 'month').endOf('month'),
-    ],
-  },
-  thisQuarter: {
-    label: '本季度',
-    getValue: () => [dayjs().startOf('quarter'), dayjs().endOf('quarter')],
-  },
-  lastQuarter: {
-    label: '上季度',
-    getValue: () => [
-      dayjs().subtract(1, 'quarter').startOf('quarter'),
-      dayjs().subtract(1, 'quarter').endOf('quarter'),
-    ],
-  },
-  thisYear: {
-    label: '今年',
-    getValue: () => [dayjs().startOf('year'), dayjs().endOf('year')],
-  },
-  lastYear: {
-    label: '去年',
-    getValue: () => [
-      dayjs().subtract(1, 'year').startOf('year'),
-      dayjs().subtract(1, 'year').endOf('year'),
-    ],
-  },
-  last7Days: {
-    label: '最近7天',
-    getValue: () => [dayjs().subtract(6, 'day').startOf('day'), dayjs().endOf('day')],
-  },
-  last30Days: {
-    label: '最近30天',
-    getValue: () => [dayjs().subtract(29, 'day').startOf('day'), dayjs().endOf('day')],
-  },
-  last90Days: {
-    label: '最近90天',
-    getValue: () => [dayjs().subtract(89, 'day').startOf('day'), dayjs().endOf('day')],
-  },
-};
-
 interface DateRangePickerProps {
   /** 当前值 */
   value?: [Dayjs | null, Dayjs | null] | null;
@@ -164,6 +90,80 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
   const { t } = useTranslation(['common']);
   
+  // 预设范围配置
+  const PRESET_RANGES: Record<PresetRange, {
+    label: string;
+    getValue: () => [Dayjs, Dayjs];
+  }> = {
+    today: {
+      label: t('components:auto_text_e4bb8a'),
+      getValue: () => [dayjs().startOf('day'), dayjs().endOf('day')],
+    },
+    yesterday: {
+      label: t('components:auto_text_e698a8'),
+      getValue: () => [
+        dayjs().subtract(1, 'day').startOf('day'),
+        dayjs().subtract(1, 'day').endOf('day'),
+      ],
+    },
+    thisWeek: {
+      label: t('components:auto_text_e69cac'),
+      getValue: () => [dayjs().startOf('week'), dayjs().endOf('week')],
+    },
+    lastWeek: {
+      label: t('components:auto_text_e4b88a'),
+      getValue: () => [
+        dayjs().subtract(1, 'week').startOf('week'),
+        dayjs().subtract(1, 'week').endOf('week'),
+      ],
+    },
+    thisMonth: {
+      label: t('components:auto_text_e69cac'),
+      getValue: () => [dayjs().startOf('month'), dayjs().endOf('month')],
+    },
+    lastMonth: {
+      label: t('components:auto_text_e4b88a'),
+      getValue: () => [
+        dayjs().subtract(1, 'month').startOf('month'),
+        dayjs().subtract(1, 'month').endOf('month'),
+      ],
+    },
+    thisQuarter: {
+      label: t('components:auto_text_e69cac'),
+      getValue: () => [dayjs().startOf('quarter'), dayjs().endOf('quarter')],
+    },
+    lastQuarter: {
+      label: t('components:auto_text_e4b88a'),
+      getValue: () => [
+        dayjs().subtract(1, 'quarter').startOf('quarter'),
+        dayjs().subtract(1, 'quarter').endOf('quarter'),
+      ],
+    },
+    thisYear: {
+      label: t('components:auto_text_e4bb8a'),
+      getValue: () => [dayjs().startOf('year'), dayjs().endOf('year')],
+    },
+    lastYear: {
+      label: t('components:auto_text_e58ebb'),
+      getValue: () => [
+        dayjs().subtract(1, 'year').startOf('year'),
+        dayjs().subtract(1, 'year').endOf('year'),
+      ],
+    },
+    last7Days: {
+      label: t('components:auto_7_e69c80'),
+      getValue: () => [dayjs().subtract(6, 'day').startOf('day'), dayjs().endOf('day')],
+    },
+    last30Days: {
+      label: t('components:auto_30_e69c80'),
+      getValue: () => [dayjs().subtract(29, 'day').startOf('day'), dayjs().endOf('day')],
+    },
+    last90Days: {
+      label: t('components:auto_90_e69c80'),
+      getValue: () => [dayjs().subtract(89, 'day').startOf('day'), dayjs().endOf('day')],
+    },
+  };
+  
   // 构建禁用日期函数
   const getDisabledDate = (current: Dayjs) => {
     if (disabledDate && disabledDate(current)) return true;
@@ -207,7 +207,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       return (
         <Dropdown overlay={buildPresetMenu()} trigger={['click']}>
           <Button size={size} icon={<CalendarOutlined />}>
-            {t('date_range_picker.quick_select', { defaultValue: '快捷选择' })}
+            {t('date_range_picker.quick_select', { defaultValue: t('components:auto_text_e5bfab') })}
             <DownOutlined />
           </Button>
         </Dropdown>
@@ -243,8 +243,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   const getPlaceholder = (): [string, string] => {
     if (placeholder) return placeholder;
     return [
-      t('date_range_picker.start_date', { defaultValue: '开始日期' }),
-      t('date_range_picker.end_date', { defaultValue: '结束日期' }),
+      t('date_range_picker.start_date', { defaultValue: t('components:auto_text_e5bc80') }),
+      t('date_range_picker.end_date', { defaultValue: t('components:auto_text_e7bb93') }),
     ];
   };
   

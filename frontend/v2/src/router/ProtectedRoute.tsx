@@ -46,7 +46,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (isEffectivelyLoading) {
     return (
-      <Spin spinning={true} size="large" tip={t('common:loading.user_info', '加载用户信息中...')}>
+      <Spin spinning={true} size="large" tip={t('common:loading.user_info')}>
         {/* Render minimal content or adjust layout if Spin should cover children conceptually */}
         {/* For a full-page spinner scenario, children might be null or a div with min-height */}
         <div style={{ width: '100%', height: '100vh' }} /> 

@@ -4,7 +4,7 @@ import { Button, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 
 const LanguageSwitcher: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   // 获取当前语言，支持zh-CN格式
   const currentLng = i18n.language;
@@ -24,10 +24,10 @@ const LanguageSwitcher: React.FC = () => {
   };
 
   const isCurrentlyChineseForDisplay = checkIsChinese(currentLng);
-  const buttonText = isCurrentlyChineseForDisplay ? '中' : 'En';
+  const buttonText = isCurrentlyChineseForDisplay ?      t('components:auto_text_e4b8ad'): 'En';
   const tooltipTitle = isCurrentlyChineseForDisplay 
     ? "Switch to English" 
-    : "切换到中文";
+    : t('components:auto_text_e58887');
 
   return (
     <Tooltip title={tooltipTitle} placement="bottom">

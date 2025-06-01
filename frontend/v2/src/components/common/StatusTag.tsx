@@ -35,92 +35,92 @@ export type StatusType =
 const STATUS_CONFIG: Record<StatusType, {
   color: string;
   icon?: React.ReactNode;
-  defaultText: string;
+  translationKey: string;
 }> = {
   active: {
     color: 'green',
     icon: <CheckCircleOutlined />,
-    defaultText: '活跃',
+    translationKey: 'status.active',
   },
   inactive: {
     color: 'default',
     icon: <StopOutlined />,
-    defaultText: '非活跃',
+    translationKey: 'status.inactive',
   },
   pending: {
     color: 'orange',
     icon: <ClockCircleOutlined />,
-    defaultText: '待处理',
+    translationKey: 'status.pending',
   },
   processing: {
     color: 'blue',
     icon: <SyncOutlined spin />,
-    defaultText: '处理中',
+    translationKey: 'status.processing',
   },
   success: {
     color: 'green',
     icon: <CheckCircleOutlined />,
-    defaultText: '成功',
+    translationKey: 'status.success',
   },
   error: {
     color: 'red',
     icon: <ExclamationCircleOutlined />,
-    defaultText: '错误',
+    translationKey: 'status.error',
   },
   warning: {
     color: 'orange',
     icon: <ExclamationCircleOutlined />,
-    defaultText: '警告',
+    translationKey: 'status.warning',
   },
   draft: {
     color: 'default',
     icon: <MinusCircleOutlined />,
-    defaultText: '草稿',
+    translationKey: 'status.draft',
   },
   closed: {
     color: 'red',
     icon: <StopOutlined />,
-    defaultText: '已关闭',
+    translationKey: 'status.closed',
   },
   archived: {
     color: 'default',
     icon: <MinusCircleOutlined />,
-    defaultText: '已归档',
+    translationKey: 'status.archived',
   },
   planned: {
     color: 'blue',
     icon: <ClockCircleOutlined />,
-    defaultText: '计划中',
+    translationKey: 'status.planned',
   },
   cancelled: {
     color: 'red',
     icon: <StopOutlined />,
-    defaultText: '已取消',
+    translationKey: 'status.cancelled',
   },
   expired: {
     color: 'red',
     icon: <ExclamationCircleOutlined />,
-    defaultText: '已过期',
+    translationKey: 'status.expired',
   },
   terminated: {
     color: 'red',
     icon: <StopOutlined />,
-    defaultText: '已终止',
+    translationKey: 'status.terminated',
   },
   probation: {
     color: 'orange',
     icon: <ClockCircleOutlined />,
-    defaultText: '试用期',
+    translationKey: 'status.probation',
   },
   leave: {
     color: 'orange',
     icon: <ClockCircleOutlined />,
-    defaultText: '休假',
+    translationKey: 'status.leave',
   },
   custom: {
     color: 'default',
     icon: <QuestionCircleOutlined />,
-    defaultText: '自定义',
+    translationKey: 'status.custom',
   },
 };
 
@@ -177,13 +177,15 @@ const StatusTag: React.FC<StatusTagProps> = ({
   const getDisplayText = () => {
     if (text) return text;
     
+    // 优先使用 translationPrefix + status 作为 key，如果useTranslationProp为true
     if (useTranslationProp) {
-      const translationKey = `${translationPrefix}.${status}`;
-      const translatedText = t(translationKey, { defaultValue: '' });
-      if (translatedText) return translatedText;
+      const specificKey = `${translationPrefix}.${status}`;
+      const defaultKey = `common:status.${status}`; // Fallback to common status keys
+      const translatedText = t(specificKey, t(defaultKey, config.translationKey)); // Use config.translationKey as final fallback default
+      if (translatedText !== config.translationKey) return translatedText;
     }
     
-    return config.defaultText;
+    return t(config.translationKey); // Fallback to translating the configured key
   };
   
   // 确定颜色

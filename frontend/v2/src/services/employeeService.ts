@@ -43,7 +43,7 @@ import type {
 // --- REMOVED Mock Data Sources for Lookups after API integration ---
 // const mockDepartments: Department[] = [ ... ]; // To be removed
 // const mockPositions: PositionItem[] = [ ... ]; // To be removed
-// const mockEmploymentTypes = Object.values(EmploymentType).map(value => ({ ... })); // To be removed
+// const mockEmploymentTypes = Object.values(EmploymentType).map(value => ({ ... }); // To be removed
 
 
 // --- REMOVED Mock In-Memory "Databases" for sub-entities ---
@@ -90,12 +90,9 @@ export const employeeService = {
       const queryString = query ? buildQueryParams(query) : '';
       // Ensure the path ends with a slash to potentially avoid 307 redirect if router expects it
       const requestUrl = `/employees/${queryString}`;
-      console.log('[employeeService] Requesting URL:', requestUrl); // Log the full request URL
       const response = await apiClient.get<EmployeePageResult>(requestUrl);
-      console.log('[employeeService] Received response meta:', response.data.meta); // Log received meta
       return response.data;
     } catch (error) {
-      console.error('Error fetching employees:', error);
       const currentPage = query?.page || 1;
       const pageSize = query?.size || 10; // Changed from pageSize to size
       return {
@@ -116,7 +113,6 @@ export const employeeService = {
       const response = await apiClient.get<{data: Employee}>(`/employees/${id}`);
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching employee with id ${id}:`, error);
       return null;
     }
   },
@@ -126,11 +122,8 @@ export const employeeService = {
       const response = await apiClient.post<Employee>('/employees/', employeeData);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating employee - Raw error:', error);
       if (error.response && error.response.data && error.response.data.detail) {
-        console.error('Error creating employee - Response data detail:', JSON.stringify(error.response.data.detail, null, 2));
       } else if (error.response && error.response.data) {
-        console.error('Error creating employee - Response data:', error.response.data);
       }
       // Propagate a more structured error or a user-friendly message
       const errorMessage = error.response?.data?.detail?.[0]?.msg || error.response?.data?.detail || 'Failed to create employee';
@@ -143,7 +136,6 @@ export const employeeService = {
       const response = await apiClient.put<Employee>(`/employees/${id}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating employee with id ${id}:`, error);
       throw error;
     }
   },
@@ -152,7 +144,6 @@ export const employeeService = {
     try {
       await apiClient.delete(`/employees/${id}`);
     } catch (error) {
-      console.error(`Error deleting employee with id ${id}:`, error);
       throw error;
     }
   },
@@ -169,8 +160,6 @@ export const employeeService = {
       // response.data here is BulkCreateResponse | { data: Employee[] }
       return response.data; // This should align with the Promise<BulkCreateResponse | { data: Employee[] }> signature
     } catch (error: any) {
-      console.error('Error bulk creating employees:', error);
-      console.error('Error bulk creating employees - Response data:', error.response?.data);
       throw error;
     }
   },
@@ -184,11 +173,9 @@ export const employeeService = {
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
       } else {
-        console.warn(`Lookup data array for type_code ${lookupTypeCode} not found or not an array in response:`, response.data);
         return []; 
       }
     } catch (error) {
-      console.error(`Error fetching lookup values for type_code ${lookupTypeCode}:`, error);
       return []; 
     }
   },
@@ -201,10 +188,8 @@ export const employeeService = {
       } else if (Array.isArray(response.data)) {
         return response.data as Department[];
       }
-      console.warn('Departments lookup data array not found or not an array in response:', response.data);
       return [];
     } catch (error) {
-      console.error('Error fetching departments lookup:', error);
       return [];
     }
   },
@@ -217,11 +202,9 @@ export const employeeService = {
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
       } else {
-        console.warn('Personnel Categories lookup data array not found or not an array in response:', response.data);
         return []; 
       }
     } catch (error) {
-      console.error('Error fetching personnel categories lookup:', error);
       return []; 
     }
   },
@@ -232,7 +215,6 @@ export const employeeService = {
       // return response.data;
       return this.getLookupValues('EMPLOYMENT_TYPE'); // Using the generic lookup
     } catch (error) {
-      console.error('Error fetching employment types lookup:', error);
       throw error; // Or return []
     }
   },
@@ -243,7 +225,6 @@ export const employeeService = {
       // return response.data;
       return this.getLookupValues('CONTRACT_TYPE'); // Using the generic lookup
     } catch (error) {
-      console.error('Error fetching contract types lookup:', error);
       throw error; // Or return []
     }
   },
@@ -254,7 +235,6 @@ export const employeeService = {
       // return response.data;
       return this.getLookupValues('CONTRACT_STATUS'); // Using the generic lookup
     } catch (error) {
-      console.error('Error fetching contract statuses lookup:', error);
       throw error; // Or return []
     }
   },
@@ -265,7 +245,6 @@ export const employeeService = {
       // return response.data;
       return this.getLookupValues('PAY_FREQUENCY'); // Using the generic lookup
     } catch (error) {
-      console.error('Error fetching pay frequencies lookup:', error);
       throw error; // Or return []
     }
   },
@@ -281,7 +260,6 @@ export const employeeService = {
       const response = await apiClient.get<JobHistoryPageResult>(`/employees/${employeeId}/job-history/${queryString}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching job history for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
       const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
       return {
@@ -301,7 +279,6 @@ export const employeeService = {
       const response = await apiClient.post<JobHistoryItem>(`/employees/${employeeId}/job-history`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error adding job history for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -311,7 +288,6 @@ export const employeeService = {
       const response = await apiClient.put<JobHistoryItem>(`/employees/${employeeId}/job-history/${itemId}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating job history item ${itemId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -320,7 +296,6 @@ export const employeeService = {
     try {
       await apiClient.delete(`/employees/${employeeId}/job-history/${itemId}`);
     } catch (error) {
-      console.error(`Error deleting job history item ${itemId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -334,7 +309,6 @@ export const employeeService = {
       const response = await apiClient.get<ContractPageResult>(`/employees/${employeeId}/contracts/${queryString}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching contracts for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
       const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
       return {
@@ -354,7 +328,6 @@ export const employeeService = {
       const response = await apiClient.post<ContractItem>(`/employees/${employeeId}/contracts`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error adding contract for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -364,7 +337,6 @@ export const employeeService = {
       const response = await apiClient.put<ContractItem>(`/employees/${employeeId}/contracts/${contractId}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating contract ${contractId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -373,7 +345,6 @@ export const employeeService = {
     try {
       await apiClient.delete(`/employees/${employeeId}/contracts/${contractId}`);
     } catch (error) {
-      console.error(`Error deleting contract ${contractId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -387,7 +358,6 @@ export const employeeService = {
       const response = await apiClient.get<CompensationPageResult>(`/employees/${employeeId}/compensation-history/${queryString}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching compensation history for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
       const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
       return {
@@ -407,7 +377,6 @@ export const employeeService = {
       const response = await apiClient.post<CompensationItem>(`/employees/${employeeId}/compensation-history`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error adding compensation for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -417,7 +386,6 @@ export const employeeService = {
       const response = await apiClient.put<CompensationItem>(`/employees/${employeeId}/compensation-history/${compensationId}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating compensation ${compensationId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -426,7 +394,6 @@ export const employeeService = {
     try {
       await apiClient.delete(`/employees/${employeeId}/compensation-history/${compensationId}`);
     } catch (error) {
-      console.error(`Error deleting compensation ${compensationId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -440,7 +407,6 @@ export const employeeService = {
       const response = await apiClient.get<LeaveBalancePageResult>(`/employees/${employeeId}/leave-balances/${queryString}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching leave balances for employee ${employeeId}:`, error);
       const currentPage = query?.page || 1;
       const pageSize = query?.pageSize || 10; // Reverted to pageSize for this specific query type
       return {
@@ -461,7 +427,6 @@ export const employeeService = {
       const response = await apiClient.post<LeaveBalanceItem>(`/employees/${employeeId}/leave-balances`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error creating leave balance for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -471,7 +436,6 @@ export const employeeService = {
       const response = await apiClient.put<LeaveBalanceItem>(`/employees/${employeeId}/leave-balances/${leaveBalanceId}/adjust`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error adjusting leave balance ${leaveBalanceId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -480,7 +444,6 @@ export const employeeService = {
     try {
       await apiClient.delete(`/employees/${employeeId}/leave-balances/${leaveBalanceId}`);
     } catch (error) {
-      console.error(`Error deleting leave balance ${leaveBalanceId} for employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -512,10 +475,8 @@ export const employeeService = {
         }
       }
       
-      console.log(`Successfully fetched ${Object.keys(employeeMap).length} employees`);
       return employeeMap;
     } catch (error) {
-      console.error('Error fetching employees by IDs:', error);
       return {};
     }
   },
@@ -525,7 +486,6 @@ export const employeeService = {
     try {
       return await this.getLookupValues('JOB_POSITION_LEVEL');
     } catch (error) {
-      console.error('Failed to fetch job position levels:', error);
       return [];
     }
   },

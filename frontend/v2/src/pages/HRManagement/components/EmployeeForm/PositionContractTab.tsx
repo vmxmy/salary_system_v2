@@ -102,8 +102,8 @@ const PositionContractTab: React.FC<PositionContractTabProps> = ({
         <Col span={12}>
           <Form.Item 
             name="current_position_start_date" 
-            label={t('employee:detail_page.basic_info_tab.label_current_position_start_date', '实际任职时间(本单位)')}
-            tooltip={t('employee:detail_page.basic_info_tab.tooltip_current_position_start_date', '员工在当前单位担任该职级的开始日期')}
+            label={t('employee:detail_page.basic_info_tab.label_current_position_start_date')}
+            tooltip={t('employee:detail_page.basic_info_tab.tooltip_current_position_start_date')}
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
@@ -111,8 +111,8 @@ const PositionContractTab: React.FC<PositionContractTabProps> = ({
         <Col span={12}>
           <Form.Item 
             name="career_position_level_date" 
-            label={t('employee:detail_page.basic_info_tab.label_career_position_level_date', '任职级时间(职业生涯)')}
-            tooltip={t('employee:detail_page.basic_info_tab.tooltip_career_position_level_date', '员工在整个职业生涯中首次担任该职级的时间')}
+            label={t('employee:detail_page.basic_info_tab.label_career_position_level_date')}
+            tooltip={t('employee:detail_page.basic_info_tab.tooltip_career_position_level_date')}
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>

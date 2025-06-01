@@ -48,40 +48,40 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
 
   // 根据字段名猜测数据类型
   const getFieldType = (fieldName: string): 'string' | 'date' | 'number' | 'boolean' => {
-    if (fieldName.includes('日期') || fieldName.includes('时间') || 
+    if (fieldName.includes(t('components:auto_text_e697a5')) || fieldName.includes(t('components:auto_text_e697b6')) || 
         fieldName.includes('date') || fieldName.includes('time')) {
       return 'date';
     } else if (
       // 薪资相关字段
-      fieldName.includes('金额') || 
-      fieldName.includes('工资') || 
-      fieldName.includes('薪资') || 
-      fieldName.includes('收入') || 
-      fieldName.includes('扣除') ||
-      fieldName.includes('绩效') ||
-      fieldName.includes('奖励') ||
-      fieldName.includes('津贴') ||
-      fieldName.includes('补贴') ||
-      fieldName.includes('保险') ||
-      fieldName.includes('公积金') ||
-      fieldName.includes('所得税') ||
-      fieldName.includes('应发') ||
-      fieldName.includes('实发') ||
-      fieldName.includes('扣发') ||
-      fieldName.includes('补发') ||
-      fieldName.includes('岗位工资') ||
-      fieldName.includes('薪级工资') ||
-      fieldName.includes('基本工资') ||
-      fieldName.includes('基础工资') ||
-      fieldName.includes('职务工资') ||
-      fieldName.includes('技术工资') ||
-      fieldName.includes('级别工资') ||
-      fieldName.includes('等级工资') ||
+      fieldName.includes(t('components:auto_text_e98791')) || 
+      fieldName.includes(t('components:auto_text_e5b7a5')) || 
+      fieldName.includes(t('components:auto_text_e896aa')) || 
+      fieldName.includes(t('components:auto_text_e694b6')) || 
+      fieldName.includes(t('components:auto_text_e689a3')) ||
+      fieldName.includes(t('components:auto_text_e7bba9')) ||
+      fieldName.includes(t('components:auto_text_e5a596')) ||
+      fieldName.includes(t('components:auto_text_e6b4a5')) ||
+      fieldName.includes(t('components:auto_text_e8a1a5')) ||
+      fieldName.includes(t('components:auto_text_e4bf9d')) ||
+      fieldName.includes(t('components:auto_text_e585ac')) ||
+      fieldName.includes(t('components:auto_text_e68980')) ||
+      fieldName.includes(t('components:auto_text_e5ba94')) ||
+      fieldName.includes(t('components:auto_text_e5ae9e')) ||
+      fieldName.includes(t('components:auto_text_e689a3')) ||
+      fieldName.includes(t('components:auto_text_e8a1a5')) ||
+      fieldName.includes(t('components:auto_text_e5b297')) ||
+      fieldName.includes(t('components:auto_text_e896aa')) ||
+      fieldName.includes(t('components:auto_text_e59fba')) ||
+      fieldName.includes(t('components:auto_text_e59fba')) ||
+      fieldName.includes(t('components:auto_text_e8818c')) ||
+      fieldName.includes(t('components:auto_text_e68a80')) ||
+      fieldName.includes(t('components:auto_text_e7baa7')) ||
+      fieldName.includes(t('components:auto_text_e7ad89')) ||
       // 其他数值字段
-      fieldName.includes('年龄') || 
-      fieldName.includes('工龄') ||
-      fieldName.includes('数量') ||
-      fieldName.includes('序号') ||
+      fieldName.includes(t('components:auto_text_e5b9b4')) || 
+      fieldName.includes(t('components:auto_text_e5b7a5')) ||
+      fieldName.includes(t('components:auto_text_e695b0')) ||
+      fieldName.includes(t('components:auto_text_e5ba8f')) ||
       // 英文字段
       fieldName.includes('amount') ||
       fieldName.includes('salary') ||
@@ -140,7 +140,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       const lines = tableText.trim().split('\n');
       
       if (lines.length < 2) {
-        setError('表格数据至少需要包含表头和一行数据');
+        setError(t('components:auto_text_e8a1a8'));
         return;
       }
       
@@ -151,15 +151,8 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       // 解析表头
       const headers = headerLine.split(',').map(h => h.trim());
       
-      console.log('=== 表格解析开始 ===');
-      console.log('解析到的表头字段:', headers);
-      console.log('预设映射规则数量:', Object.keys(predefinedMappingRules).length);
-      console.log('可用API字段数量:', defaultApiFields.length);
-      console.log('API字段详情:', defaultApiFields);
-      
       // 特别检查月奖励绩效字段
-      const performanceFields = headers.filter(h => h.includes('奖励') || h.includes('绩效'));
-      console.log('发现的绩效相关表头字段:', performanceFields);
+      const performanceFields = headers.filter(h => h.includes(t('components:auto_text_e5a596')) || h.includes(t('components:auto_text_e7bba9')));
       
       // 创建字段映射
       const fieldMappings: FieldMapping[] = headers.map(header => {
@@ -176,23 +169,19 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
         const apiFieldInfo = defaultApiFields.find(f => f.key === apiField);
         
         // 调试信息
-        console.log(`表格字段映射: "${header}" -> "${apiField}"`);
         if (!apiField) {
-          console.warn(`❌ 未找到字段 "${header}" 的映射规则`);
           // 特别检查是否是绩效相关字段
-          if (header.includes('奖励') || header.includes('绩效')) {
-            console.error(`🚨 重要字段缺失映射: ${header}`);
+          if (header.includes(t('components:auto_text_e5a596')) || header.includes(t('components:auto_text_e7bba9'))) {
             // 显示相关的映射规则
             const relatedRules = Object.keys(predefinedMappingRules).filter(key => 
-              key.includes('奖励') || key.includes('绩效')
+              key.includes(t('components:auto_text_e5a596')) || key.includes(t('components:auto_text_e7bba9'))
             );
-            console.log('相关的绩效映射规则:', relatedRules);
             relatedRules.forEach(rule => {
-              console.log(`  "${rule}" -> "${predefinedMappingRules[rule]}"`);
+              
             });
           }
         } else {
-          console.log(`✅ 字段映射成功: "${header}" -> "${apiField}"`);
+          
         }
         
         // 设置特殊处理器
@@ -202,7 +191,6 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
         }
         
         const fieldType = getFieldType(header);
-        console.log(`字段类型识别: "${header}" -> ${fieldType}`);
         
         return {
           tableField: header,
@@ -233,7 +221,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       setError(null);
       
     } catch (err: any) {
-      setError(`解析错误: ${err.message}`);
+      setError(t('components:auto__err_message__e8a7a3'));
     }
   };
 
@@ -258,49 +246,47 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
   // 转换为JSON
   const convertToJson = () => {
     try {
-      console.log('=== 开始转换为JSON ===');
-      console.log('字段映射:', fieldMappings);
+      
       
       // 特别检查绩效相关字段的映射
       const performanceMappings = fieldMappings.filter(m => 
-        m.tableField.includes('奖励') || m.tableField.includes('绩效')
+        m.tableField.includes(t('components:auto_text_e5a596')) || m.tableField.includes(t('components:auto_text_e7bba9'))
       );
-      console.log('🎯 绩效相关字段映射:', performanceMappings);
+      
       
       const jsonData = parsedData.map((row, rowIndex) => {
-        console.log(`\n处理第${rowIndex + 1}行数据:`, row);
+        
         const jsonRow: Record<string, any> = {};
         
         // 特别检查绩效字段的原始数据
         const performanceFieldsInRow = Object.keys(row).filter(key => 
-          key.includes('奖励') || key.includes('绩效')
+          key.includes(t('components:auto_text_e5a596')) || key.includes(t('components:auto_text_e7bba9'))
         );
-        console.log(`🎯 第${rowIndex + 1}行中的绩效字段:`, performanceFieldsInRow);
+        
         performanceFieldsInRow.forEach(field => {
-          console.log(`  ${field}: ${row[field]}`);
+          
         });
         
         fieldMappings.forEach(mapping => {
-          console.log(`\n检查映射: ${mapping.tableField} -> ${mapping.apiField}`);
-          console.log(`原始值: ${row[mapping.tableField]}`);
+          
           
           // 特别标记绩效字段
-          const isPerformanceField = mapping.tableField.includes('奖励') || mapping.tableField.includes('绩效');
+          const isPerformanceField = mapping.tableField.includes(t('components:auto_text_e5a596')) || mapping.tableField.includes(t('components:auto_text_e7bba9'));
           if (isPerformanceField) {
-            console.log(`🎯 处理绩效字段: ${mapping.tableField}`);
-            console.log(`🎯 映射目标: ${mapping.apiField}`);
-            console.log(`🎯 原始值: ${row[mapping.tableField]}`);
+            
+            
+            
           }
           
           // 跳过忽略字段
           if (mapping.isIgnored) {
-            console.log(`🚫 忽略字段: ${mapping.tableField} (已标记为忽略)`);
+            
             return;
           }
           
           if (mapping.apiField) {
             let value: any = row[mapping.tableField];
-            console.log(`✅ 开始处理映射字段: ${mapping.tableField} (${value}) -> ${mapping.apiField}`);
+            
             
             // 特殊处理
             if (mapping.specialHandler && specialHandlers[mapping.specialHandler]) {
@@ -320,7 +306,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
             } else if (mapping.type === 'number' && value) {
               value = formatNumber(value);
               if (isPerformanceField) {
-                console.log(`🎯 绩效字段数值转换: ${row[mapping.tableField]} -> ${value}`);
+                
               }
             }
             
@@ -329,9 +315,9 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
               const parts = mapping.apiField.split('.');
               let current = jsonRow;
               
-              console.log(`🔧 处理嵌套字段: ${mapping.apiField}, 分割为:`, parts);
+              
               if (isPerformanceField) {
-                console.log(`🎯 绩效字段嵌套处理: ${mapping.apiField}`);
+                
               }
               
               // 特殊处理 earnings_details 和 deductions_details
@@ -342,14 +328,12 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                 
                 if (!current[detailsType]) {
                   current[detailsType] = {};
-                  console.log(`📁 创建详情对象: ${detailsType}`);
+                  
                 }
                 
                 // 检查是否已经存在该组件
                 const existingComponent = current[detailsType][componentCode];
                 if (existingComponent) {
-                  console.warn(`⚠️ 组件 ${componentCode} 已存在，当前值:`, existingComponent);
-                  console.warn(`⚠️ 新字段 ${mapping.tableField} 尝试设置值: ${value}`);
                   
                   // 如果现有值为空或0，而新值不为空，则使用新值
                   const existingAmount = existingComponent.amount;
@@ -357,7 +341,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   
                   if ((!existingAmount || existingAmount === 0 || existingAmount === '') && 
                       (newAmount && newAmount !== 0 && newAmount !== '')) {
-                    console.log(`✅ 使用新的非空值: ${mapping.tableField} (${newAmount}) 替换空值`);
+                    
                     current[detailsType][componentCode] = {
                       amount: newAmount,
                       name: mapping.tableField
@@ -367,17 +351,17 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                     // 两个都是非空值，累加
                     const totalAmount = (typeof existingAmount === 'number' ? existingAmount : parseFloat(existingAmount) || 0) + 
                                        (typeof newAmount === 'number' ? newAmount : parseFloat(newAmount) || 0);
-                    console.log(`🔢 累加两个非空值: ${existingAmount} + ${newAmount} = ${totalAmount}`);
+                    
                     current[detailsType][componentCode] = {
                       amount: totalAmount,
                       name: `${existingComponent.name} + ${mapping.tableField}`
                     };
                   } else {
-                    console.log(`⏭️ 保持现有值: ${existingComponent.name} (${existingAmount})`);
+                    
                   }
                   
                   if (isPerformanceField) {
-                    console.log(`🎯 绩效字段冲突处理结果:`, current[detailsType][componentCode]);
+                    
                   }
                 } else {
                   // 创建新的组件对象
@@ -386,9 +370,9 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                     name: mapping.tableField // 使用原始表格字段名作为显示名称
                   };
                   
-                  console.log(`💾 设置组件对象: ${componentCode} =`, current[detailsType][componentCode]);
+                  
                   if (isPerformanceField) {
-                    console.log(`🎯 绩效字段完整对象设置: ${componentCode} =`, current[detailsType][componentCode]);
+                    
                   }
                 }
               } else {
@@ -398,7 +382,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   const part = parts[i];
                   if (!current[part]) {
                     current[part] = {};
-                    console.log(`📁 创建嵌套对象: ${part}`);
+                    
                   }
                   current = current[part];
                 }
@@ -406,34 +390,26 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                 // 设置最终值
                 const finalKey = parts[parts.length - 1];
                 current[finalKey] = value;
-                console.log(`💾 设置最终值: ${finalKey} = ${value}`);
+                
                 if (isPerformanceField) {
-                  console.log(`🎯 绩效字段最终设置: ${finalKey} = ${value}`);
-                  console.log(`🎯 当前嵌套结构:`, JSON.stringify(current, null, 2));
+                  
                 }
               }
             } else {
               jsonRow[mapping.apiField] = value;
-              console.log(`💾 设置直接字段: ${mapping.apiField} = ${value}`);
-              if (isPerformanceField) {
-                console.log(`🎯 绩效字段直接设置: ${mapping.apiField} = ${value}`);
-              }
             }
           } else {
-            console.log(`⚠️ 跳过字段 ${mapping.tableField}: 没有API映射`);
-            if (isPerformanceField) {
-              console.error(`🚨 绩效字段没有映射: ${mapping.tableField}`);
-            }
+            
           }
         });
         
         // 检查最终的earnings_details结构
-        console.log('🔍 转换后的earnings_details:', JSON.stringify(jsonRow.earnings_details, null, 2));
+        
         
         // 应用额外的记录处理
         if (processResultRecord) {
           const processedRecord = processResultRecord(jsonRow);
-          console.log('🔄 processResultRecord处理后的earnings_details:', JSON.stringify(processedRecord.earnings_details, null, 2));
+          
           return processedRecord;
         }
         
@@ -457,10 +433,10 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
         }));
       }
       
-      message.success(t(`${namespace}:table_converter.convert_success`, `成功转换${jsonData.length}条记录`));
+      message.success(t(`${namespace}:table_converter.convert_success`, t('components:auto__jsondata_length__e68890')));
       
     } catch (err: any) {
-      setError(`解析错误: ${err.message}`);
+      setError(t('components:auto__err_message__e8a7a3'));
     }
   };
 
@@ -471,7 +447,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
           rows={10}
           value={tableText}
           onChange={e => setTableText(e.target.value)}
-          placeholder={t(`${namespace}:table_converter.placeholder`, '请粘贴表格文本，格式如：列名1,列名2,列名3...')}
+          placeholder={t(`${namespace}:table_converter.placeholder`, t('components:auto___1_2_3__e8afb7'))}
         />
       </div>
       
@@ -480,7 +456,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
         onClick={parseTable}
         disabled={!tableText.trim()}
       >
-        {t(`${namespace}:table_converter.parse_table`, '解析表格')}
+        {t(`${namespace}:table_converter.parse_table`, t('components:auto_text_e8a7a3'))}
       </Button>
       
       {error && (
@@ -495,12 +471,12 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
       
       {showMappingInterface && (
         <>
-          <Card title="字段映射" style={{ marginTop: 16 }}>
+          <Card title={t('components:auto_text_e5ad97')} style={{ marginTop: 16 }}>
             <EnhancedProTable<FieldMapping & { key: number }>
               dataSource={fieldMappings.map((m, i) => ({ ...m, key: i }))}
               columns={[
                 {
-                  title: '表格字段',
+                  title: t('components:auto_text_e8a1a8'),
                   dataIndex: 'tableField',
                   valueType: 'text',
                   render: (_, record) => (
@@ -514,7 +490,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   )
                 },
                 {
-                  title: 'API字段',
+                  title: t('components:auto_api_415049'),
                   dataIndex: 'apiField',
                   valueType: 'select',
                   render: (_, record) => {
@@ -542,17 +518,17 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                           const searchText = String(option.children).toLowerCase();
                           return searchText.includes(input.toLowerCase());
                         }}
-                        placeholder="选择API字段或搜索..."
+                        placeholder={t('components:auto_api__e98089')}
                       >
                         <Option value="" style={{ backgroundColor: '#fff7e6', color: '#d46b08' }}>
                           🚫 忽略此字段
                         </Option>
                         {defaultApiFields.map(field => (
                           <Option key={field.key} value={field.key}>
-                            {field.label} {field.required ? '(必填)' : ''} 
+                            {field.label} {field.required ? t('components:auto____28e5bf'): ''} 
                             <span style={{ color: '#999', fontSize: '12px' }}>
-                              {field.key.includes('earnings_details') ? ' [收入]' : 
-                               field.key.includes('deductions_details') ? ' [扣除]' : ' [基础]'}
+                              {field.key.includes('earnings_details') ? t('components:auto____205be6'): 
+                               field.key.includes('deductions_details') ? t('components:auto____205be6'): t('components:auto____205be5')}
                             </span>
                           </Option>
                         ))}
@@ -561,7 +537,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   }
                 },
                 {
-                  title: '数据类型',
+                  title: t('components:auto_text_e695b0'),
                   dataIndex: 'type',
                   valueType: 'text'
                 }

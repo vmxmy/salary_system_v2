@@ -8,10 +8,10 @@ import 'dayjs/locale/en';    // Import English locale for dayjs
 
 export const i18nInitOptions = {
   supportedLngs: ['en', 'zh-CN'], 
-  nonExplicitSupportedLngs: false, // 禁用回退到基础语言，不要自动将 'zh-CN' 简化为 'zh'
+  nonExplicitSupportedLngs: false, // 禁用回退到基础语言，不要自动将 'zh-CNt('common:auto____20e7ae')zh'
   load: 'currentOnly' as const, // 只加载完整的语言标签，不尝试加载基础语言
   fallbackLng: {
-    'default': ['zh-CN', 'en'], // 默认回退到 'zh-CN' 然后 'en'
+    'default': ['zh-CN', 'en'], // 默认回退到中文，然后是英文
     'zh': ['zh-CN'], // 确保zh回退到zh-CN
   },
   lng: 'zh-CN', 
@@ -29,6 +29,7 @@ export const i18nInitOptions = {
     'myInfo', 
     'pageTitle',
     'payroll',
+    'payroll_runs',
     'permission',
     'role',
     'user',
@@ -68,12 +69,10 @@ i18n
 
 // 确保在 i18n 初始化后设置 dayjs 语言
 i18n.on('initialized', () => {
-  console.log('[i18n] Initialized with language:', i18n.language);
   updateDayjsLocale(i18n.language);
 });
 
 i18n.on('languageChanged', (lng) => {
-  console.log('[i18n] Language changed to:', lng);
   updateDayjsLocale(lng);
 });
 
@@ -86,7 +85,6 @@ function updateDayjsLocale(lng: string) {
     // 如果检测到的语言不是支持的语言，默认使用中文
     dayjs.locale('zh-cn');
   }
-  console.log('[i18n] Dayjs locale set to:', dayjs.locale());
 }
 
 export default i18n; 

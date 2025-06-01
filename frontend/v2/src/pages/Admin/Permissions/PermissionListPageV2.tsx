@@ -110,7 +110,6 @@ const PermissionListPageV2: React.FC = () => {
       const permissionsArray = await getPermissions();
       setDataSource(permissionsArray || []);
     } catch (error) {
-      console.error('Failed to fetch permissions:', error);
       setDataSource([]);
       setErrorLookups(error);
     } finally {
@@ -138,7 +137,6 @@ const PermissionListPageV2: React.FC = () => {
   // 处理查看详情
   const handleViewDetailsClick = useCallback((id: string) => {
     // 权限管理通常不需要详情页面，可以留空或实现简单的详情模态框
-    console.log('View permission details:', id);
   }, []);
 
   // 表单成功回调
@@ -191,20 +189,20 @@ const PermissionListPageV2: React.FC = () => {
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: '批量删除',
-          confirmTitle: '确认批量删除',
-          confirmContent: '确定要删除选中的权限吗？此操作不可撤销。',
-          confirmOkText: '确定删除',
-          confirmCancelText: '取消',
-          successMessage: '批量删除成功',
-          errorMessage: '批量删除失败',
-          noSelectionMessage: '请选择要删除的权限',
+          buttonText: t('admin:batch_delete'),
+          confirmTitle: t('admin:confirm_batch_delete'),
+          confirmContent: t('admin:confirm_batch_delete_content'),
+          confirmOkText: t('admin:confirm'),
+          confirmCancelText: t('admin:cancel'),
+          successMessage: t('admin:batch_delete_success'),
+          errorMessage: t('admin:batch_delete_error'),
+          noSelectionMessage: t('admin:no_selection'),
         }}
         exportConfig={{
-          filenamePrefix: '权限列表',
-          sheetName: '权限',
-          buttonText: '导出Excel',
-          successMessage: '权限数据导出成功',
+          filenamePrefix: t('admin:permissions'),
+          sheetName: t('admin:permissions'),
+          buttonText: t('admin:export_excel'),
+          successMessage: t('admin:export_success'),
         }}
         lookupErrorMessageKey="list_page.message.load_list_error_prefix"
         lookupLoadingMessageKey="list_page.title"

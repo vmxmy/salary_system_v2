@@ -75,28 +75,28 @@ const generateReportViewTableColumns = (
   if (!columnsMeta || columnsMeta.length === 0) {
     return [];
   }
-  
+
   return columnsMeta.map((metaCol) => {
     const proColumn: ProColumns<any> = {
       title: metaCol.title,
       dataIndex: metaCol.dataIndex,
       key: metaCol.key || metaCol.dataIndex,
       ellipsis: true,
-      sorter: true, 
-      filters: metaCol.dataType !== 'boolean', 
+      sorter: true,
+      filters: metaCol.dataType !== 'boolean',
 
       render: (valueFromCell: any, record: any, index: number) => {
-        const actualValue = record && metaCol.dataIndex && typeof metaCol.dataIndex === 'string' 
-                            ? record[metaCol.dataIndex] 
-                            : valueFromCell;
+        const actualValue = record && metaCol.dataIndex && typeof metaCol.dataIndex === 'string'
+          ? record[metaCol.dataIndex]
+          : valueFromCell;
 
         if (actualValue === null || actualValue === undefined || String(actualValue).trim() === '') {
           return <span style={{ color: '#bfbfbf' }}>-</span>;
         }
-        
+
         if (typeof actualValue === 'object' && actualValue !== null) {
           if (actualValue instanceof Date) {
-            return metaCol.dataType === 'date' 
+            return metaCol.dataType === 'date'
               ? actualValue.toLocaleDateString('zh-CN')
               : actualValue.toLocaleString('zh-CN');
           }
@@ -108,7 +108,7 @@ const generateReportViewTableColumns = (
             return <span style={{ color: '#ff4d4f', fontStyle: 'italic' }}>[渲染错误]</span>;
           }
         }
-        
+
         try {
           switch (metaCol.dataType) {
             case 'date':
@@ -122,8 +122,8 @@ const generateReportViewTableColumns = (
               const currVal_fixed = Number(actualValue);
               return isNaN(currVal_fixed) ? String(actualValue) : `¥${currVal_fixed.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             case 'boolean':
-              if (actualValue === true || String(actualValue).toLowerCase() === 'true') return t('common:boolean.true', '是');
-              if (actualValue === false || String(actualValue).toLowerCase() === 'false') return t('common:boolean.false', '否');
+              if (actualValue === true || String(actualValue).toLowerCase() === 'true') return t('common:boolean.true');
+              if (actualValue === false || String(actualValue).toLowerCase() === 'false') return t('common:boolean.false');
               return String(actualValue);
             default:
               return String(actualValue);
@@ -134,33 +134,33 @@ const generateReportViewTableColumns = (
       },
       ...getColumnSearch(metaCol.dataIndex),
     };
-    
+
     switch (metaCol.dataType) {
       case 'date': proColumn.valueType = 'date'; break;
       case 'datetime': proColumn.valueType = 'dateTime'; break;
       case 'number': proColumn.valueType = 'digit'; break;
       case 'currency': proColumn.valueType = 'money'; break;
-      case 'boolean': 
+      case 'boolean':
         proColumn.valueType = 'select';
         proColumn.filters = [
-            { text: t('common:boolean.true', '是'), value: true },
-            { text: t('common:boolean.false', '否'), value: false },
+          { text: t('common:boolean.true'), value: 'true' },
+          { text: t('common:boolean.false'), value: 'false' },
         ];
         break;
       default: proColumn.valueType = 'text'; break;
     }
     if (metaCol.dataType !== 'boolean') {
-        proColumn.filters = true;
+      proColumn.filters = true;
     }
     return proColumn;
   });
 };
 
-const defaultStatusRender = (status: string) => {
+const defaultStatusRender = (status: string, t: (key: string, options?: any) => string) => {
   const statusConfig: Record<string, {color: string, text: string}> = {
-    draft: { color: 'default', text: '草稿' },
-    created: { color: 'success', text: '已创建' },
-    error: { color: 'error', text: '错误' },
+    draft: { color: 'default', text: t('components:auto_text_e88d89') },
+    created: { color: 'success', text: t('components:auto_text_e5b7b2') },
+    error: { color: 'error', text: t('components:auto_text_e99499') },
   };
   const config = statusConfig[status] || { color: 'default', text: status };
   return <Tag color={config.color}>{config.text}</Tag>;
@@ -176,11 +176,19 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
   extraActions = [],
   showExport = true,
   customTitle,
-  customStatusRender = defaultStatusRender,
-  translationNamespaces = ['reportView', 'common'],
+  customStatusRender: customStatusRenderProp, // Renamed to avoid conflict
+  translationNamespaces = ['reportView', 'common', 'components'], // Added 'components' namespace
 }) => {
   const { t } = useTranslation(translationNamespaces);
   const actionRef = useRef<ActionType | null>(null);
+
+  // Use the renamed prop or fallback to the defaultStatusRender
+  const resolvedCustomStatusRender = useMemo(() => {
+    if (customStatusRenderProp) {
+      return (status: string) => customStatusRenderProp(status); // Call the prop if it exists
+    }
+    return (status: string) => defaultStatusRender(status, t); // Pass t to defaultStatusRender
+  }, [customStatusRenderProp, t]);
 
   const { ExportButton } = useTableExport(
     undefined,
@@ -188,7 +196,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
     {
       supportedFormats: ['excel', 'csv'],
       onExportRequest: onExport,
-      dropdownButtonText: t('common:button.export', '导出'),
+      dropdownButtonText: t('common:button.export'),
     }
   );
 
@@ -200,7 +208,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
 
   const BackButton = () => (
     <Button icon={<RollbackOutlined />} onClick={onBack}>
-      {t('common:button.backToList', '返回列表')}
+      {t('common:button.backToList')}
     </Button>
   );
 
@@ -213,22 +221,22 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
               <Title level={4} style={{ margin: 0, marginRight: 8, wordBreak: 'break-all' }}>
                 {customTitle || reportViewInfo.name}
               </Title>
-              {customStatusRender(reportViewInfo.view_status)}
+              {resolvedCustomStatusRender(reportViewInfo.view_status)}
             </Space>
             {reportViewInfo.description && (
               <Text type="secondary" style={{ wordBreak: 'break-all' }}>{reportViewInfo.description}</Text>
             )}
             <Space size="middle" wrap style={{ fontSize: '12px', color: '#595959', marginTop: '4px' }}>
               {reportViewInfo.category && (
-                <span>{t('reportView:field.category', '分类')}: <strong>{reportViewInfo.category}</strong></span>
+                <span>{t('reportView:field.category')}: <strong>{reportViewInfo.category}</strong></span>
               )}
               {reportViewInfo.usage_count !== undefined && (
-                <span>{t('reportView:field.usageCount', '使用次数')}: <strong>{reportViewInfo.usage_count}</strong></span>
+                <span>{t('reportView:field.usageCount')}: <strong>{reportViewInfo.usage_count}</strong></span>
               )}
               {reportViewInfo.last_used_at && (
-                <span>{t('reportView:field.lastUsedAt', '最后使用')}: <strong>{new Date(reportViewInfo.last_used_at).toLocaleString('zh-CN')}</strong></span>
+                <span>{t('reportView:field.lastUsedAt')}: <strong>{new Date(reportViewInfo.last_used_at).toLocaleString('zh-CN')}</strong></span>
               )}
-              <span>{t('reportView:field.createdAt', '创建时间')}: <strong>{new Date(reportViewInfo.created_at).toLocaleString('zh-CN')}</strong></span>
+              <span>{t('reportView:field.createdAt')}: <strong>{new Date(reportViewInfo.created_at).toLocaleString('zh-CN')}</strong></span>
             </Space>
           </Space>
         </Col>
@@ -241,28 +249,28 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
       </Row>
     </Card>
   );
-  
+
   // 检查报表视图状态
   if (reportViewInfo.view_status !== 'created') {
     const statusMessages = {
       'draft': {
-        title: '视图未创建',
-        message: '此报表视图还未同步到数据库，无法查看数据。',
-        suggestion: '请返回报表视图管理页面，点击"同步"按钮创建数据库视图。'
+        title: t('components:auto_text_e8a786'),
+        message: t('components:auto____e6ada4'),
+        suggestion: t('components:auto_text_e5908c_suggestion'),
       },
       'error': {
-        title: '视图创建失败',
-        message: '数据库视图创建时发生错误，无法查看数据。',
-        suggestion: '请检查SQL语句是否正确，然后重新同步视图。'
+        title: t('components:auto_text_e8a786'),
+        message: t('components:auto____e695b0'),
+        suggestion: t('components:auto_sql___e8afb7')
       }
     };
-    
+
     const statusInfo = statusMessages[reportViewInfo.view_status as keyof typeof statusMessages] || {
-      title: '视图状态异常',
-      message: `当前视图状态：${reportViewInfo.view_status}`,
-      suggestion: '请联系管理员检查视图状态。'
+      title: t('components:auto_text_e8a786'),
+      message: t('components:auto__reportviewinfo_view_status__e5bd93'),
+      suggestion: t('components:auto___e8afb7')
     };
-    
+
     return (
       <div style={{ padding: '0px 12px 12px 12px' }}>
         {renderPageHeader()}
@@ -280,7 +288,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
             </Text>
             {onBack && (
               <Button type="primary" icon={<RollbackOutlined />} onClick={onBack}>
-                {t('common:button.backToList', '返回列表')}
+                {t('common:button.backToList')}
               </Button>
             )}
           </div>
@@ -288,7 +296,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
       </div>
     );
   }
-  
+
   return (
     <div style={{ padding: '0px 12px 12px 12px' }}>
       {renderPageHeader()}
@@ -330,7 +338,7 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
         }}
         bordered
         scroll={{ x: 'max-content' }}
-        cardBordered 
+        cardBordered
       />
     </div>
   );

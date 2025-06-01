@@ -70,7 +70,6 @@ export const useLookups = () => {
         setJobPositionLevelOptions(jobLevels);
       } catch (error) {
         antdMessage.error(t('common:message.data_loading_error'));
-        console.error('Failed to load lookups:', error);
       }
       setLoadingLookups(false);
     };

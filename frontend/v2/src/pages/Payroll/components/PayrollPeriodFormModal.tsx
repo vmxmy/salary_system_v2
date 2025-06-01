@@ -78,7 +78,6 @@ const PayrollPeriodFormModal: React.FC<PayrollPeriodFormModalProps> = ({
 
       onSuccess();
     } catch (error) {
-      console.error('Failed to save payroll period:', error);
       message.error(
         isEditMode 
           ? t('payroll_periods_page.message.update_failed')

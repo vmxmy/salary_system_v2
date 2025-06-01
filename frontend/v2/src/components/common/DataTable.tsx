@@ -299,7 +299,7 @@ const DataTable = <T extends Record<string, any>>({
         <Tag 
           color={hiddenColumns.has(column.key as string || column.dataIndex as string) ? 'red' : 'green'}
         >
-          {hiddenColumns.has(column.key as string || column.dataIndex as string) ? t('hidden') : t('visible')}
+          {hiddenColumns.has(column.key as string || column.dataIndex as string) ?      t('hidden'): t('visible')}
         </Tag>
       </div>
     ),
@@ -321,7 +321,7 @@ const DataTable = <T extends Record<string, any>>({
       {showExport && (
         <Dropdown menu={{ items: exportMenuItems }} placement="bottomRight">
           <Button icon={<DownloadOutlined />}>
-            {t('button.export')}
+            t('button.export')
           </Button>
         </Dropdown>
       )}
@@ -343,7 +343,7 @@ const DataTable = <T extends Record<string, any>>({
       )}
       
       {showFullscreen && (
-        <Tooltip title={isFullscreen ? t('button.exit_fullscreen') : t('button.fullscreen')}>
+        <Tooltip title={isFullscreen ?      t('button.exit_fullscreen'): t('button.fullscreen')}>
           <Button 
             icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
             onClick={toggleFullscreen}

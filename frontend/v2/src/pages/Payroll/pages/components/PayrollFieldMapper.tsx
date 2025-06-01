@@ -19,7 +19,7 @@ export const usePayrollApiFields = (componentDefinitions: PayrollComponentDefini
       .filter(comp => comp.type === 'EARNING' || comp.type === 'STAT')
       .map(comp => ({
         key: `earnings_details.${comp.code}.amount`,
-        label: comp.name + (comp.type === 'STAT' ? ' (统计)' : ''),
+        label: comp.name + (comp.type === 'STAT' ? t('payroll:auto____2028e7') : ''),
         required: false
       }));
     

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Space, Typography, Modal, message, App } from 'antd';
+import { useTranslation } from 'react-i18next';
+import { Button, Space, Typography, Modal, message, App } from 'antd'; // `message` is directly imported for convenience, but `App.useApp().message` is also used. Using one consistent approach is better.
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import EnhancedProTable from './EnhancedProTable';
 import type { EnhancedProTableProps } from './EnhancedProTable';
@@ -53,45 +54,56 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
   extraButtons = [],
   showPageTitle = false,
   batchDelete,
-  enableAdvancedFeatures = true,
-  showToolbar = true,
-  customToolbarButtons: existingCustomButtons,
-  title,
+  // The following props are destructured but then passed directly to EnhancedProTable, which is fine.
+  // enableAdvancedFeatures = true, // This is always true when passed to EnhancedProTable below
+  // showToolbar = true, // This is always true when passed to EnhancedProTable below
+  customToolbarButtons: existingCustomButtons, // Renamed to avoid shadowing
+  // title, // This prop is passed as `pageTitle` to the EnhancedProTable's `title` prop
   rowSelection,
   ...tableProps
 }: OrganizationManagementTableTemplateProps<T>) {
-  
+
   const { modal } = App.useApp();
-  
+  const { t } = useTranslation('components'); // Assuming 'components' namespace for translations
+
   // 批量删除处理函数
   const handleBatchDelete = async () => {
-    if (!batchDelete || !rowSelection?.selectedRowKeys || rowSelection.selectedRowKeys.length === 0) {
-      message.warning(batchDelete?.noSelectionMessage || '请选择要删除的项目');
+    // Check if batchDelete is enabled and if there are selected items
+    if (!batchDelete?.enabled || rowSelection === false || !rowSelection?.selectedRowKeys || rowSelection.selectedRowKeys.length === 0) {
+      message.warning(batchDelete?.noSelectionMessage || t('table_template.no_selection_warning', 'Please select items to delete.'));
       return;
     }
 
+    // Now, TypeScript knows rowSelection is not false and selectedRowKeys is not undefined
+    const selectedKeys = rowSelection.selectedRowKeys; // Destructure here to satisfy TypeScript
+
+    // Show confirmation modal
     modal.confirm({
       title: batchDelete.confirmTitle,
-      content: batchDelete.confirmContent.replace('{count}', String(rowSelection.selectedRowKeys.length)),
+      content: batchDelete.confirmContent.replace('{count}', String(selectedKeys.length)),
       okText: batchDelete.confirmOkText,
       okType: 'danger',
       cancelText: batchDelete.confirmCancelText,
       onOk: async () => {
         try {
-          await batchDelete.onBatchDelete(rowSelection.selectedRowKeys);
-          message.success(batchDelete.successMessage.replace('{count}', String(rowSelection.selectedRowKeys.length)));
+          await batchDelete.onBatchDelete(selectedKeys);
+          message.success(batchDelete.successMessage.replace('{count}', String(selectedKeys.length)));
+          // Optionally, clear row selection after successful deletion
+          if (rowSelection && rowSelection.onChange) {
+            // Corrected: Pass a valid type for the third argument
+            rowSelection.onChange([], [], { type: 'none' }); 
+          }
         } catch (error) {
           message.error(batchDelete.errorMessage);
-          console.error('Batch delete failed:', error);
         }
       },
     });
   };
 
-  // 构建自定义工具栏按钮
-  const customToolbarButtons = [];
-  
-  // 添加主要的新增按钮
+  // Build custom toolbar buttons dynamically
+  const customToolbarButtons: React.ReactNode[] = [];
+
+  // Add primary add button
   if (showAddButton) {
     customToolbarButtons.push(
       <Button
@@ -105,9 +117,10 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
       </Button>
     );
   }
-  
-  // 添加批量删除按钮
-  if (batchDelete?.enabled && rowSelection?.selectedRowKeys && rowSelection.selectedRowKeys.length > 0) {
+
+  // Add batch delete button if enabled and items are selected
+  if (batchDelete?.enabled && rowSelection !== false && rowSelection?.selectedRowKeys && rowSelection.selectedRowKeys.length > 0) {
+    const selectedKeys = rowSelection.selectedRowKeys; // Destructure here to satisfy TypeScript
     customToolbarButtons.push(
       <Button
         key="batch-delete"
@@ -116,17 +129,17 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
         onClick={handleBatchDelete}
         shape="round"
       >
-        {batchDelete.buttonText.replace('{count}', String(rowSelection.selectedRowKeys.length))}
+        {batchDelete.buttonText.replace('{count}', String(selectedKeys.length))}
       </Button>
     );
   }
-  
-  // 添加额外的自定义按钮
+
+  // Add any extra custom buttons provided
   if (extraButtons.length > 0) {
     customToolbarButtons.push(...extraButtons);
   }
-  
-  // 添加已存在的自定义按钮
+
+  // Add any existing custom buttons passed from EnhancedProTable's props
   if (existingCustomButtons && existingCustomButtons.length > 0) {
     customToolbarButtons.push(...existingCustomButtons);
   }
@@ -138,11 +151,11 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
           <Title level={3} className={pageStyles.sectionHeaderTitle}>{pageTitle}</Title>
         </div>
       )}
-      
+
       <EnhancedProTable<T>
-        enableAdvancedFeatures={true}
-        showToolbar={true}
-        title={pageTitle}
+        enableAdvancedFeatures={true} // Always true as per original logic
+        showToolbar={true} // Always true as per original logic
+        title={pageTitle} // Use pageTitle as the table's toolbar title
         customToolbarButtons={customToolbarButtons}
         rowSelection={rowSelection}
         {...tableProps}
@@ -152,4 +165,4 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
 }
 
 export default OrganizationManagementTableTemplate;
-export type { OrganizationManagementTableTemplateProps }; 
+export type { OrganizationManagementTableTemplateProps };

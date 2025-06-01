@@ -17,14 +17,14 @@ import {
 } from './constants/payrollPermissions'; // 添加薪资字段查看权限
 
 // Lazy load page components
-// const PayrollPeriodsPage = lazy(() => import('./pages/PayrollPeriodsPage'));
-// const PayrollRunsPage = lazy(() => import('./pages/PayrollRunsPage'));
-// const PayrollEntriesPage = lazy(() => import('./pages/PayrollEntriesPage'));
-// const PayrollRunDetailPage = lazy(() => import('./pages/PayrollRunDetailPage'));
+// const PayrollPeriodsPage = lazy(() => import('./pages/PayrollPeriodsPage');
+// const PayrollRunsPage = lazy(() => import('./pages/PayrollRunsPage');
+// const PayrollEntriesPage = lazy(() => import('./pages/PayrollEntriesPage');
+// const PayrollRunDetailPage = lazy(() => import('./pages/PayrollRunDetailPage');
 
 // Placeholder for PayrollRunDetailPage until it's created
 // const PayrollRunDetailPagePlaceholder: React.FC = () => (
-//   React.createElement('div', null, '薪资审核详情页 (占位符)')
+//   React.createElement('div', null, t('payroll:auto____e896aa')
 // );
 
 export const payrollRoutes: AppRouteObject[] = [
@@ -84,7 +84,7 @@ export const payrollRoutes: AppRouteObject[] = [
   //   path: 'entries',
   //   element: <React.Suspense fallback={<div>Loading Payroll Entries...</div>}><PayrollEntriesPage /></React.Suspense>,
   //   meta: {
-  //     title: '工资条目管理',
+  //     title: t('payroll:auto_text_e5b7a5'),
   //   },
   // },
 ]; 

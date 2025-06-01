@@ -15,8 +15,7 @@ import ContractInfoTab from './partials/ContractInfoTab';
 
 // Updated BasicInfoTabPlaceholder
 const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps: LookupMaps | null; rawLookups?: RawLookups | null }> = ({ employee, lookupMaps, rawLookups }) => {
-  const { t } = useTranslation(['employee', 'common']);
-  
+  const { t } = useTranslation();
   if (!employee) {
     return <p>{t('employee:detail_page.common_value.na')}</p>;
   }
@@ -80,9 +79,8 @@ const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps:
 };
 
 const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupMaps | null }> = ({ employee, lookupMaps }) => {
-    const { t } = useTranslation(['employee', 'common']);
-    
-    if (!employee) {
+  const { t } = useTranslation();
+  if (!employee) {
         return <p>{t('employee:detail_page.common_value.na')}</p>;
     }
     
@@ -114,10 +112,8 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
             }
             
             return years > 0 
-                ? t('employee:detail_page.job_info_tab.seniority_years_months', { years, months })
-                : t('employee:detail_page.job_info_tab.seniority_months', { months });
+                ? t('employee:detail_page.job_info_tab.seniority_years_months', { years, months }) : t('employee:detail_page.job_info_tab.seniority_months', { months });
         } catch (error) {
-            console.error("计算司龄时出错:", error);
             return naText;
         }
     };
@@ -141,7 +137,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
                      employee.actual_position_name || 
                      String(employee.actual_position_id ?? naText)}
                 </Descriptions.Item>
-                <Descriptions.Item label="职务级别">
+                <Descriptions.Item label={t('hr:auto_text_e8818c')}>
                     {lookupMaps?.jobPositionLevelMap.get(Number(employee.job_position_level_lookup_value_id)) || 
                      employee.job_position_level_lookup_value_name || 
                      employee.jobPositionLevelName ||
@@ -173,8 +169,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
             <Descriptions title={t('employee:detail_page.job_info_tab.reporting_info')} bordered column={1} layout="vertical">
                 <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_reports_to')}>
                     {employee.reports_to_employee_id 
-                     ? t('employee:detail_page.job_info_tab.reports_to_id_prefix', {id: employee.reports_to_employee_id}) 
-                     : naText}
+                     ? t('employee:detail_page.job_info_tab.reports_to_id_prefix', {id: employee.reports_to_employee_id}) : naText}
                 </Descriptions.Item>
             </Descriptions>
         </>
@@ -182,7 +177,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
 };
 
 const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
+  const { t } = useTranslation();
   if (!data) return <p>{t('employee:detail_page.job_history_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.job_history_tab.no_records')}</p>;
   return (
@@ -193,7 +188,7 @@ const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; l
           {t('employee:detail_page.job_history_tab.personnel_category_prefix')} {lookupMaps?.personnelCategoryMap.get(String(item.personnel_category_id)) || item.personnel_category_name || String(item.personnel_category_id ?? t('employee:detail_page.common_value.na'))}, 
           {t('employee:detail_page.job_history_tab.actual_position_prefix')} {lookupMaps?.positionMap.get(String(item.position_id)) || item.position_name || String(item.position_id ?? t('employee:detail_page.common_value.na'))} {t('employee:detail_page.job_history_tab.at_conjunction')} 
           {lookupMaps?.departmentMap.get(String(item.department_id)) || item.departmentName || String(item.department_id ?? t('employee:detail_page.common_value.na'))}
-          {item.employment_type_lookup_value_id ? ` (${lookupMaps?.employmentTypeMap.get(Number(item.employment_type_lookup_value_id)) || String(item.employment_type_lookup_value_id)})` : ''}
+          {item.employment_type_lookup_value_id ? ` (${t('employee:detail_page.compensation_tab.freq_prefix')} ${lookupMaps?.employmentTypeMap.get(Number(item.employment_type_lookup_value_id)) || String(item.employment_type_lookup_value_id)})` : ''}
         </li>
       ))}
     </ul>
@@ -201,7 +196,7 @@ const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; l
 };
 
 const ContractsTabPlaceholder: React.FC<{ data: ContractItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
+  const { t } = useTranslation();
   if (!data) return <p>{t('employee:detail_page.contracts_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.contracts_tab.no_records')}</p>;
   return (
@@ -217,7 +212,7 @@ const ContractsTabPlaceholder: React.FC<{ data: ContractItem[] | undefined; look
 };
 
 const CompensationTabPlaceholder: React.FC<{ data: CompensationItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
+  const { t } = useTranslation();
   if (!data) return <p>{t('employee:detail_page.compensation_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.compensation_tab.no_records')}</p>;
   return (
@@ -233,7 +228,7 @@ const CompensationTabPlaceholder: React.FC<{ data: CompensationItem[] | undefine
 };
 
 const LeaveBalancesTabPlaceholder: React.FC<{ data: LeaveBalanceItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
+  const { t } = useTranslation();
   if (!data) return <p>{t('employee:detail_page.leave_balances_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.leave_balances_tab.no_records')}</p>;
   return (
@@ -262,7 +257,6 @@ const EmployeeDetailPage: React.FC = () => {
   useEffect(() => {
     if (errorLookups) {
       message.error(t('employee:detail_page.message.load_lookups_failed'));
-      console.error('Error from useLookupMaps:', errorLookups);
     }
   }, [errorLookups, t]);
 
@@ -273,25 +267,19 @@ const EmployeeDetailPage: React.FC = () => {
       return;
     }
 
-    console.log('[EmployeeDetailPage] useEffect: employeeId is:', employeeId);
 
     const fetchEmployee = async () => {
       setLoading(true);
       setError(null);
       try {
-        console.log('[EmployeeDetailPage] fetchEmployee: Fetching data for employeeId:', employeeId);
         const data = await employeeService.getEmployeeById(employeeId);
-        console.log('[EmployeeDetailPage] fetchEmployee: Data received from API:', data);
         if (data) {
           setEmployee(data);
-          console.log('[EmployeeDetailPage] fetchEmployee: Employee state updated.');
         } else {
           setError(t('employee:detail_page.error.employee_info_not_found'));
           message.error(t('employee:detail_page.error.employee_info_not_found'));
-          console.warn('[EmployeeDetailPage] fetchEmployee: No data received for employeeId:', employeeId);
         }
       } catch (err) {
-        console.error('[EmployeeDetailPage] fetchEmployee: 获取员工详情失败:', err);
         setError(t('employee:detail_page.message.error_get_employee_detail_failed_retry'));
         message.error(t('employee:detail_page.message.error_get_employee_detail_failed'));
       } finally {
@@ -391,8 +379,6 @@ const EmployeeDetailPage: React.FC = () => {
     );
   };
 
-  console.log('[EmployeeDetailPage] Rendering: employee state:', employee);
-  console.log('[EmployeeDetailPage] Rendering: pageTitleText calculated as:', pageTitleText);
 
   if (loading || loadingLookups) {
     return (
@@ -415,7 +401,7 @@ const EmployeeDetailPage: React.FC = () => {
       >
         <Alert message={t('employee:detail_page.alert.message_error')} description={error} type="error" showIcon /> 
         <Button onClick={() => navigate('/hr/employees')} style={{ marginTop: 16 }}>
-          {t('employee:detail_page.button_back_to_list')}
+          t('employee:detail_page.button_back_to_list')
         </Button>
       </PageContainer>
     );
@@ -430,7 +416,7 @@ const EmployeeDetailPage: React.FC = () => {
       >
         <Alert message={t('employee:detail_page.alert.message_info')} description={t('employee:detail_page.page_container.alert_description_cannot_load_data')} type="info" showIcon />
         <Button onClick={() => navigate('/hr/employees')} style={{ marginTop: 16 }}>
-          {t('employee:detail_page.button_back_to_list')}
+          t('employee:detail_page.button_back_to_list')
         </Button>
       </PageContainer>
     );

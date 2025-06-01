@@ -6,7 +6,7 @@ import apiClient from './apiClient';
  * @returns 薪资字段定义列表响应
  */
 export const getPayrollComponentDefinitions = async (params?: any) => {
-  const url = `/config/payroll-components`;
+  const url = `/config/payroll-component-definitions`;
   const response = await apiClient.get(url, { params });
   return response.data;
 };
@@ -17,7 +17,7 @@ export const getPayrollComponentDefinitions = async (params?: any) => {
  * @returns 薪资字段定义
  */
 export const getPayrollComponentDefinition = async (id: number) => {
-  const url = `/config/payroll-components/${id}`;
+  const url = `/config/payroll-component-definitions/${id}`;
   const response = await apiClient.get(url);
   return response.data;
 };
@@ -28,7 +28,7 @@ export const getPayrollComponentDefinition = async (id: number) => {
  * @returns 创建的薪资字段定义
  */
 export const createPayrollComponentDefinition = async (data: any) => {
-  const url = `/config/payroll-components`;
+  const url = `/config/payroll-component-definitions`;
   const response = await apiClient.post(url, data);
   return response.data;
 };
@@ -40,7 +40,7 @@ export const createPayrollComponentDefinition = async (data: any) => {
  * @returns 更新的薪资字段定义
  */
 export const updatePayrollComponentDefinition = async (id: number, data: any) => {
-  const url = `/config/payroll-components/${id}`;
+  const url = `/config/payroll-component-definitions/${id}`;
   const response = await apiClient.put(url, data);
   return response.data;
 };
@@ -50,6 +50,6 @@ export const updatePayrollComponentDefinition = async (id: number, data: any) =>
  * @param id 组件ID
  */
 export const deletePayrollComponentDefinition = async (id: number) => {
-  const url = `/config/payroll-components/${id}`;
+  const url = `/config/payroll-component-definitions/${id}`;
   await apiClient.delete(url);
 }; 

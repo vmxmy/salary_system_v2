@@ -60,7 +60,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
             setSelectedEmployee(employee);
           }
         } catch (error) {
-          console.error('获取员工详情失败:', error);
+          
         }
       };
       fetchEmployee();
@@ -80,7 +80,6 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
     try {
       // 通过姓名搜索员工
       const response = await employeeService.getEmployees({ name, size: 20 });
-      console.log('搜索员工结果:', JSON.stringify(response.data, null, 2));
       
       // 确保每个员工对象都包含必要的信息
       const employeesWithDetails = await Promise.all(
@@ -90,10 +89,8 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
               (!emp.personnelCategoryName || !emp.actual_position_name)) {
             try {
               const details = await employeeService.getEmployeeById(String(emp.id));
-              console.log(`获取员工 ${emp.id} 的详细信息:`, details);
               return details || emp;
             } catch (err) {
-              console.error(`获取员工 ${emp.id} 详情失败:`, err);
               return emp;
             }
           }
@@ -103,7 +100,6 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       
       setEmployees(employeesWithDetails || []);
     } catch (error) {
-      console.error('搜索员工失败:', error);
       setEmployees([]);
     } finally {
       setLoading(false);
@@ -168,7 +164,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
         {loading ? (
           <div style={{ padding: '8px', textAlign: 'center' }}>
             <Spin size="small" />
-            <div style={{ marginTop: '8px' }}>{t('common:status.loading')}</div>
+            <div style={{ marginTop: '8px' }}>t('common:status.loading')</div>
           </div>
         ) : employees.length === 0 && searchText ? (
           <Empty 
@@ -187,7 +183,6 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
   const internalChangeHandler: SelectProps<number, EmployeeOption>['onChange'] = (value, option) => {
     if (Array.isArray(option)) {
       // 多选模式，当前组件不支持
-      console.warn('EmployeeSelect: 多选模式未实现');
       return;
     }
     

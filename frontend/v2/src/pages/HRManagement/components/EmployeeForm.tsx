@@ -138,7 +138,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           lookupService.getJobPositionLevelsLookup(),
         ]);
         
-        console.log('[EmployeeForm] Raw personnelCategoriesData from lookupService:', JSON.parse(JSON.stringify(personnelCategoriesData)));
 
         setDepartmentOptions(transformToTreeData(depts));
         setPersonnelCategoryOptions(transformToTreeData(personnelCategoriesData as any[]));
@@ -153,7 +152,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         setJobPositionLevelOptions(jobPositionLevels);
       } catch (error) {
         antdMessage.error(t('common:message.data_loading_error'));
-        console.error('Failed to load lookups:', error);
       }
       setLoadingLookups(false);
     };
@@ -162,7 +160,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   useEffect(() => {
     if (initialValues && Object.keys(initialValues).length > 0 && !loadingLookups) {
-      console.log('[EmployeeForm] Setting form values from initialValues');
       
       const processedValues: Record<string, any> = {
         ...initialValues,
@@ -212,7 +209,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   useEffect(() => {
     if (allStepsData && Object.keys(allStepsData).length > 0) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[EmployeeForm] Step changed to ${currentStep}`);
       }
       
       form.setFieldsValue(allStepsData);
@@ -222,7 +218,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   const handleFormSubmit = async (formValues: any) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[EmployeeForm] Form submission started');
     }
 
     // 直接从表单获取所有字段值
@@ -232,7 +227,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     const missingFields = requiredFields.filter(field => !allFormData[field]);
     
     if (missingFields.length > 0) {
-      console.error('[EmployeeForm] Missing required fields:', missingFields);
       antdMessage.error(t('common:message.missing_required_fields'));
       
       // 根据缺失字段切换到相应的标签页
@@ -247,7 +241,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     }
 
     // 记录原始数据用于调试
-    console.log('[EmployeeForm] All form data before processing:', JSON.stringify(allFormData, null, 2));
 
     // 使用 any 类型绕过类型检查
     const processedFinalPayload: any = {
@@ -260,7 +253,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       gender_lookup_value_name: allFormData.gender_lookup_value_id != null
                                ? genderOptions.find(opt => opt.id === Number(allFormData.gender_lookup_value_id))?.name
                                : undefined,
-      date_of_birth: allFormData.date_of_birth ? dayjs(allFormData.date_of_birth).utc().format('YYYY-MM-DD') : undefined,
+      date_of_birth: allFormData.date_of_birth ? dayjs(allFormData.date_of_birth).utc().format('YYYY-MM-DD'): undefined,
       id_number: allFormData.id_number,
       marital_status_lookup_value_id: allFormData.marital_status_lookup_value_id != null
                                        ? Number(allFormData.marital_status_lookup_value_id)
@@ -282,7 +275,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                                        : undefined,
       nationality: allFormData.nationality,
       ethnicity: allFormData.ethnicity,
-      first_work_date: allFormData.first_work_date ? dayjs(allFormData.first_work_date).utc().format('YYYY-MM-DD') : undefined,
+      first_work_date: allFormData.first_work_date ? dayjs(allFormData.first_work_date).utc().format('YYYY-MM-DD'): undefined,
       interrupted_service_years: allFormData.interrupted_service_years != null ? Number(allFormData.interrupted_service_years) : undefined,
 
       avatar: allFormData.avatar || (avatarFileList.length > 0 && avatarFileList[0].url) || (avatarFileList.length > 0 && avatarFileList[0].response?.url) || undefined,
@@ -306,7 +299,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       position_name: allFormData.actual_position_id != null
                    ? positionOptions.find(opt => opt.value === Number(allFormData.actual_position_id))?.label
                    : undefined,
-      hire_date: allFormData.hire_date ? dayjs(allFormData.hire_date).utc().format('YYYY-MM-DD') : undefined,
+      hire_date: allFormData.hire_date ? dayjs(allFormData.hire_date).utc().format('YYYY-MM-DD'): undefined,
       status_lookup_value_id: allFormData.status_lookup_value_id != null
                              ? Number(allFormData.status_lookup_value_id)
                              : undefined,
@@ -351,12 +344,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     });
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('[EmployeeForm] Payload prepared for submission:', JSON.stringify(processedFinalPayload, null, 2));
     }
 
     if (isEditMode && initialValues?.id) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('[EmployeeForm] Executing update operation');
       }
       const updatePayload = {
         ...processedFinalPayload,
@@ -364,11 +355,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       await onSubmit(updatePayload);
     } else {
       if (process.env.NODE_ENV === 'development') {
-        console.log('[EmployeeForm] Executing create operation');
       }
       if (!processedFinalPayload.first_name || !processedFinalPayload.last_name || 
           !processedFinalPayload.hire_date || !processedFinalPayload.status_lookup_value_name) {
-        console.error('[EmployeeForm] Missing required fields for employee creation');
         antdMessage.error(t('common:message.missing_required_fields'));
         return;
       }
@@ -519,7 +508,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 name="file" 
                 maxCount={1}
               >
-                  {avatarFileList.length < 1 && <div><UploadOutlined /><div style={{marginTop: 8}}>{t('employee:form_upload.avatar_text')}</div></div>}
+                  {avatarFileList.length < 1 && <div><UploadOutlined /><div style={{marginTop: 8}}>t('employee:form_upload.avatar_text')</div></div>}
               </Upload>
             </Form.Item>
         </Card>
@@ -601,8 +590,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 {contractTypeOptions.map(ct => <Option key={ct.value as React.Key} value={Number(ct.value)}>{ct.label}</Option>)}
               </Select>
             </Form.Item>
-            <Form.Item name="job_position_level_lookup_value_id" label="职务级别">
-              <Select placeholder="请选择职务级别" loading={loadingLookups} allowClear>
+            <Form.Item name="job_position_level_lookup_value_id" label={t('hr:auto_text_e8818c')}>
+              <Select placeholder={t('hr:auto_text_e8afb7')} loading={loadingLookups} allowClear>
                 {jobPositionLevelOptions.map(jpl => <Option key={jpl.value as React.Key} value={Number(jpl.value)}>{jpl.label}</Option>)}
               </Select>
             </Form.Item>
@@ -674,10 +663,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
         <div style={{ marginTop: 24, textAlign: 'right' }}>
           <Button type="primary" htmlType="submit" loading={loadingSubmit}>
-            {isEditMode ? t('common:button.update') : t('common:button.create')}
+            {isEditMode ?      t('common:button.update'): t('common:button.create')}
           </Button>
           <Button style={{ marginLeft: 8 }} onClick={onCancel} disabled={loadingSubmit}>
-            {t('common:button.cancel')}
+            t('common:button.cancel')
           </Button>
         </div>
       </Form>

@@ -46,18 +46,12 @@ const buildTreeData = (personnelCategories: PersonnelCategory[], parentId: numbe
       ? null
       : Number(pc.parent_category_id);
     const isMatch = pcParentIdNum === parentId;
-    console.log(`Comparing pc.parent_category_id=${pcParentIdNum} with parentId=${parentId}, isMatch=${isMatch}`);
     return isMatch;
   });
 
-  console.log(`Building tree data for parentId: ${parentId}, matching items:`, filtered.length);
-  console.log('personnelCategories:', personnelCategories);
-  console.log('parentId:', parentId);
-  console.log('filtered personnelCategories:', filtered);
 
   return filtered.map(pc => {
     const children = buildTreeData(personnelCategories, pc.id);
-    console.log(`Item ${pc.id} (${pc.name}) has ${children.length} children`);
 
     return {
       ...pc,
@@ -104,11 +98,7 @@ const PersonnelCategoriesPage: React.FC = () => {
         // is_active: undefined, // Explicitly undefined or not passing it means no filter by active status by backend
       });
 
-      console.log('API Response (raw for table):', response);
-      console.log('API Response Data (for table):', response.data);
       if (response.data.length > 0) {
-        console.log('API Response Data[0]:', response.data[0]);
-        console.log('parent_category_id in Data[0]:', response.data[0].parent_category_id);
       }
 
       const fixedData = response.data.map(item => {
@@ -125,13 +115,11 @@ const PersonnelCategoriesPage: React.FC = () => {
         return itemCopy;
       });
 
-      console.log('Fixed Data (for table and selector):', fixedData);
 
       // Use the fetched and fixed data for both the tree selector and the table
       setAllFlatPersonnelCategories(fixedData);
 
       const treeData = buildTreeData(fixedData);
-      console.log('Tree Data (for table):', treeData);
 
       setPersonnelCategoriesTree(treeData);
       // setPersonnelCategories(treeData); // This might be redundant if personnelCategoriesTree is the primary source for the Table
@@ -139,7 +127,6 @@ const PersonnelCategoriesPage: React.FC = () => {
       // No need to setTableParams here if pagination is fully client-side or not used for tree.
     } catch (error) {
       message.error(t('message.fetch_list_failed'));
-      console.error('Failed to fetch personnel categories:', error);
     }
     setIsLoading(false);
   }, [t]);
@@ -229,7 +216,6 @@ const PersonnelCategoriesPage: React.FC = () => {
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error_unknown');
       message.error(`${t('message.operation_failed_prefix')}${errorMsg}`);
-      console.error('Personnel category operation failed:', error.response?.data || error);
     }
     setModalLoading(false);
   };
@@ -242,7 +228,6 @@ const PersonnelCategoriesPage: React.FC = () => {
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.delete_failed_has_children');
       message.error(`${t('message.delete_failed_prefix')}${errorMsg}`);
-      console.error('Failed to delete personnel category:', error.response?.data || error);
     }
   };
 
@@ -426,7 +411,7 @@ const PersonnelCategoriesPage: React.FC = () => {
               )}
 
               <Modal
-                title={editingPersonnelCategory ? t('modal.edit_title') : t('modal.create_title')}
+                title={editingPersonnelCategory ?      t('modal.edit_title'): t('modal.create_title')}
                 open={isModalOpen}
                 onCancel={handleCancelModal}
                 confirmLoading={modalLoading}
@@ -440,7 +425,6 @@ const PersonnelCategoriesPage: React.FC = () => {
                       handleFormSubmit(values);
                     })
                     .catch(info => {
-                      console.log('Validate Failed:', info);
                       message.error(t('common:message.form_validation_error'));
                     });
                 }}

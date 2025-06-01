@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import type { ProColumns } from '@ant-design/pro-components';
 import { stringSorter, numberSorter, dateSorter } from './TableUtils';
@@ -30,8 +31,8 @@ const useExamplePermissions = () => ({
 const useExampleLookupMaps = () => ({
   lookupMaps: {
     statusMap: new Map([
-      ['active', '激活'],
-      ['inactive', '停用'],
+      ['active', '活跃'],
+      ['inactive', '非活跃'],
     ]),
   },
   loadingLookups: false,
@@ -44,14 +45,13 @@ const exampleService = {
     // 模拟API调用
     return {
       data: [
-        { id: '1', name: '示例项目1', code: 'EX001', status: 'active', createTime: '2024-01-01' },
-        { id: '2', name: '示例项目2', code: 'EX002', status: 'inactive', createTime: '2024-01-02' },
+        { id: '1', name: 'Example 1', code: 'EX001', status: 'active', createTime: '2024-01-01' },
+        { id: '2', name: 'Example 2', code: 'EX002', status: 'inactive', createTime: '2024-01-02' },
       ],
     };
   },
   deleteItem: async (id: string) => {
     // 模拟删除API调用
-    console.log('Deleting item:', id);
   },
 };
 
@@ -71,21 +71,21 @@ const generateExampleTableColumns = (
 ): ProColumns<ExampleItem>[] => {
   return [
     {
-      title: '名称',
+      title: t('components:auto_text_e5908d'),
       dataIndex: 'name',
       key: 'name',
       sorter: stringSorter<ExampleItem>('name'),
       ...getColumnSearch('name'),
     },
     {
-      title: '编码',
+      title: t('components:auto_text_e7bc96'),
       dataIndex: 'code',
       key: 'code',
       sorter: stringSorter<ExampleItem>('code'),
       ...getColumnSearch('code'),
     },
     {
-      title: '状态',
+      title: t('components:auto_text_e78ab6'),
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => lookupMaps?.statusMap?.get(status) || status,
@@ -96,14 +96,14 @@ const generateExampleTableColumns = (
       onFilter: (value, record) => record.status === value,
     },
     {
-      title: '创建时间',
+      title: t('components:auto_text_e5889b'),
       dataIndex: 'createTime',
       key: 'createTime',
       render: (date: string) => date ? new Date(date).toLocaleDateString() : '',
       sorter: dateSorter<ExampleItem>('createTime'),
     },
     {
-      title: '操作',
+      title: t('components:auto_text_e6938d'),
       key: 'action',
       width: 150,
       fixed: 'right',
@@ -113,14 +113,14 @@ const generateExampleTableColumns = (
             <TableActionButton 
               actionType="view" 
               onClick={() => onViewDetails(record.id)} 
-              tooltipTitle="查看" 
+              tooltipTitle={t('components:auto_text_e69fa5')} 
             />
           )}
           {permissions.canUpdate && (
             <TableActionButton 
               actionType="edit" 
               onClick={() => onEdit(record)} 
-              tooltipTitle="编辑" 
+              tooltipTitle={t('components:auto_text_e7bc96')} 
             />
           )}
           {permissions.canDelete && (
@@ -128,7 +128,7 @@ const generateExampleTableColumns = (
               actionType="delete" 
               danger 
               onClick={() => onDelete(record.id)} 
-              tooltipTitle="删除" 
+              tooltipTitle={t('components:auto_text_e588a0')} 
             />
           )}
         </Space>
@@ -142,6 +142,7 @@ const ExampleListPage: React.FC = () => {
   const navigate = useNavigate();
   const permissions = useExamplePermissions();
   const { lookupMaps, loadingLookups, errorLookups } = useExampleLookupMaps();
+  const { t } = useTranslation(['example', 'common', 'components']);
 
   const [dataSource, setDataSource] = useState<ExampleItem[]>([]);
   const [loadingData, setLoadingData] = useState<boolean>(false);
@@ -157,7 +158,6 @@ const ExampleListPage: React.FC = () => {
         setDataSource([]);
       }
     } catch (error) {
-      console.error('Failed to fetch data:', error);
       setDataSource([]);
     } finally {
       setLoadingData(false);
@@ -209,20 +209,20 @@ const ExampleListPage: React.FC = () => {
       }}
       batchDeleteConfig={{
         enabled: true,
-        buttonText: '批量删除 ({count})',
-        confirmTitle: '确认批量删除',
-        confirmContent: '确定要删除选中的 {count} 个项目吗？此操作不可撤销。',
-        confirmOkText: '确定删除',
-        confirmCancelText: '取消',
-        successMessage: '成功删除 {count} 个项目',
-        errorMessage: '批量删除失败',
-        noSelectionMessage: '请选择要删除的项目',
+        buttonText: t('components:batch_delete.button_text'),
+        confirmTitle: t('components:batch_delete.confirm_title'),
+        confirmContent: t('components:batch_delete.confirm_content'),
+        confirmOkText: t('common:button.ok'),
+        confirmCancelText: t('common:button.cancel'),
+        successMessage: t('components:batch_delete.success_message'),
+        errorMessage: t('components:batch_delete.error_message'),
+        noSelectionMessage: t('components:batch_delete.no_selection_message'),
       }}
       exportConfig={{
-        filenamePrefix: '示例数据',
-        sheetName: '示例列表',
-        buttonText: '导出Excel',
-        successMessage: '示例数据导出成功',
+        filenamePrefix: t('common:export.filename_default'),
+        sheetName: t('common:export.sheetName_default'),
+        buttonText: t('common:button.export_excel'),
+        successMessage: t('common:export.success_message'),
       }}
       lookupErrorMessageKey="example:message.load_aux_data_failed"
       lookupLoadingMessageKey="example:message.loading_lookups"

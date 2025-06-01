@@ -16,8 +16,8 @@ export function initReactWarningSuppress() {
     const fullMessage = [message, ...optionalParams].join(' ');
     
     // 检查是否是 findDOMNode 相关的警告
-    if (typeof message === 'string' && 
-        (message.includes('findDOMNode') || 
+    if (typeof message === 'string' &&
+        (message.includes('findDOMNode') ||
          fullMessage.includes('findDOMNode') ||
          message.includes('Warning: findDOMNode'))) {
       // 静默忽略
@@ -45,7 +45,6 @@ export function initReactWarningSuppress() {
     originalConsoleError.apply(console, [message, ...optionalParams]);
   };
 
-  console.log('🔇 React 警告抑制已启用 - findDOMNode 警告将被忽略');
 }
 
 /**
@@ -54,5 +53,4 @@ export function initReactWarningSuppress() {
 export function restoreReactConsole() {
   console.warn = originalConsoleWarn;
   console.error = originalConsoleError;
-  console.log('�� React 警告抑制已禁用');
 } 

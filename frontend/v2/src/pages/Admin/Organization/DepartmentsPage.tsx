@@ -62,11 +62,9 @@ interface DepartmentFormValues extends Omit<CreateDepartmentPayload, 'effective_
 
 // Helper function to convert flat list to tree structure for AntD Table/TreeSelect
 const buildTreeData = (departments: Department[], parentId: number | null = null, depth: number = 0): DepartmentPageItem[] => {
-  console.log(`构建树形数据 parentId=${parentId}, depth=${depth}, 数据条数=${departments.length}`);
   
   // 检查departments参数是否有效
   if (!Array.isArray(departments)) {
-    console.error('buildTreeData: departments不是数组', departments);
     return [];
   }
   
@@ -77,7 +75,6 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
       const rootDept = departments.find(dept => dept.code === "GXQCZ");
       
       if (rootDept) {
-        console.log('找到指定根节点:', rootDept);
         const rootItem: DepartmentPageItem = {
           ...rootDept,
           key: rootDept.id,
@@ -93,7 +90,6 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
       const nullParentDepts = departments.filter(dept => dept.parent_department_id === null);
       
       if (nullParentDepts.length > 0) {
-        console.log('找到parent_department_id为null的记录:', nullParentDepts.length);
         return nullParentDepts.map(dept => ({
           ...dept,
           key: dept.id,
@@ -110,12 +106,10 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
         .map(dept => dept.parent_department_id)
         .filter(id => id !== null)));
       
-      console.log('所有被引用的父部门ID:', allRootParentIds);
       
       // 如果找到了被引用但不在当前列表中的父部门ID
       if (allRootParentIds.length > 0) {
         // 方案1：将这些父部门ID的子部门直接作为顶层节点显示
-        console.log(`根部门ID=${rootId}不在返回数据中，将其子部门作为顶层节点显示`);
         const topLevelDepts = departments.filter(dept => dept.parent_department_id === rootId);
         
         if (topLevelDepts.length > 0) {
@@ -144,12 +138,10 @@ const buildTreeData = (departments: Department[], parentId: number | null = null
       
     // 如果是顶层调用，打印结果信息
     if (depth === 0) {
-      console.log(`顶层树形数据构建完成，节点数量: ${result.length}`);
     }
     
     return result;
   } catch (error) {
-    console.error('构建树形数据出错:', error);
     return [];
   }
 };
@@ -191,11 +183,8 @@ const DepartmentsPage: React.FC = () => {
       });
       
       // 添加调试信息
-      console.log('API响应数据:', response);
-      console.log('返回数据条数:', response.data.length);
       
       if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-        console.warn('API返回数据为空或格式不正确');
         setDepartmentsTree([]);
         setIsLoading(false);
         return;
@@ -203,7 +192,6 @@ const DepartmentsPage: React.FC = () => {
       
       // 确保数据格式正确
       const treeData = buildTreeData(response.data);
-      console.log('构建的树形数据:', treeData);
       
       setDepartmentsTree(treeData);
       
@@ -218,7 +206,6 @@ const DepartmentsPage: React.FC = () => {
         pagination: { ...prev.pagination, total: response.meta.total },
       }));
     } catch (error) {
-      console.error('获取部门列表失败，详细错误:', error);
       message.error(t('message.fetch_list_error'));
     }
     setIsLoading(false);
@@ -297,8 +284,7 @@ const DepartmentsPage: React.FC = () => {
       fetchAllFlatDataForSelector(); // Refresh selector options
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error.unknown');
-      message.error(`${t('message.operation_failed_prefix')}${errorMsg}`);
-      console.error('Department operation failed:', error.response?.data || error);
+      message.error(`$t('message.operation_failed_prefix')${errorMsg}`);
     }
     setModalLoading(false);
   };
@@ -311,8 +297,7 @@ const DepartmentsPage: React.FC = () => {
       fetchAllFlatDataForSelector();
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail?.details || error.response?.data?.detail || error.message || t('message.error.delete_in_use_or_has_children');
-      message.error(`${t('message.delete_failed_prefix')}${errorMsg}`);
-      console.error('Failed to delete department:', error.response?.data || error);
+      message.error(`$t('message.delete_failed_prefix')${errorMsg}`);
     }
   };
 
@@ -462,8 +447,7 @@ const DepartmentsPage: React.FC = () => {
       
       <Modal
         title={editingDepartment
-          ? t('modal.department_form.title.edit')
-          : t('modal.department_form.title.create')}
+          ?      t('modal.department_form.title.edit'): t('modal.department_form.title.create')}
         open={isModalOpen}
         onCancel={handleCancelModal}
         onOk={() => form.submit()}
@@ -492,9 +476,11 @@ const DepartmentsPage: React.FC = () => {
               allowClear
               treeDefaultExpandAll
               treeData={buildTreeData(allFlatDepartments.filter(d => !editingDepartment || d.id !== editingDepartment.id))}
-              filterTreeNode={(inputValue, treeNode) =>
-                treeNode?.title?.toString().toLowerCase().includes(inputValue.toLowerCase()) ?? false
-              }
+              filterTreeNode={(inputValue, treeNode) => {
+                const title = treeNode?.title?.toString().toLowerCase();
+                const value = inputValue.toLowerCase();
+                return title ? title.includes(value) : false;
+              }}
               virtual={false}
             />
           </Form.Item>
@@ -505,7 +491,7 @@ const DepartmentsPage: React.FC = () => {
               placeholder={t('modal.department_form.placeholder.manager')}
               allowClear
               filterOption={(input, option: any) =>
-                option?.label?.toLowerCase().includes(input.toLowerCase()) || false
+                option?.label?.toLowerCase().includes(input.toLowerCase() || false)
               }
               options={[]}
               // 实际应用中，需要从后端获取员工列表作为选项

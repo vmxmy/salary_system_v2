@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Row, Col, Card, Alert, Progress, Typography, Space, Badge, List, Tag, Tooltip } from 'antd';
 import { 
   SecurityScanOutlined, 
@@ -26,6 +27,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
   timeDimension, 
   expanded = false 
 }) => {
+  const { t } = useTranslation(['dashboard', 'common']);
   // 政府部门合规性数据
   const complianceData = {
     auditCompliance: 98.5, // 审计署合规率
@@ -41,56 +43,56 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
     {
       id: 1,
       type: 'budget_overrun',
-      title: '预算超支风险',
-      description: '某单位薪酬支出接近年度预算上限',
+      title: t('dashboard:risk_alert.budget_overrun_title'),
+      description: t('dashboard:risk_alert.budget_overrun_description'),
       level: 'high',
       affectedEmployees: 25,
       potentialCost: 150000,
       dueDate: '2024-06-01',
-      department: '财政局'
+      department: t('dashboard:risk_alert.budget_overrun_department')
     },
     {
       id: 2,
       type: 'audit_finding',
-      title: '审计发现问题',
-      description: '津贴发放标准与规定不符',
+      title: t('dashboard:risk_alert.audit_finding_title'),
+      description: t('dashboard:risk_alert.audit_finding_description'),
       level: 'high',
       affectedEmployees: 12,
       potentialCost: 80000,
       dueDate: '2024-05-25',
-      department: '人事局'
+      department: t('dashboard:risk_alert.audit_finding_department')
     },
     {
       id: 3,
       type: 'salary_standard_violation',
-      title: '薪酬标准违规',
-      description: '部分岗位薪酬超出国家标准',
+      title: t('dashboard:risk_alert.salary_standard_violation_title'),
+      description: t('dashboard:risk_alert.salary_standard_violation_description'),
       level: 'medium',
       affectedEmployees: 8,
       potentialCost: 45000,
       dueDate: '2024-06-10',
-      department: '组织部'
+      department: t('dashboard:risk_alert.salary_standard_violation_department')
     },
     {
       id: 4,
       type: 'fiscal_discipline',
-      title: '财政纪律检查',
-      description: '发现违规发放补贴情况',
+      title: t('dashboard:risk_alert.fiscal_discipline_title'),
+      description: t('dashboard:risk_alert.fiscal_discipline_description'),
       level: 'medium',
       affectedEmployees: 5,
       potentialCost: 30000,
       dueDate: '2024-06-15',
-      department: '纪委监委'
+      department: t('dashboard:risk_alert.fiscal_discipline_department')
     }
   ];
 
   // 政府部门证件到期提醒
   const expiringDocuments = [
-    { type: '公务员证', count: 15, nearestExpiry: '2024-06-05' },
-    { type: '职业资格证', count: 12, nearestExpiry: '2024-06-10' },
-    { type: '保密协议', count: 8, nearestExpiry: '2024-06-20' },
-    { type: '廉政承诺书', count: 6, nearestExpiry: '2024-07-01' },
-    { type: '任职文件', count: 4, nearestExpiry: '2024-07-15' }
+    { type: t('dashboard:expiring_documents.civil_servant_cert'), count: 15, nearestExpiry: '2024-06-05' },
+    { type: t('dashboard:expiring_documents.job_qualification_cert'), count: 12, nearestExpiry: '2024-06-10' },
+    { type: t('dashboard:expiring_documents.social_security_card'), count: 8, nearestExpiry: '2024-06-20' },
+    { type: t('dashboard:expiring_documents.clean_gov_commitment'), count: 6, nearestExpiry: '2024-07-01' },
+    { type: t('dashboard:expiring_documents.other_certs'), count: 4, nearestExpiry: '2024-07-15' }
   ];
 
   // 获取风险级别颜色
@@ -134,7 +136,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '审计署合规率',
+                    title: t('dashboard:compliance.audit_compliance'),
                     value: complianceData.auditCompliance,
                     precision: 1,
                     suffix: '%',
@@ -155,7 +157,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '财政纪律合规率',
+                    title: t('dashboard:compliance.fiscal_discipline'),
                     value: complianceData.fiscalDiscipline,
                     precision: 1,
                     suffix: '%',
@@ -176,7 +178,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '公务员法合规率',
+                    title: t('dashboard:compliance.civil_servant_law'),
                     value: complianceData.civilServantLaw,
                     precision: 1,
                     suffix: '%',
@@ -197,7 +199,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '薪酬标准合规率',
+                    title: t('dashboard:compliance.salary_standard'),
                     value: complianceData.salaryStandard,
                     precision: 1,
                     suffix: '%',
@@ -218,7 +220,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '预算执行合规率',
+                    title: t('dashboard:compliance.budget_compliance'),
                     value: complianceData.budgetCompliance,
                     precision: 1,
                     suffix: '%',
@@ -239,7 +241,7 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Col xs={24} sm={12} md={8} lg={4}>
                 <StatisticCard
                   statistic={{
-                    title: '廉政建设合规率',
+                    title: t('dashboard:compliance.anti_corruption'),
                     value: complianceData.antiCorruption,
                     precision: 1,
                     suffix: '%',
@@ -372,8 +374,8 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={8}>
                   <Alert
-                    message="审计整改建议"
-                    description="建议建立薪酬发放审批流程，确保所有津贴补贴发放符合国家标准。"
+                    message={t('dashboard:auto_text_e5aea1')}
+                    description={t('dashboard:auto____e5bbba')}
                     type="info"
                     showIcon
                     icon={<AuditOutlined />}
@@ -381,8 +383,8 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
                 </Col>
                 <Col xs={24} md={8}>
                   <Alert
-                    message="财政纪律提醒"
-                    description="严格按照预算执行薪酬支出，避免超预算发放和违规发放。"
+                    message={t('dashboard:auto_text_e8b4a2')}
+                    description={t('dashboard:auto____e4b8a5')}
                     type="warning"
                     showIcon
                     icon={<BankOutlined />}
@@ -390,14 +392,92 @@ const ComplianceRiskSection: React.FC<ComplianceRiskSectionProps> = ({
                 </Col>
                 <Col xs={24} md={8}>
                   <Alert
-                    message="廉政风险防控"
-                    description="定期开展薪酬发放专项检查，防范廉政风险和违纪违法行为。"
+                    message={t('dashboard:auto_text_e5bb89')}
+                    description={t('dashboard:auto____e5ae9a')}
                     type="success"
                     showIcon
                     icon={<SafetyCertificateOutlined />}
                   />
                 </Col>
               </Row>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {expanded && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={12}>
+            <Card 
+              title={
+                <Space>
+                  <WarningOutlined style={{ color: '#faad14' }} />
+                  <span>风险预警</span>
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                itemLayout="horizontal"
+                dataSource={riskAlerts}
+                renderItem={item => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<ExclamationCircleOutlined style={{ color: getRiskLevelColor(item.level), fontSize: '22px' }} />}
+                      title={
+                        <Space>
+                          <Text strong>{item.title}</Text>
+                          <Tag color={getRiskLevelColor(item.level)}>{item.level.toUpperCase()}</Tag>
+                          <Text type="secondary">({item.department})</Text>
+                        </Space>
+                      }
+                      description={
+                        <Space direction="vertical" size={0}>
+                          <Text type="secondary">{item.description}</Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            受影响员工: {item.affectedEmployees}人, 潜在成本: ¥{item.potentialCost}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            处理截止日期: {item.dueDate}
+                          </Text>
+                        </Space>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card 
+              title={
+                <Space>
+                  <ClockCircleOutlined style={{ color: '#1890ff' }} />
+                  <span>证件到期提醒</span>
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                itemLayout="horizontal"
+                dataSource={expiringDocuments}
+                renderItem={item => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<FileProtectOutlined style={{ color: '#1890ff', fontSize: '22px' }} />}
+                      title={<Text strong>{item.type}</Text>}
+                      description={
+                        <Space direction="vertical" size={0}>
+                          <Text type="secondary">数量: {item.count}个</Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            最近到期: {item.nearestExpiry}
+                          </Text>
+                        </Space>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
             </Card>
           </Col>
         </Row>

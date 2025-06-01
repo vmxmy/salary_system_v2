@@ -95,18 +95,15 @@ export const getAllPersonnelCategoriesFlat = async (): Promise<PersonnelCategory
                         // For now, assuming getPersonnelCategories without parent_id fetches all roots, and we need to traverse.
                         // This flat fetch might be better served by a dedicated backend endpoint if not careful.
       });
-      console.log('getAllPersonnelCategoriesFlat response:', response);
       allPersonnelCategories.push(...response.data);
       totalPages = response.meta.totalPages;
       currentPage++;
     } catch (error) {
-      console.error('Failed to fetch a page of personnel categories for flat list:', error);
       // Depending on requirements, you might want to re-throw or return partial data
       break; // Stop fetching on error
     }
   } while (currentPage <= totalPages);
 
-  console.log('getAllPersonnelCategoriesFlat result:', allPersonnelCategories);
   return allPersonnelCategories;
 };
 

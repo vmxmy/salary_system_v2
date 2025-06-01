@@ -117,7 +117,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 # --- Authentication Logic (Refactored for ORM) ---
 
-def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]: # Return ORM User object
+def authenticate_user(db: Session, username: str, password: str) -> Optional['models.User']: # Return ORM User object
     """(ORM Version) Authenticates a user based on username and password."""
     # Use the renamed ORM function from v2_crud_security
     user = v2_crud_security.get_user_by_username(db, username=username) # <--- MODIFIED: Use v2_crud_security

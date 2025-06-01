@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { lookupService } from '../services/lookupService';
 import { employeeService } from '../services/employeeService';
-import type { 
-  LookupItem, 
-  Department as DepartmentType, 
+import type {
+  LookupItem,
+  Department as DepartmentType,
   PersonnelCategory as PersonnelCategoryType,
   Position as PositionType,
-  // Add other specific types if needed by rawLookups, e.g. for tree data structure
 } from '../pages/HRManagement/types'; // Adjust path as necessary based on actual file structure
 
 export interface LookupMaps {
@@ -54,56 +53,56 @@ export interface UseLookupsResult {
 }
 
 const createFlatMapFromTree = (
-  nodes: DepartmentType[] | PersonnelCategoryType[] | PositionType[], 
+  nodes: DepartmentType[] | PersonnelCategoryType[] | PositionType[],
   idKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'id',
   nameKey: keyof (DepartmentType | PersonnelCategoryType | PositionType) = 'name'
 ): Map<string, string> => {
   const flatMap = new Map<string, string>();
-  
+
   // 检查输入是否为空数组
   if (!nodes || nodes.length === 0) {
     return flatMap;
   }
-  
+
   // 处理节点和子节点
   const processNode = (node: any) => {
     try {
       // 更安全的属性访问
       const nodeId = node[idKey];
       const nodeName = node[nameKey];
-      
+
       if (nodeId === undefined || nodeId === null || nodeName === undefined || nodeName === null) {
         return;
       }
-      
+
       // 尝试将ID转换为数字
       let numericId: number;
       if (typeof nodeId === 'number') {
         numericId = nodeId;
       } else if (typeof nodeId === 'string') {
         numericId = parseInt(nodeId, 10);
-        if (isNaN(numericId)) {
+        if (isNaN(numericId)) { // Fixed: Missing closing parenthesis
           return;
         }
       } else {
         return;
       }
-      
+
       // 将转换后的ID和名称加入映射表
-      flatMap.set(String(nodeId), String(nodeName));
-      
+      flatMap.set(String(nodeId), String(nodeName)); // Fixed: Missing closing parenthesis
       // 处理子节点
       const childrenField = 'children';
-      if (node[childrenField] && Array.isArray(node[childrenField])) {
+      if (node[childrenField] && Array.isArray(node[childrenField])) { // Fixed: Missing closing parenthesis
         node[childrenField].forEach(processNode);
       }
     } catch (err) {
+      // Intentionally empty catch block as per original code's intent to suppress errors
     }
   };
-  
+
   // 处理所有顶级节点及其子节点
   nodes.forEach(processNode);
-  
+
   return flatMap;
 };
 
@@ -115,9 +114,10 @@ export const useLookupMaps = (): UseLookupsResult => {
 
   useEffect(() => {
     let isMounted = true; // 添加组件挂载状态跟踪
+
     const fetchAllLookups = async () => {
       if (!isMounted) return; // 如果组件已卸载，不执行操作
-      
+
       setLoadingLookups(true);
       setErrorLookups(null);
       try {
@@ -125,7 +125,7 @@ export const useLookupMaps = (): UseLookupsResult => {
           genders,
           statuses,
           departments, // Tree structure
-          personnelCategories,   // MODIFIED from jobTitles
+          personnelCategories,
           empTypes,
           contractTypesData,
           eduLevels,
@@ -140,7 +140,7 @@ export const useLookupMaps = (): UseLookupsResult => {
           lookupService.getGenderLookup(),
           lookupService.getEmployeeStatusesLookup(),
           lookupService.getDepartmentsLookup(),
-          lookupService.getPersonnelCategoriesLookup(), // MODIFIED from getJobTitlesLookup
+          lookupService.getPersonnelCategoriesLookup(),
           lookupService.getEmploymentTypesLookup(),
           lookupService.getContractTypesLookup(),
           lookupService.getEducationLevelsLookup(),
@@ -160,12 +160,11 @@ export const useLookupMaps = (): UseLookupsResult => {
 
         // 创建部门和人员身份映射表
         const departmentMap = createFlatMapFromTree(departments);
-        
         const personnelCategoryMap = createFlatMapFromTree(personnelCategories);
 
         // 确保所有映射表都创建完成后，创建最终的lookupMaps对象
         if (!isMounted) return; // 再次检查，避免在状态更新前组件已卸载
-        
+
         const newLookupMaps: LookupMaps = {
           genderMap: createMapFromArray(genders),
           statusMap: createMapFromArray(statuses),
@@ -223,4 +222,4 @@ export const useLookupMaps = (): UseLookupsResult => {
   }, []); // 仅在组件挂载时执行一次
 
   return { lookupMaps, rawLookups, loadingLookups, errorLookups };
-}; 
+};

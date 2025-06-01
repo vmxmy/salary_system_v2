@@ -53,7 +53,6 @@ const MyPayslipsPage: React.FC = () => {
       setPayslips(response.data);
       setMeta(response.meta);
     } catch (err: any) {
-      console.error('Error fetching payslips:', err);
       setError(t('myPayslips:fetchError'));
       setPayslips([]);
       setMeta(null);
@@ -90,7 +89,7 @@ const MyPayslipsPage: React.FC = () => {
         }
         
         if (periodId) {
-          return `${t('myPayslips:periodIdPrefix')}${periodId}`;
+          return `$t('myPayslips:periodIdPrefix')${periodId}`;
         }
         
         return '-';
@@ -209,7 +208,7 @@ const MyPayslipsPage: React.FC = () => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
             showTotal: (total: number, range: [number, number]) =>
-              `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+              t('employee:auto__range_0_range_1___total__e7acac'),
             onChange: fetchPayslips,
           } : false}
           scroll={{ x: 'max-content' }}

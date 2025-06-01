@@ -17,13 +17,14 @@ import type {
   CreatePayrollEntryPayload,
   PayrollEntryPatch,
 } from '../types/payrollTypes';
+import { useTranslation } from 'react-i18next';
 
 // 查询键
 export const PAYROLL_QUERY_KEYS = {
   PERIODS: 'payroll-periods',
   RUNS: 'payroll-runs',
   ENTRIES: 'payroll-entries',
-  COMPONENTS: 'payroll-components',
+  COMPONENTS: 'payroll-component-definitions',
 } as const;
 
 // 缓存配置
@@ -142,11 +143,12 @@ export function usePayrollComponents(params?: {
  */
 export function useCreatePayrollEntry() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   
   return useMutation({
     mutationFn: (data: CreatePayrollEntryPayload) => createPayrollEntry(data),
     onSuccess: (data, variables) => {
-      message.success('薪资记录创建成功');
+      message.success(t('payroll:auto_text_e896aa'));
       
       // 使相关查询失效
       queryClient.invalidateQueries({ 
@@ -161,8 +163,7 @@ export function useCreatePayrollEntry() {
       }
     },
     onError: (error: any) => {
-      console.error('创建薪资记录失败:', error);
-      message.error(`创建失败: ${error.message || '未知错误'}`);
+      message.error(`创建失败: ${error.message || t('payroll:auto_text_e69caa')}`);
     },
   });
 }
@@ -172,12 +173,13 @@ export function useCreatePayrollEntry() {
  */
 export function useUpdatePayrollEntry() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   
   return useMutation({
     mutationFn: ({ entryId, data }: { entryId: number; data: PayrollEntryPatch }) => 
       updatePayrollEntryDetails(entryId, data),
     onSuccess: () => {
-      message.success('薪资记录更新成功');
+      message.success(t('payroll:auto_text_e896aa'));
       
       // 使相关查询失效
       queryClient.invalidateQueries({ 
@@ -185,8 +187,7 @@ export function useUpdatePayrollEntry() {
       });
     },
     onError: (error: any) => {
-      console.error('更新薪资记录失败:', error);
-      message.error(`更新失败: ${error.message || '未知错误'}`);
+      message.error(`更新失败: ${error.message || t('payroll:auto_text_e69caa')}`);
     },
   });
 }
@@ -196,11 +197,12 @@ export function useUpdatePayrollEntry() {
  */
 export function useDeletePayrollEntry() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   
   return useMutation({
     mutationFn: (entryId: number) => deletePayrollEntry(entryId),
     onSuccess: () => {
-      message.success('薪资记录删除成功');
+      message.success(t('payroll:auto_text_e896aa'));
       
       // 使相关查询失效
       queryClient.invalidateQueries({ 
@@ -208,8 +210,7 @@ export function useDeletePayrollEntry() {
       });
     },
     onError: (error: any) => {
-      console.error('删除薪资记录失败:', error);
-      message.error(`删除失败: ${error.message || '未知错误'}`);
+      message.error(`删除失败: ${error.message || t('payroll:auto_text_e69caa')}`);
     },
   });
 } 

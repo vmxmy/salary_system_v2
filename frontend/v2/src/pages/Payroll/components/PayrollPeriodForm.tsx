@@ -38,8 +38,6 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
   const { t } = useTranslation('common'); // Added with namespace
 
   const handleSubmit = (values: any) => {
-    console.log('[PayrollPeriodForm:handleSubmit] Raw form values:', values);
-    console.log('[PayrollPeriodForm:handleSubmit] frequency_lookup_value_id type:', typeof values.frequency_lookup_value_id);
     const transformedValues: PayrollPeriodFormData = {
       name: values.name,
       start_date: values.start_date, // Already Dayjs objects from DatePicker
@@ -48,7 +46,6 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
       frequency_lookup_value_id: values.frequency_lookup_value_id,
       status_lookup_value_id: values.status_lookup_value_id,
     };
-    console.log('[PayrollPeriodForm:handleSubmit] Transformed values:', transformedValues);
     onFinish(transformedValues);
   };
 

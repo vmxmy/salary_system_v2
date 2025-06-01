@@ -258,7 +258,7 @@ const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({
 
     // 字段通用属性
     const commonProps = {
-      placeholder: placeholder || `${t('placeholder.input')}${label || name}`,
+      placeholder: placeholder || t('placeholder.input', { fieldName: label || name }),
       disabled: disabled || fieldDisabled,
       style: { width: '100%' },
     };
@@ -345,8 +345,8 @@ const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({
         fieldElement = (
           <DateRangePicker 
             placeholder={[
-              placeholder || `${t('placeholder.start_date')}`,
-              placeholder || `${t('placeholder.end_date')}`
+              placeholder || t('placeholder.start_date'),
+              placeholder || t('placeholder.end_date'),
             ]}
             disabled={disabled || fieldDisabled}
             style={{ width: '100%' }}
@@ -433,7 +433,6 @@ const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({
 
       case 'lookupSelect':
         if (!lookupType) {
-          console.error('FormBuilder: lookupType is required for lookupSelect field');
           return null;
         }
         fieldElement = (
@@ -454,7 +453,6 @@ const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({
 
       case 'statusTag':
         if (!statusType) {
-          console.error('FormBuilder: statusType is required for statusTag field');
           return null;
         }
         fieldElement = (
@@ -470,7 +468,6 @@ const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({
 
       case 'custom':
         if (!render) {
-          console.error('FormBuilder: render function is required for custom field');
           return null;
         }
         fieldElement = render(formValues[name], formValues, form);

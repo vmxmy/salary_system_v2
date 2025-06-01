@@ -2,6 +2,7 @@
 // 由 PayrollBulkImportPage 拆分
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Result, Button, Alert, Table, Typography } from 'antd';
 import type { ResultPanelProps } from './types.ts';
 
@@ -38,7 +39,7 @@ const ResultPanel: React.FC<ResultPanelProps> = ({ uploadResult, columns, t, sho
       {uploadResult.errors.length > 0 && (
         <div style={{ marginTop: 24 }}>
           <Button type="link" onClick={() => setShowDetailedErrors(!showDetailedErrors)} style={{ marginBottom: 16 }}>
-            {showDetailedErrors ? t('batch_import.button.hide_error_details') : t('batch_import.button.show_error_details')}
+            {showDetailedErrors ?      t('batch_import.button.hide_error_details'): t('batch_import.button.show_error_details')}
           </Button>
           {showDetailedErrors && (
             <div>

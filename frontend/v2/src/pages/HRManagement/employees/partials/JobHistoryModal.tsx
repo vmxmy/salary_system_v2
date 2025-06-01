@@ -54,8 +54,7 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
           setJobTitles([]); 
         }
       } catch (error) {
-        message.error(t('employee:detail_page.job_history_tab.modal.message_load_lookups_failed', '无法加载下拉选项数据'));
-        console.error("Failed to load lookup data for Job History Modal:", error);
+        message.error(t('employee:detail_page.job_history_tab.modal.message_load_lookups_failed'));
       }
       finally {
         setLoading(false);
@@ -89,7 +88,7 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
       setLoadingJobTitles(true);
       employeeService.getPersonnelCategoriesLookup(String(selectedDepartmentId))
         .then(setJobTitles)
-        .catch(() => message.error(t('employee:detail_page.job_history_tab.modal.message_load_job_titles_failed', '无法加载职位数据')))
+        .catch(() => message.error(t('employee:detail_page.job_history_tab.modal.message_load_job_titles_failed')))
         .finally(() => setLoadingJobTitles(false));
     } else {
       setJobTitles([]); 
@@ -111,7 +110,6 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
       };
       await onSubmit(submissionData);
     } catch (errorInfo) {
-      console.log('Validation Failed:', errorInfo);
     } finally {
       setSubmitLoading(false);
     }
@@ -124,7 +122,7 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
 
   return (
     <Modal
-      title={mode === 'add' ? t('employee:detail_page.job_history_tab.modal.title_add', '添加岗位历史') : t('employee:detail_page.job_history_tab.modal.title_edit', '编辑岗位历史')}
+      title={mode === 'add' ? t('employee:detail_page.job_history_tab.modal.title_add') : t('employee:detail_page.job_history_tab.modal.title_edit')}
       open={visible}
       onOk={handleOk}
       onCancel={onCancel}
@@ -136,19 +134,19 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
         <Form form={form} layout="vertical" name="jobHistoryForm">
           <Form.Item
             name="effectiveDate"
-            label={t('employee:detail_page.job_history_tab.table.column_start_date', '生效日期')}
-            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_effective_date_required', '请输入生效日期!') }]}
+            label={t('employee:detail_page.job_history_tab.table.column_start_date')}
+            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_effective_date_required') }]}
           >
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
             name="department_id"
-            label={t('employee:detail_page.job_history_tab.table.column_department', '部门')}
-            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_department_required', '请选择部门!') }]}
+            label={t('employee:detail_page.job_history_tab.table.column_department')}
+            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_department_required') }]}
           >
             <Select 
-              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_department', '请选择部门')}
+              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_department')}
               onChange={handleDepartmentChange}
               loading={loading && departments.length === 0}
               showSearch
@@ -162,11 +160,11 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
 
           <Form.Item
             name="personnel_category_id"
-            label={t('employee:detail_page.job_history_tab.table.column_job_title', '职位')}
-            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_job_title_required', '请选择职位!') }]}
+            label={t('employee:detail_page.job_history_tab.table.column_job_title')}
+            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_job_title_required') }]}
           >
             <Select 
-              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_job_title', '请选择职位')} 
+              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_job_title')} 
               loading={loadingJobTitles && selectedDepartmentId !== undefined && jobTitles.length === 0}
               disabled={!selectedDepartmentId}
               showSearch
@@ -180,28 +178,28 @@ const JobHistoryModal: React.FC<JobHistoryModalProps> = ({
 
           <Form.Item
             name="employment_type_lookup_value_id"
-            label={t('employee:detail_page.job_history_tab.table.column_employment_type', '雇佣类型')}
-            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_employment_type_required', '请选择雇佣类型!') }]}
+            label={t('employee:detail_page.job_history_tab.table.column_employment_type')}
+            rules={[{ required: true, message: t('employee:detail_page.job_history_tab.modal.validation_employment_type_required') }]}
           >
             <Select 
-              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_employment_type', '请选择雇佣类型')} 
+              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_select_employment_type')} 
               loading={loading && employmentTypes.length === 0}
               options={employmentTypes.map(type => ({ value: Number(type.value), label: type.label }))}
             />
           </Form.Item>
 
-          <Form.Item name="salary" label={t('employee:detail_page.job_history_tab.table.column_salary', '薪资')}>
+          <Form.Item name="salary" label={t('employee:detail_page.job_history_tab.table.column_salary')}>
             <InputNumber 
               style={{ width: '100%' }} 
-              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_input_salary', '请输入薪资')} 
+              placeholder={t('employee:detail_page.job_history_tab.modal.placeholder_input_salary')}
               min={0} 
             />
           </Form.Item>
 
-          <Form.Item name="remarks" label={t('common:label.remarks', '备注')}>
+          <Form.Item name="remarks" label={t('common:label.remarks')}>
             <Input.TextArea 
               rows={3} 
-              placeholder={t('common:placeholder.input_remarks', '请输入备注')} 
+              placeholder={t('common:placeholder.input_remarks')} 
             />
           </Form.Item>
         </Form>

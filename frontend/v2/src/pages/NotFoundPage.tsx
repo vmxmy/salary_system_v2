@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Result, Button } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore'; // 引入 authStore
 
 const NotFoundPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const authToken = useAuthStore((state) => state.authToken);
   const isAuthenticated = !!authToken; // 从 authToken 派生 isAuthenticated
@@ -19,10 +21,10 @@ const NotFoundPage: React.FC = () => {
     <Result
       status="404"
       title="404"
-      subTitle="抱歉，您访问的页面不存在。"
+      subTitle={t('common:auto____e68ab1')}
       extra={
         <Button type="primary" onClick={handleBackHome}>
-           {isAuthenticated ? '返回首页' : '去登录'}
+           {isAuthenticated ?      t('common:auto_text_e8bf94'): t('common:auto_text_e58ebb')}
         </Button>
       }
     />

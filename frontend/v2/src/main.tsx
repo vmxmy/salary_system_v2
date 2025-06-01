@@ -34,7 +34,6 @@ import 'dayjs/locale/en';
 // Expose the i18n instance to window for debugging purposes
 if (import.meta.env.DEV) {
   (window as any).i18n = i18n; 
-  console.log('[main.tsx] i18n instance exposed to window for debugging.');
 }
 
 // 使用 createBrowserRouter 和导入的 routes 配置创建 router 实例

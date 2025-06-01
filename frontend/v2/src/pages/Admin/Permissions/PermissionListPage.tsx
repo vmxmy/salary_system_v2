@@ -149,7 +149,6 @@ const PermissionListPage: React.FC = () => {
           await deleteMutation.mutateAsync(permission.id);
         } catch (e) {
           // Error is handled by the mutation's onError callback
-          console.error("Delete submission error", e)
         }
       },
     });
@@ -196,7 +195,7 @@ const PermissionListPage: React.FC = () => {
         enableAdvancedFeatures={true}
         showToolbar={true}
         search={false}
-        title={t('list_page.table.title', '权限列表')}
+        title={t('list_page.table.title')}
         onRefresh={handleRefresh}
         customToolbarButtons={[
           <Button
