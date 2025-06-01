@@ -24,7 +24,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ExportOutlined, RollbackOutlined, ReloadOutlined, DownOutlined } from '@ant-design/icons';
 import type { ReportViewQueryResponse } from '../../types/reportView';
 import type { SortOrder } from 'antd/es/table/interface';
-import { useTableExport } from './TableUtils';
+import { useTableExport, useTableSearch } from './TableUtils';
 import type { ExportFormat } from './TableUtils';
 
 const { Text, Title } = Typography;
@@ -69,7 +69,8 @@ export interface ReportViewDetailTemplateProps {
 // 表格列配置生成函数
 const generateReportViewTableColumns = (
   t: (key: string, options?: any) => string,
-  columnsMeta: ReportColumnMeta[]
+  columnsMeta: ReportColumnMeta[],
+  getColumnSearch: (dataIndex: string) => any
 ): ProColumns<any>[] => {
   if (!columnsMeta || columnsMeta.length === 0) {
     return [];
@@ -115,11 +116,11 @@ const generateReportViewTableColumns = (
             case 'datetime':
               return actualValue ? new Date(actualValue).toLocaleString('zh-CN') : '-';
             case 'number':
-              const numVal = Number(actualValue);
-              return isNaN(numVal) ? String(actualValue) : numVal.toLocaleString('zh-CN');
+              const numVal_fixed = Number(actualValue);
+              return isNaN(numVal_fixed) ? String(actualValue) : numVal_fixed.toLocaleString('zh-CN');
             case 'currency':
-              const currVal = Number(actualValue);
-              return isNaN(currVal) ? String(actualValue) : `¥${currVal.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+              const currVal_fixed = Number(actualValue);
+              return isNaN(currVal_fixed) ? String(actualValue) : `¥${currVal_fixed.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             case 'boolean':
               if (actualValue === true || String(actualValue).toLowerCase() === 'true') return t('common:boolean.true', '是');
               if (actualValue === false || String(actualValue).toLowerCase() === 'false') return t('common:boolean.false', '否');
@@ -131,6 +132,7 @@ const generateReportViewTableColumns = (
           return String(actualValue);
         }
       },
+      ...getColumnSearch(metaCol.dataIndex),
     };
     
     switch (metaCol.dataType) {
@@ -190,9 +192,11 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
     }
   );
 
+  const { getColumnSearch } = useTableSearch();
+
   const tableColumns = useMemo(() => {
-    return generateReportViewTableColumns(t, columnsMeta);
-  }, [t, columnsMeta]);
+    return generateReportViewTableColumns(t, columnsMeta, getColumnSearch);
+  }, [t, columnsMeta, getColumnSearch]);
 
   const BackButton = () => (
     <Button icon={<RollbackOutlined />} onClick={onBack}>

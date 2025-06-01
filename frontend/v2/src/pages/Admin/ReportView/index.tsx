@@ -90,6 +90,15 @@ const generateReportViewTableColumns = (
       ),
     },
     {
+      title: '视图名称',
+      dataIndex: 'view_name',
+      key: 'view_name',
+      width: 150,
+      render: (viewName: string) => viewName || '-',
+      sorter: stringSorter<ReportViewListItem>('view_name'),
+      ...getColumnSearch('view_name'),
+    },
+    {
       title: '分类',
       dataIndex: 'category',
       key: 'category',
@@ -288,12 +297,32 @@ const ReportViewManagement: React.FC = () => {
       setLoading(true);
       await reportViewAPI.updateReportView(currentRecord.id, values as ReportViewUpdateForm);
       message.success('更新成功');
-      handleBack();
+      
+      // 重新加载当前记录以获取最新状态，不退出编辑页面
+      const response = await reportViewAPI.getReportView(currentRecord.id);
+      setCurrentRecord(response);
     } catch (error: any) {
       console.error('Failed to update report view:', error);
       message.error(`更新失败: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 处理同步成功 - 不退出编辑页面
+  const handleSyncSuccess = () => {
+    // 同步成功后只显示消息，不退出编辑页面
+    // 可以选择重新加载当前记录来更新状态
+    if (currentRecord?.id) {
+      const reloadCurrentRecord = async () => {
+        try {
+          const response = await reportViewAPI.getReportView(currentRecord.id);
+          setCurrentRecord(response);
+        } catch (error) {
+          console.error('Failed to reload record after sync:', error);
+        }
+      };
+      reloadCurrentRecord();
     }
   };
 
@@ -367,7 +396,7 @@ const ReportViewManagement: React.FC = () => {
             initialValues={currentRecord || undefined}
             onSubmit={handleEditSubmit}
             onCancel={handleBack}
-            onSyncSuccess={handleBack}
+            onSyncSuccess={handleSyncSuccess}
             loading={loading}
           />
         );

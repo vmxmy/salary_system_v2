@@ -14,6 +14,8 @@ export interface ReportView {
   is_active: boolean;
   is_public: boolean;
   category?: string;
+  report_title?: string;
+  description_lines?: string[];
   view_status: 'draft' | 'created' | 'error';
   last_sync_at?: string;
   sync_error?: string;
@@ -35,6 +37,7 @@ export interface ReportViewListItem {
   last_used_at?: string;
   created_at: string;
   updated_at: string;
+  view_name?: string;
 }
 
 // 创建报表视图的表单数据
@@ -47,6 +50,8 @@ export interface ReportViewCreateForm {
   is_active: boolean;
   is_public: boolean;
   category?: string;
+  report_title?: string;
+  description_lines?: string[];
 }
 
 // 更新报表视图的表单数据
@@ -57,6 +62,8 @@ export interface ReportViewUpdateForm {
   is_active?: boolean;
   is_public?: boolean;
   category?: string;
+  report_title?: string;
+  description_lines?: string[];
 }
 
 // 报表视图查询请求

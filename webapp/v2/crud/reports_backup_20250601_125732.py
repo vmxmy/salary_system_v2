@@ -1067,11 +1067,20 @@ class ReportViewCRUD:
             return None
         
         update_data = view_data.dict(exclude_unset=True)
+        
+        # 检查SQL查询是否真正发生变化
+        sql_changed = False
+        if 'sql_query' in update_data:
+            old_sql = db_view.sql_query.strip() if db_view.sql_query else ""
+            new_sql = update_data['sql_query'].strip() if update_data['sql_query'] else ""
+            sql_changed = old_sql != new_sql
+        
+        # 更新字段
         for field, value in update_data.items():
             setattr(db_view, field, value)
         
-        # 如果SQL查询发生变化，重置视图状态
-        if 'sql_query' in update_data:
+        # 只有在SQL查询真正发生变化时才重置视图状态
+        if sql_changed:
             db_view.view_status = "draft"
             db_view.sync_error = None
         

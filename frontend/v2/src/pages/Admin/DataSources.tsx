@@ -178,16 +178,28 @@ const DataSources: React.FC = () => {
       ),
     },
     {
-      title: '表信息',
-      key: 'table_info',
+      title: '表名称',
+      key: 'table_name_display',
       width: 200,
       render: (_, record) => (
-        <div>
-          <Text code>{record.schema_name}.{record.table_name}</Text>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            字段数: {record.field_count}
+        record.source_type === 'table' ? (
+          <div>
+            <Text code>{record.schema_name}.{record.table_name}</Text>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              字段数: {record.field_count}
+            </div>
           </div>
-        </div>
+        ) : '-'
+      ),
+    },
+    {
+      title: '视图名称',
+      key: 'view_name_display',
+      width: 200,
+      render: (_, record) => (
+        record.source_type === 'view' ? (
+          <Text code>{record.schema_name}.{record.view_name}</Text>
+        ) : '-'
       ),
     },
     {

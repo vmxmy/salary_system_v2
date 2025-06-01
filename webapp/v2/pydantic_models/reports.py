@@ -351,6 +351,7 @@ class DataSourceJoinPydantic(BaseModel):
 class ReportDesignerConfigPydantic(BaseModel):
     reportTitle: Optional[str] = None
     reportDescription: Optional[str] = None
+    reportDescriptionLines: Optional[List[str]] = Field(None, description="多行报表说明")
     selectedDataSourceIds: List[str] = Field(default_factory=list)
     mainDataSourceId: Optional[str] = None # Keep this for now, might be redundant if selectedDataSourceIds[0] is always main
     joins: List[DataSourceJoinPydantic] = Field(default_factory=list)
@@ -513,6 +514,8 @@ class ReportViewBase(BaseModel):
     is_active: bool = Field(True, description="是否激活")
     is_public: bool = Field(False, description="是否公开")
     category: Optional[str] = Field(None, description="报表分类")
+    report_title: Optional[str] = Field(None, description="报表标题")
+    description_lines: Optional[List[str]] = Field(None, description="报表说明行列表")
 
 
 class ReportViewCreate(ReportViewBase):
@@ -528,6 +531,8 @@ class ReportViewUpdate(BaseModel):
     is_active: Optional[bool] = Field(None, description="是否激活")
     is_public: Optional[bool] = Field(None, description="是否公开")
     category: Optional[str] = Field(None, description="报表分类")
+    report_title: Optional[str] = Field(None, description="报表标题")
+    description_lines: Optional[List[str]] = Field(None, description="报表说明行列表")
 
 
 class ReportView(ReportViewBase):
@@ -552,6 +557,7 @@ class ReportViewListItem(BaseModel):
     name: str
     description: Optional[str]
     category: Optional[str]
+    view_name: str
     view_status: str
     usage_count: int
     last_used_at: Optional[datetime]

@@ -326,7 +326,7 @@ class ReportUserPreference(Base):
 class ReportView(Base):
     """基于SQL视图的简化报表模型"""
     __tablename__ = "report_views"
-    __table_args__ = {'schema': 'config'}
+    __table_args__ = {'schema': 'reports'}
 
     id = Column(BigInteger, primary_key=True, index=True)
     name = Column(String(255), nullable=False, comment="报表名称")
@@ -339,6 +339,8 @@ class ReportView(Base):
     is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
     is_public = Column(Boolean, default=False, nullable=False, comment="是否公开")
     category = Column(String(100), comment="报表分类")
+    report_title = Column(String(500), comment="报表标题")
+    description_lines = Column(JSONB, comment="报表说明行列表")
     
     # 视图状态
     view_status = Column(String(20), default="draft", comment="视图状态: draft, created, error")
@@ -362,10 +364,10 @@ class ReportView(Base):
 class ReportViewExecution(Base):
     """报表视图执行记录"""
     __tablename__ = "report_view_executions"
-    __table_args__ = {'schema': 'config'}
+    __table_args__ = {'schema': 'reports'}
 
     id = Column(BigInteger, primary_key=True, index=True)
-    report_view_id = Column(BigInteger, ForeignKey("config.report_views.id"), nullable=False)
+    report_view_id = Column(BigInteger, ForeignKey("reports.report_views.id"), nullable=False)
     
     # 执行参数
     execution_params = Column(JSONB, comment="执行参数(筛选条件等)")

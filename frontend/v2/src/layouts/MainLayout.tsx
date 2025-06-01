@@ -27,6 +27,7 @@ import {
   EditOutlined,
   DatabaseOutlined,
   BarChartOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions } from '../hooks/usePermissions';
@@ -384,10 +385,42 @@ const MainLayout: React.FC = () => {
       label: <Link to="/dashboard" id="tour-dashboard-link">{t('pageTitle:dashboard')}</Link>,
     });
 
-    // 2. 员工管理 - 核心业务功能
-    coreBusinessItems.push(hrManagementMenuItem);
+    // 2. 个人中心 - 个人功能
+    coreBusinessItems.push({
+      key: '/employee-info',
+      icon: <SolutionOutlined />,
+      label: t('pageTitle:employee_center'),
+      children: [
+        {
+          key: '/employee-info/my-info',
+          label: <Link to="/employee-info/my-info">{t('pageTitle:my_info')}</Link>,
+          icon: <UserOutlined />,
+        },
+        {
+          key: '/employee-info/my-payslips',
+          label: <Link to="/employee-info/my-payslips">{t('pageTitle:my_payslips')}</Link>,
+          icon: <ProfileOutlined />,
+        },
+      ],
+    });
 
-    // 3. 薪资管理 - 核心业务功能
+    // 3. 视图报表 - 独立的报表管理功能
+    if (hasPermission('report:view_reports')) {
+      coreBusinessItems.push({
+        key: '/view-reports',
+        label: t('menu:viewReports'),
+        icon: <DatabaseOutlined />,
+        children: [
+          {
+            key: '/view-reports/management',
+            label: <Link to="/view-reports/management">{t('menu:viewReportsManagement')}</Link>,
+            icon: <EyeOutlined />,
+          },
+        ],
+      });
+    }
+
+    // 4. 薪资管理 - 核心业务功能
     const currentPayrollManagementChildren = [];
     if (hasPermission(P_PAYROLL_PERIOD_VIEW)) {
       currentPayrollManagementChildren.push({
@@ -436,10 +469,16 @@ const MainLayout: React.FC = () => {
       coreBusinessItems.push(currentPayrollManagementMenuItem);
     }
 
+    // 5. 员工管理 - 核心业务功能
+    coreBusinessItems.push(hrManagementMenuItem);
+
     // ========== 管理功能模块 ==========
     const managementItems = [];
 
-    // 5. 经理视图 - 管理功能
+    // 6. 组织架构 - 保持独立
+    managementItems.push(organizationMenuItem);
+
+    // 7. 经理视图 - 管理功能
     const managerChildren = [];
     if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
       managerChildren.push({
@@ -467,19 +506,10 @@ const MainLayout: React.FC = () => {
       managementItems.push(managerMenuItem);
     }
 
-    // 5. 视图报表 - 独立的报表管理功能
-    if (hasPermission('report:view_reports')) {
-      managementItems.push({
-        key: '/view-reports',
-        label: <Link to="/view-reports">{t('menu:viewReports')}</Link>,
-        icon: <DatabaseOutlined />,
-      });
-    }
-
     // ========== 系统配置模块 ==========
     const systemConfigItems = [];
 
-    // 6. 系统管理 - 保持原有结构
+    // 8. 系统管理 - 保持原有结构
     systemConfigItems.push({
       key: '/admin',
       icon: <SettingOutlined />,
@@ -487,42 +517,15 @@ const MainLayout: React.FC = () => {
       children: adminChildren,
     });
 
-    // 7. 组织架构 - 保持独立
-    systemConfigItems.push(organizationMenuItem);
-
-    // ========== 个人功能模块 ==========
-    const personalItems = [];
-
-    // 8. 个人中心 - 个人功能
-    personalItems.push({
-      key: '/employee-info',
-      icon: <SolutionOutlined />,
-      label: t('pageTitle:employee_center'),
-      children: [
-        {
-          key: '/employee-info/my-info',
-          label: <Link to="/employee-info/my-info">{t('pageTitle:my_info')}</Link>,
-          icon: <UserOutlined />,
-        },
-        {
-          key: '/employee-info/my-payslips',
-          label: <Link to="/employee-info/my-payslips">{t('pageTitle:my_payslips')}</Link>,
-          icon: <ProfileOutlined />,
-        },
-      ],
-    });
-
     // ========== 构建最终菜单 ==========
     // 按照业务重要性和逻辑关系排序：
-    // 1. 核心业务模块：仪表盘、员工管理、薪资管理
-    // 2. 管理功能模块：经理视图
-    // 3. 系统配置模块：系统管理、组织架构
-    // 4. 个人功能模块：个人中心
+    // 1. 核心业务模块：仪表盘、个人中心、视图报表、薪资管理、员工管理
+    // 2. 管理功能模块：组织架构、经理视图
+    // 3. 系统配置模块：系统管理
     const finalItems = [
       ...coreBusinessItems,      // 核心业务优先
       ...managementItems,        // 管理功能其次
-      ...systemConfigItems,      // 系统配置再次
-      ...personalItems,          // 个人功能最后
+      ...systemConfigItems,      // 系统配置最后
     ];
 
     return finalItems;

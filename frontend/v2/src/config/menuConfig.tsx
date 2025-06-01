@@ -271,6 +271,18 @@ export const menuData: AppMenuDataItem[] = [
         titleKey: 'testEmployeeListV3',
         component: './HRManagement/employees/EmployeeListPageV3',
       },
+      {
+        path: '/test/report-table-demo',
+        name: '报表表格演示',
+        titleKey: 'testReportTableDemo',
+        component: './Admin/Configuration/ReportTableDemo',
+      },
+      {
+        path: '/test/report-template-demo',
+        name: '报表模板演示',
+        titleKey: 'testReportTemplateDemo',
+        component: './Admin/Configuration/ReportTemplateDemo',
+      },
     ],
   },
   {

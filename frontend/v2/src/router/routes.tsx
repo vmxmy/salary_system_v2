@@ -48,6 +48,10 @@ const DepartmentsPage = lazy(() => import('../pages/Admin/Organization/Departmen
 // Lazy load the new bulk import page
 const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
 
+// 在顶部导入 ReportTableDemo 组件
+import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
+import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo';
+
 // RouteObject 本身就包含 element, path, children, index
 // 我们将 meta 附加到自定义的 RouteConfig 上
 export type AppRouteObject = RouteObject & {
@@ -247,6 +251,28 @@ export const routes: AppRouteObject[] = [
         children: [
           { index: true, element: <Navigate to="leave" replace /> },
           { path: 'leave', element: <LeavePage />, meta: { title: 'leave_application' } },
+        ],
+      },
+      {
+        path: 'test',
+        element: <Outlet />,
+        meta: { title: 'test' },
+        children: [
+          {
+            path: 'employee-list-v3',
+            element: <div>员工列表V3页面</div>, // 保持原有逻辑或替换为实际组件
+            meta: { title: 'testEmployeeListV3' },
+          },
+          {
+            path: 'report-table-demo',
+            element: <ReportTableDemo />, // 新增报表表格演示页面
+            meta: { title: 'testReportTableDemo' },
+          },
+          {
+            path: 'report-template-demo',
+            element: <ReportTemplateDemo />, // 新增报表模板演示页面
+            meta: { title: 'testReportTemplateDemo' },
+          },
         ],
       },
     ],

@@ -28,6 +28,7 @@ from ..pydantic_models.reports import (
     ReportViewQueryRequest, ReportViewQueryResponse, ReportViewExecution,
     ReportViewExecutionCreate
 )
+import logging
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -800,7 +801,9 @@ async def export_report_view_data(
     import tempfile
     import os
     from fastapi.responses import FileResponse
-    
+
+    logger = logging.getLogger(__name__)
+
     try:
         # 创建执行记录
         execution_data = ReportViewExecutionCreate(
@@ -811,7 +814,7 @@ async def export_report_view_data(
         execution = ReportViewExecutionCRUD.create(db, execution_data, current_user.id)
         
         # 查询数据（不分页，获取所有数据）
-        query_request.page_size = 10000  # 设置一个较大的值
+        query_request.page_size = 1000000
         result = ReportViewCRUD.query_view_data(
             db=db,
             view_id=view_id,
@@ -823,68 +826,81 @@ async def export_report_view_data(
         
         # 生成文件
         view = ReportViewCRUD.get_by_id(db, view_id)
-        filename = f"{view.name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        if not view:
+            raise HTTPException(status_code=404, detail="报表视图不存在")
+
+        filename_prefix = view.name.replace(" ", "_")
+        filename = f"{filename_prefix}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         if export_format == "excel":
             import pandas as pd
-            # Create DataFrame
-            df = pd.DataFrame(result['data'])
+            
+            if not result['data']:
+                logger.warning(f"Report view {view_id} has no data for export.")
+                df = pd.DataFrame()
+            else:
+                df = pd.DataFrame(result['data'])
 
             # Convert timezone-aware datetimes to timezone-naive
             for col in df.columns:
                 if pd.api.types.is_datetime64_any_dtype(df[col]):
-                    # Check if the datetime objects are timezone-aware
-                    # Accessing .dt can be slow on object dtypes, try to be more specific if possible
-                    # A common way to check is to see if the first non-null value has a tz attribute
                     first_valid_index = df[col].first_valid_index()
                     if first_valid_index is not None and hasattr(df[col][first_valid_index], 'tzinfo') and df[col][first_valid_index].tzinfo is not None:
                         try:
-                            # Attempt to convert to UTC then remove timezone information
-                            # This standardizes the time before making it naive
-                            df[col] = df[col].dt.tz_convert(None) # More direct way to make naive if already localized or UTC
+                            df[col] = df[col].dt.tz_convert(None)
                         except TypeError:
-                            # If already naive (though the error suggests they are aware)
-                            # or if conversion fails for some other reason, log and continue
-                            # This might happen if a column has mixed (aware and naive) datetimes, which is problematic
-                            print(f"Warning: Could not convert column {col} to timezone-naive for Excel export.")
+                            logger.warning(f"Could not convert column {col} to timezone-naive for Excel export in report view {view_id}.")
             
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
-            df.to_excel(temp_file.name, index=False)
-            filename += ".xlsx"
+            temp_file_suffix = '.xlsx'
             media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            
+            with tempfile.NamedTemporaryFile(delete=False, suffix=temp_file_suffix) as tmp:
+                df.to_excel(tmp.name, index=False)
+                temp_file_path = tmp.name
             
         elif export_format == "csv":
             import pandas as pd
-            df = pd.DataFrame(result['data'])
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.csv')
-            df.to_csv(temp_file.name, index=False, encoding='utf-8-sig')
-            filename += ".csv"
+            if not result['data']:
+                logger.warning(f"Report view {view_id} has no data for export.")
+                df = pd.DataFrame()
+            else:
+                df = pd.DataFrame(result['data'])
+            
+            temp_file_suffix = '.csv'
             media_type = "text/csv"
             
-        else:  # pdf
-            # PDF导出需要额外的库，这里先返回错误
+            with tempfile.NamedTemporaryFile(delete=False, suffix=temp_file_suffix) as tmp:
+                df.to_csv(tmp.name, index=False, encoding='utf-8-sig')
+                temp_file_path = tmp.name
+            
+        elif export_format == "pdf":
             raise HTTPException(status_code=501, detail="PDF导出功能暂未实现")
+        else:
+            raise HTTPException(status_code=400, detail="不支持的导出格式")
         
         # 更新执行记录
-        file_size = os.path.getsize(temp_file.name)
+        file_size = os.path.getsize(temp_file_path)
         ReportViewExecutionCRUD.update_execution_result(
             db, execution.id, 
             result_count=len(result['data']),
             execution_time=result.get('execution_time'),
-            status="success"
+            status="success",
+            file_path=temp_file_path,
+            file_size=file_size
         )
         
         return FileResponse(
-            path=temp_file.name,
-            filename=filename,
+            path=temp_file_path,
+            filename=f"{filename}{temp_file_suffix}",
             media_type=media_type
         )
         
     except Exception as e:
-        # 更新执行记录为失败状态
-        ReportViewExecutionCRUD.update_execution_result(
-            db, execution.id if 'execution' in locals() else None,
-            status="error",
-            error_message=str(e)
-        )
+        logger.error(f"导出报表视图 {view_id} 失败: {str(e)}", exc_info=True)
+        if 'execution' in locals() and execution is not None:
+            ReportViewExecutionCRUD.update_execution_result(
+                db, execution.id,
+                status="error",
+                error_message=f"导出失败: {str(e)}"
+            )
         raise HTTPException(status_code=500, detail=f"导出失败: {str(e)}") 
