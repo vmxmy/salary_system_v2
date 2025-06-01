@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Tag, Card, Form, Input, Button, Space, Switch, message } from 'antd';
+import { Tag, Card, Form, Input, Button, Space, Switch, message, Divider } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ReportTable } from '@/components/common/ReportTable';
+import { useTranslation } from 'react-i18next';
 
 // 示例数据类型
 type ReportData = {
@@ -165,11 +166,13 @@ const ReportTemplateDemo: React.FC = () => {
     }
   };
 
+  const { t } = useTranslation();
+
   return (
     <div style={{ padding: '24px' }}>
       {/* 模板配置管理面板 */}
       <Card 
-        title="报表模板配置管理" 
+        title={t('admin:report_template_config_title')}
         size="small"
         style={{ marginBottom: '16px' }}
         bodyStyle={{ padding: '16px' }}
@@ -178,34 +181,34 @@ const ReportTemplateDemo: React.FC = () => {
             <Switch 
               checked={useTemplateConfig}
               onChange={setUseTemplateConfig}
-              checkedChildren="使用模板配置"
-              unCheckedChildren="使用直接配置"
+              checkedChildren={t('admin:use_template_config')}
+              unCheckedChildren={t('admin:use_direct_config')}
             />
             <Button type="primary" size="small" onClick={saveTemplateConfig}>
-              保存模板配置
+              {t('admin:save_template_config')}
             </Button>
           </Space>
         }
       >
         <Form layout="vertical" size="small">
-          <Form.Item label="报表标题">
+          <Form.Item label={t('admin:report_title_label')}>
             <Input 
               value={templateConfig.reportTitle}
               onChange={(e) => updateTemplateConfig('reportTitle', e.target.value)}
-              placeholder="请输入报表标题"
+              placeholder={t('admin:enter_report_title_placeholder')}
             />
           </Form.Item>
           
-          <Form.Item label="说明行配置">
+          <Form.Item label={t('admin:description_lines_config_label')}>
             {(templateConfig.reportDescriptionLines || []).map((line, index) => (
               <div key={index} style={{ display: 'flex', marginBottom: '8px', alignItems: 'center' }}>
                 <span style={{ fontSize: '12px', color: '#999', width: '60px', flexShrink: 0 }}>
-                  说明{index + 1}：
+                  {t('admin:description_line_number', { index: index + 1 })}
                 </span>
                 <Input
                   value={line}
                   onChange={(e) => updateDescriptionLine(index, e.target.value)}
-                  placeholder={`说明行 ${index + 1}`}
+                  placeholder={t('admin:description_line_placeholder', { index: index + 1 })}
                   size="small"
                   style={{ flex: 1, marginRight: '8px' }}
                 />
@@ -217,13 +220,13 @@ const ReportTemplateDemo: React.FC = () => {
                     onClick={() => removeDescriptionLine(index)}
                     style={{ padding: '0 4px', fontSize: '12px' }}
                   >
-                    删除
+                    {t('common:button.delete')}
                   </Button>
                 )}
               </div>
             ))}
             <Button size="small" type="dashed" onClick={addDescriptionLine}>
-              添加说明行
+              {t('admin:add_description_line_button')}
             </Button>
           </Form.Item>
         </Form>
@@ -233,18 +236,18 @@ const ReportTemplateDemo: React.FC = () => {
       <ReportTable<ReportData>
         // 根据开关决定使用哪种配置方式
         reportConfig={useTemplateConfig ? templateConfig : undefined}
-        reportTitle={!useTemplateConfig ? '直接配置的标题' : undefined}
-        reportDescription={!useTemplateConfig ? ['直接配置的说明1', '直接配置的说明2'] : undefined}
+        reportTitle={!useTemplateConfig ? t('admin:direct_config_title') : undefined}
+        reportDescription={!useTemplateConfig ? [t('admin:direct_config_description1'), t('admin:direct_config_description2')] : undefined}
         columns={columns}
         dataSource={dataSource}
         exportConfig={{
           enabled: true,
-          filename: templateConfig.reportTitle || '报表',
+          filename: templateConfig.reportTitle || t('common:report'),
           formats: ['excel', 'csv'],
         }}
         printConfig={{
           enabled: true,
-          title: templateConfig.reportTitle || '报表',
+          title: templateConfig.reportTitle || t('common:report'),
         }}
         tableConfig={{
           showIndex: true,

@@ -1,9 +1,12 @@
 import type { Department } from '../pages/HRManagement/types'; // Types that are only used as types
 import { EmploymentStatus, Gender, EmploymentType, ContractType, EducationLevel, LeaveType, MaritalStatus, PoliticalStatus, ContractStatus } from '../pages/HRManagement/types'; // Enums used as values
 import type { LookupItem, PersonnelCategory, Position as PositionType } from '../pages/HRManagement/types'; // MODIFIED: No longer JobTitle as PersonnelCategory, ADDED PositionType
-import apiClient from '../api'; // Added apiClient import
+import apiClient from '../api/apiClient'; // Added apiClient import
 import { message } from 'antd'; // Added message import
 import { employeeService } from './employeeService'; // 添加对employeeService的导入
+import { getDepartments as getDepartmentsLookup } from '../api/departments';
+import { getPersonnelCategories as getPersonnelCategoriesLookup } from '../api/personnelCategories';
+import { getPositions as getPositionsLookup } from '../api/positions';
 
 // Define standard Lookup Type Codes used by the backend -- REMOVING THIS as we will fetch dynamically
 // export const LookupTypeCodes = { ... } as const;
@@ -34,15 +37,12 @@ let fetchLookupTypesPromise: Promise<readonly LookupType[] | null> | null = null
 // Fetches all lookup types from the API and caches them
 export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType[] | null> => {
   if (cachedLookupTypes) {
-    // console.log(t('common:auto_lookup__e4bdbf'), cachedLookupTypes.length, t('common:auto_text_e9a1b9');
     return cachedLookupTypes;
   }
   if (isFetchingLookupTypes && fetchLookupTypesPromise) {
-    // console.log(t('common:auto_lookup___e6ada3');
     return fetchLookupTypesPromise;
   }
 
-  // console.log(t('common:auto__lookup_get_lookup_types_f09f94');
   isFetchingLookupTypes = true;
   fetchLookupTypesPromise = apiClient.get<LookupTypeListResponse>('/lookup/types', {
     params: {
@@ -51,21 +51,9 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
     }
   })
   .then(response => {
-    // console.log(t('common:auto__lookupapi__e29c85'), {
-    //   status: response.status,
-    //   url: response.config.url,
-    //   hasData: !!response.data,
-    //   dataIsArray: response.data && Array.isArray(response.data.data),
-    //   dataLength: response.data && response.data.data ? response.data.data.length : 0,
-    // });
     
     // 详细输出响应数据的前几项
     if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-      // console.log(t('common:auto_lookup__6c6f6f');
-      // response.data.data.slice(0, 3).forEach((item, index) => {
-      //   console.log(`  ${index+1}. id=${item.id}, code="${item.code}", name="${item.name}"`);
-      // });
-      // console.log(t('common:auto___response_data_data_length__20202e');
     }
     
     // 调整判断条件以匹配新的 LookupTypeListResponse 结构
@@ -75,18 +63,10 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
       cachedLookupTypes = Object.freeze([...response.data.data]); // 从 response.data.data 获取数组
       return cachedLookupTypes;
     }
-    // console.error(t('common:auto__lookupservice_api_lookup_types__e29d8c'), response.data);
     message.error('Failed to load lookup type definitions.');
     return null;
   })
   .catch(error => {
-    // console.error(t('common:auto__lookupservice_lookup__e29d8c'), error);
-    // console.error(t('common:auto___e99499'), error.message);
-    // console.error(t('common:auto___e8afb7'), error.config);
-    // if (error.response) {
-    //   console.error(t('common:auto___e5938d'), error.response.data);
-    //   console.error(t('common:auto___e5938d'), error.response.status);
-    // }
     message.error('Error loading lookup type definitions.');
     return null;
   })
@@ -99,11 +79,9 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
 
 // Renamed and modified to search by system code key against the 'code' field of lookup types
 const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | undefined> => {
-  // console.log(`开始查询系统码 "${systemCodeKey}" 的类型代码`);
   try {
     const allTypes = await fetchAllLookupTypesAndCache();
     if (!allTypes) {
-      // console.warn(`查询系统码 "${systemCodeKey}" 失败：缓存类型为空`);
       return undefined;
     }
     
@@ -112,13 +90,11 @@ const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | 
     
     // 如果没找到，尝试不区分大小写的匹配
     if (!foundType) {
-      // console.log(`未找到精确匹配系统码 "${systemCodeKey}"，尝试不区分大小写的匹配...`);
       foundType = allTypes.find(type => type.code?.toUpperCase() === systemCodeKey.toUpperCase());
     }
     
     // 如果仍未找到，检查是否有部分匹配
     if (!foundType) {
-      // console.log(t('common:auto____e69caa');
       foundType = allTypes.find(type =>
         type.code?.includes(systemCodeKey) ||
         systemCodeKey.includes(type.code || '')
@@ -128,7 +104,6 @@ const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | 
     if (!foundType) {
       // 如果系统码是PAY_FREQUENCY，可以尝试其他变体名称
       if (systemCodeKey === 'PAY_FREQUENCY') {
-        // console.log(t('common:auto__pay_frequency__e789b9');
         foundType = allTypes.find(type =>
           type.code?.includes('PAY') ||
           type.code?.includes('FREQUENCY') ||
@@ -139,7 +114,6 @@ const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | 
       }
       // 如果系统码是CONTRACT_STATUS，可以尝试其他变体名称
       else if (systemCodeKey === 'CONTRACT_STATUS') {
-        // console.log(t('common:auto__contract_status__e789b9');
         foundType = allTypes.find(type =>
           type.code?.includes('CONTRACT') ||
           type.code?.includes('STATUS') ||
@@ -150,15 +124,12 @@ const getTypeCodeBySystemCode = async (systemCodeKey: string): Promise<string | 
     }
     
     if (!foundType) {
-      // console.warn(`lookupService: Could not find lookup type with system code key "${systemCodeKey}" in cached types. Ensure this key exists in 'config.lookup_types.code' column.`);
     } else {
-      // console.log(`找到系统码 "${systemCodeKey}" 对应的类型：`, foundType);
     }
     
     // The 'code' property of the found type is the actual type_code we need.
     return foundType?.code;
   } catch (error) {
-    // console.error(`查询系统码 "${systemCodeKey}" 时发生错误:`, error);
     return undefined;
   }
 };
@@ -439,11 +410,8 @@ const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
 // Generic function to fetch lookup values by type code
 const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> => {
   if (!typeCode) { // Added a check for empty typeCode
-    // console.warn(t('common:auto__fetchlookupvaluesbytype_typecode_e29d8c');
     return [];
   }
-  
-  // console.log(`🔍 开始获取类型 "${typeCode}" 的查找值`);
   
   try {
     // 构建请求URL和参数
@@ -455,28 +423,8 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
       page: 1,
     };
     
-    // console.log(t('common:auto_api_get_apipath__415049'), { params });
-    
     // Assuming the API returns a structure like { data: [...ApiLookupValue] }
     const response = await apiClient.get<ActualApiLookupValueListResponse>(apiPath, { params });
-    
-    // console.log(`✅ 类型 "${typeCode}" 的API响应:`, {
-    //   status: response.status,
-    //   url: response.config.url,
-    //   hasData: !!response.data,
-    //   dataType: response.data ? typeof response.data.data : 'undefined',
-    //   isArray: response.data && Array.isArray(response.data.data),
-    //   itemCount: response.data && Array.isArray(response.data.data) ? response.data.data.length : 0
-    // });
-    
-    // 详细输出响应数据的前几项
-    if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-      // console.log(`类型 "${typeCode}" 数据预览:`);
-      // response.data.data.slice(0, 3).forEach((item, index) => {
-      //   console.log(`  ${index+1}. id=${item.id}, name="${item.name || item.label}", code="${item.code}"`);
-      // });
-      // console.log(t('common:auto___response_data_data_length__20202e');
-    }
     
     if (response.data && Array.isArray(response.data.data)) {
       return response.data.data
@@ -489,17 +437,9 @@ const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> 
           name: apiItem.name || apiItem.label || '',
         }));
     }
-    // console.error(t('common:auto__lookupservice_api_type_code_typecode__e29d8c'), response.data);
     message.error(`Failed to load lookup values for type: ${typeCode}`);
     return [];
   } catch (error: any) {
-    // console.error(`❌ lookupService: 获取类型为"${typeCode}"的查找值时出错:`, error);
-    // console.error(t('common:auto___e99499'), error.message);
-    // console.error(t('common:auto___e8afb7'), error.config);
-    // if (error.response) {
-    //   console.error(t('common:auto___e5938d'), error.response.data);
-    //   console.error(t('common:auto___e5938d'), error.response.status);
-    // }
     message.error(`获取"${typeCode}"类型的查找值失败`);
     return [];
   }
@@ -651,13 +591,9 @@ export const lookupService = {
           // description and other fields from PersonnelCategory can be mapped here if available in ApiPersonnelCategory
         }));
 
-      // console.log('mapped personnel categories:', personnelCategoriesWithParent.slice(0, 3);
-
       const result = buildPersonnelCategoryTree(personnelCategoriesWithParent); // MODIFIED
-      // console.log('final personnel categories tree:', result.slice(0, 3);
       return result;
     } catch (error) {
-      // console.error('Error fetching personnel categories lookup:', error); // MODIFIED
       message.error('Failed to load personnel categories'); // MODIFIED
       return [];
     }
@@ -680,7 +616,6 @@ export const lookupService = {
     
     // 不立即显示错误，而是尝试使用employeeService作为备选
     try {
-      // console.log(t('common:auto_lookupservice_gettypecodebysystemcodepay_frequency_employeeservice_getpayfrequencieslookup_e697a0');
       const frequenciesFromEmployeeService = await employeeService.getPayFrequenciesLookup();
       
       // 将从employeeService获取的数据转换为LookupItem[]
@@ -696,7 +631,6 @@ export const lookupService = {
         };
       });
     } catch (error) {
-      // console.error(t('common:auto_employeeservice__e9809a'), error);
       message.error('Failed to load pay frequencies');
       return [];
     }
@@ -711,7 +645,6 @@ export const lookupService = {
     
     // 不立即显示错误，而是尝试使用employeeService作为备选
     try {
-      // console.log(t('common:auto_lookupservice_gettypecodebysystemcodecontract_status_employeeservice_getcontractstatuseslookup_e697a0');
       const statusesFromEmployeeService = await employeeService.getContractStatusesLookup();
       
       // 将从employeeService获取的数据转换为LookupItem[]
@@ -727,7 +660,6 @@ export const lookupService = {
         };
       });
     } catch (error) {
-      // console.error(t('common:auto_employeeservice__e9809a'), error);
       message.error('Failed to load contract statuses');
       return [];
     }
@@ -757,7 +689,6 @@ export const lookupService = {
       message.error('Failed to load position list or data is not in expected format.');
       return [];
     } catch (error) {
-      // console.error('Error fetching positions:', error);
       message.error('Error loading positions.');
       return [];
     }
@@ -957,4 +888,11 @@ export const lookupService = {
       throw error;
     }
   },
+
+  fetchLookupValuesByType,
+  fetchDepartments: getDepartmentsLookup,
+  fetchPersonnelCategories: getPersonnelCategoriesLookup,
+  fetchPositions: getPositionsLookup,
+  fetchSystemLookupCode: getTypeCodeBySystemCode,
+  getTypeCodeBySystemCode,
 };

@@ -303,17 +303,17 @@ const PayrollEntryPage: React.FC = () => {
         
         // 详细检查前3条数据的结构
         response.data.slice(0, 3).forEach((entry, index) => {
-          console.log(`[PayrollEntryPage.tsx] fetchPayrollEntries - Entry ${index + 1} detailed structure:`, {
-            id: entry.id,
-            employee_id: entry.employee_id,
-            employee_first_name: entry.employee_first_name,
-            employee_last_name: entry.employee_last_name,
-            employee_first_name_type: typeof entry.employee_first_name,
-            employee_last_name_type: typeof entry.employee_last_name,
-            has_employee_object: !!entry.employee,
-            employee_object_keys: entry.employee ? Object.keys(entry.employee) : 'no employee object',
-            all_keys: Object.keys(entry)
-          });
+            console.log(`Entry ${index + 1} structure:`, {
+                id: entry.id,
+                employee_id: entry.employee_id,
+                employee_first_name: entry.employee_first_name,
+                employee_last_name: entry.employee_last_name,
+                employee_first_name_type: typeof entry.employee_first_name,
+                employee_last_name_type: typeof entry.employee_last_name,
+                has_employee_object: !!entry.employee,
+                employee_object_keys: entry.employee ? Object.keys(entry.employee) : 'no employee object',
+                all_keys: Object.keys(entry)
+            });
         });
         
         setAllPayrollEntries(response.data);
@@ -395,7 +395,7 @@ const PayrollEntryPage: React.FC = () => {
 
   // 调试：监控传递给表格的数据变化
   useEffect(() => {
-    console.log('[PayrollEntryPage.tsx] RENDER - Table data updated:', {
+    console.log('Table data debugging:', {
       allPayrollEntriesLength: allPayrollEntries.length,
       loadingData,
       selectedPeriodId,
@@ -416,7 +416,7 @@ const PayrollEntryPage: React.FC = () => {
 
     // 🚀 额外调试：检查即将传递给StandardListPageTemplate的数据
     if (allPayrollEntries.length > 0) {
-      console.log('[PayrollEntryPage.tsx] 🚀 StandardListPageTemplate props:', {
+      console.log('StandardListPageTemplate data debugging:', {
         dataSourceLength: allPayrollEntries.length,
         lookupMapsDetails: {
           departmentMapSize: lookupMaps?.departmentMap?.size,

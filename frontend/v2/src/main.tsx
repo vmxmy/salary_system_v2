@@ -20,6 +20,7 @@ import AppWrapper from './AppWrapper';
 import { createBrowserRouter } from 'react-router-dom'; // 导入 react-router-dom 的 createBrowserRouter
 import { routes } from './router/routes'; // 从 routes.tsx 导入路由配置数组
 import './styles/index.less'; // 只导入 index.less，它会再导入其他需要的样式
+import { App } from 'antd'; // 导入 Ant Design 的 App 组件
 
 // i18n 初始化
 import './i18n'; // 导入并初始化 i18n 配置
@@ -51,7 +52,9 @@ root.render(
     <Provider store={store}>
       <I18nAppConfigProvider> 
         <React.Suspense fallback={<div>Loading translations...</div>}>
-          <AppWrapper router={router} />
+          <App> {/* 使用 App 组件包裹整个应用 */}
+            <AppWrapper router={router} />
+          </App>
         </React.Suspense>
       </I18nAppConfigProvider>
     </Provider>

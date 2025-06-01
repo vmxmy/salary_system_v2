@@ -355,10 +355,10 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
 
           <Form.Item
             name="report_title"
-            label="报表标题"
+            label={t('reportView:report_title')}
           >
             <Input 
-              placeholder="请输入报表标题（用于导出时的表格标题）"
+              placeholder={t('reportView:report_title_placeholder')}
               maxLength={500}
               showCount
             />
@@ -366,10 +366,10 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
 
           <Form.Item
             name="description_lines"
-            label="报表说明行"
+            label={t('reportView:report_description_lines')}
           >
             <DescriptionLinesEditor
-              placeholder="请输入说明内容"
+              placeholder={t('reportView:report_description_content_placeholder')}
             />
           </Form.Item>
 

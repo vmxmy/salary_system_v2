@@ -124,5 +124,14 @@
     "export_failed": "Export failed",
     "network_error": "Network error, please try again later",
     "server_error": "Server error, please contact administrator"
-  }
-} 
+  },
+  "field": {
+    "category": "Category",
+    "usageCount": "Usage Count",
+    "lastUsedAt": "Last Used At",
+    "createdAt": "Created At"
+  },
+  "status_draft_message": "Report is in draft status. Data cannot be displayed.",
+  "status_error_message": "SQL execution failed. Data cannot be displayed.",
+  "unknown_status_message": "Report view status is abnormal. Data cannot be displayed."
+}

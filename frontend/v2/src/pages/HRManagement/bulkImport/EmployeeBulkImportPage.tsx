@@ -148,7 +148,6 @@ const EmployeeBulkImportPage: React.FC = () => {
     const errors: string[] = [];
     const recordDescription = `Record ${index} (ID: ${record.id_number || ''}, Name: ${record.last_name || ''}${record.first_name || ''})`;
 
-    // console.log(`[DEBUG ${recordDescription}] Validating:`, JSON.parse(JSON.stringify(record);))
 
     if (!record.first_name) errors.push(t('bulk_import.validation.first_name_required'));
 
@@ -258,14 +257,6 @@ const EmployeeBulkImportPage: React.FC = () => {
         return apiPayload as CreateEmployeePayload;
       });
 
-      // 添加详细日志以便调试
-      console.log(t('hr:auto__bulk_import_debug___5b4255'),
-        validRecords.map(r => ({
-          id_number: r.id_number,
-          personnel_category_name: r.personnel_category_name,
-          position_name: r.position_name
-        }))
-      );
       // 保存原始名称数据以便后续显示
       const originalNameData = validRecords.reduce((acc, record) => {
         // 使用身份证号码作为唯一标识
@@ -285,18 +276,9 @@ const EmployeeBulkImportPage: React.FC = () => {
         const {
           success_count = 0,
           failed_count = 0,
-          // total_count = 0, // total_count is not used
           created_employees = [],
           failed_records = []
         } = response as any;
-
-        console.log(t('hr:auto__bulk_import_debug_api__5b4255'), {
-          success_count,
-          failed_count,
-          total_count: success_count + failed_count, // Use sum of success and failed for total_count
-          created_employees_length: created_employees.length,
-          failed_records_length: failed_records.length
-        });
 
         // 显示结果消息
         if (success_count > 0 && failed_count === 0) {
@@ -339,12 +321,6 @@ const EmployeeBulkImportPage: React.FC = () => {
 
             // 通过身份证号匹配原始数据
             if (emp.id_number && originalNameData[emp.id_number]) {
-              // 记录匹配过程
-              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number},
-                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}],
-                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name},
-                实际任职=${originalNameData[emp.id_number].position_name}]`);
-
               // 如果后端返回的数据中这些字段为空，使用原始提交的数据
               if (!enhancedEmp.personnel_category_name) {
                 enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;
@@ -391,12 +367,6 @@ const EmployeeBulkImportPage: React.FC = () => {
 
             // 通过身份证号匹配原始数据
             if (emp.id_number && originalNameData[emp.id_number]) {
-              // 记录匹配过程
-              console.log(`[BULK IMPORT DEBUG] 匹配员工数据 ID号: ${emp.id_number},
-                后端返回值: [人员身份=${emp.personnel_category_name}, 实际任职=${emp.position_name}],
-                原始值: [人员身份=${originalNameData[emp.id_number].personnel_category_name},
-                实际任职=${originalNameData[emp.id_number].position_name}]`);
-
               // 如果后端返回的数据中这些字段为空，使用原始提交的数据
               if (!enhancedEmp.personnel_category_name) {
                 enhancedEmp.personnel_category_name = originalNameData[emp.id_number].personnel_category_name;

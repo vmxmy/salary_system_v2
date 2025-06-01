@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, message } from 'antd';
+import { Modal, Form, message, App } from 'antd';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import PayrollPeriodForm, { type PayrollPeriodFormData } from './PayrollPeriodForm';
@@ -23,6 +23,7 @@ const PayrollPeriodFormModal: React.FC<PayrollPeriodFormModalProps> = ({
   const { t } = useTranslation(['payroll', 'common']);
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
+  const { message: messageApi } = App.useApp();
 
   const isEditMode = !!period;
 
@@ -70,15 +71,15 @@ const PayrollPeriodFormModal: React.FC<PayrollPeriodFormModalProps> = ({
 
       if (isEditMode && period) {
         await updatePayrollPeriod(period.id, formattedData);
-        message.success(t('payroll_periods_page.message.update_success'));
+        messageApi.success(t('payroll_periods_page.message.update_success'));
       } else {
         await createPayrollPeriod(formattedData);
-        message.success(t('payroll_periods_page.message.create_success'));
+        messageApi.success(t('payroll_periods_page.message.create_success'));
       }
 
       onSuccess();
     } catch (error) {
-      message.error(
+      messageApi.error(
         isEditMode 
           ? t('payroll_periods_page.message.update_failed')
           : t('payroll_periods_page.message.create_failed')

@@ -8,14 +8,12 @@
   "remember_me_checkbox": "Remember me",
   "username_required_message": "Please input your username!",
   "password_required_message": "Please input your password!",
-
   "sider.title.full": "Salary Management System",
   "sider.title.collapsed": "Sal",
   "user_menu.profile": "Profile Center",
   "user_menu.logout": "Logout",
   "footer.system_name": "Salary Management System",
   "footer.created_by": "Created by AI Assistant",
-
   "page_title.login": "Login",
   "page_title.unauthorized": "Unauthorized",
   "page_title.dashboard": "Dashboard",
@@ -45,10 +43,8 @@
   "page_title.my_payslips": "My Payslips",
   "page_title.not_found": "Page Not Found",
   "page_title.employee_center": "Employee Center",
-
   "user_menu.default_user_text": "User",
   "common.loading": "Loading page content...",
-
   "common.loading_dashboard": "Loading Dashboard...",
   "common.loading_admin_section": "Loading Admin Section...",
   "common.loading_departments": "Loading Departments...",
@@ -59,7 +55,6 @@
   "common.loading_employee_section": "Loading Employee Section...",
   "common.loading_my_info": "Loading My Info...",
   "common.loading_my_payslips": "Loading My Payslips...",
-
   "user_management_page.title": "User Management",
   "user_management_page.button.create_user": "New User",
   "user_management_page.table.column.id": "ID",
@@ -78,14 +73,12 @@
   "user_management_page.table.search.button_close": "Close",
   "user_management_page.tooltip.edit_user": "Edit User",
   "user_management_page.tooltip.delete_user": "Delete User",
-
   "user_management_page.modal.title.create_user": "New User",
   "user_management_page.modal.title.edit_user": "Edit User",
   "user_management_page.modal.confirm_delete.title": "Confirm Delete User \"{username}\"?",
   "user_management_page.modal.confirm_delete.content": "This action cannot be undone.",
   "user_management_page.modal.confirm_delete.ok_text": "Confirm Delete",
   "user_management_page.modal.confirm_delete.cancel_text": "Cancel",
-
   "user_management_page.form.username.label": "Username",
   "user_management_page.form.username.validation.required": "Please input username!",
   "user_management_page.form.username.validation.min_length": "Username requires at least {count} characters",
@@ -113,7 +106,6 @@
   "user_management_page.form.validation.roles_required": "Please select at least one role!",
   "user_management_page.form.status_switch.active": "Active",
   "user_management_page.form.status_switch.inactive": "Inactive",
-
   "user_management_page.message.fetch_roles_error": "Failed to load role list",
   "user_management_page.message.create_user_success": "User \"{username}\" created successfully!",
   "user_management_page.message.create_user_error.default": "Failed to create user. Please check input or contact administrator.",
@@ -121,9 +113,7 @@
   "user_management_page.message.update_user_error.default": "Failed to update user.",
   "user_management_page.message.delete_user_success": "User \"{username}\" has been deleted.",
   "user_management_page.message.delete_user_error.default": "Failed to delete user.",
-
   "common.role.unknown": "Unknown Role",
-
   "role_management_page.title": "Role Management",
   "role_management_page.button.create_role": "New Role",
   "role_management_page.table.column.id": "ID",
@@ -157,7 +147,6 @@
   "role_management_page.message.create_role_error.name_code_required": "Role name and code are required.",
   "role_management_page.message.delete_role_success": "Role deleted successfully",
   "role_management_page.message.delete_role_error": "Failed to delete role",
-
   "permission_list_page.title": "Permission Management",
   "permission_list_page.button.create_permission": "Create Permission",
   "permission_list_page.table.column.id": "ID",
@@ -177,7 +166,6 @@
   "permission_list_page.message.delete_success": "Permission ID {permissionId} deleted successfully.",
   "permission_list_page.message.delete_error_prefix": "Failed to delete permission ID {permissionId}: ",
   "permission_list_page.message.load_list_error_prefix": "Failed to load permission list: ",
-
   "permission_form.title.edit": "Edit Permission",
   "permission_form.title.create": "Create Permission",
   "permission_form.button.cancel": "Cancel",
@@ -188,7 +176,6 @@
   "permission_form.validation.code_required": "Please input the permission code!",
   "permission_form.placeholder.code": "e.g., user:create or payroll:view_all",
   "permission_form.placeholder.description": "Enter a description for the permission",
-
   "department_management_page.title": "Department Management",
   "department_management_page.button.create_root_department": "New Root Department",
   "department_management_page.button.add_child_department_tooltip": "Add Child Department",
@@ -228,7 +215,6 @@
   "department_management_page.message.delete_success": "Department deleted successfully",
   "department_management_page.message.delete_failed_prefix": "Delete failed: ",
   "department_management_page.message.error.delete_in_use_or_has_children": "Department may be in use or has sub-departments",
-
   "job_title_management_page.title": "Job Title Management",
   "job_title_management_page.button_create_top_level": "New Top-Level Job Title",
   "job_title_management_page.button_create_test_data": "Create Test Data",
@@ -281,7 +267,6 @@
   "job_title_management_page.message_delete_failed_prefix": "Deletion failed: ",
   "job_title_management_page.message_test_data_create_failed_prefix": "Test data creation failed: ",
   "job_title_management_page.error_unknown": "Unknown error",
-
   "employee_filter_form.label_name": "Name",
   "employee_filter_form.label_employee_code": "Employee ID",
   "employee_filter_form.label_department": "Department",
@@ -301,7 +286,6 @@
   "employee_filter_form.placeholder_job_title": "Select job title",
   "employee_filter_form.button_search": "Search",
   "employee_filter_form.button_reset": "Reset",
-
   "employee_table.column_full_name": "Full Name",
   "employee_table.column_employee_code": "Employee ID",
   "employee_table.column_gender": "Gender",
@@ -321,14 +305,11 @@
   "employee_table.action_view_details": "View Details",
   "employee_table.action_edit": "Edit",
   "employee_table.action_delete": "Delete",
-
   "employee_form.button_update_employee": "Update Employee",
   "employee_form.button_create_employee": "Create Employee",
-
   "create_employee_page.message_create_success": "Employee created successfully!",
   "create_employee_page.message_create_fail_default": "Failed to create employee, please try again later.",
   "create_employee_page.message_create_fail_403": "Failed to create employee: You may not have permission for this action. Please contact an administrator.",
-
   "edit_employee_page.error_employee_not_found_edit": "Employee information to edit not found.",
   "edit_employee_page.error_employee_not_found": "Employee information not found.",
   "edit_employee_page.error_load_employee_failed_retry": "Failed to load employee information, please try again later.",
@@ -344,7 +325,6 @@
   "edit_employee_page.breadcrumb_title_edit_employee_name": "Edit: {name}",
   "edit_employee_page.page_title_edit_employee": "Edit Employee",
   "edit_employee_page.page_title_edit_employee_name": "Edit Employee: {name}",
-
   "employee_detail_page.basic_info_tab.title": "Basic Information",
   "employee_detail_page.basic_info_tab.label_status": "Status",
   "employee_detail_page.basic_info_tab.status_loading": "Loading data...",
@@ -364,7 +344,6 @@
   "employee_detail_page.basic_info_tab.label_political_status": "Political Status",
   "employee_detail_page.common_value_dash": "-",
   "employee_detail_page.common_value_na": "N/A",
-
   "employee_detail_page.job_info_tab.title": "Job Information",
   "employee_detail_page.job_info_tab.loading": "Loading...",
   "employee_detail_page.job_info_tab.label_current_job_title": "Current Job Title",
@@ -372,27 +351,22 @@
   "employee_detail_page.job_info_tab.label_reports_to": "Reports To",
   "employee_detail_page.job_info_tab.reports_to_id_prefix": "ID: {id}",
   "employee_detail_page.job_info_tab.label_work_location": "Work Location",
-
   "employee_detail_page.job_history_tab.loading_or_no_data": "Loading or no data...",
   "employee_detail_page.job_history_tab.no_records": "No job history records.",
   "employee_detail_page.job_history_tab.at_conjunction": "at",
-
   "employee_detail_page.contracts_tab.loading_or_no_data": "Loading or no data...",
   "employee_detail_page.contracts_tab.no_records": "No contract records.",
   "employee_detail_page.contracts_tab.to_conjunction": "to",
-
   "employee_detail_page.compensation_tab.loading_or_no_data": "Loading or no data...",
   "employee_detail_page.compensation_tab.no_records": "No compensation records.",
   "employee_detail_page.compensation_tab.basic_prefix": "Basic:",
   "employee_detail_page.compensation_tab.total_prefix": "Total:",
   "employee_detail_page.compensation_tab.freq_prefix": "Freq:",
-
   "employee_detail_page.leave_balances_tab.loading_or_no_data": "Loading or no data...",
   "employee_detail_page.leave_balances_tab.no_records": "No leave balance records.",
   "employee_detail_page.leave_balances_tab.type_id_prefix": "TypeID: {id}",
   "employee_detail_page.leave_balances_tab.entitlement_prefix": "Entitlement:",
   "employee_detail_page.leave_balances_tab.taken_prefix": "Taken:",
-
   "employee_detail_page.message_load_lookups_failed": "Failed to load page auxiliary data, some information may not be displayed correctly.",
   "employee_detail_page.message_employee_id_not_found": "Employee ID not found",
   "employee_detail_page.error_employee_info_not_found": "Employee information not found.",
@@ -415,7 +389,6 @@
   "employee_detail_page.page_container_title_employee_not_found": "Employee Not Found",
   "employee_detail_page.alert_description_cannot_load_data": "Cannot load employee data.",
   "employee_detail_page.button_back_to_list": "Back to List",
-
   "employee_list_page.message_load_aux_data_failed": "Failed to load auxiliary data for filtering and display.",
   "employee_list_page.message_get_employees_failed_empty_response": "Failed to get employee data: Empty response data.",
   "employee_list_page.message_get_employees_failed": "Failed to get employee list.",
@@ -425,11 +398,9 @@
   "employee_list_page.delete_confirm_content": "Are you sure you want to delete this employee? This action cannot be undone.",
   "employee_list_page.delete_confirm_ok_text": "Delete",
   "employee_list_page.delete_confirm_cancel_text": "Cancel",
-
   "page_title.payroll_run_detail": "Payroll Run Detail",
   "common.loading_payroll_periods": "Loading Payroll Periods...",
   "common.loading_payroll_runs": "Loading Payroll Runs...",
-
   "payroll_period_form.label.name": "Period Name",
   "payroll_period_form.validation.name_required": "Please input period name!",
   "payroll_period_form.placeholder.name": "e.g., July 2024 Payroll Period",
@@ -448,7 +419,6 @@
   "payroll_period_form.button.cancel": "Cancel",
   "payroll_period_form.button.save_changes": "Save Changes",
   "payroll_period_form.button.create_period": "Create Period",
-
   "payroll_run_form.error.load_periods_failed": "Failed to load payroll period list",
   "payroll_run_form.error.load_periods_failed_with_message": "Failed to load payroll period list: {message}",
   "payroll_run_form.label.payroll_period": "Payroll Period",
@@ -469,7 +439,6 @@
   "payroll_run_form.button.save_changes": "Save Changes",
   "payroll_run_form.button.create_run": "Create Run",
   "payroll_run_form.status.draft": "Draft",
-
   "payroll_run_status.draft": "Draft",
   "payroll_run_status.processing": "Processing",
   "payroll_run_status.pending_review": "Pending Review",
@@ -487,7 +456,6 @@
   "payroll_entry_status.error": "Error",
   "common.status_na": "N/A",
   "common.unknown_status_param": "Unknown Status (ID: {statusId})",
-
   "payroll_entries_table.error_fetch": "Failed to fetch payroll entry data",
   "payroll_entries_table.message_view_details_todo": "View details for employee {employeeIdentifier} (ID: {entryId}) - Feature to be implemented",
   "payroll_entries_table.message_edit_entry_todo": "Edit entry for employee {employeeIdentifier} (ID: {entryId}) - Feature to be implemented",
@@ -508,7 +476,6 @@
   "payroll_entries_table.alert_error_prefix": "Error: ",
   "payroll_entries_table.pagination_show_total": "{range0}-{range1} of {total} items",
   "payroll_entries_table.currency_symbol": "¥",
-
   "payroll_periods_page.title": "Payroll Period Management",
   "payroll_periods_page.button.create_period": "New Payroll Period",
   "payroll_periods_page.error_fetch_periods": "Failed to fetch payroll periods data",
@@ -533,7 +500,6 @@
   "payroll_periods_page.pagination_show_total": "{range0}-{range1} of {total} items",
   "payroll_periods_page.modal_title_create": "New Payroll Period",
   "payroll_periods_page.modal_title_edit": "Edit Payroll Period",
-
   "payroll_runs_page.title": "Payroll Runs",
   "payroll_runs_page.button.create_run": "New Payroll Run",
   "payroll_runs_page.error_fetch_runs": "Failed to fetch payroll runs data",
@@ -575,7 +541,6 @@
   "payroll_runs_page.modal_title_create": "New Payroll Run",
   "payroll_runs_page.modal_title_edit": "Edit Payroll Run",
   "payroll_runs_page.pagination_show_total": "{range0}-{range1} of {total} items",
-
   "payroll_run_detail_page.error_fetch_details": "Failed to fetch payroll run details",
   "payroll_run_detail_page.error_invalid_run_id": "Invalid Payroll Run ID",
   "payroll_run_detail_page.error_no_run_id_provided": "No Payroll Run ID provided",
@@ -601,12 +566,1040 @@
   "payroll_run_detail_page.value_no_notes": "None",
   "payroll_run_detail_page.value_period_id_prefix": "ID: ",
   "payroll_run_detail_page.section_title_entries": "Payroll Entries",
-
   "common.permission_denied_action": "You do not have permission to perform this action.",
   "dashboard.admin_actions.panel_title_example": "Admin Actions Panel (Example)",
   "dashboard.admin_actions.super_admin_action_example": "Super Admin Only Action (Example)",
   "dashboard.admin_actions.create_user_example": "Create New User (Requires 'user:create') (Example)",
   "dashboard.admin_actions.edit_config_example": "Edit System Configuration (Requires 'config:edit' OR 'sys_admin' role) (Example)",
   "manager_page.leave_approvals.placeholder_title": "Leave Approvals Page (Placeholder)",
-  "manager_page.subordinates.placeholder_title": "Subordinates Page (Placeholder)"
-} 
+  "manager_page.subordinates.placeholder_title": "Subordinates Page (Placeholder)",
+  "message": {
+    "refresh_success": "refresh_success",
+    "export_success": "export_success",
+    "delete_success": "delete_success",
+    "delete_failed": "delete_failed",
+    "export_failed": "export_failed",
+    "create_success": "create_success",
+    "create_failed": "create_failed",
+    "update_success": "update_success",
+    "update_failed": "update_failed",
+    "fetch_permissions_error": "fetch_permissions_error",
+    "update_role_success": "update_role_success",
+    "create_role_error_name_code_required": "create_role_error_name_code_required",
+    "create_role_success": "create_role_success",
+    "update_role_error": "update_role_error",
+    "create_role_error": "create_role_error",
+    "fetch_roles_error": "fetch_roles_error",
+    "update_user_success": "update_user_success",
+    "create_user_success": "create_user_success",
+    "update_user_error": {
+      "default": "default"
+    },
+    "create_user_error": {
+      "default": "default"
+    },
+    "fetch_all_flat_error": "fetch_all_flat_error",
+    "fetch_list_error": "fetch_list_error",
+    "error": {
+      "unknown": "unknown",
+      "delete_in_use_or_has_children": "delete_in_use_or_has_children"
+    },
+    "operation_failed_prefix": "operation_failed_prefix",
+    "delete_failed_prefix": "delete_failed_prefix",
+    "fetch_list_failed": "fetch_list_failed",
+    "error_unknown": "error_unknown",
+    "delete_failed_has_children": "delete_failed_has_children",
+    "delete_role_success": "delete_role_success",
+    "delete_role_error": "delete_role_error",
+    "delete_user_success": "delete_user_success",
+    "delete_user_error": {
+      "default": "default"
+    },
+    "user_not_found_for_edit": "user_not_found_for_edit"
+  },
+  "table": {
+    "column": {
+      "index": "index",
+      "id": "id",
+      "code": "code",
+      "name": "name",
+      "parent_department_id": "parent_department_id",
+      "value_na_or_dash": "value_na_or_dash",
+      "effective_date": "effective_date",
+      "is_active": "is_active",
+      "actions": "actions",
+      "parent_category_id": "parent_category_id",
+      "end_date": "end_date",
+      "permissions": "permissions",
+      "username": "username",
+      "employee_id": "employee_id",
+      "roles": "roles",
+      "created_at": "created_at"
+    },
+    "density": {
+      "compact": "compact",
+      "default": "default",
+      "comfortable": "comfortable"
+    },
+    "filter": {
+      "active": "active",
+      "inactive": "inactive"
+    },
+    "value": {
+      "not_applicable": "not_applicable",
+      "active": "active",
+      "inactive": "inactive"
+    }
+  },
+  "export": {
+    "excel": "excel",
+    "csv": "csv",
+    "pdf": "pdf"
+  },
+  "hidden": "hidden",
+  "visible": "visible",
+  "button": {
+    "refresh": "refresh",
+    "export": "export",
+    "column_setting": "column_setting",
+    "density": "density",
+    "exit_fullscreen": "exit_fullscreen",
+    "fullscreen": "fullscreen",
+    "upload": "upload",
+    "submit": "submit",
+    "reset": "reset",
+    "create": "create",
+    "update": "update",
+    "cancel": "cancel",
+    "close": "close",
+    "search": "search",
+    "collapse": "collapse",
+    "expand": "expand",
+    "add_child_department_tooltip": "add_child_department_tooltip",
+    "create_top_level_department": "create_top_level_department",
+    "edit_personnel_category_tooltip": "edit_personnel_category_tooltip",
+    "add_child_personnel_category_tooltip": "add_child_personnel_category_tooltip",
+    "delete_personnel_category_tooltip": "delete_personnel_category_tooltip",
+    "add_personnel_category": "add_personnel_category",
+    "create_role": "create_role"
+  },
+  "date_range_picker": {
+    "quick_select": "quick_select",
+    "start_date": "start_date",
+    "end_date": "end_date"
+  },
+  "employee_selector": {
+    "error": {
+      "load_failed": "load_failed"
+    },
+    "placeholder": {
+      "multiple": "multiple",
+      "single": "single"
+    },
+    "no_data": "no_data"
+  },
+  "form": {
+    "validation": {
+      "default_required_template": "default_required_template",
+      "code_required": "code_required",
+      "name_required": "name_required",
+      "effective_date_required": "effective_date_required"
+    },
+    "title": {
+      "edit": "edit",
+      "create": "create"
+    },
+    "label": {
+      "code": "code",
+      "description": "description",
+      "employee_last_name": "employee_last_name",
+      "employee_first_name": "employee_first_name",
+      "employee_id_card": "employee_id_card"
+    },
+    "placeholder": {
+      "code": "code",
+      "description": "description",
+      "employee_last_name": "employee_last_name",
+      "employee_first_name": "employee_first_name",
+      "employee_id_card": "employee_id_card",
+      "select_parent_category": "select_parent_category"
+    },
+    "username": {
+      "label": "label",
+      "validation": {
+        "required": "required"
+      }
+    },
+    "password": {
+      "label": "label",
+      "validation": {
+        "required": "required"
+      }
+    },
+    "confirm_password": {
+      "label": "label",
+      "validation": {
+        "required": "required",
+        "match": "match"
+      }
+    },
+    "section": {
+      "employee_association": "employee_association"
+    },
+    "tooltip": {
+      "employee_id_card_for_association": "employee_id_card_for_association"
+    },
+    "roles": {
+      "label": "label",
+      "validation": {
+        "required": "required"
+      },
+      "placeholder": "placeholder"
+    },
+    "status": {
+      "label": "label"
+    },
+    "status_switch": {
+      "active": "active",
+      "inactive": "inactive"
+    },
+    "field": {
+      "code": "code",
+      "name": "name",
+      "description": "description",
+      "parent_category": "parent_category",
+      "effective_date": "effective_date",
+      "end_date": "end_date",
+      "is_active": "is_active"
+    },
+    "button": {
+      "cancel": "cancel",
+      "save_changes": "save_changes",
+      "create": "create"
+    }
+  },
+  "placeholder": {
+    "input": "input",
+    "start_date": "start_date",
+    "end_date": "end_date"
+  },
+  "common": {
+    "yes": "yes",
+    "no": "no",
+    "permission_denied_action": "permission_denied_action",
+    "status": "status",
+    "active": "active",
+    "inactive": "inactive",
+    "actions": "actions",
+    "view": "view",
+    "edit": "edit",
+    "delete": "delete",
+    "error": {
+      "fetch": "fetch"
+    },
+    "validation": {
+      "required": "required"
+    },
+    "description": "description",
+    "view_details": "view_details",
+    "button": {
+      "close": "close"
+    }
+  },
+  "delete_confirm": {
+    "title": "title",
+    "content": "content",
+    "ok_text": "ok_text",
+    "cancel_text": "cancel_text"
+  },
+  "label": {
+    "actions": "actions"
+  },
+  "action": {
+    "view": "view",
+    "edit": "edit",
+    "delete": "delete",
+    "create": "create"
+  },
+  "permission_denied_action": "permission_denied_action",
+  "lookup_select": {
+    "error": {
+      "load_failed": "load_failed"
+    },
+    "no_data": "no_data"
+  },
+  "modal": {
+    "title": {
+      "create": "create",
+      "edit": "edit",
+      "view": "view",
+      "default": "default",
+      "edit_user": "edit_user",
+      "create_user": "create_user"
+    },
+    "role_form": {
+      "title": {
+        "edit": "edit",
+        "create": "create"
+      },
+      "label": {
+        "name": "name",
+        "code": "code",
+        "permissions": "permissions"
+      },
+      "validation": {
+        "name_required": "name_required",
+        "code_required": "code_required"
+      }
+    },
+    "department_form": {
+      "title": {
+        "edit": "edit",
+        "create": "create"
+      },
+      "label": {
+        "code": "code",
+        "name": "name",
+        "parent_department": "parent_department",
+        "manager": "manager",
+        "description": "description",
+        "effective_date": "effective_date",
+        "end_date": "end_date",
+        "is_active": "is_active"
+      },
+      "validation": {
+        "code_required": "code_required",
+        "name_required": "name_required",
+        "effective_date_required": "effective_date_required"
+      },
+      "placeholder": {
+        "parent_department": "parent_department",
+        "manager": "manager"
+      }
+    },
+    "edit_title": "edit_title",
+    "create_title": "create_title",
+    "confirm_delete": {
+      "title": "title",
+      "content": "content",
+      "ok_text": "ok_text",
+      "cancel_text": "cancel_text"
+    }
+  },
+  "table_template": {
+    "no_selection_warning": "no_selection_warning"
+  },
+  "periods_page": {
+    "error_fetch_periods": "error_fetch_periods"
+  },
+  "batch_import": {
+    "help": {
+      "period_selection": "period_selection",
+      "overwrite_mode": "overwrite_mode",
+      "validation_mode_tooltip": "validation_mode_tooltip"
+    },
+    "label": {
+      "period_selection": "period_selection"
+    },
+    "table_converter": {
+      "missing_required_fields": "missing_required_fields",
+      "title": "title",
+      "placeholder": "placeholder",
+      "parse_table": "parse_table",
+      "field_mapping": "field_mapping",
+      "table_field": "table_field",
+      "api_field": "api_field",
+      "ignore_field": "ignore_field",
+      "data_type": "data_type",
+      "convert_to_json": "convert_to_json",
+      "json_result": "json_result",
+      "copy_json": "copy_json",
+      "json_parse_error": "json_parse_error",
+      "use_json": "use_json"
+    },
+    "fields": {
+      "employee_code": "employee_code",
+      "employee_full_name": "employee_full_name",
+      "id_number": "id_number",
+      "gross_pay": "gross_pay",
+      "total_deductions": "total_deductions",
+      "net_pay": "net_pay",
+      "remarks": "remarks"
+    },
+    "mapping": {
+      "serial_number": "serial_number",
+      "personnel_identity": "personnel_identity",
+      "personnel_level": "personnel_level",
+      "salary_unified": "salary_unified",
+      "fiscal_support": "fiscal_support",
+      "department": "department",
+      "department_name": "department_name",
+      "personnel_number": "personnel_number",
+      "employee_id": "employee_id",
+      "employee_number": "employee_number",
+      "work_number": "work_number",
+      "personnel_name": "personnel_name",
+      "name": "name",
+      "employee_name": "employee_name",
+      "id_card": "id_card",
+      "id_number": "id_number",
+      "id_card_number": "id_card_number",
+      "gross_salary": "gross_salary",
+      "total_income": "total_income",
+      "salary_total": "salary_total",
+      "total_earnings": "total_earnings",
+      "gross_total": "gross_total",
+      "net_salary": "net_salary",
+      "net_pay": "net_pay",
+      "actual_amount": "actual_amount",
+      "net_total": "net_total",
+      "deduction_total": "deduction_total",
+      "total_deductions": "total_deductions",
+      "deduction_amount": "deduction_amount",
+      "total_deduction_amount": "total_deduction_amount",
+      "should_deduct_total": "should_deduct_total",
+      "remarks": "remarks",
+      "description": "description"
+    },
+    "error_permission_denied": "error_permission_denied",
+    "error_api_not_found": "error_api_not_found",
+    "error_fetch_components": "error_fetch_components",
+    "message": {
+      "use_table_converter_first": "use_table_converter_first",
+      "file_parsed_success_one": "file_parsed_success",
+      "file_parsed_success_other": "file_parsed_success",
+      "file_parse_error": "file_parse_error",
+      "upload_success_one": "upload_success",
+      "upload_success_other": "upload_success",
+      "upload_partial_success": "upload_partial_success",
+      "upload_failed_with_errors_one": "upload_failed_with_errors",
+      "upload_failed_with_errors_other": "upload_failed_with_errors",
+      "upload_failed_with_details": "upload_failed_with_details",
+      "upload_failed": "upload_failed",
+      "upload_failed_prefix": "upload_failed_prefix",
+      "table_converted_success_one": "table_converted_success",
+      "table_converted_success_other": "table_converted_success",
+      "upload_in_progress": "upload_in_progress"
+    },
+    "validation": {
+      "no_data_to_upload": "no_data_to_upload",
+      "json_not_array": "json_not_array",
+      "period_required": "period_required",
+      "no_valid_data_to_upload": "no_valid_data_to_upload",
+      "employee_name_required": "employee_name_required",
+      "id_number_required": "id_number_required",
+      "gross_pay_invalid": "gross_pay_invalid",
+      "total_deductions_invalid": "total_deductions_invalid",
+      "net_pay_invalid": "net_pay_invalid",
+      "balance_mismatch": "balance_mismatch",
+      "unknown_personnel_type": "unknown_personnel_type",
+      "missing_employee_match_info": "missing_employee_match_info"
+    },
+    "table_header": {
+      "employee_id": "employee_id",
+      "employee_name": "employee_name",
+      "department": "department",
+      "position": "position",
+      "total_earnings": "total_earnings",
+      "total_deductions": "total_deductions",
+      "net_pay": "net_pay",
+      "status": "status",
+      "remarks": "remarks",
+      "validation_errors": "validation_errors"
+    },
+    "results_table": {
+      "employee_id": "employee_id",
+      "employee_name": "employee_name",
+      "error_message": "error_message",
+      "title_failed_records": "title_failed_records",
+      "title_successfully_imported_records_preview": "title_successfully_imported_records_preview"
+    },
+    "results": {
+      "all_success_one": "all_success",
+      "all_success_other": "all_success",
+      "partial_success": "partial_success",
+      "no_records_processed_at_server": "no_records_processed_at_server",
+      "all_failed_one": "all_failed",
+      "all_failed_other": "all_failed",
+      "no_records_processed": "no_records_processed"
+    },
+    "button": {
+      "import_another_file": "import_another_file",
+      "re_import": "re_import",
+      "hide_error_details": "hide_error_details",
+      "show_error_details": "show_error_details",
+      "back_to_entries": "back_to_entries",
+      "parse_and_preview": "parse_and_preview"
+    },
+    "page_title": "page_title",
+    "steps": {
+      "input_data": "input_data",
+      "preview_data": "preview_data",
+      "upload_progress": "upload_progress",
+      "results": "results"
+    },
+    "tab": {
+      "table_input": "table_input",
+      "json_input": "json_input"
+    },
+    "placeholder": {
+      "enter_json": "enter_json"
+    },
+    "options": {
+      "overwrite_mode": "overwrite_mode",
+      "validation_mode_label": "validation_mode_label"
+    },
+    "card_title": {
+      "preview_data_count_one": "preview_data_count",
+      "preview_data_count_other": "preview_data_count"
+    },
+    "notes": {
+      "preview_warning_max_100": "preview_warning_max_100"
+    },
+    "record_at_index": "record_at_index"
+  },
+  "runs_page": {
+    "form": {
+      "placeholder": {
+        "payroll_period": "payroll_period"
+      }
+    },
+    "message": {
+      "update_success": "update_success",
+      "create_success": "create_success",
+      "already_paid": "already_paid",
+      "mark_as_paid_success": "mark_as_paid_success",
+      "exporting_bank_file": "exporting_bank_file",
+      "export_bank_file_success": "export_bank_file_success"
+    },
+    "error": {
+      "update_failed": "update_failed",
+      "create_failed": "create_failed",
+      "mark_as_paid_failed": "mark_as_paid_failed",
+      "export_bank_file_failed_default": "export_bank_file_failed_default",
+      "export_bank_file_failed_prefix": "export_bank_file_failed_prefix"
+    },
+    "modal_title": {
+      "edit": "edit",
+      "create": "create"
+    },
+    "table": {
+      "column": {
+        "id": "id",
+        "batch_name": "batch_name",
+        "payroll_period": "payroll_period",
+        "run_date": "run_date",
+        "status": "status",
+        "employee_count": "employee_count",
+        "notes": "notes"
+      },
+      "action_details": "action_details"
+    },
+    "tooltip": {
+      "edit_run": "edit_run",
+      "delete_run": "delete_run"
+    },
+    "button": {
+      "mark_as_paid": "mark_as_paid",
+      "export_bank_file": "export_bank_file"
+    },
+    "error_fetch_runs": "error_fetch_runs",
+    "popconfirm": {
+      "mark_as_paid_title": "mark_as_paid_title",
+      "mark_as_paid_content": "mark_as_paid_content",
+      "mark_as_paid_ok_text": "mark_as_paid_ok_text",
+      "delete_cancel_text": "delete_cancel_text"
+    },
+    "default_bank_export_filename_prefix": "default_bank_export_filename_prefix"
+  },
+  "payroll_period_selector": {
+    "title": "title"
+  },
+  "dashboard": {
+    "admin_actions": {
+      "panel_title_example": "panel_title_example",
+      "super_admin_action_example": "super_admin_action_example",
+      "create_user_example": "create_user_example",
+      "edit_config_example": "edit_config_example"
+    }
+  },
+  "list_page": {
+    "message": {
+      "update_success": "update_success",
+      "create_success": "create_success",
+      "update_error_prefix": "update_error_prefix",
+      "create_error_prefix": "create_error_prefix",
+      "delete_success": "delete_success",
+      "delete_error_prefix": "delete_error_prefix",
+      "load_list_error_prefix": "load_list_error_prefix"
+    },
+    "table": {
+      "column": {
+        "id": "id",
+        "code": "code",
+        "description": "description",
+        "actions": "actions"
+      },
+      "title": "title"
+    },
+    "tooltip": {
+      "edit_permission": "edit_permission",
+      "delete_permission": "delete_permission"
+    },
+    "modal": {
+      "confirm_delete": {
+        "title": "title",
+        "content": "content",
+        "ok_text": "ok_text",
+        "cancel_text": "cancel_text"
+      }
+    },
+    "title": "title",
+    "button": {
+      "create_permission": "create_permission"
+    },
+    "filter_form": {
+      "label": {
+        "name": "name",
+        "employee_code": "employee_code",
+        "id_number": "id_number",
+        "status": "status",
+        "department": "department",
+        "personnel_category": "personnel_category",
+        "actual_position": "actual_position",
+        "employment_type": "employment_type",
+        "hire_date_range": "hire_date_range",
+        "first_work_date_range": "first_work_date_range",
+        "gender": "gender",
+        "marital_status": "marital_status",
+        "political_status": "political_status",
+        "education_level": "education_level",
+        "contract_type": "contract_type",
+        "job_position_level": "job_position_level",
+        "pay_frequency": "pay_frequency"
+      },
+      "placeholder": {
+        "name": "name",
+        "employee_code": "employee_code",
+        "id_number": "id_number",
+        "status": "status",
+        "department": "department",
+        "personnel_category": "personnel_category",
+        "actual_position": "actual_position",
+        "employment_type": "employment_type",
+        "gender": "gender",
+        "marital_status": "marital_status",
+        "political_status": "political_status",
+        "education_level": "education_level",
+        "contract_type": "contract_type",
+        "job_position_level": "job_position_level",
+        "pay_frequency": "pay_frequency"
+      }
+    }
+  },
+  "configpage": {
+    "tabs": {
+      "chatbot": "chatbot",
+      "general": "general",
+      "notifications": "notifications"
+    },
+    "title": "title"
+  },
+  "data_source": {
+    "load_error": "load_error",
+    "update_success": "update_success",
+    "create_success": "create_success",
+    "save_error": "save_error",
+    "delete_confirm_title": "delete_confirm_title",
+    "delete_confirm_content": "delete_confirm_content",
+    "delete_success": "delete_success",
+    "delete_error": "delete_error",
+    "sync_success": "sync_success",
+    "sync_error": "sync_error",
+    "load_fields_error": "load_fields_error",
+    "column": {
+      "name": "name",
+      "table_name": "table_name",
+      "view_name": "view_name",
+      "connection_type": "connection_type",
+      "sync_status": "sync_status",
+      "last_sync": "last_sync",
+      "status": "status",
+      "actions": "actions"
+    },
+    "field_count_one": "field_count",
+    "field_count_other": "field_count",
+    "status": {
+      "success": "success",
+      "failed": "failed",
+      "pending": "pending"
+    },
+    "action": {
+      "view_fields": "view_fields",
+      "sync_structure": "sync_structure"
+    },
+    "delete_confirm_impact": "delete_confirm_impact",
+    "field_column": {
+      "name": "name",
+      "type": "type",
+      "nullable": "nullable",
+      "default_value": "default_value",
+      "comment": "comment"
+    },
+    "title": "title",
+    "description_text": "description_text",
+    "new_data_source": "new_data_source",
+    "search_placeholder": "search_placeholder",
+    "select_status_placeholder": "select_status_placeholder",
+    "edit_title": "edit_title",
+    "create_title": "create_title",
+    "form": {
+      "name_label": "name_label",
+      "name_required": "name_required",
+      "name_placeholder": "name_placeholder",
+      "connection_type_label": "connection_type_label",
+      "connection_type_required": "connection_type_required",
+      "schema_name_label": "schema_name_label",
+      "schema_name_required": "schema_name_required",
+      "schema_name_placeholder": "schema_name_placeholder",
+      "table_name_label": "table_name_label",
+      "table_name_required": "table_name_required",
+      "table_name_placeholder": "table_name_placeholder",
+      "description_label": "description_label",
+      "description_placeholder": "description_placeholder",
+      "active_status_label": "active_status_label"
+    },
+    "fields_drawer_title": "fields_drawer_title",
+    "fields_info_alert_title": "fields_info_alert_title",
+    "fields_info_alert_description": "fields_info_alert_description"
+  },
+  "tooltip": {
+    "edit_department": "edit_department",
+    "delete_department": "delete_department",
+    "edit_role": "edit_role",
+    "delete_role": "delete_role",
+    "edit_user": "edit_user",
+    "delete_user": "delete_user"
+  },
+  "popconfirm": {
+    "delete": {
+      "title": "title",
+      "description": "description",
+      "ok_text": "ok_text",
+      "cancel_text": "cancel_text"
+    }
+  },
+  "title": "title",
+  "pagination": {
+    "total": "total"
+  },
+  "tab": {
+    "personnel_category_management": "personnel_category_management",
+    "actual_position_management": "actual_position_management",
+    "job_position_level_management": "job_position_level_management"
+  },
+  "pageTitle": {
+    "current_personnel_categories": "current_personnel_categories"
+  },
+  "page_title": "page_title",
+  "user_list_page": {
+    "title": "title",
+    "button": {
+      "create_user": "create_user"
+    }
+  },
+  "myInfo": {
+    "fetchErrorUnauthorized": "fetchErrorUnauthorized",
+    "fetchError": "fetchError",
+    "noEmployeeIdError": "noEmployeeIdError",
+    "noData": "noData"
+  },
+  "error": {
+    "genericTitle": "genericTitle"
+  },
+  "employee": {
+    "notes": "notes"
+  },
+  "bulk_import": {
+    "validation": {
+      "batch_has_errors": "batch_has_errors",
+      "first_name_required": "first_name_required",
+      "last_name_required": "last_name_required",
+      "id_number_required": "id_number_required",
+      "id_number_invalid": "id_number_invalid",
+      "hire_date_invalid_format": "hire_date_invalid_format",
+      "date_of_birth_invalid_format": "date_of_birth_invalid_format",
+      "first_work_date_invalid_format": "first_work_date_invalid_format",
+      "entry_date_to_current_organization_invalid_format": "entry_date_to_current_organization_invalid_format",
+      "no_data_to_upload": "no_data_to_upload",
+      "json_not_array": "json_not_array",
+      "json_parse_error": "json_parse_error",
+      "no_valid_data_to_upload": "no_valid_data_to_upload"
+    },
+    "message": {
+      "file_parsed_with_errors_summary_one": "file_parsed_with_errors_summary",
+      "file_parsed_with_errors_summary_other": "file_parsed_with_errors_summary",
+      "file_parsed_success_one": "file_parsed_success",
+      "file_parsed_success_other": "file_parsed_success",
+      "upload_success_one": "upload_success",
+      "upload_success_other": "upload_success",
+      "upload_failed_no_data_returned": "upload_failed_no_data_returned",
+      "upload_attempted_but_no_valid_records_processed_or_returned": "upload_attempted_but_no_valid_records_processed_or_returned",
+      "upload_failed_with_errors_one": "upload_failed_with_errors",
+      "upload_failed_with_errors_other": "upload_failed_with_errors",
+      "upload_failed_with_details": "upload_failed_with_details",
+      "upload_failed": "upload_failed",
+      "upload_failed_prefix": "upload_failed_prefix",
+      "upload_in_progress": "upload_in_progress"
+    },
+    "results": {
+      "partial_success": "partial_success",
+      "all_failed_at_server_one": "all_failed_at_server",
+      "all_failed_at_server_other": "all_failed_at_server",
+      "all_success_one": "all_success",
+      "all_success_other": "all_success",
+      "no_records_processed_at_server": "no_records_processed_at_server",
+      "error_summary_one": "error_summary",
+      "error_summary_other": "error_summary",
+      "click_to_view_details": "click_to_view_details"
+    },
+    "table_header": {
+      "employee_code": "employee_code",
+      "fullname": "fullname",
+      "last_name": "last_name",
+      "first_name": "first_name",
+      "id_number": "id_number",
+      "date_of_birth": "date_of_birth",
+      "gender_name": "gender_name",
+      "ethnicity": "ethnicity",
+      "status_name": "status_name",
+      "hire_date": "hire_date",
+      "first_work_date": "first_work_date",
+      "entry_date_to_current_organization": "entry_date_to_current_organization",
+      "employment_type_name": "employment_type_name",
+      "education_level_name": "education_level_name",
+      "marital_status_name": "marital_status_name",
+      "political_status_name": "political_status_name",
+      "contract_type_name": "contract_type_name",
+      "department_name": "department_name",
+      "position_name": "position_name",
+      "personnel_category_name": "personnel_category_name",
+      "email": "email",
+      "phone_number": "phone_number",
+      "bank_name": "bank_name",
+      "bank_account_number": "bank_account_number",
+      "validation_errors": "validation_errors"
+    },
+    "results_table": {
+      "employee_code": "employee_code",
+      "name": "name",
+      "error_message": "error_message",
+      "title_successfully_imported_records_preview": "title_successfully_imported_records_preview",
+      "title_failed_records_at_server": "title_failed_records_at_server"
+    },
+    "tabs": {
+      "table_conversion": "table_conversion",
+      "json_import": "json_import"
+    },
+    "steps": {
+      "input_data": "input_data",
+      "preview_data": "preview_data",
+      "upload_progress": "upload_progress",
+      "results": "results"
+    },
+    "label": {
+      "json_input": "json_input",
+      "overwrite_mode": "overwrite_mode"
+    },
+    "help": {
+      "json_input": "json_input",
+      "overwrite_mode": "overwrite_mode"
+    },
+    "placeholder": {
+      "paste_json_here": "paste_json_here"
+    },
+    "button": {
+      "parse_and_preview": "parse_and_preview",
+      "upload_validated_records_one": "upload_validated_records",
+      "upload_validated_records_other": "upload_validated_records",
+      "hide_error_details": "hide_error_details",
+      "show_error_details": "show_error_details",
+      "view_details": "view_details",
+      "import_another_file": "import_another_file",
+      "back_to_employees": "back_to_employees"
+    },
+    "card_title": {
+      "preview_data_count_summary_one": "preview_data_count_summary",
+      "preview_data_count_summary_other": "preview_data_count_summary",
+      "uploading_data": "uploading_data",
+      "upload_results": "upload_results"
+    },
+    "notes": {
+      "preview_contains_errors_one": "preview_contains_errors",
+      "preview_contains_errors_other": "preview_contains_errors",
+      "no_valid_records_to_upload": "no_valid_records_to_upload"
+    }
+  },
+  "components": {
+    "deductions": {
+      "personal_income_tax": "personal_income_tax",
+      "pension_personal_amount": "pension_personal_amount",
+      "medical_ins_personal_amount": "medical_ins_personal_amount",
+      "occupational_pension_personal_amount": "occupational_pension_personal_amount",
+      "unemployment_personal_amount": "unemployment_personal_amount",
+      "housing_fund_personal": "housing_fund_personal"
+    },
+    "earnings": {
+      "position_tech_grade_salary": "position_tech_grade_salary",
+      "grade_position_level_salary": "grade_position_level_salary",
+      "grade_salary": "grade_salary",
+      "position_salary_general": "position_salary_general",
+      "staff_salary_grade": "staff_salary_grade",
+      "basic_salary": "basic_salary",
+      "basic_performance_award": "basic_performance_award",
+      "basic_performance_salary": "basic_performance_salary",
+      "performance_bonus": "performance_bonus",
+      "reform_allowance_1993": "reform_allowance_1993",
+      "only_child_parent_bonus": "only_child_parent_bonus",
+      "civil_standard_allowance": "civil_standard_allowance",
+      "traffic_allowance": "traffic_allowance",
+      "position_allowance": "position_allowance",
+      "petition_allowance": "petition_allowance",
+      "township_allowance": "township_allowance",
+      "back_pay": "back_pay",
+      "probation_salary": "probation_salary"
+    }
+  },
+  "adjust_balance": "adjust_balance",
+  "manager_page": {
+    "leave_approvals": {
+      "placeholder_title": "placeholder_title"
+    },
+    "subordinates": {
+      "placeholder_title": "placeholder_title"
+    }
+  },
+  "payroll_period_form": {
+    "label": {
+      "name": "name",
+      "start_date": "start_date",
+      "end_date": "end_date",
+      "pay_date": "pay_date",
+      "frequency": "frequency",
+      "status": "status"
+    },
+    "validation": {
+      "name_required": "name_required",
+      "start_date_required": "start_date_required",
+      "end_date_required": "end_date_required",
+      "end_date_before_start_date": "end_date_before_start_date",
+      "pay_date_required": "pay_date_required",
+      "frequency_required": "frequency_required",
+      "status_required": "status_required"
+    },
+    "placeholder": {
+      "name": "name",
+      "frequency": "frequency",
+      "status": "status"
+    },
+    "button": {
+      "cancel": "cancel",
+      "save_changes": "save_changes",
+      "create_period": "create_period"
+    }
+  },
+  "payroll_periods_page": {
+    "message": {
+      "update_success": "update_success",
+      "create_success": "create_success",
+      "update_failed": "update_failed",
+      "create_failed": "create_failed",
+      "get_periods_failed": "get_periods_failed"
+    },
+    "table": {
+      "column_id": "column_id",
+      "column_period_name": "column_period_name",
+      "column_frequency": "column_frequency",
+      "column_start_date": "column_start_date",
+      "column_end_date": "column_end_date",
+      "column_pay_date": "column_pay_date",
+      "column_status": "column_status"
+    }
+  },
+  "payroll_run_form": {
+    "label": {
+      "payroll_period": "payroll_period",
+      "run_date": "run_date",
+      "status_edit_mode": "status_edit_mode",
+      "status_create_mode": "status_create_mode",
+      "employee_ids": "employee_ids",
+      "notes": "notes"
+    },
+    "validation": {
+      "payroll_period_required": "payroll_period_required",
+      "run_date_required": "run_date_required",
+      "status_required": "status_required"
+    },
+    "placeholder": {
+      "payroll_period": "payroll_period",
+      "status": "status",
+      "employee_ids": "employee_ids",
+      "notes": "notes"
+    },
+    "tooltip": {
+      "employee_ids": "employee_ids"
+    },
+    "button": {
+      "cancel": "cancel",
+      "save_changes": "save_changes",
+      "create_run": "create_run"
+    }
+  },
+  "validation": {
+    "regular_field_required": "regular_field_required",
+    "hired_field_required": "hired_field_required"
+  },
+  "payroll_components": {
+    "code": "code",
+    "name": "name",
+    "type": "type",
+    "is_taxable": "is_taxable",
+    "sort_order": "sort_order",
+    "update_success": "update_success",
+    "create_success": "create_success",
+    "update_failed": "update_failed",
+    "create_failed": "create_failed",
+    "edit": "edit",
+    "add": "add",
+    "options": "options",
+    "is_social_security_base": "is_social_security_base",
+    "is_housing_fund_base": "is_housing_fund_base"
+  },
+  "payroll_run_detail_page": {
+    "error_fetch_details": "error_fetch_details",
+    "error_invalid_run_id": "error_invalid_run_id",
+    "error_no_run_id_provided": "error_no_run_id_provided",
+    "spin_loading": "spin_loading",
+    "alert_error_prefix": "alert_error_prefix",
+    "alert_not_found": "alert_not_found",
+    "breadcrumb_runs_management": "breadcrumb_runs_management",
+    "breadcrumb_current_page": "breadcrumb_current_page",
+    "card_title": "card_title",
+    "button_back_to_list": "button_back_to_list",
+    "desc_label_id": "desc_label_id",
+    "desc_label_payroll_period": "desc_label_payroll_period",
+    "value_period_id_prefix": "value_period_id_prefix",
+    "desc_label_run_date": "desc_label_run_date",
+    "desc_label_status": "desc_label_status",
+    "desc_label_employee_count": "desc_label_employee_count",
+    "desc_label_created_by": "desc_label_created_by",
+    "value_na": "value_na",
+    "desc_label_created_at": "desc_label_created_at",
+    "desc_label_updated_at": "desc_label_updated_at",
+    "desc_label_paid_at": "desc_label_paid_at",
+    "value_not_paid": "value_not_paid",
+    "desc_label_notes": "desc_label_notes",
+    "value_no_notes": "value_no_notes",
+    "section_title_entries": "section_title_entries"
+  }
+}

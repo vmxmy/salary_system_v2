@@ -57,7 +57,7 @@ const generateEmployeeTableColumnsConfig = (
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
           <Input
-            placeholder="搜索姓名"
+            placeholder={t('employee:list_page.search_name_placeholder')}
             value={selectedKeys[0]}
             onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
             onPressEnter={() => confirm()}
@@ -415,13 +415,11 @@ const EmployeeListPage: React.FC = () => {
     setLoadingData(true);
     try {
       const query: EmployeeQuery = { page: 1, size: 100 };
-      console.log('Fetching ALL employees with query:', query);
       const response = await employeeService.getEmployees(query);
       
       if (response && response.data) {
         setAllEmployees(response.data);
       } else {
-        console.log('[EmployeeListPage] fetchAllEmployees - No data in response.');
         setAllEmployees([]);
         message.error(t('employee:list_page.message.get_employees_failed_empty_response'));
       }
@@ -509,17 +507,13 @@ const EmployeeListPage: React.FC = () => {
 
   // 添加调试日志
   useEffect(() => {
-    console.log('📋 [EmployeeListPage] tableColumnsConfigForControls length:', tableColumnsConfigForControls.length);
     
     // 检查是否包含银行信息字段
     const hasBankNameColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_name');
     const hasBankAccountColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_account_number');
     
-    console.log('🏦 [EmployeeListPage] 列配置中包含银行名称字段:', hasBankNameColumn);
-    console.log('🏦 [EmployeeListPage] 列配置中包含银行账号字段:', hasBankAccountColumn);
     
     // 输出所有列的key
-    console.log('📝 [EmployeeListPage] 所有列的keys:', tableColumnsConfigForControls.map(col => col.key));
   }, [tableColumnsConfigForControls]);
 
   useEffect(() => {
@@ -537,7 +531,6 @@ const EmployeeListPage: React.FC = () => {
   }, [fetchAllEmployees, loadingLookups]); // Depends on fetchAllEmployees and loadingLookups
 
   useEffect(() => {
-    console.log('[EmployeeListPage] allEmployees state updated, length:', allEmployees.length);
   }, [allEmployees]);
   
 
@@ -552,7 +545,6 @@ const EmployeeListPage: React.FC = () => {
     // For client-side pagination, sorting, and filtering,
     // Ant Table handles these internally based on the full dataSource.
     // This callback can be used to log changes or if any external state needs to be synced.
-    console.log('Ant Table onChange event:', { pagination, filters, sorter, extra });
     // No need to set any state here for data fetching purposes when all data is client-side.
   };
  
@@ -589,7 +581,6 @@ const EmployeeListPage: React.FC = () => {
     <div>
       {lookupMaps && lookupMaps.departmentMap && lookupMaps.personnelCategoryMap ? (
         (() => {
-          console.log('[EmployeeListPage] Rendering OrganizationManagementTableTemplate. allEmployees.length:', allEmployees.length);
           return (
             <OrganizationManagementTableTemplate<Employee>
               pageTitle={t('pageTitle:employee_list')}

@@ -10,7 +10,11 @@
     "totalEarnings": "总收入",
     "totalDeductions": "总扣除",
     "netPay": "实发工资",
-    "actions": "操作"
+    "actions": "操作",
+    "runDate": "runDate",
+    "employeeName": "employeeName",
+    "paymentDate": "paymentDate",
+    "status": "status"
   },
   "filter": {
     "searchPlaceholder": "搜索工资周期...",
@@ -20,7 +24,10 @@
   },
   "status": {
     "paid": "已发放",
-    "pending": "待发放"
+    "pending": "待发放",
+    "pendingPayment": "pendingPayment",
+    "draft": "draft",
+    "finalized": "finalized"
   },
   "action": {
     "search": "搜索",
@@ -50,5 +57,8 @@
     "tooltipTitle": "自定义显示列",
     "dropdownTitle": "列显示",
     "resetText": "重置"
+  },
+  "actions": {
+    "viewDetails": "viewDetails"
   }
 }

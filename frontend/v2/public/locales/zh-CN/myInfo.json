@@ -17,5 +17,7 @@
   "fetchErrorUnauthorized": "加载您的信息失败，可能是授权问题。请尝试重新登录。",
   "fetchError": "加载您的信息失败。",
   "noEmployeeIdError": "员工ID不可用。无法显示信息。",
-  "noData": "没有可用的员工信息。"
+  "noData": "没有可用的员工信息。",
+  "employeeIdLabel": "employeeIdLabel",
+  "usernameLabel": "usernameLabel"
 }

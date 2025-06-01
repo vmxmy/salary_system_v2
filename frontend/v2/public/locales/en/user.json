@@ -18,7 +18,7 @@
       "inactive": "Inactive"
     },
     "value": {
-        "not_applicable": "Not Applicable"
+      "not_applicable": "Not Applicable"
     },
     "search": {
       "placeholder_prefix": "Search ",
@@ -70,20 +70,20 @@
       "placeholder": "Enter employee system ID"
     },
     "section": {
-        "employee_association": "Employee Association"
+      "employee_association": "Employee Association"
     },
     "label": {
-        "employee_first_name": "Employee First Name",
-        "employee_last_name": "Employee Last Name",
-        "employee_id_card": "ID Card Number"
+      "employee_first_name": "Employee First Name",
+      "employee_last_name": "Employee Last Name",
+      "employee_id_card": "ID Card Number"
     },
     "placeholder": {
-        "employee_first_name": "Please enter employee first name",
-        "employee_last_name": "Please enter employee last name",
-        "employee_id_card": "Please enter employee ID card number"
+      "employee_first_name": "Please enter employee first name",
+      "employee_last_name": "Please enter employee last name",
+      "employee_id_card": "Please enter employee ID card number"
     },
     "tooltip": {
-        "employee_id_card_for_association": "Enter employee's first name, last name, and ID card number to attempt to associate an employee record. Leave blank to not associate or attempt to disassociate an existing user."
+      "employee_id_card_for_association": "Enter employee's first name, last name, and ID card number to attempt to associate an employee record. Leave blank to not associate or attempt to disassociate an existing user."
     },
     "status": {
       "label": "Status",
@@ -98,23 +98,23 @@
       }
     },
     "status_switch": {
-        "active": "Active",
-        "inactive": "Inactive"
+      "active": "Active",
+      "inactive": "Inactive"
     }
   },
   "message": {
     "fetch_roles_error": "Failed to load role list",
     "create_user_success": "User \"{username}\" created successfully!",
     "create_user_error": {
-        "default": "Failed to create user, please check input or contact administrator."
+      "default": "Failed to create user, please check input or contact administrator."
     },
     "update_user_success": "User \"{username}\" updated successfully!",
     "update_user_error": {
-        "default": "Failed to update user."
+      "default": "Failed to update user."
     },
     "delete_user_success": "User \"{username}\" deleted successfully.",
     "delete_user_error": {
-        "default": "Failed to delete user."
+      "default": "Failed to delete user."
     }
   }
 }

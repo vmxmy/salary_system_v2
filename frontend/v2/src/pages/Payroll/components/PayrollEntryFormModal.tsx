@@ -13,7 +13,8 @@ import {
   Card, 
   Typography, 
   InputNumber,
-  Space 
+  Space,
+  App
 } from 'antd';
 import { PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -96,6 +97,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [employeeDetails, setEmployeeDetails] = useState<any>(null);
   const [earnings, setEarnings] = useState<PayrollItemDetail[]>([]);
   const [deductions, setDeductions] = useState<PayrollItemDetail[]>([]);
+  const { message: messageApi } = App.useApp();
   
   const payrollConfig = usePayrollConfigStore();
   
@@ -134,19 +136,19 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   // 当模态框可见时，打印可用的薪资字段
   useEffect(() => {
     if (visible && payrollConfig.componentDefinitions.length > 0) {
-      console.log(t('payroll:auto___e7b3bb'), 
+      console.log('Available Payroll Components:', 
         payrollConfig.componentDefinitions.map(comp => ({
           code: comp.code,
           name: comp.name,
           type: comp.type,
-        })
-      ));
+        }))
+      );
       
-      console.log(t('payroll:auto___e58faf'), 
+      console.log('Earning Component Codes:', 
         earningComponents.map(comp => comp.code)
       );
       
-      console.log(t('payroll:auto___e58faf'), 
+      console.log('Deduction Component Codes:', 
         deductionComponents.map(comp => comp.code)
       );
     }
@@ -203,7 +205,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         employee_name: employee ? `${employee.last_name || ''}${employee.first_name || ''}` : '',
       });
     } catch (error) {
-      message.error(t('payroll:entry_form.error_fetch_employee'));
+      messageApi.error(t('payroll:entry_form.error_fetch_employee'));
     } finally {
       setLoading(false);
     }
@@ -215,9 +217,14 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       // payrollConfig.fetchComponentDefinitions(); // 已移到上面的useEffect
       
       if (entry) {
-        console.log(t('payroll:auto___e5908e'), typeof entry.deductions_details, 
-                    t('payroll:auto___e698af'), Array.isArray(entry.deductions_details), 
-                    t('payroll:auto___e695b0'), JSON.stringify(entry.deductions_details, null, 2));
+        console.log('Deductions details raw:',
+          Array.isArray(entry.deductions_details), 
+          JSON.stringify(entry.deductions_details, null, 2)
+        );
+        console.log('Entry deductions_details debugging:', {
+            is_array: Array.isArray(entry.deductions_details),
+            data: entry.deductions_details
+        });
         
         // 编辑现有工资明细
         form.setFieldsValue({
@@ -329,7 +336,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         setEmployeeDetails(null);
       }
     }
-  }, [visible, entry, form]); // 移除了 payrollConfig
+  }, [visible, entry, form, fetchEmployeeDetails]); 
   
   // 处理表单提交
   const handleSubmit = async () => {
@@ -342,7 +349,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       ).map(item => item.name);
       
       if (invalidEarningCodes.length > 0) {
-        message.error(`${t('payroll:entry_form.error.invalid_earnings')}: ${invalidEarningCodes.join(', ')}`);
+        messageApi.error(`${t('payroll:entry_form.error.invalid_earnings')}: ${invalidEarningCodes.join(', ')}`);
         return;
       }
       
@@ -352,13 +359,13 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       ).map(item => item.name);
       
       if (invalidDeductionCodes.length > 0) {
-        message.error(`${t('payroll:entry_form.error.invalid_deductions')}: ${invalidDeductionCodes.join(', ')}`);
+        messageApi.error(`${t('payroll:entry_form.error.invalid_deductions')}: ${invalidDeductionCodes.join(', ')}`);
         return;
       }
       
       // 检查是否至少有一个收入项
       if (earnings.length === 0) {
-        message.error(t('payroll:entry_form.error.no_earnings'));
+        messageApi.error(t('payroll:entry_form.error.no_earnings'));
         // 尝试自动添加一个默认的收入项，如果有可用的收入项组件
         if (earningComponents.length > 0) {
           const defaultEarningCode = earningComponents[0].code;
@@ -368,7 +375,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             description: earningComponents[0].description || ''
           };
           setEarnings([defaultEarning]);
-          message.info(t('payroll:auto__earningcomponents_0_name__e5b7b2'));
+          messageApi.info(t('payroll:auto__earningcomponents_0_name__e5b7b2'));
           // 由于状态更新是异步的，我们不能立即继续提交，直接返回
           return;
         }
@@ -423,19 +430,19 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       // 添加日志记录即将提交的数据
       
       // 确认金额被正确转换为数字
-      console.log(t('payroll:auto__number__e680bb'), 
-        typeof totalEarningsCalc, totalEarningsCalc
+      console.log('Calculated Gross Pay:', 
+        { type: typeof totalEarningsCalc, value: totalEarningsCalc }
       );
-      console.log(t('payroll:auto__number__e680bb'), 
-        typeof totalDeductionsCalc, totalDeductionsCalc
+      console.log('Calculated Total Deductions:', 
+        { type: typeof totalDeductionsCalc, value: totalDeductionsCalc }
       );
-      console.log(t('payroll:auto__number__e58780'), 
-        typeof netPayCalc, netPayCalc
+      console.log('Calculated Net Pay:', 
+        { type: typeof netPayCalc, value: netPayCalc }
       );
 
       // 如果是创建新条目，确保 employee_id 存在且有效
       if (!entry && !values.employee_id) {
-        message.error(t('payroll:entry_form.validation.employee_required'));
+        messageApi.error(t('payroll:entry_form.validation.employee_required'));
         return;
       }
       
@@ -463,37 +470,40 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           if (result && result.data) {
             // 验证返回的数据中是否包含我们提交的更改
             const returnedData = result.data;
-            console.log(t('payroll:auto___e8bf94'), 
-              t('payroll:auto__returneddata_total_earnings__e680bb') +
-              t('payroll:auto__returneddata_total_deductions__e680bb') +
-              t('payroll:auto__returneddata_net_pay__e58780')
+            console.log('API response data:', 
+              { 
+                id: returnedData.id,
+                gross_pay: returnedData.gross_pay,
+                total_deductions: returnedData.total_deductions,
+                net_pay: returnedData.net_pay,
+                message: t('payroll:auto__returneddata_total_earnings__e680bb') +
+                         t('payroll:auto__returneddata_total_deductions__e680bb') +
+                         t('payroll:auto__returneddata_net_pay__e58780')
+              }
             );
             
-            message.success(`${t('payroll:entry_form.message.update_success')} - ID: ${returnedData.id}`);
+            messageApi.success(`${t('payroll:entry_form.message.update_success')} - ID: ${returnedData.id}`);
           } else {
-            message.warning(t('payroll:entry_form.message.update_success_no_data'));
+            messageApi.warning(t('payroll:entry_form.message.update_success_no_data'));
           }
         } else {
           // 创建新的工资明细
           // 目前API中似乎没有创建单个PayrollEntry的方法，需要后端支持
-          message.success(t('payroll:entry_form.message.create_success'));
+          messageApi.success(t('payroll:entry_form.message.create_success'));
         }
         
         onSuccess();
       } catch (error: any) {
-        
-        // 输出更详细的错误信息
-        if (error.response) {
-          
-          // 显示更有用的错误信息
-          if (error.response.data && error.response.data.detail) {
-            message.error(`${t('payroll:entry_form.error_save')}: ${JSON.stringify(error.response.data.detail)}`);
-          } else {
-            message.error(t('payroll:entry_form.error_save'));
+        console.error("Failed to update payroll entry:", error);
+        let errorMessage = t('payroll:entry_form.validation.failed');
+        if (error.response && error.response.data && error.response.data.detail) {
+          if (typeof error.response.data.detail === 'string') {
+            errorMessage = error.response.data.detail;
+          } else if (Array.isArray(error.response.data.detail)) {
+            errorMessage = error.response.data.detail.map((err: any) => err.msg || err.message || JSON.stringify(err)).join('; ');
           }
-        } else {
-          message.error(t('payroll:entry_form.error_save'));
         }
+        messageApi.error(errorMessage);
       } finally {
         setSubmitting(false);
       }
@@ -534,7 +544,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     // 检查是否已存在相同名称的收入项
     const exists = earnings.some(item => item.name === componentName);
     if (exists) {
-      message.warning(t('payroll:entry_form.message.component_already_exists'));
+      messageApi.warning(t('payroll:entry_form.message.component_already_exists'));
       return;
     }
     
@@ -554,7 +564,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     // 检查是否已存在相同名称的扣缴项
     const exists = deductions.some(item => item.name === componentName);
     if (exists) {
-      message.warning(t('payroll:entry_form.message.component_already_exists'));
+      messageApi.warning(t('payroll:entry_form.message.component_already_exists'));
       return;
     }
     

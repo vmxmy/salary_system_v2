@@ -424,11 +424,11 @@ const PayrollBulkImportPage: React.FC = () => {
   const handlePeriodChange = (value: number | null) => {
     setSelectedPeriodId(value);
     const selectedPeriod = payrollPeriods.find(p => p.id === value);
-    console.log(t('payroll:auto____f09f8e'), {
+    console.log({
       id: value,
       name: selectedPeriod?.name,
       status: selectedPeriod?.status_lookup?.name,
-      dateRange: `${selectedPeriod?.start_date} ~ ${selectedPeriod?.end_date}`
+      dateRange: `${selectedPeriod?.start_date} ~ ${selectedPeriod?.end_date}`,
     });
   };
 
@@ -542,14 +542,14 @@ const PayrollBulkImportPage: React.FC = () => {
       const bulkPayload = {
         payroll_period_id: selectedPeriodId,
         entries: payloadEntries,
-        overwrite_mode: overwriteMode
+        overwrite_mode: overwriteMode,
       };
 
-      console.log(t('payroll:auto____f09f93'), {
+      console.log('Bulk payload debugging:', {
         payroll_period_id: selectedPeriodId,
         entries_count: payloadEntries.length,
         overwrite_mode: overwriteMode,
-        selected_period_name: payrollPeriods.find(p => p.id === selectedPeriodId)?.name
+        selected_period_name: payrollPeriods.find(p => p.id === selectedPeriodId)?.name,
       });
       
       // 添加更详细的调试信息
@@ -557,38 +557,39 @@ const PayrollBulkImportPage: React.FC = () => {
         const firstEntry = payloadEntries[0];
         if (firstEntry.deductions_details) {
           Object.entries(firstEntry.deductions_details).forEach(([code, detail]) => {
+            // Add some console.log here to inspect details if needed
           });
         }
       }
 
       const response = await payrollApi.bulkCreatePayrollEntries(bulkPayload);
       
-      
       // 使用新的响应格式
       const result = response;
       
       // 添加更多调试信息
-      console.log(t('payroll:auto__result__f09f93'), {
+      console.log('Bulk upload result debugging:', {
         success_count: result?.success_count,
         error_count: result?.error_count,
         errors: result?.errors,
-        created_entries: result?.created_entries
+        created_entries: result?.created_entries,
       });
       
       // 添加详细的错误信息输出
       if (result?.errors && result.errors.length > 0) {
         result.errors.forEach((err: any, index: number) => {
-          console.log(t('payroll:auto___index_1__2020e9'), {
+          console.log(`Error ${index + 1}:`, {
             employee_id: err.employee_id,
             employee_name: err.employee_name,
             index: err.index,
             error: err.error,
-            detail: err.detail || err.message || t('payroll:auto_text_e697a0')
+            detail: err.detail || err.message || t('payroll:auto_text_e697a0'),
           });
         });
         
         // 检查第一个错误的详细信息
         if (result.errors[0]) {
+          console.log('First error detail:', result.errors[0]);
         }
       }
       

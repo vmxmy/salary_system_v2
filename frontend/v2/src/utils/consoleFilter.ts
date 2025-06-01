@@ -63,11 +63,6 @@ export function initConsoleFilter(config: Partial<ConsoleFilterConfig> = {}) {
       }
     };
   }
-
-  console.log(i18n.t('common:auto_____f09f94'), {
-    warnings: finalConfig.warningFilters,
-    errors: finalConfig.errorFilters,
-  });
 }
 
 /**

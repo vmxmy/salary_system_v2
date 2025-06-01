@@ -11,7 +11,8 @@ import {
   Space,
   Button,
   Tooltip,
-  Grid
+  Grid,
+  App
 } from 'antd';
 import { 
   ReloadOutlined, 
@@ -45,6 +46,7 @@ interface DashboardData {
 const DashboardV3: React.FC = () => {
   const { t } = useTranslation(['dashboard', 'common']);
   const screens = useBreakpoint();
+  const { message: messageApi } = App.useApp();
   
   // 时间维度选项
   const TIME_DIMENSION_OPTIONS = [
@@ -109,10 +111,10 @@ const DashboardV3: React.FC = () => {
       });
 
       if (!showLoading) {
-        message.success(t('dashboard:auto___f09f93'));
+        messageApi.success(t('dashboard:auto___f09f93'));
       }
     } catch (error) {
-      message.error(t('dashboard:auto____e29d8c'));
+      messageApi.error(t('dashboard:auto____e29d8c'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -128,14 +130,14 @@ const DashboardV3: React.FC = () => {
   const handleTimeDimensionChange = useCallback((value: string) => {
     setTimeDimension(value);
     // 这里可以根据时间维度重新获取数据
-    message.info(t('dashboard:auto___time_dimension_options_find_opt_opt_value_value_label__f09f93'));
+    messageApi.info(t('dashboard:auto___time_dimension_options_find_opt_opt_value_value_label__f09f93'));
   }, []);
 
   // 处理视图切换
   const handleViewChange = useCallback((value: string) => {
     setDashboardView(value);
     const viewName = DASHBOARD_VIEW_OPTIONS.find(opt => opt.value === value)?.label;
-    message.info(t('dashboard:auto___viewname__f09f94'));
+    messageApi.info(t('dashboard:auto___viewname__f09f94'));
   }, []);
 
   // 初始化数据
@@ -167,14 +169,14 @@ const DashboardV3: React.FC = () => {
             <Button
               type="text"
               icon={<FullscreenOutlined />}
-              onClick={() => message.info(t('dashboard:auto___f09f94'))}
+              onClick={() => messageApi.info(t('dashboard:auto___f09f94'))}
             />
           </Tooltip>
           <Tooltip title={t('dashboard:auto_text_e4bbaa')}>
             <Button
               type="text"
               icon={<SettingOutlined />}
-              onClick={() => message.info(t('dashboard:auto___e29a99'))}
+              onClick={() => messageApi.info(t('dashboard:auto___e29a99'))}
             />
           </Tooltip>
         </>

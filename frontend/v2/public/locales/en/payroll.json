@@ -41,7 +41,10 @@
       "active": "Active",
       "closed": "Closed",
       "archived": "Archived"
-    }
+    },
+    "draft": "draft",
+    "finalized": "finalized",
+    "paid": "paid"
   },
   "payroll_periods_page": {
     "title": "Payroll Period Management",
@@ -194,7 +197,8 @@
     "message": {
       "update_success": "Payroll entry updated successfully",
       "create_success": "Payroll entry created successfully",
-      "component_already_exists": "This component already exists"
+      "component_already_exists": "This component already exists",
+      "update_success_no_data": "update_success_no_data"
     },
     "total": "Total",
     "no_earnings_components": "No earnings components",
@@ -204,7 +208,12 @@
       "status_required": "Please select a status"
     },
     "error_fetch_employee": "Failed to fetch employee details",
-    "error_save": "Failed to save payroll entry"
+    "error_save": "Failed to save payroll entry",
+    "error": {
+      "invalid_earnings": "invalid_earnings",
+      "invalid_deductions": "invalid_deductions",
+      "no_earnings": "no_earnings"
+    }
   },
   "entry_page": {
     "title": "Payroll Entry",
@@ -328,7 +337,9 @@
       "all_success": "Successfully imported all {{count}} records",
       "partial_success": "Partial success: {{success}} records imported successfully, {{error}} records failed",
       "all_failed_at_server": "All {{count}} records failed to import",
-      "no_records_processed_at_server": "No records were processed"
+      "no_records_processed_at_server": "No records were processed",
+      "all_failed_at_server_one": "all_failed_at_server",
+      "all_failed_at_server_other": "all_failed_at_server"
     },
     "results_table": {
       "employee_id": "Employee ID",
@@ -743,5 +754,70 @@
   "auto___e5938d": "响应数据:",
   "auto_patch__error_response_status__504154": "PATCH请求失败，状态码: ${error.response.status}",
   "auto_text_e6b4bb": "活动",
-  "auto__statusid__e69caa": "未知状态(${statusId})"
+  "auto__statusid__e69caa": "未知状态(${statusId})",
+  "payroll_entries_table": {
+    "error_fetch": "error_fetch",
+    "message": {
+      "edit_entry_todo": "edit_entry_todo"
+    },
+    "column": {
+      "employeeId": "employeeId",
+      "employeeName": "employeeName",
+      "grossPay": "grossPay",
+      "deductions": "deductions",
+      "netPay": "netPay",
+      "status": "status"
+    },
+    "tooltip_view_details": "tooltip_view_details",
+    "tooltip_edit_entry": "tooltip_edit_entry",
+    "spin_loading_entries": "spin_loading_entries",
+    "alert_error_prefix": "alert_error_prefix",
+    "title": "title",
+    "total_entries_one": "total_entries",
+    "total_entries_other": "total_entries",
+    "loading_employee_names": "loading_employee_names"
+  },
+  "entries_table": {
+    "modal": {
+      "component_name": "component_name",
+      "amount": "amount",
+      "notes": "notes"
+    },
+    "column": {
+      "employee_id": "employee_id",
+      "employee_name": "employee_name",
+      "department": "department",
+      "personnel_category": "personnel_category",
+      "gross_pay": "gross_pay",
+      "total_deductions": "total_deductions",
+      "net_pay": "net_pay",
+      "status": "status",
+      "actions": "actions"
+    }
+  },
+  "auto_text_e58fbc": "auto_text_e58fbc",
+  "auto_text_e7bc96": "auto_text_e7bc96",
+  "auto_field__2020e9": "auto_field__2020e9",
+  "auto_key__2020e9": "auto_key__2020e9",
+  "auto_text_e5ad98": "auto_text_e5ad98",
+  "auto_text_e69ca1": "auto_text_e69ca1",
+  "auto_amount__2020e9": "auto_amount__2020e9",
+  "auto_text_e588a0": "auto_text_e588a0",
+  "run_status": {
+    "draft": "draft",
+    "processing": "processing",
+    "completed": "completed",
+    "paid": "paid"
+  },
+  "entry_status": {
+    "draft": "draft",
+    "submitted": "submitted",
+    "approved": "approved"
+  },
+  "period_status": {
+    "active": "active",
+    "closed": "closed",
+    "archived": "archived",
+    "planned": "planned"
+  }
 }

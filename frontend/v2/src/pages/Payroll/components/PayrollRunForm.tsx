@@ -9,7 +9,8 @@ import {
   Col,
   Spin,
   Alert,
-  message
+  message,
+  App
 } from 'antd';
 import type { FormInstance } from 'antd/lib/form';
 import type { Dayjs } from 'dayjs';
@@ -56,6 +57,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
   const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>([]);
   const [loadingPeriods, setLoadingPeriods] = useState<boolean>(true);
   const [periodsError, setPeriodsError] = useState<string | null>(null);
+  const { message: messageApi } = App.useApp();
 
   const fetchPeriodsForSelect = useCallback(async () => {
     setLoadingPeriods(true);
@@ -63,11 +65,6 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
     try {
       // Fetch all active/open periods, or a reasonable subset for selection
       const response = await getPayrollPeriods({ size: 100 }); // 符合后端API限制
-      console.log('[PayrollRunForm] ✅ getPayrollPeriods API response:', {
-        dataCount: response.data?.length || 0,
-        data: response.data,
-        meta: response.meta
-      });
       setPayrollPeriods(response.data);
     } catch (err: any) {
       console.error('[PayrollRunForm] ❌ getPayrollPeriods API failed:', {
@@ -79,7 +76,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
       // 使用固定错误信息，避免t函数依赖问题
       const errorMessage = 'Failed to load payroll periods: ' + (err.message || 'Unknown error');
       setPeriodsError('Failed to load payroll periods');
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
     } finally {
       setLoadingPeriods(false);
     }
@@ -109,7 +106,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
     // Default values for a new form if initialValues is not provided
     status_lookup_value_id: PAYROLL_RUN_STATUS_OPTIONS.find(opt => opt.display_name_key === 'payroll_run_status.draft')?.id || 
                            (PAYROLL_RUN_STATUS_OPTIONS.length > 0 ? PAYROLL_RUN_STATUS_OPTIONS[0].id : undefined) || 
-                           201 // Fallback
+                           201, // Fallback
   };
 
   // Use the first status from the imported options as default for new runs, if applicable

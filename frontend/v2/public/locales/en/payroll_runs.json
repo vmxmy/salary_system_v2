@@ -58,7 +58,7 @@
     },
     "pagination_show_total": "Showing {range0}-{range1} of {total} items",
     "form": {
-      "error":{
+      "error": {
         "load_periods_failed": "Unable to load payroll period list",
         "load_periods_failed_with_message": "Unable to load payroll period list: {message}"
       },
@@ -145,4 +145,4 @@
       "save_changes": "Save Changes"
     }
   }
-} 
+}

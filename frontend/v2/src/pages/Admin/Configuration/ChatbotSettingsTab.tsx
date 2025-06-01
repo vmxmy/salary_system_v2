@@ -129,7 +129,7 @@ const ChatbotSettingsTab: React.FC = () => {
         <Title level={5} className={styles.sectionTitle}>{t('admin:customization', '自定义')}</Title>
         <Form.Item
           name="customCss"
-          label={t('admin:custom_css_label', '自定义 CSS')}
+          label={t('admin:custom_css_label')}
           tooltip={t('admin:custom_css_tooltip', '用于自定义 AI 聊天机器人界面的 CSS 样式')}
         >
           <TextArea
@@ -142,14 +142,14 @@ const ChatbotSettingsTab: React.FC = () => {
         </Form.Item>
         <Form.Item
           name="customJs"
-          label={t('admin:custom_js_label', '自定义 JS')}
+          label={t('admin:custom_js_label')}
           tooltip={t('admin:custom_js_tooltip', '用于自定义 AI 聊天机器人行为的 JavaScript 代码')}
         >
-          <TextArea rows={6} placeholder={t('admin:custom_js_placeholder', '在此处输入自定义 JavaScript 代码')} />
+          <TextArea rows={6} placeholder={t('admin:custom_js_placeholder')} />
         </Form.Item>
         <Form.Item
           name="systemVariables"
-          label={t('admin:system_variables_label', '系统变量 (JSON)')}
+          label={t('admin:system_variables_label')}
           tooltip={t('admin:system_variables_tooltip', '用于传递给 AI 聊天机器人的 JSON 格式系统变量')}
         >
           <TextArea rows={4} placeholder='[ { "key": "variable_name", "value_type": "string", "value": "variable_value" } ]' />

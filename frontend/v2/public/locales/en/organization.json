@@ -32,5 +32,18 @@
     "personnel_category_management": "Personnel Category Management",
     "actual_position_management": "Actual Position Management",
     "job_position_level_management": "Job Position Level Management"
+  },
+  "position": {
+    "title": "Position Management",
+    "button": {
+      "add": "Add Position"
+    },
+    "form": {
+      "effective_date": "Effective Date",
+      "validation": {
+        "effective_date_required": "Effective date is required"
+      },
+      "end_date": "End Date"
+    }
   }
-} 
+}

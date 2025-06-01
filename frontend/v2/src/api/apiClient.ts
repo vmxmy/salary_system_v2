@@ -77,18 +77,10 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      // Optional: console.log for cases where no token is present
-      // console.log('API Client Request: No auth token found.');
     }
 
     // 只在开发环境记录详细请求信息
     if (import.meta.env.DEV) {
-      console.log('API Client Request:', {
-        url: config.url,
-        method: config.method,
-        hasData: !!config.data,
-        hasParams: !!config.params
-      });
     }
 
     return config;
@@ -106,7 +98,6 @@ apiClient.interceptors.response.use(
 
     // 只在开发环境记录响应数据
     if (import.meta.env.DEV && response.data) {
-      console.log('API Client Response Data:', response.data); // Added console.log
     }
 
     return response;

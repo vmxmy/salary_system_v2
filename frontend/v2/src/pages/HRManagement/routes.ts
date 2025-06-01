@@ -11,9 +11,9 @@ import EditEmployeePage from './employees/EditEmployeePage';
 import EmployeeDetailPage from './employees/EmployeeDetailPage'; // Import the new detail page
 
 // Placeholders for page components - will be replaced with actual imports later
-const CreateEmployeePagePlaceholder = () => React.createElement('div', null, '新建员工页');
-const EditEmployeePagePlaceholder = () => React.createElement('div', null, '编辑员工页');
-const EmployeeDetailPagePlaceholder = () => React.createElement('div', null, '员工详情页');
+const CreateEmployeePagePlaceholder = () => React.createElement('div', null, 'pageTitle:create_employee_placeholder');
+const EditEmployeePagePlaceholder = () => React.createElement('div', null, 'pageTitle:edit_employee_placeholder');
+const EmployeeDetailPagePlaceholder = () => React.createElement('div', null, 'pageTitle:employee_detail_placeholder');
 // const HRManagementLayoutPlaceholder = ({ children }: { children: React.ReactNode }) => <>{children}</>; // Example if a sub-layout was used
 
 export const hrManagementRoutes: AppRouteObject[] = [

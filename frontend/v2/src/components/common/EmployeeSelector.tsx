@@ -138,7 +138,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       
       // 假设这是用于调试的日志输出
       console.log({
-        page,
+        page: page,
         count: response.data.length,
         total: response.meta.total,
         hasMore: page < response.meta.totalPages

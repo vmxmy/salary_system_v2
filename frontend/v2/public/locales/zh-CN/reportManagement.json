@@ -15,7 +15,6 @@
   "confirmDeleteCalculatedField": "确认删除计算字段",
   "confirmDeleteCalculatedFieldContent": "确定要删除这个计算字段吗？此操作不可撤销。",
   "deleteCalculatedFieldSuccess": "计算字段删除成功",
-  
   "dataSourceManagement": "数据源管理",
   "addDataSource": "新增数据源",
   "editDataSource": "编辑数据源",
@@ -53,7 +52,6 @@
   "schema": "模式",
   "table": "表",
   "previewData": "预览数据",
-  
   "reportTemplateManagement": "报表模板管理",
   "addReportTemplate": "新增报表模板",
   "editReportTemplate": "编辑报表模板",
@@ -74,7 +72,6 @@
   "templateName": "模板名称",
   "visibility": "可见性",
   "usageStats": "使用统计",
-  
   "fieldName": "字段名称",
   "formula": "公式",
   "returnType": "返回类型",
@@ -93,7 +90,6 @@
   "fieldCount": "字段数量",
   "public": "公开",
   "private": "私有",
-  
   "export": "导出",
   "exportSuccess": "导出成功",
   "loadDataFailed": "加载数据失败",
@@ -103,11 +99,9 @@
   "viewDetails": "查看详情",
   "copy": "复制",
   "share": "分享",
-  
   "lookupDataError": "查找数据错误",
   "lookupDataLoading": "正在加载查找数据",
   "lookupDataErrorMessage": "查找数据加载失败",
-  
   "reportDesigner": "报表设计器",
   "dataSource": "数据源",
   "calculatedFields": "计算字段",
@@ -125,13 +119,12 @@
   "publicTemplate": "公开模板",
   "preview": "预览",
   "saveTemplate": "保存模板",
-  "dragFieldsHint": "拖拽左侧字段到下方区域来添加报表字段",
+  "dragFieldsHint": "拖拽左侧字段到这里开始构建报表",
   "reportPreview": "报表预览",
   "close": "关闭",
   "salaryReport": "薪资报表",
   "hrReport": "人事报表",
   "financeReport": "财务报表",
-  
   "loadDataSourcesError": "加载数据源失败",
   "loadTemplateError": "加载模板失败",
   "fieldAdded": "字段已添加",
@@ -145,12 +138,10 @@
   "exportFunction": "导出功能",
   "save": "保存",
   "confirmDeleteField": "确认删除字段",
-  "deleteFieldTip": "确定要删除字段 {{fieldName}} 吗？",
+  "deleteFieldTip": "删除字段",
   "dragFieldsHere": "拖拽字段到这里",
-  "dragFieldsHint": "拖拽左侧字段到这里开始构建报表",
   "loadDataError": "加载数据失败",
   "configFieldTip": "配置字段属性",
-  "deleteFieldTip": "删除字段",
   "fieldConfig": "字段配置",
   "fieldAlias": "字段别名",
   "fieldAliasRequired": "请输入字段别名",
@@ -194,7 +185,6 @@
   "suffix": "后缀",
   "suffixPlaceholder": "后缀",
   "dateFormat": "日期格式",
-  
   "fieldEditModal": {
     "title": "编辑字段属性",
     "fieldAlias": "字段别名",
@@ -216,7 +206,6 @@
     "calculationFormula": "计算公式",
     "formulaPlaceholder": "输入计算公式"
   },
-  
   "fieldsList": {
     "title": "报表字段配置",
     "hint": "调整顺序 • 点击编辑",
@@ -238,14 +227,12 @@
     "dragFieldsFromLeft": "请从左侧面板拖拽字段到此处",
     "dragToReorder": "拖拽排序"
   },
-  
   "fieldTypes": {
     "calculated": "计算字段",
     "data": "数据字段",
     "calculatedShort": "计算",
     "dataShort": "数据"
   },
-  
   "messages": {
     "loadDataSourceFailed": "加载数据源失败",
     "loadCalculatedFieldFailed": "加载计算字段失败",
@@ -254,7 +241,6 @@
     "previewFailed": "预览失败",
     "reportNameRequired": "不能为空"
   },
-  
   "styleSettings": {
     "tableSize": "表格大小",
     "compact": "紧凑",
@@ -266,7 +252,6 @@
     "showPagination": "是否显示分页",
     "pageSize": "每页显示条数"
   },
-  
   "customQuery": {
     "title": "自定义查询编辑器",
     "sqlEditor": "SQL编辑器",
@@ -324,7 +309,6 @@
     "sampleQuery2Name": "高薪员工查询",
     "sampleQuery2Desc": "查询薪资高于指定金额的员工信息"
   },
-  
   "fieldManagement": "字段管理",
   "loadFieldsFailed": "加载字段失败",
   "updateFieldSuccess": "字段更新成功",
@@ -371,7 +355,56 @@
   "yes": "是",
   "no": "否",
   "tags": "标签",
-  "fields": "字段",
+  "fields": {
+    "id": "ID",
+    "employee_id": "员工ID",
+    "employee_code": "员工编号",
+    "first_name": "名",
+    "last_name": "姓",
+    "full_name": "姓名",
+    "name": "名称",
+    "department_id": "部门ID",
+    "department_name": "部门名称",
+    "department": "部门",
+    "position": "职位",
+    "job_title": "职位名称",
+    "hire_date": "入职日期",
+    "birth_date": "出生日期",
+    "phone": "电话",
+    "email": "邮箱",
+    "address": "地址",
+    "salary": "薪资",
+    "base_salary": "基本工资",
+    "bonus": "奖金",
+    "allowance": "津贴",
+    "deduction": "扣除",
+    "net_salary": "实发工资",
+    "gross_salary": "应发工资",
+    "tax": "税费",
+    "social_security": "社保",
+    "housing_fund": "公积金",
+    "overtime_hours": "加班时间",
+    "overtime_pay": "加班费",
+    "status": "状态",
+    "is_active": "是否激活",
+    "created_at": "创建时间",
+    "updated_at": "更新时间",
+    "created_by": "创建者",
+    "updated_by": "更新者",
+    "payroll_period": "工资周期",
+    "pay_date": "发薪日期",
+    "bank_account": "银行账号",
+    "bank_name": "银行名称",
+    "gender": "性别",
+    "age": "年龄",
+    "marital_status": "婚姻状况",
+    "education": "学历",
+    "work_location": "工作地点",
+    "manager_id": "上级ID",
+    "manager_name": "上级姓名",
+    "contract_type": "合同类型",
+    "employment_type": "雇佣类型"
+  },
   "statistics": "统计信息",
   "totalRecords": "总记录数",
   "usageCount": "使用次数",
@@ -417,7 +450,6 @@
   "maxRowsPlaceholder": "最大返回行数",
   "query": "查询",
   "customQueryLabel": "自定义查询",
-  
   "multiDataSource": "多数据源",
   "dataSourceSelection": "数据源选择",
   "dataSourceJoins": "数据源关联",
@@ -488,14 +520,12 @@
   "loadingRelatedValues": "正在加载关联值",
   "relatedValueLoadFailed": "关联值加载失败",
   "noRelatedValueFound": "未找到关联值",
-  
   "joinRelation": "关联关系",
   "currentJoinConfig": "当前关联配置",
   "suggestedJoins": "建议的关联",
   "suggestedJoinsHint": "基于外键关系自动检测到的关联建议，点击即可添加",
   "configureFirstJoin": "配置第一个关联",
   "selectMultipleDataSourcesHint": "请至少选择两个数据源才能配置关联关系",
-  
   "sourceDataSource": "源数据源",
   "targetDataSource": "目标数据源",
   "pleaseSelectField": "请选择字段",
@@ -504,56 +534,5 @@
   "availableRelationships": "可用关联关系",
   "leftDataSource": "左数据源",
   "rightDataSource": "右数据源",
-  "dataSourceJoinsTooltip": "配置多个数据源之间的关联关系",
-  
-  "fields": {
-    "id": "ID",
-    "employee_id": "员工ID",
-    "employee_code": "员工编号",
-    "first_name": "名",
-    "last_name": "姓",
-    "full_name": "姓名",
-    "name": "名称",
-    "department_id": "部门ID",
-    "department_name": "部门名称",
-    "department": "部门",
-    "position": "职位",
-    "job_title": "职位名称",
-    "hire_date": "入职日期",
-    "birth_date": "出生日期",
-    "phone": "电话",
-    "email": "邮箱",
-    "address": "地址",
-    "salary": "薪资",
-    "base_salary": "基本工资",
-    "bonus": "奖金",
-    "allowance": "津贴",
-    "deduction": "扣除",
-    "net_salary": "实发工资",
-    "gross_salary": "应发工资",
-    "tax": "税费",
-    "social_security": "社保",
-    "housing_fund": "公积金",
-    "overtime_hours": "加班时间",
-    "overtime_pay": "加班费",
-    "status": "状态",
-    "is_active": "是否激活",
-    "created_at": "创建时间",
-    "updated_at": "更新时间",
-    "created_by": "创建者",
-    "updated_by": "更新者",
-    "payroll_period": "工资周期",
-    "pay_date": "发薪日期",
-    "bank_account": "银行账号",
-    "bank_name": "银行名称",
-    "gender": "性别",
-    "age": "年龄",
-    "marital_status": "婚姻状况",
-    "education": "学历",
-    "work_location": "工作地点",
-    "manager_id": "上级ID",
-    "manager_name": "上级姓名",
-    "contract_type": "合同类型",
-    "employment_type": "雇佣类型"
-  }
+  "dataSourceJoinsTooltip": "配置多个数据源之间的关联关系"
 }

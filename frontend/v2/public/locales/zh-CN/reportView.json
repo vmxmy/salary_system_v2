@@ -124,5 +124,14 @@
     "export_failed": "导出失败",
     "network_error": "网络错误，请稍后重试",
     "server_error": "服务器错误，请联系管理员"
-  }
-} 
+  },
+  "field": {
+    "category": "category",
+    "usageCount": "usageCount",
+    "lastUsedAt": "lastUsedAt",
+    "createdAt": "createdAt"
+  },
+  "status_draft_message": "status_draft_message",
+  "status_error_message": "status_error_message",
+  "unknown_status_message": "unknown_status_message"
+}

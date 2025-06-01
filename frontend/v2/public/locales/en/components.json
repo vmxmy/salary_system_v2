@@ -221,5 +221,37 @@
   "auto__format__e69caa": "未处理的导出格式: ${format}",
   "auto__singleformattoexport__e69caa": "未处理的导出格式: ${singleFormatToExport}",
   "auto_text_e58897": "列设置",
-  "auto__storagekey__e6b885": "清除了列设置本地存储: ${storageKey}"
+  "auto__storagekey__e6b885": "清除了列设置本地存储: ${storageKey}",
+  "auto_text_e5908c_suggestion": "auto_text_e5908c_suggestion",
+  "batch_delete": {
+    "button_text": "button_text",
+    "confirm_title": "confirm_title",
+    "confirm_content": "confirm_content",
+    "success_message": "success_message",
+    "error_message": "error_message",
+    "no_selection_message": "no_selection_message"
+  },
+  "unexpected_response_format": "unexpected_response_format",
+  "data_fetch_failed": "data_fetch_failed",
+  "no_table_params_for_export": "no_table_params_for_export",
+  "export_loading": "export_loading",
+  "export_success": "export_success",
+  "export_failed": "export_failed",
+  "sql_editor": {
+    "placeholder": "placeholder",
+    "template_basic": "template_basic",
+    "template_join": "template_join",
+    "template_aggregate": "template_aggregate",
+    "validation_success": "validation_success",
+    "validation_failed": "validation_failed",
+    "title": "title",
+    "templates": "templates",
+    "validate_and_preview": "validate_and_preview",
+    "format_sql": "format_sql",
+    "preview_data": "preview_data"
+  },
+  "name": "name",
+  "export_filename": "export_filename",
+  "export_sheetname": "export_sheetname",
+  "total_items": "total_items"
 }

@@ -60,8 +60,8 @@
     "create_success": "Department created successfully",
     "operation_failed_prefix": "Operation failed: ",
     "error": {
-        "unknown": "Unknown error",
-        "delete_in_use_or_has_children": "Department may be in use or has child departments"
+      "unknown": "Unknown error",
+      "delete_in_use_or_has_children": "Department may be in use or has child departments"
     },
     "delete_success": "Department deleted successfully",
     "delete_failed_prefix": "Delete failed: ",

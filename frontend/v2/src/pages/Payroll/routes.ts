@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import type { AppRouteObject } from '../../router/routes'; // Assuming AppRouteObject is exported from main router
 // import i18n from '../../i18n'; // 移除此导入
 import PayrollPeriodsPageV2 from './pages/PayrollPeriodsPageV2';
-import PayrollRunsPageV2 from './pages/PayrollRunsPageV2';
+import PayrollRunsPage from './pages/PayrollRunsPage';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
 import PayrollBulkImportPage from './pages/PayrollBulkImportPage';
@@ -42,7 +42,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'runs',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPageV2)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPage)),
     meta: {
       title: 'payroll:page_title.payroll_runs', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW],

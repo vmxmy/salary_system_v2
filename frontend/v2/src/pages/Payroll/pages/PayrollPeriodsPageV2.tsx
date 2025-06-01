@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tag, Tooltip, Button, Space, Modal, message } from 'antd';
+import { Tag, Tooltip, Button, Space, Modal, message, App } from 'antd';
 import { DatabaseOutlined, LoadingOutlined, FileAddOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { format } from 'date-fns';
@@ -230,6 +230,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
   const permissions = usePayrollPeriodPermissions();
   const { lookupMaps, loadingLookups, errorLookups } = useLookupMaps();
   const navigate = useNavigate();
+  const { message: messageApi } = App.useApp();
   
   // 状态管理
   const [dataSource, setDataSource] = useState<PayrollPeriod[]>([]);
@@ -248,10 +249,12 @@ const PayrollPeriodsPageV2: React.FC = () => {
         const options = await getPayrollPeriodStatusOptions();
         setStatusOptions(options);
       } catch (error) {
+        console.error("Failed to load payroll period status options:", error);
+        messageApi.error(t('payroll_periods_page.message.get_periods_failed'));
       }
     };
     loadStatusOptions();
-  }, []);
+  }, [t, messageApi]);
 
   // 获取薪资周期数据统计
   const fetchPeriodDataStats = useCallback(async (periodIds: number[]) => {
@@ -322,7 +325,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
         setDataSource([]);
       }
     } catch (error) {
-      message.error(t('payroll_periods_page.message.get_periods_failed'));
+      messageApi.error(t('payroll_periods_page.message.get_periods_failed'));
       setDataSource([]);
     } finally {
       setLoadingData(false);
@@ -357,6 +360,25 @@ const PayrollPeriodsPageV2: React.FC = () => {
     setCurrentPeriod(null);
     fetchData();
   }, [fetchData]);
+
+  // 处理 CRUD 操作成功
+  const handleSuccess = () => {
+    setIsModalVisible(false);
+    setCurrentPeriod(null);
+    // 刷新数据
+    // fetchTableData();
+  };
+
+  // 加载辅助数据，例如 lookupMaps
+  const loadAuxData = useCallback(async () => {
+    if (errorLookups) {
+      messageApi.error(t('payroll_periods_page.message.load_aux_data_failed'));
+    }
+  }, [errorLookups, t, messageApi]);
+
+  useEffect(() => {
+    loadAuxData();
+  }, [loadAuxData]);
 
   return (
     <PermissionGuard requiredPermissions={[P_PAYROLL_PERIOD_MANAGE]} showError={true}>
@@ -413,7 +435,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
           buttonText: t('payroll:auto_excel_e5afbc'),
           successMessage: t('payroll:auto_text_e896aa'),
         }}
-        lookupErrorMessageKey="payroll_periods_page.message.load_aux_data_failed"
+        lookupErrorMessageKey="payroll_periods_page.lookup_error_message"
         lookupLoadingMessageKey="payroll_periods_page.loading_lookups"
         lookupDataErrorMessageKey="payroll_periods_page.lookup_data_error"
         rowKey="id"

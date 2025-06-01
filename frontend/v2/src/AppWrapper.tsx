@@ -31,7 +31,6 @@ interface AppWrapperProps {
 const queryClient = new QueryClient();
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
-  // console.log('AppWrapper: Rendering or re-rendering.');
   const initializeAuth = useAuthStore(state => state.initializeAuth);
   const authToken = useAuthStore(state => state.authToken);
   const currentUser = useAuthStore(state => state.currentUser);
@@ -57,24 +56,18 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   const chatbotSystemVariablesJson = useMemo(() => JSON.stringify(chatbotSystemVariables), [chatbotSystemVariables]);
 
   useEffect(() => {
-    // console.log('[AppWrapper:useEffect-initializeAuth] Effect triggered. About to call initializeAuth.');
     initializeAuth();
-    // console.log('[AppWrapper:useEffect-initializeAuth] initializeAuth call completed.');
   }, [initializeAuth]);
 
   useEffect(() => {
     if (authToken) {
-      // console.log('[AppWrapper:useEffect-fetchPayrollConfigs] Auth token present. About to call fetchPayrollConfigs.');
       fetchPayrollConfigs();
-      // console.log('[AppWrapper:useEffect-fetchPayrollConfigs] fetchPayrollConfigs call completed.');
     } else {
-      // console.log('[AppWrapper:useEffect-fetchPayrollConfigs] No auth token. Skipping payroll configs.');
     }
   }, [authToken, fetchPayrollConfigs]);
 
   useEffect(() => {
     if (authToken) {
-      // console.log('[AppWrapper:useEffect-fetchHrLookups] Auth token present. Fetching essential HR lookups.');
       
       // 🚀 优化：分批加载，减少并发请求
       const loadLookupsBatch = async () => {
@@ -101,23 +94,18 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       };
       
       loadLookupsBatch();
-      // console.log('[AppWrapper:useEffect-fetchHrLookups] HR lookups batch loading initiated.');
     } else {
-      // console.log('[AppWrapper:useEffect-fetchHrLookups] No auth token. Skipping HR lookups.');
     }
   }, [authToken, fetchHrLookups]);
 
   useEffect(() => {
     if (authToken) {
-      // console.log('[AppWrapper:useEffect-primeLookupCache] Auth token present. Priming lookup types cache.');
       fetchAllLookupTypesAndCache();
     } else {
-      // console.log('[AppWrapper:useEffect-primeLookupCache] No auth token. Skipping lookup types cache priming.');
     }
   }, [authToken]);
 
   useEffect(() => {
-    // console.log(
     //   '[AppWrapper:useEffect-authWatcher] Auth state changed:',
     //   {
     //     isAuthenticated: !!authToken,
@@ -129,13 +117,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
 
   // --- AI Chatbot Integration useEffect Start ---
   useEffect(() => {
-    console.log(
-      '[AppWrapper-Redux-DEBUG] Chatbot useEffect triggered. isLoading:', chatbotIsLoading,
-      'isEnabled:', chatbotIsEnabled, 'isConfigured:', chatbotIsConfigured,
-      'token:', chatbotConfigToken,
-      'baseUrl:', chatbotConfigBaseUrl,
-      'DIFY_EMBED_SCRIPT_SRC:', DIFY_EMBED_SCRIPT_SRC
-    );
 
     if (chatbotIsLoading) {
       return;
@@ -178,14 +159,12 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       }
       configScript.innerHTML = `window.difyChatbotConfig = ${JSON.stringify(chatbotWindowConfig)};`;
       document.head.appendChild(configScript);
-      // console.log('[AppWrapper-Redux-DEBUG] Added config script with content:', configScript.innerHTML);
 
       if (chatbotConfigCustomCss) {
         const styleElement = document.createElement('style');
         styleElement.id = 'chatbot-custom-style';
         styleElement.textContent = chatbotConfigCustomCss;
         document.head.appendChild(styleElement);
-        // console.log('[AppWrapper-Redux-DEBUG] Added custom CSS.');
       }
 
       if (chatbotConfigCustomJs) {
@@ -193,7 +172,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
         customScriptElement.id = 'chatbot-custom-js';
         customScriptElement.textContent = chatbotConfigCustomJs;
         document.head.appendChild(customScriptElement);
-        // console.log('[AppWrapper-Redux-DEBUG] Added custom JS logic.');
       }
 
       const embedScript = document.createElement('script');
@@ -205,15 +183,12 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
       embedScript.onerror = () => {
       };
       document.head.appendChild(embedScript);
-      // console.log(`[AppWrapper-Redux-DEBUG] Added embed script (id: ${scriptIdToUse}, src: ${DIFY_EMBED_SCRIPT_SRC}).`);
 
     } else {
-      // console.log('[AppWrapper-Redux-DEBUG] Conditions not met (isLoading is false, but isEnabled is false or not configured/essential params missing). Cleaning up chatbot elements.');
       cleanupChatbotElements();
     }
 
     return () => {
-      // console.log('[AppWrapper-Redux-DEBUG] Chatbot useEffect cleanup triggered.');
       cleanupChatbotElements();
     };
   }, [

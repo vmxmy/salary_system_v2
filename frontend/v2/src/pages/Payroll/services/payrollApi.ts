@@ -117,14 +117,6 @@ export const getPayrollRuns = async (params?: {
     
     clearTimeout(timeoutId); // 清除超时计时器
     
-    console.log('[payrollApi.ts] ✅ getPayrollRuns response:', {
-      status: response.status,
-      statusText: response.statusText,
-      dataCount: response.data.data?.length || 0,
-      meta: response.data.meta,
-      data: response.data.data
-    });
-    
     return response.data;
   } catch (error: any) {
     // ✅ 更详细的错误处理
@@ -249,18 +241,18 @@ export const getPayrollEntries = async (params?: {
     // 检查第一条记录的结构
     if (response.data.data.length > 0) {
       const firstEntry = response.data.data[0];
-      console.log('🔍 [payrollApi] First entry structure:', {
+      console.log('First entry:', {
         id: firstEntry.id,
         employee_id: firstEntry.employee_id,
         has_employee: !!firstEntry.employee,
         employee_keys: firstEntry.employee ? Object.keys(firstEntry.employee) : null,
         employee_first_name: firstEntry.employee?.first_name,
-        employee_last_name: firstEntry.employee?.last_name
+        employee_last_name: firstEntry.employee?.last_name,
       });
     }
     
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error;
   }
 };

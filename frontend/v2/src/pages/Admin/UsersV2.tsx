@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tag, Space } from 'antd';
+import { Tag, Space, message } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import { format } from 'date-fns';
 
@@ -155,9 +155,6 @@ const UsersPageV2: React.FC = () => {
   const { userPermissions, userRoleCodes, hasPermission } = usePermissions();
   
   // 调试权限信息
-  // console.log(t('admin:auto__usersv2___f09f94'), userPermissions);
-  // console.log(t('admin:auto__usersv2___f09f94'), userRoleCodes);
-  // console.log(t('admin:auto__usersv2__user_view_list___f09f94'), hasPermission('user:view_list');
   
   // 状态管理
   const [dataSource, setDataSource] = useState<PageUser[]>([]);
@@ -171,7 +168,6 @@ const UsersPageV2: React.FC = () => {
 
   // 获取数据
   const fetchData = useCallback(async () => {
-    // console.log(t('admin:auto__usersv2_fetchdata__f09f94');
     setLoadingData(true);
     setErrorLookups(null);
     try {
@@ -180,17 +176,10 @@ const UsersPageV2: React.FC = () => {
         size: 100,
       };
 
-      // console.log(t('admin:auto__usersv2__getusers_api___f09f94'), apiParams);
-      // console.log(t('admin:auto__usersv2_api_url__f09f94'), import.meta.env.VITE_API_BASE_URL);
-      // console.log(t('admin:auto__usersv2_api___f09f94'), import.meta.env.VITE_API_PATH_PREFIX);
       
       const apiResponse = await getUsers(apiParams);
-      // console.log(t('admin:auto__usersv2_api___f09f94'), apiResponse);
-      // console.log(t('admin:auto__usersv2_api___f09f94'), typeof apiResponse);
-      // console.log(t('admin:auto__usersv2_api___f09f94'), typeof apiResponse?.data);
       
       if (apiResponse && Array.isArray(apiResponse.data)) {
-        // console.log(t('admin:auto__usersv2___f09f94'), apiResponse.data.length);
         setAllApiUsersForEdit(apiResponse.data);
         const pageUsers: PageUser[] = apiResponse.data.map((apiUser: ApiUser) => ({
           key: apiUser.id,
@@ -201,10 +190,8 @@ const UsersPageV2: React.FC = () => {
           is_active: apiUser.is_active,
           created_at: apiUser.created_at ? format(new Date(apiUser.created_at), 'yyyy-MM-dd HH:mm:ss') : t('table.value.not_applicable'),
         }));
-        // console.log(t('admin:auto__usersv2___f09f94'), pageUsers);
         setDataSource(pageUsers);
         setErrorLookups(null);
-        // console.log(t('admin:auto__usersv2___f09f94');
       } else {
         console.error(t('admin:auto__usersv2___f09f94'), {
           hasResponse: !!apiResponse,
@@ -225,7 +212,6 @@ const UsersPageV2: React.FC = () => {
       setErrorLookups(error);
     } finally {
       setLoadingData(false);
-      // console.log(t('admin:auto__usersv2_fetchdata__f09f94');
     }
   }, [t]);
 
@@ -261,27 +247,16 @@ const UsersPageV2: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  // 初始化数据
+  // 副作用：初始加载数据
   useEffect(() => {
-    // console.log(t('admin:auto__usersv2_useeffect___f09f94');
-    // console.log(t('admin:auto__usersv2_fetchdata___f09f94'), typeof fetchData);
-    // console.log(t('admin:auto__usersv2___f09f94'), { userPermissions, hasPermission: hasPermission('user:view_list') });
-    
+    // 仅在有权限时尝试获取数据
     if (hasPermission('user:view_list')) {
-      // console.log(t('admin:auto__usersv2___fetchdata_f09f94');
       fetchData();
     } else {
-      // console.log(t('admin:auto__usersv2___fetchdata_f09f94');
+      setDataSource([]); // 如果没有权限，清空数据源
+      message.warning(t('common:no_permission_to_view_data'));
     }
-  }, [fetchData, hasPermission, userPermissions]); // 添加 fetchData, hasPermission, userPermissions 作为依赖项
-
-  // 调试状态信息
-  // console.log(t('admin:auto__usersv2___f09f94'), {
-  //   dataSourceLength: dataSource.length,
-  //   loadingData,
-  //   errorLookups,
-  //   hasError: !!errorLookups
-  // });
+  }, [fetchData, userPermissions, hasPermission, t]);
 
   return (
     <PermissionGuard requiredPermissions={['user:view_list']} showError={true}>

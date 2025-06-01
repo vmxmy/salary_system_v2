@@ -211,7 +211,7 @@ const generatePayrollComponentTableColumns = (
 // 主页面组件
 const PayrollComponentsPageNew: React.FC = () => {
   const { t } = useTranslation(['payroll_components', 'common']);
-  const { message } = App.useApp();
+  const { message: messageApi } = App.useApp();
   const navigate = useNavigate();
   const permissions = usePayrollComponentPermissions();
   const { lookupMaps, loadingLookups, errorLookups } = usePayrollComponentLookups();
@@ -239,11 +239,11 @@ const PayrollComponentsPageNew: React.FC = () => {
       }
     } catch (error) {
       setDataSource([]);
-      message.error(t('common.error.fetch'));
+      messageApi.error(t('common.error.fetch'));
     } finally {
       setLoadingData(false);
     }
-  }, [message, t]);
+  }, [messageApi, t]);
 
   // 删除项目函数
   const deleteItem = useCallback(async (id: string) => {
@@ -289,7 +289,7 @@ const PayrollComponentsPageNew: React.FC = () => {
       setViewingComponent(component);
       setDetailModalVisible(true);
     } else {
-      message.error(t('payroll:auto_text_e69caa'));
+      messageApi.error(t('payroll:auto_text_e69caa'));
     }
   };
 
@@ -309,16 +309,18 @@ const PayrollComponentsPageNew: React.FC = () => {
       
       if (editingComponent) {
         await payrollApi.updatePayrollComponentDefinition(editingComponent.id, mappedValues);
-        message.success(t('payroll_components.update_success'));
+        setModalVisible(false);
+        setEditingComponent(null);
+        fetchData();
+        messageApi.success(t('payroll_components.update_success'));
       } else {
         await payrollApi.createPayrollComponentDefinition(mappedValues);
-        message.success(t('payroll_components.create_success'));
+        setModalVisible(false);
+        fetchData();
+        messageApi.success(t('payroll_components.create_success'));
       }
-      
-      setModalVisible(false);
-      fetchData();
     } catch (error: any) {
-      
+      console.error("Error updating payroll component:", error);
       let errorMessage = editingComponent 
         ? t('payroll_components.update_failed'): t('payroll_components.create_failed');
       
@@ -346,8 +348,9 @@ const PayrollComponentsPageNew: React.FC = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
+    } finally {
+      setLoadingData(false);
     }
   };
 

@@ -6,7 +6,8 @@ import {
   Space,
   message,
   Tooltip,
-  Typography
+  Typography,
+  App
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import TableActionButton from '../../../components/common/TableActionButton';
@@ -48,6 +49,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   // States for modals
   const [isViewModalVisible, setIsViewModalVisible] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<number | null>(null);
+  const { message: messageApi } = App.useApp();
 
   const fetchEntries = useCallback(async (page = 1, pageSize = 10) => {
     setLoading(true);
@@ -184,7 +186,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   };
 
   const handleEditEntry = (entry: PayrollEntry) => {
-    message.info(t('payroll:payroll_entries_table.message.edit_entry_todo'));
+    messageApi.info(t('payroll:payroll_entries_table.message.edit_entry_todo'));
   };
 
   const columns: ProColumns<ExtendedPayrollEntry>[] = [

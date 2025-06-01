@@ -16,5 +16,7 @@
   "fetchErrorUnauthorized": "Failed to load your information. This might be an authorization issue. Please try logging in again.",
   "fetchError": "Failed to load your information.",
   "noEmployeeIdError": "Employee ID is not available. Cannot display information.",
-  "noData": "No employee information available."
-} 
+  "noData": "No employee information available.",
+  "employeeIdLabel": "employeeIdLabel",
+  "usernameLabel": "usernameLabel"
+}

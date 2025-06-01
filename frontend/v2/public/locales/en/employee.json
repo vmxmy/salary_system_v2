@@ -34,7 +34,8 @@
         "gender": "Please select gender",
         "education_level": "Please select education level",
         "employment_type": "Please select employment type",
-        "job_title": "Please select job title"
+        "job_title": "Please select job title",
+        "actual_position": "actual_position"
       },
       "button": {
         "search": "Search",
@@ -50,7 +51,33 @@
         "job_title": "Job Title",
         "status": "Status",
         "hire_date": "Hire Date",
-        "actions": "Actions"
+        "actions": "Actions",
+        "id_number": "id_number",
+        "ethnicity": "ethnicity",
+        "nationality": "nationality",
+        "date_of_birth": "date_of_birth",
+        "education_level": "education_level",
+        "marital_status": "marital_status",
+        "political_status": "political_status",
+        "first_work_date": "first_work_date",
+        "interrupted_service_years": "interrupted_service_years",
+        "email": "email",
+        "phone_number": "phone_number",
+        "home_address": "home_address",
+        "salary_level": "salary_level",
+        "salary_grade": "salary_grade",
+        "ref_salary_level": "ref_salary_level",
+        "personnel_category": "personnel_category",
+        "actual_position": "actual_position",
+        "actual_position_start_date": "actual_position_start_date",
+        "career_position_level_date": "career_position_level_date",
+        "employment_type": "employment_type",
+        "contract_type": "contract_type",
+        "bank_name": "bank_name",
+        "bank_account_number": "bank_account_number",
+        "emergency_contact_name": "emergency_contact_name",
+        "emergency_contact_phone": "emergency_contact_phone",
+        "action": "action"
       },
       "cell_empty": "-",
       "status_text": {
@@ -69,7 +96,9 @@
         "edit": "Edit",
         "delete": "Delete"
       }
-    }
+    },
+    "loading_lookups": "loading_lookups",
+    "lookup_data_error": "lookup_data_error"
   },
   "form_shared": {
     "button": {
@@ -106,7 +135,8 @@
       "message_error": "Error",
       "message_info": "Information",
       "description_no_data_to_edit": "No employee data to edit."
-    }
+    },
+    "default_employee_name": "default_employee_name"
   },
   "detail_page": {
     "title_default": "Employee Details",
@@ -114,7 +144,8 @@
     "breadcrumb_loading": "Loading...",
     "alert": {
       "message_info": "Information",
-      "description_employee_not_selected_or_found": "Employee not selected or found."
+      "description_employee_not_selected_or_found": "Employee not selected or found.",
+      "message_error": "message_error"
     },
     "page_container": {
       "title_loading": "Loading...",
@@ -173,7 +204,8 @@
       "label_current_position_start_date": "Current Position Start Date (This Org)",
       "label_career_position_level_date": "Career Position Level Date (Career)",
       "tooltip_current_position_start_date": "The date when employee started this position in current organization",
-      "tooltip_career_position_level_date": "The date when employee first reached this position level in their entire career"
+      "tooltip_career_position_level_date": "The date when employee first reached this position level in their entire career",
+      "label_actual_position": "label_actual_position"
     },
     "job_info_tab": {
       "title": "Position Information",
@@ -195,24 +227,142 @@
       "seniority_months": "{{months}} months",
       "department_position": "Department & Position",
       "employment_info": "Employment Information",
-      "reporting_info": "Reporting Relationship"
+      "reporting_info": "Reporting Relationship",
+      "no_data": "no_data"
     },
     "job_history_tab": {
       "loading_or_no_data": "Loading or no data...",
       "no_records": "No job history records.",
-      "at_conjunction": "at"
+      "at_conjunction": "at",
+      "personnel_category_prefix": "personnel_category_prefix",
+      "actual_position_prefix": "actual_position_prefix",
+      "modal": {
+        "message_load_lookups_failed": "message_load_lookups_failed",
+        "message_load_job_titles_failed": "message_load_job_titles_failed",
+        "title_add": "title_add",
+        "title_edit": "title_edit",
+        "validation_effective_date_required": "validation_effective_date_required",
+        "validation_department_required": "validation_department_required",
+        "placeholder_select_department": "placeholder_select_department",
+        "validation_job_title_required": "validation_job_title_required",
+        "placeholder_select_job_title": "placeholder_select_job_title",
+        "validation_employment_type_required": "validation_employment_type_required",
+        "placeholder_select_employment_type": "placeholder_select_employment_type",
+        "placeholder_input_salary": "placeholder_input_salary"
+      },
+      "table": {
+        "column_start_date": "column_start_date",
+        "column_department": "column_department",
+        "column_job_title": "column_job_title",
+        "column_employment_type": "column_employment_type",
+        "column_salary": "column_salary"
+      },
+      "message": {
+        "get_history_failed_retry": "get_history_failed_retry",
+        "get_history_failed": "get_history_failed",
+        "delete_success": "delete_success",
+        "delete_failed": "delete_failed",
+        "add_success": "add_success",
+        "update_success": "update_success"
+      },
+      "delete_confirm": {
+        "content": "content",
+        "content_table": "content_table"
+      },
+      "loading_history": "loading_history",
+      "button_add_history": "button_add_history",
+      "tooltip_edit_history_param": "tooltip_edit_history_param",
+      "tooltip_delete_history_param": "tooltip_delete_history_param",
+      "table_title": "table_title"
     },
     "contracts_tab": {
       "loading_or_no_data": "Loading or no data...",
       "no_records": "No contract records.",
-      "to_conjunction": "to"
+      "to_conjunction": "to",
+      "message": {
+        "get_contracts_failed_retry": "get_contracts_failed_retry",
+        "delete_success": "delete_success",
+        "delete_failed": "delete_failed",
+        "update_success": "update_success",
+        "add_success": "add_success",
+        "update_failed": "update_failed",
+        "add_failed": "add_failed"
+      },
+      "delete_confirm": {
+        "content": "content",
+        "title_popconfirm": "title_popconfirm"
+      },
+      "loading": "loading",
+      "button_add_contract": "button_add_contract",
+      "modal": {
+        "message_load_lookups_failed": "message_load_lookups_failed",
+        "title_add": "title_add",
+        "title_edit": "title_edit",
+        "loading_options": "loading_options",
+        "validation_contract_number_required": "validation_contract_number_required",
+        "validation_contract_type_required": "validation_contract_type_required",
+        "placeholder_select_contract_type": "placeholder_select_contract_type",
+        "validation_start_date_required": "validation_start_date_required",
+        "validation_end_date_required": "validation_end_date_required",
+        "validation_end_date_after_start_date": "validation_end_date_after_start_date",
+        "validation_status_required": "validation_status_required",
+        "placeholder_select_status": "placeholder_select_status"
+      },
+      "table": {
+        "column_contract_number": "column_contract_number",
+        "column_contract_type": "column_contract_type",
+        "column_start_date": "column_start_date",
+        "column_end_date": "column_end_date",
+        "column_status": "column_status"
+      },
+      "tooltip_edit_contract": "tooltip_edit_contract",
+      "tooltip_delete_contract": "tooltip_delete_contract"
     },
     "compensation_tab": {
       "loading_or_no_data": "Loading or no data...",
       "no_records": "No compensation records.",
       "basic_prefix": "Basic Salary:",
       "total_prefix": "Total Salary:",
-      "freq_prefix": "Frequency:"
+      "freq_prefix": "Frequency:",
+      "message": {
+        "get_history_failed_retry": "get_history_failed_retry",
+        "add_permission_denied": "add_permission_denied",
+        "delete_success": "delete_success",
+        "delete_failed": "delete_failed",
+        "add_success": "add_success",
+        "update_success": "update_success",
+        "save_failed": "save_failed"
+      },
+      "delete_confirm": {
+        "content": "content",
+        "content_table": "content_table"
+      },
+      "button_add_record": "button_add_record",
+      "modal": {
+        "message_load_lookups_failed": "message_load_lookups_failed",
+        "title_add": "title_add",
+        "title_edit": "title_edit",
+        "loading_options": "loading_options",
+        "validation_effective_date_required": "validation_effective_date_required",
+        "validation_basic_salary_required": "validation_basic_salary_required",
+        "validation_allowances_number": "validation_allowances_number",
+        "validation_pay_frequency_required": "validation_pay_frequency_required",
+        "placeholder_select_pay_frequency": "placeholder_select_pay_frequency",
+        "validation_currency_required": "validation_currency_required"
+      },
+      "table": {
+        "column_effective_date": "column_effective_date",
+        "column_basic_salary": "column_basic_salary",
+        "column_allowances": "column_allowances",
+        "column_pay_frequency": "column_pay_frequency",
+        "column_currency": "column_currency",
+        "column_change_reason": "column_change_reason",
+        "column_total_salary": "column_total_salary"
+      },
+      "default_currency": "default_currency",
+      "tooltip_edit_record": "tooltip_edit_record",
+      "tooltip_delete_record": "tooltip_delete_record",
+      "table_title": "table_title"
     },
     "leave_balances_tab": {
       "loading_or_no_data": "Loading or no data...",
@@ -220,6 +370,9 @@
       "type_id_prefix": "Type ID: {id}",
       "entitlement_prefix": "Entitlement:",
       "taken_prefix": "Taken:"
+    },
+    "error": {
+      "employee_info_not_found": "employee_info_not_found"
     }
   },
   "form_card": {
@@ -236,7 +389,8 @@
     "bank_name": "Bank Name",
     "bank_account_number": "Bank Account Number",
     "emergency_contact_name": "Emergency Contact Name",
-    "emergency_contact_phone": "Emergency Contact Phone"
+    "emergency_contact_phone": "Emergency Contact Phone",
+    "ethnicity": "ethnicity"
   },
   "form_placeholder": {
     "marital_status": "Please select marital status",
@@ -265,5 +419,36 @@
     "contractor": "Contractor",
     "intern": "Intern"
   },
-  "auto__range_0_range_1___total__e7acac": "第 ${range[0]}-${range[1]} 条，共 ${total} 条"
+  "auto__range_0_range_1___total__e7acac": "第 ${range[0]}-${range[1]} 条，共 ${total} 条",
+  "employee_id_format": "employee_id_format",
+  "common": {
+    "no_employee_found": "no_employee_found",
+    "select_employee": "select_employee"
+  },
+  "firstName": "firstName",
+  "lastName": "lastName",
+  "dob": "dob",
+  "idNumber": "idNumber",
+  "nationality": "nationality",
+  "maritalStatus": "maritalStatus",
+  "ethnicity": "ethnicity",
+  "politicalStatus": "politicalStatus",
+  "educationLevel": "educationLevel",
+  "personalEmail": "personalEmail",
+  "mobilePhone": "mobilePhone",
+  "address": "address",
+  "department": "department",
+  "personnelCategory": "personnelCategory",
+  "actualPosition": "actualPosition",
+  "hireDate": "hireDate",
+  "probationEndDate": "probationEndDate",
+  "employmentType": "employmentType",
+  "status": "status",
+  "reportsTo": "reportsTo",
+  "workLocation": "workLocation",
+  "bankName": "bankName",
+  "bankAccountNumber": "bankAccountNumber",
+  "emergencyContactName": "emergencyContactName",
+  "emergencyContactPhone": "emergencyContactPhone",
+  "emergencyContactRelation": "emergencyContactRelation"
 }

@@ -15,7 +15,6 @@
   "confirmDeleteCalculatedField": "Confirm Delete Calculated Field",
   "confirmDeleteCalculatedFieldContent": "Are you sure you want to delete this calculated field? This action cannot be undone.",
   "deleteCalculatedFieldSuccess": "Calculated field deleted successfully",
-  
   "dataSourceManagement": "Data Source Management",
   "addDataSource": "Add Data Source",
   "editDataSource": "Edit Data Source",
@@ -35,7 +34,6 @@
   "schemaTable": "Schema/Table",
   "schema": "Schema",
   "table": "Table",
-  
   "reportTemplateManagement": "Report Template Management",
   "addReportTemplate": "Add Report Template",
   "editReportTemplate": "Edit Report Template",
@@ -56,7 +54,6 @@
   "templateName": "Template Name",
   "visibility": "Visibility",
   "usageStats": "Usage Statistics",
-  
   "fieldName": "Field Name",
   "formula": "Formula",
   "returnType": "Return Type",
@@ -75,7 +72,6 @@
   "fieldCount": "Field Count",
   "public": "Public",
   "private": "Private",
-  
   "export": "Export",
   "exportSuccess": "Export successful",
   "loadDataFailed": "Failed to load data",
@@ -85,11 +81,9 @@
   "viewDetails": "View Details",
   "copy": "Copy",
   "share": "Share",
-  
   "lookupDataError": "Lookup data error",
   "lookupDataLoading": "Loading lookup data",
   "lookupDataErrorMessage": "Failed to load lookup data",
-  
   "reportDesigner": "Report Designer",
   "dataSource": "Data Source",
   "calculatedFields": "Calculated Fields",
@@ -107,13 +101,12 @@
   "publicTemplate": "Public Template",
   "preview": "Preview",
   "saveTemplate": "Save Template",
-  "dragFieldsHint": "Drag fields from the left panel to the area below to add report fields",
+  "dragFieldsHint": "Drag fields from the left to here to start building your report",
   "reportPreview": "Report Preview",
   "close": "Close",
   "salaryReport": "Salary Report",
   "hrReport": "HR Report",
   "financeReport": "Finance Report",
-  
   "loadDataSourcesError": "Failed to load data sources",
   "loadTemplateError": "Failed to load template",
   "fieldAdded": "Field added",
@@ -127,12 +120,10 @@
   "exportFunction": "Export function",
   "save": "Save",
   "confirmDeleteField": "Confirm Delete Field",
-  "deleteFieldTip": "Are you sure you want to delete field {{fieldName}}?",
+  "deleteFieldTip": "Delete field",
   "dragFieldsHere": "Drag fields here",
-  "dragFieldsHint": "Drag fields from the left to here to start building your report",
   "loadDataError": "Failed to load data",
   "configFieldTip": "Configure field properties",
-  "deleteFieldTip": "Delete field",
   "fieldConfig": "Field Configuration",
   "fieldAlias": "Field Alias",
   "fieldAliasRequired": "Please enter field alias",
@@ -176,7 +167,6 @@
   "suffix": "Suffix",
   "suffixPlaceholder": "Suffix",
   "dateFormat": "Date Format",
-  
   "fieldEditModal": {
     "title": "Edit Field Properties",
     "fieldAlias": "Field Alias",
@@ -198,7 +188,6 @@
     "calculationFormula": "Calculation Formula",
     "formulaPlaceholder": "Enter calculation formula"
   },
-  
   "fieldsList": {
     "title": "Report Fields Configuration",
     "hint": "Reorder • Click to edit",
@@ -220,14 +209,12 @@
     "dragFieldsFromLeft": "Please drag fields from the left panel to here",
     "dragToReorder": "Drag to reorder"
   },
-  
   "fieldTypes": {
     "calculated": "Calculated Field",
     "data": "Data Field",
     "calculatedShort": "Calc",
     "dataShort": "Data"
   },
-  
   "messages": {
     "loadDataSourceFailed": "Failed to load data sources",
     "loadCalculatedFieldFailed": "Failed to load calculated fields",
@@ -236,7 +223,6 @@
     "previewFailed": "Preview failed",
     "reportNameRequired": "is required"
   },
-  
   "styleSettings": {
     "tableSize": "Table Size",
     "compact": "Compact",
@@ -248,7 +234,6 @@
     "showPagination": "Show Pagination",
     "pageSize": "Page Size"
   },
-
   "customQuery": {
     "title": "Custom Query Editor",
     "sqlEditor": "SQL Editor",
@@ -306,7 +291,6 @@
     "sampleQuery2Name": "High Salary Employee Query",
     "sampleQuery2Desc": "Query employee information with salary higher than specified amount"
   },
-  
   "fieldManagement": "Field Management",
   "loadFieldsFailed": "Failed to load fields",
   "updateFieldSuccess": "Field updated successfully",
@@ -399,7 +383,6 @@
   "maxRowsPlaceholder": "Maximum number of rows returned",
   "query": "Query",
   "customQueryLabel": "Custom Query",
-  
   "multiDataSource": "Multi Data Source",
   "dataSourceSelection": "Data Source Selection",
   "dataSourceJoins": "Data Source Joins",
@@ -470,7 +453,6 @@
   "loadingRelatedValues": "Loading related values",
   "relatedValueLoadFailed": "Failed to load related values",
   "noRelatedValueFound": "No related value found",
-  
   "sourceDataSource": "Source Data Source",
   "targetDataSource": "Target Data Source",
   "pleaseSelectField": "Please select field",
@@ -480,7 +462,6 @@
   "leftDataSource": "Left Data Source",
   "rightDataSource": "Right Data Source",
   "dataSourceJoinsTooltip": "Configure relationships between multiple data sources",
-  
   "joinRelation": "Join Relation",
   "currentJoinConfig": "Current Join Configuration",
   "suggestedJoins": "Suggested Joins",

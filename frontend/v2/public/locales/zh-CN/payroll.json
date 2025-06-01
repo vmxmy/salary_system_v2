@@ -258,7 +258,8 @@
       "employee_info": "员工信息",
       "earnings": "收入项",
       "deductions": "扣缴项",
-      "notes": "备注"
+      "notes": "备注",
+      "summary": "summary"
     },
     "label": {
       "employee": "员工",
@@ -275,7 +276,16 @@
       "name": "名称",
       "description": "描述",
       "is_social_security_base": "是否计入社保基数",
-      "is_housing_fund_base": "是否计入公积金基数"
+      "is_housing_fund_base": "是否计入公积金基数",
+      "employee_id": "employee_id",
+      "employee_name": "employee_name",
+      "department": "department",
+      "personnel_category": "personnel_category",
+      "actual_position": "actual_position",
+      "total_earnings": "total_earnings",
+      "total_deductions": "total_deductions",
+      "net_pay": "net_pay",
+      "remarks": "remarks"
     },
     "placeholder": {
       "select_employee": "选择员工",
@@ -288,7 +298,9 @@
       "select_type": "选择类型",
       "enter_code": "输入代码",
       "enter_name": "输入名称",
-      "enter_description": "输入描述"
+      "enter_description": "输入描述",
+      "select_earnings_component": "select_earnings_component",
+      "select_deductions_component": "select_deductions_component"
     },
     "status": {
       "active": "激活",
@@ -300,7 +312,9 @@
       "update_success": "工资明细更新成功",
       "update_failed": "工资明细更新失败",
       "delete_success": "工资明细删除成功",
-      "delete_failed": "工资明细删除失败"
+      "delete_failed": "工资明细删除失败",
+      "update_success_no_data": "update_success_no_data",
+      "component_already_exists": "component_already_exists"
     },
     "button": {
       "submit": "提交",
@@ -316,7 +330,17 @@
       "code_required": "请输入代码",
       "name_required": "请输入名称",
       "type_required": "请选择类型"
-    }
+    },
+    "error_fetch_employee": "error_fetch_employee",
+    "error": {
+      "invalid_earnings": "invalid_earnings",
+      "invalid_deductions": "invalid_deductions",
+      "no_earnings": "no_earnings"
+    },
+    "error_save": "error_save",
+    "total": "total",
+    "no_earnings_components": "no_earnings_components",
+    "no_deductions_components": "no_deductions_components"
   },
   "batch_import": {
     "page_title": "批量导入薪资数据",
@@ -553,7 +577,8 @@
       "all_success": "全部成功！共导入 {{count}} 条记录",
       "partial_success": "部分成功：成功 {{success}} 条，失败 {{error}} 条",
       "all_failed_at_server": "服务器处理失败，共 {{count}} 条记录未能导入",
-      "no_records_processed_at_server": "服务器未处理任何记录"
+      "no_records_processed_at_server": "服务器未处理任何记录",
+      "all_failed_at_server_other": "all_failed_at_server"
     }
   },
   "payroll_components": {
@@ -977,5 +1002,69 @@
   "auto___e5938d": "响应数据:",
   "auto_patch__error_response_status__504154": "PATCH请求失败，状态码: ${error.response.status}",
   "auto_text_e6b4bb": "活动",
-  "auto__statusid__e69caa": "未知状态(${statusId})"
+  "auto__statusid__e69caa": "未知状态(${statusId})",
+  "payroll_entries_table": {
+    "error_fetch": "error_fetch",
+    "message": {
+      "edit_entry_todo": "edit_entry_todo"
+    },
+    "column": {
+      "employeeId": "employeeId",
+      "employeeName": "employeeName",
+      "grossPay": "grossPay",
+      "deductions": "deductions",
+      "netPay": "netPay",
+      "status": "status"
+    },
+    "tooltip_view_details": "tooltip_view_details",
+    "tooltip_edit_entry": "tooltip_edit_entry",
+    "spin_loading_entries": "spin_loading_entries",
+    "alert_error_prefix": "alert_error_prefix",
+    "title": "title",
+    "total_entries_other": "total_entries",
+    "loading_employee_names": "loading_employee_names"
+  },
+  "entries_table": {
+    "modal": {
+      "component_name": "component_name",
+      "amount": "amount",
+      "notes": "notes"
+    },
+    "column": {
+      "employee_id": "employee_id",
+      "employee_name": "employee_name",
+      "department": "department",
+      "personnel_category": "personnel_category",
+      "gross_pay": "gross_pay",
+      "total_deductions": "total_deductions",
+      "net_pay": "net_pay",
+      "status": "status",
+      "actions": "actions"
+    }
+  },
+  "auto_text_e58fbc": "auto_text_e58fbc",
+  "auto_text_e7bc96": "auto_text_e7bc96",
+  "auto_field__2020e9": "auto_field__2020e9",
+  "auto_key__2020e9": "auto_key__2020e9",
+  "auto_text_e5ad98": "auto_text_e5ad98",
+  "auto_text_e69ca1": "auto_text_e69ca1",
+  "auto_amount__2020e9": "auto_amount__2020e9",
+  "auto_text_e588a0": "auto_text_e588a0",
+  "run_status": {
+    "draft": "draft",
+    "processing": "processing",
+    "completed": "completed",
+    "paid": "paid"
+  },
+  "entry_status": {
+    "draft": "draft",
+    "submitted": "submitted",
+    "approved": "approved"
+  },
+  "period_status": {
+    "active": "active",
+    "closed": "closed",
+    "archived": "archived",
+    "planned": "planned"
+  }
 }

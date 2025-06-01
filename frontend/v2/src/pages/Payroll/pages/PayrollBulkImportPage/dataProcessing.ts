@@ -26,22 +26,18 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
     key.includes(t('payroll:auto_text_e5a596')) || key.includes(t('payroll:auto_text_e7bba9')) || key.includes('PERFORMANCE')
   );
   possiblePerformanceFields.forEach(field => {
-    // console.log(t('payroll:auto_field__2020e9'), { field: field, value: record[field] });
   });
   
   // 特别检查earnings_details中的PERFORMANCE_BONUS
   if (record.earnings_details) {
     Object.keys(record.earnings_details).forEach(key => {
       if (key.includes('PERFORMANCE') || key.includes(t('payroll:auto_text_e7bba9')) || key.includes(t('payroll:auto_text_e5a596'))) {
-        // console.log(t('payroll:auto_key__2020e9'), { key: key, value: record.earnings_details[key] });
       }
     });
     
     // 特别检查PERFORMANCE_BONUS
     if (record.earnings_details.PERFORMANCE_BONUS) {
-      // console.log(t('payroll:auto_text_e5ad98'));
     } else {
-      // console.log(t('payroll:auto_text_e69ca1'));
     }
   }
   
@@ -99,7 +95,6 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
   // 特别检查PERFORMANCE_BONUS是否存在
   const hasPerformanceBonus = originalEarningsKeys.includes('PERFORMANCE_BONUS');
   if (hasPerformanceBonus) {
-    // console.log(t('payroll:auto_text_e5ad98'));
   }
   
   Object.keys(record.earnings_details as Record<string, EarningDetailItem>).forEach(key => {
@@ -109,35 +104,29 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
     // 特别标记绩效字段
     const isPerformanceField = key.includes('PERFORMANCE') || key.includes(t('payroll:auto_text_e7bba9')) || key.includes(t('payroll:auto_text_e5a596'));
     if (isPerformanceField) {
-      // console.log(t('payroll:auto_key__2020e9'), { key: key, amount: item.amount });
     }
     
     if (typeof item.amount === 'number' || typeof item.amount === 'string') {
       amount = toNumber(item.amount);
       if (isPerformanceField) {
-        // console.log(t('payroll:auto_amount__2020e9'), { key: key, amount: amount });
       }
     } else if (item && typeof item.amount === 'object' && item.amount !== undefined) {
       // 处理金额可能被错误解析为对象的情况，例如 { value: "100.00" }
       amount = toNumber((item.amount as any).value !== undefined ? (item.amount as any).value : item.amount);
       if (isPerformanceField) {
-        // console.log(t('payroll:auto_amount__2020e9'), { key: key, amount: amount });
       }
     } else {
       // console.warn(t('payroll:auto_key__2020e9'), { key: key });
       if (isPerformanceField) {
-        // console.log(t('payroll:auto_key__2020e9'), { key: key });
       }
     }
     
     if (isPerformanceField) {
-      // console.log(t('payroll:auto_key__2020e9'), { key: key, final_amount: amount });
     }
     
     // 如果金额为0或无效，删除该项（但在验证时会考虑原始数据）
     if (amount === 0) {
       if (isPerformanceField) {
-        // console.log(t('payroll:auto_key__2020e9'), { key: key });
       }
       delete record.earnings_details[key];
     } else {
@@ -146,7 +135,6 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
         name: getComponentName(key, 'earnings', componentDefinitions)
       };
       if (isPerformanceField) {
-        // console.log(t('payroll:auto_key__2020e9'), { key: key, updated_item: record.earnings_details[key] });
       }
     }
   });
@@ -155,9 +143,7 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
   // 再次检查PERFORMANCE_BONUS是否还存在
   const stillHasPerformanceBonus = Object.keys(record.earnings_details).includes('PERFORMANCE_BONUS');
   if (!hasPerformanceBonus && !stillHasPerformanceBonus) {
-    // console.log(t('payroll:auto_text_e69ca1'));
   } else if (hasPerformanceBonus && !stillHasPerformanceBonus) {
-    // console.log(t('payroll:auto_text_e588a0'));
   }
 
   // 处理扣除项，确保金额是数字
@@ -229,9 +215,9 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
   //   record.status_lookup_value_id = defaultPayrollEntryStatusId; 
   // }
   
-  console.log(t('payroll:auto___personnel_type__e69c80'), {
+  console.log({
     ...record,
-    personnel_type: record.personnel_type // 确保在日志中也输出
+    personnel_type: record.personnel_type, // 确保在日志中也输出
   });
   
   return record;

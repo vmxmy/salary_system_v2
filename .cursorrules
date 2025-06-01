@@ -104,3 +104,34 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When searching for recent news, use the current year (2025) instead of previous years, or simply use the "recent" keyword to get the latest information
 
 # Scratchpad
+
+## Current Task: Fix TypeScript Syntax Errors
+
+[X] Prioritize `src/pages/Payroll/pages/PayrollEntryPage.tsx` (34 errors)
+[X] Fix object literal syntax (`;` vs `,`)
+[X] Fix `try...catch` block structures
+[X] Fix function/hook ending syntax (e.g., `useEffect` dependency arrays)
+[X] Recompile with `npx tsc --noEmit --pretty` and iterate.
+
+[X] Proceed to `src/pages/Payroll/components/PayrollEntryFormModal.tsx` (22 errors)
+[X] Apply similar fixes.
+
+[X] Proceed to `src/pages/Payroll/pages/PayrollBulkImportPage.tsx` (22 errors)
+[X] Proceed to `src/pages/Payroll/pages/PayrollBulkImportPage/dataProcessing.ts` (5 errors)
+[X] Apply similar fixes.
+
+[X] Proceed to `src/pages/Payroll/services/payrollApi.ts` (16 errors)
+[X] Apply similar fixes.
+
+[X] Proceed to `src/pages/Payroll/pages/PayrollRunsPage.tsx` (11 errors) - No errors found after recheck
+
+[X] Proceed to `src/pages/Payroll/components/PayrollRunForm.tsx` (8 errors)
+[X] Apply similar fixes.
+
+[X] Proceed to `src/pages/Payroll/pages/PayrollRunsPageV2.tsx` (7 errors)
+[X] Apply similar fixes.
+
+[X] Proceed to `src/utils/consoleFilter.ts` (4 errors)
+[X] Apply similar fixes.
+
+All TypeScript errors resolved.

@@ -42,5 +42,10 @@
   "subordinates": "Subordinates",
   "leave_approvals": "Leave Approvals",
   "test_pages": "Test Pages",
-  "employee_list_v3": "Employee List V3"
+  "employee_list_v3": "Employee List V3",
+  "sider": {
+    "title": {
+      "full": "full"
+    }
+  }
 }

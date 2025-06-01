@@ -392,7 +392,7 @@ const PersonnelCategoriesPage: React.FC = () => {
             <>
               {activeTabKey === '1' && (
                 <OrganizationManagementTableTemplate<PersonnelCategoryPageItem>
-                  pageTitle={t('title.current_personnel_categories')}
+                  pageTitle={t('pageTitle.current_personnel_categories')}
                   addButtonText={t('button.add_personnel_category')}
                   onAddClick={showCreateModal}
                   columns={columns}

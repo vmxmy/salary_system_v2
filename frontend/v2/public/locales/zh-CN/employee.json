@@ -158,7 +158,8 @@
         "edit": "编辑",
         "delete": "删除"
       }
-    }
+    },
+    "lookup_data_error": "lookup_data_error"
   },
   "form_shared": {
     "button": {
@@ -204,7 +205,8 @@
     "breadcrumb_loading": "加载中...",
     "alert": {
       "message_info": "信息",
-      "description_employee_not_selected_or_found": "未选择或未找到员工。"
+      "description_employee_not_selected_or_found": "未选择或未找到员工。",
+      "message_error": "message_error"
     },
     "page_container": {
       "title_loading": "加载中...",
@@ -294,7 +296,8 @@
       "seniority_months": "{{months}}个月",
       "department_position": "部门职位信息",
       "employment_info": "雇佣信息",
-      "reporting_info": "汇报关系"
+      "reporting_info": "汇报关系",
+      "no_data": "no_data"
     },
     "job_history_tab": {
       "message": {
@@ -337,7 +340,13 @@
         "placeholder_input_salary": "请输入薪资"
       },
       "tooltip_edit_history_param": "编辑岗位历史 (ID: {id})",
-      "tooltip_delete_history_param": "删除岗位历史 (ID: {id})"
+      "tooltip_delete_history_param": "删除岗位历史 (ID: {id})",
+      "loading_or_no_data": "loading_or_no_data",
+      "no_records": "no_records",
+      "personnel_category_prefix": "personnel_category_prefix",
+      "actual_position_prefix": "actual_position_prefix",
+      "at_conjunction": "at_conjunction",
+      "table_title": "table_title"
     },
     "contracts_tab": {
       "loading": "加载合同信息中...",
@@ -428,7 +437,8 @@
       },
       "tooltip_edit_record": "编辑薪资记录",
       "tooltip_delete_record": "删除薪资记录",
-      "default_currency": "CNY"
+      "default_currency": "CNY",
+      "table_title": "table_title"
     },
     "leave_balances_tab": {
       "loading_or_no_data": "加载中或无数据...",
@@ -436,6 +446,9 @@
       "type_id_prefix": "类型ID: {id}",
       "entitlement_prefix": "应有:",
       "taken_prefix": "已休:"
+    },
+    "error": {
+      "employee_info_not_found": "employee_info_not_found"
     }
   },
   "form_card": {
@@ -529,5 +542,9 @@
   },
   "employee_id_format": "员工ID: {{id}}",
   "employee_unavailable": "员工信息不可用",
-  "auto__range_0_range_1___total__e7acac": "第 ${range[0]}-${range[1]} 条，共 ${total} 条"
+  "auto__range_0_range_1___total__e7acac": "第 ${range[0]}-${range[1]} 条，共 ${total} 条",
+  "common": {
+    "no_employee_found": "no_employee_found",
+    "select_employee": "select_employee"
+  }
 }

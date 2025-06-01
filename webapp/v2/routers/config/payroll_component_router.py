@@ -39,14 +39,14 @@ async def get_payroll_components(
     """
     try:
         # 计算跳过的记录数 (虽然crud函数可能直接处理分页参数，但保持一致性)
-        # skip = (page - 1) * size 
+        skip = (page - 1) * size 
         # crud.get_payroll_component_definitions 现在直接接受 page 和 size
         result = crud.get_payroll_component_definitions(
             db=db,
             component_type=component_type,
             is_active=is_active,
             search=search,
-            page=page, # 传递 page
+            skip=skip, # 传递 skip
             limit=size # 传递 size (crud函数内部叫limit)
         )
         return result # crud函数应该返回符合ListResponse的格式

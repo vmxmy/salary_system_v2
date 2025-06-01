@@ -307,14 +307,6 @@ const ReportViewDetailTemplate: React.FC<ReportViewDetailTemplateProps> = ({
         loading={initialLoading}
         rowKey={(record: any) => record.id ?? record.key ?? JSON.stringify(record)}
         search={false}
-        onChange={(pagination, filters, sorter, extra) => {
-          console.log('[ReportViewDetailTemplate EnhancedProTable onChange]', {
-            action: extra?.action,
-            pagination,
-            filters,
-            sorter,
-          });
-        }}
         options={{
           reload: () => actionRef.current?.reload(),
           density: true,

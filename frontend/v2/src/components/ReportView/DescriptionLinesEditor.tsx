@@ -19,8 +19,11 @@ const DescriptionLinesEditor: React.FC<DescriptionLinesEditorProps> = ({
   value = [],
   onChange,
   disabled = false,
-  placeholder = '请输入说明内容，每行一个说明项，如：\n单位名称：某某公司\n单位：元\n制表时间：2024年1月',
 }) => {
+  const { t } = useTranslation();
+  const defaultPlaceholder = t('reportView:description_lines_placeholder');
+  const finalPlaceholder = placeholder || defaultPlaceholder;
+
   // 确保 value 始终是数组
   const safeValue = Array.isArray(value) ? value : [];
   
@@ -51,7 +54,7 @@ const DescriptionLinesEditor: React.FC<DescriptionLinesEditorProps> = ({
       <TextArea
         value={internalText}
         onChange={handleTextChange}
-        placeholder={placeholder}
+        placeholder={finalPlaceholder}
         disabled={disabled}
         rows={4}
         maxLength={1000}

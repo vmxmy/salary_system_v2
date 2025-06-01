@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, message } from 'antd';
+import { Modal, Form, message, App } from 'antd';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import PayrollRunForm, { type PayrollRunFormData } from './PayrollRunForm';
@@ -22,6 +22,7 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
   const { t } = useTranslation(['payroll_runs', 'common']);
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
+  const { message: messageApi } = App.useApp();
 
   const isEditMode = !!run;
 
@@ -69,11 +70,11 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
       if (isEditMode && run) {
         const updatePayload: UpdatePayrollRunPayload = { ...commonPayload };
         await updatePayrollRun(run.id, updatePayload);
-        message.success(t('runs_page.message.update_success'));
+        messageApi.success(t('runs_page.message.update_success'));
       } else {
         const createPayload: CreatePayrollRunPayload = { ...commonPayload };
         await createPayrollRun(createPayload);
-        message.success(t('runs_page.message.create_success'));
+        messageApi.success(t('runs_page.message.create_success'));
       }
 
       onSuccess();
@@ -83,7 +84,7 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
           ? t('runs_page.error.update_failed')
           : t('runs_page.error.create_failed')
       );
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
     } finally {
       setLoading(false);
     }

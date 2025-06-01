@@ -34,9 +34,9 @@
       "inactive": "禁用"
     },
     "value": {
-        "not_applicable": "不适用",
-        "active": "已激活",
-        "inactive": "已禁用"
+      "not_applicable": "不适用",
+      "active": "已激活",
+      "inactive": "已禁用"
     },
     "search": {
       "placeholder_prefix": "搜索 ",
@@ -88,20 +88,20 @@
       "placeholder": "输入员工系统ID"
     },
     "section": {
-        "employee_association": "员工关联"
+      "employee_association": "员工关联"
     },
     "label": {
-        "employee_first_name": "员工的名",
-        "employee_last_name": "员工的姓",
-        "employee_id_card": "身份证号"
+      "employee_first_name": "员工的名",
+      "employee_last_name": "员工的姓",
+      "employee_id_card": "身份证号"
     },
     "placeholder": {
-        "employee_first_name": "请输入员工的名字",
-        "employee_last_name": "请输入员工的姓氏",
-        "employee_id_card": "请输入员工身份证号"
+      "employee_first_name": "请输入员工的名字",
+      "employee_last_name": "请输入员工的姓氏",
+      "employee_id_card": "请输入员工身份证号"
     },
     "tooltip": {
-        "employee_id_card_for_association": "输入员工的姓名和身份证号以尝试关联员工档案。若留空，则不进行关联或尝试解除已有用户的关联。"
+      "employee_id_card_for_association": "输入员工的姓名和身份证号以尝试关联员工档案。若留空，则不进行关联或尝试解除已有用户的关联。"
     },
     "status": {
       "label": "状态",
@@ -116,8 +116,8 @@
       }
     },
     "status_switch": {
-        "active": "激活",
-        "inactive": "禁用"
+      "active": "激活",
+      "inactive": "禁用"
     }
   },
   "message": {
@@ -125,15 +125,15 @@
     "fetch_roles_error": "加载角色列表失败",
     "create_user_success": "用户 \"{username}\" 创建成功!",
     "create_user_error": {
-        "default": "创建用户失败，请检查输入或联系管理员。"
+      "default": "创建用户失败，请检查输入或联系管理员。"
     },
     "update_user_success": "用户 \"{username}\" 更新成功!",
     "update_user_error": {
-        "default": "更新用户失败。"
+      "default": "更新用户失败。"
     },
     "delete_user_success": "用户 \"{username}\" 已删除。",
     "delete_user_error": {
-        "default": "删除用户失败。"
+      "default": "删除用户失败。"
     }
   }
 }

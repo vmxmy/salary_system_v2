@@ -11,5 +11,23 @@
   "fetchError": "Failed to fetch payslip data. Please try again later.",
   "periodIdPrefix": "ID: ",
   "status.pendingPayment": "Pending Payment",
-  "actions.viewDetails": "View Details"
-} 
+  "actions.viewDetails": "View Details",
+  "column": {
+    "payrollPeriod": "payrollPeriod",
+    "runDate": "runDate",
+    "employeeName": "employeeName",
+    "netPay": "netPay",
+    "paymentDate": "paymentDate",
+    "status": "status",
+    "actions": "actions"
+  },
+  "status": {
+    "pendingPayment": "pendingPayment",
+    "draft": "draft",
+    "finalized": "finalized",
+    "paid": "paid"
+  },
+  "actions": {
+    "viewDetails": "viewDetails"
+  }
+}

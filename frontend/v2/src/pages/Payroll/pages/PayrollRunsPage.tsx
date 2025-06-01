@@ -59,14 +59,14 @@ const PayrollRunsPage: React.FC = () => {
   const [form] = Form.useForm<PayrollRunFormData>();
   const navigate = useNavigate();
 
-  console.log('[PayrollRunsPage] 🔄 Current state:', {
+  console.log({
     runsCount: runs.length,
     loading,
     error,
     meta,
     isModalVisible,
     modalLoading,
-    fetchCallCount: fetchCallCountRef.current
+    fetchCallCount: fetchCallCountRef.current,
   });
 
   // ✅ 使用useRef保存最新值，避免依赖问题
@@ -129,10 +129,14 @@ const PayrollRunsPage: React.FC = () => {
       }
       
       const fetchEndTime = Date.now();
-      console.log('[PayrollRunsPage] ✅ API response received:', {
+      console.log('[PayrollRunsPage] ✅ API request successful:', {
+        fetchDuration: fetchEndTime - fetchStartTime + 'ms',
+        page,
+        pageSize,
+        payrollPeriodId,
         dataCount: response.data?.length || 0,
         meta: response.meta,
-        fullResponse: response
+        fullResponse: response,
       });
       setRuns(response.data);
       setMeta(response.meta);
@@ -143,7 +147,7 @@ const PayrollRunsPage: React.FC = () => {
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       // 移除t函数的使用，使用固定字符串避免依赖问题
       setError(err.message || 'Failed to fetch payroll runs');
@@ -152,11 +156,11 @@ const PayrollRunsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // ❌ 移除t依赖，避免无限重渲染
-
+  }, []); 
+  
   useEffect(() => {
     fetchRuns();
-  }, []); // ✅ 确保只在组件挂载时执行一次，不依赖fetchRuns
+  }, [fetchRuns]); 
 
   const showCreateModal = () => {
     setCurrentRun(null); 

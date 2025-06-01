@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tag, Card, Form, Input, Button, Space, Divider } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ReportTable } from '@/components/common/ReportTable';
+import { useTranslation } from 'react-i18next';
 
 // 示例数据类型
 type ReportData = {
@@ -15,13 +16,15 @@ type ReportData = {
 };
 
 const ReportTableDemo: React.FC = () => {
+  const { t } = useTranslation();
+
   // 报表配置状态
   const [reportTitle, setReportTitle] = useState('员工信息报表');
-  const [reportDescription, setReportDescription] = useState([
-    "单位名称：财政局",
-    "单位：元", 
-    "经办人签字：",
-    "制表时间：" + new Date().toLocaleDateString()
+  const [reportDescription, setReportDescription] = useState<string[]>([
+    t('admin:report_demo_default_description_line1'),
+    t('admin:report_demo_default_description_line2'),
+    t('admin:report_demo_default_description_line3'),
+    t('admin:report_demo_default_description_line4') + new Date().toLocaleDateString()
   ]);
   
   const [dataSource] = useState<ReportData[]>([
@@ -89,21 +92,21 @@ const ReportTableDemo: React.FC = () => {
       sorter: (a, b) => a.salary - b.salary,
     },
     {
-      title: '状态',
+      title: t('admin:report_demo_status_title'),
       dataIndex: 'status',
       width: 100,
       valueEnum: {
-        active: { text: '在职', status: 'Success' },
-        inactive: { text: '离职', status: 'Error' },
+        active: { text: t('admin:report_demo_status_active'), status: 'Success' },
+        inactive: { text: t('admin:report_demo_status_inactive'), status: 'Error' },
       },
       render: (_, record) => (
         <Tag color={record.status === 'active' ? 'success' : 'error'}>
-          {record.status === 'active' ? '在职' : '离职'}
+          {record.status === 'active' ? t('admin:report_demo_status_active') : t('admin:report_demo_status_inactive')}
         </Tag>
       ),
     },
     {
-      title: '入职日期',
+      title: t('admin:report_demo_join_date_title'),
       dataIndex: 'joinDate',
       width: 120,
       valueType: 'date',
@@ -130,12 +133,12 @@ const ReportTableDemo: React.FC = () => {
 
   // 重置为默认值
   const resetToDefault = () => {
-    setReportTitle('员工信息报表');
+    setReportTitle(t('admin:report_demo_default_report_title'));
     setReportDescription([
-      "单位名称：财政局",
-      "单位：元", 
-      "经办人签字：",
-      "制表时间：" + new Date().toLocaleDateString()
+      t('admin:report_demo_default_description_line1'),
+      t('admin:report_demo_default_description_line2'),
+      t('admin:report_demo_default_description_line3'),
+      t('admin:report_demo_default_description_line4') + new Date().toLocaleDateString()
     ]);
   };
 
@@ -143,17 +146,17 @@ const ReportTableDemo: React.FC = () => {
     <div style={{ padding: '24px' }}>
       {/* 报表配置面板 */}
       <Card 
-        title="报表配置" 
+        title={t('admin:report_demo_config_panel_title')} 
         size="small"
         style={{ marginBottom: '16px' }}
         bodyStyle={{ padding: '16px' }}
       >
         <Form layout="inline" style={{ width: '100%' }}>
-          <Form.Item label="标题" style={{ marginBottom: '12px', minWidth: '300px' }}>
+          <Form.Item label={t('admin:report_demo_title_label')} style={{ marginBottom: '12px', minWidth: '300px' }}>
             <Input 
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
-              placeholder="请输入报表标题"
+              placeholder={t('admin:report_demo_title_placeholder')}
               size="small"
             />
           </Form.Item>
@@ -161,26 +164,26 @@ const ReportTableDemo: React.FC = () => {
           <Form.Item style={{ marginBottom: '12px' }}>
             <Space size="small">
               <Button size="small" type="dashed" onClick={addDescriptionItem}>
-                添加说明
+                {t('admin:report_demo_add_description_button')}
               </Button>
               <Button size="small" onClick={resetToDefault}>
-                重置
+                {t('common:reset')}
               </Button>
             </Space>
           </Form.Item>
         </Form>
         
         <div style={{ marginTop: '8px' }}>
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>说明行配置：</div>
+          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>{t('admin:report_demo_description_lines_config_title')}</div>
           {reportDescription.map((desc, index) => (
             <div key={index} style={{ display: 'flex', marginBottom: '6px', alignItems: 'center' }}>
               <span style={{ fontSize: '12px', color: '#999', width: '60px', flexShrink: 0 }}>
-                说明{index + 1}：
+                {t('admin:report_demo_description_line_number', { index: index + 1 })}
               </span>
               <Input
                 value={desc}
                 onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                placeholder={`说明行 ${index + 1}`}
+                placeholder={t('admin:report_demo_description_line_placeholder', { index: index + 1 })}
                 size="small"
                 style={{ flex: 1, marginRight: '8px' }}
               />
@@ -192,7 +195,7 @@ const ReportTableDemo: React.FC = () => {
                   onClick={() => removeDescriptionItem(index)}
                   style={{ padding: '0 4px', fontSize: '12px' }}
                 >
-                  删除
+                  {t('common:button.delete')}
                 </Button>
               )}
             </div>

@@ -14,7 +14,12 @@
     "processing": "处理中",
     "error": "错误",
     "active_yes": "是",
-    "active_no": "否"
+    "active_no": "否",
+    "loading": "loading",
+    "enabled": "enabled",
+    "disabled": "disabled",
+    "expired": "expired",
+    "terminated": "terminated"
   },
   "notAvailable": "不可用",
   "unavailable": "不可用",
@@ -64,7 +69,10 @@
     "upload": "上传",
     "expand": "展开",
     "collapse": "收起",
-    "update": "更新"
+    "update": "更新",
+    "backToList": "backToList",
+    "save_config": "save_config",
+    "yes_delete": "yes_delete"
   },
   "label": {
     "username": "用户名",
@@ -82,14 +90,17 @@
     "end_date": "失效日期",
     "remarks": "备注",
     "notes": "备注",
-    "amount": "金额"
+    "amount": "金额",
+    "payroll_period_name": "payroll_period_name",
+    "unknown": "unknown"
   },
   "placeholder": {
     "select": "请选择",
     "input": "请输入",
     "search": "请输入搜索内容",
     "start_date": "开始日期",
-    "end_date": "结束日期"
+    "end_date": "结束日期",
+    "input_remarks": "input_remarks"
   },
   "lookup_select": {
     "placeholder": {
@@ -155,7 +166,8 @@
     "edit": "编辑",
     "delete": "删除",
     "add_child": "添加子项",
-    "column_settings": "自定义显示列"
+    "column_settings": "自定义显示列",
+    "export_data": "export_data"
   },
   "action": {
     "title": "操作",
@@ -191,7 +203,12 @@
     "feature_under_development": "此功能正在开发中，敬请期待。",
     "missing_required_fields": "有必填字段未填写。",
     "missing_required_fields_in_tab_param": "在 {tabName} 标签页中有必填字段未填写。",
-    "column_settings_applied": "列设置已应用"
+    "column_settings_applied": "列设置已应用",
+    "column_settings_reset": "column_settings_reset",
+    "api_not_found": "api_not_found",
+    "method_not_allowed": "method_not_allowed",
+    "submission_error": "submission_error",
+    "operation_failed_default_retry": "operation_failed_default_retry"
   },
   "error": {
     "genericTitle": "发生错误",
@@ -199,7 +216,9 @@
     "database_connection": "数据库连接错误",
     "server_unavailable": "服务器不可用",
     "network_error": "网络连接错误",
-    "please_try_again": "请稍后重试"
+    "please_try_again": "请稍后重试",
+    "unknown_server_error": "unknown_server_error",
+    "title": "title"
   },
   "modal": {
     "title": {
@@ -240,12 +259,24 @@
       "compact": "紧凑",
       "default": "默认",
       "comfortable": "宽松"
-    }
+    },
+    "refreshSuccess": "refreshSuccess",
+    "refreshError": "refreshError",
+    "paginationTotal": "paginationTotal"
   },
   "export": {
     "excel": "导出 Excel",
     "csv": "导出 CSV",
-    "pdf": "导出 PDF"
+    "pdf": "导出 PDF",
+    "filename_default": "filename_default",
+    "sheetName_default": "sheetName_default",
+    "success_message": "success_message",
+    "formatExcel": "formatExcel",
+    "formatCsv": "formatCsv",
+    "formatPdf": "formatPdf",
+    "error_no_data_for_client_export": "error_no_data_for_client_export",
+    "error_message": "error_message",
+    "warn_no_handler": "warn_no_handler"
   },
   "hidden": "隐藏",
   "visible": "显示",
@@ -286,7 +317,9 @@
     "next_page": "下一页",
     "page_info": "第 {{currentPage}} 页 / 共 {{totalPages}} 页",
     "total": "第 {start}-{end} 条 / 共 {total} 条",
-    "total_records": "共 {total} 条记录"
+    "total_records": "共 {total} 条记录",
+    "show_total": "show_total",
+    "total_records_other": "total_records"
   },
   "form": {
     "validation": {
@@ -483,5 +516,55 @@
   "auto____e29aa0": "⚠️ 控制台过滤器已禁用，但无法完全恢复原始方法",
   "auto__react__finddomnode__f09f94": "🔇 React 警告抑制已启用 - findDOMNode 警告将被忽略",
   "auto__react__efbfbd": "�� React 警告抑制已禁用",
-  "auto___f09f94": "🔇 警告抑制已启用"
+  "auto___f09f94": "🔇 警告抑制已启用",
+  "search": {
+    "placeholder": "placeholder"
+  },
+  "column_control": {
+    "button_text": "button_text",
+    "tooltip_title": "tooltip_title",
+    "dropdown_title": "dropdown_title"
+  },
+  "error_unknown": "error_unknown",
+  "language_switched": "language_switched",
+  "theme_toggle": "theme_toggle",
+  "language_toggle": "language_toggle",
+  "auth": {
+    "logout_success": "logout_success",
+    "logout_failed": "logout_failed"
+  },
+  "expand_sidebar": "expand_sidebar",
+  "collapse_sidebar": "collapse_sidebar",
+  "hyperchain_logo": "hyperchain_logo",
+  "yes": "yes",
+  "no": "no",
+  "unit_wan_yuan": "unit_wan_yuan",
+  "payroll_period": "payroll_period",
+  "status_success": "status_success",
+  "status_processing": "status_processing",
+  "status_pending": "status_pending",
+  "status_error": "status_error",
+  "total_amount": "total_amount",
+  "employee_count": "employee_count",
+  "unit_person": "unit_person",
+  "loading_data": "loading_data",
+  "total_employees": "total_employees",
+  "compared_to_last_period": "compared_to_last_period",
+  "monthly_payroll_amount": "monthly_payroll_amount",
+  "average_salary": "average_salary",
+  "unit_yuan": "unit_yuan",
+  "pending_approvals": "pending_approvals",
+  "active_payroll_runs_count_other": "active_payroll_runs_count",
+  "loading_charts": "loading_charts",
+  "payroll_trend_title": "payroll_trend_title",
+  "no_data_available": "no_data_available",
+  "department_salary_distribution_title": "department_salary_distribution_title",
+  "employee_grade_distribution_title": "employee_grade_distribution_title",
+  "recent_payroll_records_title": "recent_payroll_records_title",
+  "required": "required",
+  "records_total": "records_total",
+  "records_valid_other": "records_valid",
+  "records_invalid_other": "records_invalid",
+  "unknown": "unknown",
+  "no_permission_to_view_data": ""
 }

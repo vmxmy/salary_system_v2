@@ -119,47 +119,8 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
       setEntryDetails(response.data);
       
       // 增强的调试输出，检查员工信息详情
-      console.log(t('payroll:auto____f09f93'), {
-        id: response.data.id,
-        employee_id: response.data.employee_id,
-        employee_name: response.data.employee_name,
-        employee_name_type: typeof response.data.employee_name,
-        employee_name_length: response.data.employee_name ? response.data.employee_name.length : 0
-      });
-      
       // Safe logging for earnings_details
-      console.log(t('payroll:auto____f09f92'), {
-        isObject: typeof response.data.earnings_details === 'object' && !Array.isArray(response.data.earnings_details),
-        isArray: Array.isArray(response.data.earnings_details),
-        count: Array.isArray(response.data.earnings_details)
-          ? response.data.earnings_details.length 
-          : (typeof response.data.earnings_details === 'object' && response.data.earnings_details !== null ? Object.keys(response.data.earnings_details).length : 0),
-        firstItem: Array.isArray(response.data.earnings_details) && response.data.earnings_details.length > 0
-          ? response.data.earnings_details[0]
-          : (typeof response.data.earnings_details === 'object' && 
-             response.data.earnings_details !== null && 
-             !Array.isArray(response.data.earnings_details) && // Explicitly not an array
-             Object.keys(response.data.earnings_details).length > 0
-              ? (response.data.earnings_details as Record<string, PayrollItemDetail | { amount: number }>)[Object.keys(response.data.earnings_details)[0]]
-              : null)
-      });
-      
       // Safe logging for deductions_details
-      console.log(t('payroll:auto____f09f92'), {
-        isObject: typeof response.data.deductions_details === 'object' && !Array.isArray(response.data.deductions_details),
-        isArray: Array.isArray(response.data.deductions_details),
-        count: Array.isArray(response.data.deductions_details)
-          ? response.data.deductions_details.length
-          : (typeof response.data.deductions_details === 'object' && response.data.deductions_details !== null ? Object.keys(response.data.deductions_details).length : 0),
-        firstItem: Array.isArray(response.data.deductions_details) && response.data.deductions_details.length > 0
-          ? response.data.deductions_details[0]
-          : (typeof response.data.deductions_details === 'object' && 
-             response.data.deductions_details !== null && 
-             !Array.isArray(response.data.deductions_details) && // Explicitly not an array
-             Object.keys(response.data.deductions_details).length > 0
-              ? (response.data.deductions_details as Record<string, PayrollItemDetail | { amount: number }>)[Object.keys(response.data.deductions_details)[0]]
-              : null)
-      });
       
       // 检查原始API响应中的所有顶级字段
       

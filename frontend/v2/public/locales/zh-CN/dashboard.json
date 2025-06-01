@@ -85,5 +85,34 @@
   "auto_text_e4baa4": "交通补贴",
   "auto_text_e9809a": "通讯补贴",
   "auto__datum_amount_10000_tofixed_2__datum_percentage__247b28": "${(datum.amount / 10000).toFixed(2)} 万元 (${datum.percentage}%)",
-  "auto_text_e69a82": "暂无财政薪酬支出数据"
+  "auto_text_e69a82": "暂无财政薪酬支出数据",
+  "risk_alert": {
+    "budget_overrun_title": "budget_overrun_title",
+    "budget_overrun_description": "budget_overrun_description",
+    "budget_overrun_department": "budget_overrun_department",
+    "audit_finding_title": "audit_finding_title",
+    "audit_finding_description": "audit_finding_description",
+    "audit_finding_department": "audit_finding_department",
+    "salary_standard_violation_title": "salary_standard_violation_title",
+    "salary_standard_violation_description": "salary_standard_violation_description",
+    "salary_standard_violation_department": "salary_standard_violation_department",
+    "fiscal_discipline_title": "fiscal_discipline_title",
+    "fiscal_discipline_description": "fiscal_discipline_description",
+    "fiscal_discipline_department": "fiscal_discipline_department"
+  },
+  "expiring_documents": {
+    "civil_servant_cert": "civil_servant_cert",
+    "job_qualification_cert": "job_qualification_cert",
+    "social_security_card": "social_security_card",
+    "clean_gov_commitment": "clean_gov_commitment",
+    "other_certs": "other_certs"
+  },
+  "compliance": {
+    "audit_compliance": "audit_compliance",
+    "fiscal_discipline": "fiscal_discipline",
+    "civil_servant_law": "civil_servant_law",
+    "salary_standard": "salary_standard",
+    "budget_compliance": "budget_compliance",
+    "anti_corruption": "anti_corruption"
+  }
 }
