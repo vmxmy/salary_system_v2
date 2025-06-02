@@ -63,28 +63,8 @@ const { Text } = Typography;
 
 
 const MainLayout: React.FC = () => {
-  const { t, i18n, ready } = useTranslation([
-    'pageTitle', 
-    'common', 
-    'user_menu', 
-    'tour', 
-    'hr', 
-    'employee',
-    'admin',
-    'auth',
-    'dashboard',
-    'department',
-    'jobTitle',
-    'manager',
-    'myPayslips',
-    'myInfo',
-    'payroll',
-    'permission',
-    'role',
-    'user',
-    'personnelCategory',
-    'menu'
-  ]); // 确保包含所有可能需要的命名空间
+  const { t, i18n, ready } = useTranslation(['common', 'menu']);
+
   const [collapsed, setCollapsed] = useState(false); // 侧边栏默认展开
   const [openKeys, setOpenKeys] = useState<string[]>([]); // 添加openKeys状态
   const navigate = useNavigate();
@@ -227,7 +207,7 @@ const MainLayout: React.FC = () => {
           // For keys like "hr:bulk_import.page_title", t function handles namespace.
           // For keys like "dashboard", it will use defaultNS or specified ns in useTranslation.
           // The namespaces provided to useTranslation at the top should cover all cases.
-          translatedName = t(nameKey, { defaultValue: nameKey });
+          translatedName = t(nameKey, { ns: 'menu', defaultValue: nameKey });
         } else if (!ready && route?.meta?.title) {
           // If not ready, use the key itself or a placeholder
           translatedName = nameKey; // Or some loading indicator like "Loading..."
@@ -244,7 +224,7 @@ const MainLayout: React.FC = () => {
   const breadcrumbItems = [
     {
       key: 'home',
-      title: <Link to="/dashboard"><HomeOutlined /></Link>,
+      title: <Link to="/dashboard"><HomeOutlined />{t('menu:home')}</Link>,
     },
     ...extraBreadcrumbItems,
   ];
@@ -252,36 +232,21 @@ const MainLayout: React.FC = () => {
   // Set document title effect
   useEffect(() => {
     if (ready) {
-      let currentTitleKey = 'sider.title.full'; // Default title key
-      let titleNs = ['pageTitle', 'common', 'hr', 'user_menu', 'tour', 'auth', 'admin', 'payroll']; // Add all relevant namespaces
+      let currentTitleKey = 'menu:home'; // Default to a menu key, e.g., home
+      // No need for titleNs array if we consistently use keys with namespaces
 
       const currentRoute = allAppRoutes.find(r => location.pathname === r.path || (r.path && location.pathname.startsWith(r.path + '/') && r.path !== '/'));
       
       if (currentRoute?.meta?.title) {
-        currentTitleKey = currentRoute.meta.title;
+        currentTitleKey = currentRoute.meta.title; // This should already be like 'menu:dashboard'
       }
       
-      // Heuristic to determine if the key already contains a namespace
-      if (!currentTitleKey.includes(':')) {
-         // If no namespace in key, and it's a common page title, prefix with 'pageTitle'
-         // This might need adjustment based on how keys are structured.
-         // For now, we assume keys like 'dashboard', 'user_management' are in 'pageTitle' ns.
-         // Keys like 'hr:bulk_import.page_title' already have their ns.
-        if (['dashboard', 'system_management', 'user_management', 'role_management', 'permission_management', 'system_configuration', 'organization_structure', 'department_management', 'job_title_management', 'hr_management', 'employee_list', 'create_employee', 'employee_details', 'edit_employee', 'leave_management', 'finance_management', 'payroll_calculation', 'manager_view', 'employee_hub', 'my_info', 'my_payslips', 'not_found', 'login', 'unauthorized', 'employee_center', 'periods', 'bulk_import_employees'].includes(currentTitleKey)) {
-             currentTitleKey = `pageTitle:${currentTitleKey}`;
-        }
-      }
-      
-      const appBaseTitle = t('sider.title.full', { ns: 'pageTitle', defaultValue: "Salary System" });
-      const dynamicTitle = t(currentTitleKey, { ns: titleNs, defaultValue: currentTitleKey.substring(currentTitleKey.indexOf(':') + 1) });
+      // For keys like "menu:dashboard", t function handles namespace automatically if it's available.
+      // We explicitly pass `ns: 'menu'` just in case, though i18next should handle it based on the key itself.
+      const appBaseTitle = t('sider.title.full', { ns: 'common', defaultValue: "Salary System" });
+      const dynamicTitle = t(currentTitleKey, { ns: 'menu', defaultValue: currentTitleKey }); // Explicitly use menu namespace
 
-      if (dynamicTitle && dynamicTitle !== currentTitleKey.substring(currentTitleKey.indexOf(':') + 1)) { // check if translation was successful
-        document.title = `${dynamicTitle} - ${appBaseTitle}`;
-      } else if (currentRoute?.meta?.title) { // Fallback to key if translation fails but key exists
-        document.title = `${currentRoute.meta.title} - ${appBaseTitle}`;
-      } else {
-        document.title = appBaseTitle;
-      }
+      document.title = `${dynamicTitle} - ${appBaseTitle}`;
     }
   }, [location.pathname, t, ready, allAppRoutes]);
 
@@ -289,20 +254,20 @@ const MainLayout: React.FC = () => {
   const organizationChildren = [
     // These labels come from route.meta.title via allAppRoutes, so they will be translated if link text is derived from it in Menu items.
     // Or, if Menu items are constructed with explicit labels, those labels need t()
-    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">{ready ?      t('pageTitle:department_management'): 'Departments'}</Link>, icon: <BranchesOutlined /> },
-    { key: '/admin/organization/job-titles', label: <Link to="/admin/organization/job-titles">{ready ?      t('pageTitle:job_title_management'): 'Job Titles'}</Link>, icon: <IdcardOutlined /> },
+    { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">{t('menu:organization.departments')}</Link>, icon: <BranchesOutlined /> },
+    { key: '/admin/organization/positions', label: <Link to="/admin/organization/job-titles">{t('menu:organization.positions')}</Link>, icon: <IdcardOutlined /> },
   ];
 
   const adminChildren = useMemo(() => {
     const baseAdminChildren = [
-      { key: '/admin/users', label: <Link to="/admin/users">t('pageTitle:user_management')</Link>, icon: <TeamOutlined /> },
-      { key: '/admin/roles', label: <Link to="/admin/roles">t('pageTitle:role_management')</Link>, icon: <UserSwitchOutlined /> },
-      { key: '/admin/config', label: <Link to="/admin/config">t('pageTitle:system_configuration')</Link>, icon: <ControlOutlined /> },
+      { key: '/admin/users', label: <Link to="/admin/users">{t('menu:admin.users')}</Link>, icon: <TeamOutlined /> },
+      { key: '/admin/roles', label: <Link to="/admin/roles">{t('menu:admin.roles')}</Link>, icon: <UserSwitchOutlined /> },
+      { key: '/admin/config', label: <Link to="/admin/config">{t('menu:admin.systemSettings')}</Link>, icon: <ControlOutlined /> },
     ];
     if (hasRole('SUPER_ADMIN')) {
       const permissionsLink = {
         key: '/admin/permissions',
-        label: <Link to="/admin/permissions">t('pageTitle:permission_management')</Link>,
+        label: <Link to="/admin/permissions">{t('menu:admin.permissions')}</Link>,
         icon: <SafetyOutlined />,
       };
       const rolesIndex = baseAdminChildren.findIndex(child => child.key === '/admin/roles');
@@ -315,12 +280,35 @@ const MainLayout: React.FC = () => {
     return baseAdminChildren;
   }, [hasRole, t, ready]); // Added t and ready
 
+  // 定义 testChildren
+  const testChildren = useMemo(() => [
+    {
+      path: '/test/employee-list-v3',
+      titleKey: 'test.employeeListV3',
+      component: './HRManagement/employees/EmployeeListPageV3',
+    },
+    {
+      path: '/test/report-table-demo',
+      titleKey: 'test.reportTableDemo',
+      component: './Admin/ReportTableDemoPage',
+    },
+    {
+      path: '/test/report-template-demo',
+      titleKey: 'test.reportTemplateDemo',
+      component: './Admin/ReportTemplateDemoPage',
+    },
+  ], []);
+
   const organizationMenuItem = useMemo(() => ({
     key: '/admin/organization',
-    label: t('pageTitle:organization_structure'),
+    label: <span>{t('menu:organization.title', { defaultValue: 'Organization' })}</span>,
     icon: <ApartmentOutlined />,
-    children: organizationChildren, 
-  }), [organizationChildren, t, ready]); // Added t and ready
+    children: [
+      { key: '/admin/organization/departments', label: <Link to="/admin/organization/departments">{t('menu:organization.departments')}</Link>, icon: <BranchesOutlined /> },
+      { key: '/admin/organization/personnel-categories', label: <Link to="/admin/organization/personnel-categories">{t('menu:organization.personnelCategories')}</Link>, icon: <IdcardOutlined /> },
+      { key: '/admin/organization/positions', label: <Link to="/admin/organization/positions">{t('menu:organization.positions')}</Link>, icon: <UserSwitchOutlined /> },
+    ],
+  }), [t, ready]);
 
   // 添加员工权限hook
   const { canCreate: canCreateEmployee } = useEmployeePermissions();
@@ -329,11 +317,11 @@ const MainLayout: React.FC = () => {
     const children = [
       {
         key: '/hr/employees',
-        label: <Link to="/hr/employees">t('pageTitle:employee_files')</Link>, 
+        label: <Link to="/hr/employees">{t('menu:hr.employees')}</Link>, 
         icon: <TeamOutlined />, 
       },
       {
-        label: <Link to="/hr/employees/new">t('pageTitle:create_employee')</Link>, // Ensure key matches path used in routes.tsx for creation
+        label: <Link to="/hr/employees/new">{t('menu:hr.employeesNew')}</Link>, // Ensure key matches path used in routes.tsx for creation
         key: '/hr/employees/new', // Corrected from /hr/employees/create if routes.tsx uses /new
         icon: <UserAddOutlined />,
       },
@@ -342,7 +330,7 @@ const MainLayout: React.FC = () => {
     // Conditionally add Bulk Import if user has permission
     if (canCreateEmployee) { 
       children.push({
-        label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">t('pageTitle:bulk_import_employees')</Link>,
+        label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">{t('menu:hr.employeesBulkImport')}</Link>,
         key: '/hr/employees/bulk-import',
         icon: <UploadOutlined />, // Using UploadOutlined as an example
       });
@@ -353,7 +341,7 @@ const MainLayout: React.FC = () => {
     if (hasPermission('leave:manage')) { // Or appropriate permission for leave management visibility
       children.push({
         key: '/hr/leave', 
-        label: <Link to="/hr/leave">t('pageTitle:leave_management')</Link>,
+        label: <Link to="/hr/leave">{t('menu:hr.myLeave')}</Link>, // Assuming this links to manager's leave approvals or a shared translation
         icon: <CalendarOutlined />,
       });
     }
@@ -363,7 +351,7 @@ const MainLayout: React.FC = () => {
 
   const hrManagementMenuItem = useMemo(() => ({
     key: '/hr',
-    label: ready ?      t('pageTitle:hr_management'): 'HR Management',
+    label: <span>{t('menu:hr.title', { defaultValue: 'HR Management' })}</span>,
     icon: <UsergroupAddOutlined />,
     children: hrManagementChildren,
   }), [hrManagementChildren, t, ready]);
@@ -377,24 +365,29 @@ const MainLayout: React.FC = () => {
     coreBusinessItems.push({
       key: '/dashboard',
       icon: <DashboardOutlined />,
-      label: <Link to="/dashboard" id="tour-dashboard-link">t('pageTitle:dashboard')</Link>,
+      label: <Link to="/dashboard" id="tour-dashboard-link">{t('menu:dashboard', { defaultValue: 'Dashboard' })}</Link>,
     });
 
     // 2. 个人中心 - 个人功能
     coreBusinessItems.push({
-      key: '/employee-info',
+      key: '/personal',
       icon: <SolutionOutlined />,
-      label: t('pageTitle:employee_center'),
+      label: <span>{t('menu:personal.title', { defaultValue: 'Personal Center' })}</span>,
       children: [
         {
           key: '/employee-info/my-info',
-          label: <Link to="/employee-info/my-info">t('pageTitle:my_info')</Link>,
+          label: <Link to="/employee-info/my-info">{t('menu:personal.myInfo', { defaultValue: 'My Information' })}</Link>,
           icon: <UserOutlined />,
         },
         {
           key: '/employee-info/my-payslips',
-          label: <Link to="/employee-info/my-payslips">t('pageTitle:my_payslips')</Link>,
+          label: <Link to="/employee-info/my-payslips">{t('menu:personal.myPayslips', { defaultValue: 'My Payslips' })}</Link>,
           icon: <ProfileOutlined />,
+        },
+        {
+          key: '/personal/leave',
+          label: <Link to="/personal/leave">{t('menu:personal.myLeave', { defaultValue: 'My Leave' })}</Link>,
+          icon: <CalendarOutlined />,
         },
       ],
     });
@@ -403,12 +396,12 @@ const MainLayout: React.FC = () => {
     if (hasPermission('report:view_reports')) {
       coreBusinessItems.push({
         key: '/view-reports',
-        label: t('menu:viewReports'),
-        icon: <DatabaseOutlined />,
+        label: <span>{t('menu:viewReports.title', { defaultValue: 'View Reports' })}</span>,
+        icon: <EyeOutlined />,
         children: [
           {
             key: '/view-reports/management',
-            label: <Link to="/view-reports/management">t('menu:viewReportsManagement')</Link>,
+            label: <Link to="/view-reports/management">{t('menu:viewReports.management', { defaultValue: 'Report Management' })}</Link>,
             icon: <EyeOutlined />,
           },
         ],
@@ -420,42 +413,42 @@ const MainLayout: React.FC = () => {
     if (hasPermission(P_PAYROLL_PERIOD_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/periods',
-        label: <Link to="/finance/payroll/periods">t('pageTitle:payroll_periods')</Link>,
+        label: <Link to="/finance/payroll/periods">{t('menu:payroll.periods', { defaultValue: 'Payroll Periods' })}</Link>,
         icon: <CalendarOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_RUN_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/runs',
-        label: <Link to="/finance/payroll/runs">t('pageTitle:payroll_runs')</Link>,
+        label: <Link to="/finance/payroll/runs">{t('menu:payroll.runs', { defaultValue: 'Payroll Runs' })}</Link>,
         icon: <CalculatorOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_ENTRY_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/entry',
-        label: <Link to="/finance/payroll/entry">t('pageTitle:payroll_entry')</Link>,
+        label: <Link to="/finance/payroll/entry">{t('menu:payroll.entry', { defaultValue: 'Payroll Entry' })}</Link>,
         icon: <EditOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_ENTRY_BULK_IMPORT)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/bulk-import',
-        label: <Link to="/finance/payroll/bulk-import">t('payroll:page_title.payroll_bulk_import')</Link>,
+        label: <Link to="/finance/payroll/bulk-import">{t('menu:payroll.bulkImport', { defaultValue: 'Payroll Bulk Import' })}</Link>,
         icon: <UploadOutlined />,
       });
     }
     if (hasPermission(P_PAYROLL_COMPONENT_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/components',
-        label: <Link to="/finance/payroll/components">t('payroll:page_title.payroll_components')</Link>,
+        label: <Link to="/finance/payroll/components">{t('menu:payroll.components', { defaultValue: 'Payroll Components' })}</Link>,
         icon: <ProfileOutlined />,
       });
     }
     
     const currentPayrollManagementMenuItem = currentPayrollManagementChildren.length > 0 ? {
       key: '/finance/payroll',
-      label: t('pageTitle:payroll_management'),
+      label: <span>{t('menu:payroll.title', { defaultValue: 'Payroll Management' })}</span>,
       icon: <DollarCircleOutlined />,
       children: currentPayrollManagementChildren,
     } : null;
@@ -478,21 +471,21 @@ const MainLayout: React.FC = () => {
     if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
       managerChildren.push({
         key: '/manager/subordinates',
-        label: <Link to="/manager/subordinates">t('pageTitle:subordinates')</Link>,
+        label: <Link to="/manager/subordinates">{t('menu:manager.subordinates', { defaultValue: 'Subordinates' })}</Link>,
         icon: <TeamOutlined />,
       });
     }
     if (hasPermission(P_MANAGER_LEAVE_APPROVALS_VIEW)) {
       managerChildren.push({
         key: '/manager/leave-approvals',
-        label: <Link to="/manager/leave-approvals">t('pageTitle:leave_approvals')</Link>,
+        label: <Link to="/manager/leave-approvals">{t('menu:manager.leaveApprovals', { defaultValue: 'Leave Approvals' })}</Link>,
         icon: <CalendarOutlined />,
       });
     }
 
     const managerMenuItem = managerChildren.length > 0 ? {
       key: '/manager',
-      label: t('pageTitle:manager_view'),
+      label: <span>{t('menu:manager.title', { defaultValue: 'Manager View' })}</span>,
       icon: <UserSwitchOutlined />,
       children: managerChildren,
     } : null;
@@ -504,19 +497,32 @@ const MainLayout: React.FC = () => {
     // ========== 系统配置模块 ==========
     const systemConfigItems = [];
 
-    // 8. 系统管理 - 保持原有结构
-    systemConfigItems.push({
+    // 8. 系统管理 - 拥有admin权限才显示
+    const adminMenuItem = {
       key: '/admin',
+      label: <span>{t('menu:admin.title', { defaultValue: 'System Management' })}</span>,
       icon: <SettingOutlined />,
-      label: t('pageTitle:system_management'),
       children: adminChildren,
-    });
+    };
+    if (hasRole('admin') || hasRole('SUPER_ADMIN')) {
+      systemConfigItems.push(adminMenuItem);
+    }
+
+    // 9. 测试页面 - 仅开发模式下显示
+    if (import.meta.env.DEV) {
+      systemConfigItems.push({
+        key: '/test',
+        label: <span>{t('menu:test.title', { defaultValue: 'Test Page' })}</span>,
+        icon: <CalculatorOutlined />,
+        children: testChildren,
+      });
+    }
 
     // ========== 构建最终菜单 ==========
     // 按照业务重要性和逻辑关系排序：
     // 1. 核心业务模块：仪表盘、个人中心、视图报表、薪资管理、员工管理
     // 2. 管理功能模块：组织架构、经理视图
-    // 3. 系统配置模块：系统管理
+    // 3. 系统配置模块：系统管理和测试页面
     const finalItems = [
       ...coreBusinessItems,      // 核心业务优先
       ...managementItems,        // 管理功能其次
@@ -524,7 +530,7 @@ const MainLayout: React.FC = () => {
     ];
 
     return finalItems;
-  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, t, ready]);
+  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, organizationMenuItem, t, ready, testChildren, i18n.language]); // Added i18n.language
   
   // 获取当前选中的菜单项key
   const selectedKeys = useMemo(() => {
@@ -532,7 +538,7 @@ const MainLayout: React.FC = () => {
     let selectedKey = '';
     // 优先完全匹配或子路径匹配
     for (const item of siderMenuItems) {
-      if (!item) continue; // Skip null items (like payrollManagementMenuItem if it's null)
+      if (!item || !('key' in item)) continue; // Skip null or invalid items
       if (item.key === currentPath) {
         selectedKey = item.key as string;
         break;
@@ -540,7 +546,8 @@ const MainLayout: React.FC = () => {
       // Check if children exists and is an array before iterating
       if ('children' in item && item.children && Array.isArray(item.children)) {
         for (const child of item.children) {
-          if (child && child.key === currentPath) {
+          if (!child || !('key' in child)) continue; // Skip null or invalid child items
+          if (child.key === currentPath) {
             selectedKey = child.key as string;
             break;
           }
@@ -564,7 +571,7 @@ const MainLayout: React.FC = () => {
     // 获取所有有子菜单的菜单项的key，让它们默认展开
     const openKeys: string[] = [];
     siderMenuItems.forEach(item => {
-      if (item && 'children' in item && item.children && Array.isArray(item.children) && item.children.length > 0) {
+      if (item && 'key' in item && 'children' in item && item.children && Array.isArray(item.children) && item.children.length > 0) {
         openKeys.push(item.key as string);
       }
     });
@@ -582,7 +589,7 @@ const MainLayout: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="light">
         <div style={{ height: '32px', margin: '16px', background: 'rgba(0, 0, 0, 0.05)', textAlign: 'center', lineHeight: '32px', color: '#454552', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          {collapsed ?      t('common:sider.title.collapsed'): t('common:sider.title.full')}
+          {collapsed ? t('common:sider.title.collapsed'): t('common:sider.title.full')}
         </div>
         <Menu
           theme="light"
@@ -617,16 +624,16 @@ const MainLayout: React.FC = () => {
         <Content style={{ margin: '0 16px' }}>
           <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />
           <div style={{ padding: 24, minHeight: 360, background: '#fff', borderRadius: '8px' }}>
-            <React.Suspense fallback={<div className="page-loading-suspense">t('common:loading.generic_loading_text', 'Loading page content...')</div>}>
+            <React.Suspense fallback={<div className="page-loading-suspense">{t('common:loading_page_content')}</div>}>
               <Outlet />
             </React.Suspense>
           </div>
         </Content>
         <Footer style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 24px' }}>
           <span style={{ marginRight: '8px' }}>
-            t('common:footer.copyright') ©{new Date().getFullYear()}
+            {t('common:footer.copyright_text')} ©{new Date().getFullYear()}
           </span>
-          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt')} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
+          <img src={hyperchainLogoPath} alt={t('common:footer.hyperchain_logo_alt_text')} style={{ height: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
           <span style={{ verticalAlign: 'middle' }}>
           </span>
         </Footer>

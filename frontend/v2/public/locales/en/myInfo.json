@@ -1,22 +1,16 @@
 {
-  "title": "My Information",
-  "employeeCode": "Employee ID",
   "sectionTitles": {
-    "personal": "Personal Information",
-    "contact": "Contact Information",
-    "employment": "Employment Information",
     "bank": "Banking Information",
-    "emergency": "Emergency Contact"
+    "contact": "Contact Information",
+    "emergency": "Emergency Contact",
+    "employment": "Employment Information",
+    "personal": "Personal Information"
   },
   "tabTitles": {
-    "personalContact": "Personal & Contact",
     "employment": "Employment",
-    "financialOther": "Financial & Other"
+    "financialOther": "Financial & Other",
+    "personalContact": "Personal & Contact"
   },
-  "fetchErrorUnauthorized": "Failed to load your information. This might be an authorization issue. Please try logging in again.",
-  "fetchError": "Failed to load your information.",
-  "noEmployeeIdError": "Employee ID is not available. Cannot display information.",
-  "noData": "No employee information available.",
-  "employeeIdLabel": "employeeIdLabel",
-  "usernameLabel": "usernameLabel"
+  "title": "My Info",
+  "usernameLabel": "Username"
 }

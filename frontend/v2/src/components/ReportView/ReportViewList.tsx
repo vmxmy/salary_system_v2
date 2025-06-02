@@ -293,7 +293,7 @@ const ReportViewList: React.FC<ReportViewListProps> = ({
           total,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total, range) => t('components:auto__range_0_range_1___total__e7acac'),
+          showTotal: (total, range) => t('components:auto__range_0_range_1___total__e7acac', { range0: range[0], range1: range[1], total }),
           onChange: (page, pageSize) => {
             setPagination({ page, page_size: pageSize || 20 });
           },

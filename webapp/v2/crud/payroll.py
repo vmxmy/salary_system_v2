@@ -158,23 +158,40 @@ def get_payroll_runs(
     
     runs = query.all()
     
-    # 计算每个 run 的员工数量
+    # 计算每个 run 的员工数量和薪资总额
     for run in runs:
         # 计算该 run 下的员工数量
         employee_count = db.query(PayrollEntry.employee_id).filter(
             PayrollEntry.payroll_run_id == run.id
         ).distinct().count()
         
-        # 动态添加 total_employees 属性
+        # 计算该 run 下的薪资总额
+        total_net_pay = db.query(func.sum(PayrollEntry.net_pay)).filter(
+            PayrollEntry.payroll_run_id == run.id
+        ).scalar() or Decimal(0)
+        
+        # 动态添加 total_employees 和 total_net_pay 属性
         run.total_employees = employee_count
+        run.total_net_pay = total_net_pay
     
     return runs, total
 
-def get_payroll_run(db: Session, run_id: int) -> Optional[PayrollRun]:
-    run = db.query(PayrollRun).options(
+
+def get_payroll_run(db: Session, run_id: int, include_employee_details: bool = False) -> Optional[PayrollRun]:
+    print(f"CRUD: Entered get_payroll_run with run_id={run_id}, include_employee_details={include_employee_details}")
+    # 构建基础查询
+    query = db.query(PayrollRun).options(
         selectinload(PayrollRun.payroll_period),
         selectinload(PayrollRun.status)
-    ).filter(PayrollRun.id == run_id).first()
+    )
+    
+    # 如果需要包含员工详细信息，加载entries和employee
+    if include_employee_details:
+        query = query.options(
+            selectinload(PayrollRun.entries).selectinload(PayrollEntry.employee)
+        )
+    
+    run = query.filter(PayrollRun.id == run_id).first()
     
     if run:
         # 计算该 run 下的员工数量
@@ -182,8 +199,14 @@ def get_payroll_run(db: Session, run_id: int) -> Optional[PayrollRun]:
             PayrollEntry.payroll_run_id == run.id
         ).distinct().count()
         
-        # 动态添加 total_employees 属性
+        # 计算该 run 下的薪资总额
+        total_net_pay = db.query(func.sum(PayrollEntry.net_pay)).filter(
+            PayrollEntry.payroll_run_id == run.id
+        ).scalar() or Decimal(0)
+        
+        # 动态添加 total_employees 和 total_net_pay 属性
         run.total_employees = employee_count
+        run.total_net_pay = total_net_pay
     
     return run
 

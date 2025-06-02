@@ -9,6 +9,9 @@ from .payroll import router as payroll_router
 from .security import router as security_router
 from .auth import router as auth_router
 from .reports import router as reports_router
+from .calculation_config import router as calculation_config_router
+from .payroll_calculation import router as payroll_calculation_router
+from .attendance import router as attendance_router
 
 __all__ = [
     "employees_router",
@@ -21,4 +24,7 @@ __all__ = [
     "security_router",
     "auth_router",
     "reports_router",
+    "calculation_config_router",
+    "payroll_calculation_router",
+    "attendance_router",
 ]

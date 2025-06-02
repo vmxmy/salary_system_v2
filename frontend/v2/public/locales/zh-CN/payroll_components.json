@@ -1,141 +1,38 @@
 {
-  "title": "薪资字段管理",
-  "add": "添加字段",
-  "edit": "编辑字段",
-  "code": "编码",
-  "name": "名称",
-  "type": "类型",
-  "type_earning": "收入项",
-  "type_deduction": "扣除项",
-  "is_taxable": "是否计税",
-  "is_social_security_base": "社保基数项",
-  "is_housing_fund_base": "公积金基数项",
-  "sort_order": "排序顺序",
-  "options": "选项设置",
-  "create_success": "字段创建成功",
-  "update_success": "字段更新成功",
-  "delete_success": "字段删除成功",
-  "export": {
-    "filename": "薪资字段",
-    "sheet_name": "薪资字段数据"
-  },
   "common": {
-    "yes": "是",
+    "actions": "操作",
+    "active": "启用",
+    "delete": "删除",
+    "description": "描述",
+    "edit": "编辑",
+    "error": {
+      "fetch": ""
+    },
+    "inactive": "禁用",
     "no": "否",
     "status": "状态",
-    "active": "启用",
-    "inactive": "禁用",
-    "actions": "操作",
-    "search": "搜索",
-    "reset": "重置",
-    "min": "最小值",
-    "max": "最大值",
-    "filter": "筛选",
-    "confirmDelete": "确认删除",
-    "total_items": "总条数",
-    "description": "描述",
     "validation": {
       "required": "必填项"
     },
-    "pagination": {
-      "show_total": "第 {range0}-{range1} 条 / 共 {total} 条"
-    },
-    "view_details": "查看详情",
-    "button": {
-      "close": "关闭"
-    },
-    "loading": "加载中...",
     "view": "查看",
-    "edit": "编辑",
-    "delete": "删除"
+    "view_details": "查看详情",
+    "yes": "是"
   },
   "payroll_components": {
-    "title": "薪资字段管理",
     "add": "添加字段",
-    "edit": "编辑字段",
     "code": "编码",
-    "name": "名称",
-    "type": "类型",
-    "type_earning": "收入项",
-    "type_deduction": "扣除项",
-    "is_taxable": "是否计税",
-    "is_social_security_base": "社保基数项",
-    "is_housing_fund_base": "公积金基数项",
-    "sort_order": "排序顺序",
-    "options": "选项设置",
+    "create_failed": "",
     "create_success": "字段创建成功",
-    "update_success": "字段更新成功",
-    "delete_success": "字段删除成功",
-    "export": {
-      "filename": "薪资字段",
-      "sheet_name": "薪资字段数据"
-    }
-  },
-  "page": {
-    "payroll_components": {
-      "title": "薪资组成项",
-      "description": "管理系统中的所有薪资组成部分，例如基本工资、奖金、扣除项等。",
-      "add_component": "添加薪资项",
-      "table": {
-        "name": "名称",
-        "type": "类型",
-        "category": "类别",
-        "calculation_method": "计算方法",
-        "status": "状态",
-        "actions": "操作"
-      },
-      "form": {
-        "name": {
-          "label": "名称",
-          "placeholder": "请输入薪资项名称"
-        },
-        "type": {
-          "label": "类型",
-          "placeholder": "请选择类型",
-          "options": {
-            "earning": "收入项",
-            "deduction": "扣除项"
-          }
-        },
-        "category": {
-          "label": "类别",
-          "placeholder": "请选择类别"
-        },
-        "calculation_method": {
-          "label": "计算方法",
-          "placeholder": "请选择计算方法",
-          "options": {
-            "fixed": "固定金额",
-            "percentage": "百分比",
-            "formula": "公式计算"
-          }
-        },
-        "value": {
-          "label": "值/百分比/公式",
-          "placeholder": "请输入具体数值、百分比或计算公式"
-        },
-        "taxable": {
-          "label": "是否计税"
-        },
-        "description": {
-          "label": "描述",
-          "placeholder": "请输入薪资项描述信息"
-        }
-      },
-      "status": {
-        "active": "启用",
-        "inactive": "禁用"
-      },
-      "filter": {
-        "all": "全部",
-        "active": "已启用",
-        "inactive": "已禁用"
-      },
-      "details": {
-        "title": "薪资项详情",
-        "created_at": "创建于",
-        "updated_at": "更新于"
-      }
-    }
+    "edit": "编辑字段",
+    "is_housing_fund_base": "公积金基数项",
+    "is_social_security_base": "社保基数项",
+    "is_taxable": "是否计税",
+    "name": "名称",
+    "sort_order": "排序顺序",
+    "type": "类型",
+    "type_deduction": "扣除项",
+    "type_earning": "收入项",
+    "update_failed": "",
+    "update_success": "字段更新成功"
   }
 }

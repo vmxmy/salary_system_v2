@@ -27,16 +27,17 @@ export const i18nInitOptions = {
     'manager',
     'myPayslips', 
     'myInfo', 
-    'pageTitle',
-    'payroll',
-    'payroll_runs',
-    'permission',
-    'role',
-    'user',
+    'profile',
+    'user_profile',
     'personnelCategory',
     'hr',
     'tour',
-    'user_menu' // 确保包含所有命名空间
+    'user_menu',
+    'report',
+    'employee',
+    'role',
+    'admin', // Added admin namespace
+    'menu' // Added menu namespace
   ],
   defaultNS: 'common', 
   backend: {
@@ -47,8 +48,9 @@ export const i18nInitOptions = {
   },
   interpolation: {
     escapeValue: false,
+    keySeparator: '.', // 显式设置键分隔符
+    nsSeparator: ':',  // 显式设置命名空间分隔符
   },
-  returnObjects: true, // 启用返回对象选项，解决访问对象警告
   detection: {
     order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag'],
     caches: ['localStorage', 'cookie'], // Add common caches

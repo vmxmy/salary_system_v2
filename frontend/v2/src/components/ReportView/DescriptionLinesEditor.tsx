@@ -19,6 +19,7 @@ const DescriptionLinesEditor: React.FC<DescriptionLinesEditorProps> = ({
   value = [],
   onChange,
   disabled = false,
+  placeholder,
 }) => {
   const { t } = useTranslation();
   const defaultPlaceholder = t('reportView:description_lines_placeholder');

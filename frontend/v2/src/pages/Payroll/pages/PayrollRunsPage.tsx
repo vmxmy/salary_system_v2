@@ -1,487 +1,432 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  Tag,
+  Table,
   Button,
-  Alert,
   Space,
-  Modal, 
+  Modal,
   Form,
   message,
+  Card,
   Typography,
   Tooltip,
+  Tag,
+  Spin,
+  Alert,
+  Select,
+  DatePicker,
+  Input,
+  Row,
+  Col,
 } from 'antd';
-import { PlusOutlined, CheckCircleOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  CalculatorOutlined,
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  CheckCircleOutlined,
+  DownloadOutlined,
+  DatabaseOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import PageLayout from '../../../components/common/PageLayout';
-import PermissionGuard from '../../../components/common/PermissionGuard';
-import TableActionButton from '../../../components/common/TableActionButton';
-import { format } from 'date-fns';
-import type { ProColumns } from '@ant-design/pro-components';
-import EnhancedProTable from '../../../components/common/EnhancedProTable';
 import dayjs from 'dayjs';
+import type { ColumnsType } from 'antd/es/table';
 
-import type { PayrollRun, ApiListMeta, PayrollPeriod, UpdatePayrollRunPayload, CreatePayrollRunPayload } from '../types/payrollTypes';
-import { 
-  getPayrollRuns, 
-  createPayrollRun, 
+import PayrollCalculationPreview from '../components/PayrollCalculationPreview';
+import StatusTag from '../../../components/common/StatusTag';
+import TableActionButton from '../../../components/common/TableActionButton';
+
+import type { PayrollRun, PayrollPeriod } from '../types/payrollTypes';
+import type { CalculationRequest, CalculationResult } from '../types/calculationConfig';
+import {
+  getPayrollRuns,
+  createPayrollRun,
   updatePayrollRun,
   deletePayrollRun,
   exportPayrollRunBankFile,
+  getPayrollPeriods,
 } from '../services/payrollApi';
-import PayrollRunForm, { type PayrollRunFormData } from '../components/PayrollRunForm';
+import { payrollCalculationApi } from '../services/payrollCalculationApi';
 import { getPayrollRunStatusInfo, PAYROLL_RUN_STATUS_OPTIONS } from '../utils/payrollUtils';
-import {
-  P_PAYROLL_RUN_MANAGE,
-  P_PAYROLL_RUN_MARK_AS_PAID,
-  P_PAYROLL_RUN_EXPORT_BANK_FILE,
-  P_PAYROLL_RUN_VIEW
-} from '../constants/payrollPermissions';
 
-// ✅ 调试开关：设置为true时使用模拟数据，跳过真实API调用
-const USE_MOCK_API = false; // 可以临时改为true进行调试
+const { Title } = Typography;
+const { Option } = Select;
 
 const PayrollRunsPage: React.FC = () => {
-  const { t } = useTranslation(['payroll_runs', 'common']);
-  
-  const fetchCallCountRef = useRef(0);
-  
-  const [runs, setRuns] = useState<PayrollRun[]>([]);
-  const [meta, setMeta] = useState<ApiListMeta | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [modalError, setModalError] = useState<string | null>(null);
-
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [modalLoading, setModalLoading] = useState<boolean>(false);
-  const [currentRun, setCurrentRun] = useState<Partial<PayrollRun> | null>(null);
-  
-  const [form] = Form.useForm<PayrollRunFormData>();
+  const { t } = useTranslation(['payroll', 'common']);
   const navigate = useNavigate();
+  const [form] = Form.useForm();
 
-  console.log({
-    runsCount: runs.length,
-    loading,
-    error,
-    meta,
-    isModalVisible,
-    modalLoading,
-    fetchCallCount: fetchCallCountRef.current,
-  });
+  // 数据状态
+  const [runs, setRuns] = useState<PayrollRun[]>([]);
+  const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingRun, setEditingRun] = useState<PayrollRun | null>(null);
 
-  // ✅ 使用useRef保存最新值，避免依赖问题
-  const metaRef = useRef(meta);
-  const currentRunRef = useRef(currentRun);
-  
-  // 更新ref值
-  metaRef.current = meta;
-  currentRunRef.current = currentRun;
+  // 计算相关状态
+  const [calculationPreviewVisible, setCalculationPreviewVisible] = useState(false);
+  const [calculationRequest, setCalculationRequest] = useState<CalculationRequest | null>(null);
+  const [selectedPeriodForCalculation, setSelectedPeriodForCalculation] = useState<PayrollPeriod | null>(null);
 
-  const fetchRuns = useCallback(async (page = 1, pageSize = 10, payrollPeriodId?: number) => {
-    fetchCallCountRef.current += 1;
-    const fetchStartTime = Date.now();
-    
-    // ✅ 检测潜在的无限循环
-    if (fetchCallCountRef.current > 10) {
-      return;
-    }
-    
-    setLoading(true);
-    setError(null);
+  // 表格列定义
+  const columns: ColumnsType<PayrollRun> = [
+    {
+      title: t('payroll:id'),
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+      sorter: (a, b) => a.id - b.id,
+    },
+    {
+      title: t('payroll:payroll_period'),
+      dataIndex: ['payroll_period', 'name'],
+      key: 'payroll_period_name',
+      render: (_, record) => record.payroll_period?.name || '-',
+    },
+    {
+      title: t('payroll:run_date'),
+      dataIndex: 'run_date',
+      key: 'run_date',
+      width: 120,
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+      sorter: (a, b) => dayjs(a.run_date).unix() - dayjs(b.run_date).unix(),
+    },
+    {
+      title: t('common:label.status'),
+      dataIndex: 'status_lookup_value_id',
+      key: 'status',
+      width: 120,
+      render: (statusId: number) => {
+        const statusInfo = getPayrollRunStatusInfo(statusId);
+        // Assuming statusInfo.key is a complete key like 'payroll_run_status.pending_calculation'
+        // and it resolves to a string in payroll.json
+        return <StatusTag status={statusInfo.type} text={t(`payroll:${statusInfo.key}`)} />;
+      },
+    },
+    {
+      title: t('payroll:employee_count'),
+      dataIndex: 'total_employees',
+      key: 'total_employees',
+      width: 100,
+      align: 'center',
+      render: (count: number) => (
+        <Tooltip title={t('payroll:total_employees_tooltip')}>
+          <Space>
+            <DatabaseOutlined style={{ color: '#52c41a' }} />
+            <span style={{ color: '#52c41a', fontWeight: 500 }}>{count}人</span>
+          </Space>
+        </Tooltip>
+      ),
+    },
+    {
+      title: t('common:actions'),
+      key: 'actions',
+      width: 280,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space size="small">
+          <TableActionButton
+            actionType="view"
+            onClick={() => handleViewDetails(record.id)}
+            tooltipTitle={t('common:view')}
+          />
+          <TableActionButton
+            actionType="edit"
+            onClick={() => handleEdit(record)}
+            tooltipTitle={t('common:edit')}
+          />
+          <TableActionButton
+            actionType="delete"
+            onClick={() => handleDelete(record.id)}
+            tooltipTitle={t('common:delete')}
+            danger
+          />
+          <Button
+            type="link"
+            size="small"
+            icon={<CalculatorOutlined />}
+            onClick={() => handleCalculate(record)}
+            title={t('payroll:auto_calculate')}
+          >
+            {t('payroll:calculate')}
+          </Button>
+          <TableActionButton
+            actionType="approve"
+            icon={<CheckCircleOutlined />}
+            onClick={() => handleMarkAsPaid(record)}
+            tooltipTitle={t('payroll:mark_as_paid')}
+            disabled={record.status_lookup_value_id === 63}
+          />
+          <TableActionButton
+            actionType="download"
+            icon={<DownloadOutlined />}
+            onClick={() => handleExportBankFile(record)}
+            tooltipTitle={t('payroll:export_bank_file')}
+          />
+        </Space>
+      ),
+    },
+  ];
+
+  // 加载数据
+  const loadData = useCallback(async () => {
     try {
-      const params: any = { page, size: pageSize };
-      if (payrollPeriodId) {
-        params.payroll_period_id = payrollPeriodId;
-      }
-      
-      let response;
-      
-      if (USE_MOCK_API) {
-        // ✅ 模拟API调用，用于调试
-        await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟1秒延迟
-        response = {
-          data: [
-            {
-              id: 1,
-              payroll_period_id: 1,
-              payroll_period: { 
-                id: 1, 
-                name: t('payroll:auto_20241_323032'),
-                start_date: '2024-01-01',
-                end_date: '2024-01-31',
-                pay_date: '2024-02-05',
-                frequency_lookup_value_id: 101,
-                is_active: true
-              } as PayrollPeriod,
-              run_date: '2024-01-15',
-              status_lookup_value_id: 201,
-              total_employees: 10,
-              notes: t('payroll:auto_text_e6a8a1'),
-              created_at: '2024-01-01T00:00:00Z',
-              updated_at: '2024-01-01T00:00:00Z'
-            } as PayrollRun
-          ],
-          meta: { page: 1, size: 10, total: 1, totalPages: 1 }
-        };
-      } else {
-        // 真实API调用
-        response = await getPayrollRuns(params);
-      }
-      
-      const fetchEndTime = Date.now();
-      console.log('[PayrollRunsPage] ✅ API request successful:', {
-        fetchDuration: fetchEndTime - fetchStartTime + 'ms',
-        page,
-        pageSize,
-        payrollPeriodId,
-        dataCount: response.data?.length || 0,
-        meta: response.meta,
-        fullResponse: response,
-      });
-      setRuns(response.data);
-      setMeta(response.meta);
-    } catch (err: any) {
-      const fetchEndTime = Date.now();
-      console.error('[PayrollRunsPage] ❌ API request failed:', {
-        error: err,
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        timestamp: new Date().toISOString(),
-      });
-      // 移除t函数的使用，使用固定字符串避免依赖问题
-      setError(err.message || 'Failed to fetch payroll runs');
-      setRuns([]);
-      setMeta(null);
+      setLoading(true);
+      const [runsResponse, periodsResponse] = await Promise.all([
+        getPayrollRuns({ page: 1, size: 100 }),
+        getPayrollPeriods({ page: 1, size: 100 }),
+      ]);
+      setRuns(runsResponse.data || []);
+      setPeriods(periodsResponse.data || []);
+    } catch (error: any) {
+      message.error(t('common:load_failed'));
+      console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
-  }, []); 
-  
-  useEffect(() => {
-    fetchRuns();
-  }, [fetchRuns]); 
+  }, [t]);
 
-  const showCreateModal = () => {
-    setCurrentRun(null); 
+  // 处理创建
+  const handleCreate = () => {
+    setEditingRun(null);
     form.resetFields();
-    setModalError(null); 
-    setIsModalVisible(true);
+    setModalVisible(true);
   };
 
-  const showEditModal = (run: PayrollRun) => {
-    setCurrentRun(run);
-    const formValues: PayrollRunFormData & { employee_ids_str?: string } = {
+  // 处理编辑
+  const handleEdit = (run: PayrollRun) => {
+    setEditingRun(run);
+    form.setFieldsValue({
       payroll_period_id: run.payroll_period_id,
       run_date: dayjs(run.run_date),
       status_lookup_value_id: run.status_lookup_value_id,
-      employee_ids_str: run.employee_ids?.join(', ') || '',
-      notes: run.notes || '',
-    };
-    form.setFieldsValue(formValues);
-    setModalError(null);
-    setIsModalVisible(true);
+      notes: run.notes,
+    });
+    setModalVisible(true);
   };
 
-  const handleModalCancel = useCallback(() => {
-    setIsModalVisible(false);
-    setModalError(null);
-    setCurrentRun(null);
-  }, []);
-
-  const handleFormFinish = React.useCallback(async (formData: PayrollRunFormData) => {
-    setModalLoading(true);
-    setModalError(null);
-    let employeeIds: number[] | undefined = undefined;
-    if (formData.employee_ids_str && formData.employee_ids_str.trim() !== '') {
-      employeeIds = formData.employee_ids_str
-        .split(',')
-        .map(idStr => parseInt(idStr.trim(), 10))
-        .filter(id => !isNaN(id) && id > 0);
-      if (employeeIds.length === 0) employeeIds = undefined;
-    }
-  
-    const commonPayload = {
-      payroll_period_id: formData.payroll_period_id,
-      run_date: formData.run_date.format('YYYY-MM-DD'),
-      status_lookup_value_id: formData.status_lookup_value_id,
-      employee_ids: employeeIds,
-      notes: formData.notes,
-    };
-  
-    try {
-      if (currentRunRef.current && currentRunRef.current.id) {
-        const updatePayload: UpdatePayrollRunPayload = { ...commonPayload };
-        await updatePayrollRun(currentRunRef.current.id, updatePayload);
-        message.success('Update successful');
-      } else {
-        const createPayload: CreatePayrollRunPayload = { ...commonPayload };
-        await createPayrollRun(createPayload);
-        message.success('Create successful');
-      }
-      handleModalCancel();
-      fetchRuns(metaRef.current?.page || 1, metaRef.current?.size || 10);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || (currentRunRef.current ? 'Update failed' : 'Create failed');
-      setModalError(errorMessage);
-      message.error(errorMessage);
-    } finally {
-      setModalLoading(false);
-    }
-  }, [handleModalCancel]); // ✅ 只依赖稳定的handleModalCancel
-
-  const handleDeleteRun = async (runId: number) => {
+  // 处理删除
+  const handleDelete = (runId: number) => {
     Modal.confirm({
-      title: 'Delete Confirmation',
-      content: 'Are you sure you want to delete this payroll run?',
-      okText: 'Delete',
+      title: t('payroll:confirm_delete_title'),
+      content: t('payroll:confirm_delete_content'),
+      okText: t('common:delete'),
       okType: 'danger',
-      cancelText: 'Cancel',
+      cancelText: t('common:cancel'),
       onOk: async () => {
         try {
-          setLoading(true);
           await deletePayrollRun(runId);
-          message.success('Delete successful');
-          fetchRuns(metaRef.current?.page || 1, metaRef.current?.size || 10);
-        } catch (err: any) {
-          const errorMessage = err.response?.data?.detail || err.message || 'Delete failed';
-          message.error(errorMessage);
-          setError(errorMessage);
-        } finally {
-          setLoading(false);
+          message.success(t('payroll:delete_success'));
+          loadData();
+        } catch (error: any) {
+          message.error(t('payroll:delete_failed'));
         }
       },
     });
   };
 
-  const PAID_STATUS_ID = PAYROLL_RUN_STATUS_OPTIONS.find(opt => opt.display_name_key === 'payroll_run_status.paid')?.id || 205;
+  // 处理查看详情
+  const handleViewDetails = (runId: number) => {
+    navigate(`/payroll/runs/${runId}`);
+  };
 
-  const handleMarkAsPaid = async (run: PayrollRun) => {
-    if (run.status_lookup_value_id === PAID_STATUS_ID) {
-      message.info('Already marked as paid');
+  // 处理自动计算
+  const handleCalculate = (run: PayrollRun) => {
+    if (!run.payroll_period) {
+      message.error(t('payroll:no_payroll_period'));
       return;
     }
 
+    const request: CalculationRequest = {
+      payroll_period_id: run.payroll_period_id,
+      async_mode: false, // 默认同步模式
+    };
+
+    setCalculationRequest(request);
+    setSelectedPeriodForCalculation(run.payroll_period);
+    setCalculationPreviewVisible(true);
+  };
+
+  // 处理计算确认
+  const handleCalculationConfirm = async (results: CalculationResult[]) => {
+    try {
+      if (!calculationRequest) return;
+
+      // 触发正式计算
+      await payrollCalculationApi.triggerCalculation({
+        ...calculationRequest,
+        is_preview: false,
+      });
+
+      message.success(t('payroll:calculation_success'));
+      setCalculationPreviewVisible(false);
+      loadData(); // 重新加载数据
+    } catch (error: any) {
+      message.error(t('payroll:calculation_failed'));
+      console.error('Calculation failed:', error);
+    }
+  };
+
+  // 处理标记为已支付
+  const handleMarkAsPaid = async (run: PayrollRun) => {
     Modal.confirm({
-      title: 'Mark as Paid Confirmation',
-      content: `Are you sure you want to mark run ${run.id} as paid?`,
-      okText: 'Mark as Paid',
-      cancelText: 'Cancel',
+      title: t('payroll:confirm_mark_as_paid_title'),
+      content: t('payroll:confirm_mark_as_paid_content'),
+      okText: t('common:confirm'),
+      cancelText: t('common:cancel'),
       onOk: async () => {
         try {
-          setLoading(true);
-          const payload: UpdatePayrollRunPayload = {
-            status_lookup_value_id: PAID_STATUS_ID,
-            paid_at: dayjs().toISOString(),
-          };
-          await updatePayrollRun(run.id, payload);
-          message.success(`Run ${run.id} marked as paid successfully`);
-          fetchRuns(metaRef.current?.page || 1, metaRef.current?.size || 10);
-        } catch (err: any) {
-          const errorMessage = err.response?.data?.detail || err.message || 'Mark as paid failed';
-          message.error(errorMessage);
-          setError(errorMessage);
-        } finally {
-          setLoading(false);
+          await updatePayrollRun(run.id, { status_lookup_value_id: 63 });
+          message.success(t('payroll:mark_as_paid_success'));
+          loadData();
+        } catch (error: any) {
+          message.error(t('payroll:mark_as_paid_failed'));
         }
       },
     });
   };
 
+  // 处理导出银行文件
   const handleExportBankFile = async (run: PayrollRun) => {
-    const exportMessageKey = `export-${run.id}`;
-    message.loading({ content: `Exporting bank file for run ${run.id}...`, key: exportMessageKey, duration: 0 });
-
     try {
-      const blob = await exportPayrollRunBankFile(run.id);
-      const url = window.URL.createObjectURL(blob);
+      message.loading({ content: t('payroll:exporting'), key: 'export' });
+      const response = await exportPayrollRunBankFile(run.id);
+      const url = window.URL.createObjectURL(new Blob([response]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `payroll_run_${run.id}.csv`);
+      link.setAttribute('download', `bank_file_payroll_run_${run.id}.xlsx`);
       document.body.appendChild(link);
       link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      message.success({ content: `Bank file for run ${run.id} exported successfully`, key: exportMessageKey, duration: 3 });
-    } catch (err: any) {
-      const errorDetail = err.response?.data?.detail || err.message || 'Export failed';
-      message.error({ content: 'Export bank file failed: ' + errorDetail, key: exportMessageKey, duration: 5 });
+      link.remove();
+      message.success({ content: t('payroll:export_success'), key: 'export' });
+    } catch (error: any) {
+      message.error({ content: t('payroll:export_failed'), key: 'export' });
     }
   };
 
-  const handleViewDetails = (runId: number) => {
-    navigate(`/finance/payroll/runs/${runId}`);
+  // 处理表单提交
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const data = {
+        payroll_period_id: values.payroll_period_id,
+        run_date: values.run_date.format('YYYY-MM-DD'),
+        status_lookup_value_id: values.status_lookup_value_id,
+        notes: values.notes,
+      };
+
+      if (editingRun) {
+        await updatePayrollRun(editingRun.id, data);
+        message.success(t('payroll:update_success'));
+      } else {
+        await createPayrollRun(data);
+        message.success(t('payroll:create_success'));
+      }
+
+      setModalVisible(false);
+      loadData();
+    } catch (error: any) {
+      message.error(editingRun ? t('payroll:update_failed') : t('payroll:create_failed'));
+    }
   };
 
-
-  
-  // 生成批次名称的函数
-  const generateRunName = (run: PayrollRun): string => {
-    const periodName = run.payroll_period?.name || t('payroll:auto_id_run_payroll_period_id__e591a8');
-    const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
-    return `${periodName} - ${runDate}`;
-  };
-
-  const columns: ProColumns<PayrollRun>[] = React.useMemo(() => [
-      {
-        title: 'ID',
-        dataIndex: 'id',
-        key: 'id',
-        sorter: (a: PayrollRun, b: PayrollRun) => a.id - b.id,
-        width: 80,
-        valueType: 'digit',
-      },
-      {
-        title: 'Batch Name',
-        key: 'batch_name',
-        sorter: true,
-        valueType: 'text',
-        render: (_, record: PayrollRun) => generateRunName(record),
-      },
-      {
-        title: 'Payroll Period',
-        dataIndex: ['payroll_period', 'name'],
-        key: 'payroll_period_name',
-        sorter: true,
-        valueType: 'text',
-        render: (_, record: PayrollRun) => record.payroll_period?.name || record.payroll_period_id,
-      },
-      {
-        title: 'Run Date',
-        dataIndex: 'run_date',
-        key: 'run_date',
-        sorter: (a: PayrollRun, b: PayrollRun) => dayjs(a.run_date).unix() - dayjs(b.run_date).unix(),
-        valueType: 'date',
-        render: (_, record: PayrollRun) => dayjs(record.run_date).format('YYYY-MM-DD'),
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status_lookup_value_id',
-        key: 'status',
-        sorter: true,
-        valueType: 'select',
-        render: (_, record: PayrollRun) => {
-          const statusInfo = getPayrollRunStatusInfo(record.status_lookup_value_id);
-          return <Tag color={statusInfo.color}>{statusInfo.key}</Tag>;
-        },
-      },
-      {
-        title: 'Employee Count',
-        dataIndex: 'total_employees',
-        key: 'employee_count',
-        sorter: (a: PayrollRun, b: PayrollRun) => (a.total_employees || 0) - (b.total_employees || 0),
-        valueType: 'digit',
-        render: (_, record: PayrollRun) => record.total_employees || 0,
-      },
-      {
-        title: 'Notes',
-        dataIndex: 'notes',
-        key: 'notes',
-        sorter: true,
-        ellipsis: true,
-        valueType: 'text',
-      },
-      {
-        title: 'Actions',
-        key: 'actions',
-        align: 'center',
-        valueType: 'option',
-        render: (_, record: PayrollRun) => (
-          <Space size="middle">
-            <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_VIEW]}>
-                <TableActionButton 
-                  actionType="view" 
-                  onClick={() => handleViewDetails(record.id)} 
-                  tooltipTitle="View Details"
-                />
-            </PermissionGuard>
-            <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <TableActionButton actionType="edit" onClick={() => showEditModal(record)} tooltipTitle="Edit Run" />
-            </PermissionGuard>
-            <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
-              <TableActionButton actionType="delete" danger onClick={() => handleDeleteRun(record.id)} tooltipTitle="Delete Run" />
-            </PermissionGuard>
-            {record.status_lookup_value_id !== PAID_STATUS_ID && (
-              <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MARK_AS_PAID]}>
-                  <TableActionButton
-                      actionType="approve"
-                      onClick={() => handleMarkAsPaid(record)}
-                      tooltipTitle="Mark as Paid"
-                  />
-              </PermissionGuard>
-            )}
-            <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_EXPORT_BANK_FILE]}>
-              <TableActionButton
-                actionType="download"
-                onClick={() => handleExportBankFile(record)}
-                tooltipTitle="Export Bank File"
-              />
-            </PermissionGuard>
-          </Space>
-        ),
-      },
-    ], [PAID_STATUS_ID, handleViewDetails, showEditModal, handleDeleteRun, handleMarkAsPaid, handleExportBankFile]); // ✅ 移除t依赖
+  // 初始化加载
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   return (
-    <PageLayout
-      title="Payroll Runs"
-      
-      actions={
-        <PermissionGuard requiredPermissions={[P_PAYROLL_RUN_MANAGE]}>
+    <div className="payroll-runs-page">
+      <Card>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={4} style={{ margin: 0 }}>
+            {t('payroll:payroll_runs')}
+          </Title>
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={showCreateModal}
-            shape="round"
+            onClick={handleCreate}
           >
-            Create New Run
+            {t('payroll:create_payroll_run')}
           </Button>
-        </PermissionGuard>
-      }
-    >
-      {error && <Alert message={`Error: ${error}`} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />}
-      
-      <EnhancedProTable<PayrollRun>
-        columns={columns}
-        dataSource={runs}
-        rowKey="id"
-        loading={loading}
-        pagination={{
-          current: meta?.page,
-          pageSize: meta?.size,
-          total: meta?.total,
-          showSizeChanger: true,
-          showTotal: (total: number, range: [number, number]) => 
-            t('payroll:auto__range_0_range_1___total__e7acac'),
-        }}
+        </div>
 
-        scroll={{ x: 'max-content' }}
-        enableAdvancedFeatures={true}
-        showToolbar={true}
-        search={false}
-      />
+        <Table
+          columns={columns}
+          dataSource={runs}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 1200 }}
+          pagination={{
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => t('common:pagination.total', { total }),
+          }}
+        />
+      </Card>
 
+      {/* 创建/编辑模态框 */}
       <Modal
-        title={currentRun ? 'Edit Payroll Run' : 'Create New Payroll Run'}
-        open={isModalVisible}
-        onCancel={handleModalCancel}
-        confirmLoading={modalLoading} 
-        footer={null} 
-        destroyOnClose={true}
-        width={650} 
+        title={editingRun ? t('payroll:edit_payroll_run') : t('payroll:create_payroll_run')}
+        open={modalVisible}
+        onOk={handleSubmit}
+        onCancel={() => setModalVisible(false)}
+        width={600}
       >
-        {modalError && <Alert message={`Modal Error: ${modalError}`} type="error" closable onClose={() => setModalError(null)} style={{ marginBottom: 16}}/>}
-        {isModalVisible && (
-          <PayrollRunForm
-            form={form}
-            onFinish={handleFormFinish}
-            initialValues={currentRun ? { ...currentRun, employee_ids_str: currentRun.employee_ids?.join(', ') } : {}}
-            loading={modalLoading} 
-            isEditMode={!!currentRun}
-          />
-        )}
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="payroll_period_id"
+            label={t('payroll:payroll_period')}
+            rules={[{ required: true, message: t('common:validation.required') }]}
+          >
+            <Select placeholder={t('payroll:select_payroll_period')}>
+              {periods.map(period => (
+                <Option key={period.id} value={period.id}>
+                  {period.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="run_date"
+            label={t('payroll:run_date')}
+            rules={[{ required: true, message: t('common:validation.required') }]}
+          >
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="status_lookup_value_id"
+            label={t('common:label.status')}
+            rules={[{ required: true, message: t('common:validation.required') }]}
+          >
+            <Select placeholder={t('payroll:select_status')}>
+              {PAYROLL_RUN_STATUS_OPTIONS.map(status => (
+                <Option key={status.id} value={status.id}>
+                  {t(status.display_name_key)}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item name="notes" label={t('payroll:notes')}>
+            <Input.TextArea rows={3} placeholder={t('payroll:notes_placeholder')} />
+          </Form.Item>
+        </Form>
       </Modal>
-    </PageLayout>
+
+      {/* 计算预览模态框 */}
+      <PayrollCalculationPreview
+        visible={calculationPreviewVisible}
+        onCancel={() => setCalculationPreviewVisible(false)}
+        onConfirm={handleCalculationConfirm}
+        calculationRequest={calculationRequest}
+        payrollPeriodName={selectedPeriodForCalculation?.name}
+      />
+    </div>
   );
 };
 

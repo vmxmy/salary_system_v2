@@ -11,6 +11,7 @@ import EmployeeName from '../../components/common/EmployeeName';
 import UnifiedTabs from '../../components/common/UnifiedTabs';
 import StandardDetailPageTemplate from '../../components/common/StandardDetailPageTemplate';
 import styles from './MyInfo.module.less';
+import { Link } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -26,7 +27,7 @@ const getLookupDisplayName = <T extends { id: number; name?: string; label?: str
 };
 
 const MyInfoPage: React.FC = () => {
-  const { t } = useTranslation(['common', 'employee', 'myInfo', 'pageTitle']);
+  const { t } = useTranslation(['common', 'employee', 'myInfo']);
   const employeeId = useAuthStore(state => state.currentUser?.employee_id);
   const currentUserForDisplay = useAuthStore(state => state.currentUser);
 
@@ -110,19 +111,7 @@ const MyInfoPage: React.FC = () => {
     }
 
     fetchEmployeeData();
-  }, [employeeId]);
-
-  if (loading && !employee) {
-    return <Spin tip={t('common:loading.generic_loading_text')} className={styles.loadingSpin}><div className={styles.loadingSpinContent} /></Spin>;
-  }
-
-  if (error) {
-    return <Alert message={t('error.genericTitle')} description={error} type="error" showIcon className={styles.errorAlert} />;
-  }
-
-  if (!employee) {
-    return <Empty description={t('myInfo.noData')} className={styles.emptyState} />;
-  }
+  }, [employeeId, fetchAttempted]); // Added fetchAttempted to dependencies
 
   const tabItems = [
     {
@@ -138,25 +127,25 @@ const MyInfoPage: React.FC = () => {
           {/* Card 2: Personal Information */}
           <Card title={t('myInfo:sectionTitles.personal')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-              <Descriptions.Item label={t('employee:firstName')}>{employee.first_name}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:lastName')}>{employee.last_name}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:dob')}>{employee.date_of_birth ? String(employee.date_of_birth) : ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_gender')}>{getLookupDisplayName(employee.gender_lookup_value_id, genders)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:idNumber')}>{employee.id_number || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:nationality')}>{employee.nationality || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:maritalStatus')}>{getLookupDisplayName(employee.marital_status_lookup_value_id, maritalStatuses)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:ethnicity')}>{employee.ethnicity || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:politicalStatus')}>{getLookupDisplayName(employee.political_status_lookup_value_id /*, politicalStatuses - if fetched */)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:educationLevel')}>{getLookupDisplayName(employee.education_level_lookup_value_id, educationLevels)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.firstName')}>{employee?.first_name}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.lastName')}>{employee?.last_name}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.dob')}>{employee?.date_of_birth ? String(employee.date_of_birth) : ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_gender')}>{getLookupDisplayName(employee?.gender_lookup_value_id, genders)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.idNumber')}>{employee?.id_number || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.nationality')}>{employee?.nationality || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.maritalStatus')}>{getLookupDisplayName(employee?.marital_status_lookup_value_id, maritalStatuses)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.ethnicity')}>{employee?.ethnicity || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.politicalStatus')}>{getLookupDisplayName(employee?.political_status_lookup_value_id /*, politicalStatuses - if fetched */)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.personal_info.educationLevel')}>{getLookupDisplayName(employee?.education_level_lookup_value_id, educationLevels)}</Descriptions.Item>
             </Descriptions>
           </Card>
           
           {/* Card 3: Contact Information */}
           <Card title={t('myInfo:sectionTitles.contact')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-              <Descriptions.Item label={t('employee:personalEmail')}>{employee.email || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:mobilePhone')}>{employee.phone_number || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:address')} span={1}>{employee.home_address || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.contact_info.personalEmail')}>{employee?.email || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.contact_info.mobilePhone')}>{employee?.phone_number || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.contact_info.address')} span={1}>{employee?.home_address || ''}</Descriptions.Item>
             </Descriptions>
           </Card>
         </>
@@ -175,15 +164,15 @@ const MyInfoPage: React.FC = () => {
           {/* Card 4: Employment Information */}
           <Card title={t('myInfo:sectionTitles.employment')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-              <Descriptions.Item label={t('employee:department')}>{employee.departmentName || getLookupDisplayName(employee.department_id, departments)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:personnelCategory')}>{employee.personnelCategoryName || getLookupDisplayName(employee.personnel_category_id, personnelCategories)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:actualPosition')}>{employee.actual_position_name || getLookupDisplayName(employee.actual_position_id, actualPositions)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:hireDate')}>{employee.hire_date ? String(employee.hire_date) : ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:probationEndDate')}>{employee.probationEndDate ? String(employee.probationEndDate) : ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:employmentType')}>{getLookupDisplayName(employee.employment_type_lookup_value_id, employmentTypes)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:status')}>{getLookupDisplayName(employee.status_lookup_value_id, employeeStatuses)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:reportsTo')}>{getLookupDisplayName(employee.reports_to_employee_id /*, employees - if fetched for manager name lookup */)}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:workLocation')} span={1}>{employee.workLocation || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.department')}>{employee?.departmentName || getLookupDisplayName(employee?.department_id, departments)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.personnelCategory')}>{employee?.personnelCategoryName || getLookupDisplayName(employee?.personnel_category_id, personnelCategories)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.actualPosition')}>{employee?.actual_position_name || getLookupDisplayName(employee?.actual_position_id, actualPositions)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.hireDate')}>{employee?.hire_date ? String(employee.hire_date) : ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.probationEndDate')}>{employee?.probationEndDate ? String(employee.probationEndDate) : ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.employmentType')}>{getLookupDisplayName(employee?.employment_type_lookup_value_id, employmentTypes)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.status')}>{getLookupDisplayName(employee?.status_lookup_value_id, employeeStatuses)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.reportsTo')}>{getLookupDisplayName(employee?.reports_to_employee_id /*, employees - if fetched for manager name lookup */)}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.employment_info.workLocation')} span={1}>{employee?.workLocation || ''}</Descriptions.Item>
             </Descriptions>
           </Card>
         </>
@@ -202,22 +191,22 @@ const MyInfoPage: React.FC = () => {
           {/* Card 5: Bank Information */}
           <Card title={t('myInfo:sectionTitles.bank')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-              <Descriptions.Item label={t('employee:bankName')} span={1}>{employee.bank_name || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:bankAccountNumber')} span={1}>{employee.bank_account_number || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.financial_info.bankName')} span={1}>{employee?.bank_name || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.financial_info.bankAccountNumber')} span={1}>{employee?.bank_account_number || ''}</Descriptions.Item>
             </Descriptions>
           </Card>
           
           {/* Card 6: Emergency Contact */}
           <Card title={t('myInfo:sectionTitles.emergency')} className={styles.infoCard}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-              <Descriptions.Item label={t('employee:emergencyContactName')}>{employee.emergency_contact_name || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:emergencyContactPhone')}>{employee.emergency_contact_phone || ''}</Descriptions.Item>
-              <Descriptions.Item label={t('employee:emergencyContactRelation')} span={1}>{employee.emergencyContactRelation || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.emergency_contact.emergencyContactName')}>{employee?.emergency_contact_name || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.emergency_contact.emergencyContactPhone')}>{employee?.emergency_contact_phone || ''}</Descriptions.Item>
+              <Descriptions.Item label={t('employee:detail_page.emergency_contact.emergencyContactRelation')} span={1}>{employee?.emergencyContactRelation || ''}</Descriptions.Item>
             </Descriptions>
           </Card>
           
-          {employee.notes && (
-            <Card title={t('employee.notes')} className={styles.infoCard}>
+          {employee?.notes && (
+            <Card title={t('employee:detail_page.notes')} className={styles.infoCard}>
               <Text>{employee.notes}</Text>
             </Card>
           )}
@@ -239,10 +228,12 @@ const MyInfoPage: React.FC = () => {
               <Title level={4} className={styles.overviewName}>
                 <EmployeeName employeeId={employee.id} showId={false} />
               </Title>
-              <Text type="secondary" className={styles.overviewId}>      t('myInfo:employeeIdLabel', 'Employee ID'): {employee.employee_code || employee.id}
+              <Text type="secondary" className={styles.overviewId}>
+                {t('employee:detail_page.employee_id_format')}: {employee.employee_code || employee.id}
               </Text>
               {currentUserForDisplay?.username && (
-                 <Text type="secondary" className={styles.overviewUsername}>      {t('myInfo:usernameLabel', 'Username')}: {currentUserForDisplay.username}
+                 <Text type="secondary" className={styles.overviewUsername}>
+                   {t('myInfo:usernameLabel')}: {currentUserForDisplay.username}
                  </Text>
               )}
             </div>
@@ -254,17 +245,19 @@ const MyInfoPage: React.FC = () => {
   };
 
   return (
-    <StandardDetailPageTemplate
-      pageTitleKey="pageTitle:my_info"
+    <StandardDetailPageTemplate<Employee>
+      pageTitleKey="myInfo:title"
       isLoading={loading}
       error={error}
       data={employee}
+      emptyStateDescriptionKey="myInfo:noData"
       breadcrumbs={[
-        { key: 'home', title: <HomeOutlined />, path: '/' },
-        { key: 'my-info', title: t('pageTitle:my_info') },
+        { key: 'home', title: <Link to="/"><HomeOutlined /></Link> },
+        { key: 'my-info', title: t('myInfo:title') },
       ]}
     >
-      {renderEmployeeDetails()}
+      {/* Children prop for StandardDetailPageTemplate is used for the main content block if data exists */}
+      {employee && renderEmployeeDetails()}
     </StandardDetailPageTemplate>
   );
 };

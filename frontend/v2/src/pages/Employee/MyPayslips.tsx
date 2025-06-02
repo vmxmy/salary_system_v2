@@ -16,7 +16,7 @@ import styles from './MyPayslips.module.less';
 const { Title } = Typography;
 
 const MyPayslipsPage: React.FC = () => {
-  const { t, ready } = useTranslation(['common', 'myPayslips']);
+  const { t, ready } = useTranslation(['common', 'myPayslips', 'payroll']);
   const currentUser = useAuthStore(state => state.currentUser);
   const [payslips, setPayslips] = useState<PayrollEntry[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
@@ -89,10 +89,10 @@ const MyPayslipsPage: React.FC = () => {
         }
         
         if (periodId) {
-          return `$t('myPayslips:periodIdPrefix')${periodId}`;
+          return `${t('myPayslips:periodIdPrefix')}${periodId}`;
         }
         
-        return '-';
+        return t('common:table.cell_empty');
       },
     },
     {
@@ -107,7 +107,7 @@ const MyPayslipsPage: React.FC = () => {
       valueType: 'date',
       render: (_, record) => {
         const date = record.payroll_run?.run_date;
-        return date ? new Date(date).toLocaleDateString() : '';
+        return date ? new Date(date).toLocaleDateString() : t('common:table.cell_empty');
       },
     },
     {
@@ -134,7 +134,7 @@ const MyPayslipsPage: React.FC = () => {
       render: (_, record) => {
         const amount = record.net_pay;
         const numValue = typeof amount === 'number' ? amount : Number(amount);
-        return !isNaN(numValue) ? numValue.toFixed(2) : '0.00';
+        return !isNaN(numValue) ? numValue.toFixed(2) : t('common:common_value.zero_decimal');
       }
     },
     {
@@ -165,7 +165,7 @@ const MyPayslipsPage: React.FC = () => {
       },
       render: (_, record) => {
         const statusInfo = getPayrollEntryStatusInfo(record.status_lookup_value_id);
-        return <Tag color={statusInfo.color}>{t(`payroll:${statusInfo.key}`, statusInfo.params)}</Tag>;
+        return <Tag color={statusInfo.color}>{t(`myPayslips:status.${statusInfo.key}`, statusInfo.params)}</Tag>;
       },
     },
     {
@@ -208,7 +208,7 @@ const MyPayslipsPage: React.FC = () => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
             showTotal: (total: number, range: [number, number]) =>
-              t('employee:auto__range_0_range_1___total__e7acac'),
+              t('myPayslips:pagination.show_total_text', { range0: range[0], range1: range[1], total }),
             onChange: fetchPayslips,
           } : false}
           scroll={{ x: 'max-content' }}

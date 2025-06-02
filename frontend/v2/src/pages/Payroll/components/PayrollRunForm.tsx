@@ -128,10 +128,10 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
     >
       <Form.Item
         name="payroll_period_id"
-        label={t('payroll_run_form.label.payroll_period')}
-        rules={[{ required: true, message: t('payroll_run_form.validation.payroll_period_required') }]}
+        label={t('payroll_runs:payroll_run_form.label.payroll_period')}
+        rules={[{ required: true, message: t('payroll_runs:payroll_run_form.validation.payroll_period_required') }]}
       >
-        <Select placeholder={t('payroll_run_form.placeholder.payroll_period')} loading={loadingPeriods} showSearch filterOption={(input, option) => (option?.children as unknown as string ?? '').toLowerCase().includes(input.toLowerCase())}>
+        <Select placeholder={t('payroll_runs:payroll_run_form.placeholder.payroll_period')} loading={loadingPeriods} showSearch filterOption={(input, option) => (option?.children as unknown as string ?? '').toLowerCase().includes(input.toLowerCase())}>
           {payrollPeriods.map(period => (
             <Option key={period.id} value={period.id}>
               {formatPayrollPeriodDisplay(period)}
@@ -145,8 +145,8 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
         <Col span={12}>
           <Form.Item
             name="run_date"
-            label={t('payroll_run_form.label.run_date')}
-            rules={[{ required: true, message: t('payroll_run_form.validation.run_date_required') }]}
+            label={t('payroll_runs:payroll_run_form.label.run_date')}
+            rules={[{ required: true, message: t('payroll_runs:payroll_run_form.validation.run_date_required') }]}
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
@@ -154,10 +154,10 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
         <Col span={12}>
           <Form.Item
             name="status_lookup_value_id"
-            label={isEditMode ? t('payroll_run_form.label.status_edit_mode') : t('payroll_run_form.label.status_create_mode')}
-            rules={[{ required: true, message: t('payroll_run_form.validation.status_required') }]}
+            label={isEditMode ? t('payroll_runs:payroll_run_form.label.status_edit_mode') : t('payroll_runs:payroll_run_form.label.status_create_mode')}
+            rules={[{ required: true, message: t('payroll_runs:payroll_run_form.validation.status_required') }]}
           >
-            <Select placeholder={t('payroll_run_form.placeholder.status')}>
+            <Select placeholder={t('payroll_runs:payroll_run_form.placeholder.status')}>
               {PAYROLL_RUN_STATUS_OPTIONS.map(status => (
                 <Option key={status.id} value={status.id}>
                   {t(status.display_name_key)}
@@ -170,33 +170,33 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
 
       <Form.Item
         name="employee_ids_str"
-        label={t('payroll_run_form.label.employee_ids')}
-        tooltip={t('payroll_run_form.tooltip.employee_ids')}
+        label={t('payroll_runs:payroll_run_form.label.employee_ids')}
+        tooltip={t('payroll_runs:payroll_run_form.tooltip.employee_ids')}
       >
         <Input.TextArea 
           rows={3} 
-          placeholder={t('payroll_run_form.placeholder.employee_ids')}
+          placeholder={t('payroll_runs:payroll_run_form.placeholder.employee_ids')}
         />
       </Form.Item>
 
       <Form.Item
         name="notes"
-        label={t('payroll_run_form.label.notes')}
+        label={t('payroll_runs:payroll_run_form.label.notes')}
       >
-        <Input.TextArea rows={3} placeholder={t('payroll_run_form.placeholder.notes')} />
+        <Input.TextArea rows={3} placeholder={t('payroll_runs:payroll_run_form.placeholder.notes')} />
       </Form.Item>
       
       <Row justify="end" gutter={8} style={{ marginTop: 24 }}>
         {onCancel && (
           <Col>
             <Button onClick={onCancel} disabled={externalLoading}>
-              {t('payroll_run_form.button.cancel')}
+              {t('payroll_runs:payroll_run_form.button.cancel')}
             </Button>
           </Col>
         )}
         <Col>
           <Button type="primary" htmlType="submit" loading={externalLoading}>
-            {isEditMode ? t('payroll_run_form.button.save_changes') : t('payroll_run_form.button.create_run')}
+            {isEditMode ? t('payroll_runs:payroll_run_form.button.save_changes') : t('payroll_runs:payroll_run_form.button.create_run')}
           </Button>
         </Col>
       </Row>

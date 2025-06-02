@@ -848,6 +848,10 @@ const PayrollComponentsPageNew: React.FC = () => {
           successMessage: t('payroll:auto_text_e689b9'),
           errorMessage: t('payroll:auto_text_e689b9'),
           noSelectionMessage: t('payroll:auto_text_e8afb7'),
+          onBatchDelete: async (keys: React.Key[]) => {
+            await Promise.all(keys.map(key => payrollApi.deletePayrollComponentDefinition(Number(key))));
+            fetchData();
+          },
         }}
         exportConfig={{
           filenamePrefix: t('payroll:auto_text_e896aa'),

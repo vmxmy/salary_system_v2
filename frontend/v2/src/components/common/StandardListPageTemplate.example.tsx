@@ -217,6 +217,10 @@ const ExampleListPage: React.FC = () => {
         successMessage: t('components:batch_delete.success_message'),
         errorMessage: t('components:batch_delete.error_message'),
         noSelectionMessage: t('components:batch_delete.no_selection_message'),
+        onBatchDelete: async (keys: React.Key[]) => {
+          await Promise.all(keys.map(key => exampleService.deleteItem(String(key))));
+          fetchData();
+        },
       }}
       exportConfig={{
         filenamePrefix: t('common:export.filename_default'),

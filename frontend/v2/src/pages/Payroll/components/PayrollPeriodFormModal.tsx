@@ -20,7 +20,7 @@ const PayrollPeriodFormModal: React.FC<PayrollPeriodFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { t } = useTranslation(['payroll', 'common']);
+  const { t } = useTranslation(['payroll_periods', 'common', 'pageTitle']);
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
   const { message: messageApi } = App.useApp();
@@ -96,7 +96,7 @@ const PayrollPeriodFormModal: React.FC<PayrollPeriodFormModalProps> = ({
       onCancel={onClose}
       footer={null}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <PayrollPeriodForm
         form={form}

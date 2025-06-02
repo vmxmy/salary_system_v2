@@ -1,0 +1,92 @@
+[
+  {
+    "description": "薪资计算汇总API",
+    "method": "GET",
+    "endpoint": "/payroll/calculation/summary/1",
+    "url": "http://localhost:8080/v2/payroll/calculation/summary/1",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.498765"
+  },
+  {
+    "description": "计算规则集API",
+    "method": "GET",
+    "endpoint": "/payroll/calculation-config/rule-sets",
+    "url": "http://localhost:8080/v2/payroll/calculation-config/rule-sets",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.500886"
+  },
+  {
+    "description": "社保配置API",
+    "method": "GET",
+    "endpoint": "/payroll/calculation-config/social-insurance",
+    "url": "http://localhost:8080/v2/payroll/calculation-config/social-insurance",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.502715"
+  },
+  {
+    "description": "税务配置API",
+    "method": "GET",
+    "endpoint": "/payroll/calculation-config/tax-configs",
+    "url": "http://localhost:8080/v2/payroll/calculation-config/tax-configs",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.504417"
+  },
+  {
+    "description": "考勤周期API",
+    "method": "GET",
+    "endpoint": "/attendance/periods",
+    "url": "http://localhost:8080/v2/attendance/periods",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.506503"
+  },
+  {
+    "description": "考勤记录API",
+    "method": "GET",
+    "endpoint": "/attendance/records",
+    "url": "http://localhost:8080/v2/attendance/records",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.508197"
+  },
+  {
+    "description": "日考勤API",
+    "method": "GET",
+    "endpoint": "/attendance/daily-records",
+    "url": "http://localhost:8080/v2/attendance/daily-records",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.509801"
+  },
+  {
+    "description": "考勤规则API",
+    "method": "GET",
+    "endpoint": "/attendance/rules",
+    "url": "http://localhost:8080/v2/attendance/rules",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.511492"
+  },
+  {
+    "description": "员工管理API",
+    "method": "GET",
+    "endpoint": "/employees",
+    "url": "http://localhost:8080/v2/employees",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.513825"
+  },
+  {
+    "description": "薪资周期API",
+    "method": "GET",
+    "endpoint": "/payroll-periods",
+    "url": "http://localhost:8080/v2/payroll-periods",
+    "status_code": 401,
+    "success": false,
+    "timestamp": "2025-06-03T02:26:50.516138"
+  }
+]

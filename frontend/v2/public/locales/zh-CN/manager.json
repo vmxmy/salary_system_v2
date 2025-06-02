@@ -1,15 +1,5 @@
 {
-  "title": "经理视图",
-  "leave_approvals": {
-    "placeholder_title": "休假审批页面 (占位符)"
-  },
-  "subordinates": {
-    "placeholder_title": "下属管理页面 (占位符)"
-  },
   "manager_page": {
-    "leave_approvals": {
-      "placeholder_title": "休假审批页面 (占位符)"
-    },
     "subordinates": {
       "placeholder_title": "下属管理页面 (占位符)"
     }

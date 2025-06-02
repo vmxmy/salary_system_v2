@@ -1,153 +1,77 @@
 {
-  "runs_page": {
-    "title": "薪资审核",
-    "description": "管理薪资计算批次，执行和跟踪工资计算过程",
+  "payroll_run_detail_page": {
+    "alert_error_prefix": "",
+    "alert_not_found": "",
+    "breadcrumb_current_page": "运行详情",
+    "breadcrumb_runs_management": "薪资审核管理",
+    "button_back_to_list": "返回列表",
+    "card_title": "薪资审核详情",
+    "desc_label_created_at": "创建时间",
+    "desc_label_created_by": "创建人",
+    "desc_label_employee_count": "员工数",
+    "desc_label_id": "编号",
+    "desc_label_notes": "备注",
+    "desc_label_paid_at": "支付时间",
+    "desc_label_payroll_period": "薪资期间",
+    "desc_label_run_date": "运行日期",
+    "desc_label_status": "状态",
+    "desc_label_updated_at": "更新时间",
+    "error_fetch_details": "",
+    "error_invalid_run_id": "",
+    "error_no_run_id_provided": "",
+    "section_title_entries": "工资条明细",
+    "spin_loading": "加载中...",
+    "value_na": "无",
+    "value_no_notes": "无备注",
+    "value_not_paid": "未支付",
+    "value_period_id_prefix": "期间ID: "
+  },
+  "payroll_run_form": {
     "button": {
-      "create_run": "创建新计算批次",
-      "mark_as_paid": "标记为已支付",
-      "export_bank_file": "导出银行文件"
+      "cancel": "取消",
+      "create_run": "创建运行",
+      "save_changes": ""
     },
-    "error_fetch_runs": "无法获取薪资审核数据",
-    "message": {
-      "update_success": "薪资审核已成功更新！",
-      "create_success": "薪资审核已成功创建！",
-      "delete_success": "薪资审核已成功删除！",
-      "mark_as_paid_success": "计算批次 #{runId} 已成功标记为已支付！",
-      "exporting_bank_file": "正在导出银行文件 (批次 #{runId})...",
-      "export_bank_file_success": "银行文件 (批次 #{runId}) 已开始下载！",
-      "already_paid": "此计算批次已标记为已支付。"
+    "label": {
+      "employee_ids": "员工列表",
+      "notes": "备注",
+      "payroll_period": "薪资期间",
+      "run_date": "运行日期",
+      "status_create_mode": "状态",
+      "status_edit_mode": ""
     },
-    "error": {
-      "update_failed": "更新计算批次失败",
-      "create_failed": "创建计算批次失败",
-      "delete_failed": "删除计算批次失败",
-      "mark_as_paid_failed": "标记为已支付失败",
-      "export_bank_file_failed_prefix": "导出银行文件失败: ",
-      "export_bank_file_failed_default": "导出银行文件失败"
-    },
-    "popconfirm": {
-      "delete_title": "确认删除",
-      "delete_content": "确定要删除此薪资审核吗？此操作无法撤销。",
-      "delete_ok_text": "删除",
-      "delete_cancel_text": "取消",
-      "mark_as_paid_title": "确认操作",
-      "mark_as_paid_content": "确定要将计算批次 #{runId} 标记为已支付吗？",
-      "mark_as_paid_ok_text": "标记为已支付"
-    },
-    "default_bank_export_filename_prefix": "bank_export_run_",
-    "table": {
-      "column": {
-        "id": "ID",
-        "batch_name": "批次名称",
-        "payroll_period": "工资周期",
-        "run_date": "计算日期",
-        "status": "状态",
-        "employee_count": "包含员工数",
-        "notes": "备注",
-        "actions": "操作"
-      },
-      "action_details": "详情"
+    "placeholder": {
+      "employee_ids": "请选择员工",
+      "notes": "请输入备注",
+      "payroll_period": "选择薪资期间",
+      "status": "选择状态"
     },
     "tooltip": {
-      "edit_run": "编辑计算批次",
-      "delete_run": "删除计算批次"
+      "employee_ids": "选择要包含在此次计算中的员工"
     },
-    "alert_error_prefix": "错误: ",
-    "alert_modal_error_prefix": "操作失败: ",
-    "modal_title": {
-      "create": "创建新薪资审核",
-      "edit": "编辑薪资审核"
-    },
-    "modal_title_create": "创建新薪资审核",
-    "pagination_show_total": "第 {range0}-{range1} 条 / 共 {total} 条",
-    "loading_runs": "加载计算批次中...",
-    "lookup_data_error": "基础数据加载失败",
-    "form": {
-      "error": {
-        "load_periods_failed": "无法加载工资周期列表",
-        "load_periods_failed_with_message": "无法加载工资周期列表: {message}"
-      },
-      "label": {
-        "payroll_period": "工资周期",
-        "run_date": "计算日期",
-        "status_edit_mode": "状态",
-        "status_create_mode": "初始状态",
-        "employee_ids": "包含员工ID (选填，逗号分隔)",
-        "notes": "备注 (选填)"
-      },
-      "validation": {
-        "payroll_period_required": "请选择工资周期!",
-        "run_date_required": "请选择计算日期!",
-        "status_required": "请选择状态!"
-      },
-      "tooltip": {
-        "employee_ids": "输入员工的数字ID，用英文逗号分隔。例如：101,102,105"
-      },
-      "placeholder": {
-        "payroll_period": "选择一个工资周期",
-        "status": "选择状态",
-        "employee_ids": "例如: 1, 2, 3, 4, 5\n留空以包含选定工资周期内的所有适用员工 (如果后端支持此逻辑)",
-        "notes": "关于此次计算的任何说明"
-      },
-      "button": {
-        "cancel": "取消",
-        "save_changes": "保存更改",
-        "create_run": "创建计算批次"
-      }
+    "validation": {
+      "payroll_period_required": "请选择薪资期间",
+      "run_date_required": "请选择运行日期",
+      "status_required": "请选择状态"
     }
   },
   "run_detail_page": {
-    "title": "计算批次详情",
-    "error": {
-      "fetch_details": "无法获取薪资审核详情",
-      "invalid_run_id": "无效的计算批次ID",
-      "no_run_id_provided": "未提供计算批次ID"
-    },
-    "spin_loading": "加载中...",
-    "alert": {
-      "error_prefix": "错误: ",
-      "not_found": "未找到薪资审核数据。"
-    },
-    "breadcrumb": {
-      "runs_management": "薪资审核管理",
-      "current_page": "计算批次详情 ({runName})"
-    },
-    "card_title": "薪资审核详情: {runName}",
-    "button_back_to_list": "返回列表",
-    "description": {
-      "id": "ID",
-      "payroll_period": "工资周期",
-      "run_date": "计算日期",
-      "status": "状态",
-      "employee_count": "包含员工数",
-      "created_by": "创建者用户ID",
-      "created_at": "创建时间",
-      "updated_at": "最后更新时间",
-      "paid_at": "支付时间",
-      "notes": "备注"
-    },
     "value": {
-      "na": "无",
-      "not_paid": "未支付",
-      "no_notes": "无",
-      "period_id_prefix": "ID: "
-    },
-    "section_title_entries": "工资条目"
+      "period_id_prefix": ""
+    }
   },
-  "payroll_run_form": {
-    "label": {
-      "payroll_period": "薪资周期",
-      "run_date": "计算日期",
-      "status_edit_mode": "状态",
-      "employee_ids": "员工ID范围",
-      "notes": "备注"
+  "runs_page": {
+    "error": {
+      "create_failed": "",
+      "update_failed": ""
     },
-    "placeholder": {
-      "employee_ids": "输入员工ID，用逗号分隔 (例如: 101,102,105)。留空则包含所有适用员工。",
-      "notes": "请输入关于本次计算的备注 (可选)"
+    "message": {
+      "create_success": "",
+      "update_success": ""
     },
-    "button": {
-      "save_changes": "保存更改"
+    "modal_title": {
+      "create": "新建薪资审核",
+      "edit": "编辑薪资审核"
     }
   }
 }

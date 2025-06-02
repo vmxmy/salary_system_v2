@@ -35,7 +35,7 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
   isEditMode = false,
   onStartDateChange,
 }) => {
-  const { t } = useTranslation('common'); // Added with namespace
+  const { t } = useTranslation(['payroll_periods', 'common']); // Added with namespace
 
   const handleSubmit = (values: any) => {
     const transformedValues: PayrollPeriodFormData = {
@@ -71,17 +71,17 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
     >
       <Form.Item
         name="name"
-        label={t('payroll_period_form.label.name')}
-        rules={[{ required: true, message: t('payroll_period_form.validation.name_required') }]}
+        label={t('payroll_periods:payroll_period_form.label.name')}
+        rules={[{ required: true, message: t('payroll_periods:payroll_period_form.validation.name_required') }]}
       >
-        <Input placeholder={t('payroll_period_form.placeholder.name')} />
+        <Input placeholder={t('payroll_periods:payroll_period_form.placeholder.name')} />
       </Form.Item>
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item
             name="start_date"
-            label={t('payroll_period_form.label.start_date')}
-            rules={[{ required: true, message: t('payroll_period_form.validation.start_date_required') }]}
+            label={t('payroll_periods:payroll_period_form.label.start_date')}
+            rules={[{ required: true, message: t('payroll_periods:payroll_period_form.validation.start_date_required') }]}
           >
             <DatePicker 
               style={{ width: '100%' }} 
@@ -93,16 +93,16 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         <Col span={12}>
           <Form.Item
             name="end_date"
-            label={t('payroll_period_form.label.end_date')}
+            label={t('payroll_periods:payroll_period_form.label.end_date')}
             rules={[
-              { required: true, message: t('payroll_period_form.validation.end_date_required') },
+              { required: true, message: t('payroll_periods:payroll_period_form.validation.end_date_required') },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || !getFieldValue('start_date')) {
                     return Promise.resolve();
                   }
                   if (value.isBefore(getFieldValue('start_date'))) {
-                    return Promise.reject(new Error(t('payroll_period_form.validation.end_date_before_start_date')));
+                    return Promise.reject(new Error(t('payroll_periods:payroll_period_form.validation.end_date_before_start_date')));
                   }
                   return Promise.resolve();
                 },
@@ -117,8 +117,8 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         <Col span={12}>
           <Form.Item
             name="pay_date"
-            label={t('payroll_period_form.label.pay_date')}
-            rules={[{ required: true, message: t('payroll_period_form.validation.pay_date_required') }]}
+            label={t('payroll_periods:payroll_period_form.label.pay_date')}
+            rules={[{ required: true, message: t('payroll_periods:payroll_period_form.validation.pay_date_required') }]}
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
@@ -126,10 +126,10 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         <Col span={12}>
           <Form.Item
             name="frequency_lookup_value_id"
-            label={t('payroll_period_form.label.frequency')}
-            rules={[{ required: true, message: t('payroll_period_form.validation.frequency_required') }]}
+            label={t('payroll_periods:payroll_period_form.label.frequency')}
+            rules={[{ required: true, message: t('payroll_periods:payroll_period_form.validation.frequency_required') }]}
           >
-            <Select placeholder={t('payroll_period_form.placeholder.frequency')}>
+            <Select placeholder={t('payroll_periods:payroll_period_form.placeholder.frequency')}>
               <Select.Option value={117}>月度</Select.Option>
               <Select.Option value={118}>季度</Select.Option>
               <Select.Option value={119}>年度</Select.Option>
@@ -139,10 +139,10 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
       </Row>
       <Form.Item
         name="status_lookup_value_id" // Changed from "status"
-        label={t('payroll_period_form.label.status')}
-        rules={[{ required: true, message: t('payroll_period_form.validation.status_required') }]}
+        label={t('payroll_periods:payroll_period_form.label.status')}
+        rules={[{ required: true, message: t('payroll_periods:payroll_period_form.validation.status_required') }]}
       >
-        <Select placeholder={t('payroll_period_form.placeholder.status')}>
+        <Select placeholder={t('payroll_periods:payroll_period_form.placeholder.status')}>
           {PAYROLL_PERIOD_STATUS_OPTIONS.map((statusOpt) => (
             <Select.Option key={statusOpt.id} value={statusOpt.id}>
               {String(t(statusOpt.display_name_key, { ns: 'common' }))}
@@ -155,13 +155,13 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         {onCancel && (
           <Col>
             <Button onClick={onCancel} disabled={loading}>
-              {t('payroll_period_form.button.cancel')}
+              {t('payroll_periods:payroll_period_form.button.cancel')}
             </Button>
           </Col>
         )}
         <Col>
           <Button type="primary" htmlType="submit" loading={loading}>
-            {isEditMode ? t('payroll_period_form.button.save_changes') : t('payroll_period_form.button.create_period')}
+            {isEditMode ? t('payroll_periods:payroll_period_form.button.save_changes') : t('payroll_periods:payroll_period_form.button.create_period')}
           </Button>
         </Col>
       </Row>

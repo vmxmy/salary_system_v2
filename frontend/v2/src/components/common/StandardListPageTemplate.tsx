@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import OrganizationManagementTableTemplate from './OrganizationManagementTableTemplate';
-import type { SorterResult } from 'antd/es/table/interface';
+import type { SorterResult, TablePaginationConfig, FilterValue, TableCurrentDataSource } from 'antd/es/table/interface';
 import type { ProColumns } from '@ant-design/pro-components';
 import { stringSorter, numberSorter, dateSorter, useTableSearch, useTableExport } from './TableUtils';
 import type { Dayjs } from 'dayjs';
@@ -91,6 +91,7 @@ export interface StandardListPageTemplateProps<T extends Record<string, any>> {
     successMessage: string;
     errorMessage: string;
     noSelectionMessage: string;
+    onBatchDelete: (selectedKeys: React.Key[]) => Promise<void>;
   };
   /** 导出配置 */
   exportConfig: {
@@ -115,6 +116,16 @@ export interface StandardListPageTemplateProps<T extends Record<string, any>> {
   serverSideSorting?: boolean;
   /** 是否启用服务器端筛选 */
   serverSideFiltering?: boolean;
+  /** 分页配置 */
+  paginationConfig?: TablePaginationConfig;
+  /** 搜索回调 */
+  onSearch?: (value: string) => void;
+  /** 表格变化回调 */
+  onTableChange?: (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<T> | SorterResult<T>[], extra: TableCurrentDataSource<T>) => void;
+  /** 选中行键 */
+  selectedRowKeys?: React.Key[];
+  /** 设置选中行键的回调 */
+  setSelectedRowKeys?: (selectedKeys: React.Key[]) => void;
 }
 
 // 标准列表页面模板组件
@@ -124,7 +135,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   addButtonTextKey,
   dataSource,
   loadingData,
-  permissions,
+  permissions = { canViewList: false, canViewDetail: false, canCreate: false, canUpdate: false, canDelete: false, canExport: false },
   lookupMaps,
   loadingLookups,
   errorLookups,
@@ -145,12 +156,16 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   serverSidePagination,
   serverSideSorting,
   serverSideFiltering,
+  paginationConfig,
+  onSearch,
+  onTableChange,
+  selectedRowKeys,
+  setSelectedRowKeys,
 }: StandardListPageTemplateProps<T>): React.ReactElement => {
   const { t } = useTranslation(translationNamespaces);
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
 
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const isInitializedRef = useRef(false);
   
   // 服务器端查询参数状态
@@ -344,20 +359,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     confirmContent: batchDeleteConfig.confirmContent,
     confirmOkText: batchDeleteConfig.confirmOkText,
     confirmCancelText: batchDeleteConfig.confirmCancelText,
-    onBatchDelete: async (selectedKeys: React.Key[]) => {
-      // 逐个删除选中的项目
-      const deletePromises = selectedKeys.map(id => 
-        deleteItem(String(id))
-      );
-      await Promise.all(deletePromises);
-      setSelectedRowKeys([]); // 清空选择
-      // 根据是否启用服务器端功能决定如何刷新数据
-      if (serverSidePagination || serverSideSorting || serverSideFiltering) {
-        fetchData(queryParams);
-      } else {
-        fetchData();
-      }
-    },
+    onBatchDelete: batchDeleteConfig.onBatchDelete,
     successMessage: batchDeleteConfig.successMessage,
     errorMessage: batchDeleteConfig.errorMessage,
     noSelectionMessage: batchDeleteConfig.noSelectionMessage,
@@ -373,7 +375,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   }, [fetchData, queryParams, serverSidePagination, serverSideSorting, serverSideFiltering]);
 
   // 分页配置
-  const paginationConfig = serverSidePagination ? {
+  const paginationConfigForTable = serverSidePagination ? {
     current: queryParams.page,
     pageSize: queryParams.page_size,
     total: total || 0,
@@ -381,7 +383,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     showQuickJumper: true,
     pageSizeOptions: ['10', '20', '50', '100', '200'],
     showTotal: (total: number, range: [number, number]) => 
-      t('components:auto__range_0_range_1___total__e7acac'),
+      t('components:auto__range_0_range_1___total__e7acac', { range0: range[0], range1: range[1], total }),
   } : {
     showSizeChanger: true,
     showQuickJumper: true,
@@ -402,7 +404,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
           columns={tableColumnsConfigForControls}
           dataSource={dataSource}
           loading={combinedLoading}
-          pagination={paginationConfig}
+          pagination={paginationConfigForTable}
           rowKey={rowKey}
           bordered
           scroll={{ x: 'max-content' }}

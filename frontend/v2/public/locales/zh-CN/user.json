@@ -1,112 +1,27 @@
 {
-  "breadcrumb": {
-    "admin_management": "系统管理",
-    "user_list": "用户管理"
-  },
-  "title": "用户管理",
-  "user_list_page": {
-    "title": "用户管理",
-    "button": {
-      "create_user": "创建用户"
-    },
-    "export": {
-      "filename": "用户管理",
-      "sheet_name": "用户数据"
-    },
-    "loading": "正在加载用户数据..."
-  },
-  "button": {
-    "create_user": "新建用户"
-  },
-  "table": {
-    "column": {
-      "id": "ID",
-      "username": "用户名",
-      "employee_id": "关联员工ID",
-      "roles": "角色",
-      "status": "状态",
-      "created_at": "创建时间",
-      "actions": "操作",
-      "is_active": "是否激活"
-    },
-    "status": {
-      "active": "激活",
-      "inactive": "禁用"
-    },
-    "value": {
-      "not_applicable": "不适用",
-      "active": "已激活",
-      "inactive": "已禁用"
-    },
-    "search": {
-      "placeholder_prefix": "搜索 ",
-      "button_search": "搜索",
-      "button_reset": "重置",
-      "button_close": "关闭"
-    }
-  },
-  "tooltip": {
-    "edit_user": "编辑用户",
-    "delete_user": "删除用户"
-  },
-  "modal": {
-    "title": {
-      "create_user": "新建用户",
-      "edit_user": "编辑用户"
-    },
-    "confirm_delete": {
-      "title": "确认删除用户 \"{username}\"?",
-      "content": "此操作无法撤销。",
-      "ok_text": "确认删除",
-      "cancel_text": "取消"
-    }
-  },
   "form": {
-    "username": {
-      "label": "用户名",
+    "confirm_password": {
+      "label": "确认密码",
       "validation": {
-        "required": "请输入用户名!",
-        "min_length": "用户名至少需要{count}个字符"
+        "match": "两次输入的密码不匹配!",
+        "required": "请再次输入密码!"
       }
+    },
+    "label": {
+      "employee_first_name": "员工的名",
+      "employee_id_card": "身份证号",
+      "employee_last_name": "员工的姓"
     },
     "password": {
       "label": "密码",
       "validation": {
-        "required": "请输入密码!",
-        "min_length": "密码至少需要{count}个字符"
+        "required": "请输入密码!"
       }
-    },
-    "confirm_password": {
-      "label": "确认密码",
-      "validation": {
-        "required": "请再次输入密码!",
-        "match": "两次输入的密码不匹配!"
-      }
-    },
-    "employee_id": {
-      "label": "关联员工 ID (可选)",
-      "placeholder": "输入员工系统ID"
-    },
-    "section": {
-      "employee_association": "员工关联"
-    },
-    "label": {
-      "employee_first_name": "员工的名",
-      "employee_last_name": "员工的姓",
-      "employee_id_card": "身份证号"
     },
     "placeholder": {
       "employee_first_name": "请输入员工的名字",
-      "employee_last_name": "请输入员工的姓氏",
-      "employee_id_card": "请输入员工身份证号"
-    },
-    "tooltip": {
-      "employee_id_card_for_association": "输入员工的姓名和身份证号以尝试关联员工档案。若留空，则不进行关联或尝试解除已有用户的关联。"
-    },
-    "status": {
-      "label": "状态",
-      "active": "激活",
-      "inactive": "禁用"
+      "employee_id_card": "请输入员工身份证号",
+      "employee_last_name": "请输入员工的姓氏"
     },
     "roles": {
       "label": "分配角色 (可选)",
@@ -115,25 +30,75 @@
         "required": "请至少选择一个角色!"
       }
     },
+    "section": {
+      "employee_association": "员工关联"
+    },
+    "status": {
+      "label": "状态"
+    },
     "status_switch": {
       "active": "激活",
       "inactive": "禁用"
+    },
+    "tooltip": {
+      "employee_id_card_for_association": "输入员工的姓名和身份证号以尝试关联员工档案。若留空，则不进行关联或尝试解除已有用户的关联。"
+    },
+    "username": {
+      "label": "用户名",
+      "validation": {
+        "required": "请输入用户名!"
+      }
     }
   },
   "message": {
-    "fetch_users_error": "获取用户列表失败",
-    "fetch_roles_error": "加载角色列表失败",
-    "create_user_success": "用户 \"{username}\" 创建成功!",
     "create_user_error": {
       "default": "创建用户失败，请检查输入或联系管理员。"
     },
-    "update_user_success": "用户 \"{username}\" 更新成功!",
+    "create_user_success": "用户 \"{username}\" 创建成功!",
+    "delete_user_error": {
+      "default": "删除用户失败。"
+    },
+    "delete_user_success": "用户 \"{username}\" 已删除。",
+    "fetch_roles_error": "加载角色列表失败",
     "update_user_error": {
       "default": "更新用户失败。"
     },
-    "delete_user_success": "用户 \"{username}\" 已删除。",
-    "delete_user_error": {
-      "default": "删除用户失败。"
+    "update_user_success": "用户 \"{username}\" 更新成功!",
+    "user_not_found_for_edit": ""
+  },
+  "modal": {
+    "confirm_delete": {
+      "cancel_text": "取消",
+      "content": "此操作无法撤销。",
+      "ok_text": "确认删除",
+      "title": "确认删除用户 \"{username}\"?"
+    },
+    "title": {
+      "create_user": "新建用户",
+      "edit_user": "编辑用户"
     }
+  },
+  "table": {
+    "column": {
+      "actions": "操作",
+      "created_at": "创建时间",
+      "employee_id": "关联员工ID",
+      "id": "ID",
+      "is_active": "是否激活",
+      "roles": "角色",
+      "username": "用户名"
+    },
+    "value": {
+      "active": "已激活",
+      "inactive": "已禁用",
+      "not_applicable": "不适用"
+    }
+  },
+  "tooltip": {
+    "delete_user": "删除用户",
+    "edit_user": "编辑用户"
+  },
+  "user_list_page": {
+    "title": "用户管理"
   }
 }

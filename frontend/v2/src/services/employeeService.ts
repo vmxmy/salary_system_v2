@@ -113,7 +113,8 @@ export const employeeService = {
       const response = await apiClient.get<{data: Employee}>(`/employees/${id}`);
       return response.data.data;
     } catch (error) {
-      return null;
+      // Re-throw the error so MyInfoPage can catch and display it
+      throw error;
     }
   },
 

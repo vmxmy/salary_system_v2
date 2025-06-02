@@ -37,7 +37,7 @@ const PayrollRunDetailPage: React.FC = () => {
       const response = await getPayrollRunById(id, { include_employee_details: true });
       setRunDetails(response.data);
     } catch (err: any) {
-      setError(err.message || t('payroll_run_detail_page.error_fetch_details'));
+      setError(err.message || t('payroll_runs:payroll_run_detail_page.error_fetch_details'));
       setRunDetails(null);
     }
     setLoading(false);
@@ -49,32 +49,32 @@ const PayrollRunDetailPage: React.FC = () => {
       if (!isNaN(numericRunId)) {
         fetchRunDetails(numericRunId);
       } else {
-        setError(t('payroll_run_detail_page.error_invalid_run_id'));
+        setError(t('payroll_runs:payroll_run_detail_page.error_invalid_run_id'));
         setLoading(false);
       }
     } else {
-      setError(t('payroll_run_detail_page.error_no_run_id_provided'));
+      setError(t('payroll_runs:payroll_run_detail_page.error_no_run_id_provided'));
       setLoading(false);
     }
   }, [runId, fetchRunDetails, t]);
 
   if (loading) {
-    return <Spin tip={t('payroll_run_detail_page.spin_loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('payroll_runs:payroll_run_detail_page.spin_loading')} style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
   }
 
   if (error) {
-    return <Alert message={`${t('payroll_run_detail_page.alert_error_prefix')}${error}`} type="error" showIcon style={{ margin: '20px' }} />;
+    return <Alert message={`${t('payroll_runs:payroll_run_detail_page.alert_error_prefix')}${error}`} type="error" showIcon style={{ margin: '20px' }} />;
   }
 
   if (!runDetails) {
-    return <Alert message={t('payroll_run_detail_page.alert_not_found')} type="warning" showIcon style={{ margin: '20px' }} />;
+    return <Alert message={t('payroll_runs:payroll_run_detail_page.alert_not_found')} type="warning" showIcon style={{ margin: '20px' }} />;
   }
 
   const statusInfo = getPayrollRunStatusInfo(runDetails.status_lookup_value_id);
 
   // 生成批次名称：使用周期名称 + 运行日期
   const generateRunName = (run: PayrollRun): string => {
-    const periodName = run.payroll_period?.name || t('payroll:auto_id_run_payroll_period_id__e591a8');
+    const periodName = run.payroll_period?.name || t('payroll_runs:run_detail_page.value.period_id_prefix');
     const runDate = dayjs(run.run_date).format('YYYY-MM-DD');
     return `${periodName} - ${runDate}`;
   };
@@ -87,10 +87,10 @@ const PayrollRunDetailPage: React.FC = () => {
         style={{ marginBottom: '16px' }}
         items={[
           {
-            title: <Link to="/finance/payroll/runs">{t('payroll_run_detail_page.breadcrumb_runs_management')}</Link>
+            title: <Link to="/finance/payroll/runs">{t('payroll_runs:payroll_run_detail_page.breadcrumb_runs_management')}</Link>
           },
           {
-            title: t('payroll_run_detail_page.breadcrumb_current_page', { runName })
+            title: t('payroll_runs:payroll_run_detail_page.breadcrumb_current_page', { runName })
           }
         ]}
       />
@@ -98,37 +98,37 @@ const PayrollRunDetailPage: React.FC = () => {
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <Title level={3} style={{ marginBottom: 0 }}>
-            {t('payroll_run_detail_page.card_title', { runName })}
+            {t('payroll_runs:payroll_run_detail_page.card_title', { runName })}
           </Title>
           <Space>
             <Link to={`/finance/payroll/runs`}>
-                <Button icon={<ArrowLeftOutlined />}>{t('payroll_run_detail_page.button_back_to_list')}</Button>
+                <Button icon={<ArrowLeftOutlined />}>{t('payroll_runs:payroll_run_detail_page.button_back_to_list')}</Button>
             </Link>
           </Space>
         </div>
 
         <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_id')}>{runDetails.id}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_payroll_period')}>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_id')}>{runDetails.id}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_payroll_period')}>
             {runDetails.payroll_period ? 
-              `${runDetails.payroll_period.name} (${t('payroll_run_detail_page.value_period_id_prefix')}${runDetails.payroll_period_id})` : 
-              `${t('payroll_run_detail_page.value_period_id_prefix')}${runDetails.payroll_period_id}`}
+              `${runDetails.payroll_period.name} (${t('payroll_runs:payroll_run_detail_page.value_period_id_prefix')}${runDetails.payroll_period_id})` : 
+              `${t('payroll_runs:payroll_run_detail_page.value_period_id_prefix')}${runDetails.payroll_period_id}`}
           </Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_run_date')}>{dayjs(runDetails.run_date).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_status')}>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_run_date')}>{dayjs(runDetails.run_date).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_status')}>
             <Tag color={statusInfo.color}>{t(statusInfo.key, statusInfo.params)}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_employee_count')}>{runDetails.employee_ids?.length || 0}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_created_by')}>{runDetails.created_by_user_id || t('payroll_run_detail_page.value_na')}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_created_at')}>{runDetails.created_at ? dayjs(runDetails.created_at).format('YYYY-MM-DD HH:mm:ss'): t('payroll_run_detail_page.value_na')}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_updated_at')}>{runDetails.updated_at ? dayjs(runDetails.updated_at).format('YYYY-MM-DD HH:mm:ss'): t('payroll_run_detail_page.value_na')}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_paid_at')} span={2}>{runDetails.paid_at ? dayjs(runDetails.paid_at).format('YYYY-MM-DD HH:mm:ss'): t('payroll_run_detail_page.value_not_paid')}</Descriptions.Item>
-          <Descriptions.Item label={t('payroll_run_detail_page.desc_label_notes')} span={2}>{runDetails.notes || t('payroll_run_detail_page.value_no_notes')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_employee_count')}>{runDetails.employee_ids?.length || 0}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_created_by')}>{runDetails.created_by_user_id || t('payroll_runs:payroll_run_detail_page.value_na')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_created_at')}>{runDetails.created_at ? dayjs(runDetails.created_at).format('YYYY-MM-DD HH:mm:ss'): t('payroll_runs:payroll_run_detail_page.value_na')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_updated_at')}>{runDetails.updated_at ? dayjs(runDetails.updated_at).format('YYYY-MM-DD HH:mm:ss'): t('payroll_runs:payroll_run_detail_page.value_na')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_paid_at')} span={2}>{runDetails.paid_at ? dayjs(runDetails.paid_at).format('YYYY-MM-DD HH:mm:ss'): t('payroll_runs:payroll_run_detail_page.value_not_paid')}</Descriptions.Item>
+          <Descriptions.Item label={t('payroll_runs:payroll_run_detail_page.desc_label_notes')} span={2}>{runDetails.notes || t('payroll_runs:payroll_run_detail_page.value_no_notes')}</Descriptions.Item>
         </Descriptions>
 
         <Divider />
 
-        <Title level={4} style={{ marginTop: '30px', marginBottom: '20px' }}>{t('payroll_run_detail_page.section_title_entries')}</Title>
+        <Title level={4} style={{ marginTop: '30px', marginBottom: '20px' }}>{t('payroll_runs:payroll_run_detail_page.section_title_entries')}</Title>
         <PayrollEntriesTable payrollRunId={runDetails.id} />
 
       </Card>

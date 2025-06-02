@@ -1,94 +1,27 @@
 {
-  "title": "User Management",
-  "button": {
-    "create_user": "Create User"
-  },
-  "table": {
-    "column": {
-      "id": "ID",
-      "username": "Username",
-      "employee_id": "Associated Employee ID",
-      "roles": "Roles",
-      "status": "Status",
-      "created_at": "Created At",
-      "actions": "Actions"
-    },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
-    "value": {
-      "not_applicable": "Not Applicable"
-    },
-    "search": {
-      "placeholder_prefix": "Search ",
-      "button_search": "Search",
-      "button_reset": "Reset",
-      "button_close": "Close"
-    }
-  },
-  "tooltip": {
-    "edit_user": "Edit User",
-    "delete_user": "Delete User"
-  },
-  "modal": {
-    "title": {
-      "create_user": "Create User",
-      "edit_user": "Edit User"
-    },
-    "confirm_delete": {
-      "title": "Confirm Delete User \"{username}\"?",
-      "content": "This action cannot be undone.",
-      "ok_text": "Confirm Delete",
-      "cancel_text": "Cancel"
-    }
-  },
   "form": {
-    "username": {
-      "label": "Username",
+    "confirm_password": {
+      "label": "Confirm Password",
       "validation": {
-        "required": "Please enter username!",
-        "min_length": "Username must be at least {count} characters"
+        "match": "Passwords do not match!",
+        "required": "Please enter password again!"
       }
+    },
+    "label": {
+      "employee_first_name": "Employee First Name",
+      "employee_id_card": "ID Card Number",
+      "employee_last_name": "Employee Last Name"
     },
     "password": {
       "label": "Password",
       "validation": {
-        "required": "Please enter password!",
-        "min_length": "Password must be at least {count} characters"
+        "required": "Please enter password!"
       }
-    },
-    "confirm_password": {
-      "label": "Confirm Password",
-      "validation": {
-        "required": "Please enter password again!",
-        "match": "Passwords do not match!"
-      }
-    },
-    "employee_id": {
-      "label": "Associated Employee ID (Optional)",
-      "placeholder": "Enter employee system ID"
-    },
-    "section": {
-      "employee_association": "Employee Association"
-    },
-    "label": {
-      "employee_first_name": "Employee First Name",
-      "employee_last_name": "Employee Last Name",
-      "employee_id_card": "ID Card Number"
     },
     "placeholder": {
       "employee_first_name": "Please enter employee first name",
-      "employee_last_name": "Please enter employee last name",
-      "employee_id_card": "Please enter employee ID card number"
-    },
-    "tooltip": {
-      "employee_id_card_for_association": "Enter employee's first name, last name, and ID card number to attempt to associate an employee record. Leave blank to not associate or attempt to disassociate an existing user."
-    },
-    "status": {
-      "label": "Status",
-      "active": "Active",
-      "inactive": "Inactive"
+      "employee_id_card": "Please enter employee ID card number",
+      "employee_last_name": "Please enter employee last name"
     },
     "roles": {
       "label": "Assign Roles (Optional)",
@@ -97,24 +30,75 @@
         "required": "Please select at least one role!"
       }
     },
+    "section": {
+      "employee_association": "Employee Association"
+    },
+    "status": {
+      "label": "Status"
+    },
     "status_switch": {
       "active": "Active",
       "inactive": "Inactive"
+    },
+    "tooltip": {
+      "employee_id_card_for_association": "Enter employee's first name, last name, and ID card number to attempt to associate an employee record. Leave blank to not associate or attempt to disassociate an existing user."
+    },
+    "username": {
+      "label": "Username",
+      "validation": {
+        "required": "Please enter username!"
+      }
     }
   },
   "message": {
-    "fetch_roles_error": "Failed to load role list",
-    "create_user_success": "User \"{username}\" created successfully!",
     "create_user_error": {
       "default": "Failed to create user, please check input or contact administrator."
     },
-    "update_user_success": "User \"{username}\" updated successfully!",
+    "create_user_success": "User \"{username}\" created successfully!",
+    "delete_user_error": {
+      "default": "Failed to delete user."
+    },
+    "delete_user_success": "User \"{username}\" deleted successfully.",
+    "fetch_roles_error": "Failed to load role list",
     "update_user_error": {
       "default": "Failed to update user."
     },
-    "delete_user_success": "User \"{username}\" deleted successfully.",
-    "delete_user_error": {
-      "default": "Failed to delete user."
+    "update_user_success": "User \"{username}\" updated successfully!",
+    "user_not_found_for_edit": ""
+  },
+  "modal": {
+    "confirm_delete": {
+      "cancel_text": "Cancel",
+      "content": "This action cannot be undone.",
+      "ok_text": "Confirm Delete",
+      "title": "Confirm Delete User \"{username}\"?"
+    },
+    "title": {
+      "create_user": "Create User",
+      "edit_user": "Edit User"
     }
+  },
+  "table": {
+    "column": {
+      "actions": "Actions",
+      "created_at": "Created At",
+      "employee_id": "Associated Employee ID",
+      "id": "ID",
+      "is_active": "",
+      "roles": "Roles",
+      "username": "Username"
+    },
+    "value": {
+      "active": "",
+      "inactive": "",
+      "not_applicable": "Not Applicable"
+    }
+  },
+  "tooltip": {
+    "delete_user": "Delete User",
+    "edit_user": "Edit User"
+  },
+  "user_list_page": {
+    "title": ""
   }
 }

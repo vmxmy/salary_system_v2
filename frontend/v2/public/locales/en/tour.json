@@ -1,19 +1,19 @@
 {
-  "dashboard": {
-    "title": "Dashboard Overview",
-    "description": "This is the system overview and quick access area. You can quickly understand key data and navigate to various functional modules."
+  "ai_robot": {
+    "description": "Have any questions or need operational guidance? Feel free to click the AI assistant icon in the bottom right corner; it will do its best to help you.",
+    "title": "AI Assistant"
   },
   "bulk_import": {
-    "title": "Bulk Import Employees",
-    "description": "If you need to add multiple employee records at once, you can use this feature to quickly complete it by uploading a file."
-  },
-  "ai_robot": {
-    "title": "AI Assistant",
-    "description": "Have any questions or need operational guidance? Feel free to click the AI assistant icon in the bottom right corner; it will do its best to help you."
+    "description": "If you need to add multiple employee records at once, you can use this feature to quickly complete it by uploading a file.",
+    "title": "Bulk Import Employees"
   },
   "common": {
+    "finish": "Finish",
     "next": "Next",
-    "previous": "Previous",
-    "finish": "Finish"
+    "previous": "Previous"
+  },
+  "dashboard": {
+    "description": "This is the system overview and quick access area. You can quickly understand key data and navigate to various functional modules.",
+    "title": "Dashboard Overview"
   }
 }

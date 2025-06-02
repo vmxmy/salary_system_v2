@@ -42,3 +42,57 @@ def get_db_v2():
         yield db
     finally:
         db.close()
+
+def get_database_url_for_bg_task() -> str:
+    """Returns the database URL for background task usage."""
+    if not SQLALCHEMY_DATABASE_URL:
+        # This case should ideally be prevented by the initial check at module load.
+        logger.critical("get_database_url_for_bg_task: SQLALCHEMY_DATABASE_URL is not available!")
+        raise RuntimeError("Database URL is not configured for background tasks.")
+    return str(SQLALCHEMY_DATABASE_URL) # Ensure it's a string
+
+# For async background tasks
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from contextlib import asynccontextmanager
+
+# Example: postgresql+asyncpg://user:password@host:port/dbname
+# ASYNC_SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://") if SQLALCHEMY_DATABASE_URL else None
+
+if SQLALCHEMY_DATABASE_URL:
+    if SQLALCHEMY_DATABASE_URL.startswith("postgresql+psycopg2://"):
+        ASYNC_SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+asyncpg://")
+    elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
+        ASYNC_SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+    else:
+        logger.warning(f"Database URL {SQLALCHEMY_DATABASE_URL} is not in a recognized format for async conversion. Async DB operations may fail.")
+        ASYNC_SQLALCHEMY_DATABASE_URL = None
+else:
+    ASYNC_SQLALCHEMY_DATABASE_URL = None
+
+if ASYNC_SQLALCHEMY_DATABASE_URL:
+    async_engine_v2 = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URL, echo=False) # Set echo=True for debugging
+    AsyncSessionLocalV2 = sessionmaker(
+        bind=async_engine_v2, class_=AsyncSession, expire_on_commit=False
+    )
+else:
+    logger.warning("ASYNC_SQLALCHEMY_DATABASE_URL is not configured. Async DB operations may fail.")
+    async_engine_v2 = None
+    AsyncSessionLocalV2 = None
+
+
+@asynccontextmanager
+async def get_async_db_session() -> AsyncSession:
+    """Provides an asynchronous SQLAlchemy database session."""
+    if not AsyncSessionLocalV2:
+        logger.error("AsyncSessionLocalV2 is not initialized. Cannot create async DB session.")
+        raise RuntimeError("Async database session factory is not configured.")
+    
+    async_session = AsyncSessionLocalV2()
+    try:
+        yield async_session
+        await async_session.commit()
+    except Exception:
+        await async_session.rollback()
+        raise
+    finally:
+        await async_session.close()

@@ -23,6 +23,8 @@ import {
 import { PageContainer } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 
+import styles from './DashboardV3.module.less';
+
 import {
   KpiOverviewSection,
   PayrollAnalysisSection,
@@ -50,16 +52,16 @@ const DashboardV3: React.FC = () => {
   
   // 时间维度选项
   const TIME_DIMENSION_OPTIONS = [
-    { label: t('dashboard:auto_text_e69c88'), value: 'monthly' },
-    { label: t('dashboard:auto_text_e5ada3'), value: 'quarterly' },
-    { label: t('dashboard:auto_text_e5b9b4'), value: 'yearly' }
+    { label: t('dashboard:unit_month'), value: 'monthly' },
+    { label: t('dashboard:unit_quarter'), value: 'quarterly' },
+    { label: t('dashboard:unit_year'), value: 'yearly' }
   ];
   
   // 仪表盘视图选项
   const DASHBOARD_VIEW_OPTIONS = [
-    { label: t('dashboard:auto___f09f92'), value: 'management' },
-    { label: t('dashboard:auto___f09f93'), value: 'analytics' },
-    { label: t('dashboard:auto___e29aa0'), value: 'risk' }
+    { label: t('dashboard:management_overview'), value: 'management' },
+    { label: t('dashboard:data_analysis'), value: 'analytics' },
+    { label: t('dashboard:risk_monitoring'), value: 'risk' }
   ];
 
   // 状态管理
@@ -67,6 +69,7 @@ const DashboardV3: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [timeDimension, setTimeDimension] = useState<string>('monthly');
   const [dashboardView, setDashboardView] = useState<string>('management');
+  const [kpiDataState, setKpiDataState] = useState<any>(null); // New separate state for KPI data
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     kpiData: null,
     salaryTrend: [],
@@ -85,15 +88,28 @@ const DashboardV3: React.FC = () => {
     setRefreshing(true);
     
     try {
+      // 独立获取KPI数据，避免被其他API影响
+      try {
+        const kpiData = await dashboardService.getKpiData();
+        console.log('KPI data fetched successfully:', kpiData);
+        setKpiDataState(kpiData);
+      } catch (kpiError) {
+        console.error('Failed to fetch KPI data:', kpiError);
+        setKpiDataState({
+          currentEmployeeCount: 0,
+          lastMonthPayrollTotal: 0,
+          yearToDatePayrollTotal: 0,
+        });
+      }
+
+      // 获取其他数据，即使失败也不影响KPI显示
       const [
-        kpiData,
         salaryTrend,
         departmentSalary,
         employeeGrades,
         payrollStatus,
         recentPayrollRuns
-      ] = await Promise.all([
-        dashboardService.getKpiData(),
+      ] = await Promise.allSettled([
         dashboardService.getSalaryTrend(),
         dashboardService.getDepartmentSalaryDistribution(),
         dashboardService.getEmployeeGradeDistribution(),
@@ -101,20 +117,26 @@ const DashboardV3: React.FC = () => {
         dashboardService.getRecentPayrollRuns()
       ]);
 
+      // 处理Promise.allSettled的结果
+      const getSafeValue = (result: any, defaultValue: any) => {
+        return result.status === 'fulfilled' ? result.value : defaultValue;
+      };
+
       setDashboardData({
-        kpiData,
-        salaryTrend,
-        departmentSalary,
-        employeeGrades,
-        payrollStatus,
-        recentPayrollRuns
+        kpiData: null, // KPI数据已经单独设置到kpiDataState
+        salaryTrend: getSafeValue(salaryTrend, []),
+        departmentSalary: getSafeValue(departmentSalary, []),
+        employeeGrades: getSafeValue(employeeGrades, []),
+        payrollStatus: getSafeValue(payrollStatus, []),
+        recentPayrollRuns: getSafeValue(recentPayrollRuns, [])
       });
 
       if (!showLoading) {
-        messageApi.success(t('dashboard:auto___f09f93'));
+        messageApi.success(t('dashboard:loading_dashboard'));
       }
     } catch (error) {
-      messageApi.error(t('dashboard:auto____e29d8c'));
+      console.error('Dashboard data fetch error:', error);
+      messageApi.error(t('dashboard:error_fetching_dashboard_data_retry'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -130,20 +152,39 @@ const DashboardV3: React.FC = () => {
   const handleTimeDimensionChange = useCallback((value: string) => {
     setTimeDimension(value);
     // 这里可以根据时间维度重新获取数据
-    messageApi.info(t('dashboard:auto___time_dimension_options_find_opt_opt_value_value_label__f09f93'));
+    messageApi.info(t('dashboard:time_dimension_switched', { dimension: TIME_DIMENSION_OPTIONS.find(opt => opt.value === value)?.label }));
   }, []);
 
   // 处理视图切换
   const handleViewChange = useCallback((value: string) => {
     setDashboardView(value);
     const viewName = DASHBOARD_VIEW_OPTIONS.find(opt => opt.value === value)?.label;
-    messageApi.info(t('dashboard:auto___viewname__f09f94'));
+    messageApi.info(t('dashboard:view_switched', { viewName: viewName }));
   }, []);
 
   // 初始化数据
   useEffect(() => {
+    console.log('DashboardV3: Component mounted.');
     fetchDashboardData();
+
+    return () => {
+      console.log('DashboardV3: Component unmounted.');
+    };
   }, [fetchDashboardData]);
+
+  useEffect(() => {
+    console.log('dashboardData changed:', dashboardData);
+    if (dashboardData && dashboardData.kpiData) {
+      console.log('KPI data is ready from combined state:', dashboardData.kpiData);
+    }
+  }, [dashboardData]);
+
+  useEffect(() => {
+    console.log('kpiDataState changed:', kpiDataState);
+    if (kpiDataState) {
+      console.log('KPI data is ready from separate state:', kpiDataState);
+    }
+  }, [kpiDataState]);
 
   // 渲染页面头部操作区
   const renderPageHeaderExtra = () => (
@@ -154,7 +195,7 @@ const DashboardV3: React.FC = () => {
         onChange={handleTimeDimensionChange}
         size={isMobile ? "small" : "small"}
       />
-      <Tooltip title={t('dashboard:auto_text_e588b7')}>
+      <Tooltip title={t('dashboard:refresh_data')}>
         <Button
           type="text"
           icon={<ReloadOutlined spin={refreshing} />}
@@ -165,18 +206,18 @@ const DashboardV3: React.FC = () => {
       </Tooltip>
       {!isMobile && (
         <>
-          <Tooltip title={t('dashboard:auto_text_e585a8')}>
+          <Tooltip title={t('dashboard:fullscreen_display')}>
             <Button
               type="text"
               icon={<FullscreenOutlined />}
-              onClick={() => messageApi.info(t('dashboard:auto___f09f94'))}
+              onClick={() => messageApi.info(t('dashboard:fullscreen_feature_under_development'))}
             />
           </Tooltip>
-          <Tooltip title={t('dashboard:auto_text_e4bbaa')}>
+          <Tooltip title={t('dashboard:dashboard_settings')}>
             <Button
               type="text"
               icon={<SettingOutlined />}
-              onClick={() => messageApi.info(t('dashboard:auto___e29a99'))}
+              onClick={() => messageApi.info(t('dashboard:settings_feature_under_development'))}
             />
           </Tooltip>
         </>
@@ -195,9 +236,9 @@ const DashboardV3: React.FC = () => {
         <Col xs={24} md={12}>
           <Space align="center">
             <Title level={5} style={{ margin: 0 }}>
-              📈 薪资管理仪表盘
+              {t('dashboard:salary_management_dashboard_title')}
             </Title>
-            <Tooltip title={t('dashboard:auto_text_e6a0b9')}>
+            <Tooltip title={t('dashboard:switch_view_based_on_role_needs_tooltip')}>
               <QuestionCircleOutlined style={{ color: '#999' }} />
             </Tooltip>
           </Space>
@@ -225,7 +266,7 @@ const DashboardV3: React.FC = () => {
           alignItems: 'center', 
           height: '60vh' 
         }}>
-          <Spin size="large" tip={t('dashboard:auto____f09f93')}>
+          <Spin size="large" tip={t('dashboard:loading_dashboard_data')}>
             <div style={{ width: 200, height: 100 }} />
           </Spin>
         </div>
@@ -233,11 +274,17 @@ const DashboardV3: React.FC = () => {
     }
 
     return (
-      <Spin spinning={refreshing} tip={t('dashboard:auto____f09f94')}>
+      <Spin spinning={refreshing} tip={t('dashboard:data_updating')}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           {/* KPI 概览区域 - 所有视图都显示 */}
+          {(() => {
+            console.log('Before render KpiOverviewSection - dashboardData:', dashboardData);
+            console.log('Before render KpiOverviewSection - dashboardData.kpiData:', dashboardData?.kpiData);
+            console.log('Before render KpiOverviewSection - kpiDataState:', kpiDataState);
+            return null; // Return null to not render anything in JSX
+          })()}
           <KpiOverviewSection 
-            data={dashboardData.kpiData}
+            data={kpiDataState}
             timeDimension={timeDimension}
           />
 
@@ -250,7 +297,7 @@ const DashboardV3: React.FC = () => {
                 timeDimension={timeDimension}
               />
               <ComplianceRiskSection 
-                data={dashboardData.kpiData}
+                data={kpiDataState}
                 timeDimension={timeDimension}
               />
             </>
@@ -268,7 +315,7 @@ const DashboardV3: React.FC = () => {
           {dashboardView === 'risk' && (
             <>
               <ComplianceRiskSection 
-                data={dashboardData.kpiData}
+                data={kpiDataState}
                 timeDimension={timeDimension}
                 expanded={true}
               />
@@ -287,25 +334,13 @@ const DashboardV3: React.FC = () => {
 
   return (
     <PageContainer
-      title={false}
-      extra={renderPageHeaderExtra()}
-      content={renderViewSelector()}
+      header={{
+        title: t('dashboard:salary_management_dashboard_title') + (isMobile ? t('dashboard:mobile_suffix') : t('dashboard:desktop_suffix')),
+        extra: renderPageHeaderExtra(),
+      }}
+      className={styles.pageContainer}
     >
-      {/* 开发环境响应式调试信息 */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card size="small" style={{ marginBottom: 16, background: '#f0f2f5' }}>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            📱 响应式调试: 
-            {screens.xs && ' XS'}
-            {screens.sm && ' SM'}
-            {screens.md && ' MD'}
-            {screens.lg && ' LG'}
-            {screens.xl && ' XL'}
-            {screens.xxl && ' XXL'}
-            {isMobile ?      t('dashboard:auto____2028e7'): t('dashboard:auto____2028e6')}
-          </Text>
-        </Card>
-      )}
+      {renderViewSelector()}
       {renderDashboardContent()}
     </PageContainer>
   );

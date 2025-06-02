@@ -7,4 +7,5 @@ alwaysApply: true
  前端 : http://localhost:5173/
  前端帐号：admin/admin
  后端 api 地址 : http://localhost:8080/v2
- 后端 api docs : http://localhost:8080/docs 
+ 后端 api docs : http://localhost:8080/docs  
+ 数据库元数据信息：/Users/xumingyang/app/高新区工资信息管理/salary_system/docs/db/database_metadata.md

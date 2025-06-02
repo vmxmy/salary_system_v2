@@ -162,6 +162,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
           onChange={handleAvatarChange}
           name="file" 
           maxCount={1}
+          showUploadList={false}
         >
           {avatarFileList.length < 1 && (
             <div>

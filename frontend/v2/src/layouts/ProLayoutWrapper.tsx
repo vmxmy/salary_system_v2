@@ -14,7 +14,7 @@ import {
   Switch,
   Tooltip,
   Grid,
-  message,
+  App,
 } from 'antd';
 import {
   UserOutlined,
@@ -49,12 +49,13 @@ const RightContent: React.FC<{
   onLogout: () => void;
 }> = ({ isDark, onThemeChange, currentUser, onLogout }) => {
   const { t, i18n } = useTranslation(['common', 'components']);
+  const { message: messageApi } = App.useApp();
 
   // 🔄 切换语言
   const toggleLanguage = () => {
     const newLang = i18n.language === 'zh-CN' ? 'en' : 'zh-CN';
     i18n.changeLanguage(newLang);
-    message.success(t('common:language_switched'));
+    messageApi.success(t('common:language_switched'));
   };
 
   // 👤 用户菜单
@@ -136,8 +137,29 @@ const RightContent: React.FC<{
 const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useTranslation(['menu', 'common']);
+  const { t } = useTranslation([
+    'common',
+    'user_menu',
+    'tour',
+    'hr',
+    'employee',
+    'admin',
+    'auth',
+    'dashboard',
+    'department',
+    'jobTitle',
+    'manager',
+    'myPayslips',
+    'myInfo',
+    'payroll',
+    'permission',
+    'role',
+    'user',
+    'personnelCategory',
+    'menu'
+  ]);
   const screens = useBreakpoint();
+  const { message: messageApi } = App.useApp();
   
   // 🏪 状态管理
   const { currentUser, logoutAction } = useAuthStore();
@@ -164,19 +186,19 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
       navTheme: checked ? 'realDark' : 'light', // 根据主题切换明暗色
     }));
     
-    message.success(t(`common:theme_switched_to_${newMode}`));
-  }, [t]);
+    messageApi.success(t(`common:theme_switched_to_${newMode}`));
+  }, [t, messageApi]);
 
   // 🚪 登出处理
   const handleLogout = useCallback(async () => {
     try {
       await logoutAction();
       navigate('/login', { replace: true });
-      message.success(t('common:auth.logout_success'));
+      messageApi.success(t('common:auth.logout_success'));
     } catch (error) {
-      message.error(t('common:auth.logout_failed'));
+      messageApi.error(t('common:auth.logout_failed'));
     }
-  }, [logoutAction, navigate, t]);
+  }, [logoutAction, navigate, t, messageApi]);
 
   // 🧭 菜单点击处理
   const handleMenuClick = useCallback((item: MenuDataItem) => {
@@ -186,7 +208,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   }, [navigate, location.pathname]);
 
   // 📝 面包屑配置
-  const breadcrumbNameMap = getBreadcrumbNameMap(menuData);
+  const breadcrumbNameMap = getBreadcrumbNameMap(menuData, t);
 
   // 处理图片加载失败
   const handleLogoError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -228,7 +250,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
       defaultOpenKeys: ['/hr', '/payroll', '/manager', '/admin', '/organization', '/test', '/personal'],
     },
     menuDataRender: () => {
-      const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(key));
+const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(key, { ns: 'menu' }));
       return transformedData;
     },
     menuItemRender: (item: MenuDataItem, dom: React.ReactNode) => (
@@ -242,7 +264,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     breadcrumbRender: (routers: any[] = []) => [
       {
         path: '/',
-        breadcrumbName: t('common:pageTitle.home'),
+        breadcrumbName: t('menu:home'),
       },
       ...routers,
     ],

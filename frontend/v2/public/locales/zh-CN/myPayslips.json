@@ -1,64 +1,27 @@
 {
-  "title": "我的工资单",
-  "breadcrumb": {
-    "employeeInfo": "员工信息",
-    "myPayslips": "我的工资单"
+  "actions": {
+    "viewDetails": "查看详情"
   },
   "column": {
-    "payrollPeriod": "工资周期",
-    "basicSalary": "基本工资",
-    "totalEarnings": "总收入",
-    "totalDeductions": "总扣除",
-    "netPay": "实发工资",
     "actions": "操作",
-    "runDate": "runDate",
-    "employeeName": "employeeName",
-    "paymentDate": "paymentDate",
-    "status": "status"
+    "employeeName": "员工姓名",
+    "netPay": "实发工资",
+    "paymentDate": "支付日期",
+    "payrollPeriod": "工资期间",
+    "runDate": "运行日期",
+    "status": "状态"
   },
-  "filter": {
-    "searchPlaceholder": "搜索工资周期...",
-    "startDate": "开始日期",
-    "endDate": "结束日期",
-    "statusPlaceholder": "选择状态"
-  },
-  "status": {
-    "paid": "已发放",
-    "pending": "待发放",
-    "pendingPayment": "pendingPayment",
-    "draft": "draft",
-    "finalized": "finalized"
-  },
-  "action": {
-    "search": "搜索",
-    "viewDetails": "查看详情",
-    "downloadPdf": "下载PDF",
-    "exportAll": "导出全部"
-  },
+  "fetchError": "获取工资单失败，请稍后重试。",
+  "noEmployeeIdError": "未找到员工ID，无法获取工资单。",
   "pagination": {
-    "showTotal": "第 {start}-{end} 条 / 共 {total} 条"
+    "show_total_text": "显示第 {range0}-{range1} 条，共 {total} 条"
   },
-  "noEmployeeIdError": "无法获取员工ID，请联系管理员",
-  "fetchError": "获取工资单数据失败，请稍后重试",
-  "periodIdPrefix": "ID: ",
-  "status.pendingPayment": "待支付",
-  "status.draft": "草稿",
-  "status.finalized": "已确认",
-  "actions.viewDetails": "查看详情",
-  "export": {
-    "filename": "我的薪资单",
-    "sheetName": "薪资单数据",
-    "buttonText": "导出 EXCEL",
-    "successMessage": "工资单导出成功",
-    "tooltipTitle": "导出工资单到Excel"
+  "periodIdPrefix": "期间ID: ",
+  "status": {
+    "draft": "草稿",
+    "finalized": "已定稿",
+    "paid": "已支付",
+    "pendingPayment": "待支付"
   },
-  "columnControl": {
-    "buttonText": "列设置",
-    "tooltipTitle": "自定义显示列",
-    "dropdownTitle": "列显示",
-    "resetText": "重置"
-  },
-  "actions": {
-    "viewDetails": "viewDetails"
-  }
+  "title": "我的工资单"
 }

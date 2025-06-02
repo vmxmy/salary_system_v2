@@ -4,9 +4,11 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, UniqueConstraint, Identity, Numeric, BigInteger, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import TIMESTAMP, JSONB
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+import json
 
 from ..database import BaseV2
+from ..utils.serialization import CustomJSONB
 
 # Payroll Schema Models
 class PayrollPeriod(BaseV2):
@@ -64,10 +66,10 @@ class PayrollEntry(BaseV2):
     gross_pay = Column(Numeric(18, 4), nullable=False, server_default='0')
     total_deductions = Column(Numeric(18, 4), nullable=False, server_default='0')
     net_pay = Column(Numeric(18, 4), nullable=False, server_default='0')
-    earnings_details = Column(JSONB, nullable=False, server_default='{}')
-    deductions_details = Column(JSONB, nullable=False, server_default='{}')
-    calculation_inputs = Column(JSONB, nullable=True)
-    calculation_log = Column(JSONB, nullable=True)
+    earnings_details = Column(CustomJSONB, nullable=False, server_default='{}')
+    deductions_details = Column(CustomJSONB, nullable=False, server_default='{}')
+    calculation_inputs = Column(CustomJSONB, nullable=True)
+    calculation_log = Column(CustomJSONB, nullable=True)
     status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='RESTRICT'), nullable=False)
     remarks = Column(Text, nullable=True)
     calculated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)

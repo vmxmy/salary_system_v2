@@ -23,7 +23,6 @@ from ...auth import require_permissions, get_current_user
 from ..utils import create_error_response
 
 router = APIRouter(
-    prefix="",
     tags=["Payroll"],
 )
 
@@ -337,9 +336,11 @@ async def get_payroll_runs(
         )
 
 
+
 @router.get("/payroll-runs/{run_id}", response_model=DataResponse[PayrollRun])
 async def get_payroll_run(
     run_id: int,
+    include_employee_details: bool = Query(False, description="是否包含员工详细信息"),
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
@@ -347,10 +348,16 @@ async def get_payroll_run(
     根据ID获取工资运行批次详情。
 
     - **run_id**: 工资运行批次ID
+    - **include_employee_details**: 是否包含员工详细信息 (默认: false)
+:start_line:353
+-------
     """
     try:
-        # 获取工资运行批次
-        run = crud.get_payroll_run(db, run_id)
+        # 获取工资运行批次，根据需要包含员工详细信息
+        print(f"ROUTER: Calling crud.get_payroll_run with run_id={run_id}, include_employee_details={include_employee_details}")
+        print(f"ROUTER: crud module is: {crud}")
+        print(f"ROUTER: crud.get_payroll_run is: {crud.get_payroll_run}")
+        run = crud.get_payroll_run(db, run_id, include_employee_details)
         if not run:
             # 返回标准错误响应格式
             raise HTTPException(

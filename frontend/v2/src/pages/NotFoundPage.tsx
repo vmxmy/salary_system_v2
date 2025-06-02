@@ -21,10 +21,10 @@ const NotFoundPage: React.FC = () => {
     <Result
       status="404"
       title="404"
-      subTitle={t('common:auto____e68ab1')}
+      subTitle={t('common:page_title.not_found')}
       extra={
         <Button type="primary" onClick={handleBackHome}>
-           {isAuthenticated ?      t('common:auto_text_e8bf94'): t('common:auto_text_e58ebb')}
+           {isAuthenticated ? t('common:return_home') : t('common:return_login')}
         </Button>
       }
     />

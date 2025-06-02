@@ -1,0 +1,405 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 工资系统小助手
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.0.21@cb32d252bc1ebc61437c9134e22db2be5ccdd48223e08b9ea0deff4f0df0a187
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openrouter:0.0.8@c6508dfd6c5c6e7aa0c185df370b07fd093001df427d8e55b6d6f071fd30884b
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: hjlarry/database:0.0.6@534bc26cf5bc4ff6b5557457452287ccc71f00eef9378784c4f43ca49954ca2f
+kind: app
+version: 0.3.0
+workflow:
+  conversation_variables:
+  - description: 数据库的核心表结构，和表关系
+    id: 96b1a13d-b198-45dd-a4ae-546165e2fe2f
+    name: db_struc
+    selector:
+    - conversation
+    - db_struc
+    value: "# 数据库元数据文档\n\n## 模式概览\n数据库包含以下6个模式：\n1. **config** - 系统配置表\n2. **hr**\
+      \ - 人力资源相关表\n3. **payroll** - 薪资计算相关表\n4. **reports** - 报表相关表\n5. **security**\
+      \ - 权限管理表\n6. **public** - 公共表（仅包含alembic_version）\n\n---\n\n## config 模式\n\
+      ### 字典表\n1. **lookup_types**\n   - id (bigint, NOT NULL)\n   - code (character\
+      \ varying, NOT NULL) - 类型代码\n   - name (character varying, NOT NULL) - 类型名称\n\
+      \   - description (text, NULLABLE) - 类型描述\n\n2. **lookup_values**\n   - id (bigint,\
+      \ NOT NULL)\n   - lookup_type_id (bigint, NOT NULL) - 关联lookup_types\n   - code\
+      \ (character varying, NOT NULL) - 值代码\n   - name (character varying, NOT NULL)\
+      \ - 值名称\n   - description (text, NULLABLE) - 值描述\n   - sort_order (integer,\
+      \ NOT NULL) - 排序顺序\n   - is_active (boolean, NOT NULL) - 是否激活\n   - parent_lookup_value_id\
+      \ (bigint, NULLABLE) - 父级值ID\n\n### 薪资组件定义\n3. **payroll_component_definitions**\n\
+      \   - id (bigint, NOT NULL)\n   - code (character varying, NOT NULL) - 组件代码\n\
+      \   - name (character varying, NOT NULL) - 组件名称\n   - type (character varying,\
+      \ NOT NULL) - 组件类型\n   - calculation_method (character varying, NULLABLE) -\
+      \ 计算方法\n   - **calculation_parameters (jsonb, NULLABLE)** - 计算参数（JSONB动态字段）\n\
+      \   - is_taxable (boolean, NOT NULL) - 是否应税\n   - is_social_security_base (boolean,\
+      \ NOT NULL) - 是否社保基数\n   - is_housing_fund_base (boolean, NOT NULL) - 是否公积金基数\n\
+      \   - display_order (integer, NOT NULL) - 显示顺序\n   - is_active (boolean, NOT\
+      \ NULL) - 是否激活\n   - effective_date (date, NOT NULL) - 生效日期\n   - end_date (date,\
+      \ NULLABLE) - 失效日期\n\n### 社保与税率\n4. **social_security_rates**\n   - id (bigint,\
+      \ NOT NULL)\n   - region_code (character varying, NOT NULL) - 地区代码\n   - contribution_type\
+      \ (character varying, NOT NULL) - 缴纳类型\n   - participant_type (character varying,\
+      \ NOT NULL) - 参与方类型\n   - rate (numeric, NOT NULL) - 费率\n   - base_min (numeric,\
+      \ NULLABLE) - 基数下限\n   - base_max (numeric, NULLABLE) - 基数上限\n   - fixed_amount\
+      \ (numeric, NOT NULL) - 固定金额\n   - effective_date (date, NOT NULL) - 生效日期\n\
+      \   - end_date (date, NULLABLE) - 失效日期\n\n5. **tax_brackets**\n   - id (bigint,\
+      \ NOT NULL)\n   - region_code (character varying, NOT NULL) - 地区代码\n   - tax_type\
+      \ (character varying, NOT NULL) - 税种\n   - income_range_start (numeric, NOT\
+      \ NULL) - 收入区间起点\n   - income_range_end (numeric, NULLABLE) - 收入区间终点\n   - tax_rate\
+      \ (numeric, NOT NULL) - 税率\n   - quick_deduction (numeric, NOT NULL) - 速算扣除数\n\
+      \   - effective_date (date, NOT NULL) - 生效日期\n   - end_date (date, NULLABLE)\
+      \ - 失效日期\n\n### 系统参数\n6. **system_parameters**\n   - id (bigint, NOT NULL)\n\
+      \   - key (character varying, NOT NULL) - 参数键\n   - value (text, NOT NULL) -\
+      \ 参数值\n   - description (text, NULLABLE) - 参数描述\n\n---\n\n## hr 模式\n### 组织架构\n\
+      1. **departments**\n   - id (bigint, NOT NULL)\n   - code (character varying,\
+      \ NOT NULL) - 部门代码\n   - name (character varying, NOT NULL) - 部门名称\n   - parent_department_id\
+      \ (bigint, NULLABLE) - 上级部门ID\n   - effective_date (date, NOT NULL) - 生效日期\n\
+      \   - end_date (date, NULLABLE) - 失效日期\n   - is_active (boolean, NOT NULL) -\
+      \ 是否激活\n\n2. **positions**\n   - id (bigint, NOT NULL)\n   - code (character\
+      \ varying, NULLABLE) - 职位代码\n   - name (character varying, NOT NULL) - 职位名称\n\
+      \   - description (text, NULLABLE) - 职位描述\n   - parent_position_id (bigint,\
+      \ NULLABLE) - 上级职位ID\n   - effective_date (date, NOT NULL) - 生效日期\n   - end_date\
+      \ (date, NULLABLE) - 失效日期\n   - is_active (boolean, NOT NULL) - 是否激活\n\n3. **personnel_categories**\n\
+      \   - id (bigint, NOT NULL)\n   - code (character varying, NOT NULL) - 人员类别代码\n\
+      \   - name (character varying, NOT NULL) - 人员类别名称\n   - description (text, NULLABLE)\
+      \ - 类别描述\n   - effective_date (date, NOT NULL) - 生效日期\n   - end_date (date,\
+      \ NULLABLE) - 失效日期\n   - is_active (boolean, NOT NULL) - 是否激活\n   - parent_category_id\
+      \ (bigint, NULLABLE) - 父级类别ID\n\n### 员工信息\n4. **employees**\n   - id (bigint,\
+      \ NOT NULL)\n   - employee_code (character varying, NULLABLE) - 员工编号\n   - first_name\
+      \ (character varying, NOT NULL) - 名\n   - last_name (character varying, NOT\
+      \ NULL) - 姓\n   - date_of_birth (date, NULLABLE) - 出生日期\n   - gender_lookup_value_id\
+      \ (bigint, NULLABLE) - 性别字典ID\n   - id_number (character varying, NULLABLE)\
+      \ - 身份证号\n   - nationality (character varying, NULLABLE) - 国籍\n   - hire_date\
+      \ (date, NOT NULL) - 入职日期\n   - status_lookup_value_id (bigint, NOT NULL) -\
+      \ 状态字典ID\n   - email (character varying, NULLABLE) - 邮箱\n   - phone_number (character\
+      \ varying, NULLABLE) - 电话\n   - created_at (timestamp with time zone, NOT NULL)\
+      \ - 创建时间\n   - updated_at (timestamp with time zone, NOT NULL) - 更新时间\n   -\
+      \ employment_type_lookup_value_id (bigint, NULLABLE) - 雇佣类型\n   - education_level_lookup_value_id\
+      \ (bigint, NULLABLE) - 教育程度\n   - marital_status_lookup_value_id (bigint, NULLABLE)\
+      \ - 婚姻状况\n   - political_status_lookup_value_id (bigint, NULLABLE) - 政治面貌\n\
+      \   - contract_type_lookup_value_id (bigint, NULLABLE) - 合同类型\n   - home_address\
+      \ (text, NULLABLE) - 家庭地址\n   - emergency_contact_name (character varying, NULLABLE)\
+      \ - 紧急联系人\n   - emergency_contact_phone (character varying, NULLABLE) - 紧急联系人电话\n\
+      \   - department_id (bigint, NULLABLE) - 所属部门\n   - ethnicity (character varying,\
+      \ NULLABLE) - 民族\n   - first_work_date (date, NULLABLE) - 首次工作日期\n   - interrupted_service_years\
+      \ (numeric, NULLABLE) - 中断服务年限\n   - personnel_category_id (bigint, NULLABLE)\
+      \ - 人员类别\n   - actual_position_id (bigint, NULLABLE) - 实际职位\n   - career_position_level_date\
+      \ (date, NULLABLE) - 职级评定日期\n   - current_position_start_date (date, NULLABLE)\
+      \ - 当前职位开始日期\n   - salary_level_lookup_value_id (bigint, NULLABLE) - 薪资等级\n\
+      \   - salary_grade_lookup_value_id (bigint, NULLABLE) - 薪资档次\n   - ref_salary_level_lookup_value_id\
+      \ (bigint, NULLABLE) - 参考薪资等级\n   - job_position_level_lookup_value_id (bigint,\
+      \ NULLABLE) - 职位等级\n\n### 员工附属信息\n5. **employee_appraisals** - 员工考核\n6. **employee_bank_accounts**\
+      \ - 员工银行账户\n7. **employee_compensation_history** - 薪酬历史\n8. **employee_contracts**\
+      \ - 员工合同\n9. **employee_job_history** - 工作历史\n10. **employee_leave_balances**\
+      \ - 假期余额\n11. **employee_leave_requests** - 请假申请\n12. **employee_payroll_components**\
+      \ \n    - **parameters (jsonb, NULLABLE)** - 薪资组件参数（JSONB动态字段）\n\n### 其他\n13.\
+      \ **leave_types**\n    - **accrual_rule_definition (jsonb, NULLABLE)** - 假期累计规则（JSONB动态字段）\n\
+      \n---\n\n## payroll 模式\n1. **payroll_entries**\n   - **earnings_details (jsonb,\
+      \ NOT NULL)** - 收入明细（JSONB动态字段）\n   - **deductions_details (jsonb, NOT NULL)**\
+      \ - 扣款明细（JSONB动态字段）\n   - **calculation_inputs (jsonb, NULLABLE)** - 计算输入（JSONB动态字段）\n\
+      \   - **calculation_log (jsonb, NULLABLE)** - 计算日志（JSONB动态字段）\n\n2. **payroll_periods**\
+      \ - 薪资周期\n3. **payroll_runs** - 薪资审核记录\n\n---\n\n## reports 模式\n1. **employee_salary_details_view**\
+      \ - 员工薪资明细视图\n   - **raw_calculation_inputs (jsonb, NULLABLE)** - 原始计算输入（JSONB动态字段）\n\
+      \   - **raw_calculation_log (jsonb, NULLABLE)** - 原始计算日志（JSONB动态字段）\n\n2. **report_calculated_fields**\
+      \ - 报表计算字段\n3. **report_template_fields** - 报表模板字段\n4. **report_view_executions**\
+      \ - 报表执行记录\n5. **report_views** - 报表视图\n   - **description_lines (jsonb, NULLABLE)**\
+      \ - 描述行（JSONB动态字段）\n\n6. **view_payroll_entries_jsonb_zhan_kai_zhong_wen_bie_ming_biao**\
+      \ - 薪资条目JSONB展开视图\n7. **view_payroll_entries_zhan_kai_jsonb** - 薪资条目JSONB展开视图\n\
+      \n---\n\n## security 模式\n1. **permissions** - 权限表\n2. **role_permissions** -\
+      \ 角色权限关联\n3. **roles** - 角色表\n4. **user_roles** - 用户角色关联\n5. **users** - 用户表\n\
+      \n---\n\n## public 模式\n1. **alembic_version** - 数据库迁移版本\n   - version_num (character\
+      \ varying, NOT NULL)"
+    value_type: string
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: 我是系统小助手，有什么问题可以问我😄
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 这是什么系统？
+    - 怎么查员工信息？
+    - 怎么录入工资？
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1747816986808-source-1747817005009-target
+      source: '1747816986808'
+      sourceHandle: source
+      target: '1747817005009'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 1747817005009-source-1748659390840-target
+      source: '1747817005009'
+      sourceHandle: source
+      target: '1748659390840'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: question-classifier
+      id: 1747816685755-source-1748614716765-target
+      source: '1747816685755'
+      sourceHandle: source
+      target: '1748614716765'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: 1748614716765-2-1747816986808-target
+      source: '1748614716765'
+      sourceHandle: '2'
+      target: '1747816986808'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: tool
+      id: 1748614716765-1748656203726-1748656249451-target
+      source: '1748614716765'
+      sourceHandle: '1748656203726'
+      target: '1748656249451'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: answer
+      id: 1748656249451-source-1748656278694-target
+      source: '1748656249451'
+      sourceHandle: source
+      target: '1748656278694'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1748614716765-1-1748657128649-target
+      source: '1748614716765'
+      sourceHandle: '1'
+      target: '1748657128649'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: parameter-extractor
+      id: 1748657128649-source-1748660641958-target
+      source: '1748657128649'
+      sourceHandle: source
+      target: '1748660641958'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: answer
+      id: 1748660641958-source-1748659390840-target
+      source: '1748660641958'
+      sourceHandle: source
+      target: '1748659390840'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: parameter-extractor
+      id: 1748614716765-1748661924493-1748662563509-target
+      source: '1748614716765'
+      sourceHandle: '1748661924493'
+      target: '1748662563509'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: llm
+      id: 1748662563509-source-1748661974738-target
+      source: '1748662563509'
+      sourceHandle: source
+      target: '1748661974738'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1748662355352'
+          - text
+        desc: ''
+        model:
+          completion_params:
+            enable_thinking: false
+          mode: chat
+          name: qwen3-32b
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 536049ff-90e5-45be-82ca-71a2e8f57534
+          role: system
+          text: 根据数据库返回的查询结果回复用户请求
+        - id: e609db38-6d15-40f0-8ff1-6ec59f827d45
+          role: user
+          text: '客户请求：{{#sys.query#}}；
+
+            数据库查询结果：{{#1748662355352.text#}}；
+
+
+            把查询结果组织成合适的格式，回复用户。遵循以下规则：
+
+            1.如果有多个字段和数据，可使用表格组织数据
+
+            2.回答的最后可以对查询结果做出一些分析和总结，需要能体现专业视角，挖掘有价值的重点信息。
+
+            3.适当的使用 emoji 提高阅读性。'
+        selected: false
+        title: LLM 4
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '1748662870203'
+      position:
+        x: 1631.1938866845453
+        y: 682.912799944568
+      positionAbsolute:
+        x: 1631.1938866845453
+        y: 682.912799944568
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        instruction: 从用户查询中提取报表名称、字段列表和筛选条件，以JSON格式输出。
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: google/gemini-2.5-flash-preview
+          provider: langgenius/openrouter/openrouter
+        parameters:
+        - description: 报表名称
+          name: report_name
+          options: []
+          required: true
+          type: string
+        - description: 报表字段列表（逗号分隔，例如：姓名,部门,薪资）
+          name: fields
+          options: []
+          required: false
+          type: string
+        - description: 筛选条件（JSON字符串，例如：{"部门": "技术部", "年份": "2023"}）
+          name: filters
+          options: []
+          required: false
+          type: string
+        query:
+        - sys
+        - query
+        reasoning_mode: prompt
+        selected: false
+        title: 报表参数提取器
+        type: parameter-extractor
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '1748662563509'
+      position:
+        x: 450
+        y: 700
+      positionAbsolute:
+        x: 450
+        y: 700
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: -391.9523865436631
+      y: -135.69410130760878
+      zoom: 0.7394458444898075

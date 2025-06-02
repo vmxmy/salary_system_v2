@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 Code File Length Control Guidelines
 To ensure project readability, maintainability, and team collaboration efficiency, please adhere to the following file length control principles when writing code:

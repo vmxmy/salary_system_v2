@@ -1,5 +1,5 @@
 {
-  "profile": "Profile",
+  "default_user_text": "User",
   "logout": "Logout",
-  "default_user_text": "User"
+  "profile": "Profile"
 }

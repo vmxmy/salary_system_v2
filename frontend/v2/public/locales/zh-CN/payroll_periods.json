@@ -1,0 +1,82 @@
+{
+  "payroll_period_form": {
+    "button": {
+      "cancel": "取消",
+      "create_period": "创建期间",
+      "save_changes": "保存更改"
+    },
+    "label": {
+      "end_date": "结束日期",
+      "frequency": "频率",
+      "name": "名称",
+      "pay_date": "支付日期",
+      "start_date": "开始日期",
+      "status": "状态"
+    },
+    "placeholder": {
+      "frequency": "请选择频率",
+      "name": "请输入薪资期间名称",
+      "status": "请选择状态"
+    },
+    "validation": {
+      "end_date_before_start_date": "结束日期不能早于开始日期！",
+      "end_date_required": "请选择结束日期！",
+      "frequency_required": "请选择频率！",
+      "name_required": "请输入薪资期间名称！",
+      "pay_date_required": "请选择支付日期！",
+      "start_date_required": "请选择开始日期！",
+      "status_required": "请选择状态！"
+    }
+  },
+  "payroll_period_status": {
+    "closed": "已关闭",
+    "open": "开放",
+    "planned": "计划中"
+  },
+  "payroll_periods_page": {
+    "batch_delete_button_text": "批量删除",
+    "batch_delete_failure": "批量删除失败: {error}",
+    "batch_delete_success": "批量删除成功！",
+    "confirm_batch_delete_content": "您确定要删除选中的薪资期间吗？",
+    "confirm_batch_delete_title": "确认批量删除",
+    "confirm_delete_content": "",
+    "confirm_delete_title": "",
+    "delete_failure": "",
+    "delete_success": "",
+    "export_button_text": "导出Excel",
+    "export_filename_prefix": "薪资期间_",
+    "export_sheet_name": "期间数据",
+    "export_success_message": "导出成功",
+    "message": {
+      "create_failed": "创建薪资期间失败。",
+      "create_success": "薪资期间创建成功！",
+      "update_failed": "更新薪资期间失败。",
+      "update_success": "薪资期间更新成功！"
+    },
+    "no_selection_message": "请至少选择一条记录",
+    "table": {
+      "column_end_date": "结束日期",
+      "column_frequency": "频率",
+      "column_id": "ID",
+      "column_pay_date": "支付日期",
+      "column_period_name": "期间名称",
+      "column_start_date": "开始日期",
+      "column_status": "状态"
+    }
+  },
+  "table": {
+    "column_employee_count": "员工数",
+    "status": {
+      "loading": "加载中...",
+      "no_data": "暂无数据"
+    },
+    "tooltip": {
+      "employee_count_has_data": "员工数已统计",
+      "employee_count_no_data": "暂无员工数据"
+    }
+  },
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功",
+  "page_title": "薪资期间",
+  "create_period": "创建期间"
+}

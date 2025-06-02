@@ -21,7 +21,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees',
     element: React.createElement(EmployeeListPage),
     meta: {
-      title: 'pageTitle:employee_files', // 使用静态翻译键
+      title: 'employee:list_page.page_title', // 使用静态翻译键
       requiredPermissions: ['employee:list'], // Changed from permission to requiredPermissions
       hideInBreadcrumbIfParentOfNext: true,
     },
@@ -30,7 +30,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/new',
     element: React.createElement(CreateEmployeePage),
     meta: {
-      title: 'pageTitle:create_employee', // 使用静态翻译键
+      title: 'employee:create_employee_page.title', // 使用静态翻译键
       requiredPermissions: ['employee:create'], // Changed from permission to requiredPermissions
     },
   },
@@ -38,7 +38,7 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId/edit',
     element: React.createElement(EditEmployeePage),
     meta: {
-      title: 'pageTitle:edit_employee', // 使用静态翻译键
+      title: 'employee:edit_employee_page.title', // 使用静态翻译键
       requiredPermissions: ['employee:edit'], // Changed from permission to requiredPermissions
     },
   },
@@ -46,8 +46,8 @@ export const hrManagementRoutes: AppRouteObject[] = [
     path: 'employees/:employeeId', // Detail page route
     element: React.createElement(EmployeeDetailPage), // Use the actual component
     meta: {
-      title: 'pageTitle:employee_details', // 使用静态翻译键
-      requiredPermissions: ['employee:view'], // Changed from permission to requiredPermissions
+      title: 'employee:detail_page.title', // 使用静态翻译键
+      requiredPermissions: ['employee:view'], // Changed from permission to permission
     },
   },
   // Future HR Management routes can be added here

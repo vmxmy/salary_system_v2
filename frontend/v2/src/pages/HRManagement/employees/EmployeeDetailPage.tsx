@@ -15,7 +15,7 @@ import ContractInfoTab from './partials/ContractInfoTab';
 
 // Updated BasicInfoTabPlaceholder
 const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps: LookupMaps | null; rawLookups?: RawLookups | null }> = ({ employee, lookupMaps, rawLookups }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common']);
   if (!employee) {
     return <p>{t('employee:detail_page.common_value.na')}</p>;
   }
@@ -79,7 +79,7 @@ const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps:
 };
 
 const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupMaps | null }> = ({ employee, lookupMaps }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common', 'hr']);
   if (!employee) {
         return <p>{t('employee:detail_page.common_value.na')}</p>;
     }
@@ -177,7 +177,7 @@ const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupM
 };
 
 const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common']);
   if (!data) return <p>{t('employee:detail_page.job_history_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.job_history_tab.no_records')}</p>;
   return (
@@ -196,7 +196,7 @@ const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; l
 };
 
 const ContractsTabPlaceholder: React.FC<{ data: ContractItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common']);
   if (!data) return <p>{t('employee:detail_page.contracts_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.contracts_tab.no_records')}</p>;
   return (
@@ -212,7 +212,7 @@ const ContractsTabPlaceholder: React.FC<{ data: ContractItem[] | undefined; look
 };
 
 const CompensationTabPlaceholder: React.FC<{ data: CompensationItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common']);
   if (!data) return <p>{t('employee:detail_page.compensation_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.compensation_tab.no_records')}</p>;
   return (
@@ -228,7 +228,7 @@ const CompensationTabPlaceholder: React.FC<{ data: CompensationItem[] | undefine
 };
 
 const LeaveBalancesTabPlaceholder: React.FC<{ data: LeaveBalanceItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['employee', 'common']);
   if (!data) return <p>{t('employee:detail_page.leave_balances_tab.loading_or_no_data')}</p>;
   if (data.length === 0) return <p>{t('employee:detail_page.leave_balances_tab.no_records')}</p>;
   return (
@@ -244,7 +244,7 @@ const LeaveBalancesTabPlaceholder: React.FC<{ data: LeaveBalanceItem[] | undefin
 };
 
 const EmployeeDetailPage: React.FC = () => {
-  const { t } = useTranslation(['employee', 'common', 'pageTitle']);
+  const { t } = useTranslation(['employee', 'common']);
   const { employeeId } = useParams<{ employeeId: string }>();
   const navigate = useNavigate();
   const { lookupMaps, rawLookups, loadingLookups, errorLookups } = useLookupMaps();
@@ -306,29 +306,29 @@ const EmployeeDetailPage: React.FC = () => {
   );
 
   const pageTitleText = employee 
-    ? t('employee:detail_page.title_with_name_id', { 
-        name: <EmployeeName 
-                employeeId={employee.id} 
+    ? t('employee:detail_page.title_with_name_id', {
+        name: <EmployeeName
+                employeeId={employee.id}
                 employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
                 showId={false}
                 className="employee-header-name"
-              />, 
+              />,
         employeeCode: employee.employee_code || t('employee:detail_page.common_value.na')
       }) 
     : t('employee:detail_page.title_default');
 
   const breadcrumbItems = [
     { onClick: () => navigate('/'), title: <HomeOutlined /> },
-    { onClick: () => navigate('/hr/employees'), title: t('pageTitle:hr_management') },
-    { onClick: () => navigate('/hr/employees'), title: t('pageTitle:employee_list') },
-    { title: employee ? 
-        <EmployeeName 
-          employeeId={employee.id} 
+    { onClick: () => navigate('/hr/employees'), title: t('employee:detail_page.hr_management_breadcrumb') },
+    { onClick: () => navigate('/hr/employees'), title: t('employee:detail_page.employee_list_breadcrumb') },
+    { title: employee ?
+        <EmployeeName
+          employeeId={employee.id}
           employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
           showId={false}
           className="employee-breadcrumb-name"
-        /> 
-        : t('employee:detail_page.breadcrumb_loading') 
+        />
+        : t('employee:detail_page.breadcrumb_loading')
     }
   ];
 
@@ -401,7 +401,7 @@ const EmployeeDetailPage: React.FC = () => {
       >
         <Alert message={t('employee:detail_page.alert.message_error')} description={error} type="error" showIcon /> 
         <Button onClick={() => navigate('/hr/employees')} style={{ marginTop: 16 }}>
-          t('employee:detail_page.button_back_to_list')
+          {t('employee:detail_page.button_back_to_list')}
         </Button>
       </PageContainer>
     );
@@ -416,7 +416,7 @@ const EmployeeDetailPage: React.FC = () => {
       >
         <Alert message={t('employee:detail_page.alert.message_info')} description={t('employee:detail_page.page_container.alert_description_cannot_load_data')} type="info" showIcon />
         <Button onClick={() => navigate('/hr/employees')} style={{ marginTop: 16 }}>
-          t('employee:detail_page.button_back_to_list')
+          {t('employee:detail_page.button_back_to_list')}
         </Button>
       </PageContainer>
     );

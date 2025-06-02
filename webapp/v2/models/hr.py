@@ -82,6 +82,7 @@ class Employee(BaseV2):
     # --- END NEW FIELDS for Employee ---
     
     hire_date = Column(Date, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True, comment='员工是否激活')
     status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_status_id', ondelete='RESTRICT'), nullable=False)
     employment_type_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_employment_type_id', ondelete='SET NULL'), nullable=True)
     education_level_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_education_level_id', ondelete='SET NULL'), nullable=True)
@@ -135,6 +136,7 @@ class Employee(BaseV2):
     payroll_entries = relationship("PayrollEntry", back_populates="employee")
     user = relationship("User", back_populates="employee", uselist=False)
     bank_accounts = relationship("EmployeeBankAccount", back_populates="employee", cascade="all, delete-orphan")
+    salary_configs = relationship("EmployeeSalaryConfig", back_populates="employee", cascade="all, delete-orphan")
 
 
 class EmployeeBankAccount(BaseV2):

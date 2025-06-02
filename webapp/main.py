@@ -84,6 +84,9 @@ from webapp.v2.routers import payroll_router as v2_payroll_router
 from webapp.v2.routers import security_router as v2_security_router
 from webapp.v2.routers import auth_router as v2_auth_router
 from webapp.v2.routers import reports_router as v2_reports_router
+from webapp.v2.routers import calculation_config_router as v2_calculation_config_router
+from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculation_router
+from webapp.v2.routers import attendance_router as v2_attendance_router
 
 # 导入所有Pydantic模型
 from webapp.pydantic_models import (
@@ -362,6 +365,27 @@ app.include_router(
     v2_reports_router,
     prefix=settings.API_V2_PREFIX,
     tags=["Reports"]
+)
+
+# Include the calculation config router
+app.include_router(
+    v2_calculation_config_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Calculation Config"]
+)
+
+# Include the payroll calculation router
+app.include_router(
+    v2_payroll_calculation_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Payroll Calculation"]
+)
+
+# Include the attendance router
+app.include_router(
+    v2_attendance_router,
+    prefix=settings.API_V2_PREFIX + "/attendance",
+    tags=["Attendance"]
 )
 
 # --- Removed API Routers with /api/v1 prefix ---

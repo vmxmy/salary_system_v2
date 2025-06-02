@@ -37,6 +37,7 @@ export interface PayrollRun {
   updated_at?: string;
   payroll_period?: PayrollPeriod; // Optional: if period details are fetched/included
   total_employees?: number; // Total number of employees in this run
+  total_net_pay?: number; // 新增：薪资总额
 }
 
 // Payload for POST /v2/payroll-runs

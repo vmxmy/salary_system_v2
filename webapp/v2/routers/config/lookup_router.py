@@ -60,7 +60,7 @@ async def get_payroll_component_types(
 async def create_lookup_type_endpoint(
     lookup_type_in: LookupTypeCreate,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:manage"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_type:manage"]))
 ):
     try:
         created_lookup_type = crud.create_lookup_type(db, lookup_type_in)
@@ -77,7 +77,7 @@ async def get_lookup_types_endpoint(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:view"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_type:view"]))
 ):
     try:
         skip = (page - 1) * size
@@ -92,7 +92,7 @@ async def get_lookup_types_endpoint(
 async def get_lookup_type_endpoint(
     type_id_or_code: str,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:view"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_type:view"]))
 ):
     try:
         lookup_type = None
@@ -116,7 +116,7 @@ async def update_lookup_type_endpoint(
     type_id: int,
     lookup_type_in: LookupTypeUpdate,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:manage"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_type:manage"]))
 ):
     try:
         updated_type = crud.update_lookup_type(db, type_id, lookup_type_in)
@@ -135,7 +135,7 @@ async def update_lookup_type_endpoint(
 async def delete_lookup_type_endpoint(
     type_id: int,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:manage"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_type:manage"]))
 ):
     try:
         success = crud.delete_lookup_type(db, type_id)
@@ -155,7 +155,7 @@ async def delete_lookup_type_endpoint(
 async def create_lookup_value_endpoint(
     lookup_value_in: LookupValueCreate,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:manage"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_value:manage"]))
 ):
     try:
         # Ensure the referenced lookup_type_id exists
@@ -179,7 +179,7 @@ async def get_lookup_values_endpoint(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=200), # Max 200 for lookup values
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:view"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_value:view"]))
 ):
     try:
         actual_type_id = lookup_type_id
@@ -207,7 +207,7 @@ async def get_lookup_values_endpoint(
 async def get_lookup_value_endpoint(
     value_id: int,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:view"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_value:view"]))
 ):
     try:
         lookup_value = crud.get_lookup_value(db, value_id)
@@ -225,7 +225,7 @@ async def update_lookup_value_endpoint(
     value_id: int,
     lookup_value_in: LookupValueUpdate,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:manage"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_value:manage"]))
 ):
     try:
         updated_value = crud.update_lookup_value(db, value_id, lookup_value_in)
@@ -244,7 +244,7 @@ async def update_lookup_value_endpoint(
 async def delete_lookup_value_endpoint(
     value_id: int,
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup:manage"])) 
+    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_value:manage"]))
 ):
     try:
         success = crud.delete_lookup_value(db, value_id)

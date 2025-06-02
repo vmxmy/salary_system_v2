@@ -15,6 +15,9 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     allowedHosts: ['salary.ziikoo.com'],
+    headers: {
+      'Content-Security-Policy': "script-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://udify.app; style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:*; img-src 'self' data: blob:;"
+    }
     // proxy: { // 移除 proxy 配置块
     //   '/api': {
     //     target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',

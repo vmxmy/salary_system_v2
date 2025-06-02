@@ -44,7 +44,7 @@ const generateEmployeeTableColumnsConfig = (
         
         // 如果姓名为空，显示占位符
         if (!fullName.trim()) {
-          return <span style={{ color: '#999', fontStyle: 'italic' }}>未设置姓名</span>;
+          return <span style={{ color: '#999', fontStyle: 'italic' }}>{t('employee:list_page.name_not_set')}</span>;
         }
         
         return fullName;
@@ -71,14 +71,14 @@ const generateEmployeeTableColumnsConfig = (
               size="small"
               style={{ width: 90 }}
             >
-              搜索
+              {t('employee:list_page.search')}
             </Button>
             <Button
               onClick={() => clearFilters && clearFilters()}
               size="small"
               style={{ width: 90 }}
             >
-              重置
+              {t('employee:list_page.reset')}
             </Button>
             <Button
               type="link"
@@ -88,7 +88,7 @@ const generateEmployeeTableColumnsConfig = (
                 close();
               }}
             >
-              关闭
+              {t('employee:list_page.close')}
             </Button>
           </Space>
         </div>
@@ -236,7 +236,7 @@ const generateEmployeeTableColumnsConfig = (
       ...getColumnSearch('ref_salary_level_lookup_value_name'),
     },
     {
-      title: '职务级别',
+      title: t('employee:list_page.table.column.job_position_level'),
       dataIndex: 'job_position_level_lookup_value_name',
       key: 'job_position_level',
       sorter: stringSorter<Employee>('job_position_level_lookup_value_name'),
@@ -391,7 +391,7 @@ const generateEmployeeTableColumnsConfig = (
 
 // 员工列表页面组件
 const EmployeeListPage: React.FC = () => {
-  const { t } = useTranslation(['employee', 'pageTitle', 'common']);
+  const { t } = useTranslation(['employee', 'common']);
   const navigate = useNavigate();
   const {
     canViewList,
@@ -480,7 +480,7 @@ const EmployeeListPage: React.FC = () => {
     const now = new Date();
     const dateStr = now.toLocaleDateString('zh-CN').replace(/\//g, '-');
     const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false }).replace(/:/g, '-');
-    return `${t('pageTitle:employee_list')}_${dateStr}_${timeStr}`;
+    return `${t('employee:list_page.page_title')}_${dateStr}_${timeStr}`;
   };
 
   // 为导出创建简化的列配置（避免ProColumns类型兼容性问题）
@@ -498,7 +498,7 @@ const EmployeeListPage: React.FC = () => {
   // 配置导出功能
   const { ExportButton } = useTableExport(allEmployees, exportColumns as any, {
     filename: generateExportFilename(),
-    sheetName: t('pageTitle:employee_list'),
+    sheetName: t('employee:list_page.page_title'),
     buttonText: '导出Excel',
     successMessage: '员工数据导出成功',
   });
@@ -583,8 +583,8 @@ const EmployeeListPage: React.FC = () => {
         (() => {
           return (
             <OrganizationManagementTableTemplate<Employee>
-              pageTitle={t('pageTitle:employee_list')}
-              addButtonText={t('pageTitle:create_employee')}
+              pageTitle={t('employee:list_page.page_title')}
+              addButtonText={t('employee:list_page.create_employee')}
               onAddClick={() => navigate('/hr/employees/new')}
               showAddButton={canCreate}
               extraButtons={canExport ? [<ExportButton key="export" />] : []}

@@ -316,122 +316,147 @@ export const useTableExport = <T extends object>(
   options?: ExportOptions
 ) => {
   const { message } = App.useApp();
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation(['common', 'components']);
+  const isMounted = useRef(true); // 添加一个 ref 来跟踪组件挂载状态
 
-  const defaultOptions: Omit<Required<ExportOptions>, 'onExportRequest'> & { onExportRequest?: (format: ExportFormat) => void } = {
-    filename: t('common:export.filename_default', 'export'), // Adjusted translation key with fallback
-    sheetName: t('common:export.sheetName_default', 'Sheet1'), // Adjusted translation key with fallback
-    withHeader: true,
-    buttonText: t('common:button.export_excel', 'Export Excel'),
-    successMessage: t('common:export.success_message', 'Export successful!'),
-    supportedFormats: ['excel'],
-    dropdownButtonText: t('common:button.export', 'Export'),
-    onExportRequest: undefined, // Explicitly undefined initially
-  };
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false; // 组件卸载时设置为 false
+    };
+  }, []);
 
-  const mergedOptions = { ...defaultOptions, ...options };
+  const {
+    filename = t('common:export.defaultFilename'), // 使用翻译键
+    sheetName = t('common:export.defaultSheetName'), // 使用翻译键
+    withHeader = true,
+    buttonText = t('common:export.exportButton'), // 使用翻译键
+    successMessage = t('common:export.exportSuccess'), // 使用翻译键
+    supportedFormats = ['excel'], // 默认支持Excel
+    onExportRequest,
+    dropdownButtonText = t('common:export.export'), // 下拉按钮文本
+  } = options || {};
 
+  // 客户端导出到Excel的函数
   const clientExportToExcel = () => {
-    if (!dataSource || !columns) {
-      message.error(t('common:export.error_no_data_for_client_export', 'No data or columns available for client-side export.'));
+    if (!dataSource || dataSource.length === 0) {
+      if (isMounted.current) { // 检查是否挂载
+        message.warning(t('common:export.noDataToExport')); // 使用翻译键
+      }
       return;
     }
-    try {
-      const excelData = dataSource.map(record => {
-        const row: Record<string, any> = {};
-        columns.forEach(column => {
-          if ('dataIndex' in column && column.dataIndex && column.title) {
-            const dataIndex = column.dataIndex as keyof T;
-            let cellValue: any = record[dataIndex];
-            if (column.render && typeof cellValue !== 'undefined') {
-              const renderResult = column.render(cellValue, record, 0);
-              if (React.isValidElement(renderResult)) {
-                const props = renderResult.props as any;
-                cellValue = props?.children || cellValue;
-              } else if (typeof renderResult === 'string' || typeof renderResult === 'number') {
-                cellValue = renderResult;
-              }
-            }
-            row[column.title as string] = cellValue;
+
+    const dataToExport = dataSource.map(item => {
+      const row: Record<string, any> = {};
+      columns?.forEach(col => {
+        // 检查是否是ColumnType而不是ColumnGroupType
+        if ('dataIndex' in col && col.dataIndex) {
+        // 确保col.dataIndex是字符串或字符串数组
+        if (typeof col.dataIndex === 'string') {
+          // 如果render函数存在，使用render函数的值，否则使用原始值
+            const displayValue = col.render ? col.render((item as any)[col.dataIndex], item, 0) : (item as any)[col.dataIndex];
+          row[col.title as string] = displayValue;
+        } else if (Array.isArray(col.dataIndex)) {
+          // 处理dataIndex是数组的情况，通常用于嵌套对象
+            let value: any = item;
+          col.dataIndex.forEach((key: string) => {
+            value = value ? value[key] : undefined;
+          });
+          const displayValue = col.render ? col.render(value, item, 0) : value;
+          row[col.title as string] = displayValue;
           }
-        });
-        return row;
+        }
       });
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, mergedOptions.sheetName);
-      XLSX.writeFile(workbook, `${mergedOptions.filename}.xlsx`);
-      message.success(mergedOptions.successMessage);
-    } catch (error) {
-      message.error(t('common:export.error_message', 'Export failed.'));
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport, { header: withHeader ? Object.keys(dataToExport[0] || {}) : [] });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, `${filename}.xlsx`);
+    if (isMounted.current) { // 检查是否挂载
+      message.success(successMessage);
     }
   };
 
   const ExportButton: React.FC = () => {
     const handleMenuClick = (e: { key: string }) => {
       const format = e.key as ExportFormat;
-      if (mergedOptions.onExportRequest) {
-        mergedOptions.onExportRequest(format);
-      } else if (format === 'excel') {
-        clientExportToExcel();
+      if (onExportRequest) {
+        // onExportRequest 可能是异步的，但 message.success 是同步的
+        // 最好是在 onExportRequest 内部处理成功消息，或者确保外部组件不会在请求进行中卸载
+        // 这里只是为了避免在 onExportRequest 导致组件卸载后，message.success 仍在尝试更新状态
+        onExportRequest(format);
+        if (isMounted.current) { // 检查是否挂载
+          message.success(successMessage);
+        }
       } else {
-        message.warning(t('common:export.warn_no_handler', 'No handler available for this export format.'));
+        switch (format) {
+          case 'excel':
+            clientExportToExcel();
+            break;
+          case 'csv':
+            if (isMounted.current) { // 检查是否挂载
+              message.info(t('common:export.csvNotImplemented'));
+            }
+            break;
+          case 'pdf':
+            if (isMounted.current) { // 检查是否挂载
+              message.info(t('common:export.pdfNotImplemented'));
+            }
+            break;
+          default:
+            break;
+        }
       }
     };
 
-    // 直接创建符合 Ant Design Dropdown 菜单项类型 (ItemType[]) 的数组
-    const menuItems = mergedOptions.supportedFormats.map(format => ({
+    const items = supportedFormats.map(format => ({
       key: format,
       label: getFormatLabel(format, t),
+      icon: <DownloadOutlined />,
     }));
 
-    const exportCallback = mergedOptions.onExportRequest; // Store in a variable for type guarding
-    const hasExportCallback = typeof exportCallback === 'function';
-
-    const shouldUseDropdown = hasExportCallback && mergedOptions.supportedFormats.length > 1;
-    const singleFormatServerExport = hasExportCallback && mergedOptions.supportedFormats.length === 1;
-
-    if (shouldUseDropdown) {
+    // 如果只支持一种格式，则直接显示按钮，否则显示下拉菜单
+    if (supportedFormats.length === 1) {
+      const format = supportedFormats[0];
       return (
-        <Dropdown menu={{ items: menuItems }} trigger={['click']}> {/* Correct usage of menu prop */}
-          <Button shape="round" type="default">
-            {mergedOptions.dropdownButtonText} <DownOutlined />
-          </Button>
-        </Dropdown>
+        <Button
+          type="primary"
+          icon={<DownloadOutlined />}
+          onClick={() => {
+            if (onExportRequest) {
+              onExportRequest(format);
+              if (isMounted.current) { // 检查是否挂载
+                message.success(successMessage);
+              }
+            } else {
+              clientExportToExcel();
+            }
+          }}
+        >
+          {buttonText}
+        </Button>
       );
     }
 
-    const singleFormatToExport = mergedOptions.supportedFormats[0];
-    const singleButtonText = singleFormatServerExport
-      ? getFormatLabel(singleFormatToExport, t)
-      : (singleFormatToExport === 'excel' && !hasExportCallback)
-        ? mergedOptions.buttonText
-        : getFormatLabel(singleFormatToExport, t);
+    const menu = <Menu onClick={handleMenuClick} items={items} />;
 
     return (
-      <Tooltip title={singleButtonText || t('common:tooltip.export_data', 'Export Data')}>
-        <Button
-          icon={<DownloadOutlined />}
-          onClick={() => {
-            if (hasExportCallback && exportCallback) { // Check exportCallback directly here
-              exportCallback(singleFormatToExport);
-            } else if (singleFormatToExport === 'excel' && !hasExportCallback) { // Ensure it's client export
-              clientExportToExcel();
-            } else {
-              message.warning(t('common:export.warn_no_handler', 'No handler available for this export format.'));
-            }
-          }}
-          shape="round"
-          type="default"
-        >
-          {singleButtonText}
+      <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+        <Button type="primary" icon={<DownloadOutlined />}>
+          <Space>
+            {dropdownButtonText}
+            <DownOutlined />
+          </Space>
         </Button>
-      </Tooltip>
+      </Dropdown>
     );
   };
 
   return {
     ExportButton,
+    clientExportToExcel, // 暴露给外部方便直接调用
   };
 };
 

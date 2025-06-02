@@ -1,47 +1,62 @@
 {
+  "admin": {
+    "permissions": "Permission Management",
+    "roles": "Role Management",
+    "systemSettings": "System Settings",
+    "title": "System Management",
+    "users": "User Management",
+    "dataImport": "Data Import",
+    "sqlEditor": "SQL Editor",
+    "reportTemplate": "Report Template",
+    "reportTable": "Report Table"
+  },
   "dashboard": "Dashboard",
-  "hr": "HR Management",
-  "hrEmployees": "Employee Files",
-  "hrEmployeesNew": "Create Employee",
-  "hrEmployeesBulkImport": "Employee Bulk Import",
-  "hrEmployeesDetail": "Employee Details",
-  "hrEmployeesEdit": "Edit Employee",
-  "payroll": "Payroll Management",
-  "payrollPeriods": "Payroll Periods",
-  "payrollRuns": "Payroll Runs",
-  "payrollEntry": "Payroll Entry",
-  "payrollComponents": "Payroll Components",
-  "payrollBulkImport": "Payroll Bulk Import",
-  "payrollRunDetail": "Payroll Run Details",
-  "manager": "Manager View",
-  "managerSubordinates": "Subordinates",
-  "managerLeaveApprovals": "Leave Approvals",
-  "reports": "Report Management",
-  "reportsDesigner": "Report Designer",
-  "reportsTemplates": "Report Templates",
-  "reportsCalculatedFields": "Calculated Fields",
-  "reportsCustomQuery": "Custom Query",
-  "reportsDataSources": "Data Sources",
-  "reportsViewer": "Report Viewer",
-  "reportsTemplateDetail": "Report Template Details",
-  "reportsTemplateEdit": "Edit Report Template",
-  "viewReports": "View Reports",
-  "admin": "System Management",
-  "adminUsers": "User Management",
-  "adminRoles": "Role Management",
-  "adminPermissions": "Permission Management",
-  "adminConfig": "System Configuration",
-  "organization": "Organization",
-  "organizationDepartments": "Department Management",
-  "organizationPersonnelCategories": "Personnel Categories",
-  "organizationPositions": "Positions",
-  "test": "Test Page",
-  "testEmployeeListV3": "Employee List V3",
-  "testReportTableDemo": "Report Table Demo",
-  "testReportTemplateDemo": "Report Template Demo",
-  "personal": "Personal Center",
-  "personalMyInfo": "My Information",
-  "personalMyPayslips": "My Payslips",
-  "personalLeave": "My Leave",
-  "viewReportsManagement": "viewReportsManagement"
+  "home": "Home",
+  "hr": {
+    "employees": "Employee Records",
+    "employeesBulkImport": "Employee Bulk Import",
+    "employeesNew": "Create Employee",
+    "myLeave": "",
+    "title": "Employee Management",
+    "employeesDetail": "View Employee",
+    "employeesEdit": "Edit Employee Information"
+  },
+  "manager": {
+    "leaveApprovals": "Leave Approvals",
+    "subordinates": "Subordinate Management",
+    "title": "Manager View"
+  },
+  "organization": {
+    "departments": "Department Management",
+    "personnelCategories": "Personnel Categories",
+    "positions": "Actual Positions",
+    "title": "Organization Structure"
+  },
+  "payroll": {
+    "bulkImport": "Payroll Bulk Import",
+    "components": "Payroll Components",
+    "entry": "Payroll Entry",
+    "periods": "Payroll Periods",
+    "runs": "Payroll Runs",
+    "title": "Payroll Management",
+    "runDetail": "Payroll Run Details",
+    "calculationConfig": "Payroll Calculation Config",
+    "attendance": "Attendance Management"
+  },
+  "personal": {
+    "myInfo": "My Information",
+    "myLeave": "My Leave",
+    "myPayslips": "My Payslips",
+    "title": "Personal Center"
+  },
+  "test": {
+    "title": "Test Pages",
+    "employeeListV3": "Employee List V3",
+    "reportTableDemo": "Report Table Demo",
+    "reportTemplateDemo": "Report Template Demo"
+  },
+  "viewReports": {
+    "management": "Report Management",
+    "title": "View Reports"
+  }
 }

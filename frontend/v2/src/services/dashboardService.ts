@@ -9,15 +9,9 @@ import { useTranslation } from 'react-i18next';
 
 // 仪表盘数据类型定义
 export interface DashboardKpiData {
-  totalEmployees: number;
-  totalEmployeesLastMonth: number;
-  monthlyPayroll: number;
-  monthlyPayrollLastMonth: number;
-  pendingApprovals: number;
-  averageSalary: number;
-  averageSalaryLastMonth: number;
-  activePayrollRuns: number;
-  completedPayrollRuns: number;
+  currentEmployeeCount: number; // 当前员工数量
+  lastMonthPayrollTotal: number; // 上个月薪资总额
+  yearToDatePayrollTotal: number; // 今年目前为止的薪资总额
 }
 
 export interface SalaryTrendItem {
@@ -70,83 +64,95 @@ export const dashboardService: {
   // 获取KPI数据
   async getKpiData(): Promise<DashboardKpiData> {
     try {
-      // 获取员工总数
+      // 1. 获取当前员工数量
       const employeeResponse = await employeeService.getEmployees({ page: 1, size: 1 });
-      const totalEmployees = employeeResponse.meta?.total || 0;
+      const currentEmployeeCount = employeeResponse.meta?.total || 0;
 
-      // TODO: 获取上月员工数，需要后端API支持
-      const totalEmployeesLastMonth = 0;
+      // 2. 获取上个月薪资总额
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const lastMonthStart = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
+      const lastMonthEnd = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0);
 
-      // Getting payroll periods is not directly used for KPI calculation here,
-      // but might be for other dashboard components. Keeping the fetch,
-      // but note its data isn't consumed in this KPI section.
-      let payrollPeriods: any[] = [];
+      // 3. 获取今年目前为止的薪资总额
+      const currentYear = new Date().getFullYear();
+      const yearStart = new Date(currentYear, 0, 1);
+      const yearEnd = new Date();
+
+      // 获取所有薪资审核数据
+      let allPayrollRuns: any[] = [];
       try {
-        const payrollPeriodsResponse = await apiClient.get('/payroll-periods?page=1&size=5');
-        payrollPeriods = payrollPeriodsResponse.data?.data || [];
+        // 由于API限制每页最多100条记录，我们需要分页获取所有数据
+        let page = 1;
+        let hasMoreData = true;
+        
+        while (hasMoreData) {
+          const payrollRunsResponse = await apiClient.get(`/payroll-runs?page=${page}&size=100`);
+          const pageData = payrollRunsResponse.data?.data || [];
+          allPayrollRuns = allPayrollRuns.concat(pageData);
+          
+          // 检查是否还有更多数据
+          const meta = payrollRunsResponse.data?.meta;
+          if (meta && meta.page < meta.totalPages) {
+            page++;
+          } else {
+            hasMoreData = false;
+          }
+          
+          // 安全检查：避免无限循环，最多获取10页数据
+          if (page > 10) {
+            console.warn('Dashboard KPI: Reached maximum page limit (10) for payroll runs');
+            break;
+          }
+        }
       } catch (error) {
-        // Handle error for payrollPeriods fetch if necessary
-        payrollPeriods = [];
+        console.error('Failed to fetch payroll runs:', error);
+        allPayrollRuns = [];
       }
 
-      // 获取薪资审核数据
-      let payrollRuns: any[] = [];
-      try {
-        const payrollRunsResponse = await apiClient.get('/payroll-runs?page=1&size=10');
-        payrollRuns = payrollRunsResponse.data?.data || [];
-      } catch (error) {
-        // Handle error for payrollRuns fetch if necessary
-        payrollRuns = [];
-      }
-
-      // 计算当月薪资总额（从最近的薪资审核中获取）
-      let monthlyPayroll = 0;
-      let activePayrollRuns = 0;
-      let completedPayrollRuns = 0;
-
-      payrollRuns.forEach((run: any) => {
-        if (run.status_name === 'Completed' || run.status_name === 'Completed') {
-          monthlyPayroll += run.total_amount || 0;
-          completedPayrollRuns++;
-        } else if (run.status_name === 'In Progress' || run.status_name === 'In Progress') {
-          activePayrollRuns++;
+      // 计算上个月薪资总额
+      let lastMonthPayrollTotal = 0;
+      allPayrollRuns.forEach((run: any) => {
+        const runDate = new Date(run.run_date || run.created_at);
+        const statusName = run.status?.name || run.status_name;
+        
+        if ((statusName === 'Completed' || statusName === '已完成' || statusName === 'COMPLETED') &&
+            runDate >= lastMonthStart && runDate <= lastMonthEnd) {
+          lastMonthPayrollTotal += run.total_net_pay || run.total_amount || 0;
         }
       });
 
-      // TODO: 获取上月薪资总额，需要后端API支持
-      const monthlyPayrollLastMonth = 0;
-      const averageSalary = totalEmployees > 0 ? monthlyPayroll / totalEmployees : 0;
-      // averageSalaryLastMonth depends on backend data for totalEmployeesLastMonth and monthlyPayrollLastMonth
-      const averageSalaryLastMonth = totalEmployeesLastMonth > 0 ? monthlyPayrollLastMonth / totalEmployeesLastMonth : 0;
+      // 计算今年目前为止的薪资总额
+      let yearToDatePayrollTotal = 0;
+      allPayrollRuns.forEach((run: any) => {
+        const runDate = new Date(run.run_date || run.created_at);
+        const statusName = run.status?.name || run.status_name;
+        
+        if ((statusName === 'Completed' || statusName === '已完成' || statusName === 'COMPLETED') &&
+            runDate >= yearStart && runDate <= yearEnd) {
+          yearToDatePayrollTotal += run.total_net_pay || run.total_amount || 0;
+        }
+      });
 
-      // 待办任务数量（待审批的薪资审核）
-      const pendingApprovals = payrollRuns.filter((run: any) =>
-        run.status_name === 'Pending Approval' || run.status_name === 'Pending Approval'
-      ).length;
-
-      return {
-        totalEmployees,
-        totalEmployeesLastMonth, // 依赖后端API
-        monthlyPayroll,
-        monthlyPayrollLastMonth, // 依赖后端API
-        pendingApprovals,
-        averageSalary,
-        averageSalaryLastMonth, // 依赖 totalEmployeesLastMonth 和 monthlyPayrollLastMonth
-        activePayrollRuns,
-        completedPayrollRuns,
+      const kpiData = {
+        currentEmployeeCount,
+        lastMonthPayrollTotal,
+        yearToDatePayrollTotal,
       };
+
+      // 添加调试信息
+      console.log('New Dashboard KPI Data:', kpiData);
+      console.log('Last month range:', lastMonthStart, 'to', lastMonthEnd);
+      console.log('Year to date range:', yearStart, 'to', yearEnd);
+
+      return kpiData;
     } catch (error) {
+      console.error('Error fetching KPI data:', error);
       // Return default data on error
       return {
-        totalEmployees: 0,
-        totalEmployeesLastMonth: 0,
-        monthlyPayroll: 0,
-        monthlyPayrollLastMonth: 0,
-        pendingApprovals: 0,
-        averageSalary: 0,
-        averageSalaryLastMonth: 0,
-        activePayrollRuns: 0,
-        completedPayrollRuns: 0,
+        currentEmployeeCount: 0,
+        lastMonthPayrollTotal: 0,
+        yearToDatePayrollTotal: 0,
       };
     }
   },
@@ -166,8 +172,8 @@ export const dashboardService: {
           const runsResponse = await apiClient.get(`/payroll-runs?period_id=${period.id}`);
           const runs = runsResponse.data?.data || [];
 
-          const totalPayroll = runs.reduce((sum: number, run: any) => sum + (run.total_amount || 0), 0);
-          const employeeCount = runs.reduce((sum: number, run: any) => sum + (run.employee_count || 0), 0);
+          const totalPayroll = runs.reduce((sum: number, run: any) => sum + (run.total_net_pay || run.total_amount || 0), 0);
+          const employeeCount = runs.reduce((sum: number, run: any) => sum + (run.total_employees || run.employee_count || 0), 0);
           const averageSalary = employeeCount > 0 ? totalPayroll / employeeCount : 0;
 
           // Only add if real data is obtained (runs.length > 0)
@@ -208,18 +214,15 @@ export const dashboardService: {
 
           const employeeCount = employeesResponse.meta?.total || 0;
 
-          // TODO: Real total and average salaries for departments need backend API support
-          // Currently, they are set to 0, or the backend could directly provide these aggregated data
-          const totalPayroll = 0;
-          const averageSalary = 0;
-
+          // TODO: 需要后端API提供部门薪资汇总数据
+          // 目前只显示员工数量，薪资数据需要后端API支持
           if (employeeCount > 0) {
             distributionData.push({
               department: dept.code || 'UNKNOWN',
               departmentName: dept.name || 'Unknown',
-              totalPayroll, // Depends on backend API
+              totalPayroll: 0, // 需要后端API支持
               employeeCount,
-              averageSalary, // Depends on backend API
+              averageSalary: 0, // 需要后端API支持
             });
           }
         } catch (error) {
@@ -240,24 +243,12 @@ export const dashboardService: {
       const jobLevels = await employeeService.getJobPositionLevelsLookup();
       const gradeData: EmployeeGradeItem[] = [];
 
-      // TODO: Real employee grade distribution (number and percentage for each grade) needs backend API to directly provide statistical data
-      // Currently, they are set to 0, or the backend could directly provide these aggregated data
-      for (const level of jobLevels.slice(0, 6)) { // Limit to max 6 grades
-        const count = 0; // Depends on backend API
-        const percentage = 0; // Depends on backend API
-
-        // Temporarily commented out, as count is always 0
-        // if (count > 0) {
-        gradeData.push({
-          grade: level.value,
-          gradeName: level.label,
-          count, // Depends on backend API
-          percentage, // Depends on backend API
-        });
-        // }
-      }
-
-      return gradeData.sort((a, b) => b.count - a.count); // Sort by count, currently all 0
+      // TODO: 需要后端API提供员工职级统计数据
+      // 目前返回空数组，等待后端API支持
+      // 可以考虑添加一个专门的统计API端点：/employees/grade-distribution
+      
+      // 暂时返回空数组，避免显示无意义的0值数据
+      return [];
     } catch (error) {
       return []; // Return empty array on error
     }
@@ -272,9 +263,9 @@ export const dashboardService: {
       const statusMap = new Map<string, { count: number; totalAmount: number; statusName: string }>();
 
       payrollRuns.forEach((run: any) => {
-        const status = run.status_code || 'unknown';
-        const statusName = run.status_name || 'Unknown';
-        const amount = run.total_amount || 0;
+        const status = run.status?.code || run.status_code || 'unknown';
+        const statusName = run.status?.name || run.status_name || 'Unknown';
+        const amount = run.total_net_pay || run.total_amount || 0;
 
         if (statusMap.has(status)) {
           const existing = statusMap.get(status)!;
@@ -314,11 +305,11 @@ export const dashboardService: {
 
       return payrollRuns.map((run: any) => ({
         id: run.id,
-        periodName: run.period_name || t('common:label.payroll_period_name', { id: run.id }), // Dynamic period name
-        status: run.status_name || t('common:label.unknown', 'Unknown'),
-        totalAmount: run.total_amount || 0,
-        employeeCount: run.employee_count || 0,
-        createdAt: run.created_at || new Date().toISOString(),
+        periodName: run.payroll_period?.name || run.period_name || t('common:label.payroll_period_name', { id: run.id }), // Dynamic period name
+        status: run.status?.name || run.status_name || t('common:label.unknown', 'Unknown'),
+        totalAmount: run.total_net_pay || run.total_amount || 0,
+        employeeCount: run.total_employees || run.employee_count || 0,
+        createdAt: run.run_date || run.created_at || new Date().toISOString(),
       }));
     } catch (error) {
       return []; // Return empty array on error

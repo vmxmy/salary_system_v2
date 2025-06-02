@@ -68,7 +68,8 @@ class Department(Base):
     # Relationship to Unit (Many Departments to one Unit)
     unit = relationship("Unit", back_populates="departments")
     # Relationship to Employees (One Department to many Employees)
-    employees = relationship("Employee", back_populates="department")
+    # Note: Employee relationship removed as V1 Employee model is deprecated
+    # Use V2 models for employee relationships
 
     # Optional: Unique constraint for name within a unit
     # __table_args__ = (UniqueConstraint('name', 'unit_id', name='uq_department_name_unit_id'),)
@@ -87,51 +88,13 @@ class EstablishmentType(Base):
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationship to Employees (One Type to many Employees)
-    employees = relationship("Employee", back_populates="establishment_type")
+    # Note: Employee relationship removed as V1 Employee model is deprecated
+    # Use V2 models for employee relationships
 # --- Define EstablishmentType Model --- END ---
 
-# --- Define Employee Model --- START ---
-class Employee(Base):
-    __tablename__ = 'employees'
-    __table_args__ = (
-        UniqueConstraint('id_card_number', name='uq_employee_id_card'),
-        UniqueConstraint('employee_unique_id', name='uq_employee_unique_id'),
-        {'schema': 'core'}
-    )
-
-    id = Column(Integer, Identity(always=False), primary_key=True)
-    name = Column(Text, nullable=False, index=True)
-    id_card_number = Column(Text, nullable=False, index=True)
-    employee_unique_id = Column(Text, nullable=True, index=True)
-    department_id = Column(Integer, ForeignKey('core.departments.id'), nullable=False)
-    establishment_type_id = Column(Integer, ForeignKey('core.establishment_types.id'), nullable=False)
-    bank_account_number = Column(Text, nullable=True)
-    bank_name = Column(Text, nullable=True)
-    work_start_date = Column(Date, nullable=True)
-    employment_status = Column(Text, nullable=True, default='在职')
-    remarks = Column(Text, nullable=True)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-    email = Column(String, nullable=True, index=True) # Added email field
-
-    # Added new fields
-    gender = Column(String(10), nullable=True)
-    ethnicity = Column(String(50), nullable=True)
-    date_of_birth = Column(Date, nullable=True)
-    education_level = Column(Text, nullable=True)
-    service_interruption_years = Column(Numeric(precision=4, scale=2), nullable=True)
-    continuous_service_years = Column(Numeric(precision=4, scale=2), nullable=True)
-    actual_position = Column(String(255), nullable=True)
-    actual_position_start_date = Column(Date, nullable=True)
-    position_level_start_date = Column(Date, nullable=True)
-
-    # Relationships
-    department = relationship("Department", back_populates="employees")
-    establishment_type = relationship("EstablishmentType", back_populates="employees")
-    calculated_salaries = relationship("CalculatedSalaryRecord", back_populates="employee")
-    sent_emails = relationship("EmailLog", back_populates="sender_employee") # Relationship to EmailLog
-
-# --- Pydantic Model for Employee --- END ---
+# --- V1 Employee Model Removed ---
+# V1 Employee model has been removed as the system now uses V2 models exclusively.
+# All employee-related operations should use webapp.v2.models.hr.Employee instead.
 
 # --- Add other ORM models below (e.g., ReportLink) ---
 
@@ -172,7 +135,8 @@ class EmailLog(Base):
     # New field added here
     task_uuid = Column(UUID(as_uuid=True), nullable=True, index=True)
 
-    sender_employee = relationship("Employee", back_populates="sent_emails")
+    # Note: Employee relationship removed as V1 Employee model is deprecated
+    # sender_employee = relationship("Employee", back_populates="sent_emails")
 
 # New Model for Email Sending Tasks
 class EmailSendingTask(Base):
@@ -335,7 +299,8 @@ class CalculatedSalaryRecord(Base):
     source_data_snapshot = Column(JSONB, nullable=True) # Store context snapshot used for calculation
 
     # Relationship back to the employee (optional, but potentially useful)
-    employee = relationship("Employee")
+    # Note: Employee relationship removed as V1 Employee model is deprecated
+    # employee = relationship("Employee")
 # --- Calculated Salary Record Model --- END ---
 
 # 新增：合并后的数据表模型 (Refactored with English Columns)

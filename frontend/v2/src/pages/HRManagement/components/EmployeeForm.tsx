@@ -507,6 +507,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 onChange={handleAvatarChange}
                 name="file" 
                 maxCount={1}
+                showUploadList={false}
               >
                   {avatarFileList.length < 1 && <div><UploadOutlined /><div style={{marginTop: 8}}>t('employee:form_upload.avatar_text')</div></div>}
               </Upload>

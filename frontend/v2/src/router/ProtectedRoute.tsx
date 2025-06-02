@@ -21,7 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   permissionMatchMode = 'all', // Default to 'all' if not specified
   // renderMainLayout = true, // Removed from destructuring
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['common']);
   const location = useLocation();
   
   // Subscribe to necessary state slices from authStore

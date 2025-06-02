@@ -54,7 +54,7 @@ const StandardDetailPageTemplate = <T extends object | null | undefined>({
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <Spin tip={t(loadingTextKey)} size="large" />
+        <Spin tip={t(loadingTextKey)} size="large" fullscreen />
       </div>
     );
   }
@@ -90,7 +90,9 @@ const StandardDetailPageTemplate = <T extends object | null | undefined>({
           className={styles.pageBreadcrumb}
           items={currentBreadcrumbs.map(item => ({
             key: item.key,
-            title: item.path ? <Link to={item.path}>{item.title}</Link> : item.title,
+            title: typeof item.title === 'object' && item.title !== null && 'type' in item.title && item.title.type === Link 
+                   ? item.title 
+                   : (item.path ? <Link to={item.path}>{item.title}</Link> : item.title),
           }))}
         />
         <div className={styles.headerContent}>

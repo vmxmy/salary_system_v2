@@ -92,7 +92,7 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
 
   return (
     <Modal
-      title={isEditMode ? t('runs_page.modal_title.edit') : t('runs_page.modal_title.create')}
+      title={isEditMode ? t('payroll_runs:runs_page.modal_title.edit') : t('payroll_runs:runs_page.modal_title.create')}
       open={visible}
       onCancel={onClose}
       footer={null}

@@ -3,6 +3,21 @@ import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'; // Added
 import { useAuthStore } from '../store/authStore'; // For accessing the auth token
 import { createPerformanceInterceptors } from '../utils/apiPerformanceMonitor';
 
+// Add these variables for token refresh queueing
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (value?: any) => void; reject: (reason?: any) => void; }> = [];
+
+const processQueue = (error: any | null, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // 工具函数：检测和处理网络连接或服务器错误
 export const isServerUnavailableError = (error: any): boolean => {
   // 检查网络连接错误（服务器完全不可用）
@@ -43,17 +58,27 @@ export const formatErrorMessage = (error: any): string => {
 
 // Define authentication verification URLs
 const AUTH_VERIFICATION_URLS: string[] = [
-    '/v2/users/', // Example: Get current user details
-    '/v2/token/refresh', // Example: Refresh token endpoint
+    '/users/', // Example: Get current user details
+    '/token/refresh', // Example: Refresh token endpoint
     // Add any other relevant auth-related endpoints here
 ];
 
-const host = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, ''); // 移除VITE_API_BASE_URL末尾的斜杠（如果有）
+const host = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, ''); // 移除VITE_API_BASE_URL末尾的斜杠（如果有）
 const pathPrefix = (import.meta.env.VITE_API_PATH_PREFIX || '/v2'); // VITE_API_PATH_PREFIX，默认为 /v2
 
 // 确保 pathPrefix 以 / 开头
 const resolvedPathPrefix = pathPrefix.startsWith('/') ? pathPrefix : `/${pathPrefix}`;
 const fullBaseURL = host ? `${host}${resolvedPathPrefix}` : resolvedPathPrefix;
+
+// 开发环境下输出配置信息
+if (import.meta.env.DEV) {
+  console.log('API Client Configuration:', {
+    host,
+    pathPrefix,
+    resolvedPathPrefix,
+    fullBaseURL
+  });
+}
 
 
 const apiClient = axios.create({
@@ -149,23 +174,56 @@ apiClient.interceptors.response.use(
 
     // 处理401未授权错误
     if (error.response && error.response.status === 401) {
+      const originalRequest = error.config; // Capture the original request
+
+      // Avoid infinite loops for authentication endpoints themselves
       const isAuthVerificationUrl = AUTH_VERIFICATION_URLS.some((url: string) =>
-        error.config.url?.includes(url)
+        originalRequest.url?.includes(url)
       );
 
-      if (window.location.pathname === '/login' || isAuthVerificationUrl) {
-        // 💡 如果当前已在登录页，或错误来源于认证接口本身，则不执行登出，避免循环
-        console.warn(
-          'ApiClient: 401 on login page or auth verification URL, not attempting logout.',
-          error.config.url
-        );
-      } else {
-        // Clear the auth token and redirect to login
+      if (isAuthVerificationUrl || originalRequest.url === '/token/refresh') {
+        // If the error is from an auth verification URL or refresh endpoint, do not attempt refresh, just logout
         useAuthStore.getState().logoutAction();
-
-        // Redirect to login page
         window.location.href = '/login';
+        return Promise.reject(error);
       }
+
+      if (isRefreshing) {
+        // If a refresh is already in progress, queue the failed request
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+        .then(token => {
+          originalRequest.headers.Authorization = 'Bearer ' + token;
+          return apiClient(originalRequest);
+        })
+        .catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      isRefreshing = true;
+
+      return new Promise(async (resolve, reject) => {
+        try {
+          const refreshResponse = await apiClient.post('/token/refresh', {}); // Call your refresh token API
+          const newAccessToken = refreshResponse.data.access_token;
+          
+          // Update the auth store with the new token
+          useAuthStore.getState().setAuthToken(newAccessToken); // New action needed in authStore
+
+          originalRequest.headers.Authorization = 'Bearer ' + newAccessToken;
+          processQueue(null, newAccessToken); // Process the queued requests
+          resolve(apiClient(originalRequest)); // Retry the original request
+        } catch (refreshError) {
+          processQueue(refreshError); // Reject all queued requests
+          useAuthStore.getState().logoutAction();
+          window.location.href = '/login';
+          reject(refreshError); // Reject the original request with the refresh error
+        } finally {
+          isRefreshing = false;
+        }
+      });
     }
 
     return Promise.reject(error);

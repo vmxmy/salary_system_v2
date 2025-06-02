@@ -1,0 +1,78 @@
+{
+  "payroll_period_form": {
+    "button": {
+      "cancel": "Cancel",
+      "create_period": "Create Period",
+      "save_changes": "Save Changes"
+    },
+    "label": {
+      "end_date": "End Date",
+      "frequency": "Frequency",
+      "name": "Name",
+      "pay_date": "Pay Date",
+      "start_date": "Start Date",
+      "status": "Status"
+    },
+    "placeholder": {
+      "frequency": "Select frequency",
+      "name": "Enter payroll period name",
+      "status": "Select status"
+    },
+    "validation": {
+      "end_date_before_start_date": "End date cannot be before start date!",
+      "end_date_required": "Please select an end date!",
+      "frequency_required": "Please select a frequency!",
+      "name_required": "Please enter a name for the payroll period!",
+      "pay_date_required": "Please select a pay date!",
+      "start_date_required": "Please select a start date!",
+      "status_required": "Please select a status!"
+    }
+  },
+  "payroll_period_status": {
+    "closed": "Closed",
+    "open": "Open",
+    "planned": "Planned"
+  },
+  "payroll_periods_page": {
+    "batch_delete_button_text": "",
+    "batch_delete_failure": "",
+    "batch_delete_success": "",
+    "confirm_batch_delete_content": "",
+    "confirm_batch_delete_title": "",
+    "confirm_delete_content": "",
+    "confirm_delete_title": "",
+    "delete_failure": "",
+    "delete_success": "",
+    "export_button_text": "",
+    "export_filename_prefix": "",
+    "export_sheet_name": "",
+    "export_success_message": "",
+    "message": {
+      "create_failed": "Failed to create payroll period.",
+      "create_success": "Payroll period created successfully!",
+      "update_failed": "Failed to update payroll period.",
+      "update_success": "Payroll period updated successfully!"
+    },
+    "no_selection_message": "",
+    "table": {
+      "column_end_date": "End Date",
+      "column_frequency": "Frequency",
+      "column_id": "ID",
+      "column_pay_date": "Pay Date",
+      "column_period_name": "Period Name",
+      "column_start_date": "Start Date",
+      "column_status": "Status"
+    }
+  },
+  "table": {
+    "column_employee_count": "",
+    "status": {
+      "loading": "",
+      "no_data": ""
+    },
+    "tooltip": {
+      "employee_count_has_data": "",
+      "employee_count_no_data": ""
+    }
+  }
+}

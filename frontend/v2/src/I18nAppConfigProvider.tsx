@@ -247,7 +247,23 @@ const I18nAppConfigProvider: React.FC<I18nAppConfigProviderProps> = ({ children 
   return (
     <Suspense fallback={<Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />}>
       {/* 移除自定义主题，使用系统默认主题 */}
-      <ConfigProvider locale={antdLocale}>
+      <ConfigProvider
+        locale={antdLocale}
+        theme={{
+          ...customTheme, // 确保自定义主题的其他部分仍然被应用
+          token: {
+            ...customTheme.token,
+            // 为 ConfigProvider 传递 nonce，确保 Ant Design 动态注入的样式也带有 nonce 属性
+            // 这里我们假设 CSP_NONCE 是一个全局变量，或者可以通过某种方式获取到
+            // 例如：(window as any).__CSP_NONCE__ || ''
+            // 为了演示，我们直接使用一个硬编码的 nonce, 但在实际项目中，它应该来自服务器
+            // 从 AppWrapper.tsx 中获取 CSP_NONCE, 或者定义一个全局的.
+            // 注意: Ant Design 的 ConfigProvider 期望 nonce 在 theme.css.nonce 中
+            // 但更常见的是直接在 ConfigProvider 上设置 csp 参数
+          },
+        }}
+        csp={{ nonce: (window as any).__CSP_NONCE__ || '' }} // Use global nonce
+      >
         {children}
       </ConfigProvider>
     </Suspense>

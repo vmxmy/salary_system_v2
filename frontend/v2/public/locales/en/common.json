@@ -1,334 +1,478 @@
 {
-  "greeting": "Hello!",
-  "loading": {
-    "user_info": "Loading user information...",
-    "generic_loading_text": "Loading page content..."
+  "action": {
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "title": "Actions",
+    "view": "View"
   },
-  "permission_denied_action": "You don't have permission to perform this action.",
-  "role": {
-    "unknown": "Unknown role"
+  "actions": "",
+  "activate": "",
+  "active": "",
+  "adjust_balance": "",
+  "auth": {
+    "logout_failed": "Logout failed",
+    "logout_success": "Logout successful"
   },
-  "status": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "na": "N/A",
-    "unknown_param": "Unknown status (ID: {statusId})",
-    "draft": "Draft",
-    "processing": "Processing",
-    "error": "Error",
-    "loading": "Loading",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "active_yes": "Yes",
-    "active_no": "No",
-    "expired": "Expired",
-    "terminated": "Terminated"
+  "auto____e68ab1": "",
+  "auto___e5ad98": "",
+  "auto___method_url_duration_tofixed_2_ms__status__e29aa0": "",
+  "auto___method_url_duration_tofixed_2_ms__status__f09f90": "",
+  "auto__url__stat_avgduration_tofixed_2_ms__247b75": "",
+  "auto_20___e8b685": "",
+  "auto_500ms__e5b9b3": "",
+  "auto_text_e4baa7": "",
+  "auto_text_e4baba": "",
+  "auto_text_e4bbaa": "",
+  "auto_text_e4bc91": "",
+  "auto_text_e585a8": "",
+  "auto_text_e585b6": "",
+  "auto_text_e585bc": "",
+  "auto_text_e5889d": "",
+  "auto_text_e58d9a": "",
+  "auto_text_e58ebb": "",
+  "auto_text_e58f8c": "",
+  "auto_text_e59088": "",
+  "auto_text_e59198": "",
+  "auto_text_e59bba": "",
+  "auto_text_e59ca8": "",
+  "auto_text_e5a4a7": "",
+  "auto_text_e5a5b3": "",
+  "auto_text_e5ae9e": "",
+  "auto_text_e5b9b4": "",
+  "auto_text_e5be85": "",
+  "auto_text_e68a80": "",
+  "auto_text_e697a0": "",
+  "auto_text_e69c88": "",
+  "auto_text_e69c8d": "",
+  "auto_text_e69cac": "",
+  "auto_text_e69d83": "",
+  "auto_text_e6af8f": "",
+  "auto_text_e794a8": "",
+  "auto_text_e794b7": "",
+  "auto_text_e79785": "",
+  "auto_text_e7a195": "",
+  "auto_text_e7a6bb": "",
+  "auto_text_e7b3bb": "",
+  "auto_text_e7bb84": "",
+  "auto_text_e8818c": "",
+  "auto_text_e8a792": "",
+  "auto_text_e8af95": "",
+  "auto_text_e8bf94": "",
+  "auto_text_e983a8": "",
+  "auto_text_e99480": "",
+  "auto_text_e999aa": "",
+  "auto_text_e9a1b9": "",
+  "auto_text_e9ab98": "",
+  "batch_import": {
+    "button": {
+      "hide_error_details": "",
+      "show_error_details": ""
+    },
+    "fields": {
+      "employee_code": "",
+      "employee_full_name": "",
+      "gross_pay": "",
+      "id_number": "",
+      "net_pay": "",
+      "remarks": "",
+      "total_deductions": ""
+    },
+    "mapping": {
+      "actual_amount": "",
+      "deduction_amount": "",
+      "deduction_total": "",
+      "department": "",
+      "department_name": "",
+      "description": "",
+      "employee_id": "",
+      "employee_name": "",
+      "employee_number": "",
+      "fiscal_support": "",
+      "gross_salary": "",
+      "gross_total": "",
+      "id_card": "",
+      "id_card_number": "",
+      "id_number": "",
+      "name": "",
+      "net_pay": "",
+      "net_salary": "",
+      "net_total": "",
+      "personnel_identity": "",
+      "personnel_level": "",
+      "personnel_name": "",
+      "personnel_number": "",
+      "remarks": "",
+      "salary_total": "",
+      "salary_unified": "",
+      "serial_number": "",
+      "should_deduct_total": "",
+      "total_deduction_amount": "",
+      "total_deductions": "",
+      "total_earnings": "",
+      "total_income": "",
+      "work_number": ""
+    },
+    "record_at_index": "",
+    "results": {
+      "all_failed_one": "",
+      "all_failed_other": "",
+      "all_success_one": "",
+      "all_success_other": "",
+      "no_records_processed": "",
+      "partial_success": ""
+    },
+    "table_converter": {
+      "missing_required_fields": ""
+    },
+    "table_header": {
+      "department": "",
+      "employee_id": "",
+      "employee_name": "",
+      "net_pay": "",
+      "position": "",
+      "remarks": "",
+      "status": "",
+      "total_deductions": "",
+      "total_earnings": "",
+      "validation_errors": ""
+    },
+    "validation": {
+      "balance_mismatch": "",
+      "employee_name_required": "",
+      "gross_pay_invalid": "",
+      "id_number_required": "",
+      "net_pay_invalid": "",
+      "total_deductions_invalid": ""
+    }
   },
   "boolean": {
-    "true": "Yes",
-    "false": "No"
+    "false": "No",
+    "true": "Yes"
   },
   "button": {
-    "refresh_and_retry": "Refresh and Retry",
-    "export": "Export",
-    "backToList": "Back to List",
-    "ok": "OK",
-    "cancel": "Cancel",
-    "export_excel": "Export Excel",
-    "search": "Search",
-    "reset": "Reset",
-    "close": "Close",
     "apply": "Apply",
-    "save_config": "Save Config",
-    "confirm": "Confirm",
-    "edit": "Edit",
-    "delete": "Delete",
-    "refresh": "Refresh",
-    "update": "Update",
-    "create": "Create",
-    "yes": "Yes",
-    "no": "No",
-    "yes_delete": "Yes, Delete",
-    "save": "Save",
     "back": "Back",
-    "upload": "Upload"
-  },
-  "label": {
-    "username": "Username",
-    "password": "Password",
-    "remember_me": "Remember me",
-    "id": "ID",
-    "code": "Code",
-    "name": "Name",
-    "description": "Description",
-    "status": "Status",
-    "actions": "Actions",
-    "created_at": "Created at",
-    "updated_at": "Updated at",
-    "effective_date": "Effective date",
-    "end_date": "End date",
-    "remarks": "Remarks",
-    "notes": "Notes",
-    "payroll_period_name": "Payroll Period Name",
-    "unknown": "Unknown"
-  },
-  "placeholder": {
-    "select": "Please select",
-    "input": "Please input",
-    "search": "Please enter search content",
-    "input_remarks": "Input remarks"
-  },
-  "tooltip": {
-    "edit": "Edit",
+    "backToList": "Back to List",
+    "cancel": "Cancel",
+    "close": "Close",
+    "collapse": "",
+    "column_setting": "",
+    "confirm": "Confirm",
+    "create": "Create",
     "delete": "Delete",
-    "add_child": "Add child",
-    "export_data": "Export data",
-    "column_settings": "Column settings"
+    "density": "",
+    "edit": "Edit",
+    "exit_fullscreen": "",
+    "expand": "",
+    "export": "Export",
+    "export_excel": "Export Excel",
+    "fullscreen": "",
+    "no": "No",
+    "ok": "OK",
+    "refresh": "Refresh",
+    "refresh_and_retry": "Refresh and Retry",
+    "reset": "Reset",
+    "save": "Save",
+    "save_config": "Save Config",
+    "search": "Search",
+    "submit": "",
+    "update": "Update",
+    "upload": "Upload",
+    "yes": "Yes",
+    "yes_delete": "Yes, Delete"
   },
-  "message": {
-    "operation_success": "Operation succeeded",
-    "operation_failed": "Operation failed",
-    "operation_failed_prefix": "Operation failed: ",
-    "create_success_default": "Created successfully",
-    "update_success_default": "Updated successfully",
-    "delete_success_default": "Deleted successfully",
-    "create_failed_default": "Creation failed",
-    "update_failed_default": "Update failed",
-    "delete_failed_default": "Deletion failed",
-    "error_unknown": "Unknown error",
-    "error_default_retry": "Operation failed, please try again later.",
-    "data_loading_error": "Data loading failed",
-    "form_validation_error": "Form validation failed, please check inputs.",
-    "upload_success_param": "File {fileName} uploaded successfully.",
-    "upload_failed_param": "File {fileName} upload failed.",
-    "feature_under_development": "This feature is under development.",
-    "missing_required_fields": "Required fields are missing.",
-    "missing_required_fields_in_tab_param": "Required fields are missing in the {tabName} tab.",
-    "column_settings_applied": "Column settings applied successfully!",
-    "column_settings_reset": "Column settings reset successfully",
-    "api_not_found": "API not found",
-    "method_not_allowed": "Method not allowed",
-    "submission_error": "Submission error",
-    "operation_failed_default_retry": "Operation failed, please try again later."
-  },
-  "modal": {
-    "confirm_delete": {
-      "title": "Confirm deletion",
-      "title_item": "Confirm deletion of {itemName}?",
-      "content": "This action cannot be undone.",
-      "content_item": "Are you sure to delete {itemName}? This action cannot be undone.",
-      "ok_text": "Confirm deletion",
-      "cancel_text": "Cancel"
-    },
-    "unsaved_changes": {
-      "title": "Unsaved changes",
-      "content": "You have unsaved changes, are you sure to leave?",
-      "ok_text": "Leave",
-      "cancel_text": "Stay"
-    }
-  },
-  "table": {
-    "empty_data": "No data",
-    "column_actions": "Actions",
-    "cell_empty": "-",
-    "pagination_show_total": "Showing {range0}-{range1} of {total} items",
-    "refreshSuccess": "Refresh successful",
-    "refreshError": "Refresh failed",
-    "noData": "No data",
-    "paginationTotal": "Total {total} items"
-  },
-  "currency": {
-    "symbol": "$"
-  },
-  "date": {
-    "to": "to"
-  },
-  "sider": {
-    "title": {
-      "full": "Salary Management System",
-      "collapsed": "SMS"
-    }
-  },
-  "footer": {
-    "system_name": "Salary Management System",
-    "created_by": "Created by AI Assistant",
-    "copyright": "Copyright © 2024",
-    "hyperchain_logo_alt": "Hyperchain Logo"
-  },
-  "user_menu": {
-    "profile": "Profile",
-    "settings": "Settings",
-    "logout": "Logout",
-    "default_user_text": "User"
-  },
-  "page": {
-    "admin_config": {
-      "title_placeholder": "Configuration page (placeholder)"
-    }
-  },
-  "pagination": {
-    "previous_page": "Previous page",
-    "next_page": "Next page",
-    "page_info": "Page {{currentPage}} / {{totalPages}}",
-    "show_total": "Showing {range0}-{range1} of {total} items",
-    "total_records_one": "Total {{total}} record",
-    "total_records_other": "Total {{total}} records"
-  },
-  "username_label": "Username",
-  "password_label": "Password",
-  "remember_me_checkbox": "Remember me",
-  "login_button": "Login",
-  "page_title_settings": "Page Title Settings",
-  "record_prefix": "Record",
-  "search": {
-    "placeholder": "Search {{field}}"
-  },
-  "export": {
-    "filename": "Export Data",
-    "sheetName": "Sheet1",
-    "success_message": "Export successful",
-    "error_message": "Export failed, please try again",
-    "error_log": "Export Excel failed:",
-    "formatExcel": "Excel (.xlsx)",
-    "filename_default": "Export Data",
-    "sheetName_default": "Sheet1",
-    "formatCsv": "CSV (.csv)",
-    "formatPdf": "PDF (.pdf)",
-    "error_no_data_for_client_export": "No data to export.",
-    "warn_no_handler": "No export handler for this format."
-  },
+  "cancel": "",
+  "collapse_sidebar": "Collapse sidebar",
   "column_control": {
     "button_text": "Column Settings",
-    "tooltip_title": "Customize columns",
     "dropdown_title": "Column Display",
-    "reset_success": "Column settings reset successfully"
+    "tooltip_title": "Customize columns"
   },
-  "table_converter": {
-    "title": "Table Text Converter",
-    "placeholder": "Paste table text here, format: Column1,Column2,Column3...",
-    "parse_table": "Parse Table",
-    "field_mapping": "Field Mapping",
-    "table_field": "Table Field",
-    "api_field": "API Field",
-    "data_type": "Data Type",
-    "convert_to_json": "Convert to JSON",
-    "json_result": "JSON Result",
-    "copy_json": "Copy JSON",
-    "use_json": "Use This JSON",
-    "json_parse_error": "JSON parse error, cannot use result",
-    "ignore_field": "Ignore this field"
+  "common": {
+    "no": "",
+    "permission_denied_action": "",
+    "yes": ""
   },
-  "employee": {
-    "firstName": "First Name",
-    "lastName": "Last Name",
-    "dob": "Date of Birth",
-    "idNumber": "ID Number",
-    "nationality": "Nationality",
-    "maritalStatus": "Marital Status",
-    "ethnicity": "Ethnicity",
-    "politicalStatus": "Political Status",
-    "educationLevel": "Education Level",
-    "personalEmail": "Personal Email",
-    "mobilePhone": "Mobile Phone",
-    "address": "Address",
-    "department": "Department",
-    "jobTitle": "Job Title",
-    "hireDate": "Hire Date",
-    "probationEndDate": "Probation End Date",
-    "employmentType": "Employment Type",
-    "status": "Status",
-    "reportsTo": "Reports To",
-    "workLocation": "Work Location",
-    "bankName": "Bank of Beneficiary",
-    "bankAccountNumber": "Account of Beneficiary",
-    "emergencyContactName": "Emergency Contact",
-    "emergencyContactPhone": "Emergency Contact Phone",
-    "emergencyContactRelation": "Emergency Contact Relation"
+  "common_value": {
+    "zero_decimal": ""
   },
-  "records_total": "Total Records: {{total}}",
-  "records_valid": "Valid Records: {{count}}",
-  "records_invalid": "Invalid Records: {{count}}",
+  "components": {
+    "deductions": {
+      "personal_income_tax": ""
+    }
+  },
+  "confirm": "",
+  "data_type": {
+    "date": "",
+    "number": "",
+    "string": ""
+  },
+  "date_range_picker": {
+    "end_date": "",
+    "quick_select": "",
+    "start_date": ""
+  },
+  "deactivate": "",
+  "delete": "",
   "delete_confirm": {
-    "title": "Confirm Delete",
+    "cancel_text": "Cancel",
     "content": "Are you sure you want to delete {{name}}? This action cannot be undone.",
     "ok_text": "Delete",
-    "cancel_text": "Cancel"
+    "title": "Confirm Delete"
   },
-  "action": {
-    "title": "Actions",
-    "edit": "Edit",
-    "delete": "Delete",
-    "view": "View",
-    "create": "Create"
+  "edit": "",
+  "employee_selector": {
+    "error": {
+      "load_failed": ""
+    },
+    "no_data": "",
+    "placeholder": {
+      "multiple": "",
+      "single": ""
+    }
   },
-  "hidden": "Hidden",
-  "visible": "Visible",
-  "theme_toggle": "Toggle theme",
-  "language_toggle": "Toggle language",
-  "language_switched": "Language switched",
-  "theme_switched_to_light": "Switched to light theme",
-  "theme_switched_to_dark": "Switched to dark theme",
-  "expand_sidebar": "Expand sidebar",
-  "collapse_sidebar": "Collapse sidebar",
-  "pageTitle": {
-    "home": "Home"
-  },
-  "auth": {
-    "logout_success": "Logout successful",
-    "logout_failed": "Logout failed"
-  },
-  "payroll_run_status": {
-    "approved_for_payment": "Approved for Payment"
-  },
-  "login_page_title": "Login to Salary System",
-  "username_required_message": "Please input your username!",
-  "password_required_message": "Please input your password!",
   "error": {
-    "login_failed": "Login failed, please check your credentials",
+    "create_failed": "",
     "genericTitle": "Error",
-    "unknown_server_error": "Server error: database might be down or backend service unavailable, please contact system administrator.",
+    "json_conversion_failed": "",
+    "load_failed": "",
+    "operation_failed": "",
+    "title": "Error",
     "unknown": "Unknown error",
-    "title": "Error"
+    "unknown_server_error": "Server error: database might be down or backend service unavailable, please contact system administrator.",
+    "update_failed": ""
   },
-  "unavailable": "unavailable",
   "error_unknown": "error_unknown",
-  "hyperchain_logo": "hyperchain_logo",
-  "yes": "yes",
-  "no": "no",
-  "unit_wan_yuan": "unit_wan_yuan",
-  "payroll_period": "payroll_period",
-  "status_success": "status_success",
-  "status_processing": "status_processing",
-  "status_pending": "status_pending",
-  "status_error": "status_error",
-  "total_amount": "total_amount",
-  "employee_count": "employee_count",
-  "unit_person": "unit_person",
-  "loading_data": "loading_data",
-  "total_employees": "total_employees",
-  "compared_to_last_period": "compared_to_last_period",
-  "monthly_payroll_amount": "monthly_payroll_amount",
-  "average_salary": "average_salary",
-  "unit_yuan": "unit_yuan",
-  "pending_approvals": "pending_approvals",
-  "active_payroll_runs_count_one": "active_payroll_runs_count",
-  "active_payroll_runs_count_other": "active_payroll_runs_count",
-  "loading_charts": "loading_charts",
-  "payroll_trend_title": "payroll_trend_title",
-  "no_data_available": "no_data_available",
-  "department_salary_distribution_title": "department_salary_distribution_title",
-  "employee_grade_distribution_title": "employee_grade_distribution_title",
-  "recent_payroll_records_title": "recent_payroll_records_title",
+  "expand_sidebar": "Expand sidebar",
+  "export": {
+    "button_text": "",
+    "csv": "",
+    "csvNotImplemented": "",
+    "defaultFilename": "",
+    "defaultSheetName": "",
+    "error_message": "Export failed, please try again",
+    "error_no_data_for_client_export": "No data to export.",
+    "excel": "",
+    "export": "",
+    "exportButton": "",
+    "exportSuccess": "",
+    "filename_default": "Export Data",
+    "formatCsv": "CSV (.csv)",
+    "formatExcel": "Excel (.xlsx)",
+    "formatPdf": "PDF (.pdf)",
+    "noDataToExport": "",
+    "pdf": "",
+    "pdfNotImplemented": "",
+    "sheetName_default": "Sheet1",
+    "success_message": "Export successful",
+    "warn_no_handler": "No export handler for this format."
+  },
+  "footer": {
+    "copyright_text": "",
+    "hyperchain_logo_alt_text": ""
+  },
   "form": {
     "validation": {
       "default_required_template": "default_required_template",
       "email_invalid": "email_invalid"
     }
   },
-  "required": "required",
-  "records_valid_one": "records_valid",
-  "records_valid_other": "records_valid",
+  "hidden": "Hidden",
+  "hyperchain_logo": "hyperchain_logo",
+  "inactive": "",
+  "label": {
+    "actions": "Actions",
+    "code": "Code",
+    "description": "Description",
+    "effective_date": "Effective date",
+    "end_date": "End date",
+    "id": "ID",
+    "name": "Name",
+    "payroll_period_name": "Payroll Period Name",
+    "remarks": "Remarks",
+    "required": "",
+    "status": "Status",
+    "unknown": "Unknown"
+  },
+  "language_switched": "Language switched",
+  "language_toggle": "Toggle language",
+  "load_failed": "",
+  "loading": {
+    "generic_loading_text": "Loading page content...",
+    "user_info": "Loading user information..."
+  },
+  "loading_data": "loading_data",
+  "loading_page_content": "",
+  "login_button": "Login",
+  "lookup_select": {
+    "error": {
+      "load_failed": ""
+    },
+    "no_data": ""
+  },
+  "message": {
+    "api_not_found": "API not found",
+    "column_settings_applied": "Column settings applied successfully!",
+    "column_settings_reset": "Column settings reset successfully",
+    "create_failed": "",
+    "create_failed_default": "Creation failed",
+    "create_success": "",
+    "create_success_default": "Created successfully",
+    "data_loading_error": "Data loading failed",
+    "delete_failed": "",
+    "delete_failed_default": "Deletion failed",
+    "delete_success": "",
+    "delete_success_default": "Deleted successfully",
+    "error_unknown": "Unknown error",
+    "export_failed": "",
+    "export_success": "",
+    "form_validation_error": "Form validation failed, please check inputs.",
+    "method_not_allowed": "Method not allowed",
+    "missing_required_fields": "Required fields are missing.",
+    "missing_required_fields_in_tab_param": "Required fields are missing in the {tabName} tab.",
+    "no_selection_for_batch_delete": "",
+    "operation_failed": "Operation failed",
+    "operation_failed_default_retry": "Operation failed, please try again later.",
+    "operation_failed_prefix": "Operation failed: ",
+    "refresh_success": "",
+    "update_failed": "",
+    "update_failed_default": "Update failed",
+    "update_success": "",
+    "update_success_default": "Updated successfully",
+    "upload_failed_param": "File {fileName} upload failed.",
+    "upload_success_param": "File {fileName} uploaded successfully."
+  },
+  "modal": {
+    "confirm_delete": {
+      "cancel_text": "Cancel",
+      "content": "This action cannot be undone.",
+      "content_item": "Are you sure to delete {itemName}? This action cannot be undone.",
+      "ok_text": "Confirm deletion",
+      "title": "Confirm deletion",
+      "title_item": "Confirm deletion of {itemName}?"
+    },
+    "title": {
+      "create": "",
+      "default": "",
+      "edit": "",
+      "view": ""
+    }
+  },
+  "myInfo": {
+    "fetchError": "",
+    "fetchErrorUnauthorized": "",
+    "noEmployeeIdError": ""
+  },
+  "no": "no",
+  "no_permission_to_view_data": "",
+  "page_title": {
+    "not_found": ""
+  },
+  "page_title_settings": "Page Title Settings",
+  "pagination": {
+    "next_page": "Next page",
+    "page_info": "Page {{currentPage}} / {{totalPages}}",
+    "previous_page": "Previous page",
+    "show_total": "Showing {range0}-{range1} of {total} items",
+    "show_total_text": "",
+    "total": "",
+    "total_records_one": "Total {{total}} record",
+    "total_records_other": "Total {{total}} records"
+  },
+  "password_label": "Password",
+  "periods_page": {
+    "error_fetch_periods": ""
+  },
+  "permission_denied_action": "You don't have permission to perform this action.",
+  "placeholder": {
+    "end_date": "",
+    "input": "Please input",
+    "input_remarks": "Input remarks",
+    "start_date": ""
+  },
   "records_invalid_one": "records_invalid",
   "records_invalid_other": "records_invalid",
-  "unknown": "unknown"
+  "records_total": "Total Records: {{total}}",
+  "records_valid_one": "records_valid",
+  "records_valid_other": "records_valid",
+  "remember_me_checkbox": "Remember me",
+  "report": "",
+  "reset": "",
+  "return_home": "Return to Homepage",
+  "return_login": "Return to Login Page",
+  "role": {
+    "unknown": "Unknown role"
+  },
+  "search": {
+    "placeholder": "Search {{field}}"
+  },
+  "sider": {
+    "title": {
+      "collapsed": "SMS",
+      "full": "Salary Management System"
+    }
+  },
+  "status": "",
+  "status_error": "status_error",
+  "status_pending": "status_pending",
+  "status_processing": "status_processing",
+  "status_success": "status_success",
+  "success": {
+    "create": "",
+    "update": ""
+  },
+  "table": {
+    "cell_empty": "-",
+    "column": {
+      "index": ""
+    },
+    "column_actions": "Actions",
+    "density": {
+      "comfortable": "",
+      "compact": "",
+      "default": ""
+    },
+    "empty_data": "No data",
+    "noData": "No data",
+    "paginationTotal": "Total {total} items",
+    "refreshError": "Refresh failed",
+    "refreshSuccess": "Refresh successful"
+  },
+  "table_converter": {
+    "api_field": "API Field",
+    "convert_to_json": "Convert to JSON",
+    "copy_json": "Copy JSON",
+    "data_type": "Data Type",
+    "field_mapping": "Field Mapping",
+    "ignore_field": "Ignore this field",
+    "json_parse_error": "JSON parse error, cannot use result",
+    "json_result": "JSON Result",
+    "parse_table": "Parse Table",
+    "placeholder": "Paste table text here, format: Column1,Column2,Column3...",
+    "table_field": "Table Field",
+    "title": "Table Text Converter",
+    "use_json": "Use This JSON"
+  },
+  "theme_toggle": "Toggle theme",
+  "tooltip": {
+    "column_settings": "Column settings",
+    "export_data": "Export data"
+  },
+  "unavailable": "unavailable",
+  "unknown": "unknown",
+  "user_menu": {
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "username_label": "Username",
+  "validation": {
+    "max_length": "",
+    "missing_required_fields_prefix": "",
+    "required": ""
+  },
+  "view": "",
+  "visible": "Visible",
+  "yes": "yes"
 }

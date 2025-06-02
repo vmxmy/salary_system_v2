@@ -1,5 +1,5 @@
 {
-  "profile": "个人中心",
+  "default_user_text": "用户",
   "logout": "退出登录",
-  "default_user_text": "用户"
+  "profile": "个人中心"
 }

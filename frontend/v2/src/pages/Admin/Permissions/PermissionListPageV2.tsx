@@ -197,6 +197,10 @@ const PermissionListPageV2: React.FC = () => {
           successMessage: t('admin:batch_delete_success'),
           errorMessage: t('admin:batch_delete_error'),
           noSelectionMessage: t('admin:no_selection'),
+          onBatchDelete: async (keys: React.Key[]) => {
+            await Promise.all(keys.map(key => deletePermission(Number(key))));
+            fetchData();
+          },
         }}
         exportConfig={{
           filenamePrefix: t('admin:permissions'),

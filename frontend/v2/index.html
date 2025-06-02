@@ -4,10 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Temporary CSP for development to allow inline scripts, should be refined for production -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://udify.app; object-src 'none'; base-uri 'self';" />
     <title>高新区工资信息管理系统</title>
     
     <!-- 控制台过滤器 - 外部脚本避免CSP问题 -->
-    <script src="/console-filter.js"></script>
+    <!-- <script src="/console-filter.js"></script> -->
   </head>
   <body>
     <div id="root"></div>

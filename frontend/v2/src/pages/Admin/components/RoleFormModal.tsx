@@ -51,20 +51,23 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
   useEffect(() => {
     if (visible) {
       fetchAllPermissions();
-      if (role) {
-        // 编辑模式：设置初始值
-        const currentPermissionIdsAsStrings = (role.permissions || []).map(p => p.id.toString());
-        setSelectedPermissions(currentPermissionIdsAsStrings);
-        form.setFieldsValue({
-          name: role.name,
-          code: role.code,
-          permission_ids: currentPermissionIdsAsStrings,
-        });
-      } else {
-        // 新建模式：重置表单
-        setSelectedPermissions([]);
-        form.setFieldsValue({ name: '', code: '', permission_ids: [] });
-      }
+      // Defer form operations to ensure Form component is fully mounted and connected
+      setTimeout(() => {
+        if (role) {
+          // 编辑模式：设置初始值
+          const currentPermissionIdsAsStrings = (role.permissions || []).map(p => p.id.toString());
+          setSelectedPermissions(currentPermissionIdsAsStrings);
+          form.setFieldsValue({
+            name: role.name,
+            code: role.code,
+            permission_ids: currentPermissionIdsAsStrings,
+          });
+        } else {
+          // 新建模式：重置表单
+          setSelectedPermissions([]);
+          form.setFieldsValue({ name: '', code: '', permission_ids: [] });
+        }
+      }, 0); // 将操作延迟到下一个事件循环
     } else {
       // 模态框关闭时重置
       setSelectedPermissions([]);
@@ -160,13 +163,14 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
       onOk={() => form.submit()}
       onCancel={onClose}
       confirmLoading={loading}
-      destroyOnClose
+      destroyOnHidden
       width={800}
     >
       <Form
         form={form}
         layout="vertical"
         name="roleForm"
+        preserve={false}
         onFinish={handleFinish}
         onValuesChange={(changedValues, allValues) => {
         }}

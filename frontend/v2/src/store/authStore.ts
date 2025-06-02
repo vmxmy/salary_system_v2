@@ -31,6 +31,7 @@ export interface AuthStoreActions {
   initializeAuth: () => void;
   clearLoginError: () => void;
   clearFetchUserError: () => void;
+  setAuthToken: (token: string | null) => void; // New action to set the token
 }
 
 const initialState: AuthStoreState = {
@@ -166,6 +167,15 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
         if (token) {
           try {
             const decodedToken = jwtDecode<DecodedToken>(token);
+            const currentTime = Date.now() / 1000; // current time in seconds
+
+            // Check if token is expired
+            if (decodedToken.exp && decodedToken.exp < currentTime) {
+              console.warn('AuthStore: Token expired, logging out.');
+              get().logoutAction();
+              return; // Exit if token is expired
+            }
+
             const setSubState = { currentUserId: decodedToken.sub };
             set(setSubState);
 
@@ -176,6 +186,7 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
               get().logoutAction();
             }
           } catch (error) {
+            console.error('AuthStore: Error decoding token or initializing auth. Logging out.', error);
             get().logoutAction();
           }
         } else {
@@ -190,6 +201,10 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
       },
       clearFetchUserError: () => {
         set({ fetchUserError: null });
+      },
+
+      setAuthToken: (token) => {
+        set({ authToken: token });
       },
     }),
     {

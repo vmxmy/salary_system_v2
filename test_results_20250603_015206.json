@@ -1,0 +1,808 @@
+{
+  "timestamp": "2025-06-03T01:52:06.804622",
+  "summary": {
+    "total": 23,
+    "passed": 13,
+    "failed": 9,
+    "skipped": 1,
+    "success_rate": 56.52173913043478
+  },
+  "results": {
+    "API连接": {
+      "status": "PASS",
+      "details": "状态码: 200"
+    },
+    "认证验证": {
+      "status": "PASS",
+      "details": "状态码: 200"
+    },
+    "计算规则集API": {
+      "status": "PASS",
+      "details": "状态码: 200, 记录数: 67"
+    },
+    "社保配置API": {
+      "status": "PASS",
+      "details": "状态码: 200, 记录数: 0"
+    },
+    "税务配置API": {
+      "status": "PASS",
+      "details": "状态码: 200, 记录数: 0"
+    },
+    "考勤周期API": {
+      "status": "PASS",
+      "details": "状态码: 200, 记录数: 51"
+    },
+    "考勤记录API": {
+      "status": "PASS",
+      "details": "状态码: 200, 记录数: 0"
+    },
+    "考勤规则API": {
+      "status": "PASS",
+      "details": "状态码: 200, 记录数: 0"
+    },
+    "创建考勤周期": {
+      "status": "FAIL",
+      "details": "状态码: 422"
+    },
+    "使用现有薪资周期": {
+      "status": "PASS",
+      "details": "周期ID: 54"
+    },
+    "创建计算规则集": {
+      "status": "FAIL",
+      "details": "状态码: 422"
+    },
+    "获取测试员工": {
+      "status": "PASS",
+      "details": "获取到 10 个员工"
+    },
+    "员工详情-员工337": {
+      "status": "PASS",
+      "details": "员工ID: 337"
+    },
+    "员工详情-员工349": {
+      "status": "PASS",
+      "details": "员工ID: 349"
+    },
+    "创建社保配置": {
+      "status": "FAIL",
+      "details": "状态码: 422"
+    },
+    "创建税务配置": {
+      "status": "FAIL",
+      "details": "状态码: 422"
+    },
+    "创建考勤记录-员工337": {
+      "status": "FAIL",
+      "details": "员工ID: 337, 状态码: 422"
+    },
+    "创建考勤记录-员工349": {
+      "status": "FAIL",
+      "details": "员工ID: 349, 状态码: 422"
+    },
+    "创建薪资审核": {
+      "status": "FAIL",
+      "details": "状态码: 422"
+    },
+    "无效薪资审核ID": {
+      "status": "FAIL",
+      "details": "状态码: 500"
+    },
+    "无效认证": {
+      "status": "FAIL",
+      "details": "状态码: 200"
+    },
+    "无效JSON格式": {
+      "status": "PASS",
+      "details": "状态码: 422"
+    },
+    "性能测试": {
+      "status": "SKIP",
+      "details": "没有薪资审核数据"
+    }
+  },
+  "test_data": {
+    "payroll_period_id": 54,
+    "test_employees": [
+      {
+        "employee_code": null,
+        "first_name": "宇星",
+        "last_name": "伍",
+        "date_of_birth": "1993-04-29",
+        "gender_lookup_value_id": 19,
+        "id_number": "510105199305021047",
+        "nationality": null,
+        "ethnicity": "藏",
+        "first_work_date": "2018-07-10",
+        "interrupted_service_years": null,
+        "hire_date": "2018-07-10",
+        "career_position_level_date": "2025-02-27",
+        "current_position_start_date": "2025-05-23",
+        "status_lookup_value_id": 21,
+        "employment_type_lookup_value_id": null,
+        "education_level_lookup_value_id": 28,
+        "marital_status_lookup_value_id": null,
+        "political_status_lookup_value_id": null,
+        "contract_type_lookup_value_id": null,
+        "email": null,
+        "phone_number": "13666233904",
+        "home_address": null,
+        "emergency_contact_name": null,
+        "emergency_contact_phone": null,
+        "department_id": 82,
+        "personnel_category_id": 71,
+        "actual_position_id": 24,
+        "bank_name": "中国建设银行股份有限公司成都蜀光路支行",
+        "bank_account_number": "6236683800000716762",
+        "salary_level_lookup_value_id": null,
+        "salary_level_lookup_value_name": null,
+        "salary_grade_lookup_value_id": null,
+        "salary_grade_lookup_value_name": null,
+        "ref_salary_level_lookup_value_id": null,
+        "ref_salary_level_lookup_value_name": null,
+        "job_position_level_lookup_value_id": 152,
+        "job_position_level_lookup_value_name": "一级调研员",
+        "id": 337,
+        "created_at": "2025-05-23T07:54:34.423769Z",
+        "updated_at": "2025-05-23T09:04:22.429544Z",
+        "gender": {
+          "lookup_type_id": 15,
+          "code": "FEMALE",
+          "name": "女",
+          "description": null,
+          "sort_order": 20,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 19,
+          "lookup_type": {
+            "code": "GENDER",
+            "name": "性别",
+            "description": null,
+            "id": 15
+          },
+          "parent": null,
+          "children": []
+        },
+        "status": {
+          "lookup_type_id": 16,
+          "code": "ACTIVE",
+          "name": "在职",
+          "description": null,
+          "sort_order": 10,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 21,
+          "lookup_type": {
+            "code": "EMPLOYEE_STATUS",
+            "name": "员工状态",
+            "description": null,
+            "id": 16
+          },
+          "parent": null,
+          "children": []
+        },
+        "employment_type": null,
+        "education_level": {
+          "lookup_type_id": 19,
+          "code": "MASTER",
+          "name": "硕士学位研究生",
+          "description": null,
+          "sort_order": 40,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 28,
+          "lookup_type": {
+            "code": "EDUCATION_LEVEL",
+            "name": "学历",
+            "description": null,
+            "id": 19
+          },
+          "parent": null,
+          "children": []
+        },
+        "marital_status": null,
+        "political_status": null,
+        "contract_type": null,
+        "job_position_level": {
+          "lookup_type_id": 61,
+          "code": "FIRST_LEVEL_RESEARCHER",
+          "name": "一级调研员",
+          "description": "",
+          "sort_order": 0,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 152,
+          "lookup_type": {
+            "code": "JOB_POSITION_LEVEL",
+            "name": "职务级别",
+            "description": "员工的职务级别分类，包括调研员、管理岗位等级别",
+            "id": 61
+          },
+          "parent": null,
+          "children": []
+        },
+        "current_department": {
+          "code": "XZFHSHBZC",
+          "name": "行政政法和社会保障处",
+          "parent_department_id": 81,
+          "effective_date": "2025-05-23",
+          "end_date": null,
+          "is_active": true
+        },
+        "personnel_category": {
+          "code": "czgwygl",
+          "name": "参照公务员管理",
+          "description": null,
+          "parent_category_id": 69,
+          "effective_date": "2025-05-15",
+          "end_date": null,
+          "is_active": true
+        },
+        "actual_position": {
+          "code": "QJGLGW",
+          "name": "七级管理岗位",
+          "description": null,
+          "parent_position_id": null,
+          "effective_date": "2025-05-21",
+          "end_date": null,
+          "is_active": true
+        },
+        "appraisals": [],
+        "job_history": [
+          {
+            "employee_id": 337,
+            "department_id": 82,
+            "position_id": 3,
+            "personnel_category_id": 71,
+            "manager_id": null,
+            "location": null,
+            "effective_date": "2025-02-27",
+            "end_date": "2025-05-23",
+            "id": 141,
+            "created_at": "2025-05-23T07:54:34.423769Z",
+            "updated_at": "2025-05-23T08:09:43.948153Z",
+            "department": {
+              "code": "XZFHSHBZC",
+              "name": "行政政法和社会保障处",
+              "parent_department_id": 81,
+              "effective_date": "2025-05-23",
+              "end_date": null,
+              "is_active": true,
+              "id": 82,
+              "parent_department": {
+                "code": "GXQCZ",
+                "name": "高新区财政国资局",
+                "parent_department_id": null,
+                "effective_date": "2025-05-23",
+                "end_date": null,
+                "is_active": true,
+                "id": 81,
+                "parent_department": null,
+                "child_departments": [
+                  {
+                    "code": "XZFHSHBZC",
+                    "name": "行政政法和社会保障处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 82,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "CZJDHJTXGLC",
+                    "name": "财政监督和绩效管理处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 83,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "TZHYJSJSC",
+                    "name": "投资和经济建设处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 84,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "GKC",
+                    "name": "国库处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 85,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "JLD",
+                    "name": "局领导",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 86,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "YSC",
+                    "name": "预算处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 87,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "ZHC",
+                    "name": "综合处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 88,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "GZC",
+                    "name": "国资处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 89,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "JRGZC",
+                    "name": "金融工作处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 90,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "CYZBС",
+                    "name": "产业资本处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 91,
+                    "child_departments": []
+                  }
+                ]
+              },
+              "child_departments": []
+            },
+            "position": null,
+            "personnel_category": null,
+            "manager": null
+          },
+          {
+            "employee_id": 337,
+            "department_id": 82,
+            "position_id": 24,
+            "personnel_category_id": 71,
+            "manager_id": null,
+            "location": null,
+            "effective_date": "2025-05-23",
+            "end_date": null,
+            "id": 157,
+            "created_at": "2025-05-23T08:09:43.948153Z",
+            "updated_at": "2025-05-23T08:13:49.672162Z",
+            "department": {
+              "code": "XZFHSHBZC",
+              "name": "行政政法和社会保障处",
+              "parent_department_id": 81,
+              "effective_date": "2025-05-23",
+              "end_date": null,
+              "is_active": true,
+              "id": 82,
+              "parent_department": {
+                "code": "GXQCZ",
+                "name": "高新区财政国资局",
+                "parent_department_id": null,
+                "effective_date": "2025-05-23",
+                "end_date": null,
+                "is_active": true,
+                "id": 81,
+                "parent_department": null,
+                "child_departments": [
+                  {
+                    "code": "XZFHSHBZC",
+                    "name": "行政政法和社会保障处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 82,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "CZJDHJTXGLC",
+                    "name": "财政监督和绩效管理处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 83,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "TZHYJSJSC",
+                    "name": "投资和经济建设处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 84,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "GKC",
+                    "name": "国库处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 85,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "JLD",
+                    "name": "局领导",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 86,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "YSC",
+                    "name": "预算处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 87,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "ZHC",
+                    "name": "综合处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 88,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "GZC",
+                    "name": "国资处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 89,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "JRGZC",
+                    "name": "金融工作处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 90,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "CYZBС",
+                    "name": "产业资本处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 91,
+                    "child_departments": []
+                  }
+                ]
+              },
+              "child_departments": []
+            },
+            "position": null,
+            "personnel_category": null,
+            "manager": null
+          }
+        ],
+        "actualPositionName": "七级管理岗位",
+        "jobPositionLevelName": "一级调研员",
+        "departmentName": "行政政法和社会保障处",
+        "personnelCategoryName": "参照公务员管理"
+      },
+      {
+        "employee_code": null,
+        "first_name": "万达",
+        "last_name": "何",
+        "date_of_birth": "1997-08-05",
+        "gender_lookup_value_id": 18,
+        "id_number": "513721199708058376",
+        "nationality": null,
+        "ethnicity": "汉",
+        "first_work_date": "2021-07-20",
+        "interrupted_service_years": null,
+        "hire_date": "2021-07-20",
+        "career_position_level_date": "2022-07-20",
+        "current_position_start_date": "2022-07-20",
+        "status_lookup_value_id": 21,
+        "employment_type_lookup_value_id": null,
+        "education_level_lookup_value_id": 28,
+        "marital_status_lookup_value_id": null,
+        "political_status_lookup_value_id": null,
+        "contract_type_lookup_value_id": null,
+        "email": null,
+        "phone_number": "19980760805",
+        "home_address": null,
+        "emergency_contact_name": null,
+        "emergency_contact_phone": null,
+        "department_id": 90,
+        "personnel_category_id": 70,
+        "actual_position_id": 25,
+        "bank_name": "成都银行股份有限公司高新支行",
+        "bank_account_number": "6221532320034702618",
+        "salary_level_lookup_value_id": null,
+        "salary_level_lookup_value_name": null,
+        "salary_grade_lookup_value_id": null,
+        "salary_grade_lookup_value_name": null,
+        "ref_salary_level_lookup_value_id": null,
+        "ref_salary_level_lookup_value_name": null,
+        "job_position_level_lookup_value_id": null,
+        "job_position_level_lookup_value_name": null,
+        "id": 349,
+        "created_at": "2025-05-23T07:54:34.423769Z",
+        "updated_at": "2025-05-23T07:54:34.423769Z",
+        "gender": {
+          "lookup_type_id": 15,
+          "code": "MALE",
+          "name": "男",
+          "description": null,
+          "sort_order": 10,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 18,
+          "lookup_type": {
+            "code": "GENDER",
+            "name": "性别",
+            "description": null,
+            "id": 15
+          },
+          "parent": null,
+          "children": []
+        },
+        "status": {
+          "lookup_type_id": 16,
+          "code": "ACTIVE",
+          "name": "在职",
+          "description": null,
+          "sort_order": 10,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 21,
+          "lookup_type": {
+            "code": "EMPLOYEE_STATUS",
+            "name": "员工状态",
+            "description": null,
+            "id": 16
+          },
+          "parent": null,
+          "children": []
+        },
+        "employment_type": null,
+        "education_level": {
+          "lookup_type_id": 19,
+          "code": "MASTER",
+          "name": "硕士学位研究生",
+          "description": null,
+          "sort_order": 40,
+          "is_active": true,
+          "parent_lookup_value_id": null,
+          "id": 28,
+          "lookup_type": {
+            "code": "EDUCATION_LEVEL",
+            "name": "学历",
+            "description": null,
+            "id": 19
+          },
+          "parent": null,
+          "children": []
+        },
+        "marital_status": null,
+        "political_status": null,
+        "contract_type": null,
+        "job_position_level": null,
+        "current_department": {
+          "code": "JRGZC",
+          "name": "金融工作处",
+          "parent_department_id": 81,
+          "effective_date": "2025-05-23",
+          "end_date": null,
+          "is_active": true
+        },
+        "personnel_category": {
+          "code": "syglry",
+          "name": "事业管理人员",
+          "description": null,
+          "parent_category_id": 91,
+          "effective_date": "2025-05-15",
+          "end_date": null,
+          "is_active": true
+        },
+        "actual_position": {
+          "code": "BJGLGW",
+          "name": "八级管理岗位",
+          "description": null,
+          "parent_position_id": null,
+          "effective_date": "2025-05-21",
+          "end_date": null,
+          "is_active": true
+        },
+        "appraisals": [],
+        "job_history": [
+          {
+            "employee_id": 349,
+            "department_id": 90,
+            "position_id": 25,
+            "personnel_category_id": 70,
+            "manager_id": null,
+            "location": null,
+            "effective_date": "2022-07-20",
+            "end_date": null,
+            "id": 153,
+            "created_at": "2025-05-23T07:54:34.423769Z",
+            "updated_at": "2025-05-23T07:54:34.423769Z",
+            "department": {
+              "code": "JRGZC",
+              "name": "金融工作处",
+              "parent_department_id": 81,
+              "effective_date": "2025-05-23",
+              "end_date": null,
+              "is_active": true,
+              "id": 90,
+              "parent_department": {
+                "code": "GXQCZ",
+                "name": "高新区财政国资局",
+                "parent_department_id": null,
+                "effective_date": "2025-05-23",
+                "end_date": null,
+                "is_active": true,
+                "id": 81,
+                "parent_department": null,
+                "child_departments": [
+                  {
+                    "code": "XZFHSHBZC",
+                    "name": "行政政法和社会保障处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 82,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "CZJDHJTXGLC",
+                    "name": "财政监督和绩效管理处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 83,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "TZHYJSJSC",
+                    "name": "投资和经济建设处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 84,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "GKC",
+                    "name": "国库处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 85,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "JLD",
+                    "name": "局领导",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 86,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "YSC",
+                    "name": "预算处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 87,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "ZHC",
+                    "name": "综合处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 88,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "GZC",
+                    "name": "国资处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 89,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "JRGZC",
+                    "name": "金融工作处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 90,
+                    "child_departments": []
+                  },
+                  {
+                    "code": "CYZBС",
+                    "name": "产业资本处",
+                    "parent_department_id": 81,
+                    "effective_date": "2025-05-23",
+                    "end_date": null,
+                    "is_active": true,
+                    "id": 91,
+                    "child_departments": []
+                  }
+                ]
+              },
+              "child_departments": []
+            },
+            "position": null,
+            "personnel_category": null,
+            "manager": null
+          }
+        ],
+        "actualPositionName": "八级管理岗位",
+        "jobPositionLevelName": null,
+        "departmentName": "金融工作处",
+        "personnelCategoryName": "事业管理人员"
+      }
+    ]
+  }
+}

@@ -305,6 +305,10 @@ const UsersPageV2: React.FC = () => {
           successMessage: t('admin:auto_text_e689b9'),
           errorMessage: t('admin:auto_text_e689b9'),
           noSelectionMessage: t('admin:auto_text_e8afb7'),
+          onBatchDelete: async (keys: React.Key[]) => {
+            await Promise.all(keys.map(key => deleteUser(Number(key))));
+            fetchData();
+          },
         }}
         exportConfig={{
           filenamePrefix: t('admin:auto_text_e794a8'),

@@ -51,9 +51,9 @@ export interface AppMenuDataItem extends MenuDataItem {
   groupTitle?: string;
 }
 
-// 🌐 菜单国际化转换函数
+// 🌐 菜单国际化转换函数 (Corrected function definition)
 export const transformMenuDataWithI18n = (
-  data: AppMenuDataItem[], 
+  data: AppMenuDataItem[],
   t: (key: string) => string
 ): MenuDataItem[] => {
   return data.map(item => {
@@ -74,40 +74,40 @@ export const transformMenuDataWithI18n = (
 export const menuData: AppMenuDataItem[] = [
   {
     path: '/dashboard',
-    titleKey: 'common:menu.dashboard',
+    titleKey: 'dashboard',
     icon: <DashboardOutlined />,
     component: './Dashboard',
   },
   {
     path: '/personal',
-    titleKey: 'common:menu.personal',
+    titleKey: 'personal.title',
     icon: <SolutionOutlined />,
     children: [
       {
         path: '/employee-info/my-info',
-        titleKey: 'common:menu.personal.myInfo',
+        titleKey: 'personal.myInfo',
         component: './Employee/MyInfo',
       },
       {
         path: '/employee-info/my-payslips',
-        titleKey: 'common:menu.personal.myPayslips',
+        titleKey: 'personal.myPayslips',
         component: './Employee/MyPayslips',
       },
       {
         path: '/personal/leave',
-        titleKey: 'common:menu.personal.myLeave',
+        titleKey: 'personal.myLeave',
         component: './Employee/MyLeave',
       },
     ],
   },
   {
     path: '/view-reports',
-    titleKey: 'common:menu.viewReports',
+    titleKey: 'viewReports.title',
     icon: <EyeOutlined />,
     children: [
       {
         path: '/view-reports/management',
-        titleKey: 'common:menu.viewReports.management',
+        titleKey: 'viewReports.management',
         icon: <EyeOutlined />,
         component: './Admin/ReportView',
       },
@@ -115,37 +115,47 @@ export const menuData: AppMenuDataItem[] = [
   },
   {
     path: '/payroll',
-    titleKey: 'common:menu.payroll',
+    titleKey: 'payroll.title',
     icon: <DollarCircleOutlined />,
     children: [
       {
         path: '/finance/payroll/periods',
-        titleKey: 'common:menu.payroll.periods',
+        titleKey: 'payroll.periods',
         component: './Payroll/pages/PayrollPeriodsPage',
       },
       {
         path: '/finance/payroll/runs',
-        titleKey: 'common:menu.payroll.runs',
+        titleKey: 'payroll.runs',
         component: './Payroll/pages/PayrollRunsPage',
       },
       {
         path: '/finance/payroll/entry',
-        titleKey: 'common:menu.payroll.entry',
+        titleKey: 'payroll.entry',
         component: './Payroll/pages/PayrollEntryPage',
       },
       {
         path: '/finance/payroll/components',
-        titleKey: 'common:menu.payroll.components',
+        titleKey: 'payroll.components',
         component: './Payroll/pages/PayrollComponentsPage',
       },
       {
         path: '/finance/payroll/bulk-import',
-        titleKey: 'common:menu.payroll.bulkImport',
+        titleKey: 'payroll.bulkImport',
         component: './Payroll/pages/PayrollBulkImportPage',
       },
       {
+        path: '/finance/payroll/calculation-config',
+        titleKey: 'payroll.calculationConfig',
+        component: './Payroll/pages/PayrollCalculationConfigPage',
+      },
+      {
+        path: '/finance/payroll/attendance',
+        titleKey: 'payroll.attendance',
+        component: './Payroll/pages/AttendanceManagementPage',
+      },
+      {
         path: '/finance/payroll/runs/:id',
-        titleKey: 'common:menu.payroll.runDetail',
+        titleKey: 'payroll.runDetail',
         hideInMenu: true,
         component: './Payroll/pages/PayrollRunDetailPage',
       },
@@ -153,36 +163,36 @@ export const menuData: AppMenuDataItem[] = [
   },
   {
     path: '/hr',
-    titleKey: 'common:menu.hr',
+    titleKey: 'hr.title',
     icon: <TeamOutlined />,
     children: [
       {
         path: '/hr/employees',
-        titleKey: 'common:menu.hr.employees',
+        titleKey: 'hr.employees',
         icon: <TeamOutlined />,
         component: './HRManagement/employees/EmployeeListPage',
       },
       {
         path: '/hr/employees/new',
-        titleKey: 'common:menu.hr.employeesNew',
+        titleKey: 'hr.employeesNew',
         icon: <UserAddOutlined />,
         component: './HRManagement/employees/CreateEmployeePage',
       },
       {
         path: '/hr/employees/bulk-import',
-        titleKey: 'common:menu.hr.employeesBulkImport',
+        titleKey: 'hr.employeesBulkImport',
         icon: <UploadOutlined />,
         component: './HRManagement/bulkImport/EmployeeBulkImportPage',
       },
       {
         path: '/hr/employees/:id',
-        titleKey: 'common:menu.hr.employeesDetail',
+        titleKey: 'hr.employeesDetail',
         hideInMenu: true,
         component: './HRManagement/employees/EmployeeDetailPage',
       },
       {
         path: '/hr/employees/:id/edit',
-        titleKey: 'common:menu.hr.employeesEdit',
+        titleKey: 'hr.employeesEdit',
         hideInMenu: true,
         component: './HRManagement/employees/EditEmployeePage',
       },
@@ -190,108 +200,125 @@ export const menuData: AppMenuDataItem[] = [
   },
   {
     path: '/organization',
-    titleKey: 'common:menu.organization',
+    titleKey: 'organization.title',
     icon: <ApartmentOutlined />,
     children: [
       {
         path: '/admin/organization/departments',
-        titleKey: 'common:menu.organization.departments',
+        titleKey: 'organization.departments',
         component: './Admin/Organization/DepartmentsPage',
       },
       {
         path: '/admin/organization/personnel-categories',
-        titleKey: 'common:menu.organization.personnelCategories',
+        titleKey: 'organization.personnelCategories',
         component: './Admin/Organization/PersonnelCategoriesPage',
       },
       {
         path: '/admin/organization/positions',
-        titleKey: 'common:menu.organization.positions',
-        component: './Admin/Organization/ActualPositionTab',
+        titleKey: 'organization.positions',
+        component: './Admin/Organization/PositionsPage',
       },
     ],
   },
   {
     path: '/manager',
-    titleKey: 'common:menu.manager',
+    titleKey: 'manager.title',
     icon: <UserSwitchOutlined />,
     children: [
       {
         path: '/manager/subordinates',
-        titleKey: 'common:menu.manager.subordinates',
-        component: './Manager/Subordinates',
+        titleKey: 'manager.subordinates',
+        component: './Manager/SubordinatesPage',
       },
       {
         path: '/manager/leave-approvals',
-        titleKey: 'common:menu.manager.leaveApprovals',
-        component: './Manager/LeaveApprovals',
+        titleKey: 'manager.leaveApprovals',
+        component: './Manager/LeaveApprovalsPage',
       },
     ],
   },
   {
     path: '/admin',
-    titleKey: 'common:menu.admin',
+    titleKey: 'admin.title',
     icon: <SettingOutlined />,
     access: 'admin',
     children: [
       {
         path: '/admin/users',
-        titleKey: 'common:menu.admin.users',
+        titleKey: 'admin.users',
         component: './Admin/Permissions/UserListPage',
       },
       {
         path: '/admin/roles',
-        titleKey: 'common:menu.admin.roles',
+        titleKey: 'admin.roles',
         component: './Admin/Permissions/RoleListPage',
       },
       {
         path: '/admin/permissions',
-        titleKey: 'common:menu.admin.permissions',
+        titleKey: 'admin.permissions',
         component: './Admin/Permissions/PermissionListPage',
       },
       {
-        path: '/admin/system-settings',
-        titleKey: 'common:menu.admin.systemSettings',
-        component: './Admin/Configuration/SystemSettings',
+        path: '/admin/config',
+        titleKey: 'admin.systemSettings',
+        component: './Admin/Config',
       },
       {
         path: '/admin/data-import',
-        name: '数据导入',
-        titleKey: 'common:menu.admin.dataImport',
-        icon: <DatabaseOutlined />,
-        component: './Admin/Configuration/DataImport',
+        titleKey: 'admin.dataImport',
+        component: './Admin/DataImport',
       },
       {
         path: '/admin/sql-editor',
-        name: 'SQL编辑器',
-        titleKey: 'common:menu.admin.sqlEditor',
-        icon: <CodeOutlined />,
-        component: './Admin/Configuration/SqlEditorPage',
+        titleKey: 'admin.sqlEditor',
+        component: './Admin/SQLEditor',
       },
       {
-        path: '/admin/report-template',
-        name: '报表模板',
-        titleKey: 'common:menu.admin.reportTemplate',
-        icon: <FileTextOutlined />,
-        component: './Admin/Configuration/ReportTemplateDemo',
+        path: '/admin/report-templates',
+        titleKey: 'admin.reportTemplate',
+        component: './Admin/ReportView',
       },
       {
-        path: '/admin/report-table',
-        name: '报表表格',
-        titleKey: 'common:menu.admin.reportTable',
-        icon: <TableOutlined />,
-        component: './Admin/Configuration/ReportTableDemo',
+        path: '/admin/report-tables',
+        titleKey: 'admin.reportTable',
+        component: './Admin/ReportTableDemo',
+      },
+    ],
+  },
+  {
+    path: '/test',
+    titleKey: 'test.title',
+    icon: <CalculatorOutlined />,
+    hideInMenu: false,
+    children: [
+      {
+        path: '/test/employee-list-v3',
+        titleKey: 'test.employeeListV3',
+        component: './HRManagement/employees/EmployeeListPageV3',
+      },
+      {
+        path: '/test/report-table-demo',
+        titleKey: 'test.reportTableDemo',
+        component: './Admin/ReportTableDemoPage',
+      },
+      {
+        path: '/test/report-template-demo',
+        titleKey: 'test.reportTemplateDemo',
+        component: './Admin/ReportTemplateDemoPage',
       },
     ],
   },
 ];
 
 // 🔧 菜单数据处理工具函数
-export const transformMenuData = (data: AppMenuDataItem[]): MenuDataItem[] => {
-  const { t } = useTranslation(['common']);
+export const transformMenuData = (
+  data: AppMenuDataItem[],
+  t: (key: string, options?: { ns?: string; defaultValue?: string }) => string
+): MenuDataItem[] => {
   return data.map((item) => ({
     ...item,
-    children: item.children ? transformMenuData(item.children) : undefined,
-    name: item.name || (item.titleKey ? t(item.titleKey) : undefined),
+    children: item.children ? transformMenuData(item.children, t) : undefined,
+    name: item.name || (item.titleKey ? t(`menu:${item.titleKey}`) : undefined),
   }));
 };
 
@@ -316,29 +343,24 @@ export const findMenuItemByPath = (
 
 // 📝 获取面包屑数据
 export const getBreadcrumbNameMap = (
-  menuData: AppMenuDataItem[]
+  menuData: AppMenuDataItem[],
+  t: (key: string) => string
 ): Record<string, MenuDataItem> => {
-  const breadcrumbMap: Record<string, MenuDataItem> = {};
-  const { t } = useTranslation(['common']);
-  
+  const map: Record<string, MenuDataItem> = {};
   const traverse = (data: AppMenuDataItem[], parentPath = '') => {
-    data.forEach((item) => {
-      if (item.path) {
-        const fullPath = item.path.startsWith('/') ? item.path : `${parentPath}${item.path}`;
-        breadcrumbMap[fullPath] = {
-          ...item,
-          name: item.titleKey ? t(item.titleKey) : item.name,
-        };
-        
-        if (item.children) {
-          traverse(item.children, fullPath);
-        }
+    data.forEach(item => {
+      const currentPath = item.path || '';
+      const fullPath = currentPath.startsWith('/') ? currentPath : `${parentPath}/${currentPath}`;
+      if (fullPath) {
+        map[fullPath] = { ...item, name: item.titleKey ? t(`menu:${item.titleKey}`) : item.name };
+      }
+      if (item.children) {
+        traverse(item.children, fullPath);
       }
     });
   };
-  
   traverse(menuData);
-  return breadcrumbMap;
+  return map;
 };
 
 // 🎨 菜单主题配置

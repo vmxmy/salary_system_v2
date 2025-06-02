@@ -8,6 +8,8 @@ import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
 import PayrollBulkImportPage from './pages/PayrollBulkImportPage';
 import PayrollComponentsPage from './pages/PayrollComponentsPage';
+import PayrollCalculationConfigPage from './pages/PayrollCalculationConfigPage';
+import AttendanceManagementPage from './pages/AttendanceManagementPage';
 import {
   P_PAYROLL_PERIOD_VIEW,
   P_PAYROLL_RUN_VIEW,
@@ -78,6 +80,22 @@ export const payrollRoutes: AppRouteObject[] = [
     meta: {
       title: 'payroll:page_title.payroll_components', // 使用薪资字段管理页面标题翻译键
       requiredPermissions: [P_PAYROLL_COMPONENT_VIEW],
+    },
+  },
+  {
+    path: 'calculation-config',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Calculation Config...') }, React.createElement(PayrollCalculationConfigPage)),
+    meta: {
+      title: 'payroll:calculation_config.page_title', // 薪资计算配置页面标题
+      requiredPermissions: [P_PAYROLL_COMPONENT_VIEW], // 暂时使用组件查看权限，后续可以添加专门的权限
+    },
+  },
+  {
+    path: 'attendance',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Attendance Management...') }, React.createElement(AttendanceManagementPage)),
+    meta: {
+      title: 'payroll:attendance.page_title', // 考勤管理页面标题
+      requiredPermissions: [P_PAYROLL_COMPONENT_VIEW], // 暂时使用组件查看权限，后续可以添加专门的权限
     },
   },
   // {

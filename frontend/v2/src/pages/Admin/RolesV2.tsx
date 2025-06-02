@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Space } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 
-import StandardListPageTemplate from '../../components/common/StandardListPageTemplate';
+import StandardListPageTemplate, { QueryParams } from '../../components/common/StandardListPageTemplate';
 import type { Role } from '../../api/types';
 import { getRoles, deleteRole } from '../../api/roles';
 import PermissionGuard from '../../components/common/PermissionGuard';
@@ -102,7 +102,7 @@ const generateRoleTableColumns = (
 };
 
 const RolesPageV2: React.FC = () => {
-  const { t } = useTranslation(['role', 'pageTitle', 'common']);
+  const { t } = useTranslation(['role', 'common']);
   const permissions = useRolePermissions();
   
   // 状态管理
@@ -113,9 +113,10 @@ const RolesPageV2: React.FC = () => {
   // 表单模态框状态
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentRole, setCurrentRole] = useState<Role | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   // 获取数据
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (params?: QueryParams) => {
     setLoadingData(true);
     setErrorLookups(null);
     try {
@@ -167,9 +168,9 @@ const RolesPageV2: React.FC = () => {
   return (
     <PermissionGuard requiredPermissions={[]} showError={true}>
       <StandardListPageTemplate<Role>
-        translationNamespaces={['role', 'pageTitle', 'common']}
-        pageTitleKey="pageTitle:role_management"
-        addButtonTextKey="button.create_role"
+        translationNamespaces={['role', 'common']}
+        pageTitleKey="role:title"
+        addButtonTextKey="role:button.create_role"
         dataSource={dataSource}
         loadingData={loadingData}
         permissions={permissions}
@@ -193,47 +194,58 @@ const RolesPageV2: React.FC = () => {
           )
         }
         deleteConfirmConfig={{
-          titleKey: 'modal.confirm_delete.title',
-          contentKey: 'modal.confirm_delete.content',
-          okTextKey: 'modal.confirm_delete.ok_text',
-          cancelTextKey: 'modal.confirm_delete.cancel_text',
-          successMessageKey: 'message.delete_role_success',
-          errorMessageKey: 'message.delete_role_error',
+          titleKey: 'common:modal.confirm_delete.title',
+          contentKey: 'common:modal.confirm_delete.content_item',
+          okTextKey: 'common:modal.confirm_delete.ok_text',
+          cancelTextKey: 'common:modal.confirm_delete.cancel_text',
+          successMessageKey: 'role:delete_success',
+          errorMessageKey: 'role:delete_failed',
         }}
         batchDeleteConfig={{
           enabled: true,
-          buttonText: t('admin:batch_delete'),
-          confirmTitle: t('admin:confirm_batch_delete'),
-          confirmContent: t('admin:confirm_batch_delete_content'),
-          confirmOkText: t('admin:confirm'),
-          confirmCancelText: t('admin:cancel'),
-          successMessage: t('admin:batch_delete_success'),
-          errorMessage: t('admin:batch_delete_error'),
-          noSelectionMessage: t('admin:no_selection'),
+          buttonText: t('role:batch_delete_button', { count: selectedRowKeys.length }),
+          confirmTitle: t('role:batch_delete_confirm_title'),
+          confirmContent: t('role:batch_delete_confirm_content', { count: selectedRowKeys.length }),
+          confirmOkText: t('common:modal.confirm_delete.ok_text'),
+          confirmCancelText: t('common:modal.confirm_delete.cancel_text'),
+          successMessage: t('role:batch_delete_success', { count: selectedRowKeys.length }),
+          errorMessage: t('role:batch_delete_failed'),
+          noSelectionMessage: t('common:message.no_selection_for_batch_delete'),
+          onBatchDelete: async (keys: React.Key[]) => {
+            try {
+              await Promise.all(keys.map(key => deleteRole(Number(key))));
+              setSelectedRowKeys([]);
+              fetchData();
+            } catch (error) {
+              console.error("Batch delete failed:", error);
+            }
+          },
         }}
         exportConfig={{
-          filenamePrefix: t('admin:roles'),
-          sheetName: t('admin:roles'),
-          buttonText: t('admin:export_excel'),
-          successMessage: t('admin:export_success'),
+          filenamePrefix: t('role:export_filename_prefix'),
+          sheetName: t('role:export_sheet_name'),
+          buttonText: t('common:export.button_text'),
+          successMessage: t('common:export.success_message'),
         }}
-        lookupErrorMessageKey="message.fetch_roles_error"
-        lookupLoadingMessageKey="page_title"
-        lookupDataErrorMessageKey="message.fetch_roles_error"
-        rowKey="id"
+        lookupErrorMessageKey="common:message.data_loading_error"
+        lookupLoadingMessageKey="common:loading.generic_loading_text"
+        lookupDataErrorMessageKey="common:message.data_loading_error"
+        selectedRowKeys={selectedRowKeys}
+        setSelectedRowKeys={setSelectedRowKeys}
+        serverSidePagination={false}
+        serverSideSorting={false}
+        serverSideFiltering={false}
       />
 
-      {isModalVisible && (
-        <RoleFormModal
-          visible={isModalVisible}
-          role={currentRole}
-          onClose={() => {
-            setIsModalVisible(false);
-            setCurrentRole(null);
-          }}
-          onSuccess={handleFormSuccess}
-        />
-      )}
+      <RoleFormModal
+        visible={isModalVisible}
+        role={currentRole}
+        onClose={() => {
+          setIsModalVisible(false);
+          setCurrentRole(null);
+        }}
+        onSuccess={handleFormSuccess}
+      />
     </PermissionGuard>
   );
 };

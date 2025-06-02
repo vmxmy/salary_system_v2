@@ -9,8 +9,6 @@ import i18n from '../i18n'; // Import i18n instance
 
 // 导入页面组件
 import LoginPage from '../pages/LoginPage';
-// Legacy Dashboard (旧版仪表盘)
-const DashboardPageLegacy = lazy(() => import('../pages/Dashboard'));
 // New optimized Dashboard V3 (新版优化仪表盘)
 const DashboardV3 = lazy(() => import('../pages/Dashboard/DashboardV3'));
 import UsersPageV2 from '../pages/Admin/UsersV2';
@@ -49,6 +47,9 @@ const DepartmentsPage = lazy(() => import('../pages/Admin/Organization/Departmen
 // Lazy load the new bulk import page
 const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
 
+// Import EmployeeListPageV3
+const EmployeeListPageV3 = lazy(() => import('../pages/HRManagement/employees/EmployeeListPage'));
+
 // 在顶部导入 ReportTableDemo 组件
 import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
 import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo';
@@ -58,7 +59,7 @@ import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo'
 export type AppRouteObject = RouteObject & {
   meta?: {
     title: string; // This will now store the translation KEY
-    requiredRoles?: string[];
+    allowedRoles?: string[];
     requiredPermissions?: string[];
     permissionMatchMode?: 'all' | 'any';
     hideInBreadcrumbIfParentOfNext?: boolean;
@@ -91,12 +92,7 @@ export const routes: AppRouteObject[] = [
       {
         path: 'dashboard',
         element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Dashboard...</div>}><DashboardV3 /></React.Suspense>,
-        meta: { title: 'dashboard' },
-      },
-      {
-        path: 'legacy-dashboard',
-        element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Legacy Dashboard...</div>}><DashboardPageLegacy /></React.Suspense>,
-        meta: { title: 'legacy_dashboard' },
+        meta: { title: 'menu:dashboard', hideInBreadcrumbIfParentOfNext: true },
       },
       {
         path: 'admin',
@@ -107,23 +103,23 @@ export const routes: AppRouteObject[] = [
             </React.Suspense>
           </AppProtectedRoute>
         ),
-        meta: { title: 'system_management', requiredRoles: ['SUPER_ADMIN', 'ADMIN'] },
+        meta: { title: 'menu:admin.title', allowedRoles: ['SUPER_ADMIN', 'ADMIN'] },
         children: [
           { index: true, element: <Navigate to="users" replace /> },
-          { path: 'users', element: <UsersPageV2 />, meta: { title: 'user_management', requiredPermissions: ['user:list'] } },
-          { path: 'roles', element: <RolesPageV2 />, meta: { title: 'role_management', requiredPermissions: ['role:list'] } },
-          { path: 'permissions', element: <PermissionListPageV2 />, meta: { title: 'permission_management', requiredPermissions: ['permission:list'] } },
-          { path: 'config', element: <ConfigPage />, meta: { title: 'system_configuration' } },
+          { path: 'users', element: <UsersPageV2 />, meta: { title: 'menu:admin.users', requiredPermissions: ['user:list'] } },
+          { path: 'roles', element: <RolesPageV2 />, meta: { title: 'menu:admin.roles', requiredPermissions: ['role:list'] } },
+          { path: 'permissions', element: <PermissionListPageV2 />, meta: { title: 'menu:admin.permissions', requiredPermissions: ['permission:list'] } },
+          { path: 'config', element: <ConfigPage />, meta: { title: 'menu:admin.systemSettings', requiredPermissions: ['config:view'] } },
           {
             path: 'organization',
             element: <Outlet />,
-            meta: { title: 'organization_structure' },
+            meta: { title: 'menu:organization.title', requiredPermissions: ['department:list'] },
             children: [
               { index: true, element: <Navigate to="departments" replace /> },
-              { path: 'departments', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Departments...</div>}><DepartmentsPage /></React.Suspense>, meta: { title: 'department_management' } },
-              { path: 'job-titles', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'job_title_management' } },
-              { path: 'personnel-categories', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'personnel_categories_management' } },
-              { path: 'positions', element: <React.Suspense fallback={<div className="suspense">Loading Positions...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'positions_management' } },
+              { path: 'departments', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Departments...</div>}><DepartmentsPage /></React.Suspense>, meta: { title: 'menu:organization.departments', requiredPermissions: ['department:list'] } },
+              { path: 'job-titles', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'menu:organization.jobTitles', requiredPermissions: ['job_title:list'] } },
+              { path: 'personnel-categories', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'menu:organization.personnelCategories', requiredPermissions: ['personnel_category:list'] } },
+              { path: 'positions', element: <React.Suspense fallback={<div className="suspense">Loading Positions...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'menu:organization.positions', requiredPermissions: ['position:list'] } },
             ],
           },
         ],
@@ -137,22 +133,22 @@ export const routes: AppRouteObject[] = [
             </React.Suspense>
           </AppProtectedRoute>
         ),
-        meta: { title: 'hr_management', requiredRoles: ['HR_MANAGER', 'HR_SPECIALIST', 'SUPER_ADMIN'] },
+        meta: { title: 'menu:hr.title', allowedRoles: ['HR_MANAGER', 'HR_SPECIALIST', 'SUPER_ADMIN'] },
         children: [
           // The first child of hrManagementRoutes is an object whose 'children' property contains the actual routes.
           // We also need to provide appropriate meta for the base 'employees' path.
-          ...hrManagementRoutes.map(route => { // Directly map over hrManagementRoutes
+          ...hrManagementRoutes.map(route => {
             if (route.path === 'employees') {
-              return { ...route, meta: { title: 'employee_list', requiredPermissions: ['employee:list'], ...route.meta } };
+              return { ...route, meta: { title: 'menu:hr.employees', requiredPermissions: ['employee:list'], ...route.meta } };
             }
             if (route.path === 'employees/new') {
-              return { ...route, meta: { title: 'create_employee', requiredPermissions: ['employee:create'], ...route.meta } };
+              return { ...route, meta: { title: 'menu:hr.employeesNew', requiredPermissions: ['employee:create'], ...route.meta } };
             }
             if (route.path === 'employees/:employeeId') {
-              return { ...route, meta: { title: 'employee_details', requiredPermissions: ['employee:view'], ...route.meta } };
+              return { ...route, meta: { title: 'menu:hr.employeesDetail', requiredPermissions: ['employee:view'], hideInBreadcrumbIfParentOfNext: true, ...route.meta } };
             }
             if (route.path === 'employees/:employeeId/edit') {
-              return { ...route, meta: { title: 'edit_employee', requiredPermissions: ['employee:edit'], ...route.meta } };
+              return { ...route, meta: { title: 'menu:hr.employeesEdit', requiredPermissions: ['employee:edit'], ...route.meta } };
             }
             return route;
           }),
@@ -160,11 +156,11 @@ export const routes: AppRouteObject[] = [
           {
             path: 'employees/bulk-import',
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><EmployeeBulkImportPage /></React.Suspense>,
-            meta: { title: 'hr:bulk_import.page_title', requiredPermissions: ['employee:create'] }
+            meta: { title: 'menu:hr.employeesBulkImport', requiredPermissions: ['employee:create'] }
           },
-          // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: t('common:auto_hr_4852e4') } },
+          // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: 'hr:dashboard_page_title' } },
           // EmployeeListPage import is removed, new routes handle /hr/employees
-          { path: 'leave', element: <LeavePage />, meta: { title: 'leave_management', requiredPermissions: ['leave:manage'] } },
+          { path: 'leave', element: <LeavePage />, meta: { title: 'menu:hr.leaveManagement', requiredPermissions: ['leave:manage'] } },
         ],
       },
       {
@@ -176,19 +172,19 @@ export const routes: AppRouteObject[] = [
             </React.Suspense>
           </AppProtectedRoute>
         ),
-        meta: { title: 'finance_management', requiredRoles: ['FINANCE_MANAGER', 'ACCOUNTANT', 'SUPER_ADMIN'] },
+        meta: { title: 'menu:payroll.title', allowedRoles: ['FINANCE_MANAGER', 'ACCOUNTANT', 'SUPER_ADMIN'] },
         children: [
-          // { path: 'payroll', element: <PayrollPage />, meta: { title: t('common:auto_text_e896aa'), requiredPermissions: ['payroll:manage'] } }, // This is the old, incorrect payroll route
+          // { path: 'payroll', element: <PayrollPage />, meta: { title: 'payroll_management', requiredPermissions: ['payroll:manage'] } }, // This is the old, incorrect payroll route
           {
             path: 'payroll',
             element: <Outlet />,
-            meta: { title: 'payroll_calculation', requiredPermissions: ['payroll_run:view'] },
+            meta: { title: 'menu:payroll.title', requiredPermissions: ['payroll_run:view'] },
             children: payrollRoutes, // These are the routes from Payroll/routes.ts
           }
         ],
       },
       {
-        path: 'manager', 
+        path: 'manager',
         element: (
           <AppProtectedRoute allowedRoles={['MANAGER', 'SUPER_ADMIN']}>
             <React.Suspense fallback={<div className="page-loading-suspense">Loading Manager Section...</div>}>
@@ -196,83 +192,87 @@ export const routes: AppRouteObject[] = [
             </React.Suspense>
           </AppProtectedRoute>
         ),
-        meta: { title: 'manager_view', requiredRoles: ['MANAGER', 'SUPER_ADMIN'] },
+        meta: { title: 'menu:manager.title', allowedRoles: ['MANAGER', 'SUPER_ADMIN'] },
         children: managerRoutes,
       },
       {
-        path: 'view-reports', // This becomes the parent route for the "View Reports" section
+        path: 'view-reports',
         element: (
           <AppProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER']}>
-            <Outlet /> {/* Parent route renders an Outlet for child routes */}
+            <Outlet />
           </AppProtectedRoute>
         ),
-        meta: { title: 'view_reports' }, // Meta for the parent menu item t('common:auto_text_e8a786')
+        meta: { title: 'menu:reports.title', allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER'] },
         children: [
-          { index: true, element: <Navigate to="management" replace /> }, // Default to management view
+          { index: true, element: <Navigate to="management" replace /> },
           {
-            path: 'management', // This matches the updated menu item path
+            path: 'management',
             element: (
-              // Specific permissions for this sub-route can be handled here if different,
-              // or rely on the parent's AppProtectedRoute if permissions are the same.
               <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Management...</div>}>
                 <ReportViewManagement />
               </React.Suspense>
             ),
-            meta: { title: 'view_reports_management', requiredPermissions: ['report:view_reports'] },
+            meta: { title: 'menu:reports.management', requiredPermissions: ['report:view_reports'] },
           },
-          // Potentially other child routes under /view-reports later, e.g., /view-reports/:id
         ]
       },
       {
-        path: 'employee-info', 
+        path: 'employee-info',
         element: (
-          <AppProtectedRoute> 
+          <AppProtectedRoute>
             <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee Section...</div>}>
               <Outlet />
             </React.Suspense>
           </AppProtectedRoute>
         ),
-        meta: { title: 'employee_hub' },
+        meta: { title: 'menu:personal.title' },
         children: [
           { index: true, element: <Navigate to="my-info" replace /> },
-          { path: 'my-info', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Info...</div>}><MyInfo /></React.Suspense>, meta: { title: 'my_info' } },
-          { path: 'my-payslips', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Payslips...</div>}><MyPayslips /></React.Suspense>, meta: { title: 'my_payslips' } },
+          { path: 'my-info', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Info...</div>}><MyInfo /></React.Suspense>, meta: { title: 'menu:personal.myInfo' } },
+          { path: 'my-payslips', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Payslips...</div>}><MyPayslips /></React.Suspense>, meta: { title: 'menu:personal.myPayslips' } },
+          { path: 'my-leave', element: <LeavePage />, meta: { title: 'menu:personal.myLeave' } },
         ],
       },
       {
-        path: 'personal', 
+        path: 'personal',
         element: (
-          <AppProtectedRoute> 
+          <AppProtectedRoute>
             <React.Suspense fallback={<div className="page-loading-suspense">Loading Personal Section...</div>}>
               <Outlet />
             </React.Suspense>
           </AppProtectedRoute>
         ),
-        meta: { title: 'personal_center' },
+        meta: { title: 'menu:personal.title' },
         children: [
-          { index: true, element: <Navigate to="leave" replace /> },
-          { path: 'leave', element: <LeavePage />, meta: { title: 'leave_application' } },
+          { index: true, element: <Navigate to="employee-info" replace /> },
         ],
       },
       {
-        path: 'test',
-        element: <Outlet />,
-        meta: { title: 'test' },
+        path: '/test',
+        element: (
+          <AppProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+            <React.Suspense fallback={<div className="page-loading-suspense">Loading Test Section...</div>}>
+              <Outlet />
+            </React.Suspense>
+          </AppProtectedRoute>
+        ),
+        meta: { title: 'menu:test.title', allowedRoles: ['SUPER_ADMIN'] },
         children: [
+          { index: true, element: <Navigate to="employee-list-v3" replace /> },
           {
             path: 'employee-list-v3',
-            element: <div>员工列表V3页面</div>, // 保持原有逻辑或替换为实际组件
-            meta: { title: 'testEmployeeListV3' },
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee List V3...</div>}><EmployeeListPageV3 /></React.Suspense>,
+            meta: { title: 'menu:test.employeeListV3' },
           },
           {
             path: 'report-table-demo',
-            element: <ReportTableDemo />, // 新增报表表格演示页面
-            meta: { title: 'testReportTableDemo' },
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Table Demo...</div>}><ReportTableDemo /></React.Suspense>,
+            meta: { title: 'menu:test.reportTableDemo' },
           },
           {
             path: 'report-template-demo',
-            element: <ReportTemplateDemo />, // 新增报表模板演示页面
-            meta: { title: 'testReportTemplateDemo' },
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Template Demo...</div>}><ReportTemplateDemo /></React.Suspense>,
+            meta: { title: 'menu:test.reportTemplateDemo' },
           },
         ],
       },
@@ -281,7 +281,7 @@ export const routes: AppRouteObject[] = [
   {
     path: '*',
     element: <NotFoundPage />,
-    meta: { title: 'not_found' },
+    meta: { title: 'common:not_found' },
   },
 ];
 
