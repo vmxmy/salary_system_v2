@@ -6,7 +6,6 @@ import PayrollPeriodsPageV2 from './pages/PayrollPeriodsPageV2';
 import PayrollRunsPageV2 from './pages/PayrollRunsPageV2';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
-import PayrollBulkImportPageV2 from './pages/PayrollBulkImportPage/PayrollBulkImportPageV2';
 import PayrollBulkImportPageV3 from './pages/PayrollBulkImportPage/PayrollBulkImportPageV3';
 import PayrollComponentsPage from './pages/PayrollComponentsPage';
 import PayrollCalculationConfigPage from './pages/PayrollCalculationConfigPage';
@@ -87,7 +86,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'bulk-import-v2',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import V2...') }, React.createElement(PayrollBulkImportPageV2)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import V2...') }, React.createElement(PayrollBulkImportPageV3)),
     meta: {
       title: 'payroll:batch_import.page_title_v2', // 旧版批量导入页面标题翻译键
       requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],

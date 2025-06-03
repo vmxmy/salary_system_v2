@@ -343,9 +343,10 @@ export const generateDynamicFieldMapping = (
   components.forEach(component => {
     componentsByCode.set(component.code, component);
     componentsByName.set(component.name, component);
-    if (component.display_order) {
-      componentsByDisplayOrder.set(component.display_order, component);
-    }
+    // display_order 属性可能不存在，暂时注释掉
+    // if (component.display_order) {
+    //   componentsByDisplayOrder.set(component.display_order, component);
+    // }
   });
 
   // 预定义的基础字段映射（固定不变）
@@ -474,10 +475,10 @@ export const generateDynamicFieldMapping = (
           targetField = `employer_deductions.${component.code}.amount`;
           category = 'deduction';
           break;
-        case 'CALCULATION_RESULT':
-          targetField = `calculation_results.${component.code}.amount`;
-          category = 'calculated';
-          break;
+        // case 'CALCULATION_RESULT':
+        //   targetField = `calculation_results.${component.code}.amount`;
+        //   category = 'calculated';
+        //   break;
         case 'STAT':
           targetField = `stats.${component.code}.amount`;
           category = 'stat';
@@ -590,10 +591,10 @@ export const generateComponentSelectOptions = (components: PayrollComponentDefin
         targetGroup = 'deduction';
         targetField = `employer_deductions.${component.code}.amount`;
         break;
-      case 'CALCULATION_RESULT':
-        targetGroup = 'calculated';
-        targetField = `calculation_results.${component.code}.amount`;
-        break;
+      // case 'CALCULATION_RESULT':
+      //   targetGroup = 'calculated';
+      //   targetField = `calculation_results.${component.code}.amount`;
+      //   break;
       case 'STAT':
         targetGroup = 'stat';
         targetField = `stats.${component.code}.amount`;
@@ -618,11 +619,11 @@ export const generateComponentSelectOptions = (components: PayrollComponentDefin
     { value: '__ROW_NUMBER__', label: '【行号】用于标识记录序号', component: null as any }
   );
 
-  // 按display_order排序
+  // 按组件名称排序（display_order属性暂时不可用）
   Object.keys(optionGroups).forEach(groupKey => {
     optionGroups[groupKey].sort((a, b) => {
       if (!a.component || !b.component) return 0;
-      return (a.component.display_order || 999) - (b.component.display_order || 999);
+      return a.component.name.localeCompare(b.component.name);
     });
   });
 
