@@ -12,7 +12,7 @@
     "desc_label_id": "编号",
     "desc_label_notes": "备注",
     "desc_label_paid_at": "支付时间",
-    "desc_label_payroll_period": "薪资期间",
+    "desc_label_payroll_period": "薪资周期",
     "desc_label_run_date": "运行日期",
     "desc_label_status": "状态",
     "desc_label_updated_at": "更新时间",
@@ -35,7 +35,7 @@
     "label": {
       "employee_ids": "员工列表",
       "notes": "备注",
-      "payroll_period": "薪资期间",
+      "payroll_period": "薪资周期",
       "run_date": "运行日期",
       "status_create_mode": "状态",
       "status_edit_mode": ""
@@ -43,14 +43,14 @@
     "placeholder": {
       "employee_ids": "请选择员工",
       "notes": "请输入备注",
-      "payroll_period": "选择薪资期间",
+      "payroll_period": "选择薪资周期",
       "status": "选择状态"
     },
     "tooltip": {
       "employee_ids": "选择要包含在此次计算中的员工"
     },
     "validation": {
-      "payroll_period_required": "请选择薪资期间",
+      "payroll_period_required": "请选择薪资周期",
       "run_date_required": "请选择运行日期",
       "status_required": "请选择状态"
     }
@@ -73,5 +73,31 @@
       "create": "新建薪资审核",
       "edit": "编辑薪资审核"
     }
-  }
+  },
+  "table": {
+    "column_id": "ID",
+    "column_run_date": "运行日期",
+    "column_status": "状态",
+    "column_employee_count": "员工数",
+    "column_notes": "备注",
+    "tooltip": {
+      "employee_count_has_data": "包含员工数据",
+      "employee_count_no_data": "暂无员工数据"
+    },
+    "status": {
+      "no_data": "暂无数据"
+    }
+  },
+  "action": {
+    "calculate": "计算薪资"
+  },
+  "create_run": "创建运行",
+  "confirm_delete_title": "确认删除",
+  "confirm_delete_content": "您确定要删除这个薪资审核吗？此操作不可撤销。",
+  "delete_success": "薪资审核删除成功",
+  "delete_failure": "删除薪资审核失败",
+  "export_filename_prefix": "薪资审核_",
+  "export_sheet_name": "运行数据",
+  "export_button_text": "导出Excel",
+  "export_success_message": "导出成功"
 }

@@ -118,21 +118,7 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
     );
   }
 
-  // Add batch delete button if enabled and items are selected
-  if (batchDelete?.enabled && rowSelection !== false && rowSelection?.selectedRowKeys && rowSelection.selectedRowKeys.length > 0) {
-    const selectedKeys = rowSelection.selectedRowKeys; // Destructure here to satisfy TypeScript
-    customToolbarButtons.push(
-      <Button
-        key="batch-delete"
-        danger
-        icon={<DeleteOutlined />}
-        onClick={handleBatchDelete}
-        shape="round"
-      >
-        {batchDelete.buttonText.replace('{count}', String(selectedKeys.length))}
-      </Button>
-    );
-  }
+  // 批量删除按钮现在移到了行选择工具栏中，不在这里添加
 
   // Add any extra custom buttons provided
   if (extraButtons.length > 0) {
@@ -158,6 +144,39 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
         title={pageTitle} // Use pageTitle as the table's toolbar title
         customToolbarButtons={customToolbarButtons}
         rowSelection={rowSelection}
+        tableAlertOptionRender={({ selectedRowKeys, onCleanSelected }) => {
+          // 自定义行选择工具栏右侧操作按钮
+          const actions = [];
+          
+          // 添加批量删除按钮
+          if (batchDelete?.enabled && selectedRowKeys && selectedRowKeys.length > 0) {
+            actions.push(
+              <Button
+                key="batch-delete"
+                type="link"
+                danger
+                size="small"
+                onClick={handleBatchDelete}
+              >
+                {batchDelete.buttonText}
+              </Button>
+            );
+          }
+          
+          // 添加取消选择按钮
+          actions.push(
+            <Button
+              key="clear-selection"
+              type="link"
+              size="small"
+              onClick={onCleanSelected}
+            >
+              {t('table_template.clear_selection', '取消选择')}
+            </Button>
+          );
+          
+          return actions;
+        }}
         {...tableProps}
       />
     </>

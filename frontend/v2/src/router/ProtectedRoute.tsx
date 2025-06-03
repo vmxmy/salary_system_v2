@@ -49,7 +49,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <Spin spinning={true} size="large" tip={t('common:loading.user_info')}>
         {/* Render minimal content or adjust layout if Spin should cover children conceptually */}
         {/* For a full-page spinner scenario, children might be null or a div with min-height */}
-        <div style={{ width: '100%', height: '100vh' }} /> 
+        <div className="full-size-container" /> 
       </Spin>
     );
   }

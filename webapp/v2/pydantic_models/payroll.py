@@ -49,6 +49,9 @@ class PayrollPeriod(PayrollPeriodBase):
     # 添加状态关联对象 - 字段名与数据库模型保持一致
     status_lookup: Optional[LookupValue] = Field(None, description="Status lookup value details")
     
+    # 添加员工数统计字段
+    employee_count: Optional[int] = Field(None, description="该期间的不重复员工数统计")
+    
     @classmethod
     def from_orm(cls, db_obj):
         """从ORM模型创建Pydantic模型实例"""

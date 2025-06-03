@@ -434,4 +434,13 @@ export const deletePayrollComponentDefinition = async (
   } catch (error) {
     throw error;
   }
+};
+
+export const getPayrollPeriodById = async (id: number): Promise<ApiSingleResponse<PayrollPeriod>> => {
+  try {
+    const response = await apiClient.get<ApiSingleResponse<PayrollPeriod>>(`${PAYROLL_PERIODS_ENDPOINT}/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }; 

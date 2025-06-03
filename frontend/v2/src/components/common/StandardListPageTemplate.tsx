@@ -171,7 +171,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   // 服务器端查询参数状态
   const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
-    page_size: 20,
+    page_size: 50,
     filters: {},
     sorting: [],
     search: '',
@@ -312,7 +312,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
       // 处理分页
       if (serverSidePagination && pagination) {
         newParams.page = pagination.current || 1;
-        newParams.page_size = pagination.pageSize || 20;
+        newParams.page_size = pagination.pageSize || 50;
       }
 
       // 处理排序
@@ -378,6 +378,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   const paginationConfigForTable = serverSidePagination ? {
     current: queryParams.page,
     pageSize: queryParams.page_size,
+    defaultPageSize: queryParams.page_size,
     total: total || 0,
     showSizeChanger: true,
     showQuickJumper: true,

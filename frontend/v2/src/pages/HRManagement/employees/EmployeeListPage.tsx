@@ -499,8 +499,8 @@ const EmployeeListPage: React.FC = () => {
   const { ExportButton } = useTableExport(allEmployees, exportColumns as any, {
     filename: generateExportFilename(),
     sheetName: t('employee:list_page.page_title'),
-    buttonText: '导出Excel',
-    successMessage: '员工数据导出成功',
+    buttonText: t('payroll:export_excel'),
+    successMessage: t('payroll:export_success'),
   });
 
   // ProTable 内置了导出和列控制功能，无需使用传统工具函数

@@ -17,6 +17,7 @@ import {
   Input,
   Row,
   Col,
+  App,
 } from 'antd';
 import {
   PlusOutlined,
@@ -57,6 +58,7 @@ const PayrollRunsPage: React.FC = () => {
   const { t } = useTranslation(['payroll', 'common']);
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const { message, modal } = App.useApp();
 
   // 数据状态
   const [runs, setRuns] = useState<PayrollRun[]>([]);
@@ -209,7 +211,7 @@ const PayrollRunsPage: React.FC = () => {
 
   // 处理删除
   const handleDelete = (runId: number) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('payroll:confirm_delete_title'),
       content: t('payroll:confirm_delete_content'),
       okText: t('common:delete'),
@@ -221,7 +223,21 @@ const PayrollRunsPage: React.FC = () => {
           message.success(t('payroll:delete_success'));
           loadData();
         } catch (error: any) {
-          message.error(t('payroll:delete_failed'));
+          console.error('Delete payroll run error:', error);
+          let errorMessage = t('payroll:delete_failed');
+          
+          // 处理后端返回的具体错误信息
+          if (error?.response?.data?.detail?.error?.message) {
+            // 优先使用后端返回的用户友好错误消息
+            errorMessage = error.response.data.detail.error.message;
+          } else if (error?.response?.data?.detail?.error?.details) {
+            errorMessage = error.response.data.detail.error.details;
+          } else if (error?.response?.status === 409) {
+            // 409 冲突错误，通常是外键约束
+            errorMessage = t('payroll:error_delete_conflict_associated_data'); // 使用i18n键
+          }
+          
+          message.error(errorMessage);
         }
       },
     });
@@ -229,7 +245,7 @@ const PayrollRunsPage: React.FC = () => {
 
   // 处理查看详情
   const handleViewDetails = (runId: number) => {
-    navigate(`/payroll/runs/${runId}`);
+    navigate(`/finance/payroll/runs/${runId}`);
   };
 
   // 处理自动计算
@@ -264,14 +280,22 @@ const PayrollRunsPage: React.FC = () => {
       setCalculationPreviewVisible(false);
       loadData(); // 重新加载数据
     } catch (error: any) {
-      message.error(t('payroll:calculation_failed'));
       console.error('Calculation failed:', error);
+      let errorMessage = t('payroll:calculation_failed');
+      
+      if (error?.response?.data?.detail?.error?.details) {
+        errorMessage = error.response.data.detail.error.details;
+      } else if (error?.response?.data?.detail?.error?.message) {
+        errorMessage = error.response.data.detail.error.message;
+      }
+      
+      message.error(errorMessage);
     }
   };
 
   // 处理标记为已支付
   const handleMarkAsPaid = async (run: PayrollRun) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('payroll:confirm_mark_as_paid_title'),
       content: t('payroll:confirm_mark_as_paid_content'),
       okText: t('common:confirm'),
@@ -282,7 +306,16 @@ const PayrollRunsPage: React.FC = () => {
           message.success(t('payroll:mark_as_paid_success'));
           loadData();
         } catch (error: any) {
-          message.error(t('payroll:mark_as_paid_failed'));
+          console.error('Mark as paid error:', error);
+          let errorMessage = t('payroll:mark_as_paid_failed');
+          
+          if (error?.response?.data?.detail?.error?.details) {
+            errorMessage = error.response.data.detail.error.details;
+          } else if (error?.response?.data?.detail?.error?.message) {
+            errorMessage = error.response.data.detail.error.message;
+          }
+          
+          message.error(errorMessage);
         }
       },
     });
@@ -302,7 +335,16 @@ const PayrollRunsPage: React.FC = () => {
       link.remove();
       message.success({ content: t('payroll:export_success'), key: 'export' });
     } catch (error: any) {
-      message.error({ content: t('payroll:export_failed'), key: 'export' });
+      console.error('Export bank file error:', error);
+      let errorMessage = t('payroll:export_failed');
+      
+      if (error?.response?.data?.detail?.error?.details) {
+        errorMessage = error.response.data.detail.error.details;
+      } else if (error?.response?.data?.detail?.error?.message) {
+        errorMessage = error.response.data.detail.error.message;
+      }
+      
+      message.error({ content: errorMessage, key: 'export' });
     }
   };
 
@@ -328,7 +370,16 @@ const PayrollRunsPage: React.FC = () => {
       setModalVisible(false);
       loadData();
     } catch (error: any) {
-      message.error(editingRun ? t('payroll:update_failed') : t('payroll:create_failed'));
+      console.error('Submit form error:', error);
+      let errorMessage = editingRun ? t('payroll:update_failed') : t('payroll:create_failed');
+      
+      if (error?.response?.data?.detail?.error?.details) {
+        errorMessage = error.response.data.detail.error.details;
+      } else if (error?.response?.data?.detail?.error?.message) {
+        errorMessage = error.response.data.detail.error.message;
+      }
+      
+      message.error(errorMessage);
     }
   };
 

@@ -124,7 +124,7 @@ const RightContent: React.FC<{
         trigger={['click']}
         placement="bottomRight"
       >
-        <Space style={{ cursor: 'pointer' }}>
+        <Space className="cursor-pointer">
           <Avatar size="small" icon={<UserOutlined />} />
           <span>{currentUser?.username || 'Admin'}</span>
         </Space>
@@ -219,13 +219,13 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   // 渲染Logo组件
   const renderLogo = () => {
     if (logoError) {
-      return <BankOutlined style={{ fontSize: 28, color: '#1890ff' }} />;
+      return <BankOutlined className="icon-bank-logo" />;
     }
     return (
       <img
         src={hyperchainLogo}
         alt="Logo"
-        style={{ height: 28 }}
+        className="logo-height-28"
         onError={handleLogoError}
       />
     );
@@ -256,7 +256,7 @@ const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(k
     menuItemRender: (item: MenuDataItem, dom: React.ReactNode) => (
       <div 
         onClick={() => handleMenuClick(item)}
-        style={{ display: 'flex', alignItems: 'center', padding: '0 8px' }}
+        className="flex-align-center-padding-horizontal-8"
       >
         {dom}
       </div>
@@ -288,7 +288,7 @@ const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(k
       >
         {renderLogo()}
         {!props?.collapsed && (
-          <span style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>
+          <span className="header-title-text">
             人事薪资管理系统
           </span>
         )}
@@ -299,16 +299,12 @@ const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(k
         type="text"
         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         onClick={() => setCollapsed(!collapsed)}
-        style={{
-          fontSize: '16px',
-          width: 32,
-          height: 32,
-        }}
+        className="collapsed-button-style"
         title={collapsed ?      t('common:expand_sidebar'): t('common:collapse_sidebar')}
       />
     ),
     footerRender: () => (
-      <div style={{ textAlign: 'center', padding: '12px 0' }}>
+      <div className="footer-style">
         <Space split="|">
           <span>成都高新区财政国资局 人事工资信息管理系统 ©2025</span>
           {!logoError ? (
@@ -319,7 +315,7 @@ const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(k
               onError={handleLogoError}
             />
           ) : (
-            <BankOutlined style={{ fontSize: 16, color: '#1890ff' }} />
+            <BankOutlined className="icon-bank-logo-small" />
           )}
         </Space>
       </div>

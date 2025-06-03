@@ -368,15 +368,11 @@ export const useTableExport = <T extends object>(
       }
     };
 
-    const menu = (
-      <Menu onClick={handleMenuClick}>
-        {mergedOptions.supportedFormats.map(format => (
-          <Menu.Item key={format}>
-            {getFormatLabel(format, t)}
-          </Menu.Item>
-        ))}
-      </Menu>
-    );
+    const menuItems = mergedOptions.supportedFormats.map(format => ({
+      key: format,
+      label: getFormatLabel(format, t),
+      onClick: () => handleMenuClick({ key: format }),
+    }));
 
     const exportCallback = mergedOptions.onExportRequest; // Store in a variable for type guarding
     const hasExportCallback = typeof exportCallback === 'function';
@@ -386,7 +382,7 @@ export const useTableExport = <T extends object>(
 
     if (shouldUseDropdown) {
       return (
-        <Dropdown overlay={menu}>
+        <Dropdown menu={{ items: menuItems }}>
           <Button shape="round" type="default">
             {mergedOptions.dropdownButtonText} <DownOutlined />
           </Button>

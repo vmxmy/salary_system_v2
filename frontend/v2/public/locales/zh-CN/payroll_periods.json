@@ -15,14 +15,14 @@
     },
     "placeholder": {
       "frequency": "请选择频率",
-      "name": "请输入薪资期间名称",
+      "name": "请输入薪资周期名称",
       "status": "请选择状态"
     },
     "validation": {
       "end_date_before_start_date": "结束日期不能早于开始日期！",
       "end_date_required": "请选择结束日期！",
       "frequency_required": "请选择频率！",
-      "name_required": "请输入薪资期间名称！",
+      "name_required": "请输入薪资周期名称！",
       "pay_date_required": "请选择支付日期！",
       "start_date_required": "请选择开始日期！",
       "status_required": "请选择状态！"
@@ -37,21 +37,21 @@
     "batch_delete_button_text": "批量删除",
     "batch_delete_failure": "批量删除失败: {error}",
     "batch_delete_success": "批量删除成功！",
-    "confirm_batch_delete_content": "您确定要删除选中的薪资期间吗？",
+    "confirm_batch_delete_content": "您确定要删除选中的薪资周期吗？",
     "confirm_batch_delete_title": "确认批量删除",
-    "confirm_delete_content": "",
-    "confirm_delete_title": "",
-    "delete_failure": "",
-    "delete_success": "",
+    "confirm_delete_content": "您确定要删除这个薪资周期吗？此操作不可撤销。",
+    "confirm_delete_title": "确认删除",
+    "delete_failure": "删除薪资周期失败",
+    "delete_success": "薪资周期删除成功",
     "export_button_text": "导出Excel",
-    "export_filename_prefix": "薪资期间_",
+    "export_filename_prefix": "薪资周期_",
     "export_sheet_name": "期间数据",
     "export_success_message": "导出成功",
     "message": {
-      "create_failed": "创建薪资期间失败。",
-      "create_success": "薪资期间创建成功！",
-      "update_failed": "更新薪资期间失败。",
-      "update_success": "薪资期间更新成功！"
+      "create_failed": "创建薪资周期失败。",
+      "create_success": "薪资周期创建成功！",
+      "update_failed": "更新薪资周期失败。",
+      "update_success": "薪资周期更新成功！"
     },
     "no_selection_message": "请至少选择一条记录",
     "table": {
@@ -77,6 +77,19 @@
   },
   "导出Excel": "导出Excel",
   "导出成功": "导出成功",
-  "page_title": "薪资期间",
-  "create_period": "创建期间"
+  "page_title": "薪资周期",
+  "create_period": "创建期间",
+  "payroll_period_detail_page": {
+    "title": "薪资周期详情 - {id}",
+    "basic_info": "基本信息",
+    "related_runs_title": "关联的薪资审核",
+    "related_entries_title": "关联的薪资条目",
+    "field_id": "期间ID",
+    "field_name": "期间名称",
+    "field_frequency": "频率",
+    "field_start_date": "开始日期",
+    "field_end_date": "结束日期",
+    "field_pay_date": "支付日期",
+    "field_status": "状态"
+  }
 }

@@ -115,6 +115,7 @@ export function ReportTable<T extends Record<string, any>>({
   ...restProps
 }: ReportTableProps<T>) {
   const actionRef = useRef<ActionType>(null);
+  const { t } = useTranslation();
 
   // 优先使用 reportConfig 中的配置，然后是直接传入的 props
   const finalTitle = reportConfig?.reportTitle || reportTitle || '报表';
@@ -129,7 +130,7 @@ export function ReportTable<T extends Record<string, any>>({
     } else if (format === 'csv') {
       exportToCSVWithHeader();
     } else {
-      message.info('PDF导出功能需要额外的库支持，当前为演示模式');
+      message.info(t('payroll:pdf_export_not_supported'));
     }
   };
 
@@ -141,7 +142,7 @@ export function ReportTable<T extends Record<string, any>>({
       filename: exportConfig?.filename || finalTitle,
       sheetName: finalTitle,
       supportedFormats: exportConfig?.formats || ['excel'],
-      successMessage: '导出成功',
+      successMessage: t('payroll:export_success'),
       onExportRequest: handleCustomExport, // 使用自定义导出回调
     }
   );
@@ -346,7 +347,7 @@ export function ReportTable<T extends Record<string, any>>({
            cellStyles: true
          });
          
-         message.success('Excel导出成功');
+         message.success(t('payroll:export_success'));
       });
     } catch (error) {
       message.error('导出失败，请重试');
@@ -401,7 +402,7 @@ export function ReportTable<T extends Record<string, any>>({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      message.success('CSV导出成功');
+      message.success(t('payroll:export_success'));
     } catch (error) {
       message.error('导出失败，请重试');
     }

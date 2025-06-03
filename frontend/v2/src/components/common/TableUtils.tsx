@@ -423,6 +423,7 @@ export const useTableExport = <T extends object>(
       return (
         <Button
           type="primary"
+          shape="round"
           icon={<DownloadOutlined />}
           onClick={() => {
             if (onExportRequest) {
@@ -440,11 +441,9 @@ export const useTableExport = <T extends object>(
       );
     }
 
-    const menu = <Menu onClick={handleMenuClick} items={items} />;
-
     return (
-      <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
-        <Button type="primary" icon={<DownloadOutlined />}>
+      <Dropdown menu={{ items: items }} trigger={['click']} placement="bottomRight">
+        <Button type="primary" shape="round" icon={<DownloadOutlined />}>
           <Space>
             {dropdownButtonText}
             <DownOutlined />

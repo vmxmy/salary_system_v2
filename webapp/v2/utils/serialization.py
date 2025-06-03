@@ -119,9 +119,19 @@ class CustomJSONB(TypeDecorator):
     def process_result_value(self, value, dialect):
         """Process the value received from the database (DB -> Python)."""
         if value is not None:
-            # Standard json.loads should be sufficient here as data from DB
-            # should already be in a valid JSON string format.
-            return json.loads(value)
+            # PostgreSQL JSONB values are already parsed by psycopg2/SQLAlchemy
+            # If it's already a dict/list, return as-is
+            # If it's a string, parse it with json.loads
+            if isinstance(value, (dict, list)):
+                return value
+            elif isinstance(value, str):
+                return json.loads(value)
+            else:
+                # For other types, try to parse as JSON string
+                try:
+                    return json.loads(str(value))
+                except (json.JSONDecodeError, TypeError):
+                    return value
         return value
 
     @property

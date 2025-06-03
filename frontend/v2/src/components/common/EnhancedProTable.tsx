@@ -112,6 +112,8 @@ interface EnhancedProTableProps<T extends Record<string, any>> {
   enableAdvancedFeatures?: boolean;
   /** 自定义工具栏按钮 */
   customToolbarButtons?: React.ReactNode[];
+  /** 行选择工具栏右侧操作按钮渲染函数 */
+  tableAlertOptionRender?: ProTableProps<T, any>['tableAlertOptionRender'];
   /** 其他 ProTable 属性 */
   [key: string]: any;
 }
@@ -129,6 +131,7 @@ function EnhancedProTable<T extends Record<string, any>>({
   onRefresh,
   enableAdvancedFeatures = true,
   customToolbarButtons = [],
+  tableAlertOptionRender,
   ...restProps
 }: EnhancedProTableProps<T>) {
   const { t } = useTranslation();
@@ -209,6 +212,7 @@ function EnhancedProTable<T extends Record<string, any>>({
       headerTitle={title}
       search={searchConfig}
       toolBarRender={toolbarConfig}
+      tableAlertOptionRender={tableAlertOptionRender}
       pagination={defaultPagination}
       bordered={bordered}
       size={size}

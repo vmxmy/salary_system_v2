@@ -205,7 +205,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     
     if (presetButtonStyle === 'dropdown') {
       return (
-        <Dropdown overlay={buildPresetMenu()} trigger={['click']}>
+        <Dropdown menu={{ items: buildPresetMenu().props.items }} trigger={['click']}>
           <Button size={size} icon={<CalendarOutlined />}>
             {t('date_range_picker.quick_select', { defaultValue: t('components:auto_text_e5bfab') })}
             <DownOutlined />

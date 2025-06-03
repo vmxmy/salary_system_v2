@@ -51,7 +51,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
   const [currentEntryId, setCurrentEntryId] = useState<number | null>(null);
   const { message: messageApi } = App.useApp();
 
-  const fetchEntries = useCallback(async (page = 1, pageSize = 10) => {
+  const fetchEntries = useCallback(async (page = 1, pageSize = 100) => {
     setLoading(true);
     setError(null);
     try {

@@ -8,10 +8,12 @@ import {
 
 import type { TFunction } from 'i18next';
 
-// 获取薪资周期数据统计的函数 - 使用PayrollRun的total_employees字段
+// 获取薪资周期数据统计的函数 - 计算期间内不重复的员工数
 export const fetchPeriodDataStats = async (
   periodIds: number[], 
-  setPeriodDataStats: React.Dispatch<React.SetStateAction<Record<number, { count: number; loading: boolean }>>>
+  setPeriodDataStats: React.Dispatch<React.SetStateAction<Record<number, { count: number; loading: boolean }>>>,
+  t: TFunction,
+  appMessage: any
 ) => {
   const initialStats: Record<number, { count: number; loading: boolean }> = {};
   periodIds.forEach(id => {
@@ -21,19 +23,48 @@ export const fetchPeriodDataStats = async (
   
   const statsPromises = periodIds.map(async (periodId) => {
     try {
+      // 获取该期间下的所有 payroll runs
       const runsResponse = await payrollApi.getPayrollRuns({
         period_id: periodId,
         size: 100
       });
       
-      let totalCount = 0;
+      let uniqueEmployeeIds = new Set<number>();
+      
       if (runsResponse.data && runsResponse.data.length > 0) {
-        totalCount = runsResponse.data.reduce((sum, run) => {
-          return sum + (run.total_employees || 0);
-        }, 0);
+        // 对每个 run，获取其 payroll entries 来统计不重复的员工
+        const entriesPromises = runsResponse.data.map(async (run) => {
+          try {
+            const entriesResponse = await payrollApi.getPayrollEntries({
+              payroll_run_id: run.id,
+              size: 100 // 获取足够多的条目
+            });
+            
+            if (entriesResponse.data && entriesResponse.data.length > 0) {
+              entriesResponse.data.forEach(entry => {
+                if (entry.employee_id) {
+                  uniqueEmployeeIds.add(entry.employee_id);
+                }
+              });
+            }
+          } catch (error: any) {
+            let errorMessage = t('common:message.error_fetching_details'); // 默认错误信息
+            if (error.response && error.response.status === 422 && error.response.data && error.response.data.detail && error.response.data.detail.error && error.response.data.detail.error.message) {
+              errorMessage = error.response.data.detail.error.message;
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+            appMessage.error(errorMessage);
+            console.warn(`Failed to fetch entries for run ${run.id}:`, error);
+          }
+        });
+        
+        await Promise.all(entriesPromises);
       }
-      return { periodId, count: totalCount };
+      
+      return { periodId, count: uniqueEmployeeIds.size };
     } catch (error) {
+      console.warn(`Failed to fetch stats for period ${periodId}:`, error);
       return { periodId, count: 0 };
     }
   });
@@ -46,6 +77,7 @@ export const fetchPeriodDataStats = async (
     });
     setPeriodDataStats(newStats);
   } catch (error) {
+    console.error('Failed to fetch period data stats:', error);
     const errorStats: Record<number, { count: number; loading: boolean }> = {};
     periodIds.forEach(id => {
       errorStats[id] = { count: 0, loading: false };
@@ -107,7 +139,7 @@ export const usePayrollPeriods = (t: TFunction, appMessage: any): UsePayrollPeri
 
       if (filteredPeriods.length > 0) {
         const periodIds = filteredPeriods.map(p => p.id);
-        fetchPeriodDataStats(periodIds, setPeriodDataStats);
+        fetchPeriodDataStats(periodIds, setPeriodDataStats, t, appMessage);
       }
       
     } catch (error) {

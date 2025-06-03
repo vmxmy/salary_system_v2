@@ -21,6 +21,12 @@
     &:before {
       display: none;
     }
+    
+    // 确保固定列头部有正确的z-index
+    &.ant-table-cell-fix-right {
+      z-index: 10 !important;
+      position: relative;
+    }
   }
   
   // 表格行优化
@@ -29,13 +35,50 @@
     
     &:hover {
       background: @table-row-hover-bg;
-      transform: translateY(-1px);
+      // 移除transform，因为它会创建新的堆叠上下文，导致z-index问题
+      // transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      
+      // 确保悬停时固定列单元格有正确的z-index
+      > td.ant-table-cell-fix-right {
+        z-index: 11 !important;
+        position: relative;
+        background: @table-row-hover-bg !important;
+      }
     }
     
     > td {
       border-bottom: 1px solid @border-color-split;
       padding: @spacing-md @spacing-lg;
+      
+      // 确保所有固定列单元格有基础z-index
+      &.ant-table-cell-fix-right {
+        z-index: 9 !important;
+        position: relative;
+        background: white;
+      }
+    }
+  }
+  
+  // 专门处理固定列的层级问题
+  :global(.ant-table-cell-fix-right) {
+    z-index: 9 !important;
+    position: relative;
+    
+    &:hover {
+      z-index: 11 !important;
+    }
+    
+    // 确保固定列有阴影效果
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(0, 0, 0, 0.06);
+      z-index: -1;
     }
   }
   

@@ -91,7 +91,7 @@
 
 ### 前端页面路由
 - `/payroll/calculation-config` - 薪资计算配置页面
-- `/finance/payroll/runs` - 薪资运行管理页面（已改造）
+- `/finance/payroll/runs` - 薪资审核管理页面（已改造）
 - `/finance/payroll/attendance` - 考勤数据管理页面
 
 ### 后端API地址

@@ -1,12 +1,14 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 import logging
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from fastapi import HTTPException, status
 
-# Assuming models.py defines the ORM model UserTableConfig
-from .. import models # Adjusted import
+if TYPE_CHECKING:
+    from ..models import UserTableConfig
+
+# For runtime, we'll import the UserTableConfig class dynamically to avoid circular imports
 # schemas is not directly used here for UserTableConfig Pydantic models,
 # but functions accept dict for config_data. If Pydantic models were used for these,
 # they would be imported from .. import schemas.
@@ -17,17 +19,20 @@ logger = logging.getLogger(__name__)
 
 def create_table_config(db: Session, user_id: int, table_id: str, config_type: str,
                        name: str, config_data: Dict[str, Any], is_default: bool = False,
-                       is_shared: bool = False) -> 'models.UserTableConfig':
+                       is_shared: bool = False) -> 'UserTableConfig':
     """创建表格配置"""
+    # Dynamic import to avoid circular imports
+    from ..models import UserTableConfig
+    
     if is_default:
-        db.query(models.UserTableConfig).filter(
-            models.UserTableConfig.user_id == user_id,
-            models.UserTableConfig.table_id == table_id,
-            models.UserTableConfig.config_type == config_type,
-            models.UserTableConfig.is_default == True
+        db.query(UserTableConfig).filter(
+            UserTableConfig.user_id == user_id,
+            UserTableConfig.table_id == table_id,
+            UserTableConfig.config_type == config_type,
+            UserTableConfig.is_default == True
         ).update({"is_default": False}, synchronize_session=False) # Added synchronize_session
 
-    db_config = models.UserTableConfig(
+    db_config = UserTableConfig(
         user_id=user_id,
         table_id=table_id,
         config_type=config_type,
@@ -66,27 +71,33 @@ def create_table_config(db: Session, user_id: int, table_id: str, config_type: s
             detail="创建配置时发生数据库错误。"
         ) from e
 
-def get_table_config(db: Session, config_id: int) -> Optional['models.UserTableConfig']:
+def get_table_config(db: Session, config_id: int) -> Optional['UserTableConfig']:
     """获取单个表格配置"""
+    # Dynamic import to avoid circular imports
+    from ..models import UserTableConfig
+    
     try:
-        return db.query(models.UserTableConfig).filter(
-            models.UserTableConfig.id == config_id
+        return db.query(UserTableConfig).filter(
+            UserTableConfig.id == config_id
         ).first()
     except SQLAlchemyError as e:
         logger.error(f"SQLAlchemy error fetching table config {config_id}: {e}", exc_info=True)
         return None
 
-def get_table_configs(db: Session, user_id: int, table_id: str, config_type: str) -> List['models.UserTableConfig']:
+def get_table_configs(db: Session, user_id: int, table_id: str, config_type: str) -> List['UserTableConfig']:
     """获取用户的表格配置列表 (自己的和共享的)"""
+    # Dynamic import to avoid circular imports
+    from ..models import UserTableConfig
+    
     try:
-        configs = db.query(models.UserTableConfig).filter(
-            ((models.UserTableConfig.user_id == user_id) |
-             (models.UserTableConfig.is_shared == True)),
-            models.UserTableConfig.table_id == table_id,
-            models.UserTableConfig.config_type == config_type
+        configs = db.query(UserTableConfig).filter(
+            ((UserTableConfig.user_id == user_id) |
+             (UserTableConfig.is_shared == True)),
+            UserTableConfig.table_id == table_id,
+            UserTableConfig.config_type == config_type
         ).order_by(
-            models.UserTableConfig.is_default.desc(),
-            models.UserTableConfig.updated_at.desc() # Assuming updated_at exists and is a DateTime
+            UserTableConfig.is_default.desc(),
+            UserTableConfig.updated_at.desc() # Assuming updated_at exists and is a DateTime
         ).all()
         # No manual datetime to string conversion here
         return configs
@@ -98,11 +109,14 @@ def update_table_config(db: Session, config_id: int, user_id: int,
                         config_data: Optional[Dict[str, Any]] = None,
                         name: Optional[str] = None, 
                         is_default: Optional[bool] = None, 
-                        is_shared: Optional[bool] = None) -> Optional['models.UserTableConfig']:
+                        is_shared: Optional[bool] = None) -> Optional['UserTableConfig']:
     """更新表格配置. 只有配置的拥有者可以更新."""
-    db_config = db.query(models.UserTableConfig).filter(
-        models.UserTableConfig.id == config_id,
-        models.UserTableConfig.user_id == user_id
+    # Dynamic import to avoid circular imports
+    from ..models import UserTableConfig
+    
+    db_config = db.query(UserTableConfig).filter(
+        UserTableConfig.id == config_id,
+        UserTableConfig.user_id == user_id
     ).first()
 
     if not db_config:
@@ -123,12 +137,12 @@ def update_table_config(db: Session, config_id: int, user_id: int,
     if is_default is not None and is_default != db_config.is_default:
         update_fields_provided = True
         if is_default:
-            db.query(models.UserTableConfig).filter(
-                models.UserTableConfig.user_id == user_id,
-                models.UserTableConfig.table_id == db_config.table_id,
-                models.UserTableConfig.config_type == db_config.config_type,
-                models.UserTableConfig.id != config_id,
-                models.UserTableConfig.is_default == True
+            db.query(UserTableConfig).filter(
+                UserTableConfig.user_id == user_id,
+                UserTableConfig.table_id == db_config.table_id,
+                UserTableConfig.config_type == db_config.config_type,
+                UserTableConfig.id != config_id,
+                UserTableConfig.is_default == True
             ).update({"is_default": False}, synchronize_session=False) # Added synchronize_session
         db_config.is_default = is_default
     
@@ -164,11 +178,14 @@ def update_table_config(db: Session, config_id: int, user_id: int,
 
 def delete_table_config(db: Session, config_id: int, user_id: int) -> bool:
     """删除表格配置. 只有配置的拥有者可以删除."""
+    # Dynamic import to avoid circular imports
+    from ..models import UserTableConfig
+    
     try:
         # First, check if the config exists and belongs to the user
-        config_to_delete = db.query(models.UserTableConfig).filter(
-            models.UserTableConfig.id == config_id,
-            models.UserTableConfig.user_id == user_id
+        config_to_delete = db.query(UserTableConfig).filter(
+            UserTableConfig.id == config_id,
+            UserTableConfig.user_id == user_id
         ).first()
 
         if not config_to_delete:

@@ -84,7 +84,7 @@ class PayrollCalculationCRUD:
 -- 薪资相关Schema
 payroll.*
 ├── payroll_entries          # 薪资记录表
-├── payroll_runs            # 薪资运行表
+├── payroll_runs            # 薪资审核表
 ├── payroll_periods         # 薪资周期表
 └── payroll_component_configs # 薪资组件配置
 

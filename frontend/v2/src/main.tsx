@@ -60,3 +60,28 @@ root.render(
     </Provider>
   // </React.StrictMode>
 );
+
+// Initialize Stagewise toolbar in development mode only
+if (import.meta.env.DEV) {
+  import('@stagewise/toolbar-react').then(({ StagewiseToolbar }) => {
+    // Create a separate container for the toolbar
+    const toolbarContainer = document.createElement('div');
+    toolbarContainer.id = 'stagewise-toolbar-root';
+    document.body.appendChild(toolbarContainer);
+
+    // Create a separate React root for the toolbar
+    const toolbarRoot = ReactDOM.createRoot(toolbarContainer);
+    
+    // Basic toolbar configuration
+    const stagewiseConfig = {
+      plugins: []
+    };
+
+    // Render the toolbar in its own React root
+    toolbarRoot.render(
+      <StagewiseToolbar config={stagewiseConfig} />
+    );
+  }).catch((error) => {
+    console.warn('Failed to load Stagewise toolbar:', error);
+  });
+}

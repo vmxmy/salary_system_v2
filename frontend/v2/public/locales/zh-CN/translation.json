@@ -11,7 +11,7 @@
     "runs_page": {
       "form": {
         "placeholder": {
-          "payroll_period": "请选择薪资期间"
+          "payroll_period": "请选择薪资周期"
         }
       }
     }

@@ -36,7 +36,7 @@ async def get_payroll_periods(
     end_date: Optional[date] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
-    size: int = Query(10, ge=1, le=100, description="Page size"),
+    size: int = Query(50, ge=1, le=200, description="Page size"),
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["payroll_period:view"]))
 ):
@@ -49,7 +49,7 @@ async def get_payroll_periods(
     - **end_date**: 结束日期，用于过滤结束日期小于等于指定日期的工资周期
     - **search**: 搜索关键字，可以匹配工资周期名称
     - **page**: 页码，从1开始
-    - **size**: 每页记录数，最大100
+    - **size**: 每页记录数，最大200
     """
     try:
         # 计算跳过的记录数

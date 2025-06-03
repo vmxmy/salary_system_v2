@@ -67,7 +67,7 @@ const CalculationRuleSetManager: React.FC<CalculationRuleSetManagerProps> = ({
       ),
     },
     {
-      title: t('payroll:calculation_config.rules_count'),
+      title: String(t('payroll:calculation_config.rules_count')),
       key: 'rules_count',
       width: 100,
       render: (_, record) => record.rules?.length || 0,

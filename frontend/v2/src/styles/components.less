@@ -1,4 +1,5 @@
 // 组件样式规范
+@import './variables.less';
 @import './theme.less';
 
 // ===== 表格样式 =====
@@ -60,6 +61,64 @@
   .ant-table-cell-fix-left-last::after,
   .ant-table-cell-fix-right-first::after {
     box-shadow: inset 10px 0 8px -8px rgba(0, 0, 0, 0.08);
+  }
+  
+  // 修复固定列的层级问题 - 全局修复
+  .ant-table-cell-fix-left,
+  .ant-table-cell-fix-right {
+    z-index: 9 !important;
+    position: relative;
+    
+    // 悬停时提升层级
+    &:hover {
+      z-index: 11 !important;
+    }
+  }
+  
+  // 表格头部固定列
+  .ant-table-thead .ant-table-cell-fix-left,
+  .ant-table-thead .ant-table-cell-fix-right {
+    z-index: 10 !important;
+    position: relative;
+  }
+  
+  // 悬停行的固定列单元格
+  .ant-table-tbody > tr:hover > .ant-table-cell-fix-left,
+  .ant-table-tbody > tr:hover > .ant-table-cell-fix-right {
+    z-index: 11 !important;
+    position: relative;
+  }
+  
+  // 更精确的固定列修复 - 针对ping-right场景
+  .ant-table-container .ant-table-ping-right .ant-table-cell-fix-right {
+    z-index: 15 !important;
+    position: relative;
+    background-color: #fff;
+  }
+  
+  // 表头固定列需要更高的层级
+  .ant-table-container .ant-table-ping-right .ant-table-header .ant-table-cell-fix-right {
+    z-index: 16 !important;
+    position: relative;
+    background-color: #fafafa; // 与表头背景保持一致
+  }
+  
+  // 确保hover行的z-index不会过高
+  .ant-table-tbody > tr:hover {
+    // 移除可能导致层级问题的z-index设置
+    z-index: unset;
+  }
+  
+  // 特别处理可能存在的操作列
+  .ant-table-cell-fix-right:last-child {
+    z-index: 20 !important;
+    background-color: inherit;
+    
+    // 当行hover时，确保操作列背景正确
+    .ant-table-tbody > tr:hover > & {
+      background-color: @table-row-hover-bg !important;
+      z-index: 21 !important;
+    }
   }
 }
 

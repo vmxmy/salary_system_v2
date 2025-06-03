@@ -586,9 +586,9 @@ const MainLayout: React.FC = () => {
   }, [defaultOpenKeys, openKeys.length]);
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="min-height-full-viewport">
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme="light">
-        <div style={{ height: '32px', margin: '16px', background: 'rgba(0, 0, 0, 0.05)', textAlign: 'center', lineHeight: '32px', color: '#454552', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <div className="sider-header-style">
           {collapsed ? t('common:sider.title.collapsed'): t('common:sider.title.full')}
         </div>
         <Menu
@@ -602,22 +602,18 @@ const MainLayout: React.FC = () => {
         />
       </Sider>
       <Layout className="site-layout">
-        <Header style={{ padding: '0 16px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Header className="main-header-style">
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: '16px',
-              width: 64,
-              height: 64,
-            }}
+            className="main-layout-collapsed-button-style"
           />
-          <Space style={{ padding: '0 8px', borderRadius: '4px', border: '1px solid rgba(5, 5, 5, 0.06)' }}>
+          <Space className="header-space-style">
             <LanguageSwitcher />
-            <Text style={{ marginLeft: '8px' }}>{currentUser?.username || t('user_menu:default_user_text')}</Text>
+            <Text className="margin-left-8">{currentUser?.username || t('user_menu:default_user_text')}</Text>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Avatar style={{ cursor: 'pointer' }} icon={<UserOutlined />} /* src={currentUser?.avatar_url} // 假设有头像 */ />
+              <Avatar className="cursor-pointer" icon={<UserOutlined />} /* src={currentUser?.avatar_url} // 假设有头像 */ />
             </Dropdown>
           </Space>
         </Header>

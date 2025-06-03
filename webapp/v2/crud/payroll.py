@@ -70,13 +70,40 @@ def get_payroll_periods(
         selectinload(PayrollPeriod.frequency)
     ).offset(skip).limit(limit)
     
-    return query.all(), total
+    periods = query.all()
+    
+    # 为每个期间计算不重复的员工数
+    for period in periods:
+        # 通过 payroll_runs 和 payroll_entries 计算该期间的不重复员工数
+        employee_count = db.query(PayrollEntry.employee_id).join(
+            PayrollRun, PayrollEntry.payroll_run_id == PayrollRun.id
+        ).filter(
+            PayrollRun.payroll_period_id == period.id
+        ).distinct().count()
+        
+        # 动态添加 employee_count 属性
+        period.employee_count = employee_count
+    
+    return periods, total
 
 def get_payroll_period(db: Session, period_id: int) -> Optional[PayrollPeriod]:
-    return db.query(PayrollPeriod).options(
+    period = db.query(PayrollPeriod).options(
         selectinload(PayrollPeriod.status_lookup),
         selectinload(PayrollPeriod.frequency)
     ).filter(PayrollPeriod.id == period_id).first()
+    
+    if period:
+        # 计算该期间的不重复员工数
+        employee_count = db.query(PayrollEntry.employee_id).join(
+            PayrollRun, PayrollEntry.payroll_run_id == PayrollRun.id
+        ).filter(
+            PayrollRun.payroll_period_id == period.id
+        ).distinct().count()
+        
+        # 动态添加 employee_count 属性
+        period.employee_count = employee_count
+    
+    return period
 
 def create_payroll_period(db: Session, payroll_period: PayrollPeriodCreate) -> PayrollPeriod:
     existing = db.query(PayrollPeriod).filter(
@@ -188,26 +215,31 @@ def get_payroll_run(db: Session, run_id: int, include_employee_details: bool = F
     # 如果需要包含员工详细信息，加载entries和employee
     if include_employee_details:
         query = query.options(
-            selectinload(PayrollRun.entries).selectinload(PayrollEntry.employee)
+            selectinload(PayrollRun.payroll_entries).selectinload(PayrollEntry.employee)
         )
     
     run = query.filter(PayrollRun.id == run_id).first()
     
+    print(f"CRUD: Fetched run: {run}")
+
     if run:
         # 计算该 run 下的员工数量
         employee_count = db.query(PayrollEntry.employee_id).filter(
             PayrollEntry.payroll_run_id == run.id
         ).distinct().count()
+        print(f"CRUD: Calculated employee_count: {employee_count}")
         
         # 计算该 run 下的薪资总额
         total_net_pay = db.query(func.sum(PayrollEntry.net_pay)).filter(
             PayrollEntry.payroll_run_id == run.id
         ).scalar() or Decimal(0)
+        print(f"CRUD: Calculated total_net_pay: {total_net_pay}")
         
         # 动态添加 total_employees 和 total_net_pay 属性
         run.total_employees = employee_count
         run.total_net_pay = total_net_pay
     
+    print(f"CRUD: Returning run: {run}")
     return run
 
 def create_payroll_run(db: Session, payroll_run: PayrollRunCreate, initiated_by_user_id: Optional[int] = None) -> PayrollRun:
@@ -253,13 +285,22 @@ def patch_payroll_run(db: Session, run_id: int, run_data: PayrollRunPatch) -> Op
         raise
 
 def delete_payroll_run(db: Session, run_id: int) -> bool:
+    from ..models.calculation_rules import CalculationLog  # Import here to avoid circular imports
+    
     db_payroll_run = get_payroll_run(db, run_id)
     if not db_payroll_run:
         return False
-    # Consider if deletion should be blocked if entries exist
-    # has_entries = db.query(PayrollEntry).filter(PayrollEntry.payroll_run_id == run_id).first() is not None
-    # if has_entries:
-    #     raise ValueError("Cannot delete payroll run with associated payroll entries")
+    
+    # Check if there are associated payroll entries
+    has_entries = db.query(PayrollEntry).filter(PayrollEntry.payroll_run_id == run_id).first() is not None
+    if has_entries:
+        raise ValueError("无法删除该薪资运行，因为它包含关联的薪资条目数据。请先删除相关的薪资条目记录。")
+    
+    # Check if there are associated calculation logs
+    has_calculation_logs = db.query(CalculationLog).filter(CalculationLog.payroll_run_id == run_id).first() is not None
+    if has_calculation_logs:
+        raise ValueError("无法删除该薪资运行，因为它包含关联的计算日志数据。请先删除相关的计算日志记录。")
+    
     db.delete(db_payroll_run)
     db.commit()
     return True
@@ -410,6 +451,67 @@ def get_payroll_entries(
         query = query.options(*options)
         
     entries = query.offset(skip).limit(limit).all()
+    
+    # 处理每个entry的JSONB字段，确保正确序列化
+    for entry in entries:
+        # 确保JSONB字段被正确处理 - 避免直接修改ORM对象的属性
+        if hasattr(entry, 'earnings_details') and entry.earnings_details is not None:
+            # 创建一个新的字典而不是直接修改ORM对象
+            if isinstance(entry.earnings_details, dict):
+                entry.earnings_details = convert_decimals_to_float(entry.earnings_details)
+            elif isinstance(entry.earnings_details, str):
+                # 如果是字符串，尝试解析为JSON
+                import json
+                try:
+                    parsed_earnings = json.loads(entry.earnings_details)
+                    entry.earnings_details = convert_decimals_to_float(parsed_earnings)
+                except (json.JSONDecodeError, TypeError):
+                    entry.earnings_details = {}
+        
+        if hasattr(entry, 'deductions_details') and entry.deductions_details is not None:
+            if isinstance(entry.deductions_details, dict):
+                entry.deductions_details = convert_decimals_to_float(entry.deductions_details)
+            elif isinstance(entry.deductions_details, str):
+                import json
+                try:
+                    parsed_deductions = json.loads(entry.deductions_details)
+                    entry.deductions_details = convert_decimals_to_float(parsed_deductions)
+                except (json.JSONDecodeError, TypeError):
+                    entry.deductions_details = {}
+        
+        if hasattr(entry, 'calculation_inputs') and entry.calculation_inputs is not None:
+            if isinstance(entry.calculation_inputs, dict):
+                entry.calculation_inputs = convert_decimals_to_float(entry.calculation_inputs)
+            elif isinstance(entry.calculation_inputs, str):
+                import json
+                try:
+                    parsed_inputs = json.loads(entry.calculation_inputs)
+                    entry.calculation_inputs = convert_decimals_to_float(parsed_inputs)
+                except (json.JSONDecodeError, TypeError):
+                    entry.calculation_inputs = {}
+        
+        if hasattr(entry, 'calculation_log') and entry.calculation_log is not None:
+            if isinstance(entry.calculation_log, dict):
+                entry.calculation_log = convert_decimals_to_float(entry.calculation_log)
+            elif isinstance(entry.calculation_log, str):
+                import json
+                try:
+                    parsed_log = json.loads(entry.calculation_log)
+                    entry.calculation_log = convert_decimals_to_float(parsed_log)
+                except (json.JSONDecodeError, TypeError):
+                    entry.calculation_log = {}
+            
+        # 如果需要员工详情，添加员工姓名
+        if include_employee_details and entry.employee:
+            last_name = entry.employee.last_name or ''
+            first_name = entry.employee.first_name or ''
+            if last_name and first_name:
+                entry.employee_name = f"{last_name} {first_name}"
+            else:
+                entry.employee_name = (last_name + first_name).strip()
+        else:
+            entry.employee_name = None
+    
     return entries, total
 
 def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool = True) -> Optional[PayrollEntry]:

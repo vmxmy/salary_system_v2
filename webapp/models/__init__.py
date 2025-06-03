@@ -1,5 +1,6 @@
 # webapp/models/__init__.py
 
+# Import functions from submodules only
 from .role import *
 from .user import *
 from .employee import *

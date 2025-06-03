@@ -36,7 +36,7 @@
     "bulkImport": "薪资批量导入",
     "components": "薪资组成",
     "entry": "薪资录入",
-    "periods": "薪资期间",
+    "periods": "薪资周期",
     "runs": "薪资审核",
     "title": "薪资管理",
     "runDetail": "薪资审核详情",

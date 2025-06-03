@@ -34,26 +34,26 @@
     "planned": "Planned"
   },
   "payroll_periods_page": {
-    "batch_delete_button_text": "",
-    "batch_delete_failure": "",
-    "batch_delete_success": "",
-    "confirm_batch_delete_content": "",
-    "confirm_batch_delete_title": "",
-    "confirm_delete_content": "",
-    "confirm_delete_title": "",
-    "delete_failure": "",
-    "delete_success": "",
-    "export_button_text": "",
-    "export_filename_prefix": "",
-    "export_sheet_name": "",
-    "export_success_message": "",
+    "batch_delete_button_text": "Batch Delete",
+    "batch_delete_failure": "Batch delete failed: {error}",
+    "batch_delete_success": "Batch delete successful!",
+    "confirm_batch_delete_content": "Are you sure you want to delete the selected payroll periods?",
+    "confirm_batch_delete_title": "Confirm Batch Delete",
+    "confirm_delete_content": "Are you sure you want to delete this payroll period? This action cannot be undone.",
+    "confirm_delete_title": "Confirm Delete",
+    "delete_failure": "Failed to delete payroll period",
+    "delete_success": "Payroll period deleted successfully",
+    "export_button_text": "Export Excel",
+    "export_filename_prefix": "Payroll_Periods_",
+    "export_sheet_name": "Period Data",
+    "export_success_message": "Export successful",
     "message": {
       "create_failed": "Failed to create payroll period.",
       "create_success": "Payroll period created successfully!",
       "update_failed": "Failed to update payroll period.",
       "update_success": "Payroll period updated successfully!"
     },
-    "no_selection_message": "",
+    "no_selection_message": "Please select at least one record",
     "table": {
       "column_end_date": "End Date",
       "column_frequency": "Frequency",
@@ -65,14 +65,14 @@
     }
   },
   "table": {
-    "column_employee_count": "",
+    "column_employee_count": "Employee Count",
     "status": {
-      "loading": "",
-      "no_data": ""
+      "loading": "Loading...",
+      "no_data": "No Data"
     },
     "tooltip": {
-      "employee_count_has_data": "",
-      "employee_count_no_data": ""
+      "employee_count_has_data": "Employee count available",
+      "employee_count_no_data": "No employee data"
     }
   }
 }

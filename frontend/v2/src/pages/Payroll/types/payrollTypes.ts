@@ -18,6 +18,7 @@ export interface PayrollPeriod {
   frequency_lookup_value_id: number;
   status_lookup_value_id?: number; // 关联到lookup表的状态ID
   status_lookup?: LookupValue; // 状态的lookup值详情
+  employee_count?: number; // 该期间的不重复员工数统计
   created_at?: string;
   updated_at?: string;
 }

@@ -1,0 +1,20 @@
+{
+  "table": {
+    "column_id": "ID",
+    "column_employee_name": "员工姓名",
+    "column_gross_pay": "应发工资",
+    "column_total_deductions": "总扣除",
+    "column_net_pay": "实发工资",
+    "column_status": "状态",
+    "column_remarks": "备注"
+  },
+  "create_entry": "新增薪资条目",
+  "confirm_delete_title": "确认删除",
+  "confirm_delete_content": "您确定要删除这个薪资条目吗？此操作不可撤销。",
+  "delete_success": "薪资条目删除成功",
+  "delete_failure": "薪资条目删除失败",
+  "export_filename_prefix": "薪资条目",
+  "export_sheet_name": "薪资条目",
+  "export_button_text": "导出Excel",
+  "export_success_message": "薪资条目导出成功"
+} 

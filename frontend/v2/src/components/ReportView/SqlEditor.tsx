@@ -243,18 +243,20 @@ GROUP BY field1`,
         <Col>
           <Space>
             <Dropdown
-              overlay={
-                <Menu>
-                  {sqlTemplates.map((templateItem, index) => (
-                    <Menu.Item key={index} onClick={() => insertTemplate(templateItem.template)}>
-                      {templateItem.name}
-                    </Menu.Item>
-                  ))}
-                </Menu>
-              }
+              menu={{
+                items: sqlTemplates.map((templateItem, index) => ({
+                  key: String(index),
+                  label: (
+                    <a onClick={() => insertTemplate(templateItem.template)}>{templateItem.name}</a>
+                  ),
+                }))
+              }}
               trigger={['click']}
             >
-              <Button>{t('components:sql_editor.templates')}<DownOutlined /></Button>
+              <Button>
+                {t('components:sql_editor.insert_template')}
+                <DownOutlined />
+              </Button>
             </Dropdown>
             <Button
               type="primary"

@@ -10,6 +10,7 @@ import PayrollBulkImportPage from './pages/PayrollBulkImportPage';
 import PayrollComponentsPage from './pages/PayrollComponentsPage';
 import PayrollCalculationConfigPage from './pages/PayrollCalculationConfigPage';
 import AttendanceManagementPage from './pages/AttendanceManagementPage';
+import PayrollPeriodDetailPage from './pages/PayrollPeriodDetailPage';
 import {
   P_PAYROLL_PERIOD_VIEW,
   P_PAYROLL_RUN_VIEW,
@@ -40,6 +41,14 @@ export const payrollRoutes: AppRouteObject[] = [
     meta: {
       title: 'pageTitle:payroll_periods', // 修改为使用pageTitle命名空间
       requiredPermissions: [P_PAYROLL_PERIOD_VIEW],
+    },
+  },
+  {
+    path: 'periods/:periodId',
+    element: React.createElement(PayrollPeriodDetailPage),
+    meta: {
+      title: 'pageTitle:payroll_period_detail', // New translation key for payroll period detail
+      requiredPermissions: [P_PAYROLL_PERIOD_VIEW], 
     },
   },
   {

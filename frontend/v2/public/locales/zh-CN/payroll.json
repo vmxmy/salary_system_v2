@@ -126,11 +126,11 @@
       "total_deductions": "扣款总额"
     },
     "help": {
-      "overwrite_mode": "覆盖模式将更新已存在的相同薪资期间和员工的记录。",
+      "overwrite_mode": "覆盖模式将更新已存在的相同薪资周期和员工的记录。",
       "validation_mode_tooltip": "严格模式会校验所有字段；宽松模式仅校验核心字段。"
     },
     "label": {
-      "period_selection": "薪资期间选择"
+      "period_selection": "薪资周期选择"
     },
     "mapping": {
       "actual_amount": "实发数",
@@ -230,7 +230,7 @@
       "json_not_array": "JSON 不是数组",
       "no_data_to_upload": "没有数据可上传",
       "no_valid_data_to_upload": "没有有效数据可上传",
-      "period_required": "薪资期间为必填项"
+      "period_required": "薪资周期为必填项"
     }
   },
   "break_duration": "",
@@ -298,7 +298,7 @@
     "confirm_failed": "确认计算失败",
     "employee_count": "员工数",
     "load_failed": "加载计算预览失败",
-    "preview_description": "请仔细核对各项金额。确认无误后，点击“确认计算”按钮。",
+    "preview_description": "请仔细核对各项金额。确认无误后，点击\"确认计算\"按钮。",
     "preview_notice": "请注意：以下是本次薪资计算的预览结果。",
     "summary": "汇总统计",
     "sync_mode": "同步模式",
@@ -368,6 +368,7 @@
   "date_range": "",
   "deactivate": "",
   "delete_failed": "删除失败",
+  "error_delete_conflict_associated_data": "无法删除该薪资运行，因为它包含关联数据。请先删除相关的薪资条目或计算日志记录。",
   "delete_success": "删除成功",
   "early_leave": "",
   "early_leave_count": "",
@@ -425,7 +426,7 @@
     "net_pay": "实发工资",
     "not_found": "未找到",
     "notes": "备注",
-    "payroll_period": "薪资期间",
+    "payroll_period": "薪资周期",
     "personnel_category": "人员类别",
     "salary_summary_title": "薪资汇总",
     "status": "状态",
@@ -487,7 +488,10 @@
     "message": {
       "operation_success": ""
     },
-    "title": "工资记录"
+    "title": "工资记录",
+    "button": {
+      "add_entry": "新增记录"
+    }
   },
   "entry_status": {
     "approved": "",
@@ -516,7 +520,7 @@
   "mark_as_paid_success": "成功标记为已支付",
   "maternity_leave": "",
   "net_salary": "实发工资",
-  "no_payroll_period": "未找到薪资期间信息，无法执行计算。",
+  "no_payroll_period": "未找到薪资周期信息，无法执行计算。",
   "normal": "",
   "notes": "备注",
   "notes_placeholder": "请输入备注",
@@ -538,10 +542,9 @@
     },
     "spin_loading_entries": "",
     "tooltip_edit_entry": "",
-    "tooltip_view_details": "",
     "total_entries_other": ""
   },
-  "payroll_period": "薪资期间",
+  "payroll_period": "薪资周期",
   "payroll_period_selector": {
     "title": "选择薪资周期"
   },
@@ -570,13 +573,13 @@
   "runs_page": {
     "form": {
       "placeholder": {
-        "payroll_period": "请选择薪资期间"
+        "payroll_period": "请选择薪资周期"
       }
     }
   },
   "select_attendance_period": "",
   "select_leave_type": "",
-  "select_payroll_period": "请选择薪资期间",
+  "select_payroll_period": "请选择薪资周期",
   "select_status": "请选择状态",
   "sick_leave": "",
   "social_insurance_employee": "代扣社保 (个人)",
@@ -611,5 +614,19 @@
       "unknown_status_param": "未知状态 (ID: {{statusId}})",
       "status_na": "无状态"
     }
-  }
+  },
+  "payroll_entry_status": {
+    "pending_calculation": "待计算",
+    "calculated": "已计算",
+    "pending_confirmation": "待确认",
+    "confirmed": "已确认",
+    "adjusted": "已调整",
+    "archived": "已归档",
+    "error": "错误",
+    "draft": "草稿"
+  },
+  "export_excel": "导出Excel",
+  "pdf_export_not_supported": "PDF导出功能需要额外的库支持，当前为演示模式",
+  "detail_page_title": "薪资运行详情",
+  "edit_entry_details": "编辑条目详情"
 }

@@ -14,7 +14,8 @@ import {
   createPayrollPeriod, 
   updatePayrollPeriod, 
   deletePayrollPeriod,
-  getPayrollRuns
+  getPayrollRuns,
+  getPayrollEntries
 } from '../services/payrollApi';
 import { P_PAYROLL_PERIOD_MANAGE } from '../constants/payrollPermissions';
 import PermissionGuard from '../../../components/common/PermissionGuard';
@@ -51,8 +52,7 @@ const generatePayrollPeriodTableColumns = (
   onEdit: (period: PayrollPeriod) => void,
   onDelete: (periodId: string) => void,
   onViewDetails: (periodId: string) => void,
-  statusOptions: DynamicStatusOption[],
-  periodDataStats: Record<number, { count: number; loading: boolean }>
+  statusOptions: DynamicStatusOption[]
 ): ProColumns<PayrollPeriod>[] => {
   const columns: ProColumns<PayrollPeriod>[] = [
     {
@@ -154,30 +154,21 @@ const generatePayrollPeriodTableColumns = (
     },
     {
       title: t('payroll_periods:table.column_employee_count'),
-      dataIndex: 'data_stats',
-      key: 'data_stats',
+      dataIndex: 'employee_count',
+      key: 'employee_count',
       width: 120,
       align: 'center',
       valueType: 'text',
       render: (_, record) => {
-        const dataStats = periodDataStats[record.id];
-        const isLoadingStats = dataStats?.loading ?? true;
-        const recordCount = dataStats?.count ?? 0;
+        const employeeCount = (record as any).employee_count ?? 0;
         
-        if (isLoadingStats) {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-              <LoadingOutlined style={{ fontSize: '12px', color: '#1890ff' }} />
-              <span style={{ fontSize: '12px', color: '#1890ff' }}>{t('payroll_periods:table.status.loading')}</span>
-            </div>
-          );
-        } else if (recordCount > 0) {
+        if (employeeCount > 0) {
           return (
             <Tooltip title={t('payroll_periods:table.tooltip.employee_count_has_data')}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 <DatabaseOutlined style={{ fontSize: '14px', color: '#52c41a' }} />
                 <span style={{ fontSize: '12px', color: '#52c41a', fontWeight: '500' }}>
-                  {recordCount}人
+                  {employeeCount}人
                 </span>
               </div>
             </Tooltip>
@@ -242,8 +233,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
   const [dataSource, setDataSource] = useState<PayrollPeriod[]>([]);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [statusOptions, setStatusOptions] = useState<DynamicStatusOption[]>([]);
-  const [periodDataStats, setPeriodDataStats] = useState<Record<number, { count: number; loading: boolean }>>({});
-  
+
   // 表单模态框状态
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentPeriod, setCurrentPeriod] = useState<PayrollPeriod | null>(null);
@@ -252,7 +242,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
   // 服务器端查询参数状态
   const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
-    page_size: 20,
+    page_size: 50,
     filters: {},
     sorting: [],
     search: '',
@@ -339,56 +329,36 @@ const PayrollPeriodsPageV2: React.FC = () => {
     loadStatusOptions();
   }, []);
 
-  // 加载并更新每个薪资周期的统计数据 (运行数量)
-  const loadPeriodDataStats = useCallback(async (periods: PayrollPeriod[]) => {
-    // Ensure periods is an array before mapping over it
-    if (!Array.isArray(periods)) {
-      console.error("Expected 'periods' to be an array, but received:", periods);
-      return;
-    }
-
-    const statsPromises = periods.map(async (period: PayrollPeriod) => {
-      try {
-        setPeriodDataStats(prev => ({ ...prev, [period.id]: { count: 0, loading: true } }));
-        // Change payroll_period_id to period_id as per API expectation
-        const runs = await getPayrollRuns({ period_id: period.id });
-        setPeriodDataStats(prev => ({ ...prev, [period.id]: { count: runs.data.length, loading: false } })); // Access the 'data' property
-      } catch (error) {
-        console.error(`Failed to fetch runs for period ${period.id}:`, error);
-        setPeriodDataStats(prev => ({ ...prev, [period.id]: { count: 0, loading: false } }));
-      }
-    });
-    await Promise.all(statsPromises);
-  }, []);
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // 当dataSource更新时，加载统计数据
-  useEffect(() => {
-    if (dataSource.length > 0) {
-      loadPeriodDataStats(dataSource);
-    }
-  }, [dataSource, loadPeriodDataStats]);
-
   // 处理删除
   const handleDelete = useCallback(async (periodId: string) => {
-    Modal.confirm({
-      title: t('payroll_periods_page.confirm_delete_title'),
-      content: t('payroll_periods_page.confirm_delete_content'),
-      okText: t('common:button.delete'),
-      cancelText: t('common:button.cancel'),
-      onOk: async () => {
-        try {
-          await deletePayrollPeriod(parseInt(periodId, 10)); // Convert to number
-          messageApi.success(t('payroll_periods_page.delete_success'));
-          fetchData(); // 重新加载数据
-        } catch (error) {
-          messageApi.error(t('payroll_periods_page.delete_failure'));
-        }
-      },
-    });
+    try {
+      await deletePayrollPeriod(parseInt(periodId, 10)); // Convert to number
+      messageApi.success(t('payroll_periods_page.delete_success'));
+      fetchData(); // 重新加载数据
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      
+      // 提取具体的错误信息
+      let errorMessage = t('payroll_periods_page.delete_failure');
+      
+      if (error?.response?.data?.detail?.error?.details) {
+        // 后端返回的具体错误信息
+        errorMessage = error.response.data.detail.error.details;
+      } else if (error?.response?.data?.detail?.details) {
+        // 备用错误信息格式
+        errorMessage = error.response.data.detail.details;
+      } else if (error?.response?.status === 409) {
+        // 409 冲突错误的通用提示
+        errorMessage = '无法删除该薪资周期，因为它包含关联的薪资审核数据。请先删除相关的薪资审核记录。';
+      }
+      
+      messageApi.error(errorMessage);
+      throw error; // 重新抛出错误，让 StandardListPageTemplate 知道删除失败
+    }
   }, [messageApi, t, fetchData]);
 
   // 处理编辑
@@ -399,7 +369,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
 
   // 处理查看详情
   const handleViewDetails = useCallback((periodId: string) => {
-    navigate(`/finance/payroll/runs/${periodId}`);
+    navigate(`/finance/payroll/periods/${periodId}`);
   }, [navigate]);
 
   // 处理搜索
@@ -431,7 +401,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
       setQueryParams(prev => ({
         ...prev,
         page: pagination.current || 1,
-        page_size: pagination.pageSize || 20,
+        page_size: pagination.pageSize || 50,
         sorting: newSorting,
         filters: newFilters,
       }));
@@ -449,10 +419,9 @@ const PayrollPeriodsPageV2: React.FC = () => {
       handleEdit,
       handleDelete,
       handleViewDetails,
-      statusOptions,
-      periodDataStats
+      statusOptions
     ),
-    [t, getColumnSearch, lookupMaps, permissions, handleEdit, handleDelete, handleViewDetails, statusOptions, periodDataStats]
+    [t, getColumnSearch, lookupMaps, permissions, handleEdit, handleDelete, handleViewDetails, statusOptions]
   );
 
   const combinedLoading = loadingData || loadingLookups;
@@ -483,8 +452,7 @@ const PayrollPeriodsPageV2: React.FC = () => {
             onEdit,
             onDelete,
             onViewDetails,
-            statusOptions,
-            periodDataStats
+            statusOptions
           )
         }
         deleteConfirmConfig={deleteConfirmConfig}
