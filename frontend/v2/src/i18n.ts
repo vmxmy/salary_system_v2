@@ -29,15 +29,18 @@ export const i18nInitOptions = {
     'myInfo', 
     'profile',
     'user_profile',
+    'pageTitle',
+    'payroll',
+    'payroll_runs',
+    'permission',
     'personnelCategory',
     'hr',
     'tour',
     'user_menu',
     'report',
-    'employee',
     'role',
-    'admin', // Added admin namespace
-    'menu' // Added menu namespace
+    'user',
+    'menu'
   ],
   defaultNS: 'common', 
   backend: {
@@ -51,6 +54,7 @@ export const i18nInitOptions = {
     keySeparator: '.', // 显式设置键分隔符
     nsSeparator: ':',  // 显式设置命名空间分隔符
   },
+  returnObjects: true, // 启用返回对象选项，解决访问对象警告
   detection: {
     order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag'],
     caches: ['localStorage', 'cookie'], // Add common caches

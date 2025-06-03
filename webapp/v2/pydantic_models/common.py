@@ -15,21 +15,20 @@ class DataResponse(BaseModel, Generic[T]):
     class Config:
         from_attributes = True
 
-class ListMeta(BaseModel):
-    """列表响应的元数据模型"""
-    page: int = Field(..., description="当前页码")
-    size: int = Field(..., description="每页记录数")
-    total: int = Field(..., description="总记录数")
-    totalPages: int = Field(..., description="总页数")
-    
-    class Config:
-        from_attributes = True
+class PaginationMeta(BaseModel):
+    page: int = Field(1, description="当前页码")
+    size: int = Field(10, description="每页记录数")
+    total: int = Field(0, description="总记录数")
+    totalPages: int = Field(1, description="总页数")
 
-class ListResponse(BaseModel, Generic[T]):
-    """列表资源的标准响应模型"""
-    data: List[T] = Field(..., description="数据列表")
-    meta: ListMeta = Field(..., description="分页元数据")
-    
+class PaginationResponse(BaseModel, Generic[T]):
+    """
+    通用的分页响应模型。
+    适用于所有返回列表数据且包含分页信息的API。
+    """
+    data: List[T] = Field(..., description="列表数据")
+    meta: PaginationMeta = Field(..., description="分页元数据")
+
     class Config:
         from_attributes = True
 

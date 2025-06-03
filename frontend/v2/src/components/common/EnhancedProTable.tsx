@@ -225,7 +225,6 @@ function EnhancedProTable<T extends Record<string, any>>({
         setting: {
           draggable: true,
           checkable: true,
-          // You might want to provide `columns` to `setting` if you're dynamically managing columns
         },
         fullScreen: true, // ProTable's built-in fullscreen button
         // Note: If you use ProTable's `fullScreen: true`,

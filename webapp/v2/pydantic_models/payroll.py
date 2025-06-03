@@ -10,6 +10,7 @@ from decimal import Decimal
 from .config import LookupValue
 # 导入 EmployeeWithNames 模型
 from .hr import EmployeeWithNames
+from .common import PaginationResponse, PaginationMeta
 
 # Helper model for detail items in create/update payloads
 class PayrollItemInput(BaseModel):
@@ -62,12 +63,9 @@ class PayrollPeriod(PayrollPeriodBase):
         from_attributes = True
 
 
-class PayrollPeriodListResponse(BaseModel):
+class PayrollPeriodListResponse(PaginationResponse[PayrollPeriod]):
     """工资周期列表响应模型"""
-    data: List[PayrollPeriod]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
+    pass
 
 
 # PayrollRun Models
@@ -116,12 +114,9 @@ class PayrollRun(PayrollRunBase):
         from_attributes = True
 
 
-class PayrollRunListResponse(BaseModel):
+class PayrollRunListResponse(PaginationResponse[PayrollRun]):
     """工资运行批次列表响应模型"""
-    data: List[PayrollRun]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
+    pass
 
 
 # PayrollEntry Models
@@ -141,8 +136,21 @@ class PayrollEntryBase(BaseModel):
     remarks: Optional[str] = Field(None, description="Remarks for this payroll entry")
 
 
-class PayrollEntryCreate(PayrollEntryBase):
+class PayrollEntryCreate(BaseModel):
     """创建工资明细模型"""
+    # 员工ID可选，如果未提供则通过employee_info进行匹配
+    employee_id: Optional[int] = Field(None, description="Foreign key to employees, optional for bulk import")
+    payroll_period_id: int = Field(..., description="Foreign key to the payroll period")
+    payroll_run_id: int = Field(..., description="Foreign key to the specific payroll run this result belongs to")
+    gross_pay: Decimal = Field(0, description="Total gross pay (應發合計)")
+    total_deductions: Decimal = Field(0, description="Total deductions (應扣合計)")
+    net_pay: Decimal = Field(0, description="Total net pay (實發合計)")
+    earnings_details: Dict[str, PayrollItemInput] = Field({}, description="收入项详情, e.g., {'SALARY': {'amount': 5000}}")
+    deductions_details: Dict[str, PayrollItemInput] = Field({}, description="扣除项详情, e.g., {'TAX': {'amount': 500}}")
+    calculation_inputs: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation input values")
+    calculation_log: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation log/details")
+    status_lookup_value_id: int = Field(..., description="Foreign key to payroll entry status")
+    remarks: Optional[str] = Field(None, description="Remarks for this payroll entry")
     # 可选的员工匹配信息，用于批量导入时根据姓名+身份证匹配员工
     employee_info: Optional[Dict[str, str]] = Field(None, description="员工匹配信息，包含last_name, first_name, id_number")
 
@@ -196,13 +204,26 @@ class PayrollEntry(PayrollEntryBase):
         from_attributes = True
 
 
-class PayrollEntryListResponse(BaseModel):
+class PayrollEntryListResponse(PaginationResponse[PayrollEntry]):
     """工资明细列表响应模型"""
-    data: List[PayrollEntry]
-    meta: Optional[Dict[str, Any]] = None
+    pass
 
 
 # 批量导入相关模型
+class BulkValidatePayrollEntriesPayload(BaseModel):
+    """批量验证薪资明细的请求模型"""
+    payroll_period_id: int = Field(..., description="薪资周期ID")
+    entries: List[PayrollEntryCreate] = Field(..., description="待验证的薪资明细列表")
+
+class BulkValidatePayrollEntriesResult(BaseModel):
+    """批量验证薪资明细的响应模型"""
+    total: int = Field(..., description="总记录数")
+    valid: int = Field(..., description="有效记录数")
+    invalid: int = Field(..., description="无效记录数")
+    warnings: int = Field(..., description="警告记录数")
+    errors: List[str] = Field([], description="全局错误信息列表")
+    validatedData: List[Dict[str, Any]] = Field([], description="验证后的数据列表，包含验证状态和错误信息")
+
 class BulkCreatePayrollEntriesPayload(BaseModel):
     """批量创建工资明细的请求模型"""
     payroll_period_id: int = Field(..., description="工资周期ID")
@@ -285,40 +306,8 @@ class PayrollComponentDefinition(PayrollComponentDefinitionBase):
     
     class Config:
         from_attributes = True
-        
-    # @classmethod
-    # def from_db_model(cls, db_model): # Comment out or remove existing from_db_model
-    #     """将数据库模型转换为Pydantic模型"""
-    #     data = {
-    #         "id": db_model.id,
-    #         "code": db_model.code,
-    #         "name": db_model.name,
-    #         "type": db_model.type,
-    #         "calculation_method": db_model.calculation_method,
-    #         "calculation_parameters": db_model.calculation_parameters,
-    #         "is_taxable": db_model.is_taxable,
-    #         "is_social_security_base": db_model.is_social_security_base,
-    #         "is_housing_fund_base": db_model.is_housing_fund_base,
-    #         "effective_date": db_model.effective_date,
-    #         "end_date": db_model.end_date,
-    #         "display_order": db_model.display_order, 
-    #         "is_active": db_model.is_active,      
-    #         # "is_enabled": db_model.is_active, # No longer needed here
-    #         # "sort_order": db_model.display_order, # No longer needed here
-    #         "data_type": getattr(db_model, 'data_type', "numeric"), 
-    #         "is_fixed": getattr(db_model, 'is_fixed', False),
-    #         "is_employee_specific": getattr(db_model, 'is_employee_specific', True),
-    #         "description": getattr(db_model, 'description', None),
-    #         "calculation_logic": getattr(db_model, 'calculation_logic', None),
-    #         "created_at": getattr(db_model, 'created_at', None),
-    #         "updated_at": getattr(db_model, 'updated_at', None),
-    #     }
-    #     return cls(**data)
 
 
-class PayrollComponentDefinitionListResponse(BaseModel):
+class PayrollComponentDefinitionListResponse(PaginationResponse[PayrollComponentDefinition]):
     """薪资字段定义列表响应模型"""
-    data: List[PayrollComponentDefinition]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
+    pass

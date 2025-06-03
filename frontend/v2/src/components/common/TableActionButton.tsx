@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons';
 
 interface TableActionButtonProps extends ButtonProps {
-  actionType: 'edit' | 'delete' | 'add' | 'view' | 'upload' | 'download' | 'approve' | 'copy' | 'print';
+  actionType: 'edit' | 'delete' | 'add' | 'view' | 'upload' | 'download' | 'approve' | 'copy' | 'print' | 'calculate';
   tooltipTitle?: string;
 }
 
@@ -77,6 +77,7 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
     approve: 'common:button.approve',
     copy: 'common:button.copy',
     print: 'common:button.print',
+    calculate: 'common:button.calculate', // Added default tooltip for calculate
   };
   
   const finalTooltipTitle = tooltipTitle || t(defaultTooltip[actionType]);

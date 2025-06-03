@@ -16,7 +16,7 @@ from webapp.v2.pydantic_models.hr import (
     EmployeeCreate, EmployeeUpdate, Employee as EmployeeResponseSchema, 
     EmployeeListResponse, EmployeeWithNames, BulkEmployeeCreateResult, BulkEmployeeFailedRecord
 )
-from webapp.v2.pydantic_models.common import DataResponse
+from webapp.v2.pydantic_models.common import DataResponse, PaginationResponse, PaginationMeta
 from webapp import auth
 from webapp.v2 import utils
 
@@ -26,7 +26,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=EmployeeListResponse)
+@router.get("/", response_model=PaginationResponse[EmployeeWithNames])
 async def get_employees(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
@@ -134,12 +134,6 @@ async def get_employees(
                 employee_data['bank_name'] = None
                 employee_data['bank_account_number'] = None
             
-            # 添加工资相关字段的名称填充
-            employee_data['salary_level_lookup_value_name'] = emp_orm.salary_level.name if emp_orm.salary_level else None
-            employee_data['salary_grade_lookup_value_name'] = emp_orm.salary_grade.name if emp_orm.salary_grade else None
-            employee_data['ref_salary_level_lookup_value_name'] = emp_orm.ref_salary_level.name if emp_orm.ref_salary_level else None
-            employee_data['job_position_level_lookup_value_name'] = emp_orm.job_position_level.name if emp_orm.job_position_level else None
-            
             # Create EmployeeWithNames instance
             employee_with_names_instance = EmployeeWithNames(
                 **employee_data, 
@@ -155,15 +149,16 @@ async def get_employees(
         
         logger.info(f"Responding to /employees request with total: {total}, totalPages: {total_pages}, page: {page}, size: {size}")
         # 返回标准响应格式
-        return {
-            "data": processed_employees,
-            "meta": {
-                "page": page if not employee_ids_list else 1,
-                "size": size if not employee_ids_list else len(processed_employees),
-                "total": total,
-                "totalPages": total_pages if not employee_ids_list else 1
-            }
-        }
+        pagination_meta = PaginationMeta(
+            page=page if not employee_ids_list else 1,
+            size=size if not employee_ids_list else len(processed_employees),
+            total=total,
+            totalPages=total_pages if not employee_ids_list else 1
+        )
+        return PaginationResponse[EmployeeWithNames](
+            data=processed_employees,
+            meta=pagination_meta
+        )
     except Exception as e:
         # Log the exception for server-side debugging
         logger.error(f"Error in get_employees endpoint: {e}", exc_info=True)

@@ -1,28 +1,49 @@
 from typing import Optional, List, Dict, Any, TYPE_CHECKING
 import logging
+import uuid
 
-from sqlalchemy.orm import Session
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, TIMESTAMP, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Session, relationship
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from fastapi import HTTPException, status
 
-if TYPE_CHECKING:
-    from ..models import UserTableConfig
+# 导入Base类
+from webapp.database import Base
 
-# For runtime, we'll import the UserTableConfig class dynamically to avoid circular imports
-# schemas is not directly used here for UserTableConfig Pydantic models,
-# but functions accept dict for config_data. If Pydantic models were used for these,
-# they would be imported from .. import schemas.
+if TYPE_CHECKING:
+    from .user import User
 
 logger = logging.getLogger(__name__)
+
+# --- 用户表格配置模型 ---
+class UserTableConfig(Base):
+    __tablename__ = 'user_table_configs'
+    __table_args__ = (
+        UniqueConstraint('user_id', 'table_id', 'config_type', 'name', name='uq_user_table_config'),
+        {'schema': 'core'}
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('core.users.id', ondelete='CASCADE'), nullable=False, index=True)
+    table_id = Column(String(50), nullable=False, index=True)
+    config_type = Column(String(20), nullable=False)  # 'LAYOUT' 或 'FILTER'
+    name = Column(String(100), nullable=False)
+    config_data = Column(JSONB, nullable=False)
+    is_default = Column(Boolean, default=False)
+    is_shared = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # 关联到用户 - 使用字符串引用避免循环导入
+    user = relationship("User", back_populates="table_configs")
 
 # --- ORM CRUD Functions for User Table Configs --- START ---
 
 def create_table_config(db: Session, user_id: int, table_id: str, config_type: str,
                        name: str, config_data: Dict[str, Any], is_default: bool = False,
-                       is_shared: bool = False) -> 'UserTableConfig':
+                       is_shared: bool = False) -> UserTableConfig:
     """创建表格配置"""
-    # Dynamic import to avoid circular imports
-    from ..models import UserTableConfig
     
     if is_default:
         db.query(UserTableConfig).filter(
@@ -71,10 +92,8 @@ def create_table_config(db: Session, user_id: int, table_id: str, config_type: s
             detail="创建配置时发生数据库错误。"
         ) from e
 
-def get_table_config(db: Session, config_id: int) -> Optional['UserTableConfig']:
+def get_table_config(db: Session, config_id: int) -> Optional[UserTableConfig]:
     """获取单个表格配置"""
-    # Dynamic import to avoid circular imports
-    from ..models import UserTableConfig
     
     try:
         return db.query(UserTableConfig).filter(
@@ -84,10 +103,8 @@ def get_table_config(db: Session, config_id: int) -> Optional['UserTableConfig']
         logger.error(f"SQLAlchemy error fetching table config {config_id}: {e}", exc_info=True)
         return None
 
-def get_table_configs(db: Session, user_id: int, table_id: str, config_type: str) -> List['UserTableConfig']:
+def get_table_configs(db: Session, user_id: int, table_id: str, config_type: str) -> List[UserTableConfig]:
     """获取用户的表格配置列表 (自己的和共享的)"""
-    # Dynamic import to avoid circular imports
-    from ..models import UserTableConfig
     
     try:
         configs = db.query(UserTableConfig).filter(
@@ -109,10 +126,8 @@ def update_table_config(db: Session, config_id: int, user_id: int,
                         config_data: Optional[Dict[str, Any]] = None,
                         name: Optional[str] = None, 
                         is_default: Optional[bool] = None, 
-                        is_shared: Optional[bool] = None) -> Optional['UserTableConfig']:
+                        is_shared: Optional[bool] = None) -> Optional[UserTableConfig]:
     """更新表格配置. 只有配置的拥有者可以更新."""
-    # Dynamic import to avoid circular imports
-    from ..models import UserTableConfig
     
     db_config = db.query(UserTableConfig).filter(
         UserTableConfig.id == config_id,
@@ -178,8 +193,6 @@ def update_table_config(db: Session, config_id: int, user_id: int,
 
 def delete_table_config(db: Session, config_id: int, user_id: int) -> bool:
     """删除表格配置. 只有配置的拥有者可以删除."""
-    # Dynamic import to avoid circular imports
-    from ..models import UserTableConfig
     
     try:
         # First, check if the config exists and belongs to the user
@@ -198,9 +211,6 @@ def delete_table_config(db: Session, config_id: int, user_id: int) -> bool:
     except SQLAlchemyError as e: # Catch any DB error during delete
         db.rollback()
         logger.error(f"SQLAlchemy error deleting table config {config_id} for user {user_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="删除配置时发生数据库错误。"
-        ) from e
+        return False # Deletion failed
 
 # --- ORM CRUD Functions for User Table Configs --- END ---

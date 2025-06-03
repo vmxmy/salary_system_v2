@@ -28,6 +28,7 @@ import {
   CheckCircleOutlined,
   DownloadOutlined,
   DatabaseOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -234,7 +235,7 @@ const PayrollRunsPage: React.FC = () => {
             errorMessage = error.response.data.detail.error.details;
           } else if (error?.response?.status === 409) {
             // 409 冲突错误，通常是外键约束
-            errorMessage = t('payroll:error_delete_conflict_associated_data'); // 使用i18n键
+            errorMessage = `${t('payroll:error_delete_conflict_associated_data')} 可以在"计算日志管理"页面查看和删除相关日志记录。`;
           }
           
           message.error(errorMessage);
@@ -395,13 +396,21 @@ const PayrollRunsPage: React.FC = () => {
           <Title level={4} style={{ margin: 0 }}>
             {t('payroll:payroll_runs')}
           </Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
-            {t('payroll:create_payroll_run')}
-          </Button>
+          <Space>
+            <Button
+              icon={<FileTextOutlined />}
+              onClick={() => navigate('/finance/payroll/calculation-logs')}
+            >
+              计算日志管理
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+            >
+              {t('payroll:create_payroll_run')}
+            </Button>
+          </Space>
         </div>
 
         <Table
@@ -457,7 +466,7 @@ const PayrollRunsPage: React.FC = () => {
             <Select placeholder={t('payroll:select_status')}>
               {PAYROLL_RUN_STATUS_OPTIONS.map(status => (
                 <Option key={status.id} value={status.id}>
-                  {t(status.display_name_key)}
+                  {t(`payroll:${status.display_name_key}`)}
                 </Option>
               ))}
             </Select>

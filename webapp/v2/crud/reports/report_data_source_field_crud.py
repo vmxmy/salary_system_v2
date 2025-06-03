@@ -9,10 +9,13 @@ from ...pydantic_models.reports import (
 # 数据源字段CRUD
 class ReportDataSourceFieldCRUD:
     @staticmethod
-    def get_by_data_source(db: Session, data_source_id: int) -> List[ReportDataSourceField]:
-        return db.query(ReportDataSourceField).filter(
+    def get_by_data_source(db: Session, data_source_id: int, skip: int = 0, limit: int = 100) -> List[ReportDataSourceField]:
+        query = db.query(ReportDataSourceField).filter(
             ReportDataSourceField.data_source_id == data_source_id
-        ).order_by(ReportDataSourceField.sort_order).all()
+        )
+        total = query.count()
+        fields = query.order_by(ReportDataSourceField.sort_order).offset(skip).limit(limit).all()
+        return fields, total
 
     @staticmethod
     def create(db: Session, field: ReportDataSourceFieldCreate) -> ReportDataSourceField:

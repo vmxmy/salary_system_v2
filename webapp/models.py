@@ -36,6 +36,9 @@ class User(Base):
     # Define the relationship to the Role model (many Users to one Role)
     role = relationship("Role", back_populates="users")
 
+    # Define the relationship to the UserTableConfig model (one User to many UserTableConfig)
+    table_configs = relationship("UserTableConfig", back_populates="user")
+
 
 # --- Define Unit Model --- START ---
 class Unit(Base):
@@ -853,5 +856,5 @@ class UserTableConfig(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    # 关联到用户
-    user = relationship("User")
+    # 这个关系在User模型中已经定义，这里不需要重复定义
+    # user = relationship("User")

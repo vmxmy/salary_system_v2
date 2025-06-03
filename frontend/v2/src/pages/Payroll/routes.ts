@@ -3,14 +3,16 @@ import { Navigate } from 'react-router-dom';
 import type { AppRouteObject } from '../../router/routes'; // Assuming AppRouteObject is exported from main router
 // import i18n from '../../i18n'; // 移除此导入
 import PayrollPeriodsPageV2 from './pages/PayrollPeriodsPageV2';
-import PayrollRunsPage from './pages/PayrollRunsPage';
+import PayrollRunsPageV2 from './pages/PayrollRunsPageV2';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
-import PayrollBulkImportPage from './pages/PayrollBulkImportPage';
+import PayrollBulkImportPageV2 from './pages/PayrollBulkImportPage/PayrollBulkImportPageV2';
+import PayrollBulkImportPageV3 from './pages/PayrollBulkImportPage/PayrollBulkImportPageV3';
 import PayrollComponentsPage from './pages/PayrollComponentsPage';
 import PayrollCalculationConfigPage from './pages/PayrollCalculationConfigPage';
 import AttendanceManagementPage from './pages/AttendanceManagementPage';
 import PayrollPeriodDetailPage from './pages/PayrollPeriodDetailPage';
+import CalculationLogsPage from './pages/CalculationLogsPage';
 import {
   P_PAYROLL_PERIOD_VIEW,
   P_PAYROLL_RUN_VIEW,
@@ -53,7 +55,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'runs',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPageV2)),
     meta: {
       title: 'payroll:page_title.payroll_runs', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW],
@@ -77,9 +79,17 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'bulk-import',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import...') }, React.createElement(PayrollBulkImportPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import...') }, React.createElement(PayrollBulkImportPageV3)),
     meta: {
       title: 'payroll:batch_import.page_title', // 使用批量导入页面标题翻译键
+      requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
+    },
+  },
+  {
+    path: 'bulk-import-v2',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import V2...') }, React.createElement(PayrollBulkImportPageV2)),
+    meta: {
+      title: 'payroll:batch_import.page_title_v2', // 旧版批量导入页面标题翻译键
       requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
     },
   },
@@ -105,6 +115,14 @@ export const payrollRoutes: AppRouteObject[] = [
     meta: {
       title: 'payroll:attendance.page_title', // 考勤管理页面标题
       requiredPermissions: [P_PAYROLL_COMPONENT_VIEW], // 暂时使用组件查看权限，后续可以添加专门的权限
+    },
+  },
+  {
+    path: 'calculation-logs',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Calculation Logs...') }, React.createElement(CalculationLogsPage)),
+    meta: {
+      title: 'payroll:calculation_logs.page_title', // 计算日志页面标题
+      requiredPermissions: [P_PAYROLL_RUN_VIEW], // 使用薪资运行查看权限
     },
   },
   // {

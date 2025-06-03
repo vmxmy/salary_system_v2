@@ -145,7 +145,7 @@ const PayrollPeriodForm: React.FC<PayrollPeriodFormProps> = ({
         <Select placeholder={t('payroll_periods:payroll_period_form.placeholder.status')}>
           {PAYROLL_PERIOD_STATUS_OPTIONS.map((statusOpt) => (
             <Select.Option key={statusOpt.id} value={statusOpt.id}>
-              {String(t(statusOpt.display_name_key, { ns: 'common' }))}
+              {String(t(statusOpt.display_name_key, { ns: 'payroll_periods' }))}
             </Select.Option>
           ))}
         </Select>

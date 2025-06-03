@@ -236,6 +236,9 @@
   "break_duration": "",
   "calculate": "计算",
   "calculationConfig": "薪资计算配置",
+  "calculation_logs": {
+    "page_title": "计算日志管理"
+  },
   "calculation_config": {
     "add_tax_bracket": "添加税级",
     "additional_deductions": "附加扣除",

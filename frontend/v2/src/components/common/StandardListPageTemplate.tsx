@@ -126,6 +126,8 @@ export interface StandardListPageTemplateProps<T extends Record<string, any>> {
   selectedRowKeys?: React.Key[];
   /** 设置选中行键的回调 */
   setSelectedRowKeys?: (selectedKeys: React.Key[]) => void;
+  /** 额外的自定义按钮 */
+  extraButtons?: React.ReactNode[];
 }
 
 // 标准列表页面模板组件
@@ -161,6 +163,7 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
   onTableChange,
   selectedRowKeys,
   setSelectedRowKeys,
+  extraButtons = [],
 }: StandardListPageTemplateProps<T>): React.ReactElement => {
   const { t } = useTranslation(translationNamespaces);
   const navigate = useNavigate();
@@ -400,7 +403,10 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
           addButtonText={t(addButtonTextKey)}
           onAddClick={onAddClick}
           showAddButton={permissions.canCreate}
-          extraButtons={permissions.canExport ? [<ExportButton key="export" />] : []}
+          extraButtons={[
+            ...(permissions.canExport ? [<ExportButton key="export" />] : []),
+            ...extraButtons
+          ]}
           batchDelete={finalBatchDeleteConfig}
           columns={tableColumnsConfigForControls}
           dataSource={dataSource}

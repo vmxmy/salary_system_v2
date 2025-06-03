@@ -614,7 +614,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           }}
         >
           {/* 员工信息区域 */}
-          <Card title={t('payroll:entry_form.section.employee_info')} bordered={false}>
+          <Card title={t('payroll:entry_form.section.employee_info')} variant="outlined">
             <Row gutter={16}>
               <Col span={8}>
                 {entry ? (
@@ -804,7 +804,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           <Divider />
           
           {/* 汇总区域 */}
-          <Card title={t('payroll:entry_form.section.summary')} bordered={false}>
+                      <Card title={t('payroll:entry_form.section.summary')} variant="outlined">
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item

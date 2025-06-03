@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from ...models.reports import ReportViewExecution
 from ...pydantic_models.reports import ReportViewExecutionCreate
@@ -22,11 +22,14 @@ class ReportViewExecutionCRUD:
         return db_execution
     
     @staticmethod
-    def get_by_view_id(db: Session, view_id: int, skip: int = 0, limit: int = 100) -> List[ReportViewExecution]:
+    def get_by_view_id(db: Session, view_id: int, skip: int = 0, limit: int = 100) -> Tuple[List[ReportViewExecution], int]:
         """获取指定视图的执行记录"""
-        return db.query(ReportViewExecution).filter(
+        query = db.query(ReportViewExecution).filter(
             ReportViewExecution.report_view_id == view_id
-        ).order_by(ReportViewExecution.executed_at.desc()).offset(skip).limit(limit).all()
+        )
+        total = query.count()
+        executions = query.order_by(ReportViewExecution.executed_at.desc()).offset(skip).limit(limit).all()
+        return executions, total
     
     @staticmethod
     def update_execution_result(db: Session, execution_id: int, result_count: int = None, 

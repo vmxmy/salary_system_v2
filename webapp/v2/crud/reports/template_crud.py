@@ -18,7 +18,9 @@ class ReportTemplateCRUD:
         query = db.query(ReportTemplate)
         if is_public is not None:
             query = query.filter(ReportTemplate.is_public == is_public)
-        return query.offset(skip).limit(limit).all()
+        total = query.count()
+        templates = query.offset(skip).limit(limit).all()
+        return templates, total
     
     @staticmethod
     def get_by_id(db: Session, template_id: int) -> Optional[ReportTemplate]:

@@ -135,7 +135,8 @@
     "validation_success": "validation_success"
   },
   "table_template": {
-    "no_selection_warning": ""
+    "no_selection_warning": "",
+    "clear_selection": "取消选择"
   },
   "total_items": "total_items",
   "unexpected_response_format": "unexpected_response_format"

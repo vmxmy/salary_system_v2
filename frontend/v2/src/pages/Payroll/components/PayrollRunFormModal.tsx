@@ -97,7 +97,7 @@ const PayrollRunFormModal: React.FC<PayrollRunFormModalProps> = ({
       onCancel={onClose}
       footer={null}
       width={650}
-      destroyOnClose
+      destroyOnHidden
     >
       <PayrollRunForm
         form={form}

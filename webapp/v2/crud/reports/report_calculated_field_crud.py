@@ -13,7 +13,9 @@ class ReportCalculatedFieldCRUD:
         query = db.query(ReportCalculatedField)
         if is_global is not None:
             query = query.filter(ReportCalculatedField.is_global == is_global)
-        return query.offset(skip).limit(limit).all()
+        total = query.count()
+        fields = query.offset(skip).limit(limit).all()
+        return fields, total
 
     @staticmethod
     def get_by_id(db: Session, field_id: int) -> Optional[ReportCalculatedField]:

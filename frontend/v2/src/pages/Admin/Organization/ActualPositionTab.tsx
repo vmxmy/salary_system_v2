@@ -342,7 +342,7 @@ const ActualPositionTab: React.FC = () => {
               antdMessage.error(t('common:message.form_validation_error'));
             });
         }}
-        destroyOnClose // Use destroyOnClose instead of destroyOnHidden for cleaner state reset
+        destroyOnHidden // Use destroyOnHidden for cleaner state reset
       >
         <Form form={form} layout="vertical" name="positionForm">
           <Form.Item

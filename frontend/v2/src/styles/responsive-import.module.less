@@ -1,0 +1,859 @@
+/* 
+ * 响应式批量导入界面样式模板
+ * 适用于薪资导入、员工导入等批量操作界面
+ */
+
+// 断点定义
+@xs: 480px;
+@sm: 576px;
+@md: 768px;
+@lg: 992px;
+@xl: 1200px;
+@xxl: 1600px;
+
+// 颜色主题
+@primary-color: #1890ff;
+@success-color: #52c41a;
+@warning-color: #faad14;
+@error-color: #ff4d4f;
+@info-color: #1890ff;
+
+/* ========== 容器布局 ========== */
+.import-container {
+  padding: 16px;
+  min-height: 100vh;
+  background: #f5f5f5;
+
+  @media (min-width: @md) {
+    padding: 24px;
+  }
+
+  @media (min-width: @xl) {
+    padding: 24px 32px;
+  }
+}
+
+.import-main-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  .ant-pro-card-body {
+    padding: 16px;
+
+    @media (min-width: @md) {
+      padding: 24px;
+    }
+  }
+}
+
+/* ========== 步骤指示器 ========== */
+.import-steps {
+  margin-bottom: 24px;
+  
+  .ant-steps-item-title {
+    font-size: 12px;
+    line-height: 1.2;
+
+    @media (min-width: @sm) {
+      font-size: 14px;
+    }
+
+    @media (min-width: @md) {
+      font-size: 16px;
+    }
+  }
+
+  .ant-steps-item-description {
+    font-size: 11px;
+    display: none;
+
+    @media (min-width: @sm) {
+      display: block;
+      font-size: 12px;
+    }
+
+    @media (min-width: @md) {
+      font-size: 13px;
+    }
+  }
+
+  // 移动端垂直布局
+  @media (max-width: @sm) {
+    .ant-steps {
+      flex-direction: column;
+    }
+    
+    .ant-steps-item {
+      padding-bottom: 16px;
+      
+      &:not(:last-child)::after {
+        display: none;
+      }
+    }
+  }
+}
+
+/* ========== 数据输入区域 ========== */
+.import-input-section {
+  .input-tabs {
+    .ant-tabs-tab {
+      padding: 8px 12px;
+      font-size: 12px;
+
+      @media (min-width: @sm) {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+    }
+
+    .ant-tabs-content-holder {
+      padding: 16px 0;
+
+      @media (min-width: @md) {
+        padding: 24px 0;
+      }
+    }
+  }
+
+  .input-textarea {
+    min-height: 200px;
+    font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+
+    @media (min-width: @sm) {
+      min-height: 250px;
+      font-size: 13px;
+    }
+
+    @media (min-width: @md) {
+      min-height: 300px;
+      font-size: 14px;
+    }
+  }
+
+  .input-actions {
+    text-align: center;
+    margin-top: 16px;
+
+    @media (min-width: @sm) {
+      text-align: right;
+    }
+  }
+}
+
+/* ========== 智能映射分析 ========== */
+.mapping-analysis {
+  margin-top: 24px;
+
+  .analysis-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    @media (min-width: @sm) {
+      gap: 12px;
+    }
+
+    .ant-tag {
+      font-size: 11px;
+      
+      @media (min-width: @sm) {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .analysis-alerts {
+    margin-bottom: 16px;
+
+    .ant-alert {
+      .ant-alert-description {
+        font-size: 12px;
+
+        @media (min-width: @sm) {
+          font-size: 13px;
+        }
+
+        ul, ol {
+          margin: 8px 0;
+          padding-left: 16px;
+
+          @media (min-width: @sm) {
+            padding-left: 20px;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ========== 数据预览表格 ========== */
+.preview-section {
+  .statistics-grid {
+    .ant-row {
+      margin: 0 -8px;
+
+      @media (min-width: @md) {
+        margin: 0 -12px;
+      }
+    }
+
+    .ant-col {
+      padding: 0 8px;
+      margin-bottom: 16px;
+
+      @media (min-width: @md) {
+        padding: 0 12px;
+        margin-bottom: 0;
+      }
+    }
+
+    .statistic-card {
+      text-align: center;
+      padding: 16px;
+      border-radius: 6px;
+      background: #fafafa;
+
+      .ant-statistic-title {
+        font-size: 11px;
+        margin-bottom: 4px;
+
+        @media (min-width: @sm) {
+          font-size: 12px;
+          margin-bottom: 8px;
+        }
+      }
+
+      .ant-statistic-content {
+        .ant-statistic-content-value {
+          font-size: 18px;
+
+          @media (min-width: @sm) {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+  }
+
+  .config-form {
+    .ant-row {
+      margin: 0 -8px;
+
+      @media (min-width: @lg) {
+        margin: 0 -12px;
+      }
+    }
+
+    .ant-col {
+      padding: 0 8px;
+      margin-bottom: 16px;
+
+      @media (min-width: @lg) {
+        padding: 0 12px;
+        margin-bottom: 0;
+      }
+    }
+
+    .ant-form-item {
+      margin-bottom: 16px;
+
+      .ant-form-item-label {
+        font-size: 12px;
+
+        @media (min-width: @sm) {
+          font-size: 13px;
+        }
+      }
+
+      .ant-form-item-extra {
+        font-size: 11px;
+
+        @media (min-width: @sm) {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+/* ========== 数据表格 ========== */
+.data-preview-table {
+  .ant-pro-table {
+    .ant-table-thead > tr > th {
+      font-size: 11px;
+      padding: 8px 4px;
+
+      @media (min-width: @sm) {
+        font-size: 12px;
+        padding: 12px 8px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 13px;
+        padding: 16px 12px;
+      }
+    }
+
+    .ant-table-tbody > tr > td {
+      font-size: 11px;
+      padding: 6px 4px;
+
+      @media (min-width: @sm) {
+        font-size: 12px;
+        padding: 8px 8px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 13px;
+        padding: 12px 12px;
+      }
+    }
+
+    // 移动端隐藏非关键列
+    @media (max-width: @sm) {
+      .table-col-secondary {
+        display: none;
+      }
+    }
+
+    // 平板端隐藏次要列
+    @media (max-width: @md) {
+      .table-col-optional {
+        display: none;
+      }
+    }
+  }
+
+  // 表格行状态样式
+  .table-row-success {
+    background-color: #f6ffed !important;
+    
+    &:hover {
+      background-color: #e6f7e0 !important;
+    }
+  }
+
+  .table-row-error {
+    background-color: #fff2f0 !important;
+    
+    &:hover {
+      background-color: #ffe7e6 !important;
+    }
+  }
+
+  .table-row-warning {
+    background-color: #fffbe6 !important;
+    
+    &:hover {
+      background-color: #fff1d0 !important;
+    }
+  }
+}
+
+/* ========== 处理进度 ========== */
+.process-section {
+  .process-overview {
+    text-align: center;
+    padding: 24px;
+
+    @media (min-width: @md) {
+      padding: 32px;
+    }
+
+    .process-title {
+      font-size: 16px;
+      margin: 16px 0 8px;
+
+      @media (min-width: @sm) {
+        font-size: 18px;
+        margin: 20px 0 12px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 20px;
+        margin: 24px 0 16px;
+      }
+    }
+
+    .process-description {
+      font-size: 12px;
+
+      @media (min-width: @sm) {
+        font-size: 13px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 14px;
+      }
+    }
+
+    .ant-spin {
+      .ant-spin-dot {
+        font-size: 32px;
+
+        @media (min-width: @sm) {
+          font-size: 40px;
+        }
+
+        @media (min-width: @md) {
+          font-size: 48px;
+        }
+      }
+    }
+  }
+
+  .process-steps {
+    .process-step-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #f0f0f0;
+
+      @media (min-width: @sm) {
+        padding: 16px;
+        margin: 12px 0;
+        border-radius: 8px;
+      }
+
+      &.active {
+        border: 2px solid @primary-color;
+        background-color: #f0f7ff;
+      }
+
+      &.completed {
+        background-color: #f6ffed;
+      }
+
+      .step-icon {
+        margin-right: 12px;
+        font-size: 20px;
+
+        @media (min-width: @sm) {
+          margin-right: 16px;
+          font-size: 24px;
+        }
+      }
+
+      .step-content {
+        flex: 1;
+
+        .step-title {
+          font-size: 13px;
+          font-weight: 500;
+
+          @media (min-width: @sm) {
+            font-size: 14px;
+          }
+
+          @media (min-width: @md) {
+            font-size: 16px;
+          }
+        }
+
+        .step-description {
+          font-size: 11px;
+          color: #666;
+          margin-top: 2px;
+
+          @media (min-width: @sm) {
+            font-size: 12px;
+            margin-top: 4px;
+          }
+
+          @media (min-width: @md) {
+            font-size: 13px;
+          }
+        }
+      }
+
+      .step-status {
+        font-size: 11px;
+        font-weight: 500;
+
+        @media (min-width: @sm) {
+          font-size: 12px;
+        }
+
+        @media (min-width: @md) {
+          font-size: 13px;
+        }
+      }
+    }
+  }
+}
+
+/* ========== 操作按钮 ========== */
+.import-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 0;
+
+  @media (min-width: @sm) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .action-left {
+    order: 2;
+
+    @media (min-width: @sm) {
+      order: 1;
+    }
+  }
+
+  .action-right {
+    order: 1;
+
+    @media (min-width: @sm) {
+      order: 2;
+    }
+
+    .ant-btn {
+      width: 100%;
+
+      @media (min-width: @sm) {
+        width: auto;
+      }
+    }
+  }
+}
+
+/* ========== 结果展示 ========== */
+.result-section {
+  .result-overview {
+    text-align: center;
+    padding: 24px;
+
+    @media (min-width: @md) {
+      padding: 32px;
+    }
+
+    .result-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+
+      @media (min-width: @sm) {
+        font-size: 56px;
+        margin-bottom: 20px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 64px;
+        margin-bottom: 24px;
+      }
+    }
+
+    .result-title {
+      font-size: 18px;
+      margin-bottom: 8px;
+
+      @media (min-width: @sm) {
+        font-size: 20px;
+        margin-bottom: 12px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 24px;
+        margin-bottom: 16px;
+      }
+    }
+
+    .result-description {
+      font-size: 12px;
+
+      @media (min-width: @sm) {
+        font-size: 13px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .result-details {
+    .detail-list {
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 12px;
+
+        @media (min-width: @sm) {
+          padding: 12px 0;
+          font-size: 13px;
+        }
+
+        @media (min-width: @md) {
+          font-size: 14px;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .detail-label {
+          color: #666;
+        }
+
+        .detail-value {
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+/* ========== 工具提示和帮助信息 ========== */
+.import-help {
+  .help-tips {
+    margin: 16px 0;
+
+    .ant-alert {
+      border-radius: 6px;
+
+      .ant-alert-message {
+        font-size: 12px;
+
+        @media (min-width: @sm) {
+          font-size: 13px;
+        }
+      }
+
+      .ant-alert-description {
+        font-size: 11px;
+
+        @media (min-width: @sm) {
+          font-size: 12px;
+        }
+
+        ul {
+          margin: 8px 0;
+          padding-left: 16px;
+
+          @media (min-width: @sm) {
+            padding-left: 20px;
+          }
+
+          li {
+            margin: 4px 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ========== 标签和状态指示器 ========== */
+.status-tags {
+  .ant-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+
+    @media (min-width: @sm) {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+
+    &.tag-success {
+      background-color: #f6ffed;
+      border-color: #b7eb8f;
+      color: #389e0d;
+    }
+
+    &.tag-error {
+      background-color: #fff2f0;
+      border-color: #ffccc7;
+      color: #cf1322;
+    }
+
+    &.tag-warning {
+      background-color: #fffbe6;
+      border-color: #ffe58f;
+      color: #d48806;
+    }
+
+    &.tag-info {
+      background-color: #e6f7ff;
+      border-color: #91d5ff;
+      color: #0958d9;
+    }
+  }
+}
+
+/* ========== 加载状态 ========== */
+.loading-overlay {
+  position: relative;
+  min-height: 200px;
+
+  .ant-spin-container {
+    min-height: inherit;
+  }
+
+  .loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: #666;
+
+    @media (min-width: @md) {
+      padding: 32px;
+    }
+
+    .loading-text {
+      margin-top: 16px;
+      font-size: 12px;
+
+      @media (min-width: @sm) {
+        font-size: 13px;
+      }
+
+      @media (min-width: @md) {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+/* ========== 响应式显示/隐藏工具类 ========== */
+.show-xs {
+  display: block;
+  
+  @media (min-width: @sm) {
+    display: none;
+  }
+}
+
+.show-sm {
+  display: none;
+  
+  @media (min-width: @sm) and (max-width: @md - 1px) {
+    display: block;
+  }
+}
+
+.show-md {
+  display: none;
+  
+  @media (min-width: @md) and (max-width: @lg - 1px) {
+    display: block;
+  }
+}
+
+.show-lg {
+  display: none;
+  
+  @media (min-width: @lg) and (max-width: @xl - 1px) {
+    display: block;
+  }
+}
+
+.show-xl {
+  display: none;
+  
+  @media (min-width: @xl) {
+    display: block;
+  }
+}
+
+.hide-xs {
+  @media (max-width: @sm - 1px) {
+    display: none;
+  }
+}
+
+.hide-sm {
+  @media (min-width: @sm) and (max-width: @md - 1px) {
+    display: none;
+  }
+}
+
+.hide-md {
+  @media (min-width: @md) and (max-width: @lg - 1px) {
+    display: none;
+  }
+}
+
+.hide-lg {
+  @media (min-width: @lg) and (max-width: @xl - 1px) {
+    display: none;
+  }
+}
+
+.hide-xl {
+  @media (min-width: @xl) {
+    display: none;
+  }
+}
+
+/* ========== 主布局容器 ========== */
+.import-main-layout {
+  /* 移除左右分栏相关样式，改为垂直布局 */
+}
+
+/* ========== 智能映射说明卡片 ========== */
+.mapping-guide-card {
+  .ant-card-head, .ant-pro-card-header {
+    .ant-card-head-title, .ant-pro-card-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+  
+  .ant-card-body, .ant-pro-card-body {
+    padding: 16px;
+  }
+}
+
+.mapping-guide-content {
+  .guide-section {
+    margin-bottom: 16px;
+    
+    @media (min-width: @md) {
+      margin-bottom: 0;
+    }
+    
+    h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #262626;
+    }
+    
+    ul, ol {
+      margin: 0;
+      padding-left: 16px;
+      
+      li {
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 4px;
+        color: #595959;
+      }
+    }
+  }
+  
+  .category-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    
+    span {
+      font-size: 12px;
+      color: #595959;
+    }
+  }
+} 

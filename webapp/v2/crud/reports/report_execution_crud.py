@@ -8,7 +8,10 @@ from ...pydantic_models.reports import ReportExecutionCreate
 class ReportExecutionCRUD:
     @staticmethod
     def get_all(db: Session, skip: int = 0, limit: int = 100) -> List[ReportExecution]:
-        return db.query(ReportExecution).offset(skip).limit(limit).all()
+        query = db.query(ReportExecution)
+        total = query.count()
+        executions = query.offset(skip).limit(limit).all()
+        return executions, total
 
     @staticmethod
     def get_by_id(db: Session, execution_id: int) -> Optional[ReportExecution]:

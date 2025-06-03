@@ -2,10 +2,11 @@
 人事相关的Pydantic模型。
 """
 from pydantic import BaseModel, Field, EmailStr, computed_field
-from typing import Optional, List, Dict, Any, ForwardRef
+from typing import Optional, List, Dict, Any, ForwardRef, TypeVar, Generic
 from datetime import date, datetime
 
 from .config import LookupValue  # Import LookupValue from config module
+from .common import PaginationResponse, PaginationMeta
 # from .hr import EmployeeAppraisalUpdate # Make sure EmployeeAppraisalUpdate is imported if not already visible or defined above
 
 # EmployeeAppraisal Models (Moved Up)
@@ -44,15 +45,9 @@ class EmployeeAppraisal(EmployeeAppraisalBase):
     class Config:
         from_attributes = True
 
-class EmployeeAppraisalListResponse(BaseModel):
+class EmployeeAppraisalListResponse(PaginationResponse[EmployeeAppraisal]):
     """员工考核列表响应模型"""
-    data: List[EmployeeAppraisal]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
-
-    class Config:
-        title = "EmployeeAppraisalList"
+    pass
 
 # Employee Models
 class EmployeeBase(BaseModel):
@@ -93,15 +88,11 @@ class EmployeeBase(BaseModel):
     
     # 工资级别相关字段的名称 - 添加到基础模型中以便响应时包含
     salary_level_lookup_value_id: Optional[int] = Field(None, description="Salary level lookup ID")
-    salary_level_lookup_value_name: Optional[str] = Field(None, description="Salary level name")
     salary_grade_lookup_value_id: Optional[int] = Field(None, description="Salary grade lookup ID")
-    salary_grade_lookup_value_name: Optional[str] = Field(None, description="Salary grade name")
     ref_salary_level_lookup_value_id: Optional[int] = Field(None, description="Reference salary level lookup ID")
-    ref_salary_level_lookup_value_name: Optional[str] = Field(None, description="Reference salary level name")
     
     # 职务级别相关字段
     job_position_level_lookup_value_id: Optional[int] = Field(None, description="Job position level lookup ID")
-    job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name")
 
 
 class EmployeeCreate(EmployeeBase):
@@ -109,22 +100,13 @@ class EmployeeCreate(EmployeeBase):
     # 移除id字段 - POST接口严格用于创建新员工，不支持通过id更新现有员工
     # 如需更新现有员工，请使用PUT /{employee_id}接口
     
-    # Fields for resolving lookups by name
-    gender_lookup_value_name: Optional[str] = Field(None, description="Gender name, e.g., '男', '女'")
-    status_lookup_value_name: str = Field(..., description="Status name, e.g., '在职', '离职'")
-    employment_type_lookup_value_name: Optional[str] = Field(None, description="Employment type name")
-    education_level_lookup_value_name: Optional[str] = Field(None, description="Education level name")
-    marital_status_lookup_value_name: Optional[str] = Field(None, description="Marital status name")
-    political_status_lookup_value_name: Optional[str] = Field(None, description="Political status name")
-    contract_type_lookup_value_name: Optional[str] = Field(None, description="Contract type name")
-    
     # Fields for resolving department and position by name
     department_name: Optional[str] = Field(None, description="Department name for resolving department_id")
     position_name: Optional[str] = Field(None, description="Position name for resolving actual_position_id")
     personnel_category_name: Optional[str] = Field(None, description="Personnel category name for resolving ID")
     
     # 职务级别名称字段，用于通过名称解析ID
-    job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name for resolving ID")
+    # job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name for resolving ID")
 
     # Allow creating appraisals along with the employee (though not used for bulk import of employees only)
     appraisals: Optional[List[EmployeeAppraisalCreate]] = Field(default_factory=list, description="List of employee appraisals to create")
@@ -238,12 +220,9 @@ class EmployeeWithNames(Employee):
         from_attributes = True
 
 
-class EmployeeListResponse(BaseModel):
+class EmployeeListResponse(PaginationResponse[EmployeeWithNames]):
     """员工列表响应模型"""
-    data: List[EmployeeWithNames]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
+    pass
 
 
 # Department Models
@@ -301,15 +280,9 @@ class Department(DepartmentBase):
     class Config:
         from_attributes = True
 
-class DepartmentListResponse(BaseModel):
+class DepartmentListResponse(PaginationResponse[Department]):
     """部门列表响应模型"""
-    data: List[Department]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
-
-    class Config:
-        from_attributes = True
+    pass
 
 
 # PersonnelCategory Models
@@ -360,15 +333,9 @@ class PersonnelCategorySchema(PersonnelCategoryBase):
     class Config:
         from_attributes = True
 
-class PersonnelCategoryListResponse(BaseModel):
+class PersonnelCategoryListResponse(PaginationResponse[PersonnelCategorySchema]):
     """人员类别列表响应模型"""
-    data: List[PersonnelCategorySchema]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
-
-    class Config:
-        title = "PersonnelCategoryList"
+    pass
 
 
 # EmployeeJobHistory Models
@@ -415,15 +382,9 @@ class EmployeeJobHistory(EmployeeJobHistoryBase):
     class Config:
         from_attributes = True
 
-class EmployeeJobHistoryListResponse(BaseModel):
+class EmployeeJobHistoryListResponse(PaginationResponse[EmployeeJobHistory]):
     """员工工作历史列表响应模型"""
-    data: List[EmployeeJobHistory]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
-
-    class Config:
-        title = "EmployeeJobHistoryList"
+    pass
 
 
 # Position Models (实际职务，原 job_titles 中扩展出的概念)
@@ -477,15 +438,9 @@ class Position(PositionBase): # This is the main Position schema
     class Config:
         from_attributes = True
 
-class PositionListResponse(BaseModel):
+class PositionListResponse(PaginationResponse[Position]):
     """职务列表响应模型"""
-    data: List[Position]
-    meta: Dict[str, Any] = Field(
-        default_factory=lambda: {"page": 1, "size": 10, "total": 0, "totalPages": 1}
-    )
-
-    class Config:
-        from_attributes = True
+    pass
 
 # Update forward refs for all models involved in recursion
 # For Pydantic V2, model_rebuild() is preferred and handles forward refs automatically in most cases.

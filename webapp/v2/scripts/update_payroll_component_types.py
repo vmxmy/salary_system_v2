@@ -98,7 +98,7 @@ def update_constraint():
                 WHERE name IN (
                   '医疗保险个人缴纳金额',
                   '医疗保险个人应缴总额',
-                  '失业个人应缴金额',
+                  '失业保险个人应缴金额',
                   '个人所得税'
                 ) 
                 AND type = 'DEDUCTION';

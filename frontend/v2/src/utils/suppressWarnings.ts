@@ -12,6 +12,13 @@ const WARNING_PATTERNS = [
   /Warning: findDOMNode is deprecated/i,
   /componentWillReceiveProps has been renamed/i,
   /componentWillMount has been renamed/i,
+  // 抑制第三方库的非被动事件监听器警告（如 @stagewise/toolbar-react）
+  /Added non-passive event listener to a scroll-blocking/i,
+  /addEventListener.*passive.*false/i,
+  /wheel.*event.*listener.*passive/i,
+  // 抑制 useDraggable 相关警告
+  /initialSnapArea.*container.*width.*height.*zero/i,
+  /useDraggable.*warning/i,
 ];
 
 /**

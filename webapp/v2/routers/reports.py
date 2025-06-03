@@ -28,13 +28,14 @@ from ..pydantic_models.reports import (
     ReportViewQueryRequest, ReportViewQueryResponse, ReportViewExecution,
     ReportViewExecutionCreate
 )
+from ..pydantic_models.common import PaginationResponse, PaginationMeta
 import logging
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 # 数据源管理
-@router.get("/data-sources", response_model=List[ReportDataSource])
+@router.get("/data-sources", response_model=PaginationResponse[ReportDataSource])
 async def get_data_sources(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -42,9 +43,27 @@ async def get_data_sources(
     current_user: User = Depends(require_permission("report:view_datasources"))
 ):
     """获取数据源列表"""
-    data_sources = ReportDataSourceCRUD.get_all(db, skip=skip, limit=limit)
+    data_sources, total = ReportDataSourceCRUD.get_all_with_total(db, skip=skip, limit=limit)
+    
     # 根据权限过滤可访问的数据源
-    return filter_accessible_items(current_user, data_sources)
+    # filter_accessible_items 返回的是 List[Any]，这里需要将其转换为 ReportDataSource 列表
+    # 并计算过滤后的总数。由于 filter_accessible_items 是在分页后进行的，所以这里直接返回过滤后的列表长度作为 total。
+    # 如果需要精确的总数，需要在 filter_accessible_items 之前进行总数统计，但这会使逻辑复杂。
+    # 鉴于通常情况下，前端只展示当前页的数据，这个实现方式是可接受的。
+    accessible_data_sources = filter_accessible_items(current_user, data_sources)
+    
+    total_pages = (total + limit - 1) // limit if total > 0 else 1
+
+    pagination_meta = PaginationMeta(
+        page= (skip // limit) + 1,
+        size=limit,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportDataSource](
+        data=accessible_data_sources,
+        meta=pagination_meta
+    )
 
 
 @router.get("/data-sources/{data_source_id}", response_model=ReportDataSource)
@@ -264,14 +283,30 @@ async def preview_data_source_data(
 
 
 # 数据源字段管理
-@router.get("/data-sources/{data_source_id}/fields", response_model=List[ReportDataSourceField])
+@router.get("/data-sources/{data_source_id}/fields", response_model=PaginationResponse[ReportDataSourceField])
 async def get_data_source_fields(
     data_source_id: int,
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(100, ge=1, le=1000, description="Page size"),
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """获取数据源字段列表"""
-    return ReportDataSourceFieldCRUD.get_by_data_source(db, data_source_id)
+    """获取数据源字段列表，支持分页"""
+    skip = (page - 1) * size
+    fields, total = ReportDataSourceFieldCRUD.get_by_data_source(db, data_source_id, skip=skip, limit=size)
+    
+    total_pages = (total + size - 1) // size if total > 0 else 1
+    
+    pagination_meta = PaginationMeta(
+        page=page,
+        size=size,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportDataSourceField](
+        data=fields,
+        meta=pagination_meta
+    )
 
 
 @router.post("/data-source-fields", response_model=ReportDataSourceField)
@@ -312,7 +347,7 @@ async def delete_data_source_field(
 
 
 # 计算字段管理
-@router.get("/calculated-fields", response_model=List[ReportCalculatedField])
+@router.get("/calculated-fields", response_model=PaginationResponse[ReportCalculatedField])
 async def get_calculated_fields(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -320,8 +355,21 @@ async def get_calculated_fields(
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """获取计算字段列表"""
-    return ReportCalculatedFieldCRUD.get_all(db, skip=skip, limit=limit, is_global=is_global)
+    """获取计算字段列表，支持分页和过滤"""
+    fields, total = ReportCalculatedFieldCRUD.get_all(db, skip=skip, limit=limit, is_global=is_global)
+    
+    total_pages = (total + limit - 1) // limit if total > 0 else 1
+
+    pagination_meta = PaginationMeta(
+        page=(skip // limit) + 1,
+        size=limit,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportCalculatedField](
+        data=fields,
+        meta=pagination_meta
+    )
 
 
 @router.get("/calculated-fields/{field_id}", response_model=ReportCalculatedField)
@@ -386,7 +434,7 @@ async def test_calculated_field_formula(
 
 
 # 报表模板管理
-@router.get("/templates", response_model=List[ReportTemplateListItem])
+@router.get("/templates", response_model=PaginationResponse[ReportTemplateListItem])
 async def get_report_templates(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -394,16 +442,18 @@ async def get_report_templates(
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """获取报表模板列表 (摘要信息)"""
+    """
+    获取报表模板列表 (摘要信息)
+    """
     # Add permission check if needed, e.g., require_permission("report:view_templates")
     # For now, allowing any authenticated user to list templates, filtering public/private later if needed.
     
-    templates_orm = ReportTemplateCRUD.get_all(db, skip=skip, limit=limit, is_public=is_public)
+    templates_orm, total = ReportTemplateCRUD.get_all(db, skip=skip, limit=limit, is_public=is_public)
     
     # Manually construct the list of ReportTemplateListItem from ORM objects
     # This ensures only the fields defined in ReportTemplateListItem are returned.
     templates_list = [
-        ReportTemplateListItem.from_orm(template)
+        ReportTemplateListItem.model_validate(template)
         for template in templates_orm
     ]
     # Add filtering based on current_user's access to non-public templates if necessary here
@@ -419,7 +469,18 @@ async def get_report_templates(
     #             accessible_templates.append(template_data)
     # return accessible_templates
     
-    return templates_list # Return the list of Pydantic models
+    total_pages = (total + limit - 1) // limit if total > 0 else 1
+
+    pagination_meta = PaginationMeta(
+        page=(skip // limit) + 1,
+        size=limit,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportTemplateListItem](
+        data=templates_list,
+        meta=pagination_meta
+    )
 
 
 @router.get("/templates/{template_id}", response_model=ReportTemplate)
@@ -473,14 +534,39 @@ async def delete_report_template(
 
 
 # 报表模板字段管理
-@router.get("/templates/{template_id}/fields", response_model=List[ReportTemplateField])
+@router.get("/templates/{template_id}/fields", response_model=PaginationResponse[ReportTemplateField])
 async def get_template_fields(
     template_id: int,
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(100, ge=1, le=1000, description="Page size"),
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """获取报表模板字段列表"""
-    return ReportTemplateFieldCRUD.get_by_template(db, template_id)
+    """获取报表模板字段列表，支持分页"""
+    # 先检查模板是否存在，并确保用户有权限访问该模板（如果是非公开模板）
+    template = ReportTemplateCRUD.get_by_id(db, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="报表模板不存在")
+
+    # 权限检查
+    if not template.is_public and not (current_user and template.created_by == current_user.id) and not has_permission(current_user, "report:admin"):
+        raise HTTPException(status_code=403, detail="无权访问此报表模板的字段")
+    
+    skip = (page - 1) * size
+    fields, total = ReportTemplateFieldCRUD.get_by_template(db, template_id, skip=skip, limit=size)
+    
+    total_pages = (total + size - 1) // size if total > 0 else 1
+    
+    pagination_meta = PaginationMeta(
+        page=page,
+        size=size,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportTemplateField](
+        data=fields,
+        meta=pagination_meta
+    )
 
 
 @router.post("/template-fields", response_model=ReportTemplateField)
@@ -521,15 +607,28 @@ async def delete_template_field(
 
 
 # 报表执行管理
-@router.get("/executions", response_model=List[ReportExecution])
+@router.get("/executions", response_model=PaginationResponse[ReportExecution])
 async def get_report_executions(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """获取报表执行记录列表"""
-    return ReportExecutionCRUD.get_all(db, skip=skip, limit=limit)
+    """获取报表执行列表，支持分页"""
+    executions, total = ReportExecutionCRUD.get_all(db, skip=skip, limit=limit)
+    
+    total_pages = (total + limit - 1) // limit if total > 0 else 1
+
+    pagination_meta = PaginationMeta(
+        page=(skip // limit) + 1,
+        size=limit,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportExecution](
+        data=executions,
+        meta=pagination_meta
+    )
 
 
 @router.get("/executions/{execution_id}", response_model=ReportExecution)
@@ -635,7 +734,7 @@ async def preview_multi_datasource_data(
 
 # ==================== 报表视图相关路由 ====================
 
-@router.get("/views", response_model=List[ReportViewListItem])
+@router.get("/views", response_model=PaginationResponse[ReportViewListItem])
 async def get_report_views(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -648,8 +747,16 @@ async def get_report_views(
     from ..crud.reports import ReportViewCRUD
     from ..pydantic_models.reports import ReportViewListItem
     
-    views = ReportViewCRUD.get_all(db, skip=skip, limit=limit, category=category, is_active=is_active)
-    return [ReportViewListItem.from_orm(view) for view in views]
+    views, total = ReportViewCRUD.get_all(db, skip=skip, limit=limit, category=category, is_active=is_active)
+    return PaginationResponse[ReportViewListItem](
+        data=[ReportViewListItem.model_validate(view) for view in views],
+        meta=PaginationMeta(
+            page=(skip // limit) + 1,
+            size=limit,
+            total=total,
+            totalPages=(total + limit - 1) // limit if total > 0 else 1
+        )
+    )
 
 
 @router.get("/views/{view_id}", response_model=ReportView)
@@ -772,7 +879,7 @@ async def query_report_view_data(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/views/{view_id}/executions", response_model=List[ReportViewExecution])
+@router.get("/views/{view_id}/executions", response_model=PaginationResponse[ReportViewExecution])
 async def get_report_view_executions(
     view_id: int,
     skip: int = Query(0, ge=0),
@@ -783,8 +890,20 @@ async def get_report_view_executions(
     """获取报表视图执行记录"""
     from ..crud.reports import ReportViewExecutionCRUD
     
-    executions = ReportViewExecutionCRUD.get_by_view_id(db, view_id, skip=skip, limit=limit)
-    return executions
+    executions, total = ReportViewExecutionCRUD.get_by_view_id(db, view_id, skip=skip, limit=limit)
+    
+    total_pages = (total + limit - 1) // limit if total > 0 else 1
+    
+    pagination_meta = PaginationMeta(
+        page=(skip // limit) + 1,
+        size=limit,
+        total=total,
+        totalPages=total_pages
+    )
+    return PaginationResponse[ReportViewExecution](
+        data=executions,
+        meta=pagination_meta
+    )
 
 
 @router.post("/views/{view_id}/export")

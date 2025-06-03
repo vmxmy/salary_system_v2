@@ -1,5 +1,3 @@
-import i18n from '../i18n';
-
 /**
  * API性能监控工具
  * 用于监控和记录API请求的性能指标
@@ -47,11 +45,11 @@ class ApiPerformanceMonitor {
     
     if (duration > this.VERY_SLOW_REQUEST_THRESHOLD) {
       console.warn(
-        i18n.t('common:auto___method_url_duration_tofixed_2_ms__status__f09f90')
+        `🚨 极慢请求: ${method} ${url} ${duration.toFixed(2)}ms (状态: ${status})`
       );
     } else if (duration > this.SLOW_REQUEST_THRESHOLD) {
       console.warn(
-        i18n.t('common:auto___method_url_duration_tofixed_2_ms__status__e29aa0')
+        `⚠️ 慢请求: ${method} ${url} ${duration.toFixed(2)}ms (状态: ${status})`
       );
     }
   }
@@ -144,15 +142,15 @@ class ApiPerformanceMonitor {
     const recommendations = [];
     
     if (stats?.slowRequestsPercentage > 20) {
-      recommendations.push(i18n.t('common:auto_20___e8b685'));
+      recommendations.push('超过20%的请求响应时间过长，建议优化后端性能');
     }
     
     if (stats?.verySlowRequestsCount > 0) {
-      recommendations.push(i18n.t('common:auto___e5ad98'));
+      recommendations.push('存在响应时间超过3秒的极慢请求，需要重点优化');
     }
     
     if (stats?.averageDuration > 500) {
-      recommendations.push(i18n.t('common:auto_500ms__e5b9b3'));
+      recommendations.push('平均响应时间超过500ms，建议检查网络连接或后端性能');
     }
     
     // 分析URL统计，找出最慢的接口
@@ -164,7 +162,7 @@ class ApiPerformanceMonitor {
       if (slowestUrls.length > 0) {
         recommendations.push(
           `最慢的接口: ${slowestUrls.map(([url, stat]: any) => 
-            i18n.t('common:auto__url__stat_avgduration_tofixed_2_ms__247b75')
+            `${url} (${stat.avgDuration.toFixed(2)}ms)`
           ).join(', ')}`
         );
       }

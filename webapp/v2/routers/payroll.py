@@ -16,9 +16,10 @@ from ..pydantic_models.payroll import (
     PayrollEntryCreate, PayrollEntryUpdate, PayrollEntry, PayrollEntryListResponse,
     PayrollRunPatch, PayrollEntryPatch, PayrollComponentDefinitionListResponse,
     PayrollComponentDefinition, PayrollComponentDefinitionCreate, PayrollComponentDefinitionUpdate,
+    BulkValidatePayrollEntriesPayload, BulkValidatePayrollEntriesResult,
     BulkCreatePayrollEntriesPayload, BulkCreatePayrollEntriesResult
 )
-from ..pydantic_models.common import DataResponse
+from ..pydantic_models.common import DataResponse, PaginationResponse, PaginationMeta
 from ...auth import require_permissions, get_current_user
 from ..utils import create_error_response
 
@@ -28,7 +29,7 @@ router = APIRouter(
 
 
 # PayrollPeriod endpoints
-@router.get("/payroll-periods", response_model=PayrollPeriodListResponse)
+@router.get("/payroll-periods", response_model=PaginationResponse[PayrollPeriod])
 async def get_payroll_periods(
     frequency_id: Optional[int] = None,
     status_lookup_value_id: Optional[int] = None,
@@ -71,15 +72,16 @@ async def get_payroll_periods(
         total_pages = (total + size - 1) // size if total > 0 else 1
 
         # 返回标准响应格式
-        return {
-            "data": periods,
-            "meta": {
-                "page": page,
-                "size": size,
-                "total": total,
-                "totalPages": total_pages
-            }
-        }
+        pagination_meta = PaginationMeta(
+            page=page,
+            size=size,
+            total=total,
+            totalPages=total_pages
+        )
+        return PaginationResponse[PayrollPeriod](
+            data=periods,
+            meta=pagination_meta
+        )
     except Exception as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -315,15 +317,16 @@ async def get_payroll_runs(
         total_pages = (total + size - 1) // size if total > 0 else 1
 
         # 返回标准响应格式
-        return {
-            "data": runs,
-            "meta": {
-                "page": page,
-                "size": size,
-                "total": total,
-                "totalPages": total_pages
-            }
-        }
+        pagination_meta = PaginationMeta(
+            page=page,
+            size=size,
+            total=total,
+            totalPages=total_pages
+        )
+        return PaginationResponse[PayrollRun](
+            data=runs,
+            meta=pagination_meta
+        )
     except Exception as e:
         # 返回标准错误响应格式
         raise HTTPException(
@@ -647,7 +650,7 @@ async def export_payroll_run_bank_file(
 
 
 # PayrollEntry endpoints
-@router.get("/payroll-entries", response_model=PayrollEntryListResponse)
+@router.get("/payroll-entries", response_model=PaginationResponse[PayrollEntry])
 async def get_payroll_entries(
     period_id: Optional[int] = None,
     actual_run_id: Optional[int] = Query(None, alias="payroll_run_id"),
@@ -720,6 +723,16 @@ async def get_payroll_entries(
             data.append(entry_pydantic)
 
         total_pages = (total + size - 1) // size if total > 0 else 1
+        pagination_meta = PaginationMeta(
+            page=page,
+            size=size,
+            total=total,
+            totalPages=total_pages
+        )
+        return PaginationResponse[PayrollEntry](
+            data=data,
+            meta=pagination_meta
+        )
         return {
             "data": data,
             "meta": {
@@ -966,6 +979,60 @@ async def delete_payroll_entry(
         )
 
 
+@router.post("/payroll-entries/bulk/validate", response_model=BulkValidatePayrollEntriesResult, status_code=status.HTTP_200_OK)
+async def bulk_validate_payroll_entries(
+    payload: BulkValidatePayrollEntriesPayload,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_entry:bulk_import"]))
+):
+    """
+    批量验证薪资明细数据。
+
+    - **payload**: 包含薪资周期ID和薪资明细列表的请求数据
+    - 需要批量导入权限
+    - 返回验证结果，包含统计信息和详细的验证错误
+    """
+    try:
+        # 批量验证薪资明细
+        validation_result = crud.bulk_validate_payroll_entries(
+            db=db,
+            payroll_period_id=payload.payroll_period_id,
+            entries=payload.entries
+        )
+
+        # 构建响应
+        result = BulkValidatePayrollEntriesResult(
+            total=validation_result["total"],
+            valid=validation_result["valid"],
+            invalid=validation_result["invalid"],
+            warnings=validation_result["warnings"],
+            errors=validation_result["errors"],
+            validatedData=validation_result["validatedData"]
+        )
+
+        return result
+    except ValueError as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="Unprocessable Entity",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
 @router.post("/payroll-entries/bulk", response_model=BulkCreatePayrollEntriesResult, status_code=status.HTTP_201_CREATED)
 async def bulk_create_payroll_entries(
     payload: BulkCreatePayrollEntriesPayload,
@@ -1021,13 +1088,13 @@ async def bulk_create_payroll_entries(
 # 添加薪资字段定义的API转发路由
 @router.get(
     "/payroll-component-definitions",
-    response_model=PayrollComponentDefinitionListResponse,
+    response_model=PaginationResponse[PayrollComponentDefinition],
     summary="获取薪资字段定义列表",
     description="获取所有薪资字段定义，支持按类型和启用状态过滤，以及自定义排序"
 )
 def get_payroll_component_definitions(
     type: Optional[str] = Query(None, description="组件类型，如'EARNING'、'DEDUCTION'等"),
-    is_enabled: Optional[bool] = Query(None, description="是否启用"),
+    is_active: Optional[bool] = Query(None, description="是否启用"),
     sort_by: str = Query("display_order", description="排序字段"),
     sort_order: str = Query("asc", description="排序方向，asc或desc"),
     page: int = Query(1, ge=1, description="页码"),
@@ -1038,14 +1105,13 @@ def get_payroll_component_definitions(
     """
     获取薪资字段定义列表，转发到config模块API
     """
-    from ..routers.config import get_payroll_component_definitions as config_get_payroll_component_definitions
+    from ..routers.config.payroll_component_router import get_payroll_components
     
-    # 转发请求到config模块的API
-    return config_get_payroll_component_definitions(
-        type=type,
-        is_enabled=is_enabled,
-        sort_by=sort_by,
-        sort_order=sort_order,
+    # 转发请求到config模块的API，参数名要对应
+    return get_payroll_components(
+        component_type=type,
+        is_active=is_active,
+        search=None,  # 没有search参数
         page=page,
         size=size,
         current_user=current_user,
@@ -1066,10 +1132,10 @@ def get_payroll_component_definition(
     """
     获取单个薪资字段定义，转发到config模块API
     """
-    from ..routers.config import get_payroll_component_definition as config_get_payroll_component_definition
+    from ..routers.config.payroll_component_router import get_payroll_component
     
     # 获取组件定义
-    return config_get_payroll_component_definition(
+    return get_payroll_component(
         component_id=component_id,
         current_user=current_user,
         db=db
@@ -1090,10 +1156,10 @@ def create_payroll_component_definition(
     """
     创建薪资字段定义，转发到config模块API
     """
-    from ..routers.config import create_payroll_component as config_create_payroll_component
+    from ..routers.config.payroll_component_router import create_payroll_component
     
     # 转发请求到config模块
-    return config_create_payroll_component(
+    return create_payroll_component(
         component=component,
         current_user=current_user,
         db=db
@@ -1114,10 +1180,10 @@ def update_payroll_component_definition(
     """
     更新薪资字段定义，转发到config模块API
     """
-    from ..routers.config import update_payroll_component as config_update_payroll_component
+    from ..routers.config.payroll_component_router import update_payroll_component
     
     # 转发请求到config模块
-    return config_update_payroll_component(
+    return update_payroll_component(
         component_id=component_id,
         component=component,
         current_user=current_user,
@@ -1138,11 +1204,200 @@ def delete_payroll_component_definition(
     """
     删除薪资字段定义，转发到config模块API
     """
-    from ..routers.config import delete_payroll_component as config_delete_payroll_component
+    from ..routers.config.payroll_component_router import delete_payroll_component
     
     # 转发请求到config模块
-    return config_delete_payroll_component(
+    return delete_payroll_component(
         component_id=component_id,
         current_user=current_user,
         db=db
     )
+
+@router.get("/calculation-logs", response_model=PaginationResponse[Dict[str, Any]])
+async def get_calculation_logs(
+    payroll_run_id: Optional[int] = Query(None, description="薪资运行ID筛选"),
+    employee_id: Optional[int] = Query(None, description="员工ID筛选"), 
+    component_code: Optional[str] = Query(None, description="组件代码筛选"),
+    status: Optional[str] = Query(None, description="状态筛选: SUCCESS, ERROR, WARNING"),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(20, ge=1, le=100, description="每页记录数"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:view"]))
+):
+    """
+    获取计算日志列表，支持分页和筛选。
+    这些日志记录了薪资计算的详细过程和结果。
+    """
+    try:
+        from ..models.calculation_rules import CalculationLog
+        from ..models.hr import Employee
+        from ..models.payroll import PayrollRun
+        from sqlalchemy import and_, desc, func
+        
+        # 构建查询
+        query = db.query(
+            CalculationLog.id.label("calculation_log_id"),
+            CalculationLog.payroll_run_id,
+            CalculationLog.employee_id,
+            CalculationLog.component_code,
+            CalculationLog.calculation_method,
+            CalculationLog.result_amount,
+            CalculationLog.status,
+            CalculationLog.error_message,
+            CalculationLog.execution_time_ms,
+            CalculationLog.created_at,
+            func.concat(Employee.first_name, ' ', Employee.last_name).label("employee_name"),
+            PayrollRun.run_date,
+            PayrollRun.status_lookup_value_id.label("run_status")
+        ).join(
+            Employee, CalculationLog.employee_id == Employee.id
+        ).outerjoin(
+            PayrollRun, CalculationLog.payroll_run_id == PayrollRun.id
+        )
+        
+        # 应用筛选条件
+        filters = []
+        if payroll_run_id is not None:
+            filters.append(CalculationLog.payroll_run_id == payroll_run_id)
+        if employee_id is not None:
+            filters.append(CalculationLog.employee_id == employee_id)
+        if component_code:
+            filters.append(CalculationLog.component_code.ilike(f"%{component_code}%"))
+        if status:
+            filters.append(CalculationLog.status == status)
+            
+        if filters:
+            query = query.filter(and_(*filters))
+        
+        # 获取总数
+        total = query.count()
+        
+        # 计算跳过的记录数并应用分页
+        skip = (page - 1) * size
+        logs = query.order_by(desc(CalculationLog.created_at)).offset(skip).limit(size).all()
+        
+        # 转换为字典格式
+        result = []
+        for log in logs:
+            result.append({
+                "calculation_log_id": log.calculation_log_id,
+                "payroll_run_id": log.payroll_run_id,
+                "employee_id": log.employee_id,
+                "employee_name": log.employee_name,
+                "component_code": log.component_code,
+                "calculation_method": log.calculation_method,
+                "result_amount": float(log.result_amount) if log.result_amount else 0.0,
+                "status": log.status,
+                "error_message": log.error_message,
+                "execution_time_ms": log.execution_time_ms,
+                "created_at": log.created_at.isoformat() if log.created_at else None,
+                "run_date": log.run_date.isoformat() if log.run_date else None,
+                "run_status": log.run_status
+            })
+        
+        # 计算总页数
+        total_pages = (total + size - 1) // size if total > 0 else 1
+        pagination_meta = PaginationMeta(
+            page=page,
+            size=size,
+            total=total,
+            totalPages=total_pages
+        )
+        return PaginationResponse[Dict[str, Any]](
+            data=result,
+            meta=pagination_meta
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+@router.delete("/calculation-logs", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_calculation_logs(
+    payroll_run_id: Optional[int] = Query(None, description="删除指定薪资运行的计算日志"),
+    employee_id: Optional[int] = Query(None, description="删除指定员工的计算日志"),
+    confirm: bool = Query(False, description="确认删除操作"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    删除计算日志记录。
+    
+    - **payroll_run_id**: 删除指定薪资运行的所有计算日志
+    - **employee_id**: 删除指定员工的所有计算日志  
+    - **confirm**: 必须设置为true才能执行删除操作
+    
+    注意：删除操作不可逆，请谨慎使用。
+    """
+    try:
+        if not confirm:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="Bad Request",
+                    details="必须设置 confirm=true 参数才能执行删除操作"
+                )
+            )
+        
+        from ..models.calculation_rules import CalculationLog
+        from sqlalchemy import and_
+        
+        # 构建删除查询
+        query = db.query(CalculationLog)
+        
+        filters = []
+        if payroll_run_id is not None:
+            filters.append(CalculationLog.payroll_run_id == payroll_run_id)
+        if employee_id is not None:
+            filters.append(CalculationLog.employee_id == employee_id)
+            
+        if not filters:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="Bad Request", 
+                    details="必须指定 payroll_run_id 或 employee_id 筛选条件"
+                )
+            )
+        
+        query = query.filter(and_(*filters))
+        
+        # 获取将要删除的记录数
+        count = query.count()
+        
+        if count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="Not Found",
+                    details="未找到符合条件的计算日志记录"
+                )
+            )
+        
+        # 执行删除
+        query.delete(synchronize_session=False)
+        db.commit()
+        
+        return {"message": f"已成功删除 {count} 条计算日志记录"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )

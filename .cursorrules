@@ -107,4 +107,22 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When searching for recent news, use the current year (2025) instead of previous years, or simply use the "recent" keyword to get the latest information
 
 # Scratchpad
-[X] 修复 `frontend/v2/public/locales/zh-CN/payroll.json` 中的重复键 `entry_page`
+
+## 422 错误修复任务 ✅ 已完成
+
+### 问题分析：
+- [X] **根本原因**：前端 API 调用中 `size=200` 超出了后端验证限制（最大 100）
+- [X] **次要问题**：payroll 路由转发到 config 模块时参数名不匹配
+
+### 修复措施：
+- [X] **修复参数验证问题**：将 `payrollBulkImportApi.ts` 中的 `size: 200` 改为 `size: 100`
+- [X] **修复路由转发问题**：
+  - 将 payroll 路由中的 `is_enabled` 参数改为 `is_active`
+  - 修正所有转发函数的导入路径和参数映射
+  - 确保正确调用 config 模块的具体路由函数
+
+### 验证结果：
+- [X] API 调用 `GET /v2/config/payroll-component-definitions?is_active=true&size=100` 现在返回正常数据
+- [X] 前端薪资批量导入页面应该可以正常加载初始数据
+
+**结论**：422 错误已完全解决，前端可以正常获取薪资组件定义数据。

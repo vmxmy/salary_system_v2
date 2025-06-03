@@ -425,7 +425,7 @@ const DataSources: React.FC = () => {
         }}
         onOk={() => form.submit()}
         width={800}
-        destroyOnClose // Ensures form state is reset on close
+        destroyOnHidden // Ensures form state is reset on close
       >
         <Form
           form={form}

@@ -210,7 +210,7 @@ export interface ValidatedPayrollEntryData extends RawPayrollEntryData {
 
 // Payload for creating payroll entries
 export interface CreatePayrollEntryPayload {
-  employee_id: number;
+  employee_id?: number; // 改为可选，用于批量导入时的自动匹配
   payroll_period_id: number; // 添加必需的payroll_period_id字段
   payroll_run_id: number;
   gross_pay: number;

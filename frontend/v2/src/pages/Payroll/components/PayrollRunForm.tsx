@@ -160,7 +160,7 @@ const PayrollRunForm: React.FC<PayrollRunFormProps> = ({
             <Select placeholder={t('payroll_runs:payroll_run_form.placeholder.status')}>
               {PAYROLL_RUN_STATUS_OPTIONS.map(status => (
                 <Option key={status.id} value={status.id}>
-                  {t(status.display_name_key)}
+                  {t(`payroll:${status.display_name_key}`)}
                 </Option>
               ))}
             </Select>

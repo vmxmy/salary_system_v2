@@ -9,10 +9,13 @@ from ...pydantic_models.reports import (
 # 报表模板字段CRUD
 class ReportTemplateFieldCRUD:
     @staticmethod
-    def get_by_template(db: Session, template_id: int) -> List[ReportTemplateField]:
-        return db.query(ReportTemplateField).filter(
+    def get_by_template(db: Session, template_id: int, skip: int = 0, limit: int = 100) -> List[ReportTemplateField]:
+        query = db.query(ReportTemplateField).filter(
             ReportTemplateField.template_id == template_id
-        ).order_by(ReportTemplateField.display_order).all()
+        )
+        total = query.count()
+        fields = query.order_by(ReportTemplateField.display_order).offset(skip).limit(limit).all()
+        return fields, total
 
     @staticmethod
     def create(db: Session, field: ReportTemplateFieldCreate) -> ReportTemplateField:

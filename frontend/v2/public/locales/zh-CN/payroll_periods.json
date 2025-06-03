@@ -29,6 +29,8 @@
     }
   },
   "payroll_period_status": {
+    "active": "活动",
+    "archived": "已归档",
     "closed": "已关闭",
     "open": "开放",
     "planned": "计划中"

@@ -44,8 +44,35 @@ const PayrollPeriodDetailPage: React.FC = () => {
   // 获取薪资周期详情
   const { data: payrollPeriodResponse, isLoading: loadingPeriod, isError, error } = useQuery({
     queryKey: ['payrollPeriod', periodId],
-    queryFn: () => getPayrollPeriodById(Number(periodId)),
-    enabled: !!periodId,
+    queryFn: async () => {
+      console.log('🔍 Fetching payroll period details for ID:', periodId);
+      if (!periodId || isNaN(Number(periodId))) {
+        throw new Error(`Invalid period ID: ${periodId}`);
+      }
+      try {
+        const result = await getPayrollPeriodById(Number(periodId));
+        console.log('✅ Payroll period data fetched successfully:', result);
+        return result;
+      } catch (error: any) {
+        console.error('❌ Failed to fetch payroll period:', error);
+        if (error.response?.status === 404) {
+          throw new Error(`薪资周期 ID ${periodId} 不存在`);
+        } else if (error.response?.status === 403) {
+          throw new Error('没有权限查看该薪资周期详情');
+        } else if (error.response?.data?.detail?.error?.details) {
+          throw new Error(error.response.data.detail.error.details);
+        }
+        throw error;
+      }
+    },
+    enabled: !!periodId && !isNaN(Number(periodId)),
+    retry: (failureCount, error: any) => {
+      // 对于404或403错误，不重试
+      if (error?.response?.status === 404 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   const payrollPeriod = payrollPeriodResponse?.data;
@@ -78,6 +105,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
   // 获取薪资条目数据
   const fetchPayrollEntries = useCallback(async (params?: QueryParams) => {
     if (!periodId) return;
+    console.log('🔍 Fetching payroll entries for period:', periodId, 'with params:', params);
     setLoadingEntries(true);
     try {
       const response = await getPayrollEntries({
@@ -86,17 +114,24 @@ const PayrollPeriodDetailPage: React.FC = () => {
         size: params?.page_size || 50,
         sort_by: params?.sorting?.[0]?.field,
         sort_order: params?.sorting?.[0]?.direction,
+        include_employee_details: true, // 确保包含员工详情
       });
+      console.log('✅ Payroll entries fetched successfully:', response);
       setPayrollEntriesData(response.data || []);
       setTotalEntries(response.meta?.total || 0);
-    } catch (error) {
-      console.error('Failed to fetch payroll entries:', error);
+    } catch (error: any) {
+      console.error('❌ Failed to fetch payroll entries:', error);
+      if (error.response?.data?.detail?.error?.details) {
+        message.error(`获取薪资条目失败：${error.response.data.detail.error.details}`);
+      } else {
+        message.error('获取薪资条目失败，请重试');
+      }
       setPayrollEntriesData([]);
       setTotalEntries(0);
     } finally {
       setLoadingEntries(false);
     }
-  }, [periodId]);
+  }, [periodId, message]);
 
   // 在组件加载时获取表格列配置
   useEffect(() => {
@@ -369,7 +404,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
       </Space>
 
       {/* 薪资周期基本信息 */}
-      <Card bordered style={{ marginBottom: 20 }}>
+              <Card variant="outlined" style={{ marginBottom: 20 }}>
         <Descriptions title={t('payroll_periods:payroll_period_detail_page.basic_info')} bordered column={2}>
           <Descriptions.Item label={t('payroll_periods:payroll_period_detail_page.field_id')}>
             {payrollPeriod?.id || '-'}

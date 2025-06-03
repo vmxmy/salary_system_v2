@@ -71,7 +71,7 @@ const PermissionFormModal: React.FC<PermissionFormModalProps> = ({
       onCancel={onClose}
       onOk={() => form.submit()}
       confirmLoading={loading}
-      destroyOnClose
+              destroyOnHidden
       width={600}
     >
       <Form

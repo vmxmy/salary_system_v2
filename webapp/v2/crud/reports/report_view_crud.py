@@ -21,7 +21,9 @@ class ReportViewCRUD:
             query = query.filter(ReportView.category == category)
         if is_active is not None:
             query = query.filter(ReportView.is_active == is_active)
-        return query.offset(skip).limit(limit).all()
+        total = query.count()
+        views = query.offset(skip).limit(limit).all()
+        return views, total
     
     @staticmethod
     def get_by_id(db: Session, view_id: int) -> Optional[ReportView]:
