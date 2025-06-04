@@ -12,5 +12,16 @@
   "report_title_placeholder": "",
   "status_draft_message": "status_draft_message",
   "status_error_message": "status_error_message",
-  "unknown_status_message": "unknown_status_message"
+  "unknown_status_message": "unknown_status_message",
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功",
+  "title": "标题",
+  "list": {
+    "create_button": "新建"
+  },
+  "sync_view_to_db_now": "立即同步视图",
+  "save_and_sync_view": "保存并同步",
+  "sync_view.loading": "正在保存并同步视图...",
+  "sync_view.success": "视图同步成功！",
+  "sync_view.error": "同步视图失败，请检查SQL或联系管理员。"
 }

@@ -29,7 +29,9 @@ import {
   BarChartOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { useAuthStore } from '../store/authStore';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../store/authSlice';
+import type { RootState, AppDispatch } from '../store';
 import { usePermissions } from '../hooks/usePermissions';
 import { allAppRoutes, type AppRouteObject } from '../router/routes'; // Import allAppRoutes and AppRouteObject type
 import LanguageSwitcher from '../components/common/LanguageSwitcher'; // Import LanguageSwitcher
@@ -69,12 +71,12 @@ const MainLayout: React.FC = () => {
   const [openKeys, setOpenKeys] = useState<string[]>([]); // 添加openKeys状态
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const logoutAction = useAuthStore((state) => state.logoutAction);
-  const authToken = useAuthStore((state) => state.authToken);
+  const dispatch = useDispatch<AppDispatch>();
+  const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+  const authToken = useSelector((state: RootState) => state.auth.authToken);
+  const userPermissions = useSelector((state: RootState) => state.auth.userPermissions);
+  const userRoleCodes = useSelector((state: RootState) => state.auth.userRoleCodes);
   const { hasPermission, hasRole } = usePermissions();
-  const userPermissions = useAuthStore((state) => state.userPermissions);
-  const userRoleCodes = useAuthStore((state) => state.userRoleCodes); // For hasRole dependency
 
   // Refs for Tour targets
   const refDashboard = useRef(null);
@@ -152,7 +154,7 @@ const MainLayout: React.FC = () => {
 
 
   const handleLogout = async () => {
-    await logoutAction();
+    dispatch(logout());
     navigate('/login');
   };
 

@@ -180,14 +180,27 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
       }
 
       // 先保存当前表单内容到数据库
-      message.loading({ content: '正在保存并同步视图...', key: 'sync-process' });
+      message.loading({ content: t('reportView:sync_view.loading', '正在保存并同步视图...'), key: 'sync-process' });
       
       await reportViewAPI.updateReportView(initialValues.id, values as ReportViewUpdateForm);
       
       // 然后同步视图
       await reportViewAPI.syncReportView(initialValues.id, { force_recreate: true });
+      
+      message.success(t('reportView:sync_view.success', '视图同步成功！'));
+      setHasUnsavedChanges(false); // 同步成功后，视为已保存
+      onSyncSuccess?.(); // 调用外部传入的成功回调
+      
+    } catch (error: any) {
+      console.error("同步视图时出错:", error);
+      const errorMessage = 
+        error?.response?.data?.detail?.error?.message || // 尝试从后端响应获取错误信息
+        error?.message || 
+        t('reportView:sync_view.error', '同步视图失败，请检查SQL或联系管理员。');
+      message.error(errorMessage);
     } finally {
       setSyncing(false);
+      message.destroy('sync-process');
     }
   };
 
@@ -434,6 +447,34 @@ const ReportViewForm: React.FC<ReportViewFormProps> = ({
           <Row justify="end">
             <Col>
               <Space>
+                <Button type="default" onClick={onCancel}>
+                  {t('common:cancel')}
+                </Button>
+                {mode === 'edit' && initialValues?.id && (
+                  <TableActionButton
+                    key="sync"
+                    actionType="upload"
+                    icon={<SyncOutlined />}
+                    type="primary"
+                    ghost
+                    loading={syncing}
+                    onClick={handleSyncView}
+                    disabled={!sqlValidation?.is_valid || loading || syncing}
+                  >
+                    {t('reportView:save_and_sync_view')}
+                  </TableActionButton>
+                )}
+                <TableActionButton
+                  key="submit"
+                  actionType="add"
+                  type="primary"
+                  htmlType="submit"
+                  icon={<SaveOutlined />}
+                  loading={loading || syncing}
+                  disabled={!sqlValidation?.is_valid || loading || syncing}
+                >
+                  {t('common:save')}
+                </TableActionButton>
               </Space>
             </Col>
           </Row>

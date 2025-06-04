@@ -129,6 +129,7 @@
     "template_basic": "template_basic",
     "template_join": "template_join",
     "templates": "templates",
+    "insert_template": "Insert Template",
     "title": "title",
     "validate_and_preview": "validate_and_preview",
     "validation_failed": "validation_failed",

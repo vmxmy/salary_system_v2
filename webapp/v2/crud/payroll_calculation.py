@@ -311,13 +311,12 @@ class PayrollCalculationCRUD:
         if result.components:
             for comp in result.components:
                 comp_data = {
-                    "amount": str(comp.amount) if comp.amount is not None else "0.00",
-                    "source": comp.source,
-                    "calculation_log": comp.calculation_log
+                    "amount": float(comp.amount) if comp.amount is not None else 0.0,
+                    "name": getattr(comp, 'component_name', comp.component_code)
                 }
                 if comp.component_type == ComponentType.EARNING:
                     earnings_dict[comp.component_code] = comp_data
-                elif comp.component_type in [ComponentType.DEDUCTION, ComponentType.TAX, ComponentType.SOCIAL_INSURANCE]:
+                elif comp.component_type in [ComponentType.DEDUCTION, ComponentType.PERSONAL_DEDUCTION, ComponentType.TAX, ComponentType.SOCIAL_INSURANCE]:
                     deductions_dict[comp.component_code] = comp_data
         
         # 序列化计算日志 (引擎部分的日志) - 改为使用 result.calculation_details
@@ -363,23 +362,24 @@ class PayrollCalculationCRUD:
         """更新薪资条目，使用 CalculationResult 对象"""
         logger.debug(f"CRUD: _update_payroll_entry for employee {result.employee_id}. Result status: {result.status}")
         
-        entry.total_earnings = result.total_earnings if result.total_earnings is not None else entry.total_earnings
+        # 更新汇总字段 - 注意字段名对应关系
+        entry.gross_pay = result.total_earnings if result.total_earnings is not None else entry.gross_pay
         entry.total_deductions = result.total_deductions if result.total_deductions is not None else entry.total_deductions
         entry.net_pay = result.net_pay if result.net_pay is not None else entry.net_pay
-        
-        entry.taxable_income = self._get_component_amount_by_code(result.components, "TAXABLE_INCOME")
-        entry.income_tax = self._get_component_amount_by_code(result.components, "INCOME_TAX")
-        entry.social_insurance_employee = self._get_component_amount_by_code(result.components, "SOCIAL_INSURANCE_EMPLOYEE")
-        entry.housing_fund_employee = self._get_component_amount_by_code(result.components, "HOUSING_FUND_EMPLOYEE")
+
 
         earnings_details = entry.earnings_details or {}
         deductions_details = entry.deductions_details or {}
         if result.components:
             for comp in result.components:
+                comp_data = {
+                    "amount": float(comp.amount) if comp.amount is not None else 0.0,
+                    "name": getattr(comp, 'component_name', comp.component_code)
+                }
                 if comp.component_type == ComponentType.EARNING:
-                    earnings_details[comp.code] = float(comp.amount) if comp.amount is not None else 0.0
-                elif comp.component_type in [ComponentType.DEDUCTION, ComponentType.TAX, ComponentType.SOCIAL_INSURANCE, ComponentType.HOUSING_FUND]:
-                    deductions_details[comp.code] = float(comp.amount) if comp.amount is not None else 0.0
+                    earnings_details[comp.component_code] = comp_data
+                elif comp.component_type in [ComponentType.DEDUCTION, ComponentType.PERSONAL_DEDUCTION, ComponentType.TAX, ComponentType.SOCIAL_INSURANCE]:
+                    deductions_details[comp.component_code] = comp_data
 
         entry.earnings_details = earnings_details
         entry.deductions_details = deductions_details

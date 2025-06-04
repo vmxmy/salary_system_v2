@@ -1,10 +1,11 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom'; // Removed Outlet, as children will handle it
-import { useAuthStore } from '../store/authStore'; // Correctly imported
+import { useSelector } from 'react-redux';
 import { usePermissions } from '../hooks/usePermissions'; // Correctly imported
 // import MainLayout from '../layouts/MainLayout'; // MainLayout will be handled by routes.tsx
 import { Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
+import type { RootState } from '../store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode; // Added children prop
@@ -24,12 +25,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { t } = useTranslation(['common']);
   const location = useLocation();
   
-  // Subscribe to necessary state slices from authStore
-  const isAuthenticated = useAuthStore((state) => !!state.authToken); // More direct way to check auth based on token presence
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const isLoadingUser = useAuthStore((state) => state.isLoadingUser);
+  // Subscribe to necessary state slices from Redux store
+  const authToken = useSelector((state: RootState) => state.auth.authToken);
+  const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+  const isLoadingUser = useSelector((state: RootState) => state.auth.isLoadingUser);
+  const storeUserRoleCodes = useSelector((state: RootState) => state.auth.userRoleCodes);
+  const storeUserPermissions = useSelector((state: RootState) => state.auth.userPermissions);
+  
+  const isAuthenticated = !!authToken;
   // Check if userRoleCodes array has been initialized (is not null)
-  const rbacDataInitialized = useAuthStore((state) => state.userRoleCodes !== null && state.userPermissions !== null);
+  const rbacDataInitialized = storeUserRoleCodes !== null && storeUserPermissions !== null;
 
   const { 
     userRoleCodes, // Get for logging, actual check uses hasAnyRole

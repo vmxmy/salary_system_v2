@@ -1,7 +1,10 @@
 import axios from 'axios';
 import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'; // Added AxiosResponse type
-import { useAuthStore } from '../store/authStore'; // For accessing the auth token
 import { createPerformanceInterceptors } from '../utils/apiPerformanceMonitor';
+
+// 导入Redux store相关
+import { store } from '../store';
+import { logout } from '../store/authSlice';
 
 // Add these variables for token refresh queueing
 let isRefreshing = false;
@@ -98,10 +101,12 @@ apiClient.interceptors.request.use(
     // 性能监控
     config = performanceInterceptors.request(config);
 
-    const token = useAuthStore.getState().authToken;
+    // 从Redux store获取token
+    const token = store.getState().auth.authToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
+      console.log('No auth token found in Redux store');
     }
 
     // 只在开发环境记录详细请求信息
@@ -183,7 +188,7 @@ apiClient.interceptors.response.use(
 
       if (isAuthVerificationUrl || originalRequest.url === '/token/refresh') {
         // If the error is from an auth verification URL or refresh endpoint, do not attempt refresh, just logout
-        useAuthStore.getState().logoutAction();
+        store.dispatch(logout());
         window.location.href = '/login';
         return Promise.reject(error);
       }
@@ -209,15 +214,15 @@ apiClient.interceptors.response.use(
           const refreshResponse = await apiClient.post('/token/refresh', {}); // Call your refresh token API
           const newAccessToken = refreshResponse.data.access_token;
           
-          // Update the auth store with the new token
-          useAuthStore.getState().setAuthToken(newAccessToken); // New action needed in authStore
+          // Update the Redux store with the new token
+          store.dispatch({ type: 'auth/setAuthToken', payload: newAccessToken });
 
           originalRequest.headers.Authorization = 'Bearer ' + newAccessToken;
           processQueue(null, newAccessToken); // Process the queued requests
           resolve(apiClient(originalRequest)); // Retry the original request
         } catch (refreshError) {
           processQueue(refreshError); // Reject all queued requests
-          useAuthStore.getState().logoutAction();
+          store.dispatch(logout());
           window.location.href = '/login';
           reject(refreshError); // Reject the original request with the refresh error
         } finally {

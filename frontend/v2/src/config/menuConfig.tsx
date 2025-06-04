@@ -17,6 +17,14 @@ import {
   DatabaseOutlined,
   CodeOutlined,
   EyeOutlined,
+  HomeOutlined,
+  UserOutlined,
+  SafetyOutlined,
+  ControlOutlined,
+  AppstoreOutlined,
+  RobotOutlined,
+  BankOutlined,
+  ProfileOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 
@@ -72,16 +80,19 @@ export const transformMenuDataWithI18n = (
 
 // 📋 菜单数据配置
 export const menuData: AppMenuDataItem[] = [
+  // 🏠 首页图表
   {
     path: '/dashboard',
     titleKey: 'dashboard',
-    icon: <DashboardOutlined />,
+    icon: <HomeOutlined />,
     component: './Dashboard',
   },
+  
+  // 👤 个人中心
   {
     path: '/personal',
     titleKey: 'personal.title',
-    icon: <SolutionOutlined />,
+    icon: <UserOutlined />,
     children: [
       {
         path: '/employee-info/my-info',
@@ -100,191 +111,195 @@ export const menuData: AppMenuDataItem[] = [
       },
     ],
   },
+  
+  // 📊 报表中心
   {
-    path: '/view-reports',
-    titleKey: 'viewReports.title',
-    icon: <EyeOutlined />,
+    path: '/reports',
+    titleKey: 'reports.title',
+    icon: <BarChartOutlined />,
     children: [
       {
         path: '/view-reports/management',
         titleKey: 'viewReports.management',
-        icon: <EyeOutlined />,
         component: './Admin/ReportView',
       },
     ],
   },
+  
+  // 💼 业务中心
   {
-    path: '/payroll',
-    titleKey: 'payroll.title',
-    icon: <DollarCircleOutlined />,
+    path: '/business',
+    titleKey: 'business.title',
+    icon: <AppstoreOutlined />,
     children: [
+      // 💰 薪资中心
       {
-        path: '/finance/payroll/periods',
-        titleKey: 'payroll.periods',
-        component: './Payroll/pages/PayrollPeriodsPage',
+        path: '/business/payroll',
+        titleKey: 'business.payroll.title',
+        icon: <DollarCircleOutlined />,
+        children: [
+          {
+            path: '/finance/payroll/periods',
+            titleKey: 'payroll.periods',
+            component: './Payroll/pages/PayrollPeriodsPage',
+          },
+          {
+            path: '/finance/payroll/runs',
+            titleKey: 'payroll.runs',
+            component: './Payroll/pages/PayrollRunsPage',
+          },
+          {
+            path: '/finance/payroll/entry',
+            titleKey: 'payroll.entry',
+            component: './Payroll/pages/PayrollEntryPage',
+          },
+          {
+            path: '/finance/payroll/runs/:id',
+            titleKey: 'payroll.runDetail',
+            hideInMenu: true,
+            component: './Payroll/pages/PayrollRunDetailPage',
+          },
+        ],
       },
+      // 🏢 人事中心
       {
-        path: '/finance/payroll/runs',
-        titleKey: 'payroll.runs',
-        component: './Payroll/pages/PayrollRunsPage',
+        path: '/business/hr',
+        titleKey: 'business.hr.title',
+        icon: <BankOutlined />,
+        children: [
+          {
+            path: '/manager/subordinates',
+            titleKey: 'manager.subordinates',
+            component: './Manager/SubordinatesPage',
+          },
+          {
+            path: '/manager/leave-approvals',
+            titleKey: 'manager.leaveApprovals',
+            component: './Manager/LeaveApprovalsPage',
+          },
+        ],
       },
+      // 👥 员工中心
       {
-        path: '/finance/payroll/entry',
-        titleKey: 'payroll.entry',
-        component: './Payroll/pages/PayrollEntryPage',
-      },
-      {
-        path: '/finance/payroll/components',
-        titleKey: 'payroll.components',
-        component: './Payroll/pages/PayrollComponentsPage',
-      },
-      {
-        path: '/finance/payroll/bulk-import',
-        titleKey: 'payroll.bulkImport',
-        component: './Payroll/pages/PayrollBulkImportPage',
-      },
-      {
-        path: '/finance/payroll/calculation-config',
-        titleKey: 'payroll.calculationConfig',
-        component: './Payroll/pages/PayrollCalculationConfigPage',
-      },
-      {
-        path: '/finance/payroll/attendance',
-        titleKey: 'payroll.attendance',
-        component: './Payroll/pages/AttendanceManagementPage',
-      },
-      {
-        path: '/finance/payroll/runs/:id',
-        titleKey: 'payroll.runDetail',
-        hideInMenu: true,
-        component: './Payroll/pages/PayrollRunDetailPage',
-      },
-    ],
-  },
-  {
-    path: '/hr',
-    titleKey: 'hr.title',
-    icon: <TeamOutlined />,
-    children: [
-      {
-        path: '/hr/employees',
-        titleKey: 'hr.employees',
+        path: '/business/employees',
+        titleKey: 'business.employees.title',
         icon: <TeamOutlined />,
-        component: './HRManagement/employees/EmployeeListPage',
-      },
-      {
-        path: '/hr/employees/new',
-        titleKey: 'hr.employeesNew',
-        icon: <UserAddOutlined />,
-        component: './HRManagement/employees/CreateEmployeePage',
-      },
-      {
-        path: '/hr/employees/bulk-import',
-        titleKey: 'hr.employeesBulkImport',
-        icon: <UploadOutlined />,
-        component: './HRManagement/bulkImport/EmployeeBulkImportPage',
-      },
-      {
-        path: '/hr/employees/:id',
-        titleKey: 'hr.employeesDetail',
-        hideInMenu: true,
-        component: './HRManagement/employees/EmployeeDetailPage',
-      },
-      {
-        path: '/hr/employees/:id/edit',
-        titleKey: 'hr.employeesEdit',
-        hideInMenu: true,
-        component: './HRManagement/employees/EditEmployeePage',
-      },
-    ],
-  },
-  {
-    path: '/organization',
-    titleKey: 'organization.title',
-    icon: <ApartmentOutlined />,
-    children: [
-      {
-        path: '/admin/organization/departments',
-        titleKey: 'organization.departments',
-        component: './Admin/Organization/DepartmentsPage',
-      },
-      {
-        path: '/admin/organization/personnel-categories',
-        titleKey: 'organization.personnelCategories',
-        component: './Admin/Organization/PersonnelCategoriesPage',
-      },
-      {
-        path: '/admin/organization/positions',
-        titleKey: 'organization.positions',
-        component: './Admin/Organization/PositionsPage',
+        children: [
+          {
+            path: '/hr/employees',
+            titleKey: 'hr.employees',
+            component: './HRManagement/employees/EmployeeListPage',
+          },
+          {
+            path: '/hr/employees/new',
+            titleKey: 'hr.employeesNew',
+            component: './HRManagement/employees/CreateEmployeePage',
+          },
+          {
+            path: '/hr/employees/bulk-import',
+            titleKey: 'hr.employeesBulkImport',
+            component: './HRManagement/bulkImport/EmployeeBulkImportPage',
+          },
+          {
+            path: '/hr/employees/:id',
+            titleKey: 'hr.employeesDetail',
+            hideInMenu: true,
+            component: './HRManagement/employees/EmployeeDetailPage',
+          },
+          {
+            path: '/hr/employees/:id/edit',
+            titleKey: 'hr.employeesEdit',
+            hideInMenu: true,
+            component: './HRManagement/employees/EditEmployeePage',
+          },
+        ],
       },
     ],
   },
+  
+  // ⚙️ 系统配置
   {
-    path: '/manager',
-    titleKey: 'manager.title',
-    icon: <UserSwitchOutlined />,
-    children: [
-      {
-        path: '/manager/subordinates',
-        titleKey: 'manager.subordinates',
-        component: './Manager/SubordinatesPage',
-      },
-      {
-        path: '/manager/leave-approvals',
-        titleKey: 'manager.leaveApprovals',
-        component: './Manager/LeaveApprovalsPage',
-      },
-    ],
-  },
-  {
-    path: '/admin',
-    titleKey: 'admin.title',
+    path: '/system',
+    titleKey: 'system.title',
     icon: <SettingOutlined />,
     access: 'admin',
     children: [
+      // 👥 用户与权限
       {
-        path: '/admin/users',
-        titleKey: 'admin.users',
-        component: './Admin/Permissions/UserListPage',
+        path: '/system/permissions',
+        titleKey: 'system.permissions.title',
+        icon: <SafetyOutlined />,
+        children: [
+          {
+            path: '/admin/users',
+            titleKey: 'admin.users',
+            component: './Admin/Permissions/UserListPage',
+          },
+          {
+            path: '/admin/roles',
+            titleKey: 'admin.roles',
+            component: './Admin/Permissions/RoleListPage',
+          },
+          {
+            path: '/admin/permissions',
+            titleKey: 'admin.permissions',
+            component: './Admin/Permissions/PermissionListPage',
+          },
+        ],
       },
+      // 🏗️ 架构配置
       {
-        path: '/admin/roles',
-        titleKey: 'admin.roles',
-        component: './Admin/Permissions/RoleListPage',
+        path: '/system/organization',
+        titleKey: 'system.organization.title',
+        icon: <ApartmentOutlined />,
+        children: [
+          {
+            path: '/admin/organization/management-v2',
+            titleKey: 'organization.managementV2',
+            component: './Admin/Organization/OrganizationManagementPageV2',
+          },
+        ],
       },
+      // 💰 薪资配置
       {
-        path: '/admin/permissions',
-        titleKey: 'admin.permissions',
-        component: './Admin/Permissions/PermissionListPage',
+        path: '/system/payroll-config',
+        titleKey: 'system.payrollConfig.title',
+        icon: <ProfileOutlined />,
+        children: [
+          {
+            path: '/finance/payroll/components',
+            titleKey: 'payroll.components',
+            component: './Payroll/pages/PayrollComponentsPage',
+          },
+          {
+            path: '/finance/payroll/bulk-import',
+            titleKey: 'payroll.bulkImport',
+            component: './Payroll/pages/PayrollBulkImportPage',
+          },
+          {
+            path: '/finance/payroll/calculation-config',
+            titleKey: 'payroll.calculationConfig',
+            component: './Payroll/pages/PayrollCalculationConfigPage',
+          },
+        ],
       },
+      // 🤖 AI配置
       {
-        path: '/admin/config',
-        titleKey: 'admin.systemSettings',
-        component: './Admin/Config',
-      },
-      {
-        path: '/admin/data-import',
-        titleKey: 'admin.dataImport',
-        component: './Admin/DataImport',
-      },
-      {
-        path: '/admin/sql-editor',
-        titleKey: 'admin.sqlEditor',
-        component: './Admin/SQLEditor',
-      },
-      {
-        path: '/admin/report-templates',
-        titleKey: 'admin.reportTemplate',
-        component: './Admin/ReportView',
-      },
-      {
-        path: '/admin/report-tables',
-        titleKey: 'admin.reportTable',
-        component: './Admin/ReportTableDemo',
+        path: '/system/ai-config',
+        titleKey: 'system.aiConfig.title',
+        icon: <RobotOutlined />,
+        children: [
+          {
+            path: '/admin/config',
+            titleKey: 'admin.systemSettings',
+            component: './Admin/Config',
+          },
+        ],
       },
     ],
   },
+  
+  // 🧪 测试页面 (开发模式)
   {
     path: '/test',
     titleKey: 'test.title',
@@ -305,6 +320,12 @@ export const menuData: AppMenuDataItem[] = [
         path: '/test/report-template-demo',
         titleKey: 'test.reportTemplateDemo',
         component: './Admin/ReportTemplateDemoPage',
+      },
+      {
+        path: '/test/payroll-workflow',
+        titleKey: 'test.payrollWorkflow',
+        icon: <SolutionOutlined />,
+        component: './Payroll/PayrollWorkflowPage',
       },
     ],
   },

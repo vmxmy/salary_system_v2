@@ -220,9 +220,11 @@
     "update": "更新",
     "upload": "上传",
     "yes": "是",
-    "yes_delete": "是的，删除"
+    "yes_delete": "是的，删除",
+    "view": "查看"
   },
   "cancel": "取消",
+  "save": "保存",
   "collapse_sidebar": "折叠侧边栏",
   "column_control": {
     "button_text": "列设置",
@@ -459,6 +461,9 @@
   "status_pending": "待处理",
   "status_processing": "处理中",
   "status_success": "成功",
+  "status.active": "状态",
+  "status.active_yes": "是",
+  "status.active_no": "否",
   "success": {
     "create": "",
     "update": ""

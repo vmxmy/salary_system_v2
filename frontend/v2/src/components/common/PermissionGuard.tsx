@@ -1,10 +1,9 @@
 import React from 'react';
-import { useAuthStore } from '../../store/authStore';
-// import type { AuthStoreState } from '../../store/authStore'; // No longer needed with decomposed selectors
-// import { shallow } from 'zustand/shallow'; // Removed
+import { useSelector } from 'react-redux'; // Import useSelector
 import type { ReactNode } from 'react';
 import { Alert } from 'antd';
 import { useTranslation } from 'react-i18next';
+import type { RootState } from '../../store'; // Import RootState
 
 interface PermissionGuardProps {
   requiredPermissions?: string[]; 
@@ -18,8 +17,8 @@ const PermissionGuard: React.FC<PermissionGuardProps> = (props) => {
   const { t } = useTranslation();
 
   // Decomposed selectors
-  const userPermissions = useAuthStore(state => state.userPermissions || []);
-  const authLoading = useAuthStore(state => state.isLoadingUser);
+  const userPermissions = useSelector((state: RootState) => state.auth.userPermissions || []); // Use useSelector
+  const authLoading = useSelector((state: RootState) => state.auth.isLoadingUser); // Use useSelector
 
   const effectiveLoading = authLoading; // Directly use authLoading from store
 

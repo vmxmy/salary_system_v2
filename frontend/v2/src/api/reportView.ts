@@ -48,7 +48,8 @@ export class ReportViewAPI {
     if (params.is_active !== undefined) queryParams.append('is_active', String(params.is_active));
 
     const response = await apiClient.get(`${API_BASE}?${queryParams.toString()}`);
-    return response.data;
+    // 后端返回的是 PaginationResponse 格式，需要提取 data 字段
+    return response.data?.data || [];
   }
 
   /**
@@ -116,7 +117,8 @@ export class ReportViewAPI {
     if (params.page_size) queryParams.append('limit', String(params.page_size));
 
     const response = await apiClient.get(`${API_BASE}/${id}/executions?${queryParams.toString()}`);
-    return response.data;
+    // 后端返回的是 PaginationResponse 格式，需要提取 data 字段
+    return response.data?.data || [];
   }
 
   /**
@@ -176,7 +178,8 @@ export class ReportViewAPI {
     if (params.is_active !== undefined) queryParams.append('is_active', String(params.is_active));
 
     const response = await apiClient.get(`${API_BASE_DATASOURCES}?${queryParams.toString()}`);
-    return response.data;
+    // 后端返回的是 PaginationResponse 格式，需要提取 data 字段
+    return response.data?.data || [];
   }
 
   /**
@@ -240,7 +243,8 @@ export class ReportViewAPI {
    */
   static async getDataSourceFields(id: number): Promise<DataSourceField[]> {
     const response = await apiClient.get(`${API_BASE_DATASOURCES}/${id}/fields`);
-    return response.data;
+    // 后端返回的是 PaginationResponse 格式，需要提取 data 字段
+    return response.data?.data || [];
   }
 
   /**
@@ -277,7 +281,8 @@ export class ReportViewAPI {
     if (params.page) queryParams.append('skip', String((params.page - 1) * params.page_size));
     if (params.page_size) queryParams.append('limit', String(params.page_size));
     const response = await apiClient.get(`${API_BASE_DATASOURCES}/${id}/access-logs?${queryParams.toString()}`);
-    return response.data;
+    // 后端返回的是 PaginationResponse 格式，需要提取 data 字段
+    return response.data?.data || [];
   }
 }
 

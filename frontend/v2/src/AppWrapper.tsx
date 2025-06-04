@@ -1,15 +1,14 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RouterProvider, type createBrowserRouter } from 'react-router-dom';
 import { App } from 'antd';
-import { useAuthStore } from './store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import usePayrollConfigStore from './store/payrollConfigStore';
 import useHrLookupStore from './store/hrLookupStore';
 import { fetchAllLookupTypesAndCache } from './services/lookupService';
 
 // 导入 Redux hooks 和 selectors
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   selectChatbotIsLoading,
   selectChatbotIsEnabled,
@@ -20,7 +19,9 @@ import {
   selectChatbotCustomJs,
   selectChatbotSystemVariables
 } from './store/chatbotConfigSlice';
-import type { RootState } from './store'; // 导入 RootState 类型
+import { fetchCurrentUserDetails, rehydrateAuth } from './store/authSlice';
+import { jwtDecode } from 'jwt-decode';
+import type { RootState, AppDispatch } from './store'; // 导入 RootState 和 AppDispatch 类型
 
 type AppRouter = ReturnType<typeof createBrowserRouter>;
 
@@ -34,10 +35,14 @@ const queryClient = new QueryClient();
 // const CSP_NONCE = 'ZWNhZGE5YTEtOGQwMC00ZGQ1LWEzZDQtZWU3YWM2OWQwMzI0'; // Removed hardcoded nonce
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
-  const initializeAuth = useAuthStore(state => state.initializeAuth);
-  const authToken = useAuthStore(state => state.authToken);
-  const currentUser = useAuthStore(state => state.currentUser);
-  const isLoadingUser = useAuthStore(state => state.isLoadingUser);
+  const dispatch = useDispatch<AppDispatch>();
+  
+  // 从 Redux store 获取认证状态
+  const authToken = useSelector((state: RootState) => state.auth.authToken);
+  const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+  const currentUserNumericId = useSelector((state: RootState) => state.auth.currentUserNumericId);
+  const isLoadingUser = useSelector((state: RootState) => state.auth.isLoadingUser);
+  
   const fetchPayrollConfigs = usePayrollConfigStore(state => state.fetchComponentDefinitions);
   const fetchHrLookups = useHrLookupStore(state => state.fetchLookup);
 
@@ -57,6 +62,40 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
     "";
 
   const chatbotSystemVariablesJson = useMemo(() => JSON.stringify(chatbotSystemVariables), [chatbotSystemVariables]);
+
+  // 认证初始化逻辑
+  const initializeAuth = useCallback(() => {
+    // 尝试从 localStorage 恢复认证状态
+    try {
+      const storedAuthData = localStorage.getItem('auth-storage');
+      if (storedAuthData) {
+        const parsedAuthData = JSON.parse(storedAuthData);
+        
+        // 检查 token 是否过期
+        if (parsedAuthData.authToken) {
+          const decodedToken = jwtDecode<{ exp?: number }>(parsedAuthData.authToken);
+          const currentTime = Date.now() / 1000;
+          
+          if (decodedToken.exp && decodedToken.exp < currentTime) {
+            // Token 过期，清除存储
+            localStorage.removeItem('auth-storage');
+            return;
+          }
+          
+          // Token 有效，恢复状态
+          dispatch(rehydrateAuth(parsedAuthData));
+          
+          // 如果有用户 ID，获取最新用户信息
+          if (parsedAuthData.currentUserNumericId) {
+            dispatch(fetchCurrentUserDetails(parsedAuthData.currentUserNumericId));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing auth:', error);
+      localStorage.removeItem('auth-storage');
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     initializeAuth();

@@ -3,7 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Typography, Alert, Row, Col, Card, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
+import { useSelector, useDispatch } from 'react-redux';
+import { login, clearLoginError } from '../store/authSlice';
+import type { RootState, AppDispatch } from '../store';
 import type { LoginCredentials } from '../api/auth'; // 确保 LoginCredentials 在 api/auth.ts 中定义并导出
 import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Import the logo
 
@@ -13,13 +15,13 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, ready, i18n } = useTranslation(['common', 'auth']); // 明确指定使用的命名空间
-  const {
-    loginAction,
-    authToken,
-    isLoadingUser,
-    loginError,
-    clearLoginError,
-  } = useAuthStore();
+  const dispatch = useDispatch<AppDispatch>();
+  
+  // 从 Redux store 获取状态
+  const authToken = useSelector((state: RootState) => state.auth.authToken);
+  const isLoadingUser = useSelector((state: RootState) => state.auth.isLoadingUser);
+  const loginError = useSelector((state: RootState) => state.auth.loginError);
+  
   const [form] = Form.useForm();
 
   const isAuthenticated = !!authToken;
@@ -33,16 +35,16 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-        clearLoginError();
+        dispatch(clearLoginError());
     }
-  }, [isAuthenticated, clearLoginError, location.key]);
+  }, [isAuthenticated, dispatch, location.key]);
 
   const onFinish = async (values: any) => {
     const credentials: LoginCredentials = {
       username: values.username,
       password: values.password,
     };
-    await loginAction(credentials);
+    dispatch(login(credentials));
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -115,7 +117,7 @@ const LoginPage: React.FC = () => {
                   type="error"
                   showIcon
                   closable
-                  onClose={clearLoginError}
+                  onClose={() => dispatch(clearLoginError())}
                 />
               </Form.Item>
             )}

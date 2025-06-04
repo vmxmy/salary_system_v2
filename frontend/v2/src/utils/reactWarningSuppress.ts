@@ -15,11 +15,16 @@ export function initReactWarningSuppress() {
   console.warn = function(message?: any, ...optionalParams: any[]) {
     const fullMessage = [message, ...optionalParams].join(' ');
     
-    // 检查是否是 findDOMNode 相关的警告
+    // 检查是否是需要抑制的警告
     if (typeof message === 'string' &&
         (message.includes('findDOMNode') ||
          fullMessage.includes('findDOMNode') ||
-         message.includes('Warning: findDOMNode'))) {
+         message.includes('Warning: findDOMNode') ||
+         // 抑制 destroyOnClose 弃用警告
+         message.includes('destroyOnClose') ||
+         message.includes('destroyOnHidden') ||
+         fullMessage.includes('destroyOnClose') ||
+         fullMessage.includes('destroyOnHidden'))) {
       // 静默忽略
       return;
     }
@@ -32,11 +37,20 @@ export function initReactWarningSuppress() {
   console.error = function(message?: any, ...optionalParams: any[]) {
     const fullMessage = [message, ...optionalParams].join(' ');
     
-    // 检查是否是 findDOMNode 相关的错误
+    // 检查是否是需要抑制的错误
     if (typeof message === 'string' && 
         (message.includes('findDOMNode') || 
          fullMessage.includes('findDOMNode') ||
-         message.includes('Warning: findDOMNode'))) {
+         message.includes('Warning: findDOMNode') ||
+         // 抑制 jsx 属性警告
+         message.includes('Received `true` for a non-boolean attribute `jsx`') ||
+         message.includes('non-boolean attribute `jsx`') ||
+         fullMessage.includes('non-boolean attribute `jsx`') ||
+         // 抑制 destroyOnClose 弃用警告
+         message.includes('destroyOnClose') ||
+         message.includes('destroyOnHidden') ||
+         fullMessage.includes('destroyOnClose') ||
+         fullMessage.includes('destroyOnHidden'))) {
       // 静默忽略
       return;
     }

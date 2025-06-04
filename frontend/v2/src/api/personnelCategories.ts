@@ -17,6 +17,14 @@ export interface GetPersonnelCategoriesApiParams {
 }
 
 /**
+ * Interface for personnel category employee distribution statistics
+ */
+export interface PersonnelCategoryStats {
+  category_id: number;
+  employee_count: number;
+}
+
+/**
  * Get a list of personnel categories with pagination, search, and filtering.
  * Corresponds to the GET /personnel-categories endpoint.
  * @param params Query parameters for fetching personnel categories
@@ -120,5 +128,14 @@ export const getPersonnelCategoriesTree = async (is_active?: boolean): Promise<{
   
   const queryString = queryParams.toString();
   const response = await apiClient.get<{data: PersonnelCategory[]}>(`/personnel-categories/tree${queryString ? `?${queryString}` : ''}`);
+  return response.data;
+};
+
+/**
+ * Get employee distribution statistics for personnel categories.
+ * Returns the number of employees in each personnel category.
+ */
+export const getPersonnelCategoryEmployeeStats = async (): Promise<{data: PersonnelCategoryStats[]}> => {
+  const response = await apiClient.get<{data: PersonnelCategoryStats[]}>('/personnel-categories/employee-stats');
   return response.data;
 };

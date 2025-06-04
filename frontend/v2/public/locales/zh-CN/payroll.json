@@ -631,5 +631,119 @@
   "export_excel": "导出Excel",
   "pdf_export_not_supported": "PDF导出功能需要额外的库支持，当前为演示模式",
   "detail_page_title": "薪资运行详情",
-  "edit_entry_details": "编辑条目详情"
+  "edit_entry_details": "编辑条目详情",
+  "workflow": {
+    "title": "工资计算工作流",
+    "description": "工资自动计算引擎的可视化工作流程",
+    "steps": {
+      "data_review": {
+        "title": "薪资数据审核",
+        "description": "审核薪资基础数据的完整性和准确性",
+        "content": "在此步骤中，我们将审核员工基础信息、考勤数据、薪资组件配置等关键数据。",
+        "review_points": {
+          "title": "审核要点",
+          "employee_data": "员工基础信息完整性",
+          "attendance_data": "考勤数据准确性",
+          "component_config": "薪资组件配置正确性",
+          "calculation_rules": "计算规则有效性"
+        },
+        "form": {
+          "payroll_period": "薪资周期",
+          "review_notes": "审核备注",
+          "review_result": "审核结果",
+          "review_result_pass": "通过",
+          "review_result_fail": "不通过",
+          "review_result_conditional": "有条件通过"
+        },
+        "data_initialization": {
+          "title": "数据初始化",
+          "no_data_message": "当前薪资周期暂无数据，请选择数据初始化方式：",
+          "copy_last_month": "一键复制上月数据",
+          "bulk_import": "通过批量导入页面导入",
+          "copy_confirm_title": "确认复制上月数据",
+          "copy_confirm_content": "确定要复制上个月的薪资数据到当前周期吗？",
+          "copy_success": "成功复制上月数据",
+          "copy_failed": "复制上月数据失败"
+        }
+      },
+      "auto_calculation": {
+        "title": "工资自动计算",
+        "description": "基于配置规则自动计算员工工资",
+        "content": "系统将根据预设的计算规则，自动计算所有员工的应发工资、扣款项目和实发工资。",
+        "calculation_params": {
+          "title": "计算参数",
+          "base_salary": "基本工资计算",
+          "allowances": "津贴补贴计算",
+          "deductions": "扣款项目计算",
+          "tax_calculation": "个税计算"
+        },
+        "calculation_modules": "计算模块",
+        "calculation_status": "计算状态",
+        "calculation_pending": "等待计算",
+        "calculation_in_progress": "正在计算...",
+        "calculation_completed": "计算完成"
+      },
+      "period_review": {
+        "title": "工资周期复核",
+        "description": "复核计算结果的准确性",
+        "content": "对自动计算的结果进行人工复核，确保计算准确无误。",
+        "calculation_summary": {
+          "title": "计算结果摘要",
+          "total_employees": "员工总数",
+          "total_gross_pay": "应发工资总额",
+          "total_deductions": "扣款总额",
+          "total_net_pay": "实发工资总额"
+        },
+        "download_reports": "下载报表",
+        "review_comments": "复核意见",
+        "review_result": "复核结果"
+      },
+      "period_approval": {
+        "title": "工资周期批准",
+        "description": "最终批准工资发放",
+        "content": "经过复核确认无误后，批准本期工资发放。",
+        "final_confirmation": {
+          "title": "最终确认",
+          "total_amount": "发放总金额",
+          "employee_count": "发放员工数",
+          "period_info": "薪资周期信息"
+        },
+        "approval_warning": "重要提示：批准后将无法修改本期工资数据，请确认所有信息无误。",
+        "approval_comments": "批准意见",
+        "confirm_approval": "我确认已仔细核对所有数据，同意批准发放"
+      },
+      "payment_archive": {
+        "title": "工资发放与归档",
+        "description": "执行工资发放并归档相关数据",
+        "content": "生成银行转账文件，执行工资发放，并将相关数据归档保存。",
+        "payment_status": {
+          "title": "发放状态",
+          "bank_file_generated": "银行文件已生成",
+          "payment_initiated": "发放已启动",
+          "payment_completed": "发放已完成",
+          "data_archived": "数据已归档"
+        },
+        "payment_details": "发放详情记录",
+        "archive_notes": "归档备注"
+      }
+    },
+    "buttons": {
+      "next_step": "下一步",
+      "previous_step": "上一步",
+      "submit": "提交",
+      "reset": "重置",
+      "save_draft": "保存草稿",
+      "start_calculation": "开始计算",
+      "approve": "批准",
+      "reject": "驳回",
+      "complete": "完成"
+    },
+    "messages": {
+      "step_completed": "步骤已完成",
+      "workflow_completed": "工作流程已完成",
+      "data_saved": "数据已保存",
+      "operation_success": "操作成功",
+      "operation_failed": "操作失败"
+    }
+  }
 }

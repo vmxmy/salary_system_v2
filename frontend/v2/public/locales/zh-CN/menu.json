@@ -10,7 +10,19 @@
     "reportTemplate": "报表模板",
     "reportTable": "报表表格"
   },
-  "dashboard": "仪表盘",
+  "business": {
+    "title": "业务中心",
+    "payroll": {
+      "title": "薪资中心"
+    },
+    "hr": {
+      "title": "人事中心"
+    },
+    "employees": {
+      "title": "员工中心"
+    }
+  },
+  "dashboard": "首页图表",
   "home": "首页",
   "hr": {
     "employees": "员工档案",
@@ -27,6 +39,7 @@
     "title": "经理视图"
   },
   "organization": {
+    "managementV2": "组织架构管理",
     "departments": "部门管理",
     "personnelCategories": "人员类别",
     "positions": "实际职务",
@@ -49,11 +62,31 @@
     "myPayslips": "我的工资单",
     "title": "个人中心"
   },
+  "reports": {
+    "title": "报表中心"
+  },
+  "system": {
+    "title": "系统配置",
+    "permissions": {
+      "title": "用户与权限"
+    },
+    "organization": {
+      "title": "架构配置"
+    },
+    "payrollConfig": {
+      "title": "薪资配置"
+    },
+    "aiConfig": {
+      "title": "AI配置"
+    }
+  },
   "test": {
     "title": "测试页面",
     "employeeListV3": "员工列表V3",
     "reportTableDemo": "报表表格演示",
-    "reportTemplateDemo": "报表模板演示"
+    "reportTemplateDemo": "报表模板演示",
+    "actualPositions": "实际职务",
+    "payrollWorkflow": "工资计算工作流"
   },
   "viewReports": {
     "management": "报表管理",

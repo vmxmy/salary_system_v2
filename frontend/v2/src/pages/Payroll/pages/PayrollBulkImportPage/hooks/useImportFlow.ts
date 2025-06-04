@@ -105,17 +105,85 @@ export const useImportFlow = () => {
         processedDataCount: rawData.length
       });
       
-      // 调用后台验证API
-      const validationResult = await validateBulkImportData(rawData, selectedPeriodId);
+      // 调用后台验证API，传递覆盖模式参数
+      const validationResult = await validateBulkImportData(
+        rawData, 
+        selectedPeriodId, 
+        importSettings.overwriteExisting
+      );
       
       // 转换验证结果格式
-      const result: ValidationResult = {
+      let result: ValidationResult = {
         total: validationResult.total,
         valid: validationResult.valid,
         invalid: validationResult.invalid,
         warnings: validationResult.warnings,
         errors: validationResult.errors
       };
+      
+      // 前端额外处理：如果启用覆盖模式且有错误，再次尝试转换
+      if (importSettings.overwriteExisting && result.errors && result.errors.length > 0) {
+        console.log('🔍 前端额外处理覆盖模式:', {
+          originalResult: result,
+          overwriteMode: importSettings.overwriteExisting
+        });
+        
+        const processedErrors: string[] = [];
+        let convertedWarnings = 0;
+        
+        result.errors.forEach((error, index) => {
+          const errorLower = error.toLowerCase();
+          
+          // 更宽泛的重复记录错误检测
+          const isDuplicateError = 
+            error.includes('已存在') || 
+            error.includes('duplicate') || 
+            error.includes('重复') ||
+            error.includes('唯一') ||
+            error.includes('冲突') ||
+            errorLower.includes('exists') ||
+            errorLower.includes('conflict') ||
+            errorLower.includes('unique') ||
+            errorLower.includes('constraint') ||
+            // 如果所有记录都是错误，可能都是重复记录
+            (result.valid === 0 && result.invalid === result.total);
+            
+          console.log(`🔍 前端错误检查 ${index + 1}:`, {
+            error,
+            isDuplicateError
+          });
+          
+          if (isDuplicateError) {
+            convertedWarnings++;
+            console.log('⚠️ 前端：转换重复记录错误为警告:', error);
+          } else {
+            processedErrors.push(error);
+          }
+        });
+        
+        // 如果没有找到明确的重复错误，但启用了覆盖模式且所有记录都无效，
+        // 假设都是重复记录错误
+        if (convertedWarnings === 0 && result.valid === 0 && result.invalid > 0) {
+          console.log('🔍 前端：假设所有无效记录都是重复记录');
+          convertedWarnings = result.invalid;
+          processedErrors.length = 0; // 清空错误
+        }
+        
+        if (convertedWarnings > 0) {
+          result = {
+            ...result,
+            errors: processedErrors,
+            warnings: (result.warnings || 0) + convertedWarnings,
+            valid: result.valid + convertedWarnings,
+            invalid: Math.max(0, result.invalid - convertedWarnings)
+          };
+          
+          console.log('✅ 前端覆盖模式处理完成:', {
+            convertedWarnings,
+            newResult: result
+          });
+        }
+      }
       
       setValidationResult(result);
       setProcessedData(validationResult.validatedData);

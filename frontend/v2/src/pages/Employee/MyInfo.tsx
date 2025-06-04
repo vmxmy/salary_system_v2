@@ -3,7 +3,8 @@ import { Descriptions, Spin, Alert, Typography, Card, Avatar, Empty } from 'antd
 import { UserOutlined, HomeOutlined, ProfileOutlined, SolutionOutlined, WalletOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useAuthStore } from '../../store/authStore';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import { employeeService } from '../../services/employeeService';
 import type { Employee, LookupValue, Department, PersonnelCategory, Position } from '../HRManagement/types';
 import useHrLookupStore from '../../store/hrLookupStore';
@@ -28,8 +29,9 @@ const getLookupDisplayName = <T extends { id: number; name?: string; label?: str
 
 const MyInfoPage: React.FC = () => {
   const { t } = useTranslation(['common', 'employee', 'myInfo']);
-  const employeeId = useAuthStore(state => state.currentUser?.employee_id);
-  const currentUserForDisplay = useAuthStore(state => state.currentUser);
+  const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+  const employeeId = currentUser?.employee_id;
+  const currentUserForDisplay = currentUser;
 
   // Individual selectors for hrLookupStore to ensure stability for useSyncExternalStore
   const genders = useHrLookupStore(state => state.genders);

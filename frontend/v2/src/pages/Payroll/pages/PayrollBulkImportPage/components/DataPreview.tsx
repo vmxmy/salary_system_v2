@@ -54,20 +54,49 @@ const DataPreview: React.FC<DataPreviewProps> = ({
   loading
 }) => {
   const successRate = Math.round((validationResult.valid / validationResult.total) * 100);
+  
+  // 添加调试信息
+  console.log('🔍 DataPreview 验证结果:', {
+    validationResult,
+    overwriteMode: importSettings.overwriteExisting
+  });
+  
+  // 计算是否可以导入：有有效记录且没有阻止性错误
+  const canImport = validationResult.valid > 0 && 
+                   (!validationResult.errors || validationResult.errors.length === 0);
+  
+  // 计算导入按钮的状态文本
+  const getImportButtonText = () => {
+    if (validationResult.valid === 0) {
+      return "无有效记录可导入";
+    }
+    if (validationResult.errors && validationResult.errors.length > 0) {
+      return "存在错误，无法导入";
+    }
+    return `开始导入 (${validationResult.valid} 条记录)`;
+  };
+  
+  console.log('🔍 DataPreview 按钮状态:', {
+    canImport,
+    buttonText: getImportButtonText(),
+    validCount: validationResult.valid,
+    errorCount: validationResult.errors?.length || 0,
+    warningCount: validationResult.warnings || 0
+  });
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {/* 验证结果统计 */}
       <Card title="数据验证结果">
         <Row gutter={16}>
-          <Col span={6}>
+          <Col span={5}>
             <Statistic
               title="总记录数"
               value={validationResult.total}
               prefix={<DatabaseOutlined />}
             />
           </Col>
-          <Col span={6}>
+          <Col span={5}>
             <Statistic
               title="有效记录"
               value={validationResult.valid}
@@ -75,7 +104,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
               prefix={<CheckCircleOutlined />}
             />
           </Col>
-          <Col span={6}>
+          <Col span={5}>
             <Statistic
               title="无效记录"
               value={validationResult.invalid}
@@ -83,7 +112,15 @@ const DataPreview: React.FC<DataPreviewProps> = ({
               prefix={<WarningOutlined />}
             />
           </Col>
-          <Col span={6}>
+          <Col span={4}>
+            <Statistic
+              title="警告数"
+              value={validationResult.warnings || 0}
+              valueStyle={{ color: '#fa8c16' }}
+              prefix={<WarningOutlined />}
+            />
+          </Col>
+          <Col span={5}>
             <Statistic
               title="成功率"
               value={successRate}
@@ -92,6 +129,40 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             />
           </Col>
         </Row>
+        
+        {/* 覆盖模式提示 */}
+        {importSettings.overwriteExisting && validationResult.warnings > 0 && (
+          <Alert
+            style={{ marginTop: 16 }}
+            type="warning"
+            showIcon
+            message="覆盖模式已启用"
+            description={`检测到 ${validationResult.warnings} 条重复记录，启用覆盖模式后这些记录将被更新而不是报错。`}
+          />
+        )}
+        
+        {/* 错误详情 */}
+        {validationResult.errors && validationResult.errors.length > 0 && (
+          <Alert
+            style={{ marginTop: 16 }}
+            type="error"
+            showIcon
+            message="数据验证错误"
+            description={
+              <div>
+                <div style={{ marginBottom: 8 }}>发现以下错误，需要修正后才能导入：</div>
+                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                  {validationResult.errors.slice(0, 5).map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                  {validationResult.errors.length > 5 && (
+                    <li>... 还有 {validationResult.errors.length - 5} 个错误</li>
+                  )}
+                </ul>
+              </div>
+            }
+          />
+        )}
       </Card>
 
       {/* 数据样本预览 */}
@@ -212,25 +283,48 @@ const DataPreview: React.FC<DataPreviewProps> = ({
       </Card>
 
       <div style={{ textAlign: 'center' }}>
-        <Space>
-          <Button onClick={onBackToMapping}>返回映射</Button>
-          <Button 
-            type="primary" 
-            size="large" 
-            onClick={onExecuteImport}
-            loading={loading}
-            disabled={validationResult.valid === 0}
-          >
-            开始导入 ({validationResult.valid} 条记录)
-          </Button>
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Space>
+            <Button onClick={onBackToMapping}>返回映射</Button>
+            <Button 
+              type="primary" 
+              size="large" 
+              onClick={onExecuteImport}
+              loading={loading}
+              disabled={!canImport}
+            >
+              {getImportButtonText()}
+            </Button>
+          </Space>
           
-          {validationResult.invalid > 0 && (
+          {/* 操作提示 */}
+          {validationResult.invalid > 0 && !importSettings.overwriteExisting && (
             <Alert
               type="info"
               showIcon
               message="操作提示"
-              description="您可以直接导入有效记录，或使用上方的'丢弃无效记录'按钮清理数据后再导入"
-              style={{ marginTop: 16, textAlign: 'left' }}
+              description="您可以直接导入有效记录，或返回映射步骤修正数据后再导入。"
+              style={{ textAlign: 'left' }}
+            />
+          )}
+          
+          {validationResult.warnings > 0 && importSettings.overwriteExisting && (
+            <Alert
+              type="success"
+              showIcon
+              message="覆盖模式提示"
+              description={`覆盖模式已启用，${validationResult.warnings} 条重复记录将被更新。点击"开始导入"继续执行。`}
+              style={{ textAlign: 'left' }}
+            />
+          )}
+          
+          {validationResult.errors && validationResult.errors.length > 0 && (
+            <Alert
+              type="error"
+              showIcon
+              message="无法导入"
+              description="存在数据错误，请返回映射步骤修正后重新验证。"
+              style={{ textAlign: 'left' }}
             />
           )}
         </Space>

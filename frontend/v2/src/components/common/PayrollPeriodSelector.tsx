@@ -53,11 +53,6 @@ interface PayrollPeriodSelectorProps {
   autoSelectLatestWithData?: boolean; // 是否自动选择最近一个有数据的周期
 }
 
-interface PeriodDataStats {
-  count: number;
-  loading: boolean;
-}
-
 const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
   value,
   onChange,
@@ -82,94 +77,6 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
   
   const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>([]);
   const [loadingPeriods, setLoadingPeriods] = useState<boolean>(false);
-  const [periodDataStats, setPeriodDataStats] = useState<Record<number, PeriodDataStats>>({});
-  
-  // 获取薪资周期数据统计
-  const fetchPeriodDataStats = async (periodIds: number[], periods: PayrollPeriod[]) => {
-    
-    
-    // 初始化加载状态
-    const initialStats: Record<number, PeriodDataStats> = {};
-    periodIds.forEach(id => {
-      initialStats[id] = { count: 0, loading: true };
-    });
-    setPeriodDataStats(initialStats);
-    
-    // 并发获取所有周期的数据统计
-    const statsPromises = periodIds.map(async (periodId) => {
-      try {
-        
-        
-        // 获取该周期下的所有payroll_run
-        const runsResponse = await payrollApi.getPayrollRuns({
-          period_id: periodId,
-          size: 100
-        });
-        
-        let totalCount = 0;
-        
-        // 🛡️ 防御性编程：检查响应数据有效性
-        if (runsResponse && runsResponse.data && Array.isArray(runsResponse.data) && runsResponse.data.length > 0) {
-          totalCount = runsResponse.data.reduce((sum, run) => {
-            return sum + (run.total_employees || 0);
-          }, 0);
-          
-          
-        } else {
-          
-        }
-        
-        return { periodId, count: totalCount };
-      } catch (error) {
-        
-        return { periodId, count: 0 };
-      }
-    });
-    
-    try {
-      const results = await Promise.all(statsPromises);
-      
-      // 更新统计数据
-      const newStats: Record<number, PeriodDataStats> = {};
-      results.forEach(({ periodId, count }) => {
-        newStats[periodId] = { count, loading: false };
-      });
-      
-      setPeriodDataStats(newStats);
-      
-      
-      // 🎯 自动选择最近一个有数据的周期
-      if (autoSelectLatestWithData && !value && onChange && Array.isArray(periods)) {
-        // 🛡️ 防御性编程：确保periods是有效数组
-        const periodsWithData = periods.filter(period => {
-          if (!period || typeof period.id === 'undefined') {
-            return false;
-          }
-          const stats = newStats[period.id];
-          return stats && stats.count > 0;
-        });
-        
-        
-        
-        if (periodsWithData.length > 0) {
-          // 选择最近的有数据的周期（已按日期倒序排列）
-          const selectedPeriod = periodsWithData[0];
-          
-          onChange(selectedPeriod.id);
-        } else {
-          
-        }
-      }
-    } catch (error) {
-      
-      // 设置所有为非加载状态
-      const errorStats: Record<number, PeriodDataStats> = {};
-      periodIds.forEach(id => {
-        errorStats[id] = { count: 0, loading: false };
-      });
-      setPeriodDataStats(errorStats);
-    }
-  };
 
   // 过滤薪资周期的函数
   const filterPayrollPeriods = (periods: PayrollPeriod[]): PayrollPeriod[] => {
@@ -214,24 +121,23 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
         // 根据配置过滤薪资周期
         const filteredPeriods = filterPayrollPeriods(sortedPeriods);
         
-        if (enableProductionRestrictions) {
-        }
-        
         setPayrollPeriods(filteredPeriods);
-        
         
         // 调用回调函数通知父组件薪资周期已加载
         if (onPeriodsLoaded) {
           onPeriodsLoaded(filteredPeriods);
         }
         
-        // 获取每个周期的数据统计
-        if (filteredPeriods.length > 0) {
-          const periodIds = filteredPeriods.map(p => p.id);
-          // 🛡️ 防御性编程：确保数据有效性
-          if (Array.isArray(periodIds) && Array.isArray(filteredPeriods)) {
-            fetchPeriodDataStats(periodIds, filteredPeriods);
-          } else {
+        // 🎯 自动选择最近一个有数据的周期
+        if (autoSelectLatestWithData && !value && onChange && Array.isArray(filteredPeriods)) {
+          const periodsWithData = filteredPeriods.filter(period => {
+            return period && typeof period.id !== 'undefined' && (period.employee_count || 0) > 0;
+          });
+          
+          if (periodsWithData.length > 0) {
+            // 选择最近的有数据的周期（已按日期倒序排列）
+            const selectedPeriod = periodsWithData[0];
+            onChange(selectedPeriod.id);
           }
         }
       } catch (error) {
@@ -243,7 +149,7 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
     };
 
     fetchPayrollPeriods();
-  }, [message, t, enableProductionRestrictions, showDataStats]);
+  }, [message, t, enableProductionRestrictions, showDataStats, autoSelectLatestWithData, value, onChange, onPeriodsLoaded]);
 
   // 获取选中周期的信息
   const selectedPeriod = payrollPeriods.find(p => p.id === value);
@@ -259,10 +165,8 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
       statusCode === 'CLOSED' ? 'blue' : 
       statusCode === 'ARCHIVED' ? 'gray' : 'gold';
     
-    // 获取数据统计信息
-    const dataStats = periodDataStats[period.id];
-    const isLoadingStats = dataStats?.loading ?? true;
-    const recordCount = dataStats?.count ?? 0;
+    // 🎯 直接使用API返回的employee_count字段
+    const recordCount = period.employee_count || 0;
     
     // 确定数据状态图标和颜色
     let dataIcon: React.ReactNode;
@@ -273,36 +177,26 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
       dataIcon = null;
       dataColor = '#8c8c8c';
       dataText = '';
-    } else if (isLoadingStats) {
-      dataIcon = <LoadingOutlined style={{ fontSize: '12px' }} />;
-      dataColor = '#1890ff';
-      dataText = t('components:auto___e7bb9f');
     } else if (recordCount > 0) {
       dataIcon = <DatabaseOutlined style={{ fontSize: '12px' }} />;
       dataColor = '#52c41a';
-      dataText = t('components:auto__recordcount__247b72');
+      dataText = `${recordCount}人`;
     } else {
       dataIcon = <FileAddOutlined style={{ fontSize: '12px' }} />;
       dataColor = '#8c8c8c';
-      dataText = t('components:auto_text_e697a0');
+      dataText = '无数据';
     }
     
     return (
       <Option key={period.id} value={period.id}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: '400px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: '300px' }}>
           <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
             <span style={{ 
               color: recordCount > 0 ? '#52c41a' : '#8c8c8c',
-              fontWeight: recordCount > 0 ? '500' : 'normal'
+              fontWeight: recordCount > 0 ? '500' : 'normal',
+              fontSize: '14px'
             }}>
               {period.name}
-            </span>
-            <span style={{ 
-              color: '#666', 
-              fontSize: '12px', 
-              marginLeft: 8 
-            }}>
-              ({period.start_date} ~ {period.end_date})
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -319,7 +213,7 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
               </div>
             )}
             <Tag color={statusColor} style={{ margin: 0, fontSize: '11px' }}>
-              {statusName || t('components:auto_text_e69caa')}
+              {statusName || '未知'}
             </Tag>
           </div>
         </div>
@@ -333,8 +227,8 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
     
     return (
       <div>
-        <div>t('batch_import.help.period_selection')</div>
-        <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
+        <div style={{ marginBottom: 4 }}>请选择要操作的薪资周期</div>
+        <div style={{ fontSize: '12px', color: '#666' }}>
           {enableProductionRestrictions ? (
             <>
               🔒 生产环境：仅显示
@@ -416,10 +310,10 @@ const PayrollPeriodSelector: React.FC<PayrollPeriodSelectorProps> = ({
           fontSize: '14px',
           color: '#52c41a'
         }}>
-          ✓ 已选择：{selectedPeriod.name} ({selectedPeriod.start_date} ~ {selectedPeriod.end_date})
-          {showDataStats && periodDataStats[selectedPeriod.id] && (
+          ✓ 已选择：{selectedPeriod.name}
+          {showDataStats && (selectedPeriod.employee_count || 0) > 0 && (
             <span style={{ marginLeft: 8, color: '#666' }}>
-              - {periodDataStats[selectedPeriod.id].count}人
+              - {selectedPeriod.employee_count}人
             </span>
           )}
         </div>

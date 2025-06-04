@@ -180,7 +180,8 @@
     "update": "Update",
     "upload": "Upload",
     "yes": "Yes",
-    "yes_delete": "Yes, Delete"
+    "yes_delete": "Yes, Delete",
+    "view": "View"
   },
   "cancel": "",
   "collapse_sidebar": "Collapse sidebar",

@@ -127,7 +127,7 @@ class PayrollCalculationEngine:
                         # 执行计算
                         component_result = calculator.calculate(context)
                         
-                        # 添加到结果中
+                        # 添加到结果中（会自动调用_update_totals()）
                         result.add_component(component_result.to_calculation_component())
                         
                         # 更新上下文中的计算结果
@@ -175,49 +175,17 @@ class PayrollCalculationEngine:
         # 创建计算上下文
         context = CalculationContext(
             employee_id=employee_id,
-            employee_data=employee_data,
+            period_id=0,  # 这里应该传入正确的period_id
             period_start=period_start,
             period_end=period_end,
-            calculation_date=date.today(),
+            base_salary=Decimal(str(employee_data.get('base_salary', 0))),
+            employee_data=employee_data,
             attendance_data=attendance_data,
             calculation_rules=calculation_rules or []
         )
         
-        # 创建计算结果
-        result = CalculationResult(
-            employee_id=employee_id,
-            period_start=period_start,
-            period_end=period_end,
-            calculation_date=datetime.now()
-        )
-        
-        try:
-            # 按顺序执行计算
-            for component_code in self.calculation_order:
-                if component_code in self.calculators:
-                    calculator = self.calculators[component_code]
-                    
-                    try:
-                        # 执行计算
-                        component_result = calculator.calculate(context)
-                        
-                        # 添加到结果中
-                        result.add_component_result(component_result)
-                        
-                        # 更新上下文中的计算结果
-                        context.set_calculated_amount(component_code, component_result.amount)
-                        
-                    except Exception as e:
-                        error_msg = f"计算组件 {component_code} 失败: {str(e)}"
-                        result.add_error(error_msg)
-            
-            # 计算净工资
-            result.calculate_net_pay()
-            
-        except Exception as e:
-            result.add_error(f"薪资计算失败: {str(e)}")
-        
-        return result
+        # 使用主要的calculate方法
+        return self.calculate(context)
     
     def calculate_batch_payroll(
         self,

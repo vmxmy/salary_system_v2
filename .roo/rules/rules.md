@@ -102,87 +102,101 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
 - Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
 - When searching for recent news, use the current year (2025) instead of previous years, or simply use the "recent" keyword to get the latest information
-- 每次文件写入操作不要超过250行，确保在编辑限制范围内
-- 大型文件拆分应该按功能职责分组，使用状态管理Hook集中管理状态，保持组件间的清晰边界
+- When editing TypeScript files with JSX syntax, ensure the file extension is .tsx, not .ts
+- For Ant Design Pro StatisticCard component, the trend property expects "up" | "down" | undefined, not an object
+- TableActionButton component requires actionType property to be specified
+- DirectoryTree component from Ant Design doesn't support loading property directly
 
 # Scratchpad
 
-## 🎉 PayrollBulkImportPageV3 大型文件拆分任务 - 完成
+## 薪资工作流页面开发任务 🚀 正在进行
 
-### 任务背景
-PayrollBulkImportPageV3.tsx 文件高达2063行，严重超过800行限制，需要按照单一职责原则拆分为多个功能模块。
+### 总体目标
+开发完整的五步薪资工作流页面，实现从数据准备到最终发放的完整业务流程。
 
-### ✅ 拆分任务完成情况
+### 最新完成 ✅ 刚完成
 
-#### 阶段一：分析与规划 ✅
-- [X] **功能映射分析**: 完成原文件功能模块识别
-- [X] **职责分组**: 按单一职责原则确定8个模块
-- [X] **依赖分析**: 确定模块间调用关系和数据流
-- [X] **接口设计**: 设计统一的模块接口
+#### 第二步预览表格功能
+- [X] **发现问题**：用户反馈第二步缺少预览表格界面
+- [X] **添加数据预览**：在 `AutoCalculationStep.tsx` 中添加了完整的预览表格
+- [X] **功能特性**：
+  - 📊 **薪资数据预览表格**：显示员工姓名、部门、职位、基本工资、津贴补贴、预计扣除、预计应发、预计实发
+  - 🔄 **动态加载**：根据选择的薪资周期自动加载预览数据
+  - 📈 **数据汇总**：表格底部显示总计金额
+  - 🎨 **美观界面**：小尺寸表格，操作按钮，加载状态
+  - ⚡️ **性能优化**：仅在计算前显示，避免重复渲染
+- [X] **技术实现**：
+  - 新增 `PayrollDataPreview` 接口定义
+  - 异步加载预览数据逻辑
+  - ProTable 组件集成和汇总行功能
+  - 响应式设计和交互优化
 
-#### 阶段二：核心模块拆分 ✅
-- [X] **创建目录结构**: 建立分模块的文件夹结构
-- [X] **拆分类型定义**: 创建 types/index.ts (91行)
-- [X] **拆分常量配置**: 创建 types/constants.ts (142行)
-- [X] **拆分工具函数**: 创建 utils/fileProcessing.ts (139行)
-- [X] **拆分字段映射**: 创建 utils/fieldMapping.ts (193行)
-- [X] **拆分上传组件**: 创建 components/DataUpload.tsx (247行)
-- [X] **拆分映射组件**: 创建 components/SmartMapping.tsx (270行)
-- [X] **拆分预览组件**: 创建 components/DataPreview.tsx (239行)
-- [X] **拆分执行组件**: 创建 components/ImportExecution.tsx (207行)
+#### 第三步复核功能完整实现
+- [X] **完整组件创建**：`PayrollReviewStep.tsx`（585行）包含所有复核功能
+- [X] **核心功能**：
+  - 📊 **复核概览**：显示总条目数、已复核、有异常、待复核的统计
+  - 📋 **数据表格**：完整的薪资条目表格，包含选择、查看、复核、调整操作
+  - 🔍 **异常处理**：异常类型标记、异常备注提示、异常数据警告
+  - ✅ **批量操作**：支持批量选择和批量复核功能
+  - ⚙️ **单条调整**：支持单个条目的金额调整和原因记录
+  - 📝 **复核记录**：完整的复核意见和结果记录
+- [X] **交互设计**：
+  - 模态框表单进行复核操作
+  - 状态标签和颜色区分
+  - 工具提示显示异常信息
+  - 操作按钮和权限控制
+- [X] **集成到主页面**：已集成到 `PayrollWorkflowPage.tsx` 中
+- [X] **类型安全**：解决了所有 TypeScript 编译错误
 
-#### 阶段三：集成与验证 ✅
-- [X] **创建状态管理Hook**: hooks/useImportFlow.ts (207行)
-- [X] **重构主组件**: PayrollBulkImportPageV4.tsx (155行)
-- [X] **模块化架构**: 完成组件解耦和状态集中管理
-- [X] **类型安全**: 确保所有模块的TypeScript类型正确
+### 当前进度状态
 
-### 🎯 **最终拆分成果**
+#### 各步骤完成情况
+- **第一步（数据审核与准备）**：✅ **100% 完成**
+  - 薪资周期选择器（优化版）
+  - 数据检查和验证
+  - 数据初始化功能
+  - 批量导入跳转
+  
+- **第二步（工资自动计算）**：✅ **100% 完成**
+  - 计算参数配置
+  - 模块化计算选择
+  - 进度监控和状态显示
+  - **新增**：数据预览表格
+  - 计算结果汇总展示
+  
+- **第三步（工资周期复核）**：✅ **100% 完成**
+  - 复核数据展示表格
+  - 异常数据标记和处理
+  - 批量复核功能
+  - 单条调整功能
+  - 复核意见记录
+  
+- **第四步（工资周期批准）**：⌛️ **0% 待开发**
+  
+- **第五步（工资发放与归档）**：⌛️ **0% 待开发**
 
-#### 📊 文件对比统计
-- **原始文件**: PayrollBulkImportPageV3.tsx (2063行)
-- **拆分后**: 11个模块文件，总计1771行
-- **减少复杂度**: 从单文件 → 11个专业模块
-- **平均文件大小**: ~161行（远低于250行限制）
+#### 技术架构状态
+- [X] **组件架构**：完整的步骤组件拆分，代码结构清晰
+- [X] **状态管理**：使用组合钩子模式，状态管理完善
+- [X] **类型定义**：完整的 TypeScript 类型系统
+- [X] **UI组件**：统一使用 ProComponents，界面一致性良好
+- [X] **编译验证**：所有代码通过 TypeScript 编译检查
 
-#### 📁 最终文件结构
-```
-PayrollBulkImportPage/
-├── PayrollBulkImportPageV4.tsx          (主控制器, 155行)
-├── types/
-│   ├── index.ts                         (类型定义, 91行)
-│   └── constants.ts                     (常量配置, 142行)
-├── components/
-│   ├── DataUpload.tsx                   (数据上传, 247行)
-│   ├── SmartMapping.tsx                 (智能映射, 270行)
-│   ├── DataPreview.tsx                  (数据预览, 239行)
-│   └── ImportExecution.tsx              (导入执行, 207行)
-├── utils/
-│   ├── fileProcessing.ts                (文件处理, 139行)
-│   └── fieldMapping.ts                  (字段映射, 193行)
-└── hooks/
-    └── useImportFlow.ts                 (状态管理, 207行)
-```
+### 下一步计划 📋
 
-### 🏆 **拆分质量达成**
-- ✅ **文件大小控制**: 所有文件 < 280行，平均161行
-- ✅ **单一职责原则**: 每个模块负责单一功能领域
-- ✅ **清晰模块边界**: 组件间通过props和回调通信
-- ✅ **TypeScript类型安全**: 完整的类型定义和检查
-- ✅ **状态管理集中**: 使用自定义Hook管理复杂状态
-- ✅ **向后兼容**: 保持原有功能完整性
-- ✅ **代码复用**: 工具函数和类型定义可复用
+#### 第四步：工资周期批准
+- [ ] **批准者权限验证**：检查用户是否有批准权限
+- [ ] **批准前检查**：确保所有数据已复核完成
+- [ ] **批准操作界面**：批准决策、意见记录、批准时间
+- [ ] **批准结果处理**：状态更新、通知发送、流程推进
 
-### 🔧 **架构改进亮点**
-1. **状态管理**: 从分散状态 → 集中Hook管理
-2. **组件职责**: 从巨型组件 → 专业化小组件
-3. **类型安全**: 统一类型定义，避免重复
-4. **工具复用**: 公共工具函数提取
-5. **配置管理**: 常量和配置集中管理
+#### 第五步：工资发放与归档
+- [ ] **发放准备**：银行文件生成、工资条制作
+- [ ] **发放执行**：发放状态跟踪、异常处理
+- [ ] **数据归档**：历史数据存档、报表生成
 
-### 📋 **后续建议**
-- 可以将原始 PayrollBulkImportPageV3.tsx 备份后替换为 V4 版本
-- 验证拆分后的功能完整性
-- 考虑为其他大型组件应用相同的拆分模式
-
-**任务状态**: 🎉 **完全完成** - 大型文件拆分任务成功！
+### 总体进度
+- **完成度**：✅ **60%**（3/5 步骤完成）
+- **代码行数**：约 1,500+ 行高质量代码
+- **技术质量**：架构清晰、类型安全、性能优化
+- **用户体验**：界面美观、交互流畅、功能完整

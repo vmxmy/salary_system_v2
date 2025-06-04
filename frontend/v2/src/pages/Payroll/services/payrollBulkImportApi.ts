@@ -43,16 +43,19 @@ export interface ProcessedImportData {
  * 验证批量导入薪资数据
  * @param data 原始薪资条目数据
  * @param periodId 薪资周期ID
+ * @param overwriteMode 是否启用覆盖模式
  * @returns 验证结果
  */
 export const validateBulkImportData = async (
   data: RawPayrollEntryData[],
-  periodId: number
+  periodId: number,
+  overwriteMode: boolean = false
 ): Promise<BulkImportValidationResult> => {
   try {
     console.log('🔄 开始验证薪资数据:', {
       totalRecords: data.length,
       periodId,
+      overwriteMode,
       sampleRecord: data[0]
     });
 
@@ -85,8 +88,80 @@ export const validateBulkImportData = async (
       payload
     );
     
-    console.log('✅ 薪资数据验证成功:', response.data);
-    return response.data;
+    let validationResult = response.data;
+    
+    // 如果启用了覆盖模式，将"记录已存在"的错误转换为警告
+    if (overwriteMode && validationResult.errors && validationResult.errors.length > 0) {
+      console.log('🔍 覆盖模式：开始处理错误转换:', {
+        totalErrors: validationResult.errors.length,
+        errors: validationResult.errors
+      });
+      
+      const processedErrors: string[] = [];
+      let convertedWarnings = 0;
+      
+      validationResult.errors.forEach((error, index) => {
+        const errorLower = error.toLowerCase();
+        
+        // 检查是否为"记录已存在"类型的错误 - 扩展关键词匹配
+        const isDuplicateError = 
+          error.includes('已存在') || 
+          error.includes('duplicate') || 
+          error.includes('重复') ||
+          errorLower.includes('already exists') ||
+          errorLower.includes('exists') ||
+          errorLower.includes('conflict') ||
+          errorLower.includes('unique') ||
+          error.includes('唯一') ||
+          error.includes('冲突');
+          
+        console.log(`🔍 错误 ${index + 1}:`, {
+          error,
+          isDuplicateError,
+          errorLower
+        });
+        
+        if (isDuplicateError) {
+          // 转换为警告，不计入错误
+          convertedWarnings++;
+          console.log('⚠️ 覆盖模式：将重复记录错误转换为警告:', error);
+        } else {
+          // 保留其他类型的错误
+          processedErrors.push(error);
+          console.log('❌ 保留错误:', error);
+        }
+      });
+      
+      // 更新验证结果
+      if (convertedWarnings > 0) {
+        const originalValid = validationResult.valid;
+        const originalInvalid = validationResult.invalid;
+        
+        validationResult = {
+          ...validationResult,
+          errors: processedErrors,
+          warnings: (validationResult.warnings || 0) + convertedWarnings,
+          // 重新计算有效/无效记录数
+          valid: validationResult.valid + convertedWarnings,
+          invalid: Math.max(0, validationResult.invalid - convertedWarnings)
+        };
+        
+        console.log('✅ 覆盖模式处理完成:', {
+          convertedWarnings,
+          remainingErrors: processedErrors.length,
+          originalValid,
+          originalInvalid,
+          newValidCount: validationResult.valid,
+          newInvalidCount: validationResult.invalid,
+          finalResult: validationResult
+        });
+      } else {
+        console.log('⚠️ 覆盖模式：没有找到可转换的重复记录错误');
+      }
+    }
+    
+    console.log('✅ 薪资数据验证成功:', validationResult);
+    return validationResult;
   } catch (error: any) {
     console.error('❌ 薪资数据验证失败:', error);
     

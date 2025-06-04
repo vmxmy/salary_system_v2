@@ -1,10 +1,11 @@
-import { useAuthStore } from '../store/authStore';
+import { useSelector } from 'react-redux';
 import { useCallback } from 'react';
+import type { RootState } from '../store';
 
 export const usePermissions = () => {
-  const userPermissions = useAuthStore((state) => state.userPermissions);
-  const userRoles = useAuthStore((state) => state.userRoles); // Keep for display names if needed
-  const userRoleCodes = useAuthStore((state) => state.userRoleCodes); // Get role codes
+  const userPermissions = useSelector((state: RootState) => state.auth.userPermissions);
+  const userRoles = useSelector((state: RootState) => state.auth.userRoles); // Keep for display names if needed
+  const userRoleCodes = useSelector((state: RootState) => state.auth.userRoleCodes); // Get role codes
 
   const hasPermission = useCallback((permissionCode: string): boolean => {
     if (!userPermissions) return false;

@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Spin, Alert, Typography, Button, Tag, Tooltip, Space } from 'antd';
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../../store/authStore';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import { getPayrollEntries } from '../Payroll/services/payrollApi';
 import PayrollEntryDetailModal from '../Payroll/components/PayrollEntryDetailModal';
 import type { PayrollEntry, ApiListMeta } from '../Payroll/types/payrollTypes';
@@ -17,7 +18,7 @@ const { Title } = Typography;
 
 const MyPayslipsPage: React.FC = () => {
   const { t, ready } = useTranslation(['common', 'myPayslips', 'payroll']);
-  const currentUser = useAuthStore(state => state.currentUser);
+  const currentUser = useSelector((state: RootState) => state.auth.currentUser);
   const [payslips, setPayslips] = useState<PayrollEntry[]>([]);
   const [meta, setMeta] = useState<ApiListMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

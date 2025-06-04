@@ -28,7 +28,9 @@ import {
   BankOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../store/authSlice';
+import type { RootState, AppDispatch } from '../store';
 import { menuData, transformMenuDataWithI18n, getBreadcrumbNameMap } from '../config/menuConfig';
 import { defaultProLayoutSettings, proLayoutExtendedSettings, getThemeConfig, type ThemeMode } from '../config/theme';
 import type { AppMenuDataItem } from '../config/menuConfig';
@@ -162,7 +164,9 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   const { message: messageApi } = App.useApp();
   
   // 🏪 状态管理
-  const { currentUser, logoutAction } = useAuthStore();
+  const dispatch = useDispatch<AppDispatch>();
+  const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+  
   const [collapsed, setCollapsed] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>('light');
   const [layoutSettings, setLayoutSettings] = useState(defaultProLayoutSettings);
@@ -192,13 +196,13 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   // 🚪 登出处理
   const handleLogout = useCallback(async () => {
     try {
-      await logoutAction();
+      dispatch(logout());
       navigate('/login', { replace: true });
       messageApi.success(t('common:auth.logout_success'));
     } catch (error) {
       messageApi.error(t('common:auth.logout_failed'));
     }
-  }, [logoutAction, navigate, t, messageApi]);
+  }, [dispatch, navigate, t, messageApi]);
 
   // 🧭 菜单点击处理
   const handleMenuClick = useCallback((item: MenuDataItem) => {
@@ -247,7 +251,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     breakpoint: 'md', // 在 md 断点以下自动收起
     // 通过menuProps设置默认展开的菜单项
     menuProps: {
-      defaultOpenKeys: ['/hr', '/payroll', '/manager', '/admin', '/organization', '/test', '/personal'],
+      defaultOpenKeys: ['/business', '/system', '/business/payroll', '/business/hr', '/business/employees', '/system/permissions', '/system/organization', '/system/payroll-config', '/system/ai-config', '/personal', '/reports'],
     },
     menuDataRender: () => {
 const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(key, { ns: 'menu' }));

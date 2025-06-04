@@ -4,7 +4,7 @@ import { Button, Space, Typography, Modal, message, App } from 'antd'; // `messa
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import EnhancedProTable from './EnhancedProTable';
 import type { EnhancedProTableProps } from './EnhancedProTable';
-import pageStyles from '../../pages/Admin/Organization/PersonnelCategoriesPage.module.less';
+// 移除已删除的样式文件引用
 
 const { Title } = Typography;
 
@@ -133,8 +133,8 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
   return (
     <>
       {showPageTitle && (
-        <div className={pageStyles.sectionHeader}>
-          <Title level={3} className={pageStyles.sectionHeaderTitle}>{pageTitle}</Title>
+        <div style={{ marginBottom: 16 }}>
+          <Title level={3} style={{ margin: 0 }}>{pageTitle}</Title>
         </div>
       )}
 

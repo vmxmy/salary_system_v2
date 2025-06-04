@@ -626,5 +626,119 @@
       "unknown_status_param": "Unknown Status (ID: {{statusId}})",
       "status_na": "No Status"
     }
+  },
+  "workflow": {
+    "title": "Payroll Calculation Workflow",
+    "description": "Visual workflow for automated payroll calculation engine",
+    "steps": {
+      "data_review": {
+        "title": "Payroll Data Review",
+        "description": "Review the completeness and accuracy of payroll base data",
+        "content": "In this step, we will review employee basic information, attendance data, payroll component configuration and other key data.",
+        "review_points": {
+          "title": "Review Points",
+          "employee_data": "Employee basic information completeness",
+          "attendance_data": "Attendance data accuracy",
+          "component_config": "Payroll component configuration correctness",
+          "calculation_rules": "Calculation rules validity"
+        },
+        "form": {
+          "payroll_period": "Payroll Period",
+          "review_notes": "Review Notes",
+          "review_result": "Review Result",
+          "review_result_pass": "Pass",
+          "review_result_fail": "Fail",
+          "review_result_conditional": "Conditional Pass"
+        },
+        "data_initialization": {
+          "title": "Data Initialization",
+          "no_data_message": "No data found for current payroll period. Please select data initialization method:",
+          "copy_last_month": "Copy Last Month Data",
+          "bulk_import": "Import via Bulk Import Page",
+          "copy_confirm_title": "Confirm Copy Last Month Data",
+          "copy_confirm_content": "Are you sure you want to copy last month's payroll data to current period?",
+          "copy_success": "Successfully copied last month data",
+          "copy_failed": "Failed to copy last month data"
+        }
+      },
+      "auto_calculation": {
+        "title": "Automatic Payroll Calculation",
+        "description": "Automatically calculate employee salaries based on configured rules",
+        "content": "The system will automatically calculate all employees' gross pay, deduction items and net pay according to preset calculation rules.",
+        "calculation_params": {
+          "title": "Calculation Parameters",
+          "base_salary": "Base salary calculation",
+          "allowances": "Allowances calculation",
+          "deductions": "Deduction items calculation",
+          "tax_calculation": "Tax calculation"
+        },
+        "calculation_modules": "Calculation Modules",
+        "calculation_status": "Calculation Status",
+        "calculation_pending": "Pending Calculation",
+        "calculation_in_progress": "Calculating...",
+        "calculation_completed": "Calculation Completed"
+      },
+      "period_review": {
+        "title": "Payroll Period Review",
+        "description": "Review the accuracy of calculation results",
+        "content": "Manually review the automatically calculated results to ensure calculation accuracy.",
+        "calculation_summary": {
+          "title": "Calculation Summary",
+          "total_employees": "Total Employees",
+          "total_gross_pay": "Total Gross Pay",
+          "total_deductions": "Total Deductions",
+          "total_net_pay": "Total Net Pay"
+        },
+        "download_reports": "Download Reports",
+        "review_comments": "Review Comments",
+        "review_result": "Review Result"
+      },
+      "period_approval": {
+        "title": "Payroll Period Approval",
+        "description": "Final approval for payroll distribution",
+        "content": "After review and confirmation, approve the payroll distribution for this period.",
+        "final_confirmation": {
+          "title": "Final Confirmation",
+          "total_amount": "Total Distribution Amount",
+          "employee_count": "Employee Count",
+          "period_info": "Payroll Period Information"
+        },
+        "approval_warning": "Important Notice: After approval, payroll data for this period cannot be modified. Please confirm all information is correct.",
+        "approval_comments": "Approval Comments",
+        "confirm_approval": "I confirm that I have carefully reviewed all data and agree to approve the distribution"
+      },
+      "payment_archive": {
+        "title": "Payment & Archive",
+        "description": "Execute payroll distribution and archive related data",
+        "content": "Generate bank transfer files, execute payroll distribution, and archive related data.",
+        "payment_status": {
+          "title": "Payment Status",
+          "bank_file_generated": "Bank file generated",
+          "payment_initiated": "Payment initiated",
+          "payment_completed": "Payment completed",
+          "data_archived": "Data archived"
+        },
+        "payment_details": "Payment Details Record",
+        "archive_notes": "Archive Notes"
+      }
+    },
+    "buttons": {
+      "next_step": "Next Step",
+      "previous_step": "Previous Step",
+      "submit": "Submit",
+      "reset": "Reset",
+      "save_draft": "Save Draft",
+      "start_calculation": "Start Calculation",
+      "approve": "Approve",
+      "reject": "Reject",
+      "complete": "Complete"
+    },
+    "messages": {
+      "step_completed": "Step completed",
+      "workflow_completed": "Workflow completed",
+      "data_saved": "Data saved",
+      "operation_success": "Operation successful",
+      "operation_failed": "Operation failed"
+    }
   }
 }

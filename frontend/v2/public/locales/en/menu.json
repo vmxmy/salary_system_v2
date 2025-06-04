@@ -27,6 +27,7 @@
     "title": "Manager View"
   },
   "organization": {
+    "managementV2": "Organization Management",
     "departments": "Department Management",
     "personnelCategories": "Personnel Categories",
     "positions": "Actual Positions",
@@ -53,7 +54,9 @@
     "title": "Test Pages",
     "employeeListV3": "Employee List V3",
     "reportTableDemo": "Report Table Demo",
-    "reportTemplateDemo": "Report Template Demo"
+    "reportTemplateDemo": "Report Template Demo",
+    "actualPositions": "Actual Positions",
+    "payrollWorkflow": "Payroll Calculation Workflow"
   },
   "viewReports": {
     "management": "Report Management",

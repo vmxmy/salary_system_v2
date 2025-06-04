@@ -1,7 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import chatbotConfigReducer, { setHydratedChatbotState, setInitialChatbotState, initialChatbotConfig, type ChatbotSliceState } from './chatbotConfigSlice';
+import authReducer from './authSlice'; // Import authReducer
+import hrLookupReducer from './hrLookupSlice'; // Import hrLookupReducer
+import payrollConfigReducer from './payrollConfigSlice'; // Import payrollConfigReducer
 
 const CHATBOT_CONFIG_STORAGE_KEY = 'chatbot-config-redux-storage';
+// TODO: Implement persistence for auth state, similar to chatbotConfig or using a library like redux-persist.
 
 // 从 localStorage 加载状态
 const loadState = (): ChatbotSliceState | undefined => {
@@ -37,6 +41,9 @@ const preloadedState = (() => {
 export const store = configureStore({
   reducer: {
     chatbotConfig: chatbotConfigReducer,
+    auth: authReducer, // Add authReducer
+    hrLookup: hrLookupReducer, // Add hrLookupReducer
+    payrollConfig: payrollConfigReducer, // Add payrollConfigReducer
     // ... 这里可以添加应用中的其他 reducers
   },
   preloadedState,
@@ -65,11 +72,37 @@ if (preloadedState && preloadedState.chatbotConfig) {
 // 订阅 store 的变化以保存到 localStorage
 // 我们只在 chatbotConfig slice 相关的状态变化时保存
 let currentChatbotState = store.getState().chatbotConfig;
+let currentAuthState = store.getState().auth;
+
 store.subscribe(() => {
+  const state = store.getState();
+  
+  // 保存 chatbot 配置
   const previousChatbotState = currentChatbotState;
-  currentChatbotState = store.getState().chatbotConfig;
+  currentChatbotState = state.chatbotConfig;
   if (currentChatbotState !== previousChatbotState) {
     saveState({ chatbotConfig: currentChatbotState });
+  }
+  
+  // 保存认证状态
+  const previousAuthState = currentAuthState;
+  currentAuthState = state.auth;
+  if (currentAuthState !== previousAuthState) {
+    try {
+      // 只保存必要的认证信息，不保存临时状态
+      const authDataToSave = {
+        authToken: currentAuthState.authToken,
+        currentUserId: currentAuthState.currentUserId,
+        currentUserNumericId: currentAuthState.currentUserNumericId,
+        currentUser: currentAuthState.currentUser,
+        userRoles: currentAuthState.userRoles,
+        userRoleCodes: currentAuthState.userRoleCodes,
+        userPermissions: currentAuthState.userPermissions,
+      };
+      localStorage.setItem('auth-storage', JSON.stringify(authDataToSave));
+    } catch (error) {
+      console.error('Error saving auth state:', error);
+    }
   }
 });
 

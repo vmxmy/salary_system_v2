@@ -41,8 +41,7 @@ import NotFoundPage from '../pages/NotFoundPage'; // Create this if needed
 import UnauthorizedPage from '../pages/UnauthorizedPage'; // 我们将创建这个页面
 
 // Admin pages (lazy loaded)
-const PersonnelCategoriesPage = lazy(() => import('../pages/Admin/Organization/PersonnelCategoriesPage'));
-const DepartmentsPage = lazy(() => import('../pages/Admin/Organization/DepartmentsPage'));
+const OrganizationManagementPageV2 = lazy(() => import('../pages/Admin/Organization/OrganizationManagementPageV2'));
 
 // Lazy load the new bulk import page
 const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
@@ -53,6 +52,9 @@ const EmployeeListPageV3 = lazy(() => import('../pages/HRManagement/employees/Em
 // 在顶部导入 ReportTableDemo 组件
 import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
 import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo';
+
+// Import PayrollWorkflowPage
+const PayrollWorkflowPage = lazy(() => import('../pages/Payroll/PayrollWorkflowPage'));
 
 // RouteObject 本身就包含 element, path, children, index
 // 我们将 meta 附加到自定义的 RouteConfig 上
@@ -115,11 +117,8 @@ export const routes: AppRouteObject[] = [
             element: <Outlet />,
             meta: { title: 'menu:organization.title', requiredPermissions: ['department:list'] },
             children: [
-              { index: true, element: <Navigate to="departments" replace /> },
-              { path: 'departments', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Departments...</div>}><DepartmentsPage /></React.Suspense>, meta: { title: 'menu:organization.departments', requiredPermissions: ['department:list'] } },
-              { path: 'job-titles', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'menu:organization.jobTitles', requiredPermissions: ['job_title:list'] } },
-              { path: 'personnel-categories', element: <React.Suspense fallback={<div className="suspense">Loading Personnel Categories...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'menu:organization.personnelCategories', requiredPermissions: ['personnel_category:list'] } },
-              { path: 'positions', element: <React.Suspense fallback={<div className="suspense">Loading Positions...</div>}><PersonnelCategoriesPage /></React.Suspense>, meta: { title: 'menu:organization.positions', requiredPermissions: ['position:list'] } },
+              { index: true, element: <Navigate to="management-v2" replace /> },
+              { path: 'management-v2', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Organization Management...</div>}><OrganizationManagementPageV2 /></React.Suspense>, meta: { title: 'menu:organization.managementV2', requiredPermissions: ['department:list'] } },
             ],
           },
         ],
@@ -273,6 +272,11 @@ export const routes: AppRouteObject[] = [
             path: 'report-template-demo',
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Template Demo...</div>}><ReportTemplateDemo /></React.Suspense>,
             meta: { title: 'menu:test.reportTemplateDemo' },
+          },
+          {
+            path: 'payroll-workflow',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Payroll Workflow...</div>}><PayrollWorkflowPage /></React.Suspense>,
+            meta: { title: 'menu:test.payrollWorkflow' },
           },
         ],
       },

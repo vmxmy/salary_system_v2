@@ -3,6 +3,7 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Optional, Dict, Any, List
 
 from ..database import get_db_v2
@@ -17,7 +18,7 @@ from ..pydantic_models.hr import PersonnelCategoryCreate, PersonnelCategoryUpdat
 from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
 from ..utils import create_error_response
-from ..models.hr import PersonnelCategory
+from ..models.hr import PersonnelCategory, Employee
 
 router = APIRouter(
     prefix="/personnel-categories",
@@ -120,6 +121,51 @@ async def get_personnel_categories_tree(
         
         # 返回标准响应格式
         return DataResponse[List[PersonnelCategorySchema]](data=tree_data)
+        
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
+@router.get("/employee-stats", response_model=DataResponse[List[Dict[str, Any]]])
+async def get_personnel_category_employee_stats(
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["personnel_category:view"]))
+):
+    """
+    获取人员身份分类的员工分布统计。
+    
+    返回每个人员身份分类下的员工数量。
+    """
+    try:
+        # 查询每个人员身份分类的员工数量
+        stats_query = (
+            db.query(
+                PersonnelCategory.id.label('category_id'),
+                func.count(Employee.id).label('employee_count')
+            )
+            .outerjoin(Employee, Employee.personnel_category_id == PersonnelCategory.id)
+            .group_by(PersonnelCategory.id)
+            .all()
+        )
+        
+        # 转换为字典列表
+        stats_data = [
+            {
+                "category_id": stat.category_id,
+                "employee_count": stat.employee_count
+            }
+            for stat in stats_query
+        ]
+        
+        return DataResponse[List[Dict[str, Any]]](data=stats_data)
         
     except Exception as e:
         # 返回标准错误响应格式
