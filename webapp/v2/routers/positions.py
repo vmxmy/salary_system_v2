@@ -119,6 +119,68 @@ async def create_position(
             )
         )
 
+# --- 高性能公共 Position 端点 (无权限检查) ---
+@router.get("/public", response_model=PositionListResponse)
+async def get_positions_public(
+    is_active: bool = True,  # 默认只返回活跃职位
+    db: Session = Depends(get_db_v2)
+    # 注意：此端点没有权限检查，仅用于公共position数据
+):
+    """
+    高性能公共职位查询端点
+    - 默认返回活跃职位
+    - 无权限检查，性能优化
+    - 专门用于前端初始化时position数据加载
+    """
+    try:
+        # 直接使用原生SQL，跳过所有ORM开销
+        from sqlalchemy import text
+        
+        # 超高性能查询：直接SQL，无分页，无复杂条件
+        query = text("""
+            SELECT 
+                p.id,
+                p.code,
+                p.name,
+                p.description,
+                p.parent_position_id,
+                p.effective_date,
+                p.end_date,
+                p.is_active
+            FROM hr.positions p
+            WHERE (:is_active IS NULL OR p.is_active = :is_active)
+            ORDER BY p.code ASC
+            LIMIT 200
+        """)
+        
+        params = {'is_active': is_active}
+        
+        # 执行查询
+        result = db.execute(query, params)
+        positions = [dict(row._mapping) for row in result]
+        
+        return PositionListResponse(
+            data=positions, 
+            meta={
+                "page": 1, 
+                "size": len(positions), 
+                "total": len(positions), 
+                "totalPages": 1
+            }
+        )
+        
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
 @router.get("/{position_id}", response_model=Position)
 async def get_position_by_id(
     position_id: int,
@@ -310,6 +372,67 @@ async def delete_position(
             detail=create_error_response(
                 status_code=500,
                 message="Internal Server Error while deleting position.",
+                details=str(e)
+            )
+        )
+
+# --- 高性能公共 Position 端点 (无权限检查) ---
+@router.get("/public", response_model=PositionListResponse)
+async def get_positions_public(
+    is_active: bool = True,  # 默认只返回活跃职位
+    db: Session = Depends(get_db_v2)
+    # 注意：此端点没有权限检查，仅用于公共position数据
+):
+    """
+    高性能公共职位查询端点
+    - 默认返回活跃职位
+    - 无权限检查，性能优化
+    - 专门用于前端初始化时position数据加载
+    """
+    try:
+        # 直接使用原生SQL，跳过所有ORM开销
+        from sqlalchemy import text
+        
+        # 超高性能查询：直接SQL，无分页，无复杂条件
+        query = text("""
+            SELECT 
+                p.id,
+                p.code,
+                p.name,
+                p.description,
+                p.parent_position_id,
+                p.effective_date,
+                p.end_date,
+                p.is_active
+            FROM hr.positions p
+            WHERE (:is_active IS NULL OR p.is_active = :is_active)
+            ORDER BY p.code ASC
+            LIMIT 200
+        """)
+        
+        params = {'is_active': is_active}
+        
+        # 执行查询
+        result = db.execute(query, params)
+        positions = [dict(row._mapping) for row in result]
+        
+        return PositionListResponse(
+            data=positions, 
+            meta={
+                "page": 1, 
+                "size": len(positions), 
+                "total": len(positions), 
+                "totalPages": 1
+            }
+        )
+        
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
                 details=str(e)
             )
         ) 

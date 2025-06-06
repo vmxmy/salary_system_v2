@@ -4,7 +4,7 @@
 
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 from datetime import datetime, date, timezone
 import uuid
 from decimal import Decimal
@@ -401,6 +401,7 @@ class PayrollCalculationCRUD:
             logger.warning(f"Unexpected CalculationStatus '{result.status}' for employee {result.employee_id} during update. Status not changed.")
 
         entry.calculated_at = func.now() # Update calculated_at timestamp
+        return entry
     
     def _log_calculation(
         self,

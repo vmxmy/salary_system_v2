@@ -1,0 +1,330 @@
+// 极简工资报表系统样式
+.simple-payroll-layout {
+  min-height: 100vh;
+  background: #f5f5f5;
+
+  // 标题区
+  .title-area {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 32px 32px 24px 32px;
+    color: white;
+    position: relative;
+    z-index: 100;
+
+    .title-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+
+      h2 {
+        color: white;
+        margin: 0 0 8px 0;
+        font-size: 32px;
+        font-weight: 600;
+      }
+
+      p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-size: 18px;
+      }
+    }
+  }
+
+  // 控件区
+  .controls-area {
+    background: white;
+    padding: 24px 32px;
+    border-bottom: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: relative;
+    z-index: 99;
+
+    .controls-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+
+        label {
+          color: #666;
+          font-size: 14px;
+          font-weight: 500;
+          margin-bottom: 4px;
+        }
+        
+        .ant-select {
+          z-index: 1001;
+          min-width: 200px;
+          
+          .ant-select-dropdown {
+            z-index: 1002 !important;
+          }
+        }
+      }
+      
+      .ant-space {
+        position: relative;
+        z-index: 1000;
+        align-items: flex-end;
+      }
+
+      .ant-btn {
+        height: 32px;
+        margin-top: 22px; // 与label高度对齐
+      }
+    }
+  }
+
+  // 三张卡片区
+  .cards-area {
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+
+    // 确保Row组件有正确的布局
+    .ant-row {
+      margin-left: -12px !important;
+      margin-right: -12px !important;
+      
+      .ant-col {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        margin-bottom: 24px;
+      }
+    }
+
+    .status-hint {
+      text-align: center;
+      padding: 48px 0;
+      color: #666;
+      
+      p {
+        font-size: 16px;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// 卡片样式
+.simple-payroll-card {
+  height: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  width: 100% !important; // 确保卡片不会超出容器
+  max-width: 100% !important; // 防止卡片过宽
+  position: relative;
+  z-index: 1; // 确保卡片层级低于头部控件
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .card-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .card-description {
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .no-period-tip {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+      margin-top: auto;
+      padding: 16px 0;
+    }
+  }
+
+  .period-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  // 确保卡片内容不会溢出
+  .ant-card-body {
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  // 确保按钮组不会导致卡片变宽
+  .ant-space {
+    width: 100%;
+    
+    .ant-space-item {
+      width: 100%;
+      
+      .ant-btn {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 1200px) {
+  .simple-payroll-layout {
+    .simple-payroll-content {
+      padding: 24px 16px;
+      
+      .ant-row {
+        .ant-col {
+          margin-bottom: 16px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+  .simple-payroll-layout {
+    .simple-payroll-content {
+      .ant-row {
+        .ant-col {
+          // 在中等屏幕上，每行显示2个卡片
+          flex: 0 0 50%;
+          max-width: 50%;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .simple-payroll-layout {
+    .simple-payroll-header {
+      padding: 16px 20px;
+
+      .header-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+
+        .controls-section {
+          width: 100%;
+
+          .ant-space {
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+        }
+      }
+    }
+
+    .simple-payroll-content {
+      padding: 16px 20px;
+      
+      .ant-row {
+        margin-left: -8px !important;
+        margin-right: -8px !important;
+        
+        .ant-col {
+          padding-left: 8px !important;
+          padding-right: 8px !important;
+          // 在小屏幕上，每行显示1个卡片
+          flex: 0 0 100%;
+          max-width: 100%;
+        }
+      }
+    }
+  }
+
+  .simple-payroll-card {
+    height: auto;
+    min-height: 300px;
+  }
+}
+
+// 全局下拉框层级修复 - 使用更高的层级值
+:global(.ant-select-dropdown) {
+  z-index: 1050 !important;
+}
+
+:global(.ant-picker-dropdown) {
+  z-index: 1050 !important;
+}
+
+// 特别针对SimplePayroll页面的下拉框
+.simple-payroll-layout {
+  :global(.ant-select-dropdown) {
+    z-index: 1100 !important;
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  :global(.ant-picker-dropdown) {
+    z-index: 1100 !important;
+  }
+}
+
+// 确保所有弹出层都在正确的层级
+:global(.ant-modal-mask),
+:global(.ant-modal-wrap) {
+  z-index: 1060 !important;
+}
+
+:global(.ant-message) {
+  z-index: 1070 !important;
+}
+
+// 确保Spin组件不会影响层级
+:global(.ant-spin-container) {
+  position: relative;
+}
+
+:global(.ant-spin-spinning) {
+  position: relative;
+}
+
+// 深色模式支持
+@media (prefers-color-scheme: dark) {
+  .simple-payroll-layout {
+    background: #141414;
+
+    .simple-payroll-content {
+      .status-hint {
+        color: #aaa;
+      }
+    }
+  }
+
+  .simple-payroll-card {
+    background: #1f1f1f;
+    border-color: #303030;
+
+    .card-content {
+      .card-description {
+        color: #aaa;
+      }
+
+      .no-period-tip {
+        color: #666;
+      }
+    }
+  }
+} 

@@ -40,8 +40,7 @@ export class PayrollWorkflowUtils {
    */
   static showDataCheckResult(hasData: boolean, entryCount: number, t: TFunction): void {
     if (hasData) {
-      message.success(t('payroll:workflow.steps.data_review.data_initialization.copy_success', 
-        `已加载周期数据，共 ${entryCount} 条记录`));
+      message.success(`✅ 当前薪资周期已有数据，共 ${entryCount} 条记录，可以继续进行审核`);
     } else {
       message.info(t('payroll:workflow.steps.data_review.data_initialization.no_data_message', 
         '当前薪资周期暂无数据，请选择数据初始化方式'));
@@ -53,10 +52,9 @@ export class PayrollWorkflowUtils {
    */
   static showCopyDataResult(success: boolean, entriesCreated: number, errorMessage: string, t: TFunction): void {
     if (success) {
-      message.success(t('payroll:workflow.steps.data_review.data_initialization.copy_success', 
-        `成功复制 ${entriesCreated} 条记录`));
+      message.success(`🎉 成功复制上月薪资数据，共创建 ${entriesCreated} 条记录，现在可以开始审核`);
     } else {
-      message.error(errorMessage);
+      message.error(`❌ 复制数据失败：${errorMessage}`);
     }
   }
 

@@ -3,7 +3,7 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from typing import Optional, Dict, Any, List
 
 from ..database import get_db_v2
@@ -179,6 +179,8 @@ async def get_personnel_category_employee_stats(
         )
 
 
+
+
 @router.get("/{personnel_category_id}", response_model=DataResponse[PersonnelCategorySchema])
 async def get_personnel_category(
     personnel_category_id: int,
@@ -352,6 +354,68 @@ async def delete_personnel_category(
         )
     except HTTPException:
         raise
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
+# --- 高性能公共 PersonnelCategory 端点 (无权限检查) ---
+@router.get("/public", response_model=PersonnelCategoryListResponse)
+async def get_personnel_categories_public(
+    is_active: bool = True,  # 默认只返回活跃的人员类别
+    db: Session = Depends(get_db_v2)
+    # 注意：此端点没有权限检查，仅用于公共personnel_category数据
+):
+    """
+    高性能公共人员类别查询端点
+    - 默认返回活跃人员类别
+    - 无权限检查，性能优化
+    - 专门用于前端初始化时personnel_category数据加载
+    """
+    try:
+        # 直接使用原生SQL，跳过所有ORM开销
+        from sqlalchemy import text
+        
+        # 超高性能查询：直接SQL，无分页，无复杂条件
+        query = text("""
+            SELECT 
+                pc.id,
+                pc.code,
+                pc.name,
+                pc.description,
+                pc.parent_category_id,
+                pc.effective_date,
+                pc.end_date,
+                pc.is_active
+            FROM hr.personnel_categories pc
+            WHERE (:is_active IS NULL OR pc.is_active = :is_active)
+            ORDER BY pc.code ASC
+            LIMIT 200
+        """)
+        
+        params = {'is_active': is_active}
+        
+        # 执行查询
+        result = db.execute(query, params)
+        personnel_categories = [dict(row._mapping) for row in result]
+        
+        return PersonnelCategoryListResponse(
+            data=personnel_categories, 
+            meta={
+                "page": 1, 
+                "size": len(personnel_categories), 
+                "total": len(personnel_categories), 
+                "totalPages": 1
+            }
+        )
+        
     except Exception as e:
         # 返回标准错误响应格式
         raise HTTPException(

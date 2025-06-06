@@ -55,7 +55,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     maritalStatusOptions,
     politicalStatusOptions,
     contractTypeOptions,
-    statusOptions
+    statusOptions,
+    jobPositionLevelOptions
   } = useLookups();
 
   const [avatarFileList, setAvatarFileList] = useState<UploadFile[]>([]);
@@ -66,12 +67,14 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       
       const processedValues: Record<string, any> = {
         ...initialValues,
-        date_of_birth: initialValues.date_of_birth ? dayjs(initialValues.date_of_birth) : undefined,
-        first_work_date: initialValues.first_work_date ? dayjs(initialValues.first_work_date) : undefined,
-        hire_date: initialValues.hire_date ? dayjs(initialValues.hire_date) : undefined,
-        probationEndDate: initialValues.probationEndDate ? dayjs(initialValues.probationEndDate) : undefined,
-        initialContractStartDate: initialValues.initialContractStartDate ? dayjs(initialValues.initialContractStartDate) : undefined,
-        initialContractEndDate: initialValues.initialContractEndDate ? dayjs(initialValues.initialContractEndDate) : undefined,
+        date_of_birth: initialValues.date_of_birth ? dayjs(initialValues.date_of_birth).isValid() ? dayjs(initialValues.date_of_birth) : undefined : undefined,
+        first_work_date: initialValues.first_work_date ? dayjs(initialValues.first_work_date).isValid() ? dayjs(initialValues.first_work_date) : undefined : undefined,
+        hire_date: initialValues.hire_date ? dayjs(initialValues.hire_date).isValid() ? dayjs(initialValues.hire_date) : undefined : undefined,
+        career_position_level_date: initialValues.career_position_level_date ? dayjs(initialValues.career_position_level_date).isValid() ? dayjs(initialValues.career_position_level_date) : undefined : undefined,
+        current_position_start_date: initialValues.current_position_start_date ? dayjs(initialValues.current_position_start_date).isValid() ? dayjs(initialValues.current_position_start_date) : undefined : undefined,
+        probationEndDate: initialValues.probationEndDate ? dayjs(initialValues.probationEndDate).isValid() ? dayjs(initialValues.probationEndDate) : undefined : undefined,
+        initialContractStartDate: initialValues.initialContractStartDate ? dayjs(initialValues.initialContractStartDate).isValid() ? dayjs(initialValues.initialContractStartDate) : undefined : undefined,
+        initialContractEndDate: initialValues.initialContractEndDate ? dayjs(initialValues.initialContractEndDate).isValid() ? dayjs(initialValues.initialContractEndDate) : undefined : undefined,
         gender_lookup_value_id: initialValues.gender_lookup_value_id != null ? Number(initialValues.gender_lookup_value_id) : undefined,
         status_lookup_value_id: initialValues.status_lookup_value_id != null ? Number(initialValues.status_lookup_value_id) : undefined,
         education_level_lookup_value_id: initialValues.education_level_lookup_value_id != null ? Number(initialValues.education_level_lookup_value_id) : undefined,
@@ -343,6 +346,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           employmentTypeOptions={employmentTypeOptions} // pass original for Option mapping
           statusOptions={statusOptions} // pass original for Option mapping
           contractTypeOptions={contractTypeOptions}
+          jobPositionLevelOptions={jobPositionLevelOptions}
           getRequiredMessage={getRequiredMessage}
           loadingLookups={loadingLookups}
         />

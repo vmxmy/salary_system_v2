@@ -3,8 +3,9 @@ import { message } from 'antd';
 import { useTranslation } from 'react-i18next';
 
 import type { PayrollPeriod, PayrollRun } from '../types/payrollTypes';
-import type { PayrollSummaryStats, PayrollCalculationProgress } from '../services/payrollWorkflowApi';
+import type { PayrollSummaryStats, PayrollCalculationProgress, PayrollWorkflowStatus } from '../services/payrollWorkflowApi';
 import { PayrollWorkflowUtils, PayrollWorkflowAsyncUtils } from '../utils/payrollWorkflowUtils';
+import { PayrollWorkflowStatusService, WORKFLOW_STEPS } from '../services/payrollWorkflowStatusService';
 
 export interface PayrollWorkflowState {
   // 基础状态
@@ -20,6 +21,10 @@ export interface PayrollWorkflowState {
   calculationSummary: PayrollSummaryStats | null;
   isLoadingPeriods: boolean;
   calculationTaskId: string | null;
+  
+  // 工作流状态
+  workflowStatus: PayrollWorkflowStatus | null;
+  isLoadingWorkflowStatus: boolean;
 }
 
 export interface PayrollWorkflowStateActions {
@@ -33,11 +38,19 @@ export interface PayrollWorkflowStateActions {
   setCalculationSummary: (summary: PayrollSummaryStats | null) => void;
   setIsLoadingPeriods: (loading: boolean) => void;
   setCalculationTaskId: (taskId: string | null) => void;
+  setWorkflowStatus: (status: PayrollWorkflowStatus | null) => void;
+  setIsLoadingWorkflowStatus: (loading: boolean) => void;
   
   // 复合操作函数
   updatePeriodSelection: (periodId: number | null) => void;
   resetCalculationState: () => void;
   resetWorkflowState: () => void;
+  
+  // 工作流管理函数
+  startWorkflow: (periodId: number) => Promise<void>;
+  loadWorkflowStatus: (payrollRunId: number) => Promise<void>;
+  updateWorkflowStep: (stepKey: string, stepData: any) => Promise<void>;
+  completeCurrentStep: (stepData?: any) => Promise<void>;
 }
 
 export interface UsePayrollWorkflowStateReturn extends PayrollWorkflowState, PayrollWorkflowStateActions {}
@@ -62,6 +75,10 @@ export const usePayrollWorkflowState = (): UsePayrollWorkflowStateReturn => {
   const [calculationSummary, setCalculationSummary] = useState<PayrollSummaryStats | null>(null);
   const [isLoadingPeriods, setIsLoadingPeriods] = useState<boolean>(false);
   const [calculationTaskId, setCalculationTaskId] = useState<string | null>(null);
+  
+  // 工作流状态
+  const [workflowStatus, setWorkflowStatus] = useState<PayrollWorkflowStatus | null>(null);
+  const [isLoadingWorkflowStatus, setIsLoadingWorkflowStatus] = useState<boolean>(false);
 
   // 组件挂载时加载薪资周期列表
   useEffect(() => {
@@ -178,6 +195,98 @@ export const usePayrollWorkflowState = (): UsePayrollWorkflowStateReturn => {
     setHasDataForCycleStep1(false);
     setIsLoadingDataStep1(false);
     resetCalculationState();
+    setWorkflowStatus(null);
+    setIsLoadingWorkflowStatus(false);
+  };
+
+  /**
+   * 启动工作流
+   */
+  const startWorkflow = async (periodId: number) => {
+    try {
+      setIsLoadingWorkflowStatus(true);
+      
+      const { payrollRun, workflowStatus: newWorkflowStatus } = await PayrollWorkflowStatusService.startWorkflow(periodId);
+      
+      setCurrentPayrollRun(payrollRun);
+      setWorkflowStatus(newWorkflowStatus);
+      
+      message.success('工作流启动成功！');
+      console.log('🚀 工作流启动成功:', { payrollRunId: payrollRun.id, periodId });
+    } catch (error: any) {
+      console.error('❌ 启动工作流失败:', error);
+      message.error(`启动工作流失败: ${error.message || '未知错误'}`);
+    } finally {
+      setIsLoadingWorkflowStatus(false);
+    }
+  };
+
+  /**
+   * 加载工作流状态
+   */
+  const loadWorkflowStatus = async (payrollRunId: number) => {
+    try {
+      setIsLoadingWorkflowStatus(true);
+      const status = await PayrollWorkflowStatusService.getWorkflowStatus(payrollRunId);
+      setWorkflowStatus(status);
+    } catch (error: any) {
+      console.error('❌ 加载工作流状态失败:', error);
+      message.error(`加载工作流状态失败: ${error.message || '未知错误'}`);
+    } finally {
+      setIsLoadingWorkflowStatus(false);
+    }
+  };
+
+  /**
+   * 更新工作流步骤状态
+   */
+  const updateWorkflowStep = async (stepKey: string, stepData: any) => {
+    if (!currentPayrollRun) {
+      console.warn('当前没有活跃的薪资运行批次');
+      return;
+    }
+
+    try {
+      const updatedStatus = await PayrollWorkflowStatusService.updateWorkflowStep(
+        currentPayrollRun.id,
+        stepKey,
+        stepData
+      );
+      setWorkflowStatus(updatedStatus);
+    } catch (error: any) {
+      console.error('❌ 更新工作流步骤失败:', error);
+      message.error(`更新工作流步骤失败: ${error.message || '未知错误'}`);
+    }
+  };
+
+  /**
+   * 完成当前步骤
+   */
+  const completeCurrentStep = async (stepData?: any) => {
+    if (!currentPayrollRun || !workflowStatus) {
+      console.warn('当前没有活跃的工作流');
+      return;
+    }
+
+    try {
+      const currentStepKey = workflowStatus.current_step;
+      const updatedStatus = await PayrollWorkflowStatusService.completeWorkflowStep(
+        currentPayrollRun.id,
+        currentStepKey,
+        stepData
+      );
+      setWorkflowStatus(updatedStatus);
+      
+      // 如果是最后一步，完成整个工作流
+      if (currentStepKey === WORKFLOW_STEPS.PAYROLL_DISTRIBUTION && selectedPeriodId) {
+        await PayrollWorkflowStatusService.completeWorkflow(currentPayrollRun.id, selectedPeriodId);
+      }
+      
+      message.success('步骤完成！');
+    } catch (error: any) {
+      console.error('❌ 完成工作流步骤失败:', error);
+      message.error(`完成工作流步骤失败: ${error.message || '未知错误'}`);
+    }
   };
 
   return {
@@ -192,6 +301,8 @@ export const usePayrollWorkflowState = (): UsePayrollWorkflowStateReturn => {
     calculationSummary,
     isLoadingPeriods,
     calculationTaskId,
+    workflowStatus,
+    isLoadingWorkflowStatus,
     
     // 状态更新函数
     setSelectedPeriodId,
@@ -203,10 +314,18 @@ export const usePayrollWorkflowState = (): UsePayrollWorkflowStateReturn => {
     setCalculationSummary,
     setIsLoadingPeriods,
     setCalculationTaskId,
+    setWorkflowStatus,
+    setIsLoadingWorkflowStatus,
     
     // 复合操作函数
     updatePeriodSelection,
     resetCalculationState,
     resetWorkflowState,
+    
+    // 工作流管理函数
+    startWorkflow,
+    loadWorkflowStatus,
+    updateWorkflowStep,
+    completeCurrentStep,
   };
 }; 

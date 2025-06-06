@@ -19,4 +19,20 @@ export {
   PayrollWorkflowUtils,
   PayrollWorkflowAsyncUtils,
   PayrollWorkflowDialogUtils 
-} from '../utils/payrollWorkflowUtils'; 
+} from '../utils/payrollWorkflowUtils';
+
+// 视图API Hooks 统一导出
+export { usePayrollPeriodsView } from './usePayrollPeriodsView';
+export { usePayrollRunsView } from './usePayrollRunsView';
+export { usePayrollEntriesView } from './usePayrollEntriesView';
+
+// 视图API服务和类型
+export { payrollViewsApi } from '../services/payrollViewsApi';
+export type {
+  PayrollPeriodDetailView,
+  PayrollRunDetailView,
+  PayrollEntryDetailedView,
+  PayrollComponentBasicView,
+  PayrollComponentUsageView,
+  PayrollSummaryAnalysisView
+} from '../services/payrollViewsApi'; 

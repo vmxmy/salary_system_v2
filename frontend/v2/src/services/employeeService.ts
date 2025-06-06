@@ -38,6 +38,13 @@ import type {
   // SubEntityQuery // Added in types.ts
 } from '../pages/HRManagement/types';
 
+// Import new types for view-based employee fetching
+import type { 
+  EmployeeBasicQuery, 
+  EmployeeBasicPageResult,
+  EmployeeBasic, // Added EmployeeBasic here, though not directly used in service signature, good for context
+} from '../types/viewApiTypes';
+
 // const API_BASE_URL = import.meta.env.VITE_API_PATH_PREFIX || '/api/v2'; // This line is removed
 
 // --- REMOVED Mock Data Sources for Lookups after API integration ---
@@ -169,14 +176,40 @@ export const employeeService = {
   // Generic function to fetch lookup values by type code
   async getLookupValues(lookupTypeCode: string): Promise<LookupValue[]> {
     try {
-      // Expect a paginated-like response structure
-      const response = await apiClient.get<{ data: LookupValue[], meta?: any }>(`/lookup/values?type_code=${lookupTypeCode}`);
+      // 使用高性能公共端点，跳过权限检查以提升性能
+      const response = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values-public?lookup_type_code=${lookupTypeCode}`);
       if (response.data && Array.isArray(response.data.data)) {
-        return response.data.data;
+        // 转换后端字段名到前端期望的格式
+        return response.data.data.map(apiItem => ({
+          id: apiItem.id,
+          lookup_type_id: apiItem.lookup_type_id,
+          value_code: apiItem.code || '',
+          value_name: apiItem.name || '',
+          description: apiItem.description,
+          sort_order: apiItem.sort_order,
+          is_active: apiItem.is_active,
+        }));
       } else {
         return []; 
       }
     } catch (error) {
+      // 降级到原API（带权限检查）
+      try {
+        const fallbackResponse = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values?lookup_type_code=${lookupTypeCode}`);
+        if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+          return fallbackResponse.data.data.map(apiItem => ({
+            id: apiItem.id,
+            lookup_type_id: apiItem.lookup_type_id,
+            value_code: apiItem.code || '',
+            value_name: apiItem.name || '',
+            description: apiItem.description,
+            sort_order: apiItem.sort_order,
+            is_active: apiItem.is_active,
+          }));
+        }
+      } catch (fallbackError) {
+        console.error(`Both primary and fallback lookup requests failed for ${lookupTypeCode}:`, fallbackError);
+      }
       return []; 
     }
   },
@@ -488,6 +521,41 @@ export const employeeService = {
       return await this.getLookupValues('JOB_POSITION_LEVEL');
     } catch (error) {
       return [];
+    }
+  },
+
+  // New function to get employees from the view endpoint
+  async getEmployeesFromView(query?: EmployeeBasicQuery): Promise<EmployeeBasicPageResult> {
+    try {
+      let apiParams: Record<string, any> = {};
+      if (query) {
+        const { page, size, ...otherFilters } = query;
+        apiParams = { ...otherFilters }; // Spread other filters like sortBy, sortOrder, and actual filter fields
+
+        if (page !== undefined && size !== undefined) {
+          apiParams.limit = size;
+          apiParams.offset = (page - 1) * size;
+        }
+      }
+
+      const queryString = Object.keys(apiParams).length > 0 ? buildQueryParams(apiParams) : '';
+      // Path for the new view-based endpoint
+      const requestUrl = `/views/employees${queryString}`; 
+      const response = await apiClient.get<EmployeeBasicPageResult>(requestUrl);
+      return response.data;
+    } catch (error) {
+      // Default error response, similar to getEmployees
+      const currentPage = query?.page || 1;
+      const pageSize = query?.size || 10; 
+      return {
+        data: [],
+        meta: {
+          page: currentPage,
+          size: pageSize,
+          total: 0,
+          totalPages: 0,
+        },
+      };
     }
   },
 };

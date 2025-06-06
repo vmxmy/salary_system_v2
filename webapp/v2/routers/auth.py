@@ -15,7 +15,7 @@ from ..database import get_db_v2
 from ..crud import security as crud
 from ..pydantic_models.security import User as PydanticUser, TokenResponseWithFullUser
 from ...auth import create_access_token, verify_password, ACCESS_TOKEN_EXPIRE_MINUTES
-from ..utils import create_error_response
+from ..utils.common import create_error_response
 
 router = APIRouter(
     prefix="/auth",

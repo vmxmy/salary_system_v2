@@ -1,376 +1,156 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Modal, Space, Tooltip, Input, Card } from 'antd';
+import { Button, message, Modal, Space, Tooltip, Input, Card, Row, Col } from 'antd';
 import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
-import type { Employee, EmployeeQuery } from '../types';
+// import type { Employee, EmployeeQuery } from '../types'; // Old types
 import type { SorterResult } from 'antd/es/table/interface';
+import type { TablePaginationConfig, FilterValue, TableCurrentDataSource } from 'antd/es/table/interface';
 import type { ProColumns } from '@ant-design/pro-components';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import { employeeService } from '../../../services/employeeService';
 import { stringSorter, numberSorter, dateSorter, useTableSearch, useTableExport } from '../../../components/common/TableUtils';
 import type { Dayjs } from 'dayjs';
-import EmployeeName from '../../../components/common/EmployeeName';
+// import EmployeeName from '../../../components/common/EmployeeName'; // May not be needed if full_name is direct
 import Highlighter from 'react-highlight-words';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { useEmployeePermissions } from '../../../hooks/useEmployeePermissions';
 import styles from './EmployeeListPage.module.less';
 
+// Import new types for view-based employee fetching
+import type { 
+  EmployeeBasic, 
+  EmployeeBasicQuery, 
+  // EmployeeBasicPageResult, // Included in service return type, not directly here
+} from '../../../types/viewApiTypes';
+
+// Define types for sorter and filters state
+interface SorterState {
+  field?: string;
+  order?: 'ascend' | 'descend';
+}
+
+interface FiltersState {
+  full_name_contains?: string;
+  employee_code_contains?: string;
+  department_name_contains?: string;
+  position_name_contains?: string;
+  employee_status_equals?: string;
+  // Add other filter fields as needed
+}
+
+const initialPagination = {
+  current: 1,
+  pageSize: 10, // Default page size
+  total: 0,
+};
+
+const initialSorter: SorterState = {};
+const initialFilters: FiltersState = {};
+
 // Function to generate table column configurations
 const generateEmployeeTableColumnsConfig = (
   t: (key: string) => string,
-  getColumnSearch: (dataIndex: keyof Employee) => any,
-  lookupMaps: any,
+  // getColumnSearch: (dataIndex: keyof EmployeeBasic) => any, // Will be replaced by page-level filters
+  lookupMaps: any, 
   employeePermissions: {
     canViewDetail: boolean;
     canUpdate: boolean;
     canDelete: boolean;
   },
-  onEdit: (employee: Employee) => void,
+  onEdit: (employee: EmployeeBasic) => void, 
   onDelete: (employeeId: string) => void,
   onViewDetails: (employeeId: string) => void
-): ProColumns<Employee>[] => {
-  const columns: ProColumns<Employee>[] = [
+): ProColumns<EmployeeBasic>[] => {
+  const columns: ProColumns<EmployeeBasic>[] = [
     {
       title: t('employee:list_page.table.column.full_name'),
-      key: 'fullName',
-      dataIndex: 'last_name',
-      render: (_text: any, record: Employee) => {
-        const firstName = record.first_name || '';
-        const lastName = record.last_name || '';
-        const fullName = `${lastName}${firstName}`;
-        
-        // 如果姓名为空，显示占位符
-        if (!fullName.trim()) {
+      key: 'full_name', // Changed key to match dataIndex for sorter
+      dataIndex: 'full_name', 
+      sorter: true, // Enable server-side sorting for this column
+      render: (_text: any, record: EmployeeBasic) => {
+        if (!record.full_name || !record.full_name.trim()) {
           return <span style={{ color: '#999', fontStyle: 'italic' }}>{t('employee:list_page.name_not_set')}</span>;
         }
-        
-        return fullName;
+        return record.full_name; 
       },
-      sorter: (a, b) => {
-        const nameA = `${a.last_name || ''}${a.first_name || ''}`.trim().toLowerCase();
-        const nameB = `${b.last_name || ''}${b.first_name || ''}`.trim().toLowerCase();
-        return nameA.localeCompare(nameB);
-      },
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-          <Input
-            placeholder={t('employee:list_page.search_name_placeholder')}
-            value={selectedKeys[0]}
-            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => confirm()}
-            style={{ marginBottom: 8, display: 'block' }}
-          />
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => confirm()}
-              icon={<SearchOutlined />}
-              size="small"
-              style={{ width: 90 }}
-            >
-              {t('employee:list_page.search')}
-            </Button>
-            <Button
-              onClick={() => clearFilters && clearFilters()}
-              size="small"
-              style={{ width: 90 }}
-            >
-              {t('employee:list_page.reset')}
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                confirm();
-                close();
-              }}
-            >
-              {t('employee:list_page.close')}
-            </Button>
-          </Space>
-        </div>
-      ),
-      filterIcon: (filtered: boolean) => (
-        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
-      ),
-      onFilter: (value, record) => {
-        const fullName = `${record.last_name || ''}${record.first_name || ''}`;
-        return fullName.toLowerCase().includes((value as string).toLowerCase());
-      },
+      // Client-side filter for name will be replaced by a global search input
     },
     {
       title: t('employee:list_page.table.column.employee_code'),
       dataIndex: 'employee_code',
-      key: 'employee_code',
-      sorter: stringSorter<Employee>('employee_code'),
-      ...getColumnSearch('employee_code'),
-    },
-    {
-      title: t('employee:list_page.table.column.id_number'),
-      dataIndex: 'id_number',
-      key: 'id_number',
-      sorter: stringSorter<Employee>('id_number'),
-      ...getColumnSearch('id_number'),
-    },
-    {
-      title: t('employee:list_page.table.column.gender'),
-      dataIndex: 'gender_lookup_value_id',
-      key: 'gender',
-      render: (genderId: number | undefined) => lookupMaps?.genderMap?.get(genderId as number) || '',
-      filters: lookupMaps?.genderMap ? Array.from(lookupMaps.genderMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.gender_lookup_value_id === value,
-    },
-    {
-      title: t('employee:list_page.table.column.ethnicity'),
-      dataIndex: 'ethnicity',
-      key: 'ethnicity',
-      sorter: stringSorter<Employee>('ethnicity'),
-      ...getColumnSearch('ethnicity'),
-    },
-    {
-      title: t('employee:list_page.table.column.nationality'),
-      dataIndex: 'nationality',
-      key: 'nationality',
-      sorter: stringSorter<Employee>('nationality'),
-      ...getColumnSearch('nationality'),
-    },
-    {
-      title: t('employee:list_page.table.column.date_of_birth'),
-      dataIndex: 'date_of_birth',
-      key: 'date_of_birth',
-      render: (date: string | Dayjs | undefined) => date ? new Date(date as string).toLocaleDateString() : '',
-      sorter: dateSorter<Employee>('date_of_birth'),
-    },
-    {
-      title: t('employee:list_page.table.column.education_level'),
-      dataIndex: 'education_level_lookup_value_id',
-      key: 'education_level',
-      render: (educationLevelId: number | undefined) => lookupMaps?.educationLevelMap?.get(educationLevelId as number) || '',
-      filters: lookupMaps?.educationLevelMap ? Array.from(lookupMaps.educationLevelMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.education_level_lookup_value_id === value,
-    },
-    {
-      title: t('employee:list_page.table.column.marital_status'),
-      dataIndex: 'marital_status_lookup_value_id',
-      key: 'marital_status',
-      render: (maritalStatusId: number | undefined) => lookupMaps?.maritalStatusMap?.get(maritalStatusId as number) || '',
-      filters: lookupMaps?.maritalStatusMap ? Array.from(lookupMaps.maritalStatusMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.marital_status_lookup_value_id === value,
-    },
-    {
-      title: t('employee:list_page.table.column.political_status'),
-      dataIndex: 'political_status_lookup_value_id',
-      key: 'political_status',
-      render: (politicalStatusId: number | undefined) => lookupMaps?.politicalStatusMap?.get(politicalStatusId as number) || '',
-      filters: lookupMaps?.politicalStatusMap ? Array.from(lookupMaps.politicalStatusMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.political_status_lookup_value_id === value,
-    },
-    {
-      title: t('employee:list_page.table.column.first_work_date'),
-      dataIndex: 'first_work_date',
-      key: 'first_work_date',
-      render: (date: string | Dayjs | undefined) => date ? new Date(date as string).toLocaleDateString() : '',
-      sorter: dateSorter<Employee>('first_work_date'),
-    },
-    {
-      title: t('employee:list_page.table.column.interrupted_service_years'),
-      dataIndex: 'interrupted_service_years',
-      key: 'interrupted_service_years',
-      sorter: numberSorter<Employee>('interrupted_service_years'),
+      key: 'employee_code', // Changed key to match dataIndex
+      sorter: true, // Enable server-side sorting
+      // Client-side filter to be replaced
     },
     {
       title: t('employee:list_page.table.column.email'),
       dataIndex: 'email',
       key: 'email',
-      sorter: stringSorter<Employee>('email'),
-      ...getColumnSearch('email'),
+      sorter: true, 
     },
     {
       title: t('employee:list_page.table.column.phone_number'),
       dataIndex: 'phone_number',
       key: 'phone_number',
-      sorter: stringSorter<Employee>('phone_number'),
-      ...getColumnSearch('phone_number'),
-    },
-    {
-      title: t('employee:list_page.table.column.home_address'),
-      dataIndex: 'home_address',
-      key: 'home_address',
-      sorter: stringSorter<Employee>('home_address'),
-      ...getColumnSearch('home_address'),
-    },
-    {
-      title: t('employee:list_page.table.column.salary_level'),
-      dataIndex: 'salary_level_lookup_value_name',
-      key: 'salary_level',
-      sorter: stringSorter<Employee>('salary_level_lookup_value_name'),
-      ...getColumnSearch('salary_level_lookup_value_name'),
-    },
-    {
-      title: t('employee:list_page.table.column.salary_grade'),
-      dataIndex: 'salary_grade_lookup_value_name',
-      key: 'salary_grade',
-      sorter: stringSorter<Employee>('salary_grade_lookup_value_name'),
-      ...getColumnSearch('salary_grade_lookup_value_name'),
-    },
-    {
-      title: t('employee:list_page.table.column.ref_salary_level'),
-      dataIndex: 'ref_salary_level_lookup_value_name',
-      key: 'ref_salary_level',
-      sorter: stringSorter<Employee>('ref_salary_level_lookup_value_name'),
-      ...getColumnSearch('ref_salary_level_lookup_value_name'),
-    },
-    {
-      title: t('employee:list_page.table.column.job_position_level'),
-      dataIndex: 'job_position_level_lookup_value_name',
-      key: 'job_position_level',
-      sorter: stringSorter<Employee>('job_position_level_lookup_value_name'),
-      ...getColumnSearch('job_position_level_lookup_value_name'),
+      sorter: true, 
     },
     {
       title: t('employee:list_page.table.column.department'),
-      dataIndex: 'department_id',
-      key: 'department_id',
-      render: (departmentId: string | undefined) => lookupMaps?.departmentMap?.get(String(departmentId)) || '',
-      filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => String(record.department_id) === String(value),
+      dataIndex: 'department_name', 
+      key: 'department_name',
+      sorter: true,
     },
     {
       title: t('employee:list_page.table.column.personnel_category'),
-      dataIndex: 'personnel_category_id',
-      key: 'personnel_category_id',
-      render: (categoryId: string | undefined) => lookupMaps?.personnelCategoryMap?.get(String(categoryId)) || '',
-      filters: lookupMaps?.personnelCategoryMap ? Array.from(lookupMaps.personnelCategoryMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => String(record.personnel_category_id) === String(value),
+      dataIndex: 'personnel_category_name',
+      key: 'personnel_category_name', 
+      sorter: true,
     },
     {
-      title: t('employee:list_page.table.column.actual_position'),
-      dataIndex: 'actualPositionName',
-      key: 'actualPositionName',
-      sorter: stringSorter<Employee>('actualPositionName'),
-      ...getColumnSearch('actualPositionName'),
-    },
-    {
-      title: t('employee:list_page.table.column.actual_position_start_date'),
-      dataIndex: 'current_position_start_date',
-      key: 'current_position_start_date',
-      render: (date: string | Dayjs | undefined) => date ? new Date(date as string).toLocaleDateString() : '',
-      sorter: dateSorter<Employee>('current_position_start_date'),
-    },
-    {
-      title: t('employee:list_page.table.column.career_position_level_date'),
-      dataIndex: 'career_position_level_date',
-      key: 'career_position_level_date',
-      render: (date: string | Dayjs | undefined) => date ? new Date(date as string).toLocaleDateString() : '',
-      sorter: dateSorter<Employee>('career_position_level_date'),
-    },
-    {
-      title: t('employee:list_page.table.column.employment_type'),
-      dataIndex: 'employment_type_lookup_value_id',
-      key: 'employment_type',
-      render: (employmentTypeId: number | undefined) => lookupMaps?.employmentTypeMap?.get(employmentTypeId as number) || '',
-      filters: lookupMaps?.employmentTypeMap ? Array.from(lookupMaps.employmentTypeMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.employment_type_lookup_value_id === value,
-    },
-    {
-      title: t('employee:list_page.table.column.contract_type'),
-      dataIndex: 'contract_type_lookup_value_id',
-      key: 'contract_type',
-      render: (contractTypeId: number | undefined) => lookupMaps?.contractTypeMap?.get(contractTypeId as number) || '',
-      filters: lookupMaps?.contractTypeMap ? Array.from(lookupMaps.contractTypeMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.contract_type_lookup_value_id === value,
+      title: t('employee:list_page.table.column.actual_position'), 
+      dataIndex: 'position_name',
+      key: 'position_name',
+      sorter: true,
     },
     {
       title: t('employee:list_page.table.column.status'),
-      dataIndex: 'status_lookup_value_id',
-      key: 'status',
-      render: (statusId: number | undefined) => lookupMaps?.statusMap?.get(statusId as number) || '',
-      filters: lookupMaps?.statusMap ? Array.from(lookupMaps.statusMap.entries()).map((entry: any) => ({
-        text: entry[1],
-        value: entry[0],
-      })) : [],
-      onFilter: (value, record) => record.status_lookup_value_id === value,
+      dataIndex: 'employee_status',
+      key: 'employee_status',
+      sorter: true,
     },
     {
       title: t('employee:list_page.table.column.hire_date'),
       dataIndex: 'hire_date',
       key: 'hire_date',
-      render: (date: string | Dayjs | undefined) => date ? new Date(date as string).toLocaleDateString() : '',
-      sorter: dateSorter<Employee>('hire_date'),
+      render: (dom, entity) => {
+        const date = entity.hire_date;
+        if (!date) return '';
+        return typeof date === 'string' ? new Date(date).toLocaleDateString() : (date as any).toLocaleDateString();
+      },
+      sorter: true, 
     },
-    {
-      title: t('employee:list_page.table.column.bank_name'),
-      dataIndex: 'bank_name',
-      key: 'bank_name',
-      sorter: stringSorter<Employee>('bank_name'),
-      ...getColumnSearch('bank_name'),
-    },
-    {
-      title: t('employee:list_page.table.column.bank_account_number'),
-      dataIndex: 'bank_account_number',
-      key: 'bank_account_number',
-      sorter: stringSorter<Employee>('bank_account_number'),
-      ...getColumnSearch('bank_account_number'),
-    },
-    {
-      title: t('employee:list_page.table.column.emergency_contact_name'),
-      dataIndex: 'emergency_contact_name',
-      key: 'emergency_contact_name',
-      sorter: stringSorter<Employee>('emergency_contact_name'),
-      ...getColumnSearch('emergency_contact_name'),
-    },
-    {
-      title: t('employee:list_page.table.column.emergency_contact_phone'),
-      dataIndex: 'emergency_contact_phone',
-      key: 'emergency_contact_phone',
-      sorter: stringSorter<Employee>('emergency_contact_phone'),
-      ...getColumnSearch('emergency_contact_phone'),
-    },
+    // Commented out columns (from previous step) remain commented out
     {
       title: t('employee:list_page.table.column.action'),
       key: 'action',
       width: 150,
       fixed: 'right',
-      render: (_: string, record: Employee) => (
+      render: (dom, entity) => (
         <Space size="small">
           {employeePermissions.canViewDetail && (
             <TableActionButton 
               actionType="view" 
-              onClick={() => onViewDetails(String(record.id))} 
+              onClick={() => onViewDetails(String(entity.id))} 
               tooltipTitle={t('common:action.view')} 
             />
           )}
           {employeePermissions.canUpdate && (
             <TableActionButton 
               actionType="edit" 
-              onClick={() => onEdit(record)} 
+              onClick={() => onEdit(entity)} 
               tooltipTitle={t('common:action.edit')} 
             />
           )}
@@ -378,7 +158,7 @@ const generateEmployeeTableColumnsConfig = (
             <TableActionButton 
               actionType="delete" 
               danger 
-              onClick={() => onDelete(String(record.id))} 
+              onClick={() => onDelete(String(entity.id))} 
               tooltipTitle={t('common:action.delete')} 
             />
           )}
@@ -394,7 +174,7 @@ const EmployeeListPage: React.FC = () => {
   const { t } = useTranslation(['employee', 'common']);
   const navigate = useNavigate();
   const {
-    canViewList,
+    canViewList, // Assuming this permission is still relevant
     canViewDetail,
     canCreate,
     canUpdate,
@@ -402,38 +182,59 @@ const EmployeeListPage: React.FC = () => {
     canExport,
   } = useEmployeePermissions();
 
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [allEmployees, setAllEmployees] = useState<EmployeeBasic[]>([]); 
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  
+  const [pagination, setPagination] = useState(initialPagination);
+  const [sorter, setSorter] = useState<SorterState>(initialSorter);
+  const [filters, setFilters] = useState<FiltersState>(initialFilters);
 
-  const { lookupMaps, rawLookups, loadingLookups, errorLookups } = useLookupMaps();
+  const { lookupMaps, loadingLookups, errorLookups } = useLookupMaps(); 
+  // const { getColumnSearch, searchText, searchedColumn } = useTableSearch<EmployeeBasic>(); // Replaced by page-level filters
 
-  const { getColumnSearch, searchText, searchedColumn } = useTableSearch();
-
-  // Fetches ALL employees
-  const fetchAllEmployees = useCallback(async () => {
+  const fetchBasicEmployees = useCallback(async () => {
     setLoadingData(true);
+    const query: EmployeeBasicQuery = {
+      page: pagination.current,
+      size: pagination.pageSize,
+      sortBy: sorter.field,
+      sortOrder: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
+      // Only include filter if it has a value
+      ...(filters.full_name_contains && { full_name_contains: filters.full_name_contains }),
+      ...(filters.employee_code_contains && { employee_code_contains: filters.employee_code_contains }),
+      ...(filters.department_name_contains && { department_name_contains: filters.department_name_contains }),
+      ...(filters.position_name_contains && { position_name_contains: filters.position_name_contains }),
+      ...(filters.employee_status_equals && { employee_status_equals: filters.employee_status_equals }),
+    };
     try {
-      const query: EmployeeQuery = { page: 1, size: 100 };
-      const response = await employeeService.getEmployees(query);
-      
-      if (response && response.data) {
-        setAllEmployees(response.data);
+      const response = await employeeService.getEmployeesFromView(query); 
+      if (response && Array.isArray(response)) {
+        setAllEmployees(response);
+        const estimatedTotal = response.length < pagination.pageSize 
+          ? (pagination.current - 1) * pagination.pageSize + response.length
+          : pagination.current * pagination.pageSize + 1;
+        setPagination(prev => ({ ...prev, total: estimatedTotal }));
       } else {
         setAllEmployees([]);
+        setPagination(prev => ({ ...prev, total: 0 }));
         message.error(t('employee:list_page.message.get_employees_failed_empty_response'));
       }
     } catch (error) {
       message.error(t('employee:list_page.message.get_employees_failed'));
       setAllEmployees([]);
+      setPagination(prev => ({ ...prev, total: 0 }));
     } finally {
       setLoadingData(false);
     }
-  }, [t]);
+  }, [pagination.current, pagination.pageSize, sorter, filters, t]);
 
+  useEffect(() => {
+    if (!loadingLookups) {
+      fetchBasicEmployees();
+    }
+  }, [fetchBasicEmployees, loadingLookups]);
 
-
-  // 定义删除处理函数
   const handleDelete = useCallback(async (employeeId: string) => {
     Modal.confirm({
       title: t('employee:list_page.delete_confirm.title'),
@@ -446,36 +247,67 @@ const EmployeeListPage: React.FC = () => {
         try {
           await employeeService.deleteEmployee(employeeId);
           message.success(t('employee:list_page.message.delete_employee_success'));
-          fetchAllEmployees(); // Refetch all data after deletion
+          fetchBasicEmployees(); 
         } catch (error) {
           message.error(t('employee:list_page.message.delete_employee_failed'));
-          console.error('Failed to delete employee:', error);
         } finally {
             setLoadingData(false);
         }
       },
     });
-  }, [t, fetchAllEmployees]);
+  }, [t, fetchBasicEmployees]); 
 
-  // Generate the full column configuration using React.useMemo
   const tableColumnsConfigForControls = React.useMemo(() => 
     generateEmployeeTableColumnsConfig(
       t, 
-      getColumnSearch, 
+      // getColumnSearch, // No longer passing this
       lookupMaps, 
       {
         canViewDetail: canViewDetail,
         canUpdate: canUpdate,
         canDelete: canDelete
       },
-      (employee: Employee) => navigate(`/hr/employees/${employee.id}/edit`, { state: { employeeData: employee } }),
+      (employee: EmployeeBasic) => navigate(`/hr/employees/${employee.id}/edit`, { state: { employeeData: employee } }), 
       handleDelete,
       (employeeId: string) => navigate(`/hr/employees/${employeeId}`)
     ),
-    [t, getColumnSearch, lookupMaps, canViewDetail, canUpdate, canDelete, navigate, handleDelete]
+    [t, /* getColumnSearch, */ lookupMaps, canViewDetail, canUpdate, canDelete, navigate, handleDelete]
   );
 
-  // 生成带有当前日期时间的文件名
+  const handleTableChange = (
+    antPagination: TablePaginationConfig,
+    antFilters: Record<string, FilterValue | null>,
+    antSorter: SorterResult<EmployeeBasic> | SorterResult<EmployeeBasic>[],
+    extra: TableCurrentDataSource<EmployeeBasic>
+  ) => {
+    const singleSorter = Array.isArray(antSorter) ? antSorter[0] : antSorter;
+    setPagination(prev => ({
+      ...prev,
+      current: antPagination.current ?? 1,
+      pageSize: antPagination.pageSize ?? 10,
+    }));
+    setSorter({
+      field: singleSorter.field as string,
+      order: singleSorter.order === null ? undefined : singleSorter.order,
+    });
+    // antFilters can be used here if server-side column-based filtering needs to be tied to table's own filter UI
+    // console.log('Applied Ant Filters (if any):', antFilters);
+    // console.log('Table action:', extra.action);
+  };
+
+  const handleFilterChange = (filterName: keyof FiltersState, value: string) => {
+    setFilters(prev => ({ ...prev, [filterName]: value }));
+    setPagination(prev => ({ ...prev, current: 1 })); // Reset to first page on filter change
+  };
+  
+  const handleRefresh = () => {
+    // Optionally reset filters or sorters here if desired, or just refetch
+    // setFilters(initialFilters);
+    // setSorter(initialSorter);
+    setPagination(prev => ({ ...prev, current: 1})); // Reset to page 1 on manual refresh
+    fetchBasicEmployees(); // Directly call fetch, or rely on useEffect if pagination state change triggers it
+  };
+
   const generateExportFilename = () => {
     const now = new Date();
     const dateStr = now.toLocaleDateString('zh-CN').replace(/\//g, '-');
@@ -483,138 +315,120 @@ const EmployeeListPage: React.FC = () => {
     return `${t('employee:list_page.page_title')}_${dateStr}_${timeStr}`;
   };
 
-  // 为导出创建简化的列配置（避免ProColumns类型兼容性问题）
   const exportColumns = React.useMemo(() => {
     return tableColumnsConfigForControls
-      .filter(col => col.key !== 'action') // 排除操作列
+      .filter(col => col.key !== 'action') 
       .map(col => ({
-        title: col.title,
-        dataIndex: col.dataIndex,
-        key: col.key,
-        render: col.render,
+        title: col.title as string,
+        dataIndex: col.dataIndex as string | string[],
+        key: col.key as string,
+        // Render function might need to be adapted if it relies on specific types not in EmployeeBasic
+        // For basic export, often direct data is enough. Complex renders might not translate well to Excel.
       }));
   }, [tableColumnsConfigForControls]);
 
-  // 配置导出功能
   const { ExportButton } = useTableExport(allEmployees, exportColumns as any, {
     filename: generateExportFilename(),
     sheetName: t('employee:list_page.page_title'),
-    buttonText: t('payroll:export_excel'),
-    successMessage: t('payroll:export_success'),
+    buttonText: t('common:action.export_excel'), // Using common translation
+    successMessage: t('common:message.export_success'),
   });
 
-  // ProTable 内置了导出和列控制功能，无需使用传统工具函数
-
-  // 添加调试日志
-  useEffect(() => {
-    
-    // 检查是否包含银行信息字段
-    const hasBankNameColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_name');
-    const hasBankAccountColumn = tableColumnsConfigForControls.some(col => col.key === 'bank_account_number');
-    
-    
-    // 输出所有列的key
-  }, [tableColumnsConfigForControls]);
-
-  useEffect(() => {
-    if (errorLookups) {
-      message.error(t('employee:list_page.message.load_aux_data_failed'));
-      console.error('Error from useLookupMaps:', errorLookups);
-    }
-  }, [errorLookups, t]);
- 
-  // Fetch all employees once lookups are loaded
-  useEffect(() => {
-    if (!loadingLookups) {
-      fetchAllEmployees();
-    }
-  }, [fetchAllEmployees, loadingLookups]); // Depends on fetchAllEmployees and loadingLookups
-
-  useEffect(() => {
-  }, [allEmployees]);
-  
-
-
-  // Ant Table's onChange handler for client-side operations
-  const handleTableChange = (
-    pagination: any, // pagination object from Ant Table
-    filters: Record<string, any | null>, // filters object from Ant Table
-    sorter: SorterResult<Employee> | SorterResult<Employee>[], // sorter object from Ant Table
-    extra: { currentDataSource: Employee[], action: string } // extra info
-  ) => {
-    // For client-side pagination, sorting, and filtering,
-    // Ant Table handles these internally based on the full dataSource.
-    // This callback can be used to log changes or if any external state needs to be synced.
-    // No need to set any state here for data fetching purposes when all data is client-side.
-  };
+  const batchDeleteConfig = canDelete ? {
+    enabled: true,
+    buttonText: t('common:action.batch_delete_count', { count: selectedRowKeys.length }),
+    confirmTitle: t('common:confirm.batch_delete.title'),
+    confirmContent: t('common:confirm.batch_delete.content', { count: selectedRowKeys.length }),
+    confirmOkText: t('common:action.confirm_delete'),
+    confirmCancelText: t('common:action.cancel'),
+    onBatchDelete: async (keys: React.Key[]) => {
+      setLoadingData(true);
+      try {
+        const deletePromises = keys.map(id => employeeService.deleteEmployee(String(id)));
+        await Promise.all(deletePromises);
+        message.success(t('common:message.batch_delete_success', { count: keys.length }));
+        setSelectedRowKeys([]); 
+        fetchBasicEmployees(); 
+      } catch (error) {
+        message.error(t('common:message.batch_delete_failed'));
+      } finally {
+        setLoadingData(false);
+      }
+    },
+    noSelectionMessage: t('common:message.select_items_to_delete'),
+    successMessage: t('common:message.batch_delete_success_generic'),
+    errorMessage: t('common:message.batch_delete_failed_generic'),
+  } : undefined;
  
   const combinedLoading = loadingData || loadingLookups;
 
-  // Note: EmployeeFilterForm is not present in the current file content.
-  // If it were, its onSearch would need to update a filter state,
-  // and `filteredEmployees` would be derived from `allEmployees` using those filters.
-  // For now, we pass `allEmployees` directly.
-
-  // 构建批量删除配置
-  const batchDeleteConfig = canDelete ? {
-    enabled: true,
-    buttonText: '批量删除 ({count})',
-    confirmTitle: '确认批量删除',
-    confirmContent: '确定要删除选中的 {count} 个员工吗？此操作不可撤销。',
-    confirmOkText: '确定删除',
-    confirmCancelText: '取消',
-    onBatchDelete: async (selectedKeys: React.Key[]) => {
-      // 逐个删除选中的员工
-      const deletePromises = selectedKeys.map(id => 
-        employeeService.deleteEmployee(String(id))
-      );
-      await Promise.all(deletePromises);
-      setSelectedRowKeys([]); // 清空选择
-      fetchAllEmployees(); // 重新获取数据
-    },
-    successMessage: '成功删除 {count} 个员工',
-    errorMessage: '批量删除失败',
-    noSelectionMessage: '请选择要删除的员工',
-  } : undefined;
-
   return (
     <div>
-      {lookupMaps && lookupMaps.departmentMap && lookupMaps.personnelCategoryMap ? (
-        (() => {
-          return (
-            <OrganizationManagementTableTemplate<Employee>
-              pageTitle={t('employee:list_page.page_title')}
-              addButtonText={t('employee:list_page.create_employee')}
-              onAddClick={() => navigate('/hr/employees/new')}
-              showAddButton={canCreate}
-              extraButtons={canExport ? [<ExportButton key="export" />] : []}
-              batchDelete={batchDeleteConfig}
-              columns={tableColumnsConfigForControls}
-              dataSource={allEmployees}
-              loading={combinedLoading}
-              pagination={{
-                showSizeChanger: true,
-                showQuickJumper: true,
-                pageSizeOptions: ['10', '20', '50', '100', '200'],
-                showTotal: (total: number) => `共 ${total} 条`,
-              }}
-              rowKey="id"
-              bordered
-              scroll={{ x: 'max-content' }}
-              rowSelection={{
-                selectedRowKeys,
-                onChange: setSelectedRowKeys,
-              }}
-              onChange={handleTableChange}
-              onRefresh={fetchAllEmployees}
+      <Card style={{ marginBottom: 16 }}>
+        <Row gutter={16}>
+          <Col span={6}>
+            <Input.Search
+              placeholder={t('employee:list_page.search_name_placeholder')}
+              onSearch={(value) => handleFilterChange('full_name_contains', value)}
+              enterButton
+              allowClear
             />
-          );
-        })()
-      ) : (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          {loadingLookups ? t('employee:list_page.loading_lookups') : t('employee:list_page.lookup_data_error')}
-        </div>
-      )}
+          </Col>
+          <Col span={6}>
+            <Input.Search
+              placeholder={t('employee:list_page.search_employee_code_placeholder')}
+              onSearch={(value) => handleFilterChange('employee_code_contains', value)}
+              enterButton
+              allowClear
+            />
+          </Col>
+          {/* Add more filter inputs for department, position, status here as needed */}
+          <Col span={12} style={{ textAlign: 'right' }}>
+            <Space>
+                <Tooltip title={t('common:action.refresh')}>
+                    <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
+                </Tooltip>
+                {canCreate && (
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/hr/employees/new')}>
+                        {t('employee:list_page.create_employee')}
+                    </Button>
+                )}
+                {canExport && <ExportButton />}
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      <OrganizationManagementTableTemplate<EmployeeBasic> 
+        // pageTitle={t('employee:list_page.page_title')} // Title is now part of the overall page layout
+        // addButtonText={t('employee:list_page.create_employee')} // Moved to Card header
+        // onAddClick={() => navigate('/hr/employees/new')} // Moved to Card header
+        // showAddButton={canCreate} // Moved to Card header
+        // extraButtons={canExport ? [<ExportButton key="export" />] : []} // Moved to Card header
+        batchDelete={batchDeleteConfig}
+        columns={tableColumnsConfigForControls}
+        dataSource={allEmployees} 
+        loading={combinedLoading}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '50', '100', '200'], 
+          showTotal: (total: number, range: [number, number]) => 
+            `${t('common:pagination.total_range', { start: range[0], end: range[1], total }) }`,
+        }}
+        rowKey="id"
+        bordered
+        scroll={{ x: 'max-content' }}
+        rowSelection={canDelete ? {
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        } : undefined}
+        onChange={handleTableChange}
+        // onRefresh={fetchBasicEmployees} // Refresh button added in Card header
+      />
     </div>
   );
 };

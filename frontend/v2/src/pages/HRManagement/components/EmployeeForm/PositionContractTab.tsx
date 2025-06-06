@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Select, DatePicker, Card, Row, Col, TreeSelect } from 'antd';
+import { Form, Select, DatePicker, Card, Row, Col, TreeSelect, InputNumber } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { LookupItem } from '../../types';
 
@@ -12,6 +12,7 @@ interface PositionContractTabProps {
   employmentTypeOptions: LookupItem[];
   statusOptions: LookupItem[];
   contractTypeOptions: LookupItem[];
+  jobPositionLevelOptions?: LookupItem[];
   getRequiredMessage: (fieldNameKey: string) => string;
   loadingLookups: boolean;
 }
@@ -23,6 +24,7 @@ const PositionContractTab: React.FC<PositionContractTabProps> = ({
   employmentTypeOptions,
   statusOptions,
   contractTypeOptions,
+  jobPositionLevelOptions = [],
   getRequiredMessage,
   loadingLookups,
 }) => {
@@ -89,9 +91,30 @@ const PositionContractTab: React.FC<PositionContractTabProps> = ({
         </Col>
         <Col span={12}>
           <Form.Item 
+            name="job_position_level_lookup_value_id" 
+            label="职务级别"
+          >
+            <Select placeholder="请选择职务级别" loading={loadingLookups} allowClear>
+              {jobPositionLevelOptions.map(level => <Option key={level.value as React.Key} value={Number(level.value)}>{level.label}</Option>)}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={24}>
+        <Col span={12}>
+          <Form.Item 
             name="hire_date" 
             label={t('employee:detail_page.basic_info_tab.label_hire_date')} 
             rules={[{ required: true, message: getRequiredMessage('employee:detail_page.basic_info_tab.label_hire_date') }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item 
+            name="first_work_date" 
+            label="首次参加工作时间"
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
@@ -102,8 +125,7 @@ const PositionContractTab: React.FC<PositionContractTabProps> = ({
         <Col span={12}>
           <Form.Item 
             name="current_position_start_date" 
-            label={t('employee:detail_page.basic_info_tab.label_current_position_start_date')}
-            tooltip={t('employee:detail_page.basic_info_tab.tooltip_current_position_start_date')}
+            label="现职务开始时间"
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
@@ -111,11 +133,32 @@ const PositionContractTab: React.FC<PositionContractTabProps> = ({
         <Col span={12}>
           <Form.Item 
             name="career_position_level_date" 
-            label={t('employee:detail_page.basic_info_tab.label_career_position_level_date')}
-            tooltip={t('employee:detail_page.basic_info_tab.tooltip_career_position_level_date')}
+            label="职级确定时间"
           >
             <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
           </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={24}>
+        <Col span={12}>
+          <Form.Item 
+            name="interrupted_service_years" 
+            label="工作间断年限"
+          >
+            <InputNumber 
+              style={{ width: '100%' }} 
+              min={0} 
+              max={50} 
+              step={0.1}
+              precision={1}
+              addonAfter="年"
+              placeholder="请输入工作间断年限"
+            />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          {/* 预留位置 */}
         </Col>
       </Row>
 

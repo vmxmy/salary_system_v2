@@ -80,14 +80,18 @@ from webapp.v2.routers import personnel_categories_router as v2_personnel_catego
 from webapp.v2.routers import positions_router as v2_positions_router
 from webapp.v2.routers import lookup_router as v2_lookup_router
 from webapp.v2.routers import config_router as v2_config_router
+from webapp.v2.routers import config_v2_router as v2_config_v2_router
 from webapp.v2.routers import payroll_router as v2_payroll_router
+from webapp.v2.routers import payroll_v2_router as v2_payroll_v2_router
+from webapp.v2.routers import hr_v2_router as v2_hr_v2_router
 from webapp.v2.routers import security_router as v2_security_router
-from webapp.v2.routers import auth_router as v2_auth_router
+from webapp.v2.routers.auth import router as v2_auth_router
 from webapp.v2.routers import reports_router as v2_reports_router
 from webapp.v2.routers import calculation_config_router as v2_calculation_config_router
 from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculation_router
 from webapp.v2.routers import attendance_router as v2_attendance_router
 from webapp.v2.routers.table_config import router as v2_table_config_router
+from webapp.v2.routers.views import router as v2_views_router
 
 # 导入所有Pydantic模型
 from webapp.pydantic_models import (
@@ -344,9 +348,24 @@ app.include_router(
     tags=["Configuration"]
 )
 app.include_router(
+    v2_config_v2_router,
+    prefix=settings.API_V2_PREFIX + "/config",
+    tags=["Configuration V2 (Views-Based)"]
+)
+app.include_router(
     v2_payroll_router,
     prefix=settings.API_V2_PREFIX,
     tags=["Payroll"]
+)
+app.include_router(
+    v2_payroll_v2_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Payroll V2 (Views-Based)"]
+)
+app.include_router(
+    v2_hr_v2_router,
+    prefix=settings.API_V2_PREFIX + "/hr",
+    tags=["HR V2 (Views-Based)"]
 )
 app.include_router(
     v2_security_router, # 这个是 security.py 对应的路由器变量名
@@ -394,6 +413,31 @@ app.include_router(
     v2_table_config_router,
     prefix=settings.API_V2_PREFIX,
     tags=["Table Configuration"]
+)
+
+# Include the views router
+app.include_router(
+    v2_views_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Views"]
+)
+
+# Include the simple payroll router
+from webapp.v2.routers.simple_payroll import router as v2_simple_payroll_router
+app.include_router(
+    v2_simple_payroll_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Simple Payroll System"]
+)
+
+# Simple payroll audit functionality is now integrated into simple_payroll.py
+
+# Include the simple payroll test router
+from webapp.v2.routers.simple_payroll_test import router as v2_simple_payroll_test_router
+app.include_router(
+    v2_simple_payroll_test_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Simple Payroll Test"]
 )
 
 # --- Removed API Routers with /api/v1 prefix ---

@@ -2,7 +2,7 @@
   "admin": {
     "permissions": "权限管理",
     "roles": "角色管理",
-    "systemSettings": "系统配置",
+    "systemSettings": "系统设置",
     "title": "系统管理",
     "users": "用户管理",
     "dataImport": "数据导入",
@@ -22,24 +22,24 @@
       "title": "员工中心"
     }
   },
-  "dashboard": "首页图表",
+  "dashboard": "仪表盘",
   "home": "首页",
   "hr": {
-    "employees": "员工档案",
-    "employeesBulkImport": "员工批量导入",
-    "employeesNew": "创建员工",
-    "myLeave": "",
-    "title": "员工管理",
-    "employeesDetail": "查看员工",
-    "employeesEdit": "修改员工信息"
+    "employees": "员工管理",
+    "employeesBulkImport": "批量导入",
+    "employeesNew": "新增员工",
+    "myLeave": "请假管理",
+    "title": "人力资源",
+    "employeesDetail": "员工详情",
+    "employeesEdit": "编辑员工"
   },
   "manager": {
     "leaveApprovals": "请假审批",
     "subordinates": "下属管理",
-    "title": "经理视图"
+    "title": "经理管理"
   },
   "organization": {
-    "managementV2": "组织架构管理",
+    "managementV2": "组织管理V2",
     "departments": "部门管理",
     "personnelCategories": "人员类别",
     "positions": "实际职务",
@@ -59,11 +59,12 @@
   "personal": {
     "myInfo": "我的信息",
     "myLeave": "我的请假",
-    "myPayslips": "我的工资单",
+    "myPayslips": "我的工资条",
     "title": "个人中心"
   },
   "reports": {
-    "title": "报表中心"
+    "title": "报表管理",
+    "management": "报表管理"
   },
   "system": {
     "title": "系统配置",
@@ -81,15 +82,18 @@
     }
   },
   "test": {
-    "title": "测试页面",
+    "title": "测试模块",
     "employeeListV3": "员工列表V3",
     "reportTableDemo": "报表表格演示",
     "reportTemplateDemo": "报表模板演示",
     "actualPositions": "实际职务",
-    "payrollWorkflow": "工资计算工作流"
+    "payrollWorkflow": "薪资工作流"
   },
   "viewReports": {
     "management": "报表管理",
     "title": "报表查看"
+  },
+  "simplePayroll": {
+    "title": "极简工资报表"
   }
 }

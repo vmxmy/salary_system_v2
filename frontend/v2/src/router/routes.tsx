@@ -183,6 +183,22 @@ export const routes: AppRouteObject[] = [
         ],
       },
       {
+        path: 'simple-payroll',
+        element: (
+          <AppProtectedRoute allowedRoles={['FINANCE_MANAGER', 'ACCOUNTANT', 'SUPER_ADMIN', 'HR_MANAGER']}>
+            <React.Suspense fallback={<div className="page-loading-suspense">Loading Simple Payroll...</div>}>
+              {React.createElement(lazy(() => import('../pages/SimplePayroll')))}
+            </React.Suspense>
+          </AppProtectedRoute>
+        ),
+        meta: { 
+          title: 'menu:simplePayroll.title', 
+          allowedRoles: ['FINANCE_MANAGER', 'ACCOUNTANT', 'SUPER_ADMIN', 'HR_MANAGER'],
+          requiredPermissions: ['payroll_period:view', 'payroll_run:view'],
+          permissionMatchMode: 'any'
+        }
+      },
+      {
         path: 'manager',
         element: (
           <AppProtectedRoute allowedRoles={['MANAGER', 'SUPER_ADMIN']}>

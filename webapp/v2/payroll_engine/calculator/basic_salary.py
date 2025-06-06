@@ -62,6 +62,12 @@ class BasicSalaryCalculator(ConfigurableCalculator):
     
     def get_base_salary(self, context: CalculationContext) -> Decimal:
         """获取基础薪资"""
+        # 首先从薪资配置中获取基础薪资
+        if context.salary_config and 'basic_salary' in context.salary_config:
+            salary = context.salary_config['basic_salary']
+            if salary is not None:
+                return Decimal(str(salary))
+        
         # 从员工数据中获取基础薪资
         salary_fields = ['basic_salary', 'base_salary', 'monthly_salary']
         

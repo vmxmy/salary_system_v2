@@ -82,6 +82,19 @@ async def get_departments(
         )
 
 
+        
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
 @router.get("/{department_id}", response_model=DataResponse[Department])
 async def get_department(
     department_id: int,
@@ -255,6 +268,18 @@ async def delete_department(
         )
     except HTTPException:
         raise
+    except Exception as e:
+        # 返回标准错误响应格式
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+        
     except Exception as e:
         # 返回标准错误响应格式
         raise HTTPException(

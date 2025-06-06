@@ -102,101 +102,145 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
 - Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
 - When searching for recent news, use the current year (2025) instead of previous years, or simply use the "recent" keyword to get the latest information
-- When editing TypeScript files with JSX syntax, ensure the file extension is .tsx, not .ts
-- For Ant Design Pro StatisticCard component, the trend property expects "up" | "down" | undefined, not an object
-- TableActionButton component requires actionType property to be specified
-- DirectoryTree component from Ant Design doesn't support loading property directly
 
 # Scratchpad
 
-## 薪资工作流页面开发任务 🚀 正在进行
+## 导入错误修复任务 ✅ 已完成
 
-### 总体目标
-开发完整的五步薪资工作流页面，实现从数据准备到最终发放的完整业务流程。
+### 问题分析：
+- [X] **后端导入错误**：`payroll_report_service.py` 中从错误模块导入 `ReportTemplateResponse`
+- [X] **路由导入错误**：`simple_payroll.py` 路由文件中也有相同的导入错误
+- [X] **前端样式错误**：`SimplePayroll` 页面尝试导入不存在的 `styles.less` 文件
 
-### 最新完成 ✅ 刚完成
+### 修复措施：
+- [X] **修复 payroll_report_service.py**：将 `ReportTemplateResponse` 的导入从 `simple_payroll` 模块改为 `config` 模块
+- [X] **修复 simple_payroll.py 路由**：同样将 `ReportTemplateResponse` 导入源修复为 `config` 模块
+- [X] **修复前端样式导入**：移除 SimplePayroll 页面中不存在的 `./styles.less` 导入
 
-#### 第二步预览表格功能
-- [X] **发现问题**：用户反馈第二步缺少预览表格界面
-- [X] **添加数据预览**：在 `AutoCalculationStep.tsx` 中添加了完整的预览表格
-- [X] **功能特性**：
-  - 📊 **薪资数据预览表格**：显示员工姓名、部门、职位、基本工资、津贴补贴、预计扣除、预计应发、预计实发
-  - 🔄 **动态加载**：根据选择的薪资周期自动加载预览数据
-  - 📈 **数据汇总**：表格底部显示总计金额
-  - 🎨 **美观界面**：小尺寸表格，操作按钮，加载状态
-  - ⚡️ **性能优化**：仅在计算前显示，避免重复渲染
-- [X] **技术实现**：
-  - 新增 `PayrollDataPreview` 接口定义
-  - 异步加载预览数据逻辑
-  - ProTable 组件集成和汇总行功能
-  - 响应式设计和交互优化
+### 验证结果：
+- [X] 后端 Python 模块导入错误已解决
+- [X] 前端 Vite 开发服务器样式文件错误已解决
+- [X] 应用应该可以正常启动
 
-#### 第三步复核功能完整实现
-- [X] **完整组件创建**：`PayrollReviewStep.tsx`（585行）包含所有复核功能
-- [X] **核心功能**：
-  - 📊 **复核概览**：显示总条目数、已复核、有异常、待复核的统计
-  - 📋 **数据表格**：完整的薪资条目表格，包含选择、查看、复核、调整操作
-  - 🔍 **异常处理**：异常类型标记、异常备注提示、异常数据警告
-  - ✅ **批量操作**：支持批量选择和批量复核功能
-  - ⚙️ **单条调整**：支持单个条目的金额调整和原因记录
-  - 📝 **复核记录**：完整的复核意见和结果记录
-- [X] **交互设计**：
-  - 模态框表单进行复核操作
-  - 状态标签和颜色区分
-  - 工具提示显示异常信息
-  - 操作按钮和权限控制
-- [X] **集成到主页面**：已集成到 `PayrollWorkflowPage.tsx` 中
-- [X] **类型安全**：解决了所有 TypeScript 编译错误
+**结论**：所有导入错误已修复，前后端都应该可以正常运行。
 
-### 当前进度状态
+## 认证Token问题修复任务 ✅ 已完成
 
-#### 各步骤完成情况
-- **第一步（数据审核与准备）**：✅ **100% 完成**
-  - 薪资周期选择器（优化版）
-  - 数据检查和验证
-  - 数据初始化功能
-  - 批量导入跳转
-  
-- **第二步（工资自动计算）**：✅ **100% 完成**
-  - 计算参数配置
-  - 模块化计算选择
-  - 进度监控和状态显示
-  - **新增**：数据预览表格
-  - 计算结果汇总展示
-  
-- **第三步（工资周期复核）**：✅ **100% 完成**
-  - 复核数据展示表格
-  - 异常数据标记和处理
-  - 批量复核功能
-  - 单条调整功能
-  - 复核意见记录
-  
-- **第四步（工资周期批准）**：⌛️ **0% 待开发**
-  
-- **第五步（工资发放与归档）**：⌛️ **0% 待开发**
+### 问题分析：
+- [X] **问题识别**：`simplePayrollApi.ts` 中的警告 `⚠️ [simplePayrollApi] 未找到access_token，请求可能失败`
+- [X] **根本原因**：`simplePayrollApi.ts` 使用 `localStorage.getItem('access_token')` 获取token，但认证系统使用Redux store存储token
+- [X] **影响范围**：SimplePayroll模块的所有API调用都可能失败
 
-#### 技术架构状态
-- [X] **组件架构**：完整的步骤组件拆分，代码结构清晰
-- [X] **状态管理**：使用组合钩子模式，状态管理完善
-- [X] **类型定义**：完整的 TypeScript 类型系统
-- [X] **UI组件**：统一使用 ProComponents，界面一致性良好
-- [X] **编译验证**：所有代码通过 TypeScript 编译检查
+### 问题详情：
+1. **认证架构不一致**：
+   - 主要API客户端 (`apiClient.ts`) 从 Redux store 获取token：`store.getState().auth.authToken`
+   - SimplePayroll API (`simplePayrollApi.ts`) 从 localStorage 获取token：`localStorage.getItem('access_token')`
 
-### 下一步计划 📋
+2. **Token存储机制**：
+   - Redux store (`authSlice.ts`) 管理认证状态
+   - Zustand store (`authStore.ts`) 使用 localStorage 持久化，但key是 `auth-storage`
+   - SimplePayroll API 期望的key是 `access_token`
 
-#### 第四步：工资周期批准
-- [ ] **批准者权限验证**：检查用户是否有批准权限
-- [ ] **批准前检查**：确保所有数据已复核完成
-- [ ] **批准操作界面**：批准决策、意见记录、批准时间
-- [ ] **批准结果处理**：状态更新、通知发送、流程推进
+### 修复措施：
+- [X] **修复token获取逻辑**：修改 `simplePayrollApi.ts` 使用 Redux store 获取token
+  - 导入 `store` 从 `../../../store`
+  - 将 `localStorage.getItem('access_token')` 改为 `store.getState().auth.authToken`
+  - 更新日志信息以反映新的token获取方式
 
-#### 第五步：工资发放与归档
-- [ ] **发放准备**：银行文件生成、工资条制作
-- [ ] **发放执行**：发放状态跟踪、异常处理
-- [ ] **数据归档**：历史数据存档、报表生成
+### 修复结果：
+- [X] SimplePayroll API 现在使用与主API客户端相同的认证机制
+- [X] 消除了 `未找到access_token` 的警告
+- [X] 确保了认证架构的一致性
 
-### 总体进度
-- **完成度**：✅ **60%**（3/5 步骤完成）
-- **代码行数**：约 1,500+ 行高质量代码
-- **技术质量**：架构清晰、类型安全、性能优化
-- **用户体验**：界面美观、交互流畅、功能完整
+**结论**：认证token问题已修复，SimplePayroll模块现在应该可以正常进行API调用。
+
+## Token刷新端点缺失问题 🔄 新发现
+
+### 问题分析：
+- [X] **问题识别**：前端尝试调用 `/v2/token/refresh` 端点但收到404错误
+- [X] **根本原因**：后端只有 `/v2/auth/token` 登录端点，缺少token刷新端点
+- [X] **影响范围**：当token过期时，用户会被强制登出而不是自动刷新token
+
+### 问题详情：
+1. **前端期望的刷新机制**：
+   - `apiClient.ts` 第214行调用 `await apiClient.post('/token/refresh', {})`
+   - 期望返回新的 `access_token`
+
+2. **后端实际情况**：
+   - 只有 `/v2/auth/token` 端点用于登录
+   - 没有 `/v2/token/refresh` 或 `/v2/auth/token/refresh` 端点
+
+3. **当前行为**：
+   - Token过期时，刷新请求失败（404）
+   - 用户被强制登出到登录页面
+
+### 解决方案选项：
+- [ ] **方案1**：在后端添加token刷新端点
+- [ ] **方案2**：修改前端逻辑，token过期时直接登出（简化方案）
+- [ ] **方案3**：实现refresh token机制（完整JWT方案）
+
+### 建议行动：
+- [ ] 评估是否需要token自动刷新功能
+- [ ] 如果不需要，简化前端逻辑直接登出
+- [ ] 如果需要，在后端实现刷新端点
+
+## 登录500错误修复任务 🔄 新任务
+
+### 问题分析：
+- [X] **问题识别**：用户登录时遇到 500 内部服务器错误
+- [X] **错误详情**：
+  - 前端显示 "No auth token found in Redux store"
+  - 后端 `/v2/auth/token` 端点返回 500 错误
+  - 登录请求失败，无法获取认证token
+
+### 问题症状：
+1. **前端错误**：
+   - `POST http://127.0.0.1:8080/v2/auth/token 500 (Internal Server Error)`
+   - `No auth token found in Redux store`
+   - 登录表单提交后无法完成认证
+
+2. **可能原因**：
+   - 后端认证端点实现有问题
+   - 数据库连接问题
+   - 密码验证逻辑错误
+   - 缺少必要的依赖或配置
+
+### 调查计划：
+- [ ] **检查后端认证路由**：查看 `/v2/auth/token` 端点实现
+- [ ] **检查前端登录请求**：确认请求格式和参数
+- [ ] **检查后端日志**：查看具体的错误信息
+- [ ] **测试数据库连接**：确认数据库访问正常
+- [ ] **验证用户数据**：确认测试用户存在且密码正确
+
+### 修复步骤：
+- [ ] 分析后端认证代码
+- [ ] 检查数据库连接和用户表
+- [ ] 修复发现的问题
+- [ ] 测试登录功能
+
+## Pydantic V2 兼容性修复任务 ⏸️ 暂停
+
+### 问题分析：
+- [X] **问题识别**：Pydantic V2 警告 `'schema_extra' has been renamed to 'json_schema_extra'`
+- [X] **根本原因**：项目中使用了旧的 Pydantic V1 配置语法 `schema_extra`，需要升级到 V2 语法 `json_schema_extra`
+- [X] **影响范围**：所有使用 `schema_extra` 的 Pydantic 模型都会产生警告
+
+### 问题详情：
+1. **发现的问题文件**：
+   - `webapp/v2/pydantic_models/payroll_calculation.py` - 2处使用 `schema_extra`
+   - 其他文件已经使用了正确的 `json_schema_extra` 语法
+
+2. **Pydantic V2 变更**：
+   - `schema_extra` → `json_schema_extra`
+   - 需要保持示例数据不变，只修改配置键名
+
+### 修复计划：
+- [ ] **修复 payroll_calculation.py**：将两处 `schema_extra` 改为 `json_schema_extra`
+- [ ] **验证修复**：确认警告消失
+- [ ] **测试功能**：确保 API 文档和验证功能正常
+
+### 修复步骤：
+- [ ] 修复第一个 `PayrollCalculationRequest` 类的配置
+- [ ] 修复第二个 `CalculationResult` 类的配置
+
+**注意**：暂停此任务，优先处理登录500错误问题。

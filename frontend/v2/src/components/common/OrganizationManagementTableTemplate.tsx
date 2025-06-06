@@ -10,11 +10,11 @@ const { Title } = Typography;
 
 interface OrganizationManagementTableTemplateProps<T extends Record<string, any>> extends EnhancedProTableProps<T> {
   /** 页面标题 */
-  pageTitle: string;
+  pageTitle?: string;
   /** 添加按钮文本 */
-  addButtonText: string;
+  addButtonText?: string;
   /** 添加按钮点击事件 */
-  onAddClick: () => void;
+  onAddClick?: () => void;
   /** 是否显示添加按钮 */
   showAddButton?: boolean;
   /** 额外的自定义按钮 */
@@ -104,7 +104,7 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
   const customToolbarButtons: React.ReactNode[] = [];
 
   // Add primary add button
-  if (showAddButton) {
+  if (showAddButton && onAddClick && addButtonText) {
     customToolbarButtons.push(
       <Button
         key="create"

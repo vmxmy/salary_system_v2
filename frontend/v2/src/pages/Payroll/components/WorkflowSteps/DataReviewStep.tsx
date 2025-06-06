@@ -10,6 +10,7 @@ import type { UsePayrollWorkflowReturn } from '../../hooks/usePayrollWorkflow';
 import type { PayrollEntry } from '../../types/payrollTypes';
 import PayrollPeriodSelector from '../../../../components/common/PayrollPeriodSelector';
 import apiClient from '../../../../api/apiClient';
+import { WORKFLOW_STEPS } from '../../services/payrollWorkflowStatusService';
 
 // 简单的货币格式化函数
 const formatCurrency = (amount: number): string => {
@@ -107,12 +108,63 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
 
     setReviewLoading(true);
     try {
-      // 直接调用薪资条目API，按周期ID获取数据
       console.log(`🔍 正在获取薪资周期 ${selectedPeriodId} 的数据...`);
+      console.log('🔍 周期参数详情:', {
+        selectedPeriodId,
+        type: typeof selectedPeriodId,
+        isNumber: Number.isInteger(selectedPeriodId),
+        stringValue: String(selectedPeriodId)
+      });
+      
+      // 1. 先获取该薪资周期下的所有PayrollRuns
+      console.log('📡 第一步：获取PayrollRuns...');
+      const runsResponse = await apiClient.get('/payroll-runs', {
+        params: {
+          period_id: selectedPeriodId,
+          size: 100,
+          page: 1
+        }
+      });
+      
+      console.log('🔍 PayrollRuns响应:', runsResponse.data);
+      
+      const runsData = runsResponse.data?.data || [];
+      if (runsData.length === 0) {
+        console.log('⚠️ 该薪资周期暂无PayrollRun数据');
+        setReviewData([]);
+        setDataStats({ total: 0, complete: 0, incomplete: 0, warning: 0 });
+        setPagination(prev => ({ ...prev, total: 0, current: 1 }));
+        return;
+      }
+      
+      // 2. 选择最新的PayrollRun（按run_date降序，取第一个）
+      const sortedRuns = runsData.sort((a: any, b: any) => 
+        new Date(b.run_date || b.created_at).getTime() - new Date(a.run_date || a.created_at).getTime()
+      );
+      const latestRun = sortedRuns[0];
+      
+      console.log('📊 选择最新的PayrollRun:', {
+        runId: latestRun.id,
+        runDate: latestRun.run_date,
+        status: latestRun.status_lookup_value_id
+      });
+      
+      // 3. 获取该PayrollRun下的所有PayrollEntries
+      console.log('📡 第二步：获取PayrollEntries...');
+      console.log('📡 API请求参数:', {
+        url: '/payroll-entries',
+        params: {
+          payroll_run_id: latestRun.id,  // 使用payroll_run_id而不是period_id
+          include_employee_details: true,
+          include_payroll_period: true,
+          size: 100,
+          page: 1
+        }
+      });
       
       const response = await apiClient.get('/payroll-entries', {
         params: {
-          period_id: selectedPeriodId,
+          payroll_run_id: latestRun.id,  // 使用payroll_run_id而不是period_id
           include_employee_details: true,
           include_payroll_period: true,
           size: 100,
@@ -206,8 +258,14 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
       });
 
       console.log(`✅ 加载薪资审核数据成功: ${reviewData.length} 条记录`);
+      console.log('📊 数据统计:', {
+        total: reviewData.length,
+        payrollRunId: latestRun.id,
+        payrollRunStatus: latestRun.status_lookup_value_id
+      });
+      
       if (reviewData.length === 0) {
-        console.log('⚠️ 当前薪资周期暂无数据，可能需要先导入或复制数据');
+        console.log('⚠️ 当前PayrollRun暂无数据，可能需要先导入或复制数据');
       }
     } catch (error: any) {
       const errorMessage = error.message || '未知错误';
@@ -231,6 +289,11 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
 
   // 处理薪资周期选择变化
   const handlePeriodChange = (periodId: number | null) => {
+    console.log('🔄 周期选择变化:', { 
+      selectedPeriodId: periodId, 
+      type: typeof periodId,
+      isNumber: Number.isInteger(periodId)
+    });
     setSelectedPeriodId(periodId);
     // 重置分页到第一页
     setPagination(prev => ({ ...prev, current: 1 }));
@@ -925,6 +988,37 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
 
   return (
     <>
+      {/* 工作流状态显示 */}
+      {workflow.workflowStatus && (
+        <ProCard title="工作流状态" style={{ marginBottom: 24 }}>
+          <ProDescriptions column={3}>
+            <ProDescriptions.Item label="当前步骤">
+              <Space>
+                <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                <Text strong>薪资数据审核</Text>
+                <Tag color="processing">进行中</Tag>
+              </Space>
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="薪资周期">
+              <Text>{workflow.selectedPeriodId ? `周期 #${workflow.selectedPeriodId}` : '未选择'}</Text>
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="运行批次">
+              <Text>{workflow.currentPayrollRun?.id ? `批次 #${workflow.currentPayrollRun.id}` : '未创建'}</Text>
+            </ProDescriptions.Item>
+          </ProDescriptions>
+          
+          {workflow.workflowStatus.steps && workflow.workflowStatus.steps[WORKFLOW_STEPS.DATA_REVIEW as any] && (
+            <Alert
+              message="工作流已启动"
+              description={`数据审核步骤已开始，开始时间: ${new Date((workflow.workflowStatus.steps[WORKFLOW_STEPS.DATA_REVIEW as any] as any)?.data?.started_at || '').toLocaleString()}`}
+              type="info"
+              showIcon
+              style={{ marginTop: 16 }}
+            />
+          )}
+        </ProCard>
+      )}
+
       {/* 审核要点说明 */}
       <ProCard title={t('payroll:workflow.steps.data_review.review_points.title', '审核要点')} style={{ marginBottom: 24 }}>
         <ProDescriptions column={2}>

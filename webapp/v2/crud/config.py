@@ -212,12 +212,6 @@ def get_lookup_values(
     # 获取总记录数 (在应用options之前进行，以确保准确性)
     total = query.with_entities(func.count(LookupValue.id)).scalar()
 
-    # Eager load parent and children for the main query results
-    query = query.options(
-        selectinload(LookupValue.parent),
-        selectinload(LookupValue.children)
-    )
-
     # 应用排序和分页
     query = query.order_by(LookupValue.lookup_type_id, LookupValue.sort_order, LookupValue.name)
     query = query.offset(skip).limit(limit)
@@ -236,10 +230,7 @@ def get_lookup_value(db: Session, lookup_value_id: int) -> Optional[LookupValue]
     Returns:
         查找值对象，如果不存在则返回None
     """
-    return db.query(LookupValue).options(
-        selectinload(LookupValue.parent),
-        selectinload(LookupValue.children)
-    ).filter(LookupValue.id == lookup_value_id).first()
+    return db.query(LookupValue).filter(LookupValue.id == lookup_value_id).first()
 
 
 def get_lookup_value_by_code(db: Session, lookup_type_id: int, code: str) -> Optional[LookupValue]:

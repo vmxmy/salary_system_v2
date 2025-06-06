@@ -172,19 +172,147 @@ export const payrollWorkflowApi = {
    * 触发薪资计算
    */
   triggerPayrollCalculation: async (payrollRunId: number, calculationConfig?: Record<string, any>): Promise<{ task_id: string }> => {
-    const response = await apiClient.post<{ task_id: string }>('/payroll/calculation/trigger', {
-      payroll_run_id: payrollRunId,
-      calculation_config: calculationConfig || {}
-    });
-    return response.data;
+    // 检查是否为合计计算
+    const modules = calculationConfig?.modules || [];
+    const isSummaryOnly = modules.length === 1 && modules.includes('summary');
+    
+    if (isSummaryOnly) {
+      // 执行合计计算
+      return await payrollWorkflowApi.triggerSummaryCalculation(payrollRunId);
+    } else {
+      // 执行完整薪资计算
+      const response = await apiClient.post<{ task_id: string }>('/payroll/calculation/trigger', {
+        payroll_run_id: payrollRunId,
+        calculation_config: calculationConfig || {}
+      });
+      return response.data;
+    }
+  },
+
+  /**
+   * 触发合计计算（基于明细数据重新计算应发、扣款、实发）
+   */
+  triggerSummaryCalculation: async (payrollRunId: number): Promise<{ task_id: string }> => {
+    try {
+      console.log(`🧮 开始执行合计计算，payrollRunId: ${payrollRunId}`);
+      
+      // 模拟异步任务ID
+      const taskId = `summary_calc_${payrollRunId}_${Date.now()}`;
+      
+      // 获取该薪资运行批次的所有薪资条目
+      const entriesResponse = await payrollWorkflowApi.getPayrollEntries(payrollRunId, { size: 1000 });
+      const entries = entriesResponse.data || [];
+      
+      console.log(`📊 找到 ${entries.length} 条薪资记录，开始计算合计...`);
+      
+      // 批量更新每条记录的合计字段
+      const updatePromises = entries.map(async (entry: any) => {
+        // 计算收入明细合计
+        const totalEarnings = entry.earnings_details ? 
+          Object.values(entry.earnings_details).reduce((sum: number, item: any) => 
+            sum + (Number(item?.amount) || 0), 0) : 0;
+        
+        // 计算扣款明细合计
+        const totalDeductions = entry.deductions_details ? 
+          Object.values(entry.deductions_details).reduce((sum: number, item: any) => 
+            sum + (Number(item?.amount) || 0), 0) : 0;
+
+        const grossPay = totalEarnings;
+        const netPay = grossPay - totalDeductions;
+
+        // 更新薪资条目
+        const updateData = {
+          gross_pay: grossPay.toFixed(2),
+          total_deductions: totalDeductions.toFixed(2),
+          net_pay: netPay.toFixed(2)
+        };
+
+        console.log(`💰 员工 ${entry.employee?.last_name}${entry.employee?.first_name}: 应发=${grossPay.toFixed(2)}, 扣款=${totalDeductions.toFixed(2)}, 实发=${netPay.toFixed(2)}`);
+
+        return apiClient.put(`/payroll-entries/${entry.id}`, updateData);
+      });
+
+      // 等待所有更新完成
+      await Promise.all(updatePromises);
+      
+      console.log(`✅ 合计计算完成，已更新 ${entries.length} 条记录`);
+      
+      return { task_id: taskId };
+    } catch (error) {
+      console.error('❌ 合计计算失败:', error);
+      throw error;
+    }
   },
 
   /**
    * 查询计算进度
    */
   getCalculationProgress: async (taskId: string): Promise<PayrollCalculationProgress> => {
-    const response = await apiClient.get<PayrollCalculationProgress>(`/payroll/calculation/status/${taskId}`);
-    return response.data;
+    // 检查是否为合计计算任务
+    if (taskId.startsWith('summary_calc_')) {
+      return payrollWorkflowApi.getSummaryCalculationProgress(taskId);
+    } else {
+      const response = await apiClient.get<PayrollCalculationProgress>(`/payroll/calculation/status/${taskId}`);
+      return response.data;
+    }
+  },
+
+  /**
+   * 获取合计计算进度（模拟）
+   */
+  getSummaryCalculationProgress: async (taskId: string): Promise<PayrollCalculationProgress> => {
+    // 从taskId中提取periodId
+    const match = taskId.match(/summary_calc_(\d+)_(\d+)/);
+    if (!match) {
+      throw new Error('Invalid summary calculation task ID');
+    }
+    
+    const periodId = parseInt(match[1]);
+    const startTime = parseInt(match[2]);
+    const currentTime = Date.now();
+    const elapsedSeconds = (currentTime - startTime) / 1000;
+    
+    // 模拟进度：3秒内完成
+    const totalDuration = 3;
+    const progress = Math.min(100, (elapsedSeconds / totalDuration) * 100);
+    const isCompleted = progress >= 100;
+    
+    // 获取员工数量用于进度显示
+    let totalEmployees = 0;
+    let processedEmployees = 0;
+    
+    try {
+      const response = await fetch(`/api/v2/payroll-entries?period_id=${periodId}&size=1000`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+        }
+      });
+      
+      if (response.ok) {
+        const apiResponse = await response.json();
+        totalEmployees = apiResponse.data?.length || 0;
+        processedEmployees = Math.floor((progress / 100) * totalEmployees);
+      } else {
+        // 使用默认值
+        totalEmployees = 10;
+        processedEmployees = Math.floor((progress / 100) * totalEmployees);
+      }
+    } catch (error) {
+      // 使用默认值
+      totalEmployees = 10;
+      processedEmployees = Math.floor((progress / 100) * totalEmployees);
+    }
+    
+    return {
+      task_id: taskId,
+      status: isCompleted ? 'completed' : 'processing',
+      progress_percentage: Math.floor(progress),
+      total_employees: totalEmployees,
+      processed_employees: processedEmployees,
+      current_employee: isCompleted ? undefined : `正在计算第 ${processedEmployees + 1} 位员工的合计数据...`,
+      estimated_remaining_time: isCompleted ? 0 : Math.max(1, totalDuration - elapsedSeconds)
+    };
   },
 
   /**

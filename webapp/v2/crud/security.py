@@ -2,13 +2,19 @@
 安全相关的CRUD操作。
 """
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_, and_, text
 from typing import List, Optional, Tuple, Dict, Any
 from passlib.context import CryptContext
+from datetime import datetime, timedelta
+import json
+import logging
 
 from ..models.security import User, Role, Permission, user_roles, role_permissions
 from ..models.hr import Employee
 from ..pydantic_models.security import UserCreate, UserUpdate, RoleCreate, RoleUpdate, PermissionCreate, PermissionUpdate, UserRoleCreate, RolePermissionCreate
+
+# 设置logger
+logger = logging.getLogger(__name__)
 
 # 密码哈希工具
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -123,8 +129,6 @@ def create_user(db: Session, user: UserCreate) -> User:
     Returns:
         创建的用户对象
     """
-    import logging
-    logger = logging.getLogger("auth_debug")
     logger.debug(f"创建用户，接收到的数据: {user.model_dump()}")
     
     existing_username = get_user_by_username(db, user.username)
@@ -665,3 +669,278 @@ def delete_permission(db: Session, permission_id: int) -> bool:
     db.delete(db_permission)
     db.commit()
     return True
+
+
+# --- 超高性能权限查询函数 (终极优化) ---
+
+def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict]:
+    """
+    超高性能用户权限查询：分步查询避免复杂JOIN
+    专门针对首次请求优化，减少查询复杂度
+    
+    Args:
+        db: 数据库会话
+        username: 用户名
+        
+    Returns:
+        包含用户信息和权限的字典，如果不存在则返回None
+    """
+    from sqlalchemy import text
+    
+    try:
+        # 第一步：快速获取用户基本信息
+        user_query = text("""
+            SELECT id, username, employee_id, is_active, created_at, description
+            FROM security.users 
+            WHERE username = :username AND is_active = true
+        """)
+        
+        user_result = db.execute(user_query, {"username": username}).first()
+        if not user_result:
+            return None
+            
+        user_id = user_result.id
+        
+        # 第二步：快速获取用户所有权限（优化的单表JOIN）
+        permissions_query = text("""
+            SELECT DISTINCT p.code
+            FROM security.user_roles ur
+            JOIN security.role_permissions rp ON ur.role_id = rp.role_id
+            JOIN security.permissions p ON rp.permission_id = p.id
+            WHERE ur.user_id = :user_id 
+              AND ur.is_active = true 
+              AND p.is_active = true
+        """)
+        
+        permissions_result = db.execute(permissions_query, {"user_id": user_id}).fetchall()
+        permission_codes = [row.code for row in permissions_result] if permissions_result else []
+        
+        # 第三步：简化角色信息获取（可选，仅获取基本信息）
+        roles_query = text("""
+            SELECT r.id, r.name, r.code, r.description, r.is_active
+            FROM security.user_roles ur
+            JOIN security.roles r ON ur.role_id = r.id
+            WHERE ur.user_id = :user_id 
+              AND ur.is_active = true 
+              AND r.is_active = true
+        """)
+        
+        roles_result = db.execute(roles_query, {"user_id": user_id}).fetchall()
+        roles = [
+            {
+                "id": row.id,
+                "name": row.name,
+                "code": row.code,
+                "description": row.description,
+                "is_active": row.is_active
+            }
+            for row in roles_result
+        ] if roles_result else []
+        
+        # 构建返回数据
+        user_data = {
+            "id": user_result.id,
+            "username": user_result.username,
+            "employee_id": user_result.employee_id,
+            "is_active": user_result.is_active,
+            "created_at": user_result.created_at,
+            "description": user_result.description,
+            "all_permission_codes": permission_codes,
+            "roles": roles
+        }
+        
+        return user_data
+        
+    except Exception as e:
+        logger.error(f"超高性能用户权限查询失败: {e}", exc_info=True)
+        return None
+
+
+def get_user_permissions_optimized(db: Session, username: str, use_cache: bool = True) -> Optional[dict]:
+    """
+    优化的用户权限获取函数：先尝试缓存，再查询数据库
+    现在使用超高性能查询函数
+    
+    Args:
+        db: 数据库会话
+        username: 用户名
+        use_cache: 是否使用缓存
+        
+    Returns:
+        用户权限数据字典
+    """
+    # 优先从缓存获取
+    if use_cache:
+        cached_data = get_cached_user_permissions(username)
+        if cached_data:
+            logger.debug(f"🎯 用户权限缓存命中: {username}")
+            return cached_data
+    
+    # 缓存未命中，使用超高性能查询
+    logger.debug(f"⚡ 执行超高性能权限查询: {username}")
+    user_data = get_user_permissions_ultra_fast(db, username)
+    
+    # 存入缓存
+    if user_data and use_cache:
+        set_user_permissions_cache(username, user_data)
+        logger.debug(f"💾 用户权限已缓存: {username}")
+        
+    return user_data
+
+
+# 用户权限缓存 (5分钟TTL)
+_user_permissions_cache = {}
+_cache_ttl_minutes = 5
+
+def get_cached_user_permissions(username: str) -> Optional[dict]:
+    """
+    从缓存获取用户权限信息
+    
+    Args:
+        username: 用户名
+        
+    Returns:
+        缓存的用户权限数据，如果过期或不存在则返回None
+    """
+    if username not in _user_permissions_cache:
+        return None
+        
+    cached_data, timestamp = _user_permissions_cache[username]
+    
+    # 检查缓存是否过期
+    if datetime.now() - timestamp > timedelta(minutes=_cache_ttl_minutes):
+        # 清理过期缓存
+        del _user_permissions_cache[username]
+        return None
+        
+    return cached_data
+
+
+def set_user_permissions_cache(username: str, user_data: dict) -> None:
+    """
+    设置用户权限缓存
+    
+    Args:
+        username: 用户名
+        user_data: 用户权限数据
+    """
+    _user_permissions_cache[username] = (user_data, datetime.now())
+
+
+def clear_user_permissions_cache(username: str = None) -> None:
+    """
+    清理用户权限缓存
+    
+    Args:
+        username: 特定用户名，如果为None则清理所有缓存
+    """
+    if username:
+        _user_permissions_cache.pop(username, None)
+    else:
+        _user_permissions_cache.clear()
+
+
+# --- 缓存管理辅助函数 ---
+
+def force_refresh_user_cache(username: str = None) -> None:
+    """
+    强制刷新用户权限缓存，用于测试和调试
+    
+    Args:
+        username: 特定用户名，如果为None则清理所有缓存
+    """
+    clear_user_permissions_cache(username)
+    logger.info(f"🗑️ 强制清理用户权限缓存: {username or '所有用户'}")
+
+
+# --- 性能调试函数 ---
+
+def benchmark_permission_queries(db: Session, username: str = "admin", iterations: int = 5) -> dict:
+    """
+    性能测试：对比不同权限查询方法的性能
+    
+    Args:
+        db: 数据库会话
+        username: 测试用户名
+        iterations: 测试迭代次数
+        
+    Returns:
+        性能测试结果字典
+    """
+    import time
+    results = {}
+    
+    # 先清理缓存确保公平测试
+    clear_user_permissions_cache(username)
+    
+    # 测试超高性能查询
+    start_time = time.time()
+    for _ in range(iterations):
+        get_user_permissions_ultra_fast(db, username)
+    ultra_fast_time = (time.time() - start_time) / iterations
+    results["ultra_fast_avg"] = ultra_fast_time
+    
+    # 测试缓存性能
+    clear_user_permissions_cache(username)
+    # 先建立缓存
+    get_user_permissions_optimized(db, username, use_cache=True)
+    
+    start_time = time.time()
+    for _ in range(iterations):
+        get_user_permissions_optimized(db, username, use_cache=True)
+    cached_time = (time.time() - start_time) / iterations
+    results["cached_avg"] = cached_time
+    
+    logger.info(f"📊 权限查询性能测试结果: {results}")
+    return results
+
+
+# --- 预热缓存策略 ---
+
+async def warmup_user_permissions_cache(db: Session, usernames: List[str] = None) -> None:
+    """
+    预热用户权限缓存：在应用启动或空闲时预加载热门用户权限
+    
+    Args:
+        db: 数据库会话
+        usernames: 要预热的用户名列表，如果为None则加载所有活跃用户
+    """
+    try:
+        if usernames is None:
+            # 获取所有活跃用户
+            from sqlalchemy import text
+            query = text("SELECT username FROM security.users WHERE is_active = true")
+            result = db.execute(query).fetchall()
+            usernames = [row.username for row in result]
+        
+        logger.info(f"🔥 开始预热用户权限缓存: {len(usernames)} 个用户")
+        
+        for username in usernames:
+            try:
+                # 强制查询并缓存
+                user_data = get_user_permissions_ultra_fast(db, username)
+                if user_data:
+                    set_user_permissions_cache(username, user_data)
+                    logger.debug(f"✅ 已预热用户权限: {username}")
+            except Exception as e:
+                logger.warning(f"❌ 预热用户权限失败: {username}, 错误: {e}")
+        
+        logger.info(f"🎉 用户权限缓存预热完成!")
+        
+    except Exception as e:
+        logger.error(f"权限缓存预热过程失败: {e}", exc_info=True)
+
+
+def get_cache_stats() -> dict:
+    """
+    获取权限缓存统计信息
+    
+    Returns:
+        缓存统计字典
+    """
+    stats = {
+        "cached_users": len(_user_permissions_cache),
+        "cache_keys": list(_user_permissions_cache.keys()),
+        "cache_ttl_minutes": _cache_ttl_minutes
+    }
+    return stats

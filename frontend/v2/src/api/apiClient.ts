@@ -89,7 +89,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 30000, // 30秒超时
+  timeout: 120000, // 120秒超时（2分钟）
 });
 
 // 获取性能监控拦截器

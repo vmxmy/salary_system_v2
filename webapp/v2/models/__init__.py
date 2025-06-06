@@ -7,3 +7,4 @@ from .reports import *
 from .payroll_config import *
 from .attendance import *
 from .calculation_rules import *
+from .audit import *

@@ -43,6 +43,8 @@ class PayrollRun(BaseV2):
     status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', ondelete='RESTRICT'), nullable=False)
     initiated_by_user_id = Column(BigInteger, ForeignKey('security.users.id', ondelete='SET NULL'), nullable=True)
     total_employees = Column(Integer, nullable=True)
+    total_gross_pay = Column(Numeric(18, 4), nullable=True)
+    total_deductions = Column(Numeric(18, 4), nullable=True)
     total_net_pay = Column(Numeric(18, 4), nullable=True)
 
     # Relationships
@@ -50,6 +52,7 @@ class PayrollRun(BaseV2):
     status = relationship("LookupValue")
     initiated_by = relationship("User")
     payroll_entries = relationship("PayrollEntry", back_populates="payroll_run")
+    audit_summary = relationship("PayrollRunAuditSummary", back_populates="payroll_run", uselist=False)
 
 
 class PayrollEntry(BaseV2):
@@ -74,9 +77,17 @@ class PayrollEntry(BaseV2):
     remarks = Column(Text, nullable=True)
     calculated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), nullable=True, onupdate=func.now())
+    
+    # 审核相关字段
+    audit_status = Column(String(20), nullable=False, server_default='PENDING')
+    audit_timestamp = Column(TIMESTAMP(timezone=True), nullable=True)
+    auditor_id = Column(BigInteger, nullable=True)
+    audit_notes = Column(Text, nullable=True)
+    version = Column(Integer, nullable=False, server_default='1')
 
     # Relationships
     employee = relationship("Employee", back_populates="payroll_entries")
     payroll_period = relationship("PayrollPeriod", back_populates="payroll_entries")
     payroll_run = relationship("PayrollRun", back_populates="payroll_entries")
     status = relationship("LookupValue")
+    audit_anomalies = relationship("PayrollAuditAnomaly", back_populates="payroll_entry")

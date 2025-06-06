@@ -14,6 +14,7 @@ from ..pydantic_models.config import (
 from ..pydantic_models.common import DataResponse
 from ...auth import require_permissions
 from ..utils import create_error_response
+from sqlalchemy import text
 
 router = APIRouter(
     prefix="/lookup",
@@ -270,35 +271,87 @@ async def get_lookup_values(
     - **size**: 每页记录数，最大100
     """
     try:
-        resolved_lookup_type_id: Optional[int] = None
         if type_code:
-            lookup_type_obj = crud.get_lookup_type_by_code(db, type_code)
-            if lookup_type_obj:
-                resolved_lookup_type_id = lookup_type_obj.id
-            else:
-                # type_code was given but not found, return empty list
-                return {
-                    "data": [],
-                    "meta": {
-                        "page": page,
-                        "size": size,
-                        "total": 0,
-                        "totalPages": 1 # Or 0 if preferred for no items
-                    }
-                }
-        
-        # 计算跳过的记录数
-        skip = (page - 1) * size
-
-        # 获取查找值列表
-        lookup_values, total = crud.get_lookup_values(
-            db=db,
-            lookup_type_id=resolved_lookup_type_id,
-            is_active=is_active,
-            search=search,
-            skip=skip,
-            limit=size
-        )
+            # 使用优化的 SQL 查询直接获取数据
+            query = text("""
+                SELECT 
+                    lv.id,
+                    lv.lookup_type_id,
+                    lv.code,
+                    lv.name,
+                    lv.description,
+                    lv.sort_order,
+                    lv.is_active,
+                    lv.parent_lookup_value_id
+                FROM config.lookup_values lv
+                JOIN config.lookup_types lt ON lv.lookup_type_id = lt.id
+                WHERE lt.code = :type_code
+                AND (:is_active IS NULL OR lv.is_active = :is_active)
+                AND (:search IS NULL OR 
+                     lv.code ILIKE :search_pattern OR 
+                     lv.name ILIKE :search_pattern OR 
+                     lv.description ILIKE :search_pattern)
+                ORDER BY lv.sort_order, lv.code
+                LIMIT :limit OFFSET :offset
+            """)
+            
+            count_query = text("""
+                SELECT COUNT(*)
+                FROM config.lookup_values lv
+                JOIN config.lookup_types lt ON lv.lookup_type_id = lt.id
+                WHERE lt.code = :type_code
+                AND (:is_active IS NULL OR lv.is_active = :is_active)
+                AND (:search IS NULL OR 
+                     lv.code ILIKE :search_pattern OR 
+                     lv.name ILIKE :search_pattern OR 
+                     lv.description ILIKE :search_pattern)
+            """)
+            
+            # 准备参数
+            search_pattern = f"%{search}%" if search else None
+            skip = (page - 1) * size
+            
+            params = {
+                'type_code': type_code,
+                'is_active': is_active,
+                'search': search,
+                'search_pattern': search_pattern,
+                'limit': size,
+                'offset': skip
+            }
+            
+            # 执行查询
+            result = db.execute(query, params)
+            lookup_values_data = [dict(row._mapping) for row in result]
+            
+            # 获取总数
+            count_result = db.execute(count_query, params)
+            total = count_result.scalar()
+            
+            # 转换为 Pydantic 模型
+            lookup_values = []
+            for item in lookup_values_data:
+                lookup_values.append(LookupValue(
+                    id=item['id'],
+                    lookup_type_id=item['lookup_type_id'],
+                    code=item['code'],
+                    name=item['name'],
+                    description=item.get('description'),
+                    sort_order=item.get('sort_order', 0),
+                    is_active=item.get('is_active', True),
+                    parent_lookup_value_id=item.get('parent_lookup_value_id')
+                ))
+        else:
+            # 如果没有指定类型代码，回退到 CRUD 方法
+            skip = (page - 1) * size
+            lookup_values, total = crud.get_lookup_values(
+                db=db,
+                lookup_type_id=None,
+                is_active=is_active,
+                search=search,
+                skip=skip,
+                limit=size
+            )
 
         # 计算总页数
         total_pages = (total + size - 1) // size if total > 0 else 1

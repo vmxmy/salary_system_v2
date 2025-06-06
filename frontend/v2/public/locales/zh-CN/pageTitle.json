@@ -4,5 +4,11 @@
   "edit_payroll_period": "编辑薪资周期",
   "employee_list": "员工列表",
   "employee_list_v3": "员工列表V3",
-  "hr_management": "员工管理"
+  "hr_management": "员工管理",
+  "dashboard": "仪表盘",
+  "employees": "员工管理",
+  "payroll": "薪资管理",
+  "simple_payroll": "极简工资报表系统",
+  "admin": "系统管理",
+  "manager": "经理管理"
 }

@@ -12,7 +12,7 @@ from ...pydantic_models.config import (
     LookupValueListResponse, LookupValue, LookupValueCreate, LookupValueUpdate
 )
 from ...pydantic_models.common import DataResponse
-from webapp.auth import get_current_user, require_permissions # User for some, permissions for others
+from webapp.auth import get_current_user, require_permissions, smart_require_permissions # User for some, permissions for others
 from ...utils import create_error_response
 from ...pydantic_models import security as v2_security_schemas # Import security schemas for User model
 import logging
@@ -172,33 +172,109 @@ async def create_lookup_value_endpoint(
 
 @router.get("/lookup-values", response_model=LookupValueListResponse)
 async def get_lookup_values_endpoint(
+    lookup_type_code: Optional[str] = None,
     lookup_type_id: Optional[int] = None,
-    lookup_type_code: Optional[str] = None, # Allow fetching by type code too
-    is_active: Optional[bool] = None,
+    is_active: Optional[bool] = True,
+    parent_id: Optional[int] = None,
     search: Optional[str] = None,
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=200), # Max 200 for lookup values
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(require_permissions(["lookup_value:view"]))
+    current_user = Depends(smart_require_permissions(["lookup_value:view"]))  # 🚀 使用高性能权限检查
 ):
     try:
-        actual_type_id = lookup_type_id
-        if not actual_type_id and lookup_type_code:
-            lt = crud.get_lookup_type_by_code(db, lookup_type_code)
-            if not lt:
-                 return LookupValueListResponse(data=[], meta={"page":page, "size":size, "total":0, "totalPages":0})
-            actual_type_id = lt.id
+        # Performance optimization: Use direct SQL query instead of ORM
+        from sqlalchemy import text
         
-        # If neither type_id nor valid type_code provided, it might fetch all lookup values across all types.
-        # This behavior should be clarified or restricted if necessary.
-        # For now, assuming crud.get_lookup_values handles actual_type_id=None correctly for this case.
-
-        skip = (page - 1) * size
-        values, total = crud.get_lookup_values(
-            db, lookup_type_id=actual_type_id, is_active=is_active, search=search, skip=skip, limit=size
-        )
+        if lookup_type_code:
+            # Optimized query for type_code lookup
+            query = text("""
+                SELECT 
+                    lv.id,
+                    lv.lookup_type_id,
+                    lv.code,
+                    lv.name,
+                    lv.description,
+                    lv.sort_order,
+                    lv.is_active,
+                    lv.parent_lookup_value_id
+                FROM config.lookup_values lv
+                JOIN config.lookup_types lt ON lv.lookup_type_id = lt.id
+                WHERE lt.code = :type_code
+                  AND (:is_active IS NULL OR lv.is_active = :is_active)
+                  AND (:search IS NULL OR lv.name ILIKE :search_pattern OR lv.code ILIKE :search_pattern)
+                ORDER BY lv.sort_order ASC, lv.code ASC
+                LIMIT :limit OFFSET :offset
+            """)
+            
+            count_query = text("""
+                SELECT COUNT(*)
+                FROM config.lookup_values lv
+                JOIN config.lookup_types lt ON lv.lookup_type_id = lt.id
+                WHERE lt.code = :type_code
+                  AND (:is_active IS NULL OR lv.is_active = :is_active)
+                  AND (:search IS NULL OR lv.name ILIKE :search_pattern OR lv.code ILIKE :search_pattern)
+            """)
+            
+            params = {
+                'type_code': lookup_type_code,
+                'is_active': is_active,
+                'search': search,
+                'search_pattern': f"%{search}%" if search else None,
+                'limit': size,
+                'offset': (page - 1) * size
+            }
+            
+        elif lookup_type_id:
+            # Optimized query for type_id lookup
+            query = text("""
+                SELECT 
+                    lv.id,
+                    lv.lookup_type_id,
+                    lv.code,
+                    lv.name,
+                    lv.description,
+                    lv.sort_order,
+                    lv.is_active,
+                    lv.parent_lookup_value_id
+                FROM config.lookup_values lv
+                WHERE lv.lookup_type_id = :type_id
+                  AND (:is_active IS NULL OR lv.is_active = :is_active)
+                  AND (:search IS NULL OR lv.name ILIKE :search_pattern OR lv.code ILIKE :search_pattern)
+                ORDER BY lv.sort_order ASC, lv.code ASC
+                LIMIT :limit OFFSET :offset
+            """)
+            
+            count_query = text("""
+                SELECT COUNT(*)
+                FROM config.lookup_values lv
+                WHERE lv.lookup_type_id = :type_id
+                  AND (:is_active IS NULL OR lv.is_active = :is_active)
+                  AND (:search IS NULL OR lv.name ILIKE :search_pattern OR lv.code ILIKE :search_pattern)
+            """)
+            
+            params = {
+                'type_id': lookup_type_id,
+                'is_active': is_active,
+                'search': search,
+                'search_pattern': f"%{search}%" if search else None,
+                'limit': size,
+                'offset': (page - 1) * size
+            }
+        else:
+            # Return empty result if no type specified
+            return LookupValueListResponse(data=[], meta={"page": page, "size": size, "total": 0, "totalPages": 0})
+        
+        # Execute queries
+        result = db.execute(query, params)
+        values = [dict(row._mapping) for row in result]
+        
+        count_result = db.execute(count_query, params)
+        total = count_result.scalar()
+        
         total_pages = (total + size - 1) // size if total > 0 else 1
         return LookupValueListResponse(data=values, meta={"page": page, "size": size, "total": total, "totalPages": total_pages})
+        
     except Exception as e:
         logger.error(f"Error getting lookup values: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=create_error_response(500, "Internal server error", str(e)))
@@ -257,4 +333,80 @@ async def delete_lookup_value_endpoint(
         raise
     except Exception as e:
         logger.error(f"Error deleting lookup value {value_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=create_error_response(500, "Internal server error", str(e)))
+
+# --- 高性能公共 Lookup 端点 (无权限检查) ---
+@router.get("/lookup-values-public", response_model=LookupValueListResponse)
+async def get_lookup_values_public_endpoint(
+    lookup_type_code: str,  # 必须提供type_code
+    is_active: Optional[bool] = True,  # 默认只返回活跃的
+    db: Session = Depends(get_db_v2)
+    # 注意：此端点没有权限检查，仅用于公共lookup数据
+):
+    """
+    高性能公共lookup查询端点
+    - 仅支持lookup_type_code查询
+    - 默认返回活跃数据
+    - 无权限检查，性能优化
+    - 专门用于前端初始化时大量lookup数据加载
+    """
+    try:
+        # 直接使用原生SQL，跳过所有ORM开销
+        from sqlalchemy import text
+        
+        # 预定义的安全lookup类型（仅允许查询这些公共数据）
+        safe_lookup_types = {
+            'GENDER', 'EMPLOYEE_STATUS', 'EMPLOYMENT_TYPE', 'CONTRACT_TYPE', 
+            'CONTRACT_STATUS', 'MARITAL_STATUS', 'EDUCATION_LEVEL', 
+            'LEAVE_TYPE', 'PAY_FREQUENCY', 'JOB_POSITION_LEVEL'
+        }
+        
+        if lookup_type_code not in safe_lookup_types:
+            raise HTTPException(
+                status_code=400, 
+                detail=create_error_response(400, "Bad Request", f"Lookup type '{lookup_type_code}' not allowed for public access")
+            )
+        
+        # 超高性能查询：直接SQL，无分页，无复杂条件
+        query = text("""
+            SELECT 
+                lv.id,
+                lv.lookup_type_id,
+                lv.code,
+                lv.name,
+                lv.description,
+                lv.sort_order,
+                lv.is_active,
+                lv.parent_lookup_value_id
+            FROM config.lookup_values lv
+            JOIN config.lookup_types lt ON lv.lookup_type_id = lt.id
+            WHERE lt.code = :type_code
+              AND (:is_active IS NULL OR lv.is_active = :is_active)
+            ORDER BY lv.sort_order ASC, lv.code ASC
+            LIMIT 100
+        """)
+        
+        params = {
+            'type_code': lookup_type_code,
+            'is_active': is_active
+        }
+        
+        # 执行查询
+        result = db.execute(query, params)
+        values = [dict(row._mapping) for row in result]
+        
+        return LookupValueListResponse(
+            data=values, 
+            meta={
+                "page": 1, 
+                "size": len(values), 
+                "total": len(values), 
+                "totalPages": 1
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting public lookup values for {lookup_type_code}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=create_error_response(500, "Internal server error", str(e)))

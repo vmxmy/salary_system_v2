@@ -1,0 +1,1247 @@
+"""
+极简工资报表系统API路由
+提供简化的薪资处理功能，专注于三大核心功能：生成工资、审核工资、一键报表
+"""
+
+from typing import Optional, List, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
+from sqlalchemy.orm import Session
+from datetime import datetime, date
+import json
+import logging
+
+from ..database import get_db_v2
+from webapp.auth import require_permissions
+from ..services.simple_payroll.simple_payroll_service import SimplePayrollService
+from ..utils.common import create_error_response
+from ..pydantic_models.common import PaginationResponse, PaginationMeta, DataResponse, SuccessResponse
+from ..pydantic_models.simple_payroll import (
+    PayrollPeriodResponse,
+    PayrollRunResponse, 
+    PayrollGenerationRequest,
+    BatchAdjustmentRequest,
+    AuditSummaryResponse,
+    ReportGenerationRequest,
+    AuditAnomalyResponse,
+    BatchAdjustmentPreviewRequest,
+    BatchAdjustmentRequestAdvanced,
+    BatchAdjustmentPreview,
+    BatchAdjustmentResult
+)
+from ..pydantic_models.config import (
+    ReportTemplateResponse
+)
+from ..services.simple_payroll import (
+    PayrollGenerationService, PayrollAuditService, PayrollReportService
+)
+from ..services.simple_payroll.batch_adjustment_service import BatchAdjustmentService
+from ..services.simple_payroll.advanced_audit_service import AdvancedAuditService
+from ..models.config import LookupValue
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/simple-payroll", tags=["Simple Payroll System"])
+
+# =============================================================================
+# 工资期间管理
+# =============================================================================
+
+@router.get("/periods", response_model=PaginationResponse[PayrollPeriodResponse])
+async def get_payroll_periods(
+    year: Optional[int] = Query(None, description="年份筛选"),
+    month: Optional[int] = Query(None, description="月份筛选"),
+    is_active: Optional[bool] = Query(None, description="是否活跃"),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(50, ge=1, le=200, description="每页记录数"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_period:view"]))
+):
+    """
+    获取工资期间列表
+    
+    支持按年月筛选，返回包含统计信息的期间列表
+    """
+    logger.info(f"🔄 [get_payroll_periods] 接收请求 - 用户: {current_user.username}, 参数: year={year}, month={month}, is_active={is_active}, page={page}, size={size}")
+    
+    try:
+        service = SimplePayrollService(db)
+        result = service.get_payroll_periods(
+            year=year,
+            month=month,
+            is_active=is_active,
+            page=page,
+            size=size
+        )
+        
+        logger.info(f"✅ [get_payroll_periods] 查询成功 - 返回 {len(result.get('data', []))} 条记录, 总计: {result.get('meta', {}).get('total', 0)}")
+        return result
+    except Exception as e:
+        logger.error(f"获取工资期间列表失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取工资期间失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/periods/{period_id}", response_model=DataResponse[PayrollPeriodResponse])
+async def get_payroll_period(
+    period_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_period:view"]))
+):
+    """获取指定工资期间详情"""
+    try:
+        service = SimplePayrollService(db)
+        period = service.get_payroll_period(period_id)
+        if not period:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="工资期间不存在",
+                    details=f"期间ID {period_id} 未找到"
+                )
+            )
+        return DataResponse(data=period)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取工资期间详情失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取工资期间详情失败",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 工资版本管理
+# =============================================================================
+
+@router.get("/versions", response_model=PaginationResponse[PayrollRunResponse])
+async def get_payroll_versions(
+    period_id: int = Query(..., description="工资期间ID"),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(20, ge=1, le=100, description="每页记录数"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:view"]))
+):
+    """获取指定期间的工资版本列表"""
+    try:
+        service = SimplePayrollService(db)
+        result = service.get_payroll_versions(
+            period_id=period_id,
+            page=page,
+            size=size
+        )
+        return result
+    except Exception as e:
+        logger.error(f"获取工资版本列表失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取工资版本列表失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/versions/{version_id}", response_model=DataResponse[PayrollRunResponse])
+async def get_payroll_version(
+    version_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:view"]))
+):
+    """获取指定工资版本详情"""
+    try:
+        # 直接查询工资运行记录
+        from ..models.payroll import PayrollRun
+        payroll_run = db.query(PayrollRun).filter(PayrollRun.id == version_id).first()
+        
+        if not payroll_run:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="工资版本不存在",
+                    details=f"版本ID {version_id} 未找到"
+                )
+            )
+        
+        # 查询状态信息
+        status_lookup = db.query(LookupValue).filter(
+            LookupValue.id == payroll_run.status_lookup_value_id
+        ).first()
+        
+        # 查询期间信息
+        from ..models.payroll import PayrollPeriod
+        period = db.query(PayrollPeriod).filter(
+            PayrollPeriod.id == payroll_run.payroll_period_id
+        ).first()
+        
+        # 构建响应对象
+        version = PayrollRunResponse(
+            id=payroll_run.id,
+            period_id=payroll_run.payroll_period_id,
+            period_name=period.name if period else "工资期间",
+            version_number=1,
+            status_id=payroll_run.status_lookup_value_id,
+            status_name=status_lookup.name if status_lookup else "未知状态",
+            total_entries=payroll_run.total_employees or 0,
+            total_gross_pay=payroll_run.total_gross_pay or 0,
+            total_net_pay=payroll_run.total_net_pay or 0,
+            total_deductions=payroll_run.total_deductions or 0,
+            initiated_by_user_id=payroll_run.initiated_by_user_id or 1,
+            initiated_by_username="系统",
+            initiated_at=payroll_run.run_date or datetime.now(),
+            calculated_at=payroll_run.run_date,
+            approved_at=None,
+            description=f"工资运行 #{payroll_run.id}"
+        )
+        
+        return DataResponse(data=version)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取工资版本详情失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取工资版本详情失败",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 工资生成功能
+# =============================================================================
+
+@router.post("/generate", response_model=DataResponse[PayrollRunResponse])
+async def generate_payroll(
+    request: PayrollGenerationRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    生成工资数据
+    
+    支持三种生成方式：
+    1. Excel导入
+    2. 复制上月数据  
+    3. 手动创建
+    """
+    try:
+        service = PayrollGenerationService(db)
+        result = service.generate_payroll(
+            request=request,
+            user_id=current_user.id
+        )
+        return DataResponse(
+            data=result,
+            message="工资数据生成成功"
+        )
+    except ValueError as e:
+        logger.warning(f"生成工资数据参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="生成工资数据失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"生成工资数据失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="生成工资数据时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.post("/copy-previous", response_model=DataResponse[PayrollRunResponse])
+async def copy_previous_payroll(
+    target_period_id: int,
+    source_period_id: int,
+    description: Optional[str] = None,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """复制上月工资数据"""
+    try:
+        service = PayrollGenerationService(db)
+        result = service.copy_previous_payroll(
+            target_period_id=target_period_id,
+            source_period_id=source_period_id,
+            description=description or "复制上月数据",
+            user_id=current_user.id
+        )
+        return DataResponse(
+            data=result,
+            message="复制工资数据成功"
+        )
+    except ValueError as e:
+        logger.warning(f"复制上月数据参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="复制工资数据失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"复制上月数据失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="复制工资数据时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.post("/batch-adjust", response_model=DataResponse[Dict[str, Any]])
+async def batch_adjust_payroll(
+    request: BatchAdjustmentRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """批量调整工资数据"""
+    try:
+        service = SimplePayrollService(db)
+        result = service.batch_adjust_payroll(
+            payroll_run_id=request.payroll_run_id,
+            adjustments=request.adjustments,
+            user_id=current_user.id
+        )
+        return DataResponse(
+            data=result,
+            message="批量调整完成"
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="批量调整失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="批量调整时发生错误",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 计算引擎功能
+# =============================================================================
+
+@router.post("/calculation-engine/run", response_model=DataResponse[Dict[str, Any]])
+async def run_calculation_engine(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    运行简化版计算引擎
+    
+    重新计算指定工资运行的所有条目，使用简化版计算引擎
+    """
+    logger.info(f"🔄 [run_calculation_engine] 接收请求 - 用户: {current_user.username}, 参数: {request}")
+    
+    try:
+        payroll_run_id = request.get("payroll_run_id")
+        recalculate_all = request.get("recalculate_all", True)
+        employee_ids = request.get("employee_ids")
+        
+        if not payroll_run_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="缺少必要参数",
+                    details="payroll_run_id 参数是必需的"
+                )
+            )
+        
+        # 导入简化版计算引擎
+        from ..payroll_engine.simple_calculator import SimplePayrollCalculator
+        from ..models import PayrollEntry, Employee, PayrollRun
+        from sqlalchemy import and_, text
+        
+        # 校验工资运行状态
+        payroll_run = db.query(PayrollRun).filter(PayrollRun.id == payroll_run_id).first()
+        if not payroll_run:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="工资运行不存在",
+                    details=f"工资运行ID {payroll_run_id} 未找到"
+                )
+            )
+        
+        # 检查工资运行状态 - 直接查询状态名称
+        status_result = db.execute(
+            text("SELECT lv.name, lv.code FROM config.lookup_values lv WHERE lv.id = :status_id"),
+            {"status_id": payroll_run.status_lookup_value_id}
+        ).first()
+        
+        current_status_name = status_result.name if status_result else "未知状态"
+        current_status_code = status_result.code if status_result else "UNKNOWN"
+        
+        # 如果状态是已计算，给出警告信息
+        warning_message = None
+        if current_status_code == "PRUN_CALCULATED":
+            warning_message = f"⚠️ 工资运行当前状态为「{current_status_name}」，重新计算将覆盖原有计算结果"
+            logger.warning(f"工资运行 {payroll_run_id} 状态为已计算，将覆盖原计算结果")
+        
+        logger.info(f"工资运行状态检查: ID={payroll_run_id}, 状态={current_status_name}({current_status_code})")
+        
+        calculator = SimplePayrollCalculator(db)
+        
+        # 获取需要计算的工资条目
+        query = db.query(PayrollEntry).filter(PayrollEntry.payroll_run_id == payroll_run_id)
+        if employee_ids:
+            query = query.filter(PayrollEntry.employee_id.in_(employee_ids))
+        
+        entries = query.all()
+        
+        if not entries:
+            return DataResponse(data={
+                "total_processed": 0,
+                "success_count": 0,
+                "error_count": 0,
+                "calculation_summary": {
+                    "total_gross_pay": 0,
+                    "total_deductions": 0,
+                    "total_net_pay": 0
+                },
+                "message": "没有找到需要计算的工资条目"
+            })
+        
+        # 执行计算
+        success_count = 0
+        error_count = 0
+        errors = []
+        total_gross_pay = 0
+        total_deductions = 0
+        total_net_pay = 0
+        
+        logger.info(f"开始计算 {len(entries)} 条工资记录...")
+        
+        for i, entry in enumerate(entries):
+            if i % 10 == 0:  # 每10条记录记录一次进度
+                logger.info(f"计算进度: {i}/{len(entries)}")
+            try:
+                # 使用现有的earnings_details和deductions_details进行计算
+                result = calculator.calculate_payroll_entry(
+                    employee_id=entry.employee_id,
+                    payroll_run_id=entry.payroll_run_id,
+                    earnings_data=entry.earnings_details or {},
+                    deductions_data=entry.deductions_details or {}
+                )
+                
+                # 更新数据库记录
+                entry.gross_pay = result["gross_pay"]
+                entry.total_deductions = result["total_deductions"]
+                entry.net_pay = result["net_pay"]
+                entry.calculation_log = result["calculation_log"]
+                
+                # 累计统计
+                total_gross_pay += float(result["gross_pay"])
+                total_deductions += float(result["total_deductions"])
+                total_net_pay += float(result["net_pay"])
+                
+                success_count += 1
+                
+            except Exception as calc_error:
+                error_count += 1
+                # 获取员工信息用于错误报告
+                employee = db.query(Employee).filter(Employee.id == entry.employee_id).first()
+                employee_name = employee.full_name if employee else f"员工ID:{entry.employee_id}"
+                
+                errors.append({
+                    "employee_id": entry.employee_id,
+                    "employee_name": employee_name,
+                    "error_message": str(calc_error)
+                })
+                logger.error(f"计算员工 {entry.employee_id} 工资失败: {calc_error}")
+        
+        # 更新工资运行状态和汇总信息
+        try:
+            if payroll_run and success_count > 0:
+                # 更新为已计算状态 (PRUN_CALCULATED = 61)
+                payroll_run.status_lookup_value_id = 61
+                payroll_run.total_employees = success_count
+                payroll_run.total_gross_pay = total_gross_pay
+                payroll_run.total_deductions = total_deductions
+                payroll_run.total_net_pay = total_net_pay
+                logger.info(f"更新工资运行汇总: ID={payroll_run_id}, 状态=已计算, 员工数={success_count}, 应发={total_gross_pay}, 扣发={total_deductions}, 实发={total_net_pay}")
+        except Exception as status_update_error:
+            logger.error(f"更新工资运行状态失败: {status_update_error}")
+            # 不影响主要计算流程，继续执行
+        
+        # 批量提交数据库更改
+        try:
+            db.commit()
+            logger.info(f"数据库提交成功，更新了 {success_count} 条记录")
+        except Exception as commit_error:
+            logger.error(f"数据库提交失败: {commit_error}")
+            db.rollback()
+            raise
+        
+        result_data = {
+            "total_processed": len(entries),
+            "success_count": success_count,
+            "error_count": error_count,
+            "calculation_summary": {
+                "total_gross_pay": total_gross_pay,
+                "total_deductions": total_deductions,
+                "total_net_pay": total_net_pay
+            },
+            "payroll_run_updated": success_count > 0,
+            "status_info": {
+                "previous_status": current_status_name,
+                "previous_status_code": current_status_code,
+                "new_status": "已计算" if success_count > 0 else current_status_name,
+                "new_status_code": "PRUN_CALCULATED" if success_count > 0 else current_status_code
+            }
+        }
+        
+        if warning_message:
+            result_data["warning"] = warning_message
+        
+        if errors:
+            result_data["errors"] = errors
+        
+        logger.info(f"✅ [run_calculation_engine] 计算完成 - 成功: {success_count}, 失败: {error_count}")
+        return DataResponse(data=result_data)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"运行计算引擎失败: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="计算引擎执行失败",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 工资审核功能
+# =============================================================================
+
+@router.get("/audit/summary/{payroll_run_id}", response_model=DataResponse[AuditSummaryResponse])
+async def get_audit_summary(
+    payroll_run_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:view"]))
+):
+    """获取工资审核汇总信息"""
+    try:
+        service = PayrollAuditService(db)
+        summary = service.get_audit_summary(payroll_run_id)
+        return DataResponse(data=summary)
+    except Exception as e:
+        logger.error(f"获取审核汇总失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取审核汇总失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/audit/check/{payroll_run_id}", response_model=DataResponse[AuditSummaryResponse])
+async def run_audit_check(
+    payroll_run_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """执行完整的工资审核检查"""
+    try:
+        service = PayrollAuditService(db)
+        summary = service.run_audit_check(payroll_run_id)
+        return DataResponse(
+            data=summary,
+            message="审核检查完成"
+        )
+    except Exception as e:
+        logger.error(f"执行审核检查失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="执行审核检查失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/audit/{payroll_run_id}/anomalies", response_model=PaginationResponse[AuditAnomalyResponse])
+async def get_audit_anomalies(
+    payroll_run_id: int,
+    anomaly_types: Optional[List[str]] = Query(None),
+    severity: Optional[List[str]] = Query(None),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(100, ge=1, le=200, description="每页记录数"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:view"]))
+):
+    """获取详细的审核异常列表"""
+    try:
+        service = PayrollAuditService(db)
+        anomalies = service.get_audit_anomalies(
+            payroll_run_id=payroll_run_id,
+            anomaly_types=anomaly_types,
+            severity=severity
+        )
+        
+        # 手动分页
+        total = len(anomalies)
+        start_idx = (page - 1) * size
+        end_idx = start_idx + size
+        paginated_anomalies = anomalies[start_idx:end_idx]
+        
+        return PaginationResponse(
+            data=paginated_anomalies,
+            meta=PaginationMeta(
+                total=total,
+                page=page,
+                size=size,
+                pages=(total + size - 1) // size
+            )
+        )
+    except Exception as e:
+        logger.error(f"获取审核异常失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取审核异常失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/audit/ignore", response_model=DataResponse[Dict[str, int]])
+async def ignore_audit_anomalies(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """忽略审核异常"""
+    try:
+        anomaly_ids = request.get('anomaly_ids', [])
+        reason = request.get('reason', '')
+        
+        if not anomaly_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="参数错误",
+                    details="anomaly_ids 不能为空"
+                )
+            )
+        
+        # 对于实时计算的异常，我们创建忽略记录
+        from webapp.v2.models.audit import PayrollAuditAnomaly
+        from datetime import datetime
+        import uuid
+        
+        ignored_count = 0
+        
+        for anomaly_id in anomaly_ids:
+            try:
+                # 检查是否已存在
+                existing = db.query(PayrollAuditAnomaly).filter(
+                    PayrollAuditAnomaly.id == anomaly_id
+                ).first()
+                
+                if existing:
+                    # 更新现有记录
+                    existing.is_ignored = True
+                    existing.ignore_reason = reason
+                    existing.ignored_by_user_id = current_user.id
+                    existing.ignored_at = datetime.now()
+                else:
+                    # 对于实时异常，解析ID获取信息
+                    # 格式: missing_data_{entry_id} 或 calc_gross_{entry_id}
+                    parts = anomaly_id.split('_')
+                    if len(parts) >= 3:
+                        entry_id = parts[-1]
+                        anomaly_type = '_'.join(parts[:-1]).upper() + '_CHECK'
+                        
+                        # 获取工资条目信息
+                        from webapp.v2.models.payroll import PayrollEntry
+                        entry = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id).first()
+                        
+                        if entry:
+                            # 创建忽略记录
+                            ignored_anomaly = PayrollAuditAnomaly(
+                                id=anomaly_id,
+                                payroll_entry_id=entry.id,
+                                payroll_run_id=entry.payroll_run_id,
+                                employee_id=entry.employee_id,
+                                employee_code=entry.employee.employee_code if entry.employee else "N/A",
+                                employee_name=f"{entry.employee.last_name}{entry.employee.first_name}" if entry.employee else "未知员工",
+                                anomaly_type=anomaly_type,
+                                severity="error",
+                                message="用户已忽略此异常",
+                                details=f"忽略原因: {reason}",
+                                can_auto_fix=False,
+                                is_ignored=True,
+                                ignore_reason=reason,
+                                ignored_by_user_id=current_user.id,
+                                ignored_at=datetime.now(),
+                                fix_applied=False
+                            )
+                            db.add(ignored_anomaly)
+                
+                ignored_count += 1
+                
+            except Exception as e:
+                logger.warning(f"忽略异常 {anomaly_id} 失败: {e}")
+        
+        db.commit()
+        
+        return DataResponse(
+            data={"ignored_count": ignored_count},
+            message=f"成功忽略 {ignored_count} 个异常"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"忽略审核异常失败: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="忽略审核异常失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/audit/auto-fix", response_model=DataResponse[Dict[str, int]])
+async def auto_fix_audit_anomalies(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """自动修复审核异常"""
+    try:
+        payroll_run_id = request.get('payroll_run_id')
+        anomaly_ids = request.get('anomaly_ids', [])
+        
+        if not payroll_run_id or not anomaly_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="参数错误",
+                    details="payroll_run_id 和 anomaly_ids 不能为空"
+                )
+            )
+        
+        # 这里应该实现自动修复逻辑
+        # 目前返回模拟结果
+        return DataResponse(
+            data={"fixed_count": 0, "failed_count": len(anomaly_ids)},
+            message="自动修复功能暂未实现"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"自动修复审核异常失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="自动修复审核异常失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/audit/update-status", response_model=DataResponse[PayrollRunResponse])
+async def update_audit_status(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    更新审核状态
+    """
+    logger.info(f"🔄 [update_audit_status] 接收请求 - 用户: {current_user.username}, 参数: {request}")
+    
+    try:
+        payroll_run_id = request.get("payroll_run_id")
+        status_name = request.get("status")
+        comment = request.get("comment")
+        
+        if not payroll_run_id or not status_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="缺少必要参数",
+                    details="payroll_run_id 和 status 参数是必需的"
+                )
+            )
+        
+        # 状态映射
+        status_mapping = {
+            'DRAFT': 60,           # 待计算
+            'IN_REVIEW': 173,      # 审核中
+            'APPROVED': 62,        # 批准支付  
+            'REJECTED': 60         # 退回到待计算
+        }
+        
+        status_lookup_value_id = status_mapping.get(status_name)
+        if not status_lookup_value_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=create_error_response(
+                    status_code=400,
+                    message="无效的状态值",
+                    details=f"状态 {status_name} 不被支持"
+                )
+            )
+        
+        # 更新工资运行状态
+        from ..models.payroll import PayrollRun
+        payroll_run = db.query(PayrollRun).filter(PayrollRun.id == payroll_run_id).first()
+        if not payroll_run:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="工资运行不存在",
+                    details=f"工资运行ID {payroll_run_id} 未找到"
+                )
+            )
+        
+        # 记录状态变更
+        old_status_id = payroll_run.status_lookup_value_id
+        payroll_run.status_lookup_value_id = status_lookup_value_id
+        
+        db.commit()
+        
+        # 返回更新后的工资运行信息（查询单个工资运行详情）
+        updated_run = db.query(PayrollRun).filter(PayrollRun.id == payroll_run_id).first()
+        if updated_run:
+            # 构建响应对象
+            status_lookup = db.query(LookupValue).filter(
+                LookupValue.id == updated_run.status_lookup_value_id
+            ).first()
+            
+            updated_payroll_run = PayrollRunResponse(
+                id=updated_run.id,
+                period_id=updated_run.payroll_period_id,
+                period_name="工资期间",  # 简化处理
+                version_number=1,
+                status_id=updated_run.status_lookup_value_id,
+                status_name=status_lookup.name if status_lookup else "未知状态",
+                total_entries=updated_run.total_employees or 0,
+                total_gross_pay=updated_run.total_gross_pay or 0,
+                total_net_pay=updated_run.total_net_pay or 0,
+                total_deductions=updated_run.total_deductions or 0,
+                initiated_by_user_id=updated_run.initiated_by_user_id or 1,
+                initiated_by_username="系统",
+                initiated_at=updated_run.run_date or datetime.now(),
+                calculated_at=updated_run.run_date,
+                approved_at=None,
+                description=f"工资运行 #{updated_run.id}"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="更新后的工资运行不存在",
+                    details=f"工资运行ID {payroll_run_id} 未找到"
+                )
+            )
+        
+        logger.info(f"✅ [update_audit_status] 状态更新成功 - 工资运行ID: {payroll_run_id}, 状态: {old_status_id} -> {status_lookup_value_id}")
+        return DataResponse(
+            data=updated_payroll_run,
+            message=f"审核状态已更新为: {status_name}"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"更新审核状态失败: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="更新审核状态失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/audit/advanced-check/{payroll_run_id}", response_model=DataResponse[Dict[str, Any]])
+async def run_advanced_audit_check(
+    payroll_run_id: int,
+    include_custom_rules: bool = Query(True, description="是否包含自定义规则检查"),
+    include_historical_comparison: bool = Query(True, description="是否包含历史对比"),
+    include_statistical_analysis: bool = Query(True, description="是否包含统计分析"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    执行高级审核检查
+    
+    包含以下高级功能：
+    - 薪资合规性深度检查
+    - 历史数据对比分析
+    - 统计异常检测
+    - 薪资结构一致性检查
+    - 个税计算深度验证
+    """
+    try:
+        service = AdvancedAuditService(db)
+        advanced_results = await service.run_advanced_audit_check(
+            payroll_run_id=payroll_run_id,
+            include_custom_rules=include_custom_rules,
+            include_historical_comparison=include_historical_comparison,
+            include_statistical_analysis=include_statistical_analysis
+        )
+        return DataResponse(
+            data=advanced_results,
+            message="高级审核检查完成"
+        )
+    except Exception as e:
+        logger.error(f"执行高级审核检查失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="执行高级审核检查失败",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 报表生成功能
+# =============================================================================
+
+@router.get("/reports/available", response_model=DataResponse[List[Dict[str, Any]]])
+async def get_available_reports(
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["report:view_reports"]))
+):
+    """获取可用的报表列表"""
+    try:
+        service = PayrollReportService(db)
+        reports = service.get_available_reports()
+        return DataResponse(data=reports)
+    except Exception as e:
+        logger.error(f"获取可用报表失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取可用报表失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/reports/generate", response_model=DataResponse[Dict[str, str]])
+async def generate_reports(
+    request: ReportGenerationRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["report:view_reports"]))
+):
+    """生成报表"""
+    try:
+        service = PayrollReportService(db)
+        task_id = service.generate_reports(
+            request=request,
+            user_id=current_user.id
+        )
+        return DataResponse(
+            data={"task_id": task_id},
+            message="报表生成任务已启动"
+        )
+    except Exception as e:
+        logger.error(f"启动报表生成失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="启动报表生成失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/reports/templates", response_model=List[ReportTemplateResponse])
+async def get_report_templates(
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["report:view_reports"]))
+):
+    """获取可用的报表模板列表"""
+    try:
+        service = PayrollReportService(db)
+        return service.get_available_report_templates()
+    except Exception as e:
+        logger.error(f"获取报表模板失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取报表模板失败",
+                details=str(e)
+            )
+        )
+
+@router.post("/reports/generate")
+async def generate_report(
+    request: ReportGenerationRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["report:view_reports"]))
+) -> Dict[str, Any]:
+    """生成报表数据"""
+    try:
+        service = PayrollReportService(db)
+        return service.generate_report(request)
+    except Exception as e:
+        logger.error(f"生成报表失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="生成报表失败",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 通用辅助功能
+# =============================================================================
+
+@router.get("/departments", response_model=DataResponse[List[Dict[str, Any]]])
+async def get_departments(
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["department:list"]))
+):
+    """获取部门列表"""
+    try:
+        service = SimplePayrollService(db)
+        departments = service.get_departments()
+        return DataResponse(data=departments)
+    except Exception as e:
+        logger.error(f"获取部门列表失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取部门列表失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/personnel-categories", response_model=DataResponse[List[Dict[str, Any]]])
+async def get_personnel_categories(
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["personnel_category:list"]))
+):
+    """获取人员类别列表"""
+    try:
+        service = SimplePayrollService(db)
+        categories = service.get_personnel_categories()
+        return DataResponse(data=categories)
+    except Exception as e:
+        logger.error(f"获取人员类别列表失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取人员类别列表失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/stats/overview")
+async def get_overview_stats(
+    period_id: Optional[int] = Query(None, description="指定期间ID，不提供则返回最新期间统计"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["report:view_reports"]))
+) -> Dict[str, Any]:
+    """获取概览统计数据"""
+    try:
+        service = SimplePayrollService(db)
+        
+        # 如果没有指定期间，获取最新期间
+        if not period_id:
+            periods = service.get_payroll_periods()
+            if not periods:
+                return {
+                    "message": "暂无工资期间数据",
+                    "total_periods": 0,
+                    "total_employees": 0,
+                    "total_runs": 0
+                }
+            period_id = periods[0].id
+        
+        # 获取该期间的版本列表
+        versions = service.get_payroll_versions(period_id)
+        latest_version = versions[0] if versions else None
+        
+        # 基础统计
+        stats = {
+            "current_period_id": period_id,
+            "total_versions": len(versions),
+            "latest_version": latest_version.dict() if latest_version else None,
+            "period_summary": {
+                "total_entries": latest_version.total_entries if latest_version else 0,
+                "total_gross_pay": str(latest_version.total_gross_pay) if latest_version else "0.00",
+                "total_net_pay": str(latest_version.total_net_pay) if latest_version else "0.00",
+                "total_deductions": str(latest_version.total_deductions) if latest_version else "0.00"
+            }
+        }
+        
+        # 如果有最新版本，获取审核统计
+        if latest_version:
+            try:
+                audit_service = PayrollAuditService(db)
+                audit_summary = audit_service.get_audit_summary(latest_version.id)
+                stats["audit_summary"] = {
+                    "total_anomalies": audit_summary.total_anomalies,
+                    "error_count": audit_summary.error_count,
+                    "warning_count": audit_summary.warning_count,
+                    "auto_fixable_count": audit_summary.auto_fixable_count
+                }
+            except Exception as e:
+                logger.warning(f"获取审核统计失败: {e}")
+                stats["audit_summary"] = None
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"获取概览统计失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取概览统计失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/health")
+async def health_check() -> Dict[str, str]:
+    """健康检查接口"""
+    return {
+        "status": "healthy",
+        "service": "simple-payroll",
+        "message": "极简工资报表系统运行正常"
+    }
+
+# =============================================================================
+# 批量调整功能
+# =============================================================================
+
+@router.post("/batch-adjustment/preview", response_model=DataResponse[BatchAdjustmentPreview])
+async def preview_batch_adjustment(
+    request: BatchAdjustmentPreviewRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    预览批量调整结果
+    
+    在执行实际调整前，先预览所有将要受影响的条目和调整数值
+    """
+    try:
+        service = BatchAdjustmentService(db)
+        preview = await service.preview_batch_adjustment(request)
+        return DataResponse(
+            data=preview,
+            message="批量调整预览生成成功"
+        )
+    except ValueError as e:
+        logger.warning(f"批量调整预览参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="预览批量调整失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"预览批量调整失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="预览批量调整时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.post("/batch-adjustment/execute", response_model=DataResponse[BatchAdjustmentResult])
+async def execute_batch_adjustment(
+    request: BatchAdjustmentRequestAdvanced,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    执行批量调整
+    
+    应用调整规则到指定的工资条目，支持多种调整方式：
+    - add: 增加固定金额
+    - subtract: 减少固定金额
+    - multiply: 按百分比调整
+    - set: 设置为固定值
+    """
+    try:
+        service = BatchAdjustmentService(db)
+        result = await service.execute_batch_adjustment(request)
+        return DataResponse(
+            data=result,
+            message=f"批量调整执行成功，共调整 {result.affected_count} 条记录"
+        )
+    except ValueError as e:
+        logger.warning(f"批量调整执行参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="执行批量调整失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"执行批量调整失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="执行批量调整时发生错误",
+                details=str(e)
+            )
+        ) 

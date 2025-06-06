@@ -111,27 +111,38 @@ class CustomJSONB(TypeDecorator):
     def process_bind_param(self, value, dialect):
         """Process the value for binding to a database query (Python -> DB)."""
         if value is not None:
-            # Use our custom_json_dumps which includes the default handler
-            # for Decimal, date, datetime
-            return custom_json_dumps(value) 
+            # 不要在这里进行JSON序列化！PostgreSQL的JSONB会自动处理
+            # 只需要确保Decimal等类型被转换为JSON兼容的类型
+            return self._convert_for_jsonb(value)
         return value
+
+    def _convert_for_jsonb(self, obj):
+        """递归转换对象中的非JSON兼容类型为JSON兼容类型"""
+        if isinstance(obj, Decimal):
+            return float(obj)
+        elif isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        elif isinstance(obj, dict):
+            return {key: self._convert_for_jsonb(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_for_jsonb(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(self._convert_for_jsonb(item) for item in obj)
+        else:
+            return obj
 
     def process_result_value(self, value, dialect):
         """Process the value received from the database (DB -> Python)."""
         if value is not None:
             # PostgreSQL JSONB values are already parsed by psycopg2/SQLAlchemy
-            # If it's already a dict/list, return as-is
-            # If it's a string, parse it with json.loads
-            if isinstance(value, (dict, list)):
-                return value
-            elif isinstance(value, str):
-                return json.loads(value)
-            else:
-                # For other types, try to parse as JSON string
+            # 如果是字符串（说明是旧的双重编码数据），尝试解析
+            if isinstance(value, str):
                 try:
-                    return json.loads(str(value))
+                    return json.loads(value)
                 except (json.JSONDecodeError, TypeError):
                     return value
+            # 如果已经是dict/list，直接返回
+            return value
         return value
 
     @property

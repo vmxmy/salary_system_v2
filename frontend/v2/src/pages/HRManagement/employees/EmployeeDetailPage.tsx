@@ -1,436 +1,393 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PageContainer } from '@ant-design/pro-components';
-import { Descriptions, Tabs, Spin, Button, message, Alert, Breadcrumb, Typography, Tag } from 'antd';
-import { HomeOutlined } from '@ant-design/icons';
+import { 
+  Descriptions, 
+  Card, 
+  Spin, 
+  Button, 
+  message, 
+  Alert, 
+  Breadcrumb, 
+  Typography, 
+  Tag, 
+  Space,
+  Tabs,
+  Row,
+  Col
+} from 'antd';
+import { 
+  HomeOutlined, 
+  EditOutlined, 
+  ArrowLeftOutlined,
+  UserOutlined,
+  BankOutlined,
+  ContactsOutlined,
+  HistoryOutlined
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 import TableActionButton from '../../../components/common/TableActionButton';
-import { employeeService } from "../../../services/employeeService";
-import type { Employee, JobHistoryItem, ContractItem, CompensationItem, LeaveBalanceItem, LookupItem } from "../types";
-import { useLookupMaps, type LookupMaps, type RawLookups } from '../../../hooks/useLookupMaps';
-import EmployeeName from '../../../components/common/EmployeeName';
-import UnifiedTabs from '../../../components/common/UnifiedTabs';
-import ContractInfoTab from './partials/ContractInfoTab';
-// import { usePermissions } from '../../../../hooks/usePermissions'; // TODO: Integrate permissions
+import { employeeService } from '../../../services/employeeService';
+import type { Employee } from '../types';
+import { useLookupMaps, type LookupMaps } from '../../../hooks/useLookupMaps';
 
-// Updated BasicInfoTabPlaceholder
-const BasicInfoTabPlaceholder: React.FC<{ employee: Employee | null; lookupMaps: LookupMaps | null; rawLookups?: RawLookups | null }> = ({ employee, lookupMaps, rawLookups }) => {
-  const { t } = useTranslation(['employee', 'common']);
-  if (!employee) {
-    return <p>{t('employee:detail_page.common_value.na')}</p>;
-  }
+const { Title, Text } = Typography;
+const { TabPane } = Tabs;
 
-  const naText = t('employee:detail_page.common_value.na');
-  const namePartsList = [];
-  if (employee.last_name) namePartsList.push(employee.last_name);
-  if (employee.first_name) namePartsList.push(employee.first_name);
-  const fullName = namePartsList.length > 0 ? namePartsList.join(' ') : naText;
-  
-  const genderText = employee.gender_lookup_value_id !== undefined
-    ? lookupMaps?.genderMap.get(employee.gender_lookup_value_id) || String(employee.gender_lookup_value_id)
-    : naText;
-  
-  const educationLevelText = employee.education_level_lookup_value_id !== undefined
-    ? lookupMaps?.educationLevelMap.get(employee.education_level_lookup_value_id) || String(employee.education_level_lookup_value_id)
-    : naText;
-  
-  const statusText = employee.status_lookup_value_id !== undefined
-    ? lookupMaps?.statusMap.get(employee.status_lookup_value_id) || String(employee.status_lookup_value_id)
-    : naText;
+interface EmployeeDetailPageProps {}
 
-  return (
-    <>
-      {/* 第一部分：基本个人信息 */}
-      <Descriptions title={t('employee:detail_page.basic_info_tab.title')} bordered column={2} layout="vertical" style={{ marginBottom: 20 }}>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_full_name')} span={1}>{fullName}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_id')} span={1}>{employee.employee_code || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:form_label.id_number')} span={1}>{employee.id_number || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_gender')} span={1}>{genderText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_dob')} span={1}>{employee.date_of_birth ? String(employee.date_of_birth) : naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_education_level')} span={1}>{educationLevelText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:form_label.nationality')} span={1}>{employee.nationality || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_employee_status')} span={1}>
-          {statusText !== naText && employee.status_lookup_value_id !== undefined && 
-            rawLookups?.statusOptions?.find((opt: LookupItem) => opt.value === employee.status_lookup_value_id)?.code === 'active' 
-            ? <Tag color='green'>{statusText}</Tag> 
-            : (statusText !== naText ? <Tag color='volcano'>{statusText}</Tag> : naText)}
-        </Descriptions.Item>
-      </Descriptions>
-
-      {/* 第二部分：联系方式 */}
-      <Descriptions title={t('employee:detail_page.contact_info')} bordered column={2} layout="vertical" style={{ marginBottom: 20 }}>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_email')} span={1}>{employee.email || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_mobile_phone')} span={1}>{employee.phone_number || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_residential_address')} span={1}>{employee.home_address || naText}</Descriptions.Item>
-      </Descriptions>
-
-      {/* 第三部分：银行信息 */}
-      <Descriptions title={t('employee:detail_page.bank_info')} bordered column={2} layout="vertical" style={{ marginBottom: 20 }}>
-        <Descriptions.Item label={t('employee:form_label.bank_name')} span={1}>{employee.bank_name || naText}</Descriptions.Item>
-        <Descriptions.Item label={t('employee:form_label.bank_account_number')} span={1}>{employee.bank_account_number || naText}</Descriptions.Item>
-      </Descriptions>
-
-      {/* 第四部分：备注 */}
-      <Descriptions title={t('employee:detail_page.additional_info')} bordered column={1} layout="vertical">
-        <Descriptions.Item label={t('employee:detail_page.basic_info_tab.label_notes')}>{employee.notes || naText}</Descriptions.Item>
-      </Descriptions>
-    </>
-  );
-};
-
-const JobInfoTabPlaceholder: React.FC<{ employee?: Employee, lookupMaps: LookupMaps | null }> = ({ employee, lookupMaps }) => {
+const EmployeeDetailPage: React.FC<EmployeeDetailPageProps> = () => {
   const { t } = useTranslation(['employee', 'common', 'hr']);
-  if (!employee) {
-        return <p>{t('employee:detail_page.common_value.na')}</p>;
-    }
-    
-    const naText = t('employee:detail_page.common_value.na');
-    
-    const calculateSeniority = (hireDateStr?: string): string => {
-        if (!hireDateStr) return naText;
-        
-        try {
-            const hireDate = new Date(hireDateStr);
-            const today = new Date();
-            
-            let years = today.getFullYear() - hireDate.getFullYear();
-            let months = today.getMonth() - hireDate.getMonth();
-            
-            // 调整月份
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
-            
-            // 检查日期
-            if (today.getDate() < hireDate.getDate()) {
-                months--;
-                if (months < 0) {
-                    years--;
-                    months += 12;
-                }
-            }
-            
-            return years > 0 
-                ? t('employee:detail_page.job_info_tab.seniority_years_months', { years, months }) : t('employee:detail_page.job_info_tab.seniority_months', { months });
-        } catch (error) {
-            return naText;
-        }
-    };
-    
-    return (
-        <>
-            {/* 部门和职位信息 */}
-            <Descriptions title={t('employee:detail_page.job_info_tab.department_position')} bordered column={2} layout="vertical" style={{ marginBottom: 20 }}>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_department')}>
-                    {lookupMaps?.departmentMap.get(String(employee.department_id)) || 
-                     employee.departmentName || 
-                     String(employee.department_id ?? naText)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_personnel_category')}>
-                    {lookupMaps?.personnelCategoryMap.get(String(employee.personnel_category_id)) || 
-                     employee.personnelCategoryName || 
-                     String(employee.personnel_category_id ?? naText)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_actual_position')}>
-                    {lookupMaps?.positionMap.get(String(employee.actual_position_id)) || 
-                     employee.actual_position_name || 
-                     String(employee.actual_position_id ?? naText)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('hr:auto_text_e8818c')}>
-                    {lookupMaps?.jobPositionLevelMap.get(Number(employee.job_position_level_lookup_value_id)) || 
-                     employee.job_position_level_lookup_value_name || 
-                     employee.jobPositionLevelName ||
-                     String(employee.job_position_level_lookup_value_id ?? naText)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_work_location')}>
-                    {employee.workLocation || naText}
-                </Descriptions.Item>
-            </Descriptions>
-            
-            {/* 雇佣相关信息 */}
-            <Descriptions title={t('employee:detail_page.job_info_tab.employment_info')} bordered column={2} layout="vertical" style={{ marginBottom: 20 }}>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_hire_date')}>
-                    {employee.hire_date ? String(employee.hire_date) : naText}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_employment_type')}>
-                    {lookupMaps?.employmentTypeMap.get(Number(employee.employment_type_lookup_value_id)) || 
-                     String(employee.employment_type_lookup_value_id ?? naText)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_seniority')}>
-                    {calculateSeniority(typeof employee.hire_date === 'string' ? employee.hire_date : undefined)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_probation_end_date')}>
-                    {employee.probationEndDate ? String(employee.probationEndDate) : naText}
-                </Descriptions.Item>
-            </Descriptions>
-            
-            {/* 汇报关系 */}
-            <Descriptions title={t('employee:detail_page.job_info_tab.reporting_info')} bordered column={1} layout="vertical">
-                <Descriptions.Item label={t('employee:detail_page.job_info_tab.label_reports_to')}>
-                    {employee.reports_to_employee_id 
-                     ? t('employee:detail_page.job_info_tab.reports_to_id_prefix', {id: employee.reports_to_employee_id}) : naText}
-                </Descriptions.Item>
-            </Descriptions>
-        </>
-    );
-};
-
-const JobHistoryTabPlaceholder: React.FC<{ data: JobHistoryItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
-  if (!data) return <p>{t('employee:detail_page.job_history_tab.loading_or_no_data')}</p>;
-  if (data.length === 0) return <p>{t('employee:detail_page.job_history_tab.no_records')}</p>;
-  return (
-    <ul>
-      {data.map((item) => (
-        <li key={item.id}>
-          {item.effectiveDate ? String(item.effectiveDate) : t('employee:detail_page.common_value.na')}: 
-          {t('employee:detail_page.job_history_tab.personnel_category_prefix')} {lookupMaps?.personnelCategoryMap.get(String(item.personnel_category_id)) || item.personnel_category_name || String(item.personnel_category_id ?? t('employee:detail_page.common_value.na'))}, 
-          {t('employee:detail_page.job_history_tab.actual_position_prefix')} {lookupMaps?.positionMap.get(String(item.position_id)) || item.position_name || String(item.position_id ?? t('employee:detail_page.common_value.na'))} {t('employee:detail_page.job_history_tab.at_conjunction')} 
-          {lookupMaps?.departmentMap.get(String(item.department_id)) || item.departmentName || String(item.department_id ?? t('employee:detail_page.common_value.na'))}
-          {item.employment_type_lookup_value_id ? ` (${t('employee:detail_page.compensation_tab.freq_prefix')} ${lookupMaps?.employmentTypeMap.get(Number(item.employment_type_lookup_value_id)) || String(item.employment_type_lookup_value_id)})` : ''}
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const ContractsTabPlaceholder: React.FC<{ data: ContractItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
-  if (!data) return <p>{t('employee:detail_page.contracts_tab.loading_or_no_data')}</p>;
-  if (data.length === 0) return <p>{t('employee:detail_page.contracts_tab.no_records')}</p>;
-  return (
-    <ul>
-      {data.map((item) => (
-        <li key={item.id}>
-          {item.contract_number} ({lookupMaps?.contractTypeMap.get(Number(item.contract_type_lookup_value_id)) || String(item.contract_type_lookup_value_id ?? t('employee:detail_page.common_value.na'))}) - 
-          {item.start_date ? String(item.start_date) : t('employee:detail_page.common_value.na')} {t('employee:detail_page.contracts_tab.to_conjunction')} {item.end_date ? String(item.end_date) : t('employee:detail_page.common_value.na')}
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const CompensationTabPlaceholder: React.FC<{ data: CompensationItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
-  if (!data) return <p>{t('employee:detail_page.compensation_tab.loading_or_no_data')}</p>;
-  if (data.length === 0) return <p>{t('employee:detail_page.compensation_tab.no_records')}</p>;
-  return (
-    <ul>
-      {data.map((item) => (
-        <li key={item.id}>
-          {item.effective_date ? String(item.effective_date) : t('employee:detail_page.common_value.na')}: {t('employee:detail_page.compensation_tab.basic_prefix')} {item.basic_salary}, {t('employee:detail_page.compensation_tab.total_prefix')} {item.total_salary || t('employee:detail_page.common_value.na')}
-          {item.pay_frequency_lookup_value_id ? ` (${t('employee:detail_page.compensation_tab.freq_prefix')} ${lookupMaps?.payFrequencyMap?.get(Number(item.pay_frequency_lookup_value_id)) || String(item.pay_frequency_lookup_value_id)})` : ''}
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const LeaveBalancesTabPlaceholder: React.FC<{ data: LeaveBalanceItem[] | undefined; lookupMaps: LookupMaps | null }> = ({ data, lookupMaps }) => {
-  const { t } = useTranslation(['employee', 'common']);
-  if (!data) return <p>{t('employee:detail_page.leave_balances_tab.loading_or_no_data')}</p>;
-  if (data.length === 0) return <p>{t('employee:detail_page.leave_balances_tab.no_records')}</p>;
-  return (
-    <ul>
-      {data.map((item) => (
-        <li key={item.id}>
-          {lookupMaps?.leaveTypeMap.get(Number(item.leave_type_id)) || item.leave_type_name || t('employee:detail_page.leave_balances_tab.type_id_prefix', {id: item.leave_type_id})}: 
-          {item.balance} {item.unit} ({t('employee:detail_page.leave_balances_tab.entitlement_prefix')} {item.total_entitlement}, {t('employee:detail_page.leave_balances_tab.taken_prefix')} {item.taken})
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const EmployeeDetailPage: React.FC = () => {
-  const { t } = useTranslation(['employee', 'common']);
   const { employeeId } = useParams<{ employeeId: string }>();
   const navigate = useNavigate();
-  const { lookupMaps, rawLookups, loadingLookups, errorLookups } = useLookupMaps();
-
+  
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('basicInfo');
+  
+  const { lookupMaps, loadingLookups: lookupsLoading } = useLookupMaps();
 
   useEffect(() => {
-    if (errorLookups) {
-      message.error(t('employee:detail_page.message.load_lookups_failed'));
+    if (employeeId) {
+      fetchEmployeeDetails();
+    } else {
+      setError('员工ID无效');
+      setLoading(false);
     }
-  }, [errorLookups, t]);
+  }, [employeeId]);
 
-  useEffect(() => {
-    if (!employeeId) {
-      message.error(t('employee:detail_page.message.employee_id_not_found'));
-      navigate('/hr/employees');
-      return;
+  const fetchEmployeeDetails = async () => {
+    if (!employeeId) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await employeeService.getEmployeeById(employeeId);
+      setEmployee(data);
+    } catch (err: any) {
+      console.error('获取员工详情失败:', err);
+      const errorMsg = err.response?.data?.detail?.error?.message || 
+                       err.response?.data?.detail?.message || 
+                       err.message || 
+                       '获取员工详情失败';
+      setError(errorMsg);
+      message.error(errorMsg);
+    } finally {
+      setLoading(false);
     }
-
-
-    const fetchEmployee = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await employeeService.getEmployeeById(employeeId);
-        if (data) {
-          setEmployee(data);
-        } else {
-          setError(t('employee:detail_page.error.employee_info_not_found'));
-          message.error(t('employee:detail_page.error.employee_info_not_found'));
-        }
-      } catch (err) {
-        setError(t('employee:detail_page.message.error_get_employee_detail_failed_retry'));
-        message.error(t('employee:detail_page.message.error_get_employee_detail_failed'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEmployee();
-  }, [employeeId, navigate, t]);
+  };
 
   const handleEdit = () => {
     if (employeeId) {
       navigate(`/hr/employees/${employeeId}/edit`);
     }
   };
-  
-  const pageHeaderExtra = (
-    <TableActionButton
-      key="edit"
-      actionType="edit"
-      onClick={handleEdit}
-      tooltipTitle={t('employee:detail_page.tooltip_edit_employee_info')}
-    />
-  );
 
-  const pageTitleText = employee 
-    ? t('employee:detail_page.title_with_name_id', {
-        name: <EmployeeName
-                employeeId={employee.id}
-                employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
-                showId={false}
-                className="employee-header-name"
-              />,
-        employeeCode: employee.employee_code || t('employee:detail_page.common_value.na')
-      }) 
-    : t('employee:detail_page.title_default');
-
-  const breadcrumbItems = [
-    { onClick: () => navigate('/'), title: <HomeOutlined /> },
-    { onClick: () => navigate('/hr/employees'), title: t('employee:detail_page.hr_management_breadcrumb') },
-    { onClick: () => navigate('/hr/employees'), title: t('employee:detail_page.employee_list_breadcrumb') },
-    { title: employee ?
-        <EmployeeName
-          employeeId={employee.id}
-          employeeName={`${employee.last_name || ''}${employee.first_name || ''}`}
-          showId={false}
-          className="employee-breadcrumb-name"
-        />
-        : t('employee:detail_page.breadcrumb_loading')
-    }
-  ];
-
-  const renderContent = () => {
-    if (!employee) return <Alert message={t('employee:detail_page.alert.message_info')} description={t('employee:detail_page.alert.description_employee_not_selected_or_found')} type="info" showIcon />;
-
-    const tabItems = [
-      {
-        key: 'basic',
-        label: t('employee:detail_page.tabs.basic_info'),
-        children: <BasicInfoTabPlaceholder employee={employee} lookupMaps={lookupMaps} rawLookups={rawLookups} />,
-      },
-      {
-        key: 'jobInfo',
-        label: t('employee:detail_page.tabs.job_info'),
-        children: <JobInfoTabPlaceholder employee={employee} lookupMaps={lookupMaps} />
-      },
-      {
-        key: 'jobHistory',
-        label: t('employee:detail_page.tabs.job_history'),
-        children: <JobHistoryTabPlaceholder data={employee.job_history_records} lookupMaps={lookupMaps} />,
-      },
-      {
-        key: 'contracts',
-        label: t('employee:detail_page.tabs.contracts'),
-        children: <ContractInfoTab employeeId={String(employee.id)} />,
-      },
-      {
-        key: 'compensation',
-        label: t('employee:detail_page.tabs.compensation'),
-        children: <CompensationTabPlaceholder data={employee.compensation_records} lookupMaps={lookupMaps} />,
-      },
-      {
-        key: 'leaveBalance',
-        label: t('employee:detail_page.tabs.leave_balances'),
-        children: <LeaveBalancesTabPlaceholder data={employee.leave_balances} lookupMaps={lookupMaps} />,
-      },
-    ];
-
-    return (
-      <UnifiedTabs 
-        defaultActiveKey="basic" 
-        items={tabItems} 
-        onChange={setActiveTab} 
-        size="large"
-        type="line"
-      />
-    );
+  const handleBack = () => {
+    navigate('/hr/employees');
   };
 
+  const getLookupLabel = (lookupValueId: number | null | undefined, lookupType: keyof LookupMaps): string => {
+    if (!lookupValueId || !lookupMaps) return '未设置';
+    const map = lookupMaps[lookupType] as Map<number, string> | undefined;
+    const label = map?.get(lookupValueId);
+    return label || '未设置';
+  };
 
-  if (loading || loadingLookups) {
+  const formatDate = (date: string | null | undefined): string => {
+    if (!date) return '未设置';
+    try {
+      return dayjs(date).format('YYYY-MM-DD');
+    } catch {
+      return '格式错误';
+    }
+  };
+
+  const calculateSeniority = (hireDate: string | null | undefined): string => {
+    if (!hireDate) return '未设置';
+    
+    try {
+      const hire = dayjs(hireDate);
+      const now = dayjs();
+      
+      const years = now.diff(hire, 'year');
+      const months = now.diff(hire.add(years, 'year'), 'month');
+      
+      if (years > 0) {
+        return `${years}年${months}个月`;
+      }
+      return `${months}个月`;
+    } catch {
+      return '计算错误';
+    }
+  };
+
+  const getEmployeeDisplayName = (emp: Employee | null): string => {
+    if (!emp) return '未知员工';
+    const nameParts = [emp.last_name, emp.first_name].filter(Boolean);
+    return nameParts.length > 0 ? nameParts.join('') : (emp.employee_code || '未知员工');
+  };
+
+  const getStatusTag = (statusId: number | null | undefined): React.ReactNode => {
+    if (!statusId || !lookupMaps) return <Tag>未设置</Tag>;
+    
+    const statusLabel = lookupMaps.statusMap?.get(statusId);
+    if (!statusLabel) return <Tag>未知状态</Tag>;
+    
+    // 根据状态显示不同颜色的标签
+    const statusCode = statusLabel.toLowerCase();
+    let color = 'default';
+    
+    if (statusCode.includes('active') || statusCode.includes('在职')) {
+      color = 'green';
+    } else if (statusCode.includes('probation') || statusCode.includes('试用')) {
+      color = 'orange';
+    } else if (statusCode.includes('terminated') || statusCode.includes('离职')) {
+      color = 'red';
+    } else if (statusCode.includes('leave') || statusCode.includes('休假')) {
+      color = 'blue';
+    }
+    
+    return <Tag color={color}>{statusLabel}</Tag>;
+  };
+
+  // 基本信息标签页内容
+  const BasicInfoTab: React.FC = () => (
+    <Row gutter={[24, 24]}>
+      <Col span={24}>
+        <Card title="基本个人信息" size="small">
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="姓名">
+              {getEmployeeDisplayName(employee)}
+            </Descriptions.Item>
+            <Descriptions.Item label="员工编号">
+              {employee?.employee_code || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="身份证号">
+              {employee?.id_number || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="性别">
+              {getLookupLabel(employee?.gender_lookup_value_id, 'genderMap')}
+            </Descriptions.Item>
+            <Descriptions.Item label="出生日期">
+              {formatDate(employee?.date_of_birth as string)}
+            </Descriptions.Item>
+            <Descriptions.Item label="国籍">
+              {employee?.nationality || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="民族">
+              {employee?.ethnicity || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="学历">
+              {getLookupLabel(employee?.education_level_lookup_value_id, 'educationLevelMap')}
+            </Descriptions.Item>
+            <Descriptions.Item label="婚姻状况">
+              {getLookupLabel(employee?.marital_status_lookup_value_id, 'maritalStatusMap')}
+            </Descriptions.Item>
+            <Descriptions.Item label="政治面貌">
+              {getLookupLabel(employee?.political_status_lookup_value_id, 'politicalStatusMap')}
+            </Descriptions.Item>
+            <Descriptions.Item label="员工状态">
+              {getStatusTag(employee?.status_lookup_value_id)}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      </Col>
+      
+      <Col span={24}>
+        <Card title="联系方式" size="small">
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="邮箱">
+              {employee?.email || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="手机号码">
+              {employee?.phone_number || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="家庭住址" span={2}>
+              {employee?.home_address || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="紧急联系人">
+              {employee?.emergency_contact_name || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="紧急联系电话">
+              {employee?.emergency_contact_phone || '未设置'}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      </Col>
+      
+      <Col span={24}>
+        <Card title="银行信息" size="small">
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="开户银行">
+              {employee?.bank_name || '未设置'}
+            </Descriptions.Item>
+            <Descriptions.Item label="银行账号">
+              {employee?.bank_account_number || '未设置'}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      </Col>
+    </Row>
+  );
+
+  // 工作信息标签页内容
+  const JobInfoTab: React.FC = () => (
+    <Row gutter={[24, 24]}>
+      <Col span={24}>
+        <Card title="岗位信息" size="small">
+          <Descriptions column={2} size="small">
+                         <Descriptions.Item label="所属部门">
+               {employee?.departmentName || 
+                (employee?.department_id && lookupMaps?.departmentMap?.get(String(employee.department_id))) ||
+                '未设置'}
+             </Descriptions.Item>
+             <Descriptions.Item label="人员类别">
+               {employee?.personnelCategoryName || 
+                (employee?.personnel_category_id && lookupMaps?.personnelCategoryMap?.get(String(employee.personnel_category_id))) ||
+                '未设置'}
+             </Descriptions.Item>
+             <Descriptions.Item label="实际职务">
+               {employee?.actualPositionName || 
+                (employee?.actual_position_id && lookupMaps?.positionMap?.get(String(employee.actual_position_id))) ||
+                '未设置'}
+             </Descriptions.Item>
+             <Descriptions.Item label="职务级别">
+               {employee?.jobPositionLevelName || 
+                getLookupLabel(employee?.job_position_level_lookup_value_id, 'jobPositionLevelMap')}
+             </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      </Col>
+      
+      <Col span={24}>
+        <Card title="雇佣信息" size="small">
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="入职日期">
+              {formatDate(employee?.hire_date as string)}
+            </Descriptions.Item>
+            <Descriptions.Item label="工龄">
+              {calculateSeniority(employee?.hire_date as string)}
+            </Descriptions.Item>
+            <Descriptions.Item label="首次参加工作时间">
+              {formatDate(employee?.first_work_date as string)}
+            </Descriptions.Item>
+            <Descriptions.Item label="雇佣类型">
+              {getLookupLabel(employee?.employment_type_lookup_value_id, 'employmentTypeMap')}
+            </Descriptions.Item>
+            <Descriptions.Item label="合同类型">
+              {getLookupLabel(employee?.contract_type_lookup_value_id, 'contractTypeMap')}
+            </Descriptions.Item>
+            <Descriptions.Item label="职级确定时间">
+              {formatDate(employee?.career_position_level_date as string)}
+            </Descriptions.Item>
+            <Descriptions.Item label="现职务开始时间">
+              {formatDate(employee?.current_position_start_date as string)}
+            </Descriptions.Item>
+            <Descriptions.Item label="工作间断年限">
+              {employee?.interrupted_service_years ? `${employee.interrupted_service_years}年` : '未设置'}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      </Col>
+    </Row>
+  );
+
+  // 工作历史标签页内容
+  const JobHistoryTab: React.FC = () => (
+    <Card title="工作履历" size="small">
+      <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>
+        工作履历功能开发中...
+      </div>
+    </Card>
+  );
+
+  if (loading || lookupsLoading) {
     return (
-      <PageContainer
-        title={t('employee:detail_page.page_container.title_loading')}
-        breadcrumbRender={false}
-        extra={pageHeaderExtra}
-      >
-        <Spin size="large" style={{ display: 'block', marginTop: '50px' }} />
-      </PageContainer>
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" tip="加载员工详情中..." />
+      </div>
     );
   }
 
-  if (error) {
+  if (error || !employee) {
     return (
-      <PageContainer
-        title={t('employee:detail_page.page_container.title_error')}
-        breadcrumbRender={false}
-        extra={pageHeaderExtra}
-      >
-        <Alert message={t('employee:detail_page.alert.message_error')} description={error} type="error" showIcon /> 
-        <Button onClick={() => navigate('/hr/employees')} style={{ marginTop: 16 }}>
-          {t('employee:detail_page.button_back_to_list')}
-        </Button>
-      </PageContainer>
+      <Alert
+        message="加载失败"
+        description={error || '未找到员工信息'}
+        type="error"
+        showIcon
+        style={{ margin: '24px' }}
+        action={
+          <Button size="small" onClick={fetchEmployeeDetails}>
+            重试
+          </Button>
+        }
+      />
     );
   }
 
-  if (!employee) {
-     return (
-      <PageContainer
-        title={t('employee:detail_page.page_container.title_employee_not_found')}
-        breadcrumbRender={false}
-        extra={pageHeaderExtra}
-      >
-        <Alert message={t('employee:detail_page.alert.message_info')} description={t('employee:detail_page.page_container.alert_description_cannot_load_data')} type="info" showIcon />
-        <Button onClick={() => navigate('/hr/employees')} style={{ marginTop: 16 }}>
-          {t('employee:detail_page.button_back_to_list')}
-        </Button>
-      </PageContainer>
-    );
-  }
+  const breadcrumbItems = [
+    {
+      title: <Link to="/"><HomeOutlined /></Link>,
+    },
+    {
+      title: <Link to="/hr/employees">人事管理</Link>,
+    },
+    {
+      title: <Link to="/hr/employees">员工列表</Link>,
+    },
+    {
+      title: getEmployeeDisplayName(employee),
+    },
+  ];
 
   return (
     <PageContainer
-      title={pageTitleText}
-      breadcrumbRender={false}
-      extra={pageHeaderExtra}
+      title={
+        <Space>
+          <UserOutlined />
+          {getEmployeeDisplayName(employee)}
+        </Space>
+      }
+      breadcrumbRender={() => <Breadcrumb items={breadcrumbItems} />}
+      extra={
+        <Space>
+                     <TableActionButton
+             actionType="view"
+             icon={<ArrowLeftOutlined />}
+             onClick={handleBack}
+           >
+             返回列表
+           </TableActionButton>
+           <TableActionButton
+             actionType="edit"
+             type="primary"
+             icon={<EditOutlined />}
+             onClick={handleEdit}
+           >
+             编辑
+           </TableActionButton>
+        </Space>
+      }
     >
-      {renderContent()}
+      <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', padding: '24px' }}>
+        <Tabs defaultActiveKey="basic" size="large">
+          <TabPane tab={<Space><UserOutlined />基本信息</Space>} key="basic">
+            <BasicInfoTab />
+          </TabPane>
+          <TabPane tab={<Space><ContactsOutlined />工作信息</Space>} key="job">
+            <JobInfoTab />
+          </TabPane>
+          <TabPane tab={<Space><HistoryOutlined />工作履历</Space>} key="history">
+            <JobHistoryTab />
+          </TabPane>
+        </Tabs>
+      </div>
     </PageContainer>
   );
 };
 
-export default EmployeeDetailPage; 
+export default EmployeeDetailPage;

@@ -405,43 +405,51 @@ const buildPositionTree = (flatPositions: PositionWithParentId[]): PositionType[
   return roots as PositionType[];
 };
 
-const API_BASE_PATH = 'lookup/values'; // Changed from 'config/lookup-values'
+const API_BASE_PATH = 'config/lookup-values'; // Fixed to correct path
 
 // Generic function to fetch lookup values by type code
-const fetchLookupValuesByType = async (typeCode: string): Promise<LookupItem[]> => {
-  if (!typeCode) { // Added a check for empty typeCode
+export const fetchLookupValuesByType = async (lookupTypeCode: string): Promise<LookupItem[]> => {
+  if (!lookupTypeCode) {
     return [];
   }
   
   try {
-    // 构建请求URL和参数
-    const apiPath = `/${API_BASE_PATH}`;
-    const params = {
-      type_code: typeCode,
-      is_active: true,
-      size: 100,
-      page: 1,
-    };
-    
-    // Assuming the API returns a structure like { data: [...ApiLookupValue] }
-    const response = await apiClient.get<ActualApiLookupValueListResponse>(apiPath, { params });
+    // 使用高性能公共端点，跳过权限检查以提升性能
+    const response = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values-public?lookup_type_code=${lookupTypeCode}`);
     
     if (response.data && Array.isArray(response.data.data)) {
+      // 转换后端字段名到前端期望的格式
       return response.data.data
         .filter(item => item.is_active !== false)
         .map(apiItem => ({
           value: apiItem.id,
-          label: apiItem.name || apiItem.label || '', // 首先使用name，因为API数据结构是这样的
-          code: apiItem.code,
+          label: apiItem.name || '', // 后端字段是name
+          code: apiItem.code || '', // 后端字段是code
           id: apiItem.id,
-          name: apiItem.name || apiItem.label || '',
+          name: apiItem.name || '',
         }));
     }
-    message.error(`Failed to load lookup values for type: ${typeCode}`);
     return [];
-  } catch (error: any) {
-    message.error(`获取"${typeCode}"类型的查找值失败`);
-    return [];
+  } catch (error) {
+    console.warn(`Failed to fetch lookup values for type ${lookupTypeCode}:`, error);
+    // 降级到原API（带权限检查）
+    try {
+      const fallbackResponse = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values?lookup_type_code=${lookupTypeCode}`);
+      if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+        return fallbackResponse.data.data
+          .filter(item => item.is_active !== false)
+          .map(apiItem => ({
+            value: apiItem.id,
+            label: apiItem.name || '',
+            code: apiItem.code || '',
+            id: apiItem.id,
+            name: apiItem.name || '',
+          }));
+      }
+    } catch (fallbackError) {
+      console.error(`Both primary and fallback lookup requests failed for ${lookupTypeCode}:`, fallbackError);
+    }
+    return []; 
   }
 };
 
@@ -454,9 +462,9 @@ export const lookupService = {
 
   getDepartmentsLookup: async (): Promise<Department[]> => {
     try {
+      // 使用高性能公共端点，跳过权限检查以提升性能
       const response = await apiClient.get<{ data: ApiDepartment[], meta?: any }>( // Expect ApiDepartment
-        '/departments/', 
-        { params: { size: 100, is_active: true } } // CORRECTED size to 100
+        '/departments/public?is_active=true'
       );
       
 
@@ -564,8 +572,8 @@ export const lookupService = {
 
   getPersonnelCategoriesLookup: async (): Promise<PersonnelCategory[]> => { // MODIFIED from getJobTitlesLookup
     try {
-      // MODIFIED path and expected type
-      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>(`/personnel-categories/`, { params: { size: 100, page: 1 } }); // CORRECTED size to 100
+      // 使用高性能公共端点，跳过权限检查以提升性能
+      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>('/personnel-categories/public?is_active=true');
       
       let rawPersonnelCategories: PersonnelCategory[]; // MODIFIED
       if ('data' in response.data && Array.isArray(response.data.data)) {
@@ -674,7 +682,8 @@ export const lookupService = {
   // ADDED: Fetch all Positions (tree structure)
   getPositionsLookup: async (): Promise<PositionType[]> => {
     try {
-      const response = await apiClient.get<{ data: ApiPosition[] }>('/positions/', { params: { size: 100 } }); // 修改为最大允许值100
+      // 使用高性能公共端点，跳过权限检查以提升性能
+      const response = await apiClient.get<{ data: ApiPosition[] }>('/positions/public?is_active=true');
       if (response.data && Array.isArray(response.data.data)) {
         const positionsWithParentId: PositionWithParentId[] = response.data.data.map(p => ({
           ...p, // Spread ApiPosition
