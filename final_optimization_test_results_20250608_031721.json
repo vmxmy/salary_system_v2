@@ -1,0 +1,47 @@
+{
+  "timestamp": "20250608_031721",
+  "summary": {
+    "total_tests": 5,
+    "successful_tests": 0,
+    "failed_tests": 5,
+    "total_time_ms": 0,
+    "average_time_ms": 0
+  },
+  "results": [
+    {
+      "success": false,
+      "duration_ms": 26.144981384277344,
+      "status_code": 401,
+      "error": "{\"detail\":\"Could not validate credentials (Test 12 inline)\"}",
+      "test_name": "审核汇总API (视图优化)"
+    },
+    {
+      "success": false,
+      "duration_ms": 4.114866256713867,
+      "status_code": 401,
+      "error": "{\"detail\":\"Could not validate credentials (Test 12 inline)\"}",
+      "test_name": "异常列表API (视图优化)"
+    },
+    {
+      "success": false,
+      "duration_ms": 6.104946136474609,
+      "status_code": 404,
+      "error": "{\"detail\":\"Not Found\"}",
+      "test_name": "薪资条目API (视图优化)"
+    },
+    {
+      "success": false,
+      "duration_ms": 5.544900894165039,
+      "status_code": 404,
+      "error": "{\"detail\":\"Not Found\"}",
+      "test_name": "薪资条目API - 搜索测试"
+    },
+    {
+      "success": false,
+      "duration_ms": 2.8421878814697266,
+      "status_code": 404,
+      "error": "{\"detail\":\"Not Found\"}",
+      "test_name": "薪资条目API - 薪资范围筛选"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-06-08T03:07:28.318290",
+  "summary": {
+    "avg_improvement_percent": 90.92050979024596,
+    "avg_speedup_factor": 12.305847640816985
+  },
+  "detailed_results": [
+    {
+      "test_name": "基础查询（无筛选条件）",
+      "traditional_ms": 11595.741987228394,
+      "view_optimized_ms": 751.654863357544,
+      "improvement_percent": 93.51783728729546,
+      "speedup_factor": 15.426949990626989,
+      "data_consistency": true
+    },
+    {
+      "test_name": "搜索查询（姓名搜索）",
+      "traditional_ms": 5514.242649078369,
+      "view_optimized_ms": 774.2819786071777,
+      "improvement_percent": 85.95850730767917,
+      "speedup_factor": 7.12174995858447,
+      "data_consistency": true
+    },
+    {
+      "test_name": "薪资范围筛选",
+      "traditional_ms": 11283.007383346558,
+      "view_optimized_ms": 754.2159557342529,
+      "improvement_percent": 93.31547051145728,
+      "speedup_factor": 14.959916052640647,
+      "data_consistency": true
+    },
+    {
+      "test_name": "部门筛选",
+      "traditional_ms": 6507.544994354248,
+      "view_optimized_ms": 763.8731002807617,
+      "improvement_percent": 88.26173156015862,
+      "speedup_factor": 8.51914407244135,
+      "data_consistency": true
+    },
+    {
+      "test_name": "大页面查询",
+      "traditional_ms": 11427.845239639282,
+      "view_optimized_ms": 737.2100353240967,
+      "improvement_percent": 93.54900228463922,
+      "speedup_factor": 15.50147812979147,
+      "data_consistency": true
+    }
+  ]
+}

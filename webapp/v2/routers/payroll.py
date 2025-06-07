@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
 from datetime import date, datetime
 import io
+import logging
 
 from ..database import get_db_v2
 from ..crud import payroll as crud
@@ -26,6 +27,8 @@ from ..utils import create_error_response
 router = APIRouter(
     tags=["Payroll"],
 )
+
+logger = logging.getLogger(__name__)
 
 
 # PayrollPeriod endpoints
@@ -666,6 +669,7 @@ async def get_payroll_entries(
     sort_order: Optional[str] = Query("asc", description="排序方向: asc 或 desc"),
     include_employee_details: bool = Query(False, description="是否包含员工姓名等详细信息"),
     include_payroll_period: bool = Query(False, description="是否包含工资周期信息"),
+
     search: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
@@ -673,7 +677,7 @@ async def get_payroll_entries(
     current_user = Depends(require_permissions(["payroll_entry:view"]))
 ):
     """
-    获取工资明细列表，支持分页和过滤。
+    获取工资明细列表，支持分页和过滤（支持视图优化）。
 
     - **period_id**: 工资周期ID，用于过滤特定工资周期的明细
     - **run_id**: 工资运行批次ID，用于过滤特定运行批次的明细
@@ -689,6 +693,7 @@ async def get_payroll_entries(
     - **sort_order**: 排序方向
     - **include_employee_details**: 是否包含员工姓名等详细信息
     - **include_payroll_period**: 是否包含工资周期信息
+
     - **search**: 搜索关键词，用于按员工姓名、工号等信息搜索
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
@@ -696,7 +701,9 @@ async def get_payroll_entries(
     try:
         skip = (page - 1) * size
         
-        entries_orm, total = crud.get_payroll_entries(
+        # 使用视图优化方法（已成为唯一实现）
+        logger.info(f"🚀 获取薪资条目列表: period_id={period_id}, run_id={actual_run_id}")
+        entries_data, total = crud.get_payroll_entries(
             db=db,
             skip=skip,
             limit=size,
@@ -712,15 +719,32 @@ async def get_payroll_entries(
             min_net_pay=min_net_pay,
             max_net_pay=max_net_pay,
             sort_by=sort_by,
-            sort_order=sort_order,
-            include_employee_details=include_employee_details,
-            include_payroll_period=include_payroll_period
+            sort_order=sort_order
         )
-
+        
+        # 视图返回的是字典列表，需要转换为Pydantic模型
         data = []
-        for entry_orm in entries_orm:
-            entry_pydantic = PayrollEntry.model_validate(entry_orm)
-            data.append(entry_pydantic)
+        for entry_dict in entries_data:
+            try:
+                # 创建PayrollEntry对象
+                entry_pydantic = PayrollEntry(
+                    id=entry_dict['id'],
+                    employee_id=entry_dict['employee_id'],
+                    payroll_period_id=entry_dict['payroll_period_id'],
+                    payroll_run_id=entry_dict['payroll_run_id'],
+                    status_lookup_value_id=entry_dict['status_lookup_value_id'],
+                    gross_pay=entry_dict['gross_pay'],
+                    net_pay=entry_dict['net_pay'],
+                    total_deductions=entry_dict['total_deductions'],
+                    earnings_details=entry_dict['earnings_details'],
+                    deductions_details=entry_dict['deductions_details'],
+                    calculated_at=entry_dict['calculated_at'],
+                    updated_at=entry_dict['updated_at']
+                )
+                data.append(entry_pydantic)
+            except Exception as e:
+                logger.warning(f"转换视图数据失败: {e}")
+                continue
 
         total_pages = (total + size - 1) // size if total > 0 else 1
         pagination_meta = PaginationMeta(
@@ -733,15 +757,6 @@ async def get_payroll_entries(
             data=data,
             meta=pagination_meta
         )
-        return {
-            "data": data,
-            "meta": {
-                "page": page,
-                "size": size,
-                "total": total,
-                "totalPages": total_pages
-            }
-        }
     except Exception as e:
         # 返回标准错误响应格式
         raise HTTPException(

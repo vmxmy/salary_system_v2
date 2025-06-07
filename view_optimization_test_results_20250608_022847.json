@@ -1,0 +1,26 @@
+{
+  "summary_traditional": {
+    "success": false,
+    "duration_ms": 14.661312103271484,
+    "status_code": 401,
+    "error": "{\"detail\":\"Could not validate credentials (Test 12 inline)\"}"
+  },
+  "summary_optimized": {
+    "success": false,
+    "duration_ms": 4.113912582397461,
+    "status_code": 401,
+    "error": "{\"detail\":\"Could not validate credentials (Test 12 inline)\"}"
+  },
+  "anomalies_traditional": {
+    "success": false,
+    "duration_ms": 2.640962600708008,
+    "status_code": 401,
+    "error": "{\"detail\":\"Could not validate credentials (Test 12 inline)\"}"
+  },
+  "anomalies_optimized": {
+    "success": false,
+    "duration_ms": 2.8619766235351562,
+    "status_code": 401,
+    "error": "{\"detail\":\"Could not validate credentials (Test 12 inline)\"}"
+  }
+}

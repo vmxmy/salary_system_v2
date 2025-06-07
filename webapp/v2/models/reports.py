@@ -397,4 +397,152 @@ class ReportViewExecution(Base):
 # User.report_view_executions = relationship("ReportViewExecution", back_populates="executor")
 
 # 更新ReportView模型的关系
-ReportView.executions = relationship("ReportViewExecution", back_populates="report_view", cascade="all, delete-orphan") 
+ReportView.executions = relationship("ReportViewExecution", back_populates="report_view", cascade="all, delete-orphan")
+
+
+class BatchReportTask(Base):
+    """批量报表生成任务模型"""
+    __tablename__ = "batch_report_tasks"
+    __table_args__ = (
+        Index('idx_batch_task_status', 'status'),
+        Index('idx_batch_task_created', 'created_at'),
+        Index('idx_batch_task_user', 'created_by'),
+        {'schema': 'config'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    
+    # 任务基本信息
+    task_name = Column(String(255), nullable=False, comment="任务名称")
+    description = Column(Text, comment="任务描述")
+    task_type = Column(String(50), nullable=False, default="batch_export", comment="任务类型")
+    
+    # 任务配置
+    source_config = Column(JSONB, nullable=False, comment="数据源配置")
+    export_config = Column(JSONB, nullable=False, comment="导出配置")
+    filter_config = Column(JSONB, comment="筛选条件配置")
+    
+    # 任务状态
+    status = Column(String(20), nullable=False, default="pending", comment="任务状态: pending, running, completed, failed, cancelled")
+    progress = Column(Integer, default=0, comment="进度百分比(0-100)")
+    
+    # 执行信息
+    started_at = Column(DateTime(timezone=True), comment="开始执行时间")
+    completed_at = Column(DateTime(timezone=True), comment="完成时间")
+    execution_time = Column(DECIMAL(10, 3), comment="执行时间(秒)")
+    
+    # 结果信息
+    total_reports = Column(Integer, default=0, comment="总报表数量")
+    completed_reports = Column(Integer, default=0, comment="已完成报表数量")
+    failed_reports = Column(Integer, default=0, comment="失败报表数量")
+    
+    # 文件信息
+    output_directory = Column(String(500), comment="输出目录")
+    archive_file_path = Column(String(500), comment="打包文件路径")
+    archive_file_size = Column(BigInteger, comment="打包文件大小(字节)")
+    
+    # 错误信息
+    error_message = Column(Text, comment="错误信息")
+    error_details = Column(JSONB, comment="详细错误信息")
+    
+    # 审计字段
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), nullable=False, comment="创建者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    creator = relationship("User", back_populates="created_batch_tasks")
+    task_items = relationship("BatchReportTaskItem", back_populates="task", cascade="all, delete-orphan")
+
+
+class BatchReportTaskItem(Base):
+    """批量报表任务项模型"""
+    __tablename__ = "batch_report_task_items"
+    __table_args__ = (
+        Index('idx_batch_item_task', 'task_id'),
+        Index('idx_batch_item_status', 'status'),
+        {'schema': 'config'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    task_id = Column(BigInteger, ForeignKey("config.batch_report_tasks.id"), nullable=False)
+    
+    # 报表信息
+    report_type = Column(String(50), nullable=False, comment="报表类型")
+    report_name = Column(String(255), nullable=False, comment="报表名称")
+    report_config = Column(JSONB, nullable=False, comment="报表配置")
+    
+    # 执行状态
+    status = Column(String(20), nullable=False, default="pending", comment="状态: pending, running, completed, failed, skipped")
+    execution_order = Column(Integer, default=0, comment="执行顺序")
+    
+    # 执行信息
+    started_at = Column(DateTime(timezone=True), comment="开始时间")
+    completed_at = Column(DateTime(timezone=True), comment="完成时间")
+    execution_time = Column(DECIMAL(10, 3), comment="执行时间(秒)")
+    
+    # 结果信息
+    result_count = Column(Integer, comment="结果数量")
+    file_path = Column(String(500), comment="生成文件路径")
+    file_size = Column(BigInteger, comment="文件大小(字节)")
+    file_format = Column(String(20), comment="文件格式")
+    
+    # 错误信息
+    error_message = Column(Text, comment="错误信息")
+    error_details = Column(JSONB, comment="详细错误信息")
+    
+    # 审计字段
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
+
+    # 关系
+    task = relationship("BatchReportTask", back_populates="task_items")
+
+
+class ReportFileManager(Base):
+    """报表文件管理模型"""
+    __tablename__ = "report_file_manager"
+    __table_args__ = (
+        Index('idx_file_manager_type', 'file_type'),
+        Index('idx_file_manager_created', 'created_at'),
+        Index('idx_file_manager_expires', 'expires_at'),
+        {'schema': 'config'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    
+    # 文件基本信息
+    file_name = Column(String(255), nullable=False, comment="文件名")
+    file_path = Column(String(500), nullable=False, comment="文件路径")
+    file_size = Column(BigInteger, comment="文件大小(字节)")
+    file_type = Column(String(50), nullable=False, comment="文件类型: report, archive, temp")
+    file_format = Column(String(20), comment="文件格式: xlsx, csv, pdf, zip")
+    
+    # 关联信息
+    source_type = Column(String(50), comment="来源类型: single_report, batch_task, manual_export")
+    source_id = Column(BigInteger, comment="来源ID")
+    
+    # 文件状态
+    status = Column(String(20), nullable=False, default="active", comment="状态: active, archived, deleted")
+    is_temporary = Column(Boolean, default=False, comment="是否临时文件")
+    
+    # 访问控制
+    access_level = Column(String(20), default="private", comment="访问级别: public, private, restricted")
+    download_count = Column(Integer, default=0, comment="下载次数")
+    last_accessed_at = Column(DateTime(timezone=True), comment="最后访问时间")
+    
+    # 生命周期管理
+    expires_at = Column(DateTime(timezone=True), comment="过期时间")
+    auto_cleanup = Column(Boolean, default=True, comment="是否自动清理")
+    
+    # 元数据
+    metadata_info = Column(JSONB, comment="文件元数据")
+    checksum = Column(String(64), comment="文件校验和")
+    
+    # 审计字段
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    creator = relationship("User", back_populates="created_files") 

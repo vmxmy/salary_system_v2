@@ -35,6 +35,7 @@ from .payroll.payroll_runs import (
 # PayrollEntry相关
 from .payroll.payroll_entries import (
     get_payroll_entries,
+    get_payroll_entries_with_views,
     get_payroll_entry,
     create_payroll_entry,
     update_payroll_entry,
@@ -77,6 +78,7 @@ __all__ = [
     
     # PayrollEntry相关
     "get_payroll_entries",
+    "get_payroll_entries_with_views",
     "get_payroll_entry",
     "create_payroll_entry",
     "update_payroll_entry", 

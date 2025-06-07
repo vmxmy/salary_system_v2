@@ -1,0 +1,52 @@
+{
+  "timestamp": "20250608_032204",
+  "summary": {
+    "total_tests": 5,
+    "successful_tests": 5,
+    "failed_tests": 0,
+    "total_time_ms": 3437.7782344818115,
+    "average_time_ms": 687.5556468963623
+  },
+  "results": [
+    {
+      "success": true,
+      "duration_ms": 583.8310718536377,
+      "status_code": 200,
+      "count": 1,
+      "total": null,
+      "test_name": "审核汇总API (视图优化)"
+    },
+    {
+      "success": true,
+      "duration_ms": 561.784029006958,
+      "status_code": 200,
+      "count": 5,
+      "total": 5,
+      "test_name": "异常列表API (视图优化)"
+    },
+    {
+      "success": true,
+      "duration_ms": 773.5719680786133,
+      "status_code": 200,
+      "count": 100,
+      "total": 510,
+      "test_name": "薪资条目API (视图优化)"
+    },
+    {
+      "success": true,
+      "duration_ms": 748.2340335845947,
+      "status_code": 200,
+      "count": 45,
+      "total": 45,
+      "test_name": "薪资条目API - 搜索测试"
+    },
+    {
+      "success": true,
+      "duration_ms": 770.3571319580078,
+      "status_code": 200,
+      "count": 50,
+      "total": 102,
+      "test_name": "薪资条目API - 薪资范围筛选"
+    }
+  ]
+}

@@ -563,10 +563,14 @@ async def get_audit_summary(
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
-    """获取工资审核汇总信息"""
+    """获取工资审核汇总信息（支持视图优化）"""
     try:
         service = PayrollAuditService(db)
+        
+        # 使用视图优化方法（已成为唯一实现）
+        logger.info(f"🚀 获取审核汇总: {payroll_run_id}")
         summary = service.get_audit_summary(payroll_run_id)
+            
         return DataResponse(data=summary)
     except Exception as e:
         logger.error(f"获取审核汇总失败: {e}", exc_info=True)
@@ -611,33 +615,36 @@ async def get_audit_anomalies(
     severity: Optional[List[str]] = Query(None),
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(100, ge=1, le=200, description="每页记录数"),
+
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
-    """获取详细的审核异常列表"""
+    """获取详细的审核异常列表（支持视图优化）"""
     try:
         service = PayrollAuditService(db)
+        
+        # 使用视图优化方法（已成为唯一实现）
+        logger.info(f"🚀 获取异常列表: {payroll_run_id}")
         anomalies = service.get_audit_anomalies(
             payroll_run_id=payroll_run_id,
             anomaly_types=anomaly_types,
-            severity=severity
+            severity=severity,
+            page=page,
+            size=size
         )
         
-        # 手动分页
-        total = len(anomalies)
-        start_idx = (page - 1) * size
-        end_idx = start_idx + size
-        paginated_anomalies = anomalies[start_idx:end_idx]
-        
+        # 视图方法已经处理了分页，直接返回
+        total = len(anomalies)  # 这里可以优化为从视图获取总数
         return PaginationResponse(
-            data=paginated_anomalies,
+            data=anomalies,
             meta=PaginationMeta(
                 total=total,
                 page=page,
                 size=size,
-                pages=(total + size - 1) // size
+                pages=(total + size - 1) // size if total > 0 else 1
             )
         )
+        
     except Exception as e:
         logger.error(f"获取审核异常失败: {e}", exc_info=True)
         raise HTTPException(

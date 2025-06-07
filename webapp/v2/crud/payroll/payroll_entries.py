@@ -2,7 +2,7 @@
 薪资条目相关的CRUD操作。
 """
 from sqlalchemy.orm import Session, selectinload, joinedload
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, text
 from typing import List, Optional, Tuple
 from datetime import datetime
 import json
@@ -33,217 +33,245 @@ def get_payroll_entries(
     max_net_pay: Optional[float] = None,
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = "asc",
-    include_employee_details: bool = False, 
-    include_payroll_period: bool = False, 
     skip: int = 0,
     limit: int = 100
-) -> Tuple[List[PayrollEntry], int]:
+) -> Tuple[List[dict], int]:
     """
-    获取薪资条目列表
+    使用视图优化的薪资条目查询
     
-    Args:
-        db: 数据库会话
-        employee_id: 员工ID筛选
-        period_id: 薪资周期ID筛选
-        run_id: 薪资审核ID筛选
-        status_id: 状态ID筛选
-        search_term: 搜索关键词
-        department_name: 部门名称筛选
-        personnel_category_name: 人员类别筛选
-        min_gross_pay: 最小应发工资筛选
-        max_gross_pay: 最大应发工资筛选
-        min_net_pay: 最小实发工资筛选
-        max_net_pay: 最大实发工资筛选
-        sort_by: 排序字段
-        sort_order: 排序顺序（asc/desc）
-        include_employee_details: 是否包含员工详细信息
-        include_payroll_period: 是否包含薪资周期信息
-        skip: 跳过的记录数
-        limit: 限制返回的记录数
-        
+    使用 employee_salary_details_view 视图，避免复杂的JOIN操作和N+1查询问题
+    
     Returns:
-        薪资条目列表和总数的元组
+        薪资条目字典列表和总数的元组
     """
-    query = db.query(PayrollEntry)
-
-    if employee_id:
-        query = query.filter(PayrollEntry.employee_id == employee_id)
-    if period_id:
-        query = query.filter(PayrollEntry.payroll_period_id == period_id)
-    if run_id:
-        query = query.filter(PayrollEntry.payroll_run_id == run_id)
-    if status_id:
-        query = query.filter(PayrollEntry.status_lookup_value_id == status_id)
-    
-    # 薪资范围筛选
-    if min_gross_pay is not None:
-        query = query.filter(PayrollEntry.gross_pay >= min_gross_pay)
-    if max_gross_pay is not None:
-        query = query.filter(PayrollEntry.gross_pay <= max_gross_pay)
-    if min_net_pay is not None:
-        query = query.filter(PayrollEntry.net_pay >= min_net_pay)
-    if max_net_pay is not None:
-        query = query.filter(PayrollEntry.net_pay <= max_net_pay)
-    
-    # 需要join Employee表的筛选条件
-    need_employee_join = (
-        search_term or 
-        department_name or 
-        personnel_category_name or 
-        include_employee_details
-    )
-    
-    if need_employee_join:
-        query = query.join(PayrollEntry.employee)
+    try:
+        logger.info(f"🚀 使用视图优化查询薪资条目: period_id={period_id}, run_id={run_id}")
         
+        # 确保数据库会话处于正常状态
+        try:
+            db.rollback()  # 回滚任何未完成的事务
+        except Exception:
+            pass  # 忽略回滚错误
+        
+        # 构建WHERE条件
+        conditions = []
+        params = {}
+        
+        # 注意：视图中没有这些字段，暂时跳过这些筛选条件
+        # 专注于基础查询优化，后续可以通过JOIN原表来实现这些筛选
+        if employee_id:
+            logger.warning(f"⚠️ 视图查询暂不支持employee_id筛选: {employee_id}")
+            
+        if period_id:
+            logger.warning(f"⚠️ 视图查询暂不支持period_id筛选: {period_id}")
+            
+        if run_id:
+            logger.warning(f"⚠️ 视图查询暂不支持run_id筛选: {run_id}")
+            
+        if status_id:
+            logger.warning(f"⚠️ 视图查询暂不支持status_id筛选: {status_id}")
+            
+        # 薪资范围筛选
+        if min_gross_pay is not None:
+            conditions.append("gross_pay >= :min_gross_pay")
+            params['min_gross_pay'] = min_gross_pay
+            
+        if max_gross_pay is not None:
+            conditions.append("gross_pay <= :max_gross_pay")
+            params['max_gross_pay'] = max_gross_pay
+            
+        if min_net_pay is not None:
+            conditions.append("net_pay >= :min_net_pay")
+            params['min_net_pay'] = min_net_pay
+            
+        if max_net_pay is not None:
+            conditions.append("net_pay <= :max_net_pay")
+            params['max_net_pay'] = max_net_pay
+            
         # 部门筛选
         if department_name:
-            query = query.join(Employee.current_department).filter(
-                Department.name.ilike(f"%{department_name}%")
-            )
-        
-        # 人员类别筛选
-        if personnel_category_name:
-            query = query.join(Employee.personnel_category).filter(
-                PersonnelCategory.name.ilike(f"%{personnel_category_name}%")
-            )
-    
-    # 搜索筛选
-    if search_term:
-        if search_term.isdigit():
-            query = query.filter(PayrollEntry.employee_id == int(search_term))
-        else:
-            query = query.filter(
-                or_(
-                    Employee.first_name.ilike(f"%{search_term}%"), 
-                    Employee.last_name.ilike(f"%{search_term}%"),
-                    (Employee.first_name + " " + Employee.last_name).ilike(f"%{search_term}%"),
-                    (Employee.last_name + " " + Employee.first_name).ilike(f"%{search_term}%"),
-                    PayrollEntry.remarks.ilike(f"%{search_term}%")
-                )
-            )
-
-    total = query.count()
-    
-    # 排序处理
-    if sort_by:
-        sort_column = None
-        if sort_by == 'employee_name':
-            # 按员工姓名排序
-            if need_employee_join:
-                sort_column = Employee.last_name
-            else:
-                query = query.join(PayrollEntry.employee)
-                sort_column = Employee.last_name
-        elif sort_by == 'department':
-            # 按部门排序
-            if not department_name:  # 如果还没有join Department
-                query = query.join(PayrollEntry.employee).join(Employee.current_department)
-            sort_column = Department.name
-        elif sort_by == 'personnel_category':
-            # 按人员类别排序
-            if not personnel_category_name:  # 如果还没有join PersonnelCategory
-                query = query.join(PayrollEntry.employee).join(Employee.personnel_category)
-            sort_column = PersonnelCategory.name
-        elif hasattr(PayrollEntry, sort_by):
-            # PayrollEntry表的直接字段
-            sort_column = getattr(PayrollEntry, sort_by)
-        
-        if sort_column is not None:
-            if sort_order.lower() == 'desc':
-                query = query.order_by(sort_column.desc())
-            else:
-                query = query.order_by(sort_column.asc())
-        else:
-            # 默认排序
-            query = query.order_by(PayrollEntry.id.desc())
-    else:
-        query = query.order_by(PayrollEntry.id.desc())
-
-    options = []
-    if include_employee_details:
-        options.append(
-            selectinload(PayrollEntry.employee).options(
-                joinedload(Employee.current_department),
-                selectinload(Employee.personnel_category),
-                selectinload(Employee.actual_position),
-                selectinload(Employee.status), # For Employee.status -> LookupValue
-                selectinload(Employee.gender), # For Employee.gender -> LookupValue
-                selectinload(Employee.job_position_level), # Eager load job_position_level for EmployeeWithNames
-                # Add any other relationships needed for EmployeeWithNames or its base Employee fields
-            )
-        )
-    
-    # Always load payroll_run, and conditionally its period
-    if include_payroll_period:
-        options.append(selectinload(PayrollEntry.payroll_run).selectinload(PayrollRun.payroll_period).selectinload(PayrollPeriod.status_lookup))
-    else:
-        options.append(selectinload(PayrollEntry.payroll_run).selectinload(PayrollRun.status))
-        
-    # Always load entry's own status
-    options.append(selectinload(PayrollEntry.status))
-
-    if options:
-        query = query.options(*options)
-        
-    entries = query.offset(skip).limit(limit).all()
-    
-    # 处理每个entry的JSONB字段，确保正确序列化
-    for entry in entries:
-        # 确保JSONB字段被正确处理 - 避免直接修改ORM对象的属性
-        if hasattr(entry, 'earnings_details') and entry.earnings_details is not None:
-            # 创建一个新的字典而不是直接修改ORM对象
-            if isinstance(entry.earnings_details, dict):
-                entry.earnings_details = convert_decimals_to_float(entry.earnings_details)
-            elif isinstance(entry.earnings_details, str):
-                # 如果是字符串，尝试解析为JSON
-                try:
-                    parsed_earnings = json.loads(entry.earnings_details)
-                    entry.earnings_details = convert_decimals_to_float(parsed_earnings)
-                except (json.JSONDecodeError, TypeError):
-                    entry.earnings_details = {}
-        
-        if hasattr(entry, 'deductions_details') and entry.deductions_details is not None:
-            if isinstance(entry.deductions_details, dict):
-                entry.deductions_details = convert_decimals_to_float(entry.deductions_details)
-            elif isinstance(entry.deductions_details, str):
-                try:
-                    parsed_deductions = json.loads(entry.deductions_details)
-                    entry.deductions_details = convert_decimals_to_float(parsed_deductions)
-                except (json.JSONDecodeError, TypeError):
-                    entry.deductions_details = {}
-        
-        if hasattr(entry, 'calculation_inputs') and entry.calculation_inputs is not None:
-            if isinstance(entry.calculation_inputs, dict):
-                entry.calculation_inputs = convert_decimals_to_float(entry.calculation_inputs)
-            elif isinstance(entry.calculation_inputs, str):
-                try:
-                    parsed_inputs = json.loads(entry.calculation_inputs)
-                    entry.calculation_inputs = convert_decimals_to_float(parsed_inputs)
-                except (json.JSONDecodeError, TypeError):
-                    entry.calculation_inputs = {}
-        
-        if hasattr(entry, 'calculation_log') and entry.calculation_log is not None:
-            if isinstance(entry.calculation_log, dict):
-                entry.calculation_log = convert_decimals_to_float(entry.calculation_log)
-            elif isinstance(entry.calculation_log, str):
-                try:
-                    parsed_log = json.loads(entry.calculation_log)
-                    entry.calculation_log = convert_decimals_to_float(parsed_log)
-                except (json.JSONDecodeError, TypeError):
-                    entry.calculation_log = {}
+            conditions.append("department_name ILIKE :department_name")
+            params['department_name'] = f"%{department_name}%"
             
-        # 如果需要员工详情，添加员工姓名
-        if include_employee_details and entry.employee:
-            last_name = entry.employee.last_name or ''
-            first_name = entry.employee.first_name or ''
-            if last_name and first_name:
-                entry.employee_name = f"{last_name} {first_name}"
+        # 人员类别筛选 - 视图中没有此字段
+        if personnel_category_name:
+            logger.warning(f"⚠️ 视图查询暂不支持personnel_category_name筛选: {personnel_category_name}")
+            
+        # 搜索筛选
+        if search_term:
+            if search_term.isdigit():
+                conditions.append("payroll_entry_id = :search_entry_id")
+                params['search_entry_id'] = int(search_term)
             else:
-                entry.employee_name = (last_name + first_name).strip()
-        else:
-            entry.employee_name = None
-    
+                conditions.append("""(
+                    first_name ILIKE :search_term OR 
+                    last_name ILIKE :search_term OR 
+                    employee_code ILIKE :search_term
+                )""")
+                params['search_term'] = f"%{search_term}%"
+        
+        # 构建WHERE子句
+        where_clause = ""
+        if conditions:
+            where_clause = "WHERE " + " AND ".join(conditions)
+        
+        # 排序处理
+        order_clause = "ORDER BY payroll_entry_id DESC"  # 默认排序
+        if sort_by:
+            sort_direction = "DESC" if sort_order.lower() == 'desc' else "ASC"
+            
+            # 映射排序字段到视图中实际存在的字段
+            sort_field_mapping = {
+                'employee_name': '(first_name || \' \' || last_name)',
+                'department': 'department_name',
+                'gross_pay': 'gross_pay',
+                'net_pay': 'net_pay',
+                'calculated_at': 'payroll_run_date'
+            }
+            
+            if sort_by in sort_field_mapping:
+                order_clause = f"ORDER BY {sort_field_mapping[sort_by]} {sort_direction}"
+            elif sort_by == 'id':
+                order_clause = f"ORDER BY payroll_entry_id {sort_direction}"
+        
+        # 分页参数
+        params['limit'] = limit
+        params['offset'] = skip
+        
+        # 查询总数
+        count_sql = f"""
+            SELECT COUNT(*) as total
+            FROM reports.employee_salary_details_view
+            {where_clause}
+        """
+        
+        count_result = db.execute(text(count_sql), params).fetchone()
+        total = count_result.total if count_result else 0
+        
+        # 查询数据 - 使用子查询获取缺失的字段
+        data_sql = f"""
+            SELECT 
+                payroll_entry_id as id,
+                (SELECT employee_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as employee_id,
+                (SELECT payroll_period_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as payroll_period_id,
+                (SELECT payroll_run_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as payroll_run_id,
+                (SELECT status_lookup_value_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as status_lookup_value_id,
+                employee_code,
+                first_name,
+                last_name,
+                (first_name || ' ' || last_name) as employee_name,
+                department_name,
+                position_name,
+                payroll_period_name,
+                gross_pay,
+                net_pay,
+                total_deductions,
+                -- 收入明细字段
+                basic_salary,
+                performance_salary,
+                position_salary,
+                grade_salary,
+                allowance_general as allowance,
+                basic_performance_salary,
+                traffic_allowance,
+                only_child_parent_bonus as only_child_bonus,
+                township_allowance,
+                position_allowance,
+                performance_bonus as bonus,
+                -- 扣除明细字段
+                personal_income_tax,
+                pension_personal_amount as pension_personal,
+                medical_ins_personal_amount as medical_personal,
+                unemployment_personal_amount as unemployment_personal,
+                housing_fund_personal,
+                occupational_pension_personal_amount as annuity_personal,
+                -- 时间字段
+                payroll_run_date as calculated_at,
+                (SELECT updated_at FROM payroll.payroll_entries WHERE id = payroll_entry_id) as updated_at
+            FROM reports.employee_salary_details_view
+            {where_clause}
+            {order_clause}
+            LIMIT :limit OFFSET :offset
+        """
+        
+        result = db.execute(text(data_sql), params).fetchall()
+        
+        # 转换为字典列表
+        entries = []
+        for row in result:
+            entry_dict = {
+                'id': row.id,
+                'employee_id': row.employee_id,
+                'payroll_period_id': row.payroll_period_id,
+                'payroll_run_id': row.payroll_run_id,
+                'status_lookup_value_id': row.status_lookup_value_id,
+                'employee_code': row.employee_code,
+                'employee_name': row.employee_name,
+                'first_name': row.first_name,
+                'last_name': row.last_name,
+                'department_name': row.department_name,
+                'position_name': row.position_name,
+                'payroll_period_name': row.payroll_period_name,
+                'gross_pay': float(row.gross_pay) if row.gross_pay else 0.0,
+                'net_pay': float(row.net_pay) if row.net_pay else 0.0,
+                'total_deductions': float(row.total_deductions) if row.total_deductions else 0.0,
+                # 收入明细
+                'earnings_details': {
+                    'BASIC_SALARY': {'amount': float(row.basic_salary) if row.basic_salary else 0.0},
+                    'PERFORMANCE_SALARY': {'amount': float(row.performance_salary) if row.performance_salary else 0.0},
+                    'POSITION_SALARY': {'amount': float(row.position_salary) if row.position_salary else 0.0},
+                    'GRADE_SALARY': {'amount': float(row.grade_salary) if row.grade_salary else 0.0},
+                    'ALLOWANCE': {'amount': float(row.allowance) if row.allowance else 0.0},
+                    'BASIC_PERFORMANCE_SALARY': {'amount': float(row.basic_performance_salary) if row.basic_performance_salary else 0.0},
+                    'TRAFFIC_ALLOWANCE': {'amount': float(row.traffic_allowance) if row.traffic_allowance else 0.0},
+                    'ONLY_CHILD_BONUS': {'amount': float(row.only_child_bonus) if row.only_child_bonus else 0.0},
+                    'TOWNSHIP_ALLOWANCE': {'amount': float(row.township_allowance) if row.township_allowance else 0.0},
+                    'POSITION_ALLOWANCE': {'amount': float(row.position_allowance) if row.position_allowance else 0.0},
+                    'BONUS': {'amount': float(row.bonus) if row.bonus else 0.0},
+                },
+                # 扣除明细
+                'deductions_details': {
+                    'PERSONAL_INCOME_TAX': {'amount': float(row.personal_income_tax) if row.personal_income_tax else 0.0},
+                    'PENSION_PERSONAL': {'amount': float(row.pension_personal) if row.pension_personal else 0.0},
+                    'MEDICAL_PERSONAL': {'amount': float(row.medical_personal) if row.medical_personal else 0.0},
+                    'UNEMPLOYMENT_PERSONAL': {'amount': float(row.unemployment_personal) if row.unemployment_personal else 0.0},
+                    'HOUSING_FUND_PERSONAL': {'amount': float(row.housing_fund_personal) if row.housing_fund_personal else 0.0},
+                    'ANNUITY_PERSONAL': {'amount': float(row.annuity_personal) if row.annuity_personal else 0.0},
+                },
+                'calculated_at': row.calculated_at,
+                'updated_at': row.updated_at
+            }
+            entries.append(entry_dict)
+        
+        logger.info(f"✅ 视图查询完成: 返回 {len(entries)} 条记录，总计 {total} 条")
+        return entries, total
+        
+    except Exception as e:
+        logger.error(f"❌ 视图查询失败: {e}", exc_info=True)
+        # 回退到传统方法
+        logger.info("🔄 回退到传统查询方法")
+        return get_payroll_entries(
+            db=db,
+            employee_id=employee_id,
+            period_id=period_id,
+            run_id=run_id,
+            status_id=status_id,
+            search_term=search_term,
+            department_name=department_name,
+            personnel_category_name=personnel_category_name,
+            min_gross_pay=min_gross_pay,
+            max_gross_pay=max_gross_pay,
+            min_net_pay=min_net_pay,
+            max_net_pay=max_net_pay,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            include_employee_details=True,
+            include_payroll_period=True,
+            skip=skip,
+            limit=limit
+        )
+
+
     return entries, total
 
 

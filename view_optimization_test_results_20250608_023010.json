@@ -1,0 +1,191 @@
+{
+  "summary_traditional": {
+    "success": true,
+    "duration_ms": 407.60302543640137,
+    "status_code": 200,
+    "data": {
+      "data": {
+        "payroll_run_id": 53,
+        "total_entries": 81,
+        "total_anomalies": 5,
+        "error_count": 5,
+        "warning_count": 0,
+        "info_count": 0,
+        "auto_fixable_count": 0,
+        "manually_ignored_count": 0,
+        "audit_status": "FAILED",
+        "audit_type": "BASIC",
+        "anomalies_by_type": {
+          "MISSING_DATA_CHECK": {
+            "count": 5,
+            "severity": "error",
+            "rule_name": "Missing Data Check"
+          }
+        },
+        "total_gross_pay": "1251157.67",
+        "total_net_pay": "930165.76",
+        "total_deductions": "320991.91",
+        "comparison_with_previous": {
+          "net_pay_variance": "118854.23",
+          "gross_pay_variance": "111733.67",
+          "entries_count_variance": "0.0"
+        },
+        "audit_completed_at": "2025-06-08T02:14:55.349193Z"
+      }
+    }
+  },
+  "summary_optimized": {
+    "success": true,
+    "duration_ms": 386.29603385925293,
+    "status_code": 200,
+    "data": {
+      "data": {
+        "payroll_run_id": 53,
+        "total_entries": 81,
+        "total_anomalies": 5,
+        "error_count": 5,
+        "warning_count": 0,
+        "info_count": 0,
+        "auto_fixable_count": 0,
+        "manually_ignored_count": 0,
+        "audit_status": "FAILED",
+        "audit_type": "BASIC",
+        "anomalies_by_type": {
+          "MISSING_DATA_CHECK": {
+            "count": 5,
+            "severity": "error",
+            "rule_name": "Missing Data Check"
+          }
+        },
+        "total_gross_pay": "1251157.67",
+        "total_net_pay": "930165.76",
+        "total_deductions": "320991.91",
+        "comparison_with_previous": {
+          "net_pay_variance": "118854.23",
+          "gross_pay_variance": "111733.67",
+          "entries_count_variance": "0.0"
+        },
+        "audit_completed_at": "2025-06-08T02:14:55.349193Z"
+      }
+    }
+  },
+  "anomalies_traditional": {
+    "success": true,
+    "duration_ms": 429.43382263183594,
+    "status_code": 200,
+    "data": {
+      "data": [
+        {
+          "id": "missing_data_1176",
+          "employee_id": 381,
+          "employee_name": "郑偲",
+          "employee_code": "N/A",
+          "anomaly_type": "MISSING_DATA_CHECK",
+          "severity": "error",
+          "message": "核心数据异常：无效值：扣发合计(0.0000)",
+          "details": "应发:34799.5100, 扣发:0.0000, 实发:34799.5100 (要求：所有合计字段必须大于0)",
+          "suggested_action": "请检查并修正三个核心合计字段的数值，确保都大于0",
+          "current_value": null,
+          "expected_value": null,
+          "can_auto_fix": false,
+          "is_ignored": false,
+          "ignore_reason": null,
+          "fix_applied": false,
+          "created_at": "2025-06-07T18:14:55.491928Z"
+        },
+        {
+          "id": "missing_data_1177",
+          "employee_id": 382,
+          "employee_name": "张净",
+          "employee_code": "N/A",
+          "anomaly_type": "MISSING_DATA_CHECK",
+          "severity": "error",
+          "message": "核心数据异常：无效值：扣发合计(0.0000)",
+          "details": "应发:29399.5900, 扣发:0.0000, 实发:29399.5900 (要求：所有合计字段必须大于0)",
+          "suggested_action": "请检查并修正三个核心合计字段的数值，确保都大于0",
+          "current_value": null,
+          "expected_value": null,
+          "can_auto_fix": false,
+          "is_ignored": false,
+          "ignore_reason": null,
+          "fix_applied": false,
+          "created_at": "2025-06-07T18:14:55.491928Z"
+        },
+        {
+          "id": "missing_data_1174",
+          "employee_id": 379,
+          "employee_name": "阴琪",
+          "employee_code": "N/A",
+          "anomaly_type": "MISSING_DATA_CHECK",
+          "severity": "error",
+          "message": "核心数据异常：无效值：扣发合计(0.0000)",
+          "details": "应发:39999.4400, 扣发:0.0000, 实发:39999.4400 (要求：所有合计字段必须大于0)",
+          "suggested_action": "请检查并修正三个核心合计字段的数值，确保都大于0",
+          "current_value": null,
+          "expected_value": null,
+          "can_auto_fix": false,
+          "is_ignored": false,
+          "ignore_reason": null,
+          "fix_applied": false,
+          "created_at": "2025-06-07T18:14:55.491928Z"
+        },
+        {
+          "id": "missing_data_1175",
+          "employee_id": 380,
+          "employee_name": "张练",
+          "employee_code": "N/A",
+          "anomaly_type": "MISSING_DATA_CHECK",
+          "severity": "error",
+          "message": "核心数据异常：无效值：扣发合计(0.0000)",
+          "details": "应发:34799.5100, 扣发:0.0000, 实发:34799.5100 (要求：所有合计字段必须大于0)",
+          "suggested_action": "请检查并修正三个核心合计字段的数值，确保都大于0",
+          "current_value": null,
+          "expected_value": null,
+          "can_auto_fix": false,
+          "is_ignored": false,
+          "ignore_reason": null,
+          "fix_applied": false,
+          "created_at": "2025-06-07T18:14:55.491928Z"
+        },
+        {
+          "id": "missing_data_1178",
+          "employee_id": 383,
+          "employee_name": "杨圣",
+          "employee_code": "N/A",
+          "anomaly_type": "MISSING_DATA_CHECK",
+          "severity": "error",
+          "message": "核心数据异常：无效值：扣发合计(0.0000)",
+          "details": "应发:28899.6200, 扣发:0.0000, 实发:28899.6200 (要求：所有合计字段必须大于0)",
+          "suggested_action": "请检查并修正三个核心合计字段的数值，确保都大于0",
+          "current_value": null,
+          "expected_value": null,
+          "can_auto_fix": false,
+          "is_ignored": false,
+          "ignore_reason": null,
+          "fix_applied": false,
+          "created_at": "2025-06-07T18:14:55.491928Z"
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "size": 100,
+        "total": 5,
+        "totalPages": 1
+      }
+    }
+  },
+  "anomalies_optimized": {
+    "success": true,
+    "duration_ms": 433.5670471191406,
+    "status_code": 200,
+    "data": {
+      "data": [],
+      "meta": {
+        "page": 1,
+        "size": 100,
+        "total": 0,
+        "totalPages": 1
+      }
+    }
+  }
+}
