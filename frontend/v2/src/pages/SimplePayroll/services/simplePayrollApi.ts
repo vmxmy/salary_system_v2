@@ -426,5 +426,51 @@ export const simplePayrollApi = {
     const response = await apiClient.post(`${API_BASE}/test-calculation`, params);
     logResponse(response);
     return response.data;
+  },
+
+  // ===================== 银行文件生成功能 =====================
+
+  /**
+   * 生成银行代发文件
+   */
+  generateBankFile: async (params: {
+    payroll_run_id: number;
+    bank_type?: 'ICBC' | 'CCB' | 'ABC' | 'BOC' | 'CMB' | 'GENERIC';
+    file_format?: 'txt' | 'csv' | 'excel';
+    include_summary?: boolean;
+  }): Promise<ApiResponse<{
+    file_name: string;
+    file_content: string;
+    file_format: string;
+    bank_type: string;
+    total_records: number;
+    total_amount: number;
+    summary: {
+      payroll_run_id: number;
+      period_name: string;
+      generated_at: string;
+      generated_by: string;
+      records_count: number;
+      total_amount: string;
+    };
+  }>> => {
+    const response = await apiClient.post(`${API_BASE}/bank-file/generate`, params);
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 下载银行文件
+   */
+  downloadBankFile: async (params: {
+    payroll_run_id: number;
+    bank_type?: string;
+    file_format?: string;
+  }): Promise<Blob> => {
+    const response = await apiClient.post(`${API_BASE}/bank-file/generate`, params, {
+      responseType: 'blob'
+    });
+    logResponse(response);
+    return response.data;
   }
 }; 

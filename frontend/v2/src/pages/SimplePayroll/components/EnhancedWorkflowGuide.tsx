@@ -10,10 +10,11 @@ import {
   ExclamationCircleOutlined,
   RightOutlined,
   LoadingOutlined,
-  WarningOutlined
+  WarningOutlined,
+  CopyOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { PayrollRunResponse, AuditSummary } from '../types/simplePayroll';
+import type { PayrollRunResponse, PayrollPeriodResponse, AuditSummary, ReportGenerationRequest } from '../types/simplePayroll';
 import { simplePayrollApi } from '../services/simplePayrollApi';
 import type { WorkflowStepConfig, WorkflowAction } from './PayrollWorkflowGuide';
 
@@ -23,6 +24,7 @@ const { confirm } = Modal;
 
 interface EnhancedWorkflowGuideProps {
   selectedVersion: PayrollRunResponse | null;
+  selectedPeriod: PayrollPeriodResponse | null; // 新增：当前选择的期间
   auditSummary: AuditSummary | null;
   onRefresh: () => void;
   onStepChange?: (stepKey: string) => void;
@@ -31,6 +33,7 @@ interface EnhancedWorkflowGuideProps {
 
 export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   selectedVersion,
+  selectedPeriod,
   auditSummary,
   onRefresh,
   onStepChange,
@@ -198,6 +201,48 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     }
   };
 
+  // 一键复制上月数据
+  const handleQuickCopyPrevious = async () => {
+    if (!selectedPeriod) return;
+    
+    setActionLoading('quick_copy', true);
+    try {
+      // 获取可复制的期间列表
+      const periodsResponse = await simplePayrollApi.getPayrollPeriods({});
+      const availablePeriods = periodsResponse.data.filter(p => 
+        p.id !== selectedPeriod.id && 
+        p.status_name !== 'empty' &&
+        p.runs_count > 0
+      );
+      
+      if (availablePeriods.length === 0) {
+        message.warning('没有找到可复制的历史期间数据');
+        return;
+      }
+      
+      // 自动选择最近的一个期间（假设按ID排序，取最大的）
+      const latestPeriod = availablePeriods.sort((a, b) => b.id - a.id)[0];
+      
+      // 执行复制操作
+      await simplePayrollApi.generatePayroll({
+        period_id: selectedPeriod.id,
+        generation_type: 'copy_previous',
+        source_data: {
+          source_period_id: latestPeriod.id
+        },
+        description: `一键复制 ${latestPeriod.name} 数据`
+      });
+      
+      message.success(`已成功复制 ${latestPeriod.name} 的工资数据`);
+      onRefresh();
+    } catch (error: any) {
+      console.error('❌ 一键复制失败:', error);
+      message.error(error.message || '一键复制失败，请重试');
+    } finally {
+      setActionLoading('quick_copy', false);
+    }
+  };
+
   const handleSubmitForReview = async () => {
     if (!selectedVersion) return;
     
@@ -297,6 +342,11 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
 
   // 检查步骤是否可以执行
   const canExecuteStep = (stepIndex: number, currentStepIndex: number): boolean => {
+    // 数据准备步骤：只要有选择期间就可以执行
+    if (stepIndex === 0) {
+      return !!selectedPeriod;
+    }
+    // 其他步骤：需要按顺序执行
     return stepIndex <= currentStepIndex;
   };
 
@@ -322,17 +372,26 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       {
         key: 'data_preparation',
         title: '数据准备',
-        description: '导入和审核基础薪资数据',
+        description: selectedVersion ? '导入和审核基础薪资数据' : '选择期间后开始创建工资数据',
         icon: <FileTextOutlined />,
-        status: getStepStatus(0, currentStepIndex),
+        status: selectedVersion ? getStepStatus(0, currentStepIndex) : (selectedPeriod ? 'process' : 'wait'),
         disabled: !canExecuteStep(0, currentStepIndex),
         actions: [
           {
+            key: 'quick_copy',
+            label: '一键复制上月',
+            type: 'primary',
+            icon: <CopyOutlined />,
+            disabled: !selectedPeriod, // 只要有选择期间就可以复制
+            loading: loading.quick_copy,
+            onClick: handleQuickCopyPrevious
+          },
+          {
             key: 'import_data',
             label: '批量导入',
-            type: 'primary',
+            type: 'default',
             icon: <FileTextOutlined />,
-            disabled: !selectedVersion,
+            disabled: !selectedPeriod, // 修改：只要有选择期间就可以导入
             onClick: () => onNavigateToBulkImport?.()
           },
           {
@@ -340,7 +399,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             label: '运行计算引擎',
             type: 'default',
             icon: <CalculatorOutlined />,
-            disabled: !selectedVersion,
+            disabled: !selectedVersion, // 保持：需要有工资运行版本才能计算
             loading: loading.run_calculation,
             onClick: handleRunCalculationEngine
           }
@@ -352,7 +411,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           '完成工资计算'
         ],
         tips: [
-          '建议先复制上月数据作为基础',
+          '💡 推荐使用"一键复制上月"快速创建工资数据',
+          '复制后可通过批量导入调整个别员工数据',
           '重点检查新入职和离职员工',
           '计算完成后状态会自动更新'
         ]
@@ -471,14 +531,31 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
              icon: <FileTextOutlined />,
              disabled: !canExecuteStep(3, currentStepIndex),
              loading: loading.generate_reports,
-             onClick: () => {
+             onClick: async () => {
                if (!selectedVersion) return;
                setActionLoading('generate_reports', true);
-               // 这里调用报表生成API
-               setTimeout(() => {
-                 message.success('报表生成完成！包括：工资明细表、汇总表、银行代发文件');
+                                try {
+                  // 调用真实的报表生成API
+                  const reportRequest: ReportGenerationRequest = {
+                    report_ids: [1, 2, 3, 4], // 工资明细表、汇总表、银行代发文件、个税报表
+                    period_id: selectedVersion.period_id,
+                    payroll_run_id: selectedVersion.id,
+                    output_format: 'excel',
+                    include_details: true,
+                    filters: {
+                      // 可以添加过滤条件
+                    }
+                  };
+                  
+                  const response = await simplePayrollApi.generateReports(reportRequest);
+                  message.success('报表生成任务已启动！包括：工资明细表、汇总表、银行代发文件、个税报表');
+                  console.log('✅ 报表生成任务启动成功:', response);
+                } catch (error) {
+                  console.error('❌ 报表生成失败:', error);
+                  message.error('报表生成失败，请重试');
+                } finally {
                  setActionLoading('generate_reports', false);
-               }, 2000);
+               }
              }
            },
            {
@@ -488,8 +565,57 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
              icon: <BankOutlined />,
              disabled: !canExecuteStep(3, currentStepIndex),
              loading: loading.generate_bank_file,
-             onClick: () => {
-               message.info('银行文件生成功能开发中...');
+             onClick: async () => {
+               if (!selectedVersion) return;
+               
+               // 显示银行选择对话框
+               const bankOptions = [
+                 { label: '工商银行 (ICBC)', value: 'ICBC' },
+                 { label: '建设银行 (CCB)', value: 'CCB' },
+                 { label: '农业银行 (ABC)', value: 'ABC' },
+                 { label: '中国银行 (BOC)', value: 'BOC' },
+                 { label: '招商银行 (CMB)', value: 'CMB' },
+                 { label: '通用格式', value: 'GENERIC' }
+               ];
+               
+               const formatOptions = [
+                 { label: 'TXT文本文件', value: 'txt' },
+                 { label: 'CSV表格文件', value: 'csv' },
+                 { label: 'Excel文件', value: 'excel' }
+               ];
+               
+               // 这里可以用Modal.confirm或自定义Modal来选择银行和格式
+               // 为了简化，先使用默认参数
+               setActionLoading('generate_bank_file', true);
+               try {
+                 const response = await simplePayrollApi.generateBankFile({
+                   payroll_run_id: selectedVersion.id,
+                   bank_type: 'ICBC', // 默认工商银行
+                   file_format: 'csv', // 默认CSV格式
+                   include_summary: true
+                 });
+                 
+                 // 创建下载链接
+                 const blob = new Blob([response.data.file_content], { 
+                   type: response.data.file_format === 'csv' ? 'text/csv' : 'text/plain' 
+                 });
+                 const url = window.URL.createObjectURL(blob);
+                 const link = document.createElement('a');
+                 link.href = url;
+                 link.download = response.data.file_name;
+                 document.body.appendChild(link);
+                 link.click();
+                 document.body.removeChild(link);
+                 window.URL.revokeObjectURL(url);
+                 
+                 message.success(`银行文件生成成功！共${response.data.total_records}条记录，总金额${response.data.total_amount}元`);
+                 console.log('✅ 银行文件生成成功:', response.data.summary);
+               } catch (error) {
+                 console.error('❌ 银行文件生成失败:', error);
+                 message.error('银行文件生成失败，请检查员工银行信息是否完整');
+               } finally {
+                 setActionLoading('generate_bank_file', false);
+               }
              }
            },
            {

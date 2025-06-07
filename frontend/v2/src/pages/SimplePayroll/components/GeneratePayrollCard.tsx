@@ -48,11 +48,11 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
     
     try {
       setLoading(true);
-      const periods = await simplePayrollApi.getPayrollPeriods();
+      const response = await simplePayrollApi.getPayrollPeriods({});
       // 过滤掉当前期间，只显示有数据的历史期间
-      const availablePeriods = periods.filter(p => 
+      const availablePeriods = response.data.filter(p => 
         p.id !== currentPeriod.id && 
-        p.status !== 'empty' &&
+        p.status_name !== 'empty' &&
         p.runs_count > 0
       );
       setSourcePeriods(availablePeriods);
@@ -255,7 +255,7 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
                       <div style={{ fontSize: '12px', color: '#666' }}>
                         {t('simplePayroll:generate.copyModal.periodInfo', {
                           runs: period.runs_count,
-                          status: period.status
+                          status: period.status_name
                         })}
                       </div>
                     </div>

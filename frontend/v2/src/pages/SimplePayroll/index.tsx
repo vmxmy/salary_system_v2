@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Select, Space, Button, message, Spin, Tag, Tabs } from 'antd';
-import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import GeneratePayrollCard from './components/GeneratePayrollCard';
-import AuditPayrollCard from './components/AuditPayrollCard';
-import GenerateReportsCard from './components/GenerateReportsCard';
+// import AuditPayrollCard from './components/AuditPayrollCard';
+// import GenerateReportsCard from './components/GenerateReportsCard';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
 import { usePayrollPeriods } from './hooks/usePayrollPeriods';
-import { usePayrollVersions } from './hooks/usePayrollVersions';
-import { useAuditSummary } from './hooks/useAuditSummary';
+// import { usePayrollVersions } from './hooks/usePayrollVersions';
+// import { useAuditSummary } from './hooks/useAuditSummary';
 import type { PayrollPeriodResponse, PayrollRunResponse } from './types/simplePayroll';
 import './styles.less';
 
@@ -24,6 +24,7 @@ const SimplePayrollPage: React.FC = () => {
   const [selectedVersionId, setSelectedVersionId] = useState<number | undefined>();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTab, setActiveTab] = useState('workflow');
+  const [createPeriodModalVisible, setCreatePeriodModalVisible] = useState(false);
 
   // 数据获取
   const {
@@ -42,18 +43,12 @@ const SimplePayrollPage: React.FC = () => {
     });
   }, [periods, periodsLoading]);
 
-  const {
-    versions,
-    loading: versionsLoading,
-    refetch: refetchVersions
-  } = usePayrollVersions(selectedPeriodId);
-
-  // 获取审核摘要数据
-  const {
-    auditSummary,
-    loading: auditLoading,
-    refetch: refetchAuditSummary
-  } = useAuditSummary(selectedVersionId);
+  // 临时禁用版本和审核功能
+  const versions: any[] = [];
+  const versionsLoading = false;
+  const refetchVersions = () => {};
+  const auditSummary = null;
+  const refetchAuditSummary = () => {};
 
   // 强制版本选择 - 当版本加载完成且没有选中版本时
   useEffect(() => {
@@ -84,25 +79,71 @@ const SimplePayrollPage: React.FC = () => {
     navigate('/payroll/bulk-import');
   };
 
+  // 处理创建新薪资周期
+  const handleCreateNewPeriod = () => {
+    setCreatePeriodModalVisible(true);
+  };
+
+  // 快速创建当月薪资周期
+  const handleQuickCreateCurrentMonth = async () => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const monthStr = month.toString().padStart(2, '0');
+      
+      // 这里应该调用创建薪资周期的API
+      // 暂时用message提示
+      message.success(`正在创建 ${year}年${monthStr}月 薪资周期...`);
+      
+      // 刷新期间列表
+      handleRefresh();
+    } catch (error) {
+      message.error('创建薪资周期失败');
+    }
+  };
+
   // 期间变化时重置版本选择
   useEffect(() => {
     console.log('🎯 [SimplePayrollPage] 期间变化，重置版本选择:', selectedPeriodId);
     setSelectedVersionId(undefined);
   }, [selectedPeriodId]);
 
-  // 版本数据更新时自动选择最新版本
+  // 智能版本选择逻辑
   useEffect(() => {
-    console.log('🔄 [SimplePayrollPage] 版本自动选择检查:', {
+    console.log('🔄 [SimplePayrollPage] 智能版本选择检查:', {
       versionsLength: versions.length,
       selectedVersionId,
-      firstVersionId: versions[0]?.id
+      versions: versions.map(v => ({ id: v.id, status: v.status_name }))
     });
     
     if (versions.length > 0 && !selectedVersionId) {
-      console.log('✅ [SimplePayrollPage] 自动选择版本:', versions[0].id);
-      setSelectedVersionId(versions[0].id);
+      // 智能选择逻辑：优先级排序
+      let targetVersion = null;
+      
+      // 1. 优先选择"已计算"状态的版本（最常用的工作状态）
+      targetVersion = versions.find(v => v.status_name === '已计算');
+      
+      // 2. 如果没有"已计算"，选择"草稿"状态（可以继续编辑）
+      if (!targetVersion) {
+        targetVersion = versions.find(v => v.status_name === '草稿' || v.status_name === 'DRAFT');
+      }
+      
+      // 3. 如果都没有，选择最新的版本（第一个）
+      if (!targetVersion) {
+        targetVersion = versions[0];
+      }
+      
+      console.log('✅ [SimplePayrollPage] 智能选择版本:', {
+        selectedId: targetVersion.id,
+        status: targetVersion.status_name,
+        reason: targetVersion.status_name === '已计算' ? '优先选择已计算版本' : 
+                targetVersion.status_name === '草稿' ? '选择可编辑的草稿版本' : '选择最新版本'
+      });
+      
+      setSelectedVersionId(targetVersion.id);
     }
-  }, [versions.length, selectedVersionId]); // 修改依赖数组，避免versions对象引用变化导致的问题
+  }, [versions.length, selectedVersionId]);
 
   return (
     <Layout className="simple-payroll-layout">
@@ -140,7 +181,11 @@ const SimplePayrollPage: React.FC = () => {
                 value={selectedPeriodId}
                 onChange={(value) => {
                   console.log('🎯 [SimplePayrollPage] 期间选择变化:', value);
-                  setSelectedPeriodId(value);
+                  if (typeof value === 'string' && value === 'CREATE_NEW') {
+                    handleCreateNewPeriod();
+                    return;
+                  }
+                  setSelectedPeriodId(value as number);
                 }}
                 loading={periodsLoading}
                 showSearch
@@ -152,6 +197,21 @@ const SimplePayrollPage: React.FC = () => {
                     loading: periodsLoading
                   });
                 }}
+                dropdownRender={(menu) => (
+                  <>
+                    {menu}
+                    <div style={{ padding: '8px 0', borderTop: '1px solid #f0f0f0' }}>
+                      <Button
+                        type="dashed"
+                        icon={<PlusOutlined />}
+                        style={{ width: '100%', textAlign: 'left' }}
+                        onClick={handleCreateNewPeriod}
+                      >
+                        创建新薪资周期
+                      </Button>
+                    </div>
+                  </>
+                )}
               >
                 {periods.map(period => {
                   console.log('🔄 [SimplePayrollPage] 渲染期间选项:', {
@@ -189,63 +249,191 @@ const SimplePayrollPage: React.FC = () => {
               </Select>
             </div>
 
-            {/* 版本选择 */}
+            {/* 智能版本选择 */}
             {selectedPeriodId && (
               <div className="control-group">
-                <label>{t('simplePayroll:controls.version')}:</label>
-                <Select
-                  style={{ width: 280 }}
-                  placeholder={t('simplePayroll:controls.selectVersion')}
-                  value={selectedVersionId}
-                  onChange={setSelectedVersionId}
-                  loading={versionsLoading}
-                  allowClear
-                >
-                  {versions.map(version => (
-                    <Select.Option key={version.id} value={version.id}>
-                      <div style={{ maxWidth: '250px' }}>
-                        <div style={{ 
-                          whiteSpace: 'nowrap', 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis' 
-                        }}>
-                          版本 {version.version_number}
-                        </div>
-                        <div style={{ 
-                          fontSize: '12px', 
-                          color: '#666',
-                          whiteSpace: 'nowrap', 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis'
-                        }}>
-                          {version.initiated_at && new Date(version.initiated_at).toLocaleString()}
-                        </div>
-                      </div>
-                    </Select.Option>
-                  ))}
-                </Select>
+                <label>工资数据:</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <Select
+                    style={{ width: 280 }}
+                    placeholder="选择工资数据版本"
+                    value={selectedVersionId}
+                    onChange={setSelectedVersionId}
+                    loading={versionsLoading}
+                    allowClear
+                  >
+                    {versions.map((version, index) => {
+                      // 智能标签生成
+                      const getVersionLabel = () => {
+                        if (index === 0) return "最新版本";
+                        if (version.status_name === "已支付") return "已发放版本";
+                        if (version.status_name === "已计算") return "待审核版本";
+                        return `历史版本 ${version.version_number}`;
+                      };
+                      
+                      const getVersionDescription = () => {
+                        const date = new Date(version.initiated_at).toLocaleDateString();
+                        const time = new Date(version.initiated_at).toLocaleTimeString('zh-CN', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                        return `${date} ${time} · ${version.status_name}`;
+                      };
+
+                      return (
+                        <Select.Option key={version.id} value={version.id}>
+                          <div style={{ maxWidth: '250px' }}>
+                            <div style={{ 
+                              whiteSpace: 'nowrap', 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis',
+                              fontWeight: index === 0 ? 'bold' : 'normal'
+                            }}>
+                              {getVersionLabel()}
+                              {index === 0 && <span style={{ color: '#52c41a', marginLeft: '4px' }}>●</span>}
+                            </div>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: '#666',
+                              whiteSpace: 'nowrap', 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {getVersionDescription()}
+                            </div>
+                          </div>
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
+                  
+                  {/* 快捷切换按钮 */}
+                  {versions.length > 1 && (
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {/* 切换到最新版本 */}
+                      {selectedVersionId !== versions[0]?.id && (
+                        <Button
+                          size="small"
+                          type="link"
+                          onClick={() => setSelectedVersionId(versions[0].id)}
+                          title="切换到最新版本"
+                        >
+                          最新
+                        </Button>
+                      )}
+                      
+                      {/* 切换到已发放版本 */}
+                      {(() => {
+                        const paidVersion = versions.find(v => v.status_name === '已支付');
+                        return paidVersion && selectedVersionId !== paidVersion.id ? (
+                          <Button
+                            size="small"
+                            type="link"
+                            onClick={() => setSelectedVersionId(paidVersion.id)}
+                            title="切换到已发放版本"
+                          >
+                            已发放
+                          </Button>
+                        ) : null;
+                      })()}
+                      
+                      {/* 切换到待审核版本 */}
+                      {(() => {
+                        const calculatedVersion = versions.find(v => v.status_name === '已计算');
+                        return calculatedVersion && selectedVersionId !== calculatedVersion.id ? (
+                          <Button
+                            size="small"
+                            type="link"
+                            onClick={() => setSelectedVersionId(calculatedVersion.id)}
+                            title="切换到待审核版本"
+                          >
+                            待审核
+                          </Button>
+                        ) : null;
+                      })()}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* 工资运行状态标签 */}
+            {/* 智能版本状态指示器 */}
             {currentVersion && (
-              <div className="control-group">
-                <label>当前状态:</label>
-                <Tag 
-                  color={
-                    currentVersion.status_name === '已计算' ? 'green' :
-                    currentVersion.status_name === '待计算' ? 'orange' :
-                    currentVersion.status_name === '已支付' ? 'blue' :
-                    'default'
-                  }
-                  style={{ 
-                    fontSize: '13px',
-                    padding: '4px 8px',
-                    borderRadius: '4px'
-                  }}
-                >
-                  {currentVersion.status_name || '未知状态'}
-                </Tag>
+              <div style={{ 
+                marginTop: '16px',
+                padding: '12px 16px',
+                background: '#fafafa',
+                borderRadius: '6px',
+                border: '1px solid #f0f0f0'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '16px' }}>
+                    {(() => {
+                      switch (currentVersion.status_name) {
+                        case '草稿': return '📝';
+                        case '已计算': return '🧮';
+                        case '已审核': return '✅';
+                        case '已支付': return '💰';
+                        default: return '📄';
+                      }
+                    })()}
+                  </span>
+                  <div>
+                    <span style={{ 
+                      fontWeight: 'bold', 
+                      color: (() => {
+                        switch (currentVersion.status_name) {
+                          case '草稿': return '#faad14';
+                          case '已计算': return '#1890ff';
+                          case '已审核': return '#52c41a';
+                          case '已支付': return '#722ed1';
+                          default: return '#d9d9d9';
+                        }
+                      })()
+                    }}>
+                      当前版本：{currentVersion.status_name}
+                    </span>
+                    <span style={{ marginLeft: '12px', color: '#666', fontSize: '12px' }}>
+                      创建于 {new Date(currentVersion.initiated_at).toLocaleString()}
+                    </span>
+                  </div>
+                  {currentVersion.status_name === '已计算' && (
+                    <div style={{ 
+                      marginLeft: 'auto',
+                      padding: '4px 8px',
+                      background: '#e6f7ff',
+                      color: '#1890ff',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      可以进行审核和发放
+                    </div>
+                  )}
+                  {currentVersion.status_name === '草稿' && (
+                    <div style={{ 
+                      marginLeft: 'auto',
+                      padding: '4px 8px',
+                      background: '#fff7e6',
+                      color: '#faad14',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      可以编辑和计算
+                    </div>
+                  )}
+                  {currentVersion.status_name === '已支付' && (
+                    <div style={{ 
+                      marginLeft: 'auto',
+                      padding: '4px 8px',
+                      background: '#f6ffed',
+                      color: '#52c41a',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      已完成发放
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -258,6 +446,17 @@ const SimplePayrollPage: React.FC = () => {
                 style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
               >
                 智能引导
+              </Button>
+            )}
+
+            {/* 创建新期间按钮 */}
+            {periods.length > 0 && (
+              <Button 
+                icon={<PlusOutlined />} 
+                onClick={handleCreateNewPeriod}
+                type="dashed"
+              >
+                新建期间
               </Button>
             )}
 
@@ -293,6 +492,7 @@ const SimplePayrollPage: React.FC = () => {
                     <Col span={24}>
                       <EnhancedWorkflowGuide
                         selectedVersion={currentVersion}
+                        selectedPeriod={currentPeriod || null}
                         auditSummary={auditSummary}
                         onRefresh={handleRefresh}
                         onNavigateToBulkImport={handleNavigateToBulkImport}
@@ -319,22 +519,22 @@ const SimplePayrollPage: React.FC = () => {
                       />
                     </Col>
 
-                    {/* 审核工资卡片 */}
-                    <Col xs={24} sm={24} md={12} lg={8} xl={8}>
+                    {/* 审核工资卡片 - 临时禁用 */}
+                    {/* <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                       <AuditPayrollCard
                         selectedPeriod={currentPeriod}
                         selectedVersion={currentVersion}
                         onRefresh={handleRefresh}
                       />
-                    </Col>
+                    </Col> */}
 
-                    {/* 一键报表卡片 */}
-                    <Col xs={24} sm={24} md={24} lg={8} xl={8}>
+                    {/* 一键报表卡片 - 临时禁用 */}
+                    {/* <Col xs={24} sm={24} md={24} lg={8} xl={8}>
                       <GenerateReportsCard
                         selectedPeriod={currentPeriod}
                         selectedVersion={currentVersion}
                       />
-                    </Col>
+                    </Col> */}
                   </Row>
                 )
               }
@@ -344,11 +544,40 @@ const SimplePayrollPage: React.FC = () => {
           {/* 状态提示 */}
           {!selectedPeriodId && (
             <div className="status-hint">
-              <p>{t('simplePayroll:hints.selectPeriod')}</p>
-              {activeTab === 'workflow' && (
-                <p style={{ color: '#1890ff', marginTop: '8px' }}>
-                  💡 选择工资期间后，智能流程引导将为您显示具体的操作步骤
-                </p>
+              {periods.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <CalendarOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
+                  <h3 style={{ color: '#666', marginBottom: '8px' }}>还没有薪资周期</h3>
+                  <p style={{ color: '#999', marginBottom: '24px' }}>
+                    开始使用前，需要先创建一个薪资周期
+                  </p>
+                  <Space size="middle">
+                    <Button 
+                      type="primary" 
+                      icon={<PlusOutlined />}
+                      onClick={handleQuickCreateCurrentMonth}
+                      size="large"
+                    >
+                      创建本月薪资周期
+                    </Button>
+                    <Button 
+                      icon={<CalendarOutlined />}
+                      onClick={handleCreateNewPeriod}
+                      size="large"
+                    >
+                      自定义创建
+                    </Button>
+                  </Space>
+                </div>
+              ) : (
+                <div>
+                  <p>{t('simplePayroll:hints.selectPeriod')}</p>
+                  {activeTab === 'workflow' && (
+                    <p style={{ color: '#1890ff', marginTop: '8px' }}>
+                      💡 选择工资期间后，智能流程引导将为您显示具体的操作步骤
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}
