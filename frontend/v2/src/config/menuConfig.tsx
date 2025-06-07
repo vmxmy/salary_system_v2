@@ -80,12 +80,12 @@ export const transformMenuDataWithI18n = (
 
 // 📋 菜单数据配置
 export const menuData: AppMenuDataItem[] = [
-  // 🏠 首页图表
+  // 🏠 极简工资报表系统（首页）
   {
-    path: '/dashboard',
-    titleKey: 'dashboard',
+    path: '/simple-payroll',
+    titleKey: 'simplePayroll.title',
     icon: <HomeOutlined />,
-    component: './Dashboard',
+    component: './SimplePayroll',
   },
   
   // 👤 个人中心

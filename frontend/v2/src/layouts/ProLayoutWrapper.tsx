@@ -167,7 +167,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
   const currentUser = useSelector((state: RootState) => state.auth.currentUser);
   
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true); // 默认折叠侧边栏
   const [themeMode, setThemeMode] = useState<ThemeMode>('light');
   const [layoutSettings, setLayoutSettings] = useState(defaultProLayoutSettings);
   const [logoError, setLogoError] = useState(false);
@@ -288,7 +288,7 @@ const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(k
           alignItems: 'center',
           cursor: 'pointer',
         }}
-        onClick={() => navigate('/dashboard')}
+        onClick={() => navigate('/simple-payroll')}
       >
         {renderLogo()}
         {!props?.collapsed && (

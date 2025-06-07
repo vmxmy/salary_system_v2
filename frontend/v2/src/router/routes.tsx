@@ -9,8 +9,8 @@ import i18n from '../i18n'; // Import i18n instance
 
 // 导入页面组件
 import LoginPage from '../pages/LoginPage';
-// New optimized Dashboard V3 (新版优化仪表盘)
-const DashboardV3 = lazy(() => import('../pages/Dashboard/DashboardV3'));
+// 删除 DashboardV3 导入，不再需要仪表盘
+// const DashboardV3 = lazy(() => import('../pages/Dashboard/DashboardV3'));
 import UsersPageV2 from '../pages/Admin/UsersV2';
 import RolesPageV2 from '../pages/Admin/RolesV2';
 import PermissionListPageV2 from '../pages/Admin/Permissions/PermissionListPageV2';
@@ -90,12 +90,14 @@ export const routes: AppRouteObject[] = [
       </AppProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      {
-        path: 'dashboard',
-        element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Dashboard...</div>}><DashboardV3 /></React.Suspense>,
-        meta: { title: 'menu:dashboard', hideInBreadcrumbIfParentOfNext: true },
-      },
+      // 将首页重定向到简单工资页面
+      { index: true, element: <Navigate to="/simple-payroll" replace /> },
+      // 删除仪表盘路由
+      // {
+      //   path: 'dashboard',
+      //   element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Dashboard...</div>}><DashboardV3 /></React.Suspense>,
+      //   meta: { title: 'menu:dashboard', hideInBreadcrumbIfParentOfNext: true },
+      // },
       {
         path: 'admin',
         element: (

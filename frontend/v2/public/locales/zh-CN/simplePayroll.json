@@ -1,6 +1,7 @@
 {
   "title": "极简工资报表系统",
   "subtitle": "专注三大核心功能：生成工资、审核工资、一键报表",
+  "selectPeriodPlaceholder": "选择或创建工资期间",
   "page": {
     "title": "极简工资报表系统",
     "subtitle": "专注三大核心功能：生成工资、审核工资、一键报表"
@@ -175,12 +176,11 @@
     "selectPeriodFirst": "请先选择工资期间以开始操作"
   },
   "controls": {
-    "period": "工资期间",
-    "version": "工资版本",
-    "selectPeriod": "请选择期间",
-    "selectVersion": "请选择版本",
-    "periodStatus": "状态: {{status}}, 版本数: {{runs}}",
-    "versionLabel": "版本 {{number}}"
+    "title": "核心控制",
+    "periodLabel": "工资期间",
+    "versionLabel": "工资版本",
+    "selectPeriodPlaceholder": "选择或创建工资期间",
+    "versionPlaceholder": "选择一个数据版本"
   },
   "excel": {
     "title": "Excel导入工资数据",
@@ -235,6 +235,7 @@
     "createSuccess": "创建工资数据成功"
   },
   "errors": {
+    "fetchPeriodFailed": "查找或创建工资期间失败",
     "fetchSourcePeriods": "获取可复制期间失败",
     "copyFailed": "复制工资数据失败",
     "createFailed": "创建工资数据失败"
@@ -242,6 +243,26 @@
   "hints": {
     "selectPeriod": "请先选择一个工资期间来开始操作",
     "noVersions": "当前期间还没有工资版本，请先生成工资数据"
+  },
+  "emptyState": {
+    "title": "请选择一个工资期间",
+    "message": "选择或创建一个工资期间后，您可以在此管理工资单。"
+  },
+  "quickActions": {
+    "title": "快捷操作",
+    "bulkImport": "批量导入工资数据",
+    "copyLastMonth": "一键复制上月数据"
+  },
+  "completionRequirements": {
+    "title": "完成要求",
+    "item1": "所有员工数据已录入",
+    "item2": "薪资标准已配置",
+    "item3": "考勤与绩效已核算"
+  },
+  "operationalTips": {
+    "title": "操作提示",
+    "item1": "建议先进行数据备份",
+    "item2": "如有疑问请联系管理员"
   },
   "batchAdjust": {
     "title": "批量调整",

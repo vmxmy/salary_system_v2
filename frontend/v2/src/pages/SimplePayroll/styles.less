@@ -1,610 +1,860 @@
-// styles.less
+// styles.less for SimplePayrollPage Refactor
+
+// =============================================================================
+// 🎨 字体文件引入 (Font Face Declarations)
+// =============================================================================
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-ExtraLight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('../../assets/fonts/SourceHanSerifCN-Heavy.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+// =============================================================================
+// 🎨 字体样式规范 (Typography System)
+// =============================================================================
+
+// 字体族定义
+@font-family-primary: 'Source Han Serif SC', 'Source Han Serif CN', '思源宋体', 'Noto Serif CJK SC', 'SimSun', '宋体', serif;
+@font-family-mono: 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', 'Source Code Pro', Menlo, Consolas, 'Courier New', monospace;
+
+// 字体大小规范 (基于 12px 基准，使用 1.2 倍数比例)
+@font-size-xs: 10px;      // 极小文字：辅助信息、版权信息
+@font-size-sm: 12px;      // 小文字：标签、次要信息
+@font-size-base: 14px;    // 基础文字：正文、表单
+@font-size-md: 16px;      // 中等文字：重要信息、按钮
+@font-size-lg: 18px;      // 大文字：小标题、重要数值
+@font-size-xl: 20px;      // 特大文字：页面标题
+@font-size-xxl: 24px;     // 超大文字：主标题
+@font-size-xxxl: 28px;    // 巨大文字：数据展示
+
+// 行高规范 (确保良好的可读性)
+@line-height-tight: 1.2;   // 紧凑行高：标题、数值
+@line-height-base: 1.4;    // 基础行高：正文
+@line-height-relaxed: 1.6; // 宽松行高：长文本
+
+// 字体粗细规范 (匹配思源宋体可用字重)
+@font-weight-extralight: 200; // 极细体：装饰性文字
+@font-weight-light: 300;      // 细体：次要信息
+@font-weight-normal: 400;     // 常规：正文
+@font-weight-medium: 500;     // 中等：重要信息
+@font-weight-semibold: 600;   // 半粗：小标题
+@font-weight-bold: 700;       // 粗体：标题、强调
+@font-weight-heavy: 800;      // 重体：特别强调
+
+// 颜色规范 (基于语义化设计)
+@text-color-primary: #1a1a1a;     // 主要文字：标题、重要内容
+@text-color-secondary: #666666;   // 次要文字：描述、辅助信息
+@text-color-tertiary: #999999;    // 三级文字：占位符、禁用状态
+@text-color-quaternary: #cccccc;  // 四级文字：分割线、边框
+@text-color-inverse: #ffffff;     // 反色文字：深色背景上的文字
+
+// 语义化颜色
+@text-color-success: #52c41a;     // 成功状态
+@text-color-warning: #faad14;     // 警告状态
+@text-color-error: #ff4d4f;       // 错误状态
+@text-color-info: #1890ff;        // 信息状态
+@text-color-link: #1890ff;        // 链接颜色
+@text-color-link-hover: #40a9ff;  // 链接悬停
+
+// 数值显示专用颜色
+@text-color-number-positive: #52c41a; // 正数/增长
+@text-color-number-negative: #ff4d4f; // 负数/下降
+@text-color-number-neutral: #1a1a1a;  // 中性数值
+
+// =============================================================================
+// 🎯 字体样式类定义 (Typography Classes)
+// =============================================================================
+
+// 标题样式
+.typography-title-primary {
+  font-family: @font-family-primary;
+  font-size: @font-size-xxl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-color-primary;
+  margin: 0 0 16px 0;
+}
+
+.typography-title-secondary {
+  font-family: @font-family-primary;
+  font-size: @font-size-xl;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-color-primary;
+  margin: 0 0 12px 0;
+}
+
+.typography-title-tertiary {
+  font-family: @font-family-primary;
+  font-size: @font-size-lg;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-color-primary;
+  margin: 0 0 8px 0;
+}
+
+// 正文样式
+.typography-body-primary {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-base;
+  color: @text-color-primary;
+}
+
+.typography-body-secondary {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-base;
+  color: @text-color-secondary;
+}
+
+// 标签样式
+.typography-label-primary {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-medium;
+  line-height: @line-height-base;
+  color: @text-color-secondary;
+}
+
+.typography-label-secondary {
+  font-family: @font-family-primary;
+  font-size: @font-size-xs;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-base;
+  color: @text-color-tertiary;
+}
+
+// 数值样式
+.typography-number-large {
+  font-family: @font-family-primary;
+  font-size: @font-size-xxxl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-color-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.typography-number-medium {
+  font-family: @font-family-primary;
+  font-size: @font-size-lg;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-color-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.typography-number-small {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-medium;
+  line-height: @line-height-tight;
+  color: @text-color-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+// 状态样式
+.typography-success {
+  color: @text-color-success !important;
+}
+
+.typography-warning {
+  color: @text-color-warning !important;
+}
+
+.typography-error {
+  color: @text-color-error !important;
+}
+
+.typography-info {
+  color: @text-color-info !important;
+}
+
+// 链接样式
+.typography-link {
+  font-family: @font-family-primary;
+  color: @text-color-link;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: @text-color-link-hover;
+    text-decoration: underline;
+  }
+}
+
+// =============================================================================
+// 🎨 原有颜色变量 (保持兼容性)
+// =============================================================================
 
 // Define Ant Design related color variables for consistency
-@primary-color: #007aff; // A slightly softer, more vibrant blue
-@success-color: #34c759; // A vibrant green for success
-@warning-color: #ff9500; // A warm orange for warning
-@info-color: #007aff; // Same as primary
-@error-color: #ff3b30; // A distinct red for error
-@light-blue-tint: rgba(0, 122, 255, 0.05); // Very light blue tint for selected states
-@light-green-tint: rgba(52, 199, 89, 0.05); // Very light green tint for recorded states
+@primary-color: #007aff;
+@success-color: #34c759;
+@warning-color: #ff9500;
+@error-color: #ff3b30;
+@info-color: #5ac8fa; // A light, friendly blue for info
+@light-gray-bg: #f8f8f8;
+@border-color: #e0e0e0;
+
+// 更新文字颜色变量以使用新的规范
+// @text-color-primary: #1d1d1f;    // 替换为新的规范
+// @text-color-secondary: #6e6e73;  // 替换为新的规范
 
 // Consistent border radius and shadow for all cards
-@card-border-radius: 16px; // Larger, softer rounded corners
-@card-shadow: 0 2px 16px rgba(0, 0, 0, 0.04); // Lighter, more diffused shadow
-@card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); // More pronounced hover shadow
+@card-border-radius: 16px;
+@card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+@card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 
 // Overall Layout
 .simple-payroll-layout {
   min-height: 100vh;
-  background-color: #f8f8f8; // A very light, slightly warm off-white background
-  font-family: 'Inter', sans-serif; // Ensure Inter font is applied
-  color: #333333; // Default text color, softer than pure black
+  background-color: @light-gray-bg;
+  font-family: @font-family-primary;
 }
 
-// Page Header Styling - Simplified and integrated look
+// Page Header
 .payroll-header {
-  background-color: #ffffff; // Clean white background
-  padding: 30px 40px; // Generous padding
+  background-color: #ffffff;
+  padding: 24px 32px;
   height: auto;
-  box-shadow: none; // No direct shadow on header, cards will have shadows
-  border-bottom: 1px solid #f0f0f0; // Subtle separator
-  color: #333333; // Dark text color for contrast
+  border-bottom: 1px solid @border-color;
+  
   .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-    align-items: flex-start;
-  }
-  .header-title {
-    color: #333333; // Dark text for title
-    font-size: 2.8rem; // Slightly larger for prominence
-    margin-bottom: 8px;
-    font-weight: 700;
-  }
-  .header-subtitle {
-    color: #666666; // Softer gray for subtitle
-    font-size: 1.2rem;
-    margin-bottom: 24px; // More space below subtitle
-  }
-  .header-prompt {
-    .ant-tag {
-      background-color: @light-blue-tint; // Light blue tint
-      border-color: @primary-color; // Primary blue border
-      color: @primary-color; // Primary blue text
-      padding: 8px 16px; // More padding
-      font-size: 1rem; // Slightly larger font
-      border-radius: 8px; // Softer corners for tag
-          font-weight: 500;
+    .header-title {
+      .typography-title-primary();
+    }
+    
+    .header-subtitle {
+      .typography-body-secondary();
+      margin: 4px 0 0;
     }
   }
 }
 
-// Main Content Area Styling
+// Main Content Area
 .payroll-content-area {
-  padding: 30px 40px; // More generous padding
-  max-width: 1200px;
-  margin: 24px auto;
-  @media (max-width: 768px) {
-    padding: 20px; // Adjust padding on smaller screens
-          }
-        }
-
-// Control Panel Card Styling
-.control-panel-card {
-  margin-bottom: 30px; // More vertical space
-  border-radius: @card-border-radius;
-  box-shadow: @card-shadow;
-  background-color: #ffffff; // Clean white background
-  .ant-card-body {
-    padding: 30px; // Generous padding inside card
-    @media (max-width: 768px) {
-      padding: 20px;
-      }
-    }
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px; // More space between groups
-    &:last-child {
-      margin-bottom: 0;
-    }
-    .control-label {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 12px; // More space below label
-      font-size: 1.15rem; // Slightly larger label font
-    }
-    .ant-picker {
-      border-radius: 10px; // Softer corners for inputs
-      height: 48px; // Taller inputs
-      border: 1px solid #e0e0e0; // Lighter border color
-      &:hover, &:focus {
-        border-color: @primary-color; // Highlight on hover/focus
-        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); // Soft focus ring
-      }
-      .ant-picker-input > input {
-        font-size: 1.1rem; // Larger input font
-        color: #333;
-      }
-    }
-    .ant-btn { // General button styling within control group
-      height: 48px;
-      border-radius: 10px;
-      font-size: 1.05rem;
-      font-weight: 500;
-      &.ant-btn-primary {
-        background-color: @primary-color;
-        border-color: @primary-color;
-        &:hover {
-          background-color: darken(@primary-color, 5%);
-          border-color: darken(@primary-color, 5%);
-        }
-      }
-      &.ant-btn-default {
-        border-color: #d0d0d0;
-      color: #666;
-        &:hover {
-          border-color: @primary-color;
-          color: @primary-color;
-        }
-      }
-    }
+  padding: 24px;
+  @media (min-width: 1200px) {
+    max-width: 1400px;
+    margin: 0 auto;
   }
 }
 
-// Payroll Version Cards Container
-.payroll-version-cards-container {
-  min-height: 120px; // Increased min height for visual balance
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  .loading-versions, .no-versions-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-    color: #999;
-    font-size: 1rem;
-    .ant-spin {
-        margin-bottom: 12px; // More space
-    }
-  }
-  .no-versions-placeholder {
-    border: 1px dashed #e0e0e0; // Lighter dashed border
-    border-radius: 10px;
-    padding: 30px;
-    p {
-      margin-bottom: 16px;
-    }
-    .ant-btn {
-        height: 38px;
-        border-radius: 8px;
-        font-size: 0.95rem;
-    }
-  }
-}
-
-// Grid for Version Cards
-.version-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); // Wider min-width for cards
-  gap: 20px; // Larger gap between cards
-}
-
-// Individual Version Card Styling
-.version-card {
-  border-radius: 12px; // Keep card corners consistent
-  transition: all 0.2s ease-in-out;
-  border: 1px solid #f0f0f0; // Lighter default border
-  background-color: #ffffff;
-  .ant-card-body {
-    padding: 16px !important; // Slightly more padding than before
-  }
-  &.selected {
-    border-width: 2px !important;
-    border-color: @primary-color !important;
-    background-color: @light-blue-tint !important; // Very light blue tint
-    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.1); // Softer blue shadow for emphasis
-  }
+// General Card Enhancements
+.ant-card {
+  border-radius: @card-border-radius !important;
+  box-shadow: @card-shadow !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  font-family: @font-family-primary !important;
+  
   &:hover {
-    transform: translateY(-4px); // More pronounced lift effect on hover
-    box-shadow: @card-hover-shadow; // Stronger, yet soft shadow on hover
-  }
-  .version-title {
-    font-weight: 600;
-    font-size: 1.15rem; // Slightly larger title
-    display: flex;
-    align-items: center;
-    gap: 6px; // More gap
-    margin-bottom: 6px; // More space
-    color: #333; // Default title color
-    .latest-indicator {
-        color: @success-color;
-        font-size: 0.85em;
-    }
-    .selected-indicator {
-        color: @primary-color;
-        font-size: 0.9em;
-    }
-  }
-  .version-meta {
-    font-size: 0.85rem; // Slightly larger meta font
-    color: #888; // Softer meta text color
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    .version-status-tag {
-        font-size: 0.75rem;
-        padding: 3px 8px; // More padding for tags
-        border-radius: 6px; // Softer tag corners
-        font-weight: 500;
-    }
-  }
-}
-
-// Main Content Tabs Card Styling
-.main-content-card {
-  border-radius: @card-border-radius;
-  box-shadow: @card-shadow;
-  background-color: #ffffff;
-  .ant-tabs-nav {
-    margin-bottom: 0;
-    border-bottom: 1px solid #f0f0f0;
-    .ant-tabs-nav-wrap {
-        padding-left: 30px; // Align tabs with new card padding
-        @media (max-width: 768px) {
-            padding-left: 20px;
-        }
-    }
-    .ant-tabs-tab { // Style for individual tabs
-        padding: 16px 24px; // More padding for tabs
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #666;
-        .ant-tabs-tab-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-    }
-    .ant-tabs-tab-active { // Style for active tab
-        .ant-tabs-tab-btn {
-            color: @primary-color;
-        }
-    }
-    .ant-tabs-ink-bar { // Active tab indicator bar
-        background-color: @primary-color;
-        }
-      }
-  .ant-tabs-content-holder {
-    padding-top: 0;
-  }
-}
-
-// Status Hint Cards Styling
-.status-hint-card, .workflow-status-card {
-  margin-top: 30px; // More vertical space
-  border-radius: @card-border-radius;
-  box-shadow: @card-shadow;
-  background-color: #ffffff;
-  padding: 30px;
-  text-align: center;
-  .ant-card-body {
-    padding: 30px !important;
-  }
-  .no-period-prompt {
-    .no-period-icon {
-      font-size: 56px; // Larger icon
-      color: #e0e0e0; // Softer gray for icon
-      margin-bottom: 20px;
-        }
-    h3 {
-      color: #444; // Darker gray for heading
-      margin-bottom: 12px;
-      font-size: 1.3rem;
-    }
-    p {
-      color: #888; // Softer gray for text
-      margin-bottom: 30px;
-      font-size: 1.05rem;
-    }
-    .ant-btn { // Buttons within prompt
-      height: 48px;
-      border-radius: 10px;
-      font-size: 1.05rem;
-      font-weight: 500;
-      &.ant-btn-primary {
-        background-color: @primary-color;
-        border-color: @primary-color;
-        &:hover {
-          background-color: darken(@primary-color, 5%);
-          border-color: darken(@primary-color, 5%);
-        }
-      }
-      &.ant-btn-default {
-        border-color: #d0d0d0;
-        color: #666;
-        &:hover {
-          border-color: @primary-color;
-          color: @primary-color;
-        }
-      }
-    }
-  }
-  .info-prompt {
-    p {
-        margin: 0;
-        color: #555;
-        font-size: 1.05rem;
-    }
-    .text-blue-500 {
-        color: @info-color;
-        font-weight: 500;
-    }
-  }
-}
-
-// Specific style for the workflow status hint card
-.workflow-status-card {
-    background: #eaf6ff; // Even lighter blue for a subtle hint
-    border: 1px solid #a6d9ff; // Softer blue border
-    color: @primary-color; // Primary text color
-    font-weight: 500;
-    strong {
-        color: @primary-color;
-    }
-}
-
-// DatePicker custom month cell styling
-.ant-picker-cell-inner.custom-month-cell {
-  position: relative;
-  width: 36px; // Fixed width for month cells to look uniform
-  height: 36px; // Fixed height
-  display: flex;
-  align-items: center;
-            justify-content: center;
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
-  border-radius: 50%; // Circular cells
-  border: 1px solid transparent; // Default transparent border
-
-  // Hover state for all month cells
-  &:hover {
-    background-color: #f5f5f5; // Very light gray on hover
-    cursor: pointer;
-  }
-
-  // Styles for cells that have payroll records (light green background)
-  &.has-payroll-record {
-    background-color: @light-green-tint; // Very light green background
-    border-color: @success-color; // Success green border
-    color: #333333; // Darker text for contrast
-    font-weight: 600; // Slightly bolder for recorded months
-
-    .payroll-record-dot { // Small dot indicator
-      position: absolute;
-      bottom: 4px;
-      width: 6px;
-      height: 6px;
-      background-color: @success-color; // Solid green dot
-      border-radius: 50%;
-    }
-  }
-}
-
-// Override Ant Design's default selected cell style to ensure our custom styles take precedence
-.ant-picker-cell-selected .ant-picker-cell-inner.custom-month-cell {
-  background-color: @primary-color !important; // Primary blue background for selected
-  border-color: @primary-color !important; // Primary blue border for selected
-  color: white !important; // White text for selected month number
-  font-weight: bold !important;
-  .payroll-record-dot {
-    background-color: white !important; // White dot when the recorded month is selected
-  }
-}
-
-// Specific states for payroll records for advanced highlighting
-.ant-picker-cell-inner.month-cell-draft {
-    background-color: rgba(255, 149, 0, 0.05); // Very light orange tint
-    border-color: @warning-color;
-    color: #333333;
-    .payroll-record-dot { background-color: @warning-color; }
-  }
-
-.ant-picker-cell-inner.month-cell-calculated {
-    background-color: @light-blue-tint; // Very light blue tint
-    border-color: @primary-color;
-    color: #333333;
-    .payroll-record-dot { background-color: @primary-color; }
-}
-
-.ant-picker-cell-inner.month-cell-audited {
-    background-color: @light-green-tint; // Very light green tint
-    border-color: @success-color;
-    color: #333333;
-    .payroll-record-dot { background-color: @success-color; }
-}
-
-.ant-picker-cell-inner.month-cell-paid {
-    background-color: rgba(100, 210, 255, 0.05); // A unique light tint for paid
-    border-color: #64d2ff; // A lighter blue for paid
-    color: #333333;
-    .payroll-record-dot { background-color: #64d2ff; }
-}
-
-// Ensure selected state overrides these specific status colors
-.ant-picker-cell-selected {
-    .ant-picker-cell-inner.month-cell-draft,
-    .ant-picker-cell-inner.month-cell-calculated,
-    .ant-picker-cell-inner.month-cell-audited,
-    .ant-picker-cell-inner.month-cell-paid {
-        background-color: @primary-color !important;
-        border-color: @primary-color !important;
-        color: white !important;
-        .payroll-record-dot {
-            background-color: white !important;
-        }
-    }
-}
-
-// DatePicker custom month cell styling based on Airbnb style
-.month-circle-icon {
-  font-size: 0.8rem;
-  margin-top: 2px;
-  color: #888888;
-}
-
-.ant-picker-dropdown {
-  // Main popover panel
-  .ant-picker-panel {
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    border: 1px solid #f0f0f0;
-    background-color: #ffffff;
-    padding: 12px;
-  }
-
-  // Header section (Year + Arrows)
-  .ant-picker-header {
-    padding: 0 8px;
-    margin-bottom: 12px;
-    border-bottom: none;
-
-    .ant-picker-header-view {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #333333;
+    box-shadow: @card-hover-shadow !important;
+    transform: translateY(-2px);
   }
   
-    .ant-picker-header-super-prev-btn,
-    .ant-picker-header-super-next-btn {
-      color: #888888;
-      &:hover {
-        color: #333333;
-      }
-    }
-
-    .ant-picker-header-prev-btn,
-    .ant-picker-header-next-btn {
-      color: #888888;
-      &:hover {
-        color: #333333;
-      }
+  // 确保卡片标题使用统一字体
+  .ant-card-head-title {
+    font-family: @font-family-primary !important;
+  }
+  
+  // 确保卡片内容使用统一字体
+  .ant-card-body {
+    font-family: @font-family-primary !important;
   }
 }
 
-  // Month cell styling
-  .ant-picker-cell .ant-picker-cell-inner {
-    height: 60px;
-    border-radius: 12px;
-    background-color: #f7f7f7;
-    color: #555555;
-    font-weight: 500;
-    font-size: 1.1rem;
-    transition: all 0.2s ease-in-out;
-    border: 1px solid transparent;
+// 确保所有Ant Design组件都使用思源宋体
+.ant-typography,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5,
+.ant-typography h6,
+.ant-typography p,
+.ant-typography span,
+.ant-typography div,
+.ant-typography-title,
+.ant-typography-paragraph,
+.ant-typography-text,
+.ant-alert,
+.ant-alert-message,
+.ant-alert-description,
+.ant-tag,
+.ant-space,
+.ant-modal,
+.ant-modal-title,
+.ant-modal-content,
+.ant-modal-body,
+.ant-pro-card,
+.ant-pro-card-title,
+.ant-pro-card-body {
+  font-family: @font-family-primary !important;
+}
+
+.h-full {
+  height: 100%;
+}
+
+// Loading container
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 200px); // Adjust height as needed
+}
+
+// Specific Card Styles
+.control-group {
+  margin-bottom: 16px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .control-label {
+    .typography-label-primary();
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
+.empty-state-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  text-align: center;
+  
+  .empty-state-content {
+    h2 {
+      .typography-title-tertiary();
+      margin-top: 16px;
+    }
+    
+    p {
+      .typography-body-secondary();
+    }
+  }
+}
+
+.info-card {
+  height: 100%;
+  
+  ul {
+    padding-left: 20px;
+    margin: 0;
+    
+    li {
+      .typography-body-secondary();
+      margin-bottom: 8px;
+    }
+  }
+}
+
+// Unified Statistics Card Styles
+.unified-stats-card {
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .ant-pro-card-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .ant-pro-card-title {
+      .typography-label-primary();
+      font-weight: @font-weight-semibold;
+
+      .anticon {
+        margin-right: 8px;
+        font-size: @font-size-md;
+      }
+    }
+  }
+
+  .ant-pro-card-body {
+    padding: 0;
+  }
+
+  // 子卡片样式
+  .ant-pro-card {
+    border: none;
+    box-shadow: none;
+
+    .ant-pro-card-header {
+      padding: 12px 16px 8px;
+      border-bottom: none;
+
+      .ant-pro-card-title {
+        .typography-label-secondary();
+        font-weight: @font-weight-semibold;
+        color: @text-color-secondary;
+      }
+    }
+
+    .ant-pro-card-body {
+      padding: 8px 16px 16px;
+    }
+  }
+
+  // 主要数值样式
+  .stat-main-value {
+    text-align: center;
+    margin-bottom: 8px;
+
+    .stat-number {
+      .typography-number-medium();
+    }
+
+    .stat-unit {
+      .typography-label-secondary();
+      margin-left: 4px;
+    }
+  }
+
+    // 详细信息样式
+  .stat-details {
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      padding: 2px 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .detail-label {
+        .typography-label-secondary();
+        font-weight: @font-weight-medium;
+        min-width: 35px;
+      }
+
+      .detail-value {
+        .typography-label-secondary();
+        font-weight: @font-weight-semibold;
+        color: @text-color-primary;
+        text-align: right;
+        flex: 1;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  // 分隔线样式
+  .ant-divider {
+    margin: 8px 0;
+    border-color: #f0f0f0;
+  }
+
+  // 响应式调整
+  @media (max-width: 768px) {
+    .ant-pro-card-header {
+      padding: 12px 16px 8px;
+
+      .ant-pro-card-title {
+        font-size: 13px;
+
+        .anticon {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .ant-pro-card {
+      .ant-pro-card-header {
+        padding: 8px 12px 6px;
+
+        .ant-pro-card-title {
+          font-size: 11px;
+        }
+      }
+
+      .ant-pro-card-body {
+        padding: 6px 12px 12px;
+      }
+    }
+
+    .stat-main-value {
+      .stat-number {
+        font-size: 16px;
+      }
+
+      .stat-unit {
+        font-size: 11px;
+      }
+    }
+
+    .stat-details {
+      .detail-item {
+        margin-bottom: 4px;
+
+        .detail-label,
+        .detail-value {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 576px) {
+    // 在小屏幕上改为垂直布局
+    .ant-pro-card-split-vertical {
+      flex-direction: column;
+    }
+
+    .stat-main-value {
+      .stat-number {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// 响应式统计卡片样式
+.responsive-stats-card {
+  .stats-row {
+    margin-bottom: 0;
+    
+    &:first-child {
+      margin-bottom: 1px; // 行间距
+    }
+    
+    // 在中等屏幕以下改为垂直布局（1x4）
+    @media (max-width: 768px) {
+      .ant-pro-card-split-vertical {
+        flex-direction: column;
+      }
+      
+      .ant-pro-card {
+        margin-bottom: 1px;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+  
+  // 在小屏幕下优化间距
+  @media (max-width: 576px) {
+    .stats-row {
+      .ant-pro-card {
+        .ant-pro-card-header {
+          padding: 8px 12px 6px;
+        }
+        
+        .ant-pro-card-body {
+          padding: 6px 12px 12px;
+        }
+      }
+    }
+  }
+}
+
+// Unified Control Styles (Airbnb-inspired)
+// ------------------------------------------
+
+// General style for all buttons
+.ant-btn {
+  border-radius: 12px !important;
+  font-family: @font-family-primary !important;
+  font-size: @font-size-base !important;
+  font-weight: @font-weight-medium !important;
+  height: 44px !important;
+  padding: 0 24px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+}
+
+// Primary action button
+.ant-btn-primary {
+  background: @primary-color !important;
+  border-color: @primary-color !important;
+  &:hover {
+    background: darken(@primary-color, 5%) !important;
+    border-color: darken(@primary-color, 5%) !important;
+  }
+}
+
+// Default/Secondary button
+.ant-btn-default {
+  background: #ffffff !important;
+  border-color: @border-color !important;
+  color: @text-color-primary !important;
+  &:hover {
+    border-color: @primary-color !important;
+    color: @primary-color !important;
+  }
+}
+
+// Input fields (DatePicker, Select)
+.ant-picker, .ant-select-selector {
+  border-radius: 12px !important;
+  height: 44px !important;
+  border: 1px solid @border-color !important;
+  transition: all 0.3s ease !important;
+  font-family: @font-family-primary !important;
+
+  &:hover {
+    border-color: @primary-color !important;
+  }
+}
+
+.ant-picker-input > input, .ant-select-selection-item, .ant-select-selection-placeholder {
+  padding: 0 4px;
+  line-height: 42px !important;
+  font-size: @font-size-base !important;
+  font-family: @font-family-primary !important;
+  color: @text-color-primary !important;
+}
+
+.ant-select-selection-placeholder {
+  color: @text-color-tertiary !important;
+}
+
+// Focus state for inputs
+.ant-picker-focused, .ant-select-focused .ant-select-selector {
+  border-color: @primary-color !important;
+  box-shadow: 0 0 0 3px fade(@primary-color, 15%) !important;
+}
+
+// Custom styles for Version Select dropdown options
+.version-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+
+  .version-option-label {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    &:hover {
-      background-color: #e9e9e9;
-      border-color: #d0d0d0;
-    }
-  }
-
-  // Recorded month styling
-  .ant-picker-cell .ant-picker-cell-inner.recorded-month {
-    background-color: #e8f9ed;
-    border-color: #b7eb8f;
-    color: #34c759;
-
-    .month-circle-icon {
-      color: #34c759;
-}
-  }
-
-  // Selected month styling (overrides recorded style)
-  .ant-picker-cell-selected .ant-picker-cell-inner {
-    background-color: #007aff !important;
-    color: white !important;
-    border-color: #007aff !important;
-    box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
-
-    .month-circle-icon {
-      color: rgba(255, 255, 255, 0.9) !important;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+    
+    .version-option-time {
+      .typography-label-secondary();
+      margin-top: 2px;
     }
   }
 }
 
-// Enhanced month cell styling for different states - 5级颜色递进
-.enhanced-month-cell {
-  position: relative;
+// 确保Select和DatePicker高度一致
+.ant-select-selector,
+.ant-picker {
+  min-height: 44px !important;
+  height: 44px !important;
+}
+
+// Select选中值显示优化
+.ant-select-selection-item {
+  line-height: 42px !important;
+  font-size: @font-size-base !important;
+  font-weight: @font-weight-medium !important;
+  color: @text-color-primary !important;
+}
+
+// Select下拉选项优化
+.ant-select-dropdown {
+  .ant-select-item {
+    padding: 8px 12px !important;
+    font-family: @font-family-primary !important;
+    
+    .version-option {
+      margin: 0;
+      
+      .version-option-label {
+        margin-right: 8px;
+        
+        div:first-child {
+          .typography-body-primary();
+          font-weight: @font-weight-semibold;
+        }
+      }
+    }
+  }
+}
+
+// Custom empty state for Select
+.ant-select-empty-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
-  cursor: pointer;
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  gap: 8px;
+  padding: 16px;
+  color: @text-color-secondary;
 }
 
-  // 1. 没有周期也没有运行：文字灰色
-  &.no-period-no-run {
+// DatePicker Custom Cell Rendering (Airbnb-inspired)
+// ----------------------------------------------------
+
+// Style for the dropdown panel itself
+.ant-picker-dropdown {
+  .ant-picker-panel {
+    border-radius: @card-border-radius;
+    border: none;
+    box-shadow: @card-hover-shadow;
+    padding: 12px; // Add more padding for whitespace
+  }
+  .ant-picker-header {
+    padding: 8px;
+    border-bottom: 1px solid @border-color;
+    margin-bottom: 8px; // Space between header and grid
+    .ant-picker-header-view {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .ant-picker-header-prev-btn, .ant-picker-header-next-btn, .ant-picker-header-super-prev-btn, .ant-picker-header-super-next-btn {
+      color: @text-color-secondary;
+      &:hover {
+        color: @text-color-primary;
+      }
+    }
+  }
+}
+
+// Add some space between the month cells
+.ant-picker-cell {
+  padding: 5px !important; // Increased for more whitespace
+}
+
+// Base style for each month cell
+.ant-picker-cell-inner {
+  border-radius: 12px !important;
+  height: 48px !important; // Slightly taller for better touch targets
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 600 !important;
+  border: 1px solid transparent !important;
+  background-color: transparent !important; // Default is transparent, not gray
+  color: @text-color-primary !important;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #f7f7f7 !important; // Light gray on hover
+  }
+
+  // State: A period exists, but no runs yet (e.g., clickable default)
+  &.month-cell-has-period {
+    background-color: #f7f7f7 !important; // A very light gray background
+    &:hover {
+      border-color: @primary-color !important;
+    }
+  }
+
+  // State: Has runs, awaiting data/calculation (Yellowish color)
+  &.month-cell-has-runs {
+    background-color: #fffbe6 !important;
+    border-color: #ffe58f !important;
+    color: #d48806 !important;
+  }
+
+  // State: Calculated, pending audit (Light blue color)
+  &.month-cell-pending {
+    background-color: #e6f7ff !important;
+    border-color: #91d5ff !important;
+    color: #096dd9 !important;
+  }
+  
+  // State: Audited/Approved (Light green color)
+  &.month-cell-approved {
+    background-color: #f6ffed !important;
+    border-color: #b7eb8f !important;
+    color: #389e0d !important;
+  }
+}
+
+// Disabled cell state
+.ant-picker-cell-disabled {
+  .ant-picker-cell-inner {
     background-color: transparent !important;
-    color: #bfbfbf !important; // 灰色文字
-    border: 1px solid transparent !important;
-    font-weight: normal;
-    
+    color: #d9d9d9 !important;
+    cursor: not-allowed;
     &:hover {
-      background-color: #f5f5f5 !important;
-      color: #999999 !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      border-color: transparent !important;
     }
   }
+}
 
-  // 2. 有周期没有运行：文字黑色
-  &.has-period-no-run {
-    background-color: transparent !important;
-    color: #000000 !important; // 黑色文字
-    border: 1px solid transparent !important;
-    font-weight: 500;
-    
-    &:hover {
-      background-color: #f0f0f0 !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      }
-    }
+// State: Selected month
+.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: @primary-color !important;
+  color: white !important;
+  border-color: @primary-color !important;
+}
 
-  // 3. 有周期有运行，没有工资记录：浅黄色
-  &.has-runs-no-entries {
-    background-color: #fff7e6 !important; // 浅黄色
-    color: #d48806 !important; // 黄色文字
-    border: 1px solid #d48806 !important;
-    font-weight: 600;
-    
-    &:hover {
-      background-color: #ffefd1 !important;
-      box-shadow: 0 4px 12px rgba(212, 136, 6, 0.2);
-    }
-  }
-
-  // 4. 有周期有运行有工资记录，未完成审批：浅绿色
-  &.has-entries-pending {
-    background-color: #b7eb8f !important; // 浅绿色
-    color: #389e0d !important; // 深绿色文字
-    border: 1px solid #389e0d !important;
-    font-weight: bold;
-    
-    &:hover {
-      background-color: #95de64 !important;
-      box-shadow: 0 4px 12px rgba(56, 158, 13, 0.2);
-      }
-  }
-
-  // 5. 有周期有运行有工资记录完成审批：深绿色
-  &.approved-complete {
-    background-color: #52c41a !important; // 深绿色
-    color: #ffffff !important; // 白色文字
-    border: 1px solid #52c41a !important;
-    font-weight: bold;
-    
-    &:hover {
-      background-color: #389e0d !important;
-      box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
-      }
-    }
-
-  .month-circle-icon {
-    font-size: 10px;
-    opacity: 0.8;
-    margin-top: 2px;
-  }
+// Remove the old dot indicator
+.ant-picker-cell-inner.month-cell-has-period::after {
+  display: none !important;
 }

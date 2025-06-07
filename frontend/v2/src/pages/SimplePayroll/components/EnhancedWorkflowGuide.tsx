@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Steps, Card, Button, Space, Alert, Typography, Tag, Progress, Divider, message, Modal } from 'antd';
+import { ProCard } from '@ant-design/pro-components';
 import {
   FileTextOutlined,
   CalculatorOutlined,
@@ -29,6 +30,7 @@ interface EnhancedWorkflowGuideProps {
   onRefresh: () => void;
   onStepChange?: (stepKey: string) => void;
   onNavigateToBulkImport?: () => void;
+  onDeleteVersion?: (versionId: number) => void; // Allow passing a delete handler
 }
 
 export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
@@ -37,7 +39,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   auditSummary,
   onRefresh,
   onStepChange,
-  onNavigateToBulkImport
+  onNavigateToBulkImport,
+  onDeleteVersion
 }) => {
   const { t } = useTranslation(['simplePayroll', 'common']);
   const [currentStep, setCurrentStep] = useState(0);
@@ -50,6 +53,21 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   const setActionLoading = useCallback((actionKey: string, isLoading: boolean) => {
     setLoading(prev => ({ ...prev, [actionKey]: isLoading }));
   }, []);
+
+  // 组件卸载时清理所有loading状态
+  useEffect(() => {
+    return () => {
+      console.log('🧹 [EnhancedWorkflowGuide] 组件卸载，清理所有loading状态');
+      setLoading({});
+    };
+  }, []);
+
+  // 手动重置所有loading状态的函数
+  const resetAllLoadingStates = () => {
+    console.log('🔄 [EnhancedWorkflowGuide] 手动重置所有loading状态');
+    setLoading({});
+    message.info('已重置所有加载状态');
+  };
 
   // 获取异常详情
   const handleViewAnomalies = async () => {
@@ -157,13 +175,28 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     if (!selectedVersion) return;
     
     setActionLoading('run_audit', true);
+    
+    // 设置30秒超时
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ [审核检查] 操作超时，强制重置loading状态');
+      setActionLoading('run_audit', false);
+      message.error('审核检查超时，请稍后重试');
+    }, 30000);
+    
     try {
+      console.log('🔍 [审核检查] 开始执行审核检查:', selectedVersion.id);
       await simplePayrollApi.runAuditCheck(selectedVersion.id);
+      console.log('✅ [审核检查] 审核检查完成');
+      clearTimeout(timeoutId);
       message.success('审核检查完成');
       onRefresh();
-    } catch (error) {
-      message.error('审核检查失败');
+    } catch (error: any) {
+      console.error('❌ [审核检查] 审核检查失败:', error);
+      clearTimeout(timeoutId);
+      const errorMessage = error?.response?.data?.detail?.error?.message || error?.message || '审核检查失败';
+      message.error(errorMessage);
     } finally {
+      console.log('🔄 [审核检查] 重置loading状态');
       setActionLoading('run_audit', false);
     }
   };
@@ -172,13 +205,28 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     if (!selectedVersion) return;
     
     setActionLoading('run_advanced_audit', true);
+    
+    // 设置30秒超时
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ [高级审核] 操作超时，强制重置loading状态');
+      setActionLoading('run_advanced_audit', false);
+      message.error('高级审核检查超时，请稍后重试');
+    }, 30000);
+    
     try {
+      console.log('🔍 [高级审核] 开始执行高级审核检查:', selectedVersion.id);
       await simplePayrollApi.runAdvancedAuditCheck(selectedVersion.id);
+      console.log('✅ [高级审核] 高级审核检查完成');
+      clearTimeout(timeoutId);
       message.success('高级审核完成');
       onRefresh();
-    } catch (error) {
-      message.error('高级审核失败');
+    } catch (error: any) {
+      console.error('❌ [高级审核] 高级审核检查失败:', error);
+      clearTimeout(timeoutId);
+      const errorMessage = error?.response?.data?.detail?.error?.message || error?.message || '高级审核失败';
+      message.error(errorMessage);
     } finally {
+      console.log('🔄 [高级审核] 重置loading状态');
       setActionLoading('run_advanced_audit', false);
     }
   };
@@ -561,7 +609,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           {
             key: 'run_audit',
             label: '运行审核',
-            type: 'primary',
+            type: 'default',
             icon: <AuditOutlined />,
             disabled: !canExecuteStep(1, currentStepIndex),
             loading: loading.run_audit,
@@ -830,30 +878,49 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       title={
         <Space>
           <ClockCircleOutlined style={{ color: '#1890ff' }} />
-          <span>智能流程引导</span>
-          {selectedVersion && (
-            <Tag color="blue">运行 #{selectedVersion.id}</Tag>
-          )}
-          {selectedVersion?.status_name && (
-            <Tag color="green">{selectedVersion.status_name}</Tag>
-          )}
+          <span className="typography-title-tertiary">智能流程引导</span>
         </Space>
       }
       style={{ height: '100%' }}
     >
       {/* 步骤进度条 */}
-      <Steps current={currentStep} size="small" style={{ marginBottom: 24 }}>
+      <ProCard split="vertical" style={{ marginBottom: 24 }}>
         {stepsConfig.map((step, index) => (
-          <Step
+          <ProCard 
             key={step.key}
-            title={step.title}
-            description={step.description}
-            icon={step.icon}
-            status={step.status}
-            disabled={step.disabled}
-          />
+            title={
+              <Space>
+                {step.icon}
+                <span 
+                  className="typography-label-primary"
+                  style={{ 
+                    color: step.status === 'finish' ? '#52c41a' : 
+                           step.status === 'process' ? '#1890ff' : 
+                           step.status === 'error' ? '#ff4d4f' : '#8c8c8c'
+                  }}
+                >
+                  {step.title}
+                </span>
+              </Space>
+            }
+            colSpan="20%"
+            style={{
+              backgroundColor: step.status === 'process' ? '#f6ffed' : 'transparent',
+              border: step.status === 'process' ? '1px solid #b7eb8f' : 'none'
+            }}
+          >
+            <Typography.Text 
+              className="typography-label-secondary"
+              style={{ 
+                color: step.status === 'finish' ? '#52c41a' : 
+                       step.status === 'process' ? '#1890ff' : '#8c8c8c'
+              }}
+            >
+              {step.description}
+            </Typography.Text>
+          </ProCard>
         ))}
-      </Steps>
+      </ProCard>
 
       {/* 审核状态概览 */}
       {auditSummary && (currentStep === 1 || currentStep === 2) && (
@@ -888,7 +955,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
 
       {/* 当前步骤详情 */}
       <div>
-        <Title level={4} style={{ marginBottom: 16 }}>
+        <Title level={4} className="typography-title-tertiary" style={{ marginBottom: 16 }}>
           <Space>
             {currentStepConfig.icon}
             {currentStepConfig.title}
@@ -897,7 +964,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           </Space>
         </Title>
         
-        <Paragraph type="secondary" style={{ marginBottom: 16 }}>
+        <Paragraph className="typography-body-secondary" style={{ marginBottom: 16 }}>
           {currentStepConfig.description}
         </Paragraph>
 
@@ -1009,22 +1076,22 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         {/* 要求和提示 */}
         <div style={{ display: 'flex', gap: 16 }}>
           <div style={{ flex: 1 }}>
-            <Text strong>完成要求：</Text>
+            <Text strong className="typography-label-primary">完成要求：</Text>
             <ul style={{ marginTop: 8, paddingLeft: 20 }}>
               {currentStepConfig.requirements.map((req, index) => (
                 <li key={index} style={{ marginBottom: 4 }}>
-                  <Text type="secondary">{req}</Text>
+                  <Text className="typography-body-secondary">{req}</Text>
                 </li>
               ))}
             </ul>
           </div>
           
           <div style={{ flex: 1 }}>
-            <Text strong>操作提示：</Text>
+            <Text strong className="typography-label-primary">操作提示：</Text>
             <ul style={{ marginTop: 8, paddingLeft: 20 }}>
               {currentStepConfig.tips.map((tip, index) => (
                 <li key={index} style={{ marginBottom: 4 }}>
-                  <Text type="secondary">{tip}</Text>
+                  <Text className="typography-body-secondary">{tip}</Text>
                 </li>
               ))}
             </ul>
@@ -1089,11 +1156,11 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                 title={
                   <Space>
                     <Tag color="red">异常 #{index + 1}</Tag>
-                    <Text strong>{anomaly.anomaly_type || '数据异常'}</Text>
+                    <Text strong className="typography-label-primary">{anomaly.anomaly_type || '数据异常'}</Text>
                   </Space>
                 }
               >
-                <div style={{ fontSize: '13px' }}>
+                <div className="typography-body-secondary">
                   <p><strong>异常描述：</strong>{anomaly.description || anomaly.message || '未知异常'}</p>
                   {anomaly.employee_name && (
                     <p><strong>涉及员工：</strong>{anomaly.employee_name}</p>
@@ -1134,7 +1201,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '40px' }}>
-            <Text type="secondary">暂无异常数据</Text>
+            <Text className="typography-body-secondary">暂无异常数据</Text>
           </div>
         )}
       </Modal>

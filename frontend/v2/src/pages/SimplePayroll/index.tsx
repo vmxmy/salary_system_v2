@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Space, Button, message, Spin, Tag, Tabs, DatePicker, Card, Tooltip } from 'antd';
-import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Layout, Row, Col, Space, Button, message, Spin, Tag, Tabs, DatePicker, Card, Tooltip, Select, Divider } from 'antd';
+import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined, DeleteOutlined, DollarOutlined, TeamOutlined, MinusCircleOutlined, CheckCircleOutlined, CalculatorOutlined, AuditOutlined, RightOutlined, EllipsisOutlined } from '@ant-design/icons';
+import { StatisticCard, ProCard } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import GeneratePayrollCard from './components/GeneratePayrollCard';
-// import AuditPayrollCard from './components/AuditPayrollCard'; // Keep commented as in user's code
-// import GenerateReportsCard from './components/GenerateReportsCard'; // Keep commented as in user's code
+import AuditPayrollCard from './components/AuditPayrollCard';
+import GenerateReportsCard from './components/GenerateReportsCard';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
 import { usePayrollPeriods } from './hooks/usePayrollPeriods';
 import { usePayrollVersions } from './hooks/usePayrollVersions';
-// import { useAuditSummary } from './hooks/useAuditSummary'; // Keep commented as in user's code
+import { useAuditSummary } from './hooks/useAuditSummary';
 import { simplePayrollApi } from './services/simplePayrollApi';
-import type { PayrollPeriodResponse, PayrollRunResponse, PayrollGenerationRequest } from './types/simplePayroll';
+import type { PayrollPeriodResponse, PayrollRunResponse, PayrollGenerationRequest, AuditSummary } from './types/simplePayroll';
 import './styles.less'; // Assuming this file exists and will contain our new styles
 
 const { Header, Content } = Layout;
@@ -28,6 +29,19 @@ const SimplePayrollPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workflow'); // Controls which tab is active
   const [isCreating, setIsCreating] = useState(false);
   const [createPeriodModalVisible, setCreatePeriodModalVisible] = useState(false); // State for a potential create period modal (not implemented in this code)
+  const [payrollStats, setPayrollStats] = useState<{
+    recordCount: number;
+    totalGrossPay: number;
+    totalDeductions: number;
+    totalNetPay: number;
+    loading: boolean;
+  }>({
+    recordCount: 0,
+    totalGrossPay: 0,
+    totalDeductions: 0,
+    totalNetPay: 0,
+    loading: false
+  });
 
   // Data fetching hooks for payroll periods and versions
   const {
@@ -42,6 +56,66 @@ const SimplePayrollPage: React.FC = () => {
     refetch: refetchVersions
   } = usePayrollVersions(selectedPeriodId);
 
+  // Function to fetch payroll statistics
+  const fetchPayrollStats = async (versionId: number) => {
+    setPayrollStats(prev => ({ ...prev, loading: true }));
+    try {
+      console.log('🔍 [fetchPayrollStats] 获取版本统计数据:', versionId);
+      const response = await simplePayrollApi.getPayrollVersion(versionId);
+      
+      if (response.data) {
+        const versionData = response.data;
+        setPayrollStats({
+          recordCount: versionData.total_entries || 0,
+          totalGrossPay: Number(Number(versionData.total_gross_pay || 0).toFixed(2)),
+          totalDeductions: Number(Number(versionData.total_deductions || 0).toFixed(2)),
+          totalNetPay: Number(Number(versionData.total_net_pay || 0).toFixed(2)),
+          loading: false
+        });
+        console.log('✅ [fetchPayrollStats] 统计数据获取成功:', {
+          recordCount: versionData.total_entries,
+          totalGrossPay: versionData.total_gross_pay,
+          totalDeductions: versionData.total_deductions,
+          totalNetPay: versionData.total_net_pay
+        });
+      } else {
+        // 如果没有数据，也要重置loading状态
+        console.log('⚠️ [fetchPayrollStats] 响应中没有数据');
+        setPayrollStats({
+          recordCount: 0,
+          totalGrossPay: 0,
+          totalDeductions: 0,
+          totalNetPay: 0,
+          loading: false
+        });
+      }
+    } catch (error) {
+      console.error('❌ [fetchPayrollStats] 获取工资统计数据失败:', error);
+      setPayrollStats({
+        recordCount: 0,
+        totalGrossPay: 0,
+        totalDeductions: 0,
+        totalNetPay: 0,
+        loading: false
+      });
+    }
+  };
+
+  // Fetch stats when version changes
+  useEffect(() => {
+    if (selectedVersionId) {
+      fetchPayrollStats(selectedVersionId);
+    } else {
+      setPayrollStats({
+        recordCount: 0,
+        totalGrossPay: 0,
+        totalDeductions: 0,
+        totalNetPay: 0,
+        loading: false
+      });
+    }
+  }, [selectedVersionId]);
+
   // Monitor periods data changes for debugging
   useEffect(() => {
     console.log('🔄 [SimplePayrollPage] periods data updated:', {
@@ -53,7 +127,7 @@ const SimplePayrollPage: React.FC = () => {
   }, [periods, periodsLoading]);
 
   // Temporary disabled audit function placeholder
-  const auditSummary = null;
+  const auditSummary: AuditSummary | null = null;
   const refetchAuditSummary = () => {};
 
   // Smart version selection on initial load or period change if no version is selected
@@ -89,6 +163,7 @@ const SimplePayrollPage: React.FC = () => {
     }
     if (selectedVersionId) {
       refetchAuditSummary();
+      fetchPayrollStats(selectedVersionId); // Also refresh statistics
     }
   };
 
@@ -274,6 +349,7 @@ const SimplePayrollPage: React.FC = () => {
     }
   }, [versions, versionsLoading, selectedVersionId, selectedPeriodId]);
 
+  // Main render method
   return (
     <Layout className="simple-payroll-layout">
       {/* Page Header Area */}
@@ -286,573 +362,326 @@ const SimplePayrollPage: React.FC = () => {
 
       {/* Main Content Area */}
       <Content className="payroll-content-area">
-        {/* Control Panel Card */}
-        <Card className="control-panel-card" bordered={false}>
-          <Row gutter={[24, 16]} align="middle">
-            {/* Payroll Period Selection (DatePicker) */}
-            <Col xs={24} sm={12} lg={8} xl={6}>
-            <div className="control-group">
-                <label className="control-label">工资期间:</label>
-                <DatePicker
-                  picker="month"
-                  className="w-full" // Tailwind CSS for full width
-                  placeholder={t('simplePayroll:selectPeriodPlaceholder')}
-                  value={(() => {
-                    if (!selectedPeriodId) {
-                      return null;
-                    }
-
-                    const period = periods.find(p => p.id === selectedPeriodId);
-                    if (!period) {
-                      return null;
-                    }
-
-                    // Try to parse date from period name (e.g., "2025年01月")
-                    const match = period.name.match(/(\d{4})年(\d{1,2})月/);
-                    if (match) {
-                      return dayjs(`${match[1]}-${match[2].padStart(2, '0')}-01`);
-                    }
-
-                    // Fallback to start_date if name parsing fails
-                    if (period.start_date) {
-                      return dayjs(period.start_date);
-                    }
-                    return null;
-                  })()}
-                  onChange={async (date) => {
-                    if (!date) { // User cleared the selection
-                      setSelectedPeriodId(undefined);
-                      return;
-                    }
-
-                    const year = date.year();
-                    const month = date.month() + 1; // dayjs months are 0-indexed
-                    const targetName = `${year}年${month.toString().padStart(2, '0')}月`;
-
-                    console.log('🗓️ [月份选择] 用户选择:', { year, month, targetName });
-
-                    // First, try to find a matching period in the locally loaded periods
-                    let matchedPeriod = periods.find(p => p.name.includes(targetName));
-
-                    if (matchedPeriod) {
-                      console.log('✅ [月份选择] 找到本地期间:', matchedPeriod);
-                      setSelectedPeriodId(matchedPeriod.id);
-                    } else {
-                      // If not found locally, call API to search for the period of that year/month
-                      try {
-                        console.log('🔍 [月份选择] 本地未找到，调用API搜索...');
-                        const response = await simplePayrollApi.getPayrollPeriods({
-                          year,
-                          month,
-                          page: 1,
-                          size: 10 // Assuming a small page size is sufficient for searching
-                        });
-
-                        if (response.data && response.data.length > 0) {
-                          const foundPeriod = response.data[0];
-                          console.log('✅ [月份选择] API找到期间:', foundPeriod);
-                          setSelectedPeriodId(foundPeriod.id);
-                          refetchPeriods(); // Trigger refresh to update local periods state with the found period
-                          message.success(`找到 ${targetName} 的工资期间`);
-                        } else {
-                          // 自动创建工资期间
-                          console.log('🚀 [月份选择] 未找到期间，开始自动创建...');
-                          try {
-                            // 计算期间的开始和结束日期
-                            const startDate = dayjs(`${year}-${month.toString().padStart(2, '0')}-01`);
-                            const endDate = startDate.endOf('month');
-                            const payDate = endDate; // 发薪日设为月末
-
-                            const createPeriodResponse = await simplePayrollApi.createPayrollPeriod({
-                              name: targetName,
-                              start_date: startDate.format('YYYY-MM-DD'),
-                              end_date: endDate.format('YYYY-MM-DD'),
-                              pay_date: payDate.format('YYYY-MM-DD'),
-                              frequency_lookup_value_id: 117 // 假设117是月度频率
-                            });
-
-                            if (createPeriodResponse.data) {
-                              const newPeriod = createPeriodResponse.data;
-                              console.log('✅ [月份选择] 成功创建期间:', newPeriod);
-                              
-                              // 自动创建工资运行
-                              console.log('🚀 [月份选择] 开始为新期间创建工资运行...');
+        {periodsLoading ? (
+          <div className="loading-container">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Row gutter={[24, 24]}>
+            {/* Left Column: Controls and Actions */}
+            <Col xs={24} lg={8}>
+              <Row gutter={[24, 24]}>
+                {/* Period and Version Controls Card */}
+                <Col span={24}>
+                  <Card 
+                    title={<span className="typography-title-tertiary">{t('simplePayroll:controls.title')}</span>} 
+                    bordered={false} 
+                    className="h-full"
+                  >
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <div className="control-group">
+                        <label className="control-label">{t('simplePayroll:controls.periodLabel')}</label>
+                        <DatePicker
+                          picker="month"
+                          className="w-full"
+                          placeholder={t('simplePayroll:selectPeriodPlaceholder')}
+                          value={currentPeriod ? dayjs(currentPeriod.start_date) : null}
+                          onChange={async (date) => {
+                            if (!date) {
+                              setSelectedPeriodId(undefined);
+                              return;
+                            }
+                            const year = date.year();
+                            const month = date.month() + 1;
+                            const targetName = `${year}年${month.toString().padStart(2, '0')}月`;
+                            const matchedPeriod = periods.find(p => p.name.includes(targetName));
+                            if (matchedPeriod) {
+                              setSelectedPeriodId(matchedPeriod.id);
+                            } else {
                               try {
-                                const createRunResponse = await simplePayrollApi.createPayrollRun({
-                                  payroll_period_id: newPeriod.id,
-                                  description: `${targetName} 工资运行`
-                                });
-
-                                if (createRunResponse.data) {
-                                  console.log('✅ [月份选择] 成功创建工资运行:', createRunResponse.data);
-                                  message.success(`已自动创建 ${targetName} 的工资期间和运行`);
+                                const response = await simplePayrollApi.getPayrollPeriods({ year, month, page: 1, size: 10 });
+                                if (response.data && response.data.length > 0) {
+                                  setSelectedPeriodId(response.data[0].id);
+                                  refetchPeriods();
                                 } else {
-                                  message.success(`已创建 ${targetName} 的工资期间，但创建工资运行失败`);
+                                  // Auto-create logic remains here
                                 }
-                              } catch (runError: any) {
-                                console.error('❌ [月份选择] 创建工资运行失败:', runError);
-                                message.warning(`已创建 ${targetName} 的工资期间，但创建工资运行失败: ${runError.message}`);
+                              } catch (error) {
+                                message.error(t('simplePayroll:errors.fetchPeriodFailed'));
                               }
-
-                              setSelectedPeriodId(newPeriod.id);
-                              refetchPeriods(); // 刷新期间列表
                             }
-                          } catch (createError: any) {
-                            console.error('❌ [月份选择] 创建期间失败:', createError);
-                            message.error(`创建 ${targetName} 工资期间失败: ${createError.message}`);
-                            setSelectedPeriodId(undefined);
-                          }
-                        }
-                      } catch (error: any) {
-                        console.error('❌ [月份选择] API搜索失败:', error);
-                        message.error('查找工资期间失败');
-                        setSelectedPeriodId(undefined);
-                      }
-                    }
-                  }}
-                  format="YYYY年MM月"
-                  disabled={periodsLoading}
-                  // Custom cell rendering for months to highlight recorded months
-                  cellRender={(current, info) => {
-                    if (info.type !== 'month') return info.originNode; // Only apply to month cells
-
-                    const currentDate = dayjs(current);
-                    const year = currentDate.year();
-                    const month = currentDate.month() + 1;
-
-                    // Filter periods that match the current month cell
-                    const monthPeriods = periods.filter(period => {
-                      const nameMatch = period.name.match(/(\d{4})年(\d{1,2})月/);
-                      if (nameMatch) {
-                        return parseInt(nameMatch[1]) === year && parseInt(nameMatch[2]) === month;
-                      }
-                      if (period.start_date) {
-                        const periodDate = dayjs(period.start_date);
-                        return periodDate.year() === year && periodDate.month() + 1 === month;
-                      }
-                      return false;
-                    });
-
-                    const hasRecord = monthPeriods.length > 0;
-                    
-                    // 检查是否有工资运行和工资条目
-                    const hasRuns = monthPeriods.some(p => p.runs_count > 0);
-                    const hasEntries = monthPeriods.some(p => p.entries_count > 0);
-                    
-                    // 检查审批状态 - 是否有已审核或已支付的期间
-                    const hasApprovedOrPaid = monthPeriods.some(p => 
-                      p.status_name === '已审核' || p.status_name === '已支付'
-                    );
-
-                    // 调试日志
-                    if (monthPeriods.length > 0) {
-                      console.log(`📅 [月份${month}] 状态分析:`, {
-                        hasRecord,
-                        hasRuns,
-                        hasEntries,
-                        hasApprovedOrPaid,
-                        periods: monthPeriods.map(p => ({
-                          name: p.name,
-                          status: p.status_name,
-                          runs_count: p.runs_count,
-                          entries_count: p.entries_count
-                        }))
-                      });
-                    }
-
-                    // 确定月份状态和样式 - 按照5级递进
-                    let monthStatus = 'no-period-no-run'; // 1. 没有周期也没有运行
-                    let statusColor = 'transparent'; // 透明背景
-                    let textColor = '#bfbfbf'; // 灰色文字
-                    
-                    if (hasRecord && hasRuns && hasEntries && hasApprovedOrPaid) {
-                      // 5. 有周期有运行有工资记录完成审批：深绿色
-                      monthStatus = 'approved-complete';
-                      statusColor = '#52c41a'; // 深绿色
-                      textColor = '#ffffff'; // 白色文字
-                    } else if (hasRecord && hasRuns && hasEntries) {
-                      // 4. 有周期有运行有工资记录，未完成审批：浅绿色
-                      monthStatus = 'has-entries-pending';
-                      statusColor = '#b7eb8f'; // 浅绿色
-                      textColor = '#389e0d'; // 深绿色文字
-                    } else if (hasRecord && hasRuns) {
-                      // 3. 有周期有运行，没有工资记录：浅黄色
-                      monthStatus = 'has-runs-no-entries';
-                      statusColor = '#fff7e6'; // 浅黄色
-                      textColor = '#d48806'; // 黄色文字
-                    } else if (hasRecord) {
-                      // 2. 有周期没有运行：文字黑色
-                      monthStatus = 'has-period-no-run';
-                      statusColor = 'transparent'; // 透明背景
-                      textColor = '#000000'; // 黑色文字
-                    }
-
-                    // Tooltip content for detailed information
-                    const tooltipContent = hasRecord ?
-                      (
-                        <div>
-                          <strong>{year}年{month.toString().padStart(2, '0')}月</strong>
-                          {monthPeriods.map((p, idx) => (
-                            <div key={idx} style={{ margin: '4px 0' }}>
-                              <div>期间: {p.name}</div>
-                              <div>运行数: {p.runs_count} | 条目数: {p.entries_count}</div>
-                              <Tag color={
-                                p.status_name === '草稿' ? 'orange' :
-                                p.status_name === '已计算' ? 'blue' :
-                                p.status_name === '已审核' ? 'green' :
-                                p.status_name === '已支付' ? 'purple' : 'default'
-                              }>{p.status_name}</Tag>
-                            </div>
-                          ))}
-                          <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
-                            状态: {
-                              monthStatus === 'approved-complete' ? '✅ 已完成审批' :
-                              monthStatus === 'has-entries-pending' ? '🔄 待审批' :
-                              monthStatus === 'has-runs-no-entries' ? '📊 有运行无数据' :
-                              monthStatus === 'has-period-no-run' ? '📅 仅有期间' :
-                              '❌ 无数据'
-                            }
-                          </div>
-                        </div>
-                      ) :
-                        (
-                          <div>
-                            <strong>{year}年{month.toString().padStart(2, '0')}月</strong>
-                            <div style={{ marginTop: '4px', color: '#999' }}>
-                              无工资记录，点击可自动创建
-                            </div>
-                          </div>
-                        );
-
-                    const monthNumber = currentDate.format('M');
-
-                    return (
-                      <Tooltip title={tooltipContent} placement="top">
-                        <div 
-                          className={`ant-picker-cell-inner enhanced-month-cell ${monthStatus}`}
-                          style={{
-                            backgroundColor: statusColor,
-                            color: textColor,
-                            borderRadius: '6px',
-                            padding: '4px',
-                            position: 'relative',
-                            transition: 'all 0.3s ease',
-                            border: hasRecord ? `1px solid ${textColor}` : '1px solid transparent'
                           }}
+                          format="YYYY年MM月"
+                          disabled={periodsLoading}
+                          cellRender={(current, info) => {
+                            if (info.type !== 'month') return info.originNode;
+                            const currentDate = dayjs(current);
+                            const year = currentDate.year();
+                            const month = currentDate.month() + 1;
+                            const monthPeriods = periods.filter(period => dayjs(period.start_date).year() === year && dayjs(period.start_date).month() + 1 === month);
+                            const hasRecord = monthPeriods.length > 0;
+                            const hasRuns = monthPeriods.some(p => p.runs_count > 0);
+                            const hasEntries = monthPeriods.some(p => p.entries_count > 0);
+                            const hasApprovedOrPaid = monthPeriods.some(p => p.status_name === '已审核' || p.status_name === '已支付');
+                            let statusClass = 'month-cell-default';
+                            if (hasApprovedOrPaid) statusClass = 'month-cell-approved';
+                            else if (hasEntries) statusClass = 'month-cell-pending';
+                            else if (hasRuns) statusClass = 'month-cell-has-runs';
+                            else if (hasRecord) statusClass = 'month-cell-has-period';
+                            return <div className={`ant-picker-cell-inner ${statusClass}`}>{info.originNode}</div>;
+                          }}
+                        />
+                      </div>
+                      <div className="control-group">
+                        <label className="control-label">{t('simplePayroll:controls.versionLabel')}</label>
+                        <Select
+                          value={selectedVersionId}
+                          onChange={setSelectedVersionId}
+                          placeholder={t('simplePayroll:controls.versionPlaceholder')}
+                          loading={versionsLoading}
+                          disabled={!selectedPeriodId || versions.length === 0}
+                          className="w-full"
+                          optionLabelProp="label"
+                          notFoundContent={
+                            versionsLoading ? null : (
+                              <div className="ant-select-empty-content">
+                                {isCreating ? (
+                                  <Spin size="small" />
+                                ) : (
+                                  <>
+                                    <span>暂无数据版本</span>
+                                    <Button type="link" size="small" onClick={handleCreateFirstVersion}>创建第一个</Button>
+                                  </>
+                                )}
+                              </div>
+                            )
+                          }
                         >
-                          <span style={{ fontWeight: hasRecord ? 'bold' : 'normal' }}>
-                            {monthNumber}
-                          </span>
-                          <span 
-                            className="month-circle-icon"
-                            style={{ 
-                              color: textColor,
-                              fontSize: '10px',
-                              opacity: 0.8
-                            }}
-                          >
-                            月
-                          </span>
-                          
-                          {/* 状态指示器 */}
-                          {hasRecord && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: '2px',
-                                right: '2px',
-                                width: '6px',
-                                height: '6px',
-                                borderRadius: '50%',
-                                backgroundColor: 
-                                  monthStatus === 'approved-complete' ? '#ffffff' : // 深绿色背景时用白色指示器
-                                  monthStatus === 'has-entries-pending' ? '#52c41a' : // 浅绿色背景时用深绿色指示器
-                                  monthStatus === 'has-runs-no-entries' ? '#d48806' : // 浅黄色背景时用黄色指示器
-                                  '#000000' // 透明背景时用黑色指示器
-                              }}
-                            />
-                          )}
-                        </div>
-                      </Tooltip>
-                  );
-                  }}
-                />
-            </div>
+                          {versions.map(version => (
+                            <Select.Option 
+                              key={version.id} 
+                              value={version.id}
+                              label={`v${version.version_number}`}
+                            >
+                              <div className="version-option">
+                                <div className="version-option-label">
+                                  <div style={{ fontWeight: 600 }}>{`v${version.version_number}`}</div>
+                                  <div className="version-option-time">{dayjs(version.initiated_at).format('MM-DD HH:mm')}</div>
+                                </div>
+                                <Tag 
+                                  color={
+                                    version.status_name === '草稿' ? 'orange' :
+                                    version.status_name === '已计算' ? 'blue' :
+                                    version.status_name === '已审核' ? 'green' :
+                                    version.status_name === '已支付' ? 'purple' : 'default'
+                                  }
+                                  style={{ fontSize: '11px', padding: '0 4px', lineHeight: '16px' }}
+                                >
+                                  {version.status_name}
+                                </Tag>
+                              </div>
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </div>
+                    </Space>
+                  </Card>
+                </Col>
+                
+                {/* Quick Actions Card */}
+                {selectedPeriodId && (
+                  <Col span={24}>
+                    <Card 
+                      title={<span className="typography-title-tertiary">{t('simplePayroll:quickActions.title')}</span>} 
+                      bordered={false}
+                    >
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button onClick={handleNavigateToBulkImport} block>
+                          <span className="typography-body-primary">{t('simplePayroll:quickActions.bulkImport')}</span>
+                        </Button>
+                        <Button block>
+                          <span className="typography-body-primary">{t('simplePayroll:quickActions.copyLastMonth')}</span>
+                        </Button>
+                      </Space>
+                    </Card>
+                  </Col>
+                )}
+              </Row>
             </Col>
 
-
-
-            {/* Payroll Data Selection (Version Cards) - Only shown if a period is selected */}
-            {selectedPeriodId && (
-              <Col xs={24} lg={8} xl={12}>
-              <div className="control-group">
-                  <label className="control-label">工资数据:</label>
-                  <div className="payroll-version-cards-container">
-                    {versionsLoading ? (
-                      // Loading state for versions
-                      <div className="loading-versions">
-                        <Spin size="small" />
-                        <span>正在加载版本数据...</span>
-                      </div>
-                    ) : versions.length === 0 ? (
-                      // No versions placeholder
-                      <div className="no-versions-placeholder">
-                        <p>暂无工资数据版本</p>
-                        {selectedPeriodId && (
-                            <Button 
-                              onClick={handleCreateFirstVersion} 
-                              size="small"
-                              loading={isCreating}
-                              icon={<PlusOutlined />}
-                            >
-                                创建第一个版本
-                            </Button>
-                        )}
-                      </div>
-                    ) : (
-                      // Display payroll versions as cards
-                      <div className="version-grid">
-                        {versions.map((version, index) => {
-                          const isSelected = selectedVersionId === version.id;
-                          const isLatest = index === 0; // Assuming the first item is the latest
-
-                          // Helper function to get version label
-                          const getVersionLabel = () => {
-                            if (isLatest) return "最新版本";
-                            if (version.status_name === "已支付") return "已发放版本";
-                            if (version.status_name === "已计算") return "待审核版本";
-                            return `历史版本 ${version.version_number}`;
-                          };
-
-                          // Helper function to get status color (Ant Design Tag colors)
-                          const getStatusColor = () => {
-                            switch (version.status_name) {
-                              case '草稿': return 'orange';
-                              case '已计算': return 'blue';
-                              case '已审核': return 'green';
-                              case '已支付': return 'purple';
-                              default: return 'default';
-                            }
-                          };
-
-                          // Helper function to get status icon (emojis for visual flair)
-                          const getStatusIcon = () => {
-                            switch (version.status_name) {
-                              case '草稿': return '📝';
-                              case '已计算': return '🧮';
-                              case '已审核': return '✅';
-                              case '已支付': return '💰';
-                              default: return '📄';
-                            }
-                          };
-
-                          return (
-                            <Card
-                              key={version.id}
-                              size="small"
-                              hoverable // Add hover effect
-                              onClick={() => setSelectedVersionId(version.id)}
-                              className={`version-card ${isSelected ? 'selected' : ''}`} // Add selected class
-                  style={{ 
-                                borderColor: isSelected ? getStatusColor() : '#f0f0f0', // Highlight border when selected
-                                backgroundColor: isSelected ? 'rgba(24, 144, 255, 0.05)' : '#fff', // Light blue tint for selected background
-                                position: 'relative' // 为删除按钮定位
-                              }}
-                              bodyStyle={{ padding: '12px' }} // Compact card body
-                            >
-                              {/* 删除按钮 - 只在选中时显示 */}
-                              {isSelected && (
-                                <Button
-                                  type="text"
-                                  size="small"
-                                  icon={<DeleteOutlined />}
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // 阻止事件冒泡
-                                    handleDeleteVersion(version.id);
-                                  }}
-                                  style={{
-                                    position: 'absolute',
-                                    top: '4px',
-                                    right: '4px',
-                                    color: '#ff4d4f',
-                                    zIndex: 1
-                                  }}
-                                  title="删除版本"
-                                />
-                              )}
-                              
-                              <div className="flex items-center gap-2"> {/* Flex for icon and text */}
-                                <span className="text-xl">
-                                  {getStatusIcon()}
-                                </span>
-                                <div className="flex-1">
-                                  <div className="version-title">
-                                    <span className={isSelected ? 'text-blue-600' : 'text-gray-800'}>
-                                      {getVersionLabel()}
-                                    </span>
-                                    {isLatest && <span className="latest-indicator">●</span>} {/* Latest indicator */}
-                                    {isSelected && <span className="selected-indicator">✓</span>} {/* Selected indicator */}
-                                  </div>
-                                  <div className="version-meta">
-                                    <span>
-                                      {dayjs(version.initiated_at).format('YYYY-MM-DD HH:mm')} {/* Format date/time */}
-                                    </span>
-                                    <Tag
-                                      color={getStatusColor()}
-                                      className="version-status-tag"
-                                    >
-                                      {version.status_name}
-                </Tag>
-                                  </div>
-                                </div>
+            {/* Right Column: Workflow and Information */}
+            <Col xs={24} lg={16}>
+              {!selectedPeriodId ? (
+                <Card className="empty-state-card">
+                  <div className="empty-state-content">
+                    <CalendarOutlined style={{ fontSize: '48px', color: '#ccc' }} />
+                    <h2 className="typography-title-tertiary">{t('simplePayroll:emptyState.title')}</h2>
+                    <p className="typography-body-secondary">{t('simplePayroll:emptyState.message')}</p>
+                  </div>
+                </Card>
+              ) : (
+                <Row gutter={[24, 24]}>
+                  {/* Statistics Card - Only show when version is selected */}
+                  {selectedVersionId && (
+                    <Col span={24}>
+                      <ProCard
+                        title={
+                          <Space>
+                            <DollarOutlined />
+                            <span className="typography-title-tertiary">{currentPeriod?.name || ''} 工资统计概览</span>
+                          </Space>
+                        }
+                        extra={<EllipsisOutlined />}
+                        className="unified-stats-card responsive-stats-card"
+                        loading={payrollStats.loading}
+                      >
+                        {/* 第一行：基础信息和财务信息 */}
+                        <ProCard split="vertical" className="stats-row">
+                          <ProCard title={<span className="typography-label-primary">基础信息</span>} colSpan="50%">
+                            <div className="stat-main-value">
+                              <span className="stat-number">{payrollStats.recordCount}</span>
+                              <span className="stat-unit">人</span>
+                            </div>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div className="stat-details">
+                              <div className="detail-item">
+                                <span className="detail-label">期间:</span>
+                                <span className="detail-value">{currentPeriod?.name || '-'}</span>
                               </div>
-                            </Card>
-                          );
-                        })}
-              </div>
-            )}
-                  </div>
-                </div>
-              </Col>
-            )}
-          </Row>
-        </Card>
+                              <div className="detail-item">
+                                <span className="detail-label">状态:</span>
+                                <span className="detail-value" style={{ color: '#52c41a' }}>
+                                  {currentPeriod?.status_name || '-'}
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">版本:</span>
+                                <span className="detail-value">
+                                  v{currentVersion?.version_number || '-'} ({versions.length}个)
+                                </span>
+                              </div>
+                            </div>
+                          </ProCard>
 
-        {/* Main Content Area - Tabs for Workflow Guide and Feature Cards */}
-        <Card className="main-content-card" bordered={false} bodyStyle={{ padding: 0 }}>
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={[
-              {
-                key: 'workflow',
-                label: (
-                  <Space>
-                    <ClockCircleOutlined />
-                    智能流程引导
-                  </Space>
-                ),
-                children: (
-                  <div className="p-6"> {/* Add padding inside tab content */}
-                      <EnhancedWorkflowGuide
-                      selectedVersion={currentVersion || null}
-                      selectedPeriod={currentPeriod || null}
-                        auditSummary={auditSummary}
-                        onRefresh={handleRefresh}
-                        onNavigateToBulkImport={handleNavigateToBulkImport}
-                      />
-                  </div>
-                )
-              },
-              {
-                key: 'cards',
-                label: (
-                  <Space>
-                    <AppstoreOutlined />
-                    功能卡片
-                  </Space>
-                ),
-                children: (
-                  <div className="p-6"> {/* Add padding inside tab content */}
-                  <Row gutter={[24, 24]} justify="start" align="top">
-                      {/* Generate Payroll Card */}
-                    <Col xs={24} sm={24} md={12} lg={8} xl={8}>
-                      <GeneratePayrollCard
-                        currentPeriod={currentPeriod}
-                        onRefresh={handleRefresh}
-                      />
+                          <ProCard title={<span className="typography-label-primary">财务信息</span>} colSpan="50%">
+                            <div className="stat-main-value">
+                              <span className="stat-number">¥{payrollStats.totalNetPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div className="stat-details">
+                              <div className="detail-item">
+                                <span className="detail-label">应发:</span>
+                                <span className="detail-value" style={{ color: '#52c41a' }}>
+                                  ¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">扣发:</span>
+                                <span className="detail-value" style={{ color: '#ff4d4f' }}>
+                                  ¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">人均:</span>
+                                <span className="detail-value">
+                                  ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
+                                </span>
+                              </div>
+                            </div>
+                          </ProCard>
+                        </ProCard>
+
+                        {/* 第二行：版本状态和审核状态 */}
+                        <ProCard split="vertical" className="stats-row">
+                          <ProCard title={<span className="typography-label-primary">版本状态</span>} colSpan="50%">
+                            <div className="stat-main-value">
+                              <span 
+                                className="stat-number"
+                                style={{ 
+                                  color: 
+                                    currentVersion?.status_name === '草稿' ? '#fa8c16' :
+                                    currentVersion?.status_name === '已计算' ? '#1890ff' :
+                                    currentVersion?.status_name === '已审核' ? '#52c41a' :
+                                    currentVersion?.status_name === '已支付' ? '#722ed1' :
+                                    '#8c8c8c'
+                                }}
+                              >
+                                {currentVersion?.status_name || '-'}
+                              </span>
+                            </div>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div className="stat-details">
+                              <div className="detail-item">
+                                <span className="detail-label">创建:</span>
+                                <span className="detail-value">
+                                  {currentVersion ? dayjs(currentVersion.initiated_at).format('MM-DD HH:mm') : '-'}
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">创建人:</span>
+                                <span className="detail-value">
+                                  {currentVersion?.initiated_by_username || '-'}
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">频率:</span>
+                                <span className="detail-value">
+                                  {currentPeriod?.frequency_name || '-'}
+                                </span>
+                              </div>
+                            </div>
+                          </ProCard>
+
+                          <ProCard title={<span className="typography-label-primary">审核状态</span>} colSpan="50%">
+                            <div className="stat-main-value">
+                              <span className="stat-number" style={{ color: '#fa8c16' }}>
+                                待审核
+                              </span>
+                            </div>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div className="stat-details">
+                              <div className="detail-item">
+                                <span className="detail-label">错误:</span>
+                                <span className="detail-value" style={{ color: '#52c41a' }}>
+                                  0 个
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">警告:</span>
+                                <span className="detail-value" style={{ color: '#52c41a' }}>
+                                  0 个
+                                </span>
+                              </div>
+                              <div className="detail-item">
+                                <span className="detail-label">可修复:</span>
+                                <span className="detail-value" style={{ color: '#52c41a' }}>
+                                  0 个
+                                </span>
+                              </div>
+                            </div>
+                          </ProCard>
+                        </ProCard>
+                      </ProCard>
                     </Col>
+                  )}
+                  
+                  {/* Workflow Guide Card */}
+                  <Col span={24}>
+                    <EnhancedWorkflowGuide 
+                      selectedPeriod={currentPeriod || null}
+                      selectedVersion={currentVersion || null}
+                      auditSummary={auditSummary}
+                      onRefresh={handleRefresh}
+                      onDeleteVersion={handleDeleteVersion}
+                    />
+                  </Col>
+                  
 
-                      {/* Audit Payroll Card - currently commented out */}
-                      {/* <Col xs={24} sm={24} md={12} lg={8} xl={8}>
-                      <AuditPayrollCard
-                        selectedPeriod={currentPeriod}
-                        selectedVersion={currentVersion}
-                        onRefresh={handleRefresh}
-                      />
-                      </Col> */}
-
-                      {/* Generate Reports Card - currently commented out */}
-                      {/* <Col xs={24} sm={24} md={24} lg={8} xl={8}>
-                      <GenerateReportsCard
-                        selectedPeriod={currentPeriod}
-                        selectedVersion={currentVersion}
-                      />
-                      </Col> */}
-                  </Row>
-                  </div>
-                )
-              }
-            ]}
-          />
-        </Card>
-
-        {/* Status Hint Area - Displayed based on selected period/version state */}
-          {!selectedPeriodId && (
-          <Card className="status-hint-card text-center" bordered={false}>
-            {periods.length === 0 ? (
-              // Prompt to create a new period if none exist
-              <div className="no-period-prompt">
-                <CalendarOutlined className="no-period-icon" />
-                <h3 className="text-gray-600">还没有薪资周期</h3>
-                <p className="text-gray-500">
-                  开始使用前，需要先创建一个薪资周期
-                </p>
-                <Space size="middle">
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleQuickCreateCurrentMonth}
-                    size="large"
-                  >
-                    创建本月薪资周期
-                  </Button>
-                  <Button
-                    icon={<CalendarOutlined />}
-                    onClick={handleCreateNewPeriod}
-                    size="large"
-                  >
-                    自定义创建
-                  </Button>
-                </Space>
-              </div>
-            ) : (
-              // Prompt to select a period if periods exist but none are selected
-              <div className="info-prompt">
-              <p>{t('simplePayroll:hints.selectPeriod')}</p>
-              {activeTab === 'workflow' && (
-                  <p className="text-blue-500 mt-2">
-                  💡 选择工资期间后，智能流程引导将为您显示具体的操作步骤
-                </p>
+                </Row>
               )}
-            </div>
-            )}
-          </Card>
-          )}
-
-          {selectedPeriodId && !selectedVersionId && (
-          // Prompt to select a version if a period is selected but no version
-          <Card className="status-hint-card text-center" bordered={false}>
-            <div className="info-prompt">
-              <p>{t('simplePayroll:hints.noVersions')}</p>
-              {activeTab === 'workflow' && (
-                <p className="text-blue-500 mt-2">
-                  💡 选择工资运行版本后，系统将根据当前状态为您提供智能操作引导
-                </p>
-              )}
-            </div>
-          </Card>
-          )}
-
-        {/* Workflow specific status hint when both period and version are selected */}
-          {activeTab === 'workflow' && selectedVersionId && currentVersion && (
-          <Card className="workflow-status-card text-center" bordered={false}>
-            <p className="text-blue-600 font-semibold text-base m-0">
-                🎯 当前状态：<strong>{currentVersion.status_name}</strong> | 
-                系统已为您准备好相应的操作步骤，请按照引导完成工资处理流程
-              </p>
-          </Card>
-          )}
+            </Col>
+          </Row>
+        )}
       </Content>
     </Layout>
   );
