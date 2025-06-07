@@ -351,8 +351,8 @@ export interface CreateEmployeePayload {
   first_name: string;
   last_name: string;
   id_number: string; 
-  date_of_birth: string; // YYYY-MM-DD
-  hire_date: string;     // YYYY-MM-DD
+  date_of_birth: string | null; // YYYY-MM-DD
+  hire_date: string | null;     // YYYY-MM-DD
   first_work_date?: string | null;
   entry_date_to_current_organization?: string | null;
   

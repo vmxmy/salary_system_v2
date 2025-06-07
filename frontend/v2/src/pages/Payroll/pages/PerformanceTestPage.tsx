@@ -26,12 +26,12 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useMessage } from '../../../hooks/useMessage';
-import { payrollApi } from '../services/payrollApi';
+import * as payrollApi from '../services/payrollApi';
 import { payrollViewsApi } from '../services/payrollViewsApi';
-import { 
-  performanceMonitor, 
+import {
+  performanceMonitor,
   compareApiPerformance,
-  type PerformanceComparison 
+  type PerformanceComparison
 } from '../utils/performanceMonitor';
 
 const { Title, Text, Paragraph } = Typography;

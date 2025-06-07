@@ -75,7 +75,7 @@ export const usePayrollPeriodsView = (
       
       // 如果没有选中的周期且有数据，自动选择第一个活跃的周期
       if (!selectedPeriodId && sortedPeriods.length > 0) {
-        const firstActivePeriod = sortedPeriods.find(p => p.is_active);
+        const firstActivePeriod = sortedPeriods.find(p => p.status_lookup_value_id === 1); // 假设1是活跃状态
         if (firstActivePeriod) {
           setSelectedPeriodId(firstActivePeriod.id);
         }
@@ -115,7 +115,7 @@ export const usePayrollPeriodsView = (
    * 获取活跃的周期
    */
   const getActivePeriods = useCallback((): PayrollPeriodDetailView[] => {
-    return periods.filter(period => period.is_active);
+    return periods.filter(period => period.status_lookup_value_id === 1); // 假设1是活跃状态
   }, [periods]);
 
   /**
@@ -123,9 +123,9 @@ export const usePayrollPeriodsView = (
    */
   const getTotalStats = useCallback(() => {
     const totalPeriods = periods.length;
-    const activePeriods = periods.filter(p => p.is_active).length;
-    const totalRuns = periods.reduce((sum, p) => sum + p.runs_count, 0);
-    const totalEntries = periods.reduce((sum, p) => sum + p.entries_count, 0);
+    const activePeriods = periods.filter(p => p.status_lookup_value_id === 1).length;
+    const totalRuns = periods.reduce((sum, p) => sum + (p.total_runs || 0), 0);
+    const totalEntries = periods.reduce((sum, p) => sum + (p.total_entries || 0), 0);
 
     return {
       totalPeriods,

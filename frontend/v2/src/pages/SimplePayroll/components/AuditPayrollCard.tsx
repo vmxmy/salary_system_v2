@@ -92,12 +92,58 @@ const AuditPayrollCard: React.FC<AuditPayrollCardProps> = ({
   // 当版本变化时重新加载数据
   useEffect(() => {
     if (selectedVersion) {
-      loadAuditSummary();
+      // 自动执行审核检查和异常检测
+      autoRunAuditCheck();
     } else {
       setAuditSummary(null);
       setAnomalies([]);
     }
   }, [selectedVersion]);
+
+  // 自动执行审核检查
+  const autoRunAuditCheck = async () => {
+    if (!selectedVersion) return;
+
+    console.log('🔍 [AuditPayrollCard] 自动执行审核检查，版本ID:', selectedVersion.id);
+    
+    try {
+      // 首先尝试获取现有的审核汇总
+      await loadAuditSummary();
+      
+      // 如果没有审核数据或者审核数据过期，自动执行审核检查
+      const shouldRunAudit = !auditSummary || auditSummary.total_anomalies === 0;
+      
+      if (shouldRunAudit) {
+        console.log('🚀 [AuditPayrollCard] 执行自动审核检查...');
+        setLoading(true);
+        
+        const response = await simplePayrollApi.runAuditCheck(selectedVersion.id);
+        setAuditSummary(response.data);
+        
+        // 自动加载异常列表
+        await loadAnomalies();
+        
+        console.log('✅ [AuditPayrollCard] 自动审核检查完成:', response.data);
+        
+        // 如果发现异常，显示提示
+        if (response.data.total_anomalies > 0) {
+          message.info(`审核完成：发现 ${response.data.total_anomalies} 个异常，其中 ${response.data.error_count} 个错误`);
+        } else {
+          message.success('审核完成：未发现异常');
+        }
+      } else {
+        // 如果已有审核数据，只加载异常列表
+        await loadAnomalies();
+        console.log('ℹ️ [AuditPayrollCard] 使用现有审核数据');
+      }
+    } catch (error) {
+      console.error('❌ [AuditPayrollCard] 自动审核检查失败:', error);
+      // 失败时仍尝试加载现有数据
+      await loadAuditSummary();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 执行审核检查
   const handleRunAudit = async () => {

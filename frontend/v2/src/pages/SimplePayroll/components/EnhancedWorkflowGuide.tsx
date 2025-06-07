@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Steps, Card, Button, Space, Alert, Typography, Tag, Progress, Divider, message, Modal } from 'antd';
-import { ProCard } from '@ant-design/pro-components';
+import { ProCard, StatisticCard } from '@ant-design/pro-components';
 import {
   FileTextOutlined,
   CalculatorOutlined,
@@ -67,6 +67,31 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     console.log('🔄 [EnhancedWorkflowGuide] 手动重置所有loading状态');
     setLoading({});
     message.info('已重置所有加载状态');
+  };
+
+  // 通用的带超时保护的异步操作包装器
+  const withTimeout = async (
+    actionKey: string, 
+    asyncOperation: () => Promise<void>, 
+    timeoutMs: number = 30000
+  ) => {
+    setActionLoading(actionKey, true);
+    
+    const timeoutId = setTimeout(() => {
+      console.log(`⏰ [${actionKey}] 操作超时，强制重置loading状态`);
+      setActionLoading(actionKey, false);
+      message.error(`${actionKey} 操作超时，请稍后重试`);
+    }, timeoutMs);
+    
+    try {
+      await asyncOperation();
+      clearTimeout(timeoutId);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error; // 重新抛出错误让调用者处理
+    } finally {
+      setActionLoading(actionKey, false);
+    }
   };
 
   // 获取异常详情
@@ -170,65 +195,73 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     }
   }, [selectedVersion]);
 
+  // 自动执行审核检查
+  useEffect(() => {
+    if (selectedVersion && selectedVersion.status_name === '已计算') {
+      autoRunAuditCheck();
+    }
+  }, [selectedVersion]);
+
+  // 自动执行审核检查函数
+  const autoRunAuditCheck = async () => {
+    if (!selectedVersion) return;
+
+    console.log('🔍 [EnhancedWorkflowGuide] 检查审核记录，版本ID:', selectedVersion.id);
+    
+    try {
+      // 首先尝试获取现有的审核汇总
+      let hasExistingAudit = false;
+      let existingAuditData = null;
+      
+      try {
+        const summaryResponse = await simplePayrollApi.getAuditSummary(selectedVersion.id);
+        if (summaryResponse.data && summaryResponse.data.total_entries > 0) {
+          hasExistingAudit = true;
+          existingAuditData = summaryResponse.data;
+          console.log('✅ [EnhancedWorkflowGuide] 发现现有审核数据:', existingAuditData);
+        }
+      } catch (error) {
+        console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据');
+      }
+      
+      // 如果有现有审核数据，直接显示提示信息，不刷新页面
+      if (hasExistingAudit && existingAuditData) {
+        console.log('ℹ️ [EnhancedWorkflowGuide] 使用现有审核数据，不执行新的审核检查');
+        message.info(`已加载现有审核记录：${existingAuditData.total_entries}条记录，${existingAuditData.total_anomalies}个异常`);
+        // 移除 onRefresh() 调用，避免循环刷新
+      } else {
+        console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据，等待用户手动执行审核检查');
+        // 不自动执行审核检查，让用户手动决定是否执行
+      }
+    } catch (error) {
+      console.error('❌ [EnhancedWorkflowGuide] 检查审核记录失败:', error);
+      // 失败时不显示错误消息，让用户手动执行
+    }
+  };
+
   // API调用函数
   const handleRunAudit = async () => {
     if (!selectedVersion) return;
     
-    setActionLoading('run_audit', true);
-    
-    // 设置30秒超时
-    const timeoutId = setTimeout(() => {
-      console.log('⏰ [审核检查] 操作超时，强制重置loading状态');
-      setActionLoading('run_audit', false);
-      message.error('审核检查超时，请稍后重试');
-    }, 30000);
-    
-    try {
+    await withTimeout('run_audit', async () => {
       console.log('🔍 [审核检查] 开始执行审核检查:', selectedVersion.id);
       await simplePayrollApi.runAuditCheck(selectedVersion.id);
       console.log('✅ [审核检查] 审核检查完成');
-      clearTimeout(timeoutId);
       message.success('审核检查完成');
       onRefresh();
-    } catch (error: any) {
-      console.error('❌ [审核检查] 审核检查失败:', error);
-      clearTimeout(timeoutId);
-      const errorMessage = error?.response?.data?.detail?.error?.message || error?.message || '审核检查失败';
-      message.error(errorMessage);
-    } finally {
-      console.log('🔄 [审核检查] 重置loading状态');
-      setActionLoading('run_audit', false);
-    }
+    });
   };
 
   const handleRunAdvancedAudit = async () => {
     if (!selectedVersion) return;
     
-    setActionLoading('run_advanced_audit', true);
-    
-    // 设置30秒超时
-    const timeoutId = setTimeout(() => {
-      console.log('⏰ [高级审核] 操作超时，强制重置loading状态');
-      setActionLoading('run_advanced_audit', false);
-      message.error('高级审核检查超时，请稍后重试');
-    }, 30000);
-    
-    try {
+    await withTimeout('run_advanced_audit', async () => {
       console.log('🔍 [高级审核] 开始执行高级审核检查:', selectedVersion.id);
       await simplePayrollApi.runAdvancedAuditCheck(selectedVersion.id);
       console.log('✅ [高级审核] 高级审核检查完成');
-      clearTimeout(timeoutId);
       message.success('高级审核完成');
       onRefresh();
-    } catch (error: any) {
-      console.error('❌ [高级审核] 高级审核检查失败:', error);
-      clearTimeout(timeoutId);
-      const errorMessage = error?.response?.data?.detail?.error?.message || error?.message || '高级审核失败';
-      message.error(errorMessage);
-    } finally {
-      console.log('🔄 [高级审核] 重置loading状态');
-      setActionLoading('run_advanced_audit', false);
-    }
+    });
   };
 
   const handleRunCalculationEngine = async () => {
@@ -776,9 +809,13 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                    include_summary: true
                  });
                  
-                 // 创建下载链接
-                 const blob = new Blob([response.data.file_content], { 
-                   type: response.data.file_format === 'csv' ? 'text/csv' : 'text/plain' 
+                 // 创建下载链接，确保CSV文件使用UTF-8编码
+                 const fileContent = response.data.file_format === 'csv' 
+                   ? '\ufeff' + response.data.file_content  // 为CSV添加UTF-8 BOM
+                   : response.data.file_content;
+                 
+                 const blob = new Blob([fileContent], { 
+                   type: response.data.file_format === 'csv' ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8' 
                  });
                  const url = window.URL.createObjectURL(blob);
                  const link = document.createElement('a');
@@ -1001,28 +1038,43 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
 
         {/* 审核批准步骤的特殊内容 */}
         {currentStep === 2 && selectedVersion && (
-          <Alert
-            message="工资数据审核中"
-            description={
-              <div>
-                <p style={{ marginBottom: 8 }}>
-                  工资数据已提交审核，当前状态：<Tag color="blue">{selectedVersion.status_name}</Tag>
-                </p>
-                <p style={{ marginBottom: 8 }}>
-                  <strong>工资汇总：</strong>
-                  应发总额 <strong>{selectedVersion.total_gross_pay}</strong>，
-                  扣发总额 <strong>{selectedVersion.total_deductions}</strong>，
-                  实发总额 <strong>{selectedVersion.total_net_pay}</strong>
-                </p>
-                <p style={{ color: '#666', fontSize: '12px' }}>
-                  管理员可以选择批准支付或拒绝并退回修改
-                </p>
-              </div>
-            }
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
+          <StatisticCard.Group style={{ marginBottom: 16 }}>
+            <StatisticCard
+              statistic={{
+                title: '审核状态',
+                value: selectedVersion.status_name,
+                valueStyle: { color: '#1890ff' },
+              }}
+              chart={<Tag color="blue">{selectedVersion.status_name}</Tag>}
+            />
+            <StatisticCard
+              statistic={{
+                title: '应发总额',
+                value: selectedVersion.total_gross_pay,
+                precision: 2,
+                prefix: '¥',
+                valueStyle: { color: '#52c41a' },
+              }}
+            />
+            <StatisticCard
+              statistic={{
+                title: '扣发总额',
+                value: selectedVersion.total_deductions,
+                precision: 2,
+                prefix: '¥',
+                valueStyle: { color: '#ff4d4f' },
+              }}
+            />
+            <StatisticCard
+              statistic={{
+                title: '实发总额',
+                value: selectedVersion.total_net_pay,
+                precision: 2,
+                prefix: '¥',
+                valueStyle: { color: '#1890ff', fontSize: '20px' },
+              }}
+            />
+          </StatisticCard.Group>
         )}
 
         {/* 阻塞提示 */}

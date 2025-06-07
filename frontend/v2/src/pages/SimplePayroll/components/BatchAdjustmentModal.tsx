@@ -55,10 +55,10 @@ interface AdjustmentRule {
 }
 
 interface PayrollComponent {
+  id: number;
   code: string;
   name: string;
-  type: 'EARNING' | 'DEDUCTION';
-  category: string;
+  type: string;
 }
 
 export const BatchAdjustmentModal: React.FC<BatchAdjustmentModalProps> = ({
@@ -99,7 +99,7 @@ export const BatchAdjustmentModal: React.FC<BatchAdjustmentModalProps> = ({
   const fetchEmployees = async () => {
     try {
       const response = await simplePayrollApi.getPayrollEntries({ payroll_run_id: payrollRun.id });
-      const employees = response.data?.items || [];
+      const employees = response.data || [];
       setAllEmployees(employees);
       setSelectedEmployees(employees.map((emp: any) => emp.employee_code));
     } catch (error) {
@@ -149,7 +149,7 @@ export const BatchAdjustmentModal: React.FC<BatchAdjustmentModalProps> = ({
         employee_codes: selectedEmployees,
         adjustment_rules: adjustmentRules
       });
-      setPreviewData(preview.affected_entries || []);
+      setPreviewData(preview.data?.affected_entries || []);
       setShowPreview(true);
     } catch (error: any) {
       message.error(error.message || t('simplePayroll:batchAdjust.errors.preview'));
@@ -175,7 +175,7 @@ export const BatchAdjustmentModal: React.FC<BatchAdjustmentModalProps> = ({
       });
 
       message.success(t('simplePayroll:batchAdjust.messages.success', {
-        count: result.affected_count
+        count: result.data?.affected_count || 0
       }));
       onSuccess();
       handleClose();
@@ -237,7 +237,7 @@ export const BatchAdjustmentModal: React.FC<BatchAdjustmentModalProps> = ({
       render: (value: string, record: AdjustmentRule) => (
         <Select
           value={value}
-          onChange={(val) => updateAdjustmentRule(record.id, { operation: val })}
+          onChange={(val) => updateAdjustmentRule(record.id, { operation: val as 'add' | 'subtract' | 'multiply' | 'set' })}
           style={{ width: '100%' }}
         >
           <Option value="add">
@@ -410,9 +410,10 @@ export const BatchAdjustmentModal: React.FC<BatchAdjustmentModalProps> = ({
                 style={{ width: '100%' }}
                 maxTagCount={5}
                 showSearch
-                filterOption={(input, option) =>
-                  option?.children?.toString().toLowerCase().includes(input.toLowerCase())
-                }
+                filterOption={(input, option) => {
+                  if (!option) return false;
+                  return option?.children?.toString().toLowerCase().includes(input.toLowerCase()) || false;
+                }}
               >
                 {allEmployees.map(emp => (
                   <Option key={emp.employee_code} value={emp.employee_code}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Space, Button, message, Spin, Tag, Tabs, DatePicker, Card, Tooltip, Select, Divider } from 'antd';
-import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined, DeleteOutlined, DollarOutlined, TeamOutlined, MinusCircleOutlined, CheckCircleOutlined, CalculatorOutlined, AuditOutlined, RightOutlined, EllipsisOutlined } from '@ant-design/icons';
+import { Layout, Row, Col, Space, Button, message, Spin, Tag, Tabs, DatePicker, Card, Tooltip, Select, Divider, InputNumber, Alert, Typography } from 'antd';
+import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined, DeleteOutlined, DollarOutlined, TeamOutlined, MinusCircleOutlined, CheckCircleOutlined, CalculatorOutlined, AuditOutlined, RightOutlined, EllipsisOutlined, ControlOutlined } from '@ant-design/icons';
 import { StatisticCard, ProCard } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,7 @@ import type { PayrollPeriodResponse, PayrollRunResponse, PayrollGenerationReques
 import './styles.less'; // Assuming this file exists and will contain our new styles
 
 const { Header, Content } = Layout;
+const { Text } = Typography;
 
 const SimplePayrollPage: React.FC = () => {
   const { t } = useTranslation(['simplePayroll', 'common']);
@@ -59,9 +60,18 @@ const SimplePayrollPage: React.FC = () => {
   // Function to fetch payroll statistics
   const fetchPayrollStats = async (versionId: number) => {
     setPayrollStats(prev => ({ ...prev, loading: true }));
+    
+    // 设置5秒超时保护
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ [fetchPayrollStats] 操作超时，强制重置loading状态');
+      setPayrollStats(prev => ({ ...prev, loading: false }));
+    }, 5000);
+    
     try {
       console.log('🔍 [fetchPayrollStats] 获取版本统计数据:', versionId);
       const response = await simplePayrollApi.getPayrollVersion(versionId);
+      
+      clearTimeout(timeoutId); // 清除超时定时器
       
       if (response.data) {
         const versionData = response.data;
@@ -91,6 +101,7 @@ const SimplePayrollPage: React.FC = () => {
       }
     } catch (error) {
       console.error('❌ [fetchPayrollStats] 获取工资统计数据失败:', error);
+      clearTimeout(timeoutId); // 清除超时定时器
       setPayrollStats({
         recordCount: 0,
         totalGrossPay: 0,
@@ -101,10 +112,11 @@ const SimplePayrollPage: React.FC = () => {
     }
   };
 
-  // Fetch stats when version changes
+  // Fetch stats and audit data when version changes
   useEffect(() => {
     if (selectedVersionId) {
       fetchPayrollStats(selectedVersionId);
+      fetchAuditSummary(selectedVersionId);
     } else {
       setPayrollStats({
         recordCount: 0,
@@ -113,6 +125,7 @@ const SimplePayrollPage: React.FC = () => {
         totalNetPay: 0,
         loading: false
       });
+      setAuditSummary(null);
     }
   }, [selectedVersionId]);
 
@@ -126,9 +139,84 @@ const SimplePayrollPage: React.FC = () => {
     });
   }, [periods, periodsLoading]);
 
-  // Temporary disabled audit function placeholder
-  const auditSummary: AuditSummary | null = null;
-  const refetchAuditSummary = () => {};
+  // 自动选择当前月份期间
+  useEffect(() => {
+    if (!periodsLoading && periods.length > 0 && !selectedPeriodId) {
+      const now = dayjs();
+      const currentYear = now.year();
+      const currentMonth = now.month() + 1; // dayjs month is 0-indexed
+      const targetName = `${currentYear}年${currentMonth.toString().padStart(2, '0')}月`;
+      
+      console.log('🎯 [SimplePayrollPage] 尝试自动选择当前月份期间:', {
+        currentTime: now.format('YYYY-MM-DD HH:mm:ss'),
+        currentYear,
+        currentMonth,
+        targetName,
+        availablePeriods: periods.map(p => ({ id: p.id, name: p.name }))
+      });
+      
+      // 查找当前月份的期间 - 使用多种匹配方式
+      let currentMonthPeriod = periods.find(p => p.name.includes(targetName));
+      
+      // 如果精确匹配失败，尝试更宽松的匹配
+      if (!currentMonthPeriod) {
+        const alternativeTargets = [
+          `${currentYear}年${currentMonth}月`,  // 不补零的格式
+          `${currentYear}-${currentMonth.toString().padStart(2, '0')}`,  // 横线格式
+          `${currentYear}-${currentMonth}`,  // 横线不补零格式
+        ];
+        
+        for (const altTarget of alternativeTargets) {
+          currentMonthPeriod = periods.find(p => p.name.includes(altTarget));
+          if (currentMonthPeriod) {
+            console.log('✅ [SimplePayrollPage] 使用备选格式找到期间:', altTarget, currentMonthPeriod);
+            break;
+          }
+        }
+      }
+      
+      if (currentMonthPeriod) {
+        console.log('✅ [SimplePayrollPage] 找到当前月份期间，自动选择:', currentMonthPeriod);
+        setSelectedPeriodId(currentMonthPeriod.id);
+      } else {
+        // 如果没有当前月份，选择最新的期间（通常是第一个）
+        console.log('⚠️ [SimplePayrollPage] 未找到当前月份期间，选择最新期间:', periods[0]);
+        console.log('📋 [SimplePayrollPage] 所有可用期间名称:', periods.map(p => p.name));
+        setSelectedPeriodId(periods[0].id);
+      }
+    }
+  }, [periods, periodsLoading]); // 移除selectedPeriodId依赖，避免循环触发
+
+  // Audit summary state management
+  const [auditSummary, setAuditSummary] = useState<AuditSummary | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  // Function to fetch audit summary
+  const fetchAuditSummary = async (versionId: number) => {
+    setAuditLoading(true);
+    try {
+      console.log('🔍 [fetchAuditSummary] 获取审核汇总数据:', versionId);
+      const response = await simplePayrollApi.getAuditSummary(versionId);
+      if (response.data) {
+        setAuditSummary(response.data);
+        console.log('✅ [fetchAuditSummary] 审核汇总获取成功:', response.data);
+      } else {
+        setAuditSummary(null);
+        console.log('ℹ️ [fetchAuditSummary] 没有审核数据');
+      }
+    } catch (error) {
+      console.error('❌ [fetchAuditSummary] 获取审核汇总失败:', error);
+      setAuditSummary(null);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const refetchAuditSummary = () => {
+    if (selectedVersionId) {
+      fetchAuditSummary(selectedVersionId);
+    }
+  };
 
   // Smart version selection on initial load or period change if no version is selected
   useEffect(() => {
@@ -167,6 +255,13 @@ const SimplePayrollPage: React.FC = () => {
     }
   };
 
+  // 手动重置loading状态的函数
+  const resetLoadingStates = () => {
+    console.log('🔄 [SimplePayrollPage] 手动重置所有loading状态');
+    setPayrollStats(prev => ({ ...prev, loading: false }));
+    message.info('已重置加载状态');
+  };
+
   // Navigation handler to bulk import page
   const handleNavigateToBulkImport = () => {
     navigate('/payroll/bulk-import');
@@ -175,6 +270,30 @@ const SimplePayrollPage: React.FC = () => {
   // Handler for creating a new period (opens modal)
   const handleCreateNewPeriod = () => {
     setCreatePeriodModalVisible(true);
+  };
+
+  // Handler for date change in explicit date selector
+  const handleDateChange = async (year: number, month: number) => {
+    try {
+      const targetName = `${year}年${month.toString().padStart(2, '0')}月`;
+      const matchedPeriod = periods.find(p => p.name.includes(targetName));
+      
+      if (matchedPeriod) {
+        setSelectedPeriodId(matchedPeriod.id);
+      } else {
+        // Try to fetch the period from API
+        const response = await simplePayrollApi.getPayrollPeriods({ year, month, page: 1, size: 10 });
+        if (response.data && response.data.length > 0) {
+          setSelectedPeriodId(response.data[0].id);
+          refetchPeriods();
+        } else {
+          message.warning(`未找到 ${targetName} 的工资期间`);
+          setSelectedPeriodId(undefined);
+        }
+      }
+    } catch (error) {
+      message.error(t('simplePayroll:errors.fetchPeriodFailed'));
+    }
   };
 
   const handleCreateFirstVersion = async () => {
@@ -368,145 +487,75 @@ const SimplePayrollPage: React.FC = () => {
           </div>
         ) : (
           <Row gutter={[24, 24]}>
-            {/* Left Column: Controls and Actions */}
-            <Col xs={24} lg={8}>
-              <Row gutter={[24, 24]}>
-                {/* Period and Version Controls Card */}
-                <Col span={24}>
-                  <Card 
-                    title={<span className="typography-title-tertiary">{t('simplePayroll:controls.title')}</span>} 
-                    bordered={false} 
-                    className="h-full"
-                  >
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <div className="control-group">
-                        <label className="control-label">{t('simplePayroll:controls.periodLabel')}</label>
-                        <DatePicker
-                          picker="month"
-                          className="w-full"
-                          placeholder={t('simplePayroll:selectPeriodPlaceholder')}
-                          value={currentPeriod ? dayjs(currentPeriod.start_date) : null}
-                          onChange={async (date) => {
-                            if (!date) {
-                              setSelectedPeriodId(undefined);
-                              return;
-                            }
-                            const year = date.year();
-                            const month = date.month() + 1;
-                            const targetName = `${year}年${month.toString().padStart(2, '0')}月`;
-                            const matchedPeriod = periods.find(p => p.name.includes(targetName));
-                            if (matchedPeriod) {
-                              setSelectedPeriodId(matchedPeriod.id);
-                            } else {
-                              try {
-                                const response = await simplePayrollApi.getPayrollPeriods({ year, month, page: 1, size: 10 });
-                                if (response.data && response.data.length > 0) {
-                                  setSelectedPeriodId(response.data[0].id);
-                                  refetchPeriods();
-                                } else {
-                                  // Auto-create logic remains here
-                                }
-                              } catch (error) {
-                                message.error(t('simplePayroll:errors.fetchPeriodFailed'));
-                              }
-                            }
-                          }}
-                          format="YYYY年MM月"
-                          disabled={periodsLoading}
-                          cellRender={(current, info) => {
-                            if (info.type !== 'month') return info.originNode;
-                            const currentDate = dayjs(current);
-                            const year = currentDate.year();
-                            const month = currentDate.month() + 1;
-                            const monthPeriods = periods.filter(period => dayjs(period.start_date).year() === year && dayjs(period.start_date).month() + 1 === month);
-                            const hasRecord = monthPeriods.length > 0;
-                            const hasRuns = monthPeriods.some(p => p.runs_count > 0);
-                            const hasEntries = monthPeriods.some(p => p.entries_count > 0);
-                            const hasApprovedOrPaid = monthPeriods.some(p => p.status_name === '已审核' || p.status_name === '已支付');
-                            let statusClass = 'month-cell-default';
-                            if (hasApprovedOrPaid) statusClass = 'month-cell-approved';
-                            else if (hasEntries) statusClass = 'month-cell-pending';
-                            else if (hasRuns) statusClass = 'month-cell-has-runs';
-                            else if (hasRecord) statusClass = 'month-cell-has-period';
-                            return <div className={`ant-picker-cell-inner ${statusClass}`}>{info.originNode}</div>;
-                          }}
-                        />
-                      </div>
-                      <div className="control-group">
-                        <label className="control-label">{t('simplePayroll:controls.versionLabel')}</label>
-                        <Select
-                          value={selectedVersionId}
-                          onChange={setSelectedVersionId}
-                          placeholder={t('simplePayroll:controls.versionPlaceholder')}
-                          loading={versionsLoading}
-                          disabled={!selectedPeriodId || versions.length === 0}
-                          className="w-full"
-                          optionLabelProp="label"
-                          notFoundContent={
-                            versionsLoading ? null : (
-                              <div className="ant-select-empty-content">
-                                {isCreating ? (
-                                  <Spin size="small" />
-                                ) : (
-                                  <>
-                                    <span>暂无数据版本</span>
-                                    <Button type="link" size="small" onClick={handleCreateFirstVersion}>创建第一个</Button>
-                                  </>
-                                )}
-                              </div>
-                            )
-                          }
-                        >
-                          {versions.map(version => (
-                            <Select.Option 
-                              key={version.id} 
-                              value={version.id}
-                              label={`v${version.version_number}`}
-                            >
-                              <div className="version-option">
-                                <div className="version-option-label">
-                                  <div style={{ fontWeight: 600 }}>{`v${version.version_number}`}</div>
-                                  <div className="version-option-time">{dayjs(version.initiated_at).format('MM-DD HH:mm')}</div>
-                                </div>
-                                <Tag 
-                                  color={
-                                    version.status_name === '草稿' ? 'orange' :
-                                    version.status_name === '已计算' ? 'blue' :
-                                    version.status_name === '已审核' ? 'green' :
-                                    version.status_name === '已支付' ? 'purple' : 'default'
-                                  }
-                                  style={{ fontSize: '11px', padding: '0 4px', lineHeight: '16px' }}
-                                >
-                                  {version.status_name}
-                                </Tag>
-                              </div>
-                            </Select.Option>
-                          ))}
-                        </Select>
-                      </div>
+            {/* 左列：控制面板和快捷操作 */}
+            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
+              {/* 核心控制 */}
+              <ProCard
+                title={
+                  <Space>
+                    <ControlOutlined />
+                    {t('simplePayroll:controls.title')}
+                  </Space>
+                }
+                bordered
+                style={{ marginBottom: 16 }}
+              >
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                  {/* 工资期间选择 */}
+                  <div>
+                    <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                      {t('simplePayroll:controls.period')}
+                    </Text>
+                    <DatePicker
+                      picker="month"
+                      value={currentPeriod ? dayjs(currentPeriod.start_date) : dayjs()}
+                      onChange={(date) => {
+                        if (date) {
+                          handleDateChange(date.year(), date.month() + 1);
+                        }
+                      }}
+                      style={{ width: '100%' }}
+                      size="large"
+                      format="YYYY年MM月"
+                      placeholder={t('simplePayroll:controls.selectPeriod')}
+                      allowClear={false}
+                      className="custom-date-picker"
+                    />
+                  </div>
+                </Space>
+              </ProCard>
+
+              {/* 快捷操作 */}
+              {selectedPeriodId && (
+                <ProCard
+                  title={
+                    <Space>
+                      <AppstoreOutlined />
+                      {t('simplePayroll:quickActions.title')}
                     </Space>
-                  </Card>
-                </Col>
-                
-                {/* Quick Actions Card */}
-                {selectedPeriodId && (
-                  <Col span={24}>
-                    <Card 
-                      title={<span className="typography-title-tertiary">{t('simplePayroll:quickActions.title')}</span>} 
-                      bordered={false}
+                  }
+                  bordered
+                  style={{ marginBottom: 16 }}
+                >
+                  <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                    <Button 
+                      onClick={handleNavigateToBulkImport} 
+                      block 
+                      size="large"
+                      icon={<PlusOutlined />}
                     >
-                       <Space direction="vertical" style={{ width: '100%' }}>
-                        <Button onClick={handleNavigateToBulkImport} block>
-                          <span className="typography-body-primary">{t('simplePayroll:quickActions.bulkImport')}</span>
-                        </Button>
-                        <Button block>
-                          <span className="typography-body-primary">{t('simplePayroll:quickActions.copyLastMonth')}</span>
-                        </Button>
-                      </Space>
-                    </Card>
-                  </Col>
-                )}
-              </Row>
+                      {t('simplePayroll:quickActions.bulkImport')}
+                    </Button>
+                    <Button 
+                      block 
+                      size="large"
+                      icon={<ReloadOutlined />}
+                    >
+                      {t('simplePayroll:quickActions.copyLastMonth')}
+                    </Button>
+                  </Space>
+                </ProCard>
+              )}
             </Col>
 
             {/* Right Column: Workflow and Information */}
@@ -524,144 +573,144 @@ const SimplePayrollPage: React.FC = () => {
                   {/* Statistics Card - Only show when version is selected */}
                   {selectedVersionId && (
                     <Col span={24}>
-                      <ProCard
+                      <StatisticCard.Group
                         title={
                           <Space>
                             <DollarOutlined />
                             <span className="typography-title-tertiary">{currentPeriod?.name || ''} 工资统计概览</span>
                           </Space>
                         }
-                        extra={<EllipsisOutlined />}
-                        className="unified-stats-card responsive-stats-card"
+                        extra={
+                          process.env.NODE_ENV === 'development' && payrollStats.loading ? (
+                            <Button 
+                              size="small" 
+                              type="link" 
+                              onClick={resetLoadingStates}
+                              style={{ color: '#ff4d4f' }}
+                            >
+                              重置加载状态
+                            </Button>
+                          ) : null
+                        }
                         loading={payrollStats.loading}
                       >
-                        {/* 第一行：基础信息和财务信息 */}
-                        <ProCard split="vertical" className="stats-row">
-                          <ProCard title={<span className="typography-label-primary">基础信息</span>} colSpan="50%">
-                            <div className="stat-main-value">
-                              <span className="stat-number">{payrollStats.recordCount}</span>
-                              <span className="stat-unit">人</span>
-                            </div>
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="stat-details">
-                              <div className="detail-item">
-                                <span className="detail-label">期间:</span>
-                                <span className="detail-value">{currentPeriod?.name || '-'}</span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">状态:</span>
-                                <span className="detail-value" style={{ color: '#52c41a' }}>
-                                  {currentPeriod?.status_name || '-'}
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">版本:</span>
-                                <span className="detail-value">
-                                  v{currentVersion?.version_number || '-'} ({versions.length}个)
-                                </span>
-                              </div>
-                            </div>
-                          </ProCard>
-
-                          <ProCard title={<span className="typography-label-primary">财务信息</span>} colSpan="50%">
-                            <div className="stat-main-value">
-                              <span className="stat-number">¥{payrollStats.totalNetPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="stat-details">
-                              <div className="detail-item">
-                                <span className="detail-label">应发:</span>
-                                <span className="detail-value" style={{ color: '#52c41a' }}>
-                                  ¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">扣发:</span>
-                                <span className="detail-value" style={{ color: '#ff4d4f' }}>
-                                  ¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">人均:</span>
-                                <span className="detail-value">
-                                  ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
-                                </span>
-                              </div>
-                            </div>
-                          </ProCard>
-                        </ProCard>
-
-                        {/* 第二行：版本状态和审核状态 */}
-                        <ProCard split="vertical" className="stats-row">
-                          <ProCard title={<span className="typography-label-primary">版本状态</span>} colSpan="50%">
-                            <div className="stat-main-value">
-                              <span 
-                                className="stat-number"
-                                style={{ 
+                        <Row gutter={[16, 16]}>
+                          <Col xs={24} sm={12} lg={6}>
+                            <StatisticCard
+                              statistic={{
+                                title: '基础信息',
+                                value: payrollStats.recordCount,
+                                suffix: '人',
+                                valueStyle: { color: '#1890ff' }
+                              }}
+                              chart={
+                                <div style={{ padding: '8px 0' }}>
+                                  <Divider style={{ margin: '8px 0' }} />
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    期间: {currentPeriod?.name || '-'}
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    状态: <span style={{ color: '#52c41a' }}>{currentPeriod?.status_name || '-'}</span>
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666' }}>
+                                    版本: v{currentVersion?.version_number || '-'} ({versions.length}个)
+                                  </div>
+                                </div>
+                              }
+                            />
+                          </Col>
+                          <Col xs={24} sm={12} lg={6}>
+                            <StatisticCard
+                              statistic={{
+                                title: '财务信息',
+                                value: payrollStats.totalNetPay,
+                                precision: 2,
+                                prefix: '¥',
+                                valueStyle: { color: '#52c41a' }
+                              }}
+                              chart={
+                                <div style={{ padding: '8px 0' }}>
+                                  <Divider style={{ margin: '8px 0' }} />
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    应发: <span style={{ color: '#52c41a' }}>¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    扣发: <span style={{ color: '#ff4d4f' }}>¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666' }}>
+                                    人均: ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
+                                  </div>
+                                </div>
+                              }
+                            />
+                          </Col>
+                          <Col xs={24} sm={12} lg={6}>
+                            <StatisticCard
+                              statistic={{
+                                title: '版本状态',
+                                value: currentVersion?.status_name || '-',
+                                valueStyle: { 
                                   color: 
                                     currentVersion?.status_name === '草稿' ? '#fa8c16' :
                                     currentVersion?.status_name === '已计算' ? '#1890ff' :
                                     currentVersion?.status_name === '已审核' ? '#52c41a' :
                                     currentVersion?.status_name === '已支付' ? '#722ed1' :
                                     '#8c8c8c'
-                                }}
-                              >
-                                {currentVersion?.status_name || '-'}
-                              </span>
-                            </div>
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="stat-details">
-                              <div className="detail-item">
-                                <span className="detail-label">创建:</span>
-                                <span className="detail-value">
-                                  {currentVersion ? dayjs(currentVersion.initiated_at).format('MM-DD HH:mm') : '-'}
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">创建人:</span>
-                                <span className="detail-value">
-                                  {currentVersion?.initiated_by_username || '-'}
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">频率:</span>
-                                <span className="detail-value">
-                                  {currentPeriod?.frequency_name || '-'}
-                                </span>
-                              </div>
-                            </div>
-                          </ProCard>
-
-                          <ProCard title={<span className="typography-label-primary">审核状态</span>} colSpan="50%">
-                            <div className="stat-main-value">
-                              <span className="stat-number" style={{ color: '#fa8c16' }}>
-                                待审核
-                              </span>
-                            </div>
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="stat-details">
-                              <div className="detail-item">
-                                <span className="detail-label">错误:</span>
-                                <span className="detail-value" style={{ color: '#52c41a' }}>
-                                  0 个
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">警告:</span>
-                                <span className="detail-value" style={{ color: '#52c41a' }}>
-                                  0 个
-                                </span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">可修复:</span>
-                                <span className="detail-value" style={{ color: '#52c41a' }}>
-                                  0 个
-                                </span>
-                              </div>
-                            </div>
-                          </ProCard>
-                        </ProCard>
-                      </ProCard>
+                                }
+                              }}
+                              chart={
+                                <div style={{ padding: '8px 0' }}>
+                                  <Divider style={{ margin: '8px 0' }} />
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    创建: {currentVersion ? dayjs(currentVersion.initiated_at).format('MM-DD HH:mm') : '-'}
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    创建人: {currentVersion?.initiated_by_username || '-'}
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666' }}>
+                                    频率: {currentPeriod?.frequency_name || '-'}
+                                  </div>
+                                </div>
+                              }
+                            />
+                          </Col>
+                          <Col xs={24} sm={12} lg={6}>
+                            <StatisticCard
+                              statistic={{
+                                title: '审核状态',
+                                value: auditSummary ? (
+                                  auditSummary.total_anomalies > 0 ? '有异常' : '通过'
+                                ) : (auditLoading ? '检查中' : '待审核'),
+                                valueStyle: { 
+                                  color: auditSummary ? (
+                                    auditSummary.total_anomalies > 0 ? '#ff4d4f' : '#52c41a'
+                                  ) : (auditLoading ? '#1890ff' : '#fa8c16')
+                                }
+                              }}
+                              chart={
+                                <div style={{ padding: '8px 0' }}>
+                                  <Divider style={{ margin: '8px 0' }} />
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    错误: <span style={{ color: (auditSummary?.error_count || 0) > 0 ? '#ff4d4f' : '#52c41a' }}>
+                                      {auditSummary?.error_count || 0} 个
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                    警告: <span style={{ color: (auditSummary?.warning_count || 0) > 0 ? '#fa8c16' : '#52c41a' }}>
+                                      {auditSummary?.warning_count || 0} 个
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666' }}>
+                                    可修复: <span style={{ color: (auditSummary?.auto_fixable_count || 0) > 0 ? '#1890ff' : '#52c41a' }}>
+                                      {auditSummary?.auto_fixable_count || 0} 个
+                                    </span>
+                                  </div>
+                                </div>
+                              }
+                            />
+                          </Col>
+                        </Row>
+                      </StatisticCard.Group>
                     </Col>
                   )}
                   

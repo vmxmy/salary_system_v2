@@ -264,6 +264,14 @@
   min-height: 100vh;
   background-color: @light-gray-bg;
   font-family: @font-family-primary;
+  .ant-layout-content {
+    padding: 16px;
+    
+    // 小屏幕优化
+    @media (max-width: 768px) {
+      padding: 8px;
+    }
+  }
 }
 
 // Page Header
@@ -342,7 +350,20 @@
 .ant-modal-body,
 .ant-pro-card,
 .ant-pro-card-title,
-.ant-pro-card-body {
+.ant-pro-card-body,
+.ant-picker,
+.ant-picker-input,
+.ant-picker-dropdown,
+.ant-picker-panel,
+.ant-picker-header,
+.ant-picker-header-view,
+.ant-picker-content,
+.ant-picker-body,
+.ant-picker-date-panel,
+.ant-picker-month-panel,
+.ant-picker-year-panel,
+.ant-picker-cell,
+.ant-picker-cell-inner {
   font-family: @font-family-primary !important;
 }
 
@@ -370,6 +391,76 @@
     .typography-label-primary();
     display: block;
     margin-bottom: 8px;
+  }
+}
+
+// Card Month Selector Styles
+.card-month-selector {
+  .year-selector-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    .ant-space {
+      align-items: center;
+    }
+  }
+  
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 16px;
+    
+    .month-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px !important;
+      transition: all 0.2s ease;
+      font-family: @font-family-primary !important;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      &.selected {
+        font-weight: 600;
+      }
+      
+      &.has-data {
+        position: relative;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: #1890ff;
+        }
+        
+        &.selected::after {
+          background-color: #fff;
+        }
+      }
+    }
+  }
+  
+  .selected-period-info {
+    .ant-alert {
+      border-radius: 8px;
+      font-family: @font-family-primary !important;
+      
+      .ant-alert-message,
+      .ant-alert-description {
+        font-family: @font-family-primary !important;
+      }
+    }
   }
 }
 
@@ -406,8 +497,384 @@
   }
 }
 
+// =============================================================================
+// 🎯 通用指标卡样式模板 (Universal Metric Card Template)
+// =============================================================================
+
+// 指标卡基础样式模板
+.metric-card-template {
+  // 卡片容器样式
+  .metric-card-container {
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    background: #ffffff;
+    overflow: hidden;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+    }
+  }
+
+  // 卡片头部样式
+  .metric-card-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+
+    .metric-card-title {
+      .typography-label-primary();
+      font-weight: @font-weight-semibold;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .metric-icon {
+        font-size: @font-size-md;
+        color: @text-color-secondary;
+      }
+    }
+  }
+
+  // 卡片主体样式
+  .metric-card-body {
+    padding: 16px 20px;
+  }
+
+  // 主要数值显示区域
+  .metric-main-value {
+    text-align: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+
+         .metric-number {
+       .typography-number-medium();
+       display: inline;
+       line-height: 1.2;
+     }
+
+     .metric-unit {
+       .typography-label-secondary();
+       margin-left: 4px;
+       font-weight: @font-weight-normal;
+       display: inline;
+     }
+
+    .metric-label {
+      .typography-label-secondary();
+      display: block;
+      margin-top: 4px;
+      font-weight: @font-weight-normal;
+    }
+  }
+
+  // 详细信息列表样式
+  .metric-details {
+    .metric-detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 4px 0;
+      min-height: 20px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .metric-detail-label {
+        .typography-label-secondary();
+        font-weight: @font-weight-medium;
+        color: @text-color-secondary;
+        min-width: 40px;
+        flex-shrink: 0;
+      }
+
+      .metric-detail-value {
+        .typography-label-secondary();
+        font-weight: @font-weight-semibold;
+        color: @text-color-primary;
+        text-align: right;
+        flex: 1;
+        margin-left: 12px;
+        word-break: break-all;
+      }
+
+      // 状态颜色变体
+      &.status-success .metric-detail-value {
+        color: @text-color-success;
+      }
+
+      &.status-warning .metric-detail-value {
+        color: @text-color-warning;
+      }
+
+      &.status-error .metric-detail-value {
+        color: @text-color-error;
+      }
+
+      &.status-info .metric-detail-value {
+        color: @text-color-info;
+      }
+    }
+  }
+
+  // 分隔线样式
+  .metric-divider {
+    margin: 12px 0;
+    border-color: #f0f0f0;
+    border-width: 1px;
+  }
+
+  // 响应式调整
+  @media (max-width: 768px) {
+    .metric-card-header {
+      padding: 12px 16px 8px;
+
+      .metric-card-title {
+        font-size: 13px;
+
+        .metric-icon {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .metric-card-body {
+      padding: 12px 16px;
+    }
+
+    .metric-main-value {
+      margin-bottom: 8px;
+      padding: 4px 0;
+
+      .metric-number {
+        font-size: 16px;
+      }
+
+      .metric-unit {
+        font-size: 11px;
+      }
+    }
+
+    .metric-details {
+      .metric-detail-item {
+        margin-bottom: 6px;
+        padding: 2px 0;
+
+        .metric-detail-label,
+        .metric-detail-value {
+          font-size: 11px;
+        }
+      }
+    }
+
+    .metric-divider {
+      margin: 8px 0;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .metric-card-header {
+      padding: 8px 12px 6px;
+    }
+
+    .metric-card-body {
+      padding: 8px 12px 12px;
+    }
+
+    .metric-main-value {
+      .metric-number {
+        font-size: 14px;
+      }
+    }
+
+    .metric-details {
+      .metric-detail-item {
+        margin-bottom: 4px;
+
+        .metric-detail-label,
+        .metric-detail-value {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🎨 指标卡主题变体 (Metric Card Theme Variants)
+// =============================================================================
+
+// 基础信息主题
+.metric-card-basic {
+  .metric-card-header {
+    background: linear-gradient(135deg, #f6ffed 0%, #f0f9ff 100%);
+    border-bottom-color: #d9f7be;
+  }
+
+  .metric-main-value .metric-number {
+    color: @text-color-primary;
+  }
+}
+
+// 财务信息主题
+.metric-card-financial {
+  .metric-card-header {
+    background: linear-gradient(135deg, #fff7e6 0%, #f6ffed 100%);
+    border-bottom-color: #ffd591;
+  }
+
+  .metric-main-value .metric-number {
+    color: @text-color-success;
+    font-weight: @font-weight-bold;
+  }
+}
+
+// 状态信息主题
+.metric-card-status {
+  .metric-card-header {
+    background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
+    border-bottom-color: #91d5ff;
+  }
+
+  .metric-main-value .metric-number {
+    color: @text-color-info;
+  }
+}
+
+// 审核信息主题
+.metric-card-audit {
+  .metric-card-header {
+    background: linear-gradient(135deg, #fff2e8 0%, #fff7e6 100%);
+    border-bottom-color: #ffbb96;
+  }
+
+  .metric-main-value .metric-number {
+    color: @text-color-warning;
+  }
+}
+
+// =============================================================================
+// 📊 StatisticCard 指标卡样式应用 (StatisticCard Styling)
+// =============================================================================
+
+// 应用指标卡模板样式到 StatisticCard 组件
+.ant-pro-statistic-card {
+  .metric-card-template();
+  
+  // 卡片组样式
+  &.ant-pro-statistic-card-group {
+    .ant-pro-card-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+
+      .ant-pro-card-title {
+        .typography-label-primary();
+        font-weight: @font-weight-semibold;
+      }
+    }
+  }
+
+  // 单个指标卡样式
+  .ant-statistic {
+    .ant-statistic-title {
+      .typography-label-primary();
+      font-weight: @font-weight-semibold;
+      margin-bottom: 8px;
+    }
+
+    .ant-statistic-content {
+      display: flex !important;
+      align-items: baseline !important;
+      white-space: nowrap !important;
+
+      .ant-statistic-content-value {
+        .typography-number-medium();
+        font-weight: @font-weight-semibold;
+        display: inline !important;
+      }
+
+      .ant-statistic-content-value-int,
+      .ant-statistic-content-value-decimal {
+        display: inline !important;
+      }
+
+      .ant-statistic-content-suffix {
+        .typography-label-secondary();
+        margin-left: 4px;
+        font-weight: @font-weight-normal;
+        display: inline !important;
+      }
+
+      .ant-statistic-content-prefix {
+        .typography-label-secondary();
+        margin-right: 4px;
+        font-weight: @font-weight-normal;
+        display: inline !important;
+      }
+    }
+  }
+
+  // 图表区域样式（用于显示详细信息）
+  .ant-pro-statistic-card-chart {
+    padding: 8px 0;
+    
+    div {
+      .typography-label-secondary();
+      
+      span {
+        .typography-label-secondary();
+        font-weight: @font-weight-semibold;
+      }
+    }
+  }
+
+  // 响应式调整
+  @media (max-width: 768px) {
+    .ant-statistic {
+      .ant-statistic-title {
+        font-size: 11px;
+      }
+
+      .ant-statistic-content {
+        .ant-statistic-content-value {
+          font-size: 16px;
+        }
+      }
+    }
+
+    .ant-pro-statistic-card-chart {
+      div {
+        font-size: 10px;
+      }
+    }
+  }
+
+  @media (max-width: 576px) {
+    .ant-statistic {
+      .ant-statistic-content {
+        .ant-statistic-content-value {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🔧 现有统一统计卡片样式优化 (Enhanced Unified Stats Card)
+// =============================================================================
+
 // Unified Statistics Card Styles
 .unified-stats-card {
+  // 继承指标卡模板样式
+  .metric-card-template();
+  
   border-radius: 8px;
   border: 1px solid #f0f0f0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -437,7 +904,7 @@
     padding: 0;
   }
 
-  // 子卡片样式
+  // 子卡片样式优化
   .ant-pro-card {
     border: none;
     box-shadow: none;
@@ -445,16 +912,35 @@
     .ant-pro-card-header {
       padding: 12px 16px 8px;
       border-bottom: none;
+      background: #fafafa;
 
       .ant-pro-card-title {
-        .typography-label-secondary();
+        .typography-label-primary();
         font-weight: @font-weight-semibold;
         color: @text-color-secondary;
       }
     }
 
     .ant-pro-card-body {
-      padding: 8px 16px 16px;
+      padding: 12px 16px 16px;
+      background: #ffffff;
+    }
+
+    // 应用主题变体
+    &:nth-child(1) {
+      .metric-card-basic();
+    }
+
+    &:nth-child(2) {
+      .metric-card-financial();
+    }
+
+    &:nth-child(3) {
+      .metric-card-status();
+    }
+
+    &:nth-child(4) {
+      .metric-card-audit();
     }
   }
 
@@ -462,18 +948,23 @@
   .stat-main-value {
     text-align: center;
     margin-bottom: 8px;
+    padding: 8px 0;
 
     .stat-number {
       .typography-number-medium();
+      display: inline;
+      line-height: 1.2;
     }
 
     .stat-unit {
       .typography-label-secondary();
       margin-left: 4px;
+      font-weight: @font-weight-normal;
+      display: inline;
     }
   }
 
-    // 详细信息样式
+  // 详细信息样式
   .stat-details {
     .detail-item {
       display: flex;
@@ -481,6 +972,7 @@
       align-items: center;
       margin-bottom: 6px;
       padding: 2px 0;
+      min-height: 20px;
 
       &:last-child {
         margin-bottom: 0;
@@ -489,7 +981,9 @@
       .detail-label {
         .typography-label-secondary();
         font-weight: @font-weight-medium;
+        color: @text-color-secondary;
         min-width: 35px;
+        flex-shrink: 0;
       }
 
       .detail-value {
@@ -499,6 +993,7 @@
         text-align: right;
         flex: 1;
         margin-left: 8px;
+        word-break: break-all;
       }
     }
   }
@@ -538,6 +1033,9 @@
     }
 
     .stat-main-value {
+      margin-bottom: 6px;
+      padding: 4px 0;
+
       .stat-number {
         font-size: 16px;
       }
@@ -760,26 +1258,59 @@
 
 // Style for the dropdown panel itself
 .ant-picker-dropdown {
+  font-family: @font-family-primary !important;
+  
   .ant-picker-panel {
     border-radius: @card-border-radius;
     border: none;
     box-shadow: @card-hover-shadow;
     padding: 12px; // Add more padding for whitespace
+    font-family: @font-family-primary !important;
   }
+  
   .ant-picker-header {
     padding: 8px;
     border-bottom: 1px solid @border-color;
     margin-bottom: 8px; // Space between header and grid
+    font-family: @font-family-primary !important;
+    
     .ant-picker-header-view {
-      font-weight: 600;
-      font-size: 16px;
+      font-family: @font-family-primary !important;
+      font-weight: @font-weight-semibold;
+      font-size: @font-size-md;
+      color: @text-color-primary;
     }
-    .ant-picker-header-prev-btn, .ant-picker-header-next-btn, .ant-picker-header-super-prev-btn, .ant-picker-header-super-next-btn {
+    
+    .ant-picker-header-prev-btn, 
+    .ant-picker-header-next-btn, 
+    .ant-picker-header-super-prev-btn, 
+    .ant-picker-header-super-next-btn {
       color: @text-color-secondary;
+      font-family: @font-family-primary !important;
+      
       &:hover {
         color: @text-color-primary;
       }
     }
+  }
+  
+  // 月份/年份选择器
+  .ant-picker-month-panel,
+  .ant-picker-year-panel {
+    font-family: @font-family-primary !important;
+    
+    .ant-picker-cell {
+      font-family: @font-family-primary !important;
+    }
+  }
+  
+  // 确保所有文字都使用思源宋体
+  .ant-picker-content,
+  .ant-picker-body,
+  .ant-picker-date-panel,
+  .ant-picker-month-panel,
+  .ant-picker-year-panel {
+    font-family: @font-family-primary !important;
   }
 }
 
@@ -795,7 +1326,9 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-weight: 600 !important;
+  font-family: @font-family-primary !important;
+  font-weight: @font-weight-semibold !important;
+  font-size: @font-size-base !important;
   border: 1px solid transparent !important;
   background-color: transparent !important; // Default is transparent, not gray
   color: @text-color-primary !important;
@@ -857,4 +1390,187 @@
 // Remove the old dot indicator
 .ant-picker-cell-inner.month-cell-has-period::after {
   display: none !important;
+}
+
+// =============================================================================
+// 📅 日历选择器字体强制应用 (DatePicker Font Override)
+// =============================================================================
+
+// 强制所有日历相关元素使用思源宋体
+.ant-picker,
+.ant-picker *,
+.ant-picker-dropdown,
+.ant-picker-dropdown *,
+.ant-picker-panel,
+.ant-picker-panel *,
+.ant-picker-header,
+.ant-picker-header *,
+.ant-picker-body,
+.ant-picker-body *,
+.ant-picker-content,
+.ant-picker-content *,
+.ant-picker-cell,
+.ant-picker-cell *,
+.ant-picker-cell-inner,
+.ant-picker-date-panel,
+.ant-picker-month-panel,
+.ant-picker-year-panel {
+  font-family: @font-family-primary !important;
+}
+
+// 输入框字体
+.ant-picker-input input {
+  font-family: @font-family-primary !important;
+  font-size: @font-size-base !important;
+  font-weight: @font-weight-normal !important;
+  color: @text-color-primary !important;
+}
+
+// 占位符字体
+.ant-picker-input input::placeholder {
+  font-family: @font-family-primary !important;
+  color: @text-color-tertiary !important;
+}
+
+// 头部导航字体
+.ant-picker-header-view button {
+  font-family: @font-family-primary !important;
+  font-weight: @font-weight-semibold !important;
+}
+
+// 月份单元格字体
+.ant-picker-cell-inner {
+  font-family: @font-family-primary !important;
+  font-size: @font-size-base !important;
+  font-weight: @font-weight-medium !important;
+}
+
+// 今天标记字体
+.ant-picker-cell-today .ant-picker-cell-inner {
+  font-family: @font-family-primary !important;
+  font-weight: @font-weight-semibold !important;
+}
+
+// 选中状态字体
+.ant-picker-cell-selected .ant-picker-cell-inner {
+  font-family: @font-family-primary !important;
+  font-weight: @font-weight-bold !important;
+}
+
+// 响应式布局样式
+.simple-payroll-layout {
+  .ant-layout-content {
+    padding: 16px;
+    
+    // 小屏幕优化
+    @media (max-width: 768px) {
+      padding: 8px;
+    }
+  }
+}
+
+// 核心控制区域响应式
+.custom-date-picker {
+  .ant-picker {
+    border-radius: 12px;
+    height: 44px;
+    
+    // 小屏幕下调整高度
+    @media (max-width: 576px) {
+      height: 40px;
+    }
+  }
+}
+
+// ProCard 响应式优化
+.ant-pro-card {
+  .ant-pro-card-header {
+    padding: 16px 20px;
+    
+    @media (max-width: 576px) {
+      padding: 12px 16px;
+    }
+  }
+  
+  .ant-pro-card-body {
+    padding: 20px;
+    
+    @media (max-width: 576px) {
+      padding: 16px;
+    }
+  }
+}
+
+// 统计卡片响应式
+.ant-statistic-card-group {
+  @media (max-width: 992px) {
+    .ant-col {
+      margin-bottom: 16px;
+    }
+  }
+}
+
+// 按钮响应式
+.ant-btn {
+  &.ant-btn-lg {
+    @media (max-width: 576px) {
+      height: 40px;
+      font-size: 14px;
+    }
+  }
+}
+
+// 空状态卡片
+.empty-state-card {
+  text-align: center;
+  padding: 48px 24px;
+  
+  @media (max-width: 576px) {
+    padding: 32px 16px;
+  }
+  
+  .empty-state-content {
+    h2 {
+      margin: 16px 0 8px;
+      color: #666;
+    }
+    
+    p {
+      color: #999;
+      margin-bottom: 0;
+    }
+  }
+}
+
+// 页面头部响应式
+.payroll-header {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+  
+  @media (max-width: 768px) {
+    padding: 0 16px;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    
+    @media (max-width: 576px) {
+      height: 56px;
+    }
+    
+    .header-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #262626;
+      
+      @media (max-width: 576px) {
+        font-size: 18px;
+      }
+    }
+  }
 }

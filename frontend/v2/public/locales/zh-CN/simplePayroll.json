@@ -177,7 +177,9 @@
   },
   "controls": {
     "title": "核心控制",
+    "period": "工资期间",
     "periodLabel": "工资期间",
+    "selectPeriod": "请选择工资期间",
     "versionLabel": "工资版本",
     "selectPeriodPlaceholder": "选择或创建工资期间",
     "versionPlaceholder": "选择一个数据版本"

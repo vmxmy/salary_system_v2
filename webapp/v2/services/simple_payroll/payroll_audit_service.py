@@ -4,7 +4,7 @@
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_, func
 from datetime import datetime
 from decimal import Decimal
@@ -28,10 +28,39 @@ class PayrollAuditService:
         self._cached_min_wage = None
         self._cached_tax_brackets = None
         self._cached_social_security_rates = None
+        self._cached_audit_rules = None
+        self._cache_timestamp = None
     
     def get_audit_summary(self, payroll_run_id: int) -> AuditSummaryResponse:
         """获取工资审核汇总信息"""
         try:
+            # 首先检查是否已有缓存的审核汇总
+            from ...models.audit import PayrollRunAuditSummary
+            cached_summary = self.db.query(PayrollRunAuditSummary).filter(
+                PayrollRunAuditSummary.payroll_run_id == payroll_run_id
+            ).first()
+            
+            if cached_summary and cached_summary.audit_completed_at:
+                logger.info(f"使用缓存的审核汇总数据: {payroll_run_id}")
+                return AuditSummaryResponse(
+                    payroll_run_id=cached_summary.payroll_run_id,
+                    total_entries=cached_summary.total_entries,
+                    total_anomalies=cached_summary.total_anomalies,
+                    error_count=cached_summary.error_count,
+                    warning_count=cached_summary.warning_count,
+                    info_count=cached_summary.info_count,
+                    auto_fixable_count=cached_summary.auto_fixable_count,
+                    manually_ignored_count=cached_summary.manually_ignored_count,
+                    audit_status=cached_summary.audit_status,
+                    audit_type=cached_summary.audit_type,
+                    anomalies_by_type=cached_summary.anomalies_by_type or {},
+                    total_gross_pay=cached_summary.total_gross_pay,
+                    total_net_pay=cached_summary.total_net_pay,
+                    total_deductions=cached_summary.total_deductions,
+                    comparison_with_previous=cached_summary.comparison_with_previous,
+                    audit_completed_at=cached_summary.audit_completed_at
+                )
+            
             # 验证工资运行是否存在
             payroll_run = self.db.query(PayrollRun).filter(
                 PayrollRun.id == payroll_run_id
@@ -40,12 +69,14 @@ class PayrollAuditService:
             if not payroll_run:
                 raise ValueError(f"工资运行 {payroll_run_id} 不存在")
             
-            # 获取所有工资条目
-            entries = self.db.query(PayrollEntry).filter(
+            # 优化：使用 joinedload 一次性获取所有条目和员工信息
+            entries_with_employees = self.db.query(PayrollEntry).options(
+                joinedload(PayrollEntry.employee)
+            ).filter(
                 PayrollEntry.payroll_run_id == payroll_run_id
             ).all()
             
-            if not entries:
+            if not entries_with_employees:
                 return AuditSummaryResponse(
                     payroll_run_id=payroll_run_id,
                     total_entries=0,
@@ -64,13 +95,13 @@ class PayrollAuditService:
                 )
             
             # 计算基础统计
-            total_entries = len(entries)
-            total_gross_pay = sum(entry.gross_pay or Decimal('0.00') for entry in entries)
-            total_net_pay = sum(entry.net_pay or Decimal('0.00') for entry in entries)
+            total_entries = len(entries_with_employees)
+            total_gross_pay = sum(entry.gross_pay or Decimal('0.00') for entry in entries_with_employees)
+            total_net_pay = sum(entry.net_pay or Decimal('0.00') for entry in entries_with_employees)
             total_deductions = total_gross_pay - total_net_pay
             
-            # 执行审核检查
-            anomalies = self._run_all_audit_checks(entries)
+            # 执行审核检查（传入已加载员工信息的条目）
+            anomalies = self._run_all_audit_checks_optimized(entries_with_employees)
             
             # 统计异常
             error_count = sum(1 for a in anomalies if a.severity == 'error')
@@ -99,10 +130,15 @@ class PayrollAuditService:
             else:
                 audit_status = 'PASSED'
             
-            # 与上期对比（如果有的话）
-            comparison_with_previous = self._get_comparison_with_previous(payroll_run.payroll_period_id)
+            # 优化：异步获取与上期对比（如果需要的话）
+            comparison_with_previous = None
+            try:
+                comparison_with_previous = self._get_comparison_with_previous_optimized(payroll_run.payroll_period_id)
+            except Exception as e:
+                logger.warning(f"获取对比数据失败，跳过: {e}")
             
-            return AuditSummaryResponse(
+            # 创建审核汇总响应
+            summary = AuditSummaryResponse(
                 payroll_run_id=payroll_run_id,
                 total_entries=total_entries,
                 total_anomalies=len(anomalies),
@@ -117,12 +153,141 @@ class PayrollAuditService:
                 total_gross_pay=total_gross_pay,
                 total_net_pay=total_net_pay,
                 total_deductions=total_deductions,
-                comparison_with_previous=comparison_with_previous
+                comparison_with_previous=comparison_with_previous,
+                audit_completed_at=datetime.now()
             )
+            
+            # 缓存审核结果
+            self._cache_audit_summary(summary)
+            
+            # 缓存异常详情
+            self._cache_audit_anomalies(payroll_run_id, anomalies)
+            
+            return summary
             
         except Exception as e:
             logger.error(f"获取审核汇总失败: {e}", exc_info=True)
             raise
+    
+    def _cache_audit_summary(self, summary: AuditSummaryResponse):
+        """缓存审核汇总结果"""
+        try:
+            from ...models.audit import PayrollRunAuditSummary
+            
+            # 检查是否已存在
+            existing = self.db.query(PayrollRunAuditSummary).filter(
+                PayrollRunAuditSummary.payroll_run_id == summary.payroll_run_id
+            ).first()
+            
+            if existing:
+                # 更新现有记录
+                existing.total_entries = summary.total_entries
+                existing.total_anomalies = summary.total_anomalies
+                existing.error_count = summary.error_count
+                existing.warning_count = summary.warning_count
+                existing.info_count = summary.info_count
+                existing.auto_fixable_count = summary.auto_fixable_count
+                existing.manually_ignored_count = summary.manually_ignored_count
+                existing.audit_status = summary.audit_status
+                existing.audit_type = summary.audit_type
+                existing.anomalies_by_type = summary.anomalies_by_type
+                existing.total_gross_pay = summary.total_gross_pay
+                existing.total_net_pay = summary.total_net_pay
+                existing.total_deductions = summary.total_deductions
+                existing.comparison_with_previous = self._serialize_comparison_data(summary.comparison_with_previous)
+                existing.audit_completed_at = summary.audit_completed_at
+                existing.updated_at = datetime.now()
+            else:
+                # 创建新记录
+                new_summary = PayrollRunAuditSummary(
+                    payroll_run_id=summary.payroll_run_id,
+                    total_entries=summary.total_entries,
+                    total_anomalies=summary.total_anomalies,
+                    error_count=summary.error_count,
+                    warning_count=summary.warning_count,
+                    info_count=summary.info_count,
+                    auto_fixable_count=summary.auto_fixable_count,
+                    manually_ignored_count=summary.manually_ignored_count,
+                    audit_status=summary.audit_status,
+                    audit_type=summary.audit_type,
+                    anomalies_by_type=summary.anomalies_by_type,
+                    total_gross_pay=summary.total_gross_pay,
+                    total_net_pay=summary.total_net_pay,
+                    total_deductions=summary.total_deductions,
+                    comparison_with_previous=self._serialize_comparison_data(summary.comparison_with_previous),
+                    audit_completed_at=summary.audit_completed_at
+                )
+                self.db.add(new_summary)
+            
+            self.db.commit()
+            logger.info(f"审核汇总已缓存: {summary.payroll_run_id}")
+            
+        except Exception as e:
+            logger.error(f"缓存审核汇总失败: {e}")
+            self.db.rollback()
+    
+    def _serialize_comparison_data(self, comparison_data):
+        """序列化对比数据，将Decimal转换为float"""
+        if not comparison_data:
+            return None
+        
+        return {
+            key: float(value) if isinstance(value, Decimal) else value
+            for key, value in comparison_data.items()
+        }
+    
+    def _cache_audit_anomalies(self, payroll_run_id: int, anomalies: List[AuditAnomalyResponse]):
+        """缓存审核异常到数据库"""
+        try:
+            from ...models.audit import PayrollAuditAnomaly
+            
+            # 删除现有的异常记录
+            self.db.query(PayrollAuditAnomaly).filter(
+                PayrollAuditAnomaly.payroll_run_id == payroll_run_id
+            ).delete()
+            
+            # 批量插入新的异常记录
+            anomaly_records = []
+            for anomaly in anomalies:
+                # 获取payroll_entry_id
+                payroll_entry_id = None
+                if anomaly.id and '_' in anomaly.id:
+                    try:
+                        # 从ID中提取entry_id，格式如: missing_employee_123
+                        parts = anomaly.id.split('_')
+                        if len(parts) >= 2:
+                            payroll_entry_id = int(parts[-1])
+                    except (ValueError, IndexError):
+                        logger.warning(f"无法从异常ID {anomaly.id} 中提取entry_id")
+                
+                anomaly_record = PayrollAuditAnomaly(
+                    id=anomaly.id,
+                    payroll_entry_id=payroll_entry_id,
+                    payroll_run_id=payroll_run_id,
+                    employee_id=anomaly.employee_id,
+                    employee_code=anomaly.employee_code,
+                    employee_name=anomaly.employee_name,
+                    anomaly_type=anomaly.anomaly_type,
+                    severity=anomaly.severity,
+                    message=anomaly.message,
+                    details=anomaly.details,
+                    current_value=float(anomaly.current_value) if anomaly.current_value else None,
+                    expected_value=float(anomaly.expected_value) if anomaly.expected_value else None,
+                    can_auto_fix=anomaly.can_auto_fix,
+                    is_ignored=anomaly.is_ignored,
+                    fix_applied=anomaly.fix_applied,
+                    suggested_action=anomaly.suggested_action
+                )
+                anomaly_records.append(anomaly_record)
+            
+            if anomaly_records:
+                self.db.add_all(anomaly_records)
+                self.db.commit()
+                logger.info(f"已缓存 {len(anomaly_records)} 个审核异常到数据库")
+            
+        except Exception as e:
+            logger.error(f"缓存审核异常失败: {e}")
+            self.db.rollback()
     
     def run_audit_check(self, payroll_run_id: int) -> AuditSummaryResponse:
         """执行完整的工资审核检查"""
@@ -146,16 +311,75 @@ class PayrollAuditService:
         anomaly_types: Optional[List[str]] = None,
         severity: Optional[List[str]] = None
     ) -> List[AuditAnomalyResponse]:
-        """获取详细的审核异常列表"""
+        """获取详细的审核异常列表（优化版本）"""
         try:
-            entries = self.db.query(PayrollEntry).filter(
+            # 首先尝试从缓存的审核汇总中获取异常信息
+            from ...models.audit import PayrollRunAuditSummary, PayrollAuditAnomaly
+            
+            # 检查是否有缓存的审核汇总
+            cached_summary = self.db.query(PayrollRunAuditSummary).filter(
+                PayrollRunAuditSummary.payroll_run_id == payroll_run_id
+            ).first()
+            
+            # 如果有缓存且异常数量不多，直接从数据库获取已保存的异常
+            if cached_summary and cached_summary.total_anomalies > 0:
+                try:
+                    # 尝试从数据库获取已保存的异常记录
+                    saved_anomalies = self.db.query(PayrollAuditAnomaly).filter(
+                        PayrollAuditAnomaly.payroll_run_id == payroll_run_id
+                    ).all()
+                    
+                    if saved_anomalies:
+                        # 转换为响应格式
+                        anomalies = []
+                        for anomaly in saved_anomalies:
+                            anomaly_response = AuditAnomalyResponse(
+                                id=anomaly.id,
+                                employee_id=anomaly.employee_id,
+                                employee_name=anomaly.employee_name,
+                                employee_code=anomaly.employee_code,
+                                anomaly_type=anomaly.anomaly_type,
+                                severity=anomaly.severity,
+                                message=anomaly.message,
+                                details=anomaly.details,
+                                current_value=anomaly.current_value,
+                                expected_value=anomaly.expected_value,
+                                can_auto_fix=anomaly.can_auto_fix,
+                                is_ignored=anomaly.is_ignored,
+                                fix_applied=anomaly.fix_applied,
+                                suggested_action=anomaly.suggested_action,
+                                created_at=anomaly.created_at
+                            )
+                            anomalies.append(anomaly_response)
+                        
+                        # 应用过滤条件
+                        if anomaly_types:
+                            anomalies = [a for a in anomalies if a.anomaly_type in anomaly_types]
+                        
+                        if severity:
+                            anomalies = [a for a in anomalies if a.severity in severity]
+                        
+                        logger.info(f"从数据库缓存获取异常列表: {len(anomalies)} 条")
+                        return anomalies
+                        
+                except Exception as e:
+                    logger.warning(f"从数据库获取缓存异常失败，使用实时计算: {e}")
+            
+            # 如果没有缓存或缓存获取失败，使用优化的实时计算
+            logger.info(f"使用优化的实时计算获取异常列表: {payroll_run_id}")
+            
+            # 优化：使用 joinedload 一次性获取所有条目和员工信息
+            entries_with_employees = self.db.query(PayrollEntry).options(
+                joinedload(PayrollEntry.employee)
+            ).filter(
                 PayrollEntry.payroll_run_id == payroll_run_id
             ).all()
             
-            if not entries:
+            if not entries_with_employees:
                 return []
             
-            anomalies = self._run_all_audit_checks(entries)
+            # 使用优化的审核检查方法
+            anomalies = self._run_all_audit_checks_optimized(entries_with_employees)
             
             # 应用过滤条件
             if anomaly_types:
@@ -256,6 +480,104 @@ class PayrollAuditService:
                 filtered_anomalies.append(anomaly)
         
         return filtered_anomalies
+    
+    def _run_all_audit_checks_optimized(self, entries_with_employees: List[PayrollEntry]) -> List[AuditAnomalyResponse]:
+        """优化版本：执行所有审核检查规则，避免N+1查询"""
+        anomalies = []
+        
+        # 缓存启用的审核规则
+        enabled_rules = self._get_enabled_audit_rules_cached()
+        
+        # 批量获取已忽略的异常ID列表
+        ignored_anomaly_ids = set()
+        try:
+            from webapp.v2.models.audit import PayrollAuditAnomaly
+            entry_ids = [entry.id for entry in entries_with_employees]
+            if entry_ids:
+                ignored_anomalies = self.db.query(PayrollAuditAnomaly.id).filter(
+                    PayrollAuditAnomaly.is_ignored == True,
+                    PayrollAuditAnomaly.payroll_entry_id.in_(entry_ids)
+                ).all()
+                ignored_anomaly_ids = {anomaly[0] for anomaly in ignored_anomalies}
+        except Exception as e:
+            logger.warning(f"获取已忽略异常列表失败: {e}")
+        
+        # 批量处理条目，员工信息已经通过joinedload加载
+        for entry in entries_with_employees:
+            try:
+                employee = entry.employee  # 使用已加载的员工信息
+                
+                if not employee:
+                    anomalies.append(AuditAnomalyResponse(
+                        id=f"missing_employee_{entry.id}",
+                        employee_id=entry.employee_id,
+                        employee_name="未知员工",
+                        employee_code="N/A",
+                        anomaly_type="MISSING_DATA_CHECK",
+                        severity="error",
+                        message="员工信息不存在",
+                        details=f"工资条目中的员工ID {entry.employee_id} 在员工表中不存在",
+                        can_auto_fix=False,
+                        is_ignored=False,
+                        fix_applied=False,
+                        created_at=datetime.now()
+                    ))
+                    continue
+                
+                # 执行启用的审核规则
+                for rule_code in enabled_rules:
+                    try:
+                        if rule_code == 'MINIMUM_WAGE_CHECK':
+                            anomalies.extend(self._check_minimum_wage(entry, employee))
+                        elif rule_code == 'TAX_CALCULATION_CHECK':
+                            anomalies.extend(self._check_tax_calculation(entry, employee))
+                        elif rule_code == 'SOCIAL_SECURITY_CHECK':
+                            anomalies.extend(self._check_social_security(entry, employee))
+                        elif rule_code == 'SALARY_VARIANCE_CHECK':
+                            anomalies.extend(self._check_salary_variance(entry, employee))
+                        elif rule_code == 'MISSING_DATA_CHECK':
+                            anomalies.extend(self._check_missing_data(entry, employee))
+                        elif rule_code == 'CALCULATION_CONSISTENCY_CHECK':
+                            anomalies.extend(self._check_calculation_consistency(entry, employee))
+                    except Exception as rule_error:
+                        logger.error(f"执行审核规则 {rule_code} 时出错: {rule_error}")
+                        continue
+                
+            except Exception as e:
+                logger.error(f"检查员工 {entry.employee_id} 的工资条目时出错: {e}")
+                continue
+        
+        # 过滤掉已忽略的异常
+        filtered_anomalies = []
+        for anomaly in anomalies:
+            if anomaly.id not in ignored_anomaly_ids:
+                filtered_anomalies.append(anomaly)
+            else:
+                # 标记为已忽略
+                anomaly.is_ignored = True
+                filtered_anomalies.append(anomaly)
+        
+        return filtered_anomalies
+    
+    def _get_enabled_audit_rules_cached(self) -> List[str]:
+        """获取启用的审核规则列表（带缓存）"""
+        # 检查缓存是否有效（5分钟有效期）
+        if (self._cached_audit_rules is not None and 
+            self._cache_timestamp is not None and 
+            (datetime.now() - self._cache_timestamp).total_seconds() < 300):
+            return self._cached_audit_rules
+        
+        try:
+            enabled_rules = self.db.query(AuditRuleConfiguration.rule_code).filter(
+                AuditRuleConfiguration.is_enabled == True
+            ).all()
+            self._cached_audit_rules = [rule[0] for rule in enabled_rules]
+            self._cache_timestamp = datetime.now()
+            return self._cached_audit_rules
+        except Exception as e:
+            logger.error(f"获取启用的审核规则失败: {e}")
+            # 如果查询失败，返回默认的核心规则
+            return ['CALCULATION_CONSISTENCY_CHECK', 'MISSING_DATA_CHECK']
     
     def _get_enabled_audit_rules(self) -> List[str]:
         """获取启用的审核规则列表"""
@@ -682,4 +1004,52 @@ class PayrollAuditService:
         
         except Exception as e:
             logger.error(f"获取对比数据失败: {e}")
+            return None
+    
+    def _get_comparison_with_previous_optimized(self, current_period_id: int) -> Optional[Dict[str, Decimal]]:
+        """优化版本：获取与上期的对比数据，使用聚合查询"""
+        try:
+            # 使用聚合查询一次性获取当前期间和上期的汇总数据
+            from sqlalchemy import text
+            
+            query = text("""
+                WITH period_stats AS (
+                    SELECT 
+                        pp.id as period_id,
+                        pp.name as period_name,
+                        COUNT(pe.id) as entry_count,
+                        COALESCE(SUM(pe.gross_pay), 0) as total_gross_pay,
+                        COALESCE(SUM(pe.net_pay), 0) as total_net_pay
+                    FROM payroll.payroll_periods pp
+                    LEFT JOIN payroll.payroll_runs pr ON pr.payroll_period_id = pp.id
+                    LEFT JOIN payroll.payroll_entries pe ON pe.payroll_run_id = pr.id
+                    WHERE pp.id IN (
+                        :current_period_id,
+                        (SELECT id FROM payroll.payroll_periods 
+                         WHERE id < :current_period_id 
+                         ORDER BY id DESC LIMIT 1)
+                    )
+                    GROUP BY pp.id, pp.name
+                    ORDER BY pp.id DESC
+                )
+                SELECT * FROM period_stats
+            """)
+            
+            result = self.db.execute(query, {"current_period_id": current_period_id}).fetchall()
+            
+            if len(result) < 2:
+                return None
+            
+            # 第一行是当前期间，第二行是上期
+            current_stats = result[0]
+            previous_stats = result[1]
+            
+            return {
+                "gross_pay_variance": Decimal(str(current_stats.total_gross_pay)) - Decimal(str(previous_stats.total_gross_pay)),
+                "net_pay_variance": Decimal(str(current_stats.total_net_pay)) - Decimal(str(previous_stats.total_net_pay)),
+                "entries_count_variance": Decimal(str(current_stats.entry_count - previous_stats.entry_count))
+            }
+        
+        except Exception as e:
+            logger.error(f"获取优化对比数据失败: {e}")
             return None 

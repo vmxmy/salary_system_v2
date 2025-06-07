@@ -8,6 +8,7 @@ import { EyeOutlined, ReloadOutlined, PlayCircleOutlined } from '@ant-design/ico
 
 import type { UsePayrollWorkflowReturn } from '../../hooks/usePayrollWorkflow';
 import type { PayrollEntry } from '../../types/payrollTypes';
+import type { PayrollCalculationProgress } from '../../services/payrollWorkflowApi';
 import { CalculationResultSummary } from './CalculationResultSummary';
 
 const { Text } = Typography;
@@ -43,6 +44,9 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
     calculationProgress,
     availablePeriods,
   } = workflow;
+
+  // 明确类型注解以解决TypeScript推断问题
+  const typedCalculationProgress: PayrollCalculationProgress | null = calculationProgress;
 
   // 获取当前选中周期的显示名称
   const [selectedPeriodName, setSelectedPeriodName] = useState<string | null>(null);
@@ -96,20 +100,20 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
 
   // 加载预览数据
   useEffect(() => {
-    if (selectedPeriodId && !calculationProgress) {
+    if (selectedPeriodId && !typedCalculationProgress) {
       loadPreviewData();
     }
   }, [selectedPeriodId, calculationProgress]);
 
   // 计算完成后刷新数据
   useEffect(() => {
-    if (calculationProgress?.status === 'completed' && selectedPeriodId) {
+    if (typedCalculationProgress?.status === 'completed' && selectedPeriodId) {
       // 延迟刷新以确保数据已经更新
       setTimeout(() => {
         loadPreviewData();
       }, 1000);
     }
-  }, [calculationProgress?.status, selectedPeriodId]);
+  }, [typedCalculationProgress?.status, selectedPeriodId]);
 
   /**
    * 加载薪资数据预览
@@ -317,11 +321,11 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       render: (_, record) => {
         const hasData = record.estimated_gross > 0;
         
-        if (calculationProgress?.status === 'completed') {
+        if (typedCalculationProgress?.status === 'completed') {
           return <Tag color="success">已计算</Tag>;
-        } else if (calculationProgress?.status === 'processing') {
+        } else if (typedCalculationProgress?.status === 'processing') {
           return <Tag color="processing">计算中</Tag>;
-        } else if (calculationProgress?.status === 'failed') {
+        } else if (typedCalculationProgress?.status === 'failed') {
           return <Tag color="error">计算失败</Tag>;
         } else {
           return hasData ? (
@@ -369,7 +373,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       {/* 数据预览表格 */}
       {previewData.length > 0 && (
         <ProCard 
-          title={calculationProgress?.status === 'completed' ? "已完成合计计算的薪资数据" : "待计算薪资数据预览"}
+          title={typedCalculationProgress?.status === 'completed' ? "已完成合计计算的薪资数据" : "待计算薪资数据预览"}
           extra={
             <Space>
               <Button 
@@ -435,9 +439,9 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
                     </ProTable.Summary.Cell>
                     <ProTable.Summary.Cell index={5}>
                       <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {calculationProgress?.status === 'completed' 
-                          ? '✅ 合计计算已完成' 
-                          : calculationProgress?.status === 'processing'
+                        {typedCalculationProgress?.status === 'completed'
+                          ? '✅ 合计计算已完成'
+                          : typedCalculationProgress?.status === 'processing'
                             ? '⏳ 正在计算合计...'
                             : '⏸ 待执行合计计算'
                         }
@@ -452,7 +456,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       )}
 
       {/* 计算完成成功提示 */}
-      {calculationProgress?.status === 'completed' && (
+      {typedCalculationProgress?.status === 'completed' && (
         <Alert
           message="🎉 合计计算完成！"
           description={
@@ -472,21 +476,21 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       )}
 
       {/* 计算进度显示 */}
-      {calculationProgress && calculationProgress.status !== 'completed' && (
+      {typedCalculationProgress && typedCalculationProgress.status !== 'completed' && (
         <ProCard title={t('payroll:workflow.steps.auto_calculation.progress_title', '计算进度')} style={{ marginBottom: 24 }}>
-          <Progress 
-            percent={calculationProgress.progress_percentage} 
-            status={calculationProgress.status === 'failed' ? 'exception' : 'active'}
-            format={(percent) => `${percent}% (${calculationProgress.processed_employees}/${calculationProgress.total_employees})`}
+          <Progress
+            percent={typedCalculationProgress.progress_percentage}
+            status={typedCalculationProgress?.status === 'failed' ? 'exception' : 'active'}
+            format={(percent) => `${percent}% (${typedCalculationProgress.processed_employees}/${typedCalculationProgress.total_employees})`}
           />
-          {calculationProgress.current_employee && (
+          {typedCalculationProgress?.current_employee && (
             <Text type="secondary" style={{ marginTop: 8, display: 'block' }}>
-              {t('payroll:workflow.steps.auto_calculation.current_employee', '正在处理：')} {calculationProgress.current_employee}
+              {t('payroll:workflow.steps.auto_calculation.current_employee', '正在处理：')} {typedCalculationProgress.current_employee}
             </Text>
           )}
-          {calculationProgress.estimated_remaining_time && (
+          {typedCalculationProgress?.estimated_remaining_time && (
             <Text type="secondary" style={{ marginTop: 4, display: 'block' }}>
-              {t('payroll:workflow.steps.auto_calculation.estimated_time', '预计剩余时间：')} {Math.ceil(calculationProgress.estimated_remaining_time / 60)} 分钟
+              {t('payroll:workflow.steps.auto_calculation.estimated_time', '预计剩余时间：')} {Math.ceil(typedCalculationProgress.estimated_remaining_time / 60)} 分钟
             </Text>
           )}
           
@@ -494,21 +498,21 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
           <ProDescriptions column={2} style={{ marginTop: 16 }}>
             <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.status', '计算状态')}>
               <Tag color={
-                calculationProgress.status === 'failed' ? 'error' : 
-                calculationProgress.status === 'processing' ? 'processing' : 'success'
+                typedCalculationProgress?.status === 'failed' ? 'error' :
+                typedCalculationProgress?.status === 'processing' ? 'processing' : 'success'
               }>
-                {t(`payroll:workflow.steps.auto_calculation.status_${calculationProgress.status}`, calculationProgress.status)}
+                {t(`payroll:workflow.steps.auto_calculation.status_${typedCalculationProgress?.status || 'unknown'}`, typedCalculationProgress?.status || '未知状态')}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.task_id', '任务ID')}>
-              <Text code>{calculationProgress.task_id}</Text>
+              <Text code>{typedCalculationProgress?.task_id}</Text>
             </ProDescriptions.Item>
           </ProDescriptions>
         </ProCard>
       )}
 
       {/* 计算引擎说明和操作 */}
-      {!calculationProgress && (
+      {!typedCalculationProgress && (
         <ProCard 
           title="🤖 智能合计计算引擎"
           extra={
@@ -555,7 +559,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
                     message.error(`启动失败: ${error.message || '未知错误'}`);
                   }
                 }}
-                loading={calculationProgress?.status === 'processing'}
+                loading={typedCalculationProgress ? (typedCalculationProgress as PayrollCalculationProgress).status === 'processing' : false}
                 size="large"
               >
                 开始计算
@@ -626,7 +630,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
           { 
             label: t('payroll:workflow.steps.auto_calculation.module_summary', '合计计算（应发、扣款、实发）'), 
             value: 'summary',
-            disabled: calculationProgress?.status === 'processing'
+            disabled: typedCalculationProgress?.status === 'processing'
           },
           { 
             label: t('payroll:workflow.steps.auto_calculation.module_basic', '基本工资计算'), 

@@ -83,8 +83,8 @@ export const usePayrollEntriesView = (
       
       // 按更新时间降序排序
       const sortedEntries = entriesData.sort((a, b) => {
-        const dateA = new Date(a.updated_at).getTime();
-        const dateB = new Date(b.updated_at).getTime();
+        const dateA = new Date(a.updated_at || 0).getTime();
+        const dateB = new Date(b.updated_at || 0).getTime();
         return dateB - dateA;
       });
       
@@ -129,7 +129,7 @@ export const usePayrollEntriesView = (
    * 根据周期ID获取条目
    */
   const getEntriesByPeriod = useCallback((periodId: number): PayrollEntryDetailedView[] => {
-    return entries.filter(entry => entry.period_id === periodId);
+    return entries.filter(entry => entry.payroll_period_id === periodId);
   }, [entries]);
 
   /**
@@ -159,13 +159,13 @@ export const usePayrollEntriesView = (
     const averageNetPay = totalEntries > 0 ? totalNetPay / totalEntries : 0;
     
     // 收入明细汇总
-    const totalBasicSalary = entries.reduce((sum, e) => sum + e.basic_salary, 0);
-    const totalPerformanceSalary = entries.reduce((sum, e) => sum + e.performance_salary, 0);
-    const totalAllowance = entries.reduce((sum, e) => sum + e.allowance, 0);
+    const totalBasicSalary = entries.reduce((sum, e) => sum + (e.basic_salary || 0), 0);
+    const totalPerformanceSalary = entries.reduce((sum, e) => sum + (e.performance_salary || 0), 0);
+    const totalAllowance = entries.reduce((sum, e) => sum + (e.allowance || 0), 0);
     
     // 扣除明细汇总
-    const totalIncomeTax = entries.reduce((sum, e) => sum + e.personal_income_tax, 0);
-    const totalSocialInsurance = entries.reduce((sum, e) => sum + e.social_insurance_total, 0);
+    const totalIncomeTax = entries.reduce((sum, e) => sum + (e.personal_income_tax || 0), 0);
+    const totalSocialInsurance = entries.reduce((sum, e) => sum + (e.social_insurance_total || 0), 0);
 
     return {
       totalEntries,
@@ -187,19 +187,20 @@ export const usePayrollEntriesView = (
    */
   const getEarningsBreakdown = useCallback((): Record<string, number> => {
     return {
-      '基本工资': entries.reduce((sum, e) => sum + e.basic_salary, 0),
-      '绩效工资': entries.reduce((sum, e) => sum + e.performance_salary, 0),
-      '岗位工资': entries.reduce((sum, e) => sum + e.position_salary, 0),
-      '级别工资': entries.reduce((sum, e) => sum + e.grade_salary, 0),
-      '综合津补贴': entries.reduce((sum, e) => sum + e.allowance, 0),
-      '补贴': entries.reduce((sum, e) => sum + e.subsidy, 0),
-      '基础绩效': entries.reduce((sum, e) => sum + e.basic_performance_salary, 0),
-      '交通补贴': entries.reduce((sum, e) => sum + e.traffic_allowance, 0),
-      '独生子女父母奖励费': entries.reduce((sum, e) => sum + e.only_child_bonus, 0),
-      '乡镇工作补贴': entries.reduce((sum, e) => sum + e.township_allowance, 0),
-      '岗位津贴': entries.reduce((sum, e) => sum + e.position_allowance, 0),
-      '公务员规范津补贴': entries.reduce((sum, e) => sum + e.civil_servant_allowance, 0),
-      '补发工资': entries.reduce((sum, e) => sum + e.back_pay, 0),
+      '基本工资': entries.reduce((sum, e) => sum + (e.basic_salary || 0), 0),
+      '绩效工资': entries.reduce((sum, e) => sum + (e.performance_salary || 0), 0),
+      '岗位工资': entries.reduce((sum, e) => sum + (e.position_salary || 0), 0),
+      '级别工资': entries.reduce((sum, e) => sum + (e.grade_salary || 0), 0),
+      '综合津补贴': entries.reduce((sum, e) => sum + (e.allowance || 0), 0),
+      '补贴': entries.reduce((sum, e) => sum + (e.subsidy || 0), 0),
+      '基础绩效': entries.reduce((sum, e) => sum + (e.basic_performance_salary || 0), 0),
+      '交通补贴': entries.reduce((sum, e) => sum + (e.traffic_allowance || 0), 0),
+      '独生子女父母奖励费': entries.reduce((sum, e) => sum + (e.only_child_bonus || 0), 0),
+      '乡镇工作补贴': entries.reduce((sum, e) => sum + (e.township_allowance || 0), 0),
+      '岗位津贴': entries.reduce((sum, e) => sum + (e.position_allowance || 0), 0),
+      // 注释掉不存在的字段
+      // '公务员规范津补贴': entries.reduce((sum, e) => sum + (e.civil_servant_allowance || 0), 0),
+      // '补发工资': entries.reduce((sum, e) => sum + (e.back_pay || 0), 0),
     };
   }, [entries]);
 
@@ -208,14 +209,18 @@ export const usePayrollEntriesView = (
    */
   const getDeductionsBreakdown = useCallback((): Record<string, number> => {
     return {
-      '个人所得税': entries.reduce((sum, e) => sum + e.personal_income_tax, 0),
-      '养老保险个人': entries.reduce((sum, e) => sum + e.pension_personal, 0),
-      '医疗保险个人': entries.reduce((sum, e) => sum + e.medical_personal, 0),
-      '失业保险个人': entries.reduce((sum, e) => sum + e.unemployment_personal, 0),
-      '住房公积金个人': entries.reduce((sum, e) => sum + e.housing_fund_personal, 0),
-      '职业年金个人': entries.reduce((sum, e) => sum + e.annuity_personal, 0),
-      '调整扣款': entries.reduce((sum, e) => sum + e.adjustment_deduction, 0),
-      '社保调整': entries.reduce((sum, e) => sum + e.social_security_adjustment, 0),
+      '个人所得税': entries.reduce((sum, e) => sum + (e.personal_income_tax || 0), 0),
+      '社会保险个人': entries.reduce((sum, e) => sum + (e.social_insurance_personal || 0), 0),
+      '住房公积金个人': entries.reduce((sum, e) => sum + (e.housing_fund_personal || 0), 0),
+      '工会费': entries.reduce((sum, e) => sum + (e.union_fee || 0), 0),
+      '其他扣除': entries.reduce((sum, e) => sum + (e.other_deductions || 0), 0),
+      // 注释掉不存在的字段
+      // '养老保险个人': entries.reduce((sum, e) => sum + (e.pension_personal || 0), 0),
+      // '医疗保险个人': entries.reduce((sum, e) => sum + (e.medical_personal || 0), 0),
+      // '失业保险个人': entries.reduce((sum, e) => sum + (e.unemployment_personal || 0), 0),
+      // '职业年金个人': entries.reduce((sum, e) => sum + (e.annuity_personal || 0), 0),
+      // '调整扣款': entries.reduce((sum, e) => sum + (e.adjustment_deduction || 0), 0),
+      // '社保调整': entries.reduce((sum, e) => sum + (e.social_security_adjustment || 0), 0),
     };
   }, [entries]);
 

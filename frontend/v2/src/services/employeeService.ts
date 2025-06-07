@@ -183,10 +183,10 @@ export const employeeService = {
         return response.data.data.map(apiItem => ({
           id: apiItem.id,
           lookup_type_id: apiItem.lookup_type_id,
-          value_code: apiItem.code || '',
-          value_name: apiItem.name || '',
-          description: apiItem.description,
-          sort_order: apiItem.sort_order,
+          lookup_type_code: lookupTypeCode,
+          value: apiItem.code || '',
+          label: apiItem.name || '',
+          display_order: apiItem.sort_order,
           is_active: apiItem.is_active,
         }));
       } else {
@@ -200,10 +200,10 @@ export const employeeService = {
           return fallbackResponse.data.data.map(apiItem => ({
             id: apiItem.id,
             lookup_type_id: apiItem.lookup_type_id,
-            value_code: apiItem.code || '',
-            value_name: apiItem.name || '',
-            description: apiItem.description,
-            sort_order: apiItem.sort_order,
+            lookup_type_code: lookupTypeCode,
+            value: apiItem.code || '',
+            label: apiItem.name || '',
+            display_order: apiItem.sort_order,
             is_active: apiItem.is_active,
           }));
         }

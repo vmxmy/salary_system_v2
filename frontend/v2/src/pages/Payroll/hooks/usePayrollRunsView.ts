@@ -73,8 +73,8 @@ export const usePayrollRunsView = (
       
       // 按发起时间降序排序
       const sortedRuns = runsData.sort((a, b) => {
-        const dateA = new Date(a.initiated_at).getTime();
-        const dateB = new Date(b.initiated_at).getTime();
+        const dateA = new Date(a.run_date || a.created_at || 0).getTime();
+        const dateB = new Date(b.run_date || b.created_at || 0).getTime();
         return dateB - dateA;
       });
       
@@ -119,7 +119,7 @@ export const usePayrollRunsView = (
    * 根据周期ID获取运行
    */
   const getRunsByPeriod = useCallback((periodId: number): PayrollRunDetailView[] => {
-    return runs.filter(run => run.period_id === periodId);
+    return runs.filter(run => run.payroll_period_id === periodId);
   }, [runs]);
 
   /**
@@ -134,10 +134,10 @@ export const usePayrollRunsView = (
    */
   const getTotalStats = useCallback(() => {
     const totalRuns = runs.length;
-    const totalEntries = runs.reduce((sum, r) => sum + r.total_entries, 0);
-    const totalGrossPay = runs.reduce((sum, r) => sum + r.total_gross_pay, 0);
-    const totalNetPay = runs.reduce((sum, r) => sum + r.total_net_pay, 0);
-    const totalDeductions = runs.reduce((sum, r) => sum + r.total_deductions, 0);
+    const totalEntries = runs.reduce((sum, r) => sum + (r.total_entries || 0), 0);
+    const totalGrossPay = runs.reduce((sum, r) => sum + (r.total_gross_pay || 0), 0);
+    const totalNetPay = runs.reduce((sum, r) => sum + (r.total_net_pay || 0), 0);
+    const totalDeductions = runs.reduce((sum, r) => sum + (r.total_deductions || 0), 0);
     
     const averageGrossPay = totalRuns > 0 ? totalGrossPay / totalRuns : 0;
     const averageNetPay = totalRuns > 0 ? totalNetPay / totalRuns : 0;

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { message, Space, Alert } from 'antd';
-import { 
-  HomeOutlined, 
-  UserAddOutlined, 
-  ArrowLeftOutlined, 
+import type { Dayjs } from 'dayjs'; // 导入 Dayjs 类型
+import {
+  HomeOutlined,
+  UserAddOutlined,
+  ArrowLeftOutlined,
   UserOutlined,
   ContactsOutlined,
   BankOutlined,
@@ -37,17 +38,24 @@ const CreateEmployeePage: React.FC = () => {
 
   const { lookupMaps, rawLookups, loadingLookups } = useLookupMaps();
 
+  // 包装函数来处理 StepsForm 的 onCurrentChange
+  const handleStepChange = (newCurrent: number) => {
+    setCurrent(newCurrent);
+  };
+
   const handleFinish = async (values: Record<string, any>) => {
     setSubmitting(true);
     try {
-      // 处理日期字段转换
+      // 处理日期字段转换和字段映射
       const payload: CreateEmployeePayload = {
-        ...values,
+        ...(values as CreateEmployeePayload), // 强制类型转换
         date_of_birth: values.birth_date ? dayjs(values.birth_date).format('YYYY-MM-DD') : null,
         hire_date: values.entry_date ? dayjs(values.entry_date).format('YYYY-MM-DD') : null,
         first_work_date: values.first_work_date ? dayjs(values.first_work_date).format('YYYY-MM-DD') : null,
         current_position_start_date: values.current_position_start_date ? dayjs(values.current_position_start_date).format('YYYY-MM-DD') : null,
         career_position_level_date: values.position_level_date ? dayjs(values.position_level_date).format('YYYY-MM-DD') : null,
+        id_number: values.id_card_number, // 映射 id_card_number 到 id_number
+        status_lookup_value_id: values.employee_status, // 确保 status_lookup_value_id 被正确赋值
       };
 
       const newEmployee = await employeeService.createEmployee(payload);
@@ -115,7 +123,7 @@ const CreateEmployeePage: React.FC = () => {
       {/* 分步表单 */}
       <StepsForm
         current={current}
-        onChange={setCurrent}
+        onCurrentChange={handleStepChange} // 使用包装函数
         formProps={{
           validateMessages: {
             required: '${label}是必填项',
@@ -214,7 +222,7 @@ const CreateEmployeePage: React.FC = () => {
                 width="md"
                 placeholder="请选择出生日期"
                 fieldProps={{
-                  disabledDate: (current) => current && current > dayjs().subtract(16, 'year'),
+                  disabledDate: (current: Dayjs) => current && current > dayjs().subtract(16, 'year'),
                 }}
               />
               <ProFormText
@@ -342,7 +350,7 @@ const CreateEmployeePage: React.FC = () => {
                 placeholder="请选择入职日期"
                 rules={[{ required: true }]}
                 fieldProps={{
-                  disabledDate: (current) => current && current > dayjs(),
+                  disabledDate: (current: Dayjs) => current && current > dayjs(),
                 }}
               />
             </ProFormGroup>
@@ -354,7 +362,7 @@ const CreateEmployeePage: React.FC = () => {
                 width="md"
                 placeholder="请选择首次工作时间"
                 fieldProps={{
-                  disabledDate: (current) => current && current > dayjs(),
+                  disabledDate: (current: Dayjs) => current && current > dayjs(),
                 }}
               />
               <ProFormDatePicker
@@ -363,7 +371,7 @@ const CreateEmployeePage: React.FC = () => {
                 width="md"
                 placeholder="请选择职务开始时间"
                 fieldProps={{
-                  disabledDate: (current) => current && current > dayjs(),
+                  disabledDate: (current: Dayjs) => current && current > dayjs(),
                 }}
               />
               <ProFormDatePicker
@@ -372,7 +380,7 @@ const CreateEmployeePage: React.FC = () => {
                 width="md"
                 placeholder="请选择职级确定时间"
                 fieldProps={{
-                  disabledDate: (current) => current && current > dayjs(),
+                  disabledDate: (current: Dayjs) => current && current > dayjs(),
                 }}
               />
             </ProFormGroup>

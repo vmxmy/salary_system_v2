@@ -1,8 +1,20 @@
 import apiClient from '../../../api/apiClient';
-import type { PayrollPeriod, PayrollRun, PayrollEntry, LookupValue } from '../types/payrollTypes';
+import type { PayrollPeriod, PayrollRun, PayrollEntry, LookupValue, ApiListResponse } from '../types/payrollTypes';
 
 // 视图API的基础端点
 const PAYROLL_VIEWS_ENDPOINT = '/payroll-views';
+const PAYROLL_V2_ENDPOINT = '/v2/payroll';
+
+// 分页响应类型
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    page: number;
+    size: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
 // 扩展的视图类型定义
 export interface PayrollPeriodDetailView extends PayrollPeriod {

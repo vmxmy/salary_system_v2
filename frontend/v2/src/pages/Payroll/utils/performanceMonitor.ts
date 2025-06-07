@@ -14,7 +14,7 @@ interface PerformanceMetric {
   recordCount?: number;
 }
 
-interface PerformanceComparison {
+export interface PerformanceComparison {
   originalApi: PerformanceMetric;
   viewApi: PerformanceMetric;
   improvement: {

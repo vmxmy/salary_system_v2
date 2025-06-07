@@ -13,22 +13,49 @@ const { Title, Paragraph } = Typography;
 const mockPayrollRuns: PayrollRunResponse[] = [
   {
     id: 50,
+    period_id: 1,
+    period_name: '2024年1月',
     version_number: 1,
+    status_id: 1,
     status_name: 'PRUN_CALCULATED',
+    total_entries: 50,
+    total_gross_pay: 250000,
+    total_net_pay: 200000,
+    total_deductions: 50000,
+    initiated_by_user_id: 1,
+    initiated_by_username: 'admin',
     initiated_at: '2024-01-15T10:00:00Z',
     calculated_at: '2024-01-15T10:30:00Z'
   },
   {
     id: 52,
+    period_id: 1,
+    period_name: '2024年1月',
     version_number: 2,
+    status_id: 2,
     status_name: '已计算',
+    total_entries: 53,
+    total_gross_pay: 265000,
+    total_net_pay: 212000,
+    total_deductions: 53000,
+    initiated_by_user_id: 1,
+    initiated_by_username: 'admin',
     initiated_at: '2024-01-16T09:00:00Z',
     calculated_at: '2024-01-16T09:45:00Z'
   },
   {
     id: 53,
+    period_id: 1,
+    period_name: '2024年1月',
     version_number: 3,
+    status_id: 3,
     status_name: 'IN_REVIEW',
+    total_entries: 53,
+    total_gross_pay: 265000,
+    total_net_pay: 212000,
+    total_deductions: 53000,
+    initiated_by_user_id: 1,
+    initiated_by_username: 'admin',
     initiated_at: '2024-01-17T08:00:00Z',
     calculated_at: '2024-01-17T08:30:00Z'
   }
@@ -39,7 +66,34 @@ const mockAuditSummary: AuditSummary = {
   total_anomalies: 5,
   error_count: 2,
   warning_count: 3,
-  auto_fixable_count: 1
+  auto_fixable_count: 1,
+  manually_ignored_count: 0,
+  anomalies_by_type: {
+    'minimum_wage': 1,
+    'tax_calculation': 1,
+    'salary_variance': 3
+  },
+  total_gross_pay: 265000,
+  total_net_pay: 212000,
+  total_deductions: 53000
+};
+
+// 模拟期间数据
+const mockPeriod = {
+  id: 1,
+  name: '2024年1月',
+  description: '2024年1月工资期间',
+  frequency_id: 1,
+  frequency_name: '月度',
+  status_id: 1,
+  status_name: '活跃',
+  is_active: true,
+  start_date: '2024-01-01',
+  end_date: '2024-01-31',
+  runs_count: 3,
+  entries_count: 53,
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-17T08:30:00Z'
 };
 
 const WorkflowDemoPage: React.FC = () => {
@@ -145,6 +199,7 @@ const WorkflowDemoPage: React.FC = () => {
           {/* 增强版工作流引导 */}
           <Col xs={24} lg={12}>
             <EnhancedWorkflowGuide
+              selectedPeriod={mockPeriod}
               selectedVersion={selectedRun || null}
               auditSummary={selectedRun?.status_name === '已计算' || selectedRun?.status_name === 'PRUN_CALCULATED' ? mockAuditSummary : null}
               onRefresh={handleRefresh}
