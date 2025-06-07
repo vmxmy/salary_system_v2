@@ -276,20 +276,27 @@ async def copy_previous_payroll(
     current_user = Depends(require_permissions(["payroll_run:manage"]))
 ):
     """复制上月工资数据"""
+    logger.info(f"🚀 [API-复制工资数据] 接收请求: 目标期间={target_period_id}, 源期间={source_period_id}, 用户={current_user.username}({current_user.id}), 描述={description}")
+    
     try:
         service = PayrollGenerationService(db)
+        
+        logger.info(f"⚡ [API-复制工资数据] 调用服务层复制方法...")
         result = service.copy_previous_payroll(
             target_period_id=target_period_id,
             source_period_id=source_period_id,
             description=description or "复制上月数据",
             user_id=current_user.id
         )
+        
+        logger.info(f"✅ [API-复制工资数据] 复制成功: 新运行ID={result.id}, 期间={result.period_name}, 版本={result.version_number}")
+        
         return DataResponse(
             data=result,
             message="复制工资数据成功"
         )
     except ValueError as e:
-        logger.warning(f"复制上月数据参数错误: {e}")
+        logger.warning(f"⚠️ [API-复制工资数据] 参数错误: {e}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=create_error_response(
@@ -299,7 +306,7 @@ async def copy_previous_payroll(
             )
         )
     except Exception as e:
-        logger.error(f"复制上月数据失败: {e}", exc_info=True)
+        logger.error(f"💥 [API-复制工资数据] 复制失败: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(

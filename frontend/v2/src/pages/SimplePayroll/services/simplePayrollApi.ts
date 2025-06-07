@@ -60,7 +60,25 @@ export const simplePayrollApi = {
     page?: number;
     size?: number;
   }): Promise<PaginatedResponse<PayrollPeriod>> => {
+    console.log('🚀 [simplePayrollApi.getPayrollPeriods] 发起请求:', {
+      url: `${API_BASE}/periods`,
+      params: params
+    });
+    
     const response = await apiClient.get(`${API_BASE}/periods`, { params });
+    
+    console.log('✅ [simplePayrollApi.getPayrollPeriods] 请求成功:', {
+      status: response.status,
+      totalCount: response.data?.meta?.total,
+      periodsCount: response.data?.data?.length,
+      periods: response.data?.data?.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        status: p.status_name,
+        runs_count: p.runs_count
+      }))
+    });
+    
     logResponse(response);
     return response.data;
   },
@@ -98,13 +116,38 @@ export const simplePayrollApi = {
     return response.data;
   },
 
+  /**
+   * 删除工资版本
+   */
+  deletePayrollRun: async (versionId: number): Promise<void> => {
+    const response = await apiClient.delete(`/payroll-runs/${versionId}`);
+    logResponse(response);
+  },
+
   // ===================== 工资生成功能 =====================
 
   /**
    * 生成工资数据
    */
   generatePayroll: async (request: PayrollGenerationRequest): Promise<ApiResponse<PayrollRun>> => {
+    console.log('🚀 [simplePayrollApi.generatePayroll] 发起请求:', {
+      url: `${API_BASE}/generate`,
+      request: request,
+      generationType: request.generation_type,
+      periodId: request.period_id,
+      sourceData: request.source_data,
+      description: request.description
+    });
+    
     const response = await apiClient.post(`${API_BASE}/generate`, request);
+    
+    console.log('✅ [simplePayrollApi.generatePayroll] 请求成功:', {
+      status: response.status,
+      responseData: response.data,
+      generatedRunId: response.data?.data?.id,
+      generatedRunPeriod: response.data?.data?.period_name
+    });
+    
     logResponse(response);
     return response.data;
   },
@@ -281,6 +324,80 @@ export const simplePayrollApi = {
    */
   getDepartments: async (): Promise<ApiResponse<Array<{id: number; name: string; code: string}>>> => {
     const response = await apiClient.get(`${API_BASE}/departments`);
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 创建工资期间
+   */
+  createPayrollPeriod: async (params: {
+    name: string;
+    start_date: string;
+    end_date: string;
+    pay_date: string;
+    frequency_lookup_value_id?: number;
+  }): Promise<ApiResponse<PayrollPeriod>> => {
+    // 准备创建工资期间的请求数据，确保包含必需字段
+    const createData = {
+      name: params.name,
+      start_date: params.start_date,
+      end_date: params.end_date,
+      pay_date: params.pay_date,
+      frequency_lookup_value_id: params.frequency_lookup_value_id || 117, // 117 = 月度频率
+      status_lookup_value_id: 115 // 115 = "活动" 状态
+    };
+
+    console.log('🚀 [simplePayrollApi.createPayrollPeriod] 发起请求:', {
+      url: '/payroll-periods',
+      params: params,
+      createData: createData
+    });
+    
+    const response = await apiClient.post('/payroll-periods', createData);
+    
+    console.log('✅ [simplePayrollApi.createPayrollPeriod] 请求成功:', {
+      status: response.status,
+      responseData: response.data,
+      createdPeriodId: response.data?.data?.id,
+      createdPeriodName: response.data?.data?.name
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 创建工资运行
+   */
+  createPayrollRun: async (params: {
+    payroll_period_id: number;
+    description?: string;
+  }): Promise<ApiResponse<PayrollRun>> => {
+    // 准备创建工资运行的请求数据，包含必需的status_lookup_value_id
+    const createData = {
+      payroll_period_id: params.payroll_period_id,
+      status_lookup_value_id: 60, // 60 = "待计算" 状态
+      initiated_by_user_id: null, // 可选字段
+      total_employees: null, // 可选字段
+      total_net_pay: null // 可选字段
+    };
+
+    console.log('🚀 [simplePayrollApi.createPayrollRun] 发起请求:', {
+      url: '/payroll-runs',
+      params: params,
+      createData: createData
+    });
+    
+    const response = await apiClient.post('/payroll-runs', createData);
+    
+    console.log('✅ [simplePayrollApi.createPayrollRun] 请求成功:', {
+      status: response.status,
+      responseData: response.data,
+      createdRunId: response.data?.data?.id,
+      createdRunPeriod: response.data?.data?.period_name
+    });
+    
     logResponse(response);
     return response.data;
   },

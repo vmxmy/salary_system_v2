@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>月份选择器颜色递进测试</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        
+        .color-test-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .color-item {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .color-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 1. 没有周期也没有运行：文字灰色 */
+        .no-period-no-run {
+            background-color: transparent;
+            color: #bfbfbf;
+            border-color: transparent;
+        }
+        
+        /* 2. 有周期没有运行：文字黑色 */
+        .has-period-no-run {
+            background-color: transparent;
+            color: #000000;
+            border-color: transparent;
+            font-weight: 500;
+        }
+        
+        /* 3. 有周期有运行，没有工资记录：浅黄色 */
+        .has-runs-no-entries {
+            background-color: #fff7e6;
+            color: #d48806;
+            border-color: #d48806;
+            font-weight: 600;
+        }
+        
+        /* 4. 有周期有运行有工资记录，未完成审批：浅绿色 */
+        .has-entries-pending {
+            background-color: #b7eb8f;
+            color: #389e0d;
+            border-color: #389e0d;
+            font-weight: bold;
+        }
+        
+        /* 5. 有周期有运行有工资记录完成审批：深绿色 */
+        .approved-complete {
+            background-color: #52c41a;
+            color: #ffffff;
+            border-color: #52c41a;
+            font-weight: bold;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .month-number {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .status-text {
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>月份选择器颜色递进测试</h1>
+    
+    <div class="color-test-container">
+        <div class="color-item no-period-no-run">
+            <div class="month-number">1</div>
+            <div class="status-text">
+                <strong>状态1:</strong><br>
+                没有周期也没有运行<br>
+                文字灰色
+            </div>
+        </div>
+        
+        <div class="color-item has-period-no-run">
+            <div class="status-indicator" style="background-color: #000000;"></div>
+            <div class="month-number">2</div>
+            <div class="status-text">
+                <strong>状态2:</strong><br>
+                有周期没有运行<br>
+                文字黑色
+            </div>
+        </div>
+        
+        <div class="color-item has-runs-no-entries">
+            <div class="status-indicator" style="background-color: #d48806;"></div>
+            <div class="month-number">3</div>
+            <div class="status-text">
+                <strong>状态3:</strong><br>
+                有周期有运行，没有工资记录<br>
+                浅黄色
+            </div>
+        </div>
+        
+        <div class="color-item has-entries-pending">
+            <div class="status-indicator" style="background-color: #52c41a;"></div>
+            <div class="month-number">4</div>
+            <div class="status-text">
+                <strong>状态4:</strong><br>
+                有周期有运行有工资记录，未完成审批<br>
+                浅绿色
+            </div>
+        </div>
+        
+        <div class="color-item approved-complete">
+            <div class="status-indicator" style="background-color: #ffffff;"></div>
+            <div class="month-number">5</div>
+            <div class="status-text">
+                <strong>状态5:</strong><br>
+                有周期有运行有工资记录完成审批<br>
+                深绿色
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

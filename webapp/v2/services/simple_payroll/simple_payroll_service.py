@@ -111,12 +111,21 @@ class SimplePayrollService:
                     PayrollRun.payroll_period_id == period.id
                 ).order_by(desc(PayrollRun.run_date)).first()
                 
+                # 计算实际工资条目数量
+                entries_count = 0
+                if latest_run:
+                    entries_count = self.db.query(PayrollEntry).filter(
+                        PayrollEntry.payroll_run_id == latest_run.id
+                    ).count()
+                
                 # 计算状态
                 status = "empty"  # 无数据
                 if latest_run:
                     # 根据PayrollRun模型的实际字段判断状态
                     # 这里简化处理，可以根据实际业务需求调整
                     status = "calculated"  # 已计算
+                
+                logger.debug(f"📊 [期间统计] ID={period.id}, 名称={period.name}, 运行数={runs_count}, 条目数={entries_count}")
                 
                 result.append(PayrollPeriodResponse(
                     id=period.id,
@@ -130,7 +139,7 @@ class SimplePayrollService:
                     start_date=period.start_date,
                     end_date=period.end_date,
                     runs_count=runs_count,
-                    entries_count=0,  # 暂时设为0，可以后续计算
+                    entries_count=entries_count,  # 实际工资条目数量
                     created_at=datetime.now(),  # 模型中没有created_at字段，使用当前时间
                     updated_at=datetime.now()   # 模型中没有updated_at字段，使用当前时间
                 ))

@@ -203,28 +203,136 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
 
   // 一键复制上月数据
   const handleQuickCopyPrevious = async () => {
-    if (!selectedPeriod) return;
+    if (!selectedPeriod) {
+      console.log('❌ [一键复制] 没有选择期间，无法执行复制操作');
+      return;
+    }
+    
+    console.log('🚀 [一键复制] 开始执行一键复制操作:', {
+      targetPeriod: {
+        id: selectedPeriod.id,
+        name: selectedPeriod.name,
+        status: selectedPeriod.status_name
+      }
+    });
     
     setActionLoading('quick_copy', true);
     try {
       // 获取可复制的期间列表
+      console.log('📋 [一键复制] 正在获取所有期间列表...');
       const periodsResponse = await simplePayrollApi.getPayrollPeriods({});
+      
+      console.log('📋 [一键复制] 获取到期间列表:', {
+        totalCount: periodsResponse.data.length,
+        periods: periodsResponse.data.map(p => ({
+          id: p.id,
+          name: p.name,
+          status: p.status_name,
+          runs_count: p.runs_count
+        }))
+      });
+      
+      // 过滤可复制的期间 - 优化逻辑：优先选择有实际工资条目的期间
       const availablePeriods = periodsResponse.data.filter(p => 
         p.id !== selectedPeriod.id && 
         p.status_name !== 'empty' &&
-        p.runs_count > 0
+        p.runs_count > 0 &&
+        p.entries_count > 0  // 新增：必须有实际的工资条目
       );
       
+      console.log('🔍 [一键复制] 过滤后的可复制期间:', {
+        filteredCount: availablePeriods.length,
+        filterCriteria: {
+          excludeCurrentPeriod: selectedPeriod.id,
+          excludeEmptyStatus: true,
+          requireRunsCount: '>0',
+          requireEntriesCount: '>0'  // 新增过滤条件
+        },
+        availablePeriods: availablePeriods.map(p => ({
+          id: p.id,
+          name: p.name,
+          status: p.status_name,
+          runs_count: p.runs_count,
+          entries_count: p.entries_count  // 显示条目数量
+        }))
+      });
+      
+      // 如果没有找到有条目的期间，尝试放宽条件（只要有运行记录）
+      let fallbackPeriods: PayrollPeriodResponse[] = [];
       if (availablePeriods.length === 0) {
-        message.warning('没有找到可复制的历史期间数据');
+        fallbackPeriods = periodsResponse.data.filter(p => 
+          p.id !== selectedPeriod.id && 
+          p.status_name !== 'empty' &&
+          p.runs_count > 0
+        );
+        
+        console.log('⚠️ [一键复制] 没有找到有工资条目的期间，尝试使用有运行记录的期间:', {
+          fallbackCount: fallbackPeriods.length,
+          fallbackPeriods: fallbackPeriods.map(p => ({
+            id: p.id,
+            name: p.name,
+            runs_count: p.runs_count,
+            entries_count: p.entries_count
+          }))
+        });
+      }
+      
+      const finalAvailablePeriods = availablePeriods.length > 0 ? availablePeriods : fallbackPeriods;
+      
+      if (finalAvailablePeriods.length === 0) {
+        console.log('❌ [一键复制] 没有找到任何可复制的历史期间数据');
+        message.warning('没有找到可复制的历史期间数据，请先确保其他期间有工资数据');
         return;
       }
       
-      // 自动选择最近的一个期间（假设按ID排序，取最大的）
-      const latestPeriod = availablePeriods.sort((a, b) => b.id - a.id)[0];
+      // 智能选择复制源：优先选择有条目数量最多的最新期间
+      const sortedPeriods = finalAvailablePeriods.sort((a, b) => {
+        // 首先按条目数量降序排序
+        if (a.entries_count !== b.entries_count) {
+          return b.entries_count - a.entries_count;
+        }
+        // 条目数量相同时，按ID降序排序（选择最新的）
+        return b.id - a.id;
+      });
+      const latestPeriod = sortedPeriods[0];
+      
+      console.log('🎯 [一键复制] 选择复制源期间:', {
+        selectedSource: {
+          id: latestPeriod.id,
+          name: latestPeriod.name,
+          status: latestPeriod.status_name,
+          runs_count: latestPeriod.runs_count,
+          entries_count: latestPeriod.entries_count
+        },
+        selectionReason: availablePeriods.length > 0 
+          ? '优先选择有工资条目数量最多的最新期间' 
+          : '备选方案：选择有运行记录的最新期间（可能无工资条目）',
+        selectionCriteria: {
+          primaryFilter: '有工资条目的期间',
+          fallbackFilter: '有运行记录的期间',
+          sortingLogic: '按条目数量降序，然后按ID降序'
+        },
+        allSortedOptions: sortedPeriods.map(p => ({
+          id: p.id,
+          name: p.name,
+          runs_count: p.runs_count,
+          entries_count: p.entries_count
+        }))
+      });
       
       // 执行复制操作
-      await simplePayrollApi.generatePayroll({
+      console.log('⚡ [一键复制] 开始执行复制操作:', {
+        request: {
+          period_id: selectedPeriod.id,
+          generation_type: 'copy_previous',
+          source_data: {
+            source_period_id: latestPeriod.id
+          },
+          description: `一键复制 ${latestPeriod.name} 数据`
+        }
+      });
+      
+      const result = await simplePayrollApi.generatePayroll({
         period_id: selectedPeriod.id,
         generation_type: 'copy_previous',
         source_data: {
@@ -233,13 +341,38 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         description: `一键复制 ${latestPeriod.name} 数据`
       });
       
-      message.success(`已成功复制 ${latestPeriod.name} 的工资数据`);
+      console.log('✅ [一键复制] 复制操作完成:', {
+        result,
+        sourceInfo: {
+          id: latestPeriod.id,
+          name: latestPeriod.name
+        },
+        targetInfo: {
+          id: selectedPeriod.id,
+          name: selectedPeriod.name
+        }
+      });
+      
+      // 检查复制结果，如果影响0条记录给出特殊提示
+      if (result && result.data && result.data.total_entries === 0) {
+        message.warning(`已从 ${latestPeriod.name} 创建工资运行，但源期间无工资条目数据。请通过批量导入或手动添加工资数据。`);
+      } else {
+        const entriesCount = result?.data?.total_entries;
+        message.success(`已成功复制 ${latestPeriod.name} 的工资数据${entriesCount ? `（${entriesCount}条记录）` : ''}`);
+      }
       onRefresh();
     } catch (error: any) {
-      console.error('❌ 一键复制失败:', error);
+      console.error('❌ [一键复制] 复制操作失败:', {
+        error: error,
+        errorMessage: error.message,
+        errorResponse: error.response?.data,
+        targetPeriod: selectedPeriod,
+        stack: error.stack
+      });
       message.error(error.message || '一键复制失败，请重试');
     } finally {
       setActionLoading('quick_copy', false);
+      console.log('🏁 [一键复制] 操作结束，loading状态已重置');
     }
   };
 
