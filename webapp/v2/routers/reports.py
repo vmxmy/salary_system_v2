@@ -250,10 +250,14 @@ async def preview_data_source_data(
     data_source_id: int,
     limit: int = Query(10, ge=1, le=100),
     filters: Optional[str] = Query(None, description="JSON格式的筛选条件"),
+    use_optimized_view: bool = Query(True, description="是否使用优化视图"),
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """预览数据源数据"""
+    """预览数据源数据 - 支持视图优化"""
+    import json
+    import time
+    
     # 先获取数据源检查权限
     data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
     if not data_source:
@@ -263,8 +267,9 @@ async def preview_data_source_data(
     if not has_permission(current_user, "report:admin") and data_source.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="无权访问此数据源")
     
+    start_time = time.time()
+    
     try:
-        import json
         filter_dict = {}
         if filters:
             try:
@@ -272,14 +277,33 @@ async def preview_data_source_data(
             except json.JSONDecodeError:
                 raise HTTPException(status_code=400, detail="筛选条件格式错误")
         
-        preview_data = ReportDataSourceCRUD.preview_data(db, data_source_id, limit, filter_dict)
+        # 选择查询策略
+        from ..services.report_optimization_service import ReportOptimizationService
+        
+        if use_optimized_view and ReportOptimizationService.should_use_optimized_view(data_source):
+            preview_data = await ReportOptimizationService.execute_preview_query(db, data_source, limit, filter_dict)
+            used_optimized = True
+        else:
+            # 使用原有方法
+            preview_data = ReportDataSourceCRUD.preview_data(db, data_source_id, limit, filter_dict)
+            used_optimized = False
+        
+        execution_time = time.time() - start_time
+        
         return {
             "data": preview_data,
             "total_count": len(preview_data),
-            "limit": limit
+            "limit": limit,
+            "execution_time": round(execution_time, 3),
+            "used_optimized_view": used_optimized
         }
     except Exception as e:
+        execution_time = time.time() - start_time
+        logging.error(f"数据预览失败 - 数据源ID: {data_source_id}, 错误: {str(e)}, 耗时: {execution_time:.3f}s")
         raise HTTPException(status_code=500, detail=f"预览数据失败: {str(e)}")
+
+
+# 这些函数已被 ReportOptimizationService 替代，保留作为备用
 
 
 # 数据源字段管理
@@ -661,9 +685,10 @@ async def query_report_data(
     db: Session = Depends(get_db_v2),
     current_user: User = Depends(get_current_user)
 ):
-    """查询报表数据"""
-    # 这里需要实现具体的报表查询逻辑
-    # 根据模板配置和查询参数生成SQL并执行
+    """查询报表数据 - 优化版本，智能使用视图"""
+    from sqlalchemy import text
+    import time
+    
     template = ReportTemplateCRUD.get_by_id(db, query.template_id)
     if not template:
         raise HTTPException(status_code=404, detail="报表模板不存在")
@@ -671,21 +696,331 @@ async def query_report_data(
     # 增加使用次数
     ReportTemplateCRUD.increment_usage(db, query.template_id)
     
-    # 这里应该实现具体的查询逻辑
-    # 暂时返回模拟数据
-    return ReportData(
-        columns=[
-            {"key": "id", "title": "ID", "dataIndex": "id"},
-            {"key": "name", "title": "姓名", "dataIndex": "name"},
-        ],
-        data=[
-            {"id": 1, "name": "张三"},
-            {"id": 2, "name": "李四"},
-        ],
-        total=2,
-        page=query.page,
-        page_size=query.page_size
-    ) 
+    start_time = time.time()
+    
+    try:
+        # 获取数据源信息
+        data_source = template.data_source
+        if not data_source:
+            raise HTTPException(status_code=400, detail="报表模板未配置数据源")
+        
+        # 使用优化服务进行智能查询
+        from ..services.report_optimization_service import ReportOptimizationService
+        
+        use_optimized_view = ReportOptimizationService.should_use_optimized_view(data_source, query)
+        
+        if use_optimized_view:
+            # 使用优化视图查询
+            result = await ReportOptimizationService.execute_optimized_query(db, data_source, query, template)
+        else:
+            # 使用传统查询
+            result = await _query_with_traditional_method(db, data_source, query, template)
+        
+        execution_time = time.time() - start_time
+        
+        # 记录查询性能
+        _log_query_performance(db, template.id, execution_time, use_optimized_view, len(result.get('data', [])))
+        
+        return ReportData(
+            columns=result.get('columns', []),
+            data=result.get('data', []),
+            total=result.get('total', 0),
+            page=query.page,
+            page_size=query.page_size,
+            execution_time=round(execution_time, 3)
+        )
+        
+    except Exception as e:
+        execution_time = time.time() - start_time
+        logging.error(f"报表查询失败 - 模板ID: {query.template_id}, 错误: {str(e)}, 耗时: {execution_time:.3f}s")
+        raise HTTPException(status_code=500, detail=f"报表查询失败: {str(e)}")
+
+
+def _should_use_optimized_view(data_source: ReportDataSource, query: ReportQuery) -> bool:
+    """判断是否应该使用优化视图"""
+    # 如果数据源本身就是视图，优先使用
+    if data_source.source_type == 'view' and data_source.view_name:
+        return True
+    
+    # 对于薪资相关的表，检查是否有对应的优化视图
+    if data_source.schema_name == 'payroll':
+        if data_source.table_name in ['payroll_entries', 'payroll_periods', 'payroll_runs']:
+            return True
+    
+    # 对于HR相关的表，检查是否有对应的优化视图
+    if data_source.schema_name == 'hr' and data_source.table_name == 'employees':
+        return True
+    
+    # 如果查询包含复杂的聚合或JOIN，建议使用视图
+    template_config = query.template_config or {}
+    if template_config.get('has_aggregation') or template_config.get('has_complex_joins'):
+        return True
+    
+    return False
+
+
+async def _query_with_optimized_view(
+    db: Session, 
+    data_source: ReportDataSource, 
+    query: ReportQuery, 
+    template: ReportTemplate
+) -> Dict[str, Any]:
+    """使用优化视图进行查询"""
+    from sqlalchemy import text
+    
+    # 映射到对应的优化视图
+    view_mapping = {
+        ('payroll', 'payroll_entries'): 'v_payroll_entries_detailed',
+        ('payroll', 'payroll_periods'): 'v_payroll_periods_detail', 
+        ('payroll', 'payroll_runs'): 'v_payroll_runs_detail',
+        ('hr', 'employees'): 'v_employees_basic',
+        ('config', 'payroll_component_definitions'): 'v_payroll_components_basic'
+    }
+    
+    # 确定使用的视图名称
+    if data_source.source_type == 'view' and data_source.view_name:
+        view_name = f"{data_source.schema_name}.{data_source.view_name}"
+    else:
+        view_key = (data_source.schema_name, data_source.table_name)
+        if view_key in view_mapping:
+            view_name = f"public.{view_mapping[view_key]}"
+        else:
+            # 回退到原始表
+            view_name = f"{data_source.schema_name}.{data_source.table_name}"
+    
+    # 构建查询
+    select_fields = _build_select_fields(template, query)
+    where_clause, params = _build_where_clause(query.filters or {})
+    order_clause = _build_order_clause(query.sorting or [])
+    
+    # 构建基础查询
+    base_query = f"SELECT {select_fields} FROM {view_name}"
+    if where_clause:
+        base_query += f" WHERE {where_clause}"
+    if order_clause:
+        base_query += f" ORDER BY {order_clause}"
+    
+    # 获取总数
+    count_query = f"SELECT COUNT(*) FROM {view_name}"
+    if where_clause:
+        count_query += f" WHERE {where_clause}"
+    
+    total_result = db.execute(text(count_query), params)
+    total = total_result.scalar() or 0
+    
+    # 添加分页
+    offset = (query.page - 1) * query.page_size
+    paginated_query = f"{base_query} LIMIT {query.page_size} OFFSET {offset}"
+    
+    # 执行查询
+    result = db.execute(text(paginated_query), params)
+    columns = [{"key": col, "title": col, "dataIndex": col} for col in result.keys()]
+    data = [dict(zip(result.keys(), row)) for row in result.fetchall()]
+    
+    return {
+        "columns": columns,
+        "data": data,
+        "total": total
+    }
+
+
+async def _query_with_traditional_method(
+    db: Session,
+    data_source: ReportDataSource, 
+    query: ReportQuery,
+    template: ReportTemplate
+) -> Dict[str, Any]:
+    """使用传统方法进行查询"""
+    # 使用现有的预览数据方法作为基础
+    try:
+        filters = query.filters or {}
+        limit = query.page_size
+        offset = (query.page - 1) * query.page_size
+        
+        # 构建查询
+        if data_source.source_type == 'query' and data_source.custom_query:
+            base_query = data_source.custom_query
+        else:
+            table_name = data_source.table_name or data_source.view_name
+            base_query = f"SELECT * FROM {data_source.schema_name}.{table_name}"
+        
+        # 添加筛选条件
+        where_conditions = []
+        params = {}
+        for field, value in filters.items():
+            if value is not None and value != '':
+                where_conditions.append(f"{field} = :{field}")
+                params[field] = value
+        
+        if where_conditions:
+            base_query += " WHERE " + " AND ".join(where_conditions)
+        
+        # 获取总数
+        count_query = f"SELECT COUNT(*) FROM ({base_query}) AS count_subquery"
+        total_result = db.execute(text(count_query), params)
+        total = total_result.scalar() or 0
+        
+        # 添加排序和分页
+        if query.sorting:
+            order_parts = []
+            for sort_item in query.sorting:
+                field = sort_item.get('field')
+                direction = sort_item.get('direction', 'asc').upper()
+                if field and direction in ['ASC', 'DESC']:
+                    order_parts.append(f"{field} {direction}")
+            if order_parts:
+                base_query += f" ORDER BY {', '.join(order_parts)}"
+        
+        paginated_query = f"{base_query} LIMIT {limit} OFFSET {offset}"
+        
+        # 执行查询
+        result = db.execute(text(paginated_query), params)
+        columns = [{"key": col, "title": col, "dataIndex": col} for col in result.keys()]
+        data = [dict(zip(result.keys(), row)) for row in result.fetchall()]
+        
+        return {
+            "columns": columns,
+            "data": data,
+            "total": total
+        }
+        
+    except Exception as e:
+        raise ValueError(f"传统查询方法失败: {str(e)}")
+
+
+def _build_select_fields(template: ReportTemplate, query: ReportQuery) -> str:
+    """构建SELECT字段列表"""
+    template_config = template.template_config or {}
+    selected_fields = template_config.get('selected_fields', [])
+    
+    if selected_fields:
+        return ", ".join(selected_fields)
+    else:
+        return "*"
+
+
+def _build_where_clause(filters: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
+    """构建WHERE子句"""
+    where_conditions = []
+    params = {}
+    
+    for field, value in filters.items():
+        if value is not None and value != '':
+            if isinstance(value, str) and '%' in value:
+                # 支持模糊查询
+                where_conditions.append(f"{field} ILIKE :{field}")
+                params[field] = value
+            elif isinstance(value, list):
+                # 支持IN查询
+                placeholders = [f":{field}_{i}" for i in range(len(value))]
+                where_conditions.append(f"{field} IN ({', '.join(placeholders)})")
+                for i, v in enumerate(value):
+                    params[f"{field}_{i}"] = v
+            else:
+                # 精确匹配
+                where_conditions.append(f"{field} = :{field}")
+                params[field] = value
+    
+    where_clause = " AND ".join(where_conditions) if where_conditions else ""
+    return where_clause, params
+
+
+def _build_order_clause(sorting: List[Dict[str, Any]]) -> str:
+    """构建ORDER BY子句"""
+    if not sorting:
+        return ""
+    
+    order_parts = []
+    for sort_item in sorting:
+        field = sort_item.get('field')
+        direction = sort_item.get('direction', 'asc').upper()
+        if field and direction in ['ASC', 'DESC']:
+            order_parts.append(f"{field} {direction}")
+    
+    return ", ".join(order_parts)
+
+
+def _log_query_performance(
+    db: Session, 
+    template_id: int, 
+    execution_time: float, 
+    used_optimized_view: bool, 
+    result_count: int
+):
+    """记录查询性能日志"""
+    try:
+        # 这里可以记录到性能监控表或日志系统
+        logging.info(
+            f"报表查询性能 - 模板ID: {template_id}, "
+            f"执行时间: {execution_time:.3f}s, "
+            f"使用优化视图: {used_optimized_view}, "
+            f"结果数量: {result_count}"
+        )
+    except Exception as e:
+        logging.warning(f"记录查询性能失败: {str(e)}")
+
+
+# 新增：快速报表查询API（专门使用视图优化）
+@router.post("/query-fast", response_model=ReportData)
+async def query_report_data_fast(
+    query: ReportQuery,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """快速报表查询 - 强制使用优化视图"""
+    from sqlalchemy import text
+    import time
+    
+    start_time = time.time()
+    
+    try:
+        # 使用优化服务进行快速查询
+        from ..services.report_optimization_service import ReportOptimizationService
+        
+        result = await ReportOptimizationService.execute_fast_query(
+            db=db,
+            data_source_type=query.data_source_type,
+            category=query.category,
+            filters=query.filters,
+            sorting=query.sorting,
+            page=query.page,
+            page_size=query.page_size,
+            fields=getattr(query, 'fields', None)
+        )
+        
+        return ReportData(
+            columns=result.get('columns', []),
+            data=result.get('data', []),
+            total=result.get('total', 0),
+            page=query.page,
+            page_size=query.page_size,
+            execution_time=result.get('execution_time', 0)
+        )
+        
+    except Exception as e:
+        execution_time = time.time() - start_time
+        logging.error(f"快速报表查询失败: {str(e)}, 耗时: {execution_time:.3f}s")
+        raise HTTPException(status_code=500, detail=f"快速报表查询失败: {str(e)}")
+
+
+def _get_optimized_view_name(data_source_type: str, category: str) -> str:
+    """获取优化视图名称"""
+    view_mapping = {
+        ('payroll', 'entries'): 'public.v_payroll_entries_detailed',
+        ('payroll', 'entries_basic'): 'public.v_payroll_entries_basic',
+        ('payroll', 'periods'): 'public.v_payroll_periods_detail',
+        ('payroll', 'runs'): 'public.v_payroll_runs_detail',
+        ('payroll', 'summary'): 'public.v_payroll_summary_analysis',
+        ('payroll', 'components'): 'public.v_payroll_components_basic',
+        ('payroll', 'component_usage'): 'public.v_payroll_component_usage',
+        ('hr', 'employees'): 'public.v_employees_basic',
+        ('hr', 'salary_history'): 'public.v_employee_salary_history',
+        ('reports', 'salary_details'): 'reports.employee_salary_details_view',
+        ('audit', 'overview'): 'payroll.audit_overview',
+        ('audit', 'anomalies'): 'payroll.audit_anomalies_detail'
+    }
+    
+    return view_mapping.get((data_source_type, category), "")
 
 
 @router.post("/data-sources/preview-multi")
@@ -1022,4 +1357,187 @@ async def export_report_view_data(
                 status="error",
                 error_message=f"导出失败: {str(e)}"
             )
-        raise HTTPException(status_code=500, detail=f"导出失败: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"导出失败: {str(e)}")
+
+
+# ==================== 报表优化相关路由 ====================
+
+@router.get("/optimization/stats")
+async def get_optimization_stats(
+    hours: int = Query(24, ge=1, le=168, description="统计时间范围（小时）"),
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取报表优化性能统计"""
+    from ..services.report_optimization_service import ReportOptimizationService
+    
+    try:
+        stats = ReportOptimizationService.get_performance_stats(db, hours)
+        return {
+            "success": True,
+            "data": stats,
+            "time_range_hours": hours
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取优化统计失败: {str(e)}")
+
+
+@router.get("/data-sources/{data_source_id}/optimization-suggestions")
+async def get_optimization_suggestions(
+    data_source_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取数据源优化建议"""
+    from ..services.report_optimization_service import ReportOptimizationService
+    
+    # 获取数据源
+    data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
+    if not data_source:
+        raise HTTPException(status_code=404, detail="数据源不存在")
+    
+    # 检查访问权限
+    if not has_permission(current_user, "report:admin") and data_source.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="无权访问此数据源")
+    
+    try:
+        suggestions = ReportOptimizationService.suggest_optimization(data_source)
+        return {
+            "success": True,
+            "data_source_id": data_source_id,
+            "data_source_name": data_source.name,
+            "suggestions": suggestions["suggestions"],
+            "optimization_score": suggestions["optimization_score"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取优化建议失败: {str(e)}")
+
+
+@router.post("/optimization/test-view-performance")
+async def test_view_performance(
+    test_request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """测试视图性能对比"""
+    from ..services.report_optimization_service import ReportOptimizationService
+    import time
+    
+    try:
+        data_source_id = test_request.get("data_source_id")
+        query_params = test_request.get("query_params", {})
+        
+        if not data_source_id:
+            raise HTTPException(status_code=400, detail="缺少数据源ID")
+        
+        # 获取数据源
+        data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
+        if not data_source:
+            raise HTTPException(status_code=404, detail="数据源不存在")
+        
+        # 测试传统查询
+        start_time = time.time()
+        try:
+            traditional_data = ReportDataSourceCRUD.preview_data(
+                db, data_source_id, 
+                limit=query_params.get("limit", 10),
+                filters=query_params.get("filters", {})
+            )
+            traditional_time = time.time() - start_time
+            traditional_success = True
+        except Exception as e:
+            traditional_time = time.time() - start_time
+            traditional_success = False
+            traditional_data = []
+        
+        # 测试优化视图查询
+        start_time = time.time()
+        try:
+            optimized_data = await ReportOptimizationService.execute_preview_query(
+                db, data_source,
+                limit=query_params.get("limit", 10),
+                filters=query_params.get("filters", {})
+            )
+            optimized_time = time.time() - start_time
+            optimized_success = True
+        except Exception as e:
+            optimized_time = time.time() - start_time
+            optimized_success = False
+            optimized_data = []
+        
+        # 计算性能提升
+        performance_improvement = 0
+        if traditional_success and optimized_success and traditional_time > 0:
+            performance_improvement = ((traditional_time - optimized_time) / traditional_time) * 100
+        
+        return {
+            "success": True,
+            "data_source_id": data_source_id,
+            "test_results": {
+                "traditional_query": {
+                    "execution_time": round(traditional_time, 3),
+                    "success": traditional_success,
+                    "result_count": len(traditional_data)
+                },
+                "optimized_query": {
+                    "execution_time": round(optimized_time, 3),
+                    "success": optimized_success,
+                    "result_count": len(optimized_data)
+                },
+                "performance_improvement_percent": round(performance_improvement, 2),
+                "recommendation": "使用优化视图" if performance_improvement > 10 else "性能提升不明显"
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"性能测试失败: {str(e)}")
+
+
+@router.get("/optimization/available-views")
+async def get_available_optimization_views(
+    db: Session = Depends(get_db_v2),
+    current_user: User = Depends(get_current_user)
+):
+    """获取可用的优化视图列表"""
+    from ..services.report_optimization_service import ReportOptimizationService
+    from sqlalchemy import text
+    
+    try:
+        # 检查数据库中实际存在的视图
+        view_check_query = """
+        SELECT schemaname, viewname, definition 
+        FROM pg_views 
+        WHERE schemaname IN ('public', 'payroll', 'hr', 'reports')
+        ORDER BY schemaname, viewname
+        """
+        
+        result = db.execute(text(view_check_query))
+        existing_views = [
+            {
+                "schema": row[0],
+                "name": row[1],
+                "full_name": f"{row[0]}.{row[1]}",
+                "definition_preview": row[2][:200] + "..." if len(row[2]) > 200 else row[2]
+            }
+            for row in result.fetchall()
+        ]
+        
+        # 获取配置的视图映射
+        configured_mappings = []
+        for (schema, table), view_name in ReportOptimizationService.VIEW_MAPPING.items():
+            configured_mappings.append({
+                "source_table": f"{schema}.{table}",
+                "optimized_view": f"public.{view_name}",
+                "exists": any(v["name"] == view_name for v in existing_views if v["schema"] == "public")
+            })
+        
+        return {
+            "success": True,
+            "existing_views": existing_views,
+            "configured_mappings": configured_mappings,
+            "total_views": len(existing_views),
+            "total_mappings": len(configured_mappings)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取优化视图列表失败: {str(e)}") 

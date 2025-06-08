@@ -1,0 +1,50 @@
+[
+  {
+    "test_name": "数据源1预览",
+    "data_source_id": 1,
+    "traditional": {
+      "time": 0.6829769611358643,
+      "success": false,
+      "count": 0
+    },
+    "optimized": {
+      "time": 0.6693267822265625,
+      "success": false,
+      "count": 0
+    },
+    "improvement_percent": 0,
+    "status": "优化效果不明显"
+  },
+  {
+    "test_name": "数据源2预览",
+    "data_source_id": 2,
+    "traditional": {
+      "time": 0.6924338340759277,
+      "success": false,
+      "count": 0
+    },
+    "optimized": {
+      "time": 1.9470241069793701,
+      "success": false,
+      "count": 0
+    },
+    "improvement_percent": 0,
+    "status": "优化效果不明显"
+  },
+  {
+    "test_name": "数据源3预览",
+    "data_source_id": 3,
+    "traditional": {
+      "time": 0.9587531089782715,
+      "success": false,
+      "count": 0
+    },
+    "optimized": {
+      "time": 0.7548670768737793,
+      "success": false,
+      "count": 0
+    },
+    "improvement_percent": 0,
+    "status": "优化效果不明显"
+  }
+]

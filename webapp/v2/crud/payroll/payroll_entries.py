@@ -39,39 +39,42 @@ def get_payroll_entries(
     """
     使用视图优化的薪资条目查询
     
-    使用 employee_salary_details_view 视图，避免复杂的JOIN操作和N+1查询问题
+    使用 v_comprehensive_employee_payroll 视图，包含完整的员工信息和薪资明细
     
     Returns:
         薪资条目字典列表和总数的元组
     """
     try:
-        logger.info(f"🚀 使用视图优化查询薪资条目: period_id={period_id}, run_id={run_id}")
+        logger.info(f"🔍 开始视图查询: employee_id={employee_id}, period_id={period_id}, run_id={run_id}")
         
-        # 确保数据库会话处于正常状态
-        try:
-            db.rollback()  # 回滚任何未完成的事务
-        except Exception:
-            pass  # 忽略回滚错误
-        
-        # 构建WHERE条件
+        # 构建查询条件
         conditions = []
         params = {}
         
-        # 注意：视图中没有这些字段，暂时跳过这些筛选条件
-        # 专注于基础查询优化，后续可以通过JOIN原表来实现这些筛选
+        # 基础筛选条件
         if employee_id:
-            logger.warning(f"⚠️ 视图查询暂不支持employee_id筛选: {employee_id}")
+            conditions.append("employee_id = :employee_id")
+            params['employee_id'] = employee_id
             
         if period_id:
-            logger.warning(f"⚠️ 视图查询暂不支持period_id筛选: {period_id}")
+            conditions.append("payroll_period_id = :period_id")
+            params['period_id'] = period_id
             
         if run_id:
-            logger.warning(f"⚠️ 视图查询暂不支持run_id筛选: {run_id}")
+            conditions.append("payroll_run_id = :run_id")
+            params['run_id'] = run_id
             
-        if status_id:
-            logger.warning(f"⚠️ 视图查询暂不支持status_id筛选: {status_id}")
+        # 部门筛选
+        if department_name:
+            conditions.append("department_name ILIKE :department_name")
+            params['department_name'] = f"%{department_name}%"
             
-        # 薪资范围筛选
+        # 人员类别筛选
+        if personnel_category_name:
+            conditions.append("personnel_category_name ILIKE :personnel_category_name")
+            params['personnel_category_name'] = f"%{personnel_category_name}%"
+            
+        # 工资范围筛选
         if min_gross_pay is not None:
             conditions.append("gross_pay >= :min_gross_pay")
             params['min_gross_pay'] = min_gross_pay
@@ -88,15 +91,6 @@ def get_payroll_entries(
             conditions.append("net_pay <= :max_net_pay")
             params['max_net_pay'] = max_net_pay
             
-        # 部门筛选
-        if department_name:
-            conditions.append("department_name ILIKE :department_name")
-            params['department_name'] = f"%{department_name}%"
-            
-        # 人员类别筛选 - 视图中没有此字段
-        if personnel_category_name:
-            logger.warning(f"⚠️ 视图查询暂不支持personnel_category_name筛选: {personnel_category_name}")
-            
         # 搜索筛选
         if search_term:
             if search_term.isdigit():
@@ -106,6 +100,7 @@ def get_payroll_entries(
                 conditions.append("""(
                     first_name ILIKE :search_term OR 
                     last_name ILIKE :search_term OR 
+                    full_name ILIKE :search_term OR
                     employee_code ILIKE :search_term
                 )""")
                 params['search_term'] = f"%{search_term}%"
@@ -122,11 +117,11 @@ def get_payroll_entries(
             
             # 映射排序字段到视图中实际存在的字段
             sort_field_mapping = {
-                'employee_name': '(first_name || \' \' || last_name)',
+                'employee_name': 'full_name',
                 'department': 'department_name',
                 'gross_pay': 'gross_pay',
                 'net_pay': 'net_pay',
-                'calculated_at': 'payroll_run_date'
+                'calculated_at': 'calculated_at'
             }
             
             if sort_by in sort_field_mapping:
@@ -141,54 +136,83 @@ def get_payroll_entries(
         # 查询总数
         count_sql = f"""
             SELECT COUNT(*) as total
-            FROM reports.employee_salary_details_view
+            FROM reports.v_comprehensive_employee_payroll
             {where_clause}
         """
         
         count_result = db.execute(text(count_sql), params).fetchone()
         total = count_result.total if count_result else 0
         
-        # 查询数据 - 使用子查询获取缺失的字段
+        # 查询数据
         data_sql = f"""
             SELECT 
                 payroll_entry_id as id,
-                (SELECT employee_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as employee_id,
-                (SELECT payroll_period_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as payroll_period_id,
-                (SELECT payroll_run_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as payroll_run_id,
-                (SELECT status_lookup_value_id FROM payroll.payroll_entries WHERE id = payroll_entry_id) as status_lookup_value_id,
+                employee_id,
+                payroll_period_id,
+                payroll_run_id,
                 employee_code,
                 first_name,
                 last_name,
-                (first_name || ' ' || last_name) as employee_name,
+                full_name as employee_name,
                 department_name,
                 position_name,
+                personnel_category_name,
+                root_personnel_category_name,
                 payroll_period_name,
                 gross_pay,
                 net_pay,
                 total_deductions,
-                -- 收入明细字段
+                
+                -- 应发项目
                 basic_salary,
-                performance_salary,
-                position_salary,
-                grade_salary,
-                allowance_general as allowance,
+                performance_bonus,
                 basic_performance_salary,
+                position_salary_general as position_salary,
+                grade_salary,
+                salary_grade,
+                allowance_general as allowance,
+                general_allowance,
                 traffic_allowance,
                 only_child_parent_bonus as only_child_bonus,
                 township_allowance,
                 position_allowance,
-                performance_bonus as bonus,
-                -- 扣除明细字段
+                civil_standard_allowance,
+                back_pay,
+                performance_salary,
+                monthly_performance_bonus,
+                
+                -- 个人扣除项目
                 personal_income_tax,
                 pension_personal_amount as pension_personal,
                 medical_ins_personal_amount as medical_personal,
                 unemployment_personal_amount as unemployment_personal,
                 housing_fund_personal,
                 occupational_pension_personal_amount as annuity_personal,
+                one_time_adjustment,
+                social_insurance_adjustment,
+                
+                -- 单位扣除项目
+                pension_employer_amount,
+                medical_ins_employer_amount,
+                housing_fund_employer,
+                
+                -- 计算基数和费率
+                pension_base,
+                medical_ins_base,
+                tax_base,
+                housing_fund_base,
+                pension_personal_rate,
+                medical_ins_personal_rate,
+                tax_rate,
+                
+                -- 原始JSONB数据
+                raw_earnings_details as earnings_details,
+                raw_deductions_details as deductions_details,
+                
                 -- 时间字段
-                payroll_run_date as calculated_at,
-                (SELECT updated_at FROM payroll.payroll_entries WHERE id = payroll_entry_id) as updated_at
-            FROM reports.employee_salary_details_view
+                calculated_at,
+                updated_at
+            FROM reports.v_comprehensive_employee_payroll
             {where_clause}
             {order_clause}
             LIMIT :limit OFFSET :offset
@@ -204,40 +228,46 @@ def get_payroll_entries(
                 'employee_id': row.employee_id,
                 'payroll_period_id': row.payroll_period_id,
                 'payroll_run_id': row.payroll_run_id,
-                'status_lookup_value_id': row.status_lookup_value_id,
+                'status_lookup_value_id': None,  # 需要从原表查询
                 'employee_code': row.employee_code,
                 'employee_name': row.employee_name,
                 'first_name': row.first_name,
                 'last_name': row.last_name,
                 'department_name': row.department_name,
                 'position_name': row.position_name,
+                'personnel_category_name': row.personnel_category_name,
+                'root_personnel_category_name': row.root_personnel_category_name,
                 'payroll_period_name': row.payroll_period_name,
                 'gross_pay': float(row.gross_pay) if row.gross_pay else 0.0,
                 'net_pay': float(row.net_pay) if row.net_pay else 0.0,
                 'total_deductions': float(row.total_deductions) if row.total_deductions else 0.0,
-                # 收入明细
-                'earnings_details': {
-                    'BASIC_SALARY': {'amount': float(row.basic_salary) if row.basic_salary else 0.0},
-                    'PERFORMANCE_SALARY': {'amount': float(row.performance_salary) if row.performance_salary else 0.0},
-                    'POSITION_SALARY': {'amount': float(row.position_salary) if row.position_salary else 0.0},
-                    'GRADE_SALARY': {'amount': float(row.grade_salary) if row.grade_salary else 0.0},
-                    'ALLOWANCE': {'amount': float(row.allowance) if row.allowance else 0.0},
-                    'BASIC_PERFORMANCE_SALARY': {'amount': float(row.basic_performance_salary) if row.basic_performance_salary else 0.0},
-                    'TRAFFIC_ALLOWANCE': {'amount': float(row.traffic_allowance) if row.traffic_allowance else 0.0},
-                    'ONLY_CHILD_BONUS': {'amount': float(row.only_child_bonus) if row.only_child_bonus else 0.0},
-                    'TOWNSHIP_ALLOWANCE': {'amount': float(row.township_allowance) if row.township_allowance else 0.0},
-                    'POSITION_ALLOWANCE': {'amount': float(row.position_allowance) if row.position_allowance else 0.0},
-                    'BONUS': {'amount': float(row.bonus) if row.bonus else 0.0},
-                },
-                # 扣除明细
-                'deductions_details': {
-                    'PERSONAL_INCOME_TAX': {'amount': float(row.personal_income_tax) if row.personal_income_tax else 0.0},
-                    'PENSION_PERSONAL': {'amount': float(row.pension_personal) if row.pension_personal else 0.0},
-                    'MEDICAL_PERSONAL': {'amount': float(row.medical_personal) if row.medical_personal else 0.0},
-                    'UNEMPLOYMENT_PERSONAL': {'amount': float(row.unemployment_personal) if row.unemployment_personal else 0.0},
-                    'HOUSING_FUND_PERSONAL': {'amount': float(row.housing_fund_personal) if row.housing_fund_personal else 0.0},
-                    'ANNUITY_PERSONAL': {'amount': float(row.annuity_personal) if row.annuity_personal else 0.0},
-                },
+                
+                # 展开的薪资组件
+                'basic_salary': float(row.basic_salary) if row.basic_salary else 0.0,
+                'performance_bonus': float(row.performance_bonus) if row.performance_bonus else 0.0,
+                'basic_performance_salary': float(row.basic_performance_salary) if row.basic_performance_salary else 0.0,
+                'position_salary': float(row.position_salary) if row.position_salary else 0.0,
+                'grade_salary': float(row.grade_salary) if row.grade_salary else 0.0,
+                'salary_grade': float(row.salary_grade) if row.salary_grade else 0.0,
+                'allowance': float(row.allowance) if row.allowance else 0.0,
+                'traffic_allowance': float(row.traffic_allowance) if row.traffic_allowance else 0.0,
+                'only_child_bonus': float(row.only_child_bonus) if row.only_child_bonus else 0.0,
+                'township_allowance': float(row.township_allowance) if row.township_allowance else 0.0,
+                'position_allowance': float(row.position_allowance) if row.position_allowance else 0.0,
+                'back_pay': float(row.back_pay) if row.back_pay else 0.0,
+                
+                # 扣除项目
+                'personal_income_tax': float(row.personal_income_tax) if row.personal_income_tax else 0.0,
+                'pension_personal': float(row.pension_personal) if row.pension_personal else 0.0,
+                'medical_personal': float(row.medical_personal) if row.medical_personal else 0.0,
+                'unemployment_personal': float(row.unemployment_personal) if row.unemployment_personal else 0.0,
+                'housing_fund_personal': float(row.housing_fund_personal) if row.housing_fund_personal else 0.0,
+                'annuity_personal': float(row.annuity_personal) if row.annuity_personal else 0.0,
+                
+                # 原始JSONB数据（保持兼容性）
+                'earnings_details': row.earnings_details or {},
+                'deductions_details': row.deductions_details or {},
+                
                 'calculated_at': row.calculated_at,
                 'updated_at': row.updated_at
             }
@@ -248,31 +278,8 @@ def get_payroll_entries(
         
     except Exception as e:
         logger.error(f"❌ 视图查询失败: {e}", exc_info=True)
-        # 回退到传统方法
-        logger.info("🔄 回退到传统查询方法")
-        return get_payroll_entries(
-            db=db,
-            employee_id=employee_id,
-            period_id=period_id,
-            run_id=run_id,
-            status_id=status_id,
-            search_term=search_term,
-            department_name=department_name,
-            personnel_category_name=personnel_category_name,
-            min_gross_pay=min_gross_pay,
-            max_gross_pay=max_gross_pay,
-            min_net_pay=min_net_pay,
-            max_net_pay=max_net_pay,
-            sort_by=sort_by,
-            sort_order=sort_order,
-            include_employee_details=True,
-            include_payroll_period=True,
-            skip=skip,
-            limit=limit
-        )
-
-
-    return entries, total
+        # 如果新视图查询失败，可以考虑回退到传统方法
+        raise e
 
 
 def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool = True) -> Optional[PayrollEntry]:

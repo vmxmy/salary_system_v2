@@ -71,38 +71,57 @@ class PayrollEntriesViewService(BaseViewService):
     
     @property
     def view_name(self) -> str:
-        return "v_payroll_entries_detailed"
+        return "v_comprehensive_employee_payroll"
     
     @property
     def default_fields(self) -> List[str]:
         return [
-            "id", "employee_id", "employee_code", "employee_name", 
-            "department_name", "position_name", "period_id", "period_name",
+            # 基本信息
+            "payroll_entry_id as id", "employee_id", "employee_code", "full_name as employee_name", 
+            "department_name", "position_name", "payroll_period_id as period_id", "payroll_period_name as period_name",
             "gross_pay", "net_pay", "total_deductions",
-            # 收入明细字段
-            "basic_salary", "performance_salary", "position_salary", "grade_salary",
-            "allowance", "subsidy", "basic_performance_salary", "performance_wage",
-            "traffic_allowance", "only_child_bonus", "township_allowance", 
-            "position_allowance", "civil_servant_allowance", "back_pay",
-            # 扣除明细字段
-            "personal_income_tax", "pension_personal", "medical_personal", 
-            "unemployment_personal", "housing_fund_personal", "annuity_personal",
-            "adjustment_deduction", "social_security_adjustment",
-            # 汇总字段
-            "basic_wage_total", "performance_total", "allowance_total", 
-            "social_insurance_total",
+            
+            # 应发项目（EARNING）
+            "basic_salary", "performance_bonus", "basic_performance_award", "basic_performance_salary", 
+            "position_salary_general as position_salary", "grade_salary", "salary_grade",
+            "allowance_general as allowance", "general_allowance as subsidy", "traffic_allowance", 
+            "only_child_parent_bonus as only_child_bonus", "township_allowance", 
+            "position_allowance", "civil_standard_allowance as civil_servant_allowance", "back_pay",
+            "performance_salary", "monthly_performance_bonus", "quarterly_performance_assessment",
+            
+            # 个人扣除项目（PERSONAL_DEDUCTION）
+            "personal_income_tax", "pension_personal_amount as pension_personal", 
+            "medical_ins_personal_amount as medical_personal", "unemployment_personal_amount as unemployment_personal",
+            "housing_fund_personal", "occupational_pension_personal_amount as annuity_personal",
+            "one_time_adjustment as adjustment_deduction", "social_insurance_adjustment",
+            
+            # 单位扣除项目（EMPLOYER_DEDUCTION）
+            "pension_employer_amount", "medical_ins_employer_amount", "housing_fund_employer",
+            
+            # 计算基数和费率
+            "pension_base", "medical_ins_base", "tax_base", "housing_fund_base",
+            "pension_personal_rate", "medical_ins_personal_rate", "tax_rate",
+            
+            # 汇总字段（计算得出）
+            "(basic_salary + COALESCE(position_salary_general, 0) + COALESCE(grade_salary, 0) + COALESCE(salary_grade, 0)) as basic_wage_total",
+            "(performance_bonus + COALESCE(basic_performance_salary, 0) + COALESCE(performance_salary, 0) + COALESCE(monthly_performance_bonus, 0)) as performance_total",
+            "(allowance_general + COALESCE(general_allowance, 0) + COALESCE(traffic_allowance, 0) + COALESCE(position_allowance, 0)) as allowance_total",
+            "(pension_personal_amount + COALESCE(medical_ins_personal_amount, 0) + COALESCE(unemployment_personal_amount, 0) + COALESCE(housing_fund_personal, 0) + COALESCE(occupational_pension_personal_amount, 0)) as social_insurance_total",
+            
             # 原始数据
             "raw_earnings_details", "raw_deductions_details",
-            "personnel_category_name", "calculated_at::text as calculated_at", 
-            "updated_at::text as updated_at"
+            "personnel_category_name", "root_personnel_category_name", 
+            "calculated_at::text as calculated_at", "updated_at::text as updated_at"
         ]
     
     @property
     def field_mappings(self) -> Dict[str, str]:
         return {
-            "payroll_period_id": "period_id",
-            "payroll_run_id": "run_id",
-            "department_id": "department_id"
+            "payroll_period_id": "payroll_period_id",
+            "payroll_run_id": "payroll_run_id",
+            "department_id": "department_id",
+            "period_id": "payroll_period_id",
+            "run_id": "payroll_run_id"
         }
 
 

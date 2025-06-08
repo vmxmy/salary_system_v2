@@ -545,4 +545,134 @@ class ReportFileManager(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
 
     # 关系
-    creator = relationship("User", back_populates="created_files") 
+    creator = relationship("User", back_populates="created_files")
+
+
+class ReportTypeDefinition(Base):
+    """报表类型定义模型"""
+    __tablename__ = "report_type_definitions"
+    __table_args__ = (
+        Index('idx_report_type_code', 'code'),
+        Index('idx_report_type_active_category', 'is_active', 'category'),
+        {'schema': 'reports'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    
+    # 基础信息
+    code = Column(String(50), unique=True, nullable=False, comment="报表类型编码")
+    name = Column(String(100), nullable=False, comment="报表名称")
+    description = Column(Text, comment="报表描述")
+    category = Column(String(50), comment="报表分类")
+    
+    # 生成配置
+    generator_class = Column(String(200), comment="生成器类名")
+    generator_module = Column(String(200), comment="生成器模块路径")
+    template_config = Column(JSONB, comment="模板配置")
+    default_config = Column(JSONB, comment="默认配置")
+    validation_rules = Column(JSONB, comment="验证规则")
+    
+    # 权限和状态
+    required_permissions = Column(JSONB, comment="所需权限")
+    allowed_roles = Column(JSONB, comment="允许的角色")
+    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
+    is_system = Column(Boolean, default=False, nullable=False, comment="是否系统内置")
+    sort_order = Column(Integer, default=0, nullable=False, comment="排序顺序")
+    
+    # 使用统计
+    usage_count = Column(Integer, default=0, nullable=False, comment="使用次数")
+    last_used_at = Column(DateTime(timezone=True), comment="最后使用时间")
+    
+    # 审计字段
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
+    updated_by = Column(BigInteger, ForeignKey("security.users.id"), comment="更新者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])
+    field_definitions = relationship("ReportFieldDefinition", back_populates="report_type", cascade="all, delete-orphan")
+
+
+class ReportFieldDefinition(Base):
+    """报表字段定义模型"""
+    __tablename__ = "report_field_definitions"
+    __table_args__ = (
+        Index('idx_report_field_type_name', 'report_type_id', 'field_name'),
+        Index('idx_report_field_visible_order', 'is_visible', 'display_order'),
+        {'schema': 'reports'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    report_type_id = Column(BigInteger, ForeignKey("reports.report_type_definitions.id"), nullable=False)
+    
+    # 字段基本信息
+    field_name = Column(String(100), nullable=False, comment="字段名称")
+    field_alias = Column(String(100), comment="字段别名")
+    field_type = Column(String(50), nullable=False, comment="字段类型")
+    data_source = Column(String(100), comment="数据源")
+    source_column = Column(String(100), comment="源字段名")
+    
+    # 显示配置
+    display_name = Column(String(200), comment="显示名称")
+    display_order = Column(Integer, default=0, nullable=False, comment="显示顺序")
+    is_visible = Column(Boolean, default=True, nullable=False, comment="是否可见")
+    is_required = Column(Boolean, default=False, nullable=False, comment="是否必填")
+    is_sortable = Column(Boolean, default=True, nullable=False, comment="是否可排序")
+    is_filterable = Column(Boolean, default=True, nullable=False, comment="是否可筛选")
+    
+    # 格式化配置
+    format_config = Column(JSONB, comment="格式化配置")
+    validation_rules = Column(JSONB, comment="验证规则")
+    default_value = Column(String(500), comment="默认值")
+    calculation_formula = Column(Text, comment="计算公式")
+    
+    # 样式配置
+    width = Column(Integer, comment="列宽度")
+    alignment = Column(String(20), comment="对齐方式")
+    style_config = Column(JSONB, comment="样式配置")
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    report_type = relationship("ReportTypeDefinition", back_populates="field_definitions")
+
+
+class ReportConfigPreset(Base):
+    """报表配置预设模型"""
+    __tablename__ = "report_config_presets"
+    __table_args__ = (
+        Index('idx_report_preset_active_category', 'is_active', 'category'),
+        Index('idx_report_preset_public', 'is_public'),
+        {'schema': 'reports'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, comment="预设名称")
+    description = Column(Text, comment="预设描述")
+    category = Column(String(50), comment="预设分类")
+    
+    # 预设配置
+    report_types = Column(JSONB, nullable=False, comment="包含的报表类型")
+    default_config = Column(JSONB, comment="默认配置")
+    filter_config = Column(JSONB, comment="筛选配置")
+    export_config = Column(JSONB, comment="导出配置")
+    
+    # 权限和状态
+    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
+    is_public = Column(Boolean, default=False, nullable=False, comment="是否公开")
+    sort_order = Column(Integer, default=0, nullable=False, comment="排序顺序")
+    
+    # 使用统计
+    usage_count = Column(Integer, default=0, nullable=False, comment="使用次数")
+    last_used_at = Column(DateTime(timezone=True), comment="最后使用时间")
+    
+    # 审计字段
+    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    creator = relationship("User", foreign_keys=[created_by]) 

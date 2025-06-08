@@ -99,7 +99,7 @@ class PayrollEntryDetailedResponse(BaseModel):
     """薪资条目详情响应模型 (包含JSONB展开字段)"""
     id: int
     employee_id: int
-    employee_code: str
+    employee_code: Optional[str] = None
     employee_name: str
     department_name: Optional[str] = None
     position_name: Optional[str] = None
@@ -124,6 +124,19 @@ class PayrollEntryDetailedResponse(BaseModel):
     position_allowance: float = Field(default=0.0, description="岗位津贴")
     civil_servant_allowance: float = Field(default=0.0, description="公务员规范津补贴")
     back_pay: float = Field(default=0.0, description="补发工资")
+    monthly_performance_bonus: float = Field(default=0.0, description="月度绩效奖金")
+    position_tech_grade_salary: float = Field(default=0.0, description="职务技术等级工资")
+    grade_position_level_salary: float = Field(default=0.0, description="级别职务层次工资")
+    basic_performance_award: float = Field(default=0.0, description="基础绩效奖")
+    performance_bonus_back_pay: float = Field(default=0.0, description="绩效奖金补发")
+    quarterly_performance_assessment: float = Field(default=0.0, description="季度绩效考核")
+    reform_allowance_1993: float = Field(default=0.0, description="1993年改革津贴")
+    probation_salary: float = Field(default=0.0, description="试用期工资")
+    staff_salary_grade: float = Field(default=0.0, description="职员薪级工资")
+    salary_grade: float = Field(default=0.0, description="薪级工资")
+    basic_performance: float = Field(default=0.0, description="基础绩效")
+    petition_allowance: float = Field(default=0.0, description="信访津贴")
+    quarterly_performance_q1: float = Field(default=0.0, description="第一季度绩效")
 
     # Expanded deductions
     personal_income_tax: float = Field(default=0.0, description="个人所得税")
@@ -134,15 +147,16 @@ class PayrollEntryDetailedResponse(BaseModel):
     annuity_personal: float = Field(default=0.0, description="职业年金个人")
     adjustment_deduction: float = Field(default=0.0, description="调整扣款")
     social_security_adjustment: float = Field(default=0.0, description="社保调整")
+    medical_ins_personal_total: float = Field(default=0.0, description="医疗保险个人合计")
+    performance_bonus_adjustment: float = Field(default=0.0, description="绩效奖金调整")
+    reward_performance_adjustment: float = Field(default=0.0, description="奖励绩效调整")
+    performance_bonus_deduction_adjustment: float = Field(default=0.0, description="绩效奖金扣除调整")
+    medical_2022_deduction_adjustment: float = Field(default=0.0, description="2022年医疗扣除调整")
+    refund_deduction_adjustment: float = Field(default=0.0, description="退款扣除调整")
 
-    # Calculated totals
-    basic_wage_total: float = Field(default=0.0, description="基本工资合计")
-    performance_total: float = Field(default=0.0, description="绩效合计")
-    allowance_total: float = Field(default=0.0, description="津补贴合计")
-    social_insurance_total: float = Field(default=0.0, description="社保合计")
 
-    raw_earnings_details: Optional[Dict[str, Any]] = Field(default=None, description="原始收入明细JSON")
-    raw_deductions_details: Optional[Dict[str, Any]] = Field(default=None, description="原始扣除明细JSON")
+
+
     
     personnel_category_name: Optional[str] = None
     calculated_at: Optional[str] = None # In view as calculated_at
@@ -506,7 +520,7 @@ async def get_payroll_components_basic(
 # 薪资条目基础视图 API
 # =============================================================================
 
-@router.get("/payroll-entries", response_model=List[PayrollEntryDetailedResponse])
+@router.get("/payroll-entries")
 async def get_payroll_entries_detailed(
     period_id: Optional[int] = Query(None, description="薪资周期ID"),
     employee_id: Optional[int] = Query(None, description="员工ID"),
@@ -518,7 +532,7 @@ async def get_payroll_entries_detailed(
 ):
     """
     获取薪资条目详细信息列表
-    使用 v_payroll_entries_detailed 视图，包含员工信息和展开的薪资明细
+    使用 v_comprehensive_employee_payroll 视图，包含完整的员工信息和展开的薪资明细
     """
     try:
         # 构建查询条件
@@ -526,7 +540,7 @@ async def get_payroll_entries_detailed(
         params = {}
         
         if period_id is not None:
-            conditions.append("period_id = :period_id")
+            conditions.append("payroll_period_id = :period_id")
             params["period_id"] = period_id
             
         if employee_id is not None:
@@ -534,28 +548,43 @@ async def get_payroll_entries_detailed(
             params["employee_id"] = employee_id
             
         if department_id is not None:
-            # v_payroll_entries_detailed has e.department_id, which will be named department_id in the view output
             conditions.append("department_id = :department_id") 
             params["department_id"] = department_id
         
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
         
-        # Select all fields from v_payroll_entries_detailed required by PayrollEntryDetailedResponse
+                # 动态获取薪资组件定义
+        component_query = """
+        SELECT code, name, type 
+        FROM config.payroll_component_definitions 
+        WHERE is_active = true 
+        AND type IN ('EARNING', 'PERSONAL_DEDUCTION', 'EMPLOYER_DEDUCTION', 'CALCULATION_BASE', 'CALCULATION_RATE', 'CALCULATION_RESULT')
+        ORDER BY type, code
+        """
+        component_result = session.execute(text(component_query))
+        components = list(component_result)
+        
+        # 构建动态字段列表
+        dynamic_fields = []
+        for comp in components:
+            field_name = comp.code.lower()
+            dynamic_fields.append(f"COALESCE({field_name}, 0) as {field_name}")
+        
+        # 使用动态字段构建查询
         query = f"""
         SELECT 
-            id, employee_id, employee_code, employee_name, department_name, position_name,
-            period_id, period_name, gross_pay, net_pay, total_deductions,
-            basic_salary, performance_salary, position_salary, grade_salary, allowance, subsidy,
-            basic_performance_salary, performance_wage, traffic_allowance, only_child_bonus,
-            township_allowance, position_allowance, civil_servant_allowance, back_pay,
-            personal_income_tax, pension_personal, medical_personal, unemployment_personal,
-            housing_fund_personal, annuity_personal, adjustment_deduction, social_security_adjustment,
-            basic_wage_total, performance_total, allowance_total, social_insurance_total,
-            raw_earnings_details, raw_deductions_details, 
+            payroll_entry_id as id, employee_id, employee_code, full_name as employee_name, 
+            id_number, department_name, position_name,
+            payroll_period_id as period_id, payroll_period_name as period_name, 
+            gross_pay, net_pay, total_deductions,
+            
+            -- 动态薪资组件字段
+            {', '.join(dynamic_fields)},
+            
             personnel_category_name, calculated_at::text, updated_at::text
-        FROM v_payroll_entries_detailed
+        FROM reports.v_comprehensive_employee_payroll
         {where_clause}
-        ORDER BY employee_code, id -- ensure consistent ordering
+        ORDER BY employee_code, payroll_entry_id
         LIMIT {limit} OFFSET {offset}
         """
         
@@ -563,55 +592,36 @@ async def get_payroll_entries_detailed(
         
         entries = []
         for row_proxy in result:
-            row = dict(row_proxy.items()) # Convert RowProxy to dict for easier access
-            entries.append(PayrollEntryDetailedResponse(
-                id=row['id'],
-                employee_id=row['employee_id'],
-                employee_code=row['employee_code'],
-                employee_name=row['employee_name'],
-                department_name=row.get('department_name'),
-                position_name=row.get('position_name'),
-                period_id=row['period_id'],
-                period_name=row['period_name'],
-                gross_pay=float(row.get('gross_pay', 0) or 0),
-                net_pay=float(row.get('net_pay', 0) or 0),
-                total_deductions=float(row.get('total_deductions', 0) or 0),
+            row = dict(row_proxy._mapping) # Convert RowProxy to dict for easier access
+            
+            # 构建基础信息
+            entry_data = {
+                "id": row['id'],
+                "employee_id": row['employee_id'],
+                "employee_code": row['employee_code'],
+                "employee_name": row['employee_name'],
+                "id_number": row.get('id_number'),
+                "department_name": row.get('department_name'),
+                "position_name": row.get('position_name'),
+                "period_id": row['period_id'],
+                "period_name": row['period_name'],
+                "gross_pay": float(row.get('gross_pay', 0) or 0),
+                "net_pay": float(row.get('net_pay', 0) or 0),
+                "total_deductions": float(row.get('total_deductions', 0) or 0),
+                "personnel_category_name": row.get('personnel_category_name'),
+                "calculated_at": row.get('calculated_at'),
+                "updated_at": row['updated_at']
+            }
+            
+            # 动态添加薪资组件字段（只返回字段值）
+            for comp in components:
+                field_name = comp.code.lower()
+                field_value = float(row.get(field_name, 0) or 0)
                 
-                basic_salary=float(row.get('basic_salary', 0) or 0),
-                performance_salary=float(row.get('performance_salary', 0) or 0),
-                position_salary=float(row.get('position_salary', 0) or 0),
-                grade_salary=float(row.get('grade_salary', 0) or 0),
-                allowance=float(row.get('allowance', 0) or 0),
-                subsidy=float(row.get('subsidy', 0) or 0),
-                basic_performance_salary=float(row.get('basic_performance_salary', 0) or 0),
-                performance_wage=float(row.get('performance_wage', 0) or 0),
-                traffic_allowance=float(row.get('traffic_allowance', 0) or 0),
-                only_child_bonus=float(row.get('only_child_bonus', 0) or 0),
-                township_allowance=float(row.get('township_allowance', 0) or 0),
-                position_allowance=float(row.get('position_allowance', 0) or 0),
-                civil_servant_allowance=float(row.get('civil_servant_allowance', 0) or 0),
-                back_pay=float(row.get('back_pay', 0) or 0),
-
-                personal_income_tax=float(row.get('personal_income_tax', 0) or 0),
-                pension_personal=float(row.get('pension_personal', 0) or 0),
-                medical_personal=float(row.get('medical_personal', 0) or 0),
-                unemployment_personal=float(row.get('unemployment_personal', 0) or 0),
-                housing_fund_personal=float(row.get('housing_fund_personal', 0) or 0),
-                annuity_personal=float(row.get('annuity_personal', 0) or 0),
-                adjustment_deduction=float(row.get('adjustment_deduction', 0) or 0),
-                social_security_adjustment=float(row.get('social_security_adjustment', 0) or 0),
-                
-                basic_wage_total=float(row.get('basic_wage_total', 0) or 0),
-                performance_total=float(row.get('performance_total', 0) or 0),
-                allowance_total=float(row.get('allowance_total', 0) or 0),
-                social_insurance_total=float(row.get('social_insurance_total', 0) or 0),
-                
-                raw_earnings_details=row.get('raw_earnings_details'),
-                raw_deductions_details=row.get('raw_deductions_details'),
-                personnel_category_name=row.get('personnel_category_name'),
-                calculated_at=row.get('calculated_at'),
-                updated_at=row['updated_at']
-            ))
+                # 只添加字段值，不添加复杂对象
+                entry_data[field_name] = field_value
+            
+            entries.append(entry_data)
         
         return entries
         

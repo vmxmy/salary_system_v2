@@ -628,4 +628,435 @@ class ReportViewValidationResponse(BaseModel):
     is_valid: bool = Field(..., description="SQL是否有效")
     error_message: Optional[str] = Field(None, description="错误信息")
     columns: Optional[List[Dict[str, str]]] = Field(None, description="查询结果列信息")
-    estimated_rows: Optional[int] = Field(None, description="预估行数") 
+    estimated_rows: Optional[int] = Field(None, description="预估行数")
+
+
+# ==================== 批量报表生成相关模型 ====================
+
+class BatchReportTaskBase(BaseModel):
+    """批量报表任务基础模型"""
+    task_name: str = Field(..., description="任务名称", max_length=255)
+    description: Optional[str] = Field(None, description="任务描述")
+    task_type: str = Field("batch_export", description="任务类型")
+    source_config: Dict[str, Any] = Field(..., description="数据源配置")
+    export_config: Dict[str, Any] = Field(..., description="导出配置")
+    filter_config: Optional[Dict[str, Any]] = Field(None, description="筛选条件配置")
+
+
+class BatchReportTaskCreate(BatchReportTaskBase):
+    """创建批量报表任务模型"""
+    report_items: List[Dict[str, Any]] = Field(..., description="报表项列表")
+
+
+class BatchReportTaskUpdate(BaseModel):
+    """更新批量报表任务模型"""
+    task_name: Optional[str] = Field(None, description="任务名称")
+    description: Optional[str] = Field(None, description="任务描述")
+    status: Optional[str] = Field(None, description="任务状态")
+    progress: Optional[int] = Field(None, ge=0, le=100, description="进度百分比")
+    started_at: Optional[datetime] = Field(None, description="开始执行时间")
+    completed_at: Optional[datetime] = Field(None, description="完成时间")
+    execution_time: Optional[float] = Field(None, description="执行时间(秒)")
+    total_reports: Optional[int] = Field(None, description="总报表数量")
+    completed_reports: Optional[int] = Field(None, description="已完成报表数量")
+    failed_reports: Optional[int] = Field(None, description="失败报表数量")
+    output_directory: Optional[str] = Field(None, description="输出目录")
+    archive_file_path: Optional[str] = Field(None, description="打包文件路径")
+    archive_file_size: Optional[int] = Field(None, description="打包文件大小(字节)")
+    error_message: Optional[str] = Field(None, description="错误信息")
+    error_details: Optional[Dict[str, Any]] = Field(None, description="详细错误信息")
+
+
+class BatchReportTaskItemBase(BaseModel):
+    """批量报表任务项基础模型"""
+    report_type: str = Field(..., description="报表类型", max_length=50)
+    report_name: str = Field(..., description="报表名称", max_length=255)
+    report_config: Dict[str, Any] = Field(..., description="报表配置")
+    execution_order: int = Field(0, description="执行顺序")
+
+
+class BatchReportTaskItemCreate(BatchReportTaskItemBase):
+    """创建批量报表任务项模型"""
+    pass
+
+
+class BatchReportTaskItemUpdate(BaseModel):
+    """更新批量报表任务项模型"""
+    status: Optional[str] = Field(None, description="状态")
+    started_at: Optional[datetime] = Field(None, description="开始时间")
+    completed_at: Optional[datetime] = Field(None, description="完成时间")
+    execution_time: Optional[float] = Field(None, description="执行时间(秒)")
+    result_count: Optional[int] = Field(None, description="结果数量")
+    file_path: Optional[str] = Field(None, description="生成文件路径")
+    file_size: Optional[int] = Field(None, description="文件大小")
+    file_format: Optional[str] = Field(None, description="文件格式")
+    error_message: Optional[str] = Field(None, description="错误信息")
+    error_details: Optional[Dict[str, Any]] = Field(None, description="详细错误信息")
+
+
+class BatchReportTaskItem(BatchReportTaskItemBase):
+    """批量报表任务项响应模型"""
+    id: int
+    task_id: int
+    status: str = Field(..., description="状态")
+    started_at: Optional[datetime] = Field(None, description="开始时间")
+    completed_at: Optional[datetime] = Field(None, description="完成时间")
+    execution_time: Optional[float] = Field(None, description="执行时间(秒)")
+    result_count: Optional[int] = Field(None, description="结果数量")
+    file_path: Optional[str] = Field(None, description="生成文件路径")
+    file_size: Optional[int] = Field(None, description="文件大小(字节)")
+    file_format: Optional[str] = Field(None, description="文件格式")
+    error_message: Optional[str] = Field(None, description="错误信息")
+    error_details: Optional[Dict[str, Any]] = Field(None, description="详细错误信息")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class BatchReportTask(BatchReportTaskBase):
+    """批量报表任务响应模型"""
+    id: int
+    status: str = Field(..., description="任务状态")
+    progress: int = Field(0, description="进度百分比")
+    started_at: Optional[datetime] = Field(None, description="开始执行时间")
+    completed_at: Optional[datetime] = Field(None, description="完成时间")
+    execution_time: Optional[float] = Field(None, description="执行时间(秒)")
+    total_reports: int = Field(0, description="总报表数量")
+    completed_reports: int = Field(0, description="已完成报表数量")
+    failed_reports: int = Field(0, description="失败报表数量")
+    output_directory: Optional[str] = Field(None, description="输出目录")
+    archive_file_path: Optional[str] = Field(None, description="打包文件路径")
+    archive_file_size: Optional[int] = Field(None, description="打包文件大小(字节)")
+    error_message: Optional[str] = Field(None, description="错误信息")
+    error_details: Optional[Dict[str, Any]] = Field(None, description="详细错误信息")
+    created_by: int = Field(..., description="创建者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+    
+    # 关联数据
+    task_items: Optional[List[BatchReportTaskItem]] = Field(None, description="任务项列表")
+
+    class Config:
+        from_attributes = True
+
+
+class BatchReportTaskListItem(BaseModel):
+    """批量报表任务列表项模型"""
+    id: int
+    task_name: str
+    description: Optional[str]
+    task_type: str
+    status: str
+    progress: int
+    total_reports: int
+    completed_reports: int
+    failed_reports: int
+    created_by: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ReportFileManagerBase(BaseModel):
+    """报表文件管理基础模型"""
+    file_name: str = Field(..., description="文件名", max_length=255)
+    file_path: str = Field(..., description="文件路径", max_length=500)
+    file_size: Optional[int] = Field(None, description="文件大小(字节)")
+    file_type: str = Field(..., description="文件类型", max_length=50)
+    file_format: Optional[str] = Field(None, description="文件格式", max_length=20)
+    source_type: Optional[str] = Field(None, description="来源类型", max_length=50)
+    source_id: Optional[int] = Field(None, description="来源ID")
+    access_level: str = Field("private", description="访问级别")
+    is_temporary: bool = Field(False, description="是否临时文件")
+    expires_at: Optional[datetime] = Field(None, description="过期时间")
+    auto_cleanup: bool = Field(True, description="是否自动清理")
+    metadata_info: Optional[Dict[str, Any]] = Field(None, description="文件元数据")
+
+
+class ReportFileManagerCreate(ReportFileManagerBase):
+    """创建报表文件管理模型"""
+    pass
+
+
+class ReportFileManagerUpdate(BaseModel):
+    """更新报表文件管理模型"""
+    file_name: Optional[str] = Field(None, description="文件名")
+    status: Optional[str] = Field(None, description="状态")
+    access_level: Optional[str] = Field(None, description="访问级别")
+    expires_at: Optional[datetime] = Field(None, description="过期时间")
+    auto_cleanup: Optional[bool] = Field(None, description="是否自动清理")
+    metadata_info: Optional[Dict[str, Any]] = Field(None, description="文件元数据")
+
+
+class ReportFileManager(ReportFileManagerBase):
+    """报表文件管理响应模型"""
+    id: int
+    status: str = Field(..., description="状态")
+    download_count: int = Field(0, description="下载次数")
+    last_accessed_at: Optional[datetime] = Field(None, description="最后访问时间")
+    checksum: Optional[str] = Field(None, description="文件校验和")
+    created_by: Optional[int] = Field(None, description="创建者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class BatchReportGenerationRequest(BaseModel):
+    """批量报表生成请求模型"""
+    task_name: str = Field(..., description="任务名称")
+    description: Optional[str] = Field(None, description="任务描述")
+    period_id: Optional[int] = Field(None, description="薪资期间ID")
+    department_ids: Optional[List[int]] = Field(None, description="部门ID列表")
+    employee_ids: Optional[List[int]] = Field(None, description="员工ID列表")
+    report_types: List[str] = Field(..., description="报表类型列表")
+    export_format: str = Field("xlsx", description="导出格式")
+    include_archive: bool = Field(True, description="是否生成压缩包")
+    auto_cleanup_hours: int = Field(24, description="自动清理时间(小时)")
+
+
+class BatchReportGenerationResponse(BaseModel):
+    """批量报表生成响应模型"""
+    task_id: int = Field(..., description="任务ID")
+    task_name: str = Field(..., description="任务名称")
+    status: str = Field(..., description="任务状态")
+    total_reports: int = Field(..., description="总报表数量")
+    message: str = Field(..., description="响应消息")
+
+
+class BatchReportProgressResponse(BaseModel):
+    """批量报表进度响应模型"""
+    task_id: int = Field(..., description="任务ID")
+    status: str = Field(..., description="任务状态")
+    progress: int = Field(..., description="进度百分比")
+    total_reports: int = Field(..., description="总报表数量")
+    completed_reports: int = Field(..., description="已完成报表数量")
+    failed_reports: int = Field(..., description="失败报表数量")
+    current_report: Optional[str] = Field(None, description="当前处理的报表")
+    estimated_remaining_time: Optional[int] = Field(None, description="预估剩余时间(秒)")
+    error_message: Optional[str] = Field(None, description="错误信息")
+
+
+class BatchReportDownloadResponse(BaseModel):
+    """批量报表下载响应模型"""
+    download_url: str = Field(..., description="下载链接")
+    file_name: str = Field(..., description="文件名")
+    file_size: int = Field(..., description="文件大小(字节)")
+    expires_at: datetime = Field(..., description="链接过期时间")
+    file_count: int = Field(..., description="包含文件数量")
+
+
+# 报表类型定义相关模型
+class ReportTypeDefinitionBase(BaseModel):
+    """报表类型定义基础模型"""
+    code: str = Field(..., description="报表类型编码", max_length=50)
+    name: str = Field(..., description="报表名称", max_length=100)
+    description: Optional[str] = Field(None, description="报表描述")
+    category: Optional[str] = Field(None, description="报表分类", max_length=50)
+    
+    # 生成配置
+    generator_class: Optional[str] = Field(None, description="生成器类名", max_length=200)
+    generator_module: Optional[str] = Field(None, description="生成器模块路径", max_length=200)
+    template_config: Optional[Dict[str, Any]] = Field(None, description="模板配置")
+    default_config: Optional[Dict[str, Any]] = Field(None, description="默认配置")
+    validation_rules: Optional[Dict[str, Any]] = Field(None, description="验证规则")
+    
+    # 权限和状态
+    required_permissions: Optional[List[str]] = Field(None, description="所需权限")
+    allowed_roles: Optional[List[str]] = Field(None, description="允许的角色")
+    is_active: bool = Field(True, description="是否激活")
+    is_system: bool = Field(False, description="是否系统内置")
+    sort_order: int = Field(0, description="排序顺序")
+
+
+class ReportTypeDefinitionCreate(ReportTypeDefinitionBase):
+    """创建报表类型定义模型"""
+    pass
+
+
+class ReportTypeDefinitionUpdate(BaseModel):
+    """更新报表类型定义模型"""
+    name: Optional[str] = Field(None, description="报表名称")
+    description: Optional[str] = Field(None, description="报表描述")
+    category: Optional[str] = Field(None, description="报表分类")
+    generator_class: Optional[str] = Field(None, description="生成器类名")
+    generator_module: Optional[str] = Field(None, description="生成器模块路径")
+    template_config: Optional[Dict[str, Any]] = Field(None, description="模板配置")
+    default_config: Optional[Dict[str, Any]] = Field(None, description="默认配置")
+    validation_rules: Optional[Dict[str, Any]] = Field(None, description="验证规则")
+    required_permissions: Optional[List[str]] = Field(None, description="所需权限")
+    allowed_roles: Optional[List[str]] = Field(None, description="允许的角色")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+    sort_order: Optional[int] = Field(None, description="排序顺序")
+
+
+class ReportTypeDefinition(ReportTypeDefinitionBase):
+    """报表类型定义响应模型"""
+    id: int
+    usage_count: int = Field(0, description="使用次数")
+    last_used_at: Optional[datetime] = Field(None, description="最后使用时间")
+    created_by: Optional[int] = Field(None, description="创建者ID")
+    updated_by: Optional[int] = Field(None, description="更新者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class ReportTypeDefinitionListItem(BaseModel):
+    """报表类型定义列表项模型"""
+    id: int
+    code: str
+    name: str
+    description: Optional[str]
+    category: Optional[str]
+    is_active: bool
+    is_system: bool
+    usage_count: int
+    last_used_at: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# 报表字段定义相关模型
+class ReportFieldDefinitionBase(BaseModel):
+    """报表字段定义基础模型"""
+    field_name: str = Field(..., description="字段名称", max_length=100)
+    field_alias: Optional[str] = Field(None, description="字段别名", max_length=100)
+    field_type: str = Field(..., description="字段类型", max_length=50)
+    data_source: Optional[str] = Field(None, description="数据源", max_length=100)
+    source_column: Optional[str] = Field(None, description="源字段名", max_length=100)
+    
+    # 显示配置
+    display_name: Optional[str] = Field(None, description="显示名称", max_length=200)
+    display_order: int = Field(0, description="显示顺序")
+    is_visible: bool = Field(True, description="是否可见")
+    is_required: bool = Field(False, description="是否必填")
+    is_sortable: bool = Field(True, description="是否可排序")
+    is_filterable: bool = Field(True, description="是否可筛选")
+    
+    # 格式化配置
+    format_config: Optional[Dict[str, Any]] = Field(None, description="格式化配置")
+    validation_rules: Optional[Dict[str, Any]] = Field(None, description="验证规则")
+    default_value: Optional[str] = Field(None, description="默认值", max_length=500)
+    calculation_formula: Optional[str] = Field(None, description="计算公式")
+    
+    # 样式配置
+    width: Optional[int] = Field(None, description="列宽度")
+    alignment: Optional[str] = Field(None, description="对齐方式", max_length=20)
+    style_config: Optional[Dict[str, Any]] = Field(None, description="样式配置")
+
+
+class ReportFieldDefinitionCreate(ReportFieldDefinitionBase):
+    """创建报表字段定义模型"""
+    report_type_id: int = Field(..., description="报表类型ID")
+
+
+class ReportFieldDefinitionUpdate(BaseModel):
+    """更新报表字段定义模型"""
+    field_alias: Optional[str] = Field(None, description="字段别名")
+    field_type: Optional[str] = Field(None, description="字段类型")
+    data_source: Optional[str] = Field(None, description="数据源")
+    source_column: Optional[str] = Field(None, description="源字段名")
+    display_name: Optional[str] = Field(None, description="显示名称")
+    display_order: Optional[int] = Field(None, description="显示顺序")
+    is_visible: Optional[bool] = Field(None, description="是否可见")
+    is_required: Optional[bool] = Field(None, description="是否必填")
+    is_sortable: Optional[bool] = Field(None, description="是否可排序")
+    is_filterable: Optional[bool] = Field(None, description="是否可筛选")
+    format_config: Optional[Dict[str, Any]] = Field(None, description="格式化配置")
+    validation_rules: Optional[Dict[str, Any]] = Field(None, description="验证规则")
+    default_value: Optional[str] = Field(None, description="默认值")
+    calculation_formula: Optional[str] = Field(None, description="计算公式")
+    width: Optional[int] = Field(None, description="列宽度")
+    alignment: Optional[str] = Field(None, description="对齐方式")
+    style_config: Optional[Dict[str, Any]] = Field(None, description="样式配置")
+
+
+class ReportFieldDefinition(ReportFieldDefinitionBase):
+    """报表字段定义响应模型"""
+    id: int
+    report_type_id: int
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+# 报表配置预设相关模型
+class ReportConfigPresetBase(BaseModel):
+    """报表配置预设基础模型"""
+    name: str = Field(..., description="预设名称", max_length=100)
+    description: Optional[str] = Field(None, description="预设描述")
+    category: Optional[str] = Field(None, description="预设分类", max_length=50)
+    
+    # 预设配置
+    report_types: List[str] = Field(..., description="包含的报表类型")
+    default_config: Optional[Dict[str, Any]] = Field(None, description="默认配置")
+    filter_config: Optional[Dict[str, Any]] = Field(None, description="筛选配置")
+    export_config: Optional[Dict[str, Any]] = Field(None, description="导出配置")
+    
+    # 权限和状态
+    is_active: bool = Field(True, description="是否激活")
+    is_public: bool = Field(False, description="是否公开")
+    sort_order: int = Field(0, description="排序顺序")
+
+
+class ReportConfigPresetCreate(ReportConfigPresetBase):
+    """创建报表配置预设模型"""
+    pass
+
+
+class ReportConfigPresetUpdate(BaseModel):
+    """更新报表配置预设模型"""
+    name: Optional[str] = Field(None, description="预设名称")
+    description: Optional[str] = Field(None, description="预设描述")
+    category: Optional[str] = Field(None, description="预设分类")
+    report_types: Optional[List[str]] = Field(None, description="包含的报表类型")
+    default_config: Optional[Dict[str, Any]] = Field(None, description="默认配置")
+    filter_config: Optional[Dict[str, Any]] = Field(None, description="筛选配置")
+    export_config: Optional[Dict[str, Any]] = Field(None, description="导出配置")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+    is_public: Optional[bool] = Field(None, description="是否公开")
+    sort_order: Optional[int] = Field(None, description="排序顺序")
+
+
+class ReportConfigPreset(ReportConfigPresetBase):
+    """报表配置预设响应模型"""
+    id: int
+    usage_count: int = Field(0, description="使用次数")
+    last_used_at: Optional[datetime] = Field(None, description="最后使用时间")
+    created_by: Optional[int] = Field(None, description="创建者ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class ReportConfigPresetListItem(BaseModel):
+    """报表配置预设列表项模型"""
+    id: int
+    name: str
+    description: Optional[str]
+    category: Optional[str]
+    report_types: List[str]
+    is_active: bool
+    is_public: bool
+    usage_count: int
+    last_used_at: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True 

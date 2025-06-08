@@ -440,5 +440,21 @@ app.include_router(
     tags=["Simple Payroll Test"]
 )
 
+# Include the batch reports router
+from webapp.v2.routers.batch_reports import router as v2_batch_reports_router
+app.include_router(
+    v2_batch_reports_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Batch Reports"]
+)
+
+# Include the report config management router
+from webapp.v2.routers.report_config_management import router as v2_report_config_router
+app.include_router(
+    v2_report_config_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Report Configuration Management"]
+)
+
 # --- Removed API Routers with /api/v1 prefix ---
 # (Removed api_v1_router definition and app.include_router(api_v1_router))

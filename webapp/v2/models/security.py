@@ -52,6 +52,10 @@ class User(BaseV2):
     created_report_views = relationship("ReportView", foreign_keys="[ReportView.created_by]", back_populates="creator")
     report_view_executions = relationship("ReportViewExecution", foreign_keys="[ReportViewExecution.executed_by]", back_populates="executor")
     
+    # 批量报表任务关系
+    created_batch_tasks = relationship("BatchReportTask", foreign_keys="[BatchReportTask.created_by]", back_populates="creator")
+    created_files = relationship("ReportFileManager", foreign_keys="[ReportFileManager.created_by]", back_populates="creator")
+    
     # 注意：报表相关权限通过Permission系统管理，不需要直接关系
 
     @property

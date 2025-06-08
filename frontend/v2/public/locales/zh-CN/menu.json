@@ -8,7 +8,8 @@
     "dataImport": "数据导入",
     "sqlEditor": "SQL编辑器",
     "reportTemplate": "报表模板",
-    "reportTable": "报表表格"
+    "reportTable": "报表表格",
+    "reportConfig": "报表配置管理"
   },
   "business": {
     "title": "业务中心",

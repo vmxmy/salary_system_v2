@@ -1,0 +1,262 @@
+import apiClient from './apiClient';
+import type {
+  ReportTypeDefinition,
+  ReportTypeDefinitionCreate,
+  ReportTypeDefinitionUpdate,
+  ReportConfigPreset,
+  ReportConfigPresetCreate,
+  ReportConfigPresetUpdate,
+  ReportFieldDefinition,
+  ReportFieldDefinitionCreate,
+  ReportFieldDefinitionUpdate,
+} from '../types/reportConfig';
+
+// 数据源相关类型
+export interface DataSource {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  schema_name: string;
+  table_name?: string;
+  view_name?: string;
+  source_type: string;
+  is_active: boolean;
+  fields?: DataSourceField[];
+}
+
+export interface DataSourceField {
+  id: number;
+  field_name: string;
+  field_alias?: string;
+  field_type: string;
+  data_type?: string;
+  display_name_zh?: string;
+  display_name_en?: string;
+  description?: string;
+  is_visible: boolean;
+  is_sortable: boolean;
+  is_filterable: boolean;
+}
+
+// 报表类型定义相关API
+export const reportConfigApi = {
+  // ==================== 报表类型定义 ====================
+  
+  /**
+   * 获取报表类型定义列表
+   */
+  getReportTypes: async (params?: {
+    skip?: number;
+    limit?: number;
+    category?: string;
+    is_active?: boolean;
+    is_system?: boolean;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  }): Promise<ReportTypeDefinition[]> => {
+    const response = await apiClient.get('/report-config/types', { params });
+    return response.data;
+  },
+
+  /**
+   * 获取报表类型定义详情
+   */
+  getReportType: async (id: number): Promise<ReportTypeDefinition> => {
+    const response = await apiClient.get(`/report-config/types/${id}`);
+    return response.data;
+  },
+
+  /**
+   * 创建报表类型定义
+   */
+  createReportType: async (data: ReportTypeDefinitionCreate): Promise<ReportTypeDefinition> => {
+    const response = await apiClient.post('/report-config/types', data);
+    return response.data;
+  },
+
+  /**
+   * 更新报表类型定义
+   */
+  updateReportType: async (id: number, data: ReportTypeDefinitionUpdate): Promise<ReportTypeDefinition> => {
+    const response = await apiClient.put(`/report-config/types/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * 删除报表类型定义
+   */
+  deleteReportType: async (id: number): Promise<void> => {
+    await apiClient.delete(`/report-config/types/${id}`);
+  },
+
+  // ==================== 报表字段定义 ====================
+
+  /**
+   * 获取报表字段定义列表
+   */
+  getReportFields: async (typeId: number, params?: {
+    skip?: number;
+    limit?: number;
+    is_visible?: boolean;
+    field_type?: string;
+    sort_by?: string;
+    sort_order?: string;
+  }): Promise<ReportFieldDefinition[]> => {
+    const response = await apiClient.get(`/report-config/types/${typeId}/fields`, { params });
+    return response.data;
+  },
+
+  /**
+   * 创建报表字段定义
+   */
+  createReportField: async (typeId: number, data: ReportFieldDefinitionCreate): Promise<ReportFieldDefinition> => {
+    const response = await apiClient.post(`/report-config/types/${typeId}/fields`, data);
+    return response.data;
+  },
+
+  /**
+   * 更新报表字段定义
+   */
+  updateReportField: async (fieldId: number, data: ReportFieldDefinitionUpdate): Promise<ReportFieldDefinition> => {
+    const response = await apiClient.put(`/report-config/fields/${fieldId}`, data);
+    return response.data;
+  },
+
+  /**
+   * 删除报表字段定义
+   */
+  deleteReportField: async (fieldId: number): Promise<void> => {
+    await apiClient.delete(`/report-config/fields/${fieldId}`);
+  },
+
+  // ==================== 数据源管理 ====================
+
+  /**
+   * 获取数据源列表
+   */
+  getDataSources: async (params?: {
+    is_active?: boolean;
+    schema_name?: string;
+    search?: string;
+    skip?: number;
+    limit?: number;
+  }): Promise<DataSource[]> => {
+    const response = await apiClient.get('/report-config/data-sources', { params });
+    return response.data;
+  },
+
+  /**
+   * 获取数据源字段列表
+   */
+  getDataSourceFields: async (dataSourceId: number): Promise<DataSourceField[]> => {
+    const response = await apiClient.get(`/report-config/data-sources/${dataSourceId}/fields`);
+    return response.data;
+  },
+
+  // ==================== 报表配置预设 ====================
+
+  /**
+   * 获取报表配置预设列表
+   */
+  getReportPresets: async (params?: {
+    skip?: number;
+    limit?: number;
+    category?: string;
+    is_active?: boolean;
+    is_public?: boolean;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  }): Promise<ReportConfigPreset[]> => {
+    const response = await apiClient.get('/report-config/presets', { params });
+    return response.data;
+  },
+
+  /**
+   * 获取报表配置预设详情
+   */
+  getReportPreset: async (id: number): Promise<ReportConfigPreset> => {
+    const response = await apiClient.get(`/report-config/presets/${id}`);
+    return response.data;
+  },
+
+  /**
+   * 创建报表配置预设
+   */
+  createReportPreset: async (data: ReportConfigPresetCreate): Promise<ReportConfigPreset> => {
+    const response = await apiClient.post('/report-config/presets', data);
+    return response.data;
+  },
+
+  /**
+   * 更新报表配置预设
+   */
+  updateReportPreset: async (id: number, data: ReportConfigPresetUpdate): Promise<ReportConfigPreset> => {
+    const response = await apiClient.put(`/report-config/presets/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * 删除报表配置预设
+   */
+  deleteReportPreset: async (id: number): Promise<void> => {
+    await apiClient.delete(`/report-config/presets/${id}`);
+  },
+
+  // ==================== 批量报表集成 ====================
+
+  /**
+   * 获取可用于批量报表的报表类型
+   */
+  getBatchReportTypes: async (): Promise<{
+    report_types: Array<{
+      code: string;
+      name: string;
+      description?: string;
+      category?: string;
+      default_config?: any;
+      required_permissions?: string[];
+      allowed_roles?: string[];
+    }>;
+    total_count: number;
+  }> => {
+    const response = await apiClient.get('/report-config/batch-report-types');
+    return response.data;
+  },
+
+  /**
+   * 获取可用于批量报表的配置预设
+   */
+  getBatchReportPresets: async (): Promise<{
+    presets: Array<{
+      id: number;
+      name: string;
+      description?: string;
+      category?: string;
+      report_types: string[];
+      default_config?: any;
+      filter_config?: any;
+      export_config?: any;
+    }>;
+    total_count: number;
+  }> => {
+    const response = await apiClient.get('/report-config/batch-report-presets');
+    return response.data;
+  },
+
+  /**
+   * 更新报表类型使用统计
+   */
+  updateReportTypeUsage: async (definitionId: number): Promise<void> => {
+    await apiClient.post(`/report-config/usage/type/${definitionId}`);
+  },
+
+  /**
+   * 更新配置预设使用统计
+   */
+  updatePresetUsage: async (presetId: number): Promise<void> => {
+    await apiClient.post(`/report-config/usage/preset/${presetId}`);
+  },
+}; 

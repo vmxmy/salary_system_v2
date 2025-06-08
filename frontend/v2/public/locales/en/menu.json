@@ -8,7 +8,8 @@
     "dataImport": "Data Import",
     "sqlEditor": "SQL Editor",
     "reportTemplate": "Report Template",
-    "reportTable": "Report Table"
+    "reportTable": "Report Table",
+    "reportConfig": "Report Configuration Management"
   },
   "dashboard": "Dashboard",
   "home": "Home",

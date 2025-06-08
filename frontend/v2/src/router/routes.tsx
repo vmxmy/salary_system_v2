@@ -30,6 +30,9 @@ import { managerRoutes } from '../pages/Manager/routes';
 // 视图报表组件
 const ReportViewManagement = lazy(() => import('../pages/Admin/ReportView'));
 
+// 批量报表组件 - 已合并到报表配置管理页面
+// const BatchReportsPage = lazy(() => import('../pages/BatchReports/index'));
+
 // Placeholder for HR, Finance, Manager sections - replace with actual components
 // const HRDashboardPage = lazy(() => import('../pages/HR/HRDashboardPage');
 // const FinanceDashboardPage = lazy(() => import('../pages/Finance/FinanceDashboardPage');
@@ -52,6 +55,9 @@ const EmployeeListPageV3 = lazy(() => import('../pages/HRManagement/employees/Em
 // 在顶部导入 ReportTableDemo 组件
 import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
 import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo';
+
+// 导入报表配置管理组件
+const ReportConfigManagement = lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement'));
 
 // Import PayrollWorkflowPage
 const PayrollWorkflowPage = lazy(() => import('../pages/Payroll/PayrollWorkflowPage'));
@@ -114,6 +120,11 @@ export const routes: AppRouteObject[] = [
           { path: 'roles', element: <RolesPageV2 />, meta: { title: 'menu:admin.roles', requiredPermissions: ['role:list'] } },
           { path: 'permissions', element: <PermissionListPageV2 />, meta: { title: 'menu:admin.permissions', requiredPermissions: ['permission:list'] } },
           { path: 'config', element: <ConfigPage />, meta: { title: 'menu:admin.systemSettings', requiredPermissions: ['config:view'] } },
+          { 
+            path: 'report-config', 
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Config...</div>}>{React.createElement(lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement')))}</React.Suspense>, 
+            meta: { title: 'menu:admin.reportConfig', requiredPermissions: ['report:manage'] } 
+          },
           {
             path: 'organization',
             element: <Outlet />,
@@ -232,6 +243,16 @@ export const routes: AppRouteObject[] = [
             meta: { title: 'menu:reports.management', requiredPermissions: ['report:view_reports'] },
           },
         ]
+      },
+      {
+        path: 'batch-reports',
+        element: <Navigate to="/admin/report-config?tab=batch-reports" replace />,
+        meta: { 
+          title: 'menu:batchReports.title', 
+          allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER'],
+          requiredPermissions: ['report:export', 'payroll_run:view'],
+          permissionMatchMode: 'any'
+        }
       },
       {
         path: 'employee-info',

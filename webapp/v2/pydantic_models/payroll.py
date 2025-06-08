@@ -132,7 +132,7 @@ class PayrollEntryBase(BaseModel):
     deductions_details: Dict[str, PayrollItemInput] = Field({}, description="扣除项详情, e.g., {'TAX': {'amount': 500}}")
     calculation_inputs: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation input values")
     calculation_log: Optional[Dict[str, Any]] = Field(None, description="Optional JSONB for storing calculation log/details")
-    status_lookup_value_id: int = Field(..., description="Foreign key to payroll entry status")
+    status_lookup_value_id: Optional[int] = Field(None, description="Foreign key to payroll entry status")
     remarks: Optional[str] = Field(None, description="Remarks for this payroll entry")
 
 
