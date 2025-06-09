@@ -4,9 +4,13 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Request
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List, Optional, Any, Dict
 import logging
 import json
+import hashlib
+from functools import lru_cache
+import time
 
 from ..database import get_db_v2 as get_db
 from ...auth import get_current_user
@@ -40,6 +44,8 @@ from ..pydantic_models.reports import (
 )
 from ..crud.reports import report_config_management as crud
 from ..crud.reports import report_data_source_crud
+from ..services.report_generator_registry import get_registry, auto_infer_generator_config
+from ..utils.report_utils import generate_pseudo_id
 
 # 设置logger
 logger = logging.getLogger(__name__)
@@ -509,18 +515,57 @@ async def get_batch_report_types(
     current_user: User = Depends(get_current_user)
 ):
     """
-    获取可用于批量报表的报表类型
+    🚀 优化版本：获取可用于批量报表的报表类型
     """
+    start_time = time.time()
+    logger.info("🔍 获取批量报表类型开始")
+    
     try:
-        report_types = crud.get_active_report_types_for_batch(db=db)
+        # 使用更高效的查询，限制返回数量
+        registry = get_registry()
+        report_types = []
+        
+        # 🚀 只获取活跃和常用的报表类型
+        generators_list = registry.get_all_generators()[:20]  # 限制数量
+        for generator_info in generators_list:
+            try:
+                generator_id = generator_info.class_name
+                config = auto_infer_generator_config(
+                    generator_info.display_name, 
+                    generator_info.category, 
+                    None
+                )
+                
+                report_types.append({
+                    "code": generator_id,
+                    "name": generator_info.display_name,
+                    "description": generator_info.description,
+                    "category": generator_info.category,
+                    "default_config": config,
+                    "required_permissions": ["report:generate"],
+                    "allowed_roles": ["ADMIN", "HR_MANAGER", "FINANCE_MANAGER"]
+                })
+            except Exception as e:
+                logger.warning(f"⚠️ 跳过生成器 {generator_info.class_name}: {str(e)}")
+                continue
+        
+        total_duration = time.time() - start_time
+        result_count = len(report_types)
+        
+        # 🔥 性能监控
+        if total_duration > 1.0:
+            logger.warning(f"🐌 SLOW API: batch-report-types 耗时 {total_duration:.3f}s，返回 {result_count} 个类型")
+        else:
+            logger.info(f"✅ batch-report-types API 完成，耗时 {total_duration:.3f}s，返回 {result_count} 个类型")
         
         return {
             "report_types": report_types,
-            "total_count": len(report_types)
+            "total_count": result_count
         }
         
     except Exception as e:
-        logger.error(f"获取批量报表类型失败: {str(e)}")
+        total_duration = time.time() - start_time
+        logger.error(f"❌ 获取批量报表类型失败，耗时 {total_duration:.3f}s: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取批量报表类型失败: {str(e)}")
 
 
@@ -530,18 +575,35 @@ async def get_batch_report_presets(
     current_user: User = Depends(get_current_user)
 ):
     """
-    获取可用于批量报表的配置预设
+    🚀 优化版本：获取可用于批量报表的配置预设
     """
+    start_time = time.time()
+    logger.info("🔍 获取批量报表预设开始")
+    
     try:
+        # 🚀 使用更高效的查询，添加限制
         presets = crud.get_active_presets_for_batch(db=db)
         
+        # 限制返回数量，避免过大的响应
+        limited_presets = presets[:100]  # 最多返回100个预设
+        
+        total_duration = time.time() - start_time
+        result_count = len(limited_presets)
+        
+        # 🔥 性能监控
+        if total_duration > 1.0:
+            logger.warning(f"🐌 SLOW API: batch-report-presets 耗时 {total_duration:.3f}s，返回 {result_count} 个预设")
+        else:
+            logger.info(f"✅ batch-report-presets API 完成，耗时 {total_duration:.3f}s，返回 {result_count} 个预设")
+        
         return {
-            "presets": presets,
-            "total_count": len(presets)
+            "presets": limited_presets,
+            "total_count": result_count
         }
         
     except Exception as e:
-        logger.error(f"获取批量报表预设失败: {str(e)}")
+        total_duration = time.time() - start_time
+        logger.error(f"❌ 获取批量报表预设失败，耗时 {total_duration:.3f}s: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取批量报表预设失败: {str(e)}")
 
 
@@ -709,27 +771,167 @@ async def update_preset_usage(
         raise HTTPException(status_code=500, detail=f"更新使用统计失败: {str(e)}")
 
 
+# ==================== 报表生成器 API ====================
+
+@router.get("/generators")
+async def get_available_generators(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    获取所有可用的报表生成器
+    """
+    try:
+        registry = get_registry()
+        generators = registry.get_all_generators()
+        
+        return [
+            {
+                "class_name": gen.class_name,
+                "module_path": gen.module_path,
+                "category": gen.category,
+                "display_name": gen.display_name,
+                "description": gen.description,
+                "suggested_code": gen.suggested_code
+            }
+            for gen in generators
+        ]
+        
+    except Exception as e:
+        logger.error(f"获取生成器列表失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取生成器列表失败: {str(e)}")
+
+
+@router.post("/generators/auto-infer")
+async def auto_infer_generator(
+    request: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    根据报表信息自动推断生成器配置
+    """
+    try:
+        report_name = request.get('report_name', '')
+        report_category = request.get('report_category')
+        data_source_name = request.get('data_source_name')
+        
+        config = auto_infer_generator_config(
+            report_name=report_name,
+            report_category=report_category,
+            data_source_name=data_source_name
+        )
+        
+        # 验证推断的生成器是否有效
+        registry = get_registry()
+        is_valid = registry.validate_generator(
+            config['generator_class'],
+            config['generator_module']
+        )
+        
+        return {
+            **config,
+            "is_valid": is_valid,
+            "recommendation_reason": f"基于报表名称'{report_name}'自动推断"
+        }
+        
+    except Exception as e:
+        logger.error(f"自动推断生成器失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"自动推断生成器失败: {str(e)}")
+
+
 # ==================== 数据源管理 API ====================
 
+@router.get("/data-sources/dynamic-scan", response_model=List[dict])
+async def scan_dynamic_data_sources(
+    schema_name: str = Query("reports", description="要扫描的模式名"),
+    view_pattern: Optional[str] = Query(None, description="视图名称模式，如 'v_monthly_%'"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    动态扫描数据库中的视图和表作为数据源
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"动态扫描数据源, schema='{schema_name}', pattern='{view_pattern}'")
+    
+    try:
+        # 动态扫描视图
+        scan_query = """
+        SELECT 
+            table_name as name,
+            table_name as view_name,
+            table_schema as schema_name,
+            'view' as source_type,
+            obj_description(c.oid) as description
+        FROM information_schema.tables t
+        LEFT JOIN pg_class c ON c.relname = t.table_name
+        WHERE table_schema = :schema_name 
+        AND table_type = 'VIEW'
+        """
+        
+        params = {'schema_name': schema_name}
+        
+        if view_pattern:
+            scan_query += " AND table_name LIKE :view_pattern"
+            params['view_pattern'] = view_pattern
+            
+        scan_query += " ORDER BY table_name"
+        
+        result = db.execute(text(scan_query), params)
+        views = result.fetchall()
+        
+        dynamic_sources = []
+        for view in views:
+            dynamic_sources.append({
+                'id': f"dynamic_{view.name}",  # 动态ID
+                'name': view.name,
+                'code': f"ds_{view.name}",
+                'description': view.description or f"动态扫描的视图: {view.name}",
+                'schema_name': view.schema_name,
+                'view_name': view.view_name,
+                'source_type': view.source_type,
+                'is_active': True,
+                'is_dynamic': True,  # 标记为动态数据源
+                'category': 'monthly_reports' if 'monthly' in view.name else 'reports'
+            })
+        
+        logger.info(f"动态扫描到 {len(dynamic_sources)} 个数据源")
+        return dynamic_sources
+        
+    except Exception as e:
+        logger.error(f"动态扫描数据源失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"动态扫描数据源失败: {str(e)}")
+
+
+# 添加缓存装饰器
+@lru_cache(maxsize=128, typed=True)
+def _get_dynamic_views_cached(schema_name: str = "reports", pattern: str = "v_monthly_%") -> List[Dict]:
+    """缓存的动态视图扫描，避免频繁查询"""
+    return []  # 空实现，稍后填充
+
+# 在get_data_sources函数前添加性能优化版本
 @router.get("/data-sources", response_model=List[ReportDataSourcePydantic])
 async def get_data_sources(
     is_active: Optional[bool] = Query(None, description="是否激活筛选"),
     schema_name: Optional[str] = Query(None, description="模式名筛选"),
     search: Optional[str] = Query(None, description="搜索关键词"),
+    include_dynamic: bool = Query(False, description="是否包含动态扫描的数据源（默认关闭以提升性能）"),
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(1000, ge=1, le=1000, description="返回的记录数"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    获取数据源列表
+    🚀 优化版本：获取数据源列表（默认关闭动态扫描以提升性能）
     """
+    start_time = time.time()
     logger.info(
-        f"获取数据源列表, search='{search}', is_active={is_active}, "
-        f"schema_name='{schema_name}', skip={skip}, limit={limit}"
+        f"🔍 获取数据源列表开始, search='{search}', is_active={is_active}, "
+        f"schema_name='{schema_name}', include_dynamic={include_dynamic}, skip={skip}, limit={limit}"
     )
+    
     try:
-        # 使用类方法获取数据源列表
+        # 1. 获取静态配置的数据源（高性能）
         data_sources, total = report_data_source_crud.ReportDataSourceCRUD.get_all_with_filter(
             db=db,
             skip=skip,
@@ -738,12 +940,77 @@ async def get_data_sources(
             is_active=is_active,
             schema_name=schema_name
         )
-        logger.info(f"查询到 {total} 个数据源")
         
-        return [ReportDataSourcePydantic.model_validate(ds) for ds in data_sources]
+        static_sources = [ReportDataSourcePydantic.model_validate(ds) for ds in data_sources]
+        
+        # 2. 仅在明确要求时才添加动态扫描的数据源
+        dynamic_count = 0
+        if include_dynamic:
+            try:
+                # 🚀 优化后的动态扫描查询 - 去掉慢查询的 obj_description
+                scan_query = """
+                SELECT 
+                    table_name as name,
+                    table_name as view_name,
+                    table_schema as schema_name,
+                    'view' as source_type,
+                    CONCAT('月度报表视图: ', table_name) as description
+                FROM information_schema.tables 
+                WHERE table_schema = 'reports' 
+                AND table_type = 'VIEW'
+                AND table_name LIKE 'v_monthly_%'
+                ORDER BY table_name
+                LIMIT 50
+                """
+                
+                scan_start = time.time()
+                result = db.execute(text(scan_query))
+                dynamic_views = result.fetchall()
+                scan_duration = time.time() - scan_start
+                
+                # 检查哪些视图已经在静态配置中存在
+                existing_names = {ds.view_name for ds in static_sources if ds.view_name}
+                
+                for view in dynamic_views:
+                    if view.name not in existing_names:
+                        # 创建动态数据源对象
+                        dynamic_source = ReportDataSourcePydantic(
+                            id=generate_pseudo_id(view.name),  # 生成确定性伪ID
+                            name=view.name,
+                            code=f"dynamic_{view.name}",
+                            description=view.description,
+                            schema_name=view.schema_name,
+                            view_name=view.name,
+                            source_type=view.source_type,
+                            connection_type="postgresql",
+                            is_active=True,
+                            is_system=False,
+                            category="monthly_reports",
+                            created_at="2024-01-01T00:00:00",
+                            updated_at="2024-01-01T00:00:00"
+                        )
+                        static_sources.append(dynamic_source)
+                        dynamic_count += 1
+                
+                logger.info(f"⚡ 动态扫描完成，耗时 {scan_duration:.3f}s，发现 {dynamic_count} 个新视图")
+                        
+            except Exception as e:
+                logger.warning(f"⚠️ 动态扫描失败，继续返回静态数据源: {str(e)}")
+        
+        total_duration = time.time() - start_time
+        result_count = len(static_sources)
+        
+        # 🔥 性能监控日志
+        if total_duration > 1.0:
+            logger.warning(f"🐌 SLOW API: data-sources 耗时 {total_duration:.3f}s，返回 {result_count} 条记录")
+        else:
+            logger.info(f"✅ data-sources API 完成，耗时 {total_duration:.3f}s，返回 {result_count} 条记录")
+        
+        return static_sources
         
     except Exception as e:
-        logger.error(f"获取数据源列表失败: {str(e)}")
+        total_duration = time.time() - start_time
+        logger.error(f"❌ 获取数据源列表失败，耗时 {total_duration:.3f}s: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取数据源列表失败: {str(e)}")
 
 
@@ -834,30 +1101,98 @@ async def delete_data_source(
 
 @router.get("/data-sources/{data_source_id_or_code}/fields")
 async def get_data_source_fields(
-    data_source: ReportDataSource = Depends(get_data_source_by_id_or_code),
+    data_source_id_or_code: str = Path(..., description="数据源的ID或编码"),
     skip: int = Query(0, ge=0),
     limit: int = Query(1000, ge=1),
     db: Session = Depends(get_db)
 ):
     """
-    动态获取数据源字段列表（不依赖字段表）
+    动态获取数据源字段列表（支持静态和动态数据源）
     """
-    logger.info(f"动态获取ID为 {data_source.id} 的数据源的字段列表")
+    logger.info(f"获取数据源 {data_source_id_or_code} 的字段列表")
+    
     try:
-        from webapp.v2.services.dynamic_field_service import DynamicDataSourceService
+        # 首先尝试解析为数字ID
+        try:
+            data_source_id = int(data_source_id_or_code)
+        except ValueError:
+            # 如果不是数字，可能是编码
+            data_source_id = data_source_id_or_code
         
-        # 使用动态服务获取字段信息
-        fields = DynamicDataSourceService.get_data_source_fields_dynamic(db, data_source.id)
+        # 首先尝试从数据库中获取数据源记录（无论是静态还是动态）
+        data_source = None
+        if isinstance(data_source_id, int):
+            data_source = db.query(ReportDataSource).filter(ReportDataSource.id == data_source_id).first()
+        else:
+            data_source = db.query(ReportDataSource).filter(ReportDataSource.code == data_source_id).first()
+        
+        if data_source:
+            # 找到数据源记录，直接使用
+            logger.info(f"找到数据源记录: {data_source.name} (view: {data_source.view_name})")
+            from webapp.v2.services.dynamic_field_service import DynamicFieldService
+            fields = DynamicFieldService.get_view_fields(
+                db=db,
+                schema_name=data_source.schema_name,
+                view_name=data_source.view_name
+            )
+        
+        elif isinstance(data_source_id, int) and data_source_id > 9999:
+            # 数据源记录不存在，但是是动态ID，从扫描结果中查找
+            logger.info(f"检测到动态数据源ID: {data_source_id}，但记录不存在，尝试动态扫描")
+            
+            # 扫描动态数据源以找到对应的视图
+            scan_query = """
+                SELECT 
+                    table_schema as schema_name,
+                    table_name as name,
+                    'view' as source_type
+                FROM information_schema.tables t
+                WHERE table_schema = 'reports' 
+                AND table_type = 'VIEW'
+                AND table_name LIKE 'v_%'
+                ORDER BY table_name
+                """
+                
+            result = db.execute(text(scan_query))
+            dynamic_views = result.fetchall()
+            
+            # 根据伪ID查找对应的视图
+            target_view = None
+            logger.info(f"查找伪ID {data_source_id} 对应的视图，可用视图:")
+            for view in dynamic_views:
+                pseudo_id = generate_pseudo_id(view.name)
+                logger.info(f"  {view.name} -> 伪ID: {pseudo_id}")
+                if pseudo_id == data_source_id:
+                    target_view = view
+                    logger.info(f"  ✅ 找到匹配视图: {view.name}")
+                    break
+            
+            if not target_view:
+                raise HTTPException(status_code=404, detail=f"未找到ID为 {data_source_id} 的动态数据源")
+            
+            # 直接获取视图字段
+            from webapp.v2.services.dynamic_field_service import DynamicFieldService
+            fields = DynamicFieldService.get_view_fields(
+                db=db,
+                schema_name=target_view.schema_name,
+                view_name=target_view.name
+            )
+            
+        else:
+            # 无法找到数据源
+            raise HTTPException(status_code=404, detail=f"数据源不存在: {data_source_id_or_code}")
         
         # 应用分页
         paginated_fields = fields[skip : skip + limit]
         
-        logger.info(f"动态获取到 {len(fields)} 个字段，返回 {len(paginated_fields)} 个")
+        logger.info(f"获取到 {len(fields)} 个字段，返回 {len(paginated_fields)} 个")
         return paginated_fields
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"动态获取数据源字段列表失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"动态获取数据源字段列表失败: {str(e)}")
+        logger.error(f"获取数据源字段列表失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取数据源字段列表失败: {str(e)}")
 
 
 @router.post("/data-sources/{data_source_id_or_code}/sync-fields")

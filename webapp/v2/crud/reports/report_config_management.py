@@ -21,6 +21,8 @@ from ...pydantic_models.reports import (
     ReportConfigPresetCreate,
     ReportConfigPresetUpdate,
 )
+from ...services.report_generator_registry import auto_infer_generator_config
+from ...utils.report_utils import generate_pseudo_id, find_view_by_pseudo_id
 
 
 # ==================== 报表类型定义 CRUD ====================
@@ -139,8 +141,82 @@ def create_report_type_definition(
     Returns:
         创建的报表类型定义
     """
+    # 🔧 重要修复：处理动态数据源伪ID
+    data_dict = definition.model_dump()
+    
+    # 🚀 自动推断生成器配置
+    if not data_dict.get('generator_class') or not data_dict.get('generator_module'):
+        # 获取数据源名称用于推断
+        data_source_name = None
+        if data_dict.get('data_source_id'):
+            if 10000 <= data_dict['data_source_id'] < 11000:
+                # 动态数据源，从伪ID推断视图名称
+                for view_name in ['v_employee_details', 'v_monthly_fulltime_net_pay', 'v_comprehensive_employee_payroll']:
+                    if generate_pseudo_id(view_name) == data_dict['data_source_id']:
+                        data_source_name = view_name
+                        break
+            else:
+                # 静态数据源，从数据库查询
+                data_source = db.query(ReportDataSource).filter(ReportDataSource.id == data_dict['data_source_id']).first()
+                if data_source:
+                    data_source_name = data_source.name or data_source.table_name or data_source.view_name
+        
+        # 自动推断生成器配置
+        auto_config = auto_infer_generator_config(
+            report_name=data_dict['name'],
+            report_category=data_dict.get('category'),
+            data_source_name=data_source_name
+        )
+        
+        # 如果没有手动指定，使用自动推断的值
+        if not data_dict.get('generator_class'):
+            data_dict['generator_class'] = auto_config['generator_class']
+        if not data_dict.get('generator_module'):
+            data_dict['generator_module'] = auto_config['generator_module']
+        
+        print(f"🚀 自动推断生成器配置: {auto_config}")
+    
+    # 检查是否为动态数据源伪ID（范围：10000-10999）
+    if data_dict.get('data_source_id') and 10000 <= data_dict['data_source_id'] <= 10999:
+        dynamic_data_source_id = data_dict['data_source_id']
+        
+        # 检查是否已存在对应的数据源记录
+        existing_source = db.query(ReportDataSource).filter(
+            ReportDataSource.id == dynamic_data_source_id
+        ).first()
+        
+        if not existing_source:
+            # 使用预定义视图列表快速查找，避免昂贵的系统表查询
+            target_view_name = find_view_by_pseudo_id(dynamic_data_source_id)
+            
+            if target_view_name:
+                # 创建动态数据源记录
+                new_data_source = ReportDataSource(
+                    id=dynamic_data_source_id,  # 使用伪ID作为真实ID
+                    name=target_view_name,
+                    code=target_view_name,
+                    description=f"动态数据源: {target_view_name}",
+                    schema_name='reports',
+                    view_name=target_view_name,
+                    source_type='view',
+                    connection_config={},
+                    is_active=True,
+                    is_system=False,
+                    created_by=user_id,
+                    updated_by=user_id
+                )
+                
+                db.add(new_data_source)
+                db.flush()  # 确保数据源先插入
+                
+                print(f"✅ 创建动态数据源记录: ID={dynamic_data_source_id}, 名称={target_view_name}")
+            else:
+                # 如果找不到对应的视图，设置为None以避免外键错误
+                print(f"⚠️ 找不到伪ID {dynamic_data_source_id} 对应的视图，将 data_source_id 设为 None")
+                data_dict['data_source_id'] = None
+    
     db_definition = ReportTypeDefinition(
-        **definition.model_dump(),
+        **data_dict,
         created_by=user_id,
         updated_by=user_id
     )
@@ -177,8 +253,92 @@ def update_report_type_definition(
     if not db_definition:
         return None
     
-    # 更新字段
+    # 转换更新数据为字典
     update_data = definition.model_dump(exclude_unset=True)
+    
+    # 🚀 自动推断生成器配置（仅在编辑时未手动指定的情况下）
+    should_auto_infer = (
+        ('generator_class' not in update_data or not update_data.get('generator_class')) or
+        ('generator_module' not in update_data or not update_data.get('generator_module'))
+    )
+    
+    if should_auto_infer:
+        # 获取当前报表的名称、分类（可能来自更新数据或现有数据）
+        report_name = update_data.get('name', db_definition.name)
+        report_category = update_data.get('category', db_definition.category)
+        
+        # 获取数据源名称用于推断
+        data_source_name = None
+        data_source_id = update_data.get('data_source_id', db_definition.data_source_id)
+        
+        if data_source_id:
+            if 10000 <= data_source_id < 11000:
+                # 动态数据源，从伪ID推断视图名称
+                for view_name in ['v_employee_details', 'v_monthly_fulltime_net_pay', 'v_comprehensive_employee_payroll']:
+                    if generate_pseudo_id(view_name) == data_source_id:
+                        data_source_name = view_name
+                        break
+            else:
+                # 静态数据源，从数据库查询
+                data_source = db.query(ReportDataSource).filter(ReportDataSource.id == data_source_id).first()
+                if data_source:
+                    data_source_name = data_source.name or data_source.table_name or data_source.view_name
+        
+        # 自动推断生成器配置
+        auto_config = auto_infer_generator_config(
+            report_name=report_name,
+            report_category=report_category,
+            data_source_name=data_source_name
+        )
+        
+        # 如果没有手动指定，使用自动推断的值
+        if 'generator_class' not in update_data or not update_data.get('generator_class'):
+            update_data['generator_class'] = auto_config['generator_class']
+        if 'generator_module' not in update_data or not update_data.get('generator_module'):
+            update_data['generator_module'] = auto_config['generator_module']
+        
+        print(f"🚀 编辑时自动推断生成器配置: {auto_config}")
+    
+    # 🔧 处理动态数据源的伪ID（编辑时也需要处理）
+    if update_data.get('data_source_id') and 10000 <= update_data['data_source_id'] <= 10999:
+        dynamic_data_source_id = update_data['data_source_id']
+        
+        # 检查是否已存在对应的数据源记录
+        existing_source = db.query(ReportDataSource).filter(
+            ReportDataSource.id == dynamic_data_source_id
+        ).first()
+        
+        if not existing_source:
+            # 使用预定义视图列表快速查找，避免昂贵的系统表查询
+            target_view_name = find_view_by_pseudo_id(dynamic_data_source_id)
+            
+            if target_view_name:
+                # 创建动态数据源记录
+                new_data_source = ReportDataSource(
+                    id=dynamic_data_source_id,  # 使用伪ID作为真实ID
+                    name=target_view_name,
+                    code=target_view_name,
+                    description=f"动态数据源: {target_view_name}",
+                    schema_name='reports',
+                    view_name=target_view_name,
+                    source_type='view',
+                    connection_config={},
+                    is_active=True,
+                    is_system=False,
+                    created_by=user_id,
+                    updated_by=user_id
+                )
+                
+                db.add(new_data_source)
+                db.flush()  # 确保数据源先插入
+                
+                print(f"✅ 编辑时创建动态数据源记录: ID={dynamic_data_source_id}, 名称={target_view_name}")
+            else:
+                # 如果找不到对应的视图，设置为None以避免外键错误
+                print(f"⚠️ 编辑时找不到伪ID {dynamic_data_source_id} 对应的视图，将 data_source_id 设为 None")
+                update_data['data_source_id'] = None
+    
+    # 更新字段
     for field, value in update_data.items():
         setattr(db_definition, field, value)
     

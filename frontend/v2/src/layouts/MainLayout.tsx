@@ -4,7 +4,6 @@ import { Layout, Menu, Avatar, Dropdown, Space, Typography, Breadcrumb, Button, 
 import {
   UserOutlined,
   LogoutOutlined,
-  DashboardOutlined,
   TeamOutlined,
   SettingOutlined,
   MenuFoldOutlined,
@@ -78,30 +77,21 @@ const MainLayout: React.FC = () => {
   const userRoleCodes = useSelector((state: RootState) => state.auth.userRoleCodes);
   const { hasPermission, hasRole } = usePermissions();
 
-  // Refs for Tour targets
-  const refDashboard = useRef(null);
+  // Refs for Tour targets - Dashboard removed
   const refBulkImport = useRef(null);
   const refAiRobot = useRef(null);
 
-  // State for Tour visibility
+  // State for Tour visibility - disabled after dashboard removal
   const [openTour, setOpenTour] = useState<boolean>(false);
 
-  // Tour steps
+  // Tour steps - simplified after dashboard removal  
   const steps: TourProps['steps'] = [
-    {
-      title: t('tour:dashboard.title'),
-      description: t('tour:dashboard.description'),
-      target: () => refDashboard.current,
-      nextButtonProps: { children: t('tour:common.next') },
-      prevButtonProps: { children: t('tour:common.previous') },
-    },
     {
       title: t('tour:bulk_import.title'),
       description: t('tour:bulk_import.description'),
       target: () => refBulkImport.current,
       nextButtonProps: { children: t('tour:common.next') },
       prevButtonProps: { children: t('tour:common.previous') },
-      // disabled: !refBulkImport.current, // Example: Disable step if target is not available (though ref is assigned in useEffect)
     },
     {
       title: t('tour:ai_robot.title'),
@@ -109,33 +99,15 @@ const MainLayout: React.FC = () => {
       target: () => refAiRobot.current,
       nextButtonProps: { children: t('tour:common.finish') }, // Last step
       prevButtonProps: { children: t('tour:common.previous') },
-      // disabled: !refAiRobot.current, // Example: Disable step if target is not available
     },
   ];
   
   useEffect(() => {
-    const tourSeen = localStorage.getItem('mainTourSeenV2'); // Use a versioned key if needed
+    // Tour disabled after dashboard removal
+    const tourSeen = localStorage.getItem('mainTourSeenV2');
     if (tourSeen !== 'true') {
-      setTimeout(() => {
-        // @ts-ignore
-        refDashboard.current = document.getElementById('tour-dashboard-link');
-        // @ts-ignore
-        refBulkImport.current = document.getElementById('tour-bulk-import-link');
-        // @ts-ignore
-        refAiRobot.current = document.getElementById('dify-chatbot-bubble-button');
-
-        // Basic check if primary static target is available.
-        // AI Bot target is dynamic, Tour step should handle if it's not immediately available or gracefully skip.
-        if (refDashboard.current) { 
-          // Check if all refs are loaded before opening the tour, especially dynamic ones
-          // For a better UX, one might want to wait for refAiRobot.current to be available
-          // or have the Tour component itself handle potentially missing targets gracefully per step.
-          // A simple check: if (refDashboard.current && refAiRobot.current) 
-          // For now, proceeding if dashboard is found.
-          setOpenTour(true);
-        } else {
-        }
-      }, 1500); // Increased delay to allow Dify bot to potentially load
+      // Tour functionality simplified - no automatic opening for now
+      setOpenTour(false);
     }
   }, []);
 
@@ -226,7 +198,7 @@ const MainLayout: React.FC = () => {
   const breadcrumbItems = [
     {
       key: 'home',
-      title: <Link to="/dashboard"><HomeOutlined />{t('menu:home')}</Link>,
+      title: <Link to="/simple-payroll"><HomeOutlined />{t('menu:home')}</Link>,
     },
     ...extraBreadcrumbItems,
   ];
@@ -364,12 +336,7 @@ const MainLayout: React.FC = () => {
     // ========== 核心业务模块 ==========
     const coreBusinessItems = [];
     
-    // 1. 仪表盘 - 最重要的入口
-    coreBusinessItems.push({
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: <Link to="/dashboard" id="tour-dashboard-link">{t('menu:dashboard', { defaultValue: 'Dashboard' })}</Link>,
-    });
+    // 1. 仪表盘已删除，直接从报表管理开始
 
     // 2. 报表管理 - 第二个入口
     // 临时移除权限检查，直接显示菜单项
@@ -562,7 +529,7 @@ const MainLayout: React.FC = () => {
         selectedKey = matchedParent.key as string;
       }
     }
-    return selectedKey ? [selectedKey] : ['/dashboard'];
+    return selectedKey ? [selectedKey] : ['/simple-payroll'];
   }, [location.pathname, siderMenuItems]);
 
   // 获取当前需要展开的父菜单项key - 修改为默认展开所有有子菜单的项
@@ -593,7 +560,7 @@ const MainLayout: React.FC = () => {
         <Menu
           theme="light"
           mode="inline"
-          defaultSelectedKeys={['/dashboard']}
+          defaultSelectedKeys={['/simple-payroll']}
           selectedKeys={selectedKeys}
           openKeys={openKeys}
           onOpenChange={(keys) => setOpenKeys(keys)}

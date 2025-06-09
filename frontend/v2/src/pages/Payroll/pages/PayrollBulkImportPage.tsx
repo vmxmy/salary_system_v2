@@ -20,7 +20,7 @@ import {
   Row,
   Col
 } from 'antd';
-import { TextAreaRef } from 'antd/es/input/TextArea';
+import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, PlaySquareOutlined, TableOutlined, DatabaseOutlined, FileAddOutlined, PartitionOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageLayout from '../../../components/common/PageLayout';
@@ -40,15 +40,16 @@ import type {
   BulkCreatePayrollEntriesResult
 } from '../types/payrollTypes';
 import {
-  EarningDetailItem,
-  DeductionDetailItem,
   IS_PRODUCTION,
   ENABLE_PRODUCTION_RESTRICTIONS,
-  PAYROLL_PERIOD_STATUS,
+  PAYROLL_PERIOD_STATUS
+} from './PayrollBulkImportPage/constants';
+import type {
+  EarningDetailItem,
+  DeductionDetailItem,
   UploadResult,
   ValidationSummary
-  // PayrollComponentDefinition as PayrollComponentDefinitionType // 暂时移除这个导入以测试模块解析
-} from './PayrollBulkImportPage/constants'; // 尝试更明确的路径
+} from './PayrollBulkImportPage/constants';
 
 // EarningDetailItem and DeductionDetailItem are moved to ./constants.ts
 

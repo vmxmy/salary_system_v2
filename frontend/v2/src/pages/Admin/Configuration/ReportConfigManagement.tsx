@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Tabs, Typography, Row, Col, Input, Form, Select, message, Table, Button, Space, Modal, Tooltip, Popconfirm, Switch, Descriptions, Spin, Tag, Divider, InputNumber, Alert, Collapse, List } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, DatabaseOutlined, TableOutlined, AppstoreOutlined, ExportOutlined, EyeOutlined, InfoCircleOutlined, SettingOutlined, HolderOutlined, CloseOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, DatabaseOutlined, TableOutlined, AppstoreOutlined, ExportOutlined, EyeOutlined, InfoCircleOutlined, SettingOutlined, HolderOutlined, CloseOutlined, FileAddOutlined, SelectOutlined } from '@ant-design/icons';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import pinyin from 'pinyin';
 import { reportConfigApi } from '../../../api/reportConfigApi';
 import styles from '../../../styles/reportConfig.module.css';
 import type { ReportTypeDefinition, DataSource, DataSourceField, FilterCondition, FilterGroup, FilterOperator, ReportFilterConfig } from '../../../types/reportConfig';
@@ -131,6 +132,9 @@ const ReportTypes: React.FC = () => {
     });
     const [selectedFields, setSelectedFields] = useState<DataSourceField[]>([]);
     const [fieldSelectorMode, setFieldSelectorMode] = useState<'select' | 'sort'>('select');
+    const [customFieldModalVisible, setCustomFieldModalVisible] = useState(false);
+    const [customFieldForm] = Form.useForm();
+    const [scanLoading, setScanLoading] = useState(false);
 
     // 拖拽传感器
     const sensors = useSensors(
@@ -149,16 +153,105 @@ const ReportTypes: React.FC = () => {
         setLoading(false);
     }, [searchText, t]);
 
-    const loadDataSources = useCallback(async () => {
-        try {
-            const data = await reportConfigApi.getDataSources({ is_active: true });
-            setDataSources(data);
-        } catch (error) { message.error(t('data_source.load_error')); }
-    }, [t]);
+    // 🚀 性能优化：获取数据源列表，添加缓存
+    useEffect(() => {
+        const fetchDataSources = async () => {
+            try {
+                setLoading(true);
+                // 关闭动态扫描以提升性能
+                const sources = await reportConfigApi.getDataSources({ 
+                    include_dynamic: false,
+                    limit: 100  // 限制返回数量
+                });
+                setDataSources(sources);
+            } catch (error) {
+                console.error('获取数据源失败:', error);
+                message.error('获取数据源失败');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    useEffect(() => { loadReportTypes(); loadDataSources(); }, [loadReportTypes, loadDataSources]);
+        fetchDataSources();
+    }, []);
+
+    const handleScanDynamicSources = async () => {
+        setScanLoading(true);
+        try {
+            const dynamicSources = await reportConfigApi.scanDynamicDataSources({
+                schema_name: 'reports',
+                view_pattern: 'v_monthly_%'
+            });
+            
+            message.success(`扫描到 ${dynamicSources.length} 个月度报表视图`);
+            
+            // 重新获取数据源列表以包含扫描到的动态数据源
+            const sources = await reportConfigApi.getDataSources({ 
+                include_dynamic: true,  // 这里开启动态扫描以显示新的结果
+                limit: 100
+            });
+            setDataSources(sources);
+        } catch (error: any) {
+            message.error(`扫描失败: ${error.response?.data?.detail || error.message}`);
+        } finally {
+            setScanLoading(false);
+        }
+    };
+
+    // 💡 中文转拼音并生成编码
+    const generateCodeFromName = (name: string): string => {
+        if (!name || !name.trim()) return '';
+        
+        // 过滤掉非中文字符，只处理中文
+        const chineseText = name.replace(/[^\u4e00-\u9fa5]/g, '');
+        if (!chineseText) return '';
+        
+        try {
+            // 使用 pinyin 库转换为拼音，设置为小写并去掉音调
+            const pinyinArray = pinyin(chineseText, {
+                style: pinyin.STYLE_NORMAL, // 不带音调
+                heteronym: false, // 不显示多音字的所有读音
+                segment: true // 启用分词
+            });
+            
+            // 将拼音数组转换为字符串，用下划线连接
+            const pinyinStr = pinyinArray
+                .map(item => Array.isArray(item) ? item[0] : item) // 取第一个读音
+                .join('_')
+                .toLowerCase()
+                .replace(/[^a-z_]/g, ''); // 只保留字母和下划线
+            
+            return pinyinStr;
+        } catch (error) {
+            console.error('拼音转换失败:', error);
+            return '';
+        }
+    };
+
+    // 处理报表名称变化，自动填充编码
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const name = e.target.value;
+        
+        // 只在新建模式下自动填充编码（编辑模式不自动覆盖）
+        if (!editingType) {
+            const currentCode = form.getFieldValue('code');
+            
+            // 如果编码字段为空或者是之前自动生成的，则自动更新
+            if (!currentCode || currentCode.length === 0) {
+                const generatedCode = generateCodeFromName(name);
+                if (generatedCode) {
+                    form.setFieldValue('code', generatedCode);
+                }
+            }
+        }
+    };
+
+    useEffect(() => { loadReportTypes(); }, [loadReportTypes]);
 
     const handleDataSourceChange = async (dataSourceId: number) => {
+        // 🔧 重要修复：确保表单中的data_source_id字段被正确设置
+        form.setFieldsValue({ data_source_id: dataSourceId });
+        
         if (dataSourceId) {
             try {
                 const fields = await reportConfigApi.getDataSourceFields(dataSourceId);
@@ -682,6 +775,68 @@ const ReportTypes: React.FC = () => {
             setSelectedFields([]);
         }
     };
+
+    // 添加所有字段到选中列表
+    const addAllFieldsToSelected = () => {
+        // 过滤出未选择的字段
+        const unselectedFields = availableFields.filter(
+            field => !selectedFields.find(selected => selected.id === field.id)
+        );
+        
+        if (unselectedFields.length === 0) {
+            message.info('所有字段已经选择，无需添加');
+            return;
+        }
+        
+        // 将所有未选择的字段添加到选中列表
+        const newSelectedFields = [...selectedFields, ...unselectedFields];
+        setSelectedFields(newSelectedFields);
+        
+        // 同步更新表单字段值
+        const fieldIds = newSelectedFields.map(f => f.id);
+        form.setFieldsValue({ fields: fieldIds });
+        
+        message.success(`已添加 ${unselectedFields.length} 个字段，总计 ${newSelectedFields.length} 个字段`);
+    };
+
+    // 添加自定义空字段
+    const handleAddCustomField = async (values: any) => {
+        try {
+            // 创建一个临时的自定义字段对象
+            const customField: DataSourceField = {
+                id: Date.now(), // 使用时间戳作为临时ID
+                data_source_id: 0, // 自定义字段不属于任何数据源
+                field_name: values.field_name,
+                field_alias: values.field_alias || values.field_name,
+                field_type: values.field_type || 'TEXT',
+                data_type: values.data_type || 'STRING',
+                display_name_zh: values.display_name,
+                display_name_en: values.display_name,
+                description: values.description || '自定义空字段',
+                is_visible: true,
+                is_sortable: values.is_sortable !== false,
+                is_filterable: values.is_filterable !== false,
+                is_nullable: true,
+                is_primary_key: false,
+                display_order: selectedFields.length + 1
+            };
+
+            // 添加到选中字段列表
+            const newSelectedFields = [...selectedFields, customField];
+            setSelectedFields(newSelectedFields);
+            
+            // 更新表单中的字段ID列表
+            const fieldIds = newSelectedFields.map(f => f.id);
+            form.setFieldsValue({ fields: fieldIds });
+
+            // 关闭模态框并重置表单
+            setCustomFieldModalVisible(false);
+            customFieldForm.resetFields();
+            message.success('自定义字段添加成功');
+        } catch (error: any) {
+            message.error(`添加自定义字段失败: ${error.message}`);
+        }
+    };
     
     const columns: ColumnsType<ReportTypeDefinition> = [
         { title: 'ID', dataIndex: 'id', key: 'id', width: 80, sorter: (a, b) => a.id - b.id },
@@ -838,7 +993,10 @@ const ReportTypes: React.FC = () => {
                                 </Col>
                                 <Col span={12}>
                                     <Form.Item name="name" label="报表名称" rules={[{ required: true, message: '请输入报表名称' }]}>
-                                        <Input placeholder="例如: 薪资汇总表" />
+                                        <Input 
+                                            placeholder="例如: 薪资汇总表" 
+                                            onChange={handleNameChange}
+                                        />
                                     </Form.Item>
                                 </Col>
                             </Row>
@@ -909,16 +1067,28 @@ const ReportTypes: React.FC = () => {
                         />
                         <Form form={form} layout="vertical">
                             <Form.Item name="data_source_id" label="数据源" rules={[{ required: true, message: '请选择数据源' }]}>
-                                <Select 
-                                    showSearch 
-                                    placeholder="请选择数据源" 
-                                    onChange={handleDataSourceChange}
-                                    options={dataSources.map(ds => ({ 
-                                        value: ds.id, 
-                                        label: `${ds.name} (${ds.table_name || ds.view_name})` 
-                                    }))} 
-                                    filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())} 
-                                />
+                                <Input.Group compact>
+                                    <Select 
+                                        showSearch 
+                                        placeholder="请选择数据源" 
+                                        onChange={handleDataSourceChange}
+                                        style={{ width: 'calc(100% - 150px)' }}
+                                        options={dataSources.map(ds => ({ 
+                                            value: ds.id, 
+                                            label: `${ds.name} (${ds.table_name || ds.view_name})` 
+                                        }))} 
+                                        filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())} 
+                                    />
+                                    <Button 
+                                        type="dashed" 
+                                        icon={<ReloadOutlined />}
+                                        style={{ width: 150 }}
+                                        onClick={handleScanDynamicSources}
+                                        loading={scanLoading}
+                                    >
+                                        扫描月度视图
+                                    </Button>
+                                </Input.Group>
                             </Form.Item>
                             
                             <Form.Item name="fields" label="可用字段">
@@ -933,6 +1103,16 @@ const ReportTypes: React.FC = () => {
                                             选择字段
                                         </Button>
                                         <Button 
+                                            icon={<SelectOutlined />}
+                                            size="small"
+                                            onClick={addAllFieldsToSelected}
+                                            disabled={availableFields.length === 0 || fieldSelectorMode !== 'select'}
+                                            className={styles.roundButtonSmall}
+                                            title={availableFields.length === 0 ? '请先选择数据源' : '添加所有可用字段'}
+                                        >
+                                            添加所有字段
+                                        </Button>
+                                        <Button 
                                             type={fieldSelectorMode === 'sort' ? 'primary' : 'default'}
                                             size="small"
                                             onClick={() => setFieldSelectorMode('sort')}
@@ -941,9 +1121,22 @@ const ReportTypes: React.FC = () => {
                                         >
                                             调整顺序
                                         </Button>
+                                        <Button 
+                                            icon={<FileAddOutlined />}
+                                            size="small"
+                                            onClick={() => setCustomFieldModalVisible(true)}
+                                            className={styles.roundButtonSmall}
+                                        >
+                                            添加空字段
+                                        </Button>
                                     </Space>
                                     <span className={styles.fontWeight500} style={{ color: '#666', fontSize: 12 }}>
                                         已选择 {selectedFields.length} 个字段
+                                        {availableFields.length > 0 && (
+                                            <span style={{ marginLeft: 8 }}>
+                                                / 共 {availableFields.length} 个可用字段
+                                            </span>
+                                        )}
                                     </span>
                                 </div>
 
@@ -1813,6 +2006,126 @@ const ReportTypes: React.FC = () => {
                         </Tabs>
                     )}
                 </Spin>
+            </Modal>
+
+            {/* 自定义字段模态框 */}
+            <Modal
+                title="添加自定义空字段"
+                open={customFieldModalVisible}
+                onCancel={() => {
+                    setCustomFieldModalVisible(false);
+                    customFieldForm.resetFields();
+                }}
+                footer={null}
+                width={600}
+                destroyOnClose
+            >
+                <Alert
+                    message="自定义空字段说明"
+                    description="自定义空字段不依赖任何数据源，将在报表中显示为空值或默认值。适用于手动填写、计算字段或预留字段等场景。"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                />
+                
+                <Form
+                    form={customFieldForm}
+                    layout="vertical"
+                    onFinish={handleAddCustomField}
+                    initialValues={{
+                        field_type: 'TEXT',
+                        data_type: 'STRING',
+                        is_sortable: true,
+                        is_filterable: true
+                    }}
+                >
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="field_name"
+                                label="字段名"
+                                rules={[
+                                    { required: true, message: '请输入字段名' },
+                                    { pattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/, message: '字段名只能包含字母、数字和下划线，且以字母或下划线开头' }
+                                ]}
+                            >
+                                <Input placeholder="例如: custom_field" />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="display_name"
+                                label="显示名称"
+                                rules={[{ required: true, message: '请输入显示名称' }]}
+                            >
+                                <Input placeholder="例如: 自定义字段" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Form.Item name="field_alias" label="字段别名">
+                        <Input placeholder="可选，用于数据库查询" />
+                    </Form.Item>
+
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item name="field_type" label="字段类型" rules={[{ required: true, message: '请选择字段类型' }]}>
+                                <Select placeholder="选择字段类型">
+                                    <Select.Option value="TEXT">文本</Select.Option>
+                                    <Select.Option value="NUMBER">数字</Select.Option>
+                                    <Select.Option value="DATE">日期</Select.Option>
+                                    <Select.Option value="DATETIME">日期时间</Select.Option>
+                                    <Select.Option value="BOOLEAN">布尔值</Select.Option>
+                                    <Select.Option value="CURRENCY">货币</Select.Option>
+                                    <Select.Option value="PERCENTAGE">百分比</Select.Option>
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item name="data_type" label="数据类型" rules={[{ required: true, message: '请选择数据类型' }]}>
+                                <Select placeholder="选择数据类型">
+                                    <Select.Option value="STRING">字符串</Select.Option>
+                                    <Select.Option value="INTEGER">整数</Select.Option>
+                                    <Select.Option value="DECIMAL">小数</Select.Option>
+                                    <Select.Option value="DATE">日期</Select.Option>
+                                    <Select.Option value="DATETIME">日期时间</Select.Option>
+                                    <Select.Option value="BOOLEAN">布尔值</Select.Option>
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Form.Item name="description" label="字段描述">
+                        <TextArea rows={2} placeholder="请输入字段描述" />
+                    </Form.Item>
+
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item name="is_sortable" label="可排序" valuePropName="checked">
+                                <Switch />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item name="is_filterable" label="可筛选" valuePropName="checked">
+                                <Switch />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                        <Space>
+                            <Button onClick={() => {
+                                setCustomFieldModalVisible(false);
+                                customFieldForm.resetFields();
+                            }}>
+                                取消
+                            </Button>
+                            <Button type="primary" htmlType="submit">
+                                添加字段
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
             </Modal>
         </Card>
     );

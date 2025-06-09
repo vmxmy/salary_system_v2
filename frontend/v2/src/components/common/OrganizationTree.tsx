@@ -1,6 +1,6 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { type ReactNode, useCallback } from 'react';
 import { Tree, Space, Typography, Tag, Badge, Empty } from 'antd';
-import { AntTreeNodeProps } from 'antd/es/tree';
+import { type AntTreeNodeProps } from 'antd/es/tree';
 
 const { Text } = Typography;
 const { DirectoryTree } = Tree;

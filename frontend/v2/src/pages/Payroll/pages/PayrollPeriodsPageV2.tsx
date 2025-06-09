@@ -7,8 +7,17 @@ import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
-import StandardListPageTemplate, { QueryParams } from '../../../components/common/StandardListPageTemplate';
+import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
 import type { PayrollPeriod } from '../types/payrollTypes';
+
+// 查询参数接口
+interface QueryParams {
+  filters?: Record<string, any>;
+  sorting?: Array<{ field: string; direction: 'asc' | 'desc' }>;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
 import { 
   getPayrollPeriods, 
   createPayrollPeriod, 

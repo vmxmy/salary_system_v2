@@ -147,7 +147,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     'employee',
     'admin',
     'auth',
-    'dashboard',
+
     'department',
     'jobTitle',
     'manager',

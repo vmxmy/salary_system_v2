@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { App, Button, Card, Descriptions, Space, Tag, Typography, Breadcrumb, Tabs, Spin } from 'antd';
 import type { TabsProps } from 'antd';
-import { ProColumns, ProTable } from '@ant-design/pro-components';
+import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
 import { reportConfigApi } from '../../../api/reportConfigApi';
 import type { DataSource, DataSourceField } from '../../../api/reportConfigApi';

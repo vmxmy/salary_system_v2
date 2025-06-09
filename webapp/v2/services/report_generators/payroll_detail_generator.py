@@ -87,8 +87,8 @@ class PayrollDetailGenerator(BaseReportGenerator):
                 pr.run_date,
                 pp.name as period_name,
                 e.id_number,
-                e.bank_account_number,
-                e.bank_name
+                COALESCE(e.account_number, '') as bank_account_number,
+                COALESCE(e.account_holder_name, '') as bank_name
             FROM payroll.payroll_entries pe
             JOIN payroll.payroll_runs pr ON pe.payroll_run_id = pr.id
             JOIN payroll.payroll_periods pp ON pr.payroll_period_id = pp.id

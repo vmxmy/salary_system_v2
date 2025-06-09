@@ -13,7 +13,7 @@ const UnauthorizedPage: React.FC = () => {
 
   const handleBackHome = () => {
     if (isAuthenticated) {
-      navigate('/dashboard'); // 如果已认证，返回仪表盘
+      navigate('/simple-payroll'); // 如果已认证，返回简单工资页面
     } else {
       navigate('/login'); // 否则去登录页
     }

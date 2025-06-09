@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { employeeService } from '../services/employeeService';
 import { lookupService } from '../services/lookupService';
 import type { LookupValue, Department, PersonnelCategory, Position } from '../pages/HRManagement/types';

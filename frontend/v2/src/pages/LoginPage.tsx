@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
   const [form] = Form.useForm();
 
   const isAuthenticated = !!authToken;
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/simple-payroll';
 
   useEffect(() => {
     if (isAuthenticated) {

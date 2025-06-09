@@ -36,6 +36,7 @@ import {
   FormOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import pinyin from 'pinyin';
 import { reportConfigApi } from '../../../api/reportConfigApi';
 import type { 
   ReportTypeDefinition, 
@@ -136,6 +137,54 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
       }
     }
   });
+
+  // 💡 中文转拼音并生成编码
+  const generateCodeFromName = (name: string): string => {
+    if (!name || !name.trim()) return '';
+    
+    // 过滤掉非中文字符，只处理中文
+    const chineseText = name.replace(/[^\u4e00-\u9fa5]/g, '');
+    if (!chineseText) return '';
+    
+    try {
+      // 使用 pinyin 库转换为拼音，设置为小写并去掉音调
+      const pinyinArray = pinyin(chineseText, {
+        style: pinyin.STYLE_NORMAL, // 不带音调
+        heteronym: false, // 不显示多音字的所有读音
+        segment: true // 启用分词
+      });
+      
+      // 将拼音数组转换为字符串，用下划线连接
+      const pinyinStr = pinyinArray
+        .map(item => Array.isArray(item) ? item[0] : item) // 取第一个读音
+        .join('_')
+        .toLowerCase()
+        .replace(/[^a-z_]/g, ''); // 只保留字母和下划线
+      
+      return pinyinStr;
+    } catch (error) {
+      console.error('拼音转换失败:', error);
+      return '';
+    }
+  };
+
+  // 处理报表名称变化，自动填充编码
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    
+    // 只在新建模式下自动填充编码（编辑模式不自动覆盖）
+    if (!editingRecord) {
+      const currentCode = form.getFieldValue('code');
+      
+      // 如果编码字段为空或者是之前自动生成的，则自动更新
+      if (!currentCode || currentCode.length === 0) {
+        const generatedCode = generateCodeFromName(name);
+        if (generatedCode) {
+          form.setFieldValue('code', generatedCode);
+        }
+      }
+    }
+  };
 
   // 处理表单提交
   const handleSubmit = async (values: any) => {
@@ -503,7 +552,10 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
                 label="报表名称"
                 rules={[{ required: true, message: '请输入报表名称' }]}
               >
-                <Input placeholder="例如: 薪资汇总表" />
+                <Input 
+                  placeholder="例如: 薪资汇总表" 
+                  onChange={handleNameChange}
+                />
               </Form.Item>
             </Col>
           </Row>

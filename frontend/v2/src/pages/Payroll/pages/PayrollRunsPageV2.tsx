@@ -12,7 +12,8 @@ import type { ProColumns } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
-import StandardListPageTemplate, { QueryParams } from '../../../components/common/StandardListPageTemplate';
+import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
+import type { QueryParams } from '../../../components/common/StandardListPageTemplate';
 import type { PayrollRun, PayrollPeriod } from '../types/payrollTypes';
 import type { CalculationRequest, CalculationResult } from '../types/calculationConfig';
 import {

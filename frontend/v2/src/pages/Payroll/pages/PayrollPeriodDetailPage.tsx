@@ -10,7 +10,16 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { getPayrollPeriodById, getPayrollEntries, deletePayrollEntry } from '../services/payrollApi';
 import { getTableColumnsConfig, saveTableColumnsConfig, type TableColumnConfig } from '../../../services/tableConfigApi';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
-import StandardListPageTemplate, { QueryParams } from '../../../components/common/StandardListPageTemplate';
+import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
+
+// 查询参数接口
+interface QueryParams {
+  filters?: Record<string, any>;
+  sorting?: Array<{ field: string; direction: 'asc' | 'desc' }>;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
 import type { PayrollPeriod, PayrollEntry } from '../types/payrollTypes';
 import { getPayrollEntryStatusInfo } from '../utils/payrollUtils';
 import StatusTag from '../../../components/common/StatusTag';

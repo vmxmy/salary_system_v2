@@ -187,7 +187,6 @@ const PayrollCalculationConfigPage: React.FC = () => {
                 configs={socialInsuranceConfigs}
                 onCreateConfig={handleSocialInsuranceCreate}
                 onUpdateConfig={handleSocialInsuranceUpdate}
-                loading={loading}
               />
             </TabPane>
             

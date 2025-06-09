@@ -132,16 +132,34 @@ export const reportConfigApi = {
   // ==================== 数据源管理 ====================
 
   /**
-   * 获取数据源列表
+   * 动态扫描数据源（扫描数据库中的视图和表）
+   */
+  scanDynamicDataSources: async (params?: {
+    schema_name?: string;
+    view_pattern?: string;
+  }): Promise<any[]> => {
+    const response = await apiClient.get('/report-config/data-sources/dynamic-scan', { params });
+    return response.data;
+  },
+
+  /**
+   * 获取数据源列表（包含动态扫描）
    */
   getDataSources: async (params?: {
     is_active?: boolean;
     schema_name?: string;
     search?: string;
+    include_dynamic?: boolean;
     skip?: number;
     limit?: number;
   }): Promise<DataSource[]> => {
-    const response = await apiClient.get('/report-config/data-sources', { params });
+    // 🚀 性能优化：默认关闭动态扫描以提升加载速度
+    const optimizedParams = {
+      include_dynamic: false, // 默认关闭动态扫描
+      ...params
+    };
+    
+    const response = await apiClient.get('/report-config/data-sources', { params: optimizedParams });
     return response.data;
   },
 

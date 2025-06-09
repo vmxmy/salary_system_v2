@@ -15,13 +15,16 @@ import {
   Row,
   Col,
   Typography,
-  InputNumber
+  InputNumber,
+  Alert
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  ThunderboltOutlined
+  ThunderboltOutlined,
+  FileAddOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { reportConfigApi, type DataSource, type DataSourceField } from '../../../api/reportConfigApi';
@@ -54,6 +57,7 @@ const ReportFieldManagement: React.FC<ReportFieldManagementProps> = ({
   const [isFieldModalVisible, setIsFieldModalVisible] = useState(false);
   const [editingField, setEditingField] = useState<ReportFieldDefinition | null>(null);
   const [selectedDataSource, setSelectedDataSource] = useState<number | undefined>();
+  const [isCustomField, setIsCustomField] = useState(false); // 是否为自定义空字段
 
   // 获取数据源列表
   const { data: dataSources, isLoading: dataSourcesLoading } = useQuery({
@@ -187,7 +191,46 @@ const ReportFieldManagement: React.FC<ReportFieldManagementProps> = ({
       is_filterable: true,
     });
     setSelectedDataSource(undefined);
+    setIsCustomField(false);
     setIsFieldModalVisible(true);
+  };
+
+  // 添加自定义空字段
+  const handleAddCustomField = () => {
+    setEditingField(null);
+    fieldForm.resetFields();
+    fieldForm.setFieldsValue({
+      display_order: (fields?.length || 0) + 1,
+      is_visible: true,
+      is_required: false,
+      is_sortable: true,
+      is_filterable: true,
+      field_type: 'TEXT',
+      data_type: 'STRING',
+      default_value: '', // 空字段默认为空值
+    });
+    setSelectedDataSource(undefined);
+    setIsCustomField(true);
+    setIsFieldModalVisible(true);
+  };
+
+  // 处理字段类型切换
+  const handleFieldTypeToggle = (isCustom: boolean) => {
+    setIsCustomField(isCustom);
+    if (isCustom) {
+      // 切换到自定义字段时，清空数据源相关字段
+      fieldForm.setFieldsValue({
+        data_source: undefined,
+        source_column: undefined,
+        default_value: '',
+      });
+      setSelectedDataSource(undefined);
+    } else {
+      // 切换到数据源字段时，清空默认值
+      fieldForm.setFieldsValue({
+        default_value: undefined,
+      });
+    }
   };
 
   const handleEditField = (field: ReportFieldDefinition) => {
@@ -199,12 +242,18 @@ const ReportFieldManagement: React.FC<ReportFieldManagementProps> = ({
       style_config: field.style_config ? JSON.stringify(field.style_config, null, 2) : '',
     });
     
+    // 判断是否为自定义字段（没有数据源和源字段）
+    const isCustom = !field.data_source && !field.source_column;
+    setIsCustomField(isCustom);
+    
     // 如果字段有数据源信息，设置选中的数据源
     if (field.data_source) {
       const dataSource = dataSources?.find(ds => ds.name === field.data_source || ds.code === field.data_source);
       if (dataSource) {
         setSelectedDataSource(dataSource.id);
       }
+    } else {
+      setSelectedDataSource(undefined);
     }
     
     setIsFieldModalVisible(true);
@@ -248,14 +297,30 @@ const ReportFieldManagement: React.FC<ReportFieldManagementProps> = ({
       dataIndex: 'data_source',
       key: 'data_source',
       width: 120,
-      render: (source: string) => source ? <Tag color="purple">{source}</Tag> : '-',
+      render: (source: string, record: ReportFieldDefinition) => {
+        if (source) {
+          return <Tag color="purple">{source}</Tag>;
+        } else if (!source && !record.source_column) {
+          return <Tag color="orange">自定义字段</Tag>;
+        } else {
+          return '-';
+        }
+      },
     },
     {
       title: '源字段',
       dataIndex: 'source_column',
       key: 'source_column',
       width: 120,
-      render: (column: string) => column ? <Text code>{column}</Text> : '-',
+      render: (column: string, record: ReportFieldDefinition) => {
+        if (column) {
+          return <Text code>{column}</Text>;
+        } else if (!record.data_source && !column) {
+          return <Tag color="cyan">空值</Tag>;
+        } else {
+          return '-';
+        }
+      },
     },
     {
       title: '显示顺序',
@@ -324,14 +389,23 @@ const ReportFieldManagement: React.FC<ReportFieldManagementProps> = ({
             </Text>
           </Col>
           <Col>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              size="small"
-              onClick={handleAddField}
-            >
-              添加字段
-            </Button>
+            <Space>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="small"
+                onClick={handleAddField}
+              >
+                添加字段
+              </Button>
+              <Button
+                icon={<FileAddOutlined />}
+                size="small"
+                onClick={handleAddCustomField}
+              >
+                添加空字段
+              </Button>
+            </Space>
           </Col>
         </Row>
       </div>
@@ -391,77 +465,117 @@ const ReportFieldManagement: React.FC<ReportFieldManagementProps> = ({
             </Col>
           </Row>
 
-          {/* 数据源配置 */}
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="data_source" label="数据源">
-                <Input.Group compact>
-                  <Select 
-                    placeholder="选择数据源"
-                    loading={dataSourcesLoading}
-                    onChange={handleDataSourceChange}
-                    allowClear
-                    showSearch
-                    style={{ width: 'calc(100% - 80px)' }}
-                    filterOption={(input, option) =>
-                      String(option?.children || '').toLowerCase().includes(input.toLowerCase())
-                    }
-                  >
-                    {dataSources?.map((ds) => (
-                      <Option key={ds.id} value={ds.name}>
-                        {ds.name} ({ds.schema_name}.{ds.table_name || ds.view_name})
-                        {ds.name === 'v_comprehensive_employee_payroll' && (
-                          <Tag color="gold" style={{ marginLeft: 8 }}>推荐</Tag>
-                        )}
-                      </Option>
-                    ))}
-                  </Select>
-                  <Tooltip title="快速选择薪资数据源">
-                    <Button 
-                      icon={<ThunderboltOutlined />}
-                      onClick={handleQuickSelectPayrollDataSource}
-                      style={{ width: 80 }}
-                      type="dashed"
+          {/* 字段类型选择 */}
+          <Form.Item label="字段来源">
+            <Space>
+              <Button 
+                type={!isCustomField ? "primary" : "default"}
+                onClick={() => handleFieldTypeToggle(false)}
+                icon={<DatabaseOutlined />}
+              >
+                数据源字段
+              </Button>
+              <Button 
+                type={isCustomField ? "primary" : "default"}
+                onClick={() => handleFieldTypeToggle(true)}
+                icon={<FileAddOutlined />}
+              >
+                自定义空字段
+              </Button>
+            </Space>
+          </Form.Item>
+
+          {/* 数据源配置 - 仅在非自定义字段时显示 */}
+          {!isCustomField && (
+            <>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="data_source" label="数据源">
+                    <Input.Group compact>
+                      <Select 
+                        placeholder="选择数据源"
+                        loading={dataSourcesLoading}
+                        onChange={handleDataSourceChange}
+                        allowClear
+                        showSearch
+                        style={{ width: 'calc(100% - 80px)' }}
+                        filterOption={(input, option) =>
+                          String(option?.children || '').toLowerCase().includes(input.toLowerCase())
+                        }
+                      >
+                        {dataSources?.map((ds) => (
+                          <Option key={ds.id} value={ds.name}>
+                            {ds.name} ({ds.schema_name}.{ds.table_name || ds.view_name})
+                            {ds.name === 'v_comprehensive_employee_payroll' && (
+                              <Tag color="gold" style={{ marginLeft: 8 }}>推荐</Tag>
+                            )}
+                          </Option>
+                        ))}
+                      </Select>
+                      <Tooltip title="快速选择薪资数据源">
+                        <Button 
+                          icon={<ThunderboltOutlined />}
+                          onClick={handleQuickSelectPayrollDataSource}
+                          style={{ width: 80 }}
+                          type="dashed"
+                        >
+                          薪资
+                        </Button>
+                      </Tooltip>
+                    </Input.Group>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="source_column" label="源字段">
+                    <Select 
+                      placeholder="选择源字段"
+                      loading={dataSourceFieldsLoading}
+                      disabled={!selectedDataSource}
+                      onChange={handleSourceColumnChange}
+                      allowClear
+                      showSearch
+                      filterOption={(input, option) =>
+                        String(option?.children || '').toLowerCase().includes(input.toLowerCase())
+                      }
                     >
-                      薪资
-                    </Button>
-                  </Tooltip>
-                </Input.Group>
+                      {dataSourceFields?.map((field) => (
+                        <Option key={field.id} value={field.field_name}>
+                          <div>
+                            <Text strong>{field.field_name}</Text>
+                            {field.display_name_zh && (
+                              <Text type="secondary" style={{ marginLeft: 8 }}>
+                                ({field.display_name_zh})
+                              </Text>
+                            )}
+                            <br />
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                              {field.field_type} • {field.data_type}
+                            </Text>
+                          </div>
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </>
+          )}
+
+          {/* 自定义字段配置 - 仅在自定义字段时显示 */}
+          {isCustomField && (
+            <>
+              <Alert
+                message="自定义空字段说明"
+                description="自定义空字段不依赖任何数据源，将在报表中显示为空值或默认值。适用于手动填写、计算字段或预留字段等场景。"
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+              <Form.Item name="default_value" label="默认值">
+                <Input placeholder="留空表示空值，或输入默认显示的内容" />
               </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="source_column" label="源字段">
-                <Select 
-                  placeholder="选择源字段"
-                  loading={dataSourceFieldsLoading}
-                  disabled={!selectedDataSource}
-                  onChange={handleSourceColumnChange}
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) =>
-                    String(option?.children || '').toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {dataSourceFields?.map((field) => (
-                    <Option key={field.id} value={field.field_name}>
-                      <div>
-                        <Text strong>{field.field_name}</Text>
-                        {field.display_name_zh && (
-                          <Text type="secondary" style={{ marginLeft: 8 }}>
-                            ({field.display_name_zh})
-                          </Text>
-                        )}
-                        <br />
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          {field.field_type} • {field.data_type}
-                        </Text>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+            </>
+          )}
 
           <Row gutter={16}>
             <Col span={12}>

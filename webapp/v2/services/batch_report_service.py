@@ -34,6 +34,46 @@ class BatchReportService:
         
         # 确保输出目录存在
         os.makedirs(self.output_base_dir, exist_ok=True)
+        
+        # 报表类型映射 - 将数据库中的报表类型映射到现有的生成器
+        self.report_type_mapping = {
+            # 薪资相关报表映射到薪资明细生成器
+            "yingfa_PY": "payroll_detail",      # 04实发表-正编
+            "yingfa_ZB": "payroll_detail",      # 01、02、03应发表-正编  
+            "yingfa-PY": "payroll_detail",      # 06应发表-区聘
+            "shifa-PY": "payroll_detail",       # 10聘用实发表月度
+            
+            # 部门汇总相关报表映射到部门汇总生成器
+            "ZBDRDPT": "department_summary",    # 05正编导入大平台工资数据
+            "PYGZDRDPT": "department_summary",  # 13聘用工资导入大平台表月度
+            "PYGZHZYD": "department_summary",   # 12聘用工资汇总月度
+            
+            # 专项报表映射到薪资汇总生成器
+            "ZJYFYD": "payroll_summary",        # 09专技应发月度
+            "YTFYFYD": "payroll_summary",       # 07原投服应发月度
+            "ZXYFYD": "payroll_summary",        # 08专项应发月度
+            "ZJSFBYD": "payroll_summary",       # 11专技实发表月度
+            
+            # 🚀 新增：失败的报表类型映射
+            "gong_wu_yuan_can_gong_shi_ye_shi_fa": "payroll_detail",  # 公务员参工事业实发
+            "zheng_bian_dao_ru_da_ping_tai_gong_zi_shu_ju": "department_summary",  # 正编导入大平台工资数据
+            "pin_yong_shi_fa_biao_yue_du_shi_tu": "payroll_detail",  # 聘用实发表月度视图
+            "zhuan_ji_shi_fa_biao_yue_du_shi_tu": "payroll_detail",  # 专技实发表月度视图
+            "pin_yong_gong_zi_hui_zong_yue_du_shi_tu": "payroll_summary",  # 聘用工资汇总月度视图
+            "pin_yong_gong_zi_dao_ru_da_ping_tai_biao_yue_du": "department_summary",  # 聘用工资导入大平台表月度
+            
+            # 社保相关报表映射到社保生成器
+            "NJZZMX": "social_insurance",       # 43年金做账明细
+            "GJJZZMXB": "social_insurance",     # 39公积金做账明细表
+            "JBZZMX": "social_insurance",       # 42机保做账明细
+            "SBSYGSZZMX": "social_insurance",   # 44社保、失业工伤做账明细
+            "YLBXZZMX": "social_insurance",     # 45医疗保险做账明细
+            
+            # 用款计划报表映射到薪资汇总生成器
+            "ZBGZYKJH": "payroll_summary",      # 52正编工资用款计划
+            "PYGZYKJH": "payroll_summary",      # 53聘用工资用款计划
+            "SBGJJYKJH": "social_insurance",    # 54社保公积金用款计划
+        }
     
     async def execute_batch_report_task(self, task_id: int) -> None:
         """
@@ -200,32 +240,22 @@ class BatchReportService:
             report_config = item.report_config
             export_format = task.export_config.get("export_format", "xlsx")
             
-            if item.report_type == "payroll_summary":
-                file_path = await self._generate_payroll_summary(
-                    report_config, output_dir, export_format
-                )
-            elif item.report_type == "payroll_detail":
-                file_path = await self._generate_payroll_detail(
-                    report_config, output_dir, export_format
-                )
-            elif item.report_type == "department_summary":
-                file_path = await self._generate_department_summary(
-                    report_config, output_dir, export_format
-                )
-            elif item.report_type == "tax_report":
-                file_path = await self._generate_tax_report(
-                    report_config, output_dir, export_format
-                )
-            elif item.report_type == "social_insurance":
-                file_path = await self._generate_social_insurance_report(
-                    report_config, output_dir, export_format
-                )
-            elif item.report_type == "attendance_summary":
-                file_path = await self._generate_attendance_summary(
-                    report_config, output_dir, export_format
-                )
+            # 🚀 增强的报表类型映射逻辑
+            if item.report_type in self.report_type_mapping:
+                report_type = self.report_type_mapping[item.report_type]
+                file_path = await self._generate_report(report_type, report_config, output_dir, export_format)
             else:
-                raise ValueError(f"不支持的报表类型: {item.report_type}")
+                # 💡 智能回退策略：根据报表名称推断报表类型
+                logger.warning(f"未知的报表类型: {item.report_type}，尝试智能推断...")
+                
+                report_type = self._infer_report_type_from_name(item.report_name, item.report_type)
+                if report_type:
+                    logger.info(f"智能推断报表类型: {item.report_type} -> {report_type}")
+                    file_path = await self._generate_report(report_type, report_config, output_dir, export_format)
+                else:
+                    # 最后的回退：使用默认的薪资明细生成器
+                    logger.warning(f"无法推断报表类型，使用默认生成器: {item.report_type}")
+                    file_path = await self._generate_report("payroll_detail", report_config, output_dir, export_format)
             
             logger.info(f"报表项执行完成: {item.id} - {file_path}")
             return file_path
@@ -234,88 +264,65 @@ class BatchReportService:
             logger.error(f"执行报表项失败 {item.id}: {str(e)}")
             raise
     
-    async def _generate_payroll_summary(
-        self,
-        config: Dict[str, Any],
-        output_dir: str,
-        export_format: str
-    ) -> str:
-        """生成薪资汇总表"""
-        try:
-            generator = PayrollSummaryGenerator(self.db)
-            return generator.generate_report(config, output_dir, export_format)
-        except Exception as e:
-            logger.error(f"生成薪资汇总表失败: {str(e)}")
-            raise
+    def _infer_report_type_from_name(self, report_name: str, report_type: str) -> Optional[str]:
+        """
+        🔍 根据报表名称和类型智能推断对应的生成器类型
+        
+        Args:
+            report_name: 报表名称
+            report_type: 原始报表类型编码
+            
+        Returns:
+            推断的生成器类型，如果无法推断则返回None
+        """
+        name_lower = report_name.lower()
+        type_lower = report_type.lower()
+        
+        # 关键词映射规则
+        if any(keyword in name_lower for keyword in ['实发', '明细', 'shi_fa', 'detail']):
+            return "payroll_detail"
+        elif any(keyword in name_lower for keyword in ['汇总', '导入', '大平台', 'hui_zong', 'summary']):
+            return "department_summary"  
+        elif any(keyword in type_lower for keyword in ['pin_yong', '聘用', 'payroll']):
+            return "payroll_summary"
+        elif any(keyword in name_lower for keyword in ['社保', '公积金', '年金', 'social', 'insurance']):
+            return "social_insurance"
+        elif any(keyword in name_lower for keyword in ['个税', '税', 'tax']):
+            return "tax_report"
+        elif any(keyword in name_lower for keyword in ['考勤', 'attendance']):
+            return "attendance_summary"
+        
+        # 无法推断，返回None
+        return None
     
-    async def _generate_payroll_detail(
+    async def _generate_report(
         self,
+        report_type: str,
         config: Dict[str, Any],
         output_dir: str,
         export_format: str
     ) -> str:
-        """生成薪资明细表"""
+        """生成报表"""
         try:
-            generator = PayrollDetailGenerator(self.db)
+            generator = None
+            if report_type == "payroll_summary":
+                generator = PayrollSummaryGenerator(self.db)
+            elif report_type == "payroll_detail":
+                generator = PayrollDetailGenerator(self.db)
+            elif report_type == "department_summary":
+                generator = DepartmentSummaryGenerator(self.db)
+            elif report_type == "tax_report":
+                generator = TaxDeclarationGenerator(self.db)
+            elif report_type == "social_insurance":
+                generator = SocialInsuranceGenerator(self.db)
+            elif report_type == "attendance_summary":
+                generator = AttendanceSummaryGenerator(self.db)
+            else:
+                raise ValueError(f"不支持的报表类型: {report_type}")
+            
             return generator.generate_report(config, output_dir, export_format)
         except Exception as e:
-            logger.error(f"生成薪资明细表失败: {str(e)}")
-            raise
-    
-    async def _generate_department_summary(
-        self,
-        config: Dict[str, Any],
-        output_dir: str,
-        export_format: str
-    ) -> str:
-        """生成部门薪资汇总"""
-        try:
-            generator = DepartmentSummaryGenerator(self.db)
-            return generator.generate_report(config, output_dir, export_format)
-        except Exception as e:
-            logger.error(f"生成部门薪资汇总失败: {str(e)}")
-            raise
-    
-    async def _generate_tax_report(
-        self,
-        config: Dict[str, Any],
-        output_dir: str,
-        export_format: str
-    ) -> str:
-        """生成个税申报表"""
-        try:
-            generator = TaxDeclarationGenerator(self.db)
-            return generator.generate_report(config, output_dir, export_format)
-        except Exception as e:
-            logger.error(f"生成个税申报表失败: {str(e)}")
-            raise
-    
-    async def _generate_social_insurance_report(
-        self,
-        config: Dict[str, Any],
-        output_dir: str,
-        export_format: str
-    ) -> str:
-        """生成社保缴费表"""
-        try:
-            generator = SocialInsuranceGenerator(self.db)
-            return generator.generate_report(config, output_dir, export_format)
-        except Exception as e:
-            logger.error(f"生成社保缴费表失败: {str(e)}")
-            raise
-    
-    async def _generate_attendance_summary(
-        self,
-        config: Dict[str, Any],
-        output_dir: str,
-        export_format: str
-    ) -> str:
-        """生成考勤汇总表"""
-        try:
-            generator = AttendanceSummaryGenerator(self.db)
-            return generator.generate_report(config, output_dir, export_format)
-        except Exception as e:
-            logger.error(f"生成考勤汇总表失败: {str(e)}")
+            logger.error(f"生成报表失败: {str(e)}")
             raise
     
     async def _create_archive(

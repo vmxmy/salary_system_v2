@@ -3,8 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { Space } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 
-import StandardListPageTemplate, { QueryParams } from '../../components/common/StandardListPageTemplate';
+import StandardListPageTemplate from '../../components/common/StandardListPageTemplate';
 import type { Role } from '../../api/types';
+
+// 查询参数接口
+interface QueryParams {
+  filters?: Record<string, any>;
+  sorting?: Array<{ field: string; direction: 'asc' | 'desc' }>;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
 import { getRoles, deleteRole } from '../../api/roles';
 import PermissionGuard from '../../components/common/PermissionGuard';
 import { stringSorter, numberSorter, useTableSearch } from '../../components/common/TableUtils';

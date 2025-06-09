@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getPayrollComponentDefinitions } from '../services/payrollConfigService';
 import type { PayrollComponentDefinition, ApiListResponse } from '../pages/Payroll/types/payrollTypes';
 import type { RootState } from './index'; // Import RootState for selectors

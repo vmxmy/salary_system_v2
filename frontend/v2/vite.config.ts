@@ -77,10 +77,7 @@ export default defineConfig({
         },
         
         // 文件命名策略
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId
-            ? chunkInfo.facadeModuleId.split('/').pop()?.replace(/\.\w+$/, '')
-            : 'chunk';
+        chunkFileNames: () => {
           return `assets/[name]-[hash].js`;
         },
         

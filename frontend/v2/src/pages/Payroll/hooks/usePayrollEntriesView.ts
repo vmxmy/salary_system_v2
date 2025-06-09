@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { payrollViewsApi, PayrollEntryDetailedView } from '../services/payrollViewsApi';
+import { payrollViewsApi } from '../services/payrollViewsApi';
+import type { PayrollEntryDetailedView } from '../services/payrollViewsApi';
 import type { TFunction } from 'i18next';
 
 interface UsePayrollEntriesViewOptions {

@@ -65,24 +65,32 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
   const { data: reportTypesData, isLoading: reportTypesLoading } = useQuery({
     queryKey: ['batchReportTypes'],
     queryFn: () => reportConfigApi.getBatchReportTypes(),
+    staleTime: 5 * 60 * 1000, // 🚀 数据5分钟内不会过期
+    cacheTime: 10 * 60 * 1000, // 缓存10分钟
   });
 
   // 获取配置预设
   const { data: presetsData, isLoading: presetsLoading } = useQuery({
     queryKey: ['batchReportPresets'],
     queryFn: () => reportConfigApi.getBatchReportPresets(),
+    staleTime: 5 * 60 * 1000, // 🚀 数据5分钟内不会过期
+    cacheTime: 10 * 60 * 1000, // 缓存10分钟
   });
 
   // 获取薪资周期
   const { data: periodsData, isLoading: periodsLoading } = useQuery({
     queryKey: ['batchReportPayrollPeriods'],
     queryFn: getBatchReportPayrollPeriods,
+    staleTime: 2 * 60 * 1000, // 🚀 薪资周期2分钟内不会过期
+    cacheTime: 5 * 60 * 1000, // 缓存5分钟
   });
 
   // 获取部门列表
   const { data: departmentsData, isLoading: departmentsLoading } = useQuery({
     queryKey: ['batchReportDepartments'],
     queryFn: getBatchReportDepartments,
+    staleTime: 3 * 60 * 1000, // 🚀 部门数据3分钟内不会过期
+    cacheTime: 10 * 60 * 1000, // 缓存10分钟
   });
 
   // 获取员工列表（根据选中的部门）
