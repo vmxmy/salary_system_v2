@@ -9,17 +9,16 @@ from .report_data_source_crud import ReportDataSourceCRUD
 
 # 数据源细分操作模块（内部使用）
 from .data_source_basic_crud import ReportDataSourceBasicCRUD
-from .data_source_field_operations import ReportDataSourceFieldOperations
+# from .data_source_field_operations import ReportDataSourceFieldOperations  # 已移除字段表
 from .data_source_connection import ReportDataSourceConnection
-from .report_data_source_field_crud import ReportDataSourceFieldCRUD
+# from .report_data_source_field_crud import ReportDataSourceFieldCRUD  # 已移除字段表
 
 # 其他CRUD操作
 from .report_calculated_field_crud import ReportCalculatedFieldCRUD
 from .report_template_crud import ReportTemplateCRUD
 from .report_template_field_crud import ReportTemplateFieldCRUD
 from .report_execution_crud import ReportExecutionCRUD
-from .report_view_crud import ReportViewCRUD
-from .report_view_execution_crud import ReportViewExecutionCRUD
+
 
 # 数据源统计和预览功能
 from .data_source_statistics import ReportDataSourceStatistics
@@ -59,17 +58,16 @@ __all__ = [
     
     # 数据源细分模块（内部使用）
     'ReportDataSourceBasicCRUD',
-    'ReportDataSourceFieldOperations', 
+    # 'ReportDataSourceFieldOperations',  # 已移除字段表 
     'ReportDataSourceConnection',
-    'ReportDataSourceFieldCRUD',
+    # 'ReportDataSourceFieldCRUD',  # 已移除字段表
     
     # 其他CRUD
     'ReportCalculatedFieldCRUD',
     'ReportTemplateCRUD',
     'ReportTemplateFieldCRUD',
     'ReportExecutionCRUD',
-    'ReportViewCRUD',
-    'ReportViewExecutionCRUD',
+
     
     # 数据源高级功能
     'ReportDataSourceStatistics',

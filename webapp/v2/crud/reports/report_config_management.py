@@ -10,7 +10,8 @@ from datetime import datetime
 from ...models.reports import (
     ReportTypeDefinition, 
     ReportFieldDefinition, 
-    ReportConfigPreset
+    ReportConfigPreset,
+    ReportDataSource
 )
 from ...pydantic_models.reports import (
     ReportTypeDefinitionCreate,
@@ -52,7 +53,11 @@ def get_report_type_definitions(
     Returns:
         (报表类型定义列表, 总数)
     """
-    query = db.query(ReportTypeDefinition)
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(ReportTypeDefinition).options(
+        joinedload(ReportTypeDefinition.data_source)
+    )
     
     # 筛选条件
     filters = []
@@ -105,14 +110,16 @@ def get_report_type_definition(
     Returns:
         报表类型定义或None
     """
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(ReportTypeDefinition).options(
+        joinedload(ReportTypeDefinition.data_source)
+    )
+    
     if definition_id:
-        return db.query(ReportTypeDefinition).filter(
-            ReportTypeDefinition.id == definition_id
-        ).first()
+        return query.filter(ReportTypeDefinition.id == definition_id).first()
     elif code:
-        return db.query(ReportTypeDefinition).filter(
-            ReportTypeDefinition.code == code
-        ).first()
+        return query.filter(ReportTypeDefinition.code == code).first()
     return None
 
 
@@ -197,22 +204,39 @@ def delete_report_type_definition(
         
     Returns:
         是否删除成功
+        
+    Raises:
+        ValueError: 当尝试删除系统内置类型时
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"🗑️ 尝试删除报表类型定义 ID: {definition_id}")
+    
     db_definition = db.query(ReportTypeDefinition).filter(
         ReportTypeDefinition.id == definition_id
     ).first()
     
     if not db_definition:
+        logger.warning(f"❌ 报表类型定义不存在 ID: {definition_id}")
         return False
     
     # 检查是否为系统内置
     if db_definition.is_system:
-        return False
+        logger.warning(f"❌ 尝试删除系统内置报表类型: {db_definition.code}")
+        raise ValueError(f"系统内置报表类型 '{db_definition.name}' 无法删除")
     
-    db.delete(db_definition)
-    db.commit()
+    logger.info(f"✅ 删除报表类型定义: {db_definition.code} - {db_definition.name}")
     
-    return True
+    try:
+        db.delete(db_definition)
+        db.commit()
+        logger.info(f"✅ 成功删除报表类型定义 ID: {definition_id}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ 删除报表类型定义失败 ID: {definition_id}, 错误: {str(e)}")
+        db.rollback()
+        raise e
 
 
 # ==================== 报表字段定义 CRUD ====================

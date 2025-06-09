@@ -12,6 +12,14 @@ from sqlalchemy.orm import Session
 from ..crud import batch_reports as crud_batch_reports
 from ..models.reports import BatchReportTask, BatchReportTaskItem
 from ..pydantic_models.reports import BatchReportTaskItemUpdate, ReportFileManagerCreate
+from .report_generators import (
+    PayrollSummaryGenerator,
+    PayrollDetailGenerator,
+    DepartmentSummaryGenerator,
+    TaxDeclarationGenerator,
+    SocialInsuranceGenerator,
+    AttendanceSummaryGenerator
+)
 
 # 设置logger
 logger = logging.getLogger(__name__)
@@ -233,20 +241,12 @@ class BatchReportService:
         export_format: str
     ) -> str:
         """生成薪资汇总表"""
-        period_id = config.get("period_id")
-        department_ids = config.get("department_ids", [])
-        employee_ids = config.get("employee_ids", [])
-        
-        # 调用薪资报表服务生成报表
-        file_name = f"薪资汇总表_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format}"
-        file_path = os.path.join(output_dir, file_name)
-        
-        # 这里应该调用实际的报表生成逻辑
-        # 暂时创建一个示例文件
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"薪资汇总表\n期间ID: {period_id}\n部门: {department_ids}\n员工: {employee_ids}\n")
-        
-        return file_path
+        try:
+            generator = PayrollSummaryGenerator(self.db)
+            return generator.generate_report(config, output_dir, export_format)
+        except Exception as e:
+            logger.error(f"生成薪资汇总表失败: {str(e)}")
+            raise
     
     async def _generate_payroll_detail(
         self,
@@ -255,16 +255,12 @@ class BatchReportService:
         export_format: str
     ) -> str:
         """生成薪资明细表"""
-        period_id = config.get("period_id")
-        
-        file_name = f"薪资明细表_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format}"
-        file_path = os.path.join(output_dir, file_name)
-        
-        # 这里应该调用实际的报表生成逻辑
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"薪资明细表\n期间ID: {period_id}\n")
-        
-        return file_path
+        try:
+            generator = PayrollDetailGenerator(self.db)
+            return generator.generate_report(config, output_dir, export_format)
+        except Exception as e:
+            logger.error(f"生成薪资明细表失败: {str(e)}")
+            raise
     
     async def _generate_department_summary(
         self,
@@ -273,16 +269,12 @@ class BatchReportService:
         export_format: str
     ) -> str:
         """生成部门薪资汇总"""
-        period_id = config.get("period_id")
-        department_ids = config.get("department_ids", [])
-        
-        file_name = f"部门薪资汇总_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format}"
-        file_path = os.path.join(output_dir, file_name)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"部门薪资汇总\n期间ID: {period_id}\n部门: {department_ids}\n")
-        
-        return file_path
+        try:
+            generator = DepartmentSummaryGenerator(self.db)
+            return generator.generate_report(config, output_dir, export_format)
+        except Exception as e:
+            logger.error(f"生成部门薪资汇总失败: {str(e)}")
+            raise
     
     async def _generate_tax_report(
         self,
@@ -291,15 +283,12 @@ class BatchReportService:
         export_format: str
     ) -> str:
         """生成个税申报表"""
-        period_id = config.get("period_id")
-        
-        file_name = f"个税申报表_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format}"
-        file_path = os.path.join(output_dir, file_name)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"个税申报表\n期间ID: {period_id}\n")
-        
-        return file_path
+        try:
+            generator = TaxDeclarationGenerator(self.db)
+            return generator.generate_report(config, output_dir, export_format)
+        except Exception as e:
+            logger.error(f"生成个税申报表失败: {str(e)}")
+            raise
     
     async def _generate_social_insurance_report(
         self,
@@ -308,15 +297,12 @@ class BatchReportService:
         export_format: str
     ) -> str:
         """生成社保缴费表"""
-        period_id = config.get("period_id")
-        
-        file_name = f"社保缴费表_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format}"
-        file_path = os.path.join(output_dir, file_name)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"社保缴费表\n期间ID: {period_id}\n")
-        
-        return file_path
+        try:
+            generator = SocialInsuranceGenerator(self.db)
+            return generator.generate_report(config, output_dir, export_format)
+        except Exception as e:
+            logger.error(f"生成社保缴费表失败: {str(e)}")
+            raise
     
     async def _generate_attendance_summary(
         self,
@@ -325,15 +311,12 @@ class BatchReportService:
         export_format: str
     ) -> str:
         """生成考勤汇总表"""
-        period_id = config.get("period_id")
-        
-        file_name = f"考勤汇总表_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format}"
-        file_path = os.path.join(output_dir, file_name)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"考勤汇总表\n期间ID: {period_id}\n")
-        
-        return file_path
+        try:
+            generator = AttendanceSummaryGenerator(self.db)
+            return generator.generate_report(config, output_dir, export_format)
+        except Exception as e:
+            logger.error(f"生成考勤汇总表失败: {str(e)}")
+            raise
     
     async def _create_archive(
         self,

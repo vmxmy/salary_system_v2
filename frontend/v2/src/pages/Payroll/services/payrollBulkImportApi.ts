@@ -348,13 +348,14 @@ export const executeBulkImport = async (
 };
 
 /**
- * 获取活跃的薪资组件定义
+ * 获取活跃的薪资组件定义 - 🚀 使用优化接口
  * @returns 薪资组件定义列表
  */
 export const getActivePayrollComponents = async (): Promise<PayrollComponentDefinition[]> => {
   try {
+    // 🚀 优先使用高性能优化接口
     const response = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>(
-      '/config/payroll-component-definitions',
+      '/views-optimized/payroll-component-definitions',
       {
         params: {
           is_active: true,
@@ -365,8 +366,25 @@ export const getActivePayrollComponents = async (): Promise<PayrollComponentDefi
     
     return response.data.data;
   } catch (error: any) {
-    console.error('❌ 获取薪资组件定义失败:', error);
-    throw new Error(`获取薪资组件定义失败: ${error.response?.data?.detail?.error?.message || error.message}`);
+    console.warn('⚠️ 优化接口失败，降级到原接口:', error.message);
+    
+    // 降级到原接口
+    try {
+      const fallbackResponse = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>(
+        '/views-optimized/payroll-component-definitions',
+        {
+          params: {
+            is_active: true,
+            size: 100
+          }
+        }
+      );
+      
+      return fallbackResponse.data.data;
+    } catch (fallbackError: any) {
+      console.error('❌ 获取薪资组件定义失败:', fallbackError);
+      throw new Error(`获取薪资组件定义失败: ${fallbackError.response?.data?.detail?.error?.message || fallbackError.message}`);
+    }
   }
 };
 

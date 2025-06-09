@@ -1,7 +1,8 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
-from ...models.reports import ReportDataSource, ReportDataSourceField
+from ...models.reports import ReportDataSource
+# ReportDataSourceField 已移除，改为动态获取字段
 from ...pydantic_models.reports import (
     ReportDataSourceCreate, ReportDataSourceUpdate,
     DataSourceFieldDetection, DetectedField,
@@ -23,6 +24,10 @@ def _detect_fields_logic(db: Session, detection: DataSourceFieldDetection) -> Li
         table_name = detection.table_name or detection.view_name
         if not table_name:
             raise ValueError("Table name or view name is required")
+        
+        # 特殊处理：如果是 v_comprehensive_employee_payroll 视图，使用中文字段别名
+        if table_name == 'v_comprehensive_employee_payroll' and detection.schema_name == 'reports':
+            return _detect_comprehensive_payroll_fields(db)
         
         table_exists_query = text("""
             SELECT COUNT(*) as table_count
@@ -110,6 +115,65 @@ def _detect_fields_logic(db: Session, detection: DataSourceFieldDetection) -> Li
             
     except Exception as e:
         logger.error(f"Failed to detect fields for {detection.schema_name}.{table_name}: {str(e)}")
+        raise e
+
+
+def _detect_comprehensive_payroll_fields(db: Session) -> List[DetectedField]:
+    """专门处理 v_comprehensive_employee_payroll 视图的字段检测，返回中文字段别名"""
+    try:
+        # 从视图中获取实际的字段信息（包括中文别名）
+        sql = text("""
+            SELECT 
+                column_name,
+                data_type,
+                is_nullable,
+                column_default,
+                character_maximum_length,
+                numeric_precision,
+                numeric_scale,
+                COALESCE(col_description(pgc.oid, cols.ordinal_position), '') as column_comment
+            FROM information_schema.columns cols
+            LEFT JOIN pg_class pgc ON pgc.relname = cols.table_name
+            LEFT JOIN pg_namespace pgn ON pgn.oid = pgc.relnamespace AND pgn.nspname = cols.table_schema
+            WHERE cols.table_name = 'v_comprehensive_employee_payroll'
+            AND cols.table_schema = 'reports'
+            ORDER BY cols.ordinal_position
+        """)
+        
+        result = db.execute(sql)
+        
+        detected_fields = []
+        for row in result:
+            field_type = row.data_type.upper()
+            if row.character_maximum_length:
+                field_type += f"({row.character_maximum_length})"
+            elif row.numeric_precision and row.numeric_scale:
+                field_type += f"({row.numeric_precision},{row.numeric_scale})"
+            elif row.numeric_precision:
+                field_type += f"({row.numeric_precision})"
+            
+            # 使用中文字段名作为显示名称
+            field_name = row.column_name
+            display_name = field_name  # 现在字段名本身就是中文
+            
+            detected_fields.append(DetectedField(
+                field_name=field_name,
+                field_type=field_type,
+                data_type=row.data_type,
+                is_nullable=row.is_nullable == 'YES',
+                is_primary_key=False,
+                is_foreign_key=False,
+                is_indexed=False,
+                comment=f"中文字段：{display_name}",
+                display_name_zh=display_name,
+                display_name_en=field_name  # 对于中文字段，英文名称就是字段名本身
+            ))
+        
+        logger.info(f"检测到 v_comprehensive_employee_payroll 视图的 {len(detected_fields)} 个中文字段")
+        return detected_fields
+        
+    except Exception as e:
+        logger.error(f"检测 v_comprehensive_employee_payroll 视图字段失败: {str(e)}")
         raise e
 
 def _test_connection_logic(db: Session, connection_test: DataSourceConnectionTest) -> DataSourceConnectionTestResponse:

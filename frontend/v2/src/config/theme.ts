@@ -141,20 +141,20 @@ export const responsiveConfig = {
   // ProLayout 响应式设置
   proLayoutResponsive: {
     xs: {
-      siderWidth: 208, // 移动端也显示侧边栏
-      collapsed: false, // 移动端也默认展开
+      siderWidth: 208, // 移动端侧边栏宽度
+      collapsed: true, // 移动端默认收起
     },
     sm: {
-      siderWidth: 208, // 小屏缩小侧边栏
-      collapsed: false,
+      siderWidth: 208, // 小屏侧边栏宽度
+      collapsed: true, // 小屏默认收起
     },
     md: {
-      siderWidth: 256, // 中屏正常侧边栏
-      collapsed: false,
+      siderWidth: 256, // 中屏侧边栏宽度
+      collapsed: true, // 中屏默认收起
     },
     lg: {
-      siderWidth: 256, // 大屏正常侧边栏
-      collapsed: false,
+      siderWidth: 256, // 大屏侧边栏宽度
+      collapsed: true, // 大屏默认收起
     },
   },
 };

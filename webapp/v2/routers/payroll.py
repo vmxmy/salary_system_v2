@@ -1156,6 +1156,63 @@ def get_payroll_component_definition(
         db=db
     )
 
+
+@router.get(
+    "/view-fields",
+    summary="获取薪资视图字段信息",
+    description="动态获取 v_comprehensive_employee_payroll 视图的所有字段信息"
+)
+def get_payroll_view_fields(
+    current_user = Depends(require_permissions(["payroll_entry:view"])),
+    db: Session = Depends(get_db_v2)
+):
+    """
+    动态获取薪资视图的所有字段信息
+    
+    返回格式：
+    {
+        "all_fields": ["字段1", "字段2", ...],
+        "default_fields": ["默认字段1", "默认字段2", ...],
+        "field_details": [
+            {
+                "name": "字段名",
+                "type": "数据类型",
+                "nullable": true/false,
+                "position": 1
+            },
+            ...
+        ]
+    }
+    """
+    try:
+        from ..services.payroll import PayrollEntriesViewService
+        
+        # 创建服务实例
+        payroll_service = PayrollEntriesViewService(db)
+        
+        # 获取字段信息
+        field_details = payroll_service.get_view_columns()
+        all_fields = payroll_service.get_all_available_fields()
+        default_fields = [field.split(' as ')[0] for field in payroll_service.default_fields]
+        
+        return {
+            "all_fields": all_fields,
+            "default_fields": default_fields,
+            "field_details": field_details,
+            "view_name": "v_comprehensive_employee_payroll"
+        }
+        
+    except Exception as e:
+        logger.error(f"获取视图字段信息失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取视图字段信息失败",
+                details=str(e)
+            )
+        )
+
 @router.post(
     "/payroll-component-definitions",
     response_model=DataResponse[PayrollComponentDefinition],

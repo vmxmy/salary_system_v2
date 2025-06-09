@@ -320,12 +320,21 @@ export const simplePayrollApi = {
   // ===================== 通用功能 =====================
 
   /**
-   * 获取部门列表
+   * 获取部门列表 - 🚀 使用优化接口
    */
   getDepartments: async (): Promise<ApiResponse<Array<{id: number; name: string; code: string}>>> => {
-    const response = await apiClient.get(`${API_BASE}/departments`);
-    logResponse(response);
-    return response.data;
+    try {
+      // 🚀 优先使用高性能优化接口
+      const response = await apiClient.get(`/views-optimized/departments`);
+      logResponse(response);
+      return response.data;
+    } catch (error) {
+      console.warn('⚠️ 优化部门接口失败，降级到原接口:', error);
+      // 降级到原接口
+      const response = await apiClient.get(`${API_BASE}/departments`);
+      logResponse(response);
+      return response.data;
+    }
   },
 
   /**
@@ -403,12 +412,21 @@ export const simplePayrollApi = {
   },
 
   /**
-   * 获取人员类别列表
+   * 获取人员类别列表 - 🚀 使用优化接口
    */
   getPersonnelCategories: async (): Promise<ApiResponse<Array<{id: number; name: string; code: string}>>> => {
-    const response = await apiClient.get(`${API_BASE}/personnel-categories`);
-    logResponse(response);
-    return response.data;
+    try {
+      // 🚀 优先使用高性能优化接口
+      const response = await apiClient.get(`/views-optimized/personnel-categories`);
+      logResponse(response);
+      return response.data;
+    } catch (error) {
+      console.warn('⚠️ 优化人员类别接口失败，降级到原接口:', error);
+      // 降级到原接口
+      const response = await apiClient.get(`${API_BASE}/personnel-categories`);
+      logResponse(response);
+      return response.data;
+    }
   },
 
   /**

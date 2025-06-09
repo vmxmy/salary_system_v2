@@ -9,35 +9,14 @@ import type {
   ReportFieldDefinition,
   ReportFieldDefinitionCreate,
   ReportFieldDefinitionUpdate,
+  DataSource,
+  DataSourceField,
 } from '../types/reportConfig';
 
-// 数据源相关类型
-export interface DataSource {
-  id: number;
-  name: string;
-  code: string;
-  description?: string;
-  schema_name: string;
-  table_name?: string;
-  view_name?: string;
-  source_type: string;
-  is_active: boolean;
-  fields?: DataSourceField[];
-}
+// Re-export types for convenience
+export type { DataSource, DataSourceField } from '../types/reportConfig';
 
-export interface DataSourceField {
-  id: number;
-  field_name: string;
-  field_alias?: string;
-  field_type: string;
-  data_type?: string;
-  display_name_zh?: string;
-  display_name_en?: string;
-  description?: string;
-  is_visible: boolean;
-  is_sortable: boolean;
-  is_filterable: boolean;
-}
+// Define and export interfaces for better type safety across the app
 
 // 报表类型定义相关API
 export const reportConfigApi = {
@@ -46,16 +25,7 @@ export const reportConfigApi = {
   /**
    * 获取报表类型定义列表
    */
-  getReportTypes: async (params?: {
-    skip?: number;
-    limit?: number;
-    category?: string;
-    is_active?: boolean;
-    is_system?: boolean;
-    search?: string;
-    sort_by?: string;
-    sort_order?: string;
-  }): Promise<ReportTypeDefinition[]> => {
+  getReportTypes: async (params: { search?: string }): Promise<ReportTypeDefinition[]> => {
     const response = await apiClient.get('/report-config/types', { params });
     return response.data;
   },
@@ -131,6 +101,34 @@ export const reportConfigApi = {
     await apiClient.delete(`/report-config/fields/${fieldId}`);
   },
 
+  /**
+   * 获取报表类型数据预览
+   */
+  getReportTypePreview: async (typeId: number, params?: {
+    skip?: number;
+    limit?: number;
+    [key: string]: any;
+  }): Promise<{ items: any[]; total: number; fields: ReportFieldDefinition[] }> => {
+    const response = await apiClient.get(`/report-config/types/${typeId}/preview`, { params });
+    return response.data;
+  },
+
+  /**
+   * 获取报表类型可用字段列表（基于报表类型配置的data_source_id和fields）
+   */
+  getReportTypeAvailableFields: async (typeId: number): Promise<{
+    report_type_id: number;
+    report_type_name: string;
+    data_source_id: number;
+    configured_fields: string;
+    total_available_fields: number;
+    total_selected_fields: number;
+    fields: DataSourceField[];
+  }> => {
+    const response = await apiClient.get(`/report-config/types/${typeId}/available-fields`);
+    return response.data;
+  },
+
   // ==================== 数据源管理 ====================
 
   /**
@@ -148,10 +146,55 @@ export const reportConfigApi = {
   },
 
   /**
+   * 获取数据源详情
+   */
+  getDataSource: async (id: number): Promise<DataSource> => {
+    const response = await apiClient.get(`/report-config/data-sources/${id}`);
+    return response.data;
+  },
+
+  /**
    * 获取数据源字段列表
    */
   getDataSourceFields: async (dataSourceId: number): Promise<DataSourceField[]> => {
     const response = await apiClient.get(`/report-config/data-sources/${dataSourceId}/fields`);
+    return response.data;
+  },
+
+  getDataSourcePreview: async (dataSourceId: number, params: { skip?: number; limit?: number; [key: string]: any }): Promise<{ items: any[]; total: number }> => {
+    const response = await apiClient.get(`/report-config/data-sources/${dataSourceId}/preview`, { params });
+    return response.data;
+  },
+
+  /**
+   * 创建数据源
+   */
+  createDataSource: async (data: any): Promise<DataSource> => {
+    const response = await apiClient.post('/report-config/data-sources', data);
+    return response.data;
+  },
+
+  /**
+   * 更新数据源
+   */
+  updateDataSource: async (id: number, data: any): Promise<DataSource> => {
+    const response = await apiClient.put(`/report-config/data-sources/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * 删除数据源
+   */
+  deleteDataSource: async (id: number): Promise<{ message: string }> => {
+    const response = await apiClient.delete(`/report-config/data-sources/${id}`);
+    return response.data;
+  },
+
+  /**
+   * 同步数据源字段
+   */
+  syncDataSourceFields: async (dataSourceId: number): Promise<DataSourceField[]> => {
+    const response = await apiClient.post(`/report-config/data-sources/${dataSourceId}/sync-fields`);
     return response.data;
   },
 

@@ -216,7 +216,8 @@ export const employeeService = {
 
   async getDepartmentsLookup(): Promise<Department[]> {
     try {
-      const response = await apiClient.get<{ data: Department[], meta?: any }>('/departments');
+      // 🚀 优先使用高性能优化接口
+      const response = await apiClient.get<{ data: Department[], meta?: any }>('/views-optimized/departments');
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
       } else if (Array.isArray(response.data)) {
@@ -224,7 +225,21 @@ export const employeeService = {
       }
       return [];
     } catch (error) {
-      return [];
+      console.warn('⚠️ 优化部门接口失败，降级到原接口:', error);
+      
+      // 降级到原接口
+      try {
+        const fallbackResponse = await apiClient.get<{ data: Department[], meta?: any }>('/views-optimized/departments');
+        if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+          return fallbackResponse.data.data;
+        } else if (Array.isArray(fallbackResponse.data)) {
+          return fallbackResponse.data as Department[];
+        }
+        return [];
+      } catch (fallbackError) {
+        console.error('❌ 所有部门接口都失败:', fallbackError);
+        return [];
+      }
     }
   },
 
@@ -232,7 +247,7 @@ export const employeeService = {
   async getPersonnelCategoriesLookup(departmentId?: string): Promise<PersonnelCategory[]> {
     try {
       const queryString = departmentId ? buildQueryParams({ department_id: departmentId }) : '';
-      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>(`/personnel-categories${queryString}`);
+      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>(`/views-optimized/personnel-categories${queryString}`);
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
       } else {

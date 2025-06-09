@@ -67,7 +67,7 @@ const { Text } = Typography;
 const MainLayout: React.FC = () => {
   const { t, i18n, ready } = useTranslation(['common', 'menu']);
 
-  const [collapsed, setCollapsed] = useState(false); // 侧边栏默认展开
+  const [collapsed, setCollapsed] = useState(true); // 侧边栏默认收起
   const [openKeys, setOpenKeys] = useState<string[]>([]); // 添加openKeys状态
   const navigate = useNavigate();
   const location = useLocation();
@@ -265,6 +265,7 @@ const MainLayout: React.FC = () => {
       { key: '/admin/users', label: <Link to="/admin/users">{t('menu:admin.users')}</Link>, icon: <TeamOutlined /> },
       { key: '/admin/roles', label: <Link to="/admin/roles">{t('menu:admin.roles')}</Link>, icon: <UserSwitchOutlined /> },
       { key: '/admin/config', label: <Link to="/admin/config">{t('menu:admin.systemSettings')}</Link>, icon: <ControlOutlined /> },
+      { key: '/admin/report-config', label: <Link to="/admin/report-config">{t('menu:admin.reportConfig')}</Link>, icon: <SettingOutlined /> },
     ];
     if (hasRole('SUPER_ADMIN')) {
       const permissionsLink = {
@@ -370,7 +371,15 @@ const MainLayout: React.FC = () => {
       label: <Link to="/dashboard" id="tour-dashboard-link">{t('menu:dashboard', { defaultValue: 'Dashboard' })}</Link>,
     });
 
-    // 2. 个人中心 - 个人功能
+    // 2. 报表管理 - 第二个入口
+    // 临时移除权限检查，直接显示菜单项
+    coreBusinessItems.push({
+      key: '/admin/report-config',
+      icon: <BarChartOutlined />,
+      label: <Link to="/admin/report-config">{t('menu:admin.reportConfig', { defaultValue: 'Report Management' })}</Link>,
+    });
+
+    // 3. 个人中心 - 个人功能
     coreBusinessItems.push({
       key: '/personal',
       icon: <SolutionOutlined />,
@@ -394,21 +403,7 @@ const MainLayout: React.FC = () => {
       ],
     });
 
-    // 3. 视图报表 - 独立的报表管理功能
-    if (hasPermission('report:view_reports')) {
-      coreBusinessItems.push({
-        key: '/view-reports',
-        label: <span>{t('menu:viewReports.title', { defaultValue: 'View Reports' })}</span>,
-        icon: <EyeOutlined />,
-        children: [
-          {
-            key: '/view-reports/management',
-            label: <Link to="/view-reports/management">{t('menu:viewReports.management', { defaultValue: 'Report Management' })}</Link>,
-            icon: <EyeOutlined />,
-          },
-        ],
-      });
-    }
+
 
     // 4. 薪资管理 - 核心业务功能
     const currentPayrollManagementChildren = [];
@@ -506,7 +501,7 @@ const MainLayout: React.FC = () => {
       icon: <SettingOutlined />,
       children: adminChildren,
     };
-    if (hasRole('admin') || hasRole('SUPER_ADMIN')) {
+    if (hasRole('SUPER_ADMIN')) {
       systemConfigItems.push(adminMenuItem);
     }
 
@@ -530,6 +525,8 @@ const MainLayout: React.FC = () => {
       ...managementItems,        // 管理功能其次
       ...systemConfigItems,      // 系统配置最后
     ];
+
+
 
     return finalItems;
   }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, organizationMenuItem, t, ready, testChildren, i18n.language]); // Added i18n.language

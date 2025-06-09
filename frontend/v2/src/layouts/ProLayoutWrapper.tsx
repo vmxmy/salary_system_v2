@@ -167,15 +167,15 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
   const currentUser = useSelector((state: RootState) => state.auth.currentUser);
   
-  const [collapsed, setCollapsed] = useState(true); // 默认折叠侧边栏
+  const [collapsed, setCollapsed] = useState(true); // 默认收起侧边栏
   const [themeMode, setThemeMode] = useState<ThemeMode>('light');
   const [layoutSettings, setLayoutSettings] = useState(defaultProLayoutSettings);
   const [logoError, setLogoError] = useState(false);
 
   // 📱 响应式侧边栏控制
   useEffect(() => {
-    // 在小屏幕（md以下）自动收起侧边栏
-    const shouldCollapse = !screens.md;
+    // 在小屏幕（md以下）自动收起侧边栏，大屏幕也默认收起
+    const shouldCollapse = !screens.md || true; // 始终保持收起状态
     setCollapsed(shouldCollapse);
   }, [screens]);
 

@@ -487,6 +487,150 @@ const SimplePayrollPage: React.FC = () => {
           </div>
         ) : (
           <Row gutter={[24, 24]}>
+            {/* Statistics Card - Full Width - Only show when version is selected */}
+            {selectedVersionId && (
+              <Col span={24}>
+                <StatisticCard.Group
+                  title={
+                    <Space>
+                      <DollarOutlined />
+                      <span className="typography-title-tertiary">{currentPeriod?.name || ''} 工资统计概览</span>
+                    </Space>
+                  }
+                  extra={
+                    process.env.NODE_ENV === 'development' && payrollStats.loading ? (
+                      <Button 
+                        size="small" 
+                        type="link" 
+                        onClick={resetLoadingStates}
+                        style={{ color: '#ff4d4f' }}
+                      >
+                        重置加载状态
+                      </Button>
+                    ) : null
+                  }
+                  loading={payrollStats.loading}
+                >
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={6}>
+                      <StatisticCard
+                        statistic={{
+                          title: '基础信息',
+                          value: payrollStats.recordCount,
+                          suffix: '人',
+                          valueStyle: { color: '#1890ff' }
+                        }}
+                        chart={
+                          <div style={{ padding: '8px 0' }}>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              期间: {currentPeriod?.name || '-'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              状态: <span style={{ color: '#52c41a' }}>{currentPeriod?.status_name || '-'}</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              版本: v{currentVersion?.version_number || '-'} ({versions.length}个)
+                            </div>
+                          </div>
+                        }
+                      />
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <StatisticCard
+                        statistic={{
+                          title: '财务信息',
+                          value: payrollStats.totalNetPay,
+                          precision: 2,
+                          prefix: '¥',
+                          valueStyle: { color: '#52c41a' }
+                        }}
+                        chart={
+                          <div style={{ padding: '8px 0' }}>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              应发: <span style={{ color: '#52c41a' }}>¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              扣发: <span style={{ color: '#ff4d4f' }}>¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              人均: ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
+                            </div>
+                          </div>
+                        }
+                      />
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <StatisticCard
+                        statistic={{
+                          title: '版本状态',
+                          value: currentVersion?.status_name || '-',
+                          valueStyle: { 
+                            color: 
+                              currentVersion?.status_name === '草稿' ? '#fa8c16' :
+                              currentVersion?.status_name === '已计算' ? '#1890ff' :
+                              currentVersion?.status_name === '已审核' ? '#52c41a' :
+                              currentVersion?.status_name === '已支付' ? '#722ed1' :
+                              '#8c8c8c'
+                          }
+                        }}
+                        chart={
+                          <div style={{ padding: '8px 0' }}>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              创建: {currentVersion ? dayjs(currentVersion.initiated_at).format('MM-DD HH:mm') : '-'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              创建人: {currentVersion?.initiated_by_username || '-'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              频率: {currentPeriod?.frequency_name || '-'}
+                            </div>
+                          </div>
+                        }
+                      />
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <StatisticCard
+                        statistic={{
+                          title: '审核状态',
+                          value: auditSummary ? (
+                            auditSummary.total_anomalies > 0 ? '有异常' : '通过'
+                          ) : (auditLoading ? '检查中' : '待审核'),
+                          valueStyle: { 
+                            color: auditSummary ? (
+                              auditSummary.total_anomalies > 0 ? '#ff4d4f' : '#52c41a'
+                            ) : (auditLoading ? '#1890ff' : '#fa8c16')
+                          }
+                        }}
+                        chart={
+                          <div style={{ padding: '8px 0' }}>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              错误: <span style={{ color: (auditSummary?.error_count || 0) > 0 ? '#ff4d4f' : '#52c41a' }}>
+                                {auditSummary?.error_count || 0} 个
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                              警告: <span style={{ color: (auditSummary?.warning_count || 0) > 0 ? '#fa8c16' : '#52c41a' }}>
+                                {auditSummary?.warning_count || 0} 个
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              可修复: <span style={{ color: (auditSummary?.auto_fixable_count || 0) > 0 ? '#1890ff' : '#52c41a' }}>
+                                {auditSummary?.auto_fixable_count || 0} 个
+                              </span>
+                            </div>
+                          </div>
+                        }
+                      />
+                    </Col>
+                  </Row>
+                </StatisticCard.Group>
+              </Col>
+            )}
+
             {/* 左列：控制面板和快捷操作 */}
             <Col xs={24} sm={24} md={12} lg={8} xl={8}>
               {/* 核心控制 */}
@@ -570,150 +714,6 @@ const SimplePayrollPage: React.FC = () => {
                 </Card>
               ) : (
                 <Row gutter={[24, 24]}>
-                  {/* Statistics Card - Only show when version is selected */}
-                  {selectedVersionId && (
-                    <Col span={24}>
-                      <StatisticCard.Group
-                        title={
-                          <Space>
-                            <DollarOutlined />
-                            <span className="typography-title-tertiary">{currentPeriod?.name || ''} 工资统计概览</span>
-                          </Space>
-                        }
-                        extra={
-                          process.env.NODE_ENV === 'development' && payrollStats.loading ? (
-                            <Button 
-                              size="small" 
-                              type="link" 
-                              onClick={resetLoadingStates}
-                              style={{ color: '#ff4d4f' }}
-                            >
-                              重置加载状态
-                            </Button>
-                          ) : null
-                        }
-                        loading={payrollStats.loading}
-                      >
-                        <Row gutter={[16, 16]}>
-                          <Col xs={24} sm={12} lg={6}>
-                            <StatisticCard
-                              statistic={{
-                                title: '基础信息',
-                                value: payrollStats.recordCount,
-                                suffix: '人',
-                                valueStyle: { color: '#1890ff' }
-                              }}
-                              chart={
-                                <div style={{ padding: '8px 0' }}>
-                                  <Divider style={{ margin: '8px 0' }} />
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    期间: {currentPeriod?.name || '-'}
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    状态: <span style={{ color: '#52c41a' }}>{currentPeriod?.status_name || '-'}</span>
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666' }}>
-                                    版本: v{currentVersion?.version_number || '-'} ({versions.length}个)
-                                  </div>
-                                </div>
-                              }
-                            />
-                          </Col>
-                          <Col xs={24} sm={12} lg={6}>
-                            <StatisticCard
-                              statistic={{
-                                title: '财务信息',
-                                value: payrollStats.totalNetPay,
-                                precision: 2,
-                                prefix: '¥',
-                                valueStyle: { color: '#52c41a' }
-                              }}
-                              chart={
-                                <div style={{ padding: '8px 0' }}>
-                                  <Divider style={{ margin: '8px 0' }} />
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    应发: <span style={{ color: '#52c41a' }}>¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    扣发: <span style={{ color: '#ff4d4f' }}>¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666' }}>
-                                    人均: ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
-                                  </div>
-                                </div>
-                              }
-                            />
-                          </Col>
-                          <Col xs={24} sm={12} lg={6}>
-                            <StatisticCard
-                              statistic={{
-                                title: '版本状态',
-                                value: currentVersion?.status_name || '-',
-                                valueStyle: { 
-                                  color: 
-                                    currentVersion?.status_name === '草稿' ? '#fa8c16' :
-                                    currentVersion?.status_name === '已计算' ? '#1890ff' :
-                                    currentVersion?.status_name === '已审核' ? '#52c41a' :
-                                    currentVersion?.status_name === '已支付' ? '#722ed1' :
-                                    '#8c8c8c'
-                                }
-                              }}
-                              chart={
-                                <div style={{ padding: '8px 0' }}>
-                                  <Divider style={{ margin: '8px 0' }} />
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    创建: {currentVersion ? dayjs(currentVersion.initiated_at).format('MM-DD HH:mm') : '-'}
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    创建人: {currentVersion?.initiated_by_username || '-'}
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666' }}>
-                                    频率: {currentPeriod?.frequency_name || '-'}
-                                  </div>
-                                </div>
-                              }
-                            />
-                          </Col>
-                          <Col xs={24} sm={12} lg={6}>
-                            <StatisticCard
-                              statistic={{
-                                title: '审核状态',
-                                value: auditSummary ? (
-                                  auditSummary.total_anomalies > 0 ? '有异常' : '通过'
-                                ) : (auditLoading ? '检查中' : '待审核'),
-                                valueStyle: { 
-                                  color: auditSummary ? (
-                                    auditSummary.total_anomalies > 0 ? '#ff4d4f' : '#52c41a'
-                                  ) : (auditLoading ? '#1890ff' : '#fa8c16')
-                                }
-                              }}
-                              chart={
-                                <div style={{ padding: '8px 0' }}>
-                                  <Divider style={{ margin: '8px 0' }} />
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    错误: <span style={{ color: (auditSummary?.error_count || 0) > 0 ? '#ff4d4f' : '#52c41a' }}>
-                                      {auditSummary?.error_count || 0} 个
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                    警告: <span style={{ color: (auditSummary?.warning_count || 0) > 0 ? '#fa8c16' : '#52c41a' }}>
-                                      {auditSummary?.warning_count || 0} 个
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: '#666' }}>
-                                    可修复: <span style={{ color: (auditSummary?.auto_fixable_count || 0) > 0 ? '#1890ff' : '#52c41a' }}>
-                                      {auditSummary?.auto_fixable_count || 0} 个
-                                    </span>
-                                  </div>
-                                </div>
-                              }
-                            />
-                          </Col>
-                        </Row>
-                      </StatisticCard.Group>
-                    </Col>
-                  )}
-                  
                   {/* Workflow Guide Card */}
                   <Col span={24}>
                     <EnhancedWorkflowGuide 
@@ -724,8 +724,6 @@ const SimplePayrollPage: React.FC = () => {
                       onDeleteVersion={handleDeleteVersion}
                     />
                   </Col>
-                  
-
                 </Row>
               )}
             </Col>

@@ -149,7 +149,7 @@ export const payrollWorkflowApi = {
    * 获取薪资组件定义（用于数据审核）
    */
   getPayrollComponents: async (): Promise<ApiListResponse<PayrollComponentDefinition>> => {
-    const response = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>('/config/payroll-component-definitions', {
+    const response = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>('/views-optimized/payroll-component-definitions', {
       params: {
         is_active: true,
         size: 100

@@ -13,7 +13,9 @@ import {
   Tooltip,
   Dropdown,
   Menu,
-  Typography
+  Typography,
+  Card,
+  Divider
 } from 'antd';
 import { 
   DownloadOutlined, 
@@ -30,8 +32,9 @@ import {
   type BatchReportTask
 } from '../../../api/batchReports';
 import BatchReportExport from '../../../components/BatchReportExport';
+import styles from '../../../styles/reportConfig.module.css';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const BatchReportsManagement: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -132,7 +135,7 @@ const BatchReportsManagement: React.FC = () => {
       <Menu.Item 
         key="download" 
         icon={<DownloadOutlined />}
-        disabled={record.status !== 'completed'}
+        disabled={record.status !== 'completed' || record.completed_reports === 0}
         onClick={() => handleDownload(record.id)}
       >
         下载文件
@@ -173,7 +176,7 @@ const BatchReportsManagement: React.FC = () => {
       dataIndex: 'progress',
       key: 'progress',
       render: (progress: number, record: BatchReportTask) => (
-        <div style={{ width: 100 }}>
+        <div className={styles.width100}>
           <Progress 
             percent={progress} 
             size="small" 
@@ -218,7 +221,7 @@ const BatchReportsManagement: React.FC = () => {
               type="link"
               size="small"
               icon={<DownloadOutlined />}
-              disabled={record.status !== 'completed'}
+              disabled={record.status !== 'completed' || record.completed_reports === 0}
               onClick={() => handleDownload(record.id)}
             />
           </Tooltip>
@@ -231,55 +234,88 @@ const BatchReportsManagement: React.FC = () => {
   ];
 
   // 统计数据
-  const stats = tasksData?.tasks ? {
-    total: tasksData.tasks.length,
-    pending: tasksData.tasks.filter((t: BatchReportTask) => t.status === 'pending').length,
-    running: tasksData.tasks.filter((t: BatchReportTask) => t.status === 'running').length,
-    completed: tasksData.tasks.filter((t: BatchReportTask) => t.status === 'completed').length,
-    failed: tasksData.tasks.filter((t: BatchReportTask) => t.status === 'failed').length,
+  const stats = tasksData ? {
+    total: tasksData.length,
+    pending: tasksData.filter((t: BatchReportTask) => t.status === 'pending').length,
+    running: tasksData.filter((t: BatchReportTask) => t.status === 'running').length,
+    completed: tasksData.filter((t: BatchReportTask) => t.status === 'completed').length,
+    failed: tasksData.filter((t: BatchReportTask) => t.status === 'failed').length,
   } : { total: 0, pending: 0, running: 0, completed: 0, failed: 0 };
 
   return (
-    <div>
-      {/* 统计信息 */}
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={4}>
-          <Statistic title="总任务数" value={stats.total} />
-        </Col>
-        <Col span={4}>
-          <Statistic title="等待中" value={stats.pending} valueStyle={{ color: '#1890ff' }} />
-        </Col>
-        <Col span={4}>
-          <Statistic title="执行中" value={stats.running} valueStyle={{ color: '#fa8c16' }} />
-        </Col>
-        <Col span={4}>
-          <Statistic title="已完成" value={stats.completed} valueStyle={{ color: '#52c41a' }} />
-        </Col>
-        <Col span={4}>
-          <Statistic title="失败" value={stats.failed} valueStyle={{ color: '#ff4d4f' }} />
-        </Col>
-        <Col span={4} style={{ textAlign: 'right' }}>
-          <Space>
+    <div className={styles.padding24}>
+      <Card>
+        <div className={styles.cardHeader}>
+          <div className={styles.cardTitleRow}>
+            <div className={styles.cardTitleLeft}>
+              <Title level={4} className={styles.cardTitleText}>
+                <ExportOutlined /> 批量报表管理
+              </Title>
+            </div>
+            <div className={styles.cardTitleRight}>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />}
+                onClick={() => setShowExportModal(true)}
+                className={styles.primaryButton}
+              >
+                新建任务
+              </Button>
             <Button 
               icon={<ReloadOutlined />} 
               onClick={() => refetch()}
               loading={isLoading}
+                className={styles.secondaryButton}
             >
               刷新
             </Button>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={() => setShowExportModal(true)}
-            >
-              新建任务
-            </Button>
-          </Space>
+            </div>
+          </div>
+        </div>
+
+        <Divider />
+
+        {/* 统计信息 */}
+        <Row gutter={16} className={styles.marginBottom16}>
+          <Col span={4}>
+            <Statistic title="总任务数" value={stats.total} className={styles.statisticCard} />
+          </Col>
+          <Col span={4}>
+            <Statistic 
+              title="等待中" 
+              value={stats.pending} 
+              valueStyle={{ color: '#1890ff' }}
+              className={styles.statisticCard}
+            />
+          </Col>
+          <Col span={4}>
+            <Statistic 
+              title="执行中" 
+              value={stats.running} 
+              valueStyle={{ color: '#fa8c16' }}
+              className={styles.statisticCard}
+            />
+          </Col>
+          <Col span={4}>
+            <Statistic 
+              title="已完成" 
+              value={stats.completed} 
+              valueStyle={{ color: '#52c41a' }}
+              className={styles.statisticCard}
+            />
+          </Col>
+          <Col span={4}>
+            <Statistic 
+              title="失败" 
+              value={stats.failed} 
+              valueStyle={{ color: '#ff4d4f' }}
+              className={styles.statisticCard}
+            />
         </Col>
       </Row>
 
       {/* 操作栏 */}
-      <div style={{ marginBottom: 16 }}>
+        <div className={styles.marginBottom16}>
         <Space>
           <Button 
             danger
@@ -295,7 +331,7 @@ const BatchReportsManagement: React.FC = () => {
       {/* 任务列表 */}
       <Table
         columns={columns}
-        dataSource={tasksData?.tasks || []}
+        dataSource={tasksData || []}
         rowKey="id"
         loading={isLoading}
         rowSelection={{
@@ -309,6 +345,7 @@ const BatchReportsManagement: React.FC = () => {
           showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
         }}
       />
+      </Card>
 
       {/* 新建任务模态框 */}
       <Modal

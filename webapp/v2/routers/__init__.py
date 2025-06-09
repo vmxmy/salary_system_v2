@@ -16,6 +16,8 @@ from .calculation_config import router as calculation_config_router
 from .payroll_calculation import router as payroll_calculation_router
 from .attendance import router as attendance_router
 from .views import router as views_router
+from .views_optimized import router as views_optimized_router
+from .report_config_management import router as report_config_management_router
 
 __all__ = [
     "employees_router",
@@ -35,4 +37,6 @@ __all__ = [
     "payroll_calculation_router",
     "attendance_router",
     "views_router",
+    "views_optimized_router",
+    "report_config_management_router",
 ]

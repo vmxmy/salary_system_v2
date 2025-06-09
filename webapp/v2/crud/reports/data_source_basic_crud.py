@@ -5,7 +5,7 @@
 
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from ...models.reports import ReportDataSource, ReportDataSourceField
+from ...models.reports import ReportDataSource
 from ...pydantic_models.reports import ReportDataSourceCreate, ReportDataSourceUpdate
 
 
@@ -26,22 +26,15 @@ class ReportDataSourceBasicCRUD:
     def create(db: Session, data_source: ReportDataSourceCreate, user_id: int) -> ReportDataSource:
         """创建数据源"""
         try:
+            # 现在使用动态字段获取，不再需要手动创建字段记录
             db_data_source = ReportDataSource(
-                **data_source.dict(exclude={'fields'}),
-                created_by=user_id
+                **data_source.dict(),
+                created_by=user_id,
+                enable_dynamic_fields=True,  # 默认启用动态字段
+                field_grouping_enabled=True,  # 默认启用字段分组
+                auto_infer_categories=True   # 默认启用自动推断分类
             )
             db.add(db_data_source)
-            db.flush()
-
-            # 添加字段（如果有的话）
-            if data_source.fields:
-                for field_data in data_source.fields:
-                    db_field = ReportDataSourceField(
-                        **field_data.dict(),
-                        data_source_id=db_data_source.id
-                    )
-                    db.add(db_field)
-
             db.commit()
             db.refresh(db_data_source)
             return db_data_source

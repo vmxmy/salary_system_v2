@@ -48,4 +48,14 @@ class SuccessResponse(BaseModel):
     timestamp: Optional[datetime] = Field(default_factory=datetime.now, description="响应时间")
     
     class Config:
+        from_attributes = True
+
+class OptimizedResponse(BaseModel, Generic[T]):
+    """优化接口的标准响应模型"""
+    success: bool = Field(True, description="请求是否成功")
+    data: T = Field(..., description="响应数据")
+    message: str = Field(..., description="响应消息")
+    timestamp: Optional[datetime] = Field(default_factory=datetime.now, description="响应时间")
+    
+    class Config:
         from_attributes = True 

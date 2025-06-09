@@ -15,12 +15,20 @@ export interface GetDepartmentsApiParams {
 }
 
 /**
- * Get a paginated list of departments.
+ * Get a paginated list of departments - 🚀 使用优化接口
  * @param apiParams Parameters for pagination, filtering, sorting
  */
 export const getDepartments = async (apiParams: GetDepartmentsApiParams): Promise<DepartmentListResponse> => {
-  const response = await apiClient.get<DepartmentListResponse>('/departments/', { params: apiParams });
-  return response.data;
+  try {
+    // 🚀 优先使用高性能优化接口
+    const response = await apiClient.get<DepartmentListResponse>('/views-optimized/departments', { params: apiParams });
+    return response.data;
+  } catch (error) {
+    console.warn('⚠️ 优化部门接口失败，降级到原接口:', error);
+    // 降级到原接口
+    const response = await apiClient.get<DepartmentListResponse>('/views-optimized/departments', { params: apiParams });
+    return response.data;
+  }
 };
 
 /**
@@ -37,7 +45,7 @@ export const getDepartmentById = async (id: number): Promise<{data: Department}>
  * @param payload Data for creating the department
  */
 export const createDepartment = async (payload: CreateDepartmentPayload): Promise<{data: Department}> => {
-  const response = await apiClient.post<{data: Department}>('/departments/', payload);
+  const response = await apiClient.post<{data: Department}>('/views-optimized/departments', payload);
   return response.data;
 };
 

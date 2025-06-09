@@ -27,8 +27,8 @@ import { payrollRoutes } from '../pages/Payroll/index'; // This imports from Pay
 // Import the Manager module routes
 import { managerRoutes } from '../pages/Manager/routes';
 
-// 视图报表组件
-const ReportViewManagement = lazy(() => import('../pages/Admin/ReportView'));
+// 视图报表组件 - 已删除，使用新的报表配置管理
+// const ReportViewManagement = lazy(() => import('../pages/Admin/ReportView'));
 
 // 批量报表组件 - 已合并到报表配置管理页面
 // const BatchReportsPage = lazy(() => import('../pages/BatchReports/index'));
@@ -120,10 +120,22 @@ export const routes: AppRouteObject[] = [
           { path: 'roles', element: <RolesPageV2 />, meta: { title: 'menu:admin.roles', requiredPermissions: ['role:list'] } },
           { path: 'permissions', element: <PermissionListPageV2 />, meta: { title: 'menu:admin.permissions', requiredPermissions: ['permission:list'] } },
           { path: 'config', element: <ConfigPage />, meta: { title: 'menu:admin.systemSettings', requiredPermissions: ['config:view'] } },
-          { 
-            path: 'report-config', 
-            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Config...</div>}>{React.createElement(lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement')))}</React.Suspense>, 
-            meta: { title: 'menu:admin.reportConfig', requiredPermissions: ['report:manage'] } 
+          {
+            path: 'report-config',
+            element: <Outlet />,
+            meta: { title: 'menu:admin.reportConfig', requiredPermissions: ['report:manage'], hideInBreadcrumbIfParentOfNext: true },
+            children: [
+              {
+                index: true,
+                element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Config...</div>}>{React.createElement(lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement')))}</React.Suspense>,
+                meta: { title: 'menu:admin.reportConfig' } // Keep parent title
+              },
+              {
+                path: ':dataSourceId',
+                element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Data Source Details...</div>}>{React.createElement(lazy(() => import('../pages/Admin/DataSources/DataSourceDetailPage')))}</React.Suspense>,
+                meta: { title: 'menu:admin.dataSourceDetail' } // Example title, adjust as needed
+              }
+            ]
           },
           {
             path: 'organization',
@@ -225,24 +237,12 @@ export const routes: AppRouteObject[] = [
       },
       {
         path: 'view-reports',
-        element: (
-          <AppProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER']}>
-            <Outlet />
-          </AppProtectedRoute>
-        ),
-        meta: { title: 'menu:reports.title', allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER'] },
-        children: [
-          { index: true, element: <Navigate to="management" replace /> },
-          {
-            path: 'management',
-            element: (
-              <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Management...</div>}>
-                <ReportViewManagement />
-              </React.Suspense>
-            ),
-            meta: { title: 'menu:reports.management', requiredPermissions: ['report:view_reports'] },
-          },
-        ]
+        element: <Navigate to="/admin/report-config" replace />,
+        meta: { 
+          title: 'menu:reports.title', 
+          allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'FINANCE_MANAGER'],
+          requiredPermissions: ['report:view_reports']
+        }
       },
       {
         path: 'batch-reports',

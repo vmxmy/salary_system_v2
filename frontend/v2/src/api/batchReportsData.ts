@@ -2,17 +2,12 @@ import apiClient from './apiClient';
 import { getDepartments, getAllDepartmentsFlat } from './departments';
 import { getPayrollPeriods } from '../pages/Payroll/services/payrollApi';
 
-// 薪资周期接口
-export interface PayrollPeriod {
-  id: number;
-  name: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-  status_lookup?: {
-    code: string;
-    name: string;
-  };
+// 薪资周期接口 - 导入统一的类型定义
+import type { PayrollPeriod as PayrollPeriodType } from '../pages/Payroll/types/payrollTypes';
+
+export interface PayrollPeriod extends PayrollPeriodType {
+  // 为批量报表添加额外的字段
+  status?: string; // 兼容性字段，从status_lookup中提取
 }
 
 // 部门接口
@@ -42,10 +37,13 @@ export const getBatchReportPayrollPeriods = async (): Promise<PayrollPeriod[]> =
       size: 100,
     });
     
-    // 按开始日期倒序排列
+    // 按开始日期倒序排列，并添加兼容性字段
     const sortedPeriods = response.data.sort((a, b) => {
       return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
-    });
+    }).map(period => ({
+      ...period,
+      status: period.status_lookup?.name || period.status_lookup?.code || 'UNKNOWN'
+    }));
     
     return sortedPeriods;
   } catch (error) {

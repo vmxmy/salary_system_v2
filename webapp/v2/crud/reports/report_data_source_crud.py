@@ -1,7 +1,9 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import text, func
-from ...models.reports import ReportDataSource, ReportDataSourceField
+from sqlalchemy import text, func, or_, select, table, column, MetaData, inspect, Table
+from sqlalchemy.exc import NoSuchTableError
+from ...models.reports import ReportDataSource
+# ReportDataSourceField 已移除，改为动态获取字段
 from ...pydantic_models.reports import (
     ReportDataSourceCreate, ReportDataSourceUpdate,
     DataSourceFieldDetection, DetectedField,
@@ -10,6 +12,7 @@ from ...pydantic_models.reports import (
 from ._report_data_source_helpers import (
     _detect_fields_logic, _test_connection_logic, _get_access_logs_logic
 )
+import re
 
 # 数据源CRUD
 class ReportDataSourceCRUD:
@@ -18,8 +21,44 @@ class ReportDataSourceCRUD:
         return db.query(ReportDataSource).offset(skip).limit(limit).all()
 
     @staticmethod
+    def get_all_with_filter(
+        db: Session, 
+        skip: int = 0, 
+        limit: int = 100,
+        search: Optional[str] = None,
+        is_active: Optional[bool] = None,
+        schema_name: Optional[str] = None
+    ) -> (List[ReportDataSource], int):
+        query = db.query(ReportDataSource)
+
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                or_(
+                    ReportDataSource.name.ilike(search_term),
+                    ReportDataSource.code.ilike(search_term),
+                    ReportDataSource.description.ilike(search_term)
+                )
+            )
+        
+        if is_active is not None:
+            query = query.filter(ReportDataSource.is_active == is_active)
+
+        if schema_name:
+            query = query.filter(ReportDataSource.schema_name == schema_name)
+
+        total = query.count()
+        data_sources = query.offset(skip).limit(limit).all()
+        
+        return data_sources, total
+
+    @staticmethod
     def get_by_id(db: Session, data_source_id: int) -> Optional[ReportDataSource]:
         return db.query(ReportDataSource).filter(ReportDataSource.id == data_source_id).first()
+
+    @staticmethod
+    def get_by_code(db: Session, data_source_code: str) -> Optional[ReportDataSource]:
+        return db.query(ReportDataSource).filter(ReportDataSource.code == data_source_code).first()
 
     @staticmethod
     def create(db: Session, data_source: ReportDataSourceCreate, user_id: int) -> ReportDataSource:
@@ -31,13 +70,14 @@ class ReportDataSourceCRUD:
             db.add(db_data_source)
             db.flush()
 
-            if data_source.fields:
-                for field_data in data_source.fields:
-                    db_field = ReportDataSourceField(
-                        **field_data.dict(),
-                        data_source_id=db_data_source.id
-                    )
-                    db.add(db_field)
+            # 不再创建字段记录，改为动态获取
+            # if data_source.fields:
+            #     for field_data in data_source.fields:
+            #         db_field = ReportDataSourceField(
+            #             **field_data.dict(),
+            #             data_source_id=db_data_source.id
+            #         )
+            #         db.add(db_field)
 
             db.commit()
             db.refresh(db_data_source)
@@ -80,7 +120,8 @@ class ReportDataSourceCRUD:
         return _test_connection_logic(db, connection_test)
 
     @staticmethod
-    def sync_fields(db: Session, data_source_id: int) -> List[ReportDataSourceField]:
+    def sync_fields(db: Session, data_source_id: int) -> List[Dict[str, Any]]:
+        """同步字段信息 - 现在只更新数据源的字段统计，不再维护字段表"""
         data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
         if not data_source:
             raise ValueError("数据源不存在")
@@ -100,54 +141,35 @@ class ReportDataSourceCRUD:
                     raise ValueError("数据源不存在")
                 raise ValueError(f"字段检测失败: {str(detect_error)}")
             
-            existing_fields = db.query(ReportDataSourceField).filter(
-                ReportDataSourceField.data_source_id == data_source_id
-            ).all()
-            
-            existing_field_names = {field.field_name for field in existing_fields}
-            synced_fields = []
-            
-            for detected_field in detected_fields:
-                if detected_field.field_name not in existing_field_names:
-                    new_field = ReportDataSourceField(
-                        data_source_id=data_source_id,
-                        field_name=detected_field.field_name,
-                        field_type=detected_field.field_type,
-                        data_type=detected_field.data_type,
-                        is_nullable=detected_field.is_nullable,
-                        is_primary_key=detected_field.is_primary_key,
-                        is_foreign_key=detected_field.is_foreign_key,
-                        is_indexed=detected_field.is_indexed,
-                        description=detected_field.comment,
-                        is_visible=True,
-                        is_searchable=True,
-                        is_sortable=True,
-                        is_filterable=True,
-                        is_exportable=True,
-                        sort_order=len(synced_fields)
-                    )
-                    db.add(new_field)
-                    synced_fields.append(new_field)
-                else:
-                    existing_field = next(
-                        field for field in existing_fields 
-                        if field.field_name == detected_field.field_name
-                    )
-                    existing_field.field_type = detected_field.field_type
-                    existing_field.data_type = detected_field.data_type
-                    existing_field.is_nullable = detected_field.is_nullable
-                    existing_field.is_primary_key = detected_field.is_primary_key
-                    existing_field.is_foreign_key = detected_field.is_foreign_key
-                    existing_field.is_indexed = detected_field.is_indexed
-                    if detected_field.comment:
-                        existing_field.description = detected_field.comment
-                    synced_fields.append(existing_field)
-            
+            # 更新数据源的字段统计信息
             data_source.field_count = len(detected_fields)
             data_source.last_sync_at = func.now()
             db.commit()
-            for field in synced_fields:
-                db.refresh(field)
+            
+            # 将检测到的字段转换为字典格式返回（用于API响应）
+            synced_fields = []
+            for i, detected_field in enumerate(detected_fields):
+                field_dict = {
+                    "id": i + 1,  # 临时ID
+                    "field_name": detected_field.field_name,
+                    "field_type": detected_field.field_type,
+                    "data_type": detected_field.data_type,
+                    "is_nullable": detected_field.is_nullable,
+                    "is_primary_key": detected_field.is_primary_key,
+                    "is_foreign_key": detected_field.is_foreign_key,
+                    "is_indexed": detected_field.is_indexed,
+                    "description": detected_field.comment,
+                    "is_visible": True,
+                    "is_searchable": True,
+                    "is_sortable": True,
+                    "is_filterable": True,
+                    "is_exportable": True,
+                    "sort_order": i + 1,
+                    "display_name_zh": detected_field.display_name_zh if hasattr(detected_field, 'display_name_zh') else None,
+                    "display_name_en": detected_field.display_name_en if hasattr(detected_field, 'display_name_en') else None
+                }
+                synced_fields.append(field_dict)
+            
             return synced_fields
         except Exception as e:
             db.rollback()
@@ -193,57 +215,82 @@ class ReportDataSourceCRUD:
         return _get_access_logs_logic(db, data_source_id, skip, limit) # Delegated to helper
 
     @staticmethod
-    def preview_data(db: Session, data_source_id: int, limit: int = 10, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def preview_data(
+        db: Session, 
+        data_source_id: int, 
+        skip: int = 0, 
+        limit: int = 10, 
+        filters: Optional[Dict[str, Any]] = None,
+        sorting: Optional[List[Dict[str, str]]] = None
+    ) -> Dict[str, Any]:
+        """
+        安全地预览数据源的数据，并支持分页、筛选和排序。
+        """
         data_source = ReportDataSourceCRUD.get_by_id(db, data_source_id)
         if not data_source:
             raise ValueError("数据源不存在")
+
+        if not data_source.source_type in ['table', 'view'] or not data_source.schema_name:
+            raise ValueError("仅支持预览类型为'table'或'view'且已定义schema的数据源")
+        
+        target_name = data_source.table_name or data_source.view_name
+        if not target_name:
+            raise ValueError("数据源未指定表或视图名称")
+
+        # 安全校验: 确保 schema 和 table name 不包含非法字符
+        if not re.match(r'^[a-zA-Z0-9_]+$', data_source.schema_name) or \
+           not re.match(r'^[a-zA-Z0-9_]+$', target_name):
+            raise ValueError("Schema或表/视图名称包含非法字符")
+
         try:
-            if data_source.source_type in ['table', 'view'] and data_source.schema_name:
-                table_name = data_source.table_name or data_source.view_name
-                if table_name:
-                    query = f"SELECT * FROM {data_source.schema_name}.{table_name}"
-                    where_conditions = []
-                    params = {}
-                    if filters:
-                        for field, value in filters.items():
-                            if value is not None:
-                                where_conditions.append(f"{field} = :{field}")
-                                params[field] = value
-                    if where_conditions:
-                        query += " WHERE " + " AND ".join(where_conditions)
-                    query += f" LIMIT {limit}"
-                    result = db.execute(text(query), params)
-                    columns = result.keys()
-                    rows = result.fetchall()
-                    data = []
-                    for row in rows:
-                        row_dict = {}
-                        for i, col in enumerate(columns):
-                            value = row[i]
-                            if hasattr(value, 'isoformat'): value = value.isoformat()
-                            elif hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool)): value = str(value)
-                            row_dict[col] = value
-                        data.append(row_dict)
-                    return data
-            elif data_source.source_type == 'query' and data_source.custom_query:
-                query = data_source.custom_query
-                if not query.upper().strip().endswith('LIMIT'): query += f" LIMIT {limit}"
-                result = db.execute(text(query))
-                columns = result.keys()
-                rows = result.fetchall()
-                data = []
-                for row in rows:
-                    row_dict = {}
-                    for i, col in enumerate(columns):
-                        value = row[i]
-                        if hasattr(value, 'isoformat'): value = value.isoformat()
-                        elif hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool)): value = str(value)
-                        row_dict[col] = value
-                    data.append(row_dict)
-                return data
-            return []
+            # 使用 SQLAlchemy Core 的反射机制来安全地引用表
+            metadata = MetaData()
+            reflected_table = Table(target_name, metadata, autoload_with=db.bind, schema=data_source.schema_name)
+            
+            # 构建查询
+            query = select(reflected_table)
+            count_query = select(func.count()).select_from(reflected_table)
+
+            # 处理筛选
+            if filters:
+                filter_clauses = []
+                for field, value in filters.items():
+                    if hasattr(reflected_table.c, field):
+                        # 简单处理，可以扩展为支持 'like', 'in' 等
+                        filter_clauses.append(getattr(reflected_table.c, field) == value)
+                if filter_clauses:
+                    query = query.where(*filter_clauses)
+                    count_query = count_query.where(*filter_clauses)
+
+            # 获取总数
+            total_records = db.execute(count_query).scalar_one()
+
+            # 处理排序
+            if sorting:
+                order_by_clauses = []
+                for sort_item in sorting:
+                    field = sort_item.get('field')
+                    direction = sort_item.get('direction', 'asc')
+                    if hasattr(reflected_table.c, field):
+                        col = getattr(reflected_table.c, field)
+                        order_by_clauses.append(col.asc() if direction == 'asc' else col.desc())
+                if order_by_clauses:
+                    query = query.order_by(*order_by_clauses)
+
+            # 处理分页
+            query = query.offset(skip).limit(limit)
+
+            # 执行查询
+            result = db.execute(query)
+            data = [dict(row) for row in result.mappings()]
+
+            return {"total": total_records, "items": data}
+
+        except NoSuchTableError:
+            raise ValueError(f"表或视图 '{data_source.schema_name}.{target_name}' 不存在于数据库中")
         except Exception as e:
-            raise e
+            # 其他数据库异常
+            raise ValueError(f"预览数据时发生数据库错误: {e}")
 
     @staticmethod
     def preview_multi_datasource_data(

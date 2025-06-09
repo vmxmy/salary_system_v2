@@ -1,0 +1,563 @@
+/* 报表配置管理页面统一样式 */
+
+/* 全局字体设置 - 思源仿宋 */
+* {
+  font-family: "Source Han Serif SC", "思源宋体", "Noto Serif CJK SC", "Source Han Serif", serif !important;
+}
+
+/* 页面布局 */
+.pageContainer {
+  padding: 24px;
+}
+
+.cardTitle {
+  margin: 0;
+  margin-bottom: 16px;
+}
+
+/* 卡片标题区域 */
+.cardHeader {
+  margin-bottom: 16px;
+}
+
+.cardTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardTitleLeft {
+  display: flex;
+  align-items: center;
+}
+
+.cardTitleText {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardTitleRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 按钮统一样式 */
+.primaryButton {
+  border-radius: 6px;
+  font-weight: 500;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.secondaryButton {
+  border-radius: 6px;
+  font-weight: 400;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.dangerButton {
+  border-radius: 6px;
+  font-weight: 400;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.linkButton {
+  border-radius: 4px;
+  font-weight: 400;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+/* 表单和输入框样式 */
+.fullWidthInput {
+  width: 100%;
+}
+
+.formItemNoMargin {
+  margin-bottom: 0;
+}
+
+.formItemRightAlign {
+  margin-bottom: 0;
+  text-align: right;
+}
+
+/* 布局工具类 */
+.flexRow {
+  display: flex;
+  align-items: center;
+}
+
+.flexRowBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.flexWrap {
+  flex-wrap: wrap;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+/* 间距工具类 */
+.marginBottom4 {
+  margin-bottom: 4px;
+}
+
+.marginBottom8 {
+  margin-bottom: 8px;
+}
+
+.marginBottom12 {
+  margin-bottom: 12px;
+}
+
+.marginBottom16 {
+  margin-bottom: 16px;
+}
+
+.marginTop8 {
+  margin-top: 8px;
+}
+
+.marginTop12 {
+  margin-top: 12px;
+}
+
+.marginTop16 {
+  margin-top: 16px;
+}
+
+.marginRight8 {
+  margin-right: 8px;
+}
+
+.padding8 {
+  padding: 8px;
+}
+
+.padding12 {
+  padding: 12px;
+}
+
+.padding16 {
+  padding: 16px;
+}
+
+.padding24 {
+  padding: 24px;
+}
+
+/* 字体样式 */
+.fontWeight400 {
+  font-weight: 400;
+}
+
+.fontWeight500 {
+  font-weight: 500;
+}
+
+.fontWeight600 {
+  font-weight: 600;
+}
+
+.fontSize12 {
+  font-size: 12px;
+}
+
+.fontSize14 {
+  font-size: 14px;
+}
+
+.fontSize16 {
+  font-size: 16px;
+}
+
+/* 颜色样式 */
+.colorPrimary {
+  color: #1890ff;
+}
+
+.colorSuccess {
+  color: #52c41a;
+}
+
+.colorWarning {
+  color: #fa8c16;
+}
+
+.colorDanger {
+  color: #ff4d4f;
+}
+
+.colorText {
+  color: #262626;
+}
+
+.colorTextSecondary {
+  color: #666;
+}
+
+.colorTextDisabled {
+  color: #999;
+}
+
+/* 宽度样式 */
+.width100 {
+  width: 100px;
+}
+
+.width200 {
+  width: 200px;
+}
+
+.width300 {
+  width: 300px;
+}
+
+.widthFull {
+  width: 100%;
+}
+
+.width45 {
+  width: 45%;
+}
+
+.width10 {
+  width: 10%;
+}
+
+/* 对齐样式 */
+.textCenter {
+  text-align: center;
+}
+
+.textLeft {
+  text-align: left;
+}
+
+.textRight {
+  text-align: right;
+}
+
+/* 统计卡片样式 */
+.statisticCard {
+  text-align: center;
+}
+
+.statisticValue {
+  font-weight: 600;
+}
+
+.statisticValuePrimary {
+  color: #1890ff;
+}
+
+.statisticValueWarning {
+  color: #fa8c16;
+}
+
+.statisticValueSuccess {
+  color: #52c41a;
+}
+
+.statisticValueDanger {
+  color: #ff4d4f;
+}
+
+/* 操作区域 */
+.actionBar {
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.actionBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actionBarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 搜索区域 */
+.searchContainer {
+  margin-bottom: 16px;
+}
+
+/* 圆角按钮 */
+.roundButton {
+  border-radius: 20px !important;
+}
+
+.roundButtonSmall {
+  border-radius: 16px !important;
+}
+
+/* 字段选择器 */
+.fieldSelector {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fafafa;
+}
+
+.fieldSelectorTitle {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.fieldSelectorEmpty {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+}
+
+.fieldSelectorMinHeight {
+  min-height: 200px;
+}
+
+/* 筛选条件 */
+.filterCondition {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #fafafa;
+}
+
+.filterConditionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.filterConditionTitle {
+  font-weight: 500;
+}
+
+/* 预览区域 */
+.previewContainer {
+  margin-bottom: 16px;
+}
+
+.previewEmpty {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.previewEmptyText {
+  color: #999;
+}
+
+/* 配置信息 */
+.configInfo {
+  margin-top: 16px;
+}
+
+.configTitle {
+  margin-bottom: 8px;
+}
+
+.configContent {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 6px;
+  overflow: auto;
+  max-height: 200px;
+}
+
+/* 权限和角色 */
+.permissionSection {
+  margin-top: 16px;
+}
+
+.permissionTitle {
+  margin-bottom: 8px;
+}
+
+/* 调试信息 */
+.debugInfo {
+  margin-bottom: 16px;
+  padding: 8px;
+  background-color: #f0f0f0;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+/* 表格优化 */
+.tableContainer {
+  /* 表格容器样式 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 16px;
+  }
+  
+  .actionBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .actionBarLeft,
+  .actionBarRight {
+    justify-content: center;
+  }
+  
+  .cardTitleRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+  .cardTitleRight {
+    justify-content: center;
+}
+}
+
+/* 批量操作栏 */
+.batchActionBar {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.batchActionText {
+  font-weight: 500;
+}
+
+/* 通用工具类 */
+.flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flexBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.borderRadius4 {
+  border-radius: 4px;
+}
+
+.borderRadius6 {
+  border-radius: 6px;
+}
+
+.borderRadius8 {
+  border-radius: 8px;
+}
+
+.backgroundFafafa {
+  background-color: #fafafa;
+}
+
+.backgroundF5f5f5 {
+  background-color: #f5f5f5;
+}
+
+.backgroundF0f0f0 {
+  background-color: #f0f0f0;
+}
+
+/* 可排序字段项样式 */
+.sortableFieldItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background-color: #fff;
+  margin-bottom: 8px;
+  cursor: move;
+}
+
+.sortableFieldItemContent {
+  flex: 1;
+}
+
+.sortableFieldItemTitle {
+  font-weight: 500;
+}
+
+.sortableFieldItemSubtitle {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 输入框范围样式 */
+.inputRangeContainer {
+  display: flex;
+  align-items: center;
+}
+
+.inputRangeStart {
+  width: 45%;
+}
+
+.inputRangeSeparator {
+  width: 10%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.inputRangeEnd {
+  width: 45%;
+}
+
+/* 小标签样式 */
+.smallLabel {
+  font-size: 12px;
+}
+
+/* 表格最大宽度 */
+.tableMaxWidth {
+  max-width: 200px;
+}
+
+/* 椭圆文本 */
+.ellipsisText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+} 

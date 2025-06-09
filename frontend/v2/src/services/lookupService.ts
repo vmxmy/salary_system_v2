@@ -44,29 +44,62 @@ export const fetchAllLookupTypesAndCache = async (): Promise<readonly LookupType
   }
 
   isFetchingLookupTypes = true;
-  fetchLookupTypesPromise = apiClient.get<LookupTypeListResponse>('/lookup/types', {
-    params: {
-      size: 100, // Assuming up to 100 lookup types, based on openapi.json
-      page: 1,
-    }
-  })
+  fetchLookupTypesPromise = apiClient.get<any>('/views-optimized/lookup-types')
   .then(response => {
     
-    // 详细输出响应数据的前几项
-    if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-    }
-    
-    // 调整判断条件以匹配新的 LookupTypeListResponse 结构
-    // response.data (axios 的 data) 对应整个 LookupTypeListResponse
-    // response.data.data 对应 LookupTypeListResponse 中的 data 数组
-    if (response.data && Array.isArray(response.data.data)) {
-      cachedLookupTypes = Object.freeze([...response.data.data]); // 从 response.data.data 获取数组
+    // 检查优化接口的响应格式 {success: true, data: [...]}
+    if (response.data && response.data.success && Array.isArray(response.data.data)) {
+      cachedLookupTypes = Object.freeze([...response.data.data]);
       return cachedLookupTypes;
     }
+    
+    // 兼容标准接口的响应格式 {data: [...], meta: {...}}
+    if (response.data && Array.isArray(response.data.data)) {
+      cachedLookupTypes = Object.freeze([...response.data.data]);
+      return cachedLookupTypes;
+    }
+    
+    // 如果是直接数组格式
+    if (response.data && Array.isArray(response.data)) {
+      cachedLookupTypes = Object.freeze([...response.data]);
+      return cachedLookupTypes;
+    }
+    
+    console.warn('Unexpected lookup types response format:', response.data);
     message.error('Failed to load lookup type definitions.');
     return null;
   })
-  .catch(error => {
+  .catch(async (error) => {
+    console.warn('Failed to load from optimized endpoint, trying fallback:', error);
+    
+    // 尝试使用标准的lookup端点作为备选
+    try {
+      const fallbackResponse = await apiClient.get<LookupTypeListResponse>('/lookup/types', {
+        params: { size: 100, page: 1 }
+      });
+      
+      if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+        cachedLookupTypes = Object.freeze([...fallbackResponse.data.data]);
+        return cachedLookupTypes;
+      }
+    } catch (fallbackError) {
+      console.warn('Fallback endpoint also failed:', fallbackError);
+    }
+    
+    // 尝试使用config端点作为第二备选
+    try {
+      const configResponse = await apiClient.get<any>('/config/lookup-types', {
+        params: { size: 100, page: 1 }
+      });
+      
+      if (configResponse.data && Array.isArray(configResponse.data.data)) {
+        cachedLookupTypes = Object.freeze([...configResponse.data.data]);
+        return cachedLookupTypes;
+      }
+    } catch (configError) {
+      console.warn('Config endpoint also failed:', configError);
+    }
+    
     message.error('Error loading lookup type definitions.');
     return null;
   })
@@ -407,15 +440,15 @@ const buildPositionTree = (flatPositions: PositionWithParentId[]): PositionType[
 
 const API_BASE_PATH = 'config/lookup-values'; // Fixed to correct path
 
-// Generic function to fetch lookup values by type code
+// Generic function to fetch lookup values by type code - 🚀 使用优化接口
 export const fetchLookupValuesByType = async (lookupTypeCode: string): Promise<LookupItem[]> => {
   if (!lookupTypeCode) {
     return [];
   }
   
   try {
-    // 使用高性能公共端点，跳过权限检查以提升性能
-    const response = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values-public?lookup_type_code=${lookupTypeCode}`);
+    // 🚀 优先使用高性能优化接口
+    const response = await apiClient.get<{ data: any[], meta?: any }>(`/views-optimized/lookup-values-public?lookup_type_code=${lookupTypeCode}`);
     
     if (response.data && Array.isArray(response.data.data)) {
       // 转换后端字段名到前端期望的格式
@@ -431,10 +464,11 @@ export const fetchLookupValuesByType = async (lookupTypeCode: string): Promise<L
     }
     return [];
   } catch (error) {
-    console.warn(`Failed to fetch lookup values for type ${lookupTypeCode}:`, error);
-    // 降级到原API（带权限检查）
+    console.warn(`⚠️ 优化接口失败，降级到公共接口 ${lookupTypeCode}:`, error);
+    
+    // 降级到原公共API（跳过权限检查）
     try {
-      const fallbackResponse = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values?lookup_type_code=${lookupTypeCode}`);
+      const fallbackResponse = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values-public?lookup_type_code=${lookupTypeCode}`);
       if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
         return fallbackResponse.data.data
           .filter(item => item.is_active !== false)
@@ -447,7 +481,25 @@ export const fetchLookupValuesByType = async (lookupTypeCode: string): Promise<L
           }));
       }
     } catch (fallbackError) {
-      console.error(`Both primary and fallback lookup requests failed for ${lookupTypeCode}:`, fallbackError);
+      console.warn(`⚠️ 公共接口也失败，最后降级到权限接口 ${lookupTypeCode}:`, fallbackError);
+      
+      // 最后降级到原API（带权限检查）
+      try {
+        const lastResortResponse = await apiClient.get<{ data: any[], meta?: any }>(`/config/lookup-values?lookup_type_code=${lookupTypeCode}`);
+        if (lastResortResponse.data && Array.isArray(lastResortResponse.data.data)) {
+          return lastResortResponse.data.data
+            .filter(item => item.is_active !== false)
+            .map(apiItem => ({
+              value: apiItem.id,
+              label: apiItem.name || '',
+              code: apiItem.code || '',
+              id: apiItem.id,
+              name: apiItem.name || '',
+            }));
+        }
+      } catch (lastResortError) {
+        console.error(`❌ 所有lookup接口都失败 ${lookupTypeCode}:`, lastResortError);
+      }
     }
     return []; 
   }
@@ -462,9 +514,9 @@ export const lookupService = {
 
   getDepartmentsLookup: async (): Promise<Department[]> => {
     try {
-      // 使用高性能公共端点，跳过权限检查以提升性能
+      // 🚀 优先使用高性能优化接口
       const response = await apiClient.get<{ data: ApiDepartment[], meta?: any }>( // Expect ApiDepartment
-        '/departments/public?is_active=true'
+        '/views-optimized/departments?is_active=true'
       );
       
 
@@ -573,7 +625,7 @@ export const lookupService = {
   getPersonnelCategoriesLookup: async (): Promise<PersonnelCategory[]> => { // MODIFIED from getJobTitlesLookup
     try {
       // 使用高性能公共端点，跳过权限检查以提升性能
-      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>('/personnel-categories/public?is_active=true');
+      const response = await apiClient.get<{ data: PersonnelCategory[], meta?: any }>('/views-optimized/personnel-categories?is_active=true');
       
       let rawPersonnelCategories: PersonnelCategory[]; // MODIFIED
       if ('data' in response.data && Array.isArray(response.data.data)) {

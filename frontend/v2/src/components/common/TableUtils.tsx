@@ -4,7 +4,6 @@ import { SearchOutlined, DownloadOutlined, SettingOutlined, DownOutlined } from 
 import type { InputRef } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import Highlighter from 'react-highlight-words';
-import * as XLSX from 'xlsx';
 import type { ColumnsType } from 'antd/es/table';
 import { useLocalStorage } from 'react-use';
 import { useTranslation } from 'react-i18next';
@@ -338,7 +337,7 @@ export const useTableExport = <T extends object>(
   } = options || {};
 
   // 客户端导出到Excel的函数
-  const clientExportToExcel = () => {
+  const clientExportToExcel = async () => {
     if (!dataSource || dataSource.length === 0) {
       if (isMounted.current) { // 检查是否挂载
         message.warning(t('common:export.noDataToExport')); // 使用翻译键
@@ -346,41 +345,50 @@ export const useTableExport = <T extends object>(
       return;
     }
 
-    const dataToExport = dataSource.map(item => {
-      const row: Record<string, any> = {};
-      columns?.forEach(col => {
-        // 检查是否是ColumnType而不是ColumnGroupType
-        if ('dataIndex' in col && col.dataIndex) {
-        // 确保col.dataIndex是字符串或字符串数组
-        if (typeof col.dataIndex === 'string') {
-          // 如果render函数存在，使用render函数的值，否则使用原始值
-            const displayValue = col.render ? col.render((item as any)[col.dataIndex], item, 0) : (item as any)[col.dataIndex];
-          row[col.title as string] = displayValue;
-        } else if (Array.isArray(col.dataIndex)) {
-          // 处理dataIndex是数组的情况，通常用于嵌套对象
-            let value: any = item;
-          col.dataIndex.forEach((key: string) => {
-            value = value ? value[key] : undefined;
-          });
-          const displayValue = col.render ? col.render(value, item, 0) : value;
-          row[col.title as string] = displayValue;
-          }
-        }
-      });
-      return row;
-    });
+    try {
+      // 动态导入XLSX
+      const XLSX = await import('xlsx');
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport, { header: withHeader ? Object.keys(dataToExport[0] || {}) : [] });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    XLSX.writeFile(wb, `${filename}.xlsx`);
-    if (isMounted.current) { // 检查是否挂载
-      message.success(successMessage);
+      const dataToExport = dataSource.map(item => {
+        const row: Record<string, any> = {};
+        columns?.forEach(col => {
+          // 检查是否是ColumnType而不是ColumnGroupType
+          if ('dataIndex' in col && col.dataIndex) {
+          // 确保col.dataIndex是字符串或字符串数组
+          if (typeof col.dataIndex === 'string') {
+            // 如果render函数存在，使用render函数的值，否则使用原始值
+              const displayValue = col.render ? col.render((item as any)[col.dataIndex], item, 0) : (item as any)[col.dataIndex];
+            row[col.title as string] = displayValue;
+          } else if (Array.isArray(col.dataIndex)) {
+            // 处理dataIndex是数组的情况，通常用于嵌套对象
+              let value: any = item;
+            col.dataIndex.forEach((key: string) => {
+              value = value ? value[key] : undefined;
+            });
+            const displayValue = col.render ? col.render(value, item, 0) : value;
+            row[col.title as string] = displayValue;
+            }
+          }
+        });
+        return row;
+      });
+
+      const ws = XLSX.utils.json_to_sheet(dataToExport, { header: withHeader ? Object.keys(dataToExport[0] || {}) : [] });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      XLSX.writeFile(wb, `${filename}.xlsx`);
+      if (isMounted.current) { // 检查是否挂载
+        message.success(successMessage);
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        message.error(t('common:export.exportFailed'));
+      }
     }
   };
 
   const ExportButton: React.FC = () => {
-    const handleMenuClick = (e: { key: string }) => {
+    const handleMenuClick = async (e: { key: string }) => {
       const format = e.key as ExportFormat;
       if (onExportRequest) {
         // onExportRequest 可能是异步的，但 message.success 是同步的
@@ -393,7 +401,7 @@ export const useTableExport = <T extends object>(
       } else {
         switch (format) {
           case 'excel':
-            clientExportToExcel();
+            await clientExportToExcel();
             break;
           case 'csv':
             if (isMounted.current) { // 检查是否挂载
@@ -425,14 +433,14 @@ export const useTableExport = <T extends object>(
           type="primary"
           shape="round"
           icon={<DownloadOutlined />}
-          onClick={() => {
+          onClick={async () => {
             if (onExportRequest) {
               onExportRequest(format);
               if (isMounted.current) { // 检查是否挂载
                 message.success(successMessage);
               }
             } else {
-              clientExportToExcel();
+              await clientExportToExcel();
             }
           }}
         >
@@ -442,7 +450,7 @@ export const useTableExport = <T extends object>(
     }
 
     return (
-      <Dropdown menu={{ items: items }} trigger={['click']} placement="bottomRight">
+      <Dropdown menu={{ items: items, onClick: handleMenuClick }} trigger={['click']} placement="bottomRight">
         <Button type="primary" shape="round" icon={<DownloadOutlined />}>
           <Space>
             {dropdownButtonText}

@@ -38,6 +38,7 @@ export const i18nInitOptions = {
     'tour',
     'user_menu',
     'report',
+    'reportManagement',
     'role',
     'user',
     'menu'

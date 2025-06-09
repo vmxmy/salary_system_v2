@@ -6,7 +6,7 @@ import apiClient from './apiClient';
  * @returns 薪资字段定义列表响应
  */
 export const getPayrollComponentDefinitions = async (params?: any) => {
-  const url = `/config/payroll-component-definitions`;
+  const url = `/views-optimized/payroll-component-definitions`;
   const response = await apiClient.get(url, { params });
   return response.data;
 };
@@ -28,7 +28,7 @@ export const getPayrollComponentDefinition = async (id: number) => {
  * @returns 创建的薪资字段定义
  */
 export const createPayrollComponentDefinition = async (data: any) => {
-  const url = `/config/payroll-component-definitions`;
+  const url = `/views-optimized/payroll-component-definitions`;
   const response = await apiClient.post(url, data);
   return response.data;
 };

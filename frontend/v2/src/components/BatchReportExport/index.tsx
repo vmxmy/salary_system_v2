@@ -16,9 +16,12 @@ import {
   Alert,
   Spin,
   Tag,
-  Tooltip
+  Tooltip,
+  Modal,
+  Table,
+  Descriptions
 } from 'antd';
-import { ExportOutlined, InfoCircleOutlined, SettingOutlined } from '@ant-design/icons';
+import { ExportOutlined, InfoCircleOutlined, SettingOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { batchReportsApi } from '../../api/batchReports';
 import { reportConfigApi } from '../../api/reportConfigApi';
@@ -40,7 +43,7 @@ const { TextArea } = Input;
 const { Title, Text } = Typography;
 
 interface BatchReportExportProps {
-  onSuccess?: () => void;
+  onSuccess?: (taskId?: number) => void;
   onCancel?: () => void;
 }
 
@@ -54,6 +57,9 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
   const [selectedReportTypes, setSelectedReportTypes] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewReportType, setPreviewReportType] = useState<any>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // 获取报表类型（使用新的配置系统）
   const { data: reportTypesData, isLoading: reportTypesLoading } = useQuery({
@@ -92,7 +98,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
     onSuccess: (data) => {
       message.success('批量报表任务创建成功！');
       form.resetFields();
-      onSuccess?.();
+      onSuccess?.(data?.task_id);
     },
     onError: (error: any) => {
       message.error(`创建失败: ${error.message}`);
@@ -146,6 +152,34 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
       report_types: preset.report_types,
     });
     setSelectedReportTypes(preset.report_types);
+  };
+
+  // 处理报表类型预览
+  const handleReportTypePreview = async (reportType: any) => {
+    setPreviewReportType(reportType);
+    setPreviewVisible(true);
+    
+    // 如果报表类型有 id，可以获取更详细的信息
+    if (reportType.id) {
+      setPreviewLoading(true);
+      try {
+        // 获取报表类型详情
+        const detailData = await reportConfigApi.getReportType(reportType.id);
+        setPreviewReportType(detailData);
+        
+        // 获取报表字段信息
+        const fieldsData = await reportConfigApi.getReportFields(reportType.id);
+        setPreviewReportType((prev: any) => ({
+          ...prev,
+          fields: fieldsData
+        }));
+      } catch (error) {
+        console.error('获取报表详情失败:', error);
+        message.error('获取报表详情失败');
+      } finally {
+        setPreviewLoading(false);
+      }
+    }
   };
 
   const isDataLoading = reportTypesLoading || periodsLoading || departmentsLoading || presetsLoading;
@@ -259,7 +293,23 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
                 <Row gutter={[16, 16]}>
                   {reportTypesData?.report_types?.map((type) => (
                     <Col span={8} key={type.code}>
-                      <Card size="small" style={{ height: '100%' }}>
+                      <Card 
+                        size="small" 
+                        style={{ height: '100%' }}
+                        extra={
+                          <Tooltip title="预览报表详情">
+                            <Button
+                              type="link"
+                              size="small"
+                              icon={<EyeOutlined />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReportTypePreview(type);
+                              }}
+                            />
+                          </Tooltip>
+                        }
+                      >
                         <Checkbox value={type.code}>
                           <div>
                             <div style={{ fontWeight: 'bold' }}>{type.name}</div>
@@ -388,6 +438,164 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
           </div>
         </Form>
       </Spin>
+
+      {/* 报表类型预览模态框 */}
+      <Modal
+        title={`报表预览 - ${previewReportType?.name || ''}`}
+        open={previewVisible}
+        onCancel={() => {
+          setPreviewVisible(false);
+          setPreviewReportType(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => {
+            setPreviewVisible(false);
+            setPreviewReportType(null);
+          }}>
+            关闭
+          </Button>
+        ]}
+        width={900}
+      >
+        <Spin spinning={previewLoading}>
+          {previewReportType && (
+            <div>
+              {/* 基本信息 */}
+              <Descriptions bordered column={2} style={{ marginBottom: 16 }}>
+                <Descriptions.Item label="报表代码">{previewReportType.code}</Descriptions.Item>
+                <Descriptions.Item label="报表名称">{previewReportType.name}</Descriptions.Item>
+                <Descriptions.Item label="类别">{previewReportType.category || '-'}</Descriptions.Item>
+                <Descriptions.Item label="状态">
+                  <Tag color={previewReportType.is_active ? 'green' : 'red'}>
+                    {previewReportType.is_active ? '启用' : '禁用'}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="描述" span={2}>
+                  {previewReportType.description || '-'}
+                </Descriptions.Item>
+                {previewReportType.data_source_name && (
+                  <Descriptions.Item label="数据源" span={2}>
+                    {previewReportType.data_source_name}
+                  </Descriptions.Item>
+                )}
+                {previewReportType.usage_count !== undefined && (
+                  <Descriptions.Item label="使用次数">{previewReportType.usage_count}</Descriptions.Item>
+                )}
+                {previewReportType.last_used_at && (
+                  <Descriptions.Item label="最后使用时间">
+                    {new Date(previewReportType.last_used_at).toLocaleString()}
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+
+              {/* 报表字段信息 */}
+              {previewReportType.fields && previewReportType.fields.length > 0 && (
+                <div>
+                  <h4 style={{ marginBottom: 8 }}>报表字段</h4>
+                  <Table
+                    dataSource={previewReportType.fields}
+                    rowKey="id"
+                    size="small"
+                    pagination={false}
+                    scroll={{ y: 300 }}
+                    columns={[
+                      {
+                        title: '字段名',
+                        dataIndex: 'field_name',
+                        key: 'field_name',
+                        width: 150,
+                      },
+                      {
+                        title: '显示名称',
+                        dataIndex: 'display_name',
+                        key: 'display_name',
+                        width: 150,
+                      },
+                      {
+                        title: '字段类型',
+                        dataIndex: 'field_type',
+                        key: 'field_type',
+                        width: 100,
+                      },
+                      {
+                        title: '是否可见',
+                        dataIndex: 'is_visible',
+                        key: 'is_visible',
+                        width: 80,
+                        render: (value) => (
+                          <Tag color={value ? 'green' : 'default'}>
+                            {value ? '是' : '否'}
+                          </Tag>
+                        ),
+                      },
+                      {
+                        title: '是否必填',
+                        dataIndex: 'is_required',
+                        key: 'is_required',
+                        width: 80,
+                        render: (value) => (
+                          <Tag color={value ? 'orange' : 'default'}>
+                            {value ? '是' : '否'}
+                          </Tag>
+                        ),
+                      },
+                      {
+                        title: '排序',
+                        dataIndex: 'display_order',
+                        key: 'display_order',
+                        width: 60,
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+
+              {/* 配置信息 */}
+              {(previewReportType.default_config || previewReportType.template_config) && (
+                <div style={{ marginTop: 16 }}>
+                  <h4 style={{ marginBottom: 8 }}>配置信息</h4>
+                  <pre style={{ 
+                    background: '#f5f5f5', 
+                    padding: 12, 
+                    borderRadius: 4,
+                    overflow: 'auto',
+                    maxHeight: 200
+                  }}>
+                    {JSON.stringify(
+                      previewReportType.default_config || previewReportType.template_config, 
+                      null, 
+                      2
+                    )}
+                  </pre>
+                </div>
+              )}
+
+              {/* 权限要求 */}
+              {(previewReportType.required_permissions || previewReportType.allowed_roles) && (
+                <div style={{ marginTop: 16 }}>
+                  <h4 style={{ marginBottom: 8 }}>权限要求</h4>
+                  {previewReportType.required_permissions && (
+                    <div style={{ marginBottom: 8 }}>
+                      <Text type="secondary">所需权限：</Text>
+                      {previewReportType.required_permissions.map((perm: string) => (
+                        <Tag key={perm} style={{ marginLeft: 8 }}>{perm}</Tag>
+                      ))}
+                    </div>
+                  )}
+                  {previewReportType.allowed_roles && (
+                    <div>
+                      <Text type="secondary">允许角色：</Text>
+                      {previewReportType.allowed_roles.map((role: string) => (
+                        <Tag key={role} color="blue" style={{ marginLeft: 8 }}>{role}</Tag>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </Spin>
+      </Modal>
     </div>
   );
 };

@@ -57,6 +57,12 @@ const BatchReportExportV2: React.FC<BatchReportExportV2Props> = ({
     queryFn: () => reportConfigApi.getBatchReportTypes(),
   });
 
+  // 获取完整的报表类型定义（包含id）
+  const { data: reportTypeDefinitions, isLoading: definitionsLoading } = useQuery({
+    queryKey: ['reportTypeDefinitions'],
+    queryFn: () => reportConfigApi.getReportTypes({ search: undefined }),
+  });
+
   // 获取配置预设
   const { data: presetsData, isLoading: presetsLoading } = useQuery({
     queryKey: ['batchReportPresets'],
@@ -113,7 +119,7 @@ const BatchReportExportV2: React.FC<BatchReportExportV2Props> = ({
 
       // 更新报表类型使用统计
       for (const reportType of values.report_types) {
-        const typeDefinition = reportTypesData?.report_types?.find(t => t.code === reportType);
+        const typeDefinition = reportTypeDefinitions?.find(t => t.code === reportType);
         if (typeDefinition) {
           reportConfigApi.updateReportTypeUsage(typeDefinition.id).catch(console.error);
         }
@@ -156,7 +162,7 @@ const BatchReportExportV2: React.FC<BatchReportExportV2Props> = ({
     setSelectedReportTypes(preset.report_types);
   };
 
-  const isDataLoading = reportTypesLoading || periodsLoading || departmentsLoading || presetsLoading;
+  const isDataLoading = reportTypesLoading || definitionsLoading || periodsLoading || departmentsLoading || presetsLoading;
 
   return (
     <div style={{ padding: '20px' }}>
@@ -343,9 +349,19 @@ const BatchReportExportV2: React.FC<BatchReportExportV2Props> = ({
                     showSearch
                     loading={employeesLoading}
                     disabled={selectedDepartments.length === 0}
-                    filterOption={(input, option) =>
-                      (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
-                    }
+                    filterOption={(input, option) => {
+                      const children = option?.children as any;
+                      if (typeof children === 'string') {
+                        return children.toLowerCase().includes(input.toLowerCase());
+                      }
+                      if (Array.isArray(children) && children.length > 0) {
+                        const firstChild = children[0];
+                        if (typeof firstChild === 'string') {
+                          return firstChild.toLowerCase().includes(input.toLowerCase());
+                        }
+                      }
+                      return false;
+                    }}
                   >
                     {employeesData?.map((employee: BatchEmployee) => (
                       <Option key={employee.id} value={employee.id}>

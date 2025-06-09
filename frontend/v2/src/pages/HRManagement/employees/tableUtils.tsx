@@ -4,7 +4,6 @@ import { SearchOutlined, DownloadOutlined, SettingOutlined, DownOutlined } from 
 import type { InputRef } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import Highlighter from 'react-highlight-words';
-import * as XLSX from 'xlsx';
 import type { ColumnsType } from 'antd/es/table';
 import { useLocalStorage } from 'react-use';
 import { useTranslation } from 'react-i18next';
@@ -320,12 +319,15 @@ export const useTableExport = <T extends object>(
 
   const mergedOptions = { ...defaultOptions, ...options };
 
-  const clientExportToExcel = () => {
+  const clientExportToExcel = async () => {
     if (!dataSource || !columns) {
       message.error(t('common:export.error_no_data_for_client_export'));
       return;
     }
     try {
+      // 动态导入XLSX
+      const XLSX = await import('xlsx');
+      
       const excelData = dataSource.map(record => {
         const row: Record<string, any> = {};
         columns.forEach(column => {
@@ -357,12 +359,12 @@ export const useTableExport = <T extends object>(
   };
 
   const ExportButton: React.FC = () => {
-    const handleMenuClick = (e: { key: string }) => {
+    const handleMenuClick = async (e: { key: string }) => {
       const format = e.key as ExportFormat;
       if (mergedOptions.onExportRequest) {
         mergedOptions.onExportRequest(format);
       } else if (format === 'excel') {
-        clientExportToExcel();
+        await clientExportToExcel();
       } else {
         message.warning(t('common:export.warn_no_handler'));
       }
@@ -401,11 +403,11 @@ export const useTableExport = <T extends object>(
       <Tooltip title={singleButtonText || t('common:tooltip.export_data')}>
         <Button
           icon={<DownloadOutlined />}
-          onClick={() => {
+          onClick={async () => {
             if (hasExportCallback && exportCallback) { // Check exportCallback directly here
               exportCallback(singleFormatToExport);
             } else if (singleFormatToExport === 'excel' && !hasExportCallback) { // Ensure it's client export
-              clientExportToExcel();
+              await clientExportToExcel();
             } else {
               message.warning(t('common:export.warn_no_handler'));
             }

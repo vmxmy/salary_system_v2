@@ -89,11 +89,33 @@ const AuditPayrollCard: React.FC<AuditPayrollCardProps> = ({
     }
   };
 
+  // 只加载现有的审核数据，不执行新的审核检查
+  const loadExistingAuditData = async () => {
+    if (!selectedVersion) return;
+
+    console.log('📋 [AuditPayrollCard] 加载现有审核数据，版本ID:', selectedVersion.id);
+    
+    try {
+      // 尝试获取现有的审核汇总
+      await loadAuditSummary();
+      
+      // 如果有审核数据，也加载异常列表
+      if (auditSummary) {
+        await loadAnomalies();
+        console.log('✅ [AuditPayrollCard] 现有审核数据加载完成');
+      } else {
+        console.log('ℹ️ [AuditPayrollCard] 没有现有审核数据');
+      }
+    } catch (error) {
+      console.error('❌ [AuditPayrollCard] 加载现有审核数据失败:', error);
+    }
+  };
+
   // 当版本变化时重新加载数据
   useEffect(() => {
     if (selectedVersion) {
-      // 自动执行审核检查和异常检测
-      autoRunAuditCheck();
+      // 只加载现有的审核数据，不自动执行新的审核检查
+      loadExistingAuditData();
     } else {
       setAuditSummary(null);
       setAnomalies([]);

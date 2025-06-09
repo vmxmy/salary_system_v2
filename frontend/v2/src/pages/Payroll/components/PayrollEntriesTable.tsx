@@ -23,7 +23,6 @@ import {
   P_PAYROLL_ENTRY_EDIT_DETAILS
 } from '../constants/payrollPermissions';
 import PayrollEntryDetailModal from './PayrollEntryDetailModal';
-import { employeeService } from '../../../services/employeeService';
 import EmployeeName from '../../../components/common/EmployeeName';
 import employeeCacheService from '../../../services/employeeCacheService';
 
@@ -120,6 +119,9 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
     try {
       // 创建一个新的缓存对象，避免直接修改状态
       const newCache = { ...employeeCache };
+      
+      // 动态导入employeeService
+      const { employeeService } = await import('../../../services/employeeService');
       
       // 并行请求所有员工信息
       const fetchPromises = uncachedIds.map(async (id) => {

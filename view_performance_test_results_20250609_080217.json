@@ -1,0 +1,128 @@
+[
+  {
+    "test_name": "员工基础信息视图(基本查询)",
+    "query": "SELECT * FROM reports.v_employees_basic LIMIT 100;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:13.409605"
+  },
+  {
+    "test_name": "员工基础信息视图(带过滤)",
+    "query": "SELECT * FROM reports.v_employees_basic WHERE department_name = '办公室' LIMIT 50;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:13.665910"
+  },
+  {
+    "test_name": "薪资条目基础视图(基本查询)",
+    "query": "SELECT * FROM reports.v_payroll_entries_basic LIMIT 100;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:13.888078"
+  },
+  {
+    "test_name": "薪资条目基础视图(按部门)",
+    "query": "SELECT * FROM reports.v_payroll_entries_basic WHERE department_name = '办公室' LIMIT 50;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:14.062328"
+  },
+  {
+    "test_name": "薪资条目详情视图(基本查询)",
+    "query": "SELECT * FROM reports.v_payroll_entries_detailed LIMIT 50;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:14.247160"
+  },
+  {
+    "test_name": "薪资条目详情视图(带JSONB过滤)",
+    "query": "SELECT * FROM reports.v_payroll_entries_detailed WHERE earnings_details ? 'BASIC_SALARY' LIMIT 20;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:14.418885"
+  },
+  {
+    "test_name": "综合薪资详情视图(小样本)",
+    "query": "SELECT * FROM reports.v_comprehensive_employee_payroll LIMIT 10;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:14.681512"
+  },
+  {
+    "test_name": "综合薪资详情视图(带条件)",
+    "query": "SELECT * FROM reports.v_comprehensive_employee_payroll WHERE \"部门名称\" = '办公室' LIMIT 5;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:14.963176"
+  },
+  {
+    "test_name": "薪资周期详情视图",
+    "query": "SELECT * FROM reports.v_payroll_periods_detail ORDER BY start_date DESC LIMIT 20;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:15.204702"
+  },
+  {
+    "test_name": "薪资运行详情视图",
+    "query": "SELECT * FROM reports.v_payroll_runs_detail ORDER BY run_date DESC LIMIT 20;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:15.457987"
+  },
+  {
+    "test_name": "薪资组件使用情况视图",
+    "query": "SELECT * FROM reports.v_payroll_component_usage ORDER BY usage_count DESC LIMIT 30;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:15.730215"
+  },
+  {
+    "test_name": "薪资汇总分析视图",
+    "query": "SELECT * FROM reports.v_payroll_summary_analysis ORDER BY start_date DESC LIMIT 20;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:15.983550"
+  },
+  {
+    "test_name": "员工薪资历史视图",
+    "query": "SELECT * FROM reports.v_employee_salary_history WHERE period_rank <= 3 LIMIT 50;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:16.144530"
+  },
+  {
+    "test_name": "审计概览视图",
+    "query": "SELECT * FROM payroll.audit_overview ORDER BY payroll_run_id DESC LIMIT 20;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:16.325682"
+  },
+  {
+    "test_name": "审计异常详情视图",
+    "query": "SELECT * FROM payroll.audit_anomalies_detail WHERE severity = 'ERROR' LIMIT 20;",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:16.507727"
+  },
+  {
+    "test_name": "员工部门薪资统计(复杂聚合)",
+    "query": "\n                SELECT \n                    department_name,\n                    COUNT(*) as employee_count,\n                    AVG(gross_pay) as avg_gross_pay,\n                    SUM(gross_pay) as total_gross_pay\n                FROM reports.v_payroll_entries_basic \n                GROUP BY department_name \n                ORDER BY total_gross_pay DESC;\n                ",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:16.671649"
+  },
+  {
+    "test_name": "JSONB字段查询性能测试",
+    "query": "\n                SELECT \n                    employee_code,\n                    earnings_details->'BASIC_SALARY'->>'amount' as basic_salary,\n                    deductions_details->'PERSONAL_INCOME_TAX'->>'amount' as tax\n                FROM reports.v_payroll_entries_detailed \n                WHERE earnings_details ? 'BASIC_SALARY' \n                LIMIT 100;\n                ",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:16.840456"
+  },
+  {
+    "test_name": "递归CTE性能测试(人员层次)",
+    "query": "\n                WITH RECURSIVE category_tree AS (\n                    SELECT id, name, parent_category_id, 0 as level\n                    FROM hr.personnel_categories \n                    WHERE parent_category_id IS NULL\n                    \n                    UNION ALL\n                    \n                    SELECT pc.id, pc.name, pc.parent_category_id, ct.level + 1\n                    FROM hr.personnel_categories pc\n                    INNER JOIN category_tree ct ON pc.parent_category_id = ct.id\n                )\n                SELECT * FROM category_tree ORDER BY level, name;\n                ",
+    "error": "0",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/xumingyang/app/高新区工资信息管理/salary_system/test_views_performance.py\", line 56, in execute_explain_analyze\n    explain_result = cursor.fetchone()[0]\nKeyError: 0\n",
+    "timestamp": "2025-06-09T08:02:17.013913"
+  }
+]

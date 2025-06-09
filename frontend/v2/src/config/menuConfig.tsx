@@ -88,6 +88,14 @@ export const menuData: AppMenuDataItem[] = [
     component: './SimplePayroll',
   },
   
+  // 📊 报表管理
+  {
+    path: '/admin/report-config',
+    titleKey: 'menu:admin.reportConfig',
+    icon: <BarChartOutlined />,
+    component: './Admin/Configuration/ReportPresetManagement',
+  },
+  
   // 👤 个人中心
   {
     path: '/personal',
@@ -112,19 +120,7 @@ export const menuData: AppMenuDataItem[] = [
     ],
   },
   
-  // 📊 报表中心
-  {
-    path: '/reports',
-    titleKey: 'reports.title',
-    icon: <BarChartOutlined />,
-    children: [
-      {
-        path: '/view-reports/management',
-        titleKey: 'viewReports.management',
-        component: './Admin/ReportView',
-      },
-    ],
-  },
+
   
   // 💼 业务中心
   {

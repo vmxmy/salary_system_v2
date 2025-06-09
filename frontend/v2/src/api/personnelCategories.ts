@@ -58,7 +58,7 @@ export const getPersonnelCategoryById = async (id: number): Promise<{data: Perso
  * @param payload Data for creating the personnel category
  */
 export const createPersonnelCategory = async (payload: CreatePersonnelCategoryPayload): Promise<{data: PersonnelCategory}> => {
-  const response = await apiClient.post<{data: PersonnelCategory}>('/personnel-categories', payload);
+  const response = await apiClient.post<{data: PersonnelCategory}>('/views-optimized/personnel-categories', payload);
   return response.data;
 };
 

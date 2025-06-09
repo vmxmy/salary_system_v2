@@ -10,23 +10,19 @@ from ..utils.permissions import (
     can_delete_datasource, filter_accessible_items
 )
 from ..crud.reports import (
-    ReportDataSourceCRUD, ReportDataSourceFieldCRUD, ReportCalculatedFieldCRUD,
-    ReportTemplateCRUD, ReportTemplateFieldCRUD, ReportExecutionCRUD,
-    ReportViewCRUD, ReportViewExecutionCRUD
+    ReportDataSourceCRUD, ReportCalculatedFieldCRUD,
+    # ReportDataSourceFieldCRUD,  # 已移除字段表
+    ReportTemplateCRUD, ReportTemplateFieldCRUD, ReportExecutionCRUD
 )
 from ..pydantic_models.reports import (
     ReportDataSource, ReportDataSourceCreate, ReportDataSourceUpdate,
-    ReportDataSourceField, ReportDataSourceFieldCreate, ReportDataSourceFieldUpdate,
+    # ReportDataSourceField, ReportDataSourceFieldCreate, ReportDataSourceFieldUpdate,  # 已移除字段表
     ReportCalculatedField, ReportCalculatedFieldCreate, ReportCalculatedFieldUpdate,
     ReportTemplate, ReportTemplateCreate, ReportTemplateUpdate, ReportTemplateListItem,
     ReportTemplateField, ReportTemplateFieldCreate, ReportTemplateFieldUpdate,
     ReportExecution, ReportExecutionCreate,
     DataSourceFieldDetection, DetectedField, ReportQuery, ReportData,
-    DataSourceConnectionTest, DataSourceConnectionTestResponse,
-    ReportViewListItem, ReportView, ReportViewCreate, ReportViewUpdate,
-    ReportViewSyncRequest, ReportViewValidationRequest, ReportViewValidationResponse,
-    ReportViewQueryRequest, ReportViewQueryResponse, ReportViewExecution,
-    ReportViewExecutionCreate
+    DataSourceConnectionTest, DataSourceConnectionTestResponse
 )
 from ..pydantic_models.common import PaginationResponse, PaginationMeta
 import logging
@@ -306,68 +302,68 @@ async def preview_data_source_data(
 # 这些函数已被 ReportOptimizationService 替代，保留作为备用
 
 
-# 数据源字段管理
-@router.get("/data-sources/{data_source_id}/fields", response_model=PaginationResponse[ReportDataSourceField])
-async def get_data_source_fields(
-    data_source_id: int,
-    page: int = Query(1, ge=1, description="Page number"),
-    size: int = Query(100, ge=1, le=1000, description="Page size"),
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """获取数据源字段列表，支持分页"""
-    skip = (page - 1) * size
-    fields, total = ReportDataSourceFieldCRUD.get_by_data_source(db, data_source_id, skip=skip, limit=size)
-    
-    total_pages = (total + size - 1) // size if total > 0 else 1
-    
-    pagination_meta = PaginationMeta(
-        page=page,
-        size=size,
-        total=total,
-        totalPages=total_pages
-    )
-    return PaginationResponse[ReportDataSourceField](
-        data=fields,
-        meta=pagination_meta
-    )
+# 数据源字段管理 - 已移除，改为动态获取
+# @router.get("/data-sources/{data_source_id}/fields", response_model=PaginationResponse[ReportDataSourceField])
+# async def get_data_source_fields(
+#     data_source_id: int,
+#     page: int = Query(1, ge=1, description="Page number"),
+#     size: int = Query(100, ge=1, le=1000, description="Page size"),
+#     db: Session = Depends(get_db_v2),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """获取数据源字段列表，支持分页"""
+#     skip = (page - 1) * size
+#     fields, total = ReportDataSourceFieldCRUD.get_by_data_source(db, data_source_id, skip=skip, limit=size)
+#     
+#     total_pages = (total + size - 1) // size if total > 0 else 1
+#     
+#     pagination_meta = PaginationMeta(
+#         page=page,
+#         size=size,
+#         total=total,
+#         totalPages=total_pages
+#     )
+#     return PaginationResponse[ReportDataSourceField](
+#         data=fields,
+#         meta=pagination_meta
+#     )
 
 
-@router.post("/data-source-fields", response_model=ReportDataSourceField)
-async def create_data_source_field(
-    field: ReportDataSourceFieldCreate,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """创建数据源字段"""
-    return ReportDataSourceFieldCRUD.create(db, field)
+# @router.post("/data-source-fields", response_model=ReportDataSourceField)
+# async def create_data_source_field(
+#     field: ReportDataSourceFieldCreate,
+#     db: Session = Depends(get_db_v2),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """创建数据源字段"""
+#     return ReportDataSourceFieldCRUD.create(db, field)
 
 
-@router.put("/data-source-fields/{field_id}", response_model=ReportDataSourceField)
-async def update_data_source_field(
-    field_id: int,
-    field: ReportDataSourceFieldUpdate,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """更新数据源字段"""
-    updated_field = ReportDataSourceFieldCRUD.update(db, field_id, field)
-    if not updated_field:
-        raise HTTPException(status_code=404, detail="字段不存在")
-    return updated_field
+# @router.put("/data-source-fields/{field_id}", response_model=ReportDataSourceField)
+# async def update_data_source_field(
+#     field_id: int,
+#     field: ReportDataSourceFieldUpdate,
+#     db: Session = Depends(get_db_v2),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """更新数据源字段"""
+#     updated_field = ReportDataSourceFieldCRUD.update(db, field_id, field)
+#     if not updated_field:
+#         raise HTTPException(status_code=404, detail="字段不存在")
+#     return updated_field
 
 
-@router.delete("/data-source-fields/{field_id}")
-async def delete_data_source_field(
-    field_id: int,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """删除数据源字段"""
-    success = ReportDataSourceFieldCRUD.delete(db, field_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="字段不存在")
-    return {"message": "字段删除成功"}
+# @router.delete("/data-source-fields/{field_id}")
+# async def delete_data_source_field(
+#     field_id: int,
+#     db: Session = Depends(get_db_v2),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """删除数据源字段"""
+#     success = ReportDataSourceFieldCRUD.delete(db, field_id)
+#     if not success:
+#         raise HTTPException(status_code=404, detail="字段不存在")
+#     return {"message": "字段删除成功"}
 
 
 # 计算字段管理
@@ -1069,295 +1065,6 @@ async def preview_multi_datasource_data(
 
 # ==================== 报表视图相关路由 ====================
 
-@router.get("/views", response_model=PaginationResponse[ReportViewListItem])
-async def get_report_views(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    category: Optional[str] = Query(None),
-    is_active: Optional[bool] = Query(None),
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """获取报表视图列表"""
-    from ..crud.reports import ReportViewCRUD
-    from ..pydantic_models.reports import ReportViewListItem
-    
-    views, total = ReportViewCRUD.get_all(db, skip=skip, limit=limit, category=category, is_active=is_active)
-    return PaginationResponse[ReportViewListItem](
-        data=[ReportViewListItem.model_validate(view) for view in views],
-        meta=PaginationMeta(
-            page=(skip // limit) + 1,
-            size=limit,
-            total=total,
-            totalPages=(total + limit - 1) // limit if total > 0 else 1
-        )
-    )
-
-
-@router.get("/views/{view_id}", response_model=ReportView)
-async def get_report_view(
-    view_id: int,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """获取报表视图详情"""
-    from ..crud.reports import ReportViewCRUD
-    
-    view = ReportViewCRUD.get_by_id(db, view_id)
-    if not view:
-        raise HTTPException(status_code=404, detail="报表视图不存在")
-    return view
-
-
-@router.post("/views", response_model=ReportView)
-async def create_report_view(
-    view_data: ReportViewCreate,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """创建报表视图"""
-    from ..crud.reports import ReportViewCRUD
-    
-    # 检查视图名称是否已存在
-    existing_view = ReportViewCRUD.get_by_view_name(db, view_data.view_name)
-    if existing_view:
-        raise HTTPException(status_code=400, detail="视图名称已存在")
-    
-    return ReportViewCRUD.create(db, view_data, current_user.id)
-
-
-@router.put("/views/{view_id}", response_model=ReportView)
-async def update_report_view(
-    view_id: int,
-    view_data: ReportViewUpdate,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """更新报表视图"""
-    from ..crud.reports import ReportViewCRUD
-    
-    updated_view = ReportViewCRUD.update(db, view_id, view_data)
-    if not updated_view:
-        raise HTTPException(status_code=404, detail="报表视图不存在")
-    return updated_view
-
-
-@router.delete("/views/{view_id}")
-async def delete_report_view(
-    view_id: int,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """删除报表视图"""
-    from ..crud.reports import ReportViewCRUD
-    
-    success = ReportViewCRUD.delete(db, view_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="报表视图不存在")
-    return {"message": "报表视图删除成功"}
-
-
-@router.post("/views/{view_id}/sync")
-async def sync_report_view(
-    view_id: int,
-    sync_request: ReportViewSyncRequest,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """同步报表视图到数据库"""
-    from ..crud.reports import ReportViewCRUD
-    
-    success = ReportViewCRUD.sync_view_to_database(db, view_id, sync_request.force_recreate)
-    if not success:
-        raise HTTPException(status_code=400, detail="视图同步失败")
-    return {"message": "视图同步成功"}
-
-
-@router.post("/views/validate-sql", response_model=ReportViewValidationResponse)
-async def validate_report_view_sql(
-    validation_request: ReportViewValidationRequest,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """验证报表视图SQL"""
-    from ..crud.reports import ReportViewCRUD
-    
-    result = ReportViewCRUD.validate_sql(
-        db, 
-        validation_request.sql_query, 
-        validation_request.schema_name
-    )
-    return ReportViewValidationResponse(**result)
-
-
-@router.post("/views/{view_id}/query", response_model=ReportViewQueryResponse)
-async def query_report_view_data(
-    view_id: int,
-    query_request: ReportViewQueryRequest,
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """查询报表视图数据"""
-    from ..crud.reports import ReportViewCRUD
-    
-    try:
-        result = ReportViewCRUD.query_view_data(
-            db=db,
-            view_id=view_id,
-            filters=query_request.filters,
-            sorting=query_request.sorting,
-            page=query_request.page,
-            page_size=query_request.page_size
-        )
-        return ReportViewQueryResponse(**result)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/views/{view_id}/executions", response_model=PaginationResponse[ReportViewExecution])
-async def get_report_view_executions(
-    view_id: int,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """获取报表视图执行记录"""
-    from ..crud.reports import ReportViewExecutionCRUD
-    
-    executions, total = ReportViewExecutionCRUD.get_by_view_id(db, view_id, skip=skip, limit=limit)
-    
-    total_pages = (total + limit - 1) // limit if total > 0 else 1
-    
-    pagination_meta = PaginationMeta(
-        page=(skip // limit) + 1,
-        size=limit,
-        total=total,
-        totalPages=total_pages
-    )
-    return PaginationResponse[ReportViewExecution](
-        data=executions,
-        meta=pagination_meta
-    )
-
-
-@router.post("/views/{view_id}/export")
-async def export_report_view_data(
-    view_id: int,
-    query_request: ReportViewQueryRequest,
-    export_format: str = Query("excel", regex="^(excel|csv|pdf)$"),
-    db: Session = Depends(get_db_v2),
-    current_user: User = Depends(get_current_user)
-):
-    """导出报表视图数据"""
-    from ..crud.reports import ReportViewCRUD, ReportViewExecutionCRUD
-    from ..pydantic_models.reports import ReportViewExecutionCreate
-    import tempfile
-    import os
-    from fastapi.responses import FileResponse
-
-    logger = logging.getLogger(__name__)
-
-    try:
-        # 创建执行记录
-        execution_data = ReportViewExecutionCreate(
-            report_view_id=view_id,
-            execution_params=query_request.dict(),
-            export_format=export_format
-        )
-        execution = ReportViewExecutionCRUD.create(db, execution_data, current_user.id)
-        
-        # 查询数据（不分页，获取所有数据）
-        query_request.page_size = 1000000
-        result = ReportViewCRUD.query_view_data(
-            db=db,
-            view_id=view_id,
-            filters=query_request.filters,
-            sorting=query_request.sorting,
-            page=1,
-            page_size=query_request.page_size
-        )
-        
-        # 生成文件
-        view = ReportViewCRUD.get_by_id(db, view_id)
-        if not view:
-            raise HTTPException(status_code=404, detail="报表视图不存在")
-
-        filename_prefix = view.name.replace(" ", "_")
-        filename = f"{filename_prefix}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
-        if export_format == "excel":
-            import pandas as pd
-            
-            if not result['data']:
-                logger.warning(f"Report view {view_id} has no data for export.")
-                df = pd.DataFrame()
-            else:
-                df = pd.DataFrame(result['data'])
-
-            # Convert timezone-aware datetimes to timezone-naive
-            for col in df.columns:
-                if pd.api.types.is_datetime64_any_dtype(df[col]):
-                    first_valid_index = df[col].first_valid_index()
-                    if first_valid_index is not None and hasattr(df[col][first_valid_index], 'tzinfo') and df[col][first_valid_index].tzinfo is not None:
-                        try:
-                            df[col] = df[col].dt.tz_convert(None)
-                        except TypeError:
-                            logger.warning(f"Could not convert column {col} to timezone-naive for Excel export in report view {view_id}.")
-            
-            temp_file_suffix = '.xlsx'
-            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            
-            with tempfile.NamedTemporaryFile(delete=False, suffix=temp_file_suffix) as tmp:
-                df.to_excel(tmp.name, index=False)
-                temp_file_path = tmp.name
-            
-        elif export_format == "csv":
-            import pandas as pd
-            if not result['data']:
-                logger.warning(f"Report view {view_id} has no data for export.")
-                df = pd.DataFrame()
-            else:
-                df = pd.DataFrame(result['data'])
-            
-            temp_file_suffix = '.csv'
-            media_type = "text/csv"
-            
-            with tempfile.NamedTemporaryFile(delete=False, suffix=temp_file_suffix) as tmp:
-                df.to_csv(tmp.name, index=False, encoding='utf-8-sig')
-                temp_file_path = tmp.name
-            
-        elif export_format == "pdf":
-            raise HTTPException(status_code=501, detail="PDF导出功能暂未实现")
-        else:
-            raise HTTPException(status_code=400, detail="不支持的导出格式")
-        
-        # 更新执行记录
-        file_size = os.path.getsize(temp_file_path)
-        ReportViewExecutionCRUD.update_execution_result(
-            db, execution.id, 
-            result_count=len(result['data']),
-            execution_time=result.get('execution_time'),
-            status="success",
-            file_path=temp_file_path,
-            file_size=file_size
-        )
-        
-        return FileResponse(
-            path=temp_file_path,
-            filename=f"{filename}{temp_file_suffix}",
-            media_type=media_type
-        )
-        
-    except Exception as e:
-        logger.error(f"导出报表视图 {view_id} 失败: {str(e)}", exc_info=True)
-        if 'execution' in locals() and execution is not None:
-            ReportViewExecutionCRUD.update_execution_result(
-                db, execution.id,
-                status="error",
-                error_message=f"导出失败: {str(e)}"
-            )
-        raise HTTPException(status_code=500, detail=f"导出失败: {str(e)}")
 
 
 # ==================== 报表优化相关路由 ====================

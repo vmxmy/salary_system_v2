@@ -73,46 +73,83 @@ class PayrollEntriesViewService(BaseViewService):
     def view_name(self) -> str:
         return "v_comprehensive_employee_payroll"
     
+    def get_view_columns(self) -> List[dict]:
+        """动态获取视图的所有列信息"""
+        try:
+            from sqlalchemy import text
+            result = self.db.execute(text("""
+                SELECT 
+                    column_name,
+                    data_type,
+                    is_nullable,
+                    column_default,
+                    ordinal_position
+                FROM information_schema.columns 
+                WHERE table_schema = 'reports' 
+                AND table_name = 'v_comprehensive_employee_payroll'
+                ORDER BY ordinal_position
+            """))
+            
+            columns = []
+            for row in result:
+                columns.append({
+                    'name': row.column_name,
+                    'type': row.data_type,
+                    'nullable': row.is_nullable == 'YES',
+                    'default': row.column_default,
+                    'position': row.ordinal_position
+                })
+            return columns
+        except Exception as e:
+            logger.error(f"获取视图列信息失败: {e}")
+            return []
+    
+    def get_all_available_fields(self) -> List[str]:
+        """获取视图中所有可用的字段名（中文字段名）"""
+        columns = self.get_view_columns()
+        return [col['name'] for col in columns if col['name'] not in ['原始应发明细', '原始扣除明细', '原始计算输入', '原始计算日志']]
+    
     @property
     def default_fields(self) -> List[str]:
-        return [
-            # 基本信息
-            "payroll_entry_id as id", "employee_id", "employee_code", "full_name as employee_name", 
-            "department_name", "position_name", "payroll_period_id as period_id", "payroll_period_name as period_name",
-            "gross_pay", "net_pay", "total_deductions",
+        """动态生成默认字段列表 - 现在使用中文字段名"""
+        # 优先显示的核心字段（使用中文字段名）
+        priority_fields = [
+            "薪资条目ID as id", 
+            "员工ID as employee_id", 
+            "员工编号 as employee_code", 
+            "姓名 as employee_name", 
+            "部门名称 as department_name", 
+            "职位名称 as position_name", 
+            "薪资期间名称 as period_name",
+            "应发合计 as gross_pay", 
+            "实发合计 as net_pay", 
+            "扣除合计 as total_deductions",
             
-            # 应发项目（EARNING）
-            "basic_salary", "performance_bonus", "basic_performance_award", "basic_performance_salary", 
-            "position_salary_general as position_salary", "grade_salary", "salary_grade",
-            "allowance_general as allowance", "general_allowance as subsidy", "traffic_allowance", 
-            "only_child_parent_bonus as only_child_bonus", "township_allowance", 
-            "position_allowance", "civil_standard_allowance as civil_servant_allowance", "back_pay",
-            "performance_salary", "monthly_performance_bonus", "quarterly_performance_assessment",
+            # 主要应发项目
+            "基本工资 as basic_salary",
+            "奖励性绩效工资 as performance_bonus", 
+            "岗位工资 as position_salary",
+            "级别工资 as grade_salary",
+            "薪级工资 as salary_grade",
+            "津贴 as allowance",
+            "补助 as subsidy",
             
-            # 个人扣除项目（PERSONAL_DEDUCTION）
-            "personal_income_tax", "pension_personal_amount as pension_personal", 
-            "medical_ins_personal_amount as medical_personal", "unemployment_personal_amount as unemployment_personal",
-            "housing_fund_personal", "occupational_pension_personal_amount as annuity_personal",
-            "one_time_adjustment as adjustment_deduction", "social_insurance_adjustment",
+            # 主要扣除项目
+            "个人所得税 as personal_income_tax",
+            "养老保险个人应缴金额 as pension_personal",
+            "医疗保险个人缴纳金额 as medical_personal",
+            "个人缴住房公积金 as housing_fund_personal",
             
-            # 单位扣除项目（EMPLOYER_DEDUCTION）
-            "pension_employer_amount", "medical_ins_employer_amount", "housing_fund_employer",
+            # 新增字段
+            "工资统发 as unified_payroll_flag",
+            "财政供养 as fiscal_support_flag",
             
-            # 计算基数和费率
-            "pension_base", "medical_ins_base", "tax_base", "housing_fund_base",
-            "pension_personal_rate", "medical_ins_personal_rate", "tax_rate",
-            
-            # 汇总字段（计算得出）
-            "(basic_salary + COALESCE(position_salary_general, 0) + COALESCE(grade_salary, 0) + COALESCE(salary_grade, 0)) as basic_wage_total",
-            "(performance_bonus + COALESCE(basic_performance_salary, 0) + COALESCE(performance_salary, 0) + COALESCE(monthly_performance_bonus, 0)) as performance_total",
-            "(allowance_general + COALESCE(general_allowance, 0) + COALESCE(traffic_allowance, 0) + COALESCE(position_allowance, 0)) as allowance_total",
-            "(pension_personal_amount + COALESCE(medical_ins_personal_amount, 0) + COALESCE(unemployment_personal_amount, 0) + COALESCE(housing_fund_personal, 0) + COALESCE(occupational_pension_personal_amount, 0)) as social_insurance_total",
-            
-            # 原始数据
-            "raw_earnings_details", "raw_deductions_details",
-            "personnel_category_name", "root_personnel_category_name", 
-            "calculated_at::text as calculated_at", "updated_at::text as updated_at"
+            # 时间字段
+            "计算时间 as calculated_at",
+            "更新时间 as updated_at"
         ]
+        
+        return priority_fields
     
     @property
     def field_mappings(self) -> Dict[str, str]:

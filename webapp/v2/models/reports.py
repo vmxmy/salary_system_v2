@@ -69,70 +69,24 @@ class ReportDataSource(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
 
+    # 动态字段配置（新增）
+    field_config = Column(JSONB, comment="字段显示配置")
+    enable_dynamic_fields = Column(Boolean, default=True, nullable=False, comment="是否启用动态字段获取")
+    field_grouping_enabled = Column(Boolean, default=True, nullable=False, comment="是否启用字段分组")
+    auto_infer_categories = Column(Boolean, default=True, nullable=False, comment="是否自动推断字段分类")
+
     # 关系
     creator = relationship("User", foreign_keys=[created_by], back_populates="created_data_sources")
     updater = relationship("User", foreign_keys=[updated_by])
-    fields = relationship("ReportDataSourceField", back_populates="data_source", cascade="all, delete-orphan")
+    # fields = relationship("ReportDataSourceField", back_populates="data_source", cascade="all, delete-orphan")  # 已移除字段表
     templates = relationship("ReportTemplate", back_populates="data_source")
     access_logs = relationship("ReportDataSourceAccessLog", back_populates="data_source")
 
 
-class ReportDataSourceField(Base):
-    """报表数据源字段模型 - 增强版"""
-    __tablename__ = "report_data_source_fields"
-    __table_args__ = (
-        Index('idx_ds_field_source_name', 'data_source_id', 'field_name'),
-        Index('idx_ds_field_visible_sortable', 'is_visible', 'sort_order'),
-        {'schema': 'config'}
-    )
-
-    id = Column(BigInteger, primary_key=True, index=True)
-    data_source_id = Column(BigInteger, ForeignKey("config.report_data_sources.id"), nullable=False)
-    
-    # 基础字段信息
-    field_name = Column(String(100), nullable=False, comment="原始字段名")
-    field_alias = Column(String(100), comment="字段别名")
-    field_type = Column(String(50), nullable=False, comment="字段类型")
-    data_type = Column(String(50), comment="数据库数据类型")
-    
-    # 显示配置
-    display_name_zh = Column(String(200), comment="中文显示名称")
-    display_name_en = Column(String(200), comment="英文显示名称")
-    description = Column(Text, comment="字段描述")
-    
-    # 字段属性
-    is_nullable = Column(Boolean, default=True, comment="是否可为空")
-    is_primary_key = Column(Boolean, default=False, comment="是否主键")
-    is_foreign_key = Column(Boolean, default=False, comment="是否外键")
-    is_indexed = Column(Boolean, default=False, comment="是否有索引")
-    
-    # 显示和权限控制
-    is_visible = Column(Boolean, default=True, comment="是否可见")
-    is_searchable = Column(Boolean, default=True, comment="是否可搜索")
-    is_sortable = Column(Boolean, default=True, comment="是否可排序")
-    is_filterable = Column(Boolean, default=True, comment="是否可筛选")
-    is_exportable = Column(Boolean, default=True, comment="是否可导出")
-    
-    # 分组和分类
-    field_group = Column(String(50), comment="字段分组")
-    field_category = Column(String(50), comment="字段分类")
-    sort_order = Column(Integer, default=0, comment="排序顺序")
-    
-    # 格式化配置
-    format_config = Column(JSONB, comment="格式化配置")
-    validation_rules = Column(JSONB, comment="验证规则")
-    lookup_config = Column(JSONB, comment="查找表配置")
-    
-    # 统计配置
-    enable_aggregation = Column(Boolean, default=False, comment="是否启用聚合")
-    aggregation_functions = Column(JSONB, comment="可用聚合函数")
-    
-    # 审计字段
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="创建时间")
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
-
-    # 关系
-    data_source = relationship("ReportDataSource", back_populates="fields")
+# class ReportDataSourceField(Base):
+#     """报表数据源字段模型 - 已移除，改为动态获取"""
+#     # 此类已被移除，所有字段信息现在通过动态查询获取
+#     pass
 
 
 class ReportDataSourceAccessLog(Base):
@@ -323,81 +277,7 @@ class ReportUserPreference(Base):
     user = relationship("User", back_populates="report_preferences")
 
 
-class ReportView(Base):
-    """基于SQL视图的简化报表模型"""
-    __tablename__ = "report_views"
-    __table_args__ = {'schema': 'reports'}
 
-    id = Column(BigInteger, primary_key=True, index=True)
-    name = Column(String(255), nullable=False, comment="报表名称")
-    description = Column(Text, comment="报表描述")
-    view_name = Column(String(100), nullable=False, unique=True, comment="视图名称")
-    sql_query = Column(Text, nullable=False, comment="SQL查询语句")
-    schema_name = Column(String(50), nullable=False, default="reports", comment="视图所在模式")
-    
-    # 报表配置
-    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
-    is_public = Column(Boolean, default=False, nullable=False, comment="是否公开")
-    category = Column(String(100), comment="报表分类")
-    report_title = Column(String(500), comment="报表标题")
-    description_lines = Column(JSONB, comment="报表说明行列表")
-    
-    # 视图状态
-    view_status = Column(String(20), default="draft", comment="视图状态: draft, created, error")
-    last_sync_at = Column(DateTime(timezone=True), comment="最后同步时间")
-    sync_error = Column(Text, comment="同步错误信息")
-    
-    # 使用统计
-    usage_count = Column(Integer, default=0, nullable=False, comment="使用次数")
-    last_used_at = Column(DateTime(timezone=True), comment="最后使用时间")
-    
-    # 审计字段
-    created_by = Column(BigInteger, ForeignKey("security.users.id"), comment="创建者")
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
-
-    # 关系
-    creator = relationship("User", back_populates="created_report_views")
-    executions = relationship("ReportViewExecution", back_populates="report_view", cascade="all, delete-orphan")
-
-
-class ReportViewExecution(Base):
-    """报表视图执行记录"""
-    __tablename__ = "report_view_executions"
-    __table_args__ = {'schema': 'reports'}
-
-    id = Column(BigInteger, primary_key=True, index=True)
-    report_view_id = Column(BigInteger, ForeignKey("reports.report_views.id"), nullable=False)
-    
-    # 执行参数
-    execution_params = Column(JSONB, comment="执行参数(筛选条件等)")
-    result_count = Column(Integer, comment="结果数量")
-    execution_time = Column(DECIMAL(10, 3), comment="执行时间(秒)")
-    
-    # 执行状态
-    status = Column(String(20), default="success", comment="执行状态: success, error")
-    error_message = Column(Text, comment="错误信息")
-    
-    # 导出信息
-    export_format = Column(String(20), comment="导出格式: excel, csv, pdf")
-    file_path = Column(String(500), comment="导出文件路径")
-    file_size = Column(BigInteger, comment="文件大小(字节)")
-    
-    # 审计字段
-    executed_by = Column(BigInteger, ForeignKey("security.users.id"), comment="执行者")
-    executed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="执行时间")
-
-    # 关系
-    report_view = relationship("ReportView", back_populates="executions")
-    executor = relationship("User", back_populates="report_view_executions")
-
-
-# 更新User模型的关系（需要在security模型中添加）
-# User.created_report_views = relationship("ReportView", back_populates="creator")
-# User.report_view_executions = relationship("ReportViewExecution", back_populates="executor")
-
-# 更新ReportView模型的关系
-ReportView.executions = relationship("ReportViewExecution", back_populates="report_view", cascade="all, delete-orphan")
 
 
 class BatchReportTask(Base):
@@ -579,6 +459,10 @@ class ReportTypeDefinition(Base):
     is_system = Column(Boolean, default=False, nullable=False, comment="是否系统内置")
     sort_order = Column(Integer, default=0, nullable=False, comment="排序顺序")
     
+    # 数据源和字段配置
+    data_source_id = Column(BigInteger, ForeignKey("config.report_data_sources.id"), comment="关联的数据源ID")
+    fields = Column(Text, comment="字段列表(逗号分隔的字段ID)")
+    
     # 使用统计
     usage_count = Column(Integer, default=0, nullable=False, comment="使用次数")
     last_used_at = Column(DateTime(timezone=True), comment="最后使用时间")
@@ -592,6 +476,7 @@ class ReportTypeDefinition(Base):
     # 关系
     creator = relationship("User", foreign_keys=[created_by])
     updater = relationship("User", foreign_keys=[updated_by])
+    data_source = relationship("ReportDataSource", foreign_keys=[data_source_id])
     field_definitions = relationship("ReportFieldDefinition", back_populates="report_type", cascade="all, delete-orphan")
 
 

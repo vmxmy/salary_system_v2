@@ -467,10 +467,10 @@ class EnhancedAuditService:
             elif entry.gross_pay < min_value:
                 invalid_fields.append(f"应发合计({entry.gross_pay})")
             
-            # 检查扣发合计 (total_deductions)
+            # 检查扣发合计 (total_deductions) - 可以为0（表示无扣除项）
             if entry.total_deductions is None:
                 missing_fields.append("扣发合计")
-            elif entry.total_deductions < min_value:
+            elif entry.total_deductions < Decimal('0'):
                 invalid_fields.append(f"扣发合计({entry.total_deductions})")
             
             # 检查实发合计 (net_pay)

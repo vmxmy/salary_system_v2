@@ -6,10 +6,11 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from .data_source_basic_crud import ReportDataSourceBasicCRUD
-from .data_source_field_operations import ReportDataSourceFieldOperations
+# from .data_source_field_operations import ReportDataSourceFieldOperations  # 已移除字段表
 from .data_source_connection import ReportDataSourceConnection
-from .data_source_field_crud import ReportDataSourceFieldCRUD
-from ...models.reports import ReportDataSource, ReportDataSourceField
+# from .data_source_field_crud import ReportDataSourceFieldCRUD  # 已移除字段表
+from ...models.reports import ReportDataSource
+# from ...models.reports import ReportDataSourceField  # 已移除字段表
 from ...pydantic_models.reports import (
     ReportDataSourceCreate, ReportDataSourceUpdate,
     DataSourceFieldDetection, DetectedField,
@@ -46,11 +47,14 @@ class ReportDataSourceCRUD:
         """删除数据源"""
         return ReportDataSourceBasicCRUD.delete(db, data_source_id)
 
-    # 字段操作
+    # 字段操作 - 现在使用动态字段检测
     @staticmethod
     def detect_fields(db: Session, detection: DataSourceFieldDetection) -> List[DetectedField]:
-        """检测数据源表的字段信息"""
-        return ReportDataSourceFieldOperations.detect_fields(db, detection)
+        """检测数据源表的字段信息 - 动态检测"""
+        # 现在使用动态字段服务
+        from ...services.dynamic_field_service import DynamicFieldService
+        dynamic_service = DynamicFieldService()
+        return dynamic_service.detect_fields(db, detection)
 
     # 连接测试
     @staticmethod
@@ -58,17 +62,21 @@ class ReportDataSourceCRUD:
         """测试数据源连接"""
         return ReportDataSourceConnection.test_connection(db, connection_test)
 
-    # 字段管理
+    # 字段管理 - 现在使用动态字段获取
     @staticmethod
-    def get_fields(db: Session, data_source_id: int) -> List[ReportDataSourceField]:
-        """获取数据源字段列表"""
-        return ReportDataSourceFieldCRUD.get_by_data_source(db, data_source_id)
+    def get_fields(db: Session, data_source_id: int) -> List[Dict[str, Any]]:
+        """获取数据源字段列表 - 动态获取"""
+        # 现在使用动态字段服务
+        from ...services.dynamic_field_service import DynamicFieldService
+        dynamic_service = DynamicFieldService()
+        return dynamic_service.get_fields_for_data_source(db, data_source_id)
 
-    # 高级功能
+    # 高级功能 - 字段同步已不再需要（动态获取）
     @staticmethod
     def sync_fields(db: Session, data_source_id: int, user_id: int) -> bool:
-        """同步数据源字段"""
-        return ReportDataSourceFieldOperations.sync_fields(db, data_source_id, user_id)
+        """同步数据源字段 - 动态获取模式下不再需要同步"""
+        # 动态字段获取模式下，字段信息实时获取，无需同步
+        return True
 
     @staticmethod
     def get_statistics(db: Session, data_source_id: int) -> Dict[str, Any]:

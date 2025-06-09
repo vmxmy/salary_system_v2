@@ -33,6 +33,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportConfigApi } from '../../../api/reportConfigApi';
 import type { ReportConfigPreset, ReportConfigPresetCreate, ReportConfigPresetUpdate } from '../../../types/reportConfig';
+import styles from '../../../styles/reportConfig.module.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -178,7 +179,7 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
       ellipsis: true,
       render: (text: string) => (
         <Tooltip title={text}>
-          <Text ellipsis style={{ maxWidth: 200 }}>
+          <Text ellipsis className={styles.tableMaxWidth}>
             {text || '-'}
           </Text>
         </Tooltip>
@@ -189,20 +190,31 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
       dataIndex: 'report_types',
       key: 'report_types',
       width: 200,
-      render: (types: string[]) => (
-        <div>
-          {types?.slice(0, 3).map(type => (
-            <Tag key={type} style={{ marginBottom: 2 }}>
-              {type}
-            </Tag>
-          ))}
-          {types?.length > 3 && (
-            <Tooltip title={types.slice(3).join(', ')}>
-              <Tag>+{types.length - 3}</Tag>
-            </Tooltip>
-          )}
-        </div>
-      ),
+      render: (types: string[]) => {
+        // 根据代码获取中文名称的函数
+        const getReportTypeName = (code: string) => {
+          const reportType = reportTypeOptions.find((type: any) => type.code === code);
+          return reportType ? reportType.name : code;
+        };
+
+        // 获取所有报表类型的中文名称
+        const typeNames = types?.map(getReportTypeName) || [];
+        
+        return (
+          <div>
+            {typeNames.slice(0, 3).map((name, index) => (
+              <Tag key={types?.[index] || index} style={{ marginBottom: 2 }}>
+                {name}
+              </Tag>
+            ))}
+            {typeNames.length > 3 && (
+              <Tooltip title={typeNames.slice(3).join(', ')}>
+                <Tag>+{typeNames.length - 3}</Tag>
+              </Tooltip>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: '状态',
@@ -290,43 +302,42 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
   const reportTypeOptions = reportTypesData?.report_types || [];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className={styles.padding24}>
       <Card>
-        <div style={{ marginBottom: 16 }}>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Title level={4} style={{ margin: 0 }}>
+        <div className={styles.cardHeader}>
+          <div className={styles.cardTitleRow}>
+            <div className={styles.cardTitleLeft}>
+              <Title level={4} className={styles.cardTitleText}>
                 <AppstoreOutlined /> 报表配置预设管理
               </Title>
-            </Col>
-            <Col>
-              <Space>
+            </div>
+            <div className={styles.cardTitleRight}>
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
                   onClick={handleAdd}
+                className={styles.primaryButton}
                 >
                   新建配置预设
                 </Button>
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={() => refetch()}
+                className={styles.secondaryButton}
                 >
                   刷新
                 </Button>
-              </Space>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </div>
 
         <Divider />
 
         {/* 搜索和筛选 */}
-        <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Row gutter={16} className={styles.marginBottom16}>
           <Col span={8}>
             <Input
               placeholder="搜索预设名称或描述"
-              prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               allowClear
@@ -338,25 +349,13 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
               value={categoryFilter}
               onChange={setCategoryFilter}
               allowClear
-              style={{ width: '100%' }}
+              className={styles.widthFull}
             >
               {categories.map(category => (
                 <Option key={category} value={category}>
                   {category}
                 </Option>
               ))}
-            </Select>
-          </Col>
-          <Col span={6}>
-            <Select
-              placeholder="选择状态"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Option value={true}>激活</Option>
-              <Option value={false}>禁用</Option>
             </Select>
           </Col>
         </Row>
@@ -428,7 +427,7 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
             label="包含的报表类型"
             rules={[{ required: true, message: '请选择至少一个报表类型' }]}
           >
-            <Checkbox.Group style={{ width: '100%' }}>
+            <Checkbox.Group className={styles.widthFull}>
               <Row gutter={[16, 8]}>
                 {reportTypeOptions.map((type: any) => (
                   <Col span={8} key={type.code}>
@@ -495,15 +494,19 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
             </Col>
           </Row>
 
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+          <Form.Item className={styles.formItemRightAlign}>
             <Space>
-              <Button onClick={() => setIsModalVisible(false)}>
+              <Button 
+                onClick={() => setIsModalVisible(false)}
+                className={styles.secondaryButton}
+              >
                 取消
               </Button>
               <Button
                 type="primary"
                 htmlType="submit"
                 loading={createMutation.isPending || updateMutation.isPending}
+                className={styles.primaryButton}
               >
                 {editingRecord ? '更新' : '创建'}
               </Button>

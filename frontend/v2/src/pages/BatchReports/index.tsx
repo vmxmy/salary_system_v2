@@ -15,6 +15,7 @@ import {
   Dropdown,
   Menu
 } from 'antd';
+import styles from '../../styles/reportConfig.module.css';
 import { 
   DownloadOutlined, 
   DeleteOutlined, 
@@ -201,18 +202,21 @@ const BatchReportsPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
+      width: 100,
+      fixed: 'right' as const,
       render: (record: BatchReportTask) => (
-        <Space>
+        <Space size="small">
           <Tooltip title="下载文件">
             <Button
               type="link"
               icon={<DownloadOutlined />}
               disabled={record.status !== 'completed'}
               onClick={() => handleDownload(record.id)}
+              size="small"
             />
           </Tooltip>
-          <Dropdown overlay={getActionMenu(record)} trigger={['click']}>
-            <Button type="link" icon={<MoreOutlined />} />
+          <Dropdown overlay={getActionMenu(record)} trigger={['click']} placement="bottomRight">
+            <Button type="link" icon={<MoreOutlined />} size="small" />
           </Dropdown>
         </Space>
       ),
@@ -228,16 +232,16 @@ const BatchReportsPage: React.FC = () => {
   } : { total: 0, running: 0, completed: 0, failed: 0 };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className={styles.pageContainer}>
       {/* 统计卡片 */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card>
+      <Row gutter={16} className={styles.marginBottom16} style={{ marginBottom: 24 }}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
+          <Card size="small" className={styles.statsCard}>
             <Statistic title="总任务数" value={stats.total} />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
+          <Card size="small" className={styles.statsCard}>
             <Statistic 
               title="执行中" 
               value={stats.running} 
@@ -245,8 +249,8 @@ const BatchReportsPage: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
+          <Card size="small" className={styles.statsCard}>
             <Statistic 
               title="已完成" 
               value={stats.completed} 
@@ -254,8 +258,8 @@ const BatchReportsPage: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
+          <Card size="small" className={styles.statsCard}>
             <Statistic 
               title="失败" 
               value={stats.failed} 
@@ -269,11 +273,13 @@ const BatchReportsPage: React.FC = () => {
       <Card
         title="批量报表任务管理"
         extra={
-          <Space>
+          <Space wrap>
             <Button 
               icon={<ReloadOutlined />} 
               onClick={() => refetch()}
               loading={isLoading}
+              size="small"
+              className={styles.roundButtonSmall}
             >
               刷新
             </Button>
@@ -281,6 +287,8 @@ const BatchReportsPage: React.FC = () => {
               type="primary" 
               icon={<ExportOutlined />}
               onClick={() => setShowExportModal(true)}
+              size="small"
+              className={styles.roundButtonSmall}
             >
               新建批量导出
             </Button>
@@ -289,17 +297,28 @@ const BatchReportsPage: React.FC = () => {
       >
         {/* 批量操作栏 */}
         {selectedRowKeys.length > 0 && (
-          <div style={{ marginBottom: 16, padding: 16, background: '#f5f5f5', borderRadius: 6 }}>
-            <Space>
-              <span>已选择 {selectedRowKeys.length} 项</span>
+          <div style={{ 
+            marginBottom: 16, 
+            padding: 12, 
+            background: '#f5f5f5', 
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 8
+          }}>
+            <span style={{ fontWeight: 500 }}>已选择 {selectedRowKeys.length} 项</span>
+            <Space wrap>
               <Button 
                 danger 
                 icon={<DeleteOutlined />}
                 onClick={handleBatchDelete}
+                size="small"
               >
                 批量删除
               </Button>
-              <Button onClick={() => setSelectedRowKeys([])}>
+              <Button onClick={() => setSelectedRowKeys([])} size="small">
                 取消选择
               </Button>
             </Space>
@@ -316,11 +335,13 @@ const BatchReportsPage: React.FC = () => {
             selectedRowKeys,
             onChange: setSelectedRowKeys,
           }}
+          scroll={{ x: 1200 }}
           pagination={{
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
               `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+            responsive: true,
           }}
         />
       </Card>

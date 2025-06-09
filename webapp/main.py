@@ -92,6 +92,7 @@ from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculati
 from webapp.v2.routers import attendance_router as v2_attendance_router
 from webapp.v2.routers.table_config import router as v2_table_config_router
 from webapp.v2.routers.views import router as v2_views_router
+from webapp.v2.routers import report_config_management_router as v2_report_config_management_router
 
 # 导入所有Pydantic模型
 from webapp.pydantic_models import (
@@ -422,6 +423,14 @@ app.include_router(
     tags=["Views"]
 )
 
+# Include the optimized views router
+from webapp.v2.routers.views_optimized import router as v2_views_optimized_router
+app.include_router(
+    v2_views_optimized_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["高性能视图API"]
+)
+
 # Include the simple payroll router
 from webapp.v2.routers.simple_payroll import router as v2_simple_payroll_router
 app.include_router(
@@ -449,9 +458,8 @@ app.include_router(
 )
 
 # Include the report config management router
-from webapp.v2.routers.report_config_management import router as v2_report_config_router
 app.include_router(
-    v2_report_config_router,
+    v2_report_config_management_router,
     prefix=settings.API_V2_PREFIX,
     tags=["Report Configuration Management"]
 )

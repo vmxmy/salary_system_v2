@@ -49,8 +49,7 @@ class User(BaseV2):
     created_report_templates = relationship("ReportTemplate", foreign_keys="[ReportTemplate.created_by]", back_populates="creator")
     report_executions = relationship("ReportExecution", foreign_keys="[ReportExecution.executed_by]", back_populates="executor")
     report_preferences = relationship("ReportUserPreference", back_populates="user")
-    created_report_views = relationship("ReportView", foreign_keys="[ReportView.created_by]", back_populates="creator")
-    report_view_executions = relationship("ReportViewExecution", foreign_keys="[ReportViewExecution.executed_by]", back_populates="executor")
+
     
     # 批量报表任务关系
     created_batch_tasks = relationship("BatchReportTask", foreign_keys="[BatchReportTask.created_by]", back_populates="creator")

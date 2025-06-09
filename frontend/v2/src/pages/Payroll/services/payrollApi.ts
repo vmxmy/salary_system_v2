@@ -18,7 +18,7 @@ import type {
 const PAYROLL_PERIODS_ENDPOINT = '/payroll-periods';
 const PAYROLL_RUNS_ENDPOINT = '/payroll-runs';
 const PAYROLL_ENTRIES_ENDPOINT = '/payroll-entries';
-const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/config/payroll-component-definitions';
+const PAYROLL_COMPONENT_DEFINITIONS_ENDPOINT = '/views-optimized/payroll-component-definitions';
 
 /**
  * Fetches a list of payroll periods.

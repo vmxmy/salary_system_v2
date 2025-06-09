@@ -31,8 +31,9 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useTranslation } from 'react-i18next';
-import { ReportViewAPI } from '../../api/reportView';
-import type { DataSource, DataSourceField } from '../../types/reportView'; // 导入正确的类型
+import { reportConfigApi } from '../../api/reportConfigApi';
+import type { DataSource, DataSourceField } from '../../api/reportConfigApi'; // 导入正确的类型
+import { useNavigate } from 'react-router-dom';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -41,6 +42,7 @@ const { Title, Text } = Typography;
 
 const DataSources: React.FC = () => {
   const { t } = useTranslation('reportManagement');
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,14 +62,13 @@ const DataSources: React.FC = () => {
   const loadDataSources = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await ReportViewAPI.getDataSources({
-        page: 1,
-        page_size: 1000, // Assuming this is sufficiently large or replaced with actual pagination
-        keyword: searchText,
+      const response = await reportConfigApi.getDataSources({
         is_active: selectedStatus === 'active' ? true : (selectedStatus === 'inactive' ? false : undefined),
+        search: searchText,
+        skip: 0,
+        limit: 1000,
       });
-      // Type assertion as the API response directly matches the imported DataSource type
-      setDataSources(response as DataSource[]); 
+      setDataSources(response); 
     } catch (error: any) {
       message.error(t('data_source.load_error', { message: error.response?.data?.detail || error.message }));
     } finally {
@@ -78,10 +79,10 @@ const DataSources: React.FC = () => {
   const handleSave = async (values: any) => {
     try {
       if (editingSource) {
-        await ReportViewAPI.updateDataSource(editingSource.id, values);
+        await reportConfigApi.updateDataSource(editingSource.id, values);
         message.success(t('data_source.update_success'));
       } else {
-        await ReportViewAPI.createDataSource(values);
+        await reportConfigApi.createDataSource(values);
         message.success(t('data_source.create_success'));
       }
       setModalVisible(false);
@@ -93,10 +94,18 @@ const DataSources: React.FC = () => {
     }
   };
 
-  const handleEdit = (source: DataSource) => {
-    setEditingSource(source);
-    form.setFieldsValue(source);
-    setModalVisible(true);
+  const handleEdit = async (source: DataSource) => {
+    try {
+      setLoading(true);
+      const fullSource = await reportConfigApi.getDataSource(source.id);
+      setEditingSource(fullSource);
+      form.setFieldsValue(fullSource);
+      setModalVisible(true);
+    } catch (error: any) {
+      message.error(t('data_source.load_error', { message: error.response?.data?.detail || error.message }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (record: DataSource) => {
@@ -107,7 +116,7 @@ const DataSources: React.FC = () => {
       cancelText: t('common:button.cancel'),
       onOk: async () => {
         try {
-          await ReportViewAPI.deleteDataSource(record.id);
+          await reportConfigApi.deleteDataSource(record.id);
           message.success(t('data_source.delete_success'));
           await loadDataSources();
         } catch (error: any) {
@@ -120,7 +129,7 @@ const DataSources: React.FC = () => {
   const handleSync = async (record: DataSource) => {
     try {
       setSyncLoading(record.id);
-      await ReportViewAPI.syncFields(record.id);
+      await reportConfigApi.syncDataSourceFields(record.id);
       message.success(t('data_source.sync_success'));
       await loadDataSources(); // Reload data to show updated sync status
     } catch (error: any) {
@@ -130,18 +139,8 @@ const DataSources: React.FC = () => {
     }
   };
 
-  const handleViewFields = async (record: DataSource) => {
-    try {
-      setLoading(true);
-      const response = await ReportViewAPI.getDataSourceFields(record.id);
-      setSelectedSourceFields(response as DataSourceField[]); // Type assertion
-      setSelectedSourceName(record.name);
-      setDrawerVisible(true);
-    } catch (error: any) {
-      message.error(t('data_source.load_fields_error', { message: error.response?.data?.detail || error.message }));
-    } finally {
-      setLoading(false);
-    }
+  const handleViewFields = (record: DataSource) => {
+    navigate(`/admin/report-config/${record.id}`);
   };
 
   const columns: ColumnsType<DataSource> = [
@@ -149,7 +148,8 @@ const DataSources: React.FC = () => {
       title: t('data_source.column.name'),
       dataIndex: 'name',
       key: 'name',
-      width: 200,
+      width: 180,
+      ellipsis: true,
       render: (text, record) => (
         <div>
           <Space>
@@ -158,43 +158,47 @@ const DataSources: React.FC = () => {
           </Space>
           {record.description && (
             <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              {record.description}
+              <Text ellipsis={{ tooltip: record.description }}>{record.description}</Text>
             </div>
           )}
         </div>
       ),
     },
     {
-      title: t('data_source.column.table_name'),
-      key: 'table_name_display',
+      title: '数据源',
+      key: 'datasource_display',
       width: 200,
-      render: (_, record) => (
-        record.type === 'table' ? (
+      ellipsis: true,
+      render: (_, record) => {
+        const sourceName = record.source_type === 'table' ? record.table_name : record.view_name;
+        const fullName = sourceName ? `${record.schema_name}.${sourceName}` : '-';
+        
+        return (
           <div>
-            <Text code>{record.schema_name}.{record.table_name}</Text>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              {t('data_source.field_count', { count: record.field_count })}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+              <Tag 
+                color={record.source_type === 'table' ? 'blue' : 'green'} 
+                style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}
+              >
+                {record.source_type === 'table' ? '表' : '视图'}
+              </Tag>
+              <Text code style={{ fontSize: '12px' }}>{fullName}</Text>
             </div>
+            {record.field_count && (
+              <div style={{ fontSize: '11px', color: '#666' }}>
+                {record.field_count} 个字段
+              </div>
+            )}
           </div>
-        ) : '-'
-      ),
-    },
-    {
-      title: t('data_source.column.view_name'),
-      key: 'view_name_display',
-      width: 200,
-      render: (_, record) => (
-        record.type === 'view' ? (
-          <Text code>{record.schema_name}.{record.view_name}</Text>
-        ) : '-'
-      ),
+        );
+      },
     },
     {
       title: t('data_source.column.connection_type'),
       dataIndex: 'connection_type',
       key: 'connection_type',
-      width: 120,
-      render: (type) => <Tag color="blue">{type.toUpperCase()}</Tag>,
+      width: 110,
+      render: (type) => <Tag color="blue" style={{ fontSize: '11px' }}>{type?.toUpperCase()}</Tag>,
     },
     {
       title: t('data_source.column.sync_status'),
@@ -207,16 +211,26 @@ const DataSources: React.FC = () => {
           failed: { color: 'error', text: t('data_source.status.failed') },
           pending: { color: 'warning', text: t('data_source.status.pending') },
         };
-        const config = statusMap[status || 'default'] || { color: 'default', text: status };
-        return <Tag color={config.color}>{config.text}</Tag>;
+        const config = statusMap[status || 'default'] || { color: 'default', text: status || '未知' };
+        return <Tag color={config.color} style={{ fontSize: '11px' }}>{config.text}</Tag>;
       },
     },
     {
       title: t('data_source.column.last_sync'),
       dataIndex: 'last_sync_at',
       key: 'last_sync_at',
-      width: 150,
-      render: (date) => date ? new Date(date).toLocaleString() : '-',
+      width: 140,
+      ellipsis: true,
+      render: (date) => date ? (
+        <Text style={{ fontSize: '11px' }}>
+          {new Date(date).toLocaleString('zh-CN', { 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
+        </Text>
+      ) : '-',
     },
     {
       title: t('data_source.column.status'),
@@ -224,7 +238,7 @@ const DataSources: React.FC = () => {
       key: 'is_active',
       width: 80,
       render: (is_active) => (
-        <Tag color={is_active ? 'success' : 'default'}>
+        <Tag color={is_active ? 'success' : 'default'} style={{ fontSize: '11px' }}>
           {is_active ? t('common:status.enabled') : t('common:status.disabled')}
         </Tag>
       ),
@@ -232,13 +246,14 @@ const DataSources: React.FC = () => {
     {
       title: t('data_source.column.actions'),
       key: 'actions',
-      width: 200,
+      width: 160,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Tooltip title={t('data_source.action.view_fields')}>
             <Button
               type="text"
+              size="small"
               icon={<TableOutlined />}
               onClick={() => handleViewFields(record)}
             />
@@ -246,6 +261,7 @@ const DataSources: React.FC = () => {
           <Tooltip title={t('data_source.action.sync_structure')}>
             <Button
               type="text"
+              size="small"
               icon={<SyncOutlined spin={syncLoading === record.id} />}
               onClick={() => handleSync(record)}
               loading={syncLoading === record.id}
@@ -254,6 +270,7 @@ const DataSources: React.FC = () => {
           <Tooltip title={t('common:button.edit')}>
             <Button
               type="text"
+              size="small"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
             />
@@ -268,6 +285,7 @@ const DataSources: React.FC = () => {
             <Tooltip title={t('common:button.delete')}>
               <Button
                 type="text"
+                size="small"
                 danger
                 icon={<DeleteOutlined />}
               />
@@ -338,19 +356,27 @@ const DataSources: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
-        <div style={{ marginBottom: '16px' }}>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Title level={4} style={{ margin: 0 }}>{t('data_source.title')}</Title>
-              <Text type="secondary">{t('data_source.description_text')}</Text>
+    <div style={{ padding: '0' }}>
+      <Card 
+        style={{ borderRadius: '8px' }}
+        bodyStyle={{ padding: '20px' }}
+      >
+        <div style={{ marginBottom: '20px' }}>
+          <Row justify="space-between" align="middle" gutter={[16, 8]}>
+            <Col xs={24} sm={16} md={18} lg={16}>
+              <Title level={4} style={{ margin: 0, marginBottom: '4px' }}>
+                {t('data_source.title')}
+              </Title>
+              <Text type="secondary" style={{ fontSize: '14px' }}>
+                {t('data_source.description_text')}
+              </Text>
             </Col>
-            <Col>
-              <Space>
+            <Col xs={24} sm={8} md={6} lg={8} style={{ textAlign: 'right' }}>
+              <Space wrap>
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={loadDataSources}
+                  size="middle"
                 >
                   {t('common:button.refresh')}
                 </Button>
@@ -362,6 +388,7 @@ const DataSources: React.FC = () => {
                     form.resetFields();
                     setModalVisible(true);
                   }}
+                  size="middle"
                 >
                   {t('data_source.new_data_source')}
                 </Button>
@@ -370,29 +397,36 @@ const DataSources: React.FC = () => {
           </Row>
         </div>
 
-        <Divider />
+        <Divider style={{ margin: '16px 0' }} />
 
         {/* 筛选区域 */}
-        <Row gutter={16} style={{ marginBottom: '16px' }}>
-          <Col span={8}>
+        <Row gutter={[16, 12]} style={{ marginBottom: '20px' }}>
+          <Col xs={24} sm={12} md={8} lg={6}>
             <Search
               placeholder={t('data_source.search_placeholder')}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               allowClear
+              size="middle"
             />
           </Col>
-          <Col span={4}>
+          <Col xs={12} sm={8} md={6} lg={4}>
             <Select
               placeholder={t('data_source.select_status_placeholder')}
               value={selectedStatus}
               onChange={setSelectedStatus}
               allowClear
               style={{ width: '100%' }}
+              size="middle"
             >
               <Option value="active">{t('common:status.enabled')}</Option>
               <Option value="inactive">{t('common:status.disabled')}</Option>
             </Select>
+          </Col>
+          <Col xs={12} sm={4} md={4} lg={4}>
+            <Text type="secondary" style={{ fontSize: '13px', lineHeight: '32px' }}>
+              共 {filteredSources.length} 项
+            </Text>
           </Col>
         </Row>
 
@@ -404,13 +438,26 @@ const DataSources: React.FC = () => {
           loading={loading}
           pagination={{
             total: filteredSources.length,
-            pageSize: 10,
+            pageSize: 15,
             showSizeChanger: true,
             showQuickJumper: true,
+            pageSizeOptions: ['10', '15', '20', '50'],
             showTotal: (total, range) =>
               t('common:pagination.show_total', { start: range[0], end: range[1], total }),
+            size: 'default',
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 'max-content' }}
+          size="middle"
+          locale={{
+            emptyText: (
+              <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                <DatabaseOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
+                <div style={{ color: '#999', fontSize: '14px' }}>
+                  {searchText || selectedStatus ? '没有找到匹配的数据源' : '暂无数据源，点击上方按钮新建'}
+                </div>
+              </div>
+            )
+          }}
         />
       </Card>
 
@@ -425,36 +472,31 @@ const DataSources: React.FC = () => {
         }}
         onOk={() => form.submit()}
         width={800}
-        destroyOnHidden // Ensures form state is reset on close
+        destroyOnClose // Use destroyOnClose to completely unmount form when modal is closed
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSave}
+          initialValues={{ source_type: 'table', connection_type: 'postgresql' }}
         >
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label={t('data_source.form.name_label')}
+                label={t('data_source.form.name_label', '数据源名称')}
                 name="name"
-                rules={[{ required: true, message: t('data_source.form.name_required') }]}
+                rules={[{ required: true, message: t('data_source.form.name_required', '请输入数据源名称') }]}
               >
-                <Input placeholder={t('data_source.form.name_placeholder')} />
+                <Input placeholder={t('data_source.form.name_placeholder', '例如: 员工主数据')} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                label={t('data_source.form.connection_type_label')}
-                name="connection_type"
-                rules={[{ required: true, message: t('data_source.form.connection_type_required') }]}
-                initialValue="postgresql"
+                label={t('data_source.form.code_label', '数据源编码')}
+                name="code"
+                rules={[{ required: true, message: t('data_source.form.code_required', '请输入数据源编码') }]}
               >
-                <Select>
-                  <Option value="postgresql">PostgreSQL</Option>
-                  <Option value="mysql">MySQL</Option>
-                  <Option value="oracle">Oracle</Option>
-                  <Option value="sqlserver">SQL Server</Option>
-                </Select>
+                <Input placeholder={t('data_source.form.code_placeholder', '例如: ds_employees')} disabled={!!editingSource} />
               </Form.Item>
             </Col>
           </Row>
@@ -462,26 +504,84 @@ const DataSources: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
+                label={t('data_source.form.source_type_label', '数据源类型')}
+                name="source_type"
+                rules={[{ required: true, message: t('data_source.form.source_type_required', '请选择数据源类型') }]}
+              >
+                <Select placeholder={t('data_source.form.source_type_placeholder', '请选择类型')}>
+                  <Option value="table">{t('data_source.source_type.table', '表格')}</Option>
+                  <Option value="view">{t('data_source.source_type.view', '视图')}</Option>
+                  <Option value="query" disabled>{t('data_source.source_type.query', '自定义查询 (暂不支持)')}</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label={t('data_source.form.category_label', '分类')}
+                name="category"
+              >
+                <Input placeholder={t('data_source.form.category_placeholder', '例如: HR, Finance')} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                  label={t('data_source.form.connection_type_label', '连接类型')}
+                  name="connection_type"
+              >
+                  <Select disabled>
+                      <Option value="postgresql">PostgreSQL</Option>
+                  </Select>
+              </Form.Item>
+            </Col>
+             <Col span={12}>
+              <Form.Item
                 label={t('data_source.form.schema_name_label')}
                 name="schema_name"
+                initialValue="public"
                 rules={[{ required: true, message: t('data_source.form.schema_name_required') }]}
               >
                 <Input placeholder={t('data_source.form.schema_name_placeholder')} />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              {/* Conditional rendering for table_name or view_name based on source_type (not in form currently) */}
-              {/* For simplicity, if source_type is determined outside the form, this will work. */}
-              {/* If source_type is part of the form, you'd use Form.Item.useWatch and conditional rules/rendering */}
-              <Form.Item
-                label={t('data_source.form.table_name_label')}
-                name="table_name"
-                rules={[{ required: true, message: t('data_source.form.table_name_required') }]}
-              >
-                <Input placeholder={t('data_source.form.table_name_placeholder')} />
-              </Form.Item>
-            </Col>
           </Row>
+          
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, curr) => prev.source_type !== curr.source_type}
+          >
+            {({ getFieldValue }) => {
+              const type = getFieldValue('source_type');
+              return (
+                <Row gutter={16}>
+                  {type === 'table' && (
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('data_source.form.table_name_label')}
+                        name="table_name"
+                        rules={[{ required: true, message: t('data_source.form.table_name_required')}]}
+                      >
+                        <Input placeholder={t('data_source.form.table_name_placeholder')} />
+                      </Form.Item>
+                    </Col>
+                  )}
+                  {type === 'view' && (
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('data_source.form.view_name_label', '视图名称')}
+                        name="view_name"
+                        rules={[{ required: true, message: t('data_source.form.view_name_required', '请输入视图名称') }]}
+                      >
+                        <Input placeholder={t('data_source.form.view_name_placeholder', '例如: v_employee_details')} />
+                      </Form.Item>
+                    </Col>
+                  )}
+                </Row>
+              );
+            }}
+          </Form.Item>
 
           <Form.Item label={t('data_source.form.description_label')} name="description">
             <TextArea
@@ -494,37 +594,11 @@ const DataSources: React.FC = () => {
             label={t('data_source.form.active_status_label')}
             name="is_active"
             valuePropName="checked"
-            initialValue={true}
           >
             <Switch />
           </Form.Item>
         </Form>
       </Modal>
-
-      {/* 字段查看抽屉 */}
-      <Drawer
-        title={t('data_source.fields_drawer_title', { name: selectedSourceName })}
-        placement="right"
-        onClose={() => setDrawerVisible(false)}
-        open={drawerVisible}
-        width={1000}
-      >
-        <Alert
-          message={t('data_source.fields_info_alert_title')}
-          description={t('data_source.fields_info_alert_description')}
-          type="info"
-          showIcon
-          style={{ marginBottom: '16px' }}
-        />
-        <Table
-          columns={fieldColumns}
-          dataSource={selectedSourceFields}
-          rowKey="field_name"
-          pagination={false}
-          size="small"
-          scroll={{ y: 400 }}
-        />
-      </Drawer>
     </div>
   );
 };

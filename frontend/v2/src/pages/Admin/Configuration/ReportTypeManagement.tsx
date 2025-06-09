@@ -19,7 +19,9 @@ import {
   Typography,
   Badge,
   Tabs,
-  InputNumber
+  InputNumber,
+  Descriptions,
+  Spin
 } from 'antd';
 import {
   PlusOutlined,
@@ -61,16 +63,16 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>();
   const [activeTab, setActiveTab] = useState('basic');
   
-
+  // 预览相关状态
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState<ReportTypeDefinition | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   
   // 获取报表类型列表
   const { data: reportTypes, isLoading, refetch } = useQuery({
     queryKey: ['reportTypes', searchText, categoryFilter, statusFilter],
     queryFn: () => reportConfigApi.getReportTypes({
-      search: searchText || undefined,
-      category: categoryFilter,
-      is_active: statusFilter,
-      limit: 1000
+      search: searchText || undefined
     })
   });
 
@@ -113,17 +115,27 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
 
   // 删除报表类型
   const deleteMutation = useMutation({
-    mutationFn: reportConfigApi.deleteReportType,
+    mutationFn: (id: number) => {
+      console.log('🗑️ 准备删除报表类型 ID:', id);
+      return reportConfigApi.deleteReportType(id);
+    },
     onSuccess: () => {
       message.success('报表类型删除成功');
       queryClient.invalidateQueries({ queryKey: ['reportTypes'] });
     },
-    onError: (error: any) => {
-      message.error(`删除失败: ${error.response?.data?.detail || error.message}`);
+    onError: (error: any, id: number) => {
+      console.error('❌ 删除报表类型失败:', error);
+      const errorMsg = error.response?.data?.detail || error.message || '删除失败';
+      
+      if (error.response?.status === 404) {
+        message.error(`报表类型不存在 (ID: ${id})，可能已被删除或不存在`);
+      } else if (error.response?.status === 403) {
+        message.error('系统内置报表类型无法删除');
+      } else {
+        message.error(`删除失败: ${errorMsg}`);
+      }
     }
   });
-
-
 
   // 处理表单提交
   const handleSubmit = async (values: any) => {
@@ -146,8 +158,6 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
       console.error('表单提交错误:', error);
     }
   };
-
-
 
   // 打开编辑模态框
   const handleEdit = (record: ReportTypeDefinition) => {
@@ -177,7 +187,64 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
     deleteMutation.mutate(id);
   };
 
-
+  // 处理预览
+  const handlePreview = async (record: ReportTypeDefinition) => {
+    setPreviewRecord(record);
+    setPreviewVisible(true);
+    
+    // 获取详细信息和字段信息
+    setPreviewLoading(true);
+    try {
+      // 获取报表类型详情
+      const detailData = await reportConfigApi.getReportType(record.id);
+      setPreviewRecord(detailData);
+      
+      // 获取报表类型可用字段信息（基于data_source_id和fields配置）
+      if (detailData.data_source_id) {
+        try {
+          const availableFieldsData = await reportConfigApi.getReportTypeAvailableFields(record.id);
+          setPreviewRecord((prev: any) => ({
+            ...prev,
+            fields: availableFieldsData.fields,
+            fieldConfig: {
+              configured_fields: availableFieldsData.configured_fields,
+              total_available_fields: availableFieldsData.total_available_fields,
+              total_selected_fields: availableFieldsData.total_selected_fields,
+              data_source_id: availableFieldsData.data_source_id
+            }
+          }));
+        } catch (fieldsError) {
+          console.warn('获取报表类型可用字段失败，尝试获取字段定义:', fieldsError);
+          // 如果获取可用字段失败，回退到获取字段定义
+          try {
+            const fieldsData = await reportConfigApi.getReportFields(record.id);
+            setPreviewRecord((prev: any) => ({
+              ...prev,
+              fields: fieldsData
+            }));
+          } catch (fallbackError) {
+            console.error('获取字段定义也失败:', fallbackError);
+          }
+        }
+      } else {
+        // 如果没有配置数据源，尝试获取字段定义
+        try {
+          const fieldsData = await reportConfigApi.getReportFields(record.id);
+          setPreviewRecord((prev: any) => ({
+            ...prev,
+            fields: fieldsData
+          }));
+        } catch (fieldsError) {
+          console.warn('未配置数据源且无字段定义:', fieldsError);
+        }
+      }
+    } catch (error) {
+      console.error('获取报表详情失败:', error);
+      message.error('获取报表详情失败');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   // 表格列定义
   const columns = [
@@ -261,12 +328,12 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
       width: 150,
       render: (_: any, record: ReportTypeDefinition) => (
         <Space size="small">
-          <Tooltip title="查看详情">
+          <Tooltip title="预览详情">
             <Button
               type="text"
               icon={<EyeOutlined />}
               size="small"
-              onClick={() => handleEdit(record)}
+              onClick={() => handlePreview(record)}
             />
           </Tooltip>
           <Tooltip title="编辑">
@@ -544,6 +611,232 @@ const ReportTypeManagement: React.FC<ReportTypeManagementProps> = () => {
             />
           </TabPane>
         </Tabs>
+      </Modal>
+
+      {/* 预览模态框 */}
+      <Modal
+        title={`报表类型预览 - ${previewRecord?.name || ''}`}
+        open={previewVisible}
+        onCancel={() => {
+          setPreviewVisible(false);
+          setPreviewRecord(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => {
+            setPreviewVisible(false);
+            setPreviewRecord(null);
+          }}>
+            关闭
+          </Button>
+        ]}
+        width={900}
+      >
+        <Spin spinning={previewLoading}>
+          {previewRecord && (
+            <div>
+              {/* 基本信息 */}
+              <Descriptions bordered column={2} style={{ marginBottom: 16 }}>
+                <Descriptions.Item label="报表代码">{previewRecord.code}</Descriptions.Item>
+                <Descriptions.Item label="报表名称">{previewRecord.name}</Descriptions.Item>
+                <Descriptions.Item label="类别">{previewRecord.category || '-'}</Descriptions.Item>
+                <Descriptions.Item label="状态">
+                  <Tag color={previewRecord.is_active ? 'green' : 'red'}>
+                    {previewRecord.is_active ? '启用' : '禁用'}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="系统内置">
+                  <Tag color={previewRecord.is_system ? 'orange' : 'default'}>
+                    {previewRecord.is_system ? '系统' : '自定义'}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="排序顺序">{previewRecord.sort_order}</Descriptions.Item>
+                <Descriptions.Item label="描述" span={2}>
+                  {previewRecord.description || '-'}
+                </Descriptions.Item>
+                {previewRecord.generator_class && (
+                  <Descriptions.Item label="生成器类名">{previewRecord.generator_class}</Descriptions.Item>
+                )}
+                {previewRecord.generator_module && (
+                  <Descriptions.Item label="生成器模块">{previewRecord.generator_module}</Descriptions.Item>
+                )}
+                {previewRecord.data_source_name && (
+                  <Descriptions.Item label="数据源" span={2}>
+                    {previewRecord.data_source_name}
+                  </Descriptions.Item>
+                )}
+                {previewRecord.usage_count !== undefined && (
+                  <Descriptions.Item label="使用次数">{previewRecord.usage_count}</Descriptions.Item>
+                )}
+                {previewRecord.last_used_at && (
+                  <Descriptions.Item label="最后使用时间">
+                    {new Date(previewRecord.last_used_at).toLocaleString()}
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+
+              {/* 报表字段信息 */}
+              {previewRecord.fields && Array.isArray(previewRecord.fields) && previewRecord.fields.length > 0 && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <h4 style={{ margin: 0 }}>报表字段</h4>
+                    {(previewRecord as any).fieldConfig && (
+                      <div>
+                                                 <Tag color="blue">
+                           已选择: {(previewRecord as any).fieldConfig.total_selected_fields}
+                         </Tag>
+                         <Tag color="default">
+                           总计: {(previewRecord as any).fieldConfig.total_available_fields}
+                         </Tag>
+                         {(previewRecord as any).fieldConfig.configured_fields && (
+                           <Tooltip title={`配置的字段ID: ${(previewRecord as any).fieldConfig.configured_fields}`}>
+                             <Tag color="orange">已配置</Tag>
+                           </Tooltip>
+                         )}
+                      </div>
+                    )}
+                  </div>
+                  <Table
+                    dataSource={previewRecord.fields}
+                    rowKey={(record) => record.id || record.field_name}
+                    size="small"
+                    pagination={false}
+                    scroll={{ y: 300 }}
+                    columns={[
+                      {
+                        title: '字段名',
+                        dataIndex: 'field_name',
+                        key: 'field_name',
+                        width: 120,
+                        render: (text: string) => <Text code>{text}</Text>,
+                      },
+                      {
+                        title: '显示名称',
+                        dataIndex: 'display_name_zh',
+                        key: 'display_name',
+                        width: 120,
+                        render: (text: string, record: any) => text || record.display_name || record.field_name,
+                      },
+                      {
+                        title: '字段类型',
+                        dataIndex: 'field_type',
+                        key: 'field_type',
+                        width: 100,
+                        render: (type: string) => <Tag color="blue">{type}</Tag>,
+                      },
+                      {
+                        title: '数据类型',
+                        dataIndex: 'data_type',
+                        key: 'data_type',
+                        width: 100,
+                        render: (type: string) => type ? <Tag color="green">{type}</Tag> : '-',
+                      },
+                      {
+                        title: '字段分组',
+                        dataIndex: 'field_group',
+                        key: 'field_group',
+                        width: 100,
+                        render: (group: string) => group ? <Tag color="purple">{group}</Tag> : '-',
+                      },
+                      {
+                        title: '是否可见',
+                        dataIndex: 'is_visible',
+                        key: 'is_visible',
+                        width: 80,
+                        render: (value: boolean) => (
+                          <Tag color={value ? 'green' : 'default'}>
+                            {value ? '是' : '否'}
+                          </Tag>
+                        ),
+                      },
+                      {
+                        title: '排序',
+                        dataIndex: 'sort_order',
+                        key: 'sort_order',
+                        width: 60,
+                        render: (order: number, record: any) => order || record.display_order || '-',
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+
+              {/* 权限要求 */}
+              {(previewRecord.required_permissions || previewRecord.allowed_roles) && (
+                <div style={{ marginTop: 16 }}>
+                  <h4 style={{ marginBottom: 8 }}>权限要求</h4>
+                  {previewRecord.required_permissions && previewRecord.required_permissions.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <Text type="secondary">所需权限：</Text>
+                      {previewRecord.required_permissions.map((perm: string) => (
+                        <Tag key={perm} style={{ marginLeft: 8 }}>{perm}</Tag>
+                      ))}
+                    </div>
+                  )}
+                  {previewRecord.allowed_roles && previewRecord.allowed_roles.length > 0 && (
+                    <div>
+                      <Text type="secondary">允许角色：</Text>
+                      {previewRecord.allowed_roles.map((role: string) => (
+                        <Tag key={role} color="blue" style={{ marginLeft: 8 }}>{role}</Tag>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 配置信息 */}
+              {(previewRecord.default_config || previewRecord.template_config || previewRecord.validation_rules) && (
+                <div style={{ marginTop: 16 }}>
+                  <h4 style={{ marginBottom: 8 }}>配置信息</h4>
+                  {previewRecord.template_config && (
+                    <div style={{ marginBottom: 12 }}>
+                      <Text strong>模板配置：</Text>
+                      <pre style={{ 
+                        background: '#f5f5f5', 
+                        padding: 8, 
+                        borderRadius: 4,
+                        overflow: 'auto',
+                        maxHeight: 150,
+                        marginTop: 4
+                      }}>
+                        {JSON.stringify(previewRecord.template_config, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {previewRecord.default_config && (
+                    <div style={{ marginBottom: 12 }}>
+                      <Text strong>默认配置：</Text>
+                      <pre style={{ 
+                        background: '#f5f5f5', 
+                        padding: 8, 
+                        borderRadius: 4,
+                        overflow: 'auto',
+                        maxHeight: 150,
+                        marginTop: 4
+                      }}>
+                        {JSON.stringify(previewRecord.default_config, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {previewRecord.validation_rules && (
+                    <div>
+                      <Text strong>验证规则：</Text>
+                      <pre style={{ 
+                        background: '#f5f5f5', 
+                        padding: 8, 
+                        borderRadius: 4,
+                        overflow: 'auto',
+                        maxHeight: 150,
+                        marginTop: 4
+                      }}>
+                        {JSON.stringify(previewRecord.validation_rules, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </Spin>
       </Modal>
     </div>
   );
