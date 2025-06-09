@@ -324,6 +324,10 @@
         "email_invalid": "请输入有效的电子邮件地址"
       }
     },
+    "validation": {
+      "required": "此项为必填项",
+      "max_length": "长度不能超过最大限制"
+    },
     "hidden": "隐藏",
     "hyperchain_logo": "溯源链Logo",
     "inactive": "",

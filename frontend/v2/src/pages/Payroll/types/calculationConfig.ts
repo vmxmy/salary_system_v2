@@ -35,8 +35,12 @@ export interface SocialInsuranceConfig {
   expiry_date?: string;
   pension_employee_rate: number;
   pension_employer_rate: number;
+  occupational_pension_employee_rate?: number;
+  occupational_pension_employer_rate?: number;
   medical_employee_rate: number;
   medical_employer_rate: number;
+  serious_illness_employee_rate?: number;
+  serious_illness_employer_rate?: number;
   unemployment_employee_rate: number;
   unemployment_employer_rate: number;
   injury_employer_rate: number;
@@ -51,7 +55,7 @@ export interface SocialInsuranceConfig {
   unemployment_base_max: number;
   housing_fund_base_min: number;
   housing_fund_base_max: number;
-  base_calculation_method: 'BASIC_SALARY' | 'TOTAL_SALARY' | 'CUSTOM';
+  base_calculation_method: 'BASIC_SALARY' | 'GROSS_SALARY' | 'TOTAL_SALARY' | 'CUSTOM';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -104,8 +108,12 @@ export interface CreateSocialInsuranceConfigRequest {
   expiry_date?: string;
   pension_employee_rate: number;
   pension_employer_rate: number;
+  occupational_pension_employee_rate?: number;
+  occupational_pension_employer_rate?: number;
   medical_employee_rate: number;
   medical_employer_rate: number;
+  serious_illness_employee_rate?: number;
+  serious_illness_employer_rate?: number;
   unemployment_employee_rate: number;
   unemployment_employer_rate: number;
   injury_employer_rate: number;
@@ -120,7 +128,7 @@ export interface CreateSocialInsuranceConfigRequest {
   unemployment_base_max: number;
   housing_fund_base_min: number;
   housing_fund_base_max: number;
-  base_calculation_method: 'BASIC_SALARY' | 'TOTAL_SALARY' | 'CUSTOM';
+  base_calculation_method: 'BASIC_SALARY' | 'GROSS_SALARY' | 'TOTAL_SALARY' | 'CUSTOM';
 }
 
 export interface UpdateSocialInsuranceConfigRequest extends Partial<CreateSocialInsuranceConfigRequest> {

@@ -45,10 +45,12 @@ const PayrollCalculationConfigPage: React.FC = () => {
   const loadSocialInsuranceConfigs = async () => {
     try {
       setLoading(true);
-      const response = await calculationConfigApi.getSocialInsuranceConfigs();
+      // 使用新的综合社保配置API
+      const response = await calculationConfigApi.getComprehensiveSocialInsuranceConfigs();
       setSocialInsuranceConfigs(response.data);
     } catch (error) {
       message.error(t('common:error.load_failed'));
+      console.error('加载社保配置失败:', error);
     } finally {
       setLoading(false);
     }
@@ -116,21 +118,25 @@ const PayrollCalculationConfigPage: React.FC = () => {
   // 处理社保配置操作
   const handleSocialInsuranceCreate = async (data: CreateSocialInsuranceConfigRequest) => {
     try {
-      await calculationConfigApi.createSocialInsuranceConfig(data);
+      // 使用新的综合社保配置API
+      await calculationConfigApi.createComprehensiveSocialInsuranceConfig(data);
       message.success(t('common:success.create'));
       loadSocialInsuranceConfigs();
     } catch (error) {
       message.error(t('common:error.create_failed'));
+      console.error('创建社保配置失败:', error);
     }
   };
 
   const handleSocialInsuranceUpdate = async (id: number, data: UpdateSocialInsuranceConfigRequest) => {
     try {
-      await calculationConfigApi.updateSocialInsuranceConfig(id, data);
+      // 使用新的综合社保配置API
+      await calculationConfigApi.updateComprehensiveSocialInsuranceConfig(id, data);
       message.success(t('common:success.update'));
       loadSocialInsuranceConfigs();
     } catch (error) {
       message.error(t('common:error.update_failed'));
+      console.error('更新社保配置失败:', error);
     }
   };
 
@@ -181,6 +187,7 @@ const PayrollCalculationConfigPage: React.FC = () => {
                 configs={socialInsuranceConfigs}
                 onCreateConfig={handleSocialInsuranceCreate}
                 onUpdateConfig={handleSocialInsuranceUpdate}
+                loading={loading}
               />
             </TabPane>
             

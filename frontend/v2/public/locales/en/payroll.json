@@ -241,6 +241,12 @@
   "break_duration": "",
   "calculate": "",
   "calculation_config": {
+    "occupational_pension": "Occupational Pension",
+    "occupational_pension_employee_rate": "Employee Occupational Pension Rate",
+    "occupational_pension_employer_rate": "Employer Occupational Pension Rate",
+    "serious_illness_insurance": "Serious Illness Insurance",
+    "serious_illness_employee_rate": "Employee Serious Illness Insurance Rate",
+    "serious_illness_employer_rate": "Employer Serious Illness Insurance Rate",
     "add_tax_bracket": "",
     "additional_deductions": "",
     "base_calculation_method": "",
@@ -324,6 +330,7 @@
       "housing_fund_personal": "Personal Housing Fund",
       "medical_ins_personal_amount": "Personal Medical Insurance",
       "occupational_pension_personal_amount": "Personal Occupational Pension",
+      "serious_illness_personal_amount": "Personal Serious Illness Insurance",
       "pension_personal_amount": "Personal Pension Insurance",
       "personal_income_tax": "Personal Income Tax",
       "unemployment_personal_amount": "Personal Unemployment Insurance"

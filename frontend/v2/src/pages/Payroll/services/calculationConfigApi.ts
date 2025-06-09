@@ -45,7 +45,7 @@ export const calculationConfigApi = {
     return apiClient.put(`${BASE_URL}/rule-sets/${id}/deactivate`);
   },
 
-  // 社保配置管理
+  // 社保配置管理（原始API）
   getSocialInsuranceConfigs: (): Promise<ApiResponse<SocialInsuranceConfig[]>> => {
     return apiClient.get(`${BASE_URL}/social-insurance`);
   },
@@ -64,6 +64,19 @@ export const calculationConfigApi = {
 
   deleteSocialInsuranceConfig: (id: number): Promise<ApiResponse<void>> => {
     return apiClient.delete(`${BASE_URL}/social-insurance/${id}`);
+  },
+
+  // 综合社保配置管理（新API）
+  getComprehensiveSocialInsuranceConfigs: (): Promise<ApiResponse<SocialInsuranceConfig[]>> => {
+    return apiClient.get(`${BASE_URL}/social-insurance-comprehensive`);
+  },
+
+  createComprehensiveSocialInsuranceConfig: (data: CreateSocialInsuranceConfigRequest): Promise<ApiResponse<any>> => {
+    return apiClient.post(`${BASE_URL}/social-insurance-comprehensive`, data);
+  },
+
+  updateComprehensiveSocialInsuranceConfig: (id: number, data: UpdateSocialInsuranceConfigRequest): Promise<ApiResponse<any>> => {
+    return apiClient.put(`${BASE_URL}/social-insurance-comprehensive/${id}`, data);
   },
 
   // 税务配置管理
