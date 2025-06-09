@@ -1,38 +1,19 @@
 {
-  "common": {
-    "actions": "操作",
-    "active": "启用",
-    "delete": "删除",
-    "description": "描述",
-    "edit": "编辑",
-    "error": {
-      "fetch": ""
-    },
-    "inactive": "禁用",
-    "no": "否",
-    "status": "状态",
-    "validation": {
-      "required": "必填项"
-    },
-    "view": "查看",
-    "view_details": "查看详情",
-    "yes": "是"
+  "actions": "操作",
+  "active": "启用",
+  "delete": "删除",
+  "description": "描述",
+  "edit": "编辑",
+  "error": {
+    "fetch": ""
   },
-  "payroll_components": {
-    "add": "添加字段",
-    "code": "编码",
-    "create_failed": "",
-    "create_success": "字段创建成功",
-    "edit": "编辑字段",
-    "is_housing_fund_base": "公积金基数项",
-    "is_social_security_base": "社保基数项",
-    "is_taxable": "是否计税",
-    "name": "名称",
-    "sort_order": "排序顺序",
-    "type": "类型",
-    "type_deduction": "扣除项",
-    "type_earning": "收入项",
-    "update_failed": "",
-    "update_success": "字段更新成功"
-  }
+  "inactive": "禁用",
+  "no": "否",
+  "status": "状态",
+  "validation": {
+    "required": "必填项"
+  },
+  "view": "查看",
+  "view_details": "查看详情",
+  "yes": "是"
 }

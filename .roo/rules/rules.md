@@ -108,6 +108,44 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 # Scratchpad
 
+## 报表生成器类创建指南 📝
+
+### 任务概述：
+用户询问如何创建对应的报表生成器类，需要提供完整的创建指南和示例。
+
+### 分析现有架构：
+- [X] **基础架构**：所有报表生成器继承自 `BaseReportGenerator` 抽象类
+- [X] **现有实现**：已有6个具体实现类（薪资汇总、薪资明细、部门汇总、考勤汇总、社保、个税申报）
+- [X] **核心方法**：必须实现 `generate_report`、`get_report_data`、`get_columns_config` 三个抽象方法
+- [X] **工具类**：使用 `ExcelExportUtils` 处理Excel导出，支持CSV导出
+
+### 创建步骤：
+- [X] 分析基础类结构和接口定义
+- [X] 研究现有实现示例
+- [X] 编写完整的创建指南文档
+- [X] 提供具体的代码模板和示例
+- [X] 说明注册和使用方式
+
+**✅ 任务完成**：已提供完整的报表生成器类创建指南，包括代码模板、注册方式、使用示例和注意事项。
+
+### 用户后续询问：
+- [X] **现有报表生成器使用**：用户询问是否可以使用现在建好的报表生成器
+- [X] **回答要点**：
+  - 确认系统中已有6个现成的报表生成器可直接使用
+  - 提供了3种使用方法：直接使用、通过服务使用、通过API使用
+  - 创建了完整的使用示例文件 `example_use_report_generators.py`
+  - 说明了配置参数和注意事项
+
+- [X] **6个报表生成器区别分析**：用户询问6个报表生成器的区别
+- [X] **详细对比分析**：
+  - PayrollSummaryGenerator：薪资汇总统计（部门级别）
+  - PayrollDetailGenerator：薪资明细清单（员工级别）
+  - DepartmentSummaryGenerator：部门成本分析（部门级别）
+  - TaxDeclarationGenerator：个税申报（员工级别）
+  - SocialInsuranceGenerator：社保缴费（员工级别）
+  - AttendanceSummaryGenerator：考勤汇总（员工级别）
+  - 提供了功能对比表、核心SQL查询、使用场景建议
+
 ## 核心业务视图优化任务 🚀
 
 ### 任务概述

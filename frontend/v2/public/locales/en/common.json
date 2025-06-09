@@ -185,16 +185,15 @@
   },
   "cancel": "",
   "collapse_sidebar": "Collapse sidebar",
+  "column": {
+    "actions": "Actions"
+  },
   "column_control": {
     "button_text": "Column Settings",
     "dropdown_title": "Column Display",
     "tooltip_title": "Customize columns"
   },
-  "common": {
-    "no": "",
-    "permission_denied_action": "",
-    "yes": ""
-  },
+
   "common_value": {
     "zero_decimal": ""
   },

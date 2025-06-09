@@ -11,6 +11,18 @@
     "reportTable": "Report Table",
     "reportConfig": "Report Configuration Management"
   },
+  "business": {
+    "title": "Business Center",
+    "payroll": {
+      "title": "Payroll Center"
+    },
+    "hr": {
+      "title": "HR Center"
+    },
+    "employees": {
+      "title": "Employee Center"
+    }
+  },
   "dashboard": "Dashboard",
   "home": "Home",
   "hr": {
@@ -50,6 +62,24 @@
     "myLeave": "My Leave",
     "myPayslips": "My Payslips",
     "title": "Personal Center"
+  },
+  "simplePayroll": {
+    "title": "Simple Payroll Report"
+  },
+  "system": {
+    "title": "System Configuration",
+    "permissions": {
+      "title": "Users & Permissions"
+    },
+    "organization": {
+      "title": "Organization Config"
+    },
+    "payrollConfig": {
+      "title": "Payroll Config"
+    },
+    "aiConfig": {
+      "title": "AI Configuration"
+    }
   },
   "test": {
     "title": "Test Pages",
