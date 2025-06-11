@@ -3,6 +3,8 @@ from datetime import date, datetime
 from decimal import Decimal, getcontext, ROUND_HALF_UP
 import argparse
 import json # 新增：导入json模块
+import csv
+import os
 
 # 设置 Decimal 的精度
 getcontext().prec = 10
@@ -43,8 +45,9 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
 
         # 1. 获取所有员工的最新缴费基数
         # 确保基数在指定月份生效，并根据员工姓名进行筛选
+        # 新增：只筛选当前月有工资记录的员工
         sql_query_bases = f"""
-            SELECT
+            SELECT DISTINCT
                 veb.id AS employee_id,
                 veb.first_name,
                 veb.last_name,
@@ -58,11 +61,18 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
             LEFT JOIN
                 payroll.employee_salary_configs esc ON veb.id = esc.employee_id
                 AND esc.effective_date <= %s AND (esc.end_date IS NULL OR esc.end_date >= %s)
+            INNER JOIN
+                payroll.payroll_entries pe ON veb.id = pe.employee_id
+            INNER JOIN
+                payroll.payroll_periods pp ON pe.payroll_period_id = pp.id
+            WHERE
+                pp.start_date <= %s 
+                AND pp.end_date >= %s
         """
-        params_bases = [calculation_month, calculation_month]
+        params_bases = [calculation_month, calculation_month, calculation_month, calculation_month]
 
         if employee_name:
-            sql_query_bases += " WHERE LOWER(veb.last_name || veb.first_name) = LOWER(%s)"
+            sql_query_bases += " AND LOWER(veb.last_name || veb.first_name) = LOWER(%s)"
             params_bases.append(employee_name)
         
         sql_query_bases += " ORDER BY veb.last_name, veb.first_name;"
@@ -298,6 +308,7 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
 
             results.append({
                 "姓名": full_name,
+                "员工ID": emp_id,  # 添加员工ID
                 "人员身份": personnel_category_name,
                 "社保基数": social_insurance_base,
                 "公积金基数": housing_fund_base,
@@ -340,10 +351,10 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 "大病医疗单位应缴费额",
                 "医疗保险单位应缴总额",
                 "医疗保险个人应缴总额",
-                "个人客户号",
+                "公积金个人客户号",
                 "公积金缴费基数",
-                "住房公积金单位应缴金额",
-                "住房公积金个人应缴金额"
+                "住房公积金单位应缴费额",
+                "住房公积金个人应缴费额"
             ]
 
             print("| " + " | ".join(new_header) + " |")
@@ -418,18 +429,184 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 print("| " + " | ".join(row_data) + " |")
         else:
             print("⚠️ 未找到活跃员工或该月份的缴费基数数据，或指定员工姓名不匹配。") # 如果没有结果，表头为空
+        
+        # 返回计算结果，供CSV导出使用
+        return results
 
     except Exception as e:
         print(f"❌ 计算过程中发生错误: {e}")
+        return []
     finally:
         if conn:
             conn.close()
+
+
+def export_to_csv(results, calculation_month_str, employee_name=None):
+    """
+    将计算结果导出为CSV文件
+    
+    Args:
+        results: 计算结果列表
+        calculation_month_str: 计算月份字符串
+        employee_name: 可选的员工姓名
+    """
+    if not results:
+        print("⚠️ 没有数据可导出")
+        return None
+    
+    # 生成文件名
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if employee_name:
+        filename = f"五险一金计算结果_{calculation_month_str}_{employee_name}_{timestamp}.csv"
+    else:
+        filename = f"五险一金计算结果_{calculation_month_str}_全员_{timestamp}.csv"
+    
+    # 确保输出目录存在
+    output_dir = "output"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    filepath = os.path.join(output_dir, filename)
+    
+    try:
+        # 定义CSV表头（与控制台输出保持一致）
+        csv_header = [
+            "姓名",
+            "人员身份",
+            "员工ID",
+            "社保基数",
+            "公积金基数",
+            "职业年金缴费基数",
+            "职业年金单位缴费费率",
+            "职业年金单位应缴费额", 
+            "职业年金个人费率",
+            "职业年金个人应缴费额",
+            "养老保险单位缴费费率",
+            "养老保险单位应缴费额",
+            "养老保险个人缴费费率", 
+            "养老保险个人应缴费额",
+            "失业保险单位缴费费率",
+            "失业保险单位应缴费额",
+            "失业保险个人缴费费率",
+            "失业保险个人应缴费额",
+            "工伤保险单位缴费费率",
+            "工伤保险单位应缴费额",
+            "医疗保险单位缴费费率",
+            "医疗保险单位应缴费额",
+            "医疗保险个人缴费费率",
+            "医疗保险个人应缴费额",
+            "大病医疗单位缴费费率",
+            "大病医疗单位应缴费额",
+            "医疗保险单位应缴总额",
+            "医疗保险个人应缴总额",
+            "个人客户号",
+            "公积金缴费基数",
+            "住房公积金单位应缴金额",
+            "住房公积金个人应缴金额",
+            "五险一金个人合计",
+            "五险一金单位合计",
+            "适用的社保规则",
+            "不适用的社保规则"
+        ]
+        
+        with open(filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
+            writer = csv.writer(csvfile)
+            
+            # 写入表头
+            writer.writerow(csv_header)
+            
+            # 写入数据行
+            for res in results:
+                row_data = []
+                for col_name in csv_header:
+                    value = None
+                    
+                    # 映射字段值
+                    if col_name == "职业年金缴费基数":
+                        value = res.get("社保基数")
+                    elif col_name == "养老保险单位缴费费率":
+                        value = res.get("PENSION_单位_费率")
+                    elif col_name == "养老保险单位应缴费额":
+                        value = res.get("PENSION_单位")
+                    elif col_name == "养老保险个人缴费费率":
+                        value = res.get("PENSION_个人_费率")
+                    elif col_name == "养老保险个人应缴费额":
+                        value = res.get("PENSION_个人")
+                    elif col_name == "失业保险单位缴费费率":
+                        value = res.get("UNEMPLOYMENT_单位_费率")
+                    elif col_name == "失业保险单位应缴费额":
+                        value = res.get("UNEMPLOYMENT_单位")
+                    elif col_name == "失业保险个人缴费费率":
+                        value = res.get("UNEMPLOYMENT_个人_费率")
+                    elif col_name == "失业保险个人应缴费额":
+                        value = res.get("UNEMPLOYMENT_个人")
+                    elif col_name == "工伤保险单位缴费费率":
+                        value = res.get("INJURY_单位_费率")
+                    elif col_name == "工伤保险单位应缴费额":
+                        value = res.get("INJURY_单位")
+                    elif col_name == "医疗保险单位缴费费率":
+                        value = res.get("MEDICAL_单位_费率")
+                    elif col_name == "医疗保险单位应缴费额":
+                        value = res.get("MEDICAL_单位")
+                    elif col_name == "医疗保险个人缴费费率":
+                        value = res.get("MEDICAL_个人_费率")
+                    elif col_name == "医疗保险个人应缴费额":
+                        value = res.get("MEDICAL_个人")
+                    elif col_name == "大病医疗单位缴费费率":
+                        value = res.get("SERIOUS_ILLNESS_单位_费率")
+                    elif col_name == "大病医疗单位应缴费额":
+                        value = res.get("SERIOUS_ILLNESS_单位")
+                    elif col_name == "职业年金单位缴费费率":
+                        value = res.get("OCCUPATIONAL_PENSION_单位_费率")
+                    elif col_name == "职业年金单位应缴费额":
+                        value = res.get("OCCUPATIONAL_PENSION_单位")
+                    elif col_name == "职业年金个人费率":
+                        value = res.get("OCCUPATIONAL_PENSION_个人_费率")
+                    elif col_name == "职业年金个人应缴费额":
+                        value = res.get("OCCUPATIONAL_PENSION_个人")
+                    elif col_name == "住房公积金单位应缴金额":
+                        value = res.get("公积金_单位")
+                    elif col_name == "住房公积金个人应缴金额":
+                        value = res.get("公积金_个人")
+                    elif col_name == "公积金缴费基数":
+                        value = res.get("公积金基数")
+                    elif col_name == "员工ID":
+                        value = res.get("员工ID")
+                    else:
+                        value = res.get(col_name)
+                    
+                    # 格式化数值
+                    if isinstance(value, Decimal):
+                        if "费率" in col_name:
+                            row_data.append(f"{value:.4f}")
+                        else:
+                            row_data.append(f"{value:.2f}")
+                    elif value is None:
+                        row_data.append("N/A")
+                    else:
+                        row_data.append(str(value))
+                
+                writer.writerow(row_data)
+        
+        print(f"\n✅ CSV文件已导出: {filepath}")
+        print(f"📊 导出记录数: {len(results)}")
+        return filepath
+        
+    except Exception as e:
+        print(f"❌ CSV导出失败: {e}")
+        return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="计算员工的五险一金缴费。")
     parser.add_argument("-m", "--month", required=True, help="计算月份 (格式: YYYY-MM), 例如: 2025-03")
     parser.add_argument("-e", "--employee", help="可选: 员工姓名，用于筛选特定员工 (例如: 张三)")
+    parser.add_argument("--csv", action="store_true", help="导出计算结果为CSV文件")
 
     args = parser.parse_args()
 
-    calculate_social_insurance_and_housing_fund(args.month, args.employee) 
+    # 执行计算
+    results = calculate_social_insurance_and_housing_fund(args.month, args.employee)
+    
+    # 如果指定了CSV导出选项，则导出CSV文件
+    if args.csv and results:
+        export_to_csv(results, args.month, args.employee) 

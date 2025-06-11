@@ -6,6 +6,7 @@ import {
   RocketOutlined
 } from '@ant-design/icons';
 import type { StepConfig } from './index';
+import { OverwriteMode } from '../../../types/payrollTypes';
 
 // 步骤配置
 export const STEPS_CONFIG: StepConfig[] = [
@@ -45,7 +46,7 @@ export const VALID_FILE_TYPES = [
 // 默认导入设置
 export const DEFAULT_IMPORT_SETTINGS = {
   skipInvalidRecords: true,
-  overwriteExisting: false,
+  overwriteMode: OverwriteMode.NONE,
   sendNotification: true
 };
 

@@ -35,25 +35,32 @@ async def login_for_access_token(
     - **password**: 密码
     """
     try:
-        # 获取用户 (user 对象应该包含 id 属性)
-        user = crud.get_user_by_username(db, form_data.username)
-        # logger.debug(f"[DEBUG] 登录用户名: {form_data.username}, user: {user}, password_hash: {getattr(user, 'password_hash', None)}")
-        if not user or not hasattr(user, 'id'): # 确保 user 对象存在且有 id 属性
+        # 🚀 使用高性能登录查询
+        user_login_data = crud.get_user_for_login(db, form_data.username)
+        if not user_login_data:
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password or user data incomplete", # 更具体的错误信息
+                detail="Incorrect username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
         # 验证密码
-        password_check = verify_password(form_data.password, user.password_hash)
-        # logger.debug(f"[DEBUG] 密码校验结果: {password_check}, 输入密码: {form_data.password}, 数据库存储: {user.password_hash}")
+        password_check = verify_password(form_data.password, user_login_data["password_hash"])
         if not password_check:
             # 返回标准错误响应格式
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # 🚀 现在获取完整用户信息（包含角色和权限）- 仅在密码验证通过后
+        user = crud.get_user_by_username(db, form_data.username)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User data incomplete",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         

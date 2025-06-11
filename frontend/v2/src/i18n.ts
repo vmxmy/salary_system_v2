@@ -25,8 +25,6 @@ export const i18nInitOptions = {
     'employee',
     'jobTitle',
     'manager',
-    'myPayslips', 
-    'myInfo', 
     'profile',
     'user_profile',
     'pageTitle',

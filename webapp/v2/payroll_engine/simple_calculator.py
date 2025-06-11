@@ -111,7 +111,7 @@ class SimplePayrollCalculator:
             gross_pay = Decimal(str(sum(earnings.values())))
             
             # 2. 计算扣发合计
-            total_deductions = Decimal(str(sum(deductions.values())))
+            total_deductions = self._calculate_total_deductions(deductions)
             
             # 3. 计算实发合计
             net_pay = gross_pay - total_deductions
@@ -214,7 +214,7 @@ class SimplePayrollCalculator:
 
     def _calculate_total_deductions(self, deductions_data: Dict[str, Any]) -> Decimal:
         """
-        计算扣发合计
+        计算扣发合计 - 只计算个人扣缴部分，排除单位扣缴
         
         Args:
             deductions_data: 扣除数据字典，格式：{
@@ -223,16 +223,53 @@ class SimplePayrollCalculator:
             }
             
         Returns:
-            扣发合计金额
+            扣发合计金额（只包含个人扣缴）
         """
         total = Decimal('0')
         
-        for key, value in deductions_data.items():
-            if isinstance(value, dict) and 'amount' in value:
-                amount = Decimal(str(value['amount']))
-                total += amount
-            elif isinstance(value, (int, float, Decimal)):
-                total += Decimal(str(value))
+        # 获取薪资组件定义，用于判断扣缴类型
+        from ..models import PayrollComponentDefinition
+        
+        try:
+            # 查询所有活跃的薪资组件定义
+            components = self.db.query(PayrollComponentDefinition).filter(
+                PayrollComponentDefinition.is_active == True
+            ).all()
+            
+            # 创建组件代码到类型的映射
+            component_type_map = {comp.code: comp.type for comp in components}
+            
+            # 定义个人扣缴类型
+            personal_deduction_types = ['PERSONAL_DEDUCTION', 'DEDUCTION']
+            
+            for key, value in deductions_data.items():
+                if isinstance(value, dict) and 'amount' in value:
+                    amount = Decimal(str(value['amount']))
+                    
+                    # 根据组件类型判断是否为个人扣缴
+                    component_type = component_type_map.get(key)
+                    if component_type and component_type in personal_deduction_types:
+                        total += amount
+                    # 如果找不到组件定义，默认当作个人扣缴（向后兼容）
+                    elif component_type is None:
+                        total += amount
+                        logger.warning(f"未找到组件定义: {key}，默认当作个人扣缴")
+                    else:
+                        logger.debug(f"跳过单位扣缴项目: {key} (类型: {component_type})")
+                        
+                elif isinstance(value, (int, float, Decimal)):
+                    # 如果是直接的数值，默认当作个人扣缴（向后兼容）
+                    total += Decimal(str(value))
+                    
+        except Exception as e:
+            logger.error(f"计算扣发合计时出错: {str(e)}，降级到简单计算")
+            # 降级到原始逻辑
+            for key, value in deductions_data.items():
+                if isinstance(value, dict) and 'amount' in value:
+                    amount = Decimal(str(value['amount']))
+                    total += amount
+                elif isinstance(value, (int, float, Decimal)):
+                    total += Decimal(str(value))
         
         return total
 

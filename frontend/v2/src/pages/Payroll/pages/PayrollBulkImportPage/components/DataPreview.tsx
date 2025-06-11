@@ -31,6 +31,7 @@ import type {
   ValidatedPayrollEntryData,
   BulkImportValidationResult
 } from '../types/index';
+import { OverwriteMode } from '../../../types/payrollTypes';
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -72,7 +73,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
   // 添加调试信息
   console.log('🔍 DataPreview 验证结果:', {
     validationResult,
-    overwriteMode: importSettings.overwriteExisting
+    overwriteMode: importSettings.overwriteMode
   });
   
   // 计算是否可以导入：有有效记录且没有阻止性错误
@@ -232,6 +233,20 @@ const DataPreview: React.FC<DataPreviewProps> = ({
     );
   };
 
+  // 辅助函数：获取覆写模式的显示文本
+  const getOverwriteModeText = (mode: OverwriteMode): string => {
+    switch (mode) {
+      case OverwriteMode.NONE:
+        return '不覆写';
+      case OverwriteMode.PARTIAL:
+        return '部分覆写';
+      case OverwriteMode.FULL:
+        return '全量覆写';
+      default:
+        return '未知模式';
+    }
+  };
+
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {/* 验证结果统计 */}
@@ -279,13 +294,13 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         </Row>
         
         {/* 覆盖模式提示 */}
-        {importSettings.overwriteExisting && validationResult.warnings > 0 && (
+        {importSettings.overwriteMode !== OverwriteMode.NONE && validationResult.warnings > 0 && (
           <Alert
             style={{ marginTop: 16 }}
             type="warning"
             showIcon
-            message="覆盖模式已启用"
-            description={`检测到 ${validationResult.warnings} 条重复记录，启用覆盖模式后这些记录将被更新而不是报错。`}
+            message="覆写模式已启用"
+            description={`检测到 ${validationResult.warnings} 条重复记录，当前覆写模式为"${getOverwriteModeText(importSettings.overwriteMode)}"，这些记录将被相应处理。`}
           />
         )}
         
@@ -415,10 +430,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
                     /> 跳过无效记录
                   </div>
                   <div>
-                    <Switch 
-                      checked={importSettings.overwriteExisting}
-                      onChange={(checked) => onSettingsChange({...importSettings, overwriteExisting: checked})}
-                    /> 覆盖已存在记录
+                    覆写模式: {getOverwriteModeText(importSettings.overwriteMode)}
                   </div>
                   <div>
                     <Switch 
@@ -480,7 +492,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
           )}
           
           {/* 操作提示 */}
-          {validationResult.invalid > 0 && !importSettings.overwriteExisting && (
+          {validationResult.invalid > 0 && importSettings.overwriteMode === OverwriteMode.NONE && (
             <Alert
               type="info"
               showIcon
@@ -490,12 +502,12 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             />
           )}
           
-          {validationResult.warnings > 0 && importSettings.overwriteExisting && (
+          {validationResult.warnings > 0 && importSettings.overwriteMode !== OverwriteMode.NONE && (
             <Alert
               type="success"
               showIcon
-              message="覆盖模式提示"
-              description={`覆盖模式已启用，${validationResult.warnings} 条重复记录将被更新。点击"开始导入"继续执行。`}
+              message="覆写模式提示"
+              description={`覆写模式已启用为"${getOverwriteModeText(importSettings.overwriteMode)}"，${validationResult.warnings} 条重复记录将被相应处理。点击"开始导入"继续执行。`}
               style={{ textAlign: 'left' }}
             />
           )}

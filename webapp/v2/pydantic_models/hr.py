@@ -108,8 +108,18 @@ class EmployeeCreate(EmployeeBase):
     position_name: Optional[str] = Field(None, description="Position name for resolving actual_position_id")
     personnel_category_name: Optional[str] = Field(None, description="Personnel category name for resolving ID")
     
-    # 职务级别名称字段，用于通过名称解析ID
-    # job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name for resolving ID")
+    # Fields for resolving lookups by name (用于通过名称解析ID)
+    gender_lookup_value_name: Optional[str] = Field(None, description="Gender name for resolving gender_lookup_value_id")
+    status_lookup_value_name: Optional[str] = Field(None, description="Employee status name for resolving status_lookup_value_id")
+    employment_type_lookup_value_name: Optional[str] = Field(None, description="Employment type name for resolving employment_type_lookup_value_id")
+    education_level_lookup_value_name: Optional[str] = Field(None, description="Education level name for resolving education_level_lookup_value_id")
+    marital_status_lookup_value_name: Optional[str] = Field(None, description="Marital status name for resolving marital_status_lookup_value_id")
+    political_status_lookup_value_name: Optional[str] = Field(None, description="Political status name for resolving political_status_lookup_value_id")
+    contract_type_lookup_value_name: Optional[str] = Field(None, description="Contract type name for resolving contract_type_lookup_value_id")
+    job_position_level_lookup_value_name: Optional[str] = Field(None, description="Job position level name for resolving job_position_level_lookup_value_id")
+    salary_level_lookup_value_name: Optional[str] = Field(None, description="Salary level name for resolving salary_level_lookup_value_id")
+    salary_grade_lookup_value_name: Optional[str] = Field(None, description="Salary grade name for resolving salary_grade_lookup_value_id")
+    ref_salary_level_lookup_value_name: Optional[str] = Field(None, description="Reference salary level name for resolving ref_salary_level_lookup_value_id")
 
     # Allow creating appraisals along with the employee (though not used for bulk import of employees only)
     appraisals: Optional[List[EmployeeAppraisalCreate]] = Field(default_factory=list, description="List of employee appraisals to create")

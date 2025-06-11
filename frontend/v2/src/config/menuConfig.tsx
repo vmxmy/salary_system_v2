@@ -24,6 +24,8 @@ import {
   RobotOutlined,
   BankOutlined,
   ProfileOutlined,
+  EditOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 
@@ -58,364 +60,214 @@ export interface AppMenuDataItem extends MenuDataItem {
   groupTitle?: string;
 }
 
-// 🌐 菜单国际化转换函数 (Corrected function definition)
-export const transformMenuDataWithI18n = (
-  data: AppMenuDataItem[],
-  t: (key: string) => string
-): MenuDataItem[] => {
-  return data.map(item => {
-    const transformedItem: MenuDataItem = {
-      ...item,
-      name: item.titleKey ? t(item.titleKey) : item.name,
-    };
-
-    if (item.children) {
-      transformedItem.children = transformMenuDataWithI18n(item.children, t);
-    }
-
-    return transformedItem;
-  });
-};
-
-// 📋 菜单数据配置
+// ====== 完整菜单配置 ======
 export const menuData: AppMenuDataItem[] = [
-  // 🏠 极简工资报表系统（首页）
   {
+    name: '简单工资',
+    titleKey: 'menu.simplePayroll.title',
     path: '/simple-payroll',
-    titleKey: 'simplePayroll.title',
-    icon: <HomeOutlined />,
-    component: './SimplePayroll',
-  },
-  
-  // 📊 报表管理
-  {
-    path: '/admin/report-config',
-    titleKey: 'admin.reportConfig',
-    icon: <BarChartOutlined />,
-    component: './Admin/Configuration/ReportPresetManagement',
-  },
-  
-  // 👤 个人中心
-  {
-    path: '/personal',
-    titleKey: 'personal.title',
-    icon: <UserOutlined />,
-    children: [
-      {
-        path: '/employee-info/my-info',
-        titleKey: 'personal.myInfo',
-        component: './Employee/MyInfo',
-      },
-      {
-        path: '/employee-info/my-payslips',
-        titleKey: 'personal.myPayslips',
-        component: './Employee/MyPayslips',
-      },
-      {
-        path: '/personal/leave',
-        titleKey: 'personal.myLeave',
-        component: './Employee/MyLeave',
-      },
-    ],
-  },
-  
-
-  
-  // 💼 业务中心
-  {
-    path: '/business',
-    titleKey: 'business.title',
-    icon: <AppstoreOutlined />,
-    children: [
-      // 💰 薪资中心
-      {
-        path: '/business/payroll',
-        titleKey: 'business.payroll.title',
-        icon: <DollarCircleOutlined />,
-        children: [
-          {
-            path: '/finance/payroll/periods',
-            titleKey: 'payroll.periods',
-            component: './Payroll/pages/PayrollPeriodsPage',
-          },
-          {
-            path: '/finance/payroll/runs',
-            titleKey: 'payroll.runs',
-            component: './Payroll/pages/PayrollRunsPage',
-          },
-          {
-            path: '/finance/payroll/entry',
-            titleKey: 'payroll.entry',
-            component: './Payroll/pages/PayrollEntryPage',
-          },
-          {
-            path: '/finance/payroll/runs/:id',
-            titleKey: 'payroll.runDetail',
-            hideInMenu: true,
-            component: './Payroll/pages/PayrollRunDetailPage',
-          },
-        ],
-      },
-      // 🏢 人事中心
-      {
-        path: '/business/hr',
-        titleKey: 'business.hr.title',
-        icon: <BankOutlined />,
-        children: [
-          {
-            path: '/manager/subordinates',
-            titleKey: 'manager.subordinates',
-            component: './Manager/SubordinatesPage',
-          },
-          {
-            path: '/manager/leave-approvals',
-            titleKey: 'manager.leaveApprovals',
-            component: './Manager/LeaveApprovalsPage',
-          },
-        ],
-      },
-      // 👥 员工中心
-      {
-        path: '/business/employees',
-        titleKey: 'business.employees.title',
-        icon: <TeamOutlined />,
-        children: [
-          {
-            path: '/hr/employees',
-            titleKey: 'hr.employees',
-            component: './HRManagement/employees/EmployeeListPage',
-          },
-          {
-            path: '/hr/employees/new',
-            titleKey: 'hr.employeesNew',
-            component: './HRManagement/employees/CreateEmployeePage',
-          },
-          {
-            path: '/hr/employees/bulk-import',
-            titleKey: 'hr.employeesBulkImport',
-            component: './HRManagement/bulkImport/EmployeeBulkImportPage',
-          },
-          {
-            path: '/hr/employees/:id',
-            titleKey: 'hr.employeesDetail',
-            hideInMenu: true,
-            component: './HRManagement/employees/EmployeeDetailPage',
-          },
-          {
-            path: '/hr/employees/:id/edit',
-            titleKey: 'hr.employeesEdit',
-            hideInMenu: true,
-            component: './HRManagement/employees/EditEmployeePage',
-          },
-        ],
-      },
-    ],
-  },
-  
-  // ⚙️ 系统配置
-  {
-    path: '/system',
-    titleKey: 'system.title',
-    icon: <SettingOutlined />,
-    access: 'admin',
-    children: [
-      // 👥 用户与权限
-      {
-        path: '/system/permissions',
-        titleKey: 'system.permissions.title',
-        icon: <SafetyOutlined />,
-        children: [
-          {
-            path: '/admin/users',
-            titleKey: 'admin.users',
-            component: './Admin/Permissions/UserListPage',
-          },
-          {
-            path: '/admin/roles',
-            titleKey: 'admin.roles',
-            component: './Admin/Permissions/RoleListPage',
-          },
-          {
-            path: '/admin/permissions',
-            titleKey: 'admin.permissions',
-            component: './Admin/Permissions/PermissionListPage',
-          },
-        ],
-      },
-      // 🏗️ 架构配置
-      {
-        path: '/system/organization',
-        titleKey: 'system.organization.title',
-        icon: <ApartmentOutlined />,
-        children: [
-          {
-            path: '/admin/organization/management-v2',
-            titleKey: 'organization.managementV2',
-            component: './Admin/Organization/OrganizationManagementPageV2',
-          },
-        ],
-      },
-      // 💰 薪资配置
-      {
-        path: '/system/payroll-config',
-        titleKey: 'system.payrollConfig.title',
-        icon: <ProfileOutlined />,
-        children: [
-          {
-            path: '/finance/payroll/components',
-            titleKey: 'payroll.components',
-            component: './Payroll/pages/PayrollComponentsPage',
-          },
-          {
-            path: '/finance/payroll/bulk-import',
-            titleKey: 'payroll.bulkImport',
-            component: './Payroll/pages/PayrollBulkImportPage',
-          },
-          {
-            path: '/finance/payroll/calculation-config',
-            titleKey: 'payroll.calculationConfig',
-            component: './Payroll/pages/PayrollCalculationConfigPage',
-          },
-        ],
-      },
-      // 🤖 AI配置
-      {
-        path: '/system/ai-config',
-        titleKey: 'system.aiConfig.title',
-        icon: <RobotOutlined />,
-        children: [
-          {
-            path: '/admin/config',
-            titleKey: 'admin.systemSettings',
-            component: './Admin/Config',
-          },
-        ],
-      },
-    ],
-  },
-  
-  // 🧪 测试页面 (开发模式)
-  {
-    path: '/test',
-    titleKey: 'test.title',
     icon: <CalculatorOutlined />,
-    hideInMenu: false,
+  },
+  {
+    name: '报表管理',
+    titleKey: 'menu.admin.reportConfig',
+    path: '/admin/report-config',
+    icon: <BarChartOutlined />,
+  },
+  {
+    name: '薪资管理',
+    titleKey: 'menu.payroll.title',
+    path: '/finance/payroll',
+    icon: <DollarCircleOutlined />,
     children: [
       {
-        path: '/test/employee-list-v3',
-        titleKey: 'test.employeeListV3',
-        component: './HRManagement/employees/EmployeeListPageV3',
-      },
-      {
-        path: '/test/report-table-demo',
-        titleKey: 'test.reportTableDemo',
-        component: './Admin/ReportTableDemoPage',
-      },
-      {
-        path: '/test/report-template-demo',
-        titleKey: 'test.reportTemplateDemo',
-        component: './Admin/ReportTemplateDemoPage',
-      },
-      {
-        path: '/test/payroll-workflow',
-        titleKey: 'test.payrollWorkflow',
+        name: '工资期间',
+        titleKey: 'menu.payroll.periods',
+        path: '/finance/payroll/periods',
         icon: <SolutionOutlined />,
-        component: './Payroll/PayrollWorkflowPage',
+      },
+      {
+        name: '工资版本',
+        titleKey: 'menu.payroll.runs',
+        path: '/finance/payroll/runs',
+        icon: <CalculatorOutlined />,
+      },
+      {
+        name: '工资条目',
+        titleKey: 'menu.payroll.entry',
+        path: '/finance/payroll/entry',
+        icon: <FileTextOutlined />,
+      },
+      {
+        name: '批量导入',
+        titleKey: 'menu.payroll.bulkImport',
+        path: '/finance/payroll/bulk-import',
+        icon: <UploadOutlined />,
+      },
+      {
+        name: '薪资组件',
+        titleKey: 'menu.payroll.components',
+        path: '/finance/payroll/components',
+        icon: <ProfileOutlined />,
+      },
+    ],
+  },
+  {
+    name: '员工管理',
+    titleKey: 'menu.hr.title',
+    path: '/hr',
+    icon: <TeamOutlined />,
+    children: [
+      {
+        name: '员工列表',
+        titleKey: 'menu.hr.employees',
+        path: '/hr/employees',
+        icon: <UserOutlined />,
+      },
+      {
+        name: '新增员工',
+        titleKey: 'menu.hr.employeesNew',
+        path: '/hr/employees/new',
+        icon: <UserAddOutlined />,
+      },
+      {
+        name: '批量导入',
+        titleKey: 'menu.hr.bulkImport',
+        path: '/employee-management/bulk-import',
+        icon: <UploadOutlined />,
+      },
+    ],
+  },
+  {
+    name: '组织架构',
+    titleKey: 'menu.organization.title',
+    path: '/admin/organization',
+    icon: <ApartmentOutlined />,
+    children: [
+      {
+        name: '组织管理',
+        titleKey: 'menu.organization.managementV2',
+        path: '/admin/organization/management-v2',
+        icon: <SettingOutlined />,
+      },
+    ],
+  },
+  {
+    name: '经理视图',
+    titleKey: 'menu.manager.title',
+    path: '/manager',
+    icon: <UserSwitchOutlined />,
+    children: [
+      {
+        name: '下属管理',
+        titleKey: 'menu.manager.subordinates',
+        path: '/manager/subordinates',
+        icon: <TeamOutlined />,
+      },
+    ],
+  },
+  {
+    name: '系统管理',
+    titleKey: 'menu.admin.title',
+    path: '/admin',
+    icon: <SettingOutlined />,
+    children: [
+      {
+        name: '用户管理',
+        titleKey: 'menu.admin.users',
+        path: '/admin/users',
+        icon: <TeamOutlined />,
+      },
+      {
+        name: '角色管理',
+        titleKey: 'menu.admin.roles',
+        path: '/admin/roles',
+        icon: <UserSwitchOutlined />,
+      },
+      {
+        name: '权限管理',
+        titleKey: 'menu.admin.permissions',
+        path: '/admin/permissions',
+        icon: <SafetyOutlined />,
+      },
+      {
+        name: '系统配置',
+        titleKey: 'menu.admin.systemSettings',
+        path: '/admin/config',
+        icon: <ControlOutlined />,
       },
     ],
   },
 ];
 
-// 🔧 菜单数据处理工具函数
-export const transformMenuData = (
-  data: AppMenuDataItem[],
-  t: (key: string, options?: { ns?: string; defaultValue?: string }) => string
-): MenuDataItem[] => {
-  return data.map((item) => ({
-    ...item,
-    children: item.children ? transformMenuData(item.children, t) : undefined,
-    name: item.name || (item.titleKey ? t(`menu:${item.titleKey}`) : undefined),
-  }));
-};
-
-// 🎯 根据路径查找菜单项
-export const findMenuItemByPath = (
-  menuData: AppMenuDataItem[],
-  path: string
-): AppMenuDataItem | null => {
-  for (const item of menuData) {
-    if (item.path === path) {
-      return item;
-    }
-    if (item.children) {
-      const found = findMenuItemByPath(item.children, path);
-      if (found) {
-        return found;
-      }
-    }
+// ====== 动态菜单生成函数 ======
+export const generateMenuData = (isDev: boolean = false): AppMenuDataItem[] => {
+  const baseMenu = [...menuData];
+  
+  // 开发模式下添加测试菜单
+  if (isDev) {
+    baseMenu.push({
+      name: '测试页面',
+      titleKey: 'menu.test.title',
+      path: '/test',
+      icon: <CodeOutlined />,
+      children: [
+        {
+          name: '员工列表V3',
+          titleKey: 'menu.test.employeeListV3',
+          path: '/test/employee-list-v3',
+          icon: <TableOutlined />,
+        },
+        {
+          name: '报表表格演示',
+          titleKey: 'menu.test.reportTableDemo',
+          path: '/test/report-table-demo',
+          icon: <DatabaseOutlined />,
+        },
+        {
+          name: '报表模板演示',
+          titleKey: 'menu.test.reportTemplateDemo',
+          path: '/test/report-template-demo',
+          icon: <FileTextOutlined />,
+        },
+        {
+          name: '薪资工作流',
+          titleKey: 'menu.test.payrollWorkflow',
+          path: '/test/payroll-workflow',
+          icon: <AppstoreOutlined />,
+        },
+      ],
+    });
   }
-  return null;
+  
+  return baseMenu;
 };
 
-// 📝 获取面包屑数据
-export const getBreadcrumbNameMap = (
-  menuData: AppMenuDataItem[],
-  t: (key: string) => string
-): Record<string, MenuDataItem> => {
-  const map: Record<string, MenuDataItem> = {};
-  const traverse = (data: AppMenuDataItem[], parentPath = '') => {
-    data.forEach(item => {
-      const currentPath = item.path || '';
-      const fullPath = currentPath.startsWith('/') ? currentPath : `${parentPath}/${currentPath}`;
-      if (fullPath) {
-        map[fullPath] = { ...item, name: item.titleKey ? t(`menu:${item.titleKey}`) : item.name };
+// ====== 菜单国际化处理函数（简单实现）======
+export function transformMenuDataWithI18n(menu: AppMenuDataItem[], t?: (key: string) => string): AppMenuDataItem[] {
+  return menu.map(item => ({
+    ...item,
+    name: t && item.titleKey ? t(item.titleKey) : item.name,
+    children: item.children ? transformMenuDataWithI18n(item.children, t) : undefined,
+  }));
+}
+
+// ====== 面包屑映射函数（简单实现）======
+export function getBreadcrumbNameMap(
+  menu: AppMenuDataItem[],
+  t?: (key: string) => string
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  function traverse(items: AppMenuDataItem[]) {
+    items.forEach(item => {
+      if (item.path && item.name) {
+        map[item.path] = item.name;
       }
       if (item.children) {
-        traverse(item.children, fullPath);
+        traverse(item.children);
       }
     });
-  };
-  traverse(menuData);
+  }
+  traverse(menu);
   return map;
-};
-
-// 🎨 菜单主题配置
-export const menuTheme = {
-  dark: {
-    itemBg: '#001529',
-    subMenuItemBg: '#000c17',
-    itemSelectedBg: '#1890ff',
-    itemHoverBg: '#111b26',
-    itemColor: 'rgba(255, 255, 255, 0.85)',
-    itemSelectedColor: '#ffffff',
-    itemHoverColor: '#ffffff',
-  },
-  light: {
-    itemBg: '#ffffff',
-    subMenuItemBg: '#fafafa',
-    itemSelectedBg: '#e6f7ff',
-    itemHoverBg: '#f5f5f5',
-    itemColor: 'rgba(0, 0, 0, 0.85)',
-    itemSelectedColor: '#1890ff',
-    itemHoverColor: '#1890ff',
-  },
-};
-
-// 📱 响应式菜单配置
-export const responsiveMenuConfig = {
-  // 移动端菜单模式
-  mobile: {
-    collapsed: true,
-    onlyShowIcon: true,
-  },
-  // 平板端菜单模式
-  tablet: {
-    collapsed: false,
-    onlyShowIcon: false,
-  },
-  // 桌面端菜单模式
-  desktop: {
-    collapsed: false,
-    onlyShowIcon: false,
-  },
-};
+}

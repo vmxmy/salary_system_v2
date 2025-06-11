@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Tag,
   Alert,
@@ -13,6 +13,9 @@ import { useTranslation } from 'react-i18next';
 import TableActionButton from '../../../components/common/TableActionButton';
 import type { ProColumns } from '@ant-design/pro-components';
 import EnhancedProTable from '../../../components/common/EnhancedProTable';
+import { EditOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
+import { employeeService } from '../../../services/employeeService';
+import { employeeManagementApi } from '../../../pages/EmployeeManagement/services/employeeManagementApi';
 
 import type { PayrollEntry, ApiListMeta } from '../types/payrollTypes';
 import { getPayrollEntries } from '../services/payrollApi';
@@ -126,7 +129,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       // 并行请求所有员工信息
       const fetchPromises = uncachedIds.map(async (id) => {
         try {
-          const employee = await employeeService.getEmployeeById(String(id));
+          const employee = await employeeManagementApi.getEmployeeById(String(id));
           if (employee) {
             newCache[id] = {
               firstName: employee.first_name,

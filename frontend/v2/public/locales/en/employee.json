@@ -74,11 +74,6 @@
       "tooltip_delete_record": "",
       "tooltip_edit_record": ""
     },
-    "contact_info": {
-      "address": "",
-      "mobilePhone": "",
-      "personalEmail": ""
-    },
     "contracts_tab": {
       "button_add_contract": "",
       "delete_confirm": {
@@ -118,27 +113,6 @@
       },
       "tooltip_delete_contract": "",
       "tooltip_edit_contract": ""
-    },
-    "emergency_contact": {
-      "emergencyContactName": "",
-      "emergencyContactPhone": "",
-      "emergencyContactRelation": ""
-    },
-    "employee_id_format": "",
-    "employment_info": {
-      "actualPosition": "",
-      "department": "",
-      "employmentType": "",
-      "hireDate": "",
-      "personnelCategory": "",
-      "probationEndDate": "",
-      "reportsTo": "",
-      "status": "",
-      "workLocation": ""
-    },
-    "financial_info": {
-      "bankAccountNumber": "",
-      "bankName": ""
     },
     "job_history_tab": {
       "button_add_history": "",
@@ -196,18 +170,6 @@
       "seniority_month": "",
       "seniority_year": "",
       "title": ""
-    },
-    "notes": "",
-    "personal_info": {
-      "dob": "",
-      "educationLevel": "",
-      "ethnicity": "",
-      "firstName": "",
-      "idNumber": "",
-      "lastName": "",
-      "maritalStatus": "",
-      "nationality": "",
-      "politicalStatus": ""
     },
     "tabs": {
       "basic_info": ""

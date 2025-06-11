@@ -358,7 +358,8 @@ async def get_lookup_values_public_endpoint(
         safe_lookup_types = {
             'GENDER', 'EMPLOYEE_STATUS', 'EMPLOYMENT_TYPE', 'CONTRACT_TYPE', 
             'CONTRACT_STATUS', 'MARITAL_STATUS', 'EDUCATION_LEVEL', 
-            'LEAVE_TYPE', 'PAY_FREQUENCY', 'JOB_POSITION_LEVEL'
+            'LEAVE_TYPE', 'PAY_FREQUENCY', 'JOB_POSITION_LEVEL', 
+            'POLITICAL_STATUS', 'PAYROLL_COMPONENT_TYPE'
         }
         
         if lookup_type_code not in safe_lookup_types:

@@ -38,8 +38,7 @@ import { managerRoutes } from '../pages/Manager/routes';
 // const FinanceDashboardPage = lazy(() => import('../pages/Finance/FinanceDashboardPage');
 // const ManagerDashboardPage = lazy(() => import('../pages/Manager/ManagerDashboardPage');
 
-import MyPayslips from '../pages/Employee/MyPayslips';
-import MyInfo from '../pages/Employee/MyInfo';
+
 import NotFoundPage from '../pages/NotFoundPage'; // Create this if needed
 import UnauthorizedPage from '../pages/UnauthorizedPage'; // 我们将创建这个页面
 
@@ -52,6 +51,13 @@ const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImpo
 // Import EmployeeListPageV3
 const EmployeeListPageV3 = lazy(() => import('../pages/HRManagement/employees/EmployeeListPage'));
 
+// Import Employee Management Pages
+const EmployeeManagementPage = lazy(() => import('../pages/EmployeeManagement/EmployeeManagementPage'));
+const EmployeeDetailPage = lazy(() => import('../pages/EmployeeManagement/EmployeeDetailPage'));
+const CreateEmployeePage = lazy(() => import('../pages/EmployeeManagement/CreateEmployeePage'));
+const EditEmployeePage = lazy(() => import('../pages/EmployeeManagement/EditEmployeePage'));
+const BulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
+
 // 在顶部导入 ReportTableDemo 组件
 import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
 import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo';
@@ -59,8 +65,8 @@ import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo'
 // 导入报表配置管理组件
 const ReportConfigManagement = lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement'));
 
-// Import PayrollWorkflowPage
-const PayrollWorkflowPage = lazy(() => import('../pages/Payroll/PayrollWorkflowPage'));
+// Import PayrollWorkflowPage - commented out as file doesn't exist
+// const PayrollWorkflowPage = lazy(() => import('../pages/Payroll/PayrollWorkflowPage'));
 
 // RouteObject 本身就包含 element, path, children, index
 // 我们将 meta 附加到自定义的 RouteConfig 上
@@ -176,12 +182,7 @@ export const routes: AppRouteObject[] = [
             }
             return route;
           }),
-          // New route for bulk import
-          {
-            path: 'employees/bulk-import',
-            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><EmployeeBulkImportPage /></React.Suspense>,
-            meta: { title: 'menu:hr.employeesBulkImport', requiredPermissions: ['employee:create'] }
-          },
+
           // { path: 'dashboard', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading HR Dashboard...</div>}><HRDashboardPage /></React.Suspense>, meta: { title: 'hr:dashboard_page_title' } },
           // EmployeeListPage import is removed, new routes handle /hr/employees
           { path: 'leave', element: <LeavePage />, meta: { title: 'menu:hr.leaveManagement', requiredPermissions: ['leave:manage'] } },
@@ -224,6 +225,69 @@ export const routes: AppRouteObject[] = [
         }
       },
       {
+        path: 'employee-management',
+        element: (
+          <AppProtectedRoute allowedRoles={['HR', 'SUPER_ADMIN']}>
+            <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee Management...</div>}>
+              <Outlet />
+            </React.Suspense>
+          </AppProtectedRoute>
+        ),
+        meta: { 
+          title: 'menu:employeeManagement.title', 
+          allowedRoles: ['HR', 'SUPER_ADMIN'],
+          requiredPermissions: ['employee:view_list'],
+          permissionMatchMode: 'any'
+        },
+        children: [
+          { 
+            index: true, 
+            element: <Navigate to="list" replace /> 
+          },
+          {
+            path: 'list',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee List...</div>}><EmployeeManagementPage /></React.Suspense>,
+            meta: { 
+              title: 'menu:employeeManagement.list',
+              requiredPermissions: ['employee:view_list']
+            }
+          },
+          {
+            path: 'create',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Create Employee...</div>}><CreateEmployeePage /></React.Suspense>,
+            meta: { 
+              title: 'menu:employeeManagement.create',
+              requiredPermissions: ['employee:create']
+            }
+          },
+          {
+            path: ':id',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee Detail...</div>}><EmployeeDetailPage /></React.Suspense>,
+            meta: { 
+              title: 'menu:employeeManagement.detail',
+              requiredPermissions: ['employee:view_detail'],
+              hideInBreadcrumbIfParentOfNext: true
+            }
+          },
+          {
+            path: ':id/edit',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Edit Employee...</div>}><EditEmployeePage /></React.Suspense>,
+            meta: { 
+              title: 'menu:employeeManagement.edit',
+              requiredPermissions: ['employee:update']
+            }
+          },
+          {
+            path: 'bulk-import',
+            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><BulkImportPage /></React.Suspense>,
+            meta: { 
+              title: 'menu:employeeManagement.bulkImport',
+              requiredPermissions: ['employee:create']
+            }
+          },
+        ],
+      },
+      {
         path: 'manager',
         element: (
           <AppProtectedRoute allowedRoles={['MANAGER', 'SUPER_ADMIN']}>
@@ -254,38 +318,7 @@ export const routes: AppRouteObject[] = [
           permissionMatchMode: 'any'
         }
       },
-      {
-        path: 'employee-info',
-        element: (
-          <AppProtectedRoute>
-            <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee Section...</div>}>
-              <Outlet />
-            </React.Suspense>
-          </AppProtectedRoute>
-        ),
-        meta: { title: 'menu:personal.title' },
-        children: [
-          { index: true, element: <Navigate to="my-info" replace /> },
-          { path: 'my-info', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Info...</div>}><MyInfo /></React.Suspense>, meta: { title: 'menu:personal.myInfo' } },
-          { path: 'my-info/edit', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Edit My Info...</div>}>{React.createElement(lazy(() => import('../pages/Employee/MyInfo/EditMyInfoPage')))}</React.Suspense>, meta: { title: 'menu:personal.editMyInfo' } },
-          { path: 'my-payslips', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Payslips...</div>}><MyPayslips /></React.Suspense>, meta: { title: 'menu:personal.myPayslips' } },
-          { path: 'my-leave', element: <LeavePage />, meta: { title: 'menu:personal.myLeave' } },
-        ],
-      },
-      {
-        path: 'personal',
-        element: (
-          <AppProtectedRoute>
-            <React.Suspense fallback={<div className="page-loading-suspense">Loading Personal Section...</div>}>
-              <Outlet />
-            </React.Suspense>
-          </AppProtectedRoute>
-        ),
-        meta: { title: 'menu:personal.title' },
-        children: [
-          { index: true, element: <Navigate to="employee-info" replace /> },
-        ],
-      },
+
       {
         path: '/test',
         element: (
@@ -313,11 +346,12 @@ export const routes: AppRouteObject[] = [
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Template Demo...</div>}><ReportTemplateDemo /></React.Suspense>,
             meta: { title: 'menu:test.reportTemplateDemo' },
           },
-          {
-            path: 'payroll-workflow',
-            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Payroll Workflow...</div>}><PayrollWorkflowPage /></React.Suspense>,
-            meta: { title: 'menu:test.payrollWorkflow' },
-          },
+          // Commented out as PayrollWorkflowPage doesn't exist
+          // {
+          //   path: 'payroll-workflow',
+          //   element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Payroll Workflow...</div>}><PayrollWorkflowPage /></React.Suspense>,
+          //   meta: { title: 'menu:test.payrollWorkflow' },
+          // },
         ],
       },
     ],

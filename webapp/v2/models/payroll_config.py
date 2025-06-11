@@ -109,6 +109,9 @@ class SocialInsuranceConfig(Base):
     min_base = Column(Numeric(10, 2), nullable=True, comment="最低缴费基数")
     max_base = Column(Numeric(10, 2), nullable=True, comment="最高缴费基数")
     
+    # 适用人员类别
+    applicable_personnel_categories = Column(JSON, nullable=True, comment="适用人员类别ID列表")
+    
     # 适用地区
     region_code = Column(String(20), nullable=True, comment="适用地区代码")
     

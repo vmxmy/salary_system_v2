@@ -1,0 +1,122 @@
+{
+  "timestamp": "2025-06-11T19:34:40.032668",
+  "api_tests": [
+    {
+      "url": "http://localhost:8080/v2/simple-payroll/versions",
+      "status_code": -1,
+      "elapsed_ms": -1,
+      "is_slow": true,
+      "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v2/simple-payroll/versions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10701f970>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "timestamp": "2025-06-11T19:34:40.037606"
+    },
+    {
+      "url": "http://localhost:8080/v2/simple-payroll/periods",
+      "status_code": -1,
+      "elapsed_ms": -1,
+      "is_slow": true,
+      "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v2/simple-payroll/periods (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10706c3a0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "timestamp": "2025-06-11T19:34:40.038446"
+    },
+    {
+      "url": "http://localhost:8080/v2/simple-payroll/versions/55",
+      "status_code": -1,
+      "elapsed_ms": -1,
+      "is_slow": true,
+      "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v2/simple-payroll/versions/55 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10706cc70>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "timestamp": "2025-06-11T19:34:40.039230"
+    },
+    {
+      "url": "http://localhost:8080/v2/simple-payroll/audit/summary/55",
+      "status_code": -1,
+      "elapsed_ms": -1,
+      "is_slow": true,
+      "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v2/simple-payroll/audit/summary/55 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10706d5a0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "timestamp": "2025-06-11T19:34:40.041034"
+    }
+  ],
+  "db_analysis": {
+    "error": "column \"tablename\" does not exist\nLINE 4:                     tablename,\n                            ^\n"
+  },
+  "blocking_analysis": {
+    "patterns": [
+      {
+        "type": "data_volume",
+        "large_payroll_runs": [
+          {
+            "run_id": 74,
+            "period_id": 54,
+            "period_name": "2025-12",
+            "entry_count": 81
+          },
+          {
+            "run_id": 52,
+            "period_id": 45,
+            "period_name": "2025-03",
+            "entry_count": 81
+          },
+          {
+            "run_id": 54,
+            "period_id": 47,
+            "period_name": "2025-05",
+            "entry_count": 81
+          },
+          {
+            "run_id": 53,
+            "period_id": 46,
+            "period_name": "2025-04",
+            "entry_count": 81
+          },
+          {
+            "run_id": 55,
+            "period_id": 48,
+            "period_name": "2025-06",
+            "entry_count": 80
+          },
+          {
+            "run_id": 51,
+            "period_id": 44,
+            "period_name": "2025-02",
+            "entry_count": 53
+          },
+          {
+            "run_id": 50,
+            "period_id": 42,
+            "period_name": "2025-01",
+            "entry_count": 53
+          },
+          {
+            "run_id": 65,
+            "period_id": 52,
+            "period_name": "2025-10",
+            "entry_count": 0
+          },
+          {
+            "run_id": 66,
+            "period_id": 52,
+            "period_name": "2025-10",
+            "entry_count": 0
+          },
+          {
+            "run_id": 69,
+            "period_id": 50,
+            "period_name": "2025-08",
+            "entry_count": 0
+          }
+        ],
+        "enabled_audit_rules": 2,
+        "cache_stats": {
+          "total_cached": 3,
+          "completed": 3
+        }
+      }
+    ]
+  },
+  "recommendations": [
+    {
+      "category": "API性能",
+      "severity": "high",
+      "issue": "发现 4 个慢API",
+      "suggestion": "检查这些API的具体实现，特别是数据库查询和缓存逻辑"
+    }
+  ]
+}

@@ -673,6 +673,48 @@ def delete_permission(db: Session, permission_id: int) -> bool:
 
 # --- 超高性能权限查询函数 (终极优化) ---
 
+def get_user_for_login(db: Session, username: str) -> Optional[dict]:
+    """
+    专门用于登录的用户查询：获取用户基本信息和密码哈希
+    
+    Args:
+        db: 数据库会话
+        username: 用户名
+        
+    Returns:
+        包含用户信息和密码哈希的字典，如果不存在则返回None
+    """
+    from sqlalchemy import text
+    
+    try:
+        # 获取用户基本信息和密码哈希
+        user_query = text("""
+            SELECT id, username, employee_id, is_active, created_at, password_hash
+            FROM security.users 
+            WHERE username = :username AND is_active = true
+        """)
+        
+        user_result = db.execute(user_query, {"username": username}).first()
+        if not user_result:
+            return None
+            
+        # 构建返回数据
+        user_data = {
+            "id": user_result.id,
+            "username": user_result.username,
+            "employee_id": user_result.employee_id,
+            "is_active": user_result.is_active,
+            "created_at": user_result.created_at,
+            "password_hash": user_result.password_hash
+        }
+        
+        return user_data
+        
+    except Exception as e:
+        logger.error(f"登录用户查询失败: {e}", exc_info=True)
+        return None
+
+
 def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict]:
     """
     超高性能用户权限查询：分步查询避免复杂JOIN
@@ -690,7 +732,7 @@ def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict
     try:
         # 第一步：快速获取用户基本信息
         user_query = text("""
-            SELECT id, username, employee_id, is_active, created_at, description
+            SELECT id, username, employee_id, is_active, created_at
             FROM security.users 
             WHERE username = :username AND is_active = true
         """)
@@ -707,9 +749,7 @@ def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict
             FROM security.user_roles ur
             JOIN security.role_permissions rp ON ur.role_id = rp.role_id
             JOIN security.permissions p ON rp.permission_id = p.id
-            WHERE ur.user_id = :user_id 
-              AND ur.is_active = true 
-              AND p.is_active = true
+            WHERE ur.user_id = :user_id
         """)
         
         permissions_result = db.execute(permissions_query, {"user_id": user_id}).fetchall()
@@ -717,12 +757,10 @@ def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict
         
         # 第三步：简化角色信息获取（可选，仅获取基本信息）
         roles_query = text("""
-            SELECT r.id, r.name, r.code, r.description, r.is_active
+            SELECT r.id, r.name, r.code
             FROM security.user_roles ur
             JOIN security.roles r ON ur.role_id = r.id
-            WHERE ur.user_id = :user_id 
-              AND ur.is_active = true 
-              AND r.is_active = true
+            WHERE ur.user_id = :user_id
         """)
         
         roles_result = db.execute(roles_query, {"user_id": user_id}).fetchall()
@@ -731,8 +769,8 @@ def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict
                 "id": row.id,
                 "name": row.name,
                 "code": row.code,
-                "description": row.description,
-                "is_active": row.is_active
+                "description": None,  # 角色表没有description字段
+                "is_active": True    # 默认为True，因为已经通过ur.is_active = true过滤
             }
             for row in roles_result
         ] if roles_result else []
@@ -744,7 +782,7 @@ def get_user_permissions_ultra_fast(db: Session, username: str) -> Optional[dict
             "employee_id": user_result.employee_id,
             "is_active": user_result.is_active,
             "created_at": user_result.created_at,
-            "description": user_result.description,
+            "description": None,  # 用户表没有description字段，设为None
             "all_permission_codes": permission_codes,
             "roles": roles
         }

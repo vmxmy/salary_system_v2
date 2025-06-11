@@ -532,7 +532,7 @@ export const employeeService = {
   },
 
   // New function to get employees from the view endpoint
-  async getEmployeesFromView(query?: EmployeeBasicQuery): Promise<EmployeeBasicPageResult> {
+  async getEmployeesFromView(query?: EmployeeBasicQuery): Promise<EmployeeBasic[]> {
     try {
       let apiParams: Record<string, any> = {};
       if (query) {
@@ -548,21 +548,13 @@ export const employeeService = {
       const queryString = Object.keys(apiParams).length > 0 ? buildQueryParams(apiParams) : '';
       // Path for the new view-based endpoint
       const requestUrl = `/views/employees${queryString}`; 
-      const response = await apiClient.get<EmployeeBasicPageResult>(requestUrl);
+      
+      const response = await apiClient.get<EmployeeBasic[]>(requestUrl);
+      
       return response.data;
     } catch (error) {
-      // Default error response, similar to getEmployees
-      const currentPage = query?.page || 1;
-      const pageSize = query?.size || 10; 
-      return {
-        data: [],
-        meta: {
-          page: currentPage,
-          size: pageSize,
-          total: 0,
-          totalPages: 0,
-        },
-      };
+      // Return empty array on error
+      return [];
     }
   },
 

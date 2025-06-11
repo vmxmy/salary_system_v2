@@ -30,7 +30,7 @@ export interface StandardDetailPageTemplateProps<T> {
 
 const StandardDetailPageTemplate = <T extends object | null | undefined>({
   pageTitleKey,
-  translationNamespaces = ['common', 'pageTitle', 'myInfo'], // Added 'myInfo' for MyInfo page specific titles
+  translationNamespaces = ['common', 'pageTitle'],
   isLoading,
   error,
   data,
@@ -40,7 +40,7 @@ const StandardDetailPageTemplate = <T extends object | null | undefined>({
   showError = true,
   loadingTextKey = 'common:loading.generic_loading_text',
   emptyState,
-  emptyStateDescriptionKey = 'myInfo.noData', // Default for employee info, can be overridden
+  emptyStateDescriptionKey = 'common:noDataAvailable',
 }: StandardDetailPageTemplateProps<T>) => {
   const { t } = useTranslation(translationNamespaces);
 

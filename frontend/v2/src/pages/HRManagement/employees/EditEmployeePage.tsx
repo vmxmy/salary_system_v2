@@ -30,6 +30,7 @@ import { employeeService } from '../../../services/employeeService';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import type { Employee, UpdateEmployeePayload } from '../types';
 import TableActionButton from '../../../components/common/TableActionButton';
+import { employeeManagementApi } from '../../EmployeeManagement/services/employeeManagementApi';
 
 const EditEmployeePage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +41,31 @@ const EditEmployeePage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const { lookupMaps, rawLookups, loadingLookups } = useLookupMaps();
+
+  // 简化调试日志 - 验证初始值设置
+  React.useEffect(() => {
+    if (employee && lookupMaps && !loadingLookups) {
+      const initialValues = getInitialValues();
+      console.log('✅ 表单准备就绪:', {
+        hasEmployee: !!employee,
+        hasLookupMaps: !!lookupMaps,
+        keyInitialValues: {
+          department_id: initialValues.department_id,
+          personnel_category_id: initialValues.personnel_category_id,
+          actual_position_id: initialValues.actual_position_id,
+          employment_type: initialValues.employment_type,
+          employee_status: initialValues.employee_status,
+        },
+        lookupMapsStatus: {
+          departmentMapSize: lookupMaps.departmentMap?.size,
+          personnelCategoryMapSize: lookupMaps.personnelCategoryMap?.size,
+          positionMapSize: lookupMaps.positionMap?.size,
+          employmentTypeMapSize: lookupMaps.employmentTypeMap?.size,
+          statusMapSize: lookupMaps.statusMap?.size,
+        }
+      });
+    }
+  }, [employee, lookupMaps, loadingLookups]);
 
   useEffect(() => {
     if (employeeId) {
@@ -52,8 +78,8 @@ const EditEmployeePage: React.FC = () => {
     
     setLoading(true);
     try {
-      const data = await employeeService.getEmployeeById(employeeId);
-      setEmployee(data);
+      const employee = await employeeManagementApi.getEmployeeById(employeeId);
+      setEmployee(employee);
     } catch (error: any) {
       console.error('获取员工信息失败:', error);
       message.error('获取员工信息失败');
@@ -68,17 +94,33 @@ const EditEmployeePage: React.FC = () => {
     
     setSubmitting(true);
     try {
-      // 处理日期字段
+      // 处理日期字段和字段名映射
       const payload: UpdateEmployeePayload = {
         ...values,
+        // 日期字段转换
         date_of_birth: values.birth_date ? dayjs(values.birth_date).format('YYYY-MM-DD') : undefined,
         hire_date: values.entry_date ? dayjs(values.entry_date).format('YYYY-MM-DD') : undefined,
         first_work_date: values.first_work_date ? dayjs(values.first_work_date).format('YYYY-MM-DD') : undefined,
         current_position_start_date: values.current_position_start_date ? dayjs(values.current_position_start_date).format('YYYY-MM-DD') : undefined,
         career_position_level_date: values.position_level_date ? dayjs(values.position_level_date).format('YYYY-MM-DD') : undefined,
+        
+        // 字段名映射（表单字段名 -> 后端字段名）
+        employment_type_lookup_value_id: values.employment_type,
+        status_lookup_value_id: values.employee_status,
+        id_number: values.id_card_number,
+        interrupted_service_years: values.work_interruption_years,
+        
+        // 移除表单临时字段名，避免后端收到未知字段
+        birth_date: undefined,
+        entry_date: undefined,
+        position_level_date: undefined,
+        employment_type: undefined,
+        employee_status: undefined,
+        id_card_number: undefined,
+        work_interruption_years: undefined,
       };
 
-      await employeeService.updateEmployee(employeeId, payload);
+      await employeeManagementApi.updateEmployee(employeeId, payload);
       message.success('员工信息更新成功');
       navigate(`/hr/employees/${employeeId}`);
       return true;
@@ -98,14 +140,25 @@ const EditEmployeePage: React.FC = () => {
   const getInitialValues = () => {
     if (!employee) return {};
     
-    return {
+    const initialValues = {
       ...employee,
+      // 日期字段转换
       birth_date: employee.date_of_birth ? dayjs(employee.date_of_birth) : null,
       entry_date: employee.hire_date ? dayjs(employee.hire_date) : null,
       first_work_date: employee.first_work_date ? dayjs(employee.first_work_date) : null,
       current_position_start_date: employee.current_position_start_date ? dayjs(employee.current_position_start_date) : null,
       position_level_date: employee.career_position_level_date ? dayjs(employee.career_position_level_date) : null,
+      
+      // 字段名映射修正
+      employment_type: employee.employment_type_lookup_value_id,
+      employee_status: employee.status_lookup_value_id,
+      id_card_number: employee.id_number,
+      work_interruption_years: employee.interrupted_service_years,
     };
+    
+
+    
+    return initialValues;
   };
 
   const breadcrumbProps = {
@@ -256,8 +309,7 @@ const EditEmployeePage: React.FC = () => {
                 name="employee_code"
                 label="工号"
                 width="md"
-                placeholder="请输入工号"
-                rules={[{ required: true }]}
+                placeholder="请输入工号（可选）"
               />
               <ProFormText
                 name="last_name"
@@ -337,6 +389,10 @@ const EditEmployeePage: React.FC = () => {
             description: '岗位和雇佣相关信息',
             icon: <ContactsOutlined />,
           }}
+          initialValues={getInitialValues()}
+          onValuesChange={(changedValues, allValues) => {
+            console.log('🔧 工作信息表单值变化:', { changedValues, allValues });
+          }}
         >
           <ProCard title="岗位信息" bordered style={{ marginBottom: 16 }}>
             <ProFormGroup>
@@ -345,10 +401,37 @@ const EditEmployeePage: React.FC = () => {
                 label="所属部门"
                 width="lg"
                 showSearch
-                options={rawLookups?.departmentOptions?.map(dept => ({
-                  label: dept.name,
-                  value: dept.id
-                }))}
+                options={(() => {
+                  // 扁平化部门树结构为选项列表
+                  const flattenDepartments = (departments: any[]): Array<{label: string, value: number}> => {
+                    const result: Array<{label: string, value: number}> = [];
+                    
+                    const processNode = (node: any, prefix = '') => {
+                      if (node.value !== undefined && node.title) {
+                        result.push({
+                          label: prefix + node.title,
+                          value: node.value
+                        });
+                      } else if (node.id !== undefined && node.name) {
+                        result.push({
+                          label: prefix + node.name,
+                          value: node.id
+                        });
+                      }
+                      
+                      if (node.children && node.children.length > 0) {
+                        node.children.forEach((child: any) => {
+                          processNode(child, prefix + '  ');
+                        });
+                      }
+                    };
+                    
+                    departments.forEach(dept => processNode(dept));
+                    return result;
+                  };
+                  
+                  return rawLookups?.departmentOptions ? flattenDepartments(rawLookups.departmentOptions) : [];
+                })()}
                 placeholder="请选择部门"
                 rules={[{ required: true }]}
               />
@@ -356,10 +439,37 @@ const EditEmployeePage: React.FC = () => {
                 name="personnel_category_id"
                 label="人员类别"
                 width="md"
-                options={rawLookups?.personnelCategoryOptions?.map(cat => ({
-                  label: cat.name,
-                  value: cat.id
-                }))}
+                options={(() => {
+                  // 扁平化人员类别树结构为选项列表
+                  const flattenPersonnelCategories = (categories: any[]): Array<{label: string, value: number}> => {
+                    const result: Array<{label: string, value: number}> = [];
+                    
+                    const processNode = (node: any, prefix = '') => {
+                      if (node.value !== undefined && node.title) {
+                        result.push({
+                          label: prefix + node.title,
+                          value: node.value
+                        });
+                      } else if (node.id !== undefined && node.name) {
+                        result.push({
+                          label: prefix + node.name,
+                          value: node.id
+                        });
+                      }
+                      
+                      if (node.children && node.children.length > 0) {
+                        node.children.forEach((child: any) => {
+                          processNode(child, prefix + '  ');
+                        });
+                      }
+                    };
+                    
+                    categories.forEach(cat => processNode(cat));
+                    return result;
+                  };
+                  
+                  return rawLookups?.personnelCategoryOptions ? flattenPersonnelCategories(rawLookups.personnelCategoryOptions) : [];
+                })()}
                 placeholder="请选择人员类别"
               />
             </ProFormGroup>
@@ -373,14 +483,14 @@ const EditEmployeePage: React.FC = () => {
                 options={rawLookups?.positionOptions?.map(pos => ({
                   label: pos.name,
                   value: pos.id
-                }))}
+                })) || []}
                 placeholder="请选择实际职务"
               />
               <ProFormSelect
                 name="job_position_level_lookup_value_id"
                 label="职务级别"
                 width="md"
-                options={rawLookups?.jobPositionLevelOptions}
+                options={rawLookups?.jobPositionLevelOptions || []}
                 placeholder="请选择职务级别"
               />
             </ProFormGroup>
@@ -392,14 +502,14 @@ const EditEmployeePage: React.FC = () => {
                 name="employment_type"
                 label="雇佣类型"
                 width="md"
-                options={rawLookups?.employmentTypeOptions}
+                options={rawLookups?.employmentTypeOptions || []}
                 placeholder="请选择雇佣类型"
               />
               <ProFormSelect
                 name="employee_status"
                 label="员工状态"
                 width="md"
-                options={rawLookups?.statusOptions}
+                options={rawLookups?.statusOptions || []}
                 placeholder="请选择员工状态"
               />
               <ProFormDatePicker
@@ -450,6 +560,7 @@ const EditEmployeePage: React.FC = () => {
             description: '联系方式和银行信息',
             icon: <BankOutlined />,
           }}
+          initialValues={getInitialValues()}
         >
           <ProCard title="联系方式" bordered style={{ marginBottom: 16 }}>
             <ProFormGroup>

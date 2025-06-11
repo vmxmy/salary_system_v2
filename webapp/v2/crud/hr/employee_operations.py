@@ -173,8 +173,12 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
     """
     创建员工。
     """
-    if employee.employee_code and get_employee_by_code(db, employee.employee_code):
-        raise ValueError(f"Employee with code '{employee.employee_code}' already exists")
+    # 检查员工代码是否已存在 - 只有工号不为空时才检查唯一性
+    if employee.employee_code:  # 只有当工号不为空时才检查
+        existing_code = get_employee_by_code(db, employee.employee_code)
+        if existing_code:
+            raise ValueError(f"Employee with code '{employee.employee_code}' already exists")
+    
     if employee.id_number and get_employee_by_id_number(db, employee.id_number):
         raise ValueError(f"Employee with ID number '{employee.id_number}' already exists")
 
@@ -313,9 +317,13 @@ def update_employee(db: Session, employee_id: int, employee: EmployeeUpdate) -> 
     if not db_employee:
         return None
 
+    # 检查员工代码是否已存在 - 只有工号不为空时才检查唯一性
     if employee.employee_code is not None and employee.employee_code != db_employee.employee_code:
-        if get_employee_by_code(db, employee.employee_code):
-            raise ValueError(f"Employee with code '{employee.employee_code}' already exists")
+        if employee.employee_code:  # 只有当新工号不为空时才检查唯一性
+            existing_code = get_employee_by_code(db, employee.employee_code)
+            if existing_code:
+                raise ValueError(f"Employee with code '{employee.employee_code}' already exists")
+    
     if employee.id_number is not None and employee.id_number != db_employee.id_number:
         if get_employee_by_id_number(db, employee.id_number):
             raise ValueError(f"Employee with ID number '{employee.id_number}' already exists")

@@ -170,6 +170,7 @@
     "export_excel": "导出Excel",
     "fullscreen": "",
     "no": "否",
+    "view": "查看",
     "ok": "确定",
     "preview": "预览详情",
     "refresh": "刷新",
@@ -290,6 +291,7 @@
     "user_info": "正在加载用户信息..."
   },
   "loading_data": "加载数据中",
+  "lookup_loading": "加载中...",
   "loading_page_content": "",
   "login_button": "登录",
   "lookup_select": {
@@ -318,6 +320,7 @@
     "error_fetching_details": "",
     "export_failed": "",
     "export_success": "",
+    "fetch_failed": "",
     "invalid_id": "",
     "missing_required_fields": "缺少必填字段。",
     "missing_required_fields_in_tab_param": "{tabName} 标签页中缺少必填字段。",
@@ -353,11 +356,6 @@
       "view": ""
     }
   },
-  "myInfo": {
-    "fetchError": "",
-    "fetchErrorUnauthorized": "",
-    "noEmployeeIdError": ""
-  },
   "no": "否",
   "no_permission_to_view_data": "",
   "page_title": {
@@ -386,11 +384,6 @@
     "input_remarks": "请输入备注",
     "start_date": "请选择开始日期"
   },
-  "records_invalid_one": "无效记录",
-  "records_invalid_other": "无效记录",
-  "records_total": "总记录数：{{total}}",
-  "records_valid_one": "有效记录",
-  "records_valid_other": "有效记录",
   "remember_me_checkbox": "记住我",
   "report": "",
   "reset": "",
@@ -412,19 +405,27 @@
     }
   },
   "status": {
-    "not_selected": ""
+    "not_selected": "",
+    "enabled": "启用",
+    "disabled": "禁用",
+    "active": "活跃",
+    "inactive": "不活跃",
+    "pending": "待处理"
   },
   "status_error": "错误",
   "status_pending": "待处理",
   "status_processing": "处理中",
   "status_success": "成功",
+  "export": {
+    "export": "导出",
+    "formatExcel": "Excel (.xlsx)"
+  },
   "success": {
     "create": "",
     "export": "",
     "update": ""
   },
   "table": {
-    "cell_empty": "-",
     "column": {
       "index": ""
     },

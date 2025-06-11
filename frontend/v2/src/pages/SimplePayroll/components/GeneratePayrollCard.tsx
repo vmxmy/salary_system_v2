@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import type { PayrollPeriodResponse, PayrollGenerationRequest } from '../types/simplePayroll';
 import { simplePayrollApi } from '../services/simplePayrollApi';
 import { ExcelImportModal } from './ExcelImportModal';
+import SmartCopyConfirmModal from './SmartCopyConfirmModal';
 
 const { Text } = Typography;
 
@@ -37,8 +38,11 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
 }) => {
   const { t } = useTranslation(['simplePayroll', 'common']);
   const [copyModalVisible, setCopyModalVisible] = useState(false);
+  const [smartConfirmVisible, setSmartConfirmVisible] = useState(false);
   const [excelModalVisible, setExcelModalVisible] = useState(false);
   const [sourcePeriods, setSourcePeriods] = useState<PayrollPeriodResponse[]>([]);
+  const [existingDataInfo, setExistingDataInfo] = useState<any>(null);
+  const [pendingCopyParams, setPendingCopyParams] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -69,21 +73,83 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
 
     try {
       setLoading(true);
-      await simplePayrollApi.copyPreviousPayroll({
+      
+      // 保存复制参数，准备可能的确认流程
+      const copyParams = {
         target_period_id: currentPeriod.id,
         source_period_id: values.source_period_id,
         description: values.description || `复制 ${values.source_period_name} 数据`
-      });
+      };
+      setPendingCopyParams({ ...copyParams, source_period_name: values.source_period_name });
+
+      await simplePayrollApi.copyPreviousPayroll(copyParams);
       
       message.success(t('simplePayroll:messages.copySuccess'));
       setCopyModalVisible(false);
       form.resetFields();
       onRefresh();
     } catch (error: any) {
-      message.error(error.message || t('simplePayroll:errors.copyFailed'));
+      console.log('🚨 [GeneratePayrollCard] 复制过程中遇到错误:', error);
+      
+      // 检查是否是需要确认的情况
+      if (error.response?.status === 409 && error.response?.data?.error?.code === 'CONFIRMATION_REQUIRED') {
+        console.log('🔍 [GeneratePayrollCard] 检测到需要用户确认的情况');
+        setExistingDataInfo(error.response.data.error.existing_data);
+        setCopyModalVisible(false);
+        setSmartConfirmVisible(true);
+        return;
+      }
+      
+      // 普通错误处理
+      console.error('❌ [GeneratePayrollCard] 复制失败:', error);
+      message.error(error.response?.data?.error?.message || error.message || t('simplePayroll:errors.copyFailed'));
     } finally {
       setLoading(false);
     }
+  };
+
+  // 处理智能确认结果
+  const handleSmartConfirm = async (forceOverwrite: boolean) => {
+    if (!pendingCopyParams) return;
+
+    try {
+      setLoading(true);
+      console.log('🎯 [GeneratePayrollCard] 执行确认后的复制:', { 
+        ...pendingCopyParams, 
+        force_overwrite: forceOverwrite 
+      });
+
+      await simplePayrollApi.copyPreviousPayroll({
+        ...pendingCopyParams,
+        force_overwrite: forceOverwrite
+      });
+      
+      message.success(
+        forceOverwrite 
+          ? '复制并覆盖薪资配置成功！' 
+          : '复制并创建新版本成功！'
+      );
+      
+      setSmartConfirmVisible(false);
+      setPendingCopyParams(null);
+      setExistingDataInfo(null);
+      form.resetFields();
+      onRefresh();
+    } catch (error: any) {
+      console.error('❌ [GeneratePayrollCard] 确认后复制失败:', error);
+      message.error(error.response?.data?.error?.message || error.message || '复制操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 处理智能确认取消
+  const handleSmartConfirmCancel = () => {
+    setSmartConfirmVisible(false);
+    setPendingCopyParams(null);
+    setExistingDataInfo(null);
+    // 重新打开原有的复制对话框
+    setCopyModalVisible(true);
   };
 
   // 处理手动创建
@@ -312,6 +378,18 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
           }}
           periodId={currentPeriod.id}
           periodName={currentPeriod.name}
+        />
+      )}
+
+      {/* 智能复制确认对话框 */}
+      {existingDataInfo && pendingCopyParams && (
+        <SmartCopyConfirmModal
+          visible={smartConfirmVisible}
+          onCancel={handleSmartConfirmCancel}
+          onConfirm={handleSmartConfirm}
+          existingData={existingDataInfo}
+          sourcePeriodName={pendingCopyParams.source_period_name}
+          loading={loading}
         />
       )}
     </>

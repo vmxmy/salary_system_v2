@@ -2,6 +2,7 @@
 薪资周期相关的CRUD操作。
 """
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import text
 from typing import List, Optional, Tuple
 from datetime import date
 
@@ -20,7 +21,7 @@ def get_payroll_periods(
     limit: int = 100
 ) -> Tuple[List[PayrollPeriod], int]:
     """
-    获取薪资周期列表
+    获取薪资周期列表 - 🚀 已优化：消除N+1查询问题
     
     Args:
         db: 数据库会话
@@ -61,24 +62,35 @@ def get_payroll_periods(
     
     periods = query.all()
     
-    # 为每个期间计算不重复的员工数
-    for period in periods:
-        # 通过 payroll_runs 和 payroll_entries 计算该期间的不重复员工数
-        employee_count = db.query(PayrollEntry.employee_id).join(
-            PayrollRun, PayrollEntry.payroll_run_id == PayrollRun.id
-        ).filter(
-            PayrollRun.payroll_period_id == period.id
-        ).distinct().count()
+    # 🚀 性能优化：使用单一SQL查询批量获取所有期间的员工数量统计，避免N+1查询
+    if periods:
+        period_ids = [period.id for period in periods]
         
-        # 动态添加 employee_count 属性
-        period.employee_count = employee_count
+        # 构建批量统计查询
+        employee_count_query = text("""
+            SELECT 
+                pr.payroll_period_id,
+                COUNT(DISTINCT pe.employee_id) as employee_count
+            FROM payroll.payroll_runs pr
+            INNER JOIN payroll.payroll_entries pe ON pr.id = pe.payroll_run_id
+            WHERE pr.payroll_period_id = ANY(:period_ids)
+            GROUP BY pr.payroll_period_id
+        """)
+        
+        # 执行批量查询
+        result = db.execute(employee_count_query, {"period_ids": period_ids})
+        employee_counts = {row.payroll_period_id: row.employee_count for row in result}
+        
+        # 为每个期间设置员工数量
+        for period in periods:
+            period.employee_count = employee_counts.get(period.id, 0)
     
     return periods, total
 
 
 def get_payroll_period(db: Session, period_id: int) -> Optional[PayrollPeriod]:
     """
-    根据ID获取单个薪资周期
+    根据ID获取单个薪资周期 - 🚀 已优化：单独查询的性能影响较小
     
     Args:
         db: 数据库会话

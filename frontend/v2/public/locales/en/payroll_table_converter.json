@@ -41,26 +41,6 @@
   "json_result_card_title": "JSON Result",
   "parse_table_button": "Parse Table",
   "placeholder": "Paste your payroll data here (e.g., from Excel or CSV).\nExample:\nEmployee ID,Employee Name,Department,Position,Total Earnings,Total Deductions,Net Pay\n101,John Doe,HR,Manager,5000,500,4500\n102,Jane Smith,Finance,Accountant,4000,400,3600",
-  "predefined_mapping": {
-    "allowance": "Allowance",
-    "basic": "Basic",
-    "bonus": "Bonus",
-    "department_name": "Department",
-    "description": "Description",
-    "employee_id": "Employee ID",
-    "employee_name": "Employee Name",
-    "housing_fund": "Housing Fund",
-    "net_pay": "Net Pay",
-    "overtime_pay": "Overtime Pay",
-    "personal_income_tax": "Personal Income Tax",
-    "position_name": "Position",
-    "remarks": "Remarks",
-    "serial_number": "Serial No.",
-    "social_insurance": "Social Insurance",
-    "status": "Status",
-    "total_deductions": "Total Deductions",
-    "total_earnings": "Total Earnings"
-  },
   "table_field_column_title": "Table Field",
   "title": "Payroll Table Text Converter"
 }

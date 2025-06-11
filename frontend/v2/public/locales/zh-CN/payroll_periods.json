@@ -83,5 +83,7 @@
       "employee_count_has_data": "员工数已统计",
       "employee_count_no_data": "暂无员工数据"
     }
-  }
+  },
+  "page_title": "薪资周期管理",
+  "create_period": "创建薪资周期"
 }

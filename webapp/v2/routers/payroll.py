@@ -726,20 +726,32 @@ async def get_payroll_entries(
         data = []
         for entry_dict in entries_data:
             try:
-                # 创建PayrollEntry对象
+                # 处理可能的null值
+                calculated_at = entry_dict.get('calculated_at')
+                status_lookup_value_id = entry_dict.get('status_lookup_value_id') or 1  # 默认状态ID为1
+                
+                # 创建PayrollEntry对象，直接包含员工信息字段
                 entry_pydantic = PayrollEntry(
                     id=entry_dict['id'],
                     employee_id=entry_dict['employee_id'],
                     payroll_period_id=entry_dict['payroll_period_id'],
                     payroll_run_id=entry_dict['payroll_run_id'],
-                    status_lookup_value_id=entry_dict['status_lookup_value_id'],
+                    status_lookup_value_id=status_lookup_value_id,
                     gross_pay=entry_dict['gross_pay'],
                     net_pay=entry_dict['net_pay'],
                     total_deductions=entry_dict['total_deductions'],
                     earnings_details=entry_dict['earnings_details'],
                     deductions_details=entry_dict['deductions_details'],
-                    calculated_at=entry_dict['calculated_at'],
-                    updated_at=entry_dict['updated_at']
+                    calculated_at=calculated_at,
+                    updated_at=entry_dict['updated_at'],
+                    # 添加员工信息字段
+                    employee_code=entry_dict.get('employee_code'),
+                    employee_name=entry_dict.get('employee_name'),
+                    first_name=entry_dict.get('first_name'),
+                    last_name=entry_dict.get('last_name'),
+                    department_name=entry_dict.get('department_name'),
+                    personnel_category_name=entry_dict.get('personnel_category_name'),
+                    position_name=entry_dict.get('position_name')
                 )
                 data.append(entry_pydantic)
             except Exception as e:

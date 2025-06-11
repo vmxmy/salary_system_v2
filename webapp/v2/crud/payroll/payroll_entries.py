@@ -166,9 +166,9 @@ def get_payroll_entries(
                 -- 应发项目
                 "基本工资" as basic_salary,
                 "奖励性绩效工资" as performance_bonus,
-                "基础性绩效工资" as basic_performance_salary,
+                "月基础绩效" as basic_performance_salary,
                 "岗位工资" as position_salary,
-                "级别工资" as grade_salary,
+                "级别/岗位级别工资" as grade_salary,
                 "薪级工资" as salary_grade,
                 "补助" as allowance,
                 "津贴" as general_allowance,
@@ -177,24 +177,24 @@ def get_payroll_entries(
                 "乡镇工作补贴" as township_allowance,
                 "岗位职务补贴" as position_allowance,
                 "公务员规范后津补贴" as civil_standard_allowance,
-                "补发工资" as back_pay,
+                "一次性补扣发" as back_pay,
                 "绩效工资" as performance_salary,
                 "月奖励绩效" as monthly_performance_bonus,
                 
-                -- 个人扣除项目
+                -- 个人扣除项目（使用正确的字段名）
                 "个人所得税" as personal_income_tax,
-                "养老保险个人应缴金额" as pension_personal,
-                "医疗保险个人缴纳金额" as medical_personal,
-                "失业保险个人应缴金额" as unemployment_personal,
-                "个人缴住房公积金" as housing_fund_personal,
+                "养老保险个人应缴费额" as pension_personal,
+                "医疗保险个人应缴费额" as medical_personal,
+                "失业保险个人应缴费额" as unemployment_personal,
+                "住房公积金个人应缴费额" as housing_fund_personal,
                 "职业年金个人应缴费额" as annuity_personal,
-                "一次性补扣发" as one_time_adjustment,
+                "补扣（退）款" as one_time_adjustment,
                 "补扣社保" as social_insurance_adjustment,
                 
                 -- 单位扣除项目
-                "养老保险单位应缴金额" as pension_employer_amount,
-                "医疗保险单位缴纳金额" as medical_ins_employer_amount,
-                "单位缴住房公积金" as housing_fund_employer,
+                "养老保险单位应缴费额" as pension_employer_amount,
+                "医疗保险单位应缴费额" as medical_ins_employer_amount,
+                "住房公积金单位应缴费额" as housing_fund_employer,
                 
                 -- 原始JSONB数据
                 "原始应发明细" as earnings_details,
@@ -219,7 +219,7 @@ def get_payroll_entries(
                 'employee_id': row.employee_id,
                 'payroll_period_id': row.payroll_period_id,
                 'payroll_run_id': row.payroll_run_id,
-                'status_lookup_value_id': None,  # 需要从原表查询
+                'status_lookup_value_id': 1,  # 设置默认状态ID
                 'employee_code': row.employee_code,
                 'employee_name': row.employee_name,
                 'first_name': row.first_name,

@@ -228,11 +228,18 @@ export interface CreatePayrollEntryPayload {
   };
 }
 
+// 新增：覆写模式枚举
+export enum OverwriteMode {
+  NONE = 'none',           // 不覆写，重复记录报错
+  FULL = 'full',           // 全量覆写，完全替换现有记录
+  PARTIAL = 'partial'      // 部分覆写，只更新导入的字段
+}
+
 // Payload for bulk creating payroll entries
 export interface BulkCreatePayrollEntriesPayload {
   payroll_period_id: number;
   entries: CreatePayrollEntryPayload[];
-  overwrite_mode?: boolean;
+  overwrite_mode: OverwriteMode;
 }
 
 // Result for bulk creating payroll entries

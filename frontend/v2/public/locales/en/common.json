@@ -315,6 +315,7 @@
     "error_fetching_details": "",
     "export_failed": "",
     "export_success": "",
+    "fetch_failed": "",
     "invalid_id": "",
     "missing_required_fields": "Required fields are missing.",
     "missing_required_fields_in_tab_param": "Required fields are missing in the {tabName} tab.",
@@ -350,11 +351,6 @@
       "view": ""
     }
   },
-  "myInfo": {
-    "fetchError": "",
-    "fetchErrorUnauthorized": "",
-    "noEmployeeIdError": ""
-  },
   "no": "no",
   "no_permission_to_view_data": "",
   "page_title": {
@@ -383,11 +379,6 @@
     "input_remarks": "Input remarks",
     "start_date": ""
   },
-  "records_invalid_one": "records_invalid",
-  "records_invalid_other": "records_invalid",
-  "records_total": "Total Records: {{total}}",
-  "records_valid_one": "records_valid",
-  "records_valid_other": "records_valid",
   "remember_me_checkbox": "Remember me",
   "report": "",
   "reset": "",
@@ -421,7 +412,6 @@
     "update": ""
   },
   "table": {
-    "cell_empty": "-",
     "column": {
       "index": ""
     },

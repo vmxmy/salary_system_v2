@@ -2,25 +2,47 @@
 批量操作相关的功能。
 """
 from sqlalchemy.orm import Session
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional
 import logging
 import time
 from datetime import datetime
 
 from ...models.payroll import PayrollPeriod, PayrollRun, PayrollEntry
-from ...pydantic_models.payroll import PayrollEntryCreate, PayrollEntryUpdate, PayrollRunCreate
-from ..hr import get_employee_by_name_and_id_number, get_employee
+from ...models.hr import Employee
+from ...pydantic_models.payroll import PayrollEntryCreate, PayrollEntryUpdate, PayrollRunCreate, OverwriteMode
+from ..hr import (
+    get_employees, get_employee, get_employee_by_code, 
+    get_employee_by_id_number, get_employee_by_name_and_id_number
+)
 from .payroll_entries import create_payroll_entry, update_payroll_entry
 from .payroll_runs import create_payroll_run
 
 logger = logging.getLogger(__name__)
 
 
+def get_employee_by_name_only(db: Session, last_name: str, first_name: str) -> Optional[Employee]:
+    """
+    根据姓名获取员工（不需要身份证号码）
+    
+    Args:
+        db: 数据库会话
+        last_name: 姓
+        first_name: 名
+    
+    Returns:
+        员工对象，如果不存在则返回None
+    """
+    return db.query(Employee).filter(
+        Employee.last_name == last_name,
+        Employee.first_name == first_name
+    ).first()
+
+
 def bulk_validate_payroll_entries(
     db: Session,
     payroll_period_id: int,
     entries: List[PayrollEntryCreate],
-    overwrite_mode: bool = False
+    overwrite_mode: OverwriteMode = OverwriteMode.NONE
 ) -> Dict[str, Any]:
     """
     批量验证薪资明细数据 - 🚀 使用优化API提升性能
@@ -177,6 +199,8 @@ def bulk_validate_payroll_entries(
             # 如果没有employee_id，尝试从预加载的员工数据中匹配
             if not employee_data and hasattr(entry_data, 'employee_info') and entry_data.employee_info:
                 info = entry_data.employee_info
+                
+                # 优先尝试姓名+身份证号匹配
                 if info and info.get('last_name') and info.get('first_name') and info.get('id_number'):
                     key = f"{info['last_name']}_{info['first_name']}_{info['id_number']}"
                     employee_data = employees_map.get(key)
@@ -198,6 +222,23 @@ def bulk_validate_payroll_entries(
                                 'id_number': employee.id_number,
                                 'is_active': employee.is_active
                             }
+                
+                # 如果姓名+身份证号匹配失败，尝试只用姓名匹配
+                if not employee_data and info and info.get('last_name') and info.get('first_name'):
+                    employee = get_employee_by_name_only(
+                        db, 
+                        info['last_name'], 
+                        info['first_name']
+                    )
+                    if employee:
+                        employee_data = {
+                            'id': employee.id,
+                            'employee_code': employee.employee_code,
+                            'last_name': employee.last_name,
+                            'first_name': employee.first_name,
+                            'id_number': employee.id_number,
+                            'is_active': employee.is_active
+                        }
             
             # 设置员工信息到验证条目
             if employee_data:
@@ -237,11 +278,11 @@ def bulk_validate_payroll_entries(
                 
                 if existing_entry_id:
                     validated_entry["__isNew"] = False
-                    if not overwrite_mode:
-                        # 只有在非覆盖模式下才将重复记录视为错误
+                    if overwrite_mode == OverwriteMode.NONE:
+                        # 不覆写模式下，重复记录视为错误
                         validation_errors.append(f"Payroll entry already exists for employee {employee_id} in this period")
                     else:
-                        # 覆盖模式下，重复记录不是错误，只是标记为警告
+                        # 覆盖模式下（全量或部分），重复记录不是错误，只是标记为警告
                         warnings += 1
             
             # 设置验证结果
@@ -281,7 +322,7 @@ def bulk_create_payroll_entries(
     db: Session, 
     payroll_period_id: int, 
     entries: List[PayrollEntryCreate], 
-    overwrite_mode: bool = False
+    overwrite_mode: OverwriteMode = OverwriteMode.NONE
 ) -> Tuple[List[PayrollEntry], List[Dict[str, Any]]]:
     """
     批量创建工资明细
@@ -381,12 +422,12 @@ def bulk_create_payroll_entries(
                 PayrollEntry.payroll_period_id == payroll_period_id
             ).first()
             
-            if existing_entry and overwrite_mode:
+            if existing_entry and overwrite_mode in [OverwriteMode.FULL, OverwriteMode.PARTIAL]:
                 # 更新现有记录
                 update_data = PayrollEntryUpdate(**clean_entry_data.dict())
                 db_entry = update_payroll_entry(db, existing_entry.id, update_data)
                 created_entries.append(db_entry)
-            elif existing_entry and not overwrite_mode:
+            elif existing_entry and overwrite_mode == OverwriteMode.NONE:
                 # 记录错误：记录已存在
                 errors.append({
                     "index": i,
@@ -420,7 +461,7 @@ def bulk_create_payroll_entries_optimized(
     db: Session, 
     payroll_period_id: int, 
     entries: List[PayrollEntryCreate], 
-    overwrite_mode: bool = False
+    overwrite_mode: OverwriteMode = OverwriteMode.NONE
 ) -> Tuple[List[PayrollEntry], List[Dict[str, Any]]]:
     """
     高性能批量创建工资明细 - 避免循环中的重复数据库操作
@@ -654,13 +695,14 @@ def bulk_create_payroll_entries_optimized(
                     continue
                 
                 # 决定是新增还是更新
-                if existing_entry_id and overwrite_mode:
+                if existing_entry_id and overwrite_mode in [OverwriteMode.FULL, OverwriteMode.PARTIAL]:
                     # 更新现有记录
                     update_entries_data.append({
                         'entry_id': existing_entry_id,
-                        'data': db_data_dict
+                        'data': db_data_dict,
+                        'overwrite_mode': overwrite_mode  # 传递覆写模式用于后续处理
                     })
-                elif existing_entry_id and not overwrite_mode:
+                elif existing_entry_id and overwrite_mode == OverwriteMode.NONE:
                     # 记录错误：记录已存在
                     errors.append({
                         "index": i,
@@ -729,19 +771,78 @@ def bulk_create_payroll_entries_optimized(
                 try:
                     entry_id = update_item['entry_id']
                     data = update_item['data']
+                    mode = update_item['overwrite_mode']
                     
-                    # 更新记录
-                    updated_count = db.query(PayrollEntry).filter(
-                        PayrollEntry.id == entry_id
-                    ).update(data)
-                    
-                    if updated_count > 0:
-                        # 查询更新后的记录
-                        updated_entry = db.query(PayrollEntry).filter(
+                    if mode == OverwriteMode.PARTIAL:
+                        # 部分覆写：只更新导入数据中包含的字段
+                        # 首先获取现有记录
+                        existing_entry = db.query(PayrollEntry).filter(
                             PayrollEntry.id == entry_id
                         ).first()
-                        if updated_entry:
-                            created_entries.append(updated_entry)
+                        
+                        if existing_entry:
+                            # 准备更新数据，只包含非空/非零的字段
+                            update_data = {}
+                            
+                            # 基础字段：只有在导入数据中明确提供时才更新
+                            if data.get('gross_pay', 0) > 0:
+                                update_data['gross_pay'] = data['gross_pay']
+                            if data.get('total_deductions', 0) > 0:
+                                update_data['total_deductions'] = data['total_deductions']
+                            if data.get('net_pay', 0) > 0:
+                                update_data['net_pay'] = data['net_pay']
+                            if data.get('remarks'):
+                                update_data['remarks'] = data['remarks']
+                            
+                            # 收入明细：合并而不是替换
+                            if data.get('earnings_details'):
+                                existing_earnings = existing_entry.earnings_details or {}
+                                new_earnings = data['earnings_details']
+                                # 合并收入明细，新数据覆盖同名项目
+                                merged_earnings = {**existing_earnings, **new_earnings}
+                                update_data['earnings_details'] = merged_earnings
+                            
+                            # 扣除明细：合并而不是替换
+                            if data.get('deductions_details'):
+                                existing_deductions = existing_entry.deductions_details or {}
+                                new_deductions = data['deductions_details']
+                                # 合并扣除明细，新数据覆盖同名项目
+                                merged_deductions = {**existing_deductions, **new_deductions}
+                                update_data['deductions_details'] = merged_deductions
+                            
+                            # 添加更新时间戳
+                            update_data['updated_at'] = datetime.now()
+                            
+                            # 执行部分更新
+                            if update_data:
+                                updated_count = db.query(PayrollEntry).filter(
+                                    PayrollEntry.id == entry_id
+                                ).update(update_data)
+                                
+                                if updated_count > 0:
+                                    # 查询更新后的记录
+                                    updated_entry = db.query(PayrollEntry).filter(
+                                        PayrollEntry.id == entry_id
+                                    ).first()
+                                    if updated_entry:
+                                        created_entries.append(updated_entry)
+                            else:
+                                # 没有需要更新的字段，但仍然算作成功处理
+                                created_entries.append(existing_entry)
+                    else:
+                        # 全量覆写：替换所有字段
+                        data['updated_at'] = datetime.now()
+                        updated_count = db.query(PayrollEntry).filter(
+                            PayrollEntry.id == entry_id
+                        ).update(data)
+                        
+                        if updated_count > 0:
+                            # 查询更新后的记录
+                            updated_entry = db.query(PayrollEntry).filter(
+                                PayrollEntry.id == entry_id
+                            ).first()
+                            if updated_entry:
+                                created_entries.append(updated_entry)
                     
                 except Exception as e:
                     errors.append({

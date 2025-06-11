@@ -110,26 +110,11 @@ export const useEmployeePermissions = () => {
     return true;
   };
 
-  // 检查是否有删除权限
-  const canDelete = () => {
-    // 通常员工不能删除自己的信息，只有管理员可以
-    return permissions?.includes('employee:delete') || false;
-  };
-
-  // 检查是否有导出权限
-  const canExport = () => {
-    return permissions?.includes('employee:export') || false;
-  };
-
   return {
     ...employeePermissions,
     // 提供原始权限检查方法，用于特殊情况
     hasPermission,
     hasAnyPermission,
     userPermissions,
-    canView: canView(),
-    canUpdate: canUpdate(),
-    canDelete: canDelete(),
-    canExport: canExport(),
   };
 }; 

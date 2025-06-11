@@ -20,7 +20,7 @@ INSERT INTO config.payroll_component_definitions (
     calculation_parameters = EXCLUDED.calculation_parameters,
     display_order = EXCLUDED.display_order;
 
--- 2. 扣发合计
+-- 2. 扣发合计 - 只包含个人扣缴部分，排除单位扣缴
 INSERT INTO config.payroll_component_definitions (
     code, name, type, calculation_method, calculation_parameters,
     is_taxable, is_social_security_base, is_housing_fund_base,
@@ -30,7 +30,7 @@ INSERT INTO config.payroll_component_definitions (
     '扣发合计',
     'CALCULATION_RESULT',
     'FORMULA',
-    '{"formula": "sum_by_type(''PERSONAL_DEDUCTION'') + sum_by_type(''DEDUCTION'')", "description": "所有扣减项目的总和"}',
+    '{"formula": "sum_by_type(''PERSONAL_DEDUCTION'') + sum_by_type(''DEDUCTION'')", "description": "个人扣缴项目的总和，不包含单位扣缴部分", "exclude_types": ["EMPLOYER_DEDUCTION"]}',
     false, false, false,
     9001, true, '2024-01-01'
 ) ON CONFLICT (code) DO UPDATE SET

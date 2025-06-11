@@ -1,0 +1,12 @@
+{
+  "message": {
+    "batch_delete_failed": "",
+    "batch_delete_success_other": "",
+    "create_failed": "",
+    "create_success": "",
+    "delete_failed": "",
+    "delete_success": "",
+    "update_failed": "",
+    "update_success": ""
+  }
+}

@@ -41,26 +41,6 @@
   "json_result_card_title": "JSON结果",
   "parse_table_button": "解析表格",
   "placeholder": "请在此处粘贴您的薪资数据（例如，来自Excel或CSV）。\n示例：\n员工ID,员工姓名,部门,职位,总收入,总扣款,净工资\n101,张三,人力资源部,经理,5000,500,4500\n102,李四,财务部,会计,4000,400,3600",
-  "predefined_mapping": {
-    "allowance": "津贴",
-    "basic": "基本",
-    "bonus": "奖金",
-    "department_name": "部门",
-    "description": "说明",
-    "employee_id": "员工ID",
-    "employee_name": "员工姓名",
-    "housing_fund": "住房公积金",
-    "net_pay": "净工资",
-    "overtime_pay": "加班费",
-    "personal_income_tax": "个人所得税",
-    "position_name": "职位",
-    "remarks": "备注",
-    "serial_number": "序号",
-    "social_insurance": "社会保险",
-    "status": "状态",
-    "total_deductions": "总扣款",
-    "total_earnings": "总收入"
-  },
   "table_field_column_title": "表格字段",
   "title": "薪资表格文本转换器"
 }

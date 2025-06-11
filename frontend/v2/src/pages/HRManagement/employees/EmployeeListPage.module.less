@@ -9,6 +9,40 @@
   box-shadow: @box-shadow-card;
 }
 
+// 搜索输入框样式修复
+.searchInput {
+  :global(.ant-input-search) {
+    .ant-input-group {
+      display: flex;
+      align-items: stretch;
+      
+      .ant-input {
+        height: 32px;
+        line-height: 30px;
+      }
+      
+      .ant-input-group-addon {
+        padding: 0;
+        
+        .ant-btn {
+          height: 32px;
+          line-height: 30px;
+          border-left: none;
+          border-radius: 0 @border-radius-base @border-radius-base 0;
+          
+          &.ant-input-search-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            padding: 0 11px;
+          }
+        }
+      }
+    }
+  }
+}
+
 // 表格样式
 .employeeTable {
   background: white;

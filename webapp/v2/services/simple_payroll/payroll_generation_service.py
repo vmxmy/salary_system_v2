@@ -5,7 +5,7 @@
 
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_
+from sqlalchemy import desc, and_, or_
 from datetime import datetime
 from decimal import Decimal
 import logging
@@ -14,6 +14,7 @@ from ...models import PayrollRun, PayrollEntry, PayrollPeriod, Employee
 from ...pydantic_models.simple_payroll import (
     PayrollGenerationRequest, PayrollRunResponse, BatchAdjustment, PayrollSourceData
 )
+from .employee_salary_config_service import EmployeeSalaryConfigService
 
 logger = logging.getLogger(__name__)
 
@@ -73,16 +74,117 @@ class PayrollGenerationService:
             self.db.rollback()
             raise
     
+    def check_existing_data(
+        self,
+        target_period_id: int
+    ) -> Dict[str, Any]:
+        """
+        检查目标期间是否已有数据
+        
+        Returns:
+            检查结果，包含现有数据的详细信息
+        """
+        try:
+            logger.info(f"🔍 [检查现有数据] 检查期间 {target_period_id} 的现有数据")
+            
+            # 检查工资运行记录
+            existing_runs = self.db.query(PayrollRun).filter(
+                PayrollRun.payroll_period_id == target_period_id
+            ).all()
+            
+            payroll_data_info = {
+                "has_data": len(existing_runs) > 0,
+                "runs_count": len(existing_runs),
+                "runs": []
+            }
+            
+            total_entries = 0
+            for run in existing_runs:
+                from ...models.payroll import PayrollEntry
+                entries_count = self.db.query(PayrollEntry).filter(
+                    PayrollEntry.payroll_run_id == run.id
+                ).count()
+                total_entries += entries_count
+                
+                # 获取状态信息
+                from ...models.config import LookupValue
+                status = self.db.query(LookupValue).filter(
+                    LookupValue.id == run.status_lookup_value_id
+                ).first()
+                
+                payroll_data_info["runs"].append({
+                    "id": run.id,
+                    "run_date": run.run_date.isoformat() if run.run_date else None,
+                    "status_name": status.name if status else "未知状态",
+                    "entries_count": entries_count,
+                    "total_gross_pay": float(run.total_gross_pay or 0),
+                    "total_net_pay": float(run.total_net_pay or 0)
+                })
+            
+            payroll_data_info["total_entries"] = total_entries
+            
+            # 检查员工薪资配置
+            target_period = self.db.query(PayrollPeriod).filter(
+                PayrollPeriod.id == target_period_id
+            ).first()
+            
+            if target_period:
+                from ...models.payroll_config import EmployeeSalaryConfig
+                existing_configs = self.db.query(EmployeeSalaryConfig).filter(
+                    and_(
+                        EmployeeSalaryConfig.is_active == True,
+                        EmployeeSalaryConfig.effective_date <= target_period.end_date,
+                        or_(
+                            EmployeeSalaryConfig.end_date.is_(None),
+                            EmployeeSalaryConfig.end_date >= target_period.start_date
+                        )
+                    )
+                ).all()
+                
+                salary_config_info = {
+                    "has_data": len(existing_configs) > 0,
+                    "configs_count": len(existing_configs),
+                    "employees_with_configs": len(set(config.employee_id for config in existing_configs))
+                }
+            else:
+                salary_config_info = {
+                    "has_data": False,
+                    "configs_count": 0,
+                    "employees_with_configs": 0
+                }
+            
+            result = {
+                "target_period_id": target_period_id,
+                "target_period_name": target_period.name if target_period else "未知期间",
+                "has_any_data": payroll_data_info["has_data"] or salary_config_info["has_data"],
+                "payroll_data": payroll_data_info,
+                "salary_configs": salary_config_info,
+                "summary": {
+                    "total_payroll_runs": payroll_data_info["runs_count"],
+                    "total_payroll_entries": payroll_data_info["total_entries"],
+                    "total_salary_configs": salary_config_info["configs_count"],
+                    "employees_with_configs": salary_config_info["employees_with_configs"]
+                }
+            }
+            
+            logger.info(f"✅ [检查现有数据] 检查完成: 工资记录={payroll_data_info['runs_count']}个运行/{payroll_data_info['total_entries']}条条目, 薪资配置={salary_config_info['configs_count']}条")
+            return result
+            
+        except Exception as e:
+            logger.error(f"💥 [检查现有数据] 检查失败: {e}", exc_info=True)
+            raise
+
     def copy_previous_payroll(
         self,
         target_period_id: int,
         source_period_id: int,
         description: str,
-        user_id: int
+        user_id: int,
+        force_overwrite: bool = False
     ) -> PayrollRunResponse:
         """复制上月工资数据的完整实现"""
         try:
-            logger.info(f"🚀 [复制工资数据] 开始复制操作: 从期间 {source_period_id} 到期间 {target_period_id}, 用户ID: {user_id}, 描述: {description}")
+            logger.info(f"🚀 [复制工资数据] 开始复制操作: 从期间 {source_period_id} 到期间 {target_period_id}, 用户ID: {user_id}, 描述: {description}, 强制覆盖: {force_overwrite}")
             
             # 验证目标期间
             target_period = self.db.query(PayrollPeriod).filter(
@@ -104,12 +206,20 @@ class PayrollGenerationService:
             
             logger.info(f"✅ [复制工资数据] 源期间验证通过: {source_period.name} (ID: {source_period_id})")
             
-            # 检查目标期间是否已有数据
+            # 智能检查现有数据
+            if not force_overwrite:
+                existing_data = self.check_existing_data(target_period_id)
+                if existing_data["has_any_data"]:
+                    logger.warning(f"⚠️ [复制工资数据] 目标期间存在数据，需要用户确认")
+                    # 返回特殊响应，要求前端显示确认对话框
+                    raise ValueError(f"CONFIRMATION_REQUIRED:{existing_data}")
+            
+            # 检查目标期间是否已有数据（原有逻辑保留用于日志）
             existing_run = self.db.query(PayrollRun).filter(
                 PayrollRun.payroll_period_id == target_period_id
             ).first()
             if existing_run:
-                logger.warning(f"⚠️ [复制工资数据] 目标期间 {target_period_id} 已存在数据，将创建新版本")
+                logger.warning(f"⚠️ [复制工资数据] 目标期间 {target_period_id} 已存在数据，执行强制覆盖/新版本创建")
             else:
                 logger.info(f"✅ [复制工资数据] 目标期间 {target_period_id} 无现有数据，可以安全创建")
             
@@ -193,6 +303,20 @@ class PayrollGenerationService:
                     logger.error(f"❌ [复制工资数据] 复制员工 {source_entry.employee_id} 的工资记录失败: {e}")
                     skipped_count += 1
                     continue
+            
+            # 复制员工薪资配置（包括社保和公积金基数）
+            logger.info(f"💰 [复制工资数据] 开始复制员工薪资配置...")
+            try:
+                salary_config_service = EmployeeSalaryConfigService(self.db)
+                config_result = salary_config_service.copy_salary_configs_for_period(
+                    source_period_id=source_period_id,
+                    target_period_id=target_period_id,
+                    user_id=user_id
+                )
+                logger.info(f"✅ [复制工资数据] 薪资配置复制结果: {config_result['message']}")
+            except Exception as e:
+                logger.error(f"❌ [复制工资数据] 复制薪资配置失败: {e}")
+                # 薪资配置复制失败不影响主流程，但要记录错误
             
             # 最终提交并更新状态
             new_run.calculated_at = datetime.now()

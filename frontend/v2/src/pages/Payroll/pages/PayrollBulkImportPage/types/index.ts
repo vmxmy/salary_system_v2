@@ -4,7 +4,8 @@ import type {
   RawPayrollEntryData,
   ValidatedPayrollEntryData,
   BulkCreatePayrollEntriesPayload,
-  CreatePayrollEntryPayload
+  CreatePayrollEntryPayload,
+  OverwriteMode
 } from '../../../types/payrollTypes';
 
 import type {
@@ -37,7 +38,7 @@ export type InputMethod = 'upload' | 'paste';
 // 导入设置
 export interface ImportSettings {
   skipInvalidRecords: boolean;
-  overwriteExisting: boolean;
+  overwriteMode: OverwriteMode;
   sendNotification: boolean;
 }
 
@@ -87,5 +88,6 @@ export type {
   BulkCreatePayrollEntriesPayload,
   CreatePayrollEntryPayload,
   BulkImportValidationResult,
-  FieldMappingRule
+  FieldMappingRule,
+  OverwriteMode
 }; 

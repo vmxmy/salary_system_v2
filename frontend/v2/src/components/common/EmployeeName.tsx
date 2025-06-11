@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Employee } from '../../pages/HRManagement/types';
 import employeeCacheService from '../../services/employeeCacheService';
 import { employeeService } from '../../services/employeeService';
+import { employeeManagementApi } from '../../pages/EmployeeManagement/services/employeeManagementApi';
 import '../../styles/utils/employeeName.css';
 
 interface EmployeeNameProps {
@@ -59,7 +60,7 @@ const EmployeeName: React.FC<EmployeeNameProps> = ({
       
       setLoading(true);
       try {
-        const employee = await employeeService.getEmployeeById(idString);
+        const employee = await employeeManagementApi.getEmployeeById(idString);
         if (employee) {
           // 缓存员工信息
           employeeCacheService.saveEmployee(employee);

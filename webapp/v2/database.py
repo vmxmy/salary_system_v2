@@ -26,8 +26,21 @@ if not SQLALCHEMY_DATABASE_URL:
 
 logger.info(f"V2 API is configured to use DATABASE_URL: {SQLALCHEMY_DATABASE_URL.split('@')[0] if SQLALCHEMY_DATABASE_URL and '@' in SQLALCHEMY_DATABASE_URL else 'DATABASE_URL (details masked or not available)'}@********")
 
-# 创建SQLAlchemy引擎
-engine_v2 = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
+# 创建SQLAlchemy引擎 - 🚀 针对远程数据库优化
+engine_v2 = create_engine(
+    SQLALCHEMY_DATABASE_URL, 
+    pool_pre_ping=True,           # 保持连接活跃，避免重新连接
+    pool_size=20,                 # 增加连接池大小（远程连接）
+    max_overflow=30,              # 增加最大溢出连接数
+    pool_timeout=60,              # 增加获取连接超时时间
+    pool_recycle=7200,            # 连接回收时间（2小时，远程连接保持更久）
+    echo=False,                   # 禁用SQL echo以提升性能
+    # 🚀 针对远程连接的特殊优化
+    connect_args={
+        "connect_timeout": 10,    # TCP连接超时
+        "application_name": "salary_system_v2_api"  # 应用标识
+    }
+)
 
 # 创建会话工厂
 SessionLocalV2 = sessionmaker(autocommit=False, autoflush=False, bind=engine_v2)

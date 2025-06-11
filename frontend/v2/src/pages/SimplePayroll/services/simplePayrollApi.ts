@@ -162,14 +162,49 @@ export const simplePayrollApi = {
   },
 
   /**
+   * 检查期间是否已有数据
+   */
+  checkExistingData: async (periodId: number): Promise<ApiResponse<any>> => {
+    console.log('🔍 [simplePayrollApi.checkExistingData] 检查现有数据:', {
+      url: `${API_BASE}/check-existing-data/${periodId}`,
+      periodId: periodId
+    });
+    
+    const response = await apiClient.get(`${API_BASE}/check-existing-data/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.checkExistingData] 检查完成:', {
+      status: response.status,
+      hasAnyData: response.data?.data?.has_any_data,
+      summary: response.data?.data?.summary
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
    * 复制上月工资数据
    */
   copyPreviousPayroll: async (params: {
     target_period_id: number;
     source_period_id: number;
     description?: string;
+    force_overwrite?: boolean;
   }): Promise<ApiResponse<PayrollRun>> => {
+    console.log('🚀 [simplePayrollApi.copyPreviousPayroll] 发起复制请求:', {
+      url: `${API_BASE}/copy-previous`,
+      params: params,
+      forceOverwrite: params.force_overwrite
+    });
+    
     const response = await apiClient.post(`${API_BASE}/copy-previous`, params);
+    
+    console.log('✅ [simplePayrollApi.copyPreviousPayroll] 复制成功:', {
+      status: response.status,
+      runId: response.data?.data?.id,
+      periodName: response.data?.data?.period_name
+    });
+    
     logResponse(response);
     return response.data;
   },
@@ -551,6 +586,77 @@ export const simplePayrollApi = {
   },
 
   /**
+   * 运行集成计算引擎 - 🚀 包含五险一金完整计算
+   */
+  runIntegratedCalculationEngine: async (params: {
+    payroll_run_id: number;
+    calculation_period?: string; // YYYY-MM-DD 格式
+    recalculate_all?: boolean;
+    employee_ids?: number[];
+    include_social_insurance?: boolean;
+    async_mode?: boolean; // 🎯 异步模式控制
+  }): Promise<ApiResponse<{
+    total_processed: number;
+    success_count: number;
+    error_count: number;
+    calculation_summary: {
+      total_employees: number;
+      successful_count: number;
+      failed_count: number;
+    };
+    payroll_totals: {
+      total_gross_pay: number;           // 应发合计
+      total_deductions: number;          // 扣发合计（含个人五险一金）
+      total_net_pay: number;            // 实发合计
+      total_employer_cost: number;       // 单位总成本
+    };
+    social_insurance_breakdown: {
+      employee_totals: {
+        social_insurance: number;        // 个人社保合计
+        housing_fund: number;           // 个人公积金合计
+        total: number;                  // 个人五险一金合计
+      };
+      employer_totals: {
+        social_insurance: number;        // 单位社保合计
+        housing_fund: number;           // 单位公积金合计
+        total: number;                  // 单位五险一金合计
+      };
+    };
+    cost_analysis: {
+      employee_take_home: number;        // 员工实得
+      employee_social_cost: number;     // 员工社保成本
+      employer_salary_cost: number;     // 单位工资成本
+      employer_social_cost: number;     // 单位社保成本
+      total_cost: number;               // 单位总成本
+      social_cost_ratio: number;        // 社保成本比例
+    };
+    calculation_metadata: {
+      calculation_date: string;
+      engine_version: string;
+      calculation_order: string;
+    };
+    payroll_run_updated: boolean;
+    status_info?: {
+      previous_status: string;
+      previous_status_code: string;
+      new_status: string;
+      new_status_code: string;
+    };
+    warning?: string;
+    errors?: Array<{
+      employee_id: number;
+      employee_name: string;
+      error_message: string;
+    }>;
+  }>> => {
+    const response = await apiClient.post(`${API_BASE}/calculation-engine/integrated-run`, params, {
+      timeout: 180000 // 3分钟超时，集成计算更复杂
+    });
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
    * 测试计算引擎
    */
   testCalculationEngine: async (params: {
@@ -559,6 +665,131 @@ export const simplePayrollApi = {
     import_data?: any;
   }): Promise<ApiResponse<any>> => {
     const response = await apiClient.post(`${API_BASE}/test-calculation`, params);
+    logResponse(response);
+    return response.data;
+  },
+
+  // ===================== 薪资配置管理功能 =====================
+
+  /**
+   * 🎯 复制工资配置（基本工资和专项扣除，不包括社保和公积金基数）
+   */
+  copySalaryConfigs: async (params: {
+    source_period_id: number;
+    target_period_id: number;
+  }): Promise<ApiResponse<{
+    success: boolean;
+    copied_count: number;
+    updated_count: number;
+    skipped_count: number;
+    total_processed: number;
+    message: string;
+  }>> => {
+    console.log('🚀 [simplePayrollApi.copySalaryConfigs] 发起请求:', {
+      url: `${API_BASE}/salary-configs/copy`,
+      params: params
+    });
+    
+    const response = await apiClient.post(`${API_BASE}/salary-configs/copy`, null, { 
+      params: params 
+    });
+    
+    console.log('✅ [simplePayrollApi.copySalaryConfigs] 请求成功:', {
+      status: response.status,
+      responseData: response.data
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 🎯 检查指定期间是否已有缴费基数配置
+   */
+  checkExistingInsuranceBase: async (periodId: number): Promise<ApiResponse<{
+    target_period_id: number;
+    target_period_name: string;
+    period_date_range: {
+      start_date: string;
+      end_date: string;
+    };
+    has_insurance_base_data: boolean;
+    base_configs: {
+      has_base_data: boolean;
+      total_configs: number;
+      employees_with_social_base: number;
+      employees_with_housing_base: number;
+      unique_employees: number;
+      configs_detail: Array<{
+        employee_id: number;
+        employee_name: string;
+        social_insurance_base: number;
+        housing_fund_base: number;
+        effective_date: string | null;
+        end_date: string | null;
+      }>;
+    };
+    summary: {
+      '检查类型': string;
+      '总配置数': number;
+      '有社保基数员工': number;
+      '有公积金基数员工': number;
+      '涉及员工总数': number;
+    };
+    recommendation: {
+      can_copy: boolean;
+      message: string;
+    };
+  }>> => {
+    console.log('🔍 [simplePayrollApi.checkExistingInsuranceBase] 发起请求:', {
+      url: `${API_BASE}/check-existing-insurance-base/${periodId}`,
+      periodId: periodId
+    });
+    
+    const response = await apiClient.get(`${API_BASE}/check-existing-insurance-base/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.checkExistingInsuranceBase] 请求成功:', {
+      status: response.status,
+      hasBaseData: response.data?.data?.has_insurance_base_data,
+      canCopy: response.data?.data?.recommendation?.can_copy,
+      uniqueEmployees: response.data?.data?.base_configs?.unique_employees
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 🎯 专门复制社保和公积金缴费基数（不复制基本工资和专项扣除）
+   */
+  copyInsuranceBaseAmounts: async (params: {
+    source_period_id: number;
+    target_period_id: number;
+  }): Promise<ApiResponse<{
+    success: boolean;
+    copied_count: number;
+    updated_count: number;
+    skipped_count: number;
+    total_processed: number;
+    message: string;
+  }>> => {
+    console.log('🏦 [simplePayrollApi.copyInsuranceBaseAmounts] 发起请求:', {
+      url: `${API_BASE}/salary-configs/copy-insurance-base`,
+      params: params
+    });
+    
+    const response = await apiClient.post(`${API_BASE}/salary-configs/copy-insurance-base`, null, { 
+      params: params 
+    });
+    
+    console.log('✅ [simplePayrollApi.copyInsuranceBaseAmounts] 请求成功:', {
+      status: response.status,
+      responseData: response.data,
+      copied: response.data?.data?.copied_count,
+      updated: response.data?.data?.updated_count,
+      skipped: response.data?.data?.skipped_count
+    });
+    
     logResponse(response);
     return response.data;
   },
@@ -605,6 +836,108 @@ export const simplePayrollApi = {
     const response = await apiClient.post(`${API_BASE}/bank-file/generate`, params, {
       responseType: 'blob'
     });
+    logResponse(response);
+    return response.data;
+  },
+
+  // ===================== 计算进度查询功能 =====================
+
+  /**
+   * 🎯 获取数据完整性统计
+   */
+  getDataIntegrityStats: async (periodId: number): Promise<ApiResponse<{
+    period_id: number;
+    period_name: string;
+    period_date_range: {
+      start_date: string;
+      end_date: string;
+    };
+    data_integrity: {
+      social_insurance_base_count: number;
+      housing_fund_base_count: number;
+      income_tax_positive_count: number;
+    };
+    summary: {
+      '统计类型': string;
+      '社保基数记录数': number;
+      '公积金基数记录数': number;
+      '个税大于0记录数': number;
+    };
+  }>> => {
+    console.log('📊 [simplePayrollApi.getDataIntegrityStats] 发起请求:', {
+      url: `${API_BASE}/data-integrity-stats/${periodId}`,
+      periodId: periodId
+    });
+    
+    const response = await apiClient.get(`${API_BASE}/data-integrity-stats/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.getDataIntegrityStats] 请求成功:', {
+      status: response.status,
+      socialInsuranceBaseCount: response.data?.data?.data_integrity?.social_insurance_base_count,
+      housingFundBaseCount: response.data?.data?.data_integrity?.housing_fund_base_count,
+      incomeTaxPositiveCount: response.data?.data?.data_integrity?.income_tax_positive_count
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 查询计算进度
+   */
+  getCalculationProgress: async (taskId: string): Promise<ApiResponse<{
+    task_id: string;
+    status: 'PREPARING' | 'CALCULATING' | 'COMPLETED' | 'FAILED' | 'NOT_FOUND';
+    total: number;
+    processed: number;
+    current_employee?: {
+      id: number;
+      name: string;
+      department: string;
+      position: string;
+    };
+    stage: string;
+    start_time: string;
+    estimated_remaining_time?: number;
+    last_updated: string;
+    success_count?: number;
+    error_count?: number;
+    payroll_totals?: {
+      total_gross_pay: number;
+      total_deductions: number;
+      total_net_pay: number;
+    };
+    social_insurance_breakdown?: {
+      total_social_insurance: number;
+      total_housing_fund: number;
+    };
+    cost_analysis?: {
+      total_cost: number;
+      average_cost_per_employee: number;
+    };
+    errors?: Array<{
+      employee_id: number;
+      employee_name: string;
+      error_message: string;
+    }>;
+    duration?: number;
+    end_time?: string;
+  }>> => {
+    console.log('🔍 [simplePayrollApi.getCalculationProgress] 查询进度:', {
+      url: `${API_BASE}/calculation-engine/progress/${taskId}`,
+      taskId: taskId
+    });
+    
+    const response = await apiClient.get(`${API_BASE}/calculation-engine/progress/${taskId}`);
+    
+    console.log('✅ [simplePayrollApi.getCalculationProgress] 查询成功:', {
+      status: response.status,
+      progressStatus: response.data?.data?.status,
+      processed: response.data?.data?.processed,
+      total: response.data?.data?.total,
+      stage: response.data?.data?.stage
+    });
+    
     logResponse(response);
     return response.data;
   }

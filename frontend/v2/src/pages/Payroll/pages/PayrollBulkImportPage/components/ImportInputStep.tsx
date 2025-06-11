@@ -4,7 +4,7 @@ import { InfoCircleOutlined, CheckCircleOutlined, ExclamationCircleOutlined, Clo
 import { ProCard, ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
-import type { FieldMappingRule } from '../hooks/usePayrollFieldMapping';
+import type { FieldMappingRule } from '../types';
 import responsiveStyles from '../../../../../styles/responsive-import.module.less';
 import bulkImportStyles from '../../../../../styles/payroll-bulk-import.module.less';
 

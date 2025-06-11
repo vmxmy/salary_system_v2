@@ -5,10 +5,14 @@ import {
   Row,
   Col,
   Switch,
+  Select,
   Button,
-  Space
+  Space,
+  Tooltip
 } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import PayrollPeriodSelector from './PayrollPeriodSelector';
+import { OverwriteMode } from '../../../types/payrollTypes';
 import type { 
   PayrollPeriod, 
   ImportSettings as ImportSettingsType 
@@ -67,38 +71,53 @@ const ImportSettings: React.FC<ImportSettingsProps> = ({
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="覆盖已存在记录">
-              <Switch
-                checked={importSettings.overwriteExisting}
-                onChange={(checked) => onSettingsChange({
+            <Form.Item 
+              label={
+                <Space>
+                  覆写模式
+                  <Tooltip title="选择如何处理已存在的薪资记录">
+                    <InfoCircleOutlined />
+                  </Tooltip>
+                </Space>
+              }
+            >
+              <Select
+                value={importSettings.overwriteMode}
+                onChange={(value) => onSettingsChange({
                   ...importSettings,
-                  overwriteExisting: checked
+                  overwriteMode: value
                 })}
-              />
-              <span style={{ marginLeft: 8 }}>
-                {importSettings.overwriteExisting ? '是' : '否'}
-              </span>
+                style={{ width: '100%' }}
+              >
+                <Select.Option value={OverwriteMode.NONE}>
+                  不覆写 (重复记录报错)
+                </Select.Option>
+                <Select.Option value={OverwriteMode.PARTIAL}>
+                  部分覆写 (只更新导入的字段)
+                </Select.Option>
+                <Select.Option value={OverwriteMode.FULL}>
+                  全量覆写 (完全替换现有记录)
+                </Select.Option>
+              </Select>
             </Form.Item>
           </Col>
         </Row>
       </Form>
 
       {/* 操作按钮 */}
-      <div style={{ marginTop: 24, textAlign: 'center' }}>
-        <Space size="large">
-          <Button onClick={onBackToUpload}>
-            返回上传
-          </Button>
-          <Button 
-            type="primary" 
-            onClick={onValidateData}
-            loading={loading}
-            disabled={!selectedPeriodId}
-          >
-            下一步：数据验证
-          </Button>
-        </Space>
-      </div>
+      <Space style={{ marginTop: 16 }}>
+        <Button onClick={onBackToUpload}>
+          返回上传
+        </Button>
+        <Button 
+          type="primary" 
+          onClick={onValidateData}
+          loading={loading}
+          disabled={!selectedPeriodId}
+        >
+          验证数据
+        </Button>
+      </Space>
     </Card>
   );
 };

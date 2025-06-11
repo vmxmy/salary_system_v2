@@ -11,6 +11,17 @@ from .simple_calculator import (
     ComponentType,
     CalculationComponent
 )
+from .social_insurance_calculator import (
+    SocialInsuranceCalculator,
+    SocialInsuranceComponent,
+    SocialInsuranceResult,
+    INSURANCE_TYPES,
+    HOUSING_FUND_TYPE
+)
+from .integrated_calculator import (
+    IntegratedPayrollCalculator,
+    IntegratedCalculationResult
+)
 from .exceptions import (
     PayrollCalculationError,
     MissingDataError,
@@ -24,6 +35,17 @@ __version__ = '2.0.0-simple'
 __all__ = [
     # 简单计算器
     'SimplePayrollCalculator',
+    
+    # 社保计算器
+    'SocialInsuranceCalculator',
+    'SocialInsuranceComponent',
+    'SocialInsuranceResult',
+    'INSURANCE_TYPES',
+    'HOUSING_FUND_TYPE',
+    
+    # 集成计算器
+    'IntegratedPayrollCalculator',
+    'IntegratedCalculationResult',
     
     # 数据模型
     'CalculationResult',

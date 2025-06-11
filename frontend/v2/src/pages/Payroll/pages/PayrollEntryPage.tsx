@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
   Tag, 
   Tooltip,
@@ -97,38 +97,17 @@ const generatePayrollEntryTableColumns = (
       title: t('payroll:entries_table.column.employee_name'),
       key: 'employee_name',
       sorter: (a, b) => {
-        const nameA = `${a.employee?.last_name || ''}${a.employee?.first_name || ''}`.trim().toLowerCase();
-        const nameB = `${b.employee?.last_name || ''}${b.employee?.first_name || ''}`.trim().toLowerCase();
+        const nameA = a.employee_name || '';
+        const nameB = b.employee_name || '';
         return nameA.localeCompare(nameB);
       },
       width: 150,
       render: (_, record) => {
+        const fullName = record.employee_name || `${record.last_name || ''}${record.first_name || ''}`.trim();
         
-        // 检查 employee 对象的结构
-        if (record.employee) {
-        } else {
-        }
-
-        // 修正逻辑：从 employee 对象中获取姓名（API实际返回的结构）
-        let firstName = '';
-        let lastName = '';
-        
-        // 检查 employee 对象并从中获取姓名
-        if (record.employee) {
-          firstName = record.employee.first_name || '';
-          lastName = record.employee.last_name || '';
-        }
-        
-
-
-        // 临时测试：直接返回简单字符串
-        const testResult = `${lastName}${firstName}`.trim();
-        
-        if (!firstName && !lastName) {
+        if (!fullName) {
           return <span style={{ color: '#999', fontStyle: 'italic' }}>未设置姓名</span>;
         }
-        
-        const fullName = `${lastName}${firstName}`.trim();
         
         return fullName;
       },
@@ -137,20 +116,23 @@ const generatePayrollEntryTableColumns = (
       title: t('payroll:entries_table.column.department'),
       key: 'department',
       width: 150,
-      render: (_, record) => record.employee?.departmentName || '',
+      render: (_, record) => record.department_name || '',
       filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
         text: entry[1],
         value: entry[1],
       })) : [],
-      onFilter: (value, record) => record.employee?.departmentName === value,
+      onFilter: (value, record) => record.department_name === value,
     },
     {
       title: t('payroll:entries_table.column.personnel_category'),
       key: 'personnel_identity',
       width: 180,
-      render: (_, record) => record.employee?.personnelCategoryName || '',
-      filters: [],
-      onFilter: (value, record) => record.employee?.personnelCategoryName === value,
+      render: (_, record) => record.personnel_category_name || '',
+      filters: lookupMaps?.personnelCategoryMap ? Array.from(lookupMaps.personnelCategoryMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[1],
+      })) : [],
+      onFilter: (value, record) => record.personnel_category_name === value,
     },
     {
       title: t('payroll:entries_table.column.gross_pay'),
@@ -266,11 +248,27 @@ const PayrollEntryPage: React.FC = () => {
     canExport: true,
   };
 
-  // 模拟查找映射数据 - 添加假数据确保表格能渲染
-  const lookupMaps = {
-    departmentMap: new Map([['default', t('payroll:auto_text_e9bb98')]]),
-    statusMap: new Map([['default', t('payroll:auto_text_e9bb98')]]),
-  };
+  // 动态构建查找映射数据 - 从实际的薪资条目数据中提取
+  const lookupMaps = useMemo(() => {
+    const departmentSet = new Set<string>();
+    const personnelCategorySet = new Set<string>();
+    
+    // 从薪资条目数据中提取唯一的部门和人员类别
+    allPayrollEntries.forEach(entry => {
+      if (entry.department_name) {
+        departmentSet.add(entry.department_name);
+      }
+      if (entry.personnel_category_name) {
+        personnelCategorySet.add(entry.personnel_category_name);
+      }
+    });
+    
+    return {
+      departmentMap: new Map(Array.from(departmentSet).map(dept => [dept, dept])),
+      statusMap: new Map([['active', t('payroll:entries_table.status.active')]]), // 薪资状态映射
+      personnelCategoryMap: new Map(Array.from(personnelCategorySet).map(cat => [cat, cat])),
+    };
+  }, [allPayrollEntries, t]);
 
   const { getColumnSearch } = useTableSearch();
 

@@ -12,12 +12,19 @@ import {
   RightOutlined,
   LoadingOutlined,
   WarningOutlined,
-  CopyOutlined
+  CopyOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { PayrollRunResponse, PayrollPeriodResponse, AuditSummary, ReportGenerationRequest } from '../types/simplePayroll';
 import { simplePayrollApi } from '../services/simplePayrollApi';
 import type { WorkflowStepConfig, WorkflowAction } from './PayrollWorkflowGuide';
+import CalculationStatusModal, { 
+  CalculationStatus, 
+  type CalculationProgress, 
+  type CalculationResult,
+  type CurrentEmployee
+} from '../../../components/CalculationStatusModal';
 
 const { Step } = Steps;
 const { Title, Text, Paragraph } = Typography;
@@ -52,6 +59,11 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   const [stepProgress, setStepProgress] = useState<Record<string, number>>({});
   const [anomaliesModalVisible, setAnomaliesModalVisible] = useState(false);
   const [anomalies, setAnomalies] = useState<any[]>([]);
+  
+  // 🎯 计算状态Modal相关状态
+  const [showCalculationModal, setShowCalculationModal] = useState(false);
+  const [calculationProgress, setCalculationProgress] = useState<CalculationProgress | null>(null);
+  const [calculationFinalResult, setCalculationFinalResult] = useState<CalculationResult | null>(null);
 
   // 设置加载状态
   const setActionLoading = useCallback((actionKey: string, isLoading: boolean) => {
@@ -206,40 +218,27 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     }
   }, [selectedVersion]);
 
-  // 自动执行审核检查函数
+  // 自动执行审核检查函数 - 💡 修改为仅检查状态，不自动执行审核
   const autoRunAuditCheck = async () => {
     if (!selectedVersion) return;
 
     console.log('🔍 [EnhancedWorkflowGuide] 检查审核记录，版本ID:', selectedVersion.id);
     
     try {
-      // 首先尝试获取现有的审核汇总
-      let hasExistingAudit = false;
-      let existingAuditData = null;
-      
+      // 仅检查是否有现有的审核汇总，但不执行任何自动操作
       try {
         const summaryResponse = await simplePayrollApi.getAuditSummary(selectedVersion.id);
         if (summaryResponse.data && summaryResponse.data.total_entries > 0) {
-          hasExistingAudit = true;
-          existingAuditData = summaryResponse.data;
-          console.log('✅ [EnhancedWorkflowGuide] 发现现有审核数据:', existingAuditData);
+          console.log('✅ [EnhancedWorkflowGuide] 发现现有审核数据:', summaryResponse.data);
+          // 只记录日志，不显示任何消息，让用户自己决定是否重新审核
+        } else {
+          console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据，等待用户手动执行审核检查');
         }
       } catch (error) {
         console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据');
       }
-      
-      // 如果有现有审核数据，直接显示提示信息，不刷新页面
-      if (hasExistingAudit && existingAuditData) {
-        console.log('ℹ️ [EnhancedWorkflowGuide] 使用现有审核数据，不执行新的审核检查');
-        message.info(`已加载现有审核记录：${existingAuditData.total_entries}条记录，${existingAuditData.total_anomalies}个异常`);
-        // 移除 onRefresh() 调用，避免循环刷新
-      } else {
-        console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据，等待用户手动执行审核检查');
-        // 不自动执行审核检查，让用户手动决定是否执行
-      }
     } catch (error) {
       console.error('❌ [EnhancedWorkflowGuide] 检查审核记录失败:', error);
-      // 失败时不显示错误消息，让用户手动执行
     }
   };
 
@@ -248,10 +247,36 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     if (!selectedVersion) return;
     
     await withTimeout('run_audit', async () => {
-      console.log('🔍 [审核检查] 开始执行审核检查:', selectedVersion.id);
-      await simplePayrollApi.runAuditCheck(selectedVersion.id);
-      console.log('✅ [审核检查] 审核检查完成');
-      message.success('审核检查完成');
+      console.log('🔍 [审核检查] 强制重新执行审核检查:', selectedVersion.id);
+      
+      // 💡 关键修改：调用API执行审核，并获取返回的审核结果
+      const auditResult = await simplePayrollApi.runAuditCheck(selectedVersion.id);
+      
+      console.log('✅ [审核检查] 审核检查完成:', auditResult.data);
+      
+      // 显示详细的审核结果
+      if (auditResult.data) {
+        const summary = auditResult.data;
+        message.success({
+          content: (
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>🔍 审核检查完成</div>
+              <div>📊 检查条目: {summary.total_entries} 条</div>
+              <div>❌ 发现异常: {summary.total_anomalies} 个</div>
+              <div>🔴 错误: {summary.error_count} 个</div>
+              <div>🟡 警告: {summary.warning_count} 个</div>
+              {summary.auto_fixable_count > 0 && (
+                <div>🔧 可自动修复: {summary.auto_fixable_count} 个</div>
+              )}
+            </div>
+          ),
+          duration: 6
+        });
+      } else {
+        message.success('审核检查完成');
+      }
+      
+      // 刷新审核数据以显示最新结果
       onAuditRefresh?.() || onRefresh();
     });
   };
@@ -260,27 +285,383 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     if (!selectedVersion) return;
     
     await withTimeout('run_advanced_audit', async () => {
-      console.log('🔍 [高级审核] 开始执行高级审核检查:', selectedVersion.id);
-      await simplePayrollApi.runAdvancedAuditCheck(selectedVersion.id);
-      console.log('✅ [高级审核] 高级审核检查完成');
-      message.success('高级审核完成');
+      console.log('🔍 [高级审核] 强制重新执行高级审核检查:', selectedVersion.id);
+      
+      // 💡 关键修改：调用API执行高级审核，并获取返回的审核结果
+      const auditResult = await simplePayrollApi.runAdvancedAuditCheck(selectedVersion.id);
+      
+      console.log('✅ [高级审核] 高级审核检查完成:', auditResult.data);
+      
+      // 显示详细的审核结果
+      if (auditResult.data) {
+        const { basic_audit, advanced_checks } = auditResult.data;
+        const checksCount = advanced_checks?.length || 0;
+        
+        message.success({
+          content: (
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>🔍 高级审核完成</div>
+              <div>🔬 执行检查项: {checksCount} 项</div>
+              {basic_audit && (
+                <>
+                  <div>📊 基础检查条目: {basic_audit.total_entries || 0} 条</div>
+                  <div>❌ 发现异常: {basic_audit.total_anomalies || 0} 个</div>
+                </>
+              )}
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                已执行高级合规性检查和风险评估
+              </div>
+            </div>
+          ),
+          duration: 6
+        });
+      } else {
+        message.success('高级审核完成');
+      }
+      
+      // 刷新审核数据以显示最新结果
       onAuditRefresh?.() || onRefresh();
     });
   };
 
-  const handleRunCalculationEngine = async () => {
+  // 🎯 启动真实计算引擎并显示进度
+  const startCalculationEngineWithProgress = useCallback(async () => {
     if (!selectedVersion) return;
+    
+    try {
+      setShowCalculationModal(true);
+      setCalculationFinalResult(null);
+      
+      // 初始化进度状态
+      setCalculationProgress({
+        total: 1, // 初始值，会在轮询中更新
+        processed: 0,
+        current_employee: null,
+        status: CalculationStatus.PREPARING,
+        stage: '启动计算引擎',
+        start_time: new Date().toISOString()
+      });
+
+      console.log('🚀 [计算引擎] 启动真实计算引擎，版本ID:', selectedVersion.id);
+      
+      // 启动真实计算引擎
+      const result = await simplePayrollApi.runIntegratedCalculationEngine({
+        payroll_run_id: selectedVersion.id,
+        calculation_period: selectedPeriod?.start_date,
+        recalculate_all: true,
+        include_social_insurance: true
+      });
+
+      console.log('✅ [计算引擎] 计算启动成功，开始轮询进度');
+      
+      // 开始轮询计算进度
+      const pollProgress = async () => {
+        try {
+          // 这里可以调用获取计算进度的API
+          // const progressResponse = await simplePayrollApi.getCalculationProgress(selectedVersion.id);
+          
+          // 暂时使用模拟轮询，直到后端提供进度API
+          const simulatedProgress = {
+            total_employees: result.data?.calculation_summary?.total_employees || 50,
+            processed: Math.floor(Math.random() * 50),
+            current_stage: '五险一金计算',
+            status: 'calculating'
+          };
+          
+          setCalculationProgress(prev => prev ? {
+            ...prev,
+            total: simulatedProgress.total_employees,
+            processed: simulatedProgress.processed,
+            stage: simulatedProgress.current_stage,
+            status: CalculationStatus.CALCULATING,
+            estimated_remaining_time: (simulatedProgress.total_employees - simulatedProgress.processed) * 2
+          } : null);
+          
+          // 如果计算完成，显示结果
+          if (result.data) {
+            setTimeout(() => {
+              const realResult: CalculationResult = {
+                success_count: result.data.calculation_summary?.successful_count || 0,
+                error_count: result.data.calculation_summary?.failed_count || 0,
+                total_processed: result.data.calculation_summary?.total_employees || 0,
+                payroll_totals: {
+                  total_gross_pay: result.data.payroll_totals?.total_gross_pay || 0,
+                  total_deductions: result.data.payroll_totals?.total_deductions || 0,
+                  total_net_pay: result.data.payroll_totals?.total_net_pay || 0,
+                  total_employer_cost: result.data.payroll_totals?.total_employer_cost || 0
+                },
+                social_insurance_breakdown: {
+                  employee_totals: {
+                    social_insurance: result.data.social_insurance_breakdown?.employee_totals?.social_insurance || 0,
+                    housing_fund: result.data.social_insurance_breakdown?.employee_totals?.housing_fund || 0,
+                    total: result.data.social_insurance_breakdown?.employee_totals?.total || 0
+                  },
+                  employer_totals: {
+                    social_insurance: result.data.social_insurance_breakdown?.employer_totals?.social_insurance || 0,
+                    housing_fund: result.data.social_insurance_breakdown?.employer_totals?.housing_fund || 0,
+                    total: result.data.social_insurance_breakdown?.employer_totals?.total || 0
+                  }
+                },
+                cost_analysis: {
+                  social_cost_ratio: result.data.cost_analysis?.social_cost_ratio || 0
+                },
+                errors: result.data.errors || [],
+                duration: 15 // 计算耗时
+              };
+              
+              setCalculationFinalResult(realResult);
+              setCalculationProgress(prev => prev ? {
+                ...prev,
+                status: CalculationStatus.COMPLETED,
+                processed: realResult.total_processed,
+                current_employee: null
+              } : null);
+
+              // 刷新版本数据
+              onVersionRefresh?.() || onRefresh();
+            }, 2000); // 2秒后显示完成结果
+          }
+          
+        } catch (error) {
+          console.error('❌ [计算引擎] 轮询进度失败:', error);
+          setCalculationProgress(prev => prev ? {
+            ...prev,
+            status: CalculationStatus.FAILED
+          } : null);
+        }
+      };
+
+      // 开始轮询（这里暂时只调用一次，实际应该是定时轮询直到完成）
+      setTimeout(pollProgress, 1000);
+      
+    } catch (error: any) {
+      console.error('❌ [计算引擎] 启动失败:', error);
+      setCalculationProgress(prev => prev ? {
+        ...prev,
+        status: CalculationStatus.FAILED
+      } : null);
+      
+      // 显示错误信息
+      const errorMessage = error?.response?.data?.detail?.message || error?.message || '计算引擎启动失败';
+      message.error({
+        content: (
+          <div>
+            <div style={{ fontWeight: 'bold' }}>❌ 集成计算引擎启动失败</div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
+          </div>
+        ),
+        duration: 6
+      });
+    }
+  }, [selectedVersion, selectedPeriod, onVersionRefresh, onRefresh]);
+
+  // 🎯 关闭计算状态Modal
+  const handleCloseCalculationModal = useCallback(() => {
+    setShowCalculationModal(false);
+    setCalculationProgress(null);
+    setCalculationFinalResult(null);
+  }, []);
+
+  // 🎯 重试计算
+  const handleRetryCalculation = useCallback(() => {
+    startCalculationEngineWithProgress();
+  }, [startCalculationEngineWithProgress]);
+
+  const handleRunCalculationEngine = async () => {
+    if (!selectedVersion || !selectedVersion.id) {
+      console.error('❌ [计算引擎] 无效的版本信息:', { selectedVersion });
+      message.error('请先选择一个有效的工资运行版本');
+      return;
+    }
+    
+    if (!selectedPeriod || !selectedPeriod.start_date) {
+      console.error('❌ [计算引擎] 无效的期间信息:', { selectedPeriod });
+      message.error('请先选择一个有效的工资期间');
+      return;
+    }
+    
+    console.log('🔍 [计算引擎] 验证参数:', {
+      selectedVersion: selectedVersion,
+      selectedVersionId: selectedVersion.id,
+      selectedPeriod: selectedPeriod,
+      calculationPeriod: selectedPeriod.start_date
+    });
+    
+    // 清空之前的结果
+    setCalculationFinalResult(null);
+    setCalculationProgress(null);
     
     setActionLoading('run_calculation', true);
     try {
-      await simplePayrollApi.runSimpleCalculationEngine({
-        payroll_run_id: selectedVersion.id,
-        recalculate_all: true
+      // 🚀 切换到集成计算引擎 - 包含完整五险一金计算
+      // 🎯 使用当前选择的工资期间的开始日期作为计算期间
+      console.log('🎯 [计算引擎] 使用计算期间:', {
+        工资运行ID: selectedVersion.id,
+        期间ID: selectedPeriod.id,
+        期间名称: selectedPeriod.name,
+        期间开始日期: selectedPeriod.start_date,
+        计算期间: selectedPeriod.start_date
       });
-      message.success('计算引擎执行完成');
+      
+      const result = await simplePayrollApi.runIntegratedCalculationEngine({
+        payroll_run_id: selectedVersion.id,
+        calculation_period: selectedPeriod.start_date, // 🎯 使用当前选择期间的开始日期
+        recalculate_all: true,
+        include_social_insurance: true, // 启用五险一金计算
+        async_mode: false // 🎯 强制使用同步模式，确保立即返回计算结果
+      });
+      
+      // 显示详细的计算结果
+      console.log('✅ [计算引擎] API调用成功，响应数据:', result);
+      
+      if (result.data) {
+        console.log('🔍 [计算引擎] API响应数据结构:', result.data);
+        
+        // 安全地访问数据结构
+        const payroll_totals = result.data.payroll_totals || {};
+        const social_insurance_breakdown = result.data.social_insurance_breakdown || { employee_totals: {}, employer_totals: {} };
+        const cost_analysis = result.data.cost_analysis || {};
+        
+        // 设置计算结果到状态中，用于状态显示组件
+        const calculationResultData: CalculationResult = {
+          success_count: result.data.success_count || 0,
+          error_count: result.data.error_count || 0,
+          total_processed: result.data.total_processed || 0,
+          payroll_totals: {
+            total_gross_pay: payroll_totals.total_gross_pay || 0,
+            total_deductions: payroll_totals.total_deductions || 0,
+            total_net_pay: payroll_totals.total_net_pay || 0,
+            total_employer_cost: payroll_totals.total_employer_cost || 0
+          },
+          social_insurance_breakdown: {
+            employee_totals: {
+              social_insurance: social_insurance_breakdown.employee_totals?.social_insurance || 0,
+              housing_fund: social_insurance_breakdown.employee_totals?.housing_fund || 0,
+              total: social_insurance_breakdown.employee_totals?.total || 0
+            },
+            employer_totals: {
+              social_insurance: social_insurance_breakdown.employer_totals?.social_insurance || 0,
+              housing_fund: social_insurance_breakdown.employer_totals?.housing_fund || 0,
+              total: social_insurance_breakdown.employer_totals?.total || 0
+            }
+          },
+          cost_analysis: {
+            social_cost_ratio: cost_analysis.social_cost_ratio || 0
+          },
+          duration: 0 // 暂时设为0，后端可能没有这个字段
+        };
+        setCalculationFinalResult(calculationResultData);
+        
+        // 构建显示内容
+        const displayContent = [];
+        displayContent.push(
+          <div key="title" style={{ fontWeight: 'bold', marginBottom: '8px' }}>🎯 集成计算引擎执行完成</div>
+        );
+        
+        if (payroll_totals.total_gross_pay !== undefined) {
+          displayContent.push(
+            <div key="gross">📊 应发: ¥{(payroll_totals.total_gross_pay || 0).toLocaleString()}</div>
+          );
+        }
+        
+        if (payroll_totals.total_deductions !== undefined) {
+          const employeeTotal = social_insurance_breakdown.employee_totals?.total || 0;
+          displayContent.push(
+            <div key="deductions">📉 扣发: ¥{(payroll_totals.total_deductions || 0).toLocaleString()} (含个人五险一金: ¥{employeeTotal.toLocaleString()})</div>
+          );
+        }
+        
+        if (payroll_totals.total_net_pay !== undefined) {
+          displayContent.push(
+            <div key="net">💰 实发: ¥{(payroll_totals.total_net_pay || 0).toLocaleString()}</div>
+          );
+        }
+        
+        if (payroll_totals.total_employer_cost !== undefined) {
+          const employerTotal = social_insurance_breakdown.employer_totals?.total || 0;
+          displayContent.push(
+            <div key="employer">🏢 单位成本: ¥{(payroll_totals.total_employer_cost || 0).toLocaleString()} (含单位五险一金: ¥{employerTotal.toLocaleString()})</div>
+          );
+        }
+        
+        if (cost_analysis.social_cost_ratio !== undefined) {
+          displayContent.push(
+            <div key="ratio" style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              社保成本比例: {(cost_analysis.social_cost_ratio || 0).toFixed(1)}%
+            </div>
+          );
+        }
+        
+        // 如果没有详细数据，显示基本成功信息
+        if (displayContent.length === 1) {
+          displayContent.push(
+            <div key="basic">✅ 计算完成，请查看工资数据</div>
+          );
+        }
+        
+        message.success({
+          content: <div>{displayContent}</div>,
+          duration: 8 // 显示8秒，让用户有时间查看详细信息
+        });
+      } else {
+        // 如果没有数据但API调用成功，设置基本的成功状态
+        const basicResult: CalculationResult = {
+          success_count: 0,
+          error_count: 0,
+          total_processed: 0,
+          payroll_totals: {
+            total_gross_pay: 0,
+            total_deductions: 0,
+            total_net_pay: 0,
+            total_employer_cost: 0
+          },
+          social_insurance_breakdown: {
+            employee_totals: {
+              social_insurance: 0,
+              housing_fund: 0,
+              total: 0
+            },
+            employer_totals: {
+              social_insurance: 0,
+              housing_fund: 0,
+              total: 0
+            }
+          },
+          cost_analysis: {
+            social_cost_ratio: 0
+          },
+          duration: 0
+        };
+        setCalculationFinalResult(basicResult);
+        message.success('集成计算引擎执行完成');
+      }
+      
       onVersionRefresh?.() || onRefresh();
-    } catch (error) {
-      message.error('计算引擎执行失败');
+    } catch (error: any) {
+      console.error('🔥 集成计算引擎执行失败:', error);
+      console.error('🔥 [计算引擎] 错误详情:', {
+        error: error,
+        response: error?.response,
+        responseData: error?.response?.data,
+        errorMessage: error?.message,
+        fullError: JSON.stringify(error, null, 2)
+      });
+      
+      // 清空计算结果
+      setCalculationFinalResult(null);
+      setCalculationProgress(null);
+      
+      // 显示详细错误信息
+      const errorMessage = error?.response?.data?.detail?.message || error?.message || '计算引擎执行失败';
+      message.error({
+        content: (
+          <div>
+            <div style={{ fontWeight: 'bold' }}>❌ 集成计算引擎执行失败</div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
+          </div>
+        ),
+        duration: 6
+      });
     } finally {
       setActionLoading('run_calculation', false);
     }
@@ -542,6 +923,51 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     });
   };
 
+  // 处理退回上一步
+  const handleGoBackToPreviousStep = async () => {
+    if (!selectedVersion) return;
+
+    const currentStepIndex = getCurrentStepFromStatus(selectedVersion.status_name);
+    let targetStatus = 'DRAFT'; // 默认退回到草稿状态
+    let stepName = '数据准备';
+
+    // 根据当前步骤确定要退回到的状态
+    if (currentStepIndex === 1) { // 审核检查 -> 数据准备
+      targetStatus = 'DRAFT';
+      stepName = '数据准备';
+    } else if (currentStepIndex === 2) { // 审核批准 -> 审核检查
+      targetStatus = 'PRUN_CALCULATED';
+      stepName = '审核检查';
+    } else if (currentStepIndex === 3) { // 支付准备 -> 审核检查
+      targetStatus = 'PRUN_CALCULATED';
+      stepName = '审核检查';
+    } else if (currentStepIndex === 4) { // 完成归档 -> 支付准备
+      targetStatus = 'APPROVED_FOR_PAYMENT';
+      stepName = '支付准备';
+    }
+
+    confirm({
+      title: '确认退回上一步',
+      content: `确定要将工资运行退回到"${stepName}"阶段吗？`,
+      onOk: async () => {
+        setActionLoading('go_back_step', true);
+        try {
+          await simplePayrollApi.updateAuditStatus({
+            payroll_run_id: selectedVersion.id,
+            status: targetStatus as any
+          });
+          message.success(`已成功退回到"${stepName}"阶段`);
+          onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
+        } catch (error) {
+          message.error('退回上一步失败');
+          console.error('❌ 退回上一步失败:', error);
+        } finally {
+          setActionLoading('go_back_step', false);
+        }
+      }
+    });
+  };
+
   // 获取步骤状态
   const getStepStatus = (stepIndex: number, currentStepIndex: number): 'wait' | 'process' | 'finish' | 'error' => {
     if (stepIndex < currentStepIndex) return 'finish';
@@ -614,7 +1040,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           },
           {
             key: 'run_calculation',
-            label: '运行计算引擎',
+            label: '运行集成计算引擎',
             type: 'default',
             icon: <CalculatorOutlined />,
             disabled: !selectedVersion, // 保持：需要有工资运行版本才能计算
@@ -632,7 +1058,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           '💡 推荐使用"一键复制上月"快速创建工资数据',
           '复制后可通过批量导入调整个别员工数据',
           '重点检查新入职和离职员工',
-          '计算完成后状态会自动更新'
+          '🚀 集成计算引擎包含完整五险一金计算',
+          '📊 自动计算个人和单位扣缴，提供成本分析'
         ]
       },
       {
@@ -660,6 +1087,16 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             disabled: !canExecuteStep(1, currentStepIndex),
             loading: loading.run_advanced_audit,
             onClick: handleRunAdvancedAudit
+          },
+          {
+            key: 'go_back_step',
+            label: '退回上一步',
+            type: 'default',
+            danger: true,
+            icon: <ArrowLeftOutlined />,
+            disabled: currentStepIndex <= 0 || !selectedVersion,
+            loading: loading.go_back_step,
+            onClick: handleGoBackToPreviousStep
           }
         ],
         requirements: [
@@ -1292,6 +1729,15 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           </div>
         )}
       </Modal>
+
+      {/* 🎯 计算状态Modal - 固定在页面中间显示 */}
+      <CalculationStatusModal
+        visible={showCalculationModal}
+        progress={calculationProgress}
+        result={calculationFinalResult}
+        onClose={handleCloseCalculationModal}
+        onRetry={handleRetryCalculation}
+      />
     </Card>
   );
 }; 

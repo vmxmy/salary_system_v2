@@ -5,6 +5,34 @@ import { getComponentName } from './payrollPageUtils'; // 从新的文件名导�
 import { formatCurrency as importedFormatCurrency } from './payrollPageUtils'; // 导入 formatCurrency
 import type { TFunction } from 'i18next'; // 导入 TFunction 类型
 
+/**
+ * 判断是否为个人扣缴类型
+ * @param componentType 组件类型
+ * @returns 是否为个人扣缴
+ */
+const isPersonalDeduction = (componentType: string): boolean => {
+  return ['PERSONAL_DEDUCTION', 'DEDUCTION'].includes(componentType);
+};
+
+/**
+ * 根据组件代码获取组件定义
+ * @param code 组件代码
+ * @param componentDefinitions 组件定义列表
+ * @returns 组件定义或undefined
+ */
+const getComponentByCode = (code: string, componentDefinitions?: PayrollComponentDefinition[]): PayrollComponentDefinition | undefined => {
+  if (!componentDefinitions) return undefined;
+  return componentDefinitions.find(comp => comp.code === code);
+};
+
+/**
+ * 获取组件名称
+ * @param code 组件代码
+ * @param type 组件类型（'earnings' 或 'deductions'）
+ * @param componentDefinitions 组件定义列表
+ * @returns 组件名称
+ */
+
 // processPayrollRecord 函数定义
 // 注意：已将 t 函数和 componentDefinitions 作为参数传入
 export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, componentDefinitions: PayrollComponentDefinition[]): RawPayrollEntryData => {
@@ -178,10 +206,14 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
     }
   });
   
-  // 计算总扣除
-  Object.values(record.deductions_details as Record<string, DeductionDetailItem>).forEach((item) => {
+  // 计算总扣除 - 只计算个人扣缴部分，排除单位扣缴
+  Object.entries(record.deductions_details as Record<string, DeductionDetailItem>).forEach(([key, item]) => {
     if (item && typeof item.amount === 'number') {
-      totalDeductions += item.amount;
+      // 根据组件代码判断是否为个人扣缴
+      const component = getComponentByCode(key, componentDefinitions);
+      if (component && isPersonalDeduction(component.type)) {
+        totalDeductions += item.amount;
+      }
     }
   });
   

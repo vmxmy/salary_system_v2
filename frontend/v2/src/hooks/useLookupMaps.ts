@@ -155,12 +155,18 @@ export const useLookupMaps = (): UseLookupsResult => {
 
         if (!isMounted) return; // 再次检查，避免在异步操作后组件已卸载
 
-        const createMapFromArray = (items: LookupItem[]): Map<number, string> =>
-          new Map(items.map(item => [Number(item.value), item.label]));
+        const createMapFromArray = (items: LookupItem[]): Map<number, string> => {
+          const map = new Map(items.map(item => [Number(item.value), item.label]));
+          console.log('🗺️ createMapFromArray:', { items, resultMap: map });
+          return map;
+        };
 
         // 创建部门和人员身份映射表
         const departmentMap = createFlatMapFromTree(departments);
         const personnelCategoryMap = createFlatMapFromTree(personnelCategories);
+        
+        console.log('🏢 部门映射表:', departmentMap);
+        console.log('👥 人员类别映射表:', personnelCategoryMap);
 
         // 确保所有映射表都创建完成后，创建最终的lookupMaps对象
         if (!isMounted) return; // 再次检查，避免在状态更新前组件已卸载

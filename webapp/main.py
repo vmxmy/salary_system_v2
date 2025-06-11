@@ -38,6 +38,29 @@ import json
 import logging
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
+# === 日志增强：全局请求耗时与SQL耗时日志 ===
+from webapp.v2.utils.request_sql_logging import RequestTimingMiddleware, setup_sql_timing_logging
+from webapp.v2.database import engine_v2
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s"
+)
+
+# FastAPI应用初始化
+app = FastAPI()
+
+# 挂载全局请求耗时日志中间件
+# 🚨 临时禁用：RequestTimingMiddleware 导致极慢响应（每请求执行psutil内存检查）
+# app.add_middleware(RequestTimingMiddleware)
+
+# 启用SQLAlchemy SQL执行耗时日志
+setup_sql_timing_logging(engine_v2)
+
+# === PostgreSQL连接数监控SQL（可用于定时监控） ===
+# SELECT count(*) FROM pg_stat_activity WHERE state = 'active';
+# SELECT count(*) FROM pg_stat_activity;
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi import BackgroundTasks
 import shutil
@@ -462,6 +485,14 @@ app.include_router(
     v2_report_config_management_router,
     prefix=settings.API_V2_PREFIX,
     tags=["Report Configuration Management"]
+)
+
+# Include the debug fast router for performance testing
+from webapp.v2.routers.debug_fast import router as v2_debug_fast_router
+app.include_router(
+    v2_debug_fast_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["调试性能接口"]
 )
 
 # --- Removed API Routers with /api/v1 prefix ---

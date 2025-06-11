@@ -31,6 +31,7 @@ import TableActionButton from '../../../components/common/TableActionButton';
 import { employeeService } from '../../../services/employeeService';
 import type { Employee } from '../types';
 import { useLookupMaps, type LookupMaps } from '../../../hooks/useLookupMaps';
+import { employeeManagementApi } from '../../EmployeeManagement/services/employeeManagementApi';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -64,8 +65,8 @@ const EmployeeDetailPage: React.FC<EmployeeDetailPageProps> = () => {
     setError(null);
     
     try {
-      const data = await employeeService.getEmployeeById(employeeId);
-      setEmployee(data);
+      const employee = await employeeManagementApi.getEmployeeById(employeeId);
+      setEmployee(employee);
     } catch (err: any) {
       console.error('获取员工详情失败:', err);
       const errorMsg = err.response?.data?.detail?.error?.message || 

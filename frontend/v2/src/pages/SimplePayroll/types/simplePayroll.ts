@@ -99,17 +99,6 @@ export interface PayrollEntry {
   updated_at: string;
 }
 
-// 批量调整类型
-export interface BatchAdjustment {
-  type: 'department' | 'personnel_category' | 'position' | 'all';
-  target_ids?: number[];
-  component_code: string;
-  component_name: string;
-  adjustment_type: 'fixed_amount' | 'percentage' | 'replace_value';
-  adjustment_value: number;
-  reason?: string;
-}
-
 // 审核异常类型
 export interface AuditAnomaly {
   id: string;
@@ -126,6 +115,25 @@ export interface AuditAnomaly {
   can_auto_fix: boolean;
   is_ignored: boolean;
   ignore_reason?: string;
+}
+
+// 审核结果汇总
+export interface AuditSummary {
+  total_entries: number;
+  total_anomalies: number;
+  error_count: number;
+  warning_count: number;
+  auto_fixable_count: number;
+  manually_ignored_count: number;
+  anomalies_by_type: Record<string, number>;
+  total_gross_pay: number;
+  total_net_pay: number;
+  total_deductions: number;
+  comparison_with_previous?: {
+    gross_pay_variance: number;
+    net_pay_variance: number;
+    entries_count_variance: number;
+  };
 }
 
 // 报表定义类型
@@ -195,24 +203,7 @@ export interface GenerationProgress {
   warnings?: string[];
 }
 
-// 审核结果汇总
-export interface AuditSummary {
-  total_entries: number;
-  total_anomalies: number;
-  error_count: number;
-  warning_count: number;
-  auto_fixable_count: number;
-  manually_ignored_count: number;
-  anomalies_by_type: Record<string, number>;
-  total_gross_pay: number;
-  total_net_pay: number;
-  total_deductions: number;
-  comparison_with_previous?: {
-    gross_pay_variance: number;
-    net_pay_variance: number;
-    entries_count_variance: number;
-  };
-}
+
 
 // 导出状态
 export interface ExportStatus {

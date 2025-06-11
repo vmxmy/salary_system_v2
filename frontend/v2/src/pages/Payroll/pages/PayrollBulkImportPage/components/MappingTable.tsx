@@ -65,6 +65,7 @@ const MappingTable: React.FC<MappingTableProps> = ({
   const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
   const [showConfigPanel, setShowConfigPanel] = useState(false);
   const [smartMappingConfig, setSmartMappingConfig] = useState<SmartMappingConfig>(DEFAULT_CONFIG);
+  const [autoMappingTriggered, setAutoMappingTriggered] = useState(false);
 
   // 获取工资组件定义数据
   useEffect(() => {
@@ -156,6 +157,34 @@ const MappingTable: React.FC<MappingTableProps> = ({
     fetchComponentDefinitions();
   }, []);
 
+  // 🚀 新增：在字段选项加载完成且有映射规则时自动触发智能映射
+  useEffect(() => {
+    const shouldAutoTriggerMapping = 
+      !loading && // 数据已加载完成
+      !autoMappingTriggered && // 还没有触发过自动映射
+      mappingRules.length > 0 && // 有映射规则
+      Object.values(fieldOptions).some(options => options.length > 0); // 有字段选项
+
+    if (shouldAutoTriggerMapping) {
+      console.log('🚀 [MappingTable] 自动触发智能映射...');
+      setAutoMappingTriggered(true);
+      
+      // 延迟一小段时间确保UI已渲染
+      setTimeout(() => {
+        performIntelligentMapping();
+      }, 100);
+    }
+  }, [loading, mappingRules, fieldOptions, autoMappingTriggered]);
+
+  // 🔄 当映射规则变化时重置自动映射标志（用于重新上传文件的情况）
+  useEffect(() => {
+    if (mappingRules.length === 0) {
+      setAutoMappingTriggered(false);
+      setSmartMappingResults([]);
+      setShowSmartRecommendations(false);
+    }
+  }, [mappingRules.length]);
+
   /**
    * 💡 根据工资组件定义生成字段选项
    */
@@ -213,7 +242,7 @@ const MappingTable: React.FC<MappingTableProps> = ({
           break;
         case 'EMPLOYER_DEDUCTION':
           targetGroup = 'deduction';
-          targetField = `employer_deductions.${component.code}.amount`;
+          targetField = `deductions_details.${component.code}.amount`;
           break;
         case 'CALCULATION_RESULT':
           targetGroup = 'calculated';
@@ -373,10 +402,30 @@ const MappingTable: React.FC<MappingTableProps> = ({
     // 准备目标选项列表
     const allTargetOptions = Object.values(fieldOptions).flat();
     
-    if (sourceFields.length === 0 || allTargetOptions.length === 0) {
-      message.warning('请先上传数据或等待字段选项加载完成');
+    // 检查数据是否准备就绪
+    if (loading) {
+      message.info('正在加载字段选项，请稍候...');
       return;
     }
+    
+    if (sourceFields.length === 0) {
+      message.warning('请先上传Excel文件以获取源字段');
+      return;
+    }
+    
+    if (allTargetOptions.length === 0) {
+      message.warning('字段选项加载失败，请刷新页面重试');
+      return;
+    }
+    
+    console.log('🤖 [MappingTable] 数据准备就绪:', {
+      sourceFieldsCount: sourceFields.length,
+      targetOptionsCount: allTargetOptions.length,
+      fieldOptionsGroups: Object.keys(fieldOptions).map(key => ({
+        group: key,
+        count: fieldOptions[key].length
+      }))
+    });
     
     // 执行智能映射 - 使用当前配置
     const results = performSmartMapping(sourceFields, allTargetOptions, smartMappingConfig);
@@ -413,7 +462,16 @@ const MappingTable: React.FC<MappingTableProps> = ({
       r.bestMatch.confidence <= smartMappingConfig.thresholds.highConfidence
     );
     
-    message.success(`智能映射完成！自动应用: ${autoAppliedMatches.length}个，高置信度: ${highConfidenceMatches.length}个，中等置信度: ${mediumConfidenceMatches.length}个`);
+    const isAutoTriggered = autoMappingTriggered && !showSmartRecommendations;
+    const messageText = `智能映射完成！自动应用: ${autoAppliedMatches.length}个，高置信度: ${highConfidenceMatches.length}个，中等置信度: ${mediumConfidenceMatches.length}个`;
+    
+    if (isAutoTriggered) {
+      // 自动触发时使用info级别消息，避免过于突兀
+      message.info(messageText);
+    } else {
+      // 手动触发时使用success级别消息
+      message.success(messageText);
+    }
     
     console.log('🤖 [MappingTable] 智能映射结果:', {
       total: results.length,
@@ -559,15 +617,21 @@ const MappingTable: React.FC<MappingTableProps> = ({
                 参数配置
               </Button>
             </Tooltip>
-            <Tooltip title="使用AI算法智能推荐字段映射">
+            <Tooltip title={
+              loading ? "正在加载字段选项..." :
+              mappingRules.length === 0 ? "请先上传Excel文件" :
+              Object.values(fieldOptions).flat().length === 0 ? "字段选项加载失败，请刷新页面" :
+              "使用AI算法智能推荐字段映射"
+            }>
               <Button
                 type="primary"
                 icon={<ThunderboltOutlined />}
                 onClick={performIntelligentMapping}
-                disabled={loading || mappingRules.length === 0}
+                disabled={loading || mappingRules.length === 0 || Object.values(fieldOptions).flat().length === 0}
+                loading={loading}
                 size="small"
               >
-                智能映射
+                {loading ? "加载中..." : "智能映射"}
               </Button>
             </Tooltip>
             {smartMappingResults.length > 0 && (

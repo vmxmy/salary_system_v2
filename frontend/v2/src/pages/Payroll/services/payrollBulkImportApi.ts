@@ -11,6 +11,7 @@ import type {
   ApiSingleResponse,
   PayrollEntry
 } from '../types/payrollTypes';
+import { OverwriteMode } from '../types/payrollTypes';
 
 // 批量导入数据验证结果接口
 export interface BulkImportValidationResult {
@@ -57,13 +58,13 @@ function splitChineseName(fullName: string): { lastName: string; firstName: stri
  * 验证批量导入薪资数据
  * @param data 原始薪资条目数据
  * @param periodId 薪资周期ID
- * @param overwriteMode 是否启用覆盖模式
+ * @param overwriteMode 覆写模式
  * @returns 验证结果
  */
 export const validateBulkImportData = async (
   data: RawPayrollEntryData[],
   periodId: number,
-  overwriteMode: boolean = false
+  overwriteMode: OverwriteMode = OverwriteMode.NONE
 ): Promise<BulkImportValidationResult> => {
   try {
     console.log('🔄 开始验证薪资数据:', {
@@ -249,12 +250,12 @@ export const processRawTableData = (
     }
 
     // 设置员工信息用于后端匹配
-    if (entry.employee_code || (entry.last_name && entry.first_name)) {
+    if (entry.last_name && entry.first_name) {
       entry.employee_info = {
         last_name: entry.last_name,
         first_name: entry.first_name,
-        id_number: entry.id_number,
-        employee_code: entry.employee_code,
+        id_number: entry.id_number || '', // 提供默认值，因为当前只使用姓名校验
+        // 只使用姓名校验，不传递身份证号码和员工代码
       };
     }
 
@@ -398,7 +399,7 @@ export const getPayrollComponentDefinitions = async (params: {
     
     console.log('✅ [getPayrollComponentDefinitions] 获取成功:', {
       count: response.data.data?.length || 0,
-      total: response.data.total
+      total: response.data.meta?.total || 0
     });
     
     return response.data;
@@ -573,7 +574,7 @@ export const generateDynamicFieldMapping = (
           category = 'deduction';
           break;
         case 'EMPLOYER_DEDUCTION':
-          targetField = `employer_deductions.${component.code}.amount`;
+          targetField = `deductions_details.${component.code}.amount`;
           category = 'deduction';
           break;
         // case 'CALCULATION_RESULT':
@@ -690,7 +691,7 @@ export const generateComponentSelectOptions = (components: PayrollComponentDefin
         break;
       case 'EMPLOYER_DEDUCTION':
         targetGroup = 'deduction';
-        targetField = `employer_deductions.${component.code}.amount`;
+        targetField = `deductions_details.${component.code}.amount`;
         break;
       // case 'CALCULATION_RESULT':
       //   targetGroup = 'calculated';

@@ -132,11 +132,6 @@ const MainLayout: React.FC = () => {
 
   const userMenuItems = [
     {
-      key: 'profile',
-      label: <Link to="/employee-info/my-info">{ready ?      t('user_menu:profile'): 'Profile'}</Link>,
-      icon: <UserOutlined />,
-    },
-    {
       key: 'logout',
       label: ready ?      t('user_menu:logout'): 'Logout',
       icon: <LogoutOutlined />,
@@ -302,14 +297,7 @@ const MainLayout: React.FC = () => {
       },
     ];
 
-    // Conditionally add Bulk Import if user has permission
-    if (canCreateEmployee) { 
-      children.push({
-        label: <Link to="/hr/employees/bulk-import" id="tour-bulk-import-link">{t('menu:hr.employeesBulkImport')}</Link>,
-        key: '/hr/employees/bulk-import',
-        icon: <UploadOutlined />, // Using UploadOutlined as an example
-      });
-    }
+
     
     // Potentially add other HR related sub-menu items here, e.g., Leave Management
     // Example for Leave Management, if it's to be a sub-menu of HR and not top-level:
@@ -346,29 +334,7 @@ const MainLayout: React.FC = () => {
       label: <Link to="/admin/report-config">{t('menu:admin.reportConfig', { defaultValue: 'Report Management' })}</Link>,
     });
 
-    // 3. 个人中心 - 个人功能
-    coreBusinessItems.push({
-      key: '/personal',
-      icon: <SolutionOutlined />,
-      label: <span>{t('menu:personal.title', { defaultValue: 'Personal Center' })}</span>,
-      children: [
-        {
-          key: '/employee-info/my-info',
-          label: <Link to="/employee-info/my-info">{t('menu:personal.myInfo', { defaultValue: 'My Information' })}</Link>,
-          icon: <UserOutlined />,
-        },
-        {
-          key: '/employee-info/my-payslips',
-          label: <Link to="/employee-info/my-payslips">{t('menu:personal.myPayslips', { defaultValue: 'My Payslips' })}</Link>,
-          icon: <ProfileOutlined />,
-        },
-        {
-          key: '/personal/leave',
-          label: <Link to="/personal/leave">{t('menu:personal.myLeave', { defaultValue: 'My Leave' })}</Link>,
-          icon: <CalendarOutlined />,
-        },
-      ],
-    });
+
 
 
 

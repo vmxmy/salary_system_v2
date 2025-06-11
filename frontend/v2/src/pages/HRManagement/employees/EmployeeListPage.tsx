@@ -207,9 +207,12 @@ const EmployeeListPage: React.FC = () => {
       ...(filters.position_name_contains && { position_name_contains: filters.position_name_contains }),
       ...(filters.employee_status_equals && { employee_status_equals: filters.employee_status_equals }),
     };
+    
     try {
       const response = await employeeService.getEmployeesFromView(query); 
       if (response && Array.isArray(response)) {
+        console.log('🔍 [Debug] API返回的员工数据:', response.map(emp => emp.full_name));
+        console.log('🔍 [Debug] 当前筛选条件:', filters);
         setAllEmployees(response);
         const estimatedTotal = response.length < pagination.pageSize 
           ? (pagination.current - 1) * pagination.pageSize + response.length
@@ -229,6 +232,7 @@ const EmployeeListPage: React.FC = () => {
     }
   }, [pagination.current, pagination.pageSize, sorter, filters, t]);
 
+  // 统一的数据获取effect，监听所有可能触发数据变化的依赖
   useEffect(() => {
     if (!loadingLookups) {
       fetchBasicEmployees();
@@ -295,10 +299,10 @@ const EmployeeListPage: React.FC = () => {
     // console.log('Table action:', extra.action);
   };
 
-  const handleFilterChange = (filterName: keyof FiltersState, value: string) => {
+  const handleFilterChange = useCallback((filterName: keyof FiltersState, value: string) => {
     setFilters(prev => ({ ...prev, [filterName]: value }));
     setPagination(prev => ({ ...prev, current: 1 })); // Reset to first page on filter change
-  };
+  }, []);
   
   const handleRefresh = () => {
     // Optionally reset filters or sorters here if desired, or just refetch
@@ -364,47 +368,72 @@ const EmployeeListPage: React.FC = () => {
 
   return (
     <div>
-      <Card style={{ marginBottom: 16 }}>
+      {/* 显示当前筛选状态 */}
+      {(filters.full_name_contains || filters.employee_code_contains) && (
+        <Card 
+          size="small"
+          style={{ marginBottom: 8, backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}
+        >
+          <Space>
+            <span style={{ color: '#52c41a', fontWeight: 500 }}>🔍 当前筛选条件:</span>
+            {filters.full_name_contains && (
+              <span>姓名包含: <strong style={{ color: '#1890ff' }}>"{filters.full_name_contains}"</strong></span>
+            )}
+            {filters.employee_code_contains && (
+              <span>员工编号包含: <strong style={{ color: '#1890ff' }}>"{filters.employee_code_contains}"</strong></span>
+            )}
+            <span style={{ color: '#666' }}>({allEmployees.length} 条结果)</span>
+          </Space>
+        </Card>
+      )}
+      
+      <Card 
+        title="筛选条件"
+        style={{ marginBottom: 16 }}
+      >
         <Row gutter={16}>
           <Col span={6}>
-            <Input.Search
-              placeholder={t('employee:list_page.search_name_placeholder')}
-              onSearch={(value) => handleFilterChange('full_name_contains', value)}
-              enterButton
-              allowClear
-            />
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ fontWeight: 500, color: '#262626' }}>
+                {t('employee:list_page.filter_form.label.name')}
+              </label>
+            </div>
+            <div className={styles.searchInput}>
+              <Input.Search
+                placeholder={t('employee:list_page.search_name_placeholder')}
+                onSearch={(value) => handleFilterChange('full_name_contains', value)}
+                enterButton
+                allowClear
+              />
+            </div>
           </Col>
           <Col span={6}>
-            <Input.Search
-              placeholder={t('employee:list_page.search_employee_code_placeholder')}
-              onSearch={(value) => handleFilterChange('employee_code_contains', value)}
-              enterButton
-              allowClear
-            />
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ fontWeight: 500, color: '#262626' }}>
+                {t('employee:list_page.filter_form.label.employee_code')}
+              </label>
+            </div>
+            <div className={styles.searchInput}>
+              <Input.Search
+                placeholder={t('employee:list_page.search_employee_code_placeholder')}
+                onSearch={(value) => handleFilterChange('employee_code_contains', value)}
+                enterButton
+                allowClear
+              />
+            </div>
           </Col>
           {/* Add more filter inputs for department, position, status here as needed */}
-          <Col span={12} style={{ textAlign: 'right' }}>
-            <Space>
-                <Tooltip title={t('common:action.refresh')}>
-                    <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                {canCreate && (
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/hr/employees/new')}>
-                        {t('employee:list_page.create_employee')}
-                    </Button>
-                )}
-                {canExport && <ExportButton />}
-            </Space>
+          <Col span={12} style={{ textAlign: 'right', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+            {/* 按钮已移动到表格工具栏 */}
           </Col>
         </Row>
       </Card>
 
       <OrganizationManagementTableTemplate<EmployeeBasic> 
-        // pageTitle={t('employee:list_page.page_title')} // Title is now part of the overall page layout
-        // addButtonText={t('employee:list_page.create_employee')} // Moved to Card header
-        // onAddClick={() => navigate('/hr/employees/new')} // Moved to Card header
-        // showAddButton={canCreate} // Moved to Card header
-        // extraButtons={canExport ? [<ExportButton key="export" />] : []} // Moved to Card header
+        addButtonText={t('employee:list_page.create_employee')}
+        onAddClick={() => navigate('/hr/employees/new')}
+        showAddButton={canCreate}
+        extraButtons={canExport ? [<ExportButton key="export" />] : []}
         batchDelete={batchDeleteConfig}
         columns={tableColumnsConfigForControls}
         dataSource={allEmployees} 
@@ -427,7 +456,6 @@ const EmployeeListPage: React.FC = () => {
           onChange: setSelectedRowKeys,
         } : undefined}
         onChange={handleTableChange}
-        // onRefresh={fetchBasicEmployees} // Refresh button added in Card header
       />
     </div>
   );

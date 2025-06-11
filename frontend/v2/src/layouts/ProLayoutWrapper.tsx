@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store';
-import { menuData, transformMenuDataWithI18n, getBreadcrumbNameMap } from '../config/menuConfig';
+import { menuData, generateMenuData, transformMenuDataWithI18n, getBreadcrumbNameMap } from '../config/menuConfig';
 import { defaultProLayoutSettings, proLayoutExtendedSettings, getThemeConfig, type ThemeMode } from '../config/theme';
 import type { AppMenuDataItem } from '../config/menuConfig';
 import hyperchainLogo from '../assets/images/hyperchainLogo.svg';
@@ -151,8 +151,6 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     'department',
     'jobTitle',
     'manager',
-    'myPayslips',
-    'myInfo',
     'payroll',
     'permission',
     'role',
@@ -212,7 +210,8 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   }, [navigate, location.pathname]);
 
   // 📝 面包屑配置
-  const breadcrumbNameMap = getBreadcrumbNameMap(menuData, t);
+  const currentMenuData = generateMenuData(import.meta.env.DEV);
+  const breadcrumbNameMap = getBreadcrumbNameMap(currentMenuData, t);
 
   // 处理图片加载失败
   const handleLogoError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -254,7 +253,9 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
       defaultOpenKeys: ['/business', '/system', '/business/payroll', '/business/hr', '/business/employees', '/system/permissions', '/system/organization', '/system/payroll-config', '/system/ai-config', '/personal', '/reports'],
     },
     menuDataRender: () => {
-const transformedData = transformMenuDataWithI18n(menuData, (key: string) => t(key, { ns: 'menu' }));
+      // 使用动态菜单生成函数，支持开发模式
+      const currentMenuData = generateMenuData(import.meta.env.DEV);
+      const transformedData = transformMenuDataWithI18n(currentMenuData, (key: string) => t(key, { ns: 'menu' }));
       return transformedData;
     },
     menuItemRender: (item: MenuDataItem, dom: React.ReactNode) => (

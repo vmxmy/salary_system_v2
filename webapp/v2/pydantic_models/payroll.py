@@ -1,10 +1,11 @@
 """
 工资相关的Pydantic模型。
 """
-from pydantic import BaseModel, Field, computed_field
-from typing import Optional, List, Dict, Any, Literal, ForwardRef
+from pydantic import BaseModel, Field, computed_field, validator
+from typing import Optional, List, Dict, Any, Literal, ForwardRef, Union
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 
 # 导入LookupValue模型
 from .config import LookupValue
@@ -190,11 +191,20 @@ class PayrollEntryPatch(BaseModel):
 class PayrollEntry(PayrollEntryBase):
     """工资明细响应模型"""
     id: int = Field(..., description="Primary key")
-    calculated_at: datetime = Field(..., description="Timestamp when this entry was calculated")
+    calculated_at: Optional[datetime] = Field(None, description="Timestamp when this entry was calculated")
     
     # 添加关联对象
     payroll_run: Optional['PayrollRun'] = Field(None, description="Associated payroll run details")
     employee: Optional[EmployeeWithNames] = Field(None, description="Associated employee details with names")
+    
+    # 简化的员工信息字段（从数据库视图中直接提取）
+    employee_code: Optional[str] = Field(None, description="员工编号")
+    employee_name: Optional[str] = Field(None, description="员工姓名")
+    first_name: Optional[str] = Field(None, description="名")
+    last_name: Optional[str] = Field(None, description="姓")
+    department_name: Optional[str] = Field(None, description="部门名称")
+    personnel_category_name: Optional[str] = Field(None, description="人员类别名称")
+    position_name: Optional[str] = Field(None, description="职位名称")
     
     # For response, details will include name and amount
     earnings_details: Dict[str, Any] = Field({}, description="JSONB object storing individual earning items with name and amount")
@@ -209,12 +219,20 @@ class PayrollEntryListResponse(PaginationResponse[PayrollEntry]):
     pass
 
 
+# 新增：覆写模式枚举
+class OverwriteMode(str, Enum):
+    """覆写模式枚举"""
+    NONE = "none"           # 不覆写，重复记录报错
+    FULL = "full"           # 全量覆写，完全替换现有记录
+    PARTIAL = "partial"     # 部分覆写，只更新导入的字段
+
+
 # 批量导入相关模型
 class BulkValidatePayrollEntriesPayload(BaseModel):
     """批量验证薪资明细的请求模型"""
     payroll_period_id: int = Field(..., description="薪资周期ID")
     entries: List[PayrollEntryCreate] = Field(..., description="待验证的薪资明细列表")
-    overwrite_mode: bool = Field(False, description="是否启用覆盖模式，在验证时不将重复记录视为错误")
+    overwrite_mode: OverwriteMode = Field(..., description="覆写模式")
 
 class BulkValidatePayrollEntriesResult(BaseModel):
     """批量验证薪资明细的响应模型"""
@@ -229,7 +247,7 @@ class BulkCreatePayrollEntriesPayload(BaseModel):
     """批量创建工资明细的请求模型"""
     payroll_period_id: int = Field(..., description="工资周期ID")
     entries: List[PayrollEntryCreate] = Field(..., description="工资明细列表")
-    overwrite_mode: bool = Field(False, description="是否启用覆盖模式，允许更新已存在的工资明细")
+    overwrite_mode: OverwriteMode = Field(..., description="覆写模式")
 
 class BulkCreatePayrollEntriesResult(BaseModel):
     """批量创建工资明细的响应模型"""

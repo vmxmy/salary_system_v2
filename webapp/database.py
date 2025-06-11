@@ -40,9 +40,22 @@ if not DATABASE_URL:
 # if DATABASE_URL == "postgresql://user:password@host:port/dbname":
 # logger.warning("DATABASE_URL is still using the placeholder value. Ensure .env is correctly loaded and configured.")
 
-# Create SQLAlchemy engine
+# Create SQLAlchemy engine - 🚀 针对远程数据库优化
 # connect_args can be used for options like SSL: e.g., {"sslmode": "require"}
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL, 
+    pool_pre_ping=True,           # 保持连接活跃
+    pool_size=20,                 # 增加连接池大小（远程连接）
+    max_overflow=30,              # 增加最大溢出连接数
+    pool_timeout=60,              # 增加获取连接超时时间
+    pool_recycle=7200,            # 连接回收时间（2小时）
+    echo=False,                   # 禁用SQL echo
+    # 🚀 针对远程连接的特殊优化
+    connect_args={
+        "connect_timeout": 10,    # TCP连接超时
+        "application_name": "salary_system_main_api"  # 应用标识
+    }
+)
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -33,10 +33,11 @@ def create_employee(db: Session, employee: EmployeeCreate) -> Employee:
     Returns:
         创建的员工对象
     """
-    # 检查员工代码是否已存在
-    existing_code = get_employee_by_code(db, employee.employee_code)
-    if existing_code:
-        raise ValueError(f"Employee with code '{employee.employee_code}' already exists")
+    # 检查员工代码是否已存在 - 只有工号不为空时才检查唯一性
+    if employee.employee_code:  # 只有当工号不为空时才检查
+        existing_code = get_employee_by_code(db, employee.employee_code)
+        if existing_code:
+            raise ValueError(f"Employee with code '{employee.employee_code}' already exists")
 
     # 如果提供了身份证号，检查是否已存在
     if employee.id_number:

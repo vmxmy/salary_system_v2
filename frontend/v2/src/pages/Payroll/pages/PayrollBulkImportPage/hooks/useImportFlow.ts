@@ -137,7 +137,7 @@ export const useImportFlow = () => {
       const result = await validateBulkImportData(
         rawData, 
         selectedPeriodId, 
-        importSettings.overwriteExisting
+        importSettings.overwriteMode
       );
       
       setProgress({
@@ -226,13 +226,13 @@ export const useImportFlow = () => {
       const bulkPayload: BulkCreatePayrollEntriesPayload = {
         payroll_period_id: selectedPeriodId,
         entries: createPayrollEntries,
-        overwrite_mode: importSettings.overwriteExisting
+        overwrite_mode: importSettings.overwriteMode
       };
       
       console.log('🚀 开始执行批量导入:', {
         periodId: selectedPeriodId,
         totalEntries: createPayrollEntries.length,
-        overwriteMode: importSettings.overwriteExisting
+        overwriteMode: importSettings.overwriteMode
       });
       
       // 模拟进度更新

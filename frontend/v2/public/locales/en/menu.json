@@ -10,7 +10,6 @@
   "home": "Home",
   "hr": {
     "employees": "Employee Records",
-    "employeesBulkImport": "Employee Bulk Import",
     "employeesNew": "Create Employee",
     "myLeave": "",
     "title": "Employee Management"
@@ -33,12 +32,6 @@
     "periods": "Payroll Periods",
     "runs": "Payroll Runs",
     "title": "Payroll Management"
-  },
-  "personal": {
-    "myInfo": "My Information",
-    "myLeave": "My Leave",
-    "myPayslips": "My Payslips",
-    "title": "Personal Center"
   },
   "test": {
     "title": "Test Pages"

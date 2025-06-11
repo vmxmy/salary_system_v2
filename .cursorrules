@@ -126,3 +126,186 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - [X] 前端薪资批量导入页面应该可以正常加载初始数据
 
 **结论**：422 错误已完全解决，前端可以正常获取薪资组件定义数据。
+# 后端阻塞全面排查任务计划
+
+## 目标
+系统性排查后端所有可能导致阻塞和性能瓶颈的点，定位并消除影响接口响应速度的根因。
+
+---
+
+## 步骤总览
+
+1. **日志与监控准备**
+   - [X] 集成全局请求耗时日志
+   - [X] 集成SQL执行耗时日志
+   - [ ] 部署数据库连接数和慢SQL监控脚本
+
+2. **接口级阻塞检测**
+   - [ ] 批量压测所有核心API，收集耗时分布
+   - [ ] 自动检测接口中是否有长时间等待（如外部API、sleep、死循环）
+
+3. **线程/进程池与异步阻塞检测**
+   - [ ] 检查uvicorn/gunicorn等进程/线程池配置与实际利用率
+   - [ ] 检查是否有协程/线程/进程阻塞
+
+4. **数据库层阻塞检测**
+   - [ ] 定时采集pg_stat_activity，分析长事务、锁等待、连接池耗尽等现象
+   - [ ] 自动分析慢SQL和锁等待
+
+5. **代码级阻塞点扫描**
+   - [ ] 静态扫描后端代码，查找常见阻塞模式（如time.sleep、requests同步调用、死循环等）
+
+---
+
+## 检测脚本设计
+
+### 1. 数据库连接与慢SQL监控脚本
+- 定时采集活跃连接、慢SQL、锁等待，输出到日志或报警
+
+### 2. 接口批量压测与耗时分析脚本
+- 自动批量请求所有API，统计耗时分布，发现慢接口
+
+### 3. 代码静态阻塞点扫描脚本
+- 扫描后端代码，查找阻塞性调用（如time.sleep、requests、subprocess、死循环等）
+
+---
+
+## 执行指导
+
+### 步骤1：部署数据库监控脚本
+
+1. 创建 `tools/db_monitor.py`，内容如下（每分钟采集一次，输出到日志）：
+
+```python
+import time
+import psycopg2
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+DSN = "dbname=salary_system_v2 user=salary_system_v2 password=810705 host=10.10.10.16 port=5432"
+
+def monitor():
+    while True:
+        try:
+            conn = psycopg2.connect(DSN)
+            cur = conn.cursor()
+            # 活跃连接数
+            cur.execute("SELECT count(*) FROM pg_stat_activity WHERE state = 'active';")
+            active = cur.fetchone()[0]
+            # 总连接数
+            cur.execute("SELECT count(*) FROM pg_stat_activity;")
+            total = cur.fetchone()[0]
+            # 慢SQL
+            cur.execute(\"""
+                SELECT pid, query, now() - query_start AS duration
+                FROM pg_stat_activity
+                WHERE state != 'idle' AND now() - query_start > interval '5 seconds'
+                ORDER BY duration DESC LIMIT 5;
+            \""")
+            slow = cur.fetchall()
+            logging.info(f"Active: {active}, Total: {total}, Slow: {slow}")
+            cur.close()
+            conn.close()
+        except Exception as e:
+            logging.error(f"DB monitor error: {e}")
+        time.sleep(60)
+
+if __name__ == "__main__":
+    monitor()
+```
+
+2. 在服务器后台运行该脚本，持续采集数据库状态。
+
+---
+
+### 步骤2：接口批量压测与耗时分析
+
+1. 创建 `tools/api_batch_tester.py`，内容如下：
+
+```python
+import requests
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+API_LIST = [
+    "/users/17",
+    "/config/lookup-values-public?lookup_type_code=GENDER",
+    "/views-optimized/departments",
+    "/simple-payroll/periods",
+    # ...补充所有核心API
+]
+BASE_URL = "http://localhost:8000"  # 修改为实际后端地址
+
+def test_apis():
+    for path in API_LIST:
+        url = BASE_URL + path
+        try:
+            start = time.time()
+            resp = requests.get(url, timeout=30)
+            elapsed = (time.time() - start) * 1000
+            logging.info(f"{url} - {resp.status_code} - {elapsed:.2f}ms")
+        except Exception as e:
+            logging.error(f"{url} - ERROR: {e}")
+
+if __name__ == "__main__":
+    test_apis()
+```
+
+2. 执行该脚本，收集所有API的耗时分布，重点关注>2s的慢接口。
+
+---
+
+### 步骤3：代码静态阻塞点扫描
+
+1. 创建 `tools/blocking_code_scanner.py`，内容如下：
+
+```python
+import os
+import re
+
+BLOCK_PATTERNS = [
+    r"time\.sleep\(",
+    r"requests\.(get|post|put|delete)\(",
+    r"subprocess\.",
+    r"while\s+True",
+    r"for\s+\w+\s+in\s+iter\(",
+    r"threading\.Lock\(",
+    r"multiprocessing\.",
+    r"asyncio\.sleep\(",
+    r"await\s+asyncio\.sleep\(",
+]
+
+def scan_file(filepath):
+    with open(filepath, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    for i, line in enumerate(lines, 1):
+        for pat in BLOCK_PATTERNS:
+            if re.search(pat, line):
+                print(f"{filepath}:{i}: {line.strip()}")
+
+def scan_dir(root):
+    for dirpath, _, files in os.walk(root):
+        for file in files:
+            if file.endswith(".py"):
+                scan_file(os.path.join(dirpath, file))
+
+if __name__ == "__main__":
+    scan_dir("webapp/")
+
+```
+
+2. 执行该脚本，输出所有可疑阻塞代码行，人工复查。
+
+---
+
+## 总结
+
+- 先部署数据库监控，持续关注连接与慢SQL
+- 再批量压测API，定位慢接口
+- 最后静态扫描代码，查找阻塞点
+- 结合日志与监控，逐步定位并消除所有后端阻塞风险
+
+如需自动化脚本或具体操作指导，可随时执行上述脚本并反馈结果，后续可协助分析和优化。

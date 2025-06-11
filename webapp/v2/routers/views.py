@@ -458,6 +458,7 @@ async def get_employees_basic(
     position_id: Optional[int] = Query(None, description="职位ID"),
     is_active: Optional[bool] = Query(None, description="是否在职"),
     search: Optional[str] = Query(None, description="搜索关键词（姓名、工号）"),
+    full_name_contains: Optional[str] = Query(None, description="姓名包含关键词"),
     limit: int = Query(100, le=200, description="返回记录数限制"),
     offset: int = Query(0, ge=0, description="偏移量"),
     session: Session = Depends(get_session),
@@ -466,6 +467,10 @@ async def get_employees_basic(
     """
     获取员工基础信息列表
     使用 v_employees_basic 视图，包含部门、职位、状态信息
+    
+    支持两种搜索方式：
+    - search: 在姓名和工号中搜索
+    - full_name_contains: 仅在姓名中搜索
     """
     try:
         # 构建查询条件
@@ -485,8 +490,12 @@ async def get_employees_basic(
                 conditions.append("employee_status = '在职'")
             else:
                 conditions.append("employee_status != '在职'")
-                
-        if search:
+        
+        # 支持两种搜索方式
+        if full_name_contains:
+            conditions.append("full_name ILIKE :full_name_search")
+            params["full_name_search"] = f"%{full_name_contains}%"
+        elif search:
             conditions.append("(full_name ILIKE :search OR employee_code ILIKE :search)")
             params["search"] = f"%{search}%"
         
@@ -498,7 +507,7 @@ async def get_employees_basic(
             phone_number, email, department_name, position_name, 
             personnel_category_name, employee_status,
             hire_date::text
-        FROM v_employees_basic
+        FROM reports.v_employees_basic
         {where_clause}
         ORDER BY employee_code
         LIMIT {limit} OFFSET {offset}
@@ -547,25 +556,11 @@ async def get_employee_extended(
         query = """
         SELECT 
             id, employee_code, first_name, last_name, full_name,
-            date_of_birth::text, id_number, nationality, ethnicity,
-            phone_number, email, home_address, emergency_contact_name, emergency_contact_phone,
-            hire_date::text, first_work_date::text, current_position_start_date::text, 
-            career_position_level_date::text, interrupted_service_years, is_active, social_security_client_number,
+            id_number, phone_number, email, hire_date::text,
             department_id, department_name, actual_position_id, position_name, 
             personnel_category_id, personnel_category_name, root_personnel_category_name,
-            gender_lookup_value_id, gender_name,
-            status_lookup_value_id, employee_status,
-            education_level_lookup_value_id, education_level_name,
-            marital_status_lookup_value_id, marital_status_name,
-            political_status_lookup_value_id, political_status_name,
-            employment_type_lookup_value_id, employment_type_name,
-            contract_type_lookup_value_id, contract_type_name,
-            salary_level_lookup_value_id, salary_level_name,
-            salary_grade_lookup_value_id, salary_grade_name,
-            ref_salary_level_lookup_value_id, ref_salary_level_name,
-            job_position_level_lookup_value_id, job_position_level_name,
-            created_at::text, updated_at::text
-        FROM reports.v_employees_basic_extended
+            employee_status, social_security_client_number, housing_fund_client_number
+        FROM reports.v_employees_basic
         WHERE id = :employee_id
         """
         
@@ -581,22 +576,10 @@ async def get_employee_extended(
             first_name=row.first_name,
             last_name=row.last_name,
             full_name=row.full_name,
-            date_of_birth=row.date_of_birth,
             id_number=row.id_number,
-            nationality=row.nationality,
-            ethnicity=row.ethnicity,
             phone_number=row.phone_number,
             email=row.email,
-            home_address=row.home_address,
-            emergency_contact_name=row.emergency_contact_name,
-            emergency_contact_phone=row.emergency_contact_phone,
             hire_date=row.hire_date,
-            first_work_date=row.first_work_date,
-            current_position_start_date=row.current_position_start_date,
-            career_position_level_date=row.career_position_level_date,
-            interrupted_service_years=row.interrupted_service_years,
-            is_active=row.is_active,
-            social_security_client_number=row.social_security_client_number,
             department_id=row.department_id,
             department_name=row.department_name,
             actual_position_id=row.actual_position_id,
@@ -604,30 +587,8 @@ async def get_employee_extended(
             personnel_category_id=row.personnel_category_id,
             personnel_category_name=row.personnel_category_name,
             root_personnel_category_name=row.root_personnel_category_name,
-            gender_lookup_value_id=row.gender_lookup_value_id,
-            gender_name=row.gender_name,
-            status_lookup_value_id=row.status_lookup_value_id,
             employee_status=row.employee_status,
-            education_level_lookup_value_id=row.education_level_lookup_value_id,
-            education_level_name=row.education_level_name,
-            marital_status_lookup_value_id=row.marital_status_lookup_value_id,
-            marital_status_name=row.marital_status_name,
-            political_status_lookup_value_id=row.political_status_lookup_value_id,
-            political_status_name=row.political_status_name,
-            employment_type_lookup_value_id=row.employment_type_lookup_value_id,
-            employment_type_name=row.employment_type_name,
-            contract_type_lookup_value_id=row.contract_type_lookup_value_id,
-            contract_type_name=row.contract_type_name,
-            salary_level_lookup_value_id=row.salary_level_lookup_value_id,
-            salary_level_name=row.salary_level_name,
-            salary_grade_lookup_value_id=row.salary_grade_lookup_value_id,
-            salary_grade_name=row.salary_grade_name,
-            ref_salary_level_lookup_value_id=row.ref_salary_level_lookup_value_id,
-            ref_salary_level_name=row.ref_salary_level_name,
-            job_position_level_lookup_value_id=row.job_position_level_lookup_value_id,
-            job_position_level_name=row.job_position_level_name,
-            created_at=row.created_at,
-            updated_at=row.updated_at
+            social_security_client_number=row.social_security_client_number
         )
         
     except HTTPException:
@@ -766,10 +727,10 @@ async def get_payroll_entries_detailed(
             
             -- 基础扣除字段（根据实际字段名）
             COALESCE(个人所得税, 0) as personal_income_tax,
-            COALESCE(养老保险个人应缴金额, 0) as pension_personal,
-            COALESCE(医疗保险个人缴纳金额, 0) as medical_personal,
-            COALESCE(个人缴住房公积金, 0) as housing_fund_personal,
-            COALESCE(失业保险个人应缴金额, 0) as unemployment_personal,
+            COALESCE(养老保险个人应缴费额, 0) as pension_personal,
+            COALESCE(医疗保险个人应缴费额, 0) as medical_personal,
+            COALESCE(住房公积金个人应缴费额, 0) as housing_fund_personal,
+            COALESCE(失业保险个人应缴费额, 0) as unemployment_personal,
             
             人员类别 as personnel_category_name, 
             计算时间::text as calculated_at, 
