@@ -963,4 +963,125 @@ async def get_views_stats_summary(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取统计信息失败: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"获取统计信息失败: {str(e)}")
+
+# =============================================================================
+# 核心工资数据视图 API - 用于快捷操作浏览工资数据
+# =============================================================================
+
+class ComprehensivePayrollDataResponse(BaseModel):
+    """核心工资数据响应模型 - 基于 reports.v_comprehensive_employee_payroll 视图"""
+    # 基础信息
+    薪资条目id: Optional[int] = None
+    员工id: Optional[int] = None
+    姓名: Optional[str] = None
+    部门名称: Optional[str] = None
+    人员类别: Optional[str] = None
+    职位名称: Optional[str] = None
+    
+    # 工资汇总
+    应发合计: Optional[float] = Field(default=0.0)
+    扣除合计: Optional[float] = Field(default=0.0)
+    实发合计: Optional[float] = Field(default=0.0)
+    
+    # 社保个人缴费
+    养老保险个人应缴费额: Optional[float] = Field(default=0.0)
+    医疗保险个人应缴费额: Optional[float] = Field(default=0.0)
+    职业年金个人应缴费额: Optional[float] = Field(default=0.0)
+    失业保险个人应缴费额: Optional[float] = Field(default=0.0)
+    住房公积金个人应缴费额: Optional[float] = Field(default=0.0)
+    
+    # 个税
+    个人所得税: Optional[float] = Field(default=0.0)
+
+@router.get("/comprehensive-payroll-data", response_model=List[ComprehensivePayrollDataResponse])
+async def get_comprehensive_payroll_data(
+    period_id: Optional[int] = Query(None, description="薪资周期ID"),
+    employee_id: Optional[int] = Query(None, description="员工ID"),
+    department_name: Optional[str] = Query(None, description="部门名称"),
+    limit: int = Query(200, le=500, description="返回记录数限制"),
+    offset: int = Query(0, ge=0, description="偏移量"),
+    session: Session = Depends(get_session),
+    current_user_id: int = Depends(get_current_user_id)
+):
+    """
+    获取核心工资数据 - 用于快捷操作浏览工资数据
+    
+    使用 reports.v_comprehensive_employee_payroll 核心视图
+    返回字段按照用户要求的顺序：姓名、部门、人员身份、职位、应发合计、扣除合计、实发合计、
+    养老保险个人应缴费额、医疗保险个人应缴费额、职业年金个人应缴费额、失业保险个人应缴费额、
+    住房公积金个人应缴费额、个人所得税
+    """
+    try:
+        conditions = []
+        params = {}
+
+        if period_id is not None:
+            conditions.append('"薪资期间id" = :period_id')
+            params["period_id"] = period_id
+        
+        if employee_id is not None:
+            conditions.append('"员工id" = :employee_id')
+            params["employee_id"] = employee_id
+            
+        if department_name:
+            conditions.append('"部门名称" ILIKE :department_name')
+            params["department_name"] = f"%{department_name}%"
+            
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        
+        query = f"""
+        SELECT 
+            "薪资条目id",
+            "员工id",
+            "姓名",
+            "部门名称",
+            "人员类别",
+            "职位名称",
+            COALESCE("应发合计", 0) as "应发合计",
+            COALESCE("扣除合计", 0) as "扣除合计", 
+            COALESCE("实发合计", 0) as "实发合计",
+            COALESCE("养老保险个人应缴费额", 0) as "养老保险个人应缴费额",
+            COALESCE("医疗保险个人应缴费额", 0) as "医疗保险个人应缴费额",
+            COALESCE("职业年金个人应缴费额", 0) as "职业年金个人应缴费额",
+            COALESCE("失业保险个人应缴费额", 0) as "失业保险个人应缴费额",
+            COALESCE("住房公积金个人应缴费额", 0) as "住房公积金个人应缴费额",
+            COALESCE("个人所得税", 0) as "个人所得税"
+        FROM reports.v_comprehensive_employee_payroll
+        {where_clause}
+        ORDER BY "部门名称", "姓名"
+        LIMIT {limit} OFFSET {offset}
+        """
+        
+        result = session.execute(text(query), params)
+        
+        payroll_data = []
+        for row in result:
+            # 直接使用行数据构建响应对象
+            data = ComprehensivePayrollDataResponse(
+                薪资条目id=row[0],
+                员工id=row[1],
+                姓名=row[2],
+                部门名称=row[3],
+                人员类别=row[4],
+                职位名称=row[5],
+                应发合计=float(row[6] or 0),
+                扣除合计=float(row[7] or 0),
+                实发合计=float(row[8] or 0),
+                养老保险个人应缴费额=float(row[9] or 0),
+                医疗保险个人应缴费额=float(row[10] or 0),
+                职业年金个人应缴费额=float(row[11] or 0),
+                失业保险个人应缴费额=float(row[12] or 0),
+                住房公积金个人应缴费额=float(row[13] or 0),
+                个人所得税=float(row[14] or 0)
+            )
+            
+            payroll_data.append(data)
+        
+        return payroll_data
+        
+    except Exception as e:
+        print(f"Error in get_comprehensive_payroll_data: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"查询核心工资数据失败: {str(e)}") 

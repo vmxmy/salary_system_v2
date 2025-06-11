@@ -212,6 +212,34 @@ export interface SalaryStatistics {
   total_deductions: number;
 }
 
+/**
+ * 核心工资数据视图类型 - 基于 reports.v_comprehensive_employee_payroll 视图
+ */
+export interface ComprehensivePayrollDataView {
+  // 基础信息
+  薪资条目id?: number;
+  员工id?: number;
+  姓名?: string;
+  部门名称?: string;
+  人员类别?: string;
+  职位名称?: string;
+  
+  // 工资汇总
+  应发合计?: number;
+  扣除合计?: number;
+  实发合计?: number;
+  
+  // 社保个人缴费
+  养老保险个人应缴费额?: number;
+  医疗保险个人应缴费额?: number;
+  职业年金个人应缴费额?: number;
+  失业保险个人应缴费额?: number;
+  住房公积金个人应缴费额?: number;
+  
+  // 个税
+  个人所得税?: number;
+}
+
 // API 函数定义
 export const payrollViewsApi = {
   /**
@@ -407,6 +435,28 @@ export const payrollViewsApi = {
       throw error;
     }
   },
+
+  /**
+   * 获取核心工资数据 - 用于快捷操作浏览工资数据
+   */
+  getComprehensivePayrollData: async (params?: {
+    period_id?: number;
+    employee_id?: number;
+    department_name?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<ComprehensivePayrollDataView[]> => {
+    try {
+      const response = await apiClient.get<ComprehensivePayrollDataView[]>(
+        `${PAYROLL_VIEWS_ENDPOINT}/comprehensive-payroll-data`,
+        { params }
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching comprehensive payroll data:', error);
+      throw error;
+    }
+  }
 };
 
 // 默认导出
