@@ -47,6 +47,7 @@ from .bank_export import (
 # 导入批量操作相关功能
 from .bulk_operations import (
     bulk_create_payroll_entries,
+    bulk_create_payroll_entries_optimized,
     bulk_validate_payroll_entries
 )
 
@@ -84,6 +85,8 @@ __all__ = [
     
     # 批量操作
     "bulk_create_payroll_entries",
+    "bulk_create_payroll_entries_optimized",
+    "bulk_validate_payroll_entries",
     
     # 工具函数
     "convert_decimals_to_float"

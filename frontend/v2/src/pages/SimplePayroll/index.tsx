@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Space, Button, message, Spin, Tag, Tabs, DatePicker, Card, Tooltip, Select, Divider, InputNumber, Alert, Typography } from 'antd';
-import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined, DeleteOutlined, DollarOutlined, TeamOutlined, MinusCircleOutlined, CheckCircleOutlined, CalculatorOutlined, AuditOutlined, RightOutlined, EllipsisOutlined, ControlOutlined } from '@ant-design/icons';
+import { ReloadOutlined, ClockCircleOutlined, AppstoreOutlined, PlusOutlined, CalendarOutlined, DeleteOutlined, DollarOutlined, TeamOutlined, MinusCircleOutlined, CheckCircleOutlined, CalculatorOutlined, AuditOutlined, RightOutlined, EllipsisOutlined, ControlOutlined, EyeOutlined } from '@ant-design/icons';
 import { StatisticCard, ProCard } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import GeneratePayrollCard from './components/GeneratePayrollCard';
 import AuditPayrollCard from './components/AuditPayrollCard';
 import GenerateReportsCard from './components/GenerateReportsCard';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
+import { PayrollDataModal } from './components/PayrollDataModal';
 import { usePayrollPeriods } from './hooks/usePayrollPeriods';
 import { usePayrollVersions } from './hooks/usePayrollVersions';
 import { useAuditSummary } from './hooks/useAuditSummary';
@@ -30,6 +31,7 @@ const SimplePayrollPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workflow'); // Controls which tab is active
   const [isCreating, setIsCreating] = useState(false);
   const [createPeriodModalVisible, setCreatePeriodModalVisible] = useState(false); // State for a potential create period modal (not implemented in this code)
+  const [payrollDataModalVisible, setPayrollDataModalVisible] = useState(false);
   const [payrollStats, setPayrollStats] = useState<{
     recordCount: number;
     totalGrossPay: number;
@@ -242,7 +244,7 @@ const SimplePayrollPage: React.FC = () => {
     });
   }, [versions, versionsLoading, selectedPeriodId, currentPeriod]);
 
-  // Function to refresh all relevant data
+  // Function to refresh all relevant data (完整刷新)
   const handleRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
     refetchPeriods();
@@ -252,6 +254,26 @@ const SimplePayrollPage: React.FC = () => {
     if (selectedVersionId) {
       refetchAuditSummary();
       fetchPayrollStats(selectedVersionId); // Also refresh statistics
+    }
+  };
+
+  // 📝 新增：精细化刷新函数 - 只刷新审核相关数据
+  const handleAuditRefresh = () => {
+    console.log('🔄 [handleAuditRefresh] 只刷新审核相关数据');
+    if (selectedVersionId) {
+      refetchAuditSummary();
+      fetchPayrollStats(selectedVersionId); // 刷新统计数据（审核可能影响统计）
+    }
+  };
+
+  // 📝 新增：只刷新版本数据
+  const handleVersionRefresh = () => {
+    console.log('🔄 [handleVersionRefresh] 只刷新版本数据');
+    if (selectedPeriodId) {
+      refetchVersions();
+    }
+    if (selectedVersionId) {
+      fetchPayrollStats(selectedVersionId);
     }
   };
 
@@ -697,6 +719,15 @@ const SimplePayrollPage: React.FC = () => {
                     >
                       {t('simplePayroll:quickActions.copyLastMonth')}
                     </Button>
+                    <Button 
+                      onClick={() => setPayrollDataModalVisible(true)}
+                      block 
+                      size="large"
+                      icon={<EyeOutlined />}
+                      disabled={!selectedVersionId}
+                    >
+                      浏览工资数据
+                    </Button>
                   </Space>
                 </ProCard>
               )}
@@ -721,6 +752,8 @@ const SimplePayrollPage: React.FC = () => {
                       selectedVersion={currentVersion || null}
                       auditSummary={auditSummary}
                       onRefresh={handleRefresh}
+                      onAuditRefresh={handleAuditRefresh}
+                      onVersionRefresh={handleVersionRefresh}
                       onDeleteVersion={handleDeleteVersion}
                     />
                   </Col>
@@ -730,6 +763,14 @@ const SimplePayrollPage: React.FC = () => {
           </Row>
         )}
       </Content>
+
+      {/* 工资数据浏览模态框 */}
+      <PayrollDataModal
+        visible={payrollDataModalVisible}
+        onClose={() => setPayrollDataModalVisible(false)}
+        periodId={selectedPeriodId || 0}
+        periodName={currentPeriod?.name}
+      />
     </Layout>
   );
 };

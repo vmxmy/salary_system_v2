@@ -88,7 +88,7 @@ from webapp.v2.routers import security_router as v2_security_router
 from webapp.v2.routers.auth import router as v2_auth_router
 from webapp.v2.routers import reports_router as v2_reports_router
 from webapp.v2.routers import calculation_config_router as v2_calculation_config_router
-from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculation_router
+# from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculation_router  # 已删除复杂计算引擎
 from webapp.v2.routers import attendance_router as v2_attendance_router
 from webapp.v2.routers.table_config import router as v2_table_config_router
 from webapp.v2.routers.views import router as v2_views_router
@@ -395,12 +395,12 @@ app.include_router(
     tags=["Calculation Config"]
 )
 
-# Include the payroll calculation router
-app.include_router(
-    v2_payroll_calculation_router,
-    prefix=settings.API_V2_PREFIX,
-    tags=["Payroll Calculation"]
-)
+# Include the payroll calculation router - 已删除复杂计算引擎
+# app.include_router(
+#     v2_payroll_calculation_router,
+#     prefix=settings.API_V2_PREFIX,
+#     tags=["Payroll Calculation"]
+# )
 
 # Include the attendance router
 app.include_router(

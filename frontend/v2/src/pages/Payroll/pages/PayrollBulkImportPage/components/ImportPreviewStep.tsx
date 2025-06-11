@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Typography,
@@ -10,7 +10,11 @@ import {
   Col,
   Statistic,
   Tag,
-  Spin
+  Spin,
+  Modal,
+  List,
+  Card,
+  Tooltip
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -18,7 +22,8 @@ import {
   WarningOutlined,
   DatabaseOutlined,
   ArrowLeftOutlined,
-  CloudUploadOutlined
+  CloudUploadOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { ProCard, ProTable, ProForm, ProFormSelect, ProFormSwitch } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -28,7 +33,7 @@ import type {
   PayrollPeriod, 
   PayrollComponentDefinition 
 } from '../../../types/payrollTypes';
-import type { ValidationSummary } from '../hooks/usePayrollImport';
+import type { ValidationSummary } from '../types/constants';
 import bulkImportStyles from '../../../../../styles/payroll-bulk-import.module.less';
 
 const { Title, Text } = Typography;
@@ -71,8 +76,22 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
 }) => {
   const { t } = useTranslation(['payroll', 'common']);
 
+  // 添加状态来管理错误详情模态框
+  const [errorDetailModalVisible, setErrorDetailModalVisible] = useState(false);
+  const [selectedRecordErrors, setSelectedRecordErrors] = useState<{
+    record: any;
+    errors: string[];
+  } | null>(null);
+
+  // 格式化货币显示
+  const formatCurrency = (value: any): string => {
+    if (value == null || value === '') return '-';
+    const num = typeof value === 'number' ? value : parseFloat(String(value).replace(/,/g, ''));
+    return isNaN(num) ? String(value) : `¥${num.toFixed(2)}`;
+  };
+
   // 渲染验证错误
-  const renderValidationErrors = (errors: any) => {
+  const renderValidationErrors = (errors: any, record?: any) => {
     // 确保errors是数组类型
     const errorArray = Array.isArray(errors) ? errors : [];
     
@@ -80,20 +99,149 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
       return <Tag color="green" icon={<CheckCircleOutlined />}>有效</Tag>;
     }
     
-    if (!showDetailedErrors) {
-      return <Tag color="red" icon={<CloseCircleOutlined />}>有错误</Tag>;
-    }
-    
     return (
-      <Space direction="vertical" size={2}>
-        {errorArray.map((error: string, index: number) => (
-          <Tag key={index} color="red" className={bulkImportStyles.statusTag}>
-            {error}
-          </Tag>
-        ))}
+      <Space>
+        <Tag color="red" icon={<CloseCircleOutlined />}>
+          {errorArray.length} 个错误
+        </Tag>
+        <Button
+          type="link"
+          size="small"
+          icon={<EyeOutlined />}
+          onClick={() => {
+            setSelectedRecordErrors({ record, errors: errorArray });
+            setErrorDetailModalVisible(true);
+          }}
+          style={{ padding: 0, height: 'auto' }}
+        >
+          查看详情
+        </Button>
       </Space>
     );
   };
+
+  // 错误详情模态框
+  const renderErrorDetailModal = () => (
+    <Modal
+      title="验证错误详情"
+      open={errorDetailModalVisible}
+      onCancel={() => {
+        setErrorDetailModalVisible(false);
+        setSelectedRecordErrors(null);
+      }}
+      footer={[
+        <Button key="close" onClick={() => {
+          setErrorDetailModalVisible(false);
+          setSelectedRecordErrors(null);
+        }}>
+          关闭
+        </Button>
+      ]}
+      width={800}
+    >
+      {selectedRecordErrors && (
+        <div>
+          <Card size="small" style={{ marginBottom: 16 }}>
+            <Typography.Title level={5}>📄 记录信息</Typography.Title>
+            <Row gutter={[16, 8]}>
+              <Col span={8}>
+                <Typography.Text strong>员工编号：</Typography.Text>
+                <Typography.Text>{selectedRecordErrors.record?.employee_id || '-'}</Typography.Text>
+              </Col>
+              <Col span={8}>
+                <Typography.Text strong>员工姓名：</Typography.Text>
+                <Typography.Text>{selectedRecordErrors.record?.employee_name || selectedRecordErrors.record?.employee_full_name || '-'}</Typography.Text>
+              </Col>
+              <Col span={8}>
+                <Typography.Text strong>身份证号：</Typography.Text>
+                <Typography.Text>{selectedRecordErrors.record?.id_number || '-'}</Typography.Text>
+              </Col>
+              <Col span={8}>
+                <Typography.Text strong>应发工资：</Typography.Text>
+                <Typography.Text>{formatCurrency(selectedRecordErrors.record?.gross_pay)}</Typography.Text>
+              </Col>
+              <Col span={8}>
+                <Typography.Text strong>实发工资：</Typography.Text>
+                <Typography.Text>{formatCurrency(selectedRecordErrors.record?.net_pay)}</Typography.Text>
+              </Col>
+              <Col span={8}>
+                <Typography.Text strong>扣除合计：</Typography.Text>
+                <Typography.Text>{formatCurrency(selectedRecordErrors.record?.total_deductions)}</Typography.Text>
+              </Col>
+            </Row>
+          </Card>
+
+          <Card size="small">
+            <Typography.Title level={5}>❌ 验证错误列表 ({selectedRecordErrors.errors.length} 个)</Typography.Title>
+            <List
+              dataSource={selectedRecordErrors.errors}
+              renderItem={(error, index) => {
+                // 解析错误类型
+                let errorType = '其他错误';
+                let errorColor = 'default';
+                
+                if (typeof error === 'string') {
+                  if (error.includes('重复') || error.includes('duplicate') || error.includes('已存在')) {
+                    errorType = '重复记录';
+                    errorColor = 'orange';
+                  } else if (error.includes('必填') || error.includes('required') || error.includes('不能为空')) {
+                    errorType = '必填项缺失';
+                    errorColor = 'red';
+                  } else if (error.includes('格式') || error.includes('format') || error.includes('无效')) {
+                    errorType = '格式错误';
+                    errorColor = 'volcano';
+                  } else if (error.includes('计算') || error.includes('金额') || error.includes('数值')) {
+                    errorType = '计算错误';
+                    errorColor = 'magenta';
+                  } else if (error.includes('员工') || error.includes('employee') || error.includes('找不到')) {
+                    errorType = '员工信息错误';
+                    errorColor = 'blue';
+                  }
+                }
+
+                return (
+                  <List.Item>
+                    <div style={{ width: '100%' }}>
+                      <div style={{ marginBottom: 8 }}>
+                        <Tag color={errorColor}>{errorType}</Tag>
+                        <Typography.Text style={{ fontSize: 12, color: '#999' }}>
+                          错误 #{index + 1}
+                        </Typography.Text>
+                      </div>
+                      <Typography.Text type="danger">
+                        {typeof error === 'string' ? error : JSON.stringify(error, null, 2)}
+                      </Typography.Text>
+                    </div>
+                  </List.Item>
+                );
+              }}
+              size="small"
+            />
+            
+            {/* 错误解决建议 */}
+            <Alert
+              style={{ marginTop: 16 }}
+              type="info"
+              showIcon
+              message="💡 错误解决建议"
+              description={
+                <div>
+                  <p><strong>常见解决方案：</strong></p>
+                  <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                    <li><strong>重复记录错误：</strong>启用"覆盖已有记录"选项，或删除重复数据</li>
+                    <li><strong>必填项缺失：</strong>补充完整的员工信息（编号、姓名等）</li>
+                    <li><strong>格式错误：</strong>检查日期格式(YYYY-MM-DD)、数值格式等</li>
+                    <li><strong>计算错误：</strong>验证应发=收入合计，实发=应发-扣除合计</li>
+                    <li><strong>员工信息错误：</strong>确认员工编号在系统中存在且有效</li>
+                  </ul>
+                </div>
+              }
+            />
+          </Card>
+        </div>
+      )}
+    </Modal>
+  );
 
   // ProTable列定义
   const columns: ProColumns<ValidatedPayrollEntryData>[] = useMemo(() => {
@@ -130,7 +278,7 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
         key: 'gross_pay',
         width: 100,
         align: 'right',
-        render: (value) => typeof value === 'number' ? `¥${value.toFixed(2)}` : value,
+        render: (value) => formatCurrency(value),
       },
       {
         title: '实发工资',
@@ -138,14 +286,14 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
         key: 'net_pay',
         width: 100,
         align: 'right',
-        render: (value) => typeof value === 'number' ? `¥${value.toFixed(2)}` : value,
+        render: (value) => formatCurrency(value),
       },
       {
         title: '验证状态',
         dataIndex: 'validationErrors',
         key: 'validation',
-        width: 120,
-        render: (errors) => renderValidationErrors(errors),
+        width: 180,
+        render: (errors, record) => renderValidationErrors(errors, record),
       }
     ];
 
@@ -393,6 +541,9 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
           </Space>
         </div>
       </ProCard>
+
+      {/* 错误详情模态框 */}
+      {renderErrorDetailModal()}
 
       <style>{`
         .table-row-error {

@@ -32,7 +32,7 @@ export const generateDynamicColumns = (
   data: ValidatedPayrollEntryData[],
   t: TFunction,
   componentDefinitions: PayrollComponentDefinition[],
-  renderValidationErrorsFunc: (errors?: string[]) => React.ReactNode // For validation errors column
+  renderValidationErrorsFunc: (errors?: string[], record?: any) => React.ReactNode // 更新函数签名，支持传递记录数据
 ) => {
   if (!data || data.length === 0) return [];
 
@@ -85,7 +85,7 @@ export const generateDynamicColumns = (
       dataIndex: 'validationErrors',
       key: 'validationErrors',
       width: 200,
-      render: renderValidationErrorsFunc // Use passed render function
+      render: (errors: string[], record: any) => renderValidationErrorsFunc(errors, record) // 传递记录数据
     }
   ];
 

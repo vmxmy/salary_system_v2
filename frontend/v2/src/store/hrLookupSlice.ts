@@ -1,24 +1,27 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { employeeService } from '../services/employeeService';
 import { lookupService } from '../services/lookupService';
 import type { LookupValue, Department, PersonnelCategory, Position } from '../pages/HRManagement/types';
 
-export interface HrLookupState {
+export interface HrLookupData {
   genders: LookupValue[];
   maritalStatuses: LookupValue[];
   educationLevels: LookupValue[];
   employmentTypes: LookupValue[];
-  employeeStatuses: LookupValue[]; // For general employee status
-  departments: Department[]; // For department selection/display
-  personnelCategories: PersonnelCategory[]; // MODIFIED from jobTitles: JobTitle[];
+  employeeStatuses: LookupValue[];
+  departments: Department[];
+  personnelCategories: PersonnelCategory[];
   actualPositions: Position[];
-  jobPositionLevels: LookupValue[]; // 新增职务级别数据
-  // Add other lookup types as needed, e.g., contract types, pay frequencies
-  loading: Record<string, boolean>; // Use a record to track loading for each type
-  errors: Record<string, string | null>; // Use a record for errors
+  jobPositionLevels: LookupValue[];
 }
 
-const initialLookupData: Omit<HrLookupState, 'loading' | 'errors'> = {
+interface HrLookupState extends HrLookupData {
+  loading: { [key: string]: boolean };
+  errors: { [key: string]: string | null };
+}
+
+const initialLookupData: HrLookupData = {
   genders: [],
   maritalStatuses: [],
   educationLevels: [],
@@ -31,23 +34,24 @@ const initialLookupData: Omit<HrLookupState, 'loading' | 'errors'> = {
 };
 
 const initialState: HrLookupState = {
-    ...initialLookupData,
-    loading: {},
-    errors: {},
+  ...initialLookupData,
+  loading: {},
+  errors: {},
 };
 
-// Async Thunk for fetching lookup data
+type LookupType = keyof HrLookupData;
+
 export const fetchHrLookup = createAsyncThunk(
   'hrLookup/fetchLookup',
-  async ({ lookupType, params }: { lookupType: keyof Omit<HrLookupState, 'loading' | 'errors'> | 'all', params?: any }, { rejectWithValue, dispatch }) => {
-    const typesToFetch: (keyof Omit<HrLookupState, 'loading' | 'errors'>)[] = lookupType === 'all'
-      ? Object.keys(initialLookupData) as (keyof Omit<HrLookupState, 'loading' | 'errors'>)[]
+  async ({ lookupType, params }: { lookupType: LookupType | 'all', params?: any }, { dispatch, getState }) => {
+    const state = getState() as { hrLookup: HrLookupState };
+    const typesToFetch: LookupType[] = lookupType === 'all'
+      ? Object.keys(initialLookupData) as LookupType[]
       : [lookupType];
 
-    const fetchedData: Partial<Omit<HrLookupState, 'loading' | 'errors'>> = {};
-    const errors: Record<string, string | null> = {};
-
     for (const type of typesToFetch) {
+      dispatch(hrLookupSlice.actions.setLoading({ type, isLoading: true }));
+      dispatch(hrLookupSlice.actions.setError({ type, error: null }));
       try {
         let data: LookupValue[] | Department[] | PersonnelCategory[] | Position[] = [];
         switch (type) {
@@ -64,7 +68,7 @@ export const fetchHrLookup = createAsyncThunk(
             data = await employeeService.getEmploymentTypesLookup();
             break;
           case 'employeeStatuses':
-             data = await employeeService.getLookupValues('EMPLOYEE_STATUS');
+            data = await employeeService.getLookupValues('EMPLOYEE_STATUS');
             break;
           case 'departments':
             data = await employeeService.getDepartmentsLookup();
@@ -80,68 +84,38 @@ export const fetchHrLookup = createAsyncThunk(
             break;
           default:
             const exhaustiveCheck: never = type;
-            continue;
+            break;
         }
-        fetchedData[type] = data as any; // Type assertion needed due to complex union type
+        dispatch(hrLookupSlice.actions.setLookupData({ type, data }));
       } catch (err: any) {
-        errors[type] = err.message || `Failed to fetch ${type}`;
+        dispatch(hrLookupSlice.actions.setError({ type, error: err.message || `Failed to fetch ${type}` }));
+      } finally {
+        dispatch(hrLookupSlice.actions.setLoading({ type, isLoading: false }));
       }
     }
-
-    if (Object.keys(errors).length > 0) {
-        // Dispatch actions to update state with partial data and errors
-        dispatch(hrLookupSlice.actions.setLookupData(fetchedData));
-        dispatch(hrLookupSlice.actions.setLookupErrors(errors));
-        return rejectWithValue(errors);
-    }
-
-    return fetchedData;
   }
 );
-
 
 const hrLookupSlice = createSlice({
   name: 'hrLookup',
   initialState,
   reducers: {
-    setLookupData: (state, action: PayloadAction<Partial<Omit<HrLookupState, 'loading' | 'errors'>>>) => {
-        Object.assign(state, action.payload);
+    setLoading: (state, action: PayloadAction<{ type: LookupType, isLoading: boolean }>) => {
+      state.loading[action.payload.type] = action.payload.isLoading;
     },
-    setLookupErrors: (state, action: PayloadAction<Record<string, string | null>>) => {
-        state.errors = { ...state.errors, ...action.payload };
+    setError: (state, action: PayloadAction<{ type: LookupType, error: string | null }>) => {
+      state.errors[action.payload.type] = action.payload.error;
     },
-    setLookupLoading: (state, action: PayloadAction<Record<string, boolean>>) => {
-        state.loading = { ...state.loading, ...action.payload };
+    setLookupData: (state, action: PayloadAction<{ type: LookupType, data: any }>) => {
+      state[action.payload.type as keyof HrLookupData] = action.payload.data;
     },
-    clearLookupErrors: (state, action: PayloadAction<string | 'all'>) => {
-        if (action.payload === 'all') {
-            state.errors = {};
-        } else {
-            delete state.errors[action.payload];
-        }
-    }
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchHrLookup.pending, (state, action) => {
-        const typesToFetch: (keyof Omit<HrLookupState, 'loading' | 'errors'>)[] = action.meta.arg.lookupType === 'all'
-            ? Object.keys(initialLookupData) as (keyof Omit<HrLookupState, 'loading' | 'errors'>)[]
-            : [action.meta.arg.lookupType];
-        typesToFetch.forEach(type => { state.loading[type] = true; });
-      })
-      .addCase(fetchHrLookup.fulfilled, (state, action) => {
-        // State updates are handled by setLookupData dispatched in the thunk
-        const typesFetched = Object.keys(action.payload);
-        typesFetched.forEach(type => { state.loading[type] = false; });
-      })
-      .addCase(fetchHrLookup.rejected, (state, action) => {
-        // Errors are handled by setLookupErrors dispatched in the thunk
-        const typesFailed = Object.keys(action.payload as Record<string, string>);
-        typesFailed.forEach(type => { state.loading[type] = false; });
-      });
   },
 });
 
-export const { setLookupData, setLookupErrors, setLookupLoading, clearLookupErrors } = hrLookupSlice.actions;
-
+export const { setLoading, setError, setLookupData } = hrLookupSlice.actions;
 export default hrLookupSlice.reducer;
+
+export const selectHrLookupData = (state: { hrLookup: HrLookupState }) => state.hrLookup;
+export const selectLookupByType = (state: { hrLookup: HrLookupState }, lookupType: LookupType) => state.hrLookup[lookupType];
+export const selectHrLookupLoading = (state: { hrLookup: HrLookupState }, lookupType: LookupType) => state.hrLookup.loading[lookupType];
+export const selectHrLookupError = (state: { hrLookup: HrLookupState }, lookupType: LookupType) => state.hrLookup.errors[lookupType];

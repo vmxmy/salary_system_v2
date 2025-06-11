@@ -1,20 +1,9 @@
 {
-  "table": {
-    "column_id": "ID",
-    "column_employee_name": "Employee Name",
-    "column_gross_pay": "Gross Pay",
-    "column_total_deductions": "Total Deductions",
-    "column_net_pay": "Net Pay",
-    "column_status": "Status",
-    "column_remarks": "Remarks"
-  },
-  "create_entry": "Add Payroll Entry",
   "confirm_delete_title": "Confirm Delete",
-  "confirm_delete_content": "Are you sure you want to delete this payroll entry? This action cannot be undone.",
-  "delete_success": "Payroll entry deleted successfully",
   "delete_failure": "Failed to delete payroll entry",
+  "delete_success": "Payroll entry deleted successfully",
+  "export_button_text": "Export Excel",
   "export_filename_prefix": "PayrollEntries",
   "export_sheet_name": "Payroll Entries",
-  "export_button_text": "Export Excel",
   "export_success_message": "Payroll entries exported successfully"
-} 
+}

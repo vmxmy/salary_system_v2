@@ -1,330 +1,222 @@
 {
-  "title": "极简工资报表系统",
-  "subtitle": "专注三大核心功能：生成工资、审核工资、一键报表",
-  "selectPeriodPlaceholder": "选择或创建工资期间",
-  "page": {
-    "title": "极简工资报表系统",
-    "subtitle": "专注三大核心功能：生成工资、审核工资、一键报表"
-  },
-  "period": {
-    "selectMonth": "选择月份",
-    "selectMonthPlaceholder": "请选择月份",
-    "selectPeriod": "工资期间",
-    "selectPeriodPlaceholder": "请选择工资期间",
-    "noPeriods": "暂无工资期间",
-    "active": "活跃"
-  },
-  "version": {
-    "selectVersion": "版本",
-    "selectVersionPlaceholder": "请选择版本",
-    "noVersions": "暂无版本",
-    "status": {
-      "draft": "草稿",
-      "in_review": "审核中",
-      "approved": "已审核",
-      "paid": "已发放"
-    }
-  },
-  "generate": {
-    "title": "生成工资",
-    "description": "通过Excel导入、复制上月数据或手动创建工资数据",
-    "currentPeriod": "当前期间",
-    "excelImport": "Excel导入",
-    "copyPrevious": "复制上月数据",
-    "downloadTemplate": "下载导入模板",
-    "selectPeriodFirst": "请先选择工资期间",
-    "selectPeriodHint": "请先选择期间和版本",
-    "hasVersion": "已有数据版本",
-    "noVersion": "尚未生成数据",
-    "selectSourcePeriod": "请选择源期间",
-    "defaultCopyDescription": "复制上月工资数据",
-    "loadPeriodsError": "加载期间列表失败",
-    "importSuccess": "导入成功",
-    "importFailed": "导入失败",
-    "copySuccess": "复制成功",
-    "copyFailed": "复制失败",
-    "downloadingTemplate": "正在下载模板...",
-    "noPeriodSelected": "请先选择期间",
-    "importModal": {
-      "title": "Excel导入工资数据",
-      "dragText": "点击或拖拽文件到此区域上传",
-      "hint": "支持.xlsx和.xls格式文件",
-      "processing": "正在处理文件..."
-    },
-    "copyModal": {
-      "title": "复制上月工资数据",
-      "sourcePeriod": "选择源期间",
-      "sourcePeriodRequired": "请选择要复制的源期间",
-      "sourcePeriodPlaceholder": "请选择要复制数据的期间",
-      "periodInfo": "{{runs}}个版本, 状态: {{status}}",
-      "description": "备注说明",
-      "descriptionPlaceholder": "请输入复制操作的备注说明（可选）",
-      "confirm": "开始复制"
-    },
-    "manualCreate": {
-      "button": "手动创建",
-      "title": "手动创建工资数据",
-      "content": "确定要为当前期间手动创建空的工资数据吗？"
-    }
-  },
   "audit": {
-    "title": "审核工资",
-    "description": "自动校验工资数据，检测异常并提供修复建议",
-    "totalEntries": "总条目数",
-    "anomalies": "异常数",
-    "autoFixable": "可自动修复",
-    "runCheck": "执行审核",
-    "viewDetails": "查看详情",
-    "submitForReview": "提交审核",
-    "selectVersionHint": "请先选择版本",
-    "noAuditData": "尚未执行审核",
     "allClear": "所有检查通过",
-    "hasIssues": "发现异常需处理",
+    "anomalies": "异常数",
+    "anomalyType": "异常类型",
+    "autoFix": "自动修复",
+    "autoFixable": "可自动修复",
+    "autoFixFailed": "自动修复失败",
+    "autoFixSuccess": "自动修复完成：成功 {fixed} 项，失败 {failed} 项",
     "checkCompleted": "审核检查完成",
     "checkFailed": "审核检查失败",
-    "autoFixSuccess": "自动修复完成：成功 {fixed} 项，失败 {failed} 项",
-    "autoFixFailed": "自动修复失败",
-    "ignoreSuccess": "忽略异常成功",
-    "ignoreFailed": "忽略异常失败",
-    "statusUpdated": "状态更新成功",
-    "statusUpdateFailed": "状态更新失败",
-    "showOnlyErrors": "仅显示错误",
-    "showAll": "显示全部",
-    "autoFix": "自动修复",
-    "totalAnomalies": "共 {total} 项异常",
-    "employee": "员工",
-    "anomalyType": "异常类型",
-    "severity": {
-      "error": "错误",
-      "warning": "警告",
-      "info": "信息"
-    },
-    "message": "异常信息",
-    "status": "状态",
-    "autoFixable": "可自动修复",
-    "ignored": "已忽略",
-    "ignore": "忽略",
-    "ignoreConfirm": "确认忽略此异常？",
-    "ignoreReason": "请输入忽略原因",
-    "types": {
-      "minimum_wage": "最低工资",
-      "tax_calculation": "个税计算",
-      "social_security": "社保合规",
-      "salary_variance": "工资波动",
-      "missing_data": "数据缺失"
-    },
+    "description": "自动校验工资数据，检测异常并提供修复建议",
     "detailModal": {
       "title": "工资审核详情"
     },
-    "startAudit": "开始审核",
-    "summary": {
-      "totalEntries": "工资条目数",
-      "totalAnomalies": "异常总数",
-      "errorCount": "错误数",
-      "warningCount": "警告数",
-      "autoFixableCount": "可自动修复"
-    }
-  },
-  "reports": {
-    "title": "一键报表",
-    "description": "快速生成各类工资报表，支持多种格式导出",
-    "currentPeriod": "当前期间",
-    "version": "版本",
-    "quickGenerate": {
-      "salaryTable": "工资总表",
-      "taxDeclaration": "个税申报表"
-    },
-    "customGenerate": "自定义报表",
-    "selectPeriodFirst": "请先选择工资期间",
-    "selectPeriodHint": "请先选择期间",
-    "noVersionSelected": "请先选择要生成报表的工资版本",
-    "readyToGenerate": "准备就绪",
-    "loadFailed": "加载报表列表失败",
-    "selectReportsFirst": "请先选择要生成的报表",
-    "generateStarted": "报表生成已开始",
-    "generateCompleted": "报表生成完成",
-    "generateFailed": "报表生成失败",
-    "downloadStarted": "开始下载",
-    "downloadFailed": "下载失败",
-    "noMatchingReports": "未找到匹配的报表",
-    "generateReports": "生成报表",
-    "viewTemplates": "查看模板",
-    "inactive": "未激活",
-    "supportedFormats": "支持格式",
-    "status": {
-      "pending": "等待中",
-      "processing": "处理中",
-      "completed": "已完成",
-      "failed": "失败"
-    },
-    "customModal": {
-      "title": "自定义报表生成",
-      "outputFormat": "输出格式",
-      "includeDetails": "包含详细信息",
-      "selectReports": "选择报表",
-      "selectedCount": "已选择 {count} 个报表"
-    }
-  },
-  "common": {
-    "entries": "条",
-    "confirm": "确认",
-    "cancel": "取消",
-    "close": "关闭",
-    "actions": "操作"
-  },
-  "tips": {
-    "selectPeriodFirst": "请先选择工资期间以开始操作"
-  },
-  "controls": {
-    "title": "核心控制",
-    "period": "工资期间",
-    "periodLabel": "工资期间",
-    "selectPeriod": "请选择工资期间",
-    "versionLabel": "工资版本",
-    "selectPeriodPlaceholder": "选择或创建工资期间",
-    "versionPlaceholder": "选择一个数据版本"
-  },
-  "excel": {
-    "title": "Excel导入工资数据",
-    "templateDownloadStarted": "模板下载已开始",
-    "uploadFailed": "文件上传失败",
-    "importSuccess": "导入成功",
-    "importFailed": "导入失败",
-    "validationRequired": "请先验证数据",
-    "dragUpload": "点击或拖拽文件到此区域上传",
-    "uploadHint": "支持 .xlsx, .xls 格式，文件大小不超过10MB",
-    "steps": {
-      "upload": "上传文件",
-      "preview": "数据预览",
-      "validate": "数据验证",
-      "import": "执行导入"
-    },
-    "uploadTips": {
-      "title": "上传要求",
-      "format": "支持Excel格式文件（.xlsx, .xls）",
-      "encoding": "请使用UTF-8编码保存文件",
-      "size": "文件大小不超过10MB"
-    },
-    "downloadTemplate": "下载导入模板",
-    "uploadSuccess": "文件上传成功",
-    "previewDescription": "成功解析 {{count}} 条记录，文件名：{{filename}}",
-    "continueValidation": "继续验证",
-    "validationErrors": "发现 {{count}} 个错误",
-    "validationWarnings": "发现 {{count}} 个警告",
-    "validationPassed": "数据验证通过",
-    "readyToImport": "准备导入 {{count}} 条记录",
-    "startImport": "开始导入",
-    "importing": "正在导入数据...",
-    "importProgress": "导入进度：{{progress}}%",
-    "columns": {
-      "employeeCode": "员工编号",
-      "employeeName": "姓名",
-      "department": "部门",
-      "basicSalary": "基本工资",
-      "grossPay": "应发工资",
-      "netPay": "实发工资"
-    },
-    "validation": {
-      "missingEmployeeCode": "第{{row}}行：缺少员工编号",
-      "missingEmployeeName": "第{{row}}行：缺少员工姓名",
-      "negativeBasicSalary": "第{{row}}行：基本工资不能为负数",
-      "grossPayMismatch": "第{{row}}行：应发工资计算不匹配",
-      "netPayMismatch": "第{{row}}行：实发工资计算不匹配"
-    }
-  },
-  "messages": {
-    "copySuccess": "复制工资数据成功",
-    "createSuccess": "创建工资数据成功"
-  },
-  "errors": {
-    "fetchPeriodFailed": "查找或创建工资期间失败",
-    "fetchSourcePeriods": "获取可复制期间失败",
-    "copyFailed": "复制工资数据失败",
-    "createFailed": "创建工资数据失败"
-  },
-  "hints": {
-    "selectPeriod": "请先选择一个工资期间来开始操作",
-    "noVersions": "当前期间还没有工资版本，请先生成工资数据"
-  },
-  "emptyState": {
-    "title": "请选择一个工资期间",
-    "message": "选择或创建一个工资期间后，您可以在此管理工资单。"
-  },
-  "quickActions": {
-    "title": "快捷操作",
-    "bulkImport": "批量导入工资数据",
-    "copyLastMonth": "一键复制上月数据"
-  },
-  "completionRequirements": {
-    "title": "完成要求",
-    "item1": "所有员工数据已录入",
-    "item2": "薪资标准已配置",
-    "item3": "考勤与绩效已核算"
-  },
-  "operationalTips": {
-    "title": "操作提示",
-    "item1": "建议先进行数据备份",
-    "item2": "如有疑问请联系管理员"
+    "employee": "员工",
+    "hasIssues": "发现异常需处理",
+    "ignore": "忽略",
+    "ignoreConfirm": "确认忽略此异常？",
+    "ignored": "已忽略",
+    "ignoreFailed": "忽略异常失败",
+    "ignoreReason": "请输入忽略原因",
+    "ignoreSuccess": "忽略异常成功",
+    "message": "异常信息",
+    "noAuditData": "尚未执行审核",
+    "runCheck": "执行审核",
+    "selectVersionHint": "请先选择版本",
+    "severity": "",
+    "showAll": "显示全部",
+    "showOnlyErrors": "仅显示错误",
+    "status": "状态",
+    "statusUpdated": "状态更新成功",
+    "statusUpdateFailed": "状态更新失败",
+    "submitForReview": "提交审核",
+    "title": "审核工资",
+    "totalAnomalies": "共 {total} 项异常",
+    "totalEntries": "总条目数",
+    "viewDetails": "查看详情"
   },
   "batchAdjust": {
-    "title": "批量调整",
-    "info": {
-      "title": "批量调整信息",
-      "description": "对 {{period}} 期间的 {{entries}} 条薪资记录进行批量调整"
-    },
-    "employeeSelection": {
-      "title": "选择员工",
-      "selectAll": "全选",
-      "clearAll": "清空",
-      "selected": "已选择 {{count}}/{{total}} 个员工",
-      "placeholder": "搜索并选择员工"
-    },
-    "rules": {
-      "title": "调整规则",
-      "add": "添加规则",
-      "help": "支持绝对值调整、百分比调整等多种方式",
-      "empty": "暂无调整规则，点击上方按钮添加"
+    "actions": {
+      "execute": "执行调整",
+      "preview": "预览调整"
     },
     "columns": {
       "component": "薪资组件",
+      "description": "说明",
       "operation": "操作",
-      "value": "数值",
-      "description": "说明"
-    },
-    "placeholders": {
-      "selectComponent": "选择薪资组件",
-      "description": "调整说明"
+      "value": "数值"
     },
     "description": {
       "label": "调整说明",
       "placeholder": "请输入本次批量调整的详细说明..."
     },
+    "employeeSelection": {
+      "clearAll": "清空",
+      "placeholder": "搜索并选择员工",
+      "selectAll": "全选",
+      "selected_other": "",
+      "title": "选择员工"
+    },
+    "errors": {
+      "execute": "执行批量调整失败",
+      "fetchComponents": "获取薪资组件失败",
+      "fetchEmployees": "获取员工列表失败",
+      "preview": "预览调整结果失败"
+    },
+    "info": {
+      "description": "对 {{period}} 期间的 {{entries}} 条薪资记录进行批量调整",
+      "title": "批量调整信息"
+    },
+    "messages": {
+      "success_other": ""
+    },
+    "placeholders": {
+      "description": "调整说明",
+      "selectComponent": "选择薪资组件"
+    },
     "preview": {
-      "title": "预览调整结果",
-      "summary": "将影响 {{count}} 条薪资记录",
+      "component": "组件",
+      "difference": "差额",
       "employeeCode": "员工编号",
       "employeeName": "员工姓名",
-      "component": "组件",
-      "oldValue": "调整前",
       "newValue": "调整后",
-      "difference": "差额"
+      "oldValue": "调整前",
+      "summary_other": "",
+      "title": "预览调整结果"
     },
+    "rules": {
+      "add": "添加规则",
+      "empty": "暂无调整规则，点击上方按钮添加",
+      "help": "支持绝对值调整、百分比调整等多种方式",
+      "title": "调整规则"
+    },
+    "title": "批量调整",
     "warnings": {
       "noRules": "请先添加调整规则",
       "previewFirst": "请先预览调整结果"
-    },
-    "errors": {
-      "fetchComponents": "获取薪资组件失败",
-      "fetchEmployees": "获取员工列表失败",
-      "preview": "预览调整结果失败",
-      "execute": "执行批量调整失败"
-    },
-    "messages": {
-      "success": "批量调整成功，共影响 {{count}} 条记录"
-    },
-    "actions": {
-      "preview": "预览调整",
-      "execute": "执行调整"
     }
-  }
-} 
+  },
+  "common": {
+    "entries": "条"
+  },
+  "controls": {
+    "period": "工资期间",
+    "selectPeriod": "请选择工资期间",
+    "title": "核心控制"
+  },
+  "emptyState": {
+    "message": "选择或创建一个工资期间后，您可以在此管理工资单。",
+    "title": "请选择一个工资期间"
+  },
+  "errors": {
+    "copyFailed": "复制工资数据失败",
+    "createFailed": "创建工资数据失败",
+    "fetchPeriodFailed": "查找或创建工资期间失败",
+    "fetchSourcePeriods": "获取可复制期间失败"
+  },
+  "excel": {
+    "columns": {
+      "basicSalary": "基本工资",
+      "department": "部门",
+      "employeeCode": "员工编号",
+      "employeeName": "姓名",
+      "grossPay": "应发工资",
+      "netPay": "实发工资"
+    },
+    "continueValidation": "继续验证",
+    "downloadTemplate": "下载导入模板",
+    "dragUpload": "点击或拖拽文件到此区域上传",
+    "importFailed": "导入失败",
+    "importing": "正在导入数据...",
+    "importProgress": "导入进度：{{progress}}%",
+    "importSuccess": "导入成功",
+    "previewDescription_other": "",
+    "readyToImport_other": "",
+    "startImport": "开始导入",
+    "steps": {
+      "import": "执行导入",
+      "preview": "数据预览",
+      "upload": "上传文件",
+      "validate": "数据验证"
+    },
+    "templateDownloadStarted": "模板下载已开始",
+    "title": "Excel导入工资数据",
+    "uploadFailed": "文件上传失败",
+    "uploadHint": "支持 .xlsx, .xls 格式，文件大小不超过10MB",
+    "uploadSuccess": "文件上传成功",
+    "uploadTips": {
+      "encoding": "请使用UTF-8编码保存文件",
+      "format": "支持Excel格式文件（.xlsx, .xls）",
+      "size": "文件大小不超过10MB",
+      "title": "上传要求"
+    },
+    "validation": {
+      "grossPayMismatch": "第{{row}}行：应发工资计算不匹配",
+      "missingEmployeeCode": "第{{row}}行：缺少员工编号",
+      "missingEmployeeName": "第{{row}}行：缺少员工姓名",
+      "negativeBasicSalary": "第{{row}}行：基本工资不能为负数",
+      "netPayMismatch": "第{{row}}行：实发工资计算不匹配"
+    },
+    "validationErrors_other": "",
+    "validationPassed": "数据验证通过",
+    "validationRequired": "请先验证数据",
+    "validationWarnings_other": ""
+  },
+  "generate": {
+    "copyModal": {
+      "confirm": "开始复制",
+      "description": "备注说明",
+      "descriptionPlaceholder": "请输入复制操作的备注说明（可选）",
+      "periodInfo": "{{runs}}个版本, 状态: {{status}}",
+      "sourcePeriod": "选择源期间",
+      "sourcePeriodPlaceholder": "请选择要复制数据的期间",
+      "sourcePeriodRequired": "请选择要复制的源期间",
+      "title": "复制上月工资数据"
+    },
+    "copyPrevious": "复制上月数据",
+    "description": "通过Excel导入、复制上月数据或手动创建工资数据",
+    "downloadTemplate": "下载导入模板",
+    "excelImport": "Excel导入",
+    "manualCreate": {
+      "button": "手动创建",
+      "content": "确定要为当前期间手动创建空的工资数据吗？",
+      "title": "手动创建工资数据"
+    },
+    "noPeriodSelected": "请先选择期间",
+    "title": "生成工资"
+  },
+  "hints": {
+    "noVersions": "当前期间还没有工资版本，请先生成工资数据",
+    "selectPeriod": "请先选择一个工资期间来开始操作"
+  },
+  "messages": {
+    "copySuccess": "复制工资数据成功",
+    "createSuccess": "创建工资数据成功"
+  },
+  "quickActions": {
+    "bulkImport": "批量导入工资数据",
+    "copyLastMonth": "一键复制上月数据",
+    "title": "快捷操作"
+  },
+  "reports": {
+    "currentPeriod": "当前期间",
+    "customGenerate": "自定义报表",
+    "description": "快速生成各类工资报表，支持多种格式导出",
+    "generateCompleted": "报表生成完成",
+    "generateFailed": "报表生成失败",
+    "noVersionSelected": "请先选择要生成报表的工资版本",
+    "quickGenerate": {
+      "salaryTable": "工资总表",
+      "taxDeclaration": "个税申报表"
+    },
+    "readyToGenerate": "准备就绪",
+    "selectPeriodFirst": "请先选择工资期间",
+    "selectPeriodHint": "请先选择期间",
+    "title": "一键报表",
+    "version": "版本"
+  },
+  "subtitle": "专注三大核心功能：生成工资、审核工资、一键报表",
+  "title": "极简工资报表系统"
+}

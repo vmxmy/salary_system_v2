@@ -267,6 +267,7 @@ export const routes: AppRouteObject[] = [
         children: [
           { index: true, element: <Navigate to="my-info" replace /> },
           { path: 'my-info', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Info...</div>}><MyInfo /></React.Suspense>, meta: { title: 'menu:personal.myInfo' } },
+          { path: 'my-info/edit', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Edit My Info...</div>}>{React.createElement(lazy(() => import('../pages/Employee/MyInfo/EditMyInfoPage')))}</React.Suspense>, meta: { title: 'menu:personal.editMyInfo' } },
           { path: 'my-payslips', element: <React.Suspense fallback={<div className="page-loading-suspense">Loading My Payslips...</div>}><MyPayslips /></React.Suspense>, meta: { title: 'menu:personal.myPayslips' } },
           { path: 'my-leave', element: <LeavePage />, meta: { title: 'menu:personal.myLeave' } },
         ],

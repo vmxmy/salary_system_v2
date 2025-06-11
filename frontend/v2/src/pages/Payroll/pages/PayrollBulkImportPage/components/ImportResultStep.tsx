@@ -22,7 +22,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { UploadResult } from '../hooks/usePayrollImport';
+import type { UploadResult } from '../types/constants';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;

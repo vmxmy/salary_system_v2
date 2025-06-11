@@ -39,6 +39,20 @@ export interface ProcessedImportData {
   totalRecords: number;
 }
 
+// 新增：中文姓名拆分工具函数
+const commonTwoCharSurnames = ["欧阳", "太史", "端木", "上官", "司马", "东方", "独孤", "南宫", "万俟", "闻人", "夏侯", "诸葛", "尉迟", "公羊", "赫连", "澹台", "皇甫", "宗政", "濮阳", "公冶", "太叔", "申屠", "公孙", "慕容", "仲孙", "钟离", "长孙", "宇文", "司徒", "鲜于", "司空", "闾丘", "子车", "亓官", "司寇", "巫马", "公西", "颛孙", "壤驷", "公良", "漆雕", "乐正", "宰父", "谷梁", "拓跋", "夹谷", "轩辕", "令狐", "段干", "百里", "呼延", "东郭", "南门", "羊舌", "微生", "公户", "公玉", "公仪", "梁丘", "公仲", "公上", "公门", "公山", "公坚", "左丘", "公伯", "西门", "公祖", "第五", "公乘", "贯丘", "公皙", "南荣", "东里", "东宫", "仲长", "子书", "子桑", "即墨", "达奚", "褚师"];
+
+function splitChineseName(fullName: string): { lastName: string; firstName: string } {
+  if (!fullName || fullName.length < 2) {
+    return { lastName: fullName || '', firstName: '' };
+  }
+  const twoCharSurname = commonTwoCharSurnames.find(surname => fullName.startsWith(surname));
+  if (twoCharSurname && fullName.length > 2) {
+    return { lastName: twoCharSurname, firstName: fullName.substring(2) };
+  }
+  return { lastName: fullName.substring(0, 1), firstName: fullName.substring(1) };
+}
+
 /**
  * 验证批量导入薪资数据
  * @param data 原始薪资条目数据
@@ -80,85 +94,19 @@ export const validateBulkImportData = async (
 
     const payload = {
       payroll_period_id: periodId,
-      entries
+      entries,
+      overwrite_mode: overwriteMode
     };
 
     const response = await apiClient.post<BulkImportValidationResult>(
       '/payroll-entries/bulk/validate',
-      payload
+      payload,
+      {
+        timeout: 300000 // 5分钟超时
+      }
     );
     
-    let validationResult = response.data;
-    
-    // 如果启用了覆盖模式，将"记录已存在"的错误转换为警告
-    if (overwriteMode && validationResult.errors && validationResult.errors.length > 0) {
-      console.log('🔍 覆盖模式：开始处理错误转换:', {
-        totalErrors: validationResult.errors.length,
-        errors: validationResult.errors
-      });
-      
-      const processedErrors: string[] = [];
-      let convertedWarnings = 0;
-      
-      validationResult.errors.forEach((error, index) => {
-        const errorLower = error.toLowerCase();
-        
-        // 检查是否为"记录已存在"类型的错误 - 扩展关键词匹配
-        const isDuplicateError = 
-          error.includes('已存在') || 
-          error.includes('duplicate') || 
-          error.includes('重复') ||
-          errorLower.includes('already exists') ||
-          errorLower.includes('exists') ||
-          errorLower.includes('conflict') ||
-          errorLower.includes('unique') ||
-          error.includes('唯一') ||
-          error.includes('冲突');
-          
-        console.log(`🔍 错误 ${index + 1}:`, {
-          error,
-          isDuplicateError,
-          errorLower
-        });
-        
-        if (isDuplicateError) {
-          // 转换为警告，不计入错误
-          convertedWarnings++;
-          console.log('⚠️ 覆盖模式：将重复记录错误转换为警告:', error);
-        } else {
-          // 保留其他类型的错误
-          processedErrors.push(error);
-          console.log('❌ 保留错误:', error);
-        }
-      });
-      
-      // 更新验证结果
-      if (convertedWarnings > 0) {
-        const originalValid = validationResult.valid;
-        const originalInvalid = validationResult.invalid;
-        
-        validationResult = {
-          ...validationResult,
-          errors: processedErrors,
-          warnings: (validationResult.warnings || 0) + convertedWarnings,
-          // 重新计算有效/无效记录数
-          valid: validationResult.valid + convertedWarnings,
-          invalid: Math.max(0, validationResult.invalid - convertedWarnings)
-        };
-        
-        console.log('✅ 覆盖模式处理完成:', {
-          convertedWarnings,
-          remainingErrors: processedErrors.length,
-          originalValid,
-          originalInvalid,
-          newValidCount: validationResult.valid,
-          newInvalidCount: validationResult.invalid,
-          finalResult: validationResult
-        });
-      } else {
-        console.log('⚠️ 覆盖模式：没有找到可转换的重复记录错误');
-      }
-    }
+    const validationResult = response.data;
     
     console.log('✅ 薪资数据验证成功:', validationResult);
     return validationResult;
@@ -219,17 +167,19 @@ export const processRawTableData = (
         return;
       }
 
+      // 新增：处理姓名自动拆分
+      if (targetField === 'split_full_name') {
+        const fullName = String(value).trim();
+        const { lastName, firstName } = splitChineseName(fullName);
+        entry.last_name = lastName;
+        entry.first_name = firstName;
+        entry.employee_name = fullName; // 保留完整姓名
+      }
       // 处理基础字段
-      if (targetField === 'employee_full_name') {
-        entry.employee_full_name = String(value).trim();
-        entry.employee_name = String(value).trim();
-        
-        // 尝试拆分姓名
-        const nameParts = String(value).trim().split('');
-        if (nameParts.length >= 2) {
-          entry.last_name = nameParts[0];
-          entry.first_name = nameParts.slice(1).join('');
-        }
+      else if (targetField === 'lastName') {
+        entry.last_name = String(value).trim();
+      } else if (targetField === 'firstName') {
+        entry.first_name = String(value).trim();
       } else if (targetField === 'employee_code') {
         entry.employee_code = String(value).trim();
       } else if (targetField === 'id_number') {
@@ -293,12 +243,18 @@ export const processRawTableData = (
     // 设置总收入（通常等于应发工资）
     entry.total_earnings = entry.gross_pay;
     
+    // 构造完整的 employee_name
+    if (entry.last_name && entry.first_name && !entry.employee_name) {
+      entry.employee_name = `${entry.last_name}${entry.first_name}`;
+    }
+
     // 设置员工信息用于后端匹配
-    if (entry.last_name && entry.first_name && entry.id_number) {
+    if (entry.employee_code || (entry.last_name && entry.first_name)) {
       entry.employee_info = {
         last_name: entry.last_name,
         first_name: entry.first_name,
-        id_number: entry.id_number
+        id_number: entry.id_number,
+        employee_code: entry.employee_code,
       };
     }
 
@@ -323,9 +279,13 @@ export const executeBulkImport = async (
       overwriteMode: data.overwrite_mode
     });
 
+    // 为批量导入设置更长的超时时间（10分钟）
     const response = await apiClient.post<BulkCreatePayrollEntriesResult>(
       '/payroll-entries/bulk',
-      data
+      data,
+      {
+        timeout: 600000 // 10分钟超时
+      }
     );
     
     console.log('✅ 批量导入成功:', response.data);
@@ -408,6 +368,54 @@ export const getActivePayrollPeriods = async (): Promise<PayrollPeriod[]> => {
   } catch (error: any) {
     console.error('❌ 获取薪资周期失败:', error);
     throw new Error(`获取薪资周期失败: ${error.response?.data?.detail?.error?.message || error.message}`);
+  }
+};
+
+/**
+ * 💡 获取薪资组件定义列表（支持参数）
+ * 专门为动态映射表提供的方法
+ * @param params 查询参数
+ * @returns 薪资组件定义列表
+ */
+export const getPayrollComponentDefinitions = async (params: {
+  is_active?: boolean;
+  size?: number;
+  type?: string;
+}): Promise<ApiListResponse<PayrollComponentDefinition>> => {
+  try {
+    console.log('🔍 [getPayrollComponentDefinitions] 获取工资组件定义:', params);
+    
+    const response = await apiClient.get<ApiListResponse<PayrollComponentDefinition>>(
+      '/config/payroll-component-definitions',
+      {
+        params: {
+          is_active: true,
+          size: 200,
+          ...params
+        }
+      }
+    );
+    
+    console.log('✅ [getPayrollComponentDefinitions] 获取成功:', {
+      count: response.data.data?.length || 0,
+      total: response.data.total
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ [getPayrollComponentDefinitions] 获取失败:', error);
+    
+    // 提取详细错误信息
+    let errorMessage = '获取工资组件定义失败';
+    if (error.response?.data?.detail?.error?.message) {
+      errorMessage = error.response.data.detail.error.message;
+    } else if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    throw new Error(errorMessage);
   }
 };
 
@@ -709,7 +717,8 @@ export const generateComponentSelectOptions = (components: PayrollComponentDefin
     { value: '__CALCULATED_FIELD__', label: '【计算字段】由系统自动计算', component: null as any },
     { value: '__SOCIAL_INSURANCE_GROUP__', label: '【社保组合】建议拆分为具体险种', component: null as any },
     { value: '__IGNORE_FIELD__', label: '【忽略】不导入此字段', component: null as any },
-    { value: '__ROW_NUMBER__', label: '【行号】用于标识记录序号', component: null as any }
+    { value: '__ROW_NUMBER__', label: '【行号】用于标识记录序号', component: null as any },
+    { value: '__UNMAPPED_FIELD__', label: '【未映射】需要手动指定目标字段', component: null as any }
   );
 
   // 按组件名称排序（display_order属性暂时不可用）

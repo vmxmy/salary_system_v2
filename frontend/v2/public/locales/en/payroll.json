@@ -3,7 +3,6 @@
   "absent_days": "",
   "activate": "",
   "active": "",
-  "attendance": "Attendance Management",
   "actual_work_days": "",
   "annual_leave": "",
   "attendance_date": "",
@@ -42,7 +41,6 @@
   "auto_93_3933e5": "93年工改保留补贴",
   "auto_api__415049": "API响应元数据:",
   "auto_calculate": "",
-  "calculationConfig": "Payroll Calculation Config",
   "auto_excel_e5afbc": "导出Excel",
   "auto_id_employee_actual_position_id__e8818c": "职位ID: ${employee.actual_position_id}",
   "auto_id_employee_department_id__e983a8": "部门ID: ${employee.department_id}",
@@ -102,6 +100,9 @@
   "auto_text_e9878d": "重新导入",
   "auto_text_e9bb98": "默认部门",
   "basic_salary": "",
+  "batch_delete_button_text": "",
+  "batch_delete_failed": "",
+  "batch_delete_success": "",
   "batch_import": {
     "button": {
       "back_to_entries": "Back to Entries",
@@ -109,7 +110,9 @@
       "import_another_file": "Import Another File",
       "parse_and_preview": "Parse and Preview Data",
       "re_import": "",
-      "show_error_details": "Show Error Details"
+      "show_error_details": "Show Error Details",
+      "start_again": "",
+      "view_entries": ""
     },
     "card_title": {
       "preview_data_count_one": "",
@@ -194,6 +197,45 @@
     "placeholder": {
       "enter_json": "Enter JSON data in the required format"
     },
+    "result": {
+      "created_entries_preview": "",
+      "entry_item": "",
+      "error_alert_desc": "",
+      "error_alert_title": "",
+      "error_details_title": "",
+      "error_table": {
+        "employee_id": "",
+        "error_message": "",
+        "index": ""
+      },
+      "failure_subtitle_one": "",
+      "failure_subtitle_other": "",
+      "failure_suggestion": "",
+      "failure_suggestion_desc": "",
+      "failure_title": "",
+      "more_entries_one": "",
+      "more_entries_other": "",
+      "next_steps_title": "",
+      "no_result": "",
+      "partial_subtitle": "",
+      "partial_suggestion": "",
+      "partial_suggestion_desc": "",
+      "partial_title": "",
+      "statistics": {
+        "failed": "",
+        "successful": "",
+        "total_processed": ""
+      },
+      "success_alert_desc_one": "",
+      "success_alert_desc_other": "",
+      "success_alert_title": "",
+      "success_details_title_one": "",
+      "success_details_title_other": "",
+      "success_subtitle_one": "",
+      "success_subtitle_other": "",
+      "success_suggestion": "",
+      "success_title": ""
+    },
     "results": {
       "all_failed_at_server_one": "all_failed_at_server",
       "all_failed_at_server_other": "all_failed_at_server",
@@ -208,6 +250,10 @@
       "error_message": "Error Message",
       "title_failed_records": "Failed Records",
       "title_successfully_imported_records_preview": "Successfully Imported Records Preview"
+    },
+    "step": {
+      "result": "",
+      "result_subtitle": ""
     },
     "steps": {
       "input_data": "Input Data",
@@ -239,17 +285,13 @@
     }
   },
   "break_duration": "",
-  "calculate": "",
+  "calculate": "Calculate",
+  "calculating": "",
   "calculation_config": {
-    "occupational_pension": "Occupational Pension",
-    "occupational_pension_employee_rate": "Employee Occupational Pension Rate",
-    "occupational_pension_employer_rate": "Employer Occupational Pension Rate",
-    "serious_illness_insurance": "Serious Illness Insurance",
-    "serious_illness_employee_rate": "Employee Serious Illness Insurance Rate",
-    "serious_illness_employer_rate": "Employer Serious Illness Insurance Rate",
     "add_tax_bracket": "",
     "additional_deductions": "",
     "base_calculation_method": "",
+    "basic_info": "",
     "basic_salary": "",
     "child_deduction": "",
     "config_name": "",
@@ -265,19 +307,41 @@
     "effective_date": "",
     "elderly_deduction": "",
     "expiry_date": "",
+    "gross_salary": "",
+    "housing_fund": "",
+    "housing_fund_base_limits": "",
+    "housing_fund_base_max": "",
+    "housing_fund_base_min": "",
+    "housing_fund_employee_rate": "",
+    "housing_fund_employer_rate": "",
     "housing_fund_rate": "",
+    "injury_employer_rate": "",
+    "injury_insurance": "",
+    "injury_insurance_note": "",
+    "injury_rate": "",
     "insurance_base_limits": "",
     "insurance_rates": "",
+    "maternity_employer_rate": "",
+    "maternity_insurance": "",
+    "maternity_insurance_note": "",
     "max_amount": "",
+    "medical_base_limits": "",
+    "medical_base_max": "",
+    "medical_base_min": "",
     "medical_employee_rate": "",
     "medical_employer_rate": "",
-    "medical_rate": "",
+    "medical_insurance": "",
     "min_amount": "",
+    "occupational_pension": "Occupational Pension",
+    "occupational_pension_employee_rate": "Employee Occupational Pension Rate",
+    "occupational_pension_employer_rate": "Employer Occupational Pension Rate",
     "page_title": "",
+    "pension_base_limits": "",
     "pension_base_max": "",
     "pension_base_min": "",
     "pension_employee_rate": "",
     "pension_employer_rate": "",
+    "pension_insurance": "",
     "pension_rate": "",
     "quick_deduction": "",
     "region": "",
@@ -287,6 +351,9 @@
     "rule_set_name_placeholder": "",
     "rule_sets": "",
     "rules_count": "",
+    "serious_illness_employee_rate": "Employee Serious Illness Insurance Rate",
+    "serious_illness_employer_rate": "Employer Serious Illness Insurance Rate",
+    "serious_illness_insurance": "Serious Illness Insurance",
     "social_insurance": "",
     "standard_deduction": "",
     "tax_brackets": "",
@@ -296,9 +363,16 @@
     "tax_rate": "",
     "tax_year": "",
     "total_salary": "",
+    "unemployment_base_limits": "",
+    "unemployment_base_max": "",
+    "unemployment_base_min": "",
+    "unemployment_employee_rate": "",
+    "unemployment_employer_rate": "",
+    "unemployment_insurance": "",
+    "unemployment_rate": "",
     "unlimited": ""
   },
-  "calculation_failed": "",
+  "calculation_failed": "Calculation failed",
   "calculation_preview": {
     "all_employees": "",
     "async_mode": "",
@@ -322,7 +396,7 @@
     "total_social_insurance_employer": "",
     "total_tax": ""
   },
-  "calculation_success": "",
+  "calculation_success": "Calculation successful",
   "check_in_time": "",
   "check_out_time": "",
   "components": {
@@ -330,7 +404,6 @@
       "housing_fund_personal": "Personal Housing Fund",
       "medical_ins_personal_amount": "Personal Medical Insurance",
       "occupational_pension_personal_amount": "Personal Occupational Pension",
-      "serious_illness_personal_amount": "Personal Serious Illness Insurance",
       "pension_personal_amount": "Personal Pension Insurance",
       "personal_income_tax": "Personal Income Tax",
       "unemployment_personal_amount": "Personal Unemployment Insurance"
@@ -356,7 +429,9 @@
       "traffic_allowance": "Traffic Allowance"
     }
   },
-  "confirm_delete_content": "",
+  "confirm_batch_delete_content": "",
+  "confirm_batch_delete_title": "",
+  "confirm_delete_content": "Are you sure you want to delete this payroll run? This action cannot be undone.",
   "confirm_delete_daily_record": "",
   "confirm_delete_daily_record_content": "",
   "confirm_delete_period": "",
@@ -365,9 +440,9 @@
   "confirm_delete_record_content": "",
   "confirm_delete_rule": "",
   "confirm_delete_rule_content": "",
-  "confirm_delete_title": "",
-  "confirm_mark_as_paid_content": "",
-  "confirm_mark_as_paid_title": "",
+  "confirm_delete_title": "Confirm Delete",
+  "confirm_mark_as_paid_content": "Are you sure you want to mark this payroll run as paid?",
+  "confirm_mark_as_paid_title": "Confirm Mark as Paid",
   "create_attendance_period": "",
   "create_attendance_record": "",
   "create_attendance_rule": "",
@@ -378,8 +453,8 @@
   "daily_attendance": "",
   "date_range": "",
   "deactivate": "",
-  "delete_failed": "",
-  "delete_success": "",
+  "delete_failed": "Delete failed",
+  "delete_success": "Delete successful",
   "early_leave": "",
   "early_leave_count": "",
   "early_leave_threshold": "",
@@ -506,6 +581,7 @@
     "draft": "draft",
     "submitted": "submitted"
   },
+  "error_delete_conflict_associated_data": "",
   "export_bank_file": "",
   "export_failed": "",
   "export_success": "",
@@ -529,15 +605,7 @@
   "maternity_leave": "",
   "net_salary": "",
   "no_payroll_period": "Payroll period information not found, cannot perform calculation.",
-  "calculate": "Calculate", 
-  "calculation_success": "Calculation successful",
-  "calculation_failed": "Calculation failed",
-  "confirm_delete_title": "Confirm Delete",
-  "confirm_delete_content": "Are you sure you want to delete this payroll run? This action cannot be undone.",
-  "delete_success": "Delete successful",
-  "delete_failed": "Delete failed",
-  "confirm_mark_as_paid_title": "Confirm Mark as Paid",
-  "confirm_mark_as_paid_content": "Are you sure you want to mark this payroll run as paid?",
+  "no_selection_message": "",
   "normal": "",
   "notes": "",
   "notes_placeholder": "",
@@ -568,8 +636,10 @@
     "title": ""
   },
   "payroll_runs": "",
+  "pdf_export_not_supported": "",
   "period_name": "",
   "period_name_placeholder": "",
+  "period_not_found": "",
   "period_status": {
     "active": "active",
     "archived": "archived",
@@ -618,134 +688,115 @@
   "work_end_time": "",
   "work_hours": "",
   "work_start_time": "",
-  "table_converter": {
-    "placeholder": "Please paste table text in format: column1,column2,column3...",
-    "parse_table": "Parse Table"
-  },
-  "payroll_run_status": {
-    "pending_calculation": "Pending Calculation",
-    "calculated": "Calculated",
-    "approved_for_payment": "Approved for Payment",
-    "paid": "Paid"
-  },
-  "run": {
-    "common": {
-      "unknown_status_param": "Unknown Status (ID: {{statusId}})",
-      "status_na": "No Status"
-    }
-  },
   "workflow": {
-    "title": "Payroll Calculation Workflow",
-    "description": "Visual workflow for automated payroll calculation engine",
+    "messages": {
+      "operation_failed": "Operation failed",
+      "operation_success": "Operation successful",
+      "step_completed": "Step completed",
+      "workflow_completed": "Workflow completed"
+    },
+    "page_title": "",
     "steps": {
+      "auto_calculation": {
+        "average_stats": "",
+        "avg_gross_pay": "",
+        "avg_net_pay": "",
+        "calculation_completed_at": "",
+        "calculation_engine": "",
+        "current_employee": "",
+        "deduction_rate": "",
+        "description": "Automatically calculate employee salaries based on configured rules",
+        "employee_count": "",
+        "engine_version": "",
+        "estimated_time": "",
+        "export_bank": "",
+        "export_detail": "",
+        "export_summary": "",
+        "module_allowance": "",
+        "module_basic": "",
+        "module_overtime": "",
+        "module_social_insurance": "",
+        "module_summary": "",
+        "module_tax": "",
+        "modules_label": "",
+        "params_title": "",
+        "progress_title": "",
+        "result_summary_title": "",
+        "run_id": "",
+        "selected_cycle": "",
+        "status": "",
+        "task_id": "",
+        "tax_stats": "",
+        "tech_async": "",
+        "tech_async_desc": "",
+        "tech_audit": "",
+        "tech_audit_desc": "",
+        "tech_precision": "",
+        "tech_precision_desc": "",
+        "tech_validation": "",
+        "tech_validation_desc": "",
+        "technical_info_title": "",
+        "title": "Automatic Payroll Calculation",
+        "total_deductions": "",
+        "total_employees": "",
+        "total_gross_pay": "",
+        "total_net_pay": "",
+        "total_tax": "",
+        "validation_desc": "",
+        "validation_success": ""
+      },
       "data_review": {
-        "title": "Payroll Data Review",
-        "description": "Review the completeness and accuracy of payroll base data",
-        "content": "In this step, we will review employee basic information, attendance data, payroll component configuration and other key data.",
-        "review_points": {
-          "title": "Review Points",
-          "employee_data": "Employee basic information completeness",
-          "attendance_data": "Attendance data accuracy",
-          "component_config": "Payroll component configuration correctness",
-          "calculation_rules": "Calculation rules validity"
+        "data_initialization": {
+          "bulk_import": "Import via Bulk Import Page",
+          "copy_confirm_content": "Are you sure you want to copy last month's payroll data to current period?",
+          "copy_confirm_title": "Confirm Copy Last Month Data",
+          "copy_last_month": "Copy Last Month Data",
+          "no_data_message": "No data found for current payroll period. Please select data initialization method:",
+          "no_data_title": "",
+          "title": "Data Initialization"
         },
+        "description": "Review the completeness and accuracy of payroll base data",
         "form": {
           "payroll_period": "Payroll Period",
-          "review_notes": "Review Notes",
+          "payroll_period_placeholder": "",
+          "review_comments": "",
+          "review_comments_placeholder": "",
+          "review_comments_required": "",
           "review_result": "Review Result",
-          "review_result_pass": "Pass",
+          "review_result_adjust": "",
+          "review_result_conditional": "Conditional Pass",
           "review_result_fail": "Fail",
-          "review_result_conditional": "Conditional Pass"
+          "review_result_pass": "Pass",
+          "review_result_required": ""
         },
-        "data_initialization": {
-          "title": "Data Initialization",
-          "no_data_message": "No data found for current payroll period. Please select data initialization method:",
-          "copy_last_month": "Copy Last Month Data",
-          "bulk_import": "Import via Bulk Import Page",
-          "copy_confirm_title": "Confirm Copy Last Month Data",
-          "copy_confirm_content": "Are you sure you want to copy last month's payroll data to current period?",
-          "copy_success": "Successfully copied last month data",
-          "copy_failed": "Failed to copy last month data"
+        "review_points": {
+          "attendance_data": "Attendance data accuracy",
+          "attendance_data_desc": "",
+          "calculation_rules": "Calculation rules validity",
+          "calculation_rules_desc": "",
+          "component_config": "Payroll component configuration correctness",
+          "component_config_desc": "",
+          "employee_data": "Employee basic information completeness",
+          "employee_data_desc": "",
+          "title": "Review Points"
+        },
+        "title": "Payroll Data Review",
+        "validation": {
+          "must_initialize_data": ""
         }
       },
-      "auto_calculation": {
-        "title": "Automatic Payroll Calculation",
-        "description": "Automatically calculate employee salaries based on configured rules",
-        "content": "The system will automatically calculate all employees' gross pay, deduction items and net pay according to preset calculation rules.",
-        "calculation_params": {
-          "title": "Calculation Parameters",
-          "base_salary": "Base salary calculation",
-          "allowances": "Allowances calculation",
-          "deductions": "Deduction items calculation",
-          "tax_calculation": "Tax calculation"
-        },
-        "calculation_modules": "Calculation Modules",
-        "calculation_status": "Calculation Status",
-        "calculation_pending": "Pending Calculation",
-        "calculation_in_progress": "Calculating...",
-        "calculation_completed": "Calculation Completed"
-      },
-      "period_review": {
-        "title": "Payroll Period Review",
-        "description": "Review the accuracy of calculation results",
-        "content": "Manually review the automatically calculated results to ensure calculation accuracy.",
-        "calculation_summary": {
-          "title": "Calculation Summary",
-          "total_employees": "Total Employees",
-          "total_gross_pay": "Total Gross Pay",
-          "total_deductions": "Total Deductions",
-          "total_net_pay": "Total Net Pay"
-        },
-        "download_reports": "Download Reports",
-        "review_comments": "Review Comments",
-        "review_result": "Review Result"
+      "payroll_distribution": {
+        "description": "",
+        "title": ""
       },
       "period_approval": {
-        "title": "Payroll Period Approval",
         "description": "Final approval for payroll distribution",
-        "content": "After review and confirmation, approve the payroll distribution for this period.",
-        "final_confirmation": {
-          "title": "Final Confirmation",
-          "total_amount": "Total Distribution Amount",
-          "employee_count": "Employee Count",
-          "period_info": "Payroll Period Information"
-        },
-        "approval_warning": "Important Notice: After approval, payroll data for this period cannot be modified. Please confirm all information is correct.",
-        "approval_comments": "Approval Comments",
-        "confirm_approval": "I confirm that I have carefully reviewed all data and agree to approve the distribution"
+        "title": "Payroll Period Approval"
       },
-      "payment_archive": {
-        "title": "Payment & Archive",
-        "description": "Execute payroll distribution and archive related data",
-        "content": "Generate bank transfer files, execute payroll distribution, and archive related data.",
-        "payment_status": {
-          "title": "Payment Status",
-          "bank_file_generated": "Bank file generated",
-          "payment_initiated": "Payment initiated",
-          "payment_completed": "Payment completed",
-          "data_archived": "Data archived"
-        },
-        "payment_details": "Payment Details Record",
-        "archive_notes": "Archive Notes"
+      "period_review": {
+        "description": "Review the accuracy of calculation results",
+        "title": "Payroll Period Review"
       }
-    },
-    "buttons": {
-      "next_step": "Next Step",
-      "previous_step": "Previous Step",
-      "submit": "Submit",
-      "reset": "Reset",
-      "save_draft": "Save Draft",
-      "start_calculation": "Start Calculation",
-      "approve": "Approve",
-      "reject": "Reject",
-      "complete": "Complete"
-    },
-    "messages": {
-      "step_completed": "Step completed",
-      "workflow_completed": "Workflow completed",
-      "data_saved": "Data saved",
-      "operation_success": "Operation successful",
-      "operation_failed": "Operation failed"
     }
   }
 }

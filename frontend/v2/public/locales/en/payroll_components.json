@@ -1,18 +1,35 @@
 {
-  "actions": "",
-  "active": "",
-  "delete": "",
-  "description": "",
-  "edit": "",
-  "error": {
-    "fetch": ""
+  "common": {
+    "actions": "",
+    "active": "",
+    "delete": "",
+    "description": "",
+    "edit": "",
+    "error": {
+      "fetch": ""
+    },
+    "inactive": "",
+    "no": "",
+    "status": "",
+    "validation": {
+      "required": ""
+    },
+    "view": "",
+    "yes": ""
   },
-  "inactive": "",
-  "no": "",
-  "status": "",
-  "validation": {
-    "required": ""
-  },
-  "view": "",
-  "yes": ""
+  "payroll_components": {
+    "add": "",
+    "code": "",
+    "create_failed": "",
+    "create_success": "",
+    "edit": "",
+    "is_housing_fund_base": "",
+    "is_social_security_base": "",
+    "is_taxable": "",
+    "name": "",
+    "sort_order": "",
+    "type": "",
+    "update_failed": "",
+    "update_success": ""
+  }
 }

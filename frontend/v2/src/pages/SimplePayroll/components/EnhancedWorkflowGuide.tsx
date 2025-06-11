@@ -27,7 +27,9 @@ interface EnhancedWorkflowGuideProps {
   selectedVersion: PayrollRunResponse | null;
   selectedPeriod: PayrollPeriodResponse | null; // 新增：当前选择的期间
   auditSummary: AuditSummary | null;
-  onRefresh: () => void;
+  onRefresh: () => void; // 完整刷新
+  onAuditRefresh?: () => void; // 只刷新审核相关数据
+  onVersionRefresh?: () => void; // 只刷新版本相关数据
   onStepChange?: (stepKey: string) => void;
   onNavigateToBulkImport?: () => void;
   onDeleteVersion?: (versionId: number) => void; // Allow passing a delete handler
@@ -38,6 +40,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   selectedPeriod,
   auditSummary,
   onRefresh,
+  onAuditRefresh,
+  onVersionRefresh,
   onStepChange,
   onNavigateToBulkImport,
   onDeleteVersion
@@ -129,8 +133,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       
       // 重新获取异常列表
       await handleViewAnomalies();
-      // 刷新审核摘要
-      onRefresh();
+      // 刷新审核摘要 - 只刷新审核相关数据
+      onAuditRefresh?.() || onRefresh();
     } catch (error) {
       console.error('❌ 忽略异常失败:', error);
       message.error('忽略异常失败');
@@ -153,9 +157,9 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           });
           message.success('已批量忽略所有异常');
           
-          // 关闭模态框并刷新数据
+          // 关闭模态框并刷新数据 - 只刷新审核相关数据
           setAnomaliesModalVisible(false);
-          onRefresh();
+          onAuditRefresh?.() || onRefresh();
         } catch (error) {
           console.error('❌ 批量忽略失败:', error);
           message.error('批量忽略失败');
@@ -248,7 +252,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       await simplePayrollApi.runAuditCheck(selectedVersion.id);
       console.log('✅ [审核检查] 审核检查完成');
       message.success('审核检查完成');
-      onRefresh();
+      onAuditRefresh?.() || onRefresh();
     });
   };
 
@@ -260,7 +264,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       await simplePayrollApi.runAdvancedAuditCheck(selectedVersion.id);
       console.log('✅ [高级审核] 高级审核检查完成');
       message.success('高级审核完成');
-      onRefresh();
+      onAuditRefresh?.() || onRefresh();
     });
   };
 
@@ -274,7 +278,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         recalculate_all: true
       });
       message.success('计算引擎执行完成');
-      onRefresh();
+      onVersionRefresh?.() || onRefresh();
     } catch (error) {
       message.error('计算引擎执行失败');
     } finally {
@@ -441,7 +445,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         const entriesCount = result?.data?.total_entries;
         message.success(`已成功复制 ${latestPeriod.name} 的工资数据${entriesCount ? `（${entriesCount}条记录）` : ''}`);
       }
-      onRefresh();
+      onVersionRefresh?.() || onRefresh(); // 复制操作创建新版本，需要刷新版本数据
     } catch (error: any) {
       console.error('❌ [一键复制] 复制操作失败:', {
         error: error,
@@ -480,7 +484,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             status: 'IN_REVIEW'
           });
           message.success('已提交审核');
-          onRefresh();
+          onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
         } catch (error) {
           message.error('提交审核失败');
         } finally {
@@ -504,7 +508,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             status: 'APPROVED'
           });
           message.success('已批准支付');
-          onRefresh();
+          onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
         } catch (error) {
           message.error('批准支付失败');
         } finally {
@@ -528,7 +532,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             status: 'APPROVED'
           });
           message.success('已标记为已支付');
-          onRefresh();
+          onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
         } catch (error) {
           message.error('标记失败');
         } finally {
@@ -706,7 +710,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                       status: 'REJECTED'
                     });
                     message.success('已拒绝，工资数据已退回');
-                    onRefresh();
+                    onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
                   } catch (error) {
                     message.error('拒绝操作失败');
                   } finally {
@@ -737,128 +741,159 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         icon: <BankOutlined />,
         status: getStepStatus(3, currentStepIndex),
         disabled: !canExecuteStep(3, currentStepIndex),
-                 actions: [
-           {
-             key: 'generate_reports',
-             label: '一键生成报表',
-             type: 'primary',
-             icon: <FileTextOutlined />,
-             disabled: !canExecuteStep(3, currentStepIndex),
-             loading: loading.generate_reports,
-             onClick: async () => {
-               if (!selectedVersion) return;
-               setActionLoading('generate_reports', true);
-                                try {
-                  // 调用真实的报表生成API
-                  const reportRequest: ReportGenerationRequest = {
-                    report_ids: [1, 2, 3, 4], // 工资明细表、汇总表、银行代发文件、个税报表
-                    period_id: selectedVersion.period_id,
-                    payroll_run_id: selectedVersion.id,
-                    output_format: 'excel',
-                    include_details: true,
-                    filters: {
-                      // 可以添加过滤条件
-                    }
-                  };
-                  
-                  const response = await simplePayrollApi.generateReports(reportRequest);
-                  message.success('报表生成任务已启动！包括：工资明细表、汇总表、银行代发文件、个税报表');
-                  console.log('✅ 报表生成任务启动成功:', response);
-                } catch (error) {
-                  console.error('❌ 报表生成失败:', error);
-                  message.error('报表生成失败，请重试');
-                } finally {
-                 setActionLoading('generate_reports', false);
-               }
-             }
-           },
-           {
-             key: 'generate_bank_file',
-             label: '生成银行文件',
-             type: 'default',
-             icon: <BankOutlined />,
-             disabled: !canExecuteStep(3, currentStepIndex),
-             loading: loading.generate_bank_file,
-             onClick: async () => {
-               if (!selectedVersion) return;
-               
-               // 显示银行选择对话框
-               const bankOptions = [
-                 { label: '工商银行 (ICBC)', value: 'ICBC' },
-                 { label: '建设银行 (CCB)', value: 'CCB' },
-                 { label: '农业银行 (ABC)', value: 'ABC' },
-                 { label: '中国银行 (BOC)', value: 'BOC' },
-                 { label: '招商银行 (CMB)', value: 'CMB' },
-                 { label: '通用格式', value: 'GENERIC' }
-               ];
-               
-               const formatOptions = [
-                 { label: 'TXT文本文件', value: 'txt' },
-                 { label: 'CSV表格文件', value: 'csv' },
-                 { label: 'Excel文件', value: 'excel' }
-               ];
-               
-               // 这里可以用Modal.confirm或自定义Modal来选择银行和格式
-               // 为了简化，先使用默认参数
-               setActionLoading('generate_bank_file', true);
-               try {
-                 const response = await simplePayrollApi.generateBankFile({
-                   payroll_run_id: selectedVersion.id,
-                   bank_type: 'ICBC', // 默认工商银行
-                   file_format: 'csv', // 默认CSV格式
-                   include_summary: true
-                 });
-                 
-                 // 创建下载链接，确保CSV文件使用UTF-8编码
-                 const fileContent = response.data.file_format === 'csv' 
-                   ? '\ufeff' + response.data.file_content  // 为CSV添加UTF-8 BOM
-                   : response.data.file_content;
-                 
-                 const blob = new Blob([fileContent], { 
-                   type: response.data.file_format === 'csv' ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8' 
-                 });
-                 const url = window.URL.createObjectURL(blob);
-                 const link = document.createElement('a');
-                 link.href = url;
-                 link.download = response.data.file_name;
-                 document.body.appendChild(link);
-                 link.click();
-                 document.body.removeChild(link);
-                 window.URL.revokeObjectURL(url);
-                 
-                 message.success(`银行文件生成成功！共${response.data.total_records}条记录，总金额${response.data.total_amount}元`);
-                 console.log('✅ 银行文件生成成功:', response.data.summary);
-               } catch (error) {
-                 console.error('❌ 银行文件生成失败:', error);
-                 message.error('银行文件生成失败，请检查员工银行信息是否完整');
-               } finally {
-                 setActionLoading('generate_bank_file', false);
-               }
-             }
-           },
-           {
-             key: 'mark_as_paid',
-             label: '标记已支付',
-             type: 'default',
-             icon: <CheckCircleOutlined />,
-             disabled: !canExecuteStep(3, currentStepIndex),
-             loading: loading.mark_paid,
-             onClick: handleMarkAsPaid
-           }
-         ],
-                 requirements: [
-           '工资已批准发放',
-           '一键生成所有报表',
-           '银行文件已生成',
-           '支付渠道已确认',
-           '员工账户信息正确'
-         ],
-         tips: [
-           '先生成报表，包含工资明细、汇总、银行代发等',
-           '确认报表数据准确无误',
-           '支付完成后及时标记状态',
-           '保留支付凭证和报表备查'
-         ]
+        actions: [
+          {
+            key: 'revoke_approval',
+            label: '撤销批准',
+            type: 'default',
+            danger: true,
+            icon: <ExclamationCircleOutlined />,
+            disabled: !canExecuteStep(3, currentStepIndex),
+            loading: loading.revoke_approval,
+            onClick: () => {
+              confirm({
+                title: '确认撤销批准',
+                content: '撤销后工资数据将退回到数据准备阶段，需要重新计算和审核。确定要撤销批准吗？',
+                onOk: async () => {
+                  setActionLoading('revoke_approval', true);
+                  try {
+                    await simplePayrollApi.updateAuditStatus({
+                      payroll_run_id: selectedVersion!.id,
+                      status: 'REJECTED'
+                    });
+                    message.success('已撤销批准，工资数据已退回到数据准备阶段');
+                    onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
+                  } catch (error) {
+                    message.error('撤销批准失败');
+                  } finally {
+                    setActionLoading('revoke_approval', false);
+                  }
+                }
+              });
+            }
+          },
+          {
+            key: 'generate_reports',
+            label: '一键生成报表',
+            type: 'primary',
+            icon: <FileTextOutlined />,
+            disabled: !canExecuteStep(3, currentStepIndex),
+            loading: loading.generate_reports,
+            onClick: async () => {
+              if (!selectedVersion) return;
+              setActionLoading('generate_reports', true);
+              try {
+                // 调用真实的报表生成API
+                const reportRequest: ReportGenerationRequest = {
+                  report_ids: [1, 2, 3, 4], // 工资明细表、汇总表、银行代发文件、个税报表
+                  period_id: selectedVersion.period_id,
+                  payroll_run_id: selectedVersion.id,
+                  output_format: 'excel',
+                  include_details: true,
+                  filters: {
+                    // 可以添加过滤条件
+                  }
+                };
+                
+                const response = await simplePayrollApi.generateReports(reportRequest);
+                message.success('报表生成任务已启动！包括：工资明细表、汇总表、银行代发文件、个税报表');
+                console.log('✅ 报表生成任务启动成功:', response);
+              } catch (error) {
+                console.error('❌ 报表生成失败:', error);
+                message.error('报表生成失败，请重试');
+              } finally {
+                setActionLoading('generate_reports', false);
+              }
+            }
+          },
+          {
+            key: 'generate_bank_file',
+            label: '生成银行文件',
+            type: 'default',
+            icon: <BankOutlined />,
+            disabled: !canExecuteStep(3, currentStepIndex),
+            loading: loading.generate_bank_file,
+            onClick: async () => {
+              if (!selectedVersion) return;
+              
+              // 显示银行选择对话框
+              const bankOptions = [
+                { label: '工商银行 (ICBC)', value: 'ICBC' },
+                { label: '建设银行 (CCB)', value: 'CCB' },
+                { label: '农业银行 (ABC)', value: 'ABC' },
+                { label: '中国银行 (BOC)', value: 'BOC' },
+                { label: '招商银行 (CMB)', value: 'CMB' },
+                { label: '通用格式', value: 'GENERIC' }
+              ];
+              
+              const formatOptions = [
+                { label: 'TXT文本文件', value: 'txt' },
+                { label: 'CSV表格文件', value: 'csv' },
+                { label: 'Excel文件', value: 'excel' }
+              ];
+              
+              // 这里可以用Modal.confirm或自定义Modal来选择银行和格式
+              // 为了简化，先使用默认参数
+              setActionLoading('generate_bank_file', true);
+              try {
+                const response = await simplePayrollApi.generateBankFile({
+                  payroll_run_id: selectedVersion.id,
+                  bank_type: 'ICBC', // 默认工商银行
+                  file_format: 'csv', // 默认CSV格式
+                  include_summary: true
+                });
+                
+                // 创建下载链接，确保CSV文件使用UTF-8编码
+                const fileContent = response.data.file_format === 'csv' 
+                  ? '\ufeff' + response.data.file_content  // 为CSV添加UTF-8 BOM
+                  : response.data.file_content;
+                
+                const blob = new Blob([fileContent], { 
+                  type: response.data.file_format === 'csv' ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8' 
+                });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = response.data.file_name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                message.success(`银行文件生成成功！共${response.data.total_records}条记录，总金额${response.data.total_amount}元`);
+                console.log('✅ 银行文件生成成功:', response.data.summary);
+              } catch (error) {
+                console.error('❌ 银行文件生成失败:', error);
+                message.error('银行文件生成失败，请检查员工银行信息是否完整');
+              } finally {
+                setActionLoading('generate_bank_file', false);
+              }
+            }
+          },
+          {
+            key: 'mark_as_paid',
+            label: '标记已支付',
+            type: 'default',
+            icon: <CheckCircleOutlined />,
+            disabled: !canExecuteStep(3, currentStepIndex),
+            loading: loading.mark_paid,
+            onClick: handleMarkAsPaid
+          }
+        ],
+        requirements: [
+          '工资已批准发放',
+          '一键生成所有报表',
+          '银行文件已生成',
+          '支付渠道已确认',
+          '员工账户信息正确'
+        ],
+        tips: [
+          '先生成报表，包含工资明细、汇总、银行代发等',
+          '确认报表数据准确无误',
+          '支付完成后及时标记状态',
+          '如发现问题可点击"撤销批准"回退重新计算',
+          '保留支付凭证和报表备查'
+        ]
       },
       {
         key: 'completion',
@@ -1191,7 +1226,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             type="primary" 
             onClick={() => {
               setAnomaliesModalVisible(false);
-              onRefresh();
+              onAuditRefresh?.() || onRefresh(); // 刷新审核数据
             }}
           >
             刷新数据

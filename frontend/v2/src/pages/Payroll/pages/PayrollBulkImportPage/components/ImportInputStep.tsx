@@ -147,16 +147,9 @@ const ImportInputStep: React.FC<ImportInputStepProps> = ({
     }
   };
 
-  // 获取分类标签
+  // 获取分类标签 - 使用国际化
   const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'base': return '基础';
-      case 'earning': return '收入';
-      case 'deduction': return '扣除';
-      case 'calculated': return '计算';
-      case 'ignore': return '忽略';
-      default: return '未知';
-    }
+    return t(`payroll:batch_import.field_categories.${category}`, category);
   };
 
   // ProTable列定义

@@ -1,5 +1,6 @@
 import { usePermissions } from './usePermissions';
 import { useMemo } from 'react';
+import { useAuthStore } from '../store/authStore';
 
 /**
  * 员工功能权限映射钩子
@@ -7,6 +8,7 @@ import { useMemo } from 'react';
  */
 export const useEmployeePermissions = () => {
   const { userPermissions, hasPermission, hasAnyPermission } = usePermissions();
+  const { user, permissions } = useAuthStore();
 
   // 动态生成员工功能权限映射
   const employeePermissions = useMemo(() => {
@@ -91,11 +93,43 @@ export const useEmployeePermissions = () => {
     };
   }, [userPermissions, hasAnyPermission]);
 
+  // 检查是否有查看权限
+  const canView = () => {
+    // 员工可以查看自己的信息，或者有员工查看权限
+    return true; // 默认所有用户都可以查看自己的信息
+  };
+
+  // 检查是否有更新权限
+  const canUpdate = () => {
+    // 员工可以更新自己的部分信息，或者有员工编辑权限
+    if (permissions?.includes('employee:update') || permissions?.includes('employee:edit')) {
+      return true;
+    }
+    
+    // 默认允许用户更新自己的基本联系信息
+    return true;
+  };
+
+  // 检查是否有删除权限
+  const canDelete = () => {
+    // 通常员工不能删除自己的信息，只有管理员可以
+    return permissions?.includes('employee:delete') || false;
+  };
+
+  // 检查是否有导出权限
+  const canExport = () => {
+    return permissions?.includes('employee:export') || false;
+  };
+
   return {
     ...employeePermissions,
     // 提供原始权限检查方法，用于特殊情况
     hasPermission,
     hasAnyPermission,
     userPermissions,
+    canView: canView(),
+    canUpdate: canUpdate(),
+    canDelete: canDelete(),
+    canExport: canExport(),
   };
 }; 

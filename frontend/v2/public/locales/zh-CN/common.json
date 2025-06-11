@@ -1,236 +1,193 @@
 {
   "action": {
+    "batch_delete_count_other": "",
+    "cancel": "",
+    "confirm_delete": "",
     "create": "创建",
     "delete": "删除",
     "edit": "编辑",
+    "export_excel": "",
+    "refresh": "",
     "title": "操作",
     "view": "查看"
   },
-    "actions": "操作",
-    "activate": "",
-    "active": "",
-    "adjust_balance": "",
-    "auth": {
-      "logout_failed": "退出登录失败",
-      "logout_success": "退出登录成功"
-    },
-    "auto____e68ab1": "",
-    "auto___e5ad98": "",
-    "auto___method_url_duration_tofixed_2_ms__status__e29aa0": "API请求：{method} {url} {duration}ms {status}",
-    "auto___method_url_duration_tofixed_2_ms__status__f09f90": "API请求：{method} {url} {duration}ms {status}",
-    "auto__url__stat_avgduration_tofixed_2_ms__247b75": "",
-    "auto_20___e8b685": "",
-    "auto_500ms__e5b9b3": "",
-    "auto_text_e4baa7": "",
-    "auto_text_e4baba": "",
-    "auto_text_e4bbaa": "",
-    "auto_text_e4bc91": "",
-    "auto_text_e585a8": "",
-    "auto_text_e585b6": "",
-    "auto_text_e585bc": "",
-    "auto_text_e5889d": "",
-    "auto_text_e58d9a": "",
-    "auto_text_e58ebb": "",
-    "auto_text_e58f8c": "",
-    "auto_text_e59088": "",
-    "auto_text_e59198": "",
-    "auto_text_e59bba": "",
-    "auto_text_e59ca8": "",
-    "auto_text_e5a4a7": "",
-    "auto_text_e5a5b3": "",
-    "auto_text_e5ae9e": "",
-    "auto_text_e5b9b4": "",
-    "auto_text_e5be85": "",
-    "auto_text_e68a80": "",
-    "auto_text_e697a0": "",
-    "auto_text_e69c88": "",
-    "auto_text_e69c8d": "",
-    "auto_text_e69cac": "",
-    "auto_text_e69d83": "",
-    "auto_text_e6af8f": "",
-    "auto_text_e794a8": "",
-    "auto_text_e794b7": "",
-    "auto_text_e79785": "",
-    "auto_text_e7a195": "",
-    "auto_text_e7a6bb": "",
-    "auto_text_e7b3bb": "",
-    "auto_text_e7bb84": "",
-    "auto_text_e8818c": "",
-    "auto_text_e8a792": "",
-    "auto_text_e8af95": "",
-    "auto_text_e8bf94": "",
-    "auto_text_e983a8": "",
-    "auto_text_e99480": "",
-    "auto_text_e999aa": "",
-    "auto_text_e9a1b9": "",
-    "auto_text_e9ab98": "",
-    "batch_import": {
-      "button": {
-        "hide_error_details": "隐藏错误详情",
-        "show_error_details": "显示错误详情"
-      },
-      "fields": {
-        "employee_code": "员工编号",
-        "employee_full_name": "员工全名",
-        "gross_pay": "应发工资",
-        "id_number": "身份证号",
-        "net_pay": "实发工资",
-        "remarks": "备注",
-        "total_deductions": "扣款总额"
-      },
-      "mapping": {
-        "actual_amount": "实发数",
-        "deduction_amount": "扣除金额",
-        "deduction_total": "扣款合计",
-        "department": "处室",
-        "department_name": "部门名称",
-        "description": "说明",
-        "employee_id": "员工ID",
-        "employee_name": "员工姓名",
-        "employee_number": "员工编号",
-        "fiscal_support": "财政供养",
-        "gross_salary": "应发工资",
-        "gross_total": "应发总额",
-        "id_card": "身份证",
-        "id_card_number": "身份证号码",
-        "id_number": "身份证号",
-        "name": "姓名",
-        "net_pay": "实发金额",
-        "net_salary": "实发工资",
-        "net_total": "实发总额",
-        "personnel_identity": "人员身份",
-        "personnel_level": "人员层级",
-        "personnel_name": "人员姓名",
-        "personnel_number": "人员编号",
-        "remarks": "备注",
-        "salary_total": "工资合计",
-        "salary_unified": "工资统发",
-        "serial_number": "序号",
-        "should_deduct_total": "应扣总额",
-        "total_deduction_amount": "扣除总额",
-        "total_deductions": "应扣合计",
-        "total_earnings": "应发合计",
-        "total_income": "收入合计",
-        "work_number": "工号"
-      },
-      "message": {
-        "file_parse_error": "文件解析错误",
-        "file_parsed_success_other": "文件解析成功 ({count} 条记录)",
-        "table_converted_success_other": "表格转换成功 ({count} 条记录)",
-        "upload_failed": "上传失败",
-        "upload_failed_prefix": "上传失败：",
-        "upload_failed_with_details": "上传失败：{details}",
-        "upload_failed_with_errors_other": "上传失败，存在 {count} 个错误",
-        "upload_in_progress": "正在上传...",
-        "upload_partial_success": "部分上传成功",
-        "upload_success_other": "上传成功 ({count} 条记录)",
-        "use_table_converter_first": "请先使用表格转换器"
-      },
-      "notes": {
-        "preview_warning_max_100": "注意：预览仅显示前 100 条记录。"
-      },
-      "options": {
-        "overwrite_mode": "启用覆盖模式",
-        "validation_mode_label": "校验模式"
-      },
-      "page_title": "批量导入薪资数据",
-      "placeholder": {
-        "enter_json": "在此输入 JSON 数据"
-      },
-      "record_at_index": "记录在索引 {index}",
-      "results": {
-        "all_failed_other": "全部失败 ({count} 条记录)",
-        "all_success_other": "全部成功 ({count} 条记录)",
-        "no_records_processed": "未处理任何记录",
-        "partial_success": "部分成功"
-      },
-      "results_table": {
-        "employee_id": "员工ID",
-        "employee_name": "员工姓名",
-        "error_message": "错误信息",
-        "title_failed_records": "失败记录",
-        "title_successfully_imported_records_preview": "成功导入记录 (预览)"
-      },
-      "steps": {
-        "input_data": "输入数据",
-        "preview_data": "预览数据",
-        "results": "导入结果",
-        "upload_progress": "上传进度"
-      },
-      "tab": {
-        "json_input": "JSON 输入",
-        "table_input": "表格粘贴输入"
-      },
-      "table_converter": {
-        "missing_required_fields": "缺少必填字段"
-      },
-      "table_header": {
-        "department": "部门",
-        "employee_id": "员工ID",
-        "employee_name": "员工姓名",
-        "net_pay": "实发金额",
-        "position": "职位",
-        "remarks": "备注",
-        "status": "状态",
-        "total_deductions": "扣除合计",
-        "total_earnings": "应发合计",
-        "validation_errors": "校验错误"
-      },
-      "validation": {
-        "balance_mismatch": "余额不匹配",
-        "employee_name_required": "员工姓名必填",
-        "gross_pay_invalid": "应发工资无效",
-        "id_number_required": "身份证号必填",
-        "net_pay_invalid": "实发工资无效",
-        "total_deductions_invalid": "扣款总额无效"
-      }
-    },
-    "boolean": {
-      "false": "否",
-      "true": "是"
-    },
+  "actions": "操作",
+  "activate": "",
+  "active": "",
+  "adjust_balance": "",
+  "auth": {
+    "logout_failed": "退出登录失败",
+    "logout_success": "退出登录成功"
+  },
+  "auto____e68ab1": "",
+  "auto_text_e4baa7": "",
+  "auto_text_e4baba": "",
+  "auto_text_e4bbaa": "",
+  "auto_text_e4bc91": "",
+  "auto_text_e585a8": "",
+  "auto_text_e585b6": "",
+  "auto_text_e585bc": "",
+  "auto_text_e5889d": "",
+  "auto_text_e58d9a": "",
+  "auto_text_e58ebb": "",
+  "auto_text_e58f8c": "",
+  "auto_text_e59088": "",
+  "auto_text_e59198": "",
+  "auto_text_e59bba": "",
+  "auto_text_e59ca8": "",
+  "auto_text_e5a4a7": "",
+  "auto_text_e5a5b3": "",
+  "auto_text_e5ae9e": "",
+  "auto_text_e5b9b4": "",
+  "auto_text_e5be85": "",
+  "auto_text_e68a80": "",
+  "auto_text_e697a0": "",
+  "auto_text_e69c88": "",
+  "auto_text_e69c8d": "",
+  "auto_text_e69cac": "",
+  "auto_text_e69d83": "",
+  "auto_text_e6af8f": "",
+  "auto_text_e794a8": "",
+  "auto_text_e794b7": "",
+  "auto_text_e79785": "",
+  "auto_text_e7a195": "",
+  "auto_text_e7a6bb": "",
+  "auto_text_e7b3bb": "",
+  "auto_text_e7bb84": "",
+  "auto_text_e8818c": "",
+  "auto_text_e8a792": "",
+  "auto_text_e8af95": "",
+  "auto_text_e8bf94": "",
+  "auto_text_e983a8": "",
+  "auto_text_e99480": "",
+  "auto_text_e999aa": "",
+  "auto_text_e9a1b9": "",
+  "auto_text_e9ab98": "",
+  "back": "",
+  "batch_import": {
     "button": {
-      "apply": "应用",
-      "back": "返回",
-      "backToList": "返回列表",
-      "batch_delete": "批量删除",
-      "cancel": "取消",
-      "close": "关闭",
-      "collapse": "",
-      "column_setting": "",
-      "confirm": "确认",
-      "create": "创建",
-      "delete": "删除",
-      "density": "",
-      "edit": "编辑",
-      "exit_fullscreen": "",
-      "expand": "",
-      "export": "导出",
-      "export_excel": "导出Excel",
-      "fullscreen": "",
-      "no": "否",
-      "ok": "确定",
-      "refresh": "刷新",
-      "refresh_and_retry": "刷新并重试",
-      "reset": "重置",
-      "save": "保存",
-      "sync": "同步",
-      "save_config": "保存配置",
-      "search": "搜索",
-      "submit": "",
-      "update": "更新",
-      "upload": "上传",
-      "yes": "是",
-      "yes_delete": "是的，删除",
-      "view": "查看",
-      "preview": "预览详情"
+      "hide_error_details": "隐藏错误详情",
+      "show_error_details": "显示错误详情"
     },
+    "fields": {
+      "employee_code": "员工编号",
+      "employee_full_name": "员工全名",
+      "gross_pay": "应发工资",
+      "id_number": "身份证号",
+      "net_pay": "实发工资",
+      "remarks": "备注",
+      "total_deductions": "扣款总额"
+    },
+    "mapping": {
+      "actual_amount": "实发数",
+      "deduction_amount": "扣除金额",
+      "deduction_total": "扣款合计",
+      "department": "处室",
+      "department_name": "部门名称",
+      "description": "说明",
+      "employee_id": "员工ID",
+      "employee_name": "员工姓名",
+      "employee_number": "员工编号",
+      "fiscal_support": "财政供养",
+      "gross_salary": "应发工资",
+      "gross_total": "应发总额",
+      "id_card": "身份证",
+      "id_card_number": "身份证号码",
+      "id_number": "身份证号",
+      "name": "姓名",
+      "net_pay": "实发金额",
+      "net_salary": "实发工资",
+      "net_total": "实发总额",
+      "personnel_identity": "人员身份",
+      "personnel_level": "人员层级",
+      "personnel_name": "人员姓名",
+      "personnel_number": "人员编号",
+      "remarks": "备注",
+      "salary_total": "工资合计",
+      "salary_unified": "工资统发",
+      "serial_number": "序号",
+      "should_deduct_total": "应扣总额",
+      "total_deduction_amount": "扣除总额",
+      "total_deductions": "应扣合计",
+      "total_earnings": "应发合计",
+      "total_income": "收入合计",
+      "work_number": "工号"
+    },
+    "record_at_index": "记录在索引 {index}",
+    "results": {
+      "all_failed_other": "全部失败 ({count} 条记录)",
+      "all_success_other": "全部成功 ({count} 条记录)",
+      "no_records_processed": "未处理任何记录",
+      "partial_success": "部分成功"
+    },
+    "results_table": {
+      "employee_id": "员工ID",
+      "employee_name": "员工姓名",
+      "error_message": "错误信息",
+      "title_failed_records": "失败记录",
+      "title_successfully_imported_records_preview": "成功导入记录 (预览)"
+    },
+    "table_converter": {
+      "missing_required_fields": "缺少必填字段"
+    },
+    "table_header": {
+      "department": "部门",
+      "employee_id": "员工ID",
+      "employee_name": "员工姓名",
+      "net_pay": "实发金额",
+      "position": "职位",
+      "remarks": "备注",
+      "status": "状态",
+      "total_deductions": "扣除合计",
+      "total_earnings": "应发合计",
+      "validation_errors": "校验错误"
+    },
+    "validation": {
+      "balance_mismatch": "余额不匹配",
+      "employee_name_required": "员工姓名必填",
+      "gross_pay_invalid": "应发工资无效",
+      "id_number_required": "身份证号必填",
+      "net_pay_invalid": "实发工资无效",
+      "total_deductions_invalid": "扣款总额无效"
+    }
+  },
+  "button": {
+    "apply": "应用",
+    "back": "返回",
+    "batch_delete": "批量删除",
     "cancel": "取消",
-    "save": "保存",
-    "refresh": "刷新",
     "close": "关闭",
-    "collapse_sidebar": "折叠侧边栏",
-      "expand_sidebar": "展开侧边栏",
+    "collapse": "",
+    "column_setting": "",
+    "confirm": "确认",
+    "create": "创建",
+    "delete": "删除",
+    "density": "",
+    "edit": "编辑",
+    "exit_fullscreen": "",
+    "expand": "",
+    "export": "导出",
+    "export_excel": "导出Excel",
+    "fullscreen": "",
+    "no": "否",
+    "ok": "确定",
+    "preview": "预览详情",
+    "refresh": "刷新",
+    "refresh_and_retry": "刷新并重试",
+    "reset": "重置",
+    "save": "保存",
+    "save_config": "保存配置",
+    "search": "搜索",
+    "submit": "",
+    "sync": "同步",
+    "update": "更新",
+    "upload": "上传",
+    "yes": "是",
+    "yes_delete": "是的，删除"
+  },
+  "cancel": "取消",
+  "close": "关闭",
+  "collapse_sidebar": "折叠侧边栏",
   "column": {
     "actions": "操作"
   },
@@ -239,294 +196,297 @@
     "dropdown_title": "列显示",
     "tooltip_title": "自定义列"
   },
-
-    "common_value": {
-      "zero_decimal": ""
-    },
-    "components": {
-      "deductions": {
-        "personal_income_tax": ""
-      }
-    },
-    "confirm": "",
-    "data_type": {
-      "date": "",
-      "number": "",
-      "string": ""
-    },
-    "date_range_picker": {
-      "end_date": "",
-      "quick_select": "",
-      "start_date": ""
-    },
-    "deactivate": "",
-    "delete": "删除",
-    "delete_confirm": {
-      "cancel_text": "取消",
-      "content": "您确定要删除 {{name}} 吗？此操作无法撤销。",
-      "ok_text": "删除",
-      "title": "确认删除"
-    },
-    "edit": "编辑",
-    "employee_selector": {
-      "error": {
-        "load_failed": ""
-      },
-      "no_data": "",
-      "placeholder": {
-        "multiple": "",
-        "single": ""
-      }
-    },
+  "common": {
+    "no": "",
+    "permission_denied_action": "",
+    "yes": ""
+  },
+  "common_value": {
+    "zero_decimal": ""
+  },
+  "components": {
+    "deductions": {
+      "personal_income_tax": ""
+    }
+  },
+  "confirm": "",
+  "data_type": {
+    "date": "",
+    "number": "",
+    "string": ""
+  },
+  "date_range_picker": {
+    "end_date": "",
+    "quick_select": "",
+    "start_date": ""
+  },
+  "deactivate": "",
+  "delete": "删除",
+  "delete_confirm": {
+    "cancel_text": "取消",
+    "content": "您确定要删除 {{name}} 吗？此操作无法撤销。",
+    "ok_text": "删除",
+    "title": "确认删除"
+  },
+  "edit": "编辑",
+  "employee_selector": {
     "error": {
-      "create_failed": "",
-      "genericTitle": "错误",
-      "json_conversion_failed": "",
-      "load_failed": "",
-      "operation_failed": "",
-      "title": "错误",
-      "unknown": "未知错误",
-      "unknown_server_error": "服务器错误：数据库可能已关闭或后端服务不可用，请联系系统管理员。",
-      "update_failed": ""
+      "load_failed": ""
     },
-    "error_unknown": "未知错误",
-    "expand_sidebar": "展开侧边栏",
-    "export": {
-      "button_text": "",
-      "csv": "",
-      "csvNotImplemented": "",
-      "defaultFilename": "",
-      "defaultSheetName": "",
-      "error_message": "导出失败，请重试",
-      "error_no_data_for_client_export": "没有可导出的数据。",
-      "excel": "",
-      "export": "导出",
-      "exportButton": "",
-      "exportSuccess": "",
-      "filename_default": "导出数据",
-      "formatCsv": "CSV (.csv)",
-      "formatExcel": "Excel (.xlsx)",
-      "formatPdf": "PDF (.pdf)",
-      "noDataToExport": "",
-      "pdf": "",
-      "pdfNotImplemented": "",
-      "sheetName_default": "Sheet1",
-      "success_message": "导出成功",
-      "warn_no_handler": "没有此格式的导出处理器。"
-    },
-    "footer": {
-      "copyright_text": "",
-      "hyperchain_logo_alt_text": ""
-    },
-    "form": {
-      "validation": {
-        "default_required_template": "此项为必填项",
-        "email_invalid": "请输入有效的电子邮件地址"
-      }
-    },
-    "validation": {
-      "required": "此项为必填项",
-      "max_length": "长度不能超过最大限制"
-    },
-    "hidden": "隐藏",
-    "hyperchain_logo": "溯源链Logo",
-    "inactive": "",
-    "label": {
-      "actions": "操作",
-      "code": "编码",
-      "description": "描述",
-      "effective_date": "生效日期",
-      "end_date": "结束日期",
-      "id": "ID",
-      "name": "名称",
-      "payroll_period_name": "薪资周期名称",
-      "remarks": "备注",
-      "required": "",
-      "status": "状态",
-      "unknown": "未知"
-    },
-    "language_switched": "语言已切换",
-    "language_toggle": "切换语言",
-    "load_failed": "",
-    "loading": {
-      "generic_loading_text": "正在加载页面内容...",
-      "user_info": "正在加载用户信息..."
-    },
-    "loading_data": "加载数据中",
-    "loading_page_content": "",
-    "login_button": "登录",
-    "lookup_select": {
-      "error": {
-        "load_failed": ""
-      },
-      "no_data": ""
-    },
-    "message": {
-      "api_not_found": "API 未找到",
-      "column_settings_applied": "列设置应用成功！",
-      "column_settings_reset": "列设置已重置",
-      "create_failed": "",
-      "create_failed_default": "创建失败",
-      "create_success": "",
-      "create_success_default": "创建成功",
-      "data_loading_error": "数据加载失败",
-      "delete_failed": "",
-      "delete_failed_default": "删除失败",
-      "delete_success": "",
-      "delete_success_default": "删除成功",
-      "error_unknown": "未知错误",
-      "export_failed": "",
-      "export_success": "",
-      "form_validation_error": "表单验证失败，请检查输入。",
-      "method_not_allowed": "方法不允许",
-      "missing_required_fields": "缺少必填字段。",
-      "missing_required_fields_in_tab_param": "{tabName} 标签页中缺少必填字段。",
-      "no_selection": "请先选择要操作的记录",
-      "no_selection_for_batch_delete": "请先选择要删除的记录",
-      "confirm_batch_delete": "您确定要删除选中的记录吗？此操作不可撤销。",
-      "operation_failed": "操作失败",
-      "operation_failed_default_retry": "操作失败，请稍后重试。",
-      "operation_failed_prefix": "操作失败：",
-      "refresh_success": "",
-      "update_failed": "",
-      "update_failed_default": "更新失败",
-      "update_success": "",
-      "update_success_default": "更新成功",
-      "upload_failed_param": "文件 {fileName} 上传失败。",
-      "upload_success_param": "文件 {fileName} 上传成功。"
-    },
-    "modal": {
-      "confirm_delete": {
-        "cancel_text": "取消",
-        "content": "此操作无法撤销。",
-        "content_item": "您确定要删除 {itemName} 吗？此操作无法撤销。",
-        "ok_text": "确认删除",
-        "title": "确认删除",
-        "title_item": "确认删除 {itemName}？"
-      },
-      "title": {
-        "create": "",
-        "default": "",
-        "edit": "",
-        "view": ""
-      }
-    },
-    "myInfo": {
-      "fetchError": "",
-      "fetchErrorUnauthorized": "",
-      "noEmployeeIdError": ""
-    },
-    "no": "否",
-    "no_permission_to_view_data": "",
-    "page_title": {
-      "not_found": ""
-    },
-    "page_title_settings": "页面标题设置",
-    "pagination": {
-      "next_page": "下一页",
-      "page_info": "第 {{currentPage}} / {{totalPages}} 页",
-      "previous_page": "上一页",
-      "show_total": "显示第 {range0}-{range1} 条，共 {total} 条",
-      "show_total_text": "",
-      "total": "",
-      "total_records_one": "共 {{total}} 条记录",
-      "total_records_other": "共 {{total}} 条记录"
-    },
-    "password_label": "密码",
-    "periods_page": {
-      "error_fetch_periods": ""
-    },
-    "permission_denied_action": "您没有权限执行此操作。",
+    "no_data": "",
     "placeholder": {
-      "end_date": "请选择结束日期",
-      "input": "请输入",
-      "input_remarks": "请输入备注",
-      "start_date": "请选择开始日期"
+      "multiple": "",
+      "single": ""
+    }
+  },
+  "entries_page": {
+    "error_fetch_entries": ""
+  },
+  "error": {
+    "create_failed": "",
+    "export_failed": "",
+    "fetch_failed": "",
+    "genericTitle": "错误",
+    "json_conversion_failed": "",
+    "load_failed": "",
+    "no_data": "",
+    "operation_failed": "",
+    "title": "错误",
+    "unknown": "未知错误",
+    "unknown_server_error": "服务器错误：数据库可能已关闭或后端服务不可用，请联系系统管理员。",
+    "update_failed": ""
+  },
+  "error_unknown": "未知错误",
+  "expand_sidebar": "展开侧边栏",
+  "export": "",
+  "export_success": "",
+  "footer": {
+    "copyright_text": "",
+    "hyperchain_logo_alt_text": ""
+  },
+  "form": {
+    "validation": {
+      "default_required_template": "此项为必填项",
+      "email_invalid": "请输入有效的电子邮件地址"
+    }
+  },
+  "hidden": "隐藏",
+  "hyperchain_logo": "溯源链Logo",
+  "inactive": "",
+  "label": {
+    "actions": "操作",
+    "payroll_period_name": "薪资周期名称",
+    "remarks": "备注",
+    "required": "",
+    "status": "状态",
+    "unknown": "未知"
+  },
+  "language_switched": "语言已切换",
+  "language_toggle": "切换语言",
+  "load_failed": "",
+  "loading": {
+    "generic_loading_text": "正在加载页面内容...",
+    "loading_details": "",
+    "user_info": "正在加载用户信息..."
+  },
+  "loading_data": "加载数据中",
+  "loading_page_content": "",
+  "login_button": "登录",
+  "lookup_select": {
+    "error": {
+      "load_failed": ""
     },
-    "records_invalid_one": "无效记录",
-    "records_invalid_other": "无效记录",
-    "records_total": "总记录数：{{total}}",
-    "records_valid_one": "有效记录",
-    "records_valid_other": "有效记录",
-    "remember_me_checkbox": "记住我",
-    "report": "",
-    "reset": "",
-    "return_home": "返回主页",
-    "return_login": "返回登录页",
-    "role": {
-      "unknown": "未知角色"
+    "no_data": ""
+  },
+  "message": {
+    "batch_delete_failed": "",
+    "batch_delete_failed_generic": "",
+    "batch_delete_success_other": "",
+    "batch_delete_success_generic": "",
+    "column_settings_applied": "列设置应用成功！",
+    "column_settings_reset": "列设置已重置",
+    "confirm_batch_delete": "您确定要删除选中的记录吗？此操作不可撤销。",
+    "create_failed": "",
+    "create_failed_default": "创建失败",
+    "create_success": "",
+    "create_success_default": "创建成功",
+    "data_loading_error": "数据加载失败",
+    "delete_failed": "",
+    "delete_failed_default": "删除失败",
+    "delete_success": "",
+    "delete_success_default": "删除成功",
+    "error_fetching_details": "",
+    "export_failed": "",
+    "export_success": "",
+    "invalid_id": "",
+    "missing_required_fields": "缺少必填字段。",
+    "missing_required_fields_in_tab_param": "{tabName} 标签页中缺少必填字段。",
+    "no_selection": "请先选择要操作的记录",
+    "no_selection_for_batch_delete": "请先选择要删除的记录",
+    "not_found": "",
+    "operation_failed_default_retry": "操作失败，请稍后重试。",
+    "refresh_success": "",
+    "select_items_to_delete": "",
+    "update_failed": "",
+    "update_failed_default": "更新失败",
+    "update_success": "",
+    "update_success_default": "更新成功",
+    "upload_failed_param": "文件 {fileName} 上传失败。",
+    "upload_success_param": "文件 {fileName} 上传成功。"
+  },
+  "messages": {
+    "loadingData": ""
+  },
+  "modal": {
+    "confirm_delete": {
+      "cancel_text": "取消",
+      "content": "此操作无法撤销。",
+      "content_item": "您确定要删除 {itemName} 吗？此操作无法撤销。",
+      "ok_text": "确认删除",
+      "title": "确认删除",
+      "title_item": "确认删除 {itemName}？"
     },
-    "search": {
-      "placeholder": "搜索{{field}}"
-    },
-    "sider": {
-      "title": {
-        "collapsed": "薪管",
-        "full": "薪资管理系统"
-      }
-    },
-    "status_error": "错误",
-    "status_pending": "待处理",
-    "status_processing": "处理中",
-    "status_success": "成功",
-    "status": {
-      "enabled": "启用",
-      "disabled": "禁用"
-    },
-    "status.active": "状态",
-    "status.active_yes": "是",
-    "status.active_no": "否",
-    "success": {
+    "title": {
       "create": "",
-      "update": ""
+      "default": "",
+      "edit": "",
+      "view": ""
+    }
+  },
+  "myInfo": {
+    "fetchError": "",
+    "fetchErrorUnauthorized": "",
+    "noEmployeeIdError": ""
+  },
+  "no": "否",
+  "no_permission_to_view_data": "",
+  "page_title": {
+    "not_found": ""
+  },
+  "page_title_settings": "页面标题设置",
+  "pagination": {
+    "next_page": "下一页",
+    "page_info": "第 {{currentPage}} / {{totalPages}} 页",
+    "previous_page": "上一页",
+    "show_total": "显示第 {range0}-{range1} 条，共 {total} 条",
+    "show_total_text": "",
+    "total": "",
+    "total_range": "",
+    "total_records_one": "共 {{total}} 条记录",
+    "total_records_other": "共 {{total}} 条记录"
+  },
+  "password_label": "密码",
+  "periods_page": {
+    "error_fetch_periods": ""
+  },
+  "permission_denied_action": "您没有权限执行此操作。",
+  "placeholder": {
+    "end_date": "请选择结束日期",
+    "input": "请输入",
+    "input_remarks": "请输入备注",
+    "start_date": "请选择开始日期"
+  },
+  "records_invalid_one": "无效记录",
+  "records_invalid_other": "无效记录",
+  "records_total": "总记录数：{{total}}",
+  "records_valid_one": "有效记录",
+  "records_valid_other": "有效记录",
+  "remember_me_checkbox": "记住我",
+  "report": "",
+  "reset": "",
+  "return_home": "返回主页",
+  "return_login": "返回登录页",
+  "role": {
+    "unknown": "未知角色"
+  },
+  "runs_page": {
+    "error_fetch_runs": ""
+  },
+  "search": {
+    "placeholder": "搜索{{field}}"
+  },
+  "sider": {
+    "title": {
+      "collapsed": "薪管",
+      "full": "薪资管理系统"
+    }
+  },
+  "status": {
+    "not_selected": ""
+  },
+  "status_error": "错误",
+  "status_pending": "待处理",
+  "status_processing": "处理中",
+  "status_success": "成功",
+  "success": {
+    "create": "",
+    "export": "",
+    "update": ""
+  },
+  "table": {
+    "cell_empty": "-",
+    "column": {
+      "index": ""
     },
-    "table": {
-      "cell_empty": "-",
-      "column": {
-        "index": "",
-        "actions": "操作"
-      },
-      "density": {
-        "comfortable": "",
-        "compact": "",
-        "default": ""
-      },
-      "empty_data": "暂无数据",
-      "noData": "暂无数据",
-      "paginationTotal": "共 {total} 条",
-      "refreshError": "刷新失败",
-      "refreshSuccess": "刷新成功"
+    "density": {
+      "comfortable": "",
+      "compact": "",
+      "default": ""
     },
-    "table_converter": {
-      "api_field": "API字段",
-      "convert_to_json": "转换为JSON",
-      "copy_json": "复制JSON",
-      "data_preview": "数据预览",
-      "download_template": "下载模板",
-      "field_mapping": "字段映射",
-      "file_upload": "文件上传",
-      "import_data": "导入数据",
-      "input_data": "输入数据",
-      "json_output": "JSON输出",
-      "paste_table_data": "粘贴表格数据",
-      "process_data": "处理数据",
-      "select_file": "选择文件",
-      "select_template": "选择模板",
-      "step_description_input": "粘贴或上传您的表格数据",
-      "step_description_mapping": "将表格列映射到系统字段",
-      "step_description_output": "预览并复制生成的JSON数据",
-      "step_description_template": "选择或创建数据导入模板",
-      "template_name": "模板名称",
-      "template_type": "模板类型",
-      "upload_file": "上传文件"
-    },
-    "theme_toggle": "切换主题",
-    "username_label": "用户名",
-    "user_menu": {
-      "logout": "退出登录",
-      "profile": "个人资料",
-      "settings": "设置"
-    },
-    "view": "查看",
-    "welcome": "欢迎"
+    "empty_data": "暂无数据",
+    "noData": "暂无数据",
+    "refreshError": "刷新失败",
+    "refreshSuccess": "刷新成功"
+  },
+  "table_converter": {
+    "api_field": "API字段",
+    "convert_to_json": "转换为JSON",
+    "copy_json": "复制JSON",
+    "data_preview": "数据预览",
+    "download_template": "下载模板",
+    "field_mapping": "字段映射",
+    "file_upload": "文件上传",
+    "import_data": "导入数据",
+    "input_data": "输入数据",
+    "json_output": "JSON输出",
+    "paste_table_data": "粘贴表格数据",
+    "process_data": "处理数据",
+    "select_file": "选择文件",
+    "select_template": "选择模板",
+    "step_description_input": "粘贴或上传您的表格数据",
+    "step_description_mapping": "将表格列映射到系统字段",
+    "step_description_output": "预览并复制生成的JSON数据",
+    "step_description_template": "选择或创建数据导入模板",
+    "template_name": "模板名称",
+    "template_type": "模板类型",
+    "upload_file": "上传文件"
+  },
+  "theme_toggle": "切换主题",
+  "tooltip": {
+    "column_settings": "",
+    "export_data": ""
+  },
+  "unavailable": "",
+  "units": {
+    "people": "",
+    "yuan": ""
+  },
+  "unknown": "",
+  "user_menu": {
+    "logout": "退出登录",
+    "profile": "个人资料",
+    "settings": "设置"
+  },
+  "username_label": "用户名",
+  "validation": {
+    "max_length": "长度不能超过最大限制",
+    "missing_required_fields_prefix": "",
+    "required": "此项为必填项"
+  },
+  "validations": {
+    "required": ""
+  },
+  "view": "查看",
+  "visible": "",
+  "yes": ""
 }

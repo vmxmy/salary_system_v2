@@ -18,7 +18,7 @@ from ..models import (
     PayrollEntry, LookupValue, LookupType
 )
 from ..pydantic_models.payroll_calculation import CalculationSummary, CalculationStatusEnum
-from ..payroll_engine.models import ComponentType, CalculationResult, CalculationStatus, CalculationComponent
+from ..payroll_engine.simple_calculator import ComponentType, CalculationResult, CalculationStatus, CalculationComponent
 
 
 logger = logging.getLogger(__name__)
@@ -316,7 +316,7 @@ class PayrollCalculationCRUD:
                 }
                 if comp.component_type == ComponentType.EARNING:
                     earnings_dict[comp.component_code] = comp_data
-                elif comp.component_type in [ComponentType.DEDUCTION, ComponentType.PERSONAL_DEDUCTION, ComponentType.TAX, ComponentType.SOCIAL_INSURANCE]:
+                elif comp.component_type in [ComponentType.PERSONAL_DEDUCTION, ComponentType.EMPLOYER_DEDUCTION]:
                     deductions_dict[comp.component_code] = comp_data
         
         # 序列化计算日志 (引擎部分的日志) - 改为使用 result.calculation_details
@@ -378,7 +378,7 @@ class PayrollCalculationCRUD:
                 }
                 if comp.component_type == ComponentType.EARNING:
                     earnings_details[comp.component_code] = comp_data
-                elif comp.component_type in [ComponentType.DEDUCTION, ComponentType.PERSONAL_DEDUCTION, ComponentType.TAX, ComponentType.SOCIAL_INSURANCE]:
+                elif comp.component_type in [ComponentType.PERSONAL_DEDUCTION, ComponentType.EMPLOYER_DEDUCTION]:
                     deductions_details[comp.component_code] = comp_data
 
         entry.earnings_details = earnings_details

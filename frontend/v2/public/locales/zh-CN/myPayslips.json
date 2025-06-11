@@ -21,7 +21,10 @@
     "draft": "草稿",
     "finalized": "已定稿",
     "paid": "已支付",
-    "pendingPayment": "待支付"
+    "pendingPayment": "待支付",
+    "status": {
+      "na": "不适用"
+    }
   },
   "title": "我的工资单"
 }

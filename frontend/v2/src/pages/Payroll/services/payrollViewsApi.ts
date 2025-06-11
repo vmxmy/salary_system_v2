@@ -2,7 +2,7 @@ import apiClient from '../../../api/apiClient';
 import type { PayrollPeriod, PayrollRun, PayrollEntry, LookupValue, ApiListResponse } from '../types/payrollTypes';
 
 // 视图API的基础端点
-const PAYROLL_VIEWS_ENDPOINT = '/payroll-views';
+const PAYROLL_VIEWS_ENDPOINT = '/views';
 const PAYROLL_V2_ENDPOINT = '/v2/payroll';
 
 // 分页响应类型
@@ -269,11 +269,11 @@ export const payrollViewsApi = {
     offset?: number;
   }): Promise<PayrollEntryDetailedView[]> => {
     try {
-      const response = await apiClient.get<{ data: PayrollEntryDetailedView[] }>(
-        `${PAYROLL_VIEWS_ENDPOINT}/entries-detailed`,
+      const response = await apiClient.get<PayrollEntryDetailedView[]>(
+        `${PAYROLL_VIEWS_ENDPOINT}/payroll-entries`,
         { params }
       );
-      return response.data.data || [];
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching payroll entries detailed:', error);
       throw error;

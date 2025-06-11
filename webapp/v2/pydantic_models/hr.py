@@ -93,6 +93,9 @@ class EmployeeBase(BaseModel):
     
     # 职务级别相关字段
     job_position_level_lookup_value_id: Optional[int] = Field(None, description="Job position level lookup ID")
+    
+    # 社保个人客户号字段
+    social_security_client_number: Optional[str] = Field(None, description="Social security client number")
 
 
 class EmployeeCreate(EmployeeBase):
@@ -151,6 +154,9 @@ class EmployeeUpdate(BaseModel):
     
     # 职务级别字段
     job_position_level_lookup_value_id: Optional[int] = Field(None, description="Job position level lookup ID")
+    
+    # 社保个人客户号字段
+    social_security_client_number: Optional[str] = Field(None, description="Social security client number")
 
     # Allow updating appraisals along with the employee
     appraisals: Optional[List[EmployeeAppraisalUpdate]] = Field(None, description="List of employee appraisals to update/create. For existing appraisals, include 'id'. For new ones, omit 'id'. The backend will sync based on this list.")

@@ -53,55 +53,55 @@ def get_payroll_entries(
         
         # 基础筛选条件
         if employee_id:
-            conditions.append("employee_id = :employee_id")
+            conditions.append('"员工id" = :employee_id')
             params['employee_id'] = employee_id
             
         if period_id:
-            conditions.append("payroll_period_id = :period_id")
+            conditions.append('"薪资期间id" = :period_id')
             params['period_id'] = period_id
             
         if run_id:
-            conditions.append("payroll_run_id = :run_id")
+            conditions.append('"薪资运行id" = :run_id')
             params['run_id'] = run_id
             
         # 部门筛选
         if department_name:
-            conditions.append("department_name ILIKE :department_name")
+            conditions.append('"部门名称" ILIKE :department_name')
             params['department_name'] = f"%{department_name}%"
             
         # 人员类别筛选
         if personnel_category_name:
-            conditions.append("personnel_category_name ILIKE :personnel_category_name")
+            conditions.append('"人员类别" ILIKE :personnel_category_name')
             params['personnel_category_name'] = f"%{personnel_category_name}%"
             
         # 工资范围筛选
         if min_gross_pay is not None:
-            conditions.append("gross_pay >= :min_gross_pay")
+            conditions.append('"应发合计" >= :min_gross_pay')
             params['min_gross_pay'] = min_gross_pay
             
         if max_gross_pay is not None:
-            conditions.append("gross_pay <= :max_gross_pay")
+            conditions.append('"应发合计" <= :max_gross_pay')
             params['max_gross_pay'] = max_gross_pay
             
         if min_net_pay is not None:
-            conditions.append("net_pay >= :min_net_pay")
+            conditions.append('"实发合计" >= :min_net_pay')
             params['min_net_pay'] = min_net_pay
             
         if max_net_pay is not None:
-            conditions.append("net_pay <= :max_net_pay")
+            conditions.append('"实发合计" <= :max_net_pay')
             params['max_net_pay'] = max_net_pay
             
         # 搜索筛选
         if search_term:
             if search_term.isdigit():
-                conditions.append("payroll_entry_id = :search_entry_id")
+                conditions.append('"薪资条目id" = :search_entry_id')
                 params['search_entry_id'] = int(search_term)
             else:
                 conditions.append("""(
-                    first_name ILIKE :search_term OR 
-                    last_name ILIKE :search_term OR 
-                    full_name ILIKE :search_term OR
-                    employee_code ILIKE :search_term
+                    "名" ILIKE :search_term OR 
+                    "姓" ILIKE :search_term OR 
+                    "姓名" ILIKE :search_term OR
+                    "员工编号" ILIKE :search_term
                 )""")
                 params['search_term'] = f"%{search_term}%"
         
@@ -111,23 +111,23 @@ def get_payroll_entries(
             where_clause = "WHERE " + " AND ".join(conditions)
         
         # 排序处理
-        order_clause = "ORDER BY payroll_entry_id DESC"  # 默认排序
+        order_clause = 'ORDER BY "薪资条目id" DESC'  # 默认排序
         if sort_by:
             sort_direction = "DESC" if sort_order.lower() == 'desc' else "ASC"
             
             # 映射排序字段到视图中实际存在的字段
             sort_field_mapping = {
-                'employee_name': 'full_name',
-                'department': 'department_name',
-                'gross_pay': 'gross_pay',
-                'net_pay': 'net_pay',
-                'calculated_at': 'calculated_at'
+                'employee_name': '"姓名"',
+                'department': '"部门名称"',
+                'gross_pay': '"应发合计"',
+                'net_pay': '"实发合计"',
+                'calculated_at': '"计算时间"'
             }
             
             if sort_by in sort_field_mapping:
                 order_clause = f"ORDER BY {sort_field_mapping[sort_by]} {sort_direction}"
             elif sort_by == 'id':
-                order_clause = f"ORDER BY payroll_entry_id {sort_direction}"
+                order_clause = f'ORDER BY "薪资条目id" {sort_direction}'
         
         # 分页参数
         params['limit'] = limit
@@ -143,75 +143,66 @@ def get_payroll_entries(
         count_result = db.execute(text(count_sql), params).fetchone()
         total = count_result.total if count_result else 0
         
-        # 查询数据
+        # 查询数据 - 使用正确的中文列名
         data_sql = f"""
             SELECT 
-                payroll_entry_id as id,
-                employee_id,
-                payroll_period_id,
-                payroll_run_id,
-                employee_code,
-                first_name,
-                last_name,
-                full_name as employee_name,
-                department_name,
-                position_name,
-                personnel_category_name,
-                root_personnel_category_name,
-                payroll_period_name,
-                gross_pay,
-                net_pay,
-                total_deductions,
+                "薪资条目id" as id,
+                "员工id" as employee_id,
+                "薪资期间id" as payroll_period_id,
+                "薪资运行id" as payroll_run_id,
+                "员工编号" as employee_code,
+                "名" as first_name,
+                "姓" as last_name,
+                "姓名" as employee_name,
+                "部门名称" as department_name,
+                "职位名称" as position_name,
+                "人员类别" as personnel_category_name,
+                "根人员类别" as root_personnel_category_name,
+                "薪资期间名称" as payroll_period_name,
+                "应发合计" as gross_pay,
+                "实发合计" as net_pay,
+                "扣除合计" as total_deductions,
                 
                 -- 应发项目
-                basic_salary,
-                performance_bonus,
-                basic_performance_salary,
-                position_salary_general as position_salary,
-                grade_salary,
-                salary_grade,
-                allowance_general as allowance,
-                general_allowance,
-                traffic_allowance,
-                only_child_parent_bonus as only_child_bonus,
-                township_allowance,
-                position_allowance,
-                civil_standard_allowance,
-                back_pay,
-                performance_salary,
-                monthly_performance_bonus,
+                "基本工资" as basic_salary,
+                "奖励性绩效工资" as performance_bonus,
+                "基础性绩效工资" as basic_performance_salary,
+                "岗位工资" as position_salary,
+                "级别工资" as grade_salary,
+                "薪级工资" as salary_grade,
+                "补助" as allowance,
+                "津贴" as general_allowance,
+                "公务交通补贴" as traffic_allowance,
+                "独生子女父母奖励金" as only_child_bonus,
+                "乡镇工作补贴" as township_allowance,
+                "岗位职务补贴" as position_allowance,
+                "公务员规范后津补贴" as civil_standard_allowance,
+                "补发工资" as back_pay,
+                "绩效工资" as performance_salary,
+                "月奖励绩效" as monthly_performance_bonus,
                 
                 -- 个人扣除项目
-                personal_income_tax,
-                pension_personal_amount as pension_personal,
-                medical_ins_personal_amount as medical_personal,
-                unemployment_personal_amount as unemployment_personal,
-                housing_fund_personal,
-                occupational_pension_personal_amount as annuity_personal,
-                one_time_adjustment,
-                social_insurance_adjustment,
+                "个人所得税" as personal_income_tax,
+                "养老保险个人应缴金额" as pension_personal,
+                "医疗保险个人缴纳金额" as medical_personal,
+                "失业保险个人应缴金额" as unemployment_personal,
+                "个人缴住房公积金" as housing_fund_personal,
+                "职业年金个人应缴费额" as annuity_personal,
+                "一次性补扣发" as one_time_adjustment,
+                "补扣社保" as social_insurance_adjustment,
                 
                 -- 单位扣除项目
-                pension_employer_amount,
-                medical_ins_employer_amount,
-                housing_fund_employer,
-                
-                -- 计算基数和费率
-                pension_base,
-                medical_ins_base,
-                tax_base,
-                housing_fund_base,
-                pension_personal_rate,
-                medical_ins_personal_rate,
-                tax_rate,
+                "养老保险单位应缴金额" as pension_employer_amount,
+                "医疗保险单位缴纳金额" as medical_ins_employer_amount,
+                "单位缴住房公积金" as housing_fund_employer,
                 
                 -- 原始JSONB数据
-                raw_earnings_details as earnings_details,
-                raw_deductions_details as deductions_details,
+                "原始应发明细" as earnings_details,
+                "原始扣除明细" as deductions_details,
                 
                 -- 时间字段
-                calculated_at,
-                updated_at
+                "计算时间" as calculated_at,
+                "更新时间" as updated_at
             FROM reports.v_comprehensive_employee_payroll
             {where_clause}
             {order_clause}
@@ -413,25 +404,28 @@ def _get_component_mapping(db: Session) -> dict:
         PayrollComponentDefinition.is_active == True
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
-    earning_query = select(PayrollComponentDefinition).where(
-        PayrollComponentDefinition.type.in_(['EARNING', 'STAT']),
+    # 更全面的查询：包含所有可能用作薪资组件的类型
+    all_components_query = select(PayrollComponentDefinition).where(
         PayrollComponentDefinition.is_active == True
     ).order_by(PayrollComponentDefinition.display_order.asc())
     
-    all_personal_deduction_components = db.execute(personal_deduction_query).scalars().all()
-    all_employer_deduction_components = db.execute(employer_deduction_query).scalars().all()
-    all_earning_components = db.execute(earning_query).scalars().all()
+    all_components = db.execute(all_components_query).scalars().all()
     
-    component_map = {comp.code: comp.name for comp in all_personal_deduction_components}
-    component_map.update({comp.code: comp.name for comp in all_employer_deduction_components})
-    component_map.update({comp.code: comp.name for comp in all_earning_components})
+    # 按类型分组（用于调试日志）
+    components_by_type = {}
+    for comp in all_components:
+        if comp.type not in components_by_type:
+            components_by_type[comp.type] = []
+        components_by_type[comp.type].append(comp.code)
+    
+    # 创建统一的映射
+    component_map = {comp.code: comp.name for comp in all_components}
 
     # 添加调试日志
-    logger.info(f"个人扣除项组件数量: {len(all_personal_deduction_components)}")
-    logger.info(f"个人扣除项代码列表: {[comp.code for comp in all_personal_deduction_components]}")
-    logger.info(f"雇主扣除项组件数量: {len(all_employer_deduction_components)}")
-    logger.info(f"收入项组件数量: {len(all_earning_components)}")
-    logger.info(f"component_map包含的所有代码: {list(component_map.keys())}")
+    logger.info(f"所有激活组件总数: {len(all_components)}")
+    for comp_type, codes in components_by_type.items():
+        logger.info(f"{comp_type} 类型组件 {len(codes)} 个: {', '.join(codes[:5])}{'...' if len(codes) > 5 else ''}")
+    logger.info(f"component_map包含的所有代码: {len(component_map)} 个")
     
     return component_map
 

@@ -39,13 +39,15 @@ const { Column } = Table;
 interface AuditPayrollCardProps {
   selectedPeriod: PayrollPeriodResponse | null;
   selectedVersion: PayrollRunResponse | null;
-  onRefresh: () => void;
+  onRefresh: () => void; // 完整刷新
+  onAuditRefresh?: () => void; // 只刷新审核相关数据
 }
 
 const AuditPayrollCard: React.FC<AuditPayrollCardProps> = ({
   selectedPeriod,
   selectedVersion,
-  onRefresh
+  onRefresh,
+  onAuditRefresh
 }) => {
   const { t } = useTranslation(['simplePayroll', 'common']);
   
@@ -395,11 +397,11 @@ const AuditPayrollCard: React.FC<AuditPayrollCardProps> = ({
         })
       );
 
-      // 重新加载数据
+      // 重新加载数据 - 自动修复影响审核数据，只刷新审核相关数据
       await loadAuditSummary();
       await loadAnomalies();
       setSelectedAnomalies([]);
-      onRefresh();
+      onAuditRefresh?.() || onRefresh();
     } catch (error) {
       message.error(t('simplePayroll:audit.autoFixFailed'));
     } finally {
@@ -433,7 +435,7 @@ const AuditPayrollCard: React.FC<AuditPayrollCardProps> = ({
       });
 
       message.success(t('simplePayroll:audit.statusUpdated'));
-      onRefresh();
+      onRefresh(); // 状态更新需要完整刷新
     } catch (error) {
       message.error(t('simplePayroll:audit.statusUpdateFailed'));
     }
@@ -788,7 +790,7 @@ const AuditPayrollCard: React.FC<AuditPayrollCardProps> = ({
           onCancel={() => setBatchAdjustModalVisible(false)}
           onSuccess={() => {
             setBatchAdjustModalVisible(false);
-            onRefresh();
+            onAuditRefresh?.() || onRefresh(); // 批量调整影响工资数据，使用审核刷新
             loadAuditSummary();
           }}
           payrollRun={selectedVersion}

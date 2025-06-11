@@ -13,7 +13,7 @@ from .security import router as security_router
 from .auth import router as auth_router
 from .reports import router as reports_router
 from .calculation_config import router as calculation_config_router
-from .payroll_calculation import router as payroll_calculation_router
+# from .payroll_calculation import router as payroll_calculation_router  # 已删除复杂计算引擎
 from .attendance import router as attendance_router
 from .views import router as views_router
 from .views_optimized import router as views_optimized_router
@@ -34,7 +34,7 @@ __all__ = [
     "auth_router",
     "reports_router",
     "calculation_config_router",
-    "payroll_calculation_router",
+    # "payroll_calculation_router",  # 已删除复杂计算引擎
     "attendance_router",
     "views_router",
     "views_optimized_router",

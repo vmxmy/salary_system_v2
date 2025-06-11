@@ -2,6 +2,7 @@
   "employee": {
     "employee_id_format": "员工ID格式"
   },
+
   "payroll": {
     "status": {
       "payroll_entry_status": {

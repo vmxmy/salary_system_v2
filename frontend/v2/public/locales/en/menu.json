@@ -1,38 +1,19 @@
 {
   "admin": {
     "permissions": "Permission Management",
+    "reportConfig": "Report Configuration Management",
     "roles": "Role Management",
     "systemSettings": "System Settings",
     "title": "System Management",
-    "users": "User Management",
-    "dataImport": "Data Import",
-    "sqlEditor": "SQL Editor",
-    "reportTemplate": "Report Template",
-    "reportTable": "Report Table",
-    "reportConfig": "Report Configuration Management"
+    "users": "User Management"
   },
-  "business": {
-    "title": "Business Center",
-    "payroll": {
-      "title": "Payroll Center"
-    },
-    "hr": {
-      "title": "HR Center"
-    },
-    "employees": {
-      "title": "Employee Center"
-    }
-  },
-  "dashboard": "Dashboard",
   "home": "Home",
   "hr": {
     "employees": "Employee Records",
     "employeesBulkImport": "Employee Bulk Import",
     "employeesNew": "Create Employee",
     "myLeave": "",
-    "title": "Employee Management",
-    "employeesDetail": "View Employee",
-    "employeesEdit": "Edit Employee Information"
+    "title": "Employee Management"
   },
   "manager": {
     "leaveApprovals": "Leave Approvals",
@@ -40,7 +21,6 @@
     "title": "Manager View"
   },
   "organization": {
-    "managementV2": "Organization Management",
     "departments": "Department Management",
     "personnelCategories": "Personnel Categories",
     "positions": "Actual Positions",
@@ -52,10 +32,7 @@
     "entry": "Payroll Entry",
     "periods": "Payroll Periods",
     "runs": "Payroll Runs",
-    "title": "Payroll Management",
-    "runDetail": "Payroll Run Details",
-    "calculationConfig": "Payroll Calculation Config",
-    "attendance": "Attendance Management"
+    "title": "Payroll Management"
   },
   "personal": {
     "myInfo": "My Information",
@@ -63,34 +40,7 @@
     "myPayslips": "My Payslips",
     "title": "Personal Center"
   },
-  "simplePayroll": {
-    "title": "Simple Payroll Report"
-  },
-  "system": {
-    "title": "System Configuration",
-    "permissions": {
-      "title": "Users & Permissions"
-    },
-    "organization": {
-      "title": "Organization Config"
-    },
-    "payrollConfig": {
-      "title": "Payroll Config"
-    },
-    "aiConfig": {
-      "title": "AI Configuration"
-    }
-  },
   "test": {
-    "title": "Test Pages",
-    "employeeListV3": "Employee List V3",
-    "reportTableDemo": "Report Table Demo",
-    "reportTemplateDemo": "Report Template Demo",
-    "actualPositions": "Actual Positions",
-    "payrollWorkflow": "Payroll Calculation Workflow"
-  },
-  "viewReports": {
-    "management": "Report Management",
-    "title": "View Reports"
+    "title": "Test Pages"
   }
 }

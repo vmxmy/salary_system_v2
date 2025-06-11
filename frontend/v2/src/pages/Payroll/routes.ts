@@ -84,14 +84,7 @@ export const payrollRoutes: AppRouteObject[] = [
       requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
     },
   },
-  {
-    path: 'bulk-import-v2',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import V2...') }, React.createElement(PayrollBulkImportPageV3)),
-    meta: {
-      title: 'payroll:batch_import.page_title_v2', // 旧版批量导入页面标题翻译键
-      requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
-    },
-  },
+
   {
     path: 'components',
     element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Components...') }, React.createElement(PayrollComponentsPage)),

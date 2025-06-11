@@ -52,27 +52,8 @@ const PayrollTableTextConverter: React.FC = () => {
     { key: 'deductions_details.fund.amount', label: t('payroll_table_converter:api_fields.deductions_fund_amount'), required: false },
   ];
 
-  // 预设的字段映射规则
-  const predefinedMappingRules: Record<string, string> = {
-    [t('payroll_table_converter:predefined_mapping.serial_number')]: '',
-    [t('payroll_table_converter:predefined_mapping.employee_id')]: 'employee_id',
-    [t('payroll_table_converter:predefined_mapping.employee_name')]: 'employee_name',
-    [t('payroll_table_converter:predefined_mapping.department_name')]: 'department_name',
-    [t('payroll_table_converter:predefined_mapping.position_name')]: 'position_name',
-    [t('payroll_table_converter:predefined_mapping.total_earnings')]: 'total_earnings',
-    [t('payroll_table_converter:predefined_mapping.total_deductions')]: 'total_deductions',
-    [t('payroll_table_converter:predefined_mapping.net_pay')]: 'net_pay',
-    [t('payroll_table_converter:predefined_mapping.status')]: 'status_lookup_value_name',
-    [t('payroll_table_converter:predefined_mapping.remarks')]: 'remarks',
-    [t('payroll_table_converter:predefined_mapping.description')]: 'remarks',
-    [t('payroll_table_converter:predefined_mapping.basic')]: 'earnings_details.basic.amount',
-    [t('payroll_table_converter:predefined_mapping.bonus')]: 'earnings_details.bonus.amount',
-    [t('payroll_table_converter:predefined_mapping.allowance')]: 'earnings_details.allowance.amount',
-    [t('payroll_table_converter:predefined_mapping.overtime_pay')]: 'earnings_details.overtime.amount',
-    [t('payroll_table_converter:predefined_mapping.personal_income_tax')]: 'deductions_details.tax.amount',
-    [t('payroll_table_converter:predefined_mapping.social_insurance')]: 'deductions_details.insurance.amount',
-    [t('payroll_table_converter:predefined_mapping.housing_fund')]: 'deductions_details.fund.amount',
-  };
+  // 删除硬编码映射，使用AI智能映射推荐
+  // 这个组件现在主要用于表格文本解析，不再提供预设映射
 
   // 解析表格文本
   const parseTableText = () => {
@@ -87,16 +68,12 @@ const PayrollTableTextConverter: React.FC = () => {
       // 解析表头
       const headers = headerLine.split(',').map(h => h.trim());
       
-      // 初始化字段映射
+      // 初始化字段映射 - 不再使用硬编码映射，等待用户使用AI智能映射
       const initialMappings: FieldMapping[] = headers.map(header => {
-        // 尝试从预设规则中匹配
-        const apiField = predefinedMappingRules[header] || '';
-        const apiFieldInfo = defaultApiFields.find(f => f.key === apiField);
-        
         return {
           tableField: header,
-          apiField: apiField,
-          required: apiFieldInfo?.required || false,
+          apiField: '', // 默认为空，推荐用户使用AI智能映射
+          required: false,
           type: getFieldType(header),
         };
       });

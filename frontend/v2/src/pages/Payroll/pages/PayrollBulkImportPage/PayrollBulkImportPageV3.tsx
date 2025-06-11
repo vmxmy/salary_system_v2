@@ -32,6 +32,7 @@ const PayrollBulkImportPageV3: React.FC = () => {
     // 状态
     currentStep,
     loading,
+    progress,
     importData,
     mappingRules,
     validationResult,
@@ -96,6 +97,7 @@ const PayrollBulkImportPageV3: React.FC = () => {
             onExecuteImport={executeImport}
             onBackToMapping={() => setCurrentStep(1)}
               loading={loading}
+            progress={progress}
           />
         );
         

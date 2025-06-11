@@ -288,6 +288,16 @@ async def get_tax_configs(
         raise HTTPException(status_code=500, detail=f"获取税务配置失败: {str(e)}")
 
 
+@router.get("/rule-sets", response_model=List[dict])
+async def get_rule_sets(
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(get_current_user)
+):
+    """获取规则集配置 (返回空数组占位)"""
+    # 暂时返回空数组占位
+    # 后续需要实现实际逻辑
+    return []
+
 @router.get("/tax-configs/{config_id}", response_model=dict)
 async def get_tax_config(
     config_id: int,

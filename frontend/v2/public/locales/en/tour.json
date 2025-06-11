@@ -11,9 +11,5 @@
     "finish": "Finish",
     "next": "Next",
     "previous": "Previous"
-  },
-  "dashboard": {
-    "description": "This is the system overview and quick access area. You can quickly understand key data and navigate to various functional modules.",
-    "title": "Dashboard Overview"
   }
 }

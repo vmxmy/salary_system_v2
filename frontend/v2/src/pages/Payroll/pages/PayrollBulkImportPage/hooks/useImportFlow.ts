@@ -6,7 +6,7 @@ import {
   getActivePayrollComponents,
   getActivePayrollPeriods
 } from '../../../services/payrollBulkImportApi';
-import { generateSmartMapping } from '../utils/fieldMapping';
+import { performSmartMapping, applySmartMappingToRules, DEFAULT_CONFIG } from '../utils/smartMapping';
 import { DEFAULT_IMPORT_SETTINGS } from '../types/constants';
 import type {
   ImportData,
@@ -18,7 +18,8 @@ import type {
   PayrollPeriod,
   ValidatedPayrollEntryData,
   BulkCreatePayrollEntriesPayload,
-  CreatePayrollEntryPayload
+  CreatePayrollEntryPayload,
+  BulkImportValidationResult
 } from '../types/index';
 import { message } from 'antd';
 
@@ -27,10 +28,18 @@ export const useImportFlow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
+  // 进度状态
+  const [progress, setProgress] = useState({
+    current: 0,
+    total: 0,
+    message: '',
+    stage: '' // 'validating', 'importing', 'completed'
+  });
+  
   // 数据状态
   const [importData, setImportData] = useState<ImportData | null>(null);
   const [mappingRules, setMappingRules] = useState<MappingRule[]>([]);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [validationResult, setValidationResult] = useState<BulkImportValidationResult | null>(null);
   const [processedData, setProcessedData] = useState<ValidatedPayrollEntryData[]>([]);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   
@@ -73,9 +82,15 @@ export const useImportFlow = () => {
   const handleDataParsed = useCallback((data: ImportData) => {
     setImportData(data);
     
-    // 生成智能映射规则
-    const rules = generateSmartMapping(data.headers);
-    setMappingRules(rules);
+    // 生成空的映射规则，等待用户手动映射或使用智能映射
+    const emptyRules: MappingRule[] = data.headers.map(header => ({
+      sourceField: header,
+      targetField: '',
+      confidence: 0,
+      category: 'base',
+      required: false
+    }));
+    setMappingRules(emptyRules);
     
     // 进入映射步骤
     setCurrentStep(1);
@@ -90,6 +105,12 @@ export const useImportFlow = () => {
     
     try {
       setLoading(true);
+      setProgress({
+        current: 0,
+        total: importData.rows.length,
+        message: '正在处理数据映射...',
+        stage: 'validating'
+      });
       
       // 处理原始表格数据
       const rawData = processRawTableData(
@@ -97,6 +118,13 @@ export const useImportFlow = () => {
         importData.rows,
         mappingRules
       );
+      
+      setProgress({
+        current: Math.floor(rawData.length * 0.2),
+        total: rawData.length,
+        message: '正在验证数据...',
+        stage: 'validating'
+      });
       
       console.log('🔄 开始验证数据:', {
         headers: importData.headers,
@@ -106,87 +134,21 @@ export const useImportFlow = () => {
       });
       
       // 调用后台验证API，传递覆盖模式参数
-      const validationResult = await validateBulkImportData(
+      const result = await validateBulkImportData(
         rawData, 
         selectedPeriodId, 
         importSettings.overwriteExisting
       );
       
-      // 转换验证结果格式
-      let result: ValidationResult = {
-        total: validationResult.total,
-        valid: validationResult.valid,
-        invalid: validationResult.invalid,
-        warnings: validationResult.warnings,
-        errors: validationResult.errors
-      };
-      
-      // 前端额外处理：如果启用覆盖模式且有错误，再次尝试转换
-      if (importSettings.overwriteExisting && result.errors && result.errors.length > 0) {
-        console.log('🔍 前端额外处理覆盖模式:', {
-          originalResult: result,
-          overwriteMode: importSettings.overwriteExisting
-        });
-        
-        const processedErrors: string[] = [];
-        let convertedWarnings = 0;
-        
-        result.errors.forEach((error, index) => {
-          const errorLower = error.toLowerCase();
-          
-          // 更宽泛的重复记录错误检测
-          const isDuplicateError = 
-            error.includes('已存在') || 
-            error.includes('duplicate') || 
-            error.includes('重复') ||
-            error.includes('唯一') ||
-            error.includes('冲突') ||
-            errorLower.includes('exists') ||
-            errorLower.includes('conflict') ||
-            errorLower.includes('unique') ||
-            errorLower.includes('constraint') ||
-            // 如果所有记录都是错误，可能都是重复记录
-            (result.valid === 0 && result.invalid === result.total);
-            
-          console.log(`🔍 前端错误检查 ${index + 1}:`, {
-            error,
-            isDuplicateError
-          });
-          
-          if (isDuplicateError) {
-            convertedWarnings++;
-            console.log('⚠️ 前端：转换重复记录错误为警告:', error);
-          } else {
-            processedErrors.push(error);
-          }
-        });
-        
-        // 如果没有找到明确的重复错误，但启用了覆盖模式且所有记录都无效，
-        // 假设都是重复记录错误
-        if (convertedWarnings === 0 && result.valid === 0 && result.invalid > 0) {
-          console.log('🔍 前端：假设所有无效记录都是重复记录');
-          convertedWarnings = result.invalid;
-          processedErrors.length = 0; // 清空错误
-        }
-        
-        if (convertedWarnings > 0) {
-          result = {
-            ...result,
-            errors: processedErrors,
-            warnings: (result.warnings || 0) + convertedWarnings,
-            valid: result.valid + convertedWarnings,
-            invalid: Math.max(0, result.invalid - convertedWarnings)
-          };
-          
-          console.log('✅ 前端覆盖模式处理完成:', {
-            convertedWarnings,
-            newResult: result
-          });
-        }
-      }
+      setProgress({
+        current: rawData.length,
+        total: rawData.length,
+        message: '验证完成',
+        stage: 'completed'
+      });
       
       setValidationResult(result);
-      setProcessedData(validationResult.validatedData);
+      setProcessedData(result.validatedData);
       setCurrentStep(2);
       
       console.log('✅ 数据验证完成:', result);
@@ -200,10 +162,17 @@ export const useImportFlow = () => {
     } catch (error: any) {
       console.error('❌ 数据验证失败:', error);
       message.error(`数据验证失败: ${error.message}`);
+      setProgress({
+        current: 0,
+        total: 0,
+        message: '验证失败',
+        stage: ''
+      });
     } finally {
       setLoading(false);
+      // 不重置进度，让用户看到完成状态
     }
-  }, [importData, selectedPeriodId, mappingRules]);
+  }, [importData, selectedPeriodId, mappingRules, importSettings]);
 
   // 执行导入
   const executeImport = useCallback(async () => {
@@ -224,6 +193,12 @@ export const useImportFlow = () => {
 
     try {
       setLoading(true);
+      setProgress({
+        current: 0,
+        total: validEntries.length,
+        message: '正在准备导入数据...',
+        stage: 'importing'
+      });
       
       // 转换为API需要的格式
       const createPayrollEntries: CreatePayrollEntryPayload[] = validEntries.map(entry => ({
@@ -240,6 +215,13 @@ export const useImportFlow = () => {
         employee_info: entry.employee_info
       }));
       
+      setProgress({
+        current: Math.floor(validEntries.length * 0.1),
+        total: validEntries.length,
+        message: '正在执行批量导入...',
+        stage: 'importing'
+      });
+      
       // 构建批量导入载荷
       const bulkPayload: BulkCreatePayrollEntriesPayload = {
         payroll_period_id: selectedPeriodId,
@@ -253,24 +235,59 @@ export const useImportFlow = () => {
         overwriteMode: importSettings.overwriteExisting
       });
       
-      // 执行批量导入
-      const result = await executeBulkImport(bulkPayload);
+      // 模拟进度更新
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev.current < prev.total * 0.8) {
+            return {
+              ...prev,
+              current: prev.current + Math.floor(prev.total * 0.1),
+              message: `正在导入第 ${prev.current + Math.floor(prev.total * 0.1)} 条记录...`
+            };
+          }
+          return prev;
+        });
+      }, 1000);
       
-      console.log('✅ 批量导入完成:', result);
-      
-      setImportResult(result);
-      setCurrentStep(3);
-      
-      if (result.error_count > 0) {
-        message.warning(
-          `导入完成：成功 ${result.success_count} 条，失败 ${result.error_count} 条`
-        );
-      } else {
-        message.success(`导入完成：成功导入 ${result.success_count} 条记录`);
+      try {
+        // 执行批量导入
+        const result = await executeBulkImport(bulkPayload);
+        
+        clearInterval(progressInterval);
+        
+        setProgress({
+          current: validEntries.length,
+          total: validEntries.length,
+          message: '导入完成',
+          stage: 'completed'
+        });
+        
+        console.log('✅ 批量导入完成:', result);
+        
+        setImportResult(result);
+        setCurrentStep(3);
+        
+        if (result.error_count > 0) {
+          message.warning(
+            `导入完成：成功 ${result.success_count} 条，失败 ${result.error_count} 条`
+          );
+        } else {
+          message.success(`导入完成：成功导入 ${result.success_count} 条记录`);
+        }
+      } catch (importError) {
+        clearInterval(progressInterval);
+        throw importError;
       }
       
     } catch (error: any) {
       console.error('❌ 批量导入失败:', error);
+      
+      setProgress({
+        current: 0,
+        total: 0,
+        message: '导入失败',
+        stage: ''
+      });
       
       setImportResult({
         success_count: 0,
@@ -298,12 +315,19 @@ export const useImportFlow = () => {
     setImportResult(null);
     setSelectedPeriodId(null);
     setImportSettings(DEFAULT_IMPORT_SETTINGS);
+    setProgress({
+      current: 0,
+      total: 0,
+      message: '',
+      stage: ''
+    });
   }, []);
 
   return {
     // 状态
     currentStep,
     loading,
+    progress,
     importData,
     mappingRules,
     validationResult,

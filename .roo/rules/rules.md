@@ -102,11 +102,75 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
 - Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
 - When searching for recent news, use the current year (2025) instead of previous years, or simply use the "recent" keyword to get the latest information
-- When fixing TypeScript errors with `calculationProgress?.status`, use explicit type annotations and type assertions to resolve `never` type inference issues
-- For optional fields in TypeScript interfaces, always use `|| 0` or similar fallbacks when performing arithmetic operations to avoid "possibly undefined" errors
-- When TypeScript interfaces extend other interfaces but don't have certain properties, check the base interface definition and use the correct property names (e.g., `payroll_period_id` instead of `period_id`)
 
 # Scratchpad
+
+## 🎯 简单工资页面审核操作优化 ✅ 已完成
+
+### 任务目标：
+优化简单工资页面的审核操作，使其执行后不刷新整个页面，只刷新相关数据。
+
+### 完成进度：
+- [X] **分析现有刷新机制**：识别出 `handleRefresh()` 会完整刷新所有数据（期间、版本、审核、统计）
+- [X] **设计精细化刷新方案**：
+  - `handleRefresh()` - 完整刷新（保留用于页面初始化等场景）
+  - `handleAuditRefresh()` - 只刷新审核相关数据（审核汇总、统计数据）
+  - `handleVersionRefresh()` - 只刷新版本相关数据（版本列表、统计数据）
+- [X] **实现精细化刷新函数**：在 `index.tsx` 中添加了新的刷新函数
+- [X] **更新 EnhancedWorkflowGuide 组件**：
+  - 扩展 props 接口，支持 `onAuditRefresh` 和 `onVersionRefresh`
+  - 替换所有审核相关操作的 `onRefresh()` 调用为 `onAuditRefresh?.()`
+  - 替换状态更新操作为 `onVersionRefresh?.()`
+  - 保持数据创建操作的完整刷新
+- [X] **更新 AuditPayrollCard 组件**：
+  - 支持精细化刷新 props
+  - 优化审核操作后的数据刷新行为
+- [X] **传递精细化刷新函数**：主页面向子组件传递新的刷新函数
+
+### 🚀 优化效果：
+1. **✅ 审核检查操作** → 只刷新审核数据，不重新加载期间和版本列表
+2. **✅ 高级审核操作** → 只刷新审核数据
+3. **✅ 异常忽略操作** → 只刷新审核数据
+4. **✅ 自动修复操作** → 只刷新审核数据
+5. **✅ 状态更新操作** → 只刷新版本数据（状态变更影响版本列表）
+6. **✅ 计算引擎操作** → 只刷新版本数据（计算完成可能改变版本状态）
+
+### 📝 技术要点：
+- 使用可选链操作符 `onAuditRefresh?.() || onRefresh()` 保持向后兼容性
+- 区分不同操作类型，选择适当的刷新粒度
+- 保持原有 API 接口稳定性，渐进式优化
+
+### 🎉 用户体验提升：
+- 审核操作后页面不会"跳动"或重新加载所有数据
+- 操作响应更快，减少不必要的网络请求
+- 保持用户当前的交互状态（如滚动位置、展开状态等）
+- 降低服务器负载，提高系统整体性能
+
+**总结**：成功实现简单工资页面审核操作的精细化刷新，大幅提升用户体验和系统性能。💪
+
+## 薪资组件修改任务 ✅ 已完成
+
+### 任务背景：
+- [X] **问题**：CIVIL_STANDARD_ALLOWANCE 已改为普通 EARNING 类型
+- [X] **需求**：修改批量导入页面的自动映射器，以匹配新的组件类型
+
+### 修复措施：
+- [X] **移除智能字段处理**：删除 `_process_smart_earnings` 方法中的复杂逻辑
+- [X] **简化映射逻辑**：使用标准的组件映射处理，不再区分人员类别
+- [X] **清理代码**：移除所有智能字段相关的方法和逻辑
+
+### 技术实现：
+- [X] **修改 bulk_operations.py**：
+  - 将智能字段处理改为标准组件映射
+  - 移除 `_process_smart_earnings` 和 `_calculate_smart_field` 方法
+  - 确保 CIVIL_STANDARD_ALLOWANCE 作为普通 EARNING 处理
+
+### 验证结果：
+- [X] **代码修改完成**：所有智能字段逻辑已移除
+- [X] **映射器简化**：现在使用统一的组件映射逻辑
+- [X] **向后兼容**：保持了与现有数据结构的兼容性
+
+**结论**：批量导入的自动映射器已成功修改，现在可以正确处理已改为普通 EARNING 类型的"公务员规范后津补贴"。
 
 ## 报表生成器类创建指南 📝
 

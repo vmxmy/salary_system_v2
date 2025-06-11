@@ -214,6 +214,7 @@ class BulkValidatePayrollEntriesPayload(BaseModel):
     """批量验证薪资明细的请求模型"""
     payroll_period_id: int = Field(..., description="薪资周期ID")
     entries: List[PayrollEntryCreate] = Field(..., description="待验证的薪资明细列表")
+    overwrite_mode: bool = Field(False, description="是否启用覆盖模式，在验证时不将重复记录视为错误")
 
 class BulkValidatePayrollEntriesResult(BaseModel):
     """批量验证薪资明细的响应模型"""

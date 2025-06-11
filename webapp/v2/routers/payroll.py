@@ -1012,7 +1012,8 @@ async def bulk_validate_payroll_entries(
         validation_result = crud.bulk_validate_payroll_entries(
             db=db,
             payroll_period_id=payload.payroll_period_id,
-            entries=payload.entries
+            entries=payload.entries,
+            overwrite_mode=payload.overwrite_mode
         )
 
         # 构建响应
@@ -1061,8 +1062,8 @@ async def bulk_create_payroll_entries(
     - 需要批量导入权限
     """
     try:
-        # 批量创建工资明细
-        created_entries, errors = crud.bulk_create_payroll_entries(
+        # 使用高性能批量创建工资明细
+        created_entries, errors = crud.bulk_create_payroll_entries_optimized(
             db=db,
             payroll_period_id=payload.payroll_period_id,
             entries=payload.entries,

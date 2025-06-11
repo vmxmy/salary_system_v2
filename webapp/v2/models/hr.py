@@ -81,6 +81,12 @@ class Employee(BaseV2):
     ref_salary_level_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_ref_salary_level_id', ondelete='SET NULL'), nullable=True, comment="员工参照正编薪级")
     # --- END NEW FIELDS for Employee ---
     
+    # 社保个人客户号字段
+    social_security_client_number = Column(String(50), nullable=True, comment='社保个人客户号')
+    
+    # 公积金个人客户号字段
+    housing_fund_client_number = Column(String(50), nullable=True, comment='公积金个人客户号')
+    
     hire_date = Column(Date, nullable=False)
     is_active = Column(Boolean, nullable=False, default=True, comment='员工是否激活')
     status_lookup_value_id = Column(BigInteger, ForeignKey('config.lookup_values.id', name='fk_employee_status_id', ondelete='RESTRICT'), nullable=False)

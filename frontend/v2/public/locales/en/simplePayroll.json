@@ -1,0 +1,229 @@
+{
+  "audit": {
+    "allClear": "",
+    "anomalies": "",
+    "anomalyType": "",
+    "autoFix": "",
+    "autoFixable": "",
+    "autoFixFailed": "",
+    "autoFixSuccess": "",
+    "checkCompleted": "",
+    "checkFailed": "",
+    "description": "",
+    "detailModal": {
+      "title": ""
+    },
+    "employee": "",
+    "hasIssues": "",
+    "ignore": "",
+    "ignoreConfirm": "",
+    "ignored": "",
+    "ignoreFailed": "",
+    "ignoreReason": "",
+    "ignoreSuccess": "",
+    "message": "",
+    "noAuditData": "",
+    "runCheck": "",
+    "selectVersionHint": "",
+    "severity": "",
+    "showAll": "",
+    "showOnlyErrors": "",
+    "status": "",
+    "statusUpdated": "",
+    "statusUpdateFailed": "",
+    "submitForReview": "",
+    "title": "",
+    "totalAnomalies": "",
+    "totalEntries": "",
+    "viewDetails": ""
+  },
+  "batchAdjust": {
+    "actions": {
+      "execute": "",
+      "preview": ""
+    },
+    "columns": {
+      "component": "",
+      "description": "",
+      "operation": "",
+      "value": ""
+    },
+    "description": {
+      "label": "",
+      "placeholder": ""
+    },
+    "employeeSelection": {
+      "clearAll": "",
+      "placeholder": "",
+      "selectAll": "",
+      "selected_one": "",
+      "selected_other": "",
+      "title": ""
+    },
+    "errors": {
+      "execute": "",
+      "fetchComponents": "",
+      "fetchEmployees": "",
+      "preview": ""
+    },
+    "info": {
+      "description": "",
+      "title": ""
+    },
+    "messages": {
+      "success_one": "",
+      "success_other": ""
+    },
+    "placeholders": {
+      "description": "",
+      "selectComponent": ""
+    },
+    "preview": {
+      "component": "",
+      "difference": "",
+      "employeeCode": "",
+      "employeeName": "",
+      "newValue": "",
+      "oldValue": "",
+      "summary_one": "",
+      "summary_other": "",
+      "title": ""
+    },
+    "rules": {
+      "add": "",
+      "empty": "",
+      "help": "",
+      "title": ""
+    },
+    "title": "",
+    "warnings": {
+      "noRules": "",
+      "previewFirst": ""
+    }
+  },
+  "common": {
+    "entries": ""
+  },
+  "controls": {
+    "period": "",
+    "selectPeriod": "",
+    "title": ""
+  },
+  "emptyState": {
+    "message": "",
+    "title": ""
+  },
+  "errors": {
+    "copyFailed": "",
+    "createFailed": "",
+    "fetchPeriodFailed": "",
+    "fetchSourcePeriods": ""
+  },
+  "excel": {
+    "columns": {
+      "basicSalary": "",
+      "department": "",
+      "employeeCode": "",
+      "employeeName": "",
+      "grossPay": "",
+      "netPay": ""
+    },
+    "continueValidation": "",
+    "downloadTemplate": "",
+    "dragUpload": "",
+    "importFailed": "",
+    "importing": "",
+    "importProgress": "",
+    "importSuccess": "",
+    "previewDescription_one": "",
+    "previewDescription_other": "",
+    "readyToImport_one": "",
+    "readyToImport_other": "",
+    "startImport": "",
+    "steps": {
+      "import": "",
+      "preview": "",
+      "upload": "",
+      "validate": ""
+    },
+    "templateDownloadStarted": "",
+    "title": "",
+    "uploadFailed": "",
+    "uploadHint": "",
+    "uploadSuccess": "",
+    "uploadTips": {
+      "encoding": "",
+      "format": "",
+      "size": "",
+      "title": ""
+    },
+    "validation": {
+      "grossPayMismatch": "",
+      "missingEmployeeCode": "",
+      "missingEmployeeName": "",
+      "negativeBasicSalary": "",
+      "netPayMismatch": ""
+    },
+    "validationErrors_one": "",
+    "validationErrors_other": "",
+    "validationPassed": "",
+    "validationRequired": "",
+    "validationWarnings_one": "",
+    "validationWarnings_other": ""
+  },
+  "generate": {
+    "copyModal": {
+      "confirm": "",
+      "description": "",
+      "descriptionPlaceholder": "",
+      "periodInfo": "",
+      "sourcePeriod": "",
+      "sourcePeriodPlaceholder": "",
+      "sourcePeriodRequired": "",
+      "title": ""
+    },
+    "copyPrevious": "",
+    "description": "",
+    "downloadTemplate": "",
+    "excelImport": "",
+    "manualCreate": {
+      "button": "",
+      "content": "",
+      "title": ""
+    },
+    "noPeriodSelected": "",
+    "title": ""
+  },
+  "hints": {
+    "noVersions": "",
+    "selectPeriod": ""
+  },
+  "messages": {
+    "copySuccess": "",
+    "createSuccess": ""
+  },
+  "quickActions": {
+    "bulkImport": "",
+    "copyLastMonth": "",
+    "title": ""
+  },
+  "reports": {
+    "currentPeriod": "",
+    "customGenerate": "",
+    "description": "",
+    "generateCompleted": "",
+    "generateFailed": "",
+    "noVersionSelected": "",
+    "quickGenerate": {
+      "salaryTable": "",
+      "taxDeclaration": ""
+    },
+    "readyToGenerate": "",
+    "selectPeriodFirst": "",
+    "selectPeriodHint": "",
+    "title": "",
+    "version": ""
+  },
+  "subtitle": "",
+  "title": ""
+}

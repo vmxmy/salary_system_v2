@@ -16,7 +16,7 @@ import {
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
-import type { ValidationSummary } from '../hooks/usePayrollImport';
+import type { ValidationSummary } from '../types/constants';
 import bulkImportStyles from '../../../../../styles/payroll-bulk-import.module.less';
 
 const { Title, Text } = Typography;

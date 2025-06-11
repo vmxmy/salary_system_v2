@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { RouterProvider, type createBrowserRouter } from 'react-router-dom';
 import { App } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+// Stagewise toolbar integration (development only)
+import { StagewiseToolbar } from '@stagewise/toolbar-react';
+import { ReactPlugin } from '@stagewise-plugins/react';
 import usePayrollConfigStore from './store/payrollConfigStore';
 import useHrLookupStore from './store/hrLookupStore';
 import { fetchAllLookupTypesAndCache } from './services/lookupService';
@@ -248,11 +251,19 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ router }) => {
   ]);
   // --- AI Chatbot Integration useEffect End ---
 
+  // Stagewise configuration
+  const stagewiseConfig = {
+    plugins: [ReactPlugin]
+  };
+
   return (
     // <React.StrictMode> // StrictMode in main.tsx is already commented out
       <QueryClientProvider client={queryClient}>
         <App>
           <RouterProvider router={router} />
+          {import.meta.env.DEV && (
+            <StagewiseToolbar config={stagewiseConfig} />
+          )}
         </App>
       </QueryClientProvider>
     // </React.StrictMode>

@@ -12,6 +12,11 @@
     "reportConfig": "报表配置管理",
     "dataSources": "数据源管理"
   },
+  "menu": {
+    "admin": {
+      "reportConfig": "报表配置管理"
+    }
+  },
   "business": {
     "title": "业务中心",
     "payroll": {

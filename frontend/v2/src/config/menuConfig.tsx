@@ -90,7 +90,7 @@ export const menuData: AppMenuDataItem[] = [
   // 📊 报表管理
   {
     path: '/admin/report-config',
-    titleKey: 'menu:admin.reportConfig',
+    titleKey: 'admin.reportConfig',
     icon: <BarChartOutlined />,
     component: './Admin/Configuration/ReportPresetManagement',
   },

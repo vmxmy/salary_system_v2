@@ -66,7 +66,7 @@ export default defineConfig({
           'payroll-management': [
             './src/pages/Payroll/PayrollWorkflowPage',
             './src/pages/Payroll/components/PayrollEntriesTable',
-            './src/pages/Payroll/pages/PayrollBulkImportPage'
+            './src/pages/Payroll/pages/PayrollBulkImportPage/PayrollBulkImportPageV3'
           ],
           
           // 管理员模块

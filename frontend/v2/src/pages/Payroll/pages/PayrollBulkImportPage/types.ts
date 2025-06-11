@@ -1,4 +1,4 @@
-// types.ts - 由 PayrollBulkImportPage 及其子组件共用
+// types.ts - 由 PayrollBulkImportPageV3 及其子组件共用
 import type { ValidatedPayrollEntryData } from '../../types/payrollTypes';
 
 export interface UploadResult {

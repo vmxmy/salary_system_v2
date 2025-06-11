@@ -14,6 +14,9 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from dataclasses import dataclass
+from enum import Enum
+from datetime import datetime
 
 from ..models import PayrollEntry, Employee
 from ..pydantic_models.payroll import PayrollEntryUpdate
@@ -22,11 +25,112 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# 简单数据类，用于替代复杂计算引擎的模型
+class CalculationStatus(Enum):
+    """计算状态枚举"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class ComponentType(Enum):
+    """薪资组件类型枚举"""
+    EARNING = "EARNING"
+    PERSONAL_DEDUCTION = "PERSONAL_DEDUCTION"
+    EMPLOYER_DEDUCTION = "EMPLOYER_DEDUCTION"
+    OTHER = "OTHER"
+
+
+@dataclass
+class CalculationComponent:
+    """计算组件结果"""
+    component_code: str
+    component_name: str
+    component_type: ComponentType
+    amount: Decimal
+    calculation_formula: Optional[str] = None
+    calculation_details: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        """确保数值类型正确"""
+        if not isinstance(self.amount, Decimal):
+            self.amount = Decimal(str(self.amount))
+        if self.calculation_details is None:
+            self.calculation_details = {}
+
+
+@dataclass
+class CalculationResult:
+    """计算结果模型"""
+    employee_id: int
+    period_id: Optional[int] = None
+    calculation_id: Optional[str] = None
+    status: CalculationStatus = CalculationStatus.COMPLETED
+    gross_pay: Decimal = Decimal('0')
+    total_deductions: Decimal = Decimal('0')
+    net_pay: Decimal = Decimal('0')
+    components: List[CalculationComponent] = None
+    calculation_time: Optional[datetime] = None
+    error_message: Optional[str] = None
+    calculation_details: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        """确保数值类型正确"""
+        if self.components is None:
+            self.components = []
+        if self.calculation_details is None:
+            self.calculation_details = {}
+        if self.calculation_time is None:
+            self.calculation_time = datetime.now()
+
+
 class SimplePayrollCalculator:
     """简化版工资计算引擎"""
     
     def __init__(self, db: Session):
         self.db = db
+        
+    def calculate(self, 
+                  employee_id: int,
+                  earnings: Dict[str, float],
+                  deductions: Dict[str, float]) -> CalculationResult:
+        """
+        计算单个员工的工资
+        
+        Args:
+            employee_id: 员工ID
+            earnings: 收入数据字典
+            deductions: 扣除数据字典
+            
+        Returns:
+            CalculationResult对象
+        """
+        try:
+            # 1. 计算应发合计
+            gross_pay = Decimal(str(sum(earnings.values())))
+            
+            # 2. 计算扣发合计
+            total_deductions = Decimal(str(sum(deductions.values())))
+            
+            # 3. 计算实发合计
+            net_pay = gross_pay - total_deductions
+            
+            # 4. 构建计算结果
+            result = CalculationResult(
+                employee_id=employee_id,
+                gross_pay=gross_pay,
+                total_deductions=total_deductions,
+                net_pay=net_pay,
+                calculation_time=datetime.now()
+            )
+            
+            logger.info(f"员工 {employee_id} 计算完成: 应发={gross_pay}, 扣发={total_deductions}, 实发={net_pay}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"员工 {employee_id} 计算失败: {str(e)}")
+            raise
         
     def calculate_payroll_entry(self, 
                               employee_id: int,
@@ -83,69 +187,55 @@ class SimplePayrollCalculator:
         except Exception as e:
             logger.error(f"员工 {employee_id} 计算失败: {str(e)}")
             raise
-    
+
     def _calculate_gross_pay(self, earnings_data: Dict[str, Any]) -> Decimal:
         """
         计算应发合计
         
         Args:
-            earnings_data: 收入数据字典
+            earnings_data: 收入数据字典，格式：{
+                'BASIC_SALARY': {'name': '基本工资', 'amount': 5000},
+                'ALLOWANCE': {'name': '津贴', 'amount': 1000}
+            }
             
         Returns:
             应发合计金额
         """
-        total = Decimal('0.00')
+        total = Decimal('0')
         
         for key, value in earnings_data.items():
-            if value is not None:
-                try:
-                    # 处理标准格式：{"name": "名称", "amount": 金额}
-                    if isinstance(value, dict) and 'amount' in value:
-                        amount = Decimal(str(value['amount']))
-                        total += amount
-                        logger.debug(f"收入项目 {key} ({value.get('name', key)}): {amount}")
-                    # 处理简化格式：直接数值
-                    else:
-                        amount = Decimal(str(value))
-                        total += amount
-                        logger.debug(f"收入项目 {key}: {amount}")
-                except (ValueError, TypeError) as e:
-                    logger.warning(f"收入项目 {key} 金额转换失败: {value}, 错误: {e}")
-                    continue
+            if isinstance(value, dict) and 'amount' in value:
+                amount = Decimal(str(value['amount']))
+                total += amount
+            elif isinstance(value, (int, float, Decimal)):
+                total += Decimal(str(value))
         
         return total
-    
+
     def _calculate_total_deductions(self, deductions_data: Dict[str, Any]) -> Decimal:
         """
         计算扣发合计
         
         Args:
-            deductions_data: 扣除数据字典
+            deductions_data: 扣除数据字典，格式：{
+                'SOCIAL_INSURANCE': {'name': '社保', 'amount': 500},
+                'TAX': {'name': '个税', 'amount': 200}
+            }
             
         Returns:
             扣发合计金额
         """
-        total = Decimal('0.00')
+        total = Decimal('0')
         
         for key, value in deductions_data.items():
-            if value is not None:
-                try:
-                    # 处理标准格式：{"name": "名称", "amount": 金额}
-                    if isinstance(value, dict) and 'amount' in value:
-                        amount = Decimal(str(value['amount']))
-                        total += amount
-                        logger.debug(f"扣除项目 {key} ({value.get('name', key)}): {amount}")
-                    # 处理简化格式：直接数值
-                    else:
-                        amount = Decimal(str(value))
-                        total += amount
-                        logger.debug(f"扣除项目 {key}: {amount}")
-                except (ValueError, TypeError) as e:
-                    logger.warning(f"扣除项目 {key} 金额转换失败: {value}, 错误: {e}")
-                    continue
+            if isinstance(value, dict) and 'amount' in value:
+                amount = Decimal(str(value['amount']))
+                total += amount
+            elif isinstance(value, (int, float, Decimal)):
+                total += Decimal(str(value))
         
         return total
-    
+
     def batch_calculate(self, 
                        payroll_run_id: int,
                        employee_data_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -154,8 +244,13 @@ class SimplePayrollCalculator:
         
         Args:
             payroll_run_id: 工资运行ID
-            employee_data_list: 员工数据列表，每个元素包含员工ID和薪资数据
-            
+            employee_data_list: 员工数据列表，每个元素包含：
+                {
+                    'employee_id': int,
+                    'earnings_data': dict,
+                    'deductions_data': dict
+                }
+        
         Returns:
             计算结果列表
         """
@@ -163,176 +258,247 @@ class SimplePayrollCalculator:
         
         for employee_data in employee_data_list:
             try:
-                employee_id = employee_data['employee_id']
-                earnings_data = employee_data.get('earnings', {})
-                deductions_data = employee_data.get('deductions', {})
-                
                 result = self.calculate_payroll_entry(
-                    employee_id=employee_id,
+                    employee_id=employee_data['employee_id'],
                     payroll_run_id=payroll_run_id,
-                    earnings_data=earnings_data,
-                    deductions_data=deductions_data
+                    earnings_data=employee_data['earnings_data'],
+                    deductions_data=employee_data['deductions_data']
                 )
-                
                 results.append(result)
-                
             except Exception as e:
-                logger.error(f"批量计算中员工数据处理失败: {employee_data}, 错误: {e}")
-                continue
+                logger.error(f"批量计算失败 - 员工ID: {employee_data.get('employee_id')}, 错误: {str(e)}")
+                # 添加失败记录
+                results.append({
+                    'employee_id': employee_data.get('employee_id'),
+                    'error': str(e),
+                    'status': 'failed'
+                })
         
-        logger.info(f"批量计算完成: 成功 {len(results)} 条，失败 {len(employee_data_list) - len(results)} 条")
         return results
 
 
 class SimplePayrollDataMapper:
-    """简化版工资数据映射器"""
+    """简化版工资数据映射器 - 动态从数据库读取工资组件定义"""
     
-    # 标准收入项目映射（映射到数据库现有字段）
-    EARNINGS_MAPPING = {
-        # 基础工资类 - 映射到数据库现有字段
-        '基本工资': 'BASIC_SALARY',
-        '岗位工资': 'POSITION_SALARY_GENERAL',
-        '薪级工资': 'SALARY_GRADE',
-        '职务工资': 'POSITION_TECH_GRADE_SALARY',
-        '技术等级工资': 'POSITION_TECH_GRADE_SALARY',
-        '职务/技术等级工资': 'POSITION_TECH_GRADE_SALARY',
-        '级别工资': 'GRADE_POSITION_LEVEL_SALARY',
-        '岗位级别工资': 'GRADE_POSITION_LEVEL_SALARY',
-        '级别/岗位级别工资': 'GRADE_POSITION_LEVEL_SALARY',
+    def __init__(self, db: Session):
+        self.db = db
+        self._earnings_mapping = None
+        self._deductions_mapping = None
+        self._all_components_mapping = None
+        self._components_by_type = None
         
-        # 绩效类
-        '基础绩效奖': 'BASIC_PERFORMANCE',
-        '基础绩效': 'BASIC_PERFORMANCE',
-        '月基础绩效': 'BASIC_PERFORMANCE',
-        '绩效工资': 'PERFORMANCE_SALARY',
-        '月奖励绩效': 'MONTHLY_PERFORMANCE_BONUS',
-        '季度绩效考核薪酬': 'QUARTERLY_PERFORMANCE_ASSESSMENT',
+    def _load_component_mappings(self):
+        """从数据库加载工资组件映射"""
+        if (self._earnings_mapping is not None and 
+            self._deductions_mapping is not None and 
+            self._all_components_mapping is not None):
+            return  # 已经加载过了
+            
+        try:
+            # 查询所有活跃的工资组件定义
+            from ..models import PayrollComponentDefinition
+            
+            components = self.db.query(PayrollComponentDefinition).filter(
+                PayrollComponentDefinition.is_active == True
+            ).all()
+            
+            # 初始化映射字典
+            self._earnings_mapping = {}
+            self._deductions_mapping = {}
+            self._all_components_mapping = {}
+            self._components_by_type = {}
+            
+            # 统计各类型数量
+            type_counts = {}
+            
+            for component in components:
+                code = component.code
+                name = component.name
+                component_type = component.type
+                
+                # 所有组件的名称 -> 代码映射
+                self._all_components_mapping[name] = code
+                
+                # 按类型分组
+                if component_type not in self._components_by_type:
+                    self._components_by_type[component_type] = {}
+                self._components_by_type[component_type][name] = code
+                
+                # 统计数量
+                type_counts[component_type] = type_counts.get(component_type, 0) + 1
+                
+                # 为导入映射准备特定类型的映射
+                if component_type == 'EARNING':
+                    self._earnings_mapping[name] = code
+                elif component_type == 'PERSONAL_DEDUCTION':
+                    self._deductions_mapping[name] = code
+            
+            # 记录日志
+            type_summary = ", ".join([f"{t}类型 {c} 个" for t, c in sorted(type_counts.items())])
+            logger.info(f"已加载工资组件映射: {type_summary}")
+            
+        except Exception as e:
+            logger.error(f"加载工资组件映射失败: {str(e)}")
+            # 如果加载失败，使用空映射
+            self._earnings_mapping = {}
+            self._deductions_mapping = {}
+            self._all_components_mapping = {}
+            self._components_by_type = {}
+            
+
+            
+    @property 
+    def EARNINGS_MAPPING(self) -> Dict[str, str]:
+        """获取收入项目映射"""
+        self._load_component_mappings()
+        return self._earnings_mapping
         
-        # 津贴补贴类
-        '补助': 'ALLOWANCE_GENERAL',
-        '津贴': 'GENERAL_ALLOWANCE',
-        '公务员规范性津贴补贴': 'CIVIL_STANDARD_ALLOWANCE',
-        '公务交通补贴': 'TRAFFIC_ALLOWANCE',
-        '岗位职务补贴': 'POSITION_ALLOWANCE',
-        '信访工作人员岗位津贴': 'PETITION_ALLOWANCE',
-        '乡镇津贴': 'TOWNSHIP_ALLOWANCE',
-        
-        # 特殊补贴类
-        '93年工改保留补贴': 'REFORM_ALLOWANCE_1993',
-        '独生子女父母奖励金': 'ONLY_CHILD_PARENT_BONUS',
-        '见习试用期工资': 'PROBATION_SALARY',
-        
-        # 补扣发类
-        '绩效奖金补扣发': 'PERFORMANCE_BONUS',
-    }
+    @property
+    def DEDUCTIONS_MAPPING(self) -> Dict[str, str]:
+        """获取扣除项目映射"""
+        self._load_component_mappings()
+        return self._deductions_mapping
     
-    # 标准扣除项目映射（映射到数据库现有字段）
-    DEDUCTIONS_MAPPING = {
-        # 社会保险类 - 映射到数据库现有字段
-        '个人缴养老保险费': 'PENSION_PERSONAL_AMOUNT',
-        '养老保险个人应缴金额': 'PENSION_PERSONAL_AMOUNT',
-        '个人缴医疗保险费': 'MEDICAL_INS_PERSONAL_AMOUNT', 
-        '医疗保险个人缴纳金额': 'MEDICAL_INS_PERSONAL_AMOUNT',
-        '个人缴职业年金': 'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
-        '职业年金个人缴纳': 'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
-        '个人缴失业保险费': 'UNEMPLOYMENT_PERSONAL_AMOUNT',
-        '失业个人应缴金额': 'UNEMPLOYMENT_PERSONAL_AMOUNT',
-        '个人缴住房公积金': 'HOUSING_FUND_PERSONAL',
+    @property
+    def ALL_COMPONENTS_MAPPING(self) -> Dict[str, str]:
+        """获取所有组件映射"""
+        self._load_component_mappings()
+        return self._all_components_mapping
         
-        # 税费类
-        '个人所得税': 'PERSONAL_INCOME_TAX',
+    @property
+    def COMPONENTS_BY_TYPE(self) -> Dict[str, Dict[str, str]]:
+        """按类型获取组件映射"""
+        self._load_component_mappings()
+        return self._components_by_type
         
-        # 调整类
-        '补扣社保': 'SOCIAL_INSURANCE_ADJUSTMENT',
-        '一次性补扣发': 'ONE_TIME_ADJUSTMENT',
-        '退款扣除调整': 'REFUND_DEDUCTION_ADJUSTMENT',
-        '2022年医疗扣除调整': 'MEDICAL_2022_DEDUCTION_ADJUSTMENT',
-        
-        # 其他扣除
-        '工会费': 'union_fee',
-        '其他扣除': 'other_deductions',
-    }
+    def get_components_by_type(self, component_type: str) -> Dict[str, str]:
+        """获取指定类型的组件映射"""
+        self._load_component_mappings()
+        return self._components_by_type.get(component_type, {})
     
-    @classmethod
-    def map_import_data_to_payroll_data(cls, import_row: Dict[str, Any]) -> Dict[str, Any]:
+    def map_import_data_to_payroll_data(self, import_row: Dict[str, Any]) -> Dict[str, Any]:
         """
-        将导入的原始数据映射为工资计算数据
+        将导入的Excel数据映射为工资数据结构
         
         Args:
-            import_row: 导入的原始数据行
+            import_row: Excel导入的原始行数据
             
         Returns:
-            映射后的工资数据
+            映射后的工资数据，包含 earnings_data 和 deductions_data
         """
-        earnings = {}
-        deductions = {}
+        earnings_data = {}
+        deductions_data = {}
         
-        # 映射收入项目
-        for original_field, standard_field in cls.EARNINGS_MAPPING.items():
-            if original_field in import_row and import_row[original_field] is not None:
-                try:
-                    value = Decimal(str(import_row[original_field]))
-                    if value > 0:  # 只记录正数收入
-                        earnings[standard_field] = value
-                except (ValueError, TypeError):
-                    logger.warning(f"收入项目 {original_field} 数值转换失败: {import_row[original_field]}")
+        # 确保映射已加载
+        self._load_component_mappings()
         
-        # 映射扣除项目
-        for original_field, standard_field in cls.DEDUCTIONS_MAPPING.items():
-            if original_field in import_row and import_row[original_field] is not None:
-                try:
-                    value = Decimal(str(import_row[original_field]))
-                    if value > 0:  # 只记录正数扣除
-                        deductions[standard_field] = value
-                except (ValueError, TypeError):
-                    logger.warning(f"扣除项目 {original_field} 数值转换失败: {import_row[original_field]}")
+        for key, value in import_row.items():
+            if not value or value == 0:
+                continue
+                
+            # 映射收入项目
+            if key in self.EARNINGS_MAPPING:
+                mapped_key = self.EARNINGS_MAPPING[key]
+                earnings_data[mapped_key] = {
+                    'name': key,
+                    'amount': float(value)
+                }
+            
+            # 映射扣除项目
+            elif key in self.DEDUCTIONS_MAPPING:
+                mapped_key = self.DEDUCTIONS_MAPPING[key]
+                deductions_data[mapped_key] = {
+                    'name': key,
+                    'amount': float(value)
+                }
+            else:
+                # 记录未映射的字段（用于调试）
+                logger.debug(f"未找到映射的字段: {key} = {value}")
         
         return {
-            'employee_id': import_row.get('employee_id'),
-            'earnings': earnings,
-            'deductions': deductions,
-            'original_data': import_row  # 保留原始数据用于审计
+            'earnings_data': earnings_data,
+            'deductions_data': deductions_data
         }
+    
+    def get_component_info(self, component_code: str) -> Optional[Dict[str, Any]]:
+        """
+        获取工资组件的详细信息
+        
+        Args:
+            component_code: 组件代码
+            
+        Returns:
+            组件信息字典，包含名称、类型等
+        """
+        try:
+            from ..models import PayrollComponentDefinition
+            
+            component = self.db.query(PayrollComponentDefinition).filter(
+                PayrollComponentDefinition.code == component_code,
+                PayrollComponentDefinition.is_active == True
+            ).first()
+            
+            if component:
+                return {
+                    'code': component.code,
+                    'name': component.name,
+                    'type': component.type,
+                    'is_taxable': component.is_taxable,
+                    'is_social_security_base': component.is_social_security_base,
+                    'is_housing_fund_base': component.is_housing_fund_base,
+                    'calculation_method': component.calculation_method,
+                    'calculation_parameters': component.calculation_parameters
+                }
+            return None
+            
+        except Exception as e:
+            logger.error(f"获取组件信息失败 {component_code}: {str(e)}")
+            return None
 
 
-# 使用示例
 def example_usage():
-    """使用示例"""
+    """示例使用方法"""
+    print("💡 **动态工资组件映射引擎示例**")
+    print("=" * 50)
     
-    # 模拟导入的原始数据
-    import_data = {
-        'employee_id': 354,
-        '人员编号': '00001',
-        '人员姓名': '张三',
-        '基本工资': '3000.00',
-        '岗位工资': '1500.00',
-        '基础绩效奖': '800.00',
-        '个人缴养老保险费': '240.00',
-        '个人缴医疗保险费': '60.00',
-        '个人所得税': '45.00',
-    }
-    
-    # 1. 数据映射
-    mapper = SimplePayrollDataMapper()
-    payroll_data = mapper.map_import_data_to_payroll_data(import_data)
-    
-    print("映射后的数据:")
-    print(f"收入: {payroll_data['earnings']}")
-    print(f"扣除: {payroll_data['deductions']}")
-    
-    # 2. 工资计算
-    # calculator = SimplePayrollCalculator(db_session)
-    # result = calculator.calculate_payroll_entry(
-    #     employee_id=payroll_data['employee_id'],
-    #     payroll_run_id=1,
-    #     earnings_data=payroll_data['earnings'],
-    #     deductions_data=payroll_data['deductions']
+    # 这里只是示例，实际使用时需要传入真实的数据库会话
+    # from ..database import get_db_v2
+    # db = next(get_db_v2())
+    # 
+    # # 初始化计算器和映射器
+    # calculator = SimplePayrollCalculator(db)
+    # mapper = SimplePayrollDataMapper(db)
+    # 
+    # # 模拟Excel导入数据
+    # import_data = {
+    #     '基本工资': 5000,
+    #     '岗位工资': 3000,
+    #     '月基础绩效': 2000,
+    #     '养老保险(个人)': 400,
+    #     '个人所得税': 200
+    # }
+    # 
+    # # 使用映射器处理导入数据
+    # payroll_data = mapper.map_import_data_to_payroll_data(import_data)
+    # 
+    # # 执行计算
+    # result = calculator.calculate(
+    #     employee_id=123,
+    #     earnings=payroll_data['earnings_data'],
+    #     deductions=payroll_data['deductions_data']
     # )
     # 
-    # print("计算结果:")
-    # print(f"应发合计: {result['gross_pay']}")
-    # print(f"扣发合计: {result['total_deductions']}")
-    # print(f"实发合计: {result['net_pay']}")
+    # print(f"导入数据: {import_data}")
+    # print(f"映射后收入: {payroll_data['earnings_data']}")
+    # print(f"映射后扣除: {payroll_data['deductions_data']}")
+    # print(f"计算结果: 应发={result.gross_pay}, 扣发={result.total_deductions}, 实发={result.net_pay}")
+    
+    print("📝 **特性说明**:")
+    print("  • 动态从 config.payroll_component_definitions 表读取组件定义")
+    print("  • 支持收入类型 (EARNING) 和个人扣除类型 (PERSONAL_DEDUCTION)")
+    print("  • 自动创建常见别名映射（如 '基本工资' -> 'BASIC_SALARY'）")
+    print("  • 包含组件详细信息查询功能")
+    print("  • 需要数据库连接才能运行完整功能")
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ class PayrollCalculationEngine:
     
     def __init__(self, db_session: Session):
         self.db = db_session
-        self.basic_salary_calculator = BasicSalaryCalculator()
+        # 基础薪资计算器已废弃，不再需要
         self.social_insurance_calculator = SocialInsuranceCalculator()
         self.tax_calculator = TaxCalculator()
     
@@ -57,7 +57,7 @@ class PayrollCalculationEngine:
 ```
 
 #### 2. 计算器模块
-- **BasicSalaryCalculator**：基础薪资计算（工资、津贴、奖金）
+- **AllowanceCalculator**：津贴和奖金计算
 - **SocialInsuranceCalculator**：社保公积金计算
 - **TaxCalculator**：个人所得税计算
 - **AttendanceCalculator**：考勤相关计算

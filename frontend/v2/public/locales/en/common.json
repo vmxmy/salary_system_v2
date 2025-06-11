@@ -1,8 +1,14 @@
 {
   "action": {
+    "batch_delete_count_one": "",
+    "batch_delete_count_other": "",
+    "cancel": "",
+    "confirm_delete": "",
     "create": "Create",
     "delete": "Delete",
     "edit": "Edit",
+    "export_excel": "",
+    "refresh": "",
     "title": "Actions",
     "view": "View"
   },
@@ -15,12 +21,6 @@
     "logout_success": "Logout successful"
   },
   "auto____e68ab1": "",
-  "auto___e5ad98": "",
-  "auto___method_url_duration_tofixed_2_ms__status__e29aa0": "",
-  "auto___method_url_duration_tofixed_2_ms__status__f09f90": "",
-  "auto__url__stat_avgduration_tofixed_2_ms__247b75": "",
-  "auto_20___e8b685": "",
-  "auto_500ms__e5b9b3": "",
   "auto_text_e4baa7": "",
   "auto_text_e4baba": "",
   "auto_text_e4bbaa": "",
@@ -64,6 +64,7 @@
   "auto_text_e999aa": "",
   "auto_text_e9a1b9": "",
   "auto_text_e9ab98": "",
+  "back": "",
   "batch_import": {
     "button": {
       "hide_error_details": "",
@@ -146,14 +147,10 @@
       "total_deductions_invalid": ""
     }
   },
-  "boolean": {
-    "false": "No",
-    "true": "Yes"
-  },
   "button": {
     "apply": "Apply",
     "back": "Back",
-    "backToList": "Back to List",
+    "batch_delete": "",
     "cancel": "Cancel",
     "close": "Close",
     "collapse": "",
@@ -170,6 +167,7 @@
     "fullscreen": "",
     "no": "No",
     "ok": "OK",
+    "preview": "",
     "refresh": "Refresh",
     "refresh_and_retry": "Refresh and Retry",
     "reset": "Reset",
@@ -177,13 +175,14 @@
     "save_config": "Save Config",
     "search": "Search",
     "submit": "",
+    "sync": "",
     "update": "Update",
     "upload": "Upload",
     "yes": "Yes",
-    "yes_delete": "Yes, Delete",
-    "view": "View"
+    "yes_delete": "Yes, Delete"
   },
   "cancel": "",
+  "close": "",
   "collapse_sidebar": "Collapse sidebar",
   "column": {
     "actions": "Actions"
@@ -193,7 +192,11 @@
     "dropdown_title": "Column Display",
     "tooltip_title": "Customize columns"
   },
-
+  "common": {
+    "no": "",
+    "permission_denied_action": "",
+    "yes": ""
+  },
   "common_value": {
     "zero_decimal": ""
   },
@@ -232,11 +235,17 @@
       "single": ""
     }
   },
+  "entries_page": {
+    "error_fetch_entries": ""
+  },
   "error": {
     "create_failed": "",
+    "export_failed": "",
+    "fetch_failed": "",
     "genericTitle": "Error",
     "json_conversion_failed": "",
     "load_failed": "",
+    "no_data": "",
     "operation_failed": "",
     "title": "Error",
     "unknown": "Unknown error",
@@ -245,29 +254,8 @@
   },
   "error_unknown": "error_unknown",
   "expand_sidebar": "Expand sidebar",
-  "export": {
-    "button_text": "",
-    "csv": "",
-    "csvNotImplemented": "",
-    "defaultFilename": "",
-    "defaultSheetName": "",
-    "error_message": "Export failed, please try again",
-    "error_no_data_for_client_export": "No data to export.",
-    "excel": "",
-    "export": "",
-    "exportButton": "",
-    "exportSuccess": "",
-    "filename_default": "Export Data",
-    "formatCsv": "CSV (.csv)",
-    "formatExcel": "Excel (.xlsx)",
-    "formatPdf": "PDF (.pdf)",
-    "noDataToExport": "",
-    "pdf": "",
-    "pdfNotImplemented": "",
-    "sheetName_default": "Sheet1",
-    "success_message": "Export successful",
-    "warn_no_handler": "No export handler for this format."
-  },
+  "export": "",
+  "export_success": "",
   "footer": {
     "copyright_text": "",
     "hyperchain_logo_alt_text": ""
@@ -283,12 +271,6 @@
   "inactive": "",
   "label": {
     "actions": "Actions",
-    "code": "Code",
-    "description": "Description",
-    "effective_date": "Effective date",
-    "end_date": "End date",
-    "id": "ID",
-    "name": "Name",
     "payroll_period_name": "Payroll Period Name",
     "remarks": "Remarks",
     "required": "",
@@ -300,6 +282,7 @@
   "load_failed": "",
   "loading": {
     "generic_loading_text": "Loading page content...",
+    "loading_details": "",
     "user_info": "Loading user information..."
   },
   "loading_data": "loading_data",
@@ -312,9 +295,14 @@
     "no_data": ""
   },
   "message": {
-    "api_not_found": "API not found",
+    "batch_delete_failed": "",
+    "batch_delete_failed_generic": "",
+    "batch_delete_success_one": "",
+    "batch_delete_success_other": "",
+    "batch_delete_success_generic": "",
     "column_settings_applied": "Column settings applied successfully!",
     "column_settings_reset": "Column settings reset successfully",
+    "confirm_batch_delete": "",
     "create_failed": "",
     "create_failed_default": "Creation failed",
     "create_success": "",
@@ -324,24 +312,27 @@
     "delete_failed_default": "Deletion failed",
     "delete_success": "",
     "delete_success_default": "Deleted successfully",
-    "error_unknown": "Unknown error",
+    "error_fetching_details": "",
     "export_failed": "",
     "export_success": "",
-    "form_validation_error": "Form validation failed, please check inputs.",
-    "method_not_allowed": "Method not allowed",
+    "invalid_id": "",
     "missing_required_fields": "Required fields are missing.",
     "missing_required_fields_in_tab_param": "Required fields are missing in the {tabName} tab.",
+    "no_selection": "",
     "no_selection_for_batch_delete": "",
-    "operation_failed": "Operation failed",
+    "not_found": "",
     "operation_failed_default_retry": "Operation failed, please try again later.",
-    "operation_failed_prefix": "Operation failed: ",
     "refresh_success": "",
+    "select_items_to_delete": "",
     "update_failed": "",
     "update_failed_default": "Update failed",
     "update_success": "",
     "update_success_default": "Updated successfully",
     "upload_failed_param": "File {fileName} upload failed.",
     "upload_success_param": "File {fileName} uploaded successfully."
+  },
+  "messages": {
+    "loadingData": ""
   },
   "modal": {
     "confirm_delete": {
@@ -377,6 +368,7 @@
     "show_total": "Showing {range0}-{range1} of {total} items",
     "show_total_text": "",
     "total": "",
+    "total_range": "",
     "total_records_one": "Total {{total}} record",
     "total_records_other": "Total {{total}} records"
   },
@@ -404,6 +396,9 @@
   "role": {
     "unknown": "Unknown role"
   },
+  "runs_page": {
+    "error_fetch_runs": ""
+  },
   "search": {
     "placeholder": "Search {{field}}"
   },
@@ -413,13 +408,16 @@
       "full": "Salary Management System"
     }
   },
-  "status": "",
+  "status": {
+    "not_selected": ""
+  },
   "status_error": "status_error",
   "status_pending": "status_pending",
   "status_processing": "status_processing",
   "status_success": "status_success",
   "success": {
     "create": "",
+    "export": "",
     "update": ""
   },
   "table": {
@@ -435,7 +433,6 @@
     },
     "empty_data": "No data",
     "noData": "No data",
-    "paginationTotal": "Total {total} items",
     "refreshError": "Refresh failed",
     "refreshSuccess": "Refresh successful"
   },
@@ -460,6 +457,10 @@
     "export_data": "Export data"
   },
   "unavailable": "unavailable",
+  "units": {
+    "people": "",
+    "yuan": ""
+  },
   "unknown": "unknown",
   "user_menu": {
     "logout": "Logout",
@@ -470,6 +471,9 @@
   "validation": {
     "max_length": "",
     "missing_required_fields_prefix": "",
+    "required": ""
+  },
+  "validations": {
     "required": ""
   },
   "view": "",

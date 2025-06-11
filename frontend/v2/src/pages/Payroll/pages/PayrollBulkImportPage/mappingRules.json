@@ -32,5 +32,10 @@
   "batch_import.mapping.total_deduction_amount": "total_deductions",
   "batch_import.mapping.should_deduct_total": "total_deductions",
   "batch_import.mapping.remarks": "remarks",
-  "batch_import.mapping.description": "remarks"
+  "batch_import.mapping.description": "remarks",
+  "补扣社保": "deductions_details.SOCIAL_INSURANCE_ADJUSTMENT.amount",
+  "一次性补扣发": "earnings_details.ONE_TIME_ADJUSTMENT.amount",
+  "绩效奖金补扣发": "deductions_details.PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT.amount",
+  "奖励性绩效工资": "earnings_details.PERFORMANCE_BONUS.amount",
+  "奖励绩效补扣发": "earnings_details.PERFORMANCE_BONUS_BACK_PAY.amount"
 } 

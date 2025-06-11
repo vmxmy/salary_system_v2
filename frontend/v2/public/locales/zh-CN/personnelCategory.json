@@ -1,74 +1,9 @@
 {
-  "button": {
-    "add_child_personnel_category_tooltip": "",
-    "add_personnel_category": "",
-    "delete_personnel_category_tooltip": "",
-    "edit_personnel_category_tooltip": ""
-  },
-  "form": {
-    "field": {
-      "code": "",
-      "description": "",
-      "effective_date": "",
-      "end_date": "",
-      "is_active": "",
-      "name": "",
-      "parent_category": ""
-    },
-    "placeholder": {
-      "select_parent_category": ""
-    },
-    "validation": {
-      "code_required": "",
-      "effective_date_required": "",
-      "name_required": ""
-    }
-  },
   "message": {
-    "create_success": "",
-    "delete_failed_has_children": "",
+    "confirm_delete": "",
+    "delete_failed": "",
     "delete_failed_prefix": "",
     "delete_success": "",
-    "error_unknown": "",
-    "fetch_list_failed": "",
-    "operation_failed_prefix": "",
-    "update_success": ""
-  },
-  "modal": {
-    "create_title": "",
-    "edit_title": ""
-  },
-  "pageTitle": {
-    "current_personnel_categories": ""
-  },
-  "popconfirm": {
-    "delete": {
-      "cancel_text": "",
-      "description": "",
-      "ok_text": "",
-      "title": ""
-    }
-  },
-  "tab": {
-    "actual_position_management": "",
-    "job_position_level_management": "",
-    "personnel_category_management": ""
-  },
-  "table": {
-    "column": {
-      "actions": "",
-      "code": "",
-      "effective_date": "",
-      "end_date": "",
-      "id": "",
-      "is_active": "",
-      "name": "",
-      "parent_category_id": "",
-      "value_na_or_dash": ""
-    },
-    "filter": {
-      "active": "",
-      "inactive": ""
-    }
+    "fetch_list_failed": ""
   }
 }

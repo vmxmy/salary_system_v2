@@ -150,6 +150,9 @@ export interface Employee {
   job_position_level_lookup_value_name?: string;
   jobPositionLevelName?: string; // 驼峰命名版本，匹配后端返回的字段名
   
+  // 社保个人客户号字段
+  social_security_client_number?: string;
+  
   bank_name?: string;
   bank_account_number?: string;
 
@@ -387,6 +390,9 @@ export interface CreateEmployeePayload {
   
   // 新增字段 - 职务级别
   job_position_level_lookup_value_id?: number | null;
+
+  // 社保个人客户号字段
+  social_security_client_number?: string | null;
 
   // Fields for resolving lookups by name (can be optional if ID is provided)
   gender_lookup_value_name?: string | null;

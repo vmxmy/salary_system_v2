@@ -11,6 +11,7 @@ import {
   CheckCircleOutlined,
   QuestionCircleOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import type { MappingRule } from '../types/index';
 
 interface MappingStatisticsProps {
@@ -20,6 +21,8 @@ interface MappingStatisticsProps {
 const MappingStatistics: React.FC<MappingStatisticsProps> = ({
   mappingRules
 }) => {
+  const { t } = useTranslation(['payroll', 'common']);
+  
   // 计算映射统计
   const categoryStats = mappingRules.reduce((acc, rule) => {
     acc[rule.category] = (acc[rule.category] || 0) + 1;
@@ -76,7 +79,7 @@ const MappingStatistics: React.FC<MappingStatisticsProps> = ({
               <div style={{ fontSize: 20, fontWeight: 'bold', color: '#1890ff' }}>
                 {categoryStats.base || 0}
               </div>
-              <Tag color="blue">基础信息</Tag>
+              <Tag color="blue">{t('payroll:batch_import.field_categories.base')}</Tag>
             </div>
           </Col>
           <Col span={4}>
@@ -84,7 +87,7 @@ const MappingStatistics: React.FC<MappingStatisticsProps> = ({
               <div style={{ fontSize: 20, fontWeight: 'bold', color: '#52c41a' }}>
                 {categoryStats.earning || 0}
               </div>
-              <Tag color="green">收入项</Tag>
+              <Tag color="green">{t('payroll:batch_import.field_categories.earning')}</Tag>
             </div>
           </Col>
           <Col span={4}>
@@ -92,7 +95,7 @@ const MappingStatistics: React.FC<MappingStatisticsProps> = ({
               <div style={{ fontSize: 20, fontWeight: 'bold', color: '#fa8c16' }}>
                 {categoryStats.deduction || 0}
               </div>
-              <Tag color="orange">扣除项</Tag>
+              <Tag color="orange">{t('payroll:batch_import.field_categories.deduction')}</Tag>
             </div>
           </Col>
           <Col span={4}>
@@ -100,7 +103,7 @@ const MappingStatistics: React.FC<MappingStatisticsProps> = ({
               <div style={{ fontSize: 20, fontWeight: 'bold', color: '#722ed1' }}>
                 {categoryStats.calculated || 0}
               </div>
-              <Tag color="purple">计算项</Tag>
+              <Tag color="purple">{t('payroll:batch_import.field_categories.calculated')}</Tag>
             </div>
           </Col>
           <Col span={4}>
@@ -108,7 +111,7 @@ const MappingStatistics: React.FC<MappingStatisticsProps> = ({
               <div style={{ fontSize: 20, fontWeight: 'bold', color: '#13c2c2' }}>
                 {categoryStats.stat || 0}
               </div>
-              <Tag color="cyan">统计项</Tag>
+              <Tag color="cyan">{t('payroll:batch_import.field_categories.stat')}</Tag>
             </div>
           </Col>
           <Col span={4}>
@@ -116,7 +119,7 @@ const MappingStatistics: React.FC<MappingStatisticsProps> = ({
               <div style={{ fontSize: 20, fontWeight: 'bold', color: '#eb2f96' }}>
                 {categoryStats.other || 0}
               </div>
-              <Tag color="magenta">其他</Tag>
+              <Tag color="magenta">{t('payroll:batch_import.field_categories.other')}</Tag>
             </div>
           </Col>
         </Row>

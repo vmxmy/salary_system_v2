@@ -200,10 +200,9 @@ export const processPayrollRecord = (record: RawPayrollEntryData, t: TFunction, 
     record.total_deductions = totalDeductions;
   }
   
-  // 如果没有净工资，计算净工资
-  if (!record.net_pay || record.net_pay === 0) {
-    record.net_pay = record.gross_pay - record.total_deductions;
-  }
+  // 重新计算净工资以确保数据平衡（应发 - 扣除 = 实发）
+  // 这样可以避免原始数据中的计算错误
+  record.net_pay = record.gross_pay - record.total_deductions;
   
   // 设置 total_earnings 字段用于表格显示
   record.total_earnings = record.gross_pay;
@@ -301,7 +300,7 @@ export const validateRecord = (
 // Removed the first (skeletal) definition of processAndValidateJsonData.
 // The version below is the one moved from the main file.
 
-// processAndValidateJsonData function (moved from PayrollBulkImportPage.tsx)
+// processAndValidateJsonData function for PayrollBulkImportPageV3
 // Note: Dependencies like validateRecord, t, formatCurrency, componentDefinitions need to be handled.
 export const processAndValidateJsonData = (
   jsonData: any[],

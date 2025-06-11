@@ -334,6 +334,106 @@ async def batch_lookup_optimized(
         logger.error(f"批量lookup查询失败: {e}")
         raise HTTPException(status_code=500, detail=f"批量lookup查询失败: {str(e)}")
 
+# ==================== 批量员工查询接口 ====================
+
+@router.post("/employees/batch-lookup")
+async def batch_employee_lookup(
+    employee_infos: List[Dict[str, str]],
+    db: Session = Depends(get_db_v2)
+):
+    """🚀 批量员工查询 - 为批量导入薪资优化"""
+    try:
+        if len(employee_infos) > 1000:
+            raise HTTPException(status_code=400, detail="批量查询员工数量不能超过1000")
+        
+        # 构建查询条件
+        conditions = []
+        params = {}
+        
+        for i, info in enumerate(employee_infos):
+            if info.get('last_name') and info.get('first_name') and info.get('id_number'):
+                conditions.append(f"""
+                    (e.last_name = :last_name_{i} 
+                     AND e.first_name = :first_name_{i} 
+                     AND e.id_number = :id_number_{i})
+                """)
+                params[f'last_name_{i}'] = info['last_name']
+                params[f'first_name_{i}'] = info['first_name']
+                params[f'id_number_{i}'] = info['id_number']
+        
+        if not conditions:
+            return OptimizedResponse(
+                success=True,
+                data=[],
+                message="没有有效的查询条件"
+            )
+        
+        query = text(f"""
+            SELECT 
+                e.id, e.employee_code, e.last_name, e.first_name, e.id_number,
+                e.is_active, d.name as department_name, d.id as department_id
+            FROM hr.employees e
+            LEFT JOIN hr.departments d ON e.department_id = d.id
+            WHERE e.is_active = true AND ({' OR '.join(conditions)})
+        """)
+        
+        result = db.execute(query, params)
+        employees = [dict(row._mapping) for row in result]
+        
+        return OptimizedResponse(
+            success=True,
+            data=employees,
+            message=f"成功查询到 {len(employees)} 个员工"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"批量员工查询失败: {e}")
+        raise HTTPException(status_code=500, detail=f"批量员工查询失败: {str(e)}")
+
+@router.post("/payroll-entries/batch-check-existing")
+async def batch_check_existing_payroll_entries(
+    payroll_period_id: int,
+    employee_ids: List[int],
+    db: Session = Depends(get_db_v2)
+):
+    """🚀 批量检查已存在的薪资记录 - 为批量导入薪资优化"""
+    try:
+        if len(employee_ids) > 1000:
+            raise HTTPException(status_code=400, detail="批量查询员工数量不能超过1000")
+        
+        # 构建IN条件的占位符
+        placeholders = ','.join([f':emp_id_{i}' for i in range(len(employee_ids))])
+        params = {'payroll_period_id': payroll_period_id}
+        params.update({f'emp_id_{i}': emp_id for i, emp_id in enumerate(employee_ids)})
+        
+        query = text(f"""
+            SELECT 
+                pe.employee_id, pe.id as payroll_entry_id
+            FROM payroll.payroll_entries pe
+            WHERE pe.payroll_period_id = :payroll_period_id
+              AND pe.employee_id IN ({placeholders})
+        """)
+        
+        result = db.execute(query, params)
+        existing_entries = [dict(row._mapping) for row in result]
+        
+        # 转换为字典形式方便查找
+        existing_map = {entry['employee_id']: entry['payroll_entry_id'] for entry in existing_entries}
+        
+        return OptimizedResponse(
+            success=True,
+            data=existing_map,
+            message=f"检查完成，发现 {len(existing_entries)} 个已存在的薪资记录"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"批量检查薪资记录失败: {e}")
+        raise HTTPException(status_code=500, detail=f"批量检查薪资记录失败: {str(e)}")
+
 # ==================== 健康检查 ====================
 
 @router.get("/health")

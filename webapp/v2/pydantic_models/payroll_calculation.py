@@ -50,6 +50,7 @@ class CalculationResult(BaseModel):
     """单个员工计算结果"""
     employee_id: int = Field(..., description="员工ID")
     employee_name: str = Field(..., description="员工姓名")
+    status: Optional[str] = Field(None, description="计算状态")
     success: bool = Field(..., description="计算是否成功")
     
     # 计算结果
