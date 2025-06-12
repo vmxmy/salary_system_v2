@@ -82,6 +82,23 @@ class PayrollGenerationRequest(BaseModel):
             }
         }
 
+class CopyPreviousPayrollRequest(BaseModel):
+    """复制上月工资数据请求模型"""
+    target_period_id: int = Field(..., description="目标期间ID")
+    source_period_id: int = Field(..., description="源期间ID")
+    description: Optional[str] = Field(None, description="复制说明")
+    force_overwrite: Optional[bool] = Field(False, description="是否强制覆盖现有数据")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "target_period_id": 54,
+                "source_period_id": 51,
+                "description": "复制2025年9月数据到2025年12月",
+                "force_overwrite": False
+            }
+        }
+
 # =============================================================================
 # 批量调整请求模型
 # =============================================================================

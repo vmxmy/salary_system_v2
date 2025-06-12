@@ -143,7 +143,7 @@ export const getPayrollPeriodStatusInfo = async (statusId?: number): Promise<{ n
   const options = await getPayrollPeriodStatusOptions();
   const status = options.find(opt => opt.id === statusId);
   return status 
-    ? { name: status.name, color: status.color }
+    ? { name: status.name, color: status.color || 'default' }
     : { name: i18n.t('payroll:auto__statusid__e69caa'), color: 'default' };
 };
 
@@ -158,7 +158,7 @@ export const getPayrollRunStatusInfo = async (statusId?: number): Promise<{ name
   const options = await getPayrollRunStatusOptions();
   const status = options.find(opt => opt.id === statusId);
   return status 
-    ? { name: status.name, color: status.color }
+    ? { name: status.name, color: status.color || 'default' }
     : { name: i18n.t('payroll:auto__statusid__e69caa'), color: 'default' };
 };
 
@@ -173,7 +173,7 @@ export const getPayrollEntryStatusInfo = async (statusId?: number): Promise<{ na
   const options = await getPayrollEntryStatusOptions();
   const status = options.find(opt => opt.id === statusId);
   return status 
-    ? { name: status.name, color: status.color }
+    ? { name: status.name, color: status.color || 'default' }
     : { name: i18n.t('payroll:auto__statusid__e69caa'), color: 'default' };
 };
 

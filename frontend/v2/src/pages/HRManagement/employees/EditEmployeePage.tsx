@@ -50,11 +50,11 @@ const EditEmployeePage: React.FC = () => {
         hasEmployee: !!employee,
         hasLookupMaps: !!lookupMaps,
         keyInitialValues: {
-          department_id: initialValues.department_id,
-          personnel_category_id: initialValues.personnel_category_id,
-          actual_position_id: initialValues.actual_position_id,
-          employment_type: initialValues.employment_type,
-          employee_status: initialValues.employee_status,
+          department_id: (initialValues as any)?.department_id,
+          personnel_category_id: (initialValues as any)?.personnel_category_id,
+          actual_position_id: (initialValues as any)?.actual_position_id,
+          employment_type: (initialValues as any)?.employment_type,
+          employee_status: (initialValues as any)?.employee_status,
         },
         lookupMapsStatus: {
           departmentMapSize: lookupMaps.departmentMap?.size,
@@ -79,7 +79,7 @@ const EditEmployeePage: React.FC = () => {
     setLoading(true);
     try {
       const employee = await employeeManagementApi.getEmployeeById(employeeId);
-      setEmployee(employee);
+      setEmployee(employee as any);
     } catch (error: any) {
       console.error('获取员工信息失败:', error);
       message.error('获取员工信息失败');
@@ -111,16 +111,16 @@ const EditEmployeePage: React.FC = () => {
         interrupted_service_years: values.work_interruption_years,
         
         // 移除表单临时字段名，避免后端收到未知字段
-        birth_date: undefined,
-        entry_date: undefined,
-        position_level_date: undefined,
-        employment_type: undefined,
-        employee_status: undefined,
-        id_card_number: undefined,
-        work_interruption_years: undefined,
+        // birth_date: undefined, // 移除未支持的字段
+        // entry_date: undefined, // 移除未支持的字段
+        // position_level_date: undefined, // 移除未支持的字段
+        // employment_type: undefined, // 移除未支持的字段
+        // employee_status: undefined, // 移除未支持的字段
+        // id_card_number: undefined, // 移除未支持的字段
+        // work_interruption_years: undefined, // 移除未支持的字段
       };
 
-      await employeeManagementApi.updateEmployee(employeeId, payload);
+      await employeeManagementApi.updateEmployee(employeeId, { ...payload, id: Number(employeeId) } as any);
       message.success('员工信息更新成功');
       navigate(`/hr/employees/${employeeId}`);
       return true;

@@ -12,7 +12,8 @@ import {
 } from '@ant-design/icons';
 
 import type { UsePayrollWorkflowReturn } from '../../hooks/usePayrollWorkflow';
-import type { PayrollSummaryStats } from '../../services/payrollWorkflowApi';
+// import type { PayrollSummaryStats } from '../../services/payrollWorkflowApi';
+type PayrollSummaryStats = any; // 临时类型定义
 import { PayrollWorkflowAsyncUtils } from '../../utils/payrollWorkflowUtils';
 
 const { Text, Title } = Typography;

@@ -77,7 +77,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Role Check
   if (allowedRoles && allowedRoles.length > 0) {
     // Ensure userRoleCodes is not null before calling .some()
-    if (!userRoleCodes || !userRoleCodes.some(code => allowedRoles.includes(code))) {
+    if (!userRoleCodes || !userRoleCodes.some((code: string) => allowedRoles.includes(code))) {
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
   }
@@ -93,7 +93,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     
     let userHasRequiredPermissions = false;
     if (permissionMatchMode === 'any') {
-      userHasRequiredPermissions = currentPermissionsFromHook.some(permission => requiredPermissions.includes(permission));
+      userHasRequiredPermissions = currentPermissionsFromHook.some((permission: string) => requiredPermissions.includes(permission));
     } else { // Default is 'all'
       userHasRequiredPermissions = requiredPermissions.every(permission => currentPermissionsFromHook.includes(permission));
     }

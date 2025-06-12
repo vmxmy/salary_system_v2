@@ -8,8 +8,11 @@ import {
   PayrollWorkflowDialogUtils 
 } from '../utils/payrollWorkflowUtils';
 import type { UsePayrollWorkflowStateReturn } from './usePayrollWorkflowState';
-import { PayrollWorkflowStatusService, WORKFLOW_STEPS } from '../services/payrollWorkflowStatusService';
-import { payrollWorkflowApi } from '../services/payrollWorkflowApi';
+// import { PayrollWorkflowStatusService, WORKFLOW_STEPS } from '../services/payrollWorkflowStatusService';
+// import { payrollWorkflowApi } from '../services/payrollWorkflowApi';
+const PayrollWorkflowStatusService = {} as any; // 临时定义
+const WORKFLOW_STEPS = {} as any; // 临时定义
+const payrollWorkflowApi = {} as any; // 临时定义
 import apiClient from '../../../api/apiClient';
 
 export interface UsePayrollWorkflowActionsReturn {

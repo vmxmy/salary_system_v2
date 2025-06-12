@@ -729,7 +729,7 @@ def bulk_create_payroll_entries_optimized(
                 # 为每条记录添加时间戳
                 now = datetime.now()
                 for data in new_entries_data:
-                    data['created_at'] = now
+                    data['calculated_at'] = now  # 修复：使用calculated_at而不是created_at
                     data['updated_at'] = now
                 
                 # 批量插入
@@ -741,7 +741,7 @@ def bulk_create_payroll_entries_optimized(
                 new_records = db.query(PayrollEntry).filter(
                     PayrollEntry.payroll_period_id == payroll_period_id,
                     PayrollEntry.employee_id.in_(new_employee_ids),
-                    PayrollEntry.created_at >= now
+                    PayrollEntry.calculated_at >= now  # 修复：使用calculated_at而不是created_at
                 ).all()
                 
                 created_entries.extend(new_records)

@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
  */
 export const useEmployeePermissions = () => {
   const { userPermissions, hasPermission, hasAnyPermission } = usePermissions();
-  const { user, permissions } = useAuthStore();
+  const { currentUser, userPermissions: authUserPermissions } = useAuthStore();
 
   // 动态生成员工功能权限映射
   const employeePermissions = useMemo(() => {
@@ -102,7 +102,7 @@ export const useEmployeePermissions = () => {
   // 检查是否有更新权限
   const canUpdate = () => {
     // 员工可以更新自己的部分信息，或者有员工编辑权限
-    if (permissions?.includes('employee:update') || permissions?.includes('employee:edit')) {
+    if (authUserPermissions?.includes('employee:update') || authUserPermissions?.includes('employee:edit')) {
       return true;
     }
     

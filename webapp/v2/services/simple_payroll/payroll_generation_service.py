@@ -38,36 +38,66 @@ class PayrollGenerationService:
             if not period:
                 raise ValueError(f"工资期间 {request.period_id} 不存在")
             
-            # 创建新的工资运行记录
-            new_run = PayrollRun(
-                payroll_period_id=request.period_id,
-                run_date=datetime.now().date(),
-                status_lookup_value_id=60, # 待计算状态
-                initiated_by_user_id=user_id
-            )
-            self.db.add(new_run)
-            self.db.commit()
-            self.db.refresh(new_run)
+            # 🎯 修改逻辑：优先使用现有工资运行，而不是总是创建新的
+            existing_run = self.db.query(PayrollRun).filter(
+                PayrollRun.payroll_period_id == request.period_id
+            ).first()
+            
+            if existing_run:
+                logger.info(f"✅ [生成工资数据] 使用现有工资运行: ID={existing_run.id}, 期间ID={request.period_id}")
+                # 清空现有工资条目（如果有的话）
+                existing_entries_count = self.db.query(PayrollEntry).filter(
+                    PayrollEntry.payroll_run_id == existing_run.id
+                ).count()
+                if existing_entries_count > 0:
+                    logger.info(f"🗑️ [生成工资数据] 清理现有 {existing_entries_count} 条工资条目...")
+                    from ...models.payroll import PayrollEntry
+                    self.db.query(PayrollEntry).filter(
+                        PayrollEntry.payroll_run_id == existing_run.id
+                    ).delete()
+                    self.db.commit()
+                    logger.info(f"✅ [生成工资数据] 已清理现有工资条目")
+                # 重置工资运行状态
+                existing_run.status_lookup_value_id = 60  # 待计算状态
+                existing_run.run_date = datetime.now().date()
+                existing_run.initiated_by_user_id = user_id
+                self.db.commit()
+                target_run = existing_run
+            else:
+                logger.info(f"📝 [生成工资数据] 期间无现有工资运行，创建新的...")
+                # 创建新的工资运行记录
+                target_run = PayrollRun(
+                    payroll_period_id=request.period_id,
+                    run_date=datetime.now().date(),
+                    status_lookup_value_id=60, # 待计算状态
+                    initiated_by_user_id=user_id
+                )
+                self.db.add(target_run)
+                self.db.commit()
+                self.db.refresh(target_run)
+                logger.info(f"✅ [生成工资数据] 创建新工资运行: ID={target_run.id}, 期间ID={request.period_id}")
+            
+            logger.info(f"🎯 [生成工资数据] 使用目标工资运行: ID={target_run.id}, 期间ID={request.period_id}")
             
             # 根据生成类型执行不同逻辑
             if request.generation_type == "copy_previous":
-                affected_count = self._copy_previous_entries(new_run, request.source_data)
+                affected_count = self._copy_previous_entries(target_run, request.source_data)
                 logger.info(f"复制上月数据完成，影响 {affected_count} 条记录")
             elif request.generation_type == "import":
-                self._import_excel_entries(new_run, request.source_data)
+                self._import_excel_entries(target_run, request.source_data)
                 logger.info("Excel导入功能执行完成")
             elif request.generation_type == "manual":
-                self._create_manual_entries(new_run, request.source_data)
+                self._create_manual_entries(target_run, request.source_data)
                 logger.info("手动创建功能执行完成")
             else:
                 raise ValueError(f"不支持的生成类型: {request.generation_type}")
             
             # 更新运行状态
-            new_run.calculated_at = datetime.now()
+            target_run.calculated_at = datetime.now()
             self.db.commit()
             
             # 返回创建的运行记录
-            return self._build_payroll_run_response(new_run)
+            return self._build_payroll_run_response(target_run)
             
         except Exception as e:
             logger.error(f"生成工资数据失败: {e}", exc_info=True)
@@ -206,13 +236,16 @@ class PayrollGenerationService:
             
             logger.info(f"✅ [复制工资数据] 源期间验证通过: {source_period.name} (ID: {source_period_id})")
             
-            # 智能检查现有数据
+            # 智能检查现有数据 - 只检查实际的工资条目
             if not force_overwrite:
                 existing_data = self.check_existing_data(target_period_id)
-                if existing_data["has_any_data"]:
-                    logger.warning(f"⚠️ [复制工资数据] 目标期间存在数据，需要用户确认")
+                # 修改逻辑：只有当存在实际工资条目时才需要确认
+                if existing_data["payroll_data"]["total_entries"] > 0:
+                    logger.warning(f"⚠️ [复制工资数据] 目标期间存在 {existing_data['payroll_data']['total_entries']} 条工资条目，需要用户确认")
                     # 返回特殊响应，要求前端显示确认对话框
                     raise ValueError(f"CONFIRMATION_REQUIRED:{existing_data}")
+                else:
+                    logger.info(f"✅ [复制工资数据] 目标期间虽有配置数据但无工资条目，可以安全复制")
             
             # 检查目标期间是否已有数据（原有逻辑保留用于日志）
             existing_run = self.db.query(PayrollRun).filter(
@@ -226,7 +259,7 @@ class PayrollGenerationService:
             # 获取源期间的最新工资运行
             source_run = self.db.query(PayrollRun).filter(
                 PayrollRun.payroll_period_id == source_period_id
-            ).order_by(desc(PayrollRun.initiated_at)).first()
+            ).order_by(desc(PayrollRun.run_date)).first()
             
             if not source_run:
                 logger.error(f"❌ [复制工资数据] 源期间没有工资运行数据: {source_period_id}")
@@ -234,18 +267,44 @@ class PayrollGenerationService:
             
             logger.info(f"✅ [复制工资数据] 找到源工资运行: ID={source_run.id}, 运行日期={source_run.run_date}, 状态ID={source_run.status_lookup_value_id}")
             
-            # 创建新的工资运行记录
-            new_run = PayrollRun(
-                payroll_period_id=target_period_id,
-                run_date=datetime.now().date(),
-                status_lookup_value_id=60, # 待计算状态
-                initiated_by_user_id=user_id
-            )
-            self.db.add(new_run)
-            self.db.commit()
-            self.db.refresh(new_run)
+            # 🎯 修改逻辑：优先使用现有工资运行，而不是总是创建新的
+            target_run = self.db.query(PayrollRun).filter(
+                PayrollRun.payroll_period_id == target_period_id
+            ).first()
             
-            logger.info(f"✅ [复制工资数据] 创建新工资运行: ID={new_run.id}, 期间ID={target_period_id}, 状态=待计算(60)")
+            if target_run:
+                logger.info(f"✅ [复制工资数据] 使用现有工资运行: ID={target_run.id}, 期间ID={target_period_id}")
+                # 清空现有工资条目（如果有的话）
+                existing_entries_count = self.db.query(PayrollEntry).filter(
+                    PayrollEntry.payroll_run_id == target_run.id
+                ).count()
+                if existing_entries_count > 0:
+                    logger.info(f"🗑️ [复制工资数据] 清理现有 {existing_entries_count} 条工资条目...")
+                    self.db.query(PayrollEntry).filter(
+                        PayrollEntry.payroll_run_id == target_run.id
+                    ).delete()
+                    self.db.commit()
+                    logger.info(f"✅ [复制工资数据] 已清理现有工资条目")
+                # 重置工资运行状态为待计算
+                target_run.status_lookup_value_id = 60
+                target_run.run_date = datetime.now().date()
+                target_run.initiated_by_user_id = user_id
+                self.db.commit()
+            else:
+                logger.info(f"📝 [复制工资数据] 目标期间无现有工资运行，创建新的...")
+                # 创建新的工资运行记录
+                target_run = PayrollRun(
+                    payroll_period_id=target_period_id,
+                    run_date=datetime.now().date(),
+                    status_lookup_value_id=60, # 待计算状态
+                    initiated_by_user_id=user_id
+                )
+                self.db.add(target_run)
+                self.db.commit()
+                self.db.refresh(target_run)
+                logger.info(f"✅ [复制工资数据] 创建新工资运行: ID={target_run.id}, 期间ID={target_period_id}, 状态=待计算(60)")
+            
+            logger.info(f"🎯 [复制工资数据] 使用目标工资运行: ID={target_run.id}, 期间ID={target_period_id}")
             
             # 获取所有源工资条目
             source_entries = self.db.query(PayrollEntry).filter(
@@ -255,10 +314,10 @@ class PayrollGenerationService:
             logger.info(f"📋 [复制工资数据] 源工资条目统计: 总数={len(source_entries)}")
             
             if not source_entries:
-                logger.warning(f"⚠️ [复制工资数据] 源期间 {source_period_id} 没有工资条目数据，创建空运行")
-                new_run.calculated_at = datetime.now()
+                logger.warning(f"⚠️ [复制工资数据] 源期间 {source_period_id} 没有工资条目数据，保持目标运行为空")
+                target_run.calculated_at = datetime.now()
                 self.db.commit()
-                return self._build_payroll_run_response(new_run)
+                return self._build_payroll_run_response(target_run)
             
             # 批量复制工资条目
             copied_count = 0
@@ -280,16 +339,18 @@ class PayrollGenerationService:
                     
                     # 创建新的工资条目
                     new_entry = PayrollEntry(
-                        payroll_run_id=new_run.id,
+                        payroll_run_id=target_run.id,
+                        payroll_period_id=target_run.payroll_period_id,
                         employee_id=source_entry.employee_id,
                         gross_pay=source_entry.gross_pay,
+                        total_deductions=source_entry.total_deductions,
                         net_pay=source_entry.net_pay,
                         # 深拷贝JSONB字段
                         earnings_details=dict(source_entry.earnings_details) if source_entry.earnings_details else {},
                         deductions_details=dict(source_entry.deductions_details) if source_entry.deductions_details else {},
                         calculation_inputs=dict(source_entry.calculation_inputs) if source_entry.calculation_inputs else {},
-                        created_at=datetime.now(),
-                        updated_at=datetime.now()
+                        status_lookup_value_id=60,  # 待计算状态
+                        calculated_at=datetime.now()
                     )
                     self.db.add(new_entry)
                     copied_count += 1
@@ -319,13 +380,13 @@ class PayrollGenerationService:
                 # 薪资配置复制失败不影响主流程，但要记录错误
             
             # 最终提交并更新状态
-            new_run.calculated_at = datetime.now()
+            target_run.calculated_at = datetime.now()
             self.db.commit()
             
             logger.info(f"🎉 [复制工资数据] 复制操作完成: 成功复制 {copied_count} 条，跳过 {skipped_count} 条")
-            logger.info(f"📈 [复制工资数据] 复制统计: 源期间={source_period.name}, 目标期间={target_period.name}, 新运行ID={new_run.id}")
+            logger.info(f"📈 [复制工资数据] 复制统计: 源期间={source_period.name}, 目标期间={target_period.name}, 目标运行ID={target_run.id}")
             
-            return self._build_payroll_run_response(new_run)
+            return self._build_payroll_run_response(target_run)
             
         except Exception as e:
             logger.error(f"💥 [复制工资数据] 复制操作失败: {e}", exc_info=True)

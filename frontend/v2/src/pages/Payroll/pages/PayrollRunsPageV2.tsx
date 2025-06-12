@@ -75,6 +75,11 @@ const generatePayrollRunTableColumns = (
       dataIndex: ['payroll_period', 'name'],
       key: 'payroll_period_name',
       render: (_, record) => record.payroll_period?.name || '-',
+      sorter: (a, b) => {
+        const nameA = a.payroll_period?.name || '';
+        const nameB = b.payroll_period?.name || '';
+        return nameA.localeCompare(nameB);
+      },
       ...getColumnSearch('payroll_period'),
     },
     {

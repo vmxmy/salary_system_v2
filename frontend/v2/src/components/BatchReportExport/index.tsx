@@ -66,7 +66,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
     queryKey: ['batchReportTypes'],
     queryFn: () => reportConfigApi.getBatchReportTypes(),
     staleTime: 5 * 60 * 1000, // 🚀 数据5分钟内不会过期
-    cacheTime: 10 * 60 * 1000, // 缓存10分钟
+    gcTime: 10 * 60 * 1000, // 垃圾回收时间10分钟
   });
 
   // 获取配置预设
@@ -74,7 +74,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
     queryKey: ['batchReportPresets'],
     queryFn: () => reportConfigApi.getBatchReportPresets(),
     staleTime: 5 * 60 * 1000, // 🚀 数据5分钟内不会过期
-    cacheTime: 10 * 60 * 1000, // 缓存10分钟
+    gcTime: 10 * 60 * 1000, // 垃圾回收时间10分钟
   });
 
   // 获取薪资周期
@@ -82,7 +82,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
     queryKey: ['batchReportPayrollPeriods'],
     queryFn: getBatchReportPayrollPeriods,
     staleTime: 2 * 60 * 1000, // 🚀 薪资周期2分钟内不会过期
-    cacheTime: 5 * 60 * 1000, // 缓存5分钟
+    gcTime: 5 * 60 * 1000, // 垃圾回收时间5分钟
   });
 
   // 获取部门列表
@@ -90,7 +90,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
     queryKey: ['batchReportDepartments'],
     queryFn: getBatchReportDepartments,
     staleTime: 3 * 60 * 1000, // 🚀 部门数据3分钟内不会过期
-    cacheTime: 10 * 60 * 1000, // 缓存10分钟
+    gcTime: 10 * 60 * 1000, // 垃圾回收时间10分钟
   });
 
   // 获取员工列表（根据选中的部门）
@@ -224,7 +224,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
                   rules={[{ required: true, message: '请选择薪资周期' }]}
                 >
                                      <Select placeholder="请选择薪资周期" loading={periodsLoading}>
-                     {periodsData?.map((period: BatchPayrollPeriod) => (
+                     {(periodsData as any)?.map((period: any) => (
                        <Option key={period.id} value={period.id}>
                          {period.name} ({period.start_date} ~ {period.end_date})
                        </Option>
@@ -255,7 +255,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
               style={{ marginBottom: 16 }}
             />
             <Row gutter={16}>
-              {presetsData?.presets?.map((preset: any) => (
+              {(presetsData as any)?.presets?.map((preset: any) => (
                 <Col span={8} key={preset.id}>
                   <Card
                     size="small"
@@ -299,7 +299,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
                 onChange={handleReportTypeChange}
               >
                 <Row gutter={[16, 16]}>
-                  {reportTypesData?.report_types?.map((type) => (
+                  {(reportTypesData as any)?.report_types?.map((type: any) => (
                     <Col span={8} key={type.code}>
                       <Card 
                         size="small" 
@@ -350,7 +350,7 @@ const BatchReportExport: React.FC<BatchReportExportProps> = ({
                      allowClear
                      onChange={handleDepartmentChange}
                    >
-                     {departmentsData?.map((dept: BatchDepartment) => (
+                     {(departmentsData as any)?.map((dept: any) => (
                        <Option key={dept.id} value={dept.id}>
                          {dept.name} ({dept.code})
                        </Option>

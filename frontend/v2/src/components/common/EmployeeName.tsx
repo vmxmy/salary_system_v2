@@ -63,9 +63,9 @@ const EmployeeName: React.FC<EmployeeNameProps> = ({
         const employee = await employeeManagementApi.getEmployeeById(idString);
         if (employee) {
           // 缓存员工信息
-          employeeCacheService.saveEmployee(employee);
+          employeeCacheService.saveEmployee(employee as any);
           // 更新名称状态
-          setName(employeeCacheService.getEmployeeFullName(employee));
+          setName(employeeCacheService.getEmployeeFullName(employee as any));
         }
       } catch (error) {
       } finally {

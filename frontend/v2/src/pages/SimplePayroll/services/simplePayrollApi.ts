@@ -5,7 +5,7 @@ import type {
   PayrollPeriod,
   PayrollRun,
   PayrollEntry,
-  BatchAdjustment,
+  // BatchAdjustment, // 移除不存在的导入
   AuditAnomaly,
   AuditSummary,
   ReportDefinition,
@@ -197,7 +197,15 @@ export const simplePayrollApi = {
       forceOverwrite: params.force_overwrite
     });
     
-    const response = await apiClient.post(`${API_BASE}/copy-previous`, params);
+    // 修改为查询参数格式（后端已更改为query参数）
+    const response = await apiClient.post(`${API_BASE}/copy-previous`, null, {
+      params: {
+        target_period_id: params.target_period_id,
+        source_period_id: params.source_period_id,
+        description: params.description,
+        force_overwrite: params.force_overwrite
+      }
+    });
     
     console.log('✅ [simplePayrollApi.copyPreviousPayroll] 复制成功:', {
       status: response.status,
@@ -214,7 +222,7 @@ export const simplePayrollApi = {
    */
   batchAdjustPayroll: async (params: {
     payroll_run_id: number;
-    adjustments: BatchAdjustment[];
+    adjustments: any[]; // 临时使用any类型
   }): Promise<ApiResponse<{ affected_count: number; updated_entries: PayrollEntry[] }>> => {
     const response = await apiClient.post(`${API_BASE}/batch-adjust`, params);
     logResponse(response);

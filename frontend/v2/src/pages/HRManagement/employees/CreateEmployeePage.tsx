@@ -87,7 +87,7 @@ const CreateEmployeePage: React.FC = () => {
         salary_grade_lookup_value_id: values.salary_grade || null,
         job_position_level_lookup_value_id: values.job_position_level || null,
         social_security_client_number: values.social_security_client_number || null,
-        housing_fund_client_number: values.housing_fund_client_number || null,
+        // housing_fund_client_number: values.housing_fund_client_number || null, // 字段暂时不支持
       };
 
       const newEmployee = await employeeService.createEmployee(payload);

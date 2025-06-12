@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import EmployeeForm from './components/EmployeeForm';
 import { useEmployeeManagement } from './hooks/useEmployeeManagement';
-import type { CreateEmployeeData } from './types';
+import type { CreateEmployeeData, UpdateEmployeeData } from './types';
 
 const { Title } = Typography;
 
@@ -17,9 +17,9 @@ const CreateEmployeePage: React.FC = () => {
   const [form, setForm] = React.useState<any>(null);
 
   // 处理表单提交
-  const handleSubmit = async (values: CreateEmployeeData) => {
+  const handleSubmit = async (values: CreateEmployeeData | UpdateEmployeeData) => {
     try {
-      await createEmployee(values);
+      await createEmployee(values as CreateEmployeeData);
       message.success('员工创建成功');
       navigate('/employee-management/list');
     } catch (error) {

@@ -8,7 +8,8 @@ import { EyeOutlined, ReloadOutlined, PlayCircleOutlined } from '@ant-design/ico
 
 import type { UsePayrollWorkflowReturn } from '../../hooks/usePayrollWorkflow';
 import type { PayrollEntry } from '../../types/payrollTypes';
-import type { PayrollCalculationProgress } from '../../services/payrollWorkflowApi';
+// import type { PayrollCalculationProgress } from '../../services/payrollWorkflowApi';
+type PayrollCalculationProgress = any; // 临时类型定义
 import { CalculationResultSummary } from './CalculationResultSummary';
 
 const { Text } = Typography;
@@ -501,7 +502,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
                 typedCalculationProgress?.status === 'failed' ? 'error' :
                 typedCalculationProgress?.status === 'processing' ? 'processing' : 'success'
               }>
-                {t(`payroll:workflow.steps.auto_calculation.status_${typedCalculationProgress?.status || 'unknown'}`, typedCalculationProgress?.status || '未知状态')}
+                {String(t(`payroll:workflow.steps.auto_calculation.status_${typedCalculationProgress?.status || 'unknown'}`, typedCalculationProgress?.status || '未知状态'))}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.task_id', '任务ID')}>

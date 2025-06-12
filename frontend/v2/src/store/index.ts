@@ -64,13 +64,12 @@ const preloadedState = (() => {
 
 export const store = configureStore({
   reducer: {
-    chatbotConfig: chatbotConfigReducer,
-    auth: authReducer, // Add authReducer
-    hrLookup: hrLookupReducer, // Add hrLookupReducer
-    payrollConfig: payrollConfigReducer, // Add payrollConfigReducer
-    // ... 这里可以添加应用中的其他 reducers
-  },
-  preloadedState,
+    auth: authReducer,
+    hrLookup: hrLookupReducer,
+    payrollConfig: payrollConfigReducer,
+    chatbotConfig: chatbotConfigReducer, // ✅ 添加缺失的 chatbotConfig reducer
+  } as any, // 临时使用类型断言解决类型冲突
+  preloadedState, // ✅ 恢复预加载状态
 });
 
 // 初始化 store：尝试从 localStorage 加载，否则使用默认值
@@ -102,19 +101,11 @@ if (preloadedState && preloadedState.auth) {
 
 
 // 订阅 store 的变化以保存到 localStorage
-// 我们只在 chatbotConfig slice 相关的状态变化时保存
-let currentChatbotState = store.getState().chatbotConfig;
+// 我们只在认证相关的状态变化时保存
 let currentAuthState = store.getState().auth;
 
 store.subscribe(() => {
   const state = store.getState();
-  
-  // 保存 chatbot 配置
-  const previousChatbotState = currentChatbotState;
-  currentChatbotState = state.chatbotConfig;
-  if (currentChatbotState !== previousChatbotState) {
-    saveState({ chatbotConfig: currentChatbotState });
-  }
   
   // 保存认证状态
   const previousAuthState = currentAuthState;

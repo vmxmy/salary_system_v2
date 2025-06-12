@@ -66,7 +66,7 @@ const EmployeeDetailPage: React.FC<EmployeeDetailPageProps> = () => {
     
     try {
       const employee = await employeeManagementApi.getEmployeeById(employeeId);
-      setEmployee(employee);
+      setEmployee(employee as any);
     } catch (err: any) {
       console.error('获取员工详情失败:', err);
       const errorMsg = err.response?.data?.detail?.error?.message || 

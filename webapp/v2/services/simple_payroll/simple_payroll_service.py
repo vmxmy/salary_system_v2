@@ -5,7 +5,7 @@
 
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_, func
+from sqlalchemy import desc, and_, func, case
 from datetime import datetime
 from decimal import Decimal
 import logging
@@ -186,16 +186,34 @@ class SimplePayrollService:
             if not period:
                 raise ValueError(f"工资期间 {period_id} 不存在")
             
-            # 获取工资运行记录（分页）
-            query = self.db.query(PayrollRun).filter(
+            # 🎯 修改查询逻辑：优先选择有薪资条目数据的工资运行，然后按时间排序
+            # 使用子查询统计每个工资运行的薪资条目数量
+            entry_count_subquery = self.db.query(
+                PayrollEntry.payroll_run_id,
+                func.count(PayrollEntry.id).label('entries_count')
+            ).group_by(PayrollEntry.payroll_run_id).subquery()
+            
+            # 主查询，左连接获取薪资条目统计，并按以下顺序排序：
+            # 1. 有数据的工资运行优先（entries_count > 0）
+            # 2. 同等条件下按创建时间倒序排列
+            query = self.db.query(
+                PayrollRun,
+                func.coalesce(entry_count_subquery.c.entries_count, 0).label('entries_count')
+            ).outerjoin(
+                entry_count_subquery,
+                PayrollRun.id == entry_count_subquery.c.payroll_run_id
+            ).filter(
                 PayrollRun.payroll_period_id == period_id
-            ).order_by(desc(PayrollRun.run_date))
+            ).order_by(
+                desc(case((func.coalesce(entry_count_subquery.c.entries_count, 0) > 0, 1), else_=0)),  # 有数据的优先
+                desc(PayrollRun.run_date)  # 然后按时间倒序
+            )
             
             total = query.count()
-            runs = query.offset((page - 1) * size).limit(size).all()
+            results = query.offset((page - 1) * size).limit(size).all()
             
             result = []
-            for index, run in enumerate(runs):
+            for index, (run, entries_count) in enumerate(results):
                 # 查询真实的状态信息
                 status_name = "未知状态"
                 status_id = run.status_lookup_value_id or 60  # 默认为待计算
@@ -208,10 +226,8 @@ class SimplePayrollService:
                         status_name = status_lookup.name
                         status_id = status_lookup.id
                 
-                # 查询工资条目统计
-                entries_count = self.db.query(PayrollEntry).filter(
-                    PayrollEntry.payroll_run_id == run.id
-                ).count()
+                # 使用预查询的条目数量
+                entries_count = entries_count or 0
                 
                 # 计算汇总金额
                 entry_stats = self.db.query(
@@ -241,8 +257,10 @@ class SimplePayrollService:
                     initiated_at=run.run_date or datetime.now(),
                     calculated_at=run.run_date,
                     approved_at=None,
-                    description=f"工资运行 #{index + 1}"
+                    description=f"工资运行 #{index + 1}" + (f" (含{entries_count}条薪资数据)" if entries_count > 0 else " (无薪资数据)")
                 ))
+            
+            logger.info(f"✅ [get_payroll_versions] 期间 {period_id} 获取到 {len(result)} 个工资运行，已按有数据优先+时间倒序排列")
             
             return {
                 "data": result,

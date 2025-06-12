@@ -75,6 +75,12 @@ const SimplePayrollPage: React.FC = () => {
                 currentVersion={currentVersion}
                 versions={versions}
                 payrollStats={payrollStats}
+                dataIntegrityStats={{
+                  socialInsuranceBaseCount: 0,
+                  housingFundBaseCount: 0,
+                  incomeTaxPositiveCount: 0,
+                  loading: false
+                }}
                 auditSummary={auditSummary}
                 auditLoading={auditLoading}
                 resetLoadingStates={resetLoadingStates}

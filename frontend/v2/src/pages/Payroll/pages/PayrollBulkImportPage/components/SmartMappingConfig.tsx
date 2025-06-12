@@ -450,5 +450,4 @@ const SmartMappingConfigPanel: React.FC<SmartMappingConfigProps> = ({
 };
 
 export default SmartMappingConfigPanel;
-export { DEFAULT_CONFIG, PRESET_CONFIGS };
-export type { SmartMappingConfig }; 
+export { DEFAULT_CONFIG, PRESET_CONFIGS }; 

@@ -64,7 +64,7 @@ export default defineConfig({
           
           // 薪资管理模块
           'payroll-management': [
-            './src/pages/Payroll/PayrollWorkflowPage',
+            // './src/pages/Payroll/PayrollWorkflowPage', // 文件不存在，已注释
             './src/pages/Payroll/components/PayrollEntriesTable',
             './src/pages/Payroll/pages/PayrollBulkImportPage/PayrollBulkImportPageV3'
           ],

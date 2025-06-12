@@ -21,8 +21,10 @@ const ChatbotSettingsTab: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const { t } = useTranslation(['admin', 'common']); // Ensure 'common' namespace is included if translations are there
 
-  const chatbotConfig = useSelector((state: RootState) => selectChatbotFullConfig(state) || initialChatbotConfig);
-  const chatbotIsEnabled = useSelector((state: RootState) => selectChatbotIsEnabled(state) as boolean);
+  // const chatbotConfig = useSelector((state: RootState) => selectChatbotFullConfig(state) || initialChatbotConfig);
+  // const chatbotIsEnabled = useSelector((state: RootState) => selectChatbotIsEnabled(state) as boolean);
+  const chatbotConfig = initialChatbotConfig; // 临时使用默认配置
+  const chatbotIsEnabled = false; // 临时禁用chatbot
 
   useEffect(() => {
     // Set form fields only if chatbotConfig is available

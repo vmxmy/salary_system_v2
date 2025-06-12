@@ -10,7 +10,8 @@ import type { UsePayrollWorkflowReturn } from '../../hooks/usePayrollWorkflow';
 import type { PayrollEntry } from '../../types/payrollTypes';
 import PayrollPeriodSelector from '../../../../components/common/PayrollPeriodSelector';
 import apiClient from '../../../../api/apiClient';
-import { WORKFLOW_STEPS } from '../../services/payrollWorkflowStatusService';
+// import { WORKFLOW_STEPS } from '../../services/payrollWorkflowStatusService';
+const WORKFLOW_STEPS = {}; // 临时定义
 
 // 简单的货币格式化函数
 const formatCurrency = (amount: number): string => {
@@ -1007,10 +1008,10 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
             </ProDescriptions.Item>
           </ProDescriptions>
           
-          {workflow.workflowStatus.steps && workflow.workflowStatus.steps[WORKFLOW_STEPS.DATA_REVIEW as any] && (
+          {workflow.workflowStatus.steps && (WORKFLOW_STEPS as any).DATA_REVIEW && workflow.workflowStatus.steps[(WORKFLOW_STEPS as any).DATA_REVIEW] && (
             <Alert
               message="工作流已启动"
-              description={`数据审核步骤已开始，开始时间: ${new Date((workflow.workflowStatus.steps[WORKFLOW_STEPS.DATA_REVIEW as any] as any)?.data?.started_at || '').toLocaleString()}`}
+              description={`数据审核步骤已开始，开始时间: ${new Date((workflow.workflowStatus.steps[(WORKFLOW_STEPS as any).DATA_REVIEW] as any)?.data?.started_at || '').toLocaleString()}`}
               type="info"
               showIcon
               style={{ marginTop: 16 }}

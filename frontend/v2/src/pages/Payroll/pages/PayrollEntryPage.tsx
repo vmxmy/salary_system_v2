@@ -103,7 +103,7 @@ const generatePayrollEntryTableColumns = (
       },
       width: 150,
       render: (_, record) => {
-        const fullName = record.employee_name || `${record.last_name || ''}${record.first_name || ''}`.trim();
+        const fullName = record.employee_name || `${(record as any).last_name || ''}${(record as any).first_name || ''}`.trim();
         
         if (!fullName) {
           return <span style={{ color: '#999', fontStyle: 'italic' }}>未设置姓名</span>;
@@ -122,23 +122,23 @@ const generatePayrollEntryTableColumns = (
       title: t('payroll:entries_table.column.department'),
       key: 'department',
       width: 150,
-      render: (_, record) => record.department_name || '',
+      render: (_, record) => (record as any).department_name || '',
       filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
         text: entry[1],
         value: entry[1],
       })) : [],
-      onFilter: (value, record) => record.department_name === value,
+      onFilter: (value, record) => (record as any).department_name === value,
     },
     {
       title: t('payroll:entries_table.column.personnel_category'),
       key: 'personnel_identity',
       width: 180,
-      render: (_, record) => record.personnel_category_name || '',
+      render: (_, record) => (record as any).personnel_category_name || '',
       filters: lookupMaps?.personnelCategoryMap ? Array.from(lookupMaps.personnelCategoryMap.entries()).map((entry: any) => ({
         text: entry[1],
         value: entry[1],
       })) : [],
-      onFilter: (value, record) => record.personnel_category_name === value,
+      onFilter: (value, record) => (record as any).personnel_category_name === value,
     },
     {
       title: t('payroll:entries_table.column.gross_pay'),
@@ -262,11 +262,11 @@ const PayrollEntryPage: React.FC = () => {
     
     // 从薪资条目数据中提取唯一的部门和人员类别
     allPayrollEntries.forEach(entry => {
-      if (entry.department_name) {
-        departmentSet.add(entry.department_name);
+      if ((entry as any).department_name) {
+        departmentSet.add((entry as any).department_name);
       }
-      if (entry.personnel_category_name) {
-        personnelCategorySet.add(entry.personnel_category_name);
+      if ((entry as any).personnel_category_name) {
+        personnelCategorySet.add((entry as any).personnel_category_name);
       }
     });
     

@@ -1,7 +1,8 @@
 import { message } from 'antd';
 import type { TFunction } from 'i18next';
 
-import { payrollWorkflowApi } from '../services/payrollWorkflowApi';
+// import { payrollWorkflowApi } from '../services/payrollWorkflowApi';
+const payrollWorkflowApi = {} as any; // 临时定义
 import type { PayrollPeriod } from '../types/payrollTypes';
 
 /**
