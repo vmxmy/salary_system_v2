@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Modal, message, Button, Space, Input } from 'antd';
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { ReloadOutlined, DownloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { payrollViewsApi, type ComprehensivePayrollDataView } from '../../Payroll/services/payrollViewsApi';
+import PayrollEntryDetailModal from '../../Payroll/components/PayrollEntryDetailModal';
+import PayrollEntryFormModal from '../../Payroll/components/PayrollEntryFormModal';
+import { getPayrollEntries, getPayrollEntryById } from '../../Payroll/services/payrollApi';
+import type { PayrollEntry } from '../../Payroll/types/payrollTypes';
+import TableActionButton from '../../../components/common/TableActionButton';
 
 // 工资数据类型定义 - 使用核心视图API返回的类型
 interface PayrollData extends ComprehensivePayrollDataView {
@@ -26,6 +31,13 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [loading, setLoading] = useState(false);
   const actionRef = useRef<ActionType>(null);
   const [collapsed, setCollapsed] = useState(false);
+  
+  // 🎯 详情和编辑功能状态
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<PayrollEntry | null>(null);
+  const [payrollRunId, setPayrollRunId] = useState<number | null>(null);
 
   // 获取工资数据
   const fetchPayrollData = useCallback(async () => {
@@ -58,6 +70,56 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       fetchPayrollData();
     }
   }, [visible, periodId, fetchPayrollData]);
+
+  // 🎯 查看详情
+  const handleViewDetail = async (record: PayrollData) => {
+    console.log('📋 [PayrollDataModal] 查看详情:', record);
+    
+    // 使用薪资条目ID
+    if (record.薪资条目id) {
+      setSelectedEntryId(String(record.薪资条目id));
+      setDetailModalVisible(true);
+    } else {
+      message.warning('无法获取薪资条目详情');
+    }
+  };
+
+  // 🎯 编辑记录
+  const handleEdit = async (record: PayrollData) => {
+    console.log('✏️ [PayrollDataModal] 编辑记录:', record);
+    
+    if (!record.薪资条目id) {
+      message.warning('无法编辑该记录，缺少薪资条目ID');
+      return;
+    }
+
+    try {
+      // 根据薪资条目ID获取完整的薪资条目数据
+      const response = await getPayrollEntryById(record.薪资条目id);
+      
+      if (response.data) {
+        const payrollEntry = response.data;
+        setSelectedEntry(payrollEntry);
+        setPayrollRunId(payrollEntry.payroll_run_id);
+        setEditModalVisible(true);
+        console.log('✅ [PayrollDataModal] 获取薪资条目数据成功:', payrollEntry);
+      } else {
+        message.error('未找到对应的薪资条目数据');
+      }
+    } catch (error: any) {
+      console.error('❌ [PayrollDataModal] 获取薪资条目数据失败:', error);
+      message.error(`获取薪资条目数据失败: ${error.message || '未知错误'}`);
+    }
+  };
+
+  // 🎯 编辑成功回调
+  const handleEditSuccess = () => {
+    setEditModalVisible(false);
+    setSelectedEntry(null);
+    setPayrollRunId(null);
+    fetchPayrollData(); // 刷新数据
+    message.success('薪资条目编辑成功');
+  };
 
   // 导出数据为Excel
   const handleExportExcel = () => {
@@ -256,6 +318,29 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       align: 'right',
       render: (_, record) => record.个人所得税 ? `¥${record.个人所得税.toFixed(2)}` : '-',
     },
+    {
+      title: '操作',
+      valueType: 'option',
+      key: 'option',
+      width: 120,
+      fixed: 'right',
+      render: (_, record) => [
+        <TableActionButton
+          key="view"
+          actionType="view"
+          tooltipTitle="查看详情"
+          onClick={() => handleViewDetail(record)}
+          disabled={!record.薪资条目id}
+        />,
+        <TableActionButton
+          key="edit"
+          actionType="edit"
+          tooltipTitle="编辑"
+          onClick={() => handleEdit(record)}
+          disabled={!record.薪资条目id}
+        />,
+      ],
+    },
   ];
 
   return (
@@ -327,6 +412,34 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           // 可以添加批量操作
         }}
       />
+
+      {/* 🎯 详情查看Modal */}
+      {detailModalVisible && selectedEntryId && (
+        <PayrollEntryDetailModal
+          visible={detailModalVisible}
+          entryId={selectedEntryId}
+          onClose={() => {
+            setDetailModalVisible(false);
+            setSelectedEntryId(null);
+          }}
+        />
+      )}
+
+      {/* 🎯 编辑Modal */}
+      {editModalVisible && selectedEntry && (
+        <PayrollEntryFormModal
+          visible={editModalVisible}
+          payrollPeriodId={periodId}
+          payrollRunId={payrollRunId}
+          entry={selectedEntry}
+          onClose={() => {
+            setEditModalVisible(false);
+            setSelectedEntry(null);
+            setPayrollRunId(null);
+          }}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </Modal>
   );
 }; 
