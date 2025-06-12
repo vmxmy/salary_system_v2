@@ -16,7 +16,7 @@ export default defineConfig({
     host: '0.0.0.0',
     allowedHosts: ['salary.ziikoo.com'],
     headers: {
-      'Content-Security-Policy': "script-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://udify.app; style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:*; img-src 'self' data: blob:;"
+      'Content-Security-Policy': "script-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* http://10.31.59.108:* https://udify.app https://rsms.me; style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* http://10.31.59.108:* https://rsms.me; img-src 'self' data: blob:;"
     }
     // proxy: { // 移除 proxy 配置块
     //   '/api': {
