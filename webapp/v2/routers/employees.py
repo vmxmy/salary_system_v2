@@ -50,7 +50,7 @@ async def get_employees(
     - **page**: 页码，从1开始
     - **size**: 每页记录数，最大100
     """
-    logger.info(f"Received request for /employees with page: {page}, size: {size}, search: '{search}', status_id: {status_id}, department_id: {department_id}, ids: '{employee_ids}'")
+    logger.info(f"Received request for /employees with page: {page}, size: {size}, search: '{search}', name: '{name}', status_id: {status_id}, department_id: {department_id}, ids: '{employee_ids}'")
     try:
         # 解析ids参数
         employee_ids_list = None
@@ -91,9 +91,11 @@ async def get_employees(
                     employees_orms.append(emp)
             total = len(employees_orms)
         else:
+            # 如果没有search参数但有name参数，将name参数用作search
+            final_search = search or name
             employees_orms, total = v2_hr_crud.get_employees(
                 db=db,
-                search=search,
+                search=final_search,
                 status_id=status_id,
                 department_id=department_id,
                 skip=skip,

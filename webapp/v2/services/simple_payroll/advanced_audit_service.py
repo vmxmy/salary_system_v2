@@ -33,7 +33,7 @@ class AdvancedAuditService(PayrollAuditService):
         执行高级审核检查
         
         Args:
-            payroll_run_id: 工资版本ID
+            payroll_run_id: 工资运行ID
             include_custom_rules: 是否包含自定义规则检查
             include_historical_comparison: 是否包含历史对比
             include_statistical_analysis: 是否包含统计分析
@@ -42,7 +42,7 @@ class AdvancedAuditService(PayrollAuditService):
             审核结果汇总
         """
         try:
-            logger.info(f"开始高级审核检查 - 工资版本: {payroll_run_id}")
+            logger.info(f"开始高级审核检查 - 工资运行: {payroll_run_id}")
             
             # 先执行基础审核
             basic_summary = await super().run_audit_check(payroll_run_id)
@@ -96,7 +96,7 @@ class AdvancedAuditService(PayrollAuditService):
                 "results": tax_results
             })
             
-            logger.info(f"高级审核检查完成 - 工资版本: {payroll_run_id}")
+            logger.info(f"高级审核检查完成 - 工资运行: {payroll_run_id}")
             return advanced_results
             
         except Exception as e:
@@ -195,10 +195,10 @@ class AdvancedAuditService(PayrollAuditService):
         """历史数据对比分析"""
         
         try:
-            # 获取当前工资版本
+            # 获取当前工资运行
             current_run = self.db.get(PayrollRun, payroll_run_id)
             if not current_run:
-                raise ValueError("工资版本不存在")
+                raise ValueError("工资运行不存在")
             
             # 获取前几个月的数据进行对比
             historical_runs = await self._get_historical_payroll_runs(
@@ -455,7 +455,7 @@ class AdvancedAuditService(PayrollAuditService):
             return taxable_income * 0.25 - 31920
 
     async def _get_historical_payroll_runs(self, current_period_id: int, months_back: int = 3) -> List[PayrollRun]:
-        """获取历史工资版本"""
+        """获取历史工资运行"""
         # 这里需要实现获取历史数据的逻辑
         # 简化实现，返回空列表
         return []

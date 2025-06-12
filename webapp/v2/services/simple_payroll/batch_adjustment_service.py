@@ -41,12 +41,12 @@ class BatchAdjustmentService:
             BatchAdjustmentPreview: 预览结果
         """
         try:
-            logger.info(f"开始预览批量调整 - 工资版本: {request.payroll_run_id}")
+            logger.info(f"开始预览批量调整 - 工资运行: {request.payroll_run_id}")
             
-            # 验证工资版本存在
+            # 验证工资运行存在
             payroll_run = self.db.get(PayrollRun, request.payroll_run_id)
             if not payroll_run:
-                raise ValueError(f"工资版本 {request.payroll_run_id} 不存在")
+                raise ValueError(f"工资运行 {request.payroll_run_id} 不存在")
             
             # 获取目标员工的工资条目
             affected_entries = await self._get_affected_entries(
@@ -89,15 +89,15 @@ class BatchAdjustmentService:
             BatchAdjustmentResult: 执行结果
         """
         try:
-            logger.info(f"开始执行批量调整 - 工资版本: {request.payroll_run_id}")
+            logger.info(f"开始执行批量调整 - 工资运行: {request.payroll_run_id}")
             
-            # 验证工资版本存在且状态允许修改
+            # 验证工资运行存在且状态允许修改
             payroll_run = self.db.get(PayrollRun, request.payroll_run_id)
             if not payroll_run:
-                raise ValueError(f"工资版本 {request.payroll_run_id} 不存在")
+                raise ValueError(f"工资运行 {request.payroll_run_id} 不存在")
             
             if payroll_run.status not in ['DRAFT', 'IN_REVIEW']:
-                raise ValueError("只能调整草稿或审核中状态的工资版本")
+                raise ValueError("只能调整草稿或审核中状态的工资运行")
             
             # 获取目标员工的工资条目
             affected_entries = await self._get_affected_entries(
@@ -300,7 +300,7 @@ class BatchAdjustmentService:
         return name_mapping.get(component_code, component_code)
 
     async def _recalculate_payroll_totals(self, payroll_run_id: int) -> None:
-        """重新计算工资版本总额"""
+        """重新计算工资运行总额"""
         
         try:
             # 获取所有条目的统计
@@ -318,7 +318,7 @@ class BatchAdjustmentService:
                 total_deductions = sum(entry.total_deductions or 0 for entry in entries)
                 total_net = sum(entry.net_pay or 0 for entry in entries)
                 
-                # 更新工资版本统计
+                # 更新工资运行统计
                 update_stmt = update(PayrollRun).where(
                     PayrollRun.id == payroll_run_id
                 ).values(

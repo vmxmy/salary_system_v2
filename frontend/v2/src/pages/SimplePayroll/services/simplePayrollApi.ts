@@ -92,10 +92,10 @@ export const simplePayrollApi = {
     return response.data;
   },
 
-  // ===================== 工资版本管理 =====================
+  // ===================== 工资运行管理 =====================
 
   /**
-   * 获取工资版本列表
+   * 获取工资运行列表
    */
   getPayrollVersions: async (params: {
     period_id: number;
@@ -117,7 +117,7 @@ export const simplePayrollApi = {
   },
 
   /**
-   * 删除工资版本
+   * 删除工资运行
    */
   deletePayrollRun: async (versionId: number): Promise<void> => {
     const response = await apiClient.delete(`/payroll-runs/${versionId}`);

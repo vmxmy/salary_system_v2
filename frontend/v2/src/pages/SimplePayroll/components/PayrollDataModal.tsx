@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Modal, message, Button, Space } from 'antd';
+import { Modal, message, Button, Space, Input } from 'antd';
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { payrollViewsApi, type ComprehensivePayrollDataView } from '../../Payroll/services/payrollViewsApi';
 
 // 工资数据类型定义 - 使用核心视图API返回的类型
@@ -107,7 +107,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     message.success('数据已刷新');
   };
 
-  // 表格列配置 - 按照用户要求的字段顺序：姓名、部门、人员身份、职位、应发合计、扣除合计、实发合计、养老保险个人应缴费额、医疗保险个人应缴费额、职业年金个人应缴费额、失业保险个人应缴费额、住房公积金个人应缴费额、个人所得税
+  // 表格列配置 - 添加表头筛选和搜索功能
   const columns: ProColumns<PayrollData>[] = [
     {
       title: '姓名',
@@ -116,8 +116,37 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       width: 100,
       fixed: 'left',
       copyable: true,
-      search: {
-        transform: (value: string) => ({ employee_name: value }),
+      // 表头自定义搜索
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="搜索姓名"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ width: 188, marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              size="small"
+              style={{ width: 90 }}
+            >
+              搜索
+            </Button>
+            <Button onClick={() => clearFilters && clearFilters()} size="small" style={{ width: 90 }}>
+              重置
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered) => (
+        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+      ),
+      onFilter: (value, record) => {
+        if (!record.姓名 || !value) return false;
+        return record.姓名.toString().toLowerCase().includes((value as string).toLowerCase());
       },
     },
     {
@@ -125,35 +154,32 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       dataIndex: '部门名称',
       key: 'department_name',
       width: 120,
-      search: {
-        transform: (value: string) => ({ department_name: value }),
-      },
-      filters: true,
-      onFilter: true,
-      valueType: 'select',
-      request: async () => {
-        // 从数据源中提取部门列表
+      // 只保留选择筛选功能
+      filters: (() => {
         const departments = Array.from(new Set(dataSource.map(item => item.部门名称).filter(Boolean)));
-        return departments.map(dept => ({ label: dept, value: dept }));
-      },
+        return departments.map(dept => ({ text: dept || '', value: dept || '' }));
+      })(),
+      filterMultiple: true,
+      onFilter: (value, record) => record.部门名称 === value,
     },
     {
       title: '人员身份',
       dataIndex: '人员类别',
       key: 'personnel_category',
       width: 120,
-      search: {
-        transform: (value: string) => ({ personnel_category: value }),
-      },
+      // 只保留选择筛选功能
+      filters: (() => {
+        const categories = Array.from(new Set(dataSource.map(item => item.人员类别).filter(Boolean)));
+        return categories.map(cat => ({ text: cat || '', value: cat || '' }));
+      })(),
+      filterMultiple: true,
+      onFilter: (value, record) => record.人员类别 === value,
     },
     {
       title: '职位',
       dataIndex: '职位名称',
       key: 'position_name',
       width: 120,
-      search: {
-        transform: (value: string) => ({ position_name: value }),
-      },
     },
     {
       title: '应发合计',
@@ -247,43 +273,16 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         rowKey="id"
         loading={loading}
         actionRef={actionRef}
-        search={{
-          labelWidth: 'auto',
-          collapsed: collapsed,
-          collapseRender: (collapsed, showCollapseIcon) => {
-            if (collapsed) {
-              return (
-                <span style={{ fontSize: 14, cursor: 'pointer', color: '#1890ff' }} onClick={() => setCollapsed(false)}>
-                  展开 ↓
-                </span>
-              );
-            }
-            return (
-              <span style={{ fontSize: 14, cursor: 'pointer', color: '#1890ff' }} onClick={() => setCollapsed(true)}>
-                收起 ↑
-              </span>
-            );
-          },
-        }}
+        search={false}
         toolBarRender={() => [
-          <Space key="toolbar">
-            <Button
-              key="refresh"
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-              loading={loading}
-            >
-              刷新
-            </Button>
-            <Button
-              key="export"
-              icon={<DownloadOutlined />}
-              onClick={handleExportExcel}
-              disabled={dataSource.length === 0}
-            >
-              导出Excel
-            </Button>
-          </Space>
+          <Button
+            key="export"
+            icon={<DownloadOutlined />}
+            onClick={handleExportExcel}
+            disabled={dataSource.length === 0}
+          >
+            导出Excel
+          </Button>
         ]}
         columnsState={{
           persistenceKey: 'payroll-data-table',

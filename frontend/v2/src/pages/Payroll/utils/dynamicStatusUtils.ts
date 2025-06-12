@@ -6,7 +6,7 @@ export interface DynamicStatusOption {
   id: number;
   code: string;
   name: string;
-  color: string;
+  color?: string;
 }
 
 // 状态颜色映射 - 根据状态代码确定颜色

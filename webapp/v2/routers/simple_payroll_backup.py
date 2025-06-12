@@ -121,7 +121,7 @@ async def get_payroll_period(
         )
 
 # =============================================================================
-# 工资版本管理
+# 工资运行管理
 # =============================================================================
 
 @router.get("/versions", response_model=PaginationResponse[PayrollRunResponse])
@@ -132,7 +132,7 @@ async def get_payroll_versions(
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
-    """获取指定期间的工资版本列表"""
+    """获取指定期间的工资运行列表"""
     try:
         service = SimplePayrollService(db)
         result = service.get_payroll_versions(
@@ -142,12 +142,12 @@ async def get_payroll_versions(
         )
         return result
     except Exception as e:
-        logger.error(f"获取工资版本列表失败: {e}", exc_info=True)
+        logger.error(f"获取工资运行列表失败: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
                 status_code=500,
-                message="获取工资版本列表失败",
+                message="获取工资运行列表失败",
                 details=str(e)
             )
         )
@@ -158,7 +158,7 @@ async def get_payroll_version(
     db: Session = Depends(get_db_v2),
     current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
-    """获取指定工资版本详情"""
+    """获取指定工资运行详情"""
     try:
         # 直接查询工资运行记录
         from ..models.payroll import PayrollRun
@@ -169,7 +169,7 @@ async def get_payroll_version(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=create_error_response(
                     status_code=404,
-                    message="工资版本不存在",
+                    message="工资运行不存在",
                     details=f"版本ID {version_id} 未找到"
                 )
             )
@@ -209,12 +209,12 @@ async def get_payroll_version(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"获取工资版本详情失败: {e}", exc_info=True)
+        logger.error(f"获取工资运行详情失败: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
                 status_code=500,
-                message="获取工资版本详情失败",
+                message="获取工资运行详情失败",
                 details=str(e)
             )
         )

@@ -102,21 +102,29 @@ class SimplePayrollService:
             result = []
             for period in periods:
                 # 获取该期间的工资运行统计
-                runs_count = self.db.query(PayrollRun).filter(
-                    PayrollRun.payroll_period_id == period.id
-                ).count()
+                try:
+                    runs_count = self.db.query(PayrollRun).filter(
+                        PayrollRun.payroll_period_id == period.id
+                    ).count()
+                    logger.info(f"🔍 [调试] 期间 {period.id} 的运行统计: {runs_count}")
+                except Exception as e:
+                    logger.error(f"❌ 统计运行数失败: {e}")
+                    runs_count = 0
                 
                 # 获取最新运行的基本信息
                 latest_run = self.db.query(PayrollRun).filter(
                     PayrollRun.payroll_period_id == period.id
                 ).order_by(desc(PayrollRun.run_date)).first()
                 
-                # 计算实际工资条目数量
-                entries_count = 0
-                if latest_run:
+                # 使用SQL实时统计该期间的工资条目数量（所有PayrollRun的总和）
+                try:
                     entries_count = self.db.query(PayrollEntry).filter(
-                        PayrollEntry.payroll_run_id == latest_run.id
+                        PayrollEntry.payroll_period_id == period.id
                     ).count()
+                    logger.info(f"🔍 [调试] 期间 {period.id} 的条目统计: {entries_count}")
+                except Exception as e:
+                    logger.error(f"❌ 统计条目数失败: {e}")
+                    entries_count = 0
                 
                 # 计算状态
                 status = "empty"  # 无数据
@@ -125,7 +133,7 @@ class SimplePayrollService:
                     # 这里简化处理，可以根据实际业务需求调整
                     status = "calculated"  # 已计算
                 
-                logger.debug(f"📊 [期间统计] ID={period.id}, 名称={period.name}, 运行数={runs_count}, 条目数={entries_count}")
+                logger.info(f"📊 [期间统计] ID={period.id}, 名称={period.name}, 运行数={runs_count}, 条目数={entries_count}")
                 
                 result.append(PayrollPeriodResponse(
                     id=period.id,
@@ -168,7 +176,7 @@ class SimplePayrollService:
         page: int = 1, 
         size: int = 20
     ) -> Dict[str, Any]:
-        """获取指定期间的工资版本列表"""
+        """获取指定期间的工资运行列表"""
         try:
             # 验证期间是否存在
             period = self.db.query(PayrollPeriod).filter(
@@ -247,7 +255,7 @@ class SimplePayrollService:
             }
             
         except Exception as e:
-            logger.error(f"获取工资版本列表失败: {e}", exc_info=True)
+            logger.error(f"获取工资运行列表失败: {e}", exc_info=True)
             raise
     
     def get_system_statistics(self) -> Dict[str, Any]:

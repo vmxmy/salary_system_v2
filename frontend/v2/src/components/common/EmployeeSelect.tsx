@@ -44,12 +44,12 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
   ...restProps
 }) => {
   const { t } = useTranslation(['common', 'employee']);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
 
   // 缓存选中的员工数据，用于显示选中值和触发onChange回调
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | any | null>(null);
 
   // 当value改变时，获取员工详情
   useEffect(() => {
@@ -72,15 +72,11 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
 
   // 搜索员工函数
   const searchEmployees = async (name: string) => {
-    if (!name) {
-      setEmployees([]);
-      return;
-    }
-
     setLoading(true);
     try {
-      // 通过姓名搜索员工
-      const response = await employeeService.getEmployees({ name, size: 20 });
+      // 搜索员工 - 如果name为空，则加载前100个员工作为初始选项
+      const query = name ? { name, size: 50 } : { size: 100 };
+      const response = await employeeService.getEmployees(query);
       
       // 确保每个员工对象都包含必要的信息
       const employeesWithDetails = await Promise.all(
@@ -100,7 +96,9 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       );
       
       setEmployees(employeesWithDetails || []);
+      console.log(`✅ [EmployeeSelect] 加载员工成功: ${employeesWithDetails?.length || 0} 个员工`);
     } catch (error) {
+      console.error('❌ [EmployeeSelect] 加载员工失败:', error);
       setEmployees([]);
     } finally {
       setLoading(false);
@@ -112,6 +110,11 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
     () => debounce(searchEmployees, 300),
     []
   );
+
+  // 组件挂载时加载初始数据
+  useEffect(() => {
+    searchEmployees(''); // 加载初始员工列表
+  }, []);
 
   // 处理搜索输入变化
   const handleSearch = (value: string) => {
@@ -135,16 +138,21 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       const positionName = employee.actual_position_name || '';
       
       // 完整的员工信息标签
+      const fullName = `${employee.last_name || ''}${employee.first_name || ''}`.trim();
+      const employeeCodeDisplay = showEmployeeCode && employee.employee_code ? ` (${employee.employee_code})` : '';
+      const employeeIdDisplay = !employee.employee_code ? ` [ID:${employee.id}]` : '';
+      
       const label = (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontWeight: 'bold' }}>
-            {`${employee.last_name || ''}${employee.first_name || ''}`}
-            {showEmployeeCode && employee.employee_code && ` (${employee.employee_code})`}
+            {fullName || '未知员工'}
+            {employeeCodeDisplay}
+            {employeeIdDisplay}
           </div>
           <div style={{ fontSize: '12px', color: '#666' }}>
             {[departmentName, personnelCategoryName, positionName]
               .filter(Boolean)
-              .join(' | ')}
+              .join(' | ') || '无部门信息'}
           </div>
         </div>
       );
@@ -167,10 +175,10 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
             <Spin size="small" />
             <div style={{ marginTop: '8px' }}>t('common:status.loading')</div>
           </div>
-        ) : employees.length === 0 && searchText ? (
+        ) : employees.length === 0 ? (
           <Empty 
             image={Empty.PRESENTED_IMAGE_SIMPLE} 
-            description={t('employee:common.no_employee_found')}
+            description={searchText ? t('employee:common.no_employee_found') : '暂无员工数据'}
             style={{ padding: '16px' }}
           />
         ) : (

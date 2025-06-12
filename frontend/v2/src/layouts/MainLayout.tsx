@@ -250,24 +250,7 @@ const MainLayout: React.FC = () => {
     return baseAdminChildren;
   }, [hasRole, t, ready]); // Added t and ready
 
-  // 定义 testChildren
-  const testChildren = useMemo(() => [
-    {
-      path: '/test/employee-list-v3',
-      titleKey: 'test.employeeListV3',
-      component: './HRManagement/employees/EmployeeListPageV3',
-    },
-    {
-      path: '/test/report-table-demo',
-      titleKey: 'test.reportTableDemo',
-      component: './Admin/ReportTableDemoPage',
-    },
-    {
-      path: '/test/report-template-demo',
-      titleKey: 'test.reportTemplateDemo',
-      component: './Admin/ReportTemplateDemoPage',
-    },
-  ], []);
+
 
   const organizationMenuItem = useMemo(() => ({
     key: '/admin/organization',
@@ -393,41 +376,13 @@ const MainLayout: React.FC = () => {
     // ========== 管理功能模块 ==========
     const managementItems = [];
 
-    // 6. 组织架构 - 保持独立
+        // 6. 组织架构 - 保持独立
     managementItems.push(organizationMenuItem);
-
-    // 7. 经理视图 - 管理功能
-    const managerChildren = [];
-    if (hasPermission(P_MANAGER_SUBORDINATES_VIEW)) {
-      managerChildren.push({
-        key: '/manager/subordinates',
-        label: <Link to="/manager/subordinates">{t('menu:manager.subordinates', { defaultValue: 'Subordinates' })}</Link>,
-        icon: <TeamOutlined />,
-      });
-    }
-    if (hasPermission(P_MANAGER_LEAVE_APPROVALS_VIEW)) {
-      managerChildren.push({
-        key: '/manager/leave-approvals',
-        label: <Link to="/manager/leave-approvals">{t('menu:manager.leaveApprovals', { defaultValue: 'Leave Approvals' })}</Link>,
-        icon: <CalendarOutlined />,
-      });
-    }
-
-    const managerMenuItem = managerChildren.length > 0 ? {
-      key: '/manager',
-      label: <span>{t('menu:manager.title', { defaultValue: 'Manager View' })}</span>,
-      icon: <UserSwitchOutlined />,
-      children: managerChildren,
-    } : null;
-
-    if (managerMenuItem) {
-      managementItems.push(managerMenuItem);
-    }
 
     // ========== 系统配置模块 ==========
     const systemConfigItems = [];
 
-    // 8. 系统管理 - 拥有admin权限才显示
+    // 7. 系统管理 - 拥有admin权限才显示
     const adminMenuItem = {
       key: '/admin',
       label: <span>{t('menu:admin.title', { defaultValue: 'System Management' })}</span>,
@@ -438,21 +393,13 @@ const MainLayout: React.FC = () => {
       systemConfigItems.push(adminMenuItem);
     }
 
-    // 9. 测试页面 - 仅开发模式下显示
-    if (import.meta.env.DEV) {
-      systemConfigItems.push({
-        key: '/test',
-        label: <span>{t('menu:test.title', { defaultValue: 'Test Page' })}</span>,
-        icon: <CalculatorOutlined />,
-        children: testChildren,
-      });
-    }
+
 
     // ========== 构建最终菜单 ==========
     // 按照业务重要性和逻辑关系排序：
     // 1. 核心业务模块：仪表盘、个人中心、视图报表、薪资管理、员工管理
-    // 2. 管理功能模块：组织架构、经理视图
-    // 3. 系统配置模块：系统管理和测试页面
+    // 2. 管理功能模块：组织架构
+    // 3. 系统配置模块：系统管理
     const finalItems = [
       ...coreBusinessItems,      // 核心业务优先
       ...managementItems,        // 管理功能其次
@@ -462,7 +409,7 @@ const MainLayout: React.FC = () => {
 
 
     return finalItems;
-  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, organizationMenuItem, t, ready, testChildren, i18n.language]); // Added i18n.language
+  }, [hasPermission, userPermissions, userRoleCodes, adminChildren, hrManagementMenuItem, organizationMenuItem, t, ready, i18n.language]); // Added i18n.language
   
   // 获取当前选中的菜单项key
   const selectedKeys = useMemo(() => {

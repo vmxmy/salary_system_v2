@@ -728,7 +728,7 @@ async def get_payroll_entries(
             try:
                 # 处理可能的null值
                 calculated_at = entry_dict.get('calculated_at')
-                status_lookup_value_id = entry_dict.get('status_lookup_value_id') or 1  # 默认状态ID为1
+                status_lookup_value_id = entry_dict.get('status_lookup_value_id')  # 保持原始数据库值
                 
                 # 创建PayrollEntry对象，直接包含员工信息字段
                 entry_pydantic = PayrollEntry(

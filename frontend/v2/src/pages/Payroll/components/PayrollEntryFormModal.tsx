@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   Modal, 
   Form, 
@@ -18,14 +18,16 @@ import {
 } from 'antd';
 import { PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { PayrollEntry, PayrollItemDetail, PayrollComponentDefinition, PayrollEntryPatch, LookupValue } from '../types/payrollTypes';
-import { updatePayrollEntryDetails } from '../services/payrollApi';
+import type { PayrollEntry, PayrollItemDetail, PayrollComponentDefinition, PayrollEntryPatch, CreatePayrollEntryPayload, LookupValue, PayrollRun } from '../types/payrollTypes';
+import { updatePayrollEntryDetails, getPayrollEntryById, createPayrollEntry, getPayrollRuns } from '../services/payrollApi';
 import usePayrollConfigStore from '../../../store/payrollConfigStore';
 import { employeeService } from '../../../services/employeeService';
 import { employeeManagementApi } from '../../../pages/EmployeeManagement/services/employeeManagementApi';
 import { PAYROLL_ENTRY_STATUS_OPTIONS } from '../utils/payrollUtils';
 import EmployeeSelect from '../../../components/common/EmployeeSelect';
-import type { Employee } from '../../../pages/HRManagement/types';
+import type { Employee } from '../../HRManagement/types';
+import { getPayrollEntryStatusOptions, type DynamicStatusOption } from '../utils/dynamicStatusUtils';
+import { lookupService } from '../../../services/lookupService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -72,6 +74,7 @@ const testPatchFormatConversion = (data: Record<string, any>): Record<string, an
 interface PayrollEntryFormModalProps {
   visible: boolean;
   payrollPeriodId: number | null;
+  payrollRunId?: number | null; // 添加可选的工资运行ID
   entry: PayrollEntry | null;
   onClose: () => void;
   onSuccess: () => void;
@@ -87,6 +90,7 @@ interface PayrollComponent {
 const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   visible,
   payrollPeriodId,
+  payrollRunId,
   entry,
   onClose,
   onSuccess,
@@ -98,9 +102,99 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [employeeDetails, setEmployeeDetails] = useState<any>(null);
   const [earnings, setEarnings] = useState<PayrollItemDetail[]>([]);
   const [deductions, setDeductions] = useState<PayrollItemDetail[]>([]);
+  const [statusOptions, setStatusOptions] = useState<DynamicStatusOption[]>([]);
+  const [loadingStatus, setLoadingStatus] = useState<boolean>(false);
+  const [defaultPayrollRunId, setDefaultPayrollRunId] = useState<number | null>(null);
   const { message: messageApi } = App.useApp();
   
   const payrollConfig = usePayrollConfigStore();
+  
+  // 加载动态状态选项
+  useEffect(() => {
+    const loadStatusOptions = async () => {
+      setLoadingStatus(true);
+      try {
+        const options = await lookupService.getPayrollEntryStatusOptions();
+                 const dynamicOptions: DynamicStatusOption[] = options
+           .filter(item => item.id && item.code && item.name)
+           .map(item => ({
+             id: item.id!,
+             code: item.code!,
+             name: item.name!,
+           }));
+        setStatusOptions(dynamicOptions);
+        console.log('✅ [PayrollEntryFormModal] 动态状态选项加载成功:', dynamicOptions);
+      } catch (error) {
+        console.error('❌ [PayrollEntryFormModal] 状态选项加载失败:', error);
+        messageApi.error('状态选项加载失败');
+      } finally {
+        setLoadingStatus(false);
+      }
+    };
+
+    if (visible) {
+      loadStatusOptions();
+    }
+  }, [visible, messageApi]);
+  
+  // 当状态选项加载完成后，设置表单的状态值
+  useEffect(() => {
+    if (visible && statusOptions.length > 0) {
+      if (entry) {
+        // 编辑模式：使用条目的现有状态
+        console.log('✅ [PayrollEntryFormModal] 状态选项已加载，设置编辑模式状态值:', {
+          entry_status: entry.status_lookup_value_id,
+          available_options: statusOptions.map(opt => ({ id: opt.id, name: opt.name }))
+        });
+        form.setFieldsValue({
+          status_lookup_value_id: entry.status_lookup_value_id,
+        });
+      } else {
+        // 创建模式：优先使用"已录入"状态，如果没有则使用第一个状态选项
+        const entryStatus = statusOptions.find(opt => opt.code === 'PENTRY_ENTRY');
+        const defaultStatusId = entryStatus ? entryStatus.id : statusOptions[0].id;
+        console.log('✅ [PayrollEntryFormModal] 状态选项已加载，设置创建模式默认状态值:', defaultStatusId);
+        form.setFieldsValue({
+          status_lookup_value_id: defaultStatusId,
+        });
+      }
+    }
+  }, [visible, entry, statusOptions, form]);
+  
+  // 重新获取最新的工资条目数据
+  useEffect(() => {
+    const fetchLatestEntryData = async () => {
+      if (visible && entry && entry.id) {
+        try {
+          console.log('🔄 [PayrollEntryFormModal] 重新获取最新的工资条目数据:', entry.id);
+          const result = await getPayrollEntryById(entry.id);
+          const latestEntry = result.data;
+          
+          console.log('✅ [PayrollEntryFormModal] 获取到最新数据:', {
+            old_status: entry.status_lookup_value_id,
+            new_status: latestEntry.status_lookup_value_id,
+            entry_id: latestEntry.id
+          });
+          
+          // 如果状态选项已加载，立即设置最新的状态值
+          if (statusOptions.length > 0) {
+            form.setFieldsValue({
+              status_lookup_value_id: latestEntry.status_lookup_value_id,
+            });
+          }
+          
+          // 更新entry对象的状态值（用于后续的useEffect）
+          if (entry.status_lookup_value_id !== latestEntry.status_lookup_value_id) {
+            entry.status_lookup_value_id = latestEntry.status_lookup_value_id;
+          }
+        } catch (error) {
+          console.error('❌ [PayrollEntryFormModal] 获取最新数据失败:', error);
+        }
+      }
+    };
+
+    fetchLatestEntryData();
+  }, [visible, entry?.id, statusOptions, form]);
   
   // 当模态框可见时，加载薪资字段定义
   useEffect(() => {
@@ -108,16 +202,53 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       payrollConfig.fetchComponentDefinitions().then(() => {
       });
     }
-  }, [visible, payrollConfig.fetchComponentDefinitions]); // 依赖 fetchComponentDefinitions 以确保其稳定
+  }, [visible]); // 移除 fetchComponentDefinitions 依赖，避免循环
+  
+  // 获取默认的 payroll_run_id
+  useEffect(() => {
+    const fetchDefaultPayrollRun = async () => {
+      if (visible && payrollPeriodId && !entry) { // 只在创建新条目时获取
+        try {
+          const runs = await getPayrollRuns({ 
+            period_id: payrollPeriodId,
+            size: 1,
+            page: 1
+          });
+          
+          if (runs.data && runs.data.length > 0) {
+            const latestRun = runs.data[0];
+            setDefaultPayrollRunId(latestRun.id);
+            console.log('✅ [PayrollEntryFormModal] 找到默认工资运行:', latestRun.id);
+          } else {
+            console.log('⚠️ [PayrollEntryFormModal] 未找到该期间的工资运行');
+            setDefaultPayrollRunId(null);
+          }
+        } catch (error) {
+          console.error('❌ [PayrollEntryFormModal] 获取默认工资运行失败:', error);
+          setDefaultPayrollRunId(null);
+        }
+      }
+    };
+
+    fetchDefaultPayrollRun();
+  }, [visible, payrollPeriodId, entry]);
+  
+  // 获取组件的类型，兼容不同的字段名
+  const getComponentType = (comp: any): string => {
+    return comp.type || comp.component_type || comp.category || comp.kind || '';
+  };
   
   // 从配置中获取收入项组件
   const earningComponents = useMemo<PayrollComponent[]>(() => {
     return payrollConfig.componentDefinitions
-      .filter(comp => comp.type === 'EARNING')
+      .filter(comp => {
+        const type = getComponentType(comp);
+        return type === 'EARNING' || type === 'Earning';
+      })
       .map(comp => ({
         code: comp.code,
         name: comp.name,
-        type: comp.type,
+        type: getComponentType(comp),
         description: comp.description
       }));
   }, [payrollConfig.componentDefinitions]);
@@ -125,11 +256,16 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   // 从配置中获取扣缴项组件
   const deductionComponents = useMemo<PayrollComponent[]>(() => {
     return payrollConfig.componentDefinitions
-      .filter(comp => comp.type === 'DEDUCTION' || comp.type === 'STATUTORY')
+      .filter(comp => {
+        const type = getComponentType(comp);
+        return type === 'DEDUCTION' || type === 'Deduction' || 
+               type === 'STATUTORY' || type === 'Statutory' ||
+               type === 'PERSONAL_DEDUCTION' || type === 'Personal_Deduction';
+      })
       .map(comp => ({
         code: comp.code,
         name: comp.name,
-        type: comp.type,
+        type: getComponentType(comp),
         description: comp.description
       }));
   }, [payrollConfig.componentDefinitions]);
@@ -137,12 +273,19 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   // 当模态框可见时，打印可用的薪资字段
   useEffect(() => {
     if (visible && payrollConfig.componentDefinitions.length > 0) {
+      console.log('🔍 [PayrollEntryFormModal] 原始组件定义数据:', payrollConfig.componentDefinitions.slice(0, 3));
+      
       console.log('Available Payroll Components:', 
         payrollConfig.componentDefinitions.map(comp => ({
           code: comp.code,
           name: comp.name,
           type: comp.type,
-        }))
+          // 检查所有可能的type字段名
+          component_type: (comp as any).component_type,
+          category: (comp as any).category,
+          kind: (comp as any).kind,
+          allKeys: Object.keys(comp)
+        })).slice(0, 5)
       );
       
       console.log('Earning Component Codes:', 
@@ -153,7 +296,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         deductionComponents.map(comp => comp.code)
       );
     }
-  }, [visible, payrollConfig.componentDefinitions, earningComponents, deductionComponents]);
+  }, [visible, payrollConfig.componentDefinitions.length]); // 只依赖长度，避免循环
   
   // 获取部门名称
   const getDepartmentName = (employee: any) => {
@@ -195,7 +338,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   };
   
   // 获取员工详情
-  const fetchEmployeeDetails = async (employeeId: number) => {
+  const fetchEmployeeDetails = useCallback(async (employeeId: number) => {
     setLoading(true);
     try {
       const employee = await employeeManagementApi.getEmployeeById(String(employeeId));
@@ -210,7 +353,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [form, messageApi, t]);
   
   // 初始化表单数据
   useEffect(() => {
@@ -218,6 +361,14 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       // payrollConfig.fetchComponentDefinitions(); // 已移到上面的useEffect
       
       if (entry) {
+        console.log('🔍 [PayrollEntryFormModal] 初始化表单数据:', {
+          entry_id: entry.id,
+          earnings_details: entry.earnings_details,
+          deductions_details: entry.deductions_details,
+          componentDefinitions_length: payrollConfig.componentDefinitions.length,
+          componentDefinitions: payrollConfig.componentDefinitions.map(c => ({ code: c.code, type: c.type }))
+        });
+        
         console.log('Deductions details raw:',
           Array.isArray(entry.deductions_details), 
           JSON.stringify(entry.deductions_details, null, 2)
@@ -227,48 +378,77 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             data: entry.deductions_details
         });
         
-        // 编辑现有工资明细
+        // 编辑现有工资明细 - 延迟设置状态值，等待状态选项加载完成
         form.setFieldsValue({
           employee_id: entry.employee_id,
           employee_name: entry.employee_name || '',
           remarks: entry.remarks || '',
-          status_lookup_value_id: entry.status_lookup_value_id,
         });
         
-        // 处理收入项 - 只保留有效的组件
+        // 状态值将在状态选项加载完成后通过单独的useEffect设置
+        
+        // 处理收入项 - 如果组件定义还没加载，先加载所有数据
         if (entry.earnings_details && typeof entry.earnings_details === 'object' && !Array.isArray(entry.earnings_details)) {
-          const earningsArray = Object.entries(entry.earnings_details)
-            .filter(([key]) => payrollConfig.componentDefinitions.some(c => c.code === key && (c.type === 'EARNING')))
-            .map(([key, value]) => ({
-              name: key,
-              amount: typeof value === 'number' ? value : (typeof value === 'object' && value !== null && typeof (value as any).amount === 'number' ? (value as any).amount : 0),
-              description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
-            }));
+          const earningsArray = Object.entries(entry.earnings_details).map(([key, value]) => ({
+            name: key,
+            amount: typeof value === 'number' ? value : (typeof value === 'object' && value !== null && typeof (value as any).amount === 'number' ? (value as any).amount : 0),
+            description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+          }));
           
-          if (earningsArray.length < Object.keys(entry.earnings_details).length) {
-            console.warn(t('payroll:auto___e69c89'), 
-              Object.keys(entry.earnings_details).filter(key => 
-                !payrollConfig.componentDefinitions.some(c => c.code === key && c.type === 'EARNING')
-              )
-            );
+                     // 如果组件定义已加载，则过滤有效组件
+           if (payrollConfig.componentDefinitions.length > 0) {
+             const validEarnings = earningsArray.filter(item => 
+               payrollConfig.componentDefinitions.some(c => {
+                 const type = getComponentType(c);
+                 return c.code === item.name && (type === 'EARNING' || type === 'Earning');
+               })
+             );
+            
+                         if (validEarnings.length < earningsArray.length) {
+               console.warn('⚠️ 发现无效的收入项组件:', 
+                 earningsArray
+                   .filter(item => !payrollConfig.componentDefinitions.some(c => {
+                     const type = getComponentType(c);
+                     return c.code === item.name && (type === 'EARNING' || type === 'Earning');
+                   }))
+                   .map(item => item.name)
+               );
+            }
+            
+            setEarnings(validEarnings);
+          } else {
+            // 组件定义还没加载，先显示所有数据
+            console.log('📝 组件定义还未加载，先显示所有收入项数据');
+            setEarnings(earningsArray);
           }
-          
-          setEarnings(earningsArray);
         } else if (entry.earnings_details && Array.isArray(entry.earnings_details)) {
-          // 如果已经是数组格式 (过滤无效项)
-          const validItems = entry.earnings_details.filter(item => 
-            payrollConfig.componentDefinitions.some(c => c.code === item.name && c.type === 'EARNING')
-          );
-          
-          if (validItems.length < entry.earnings_details.length) {
-            console.warn(t('payroll:auto___e69c89'), 
-              entry.earnings_details
-                .filter(item => !payrollConfig.componentDefinitions.some(c => c.code === item.name && c.type === 'EARNING'))
-                .map(item => item.name)
-            );
+          // 如果已经是数组格式
+                     if (payrollConfig.componentDefinitions.length > 0) {
+             // 组件定义已加载，过滤有效项
+              const validItems = entry.earnings_details.filter(item => 
+                payrollConfig.componentDefinitions.some(c => {
+                  const type = getComponentType(c);
+                  return c.code === item.name && (type === 'EARNING' || type === 'Earning');
+                })
+              );
+            
+                          if (validItems.length < entry.earnings_details.length) {
+                console.warn('⚠️ 发现无效的收入项组件:', 
+                  entry.earnings_details
+                    .filter(item => !payrollConfig.componentDefinitions.some(c => {
+                      const type = getComponentType(c);
+                      return c.code === item.name && (type === 'EARNING' || type === 'Earning');
+                    }))
+                    .map(item => item.name)
+                );
+            }
+            
+            setEarnings(validItems);
+          } else {
+            // 组件定义还没加载，先显示所有数据
+            console.log('📝 组件定义还未加载，先显示所有收入项数据(数组格式)');
+            setEarnings(entry.earnings_details);
           }
-          
-          setEarnings(validItems);
         } else {
           setEarnings([]);
         }
@@ -303,24 +483,40 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             }
           }
           
-          // 过滤有效的组件
-          const validDeductions = deductionsArray.filter(item => 
-            payrollConfig.componentDefinitions.some(c => 
-              c.code === item.name && (c.type === 'DEDUCTION' || c.type === 'STATUTORY')
-            )
-          );
-          
-          if (validDeductions.length < deductionsArray.length) {
-            console.warn(t('payroll:auto___e69c89'), 
-              deductionsArray
-                .filter(item => !payrollConfig.componentDefinitions.some(c => 
-                  c.code === item.name && (c.type === 'DEDUCTION' || c.type === 'STATUTORY')
-                ))
-                .map(item => item.name)
+          // 如果组件定义已加载，则过滤有效组件
+          if (payrollConfig.componentDefinitions.length > 0) {
+            const validDeductions = deductionsArray.filter(item => 
+              payrollConfig.componentDefinitions.some(c => {
+                const type = getComponentType(c);
+                return c.code === item.name && (
+                  type === 'DEDUCTION' || type === 'Deduction' || 
+                  type === 'STATUTORY' || type === 'Statutory' ||
+                  type === 'PERSONAL_DEDUCTION' || type === 'Personal_Deduction'
+                );
+              })
             );
+            
+            if (validDeductions.length < deductionsArray.length) {
+              console.warn('⚠️ 发现无效的扣除项组件:', 
+                deductionsArray
+                  .filter(item => !payrollConfig.componentDefinitions.some(c => {
+                    const type = getComponentType(c);
+                    return c.code === item.name && (
+                      type === 'DEDUCTION' || type === 'Deduction' || 
+                      type === 'STATUTORY' || type === 'Statutory' ||
+                      type === 'PERSONAL_DEDUCTION' || type === 'Personal_Deduction'
+                    );
+                  }))
+                  .map(item => item.name)
+              );
+            }
+            
+            setDeductions(validDeductions);
+          } else {
+            // 组件定义还没加载，先显示所有数据
+            console.log('📝 组件定义还未加载，先显示所有扣除项数据');
+            setDeductions(deductionsArray);
           }
-          
-          setDeductions(validDeductions);
         } else {
           setDeductions([]);
         }
@@ -337,7 +533,91 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         setEmployeeDetails(null);
       }
     }
-  }, [visible, entry, form, fetchEmployeeDetails]); 
+  }, [visible, entry, form, fetchEmployeeDetails, payrollConfig.componentDefinitions]);
+
+  // 当earnings或deductions变化时，自动更新汇总项
+  useEffect(() => {
+    updateTotals(earnings, deductions);
+  }, [earnings, deductions]);
+  
+  // 当组件定义加载完成后，重新过滤earnings和deductions
+  useEffect(() => {
+    if (visible && entry && payrollConfig.componentDefinitions.length > 0) {
+      console.log('🔄 [PayrollEntryFormModal] 组件定义已加载，重新过滤数据');
+      
+      let newEarnings: Array<PayrollItemDetail> = [];
+      let newDeductions: Array<PayrollItemDetail> = [];
+      
+      // 重新过滤收入项
+      if (entry.earnings_details) {
+        let earningsArray: Array<PayrollItemDetail> = [];
+        
+        if (typeof entry.earnings_details === 'object' && !Array.isArray(entry.earnings_details)) {
+          earningsArray = Object.entries(entry.earnings_details).map(([key, value]) => ({
+            name: key,
+            amount: typeof value === 'number' ? value : (typeof value === 'object' && value !== null && typeof (value as any).amount === 'number' ? (value as any).amount : 0),
+            description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+          }));
+        } else if (Array.isArray(entry.earnings_details)) {
+          earningsArray = [...entry.earnings_details];
+        }
+        
+        newEarnings = earningsArray.filter(item => 
+          payrollConfig.componentDefinitions.some(c => {
+            const type = getComponentType(c);
+            return c.code === item.name && (type === 'EARNING' || type === 'Earning');
+          })
+        );
+        
+        console.log('✅ 过滤后的收入项:', newEarnings);
+        setEarnings(newEarnings);
+      }
+      
+      // 重新过滤扣除项
+      if (entry.deductions_details) {
+        let deductionsArray: Array<PayrollItemDetail> = [];
+        
+        if (typeof entry.deductions_details === 'object') {
+          if (Array.isArray(entry.deductions_details)) {
+            deductionsArray = [...entry.deductions_details];
+          } else {
+            deductionsArray = Object.entries(entry.deductions_details).map(([key, value]) => {
+              const amount = typeof value === 'number' 
+                ? value 
+                : (typeof value === 'object' && value !== null && 'amount' in value 
+                  ? (value as any).amount || 0 
+                  : 0);
+              
+              return {
+                name: key,
+                amount: amount,
+                description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+              };
+            });
+          }
+        }
+        
+        newDeductions = deductionsArray.filter(item => 
+          payrollConfig.componentDefinitions.some(c => {
+            const type = getComponentType(c);
+            return c.code === item.name && (
+              type === 'DEDUCTION' || type === 'Deduction' || 
+              type === 'STATUTORY' || type === 'Statutory' ||
+              type === 'PERSONAL_DEDUCTION' || type === 'Personal_Deduction'
+            );
+          })
+        );
+        
+        console.log('✅ 过滤后的扣除项:', newDeductions);
+        setDeductions(newDeductions);
+      }
+      
+      // 在数据设置完成后，更新汇总项
+      setTimeout(() => {
+        updateTotals(newEarnings, newDeductions);
+      }, 0);
+    }
+  }, [visible, entry, payrollConfig.componentDefinitions.length]);
   
   // 处理表单提交
   const handleSubmit = async () => {
@@ -441,9 +721,14 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         { type: typeof netPayCalc, value: netPayCalc }
       );
 
-      // 如果是创建新条目，确保 employee_id 存在且有效
+      // 如果是创建新条目，确保 employee_id 和 status_lookup_value_id 存在且有效
       if (!entry && !values.employee_id) {
         messageApi.error(t('payroll:entry_form.validation.employee_required'));
+        return;
+      }
+      
+      if (!values.status_lookup_value_id) {
+        messageApi.error(t('payroll:entry_form.validation.status_required'));
         return;
       }
       
@@ -489,8 +774,38 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           }
         } else {
           // 创建新的工资明细
-          // 目前API中似乎没有创建单个PayrollEntry的方法，需要后端支持
-          messageApi.success(t('payroll:entry_form.message.create_success'));
+          if (!payrollPeriodId) {
+            messageApi.error('缺少工资期间ID');
+            return;
+          }
+          
+          const finalPayrollRunId = payrollRunId || defaultPayrollRunId;
+          if (!finalPayrollRunId) {
+            messageApi.error('缺少工资运行ID，无法创建工资条目。请先创建该期间的工资运行。');
+            return;
+          }
+          
+          // 准备创建数据
+          const createData: CreatePayrollEntryPayload = {
+            employee_id: values.employee_id,
+            payroll_period_id: payrollPeriodId,
+            payroll_run_id: finalPayrollRunId,
+            gross_pay: totalEarningsCalc,
+            total_deductions: totalDeductionsCalc,
+            net_pay: netPayCalc,
+            status_lookup_value_id: values.status_lookup_value_id,
+            remarks: values.remarks || '',
+            earnings_details: formattedEarningsDetails,
+            deductions_details: formattedDeductionsDetails
+          };
+          
+          const result = await createPayrollEntry(createData);
+          
+          if (result && result.data) {
+            messageApi.success(`${t('payroll:entry_form.message.create_success')} - ID: ${result.data.id}`);
+          } else {
+            messageApi.success(t('payroll:entry_form.message.create_success'));
+          }
         }
         
         onSuccess();
@@ -610,9 +925,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         <Form
           form={form}
           layout="vertical"
-          initialValues={{
-            status_lookup_value_id: PAYROLL_ENTRY_STATUS_OPTIONS[0]?.id || 301, // 默认为第一个状态或t('payroll:auto_text_e5be85')状态
-          }}
+          initialValues={
+            entry ? {} : {
+              status_lookup_value_id: 64, // 默认使用64(已录入)状态
+            }
+          }
         >
           {/* 员工信息区域 */}
           <Card title={t('payroll:entry_form.section.employee_info')} variant="outlined">
@@ -856,11 +1173,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                   rules={[{ required: true, message: t('payroll:entry_form.validation.status_required') }]}
                 >
                   <Select>
-                    {PAYROLL_ENTRY_STATUS_OPTIONS.map(status => (
+                    {statusOptions.map(status => (
                       <Option key={status.id} value={status.id}>
-                        {status.display_name_key.includes(':') 
-                          ? t(status.display_name_key) 
-                          : t(`payroll:${status.display_name_key}`)}
+                        {status.name}
                       </Option>
                     ))}
                   </Select>

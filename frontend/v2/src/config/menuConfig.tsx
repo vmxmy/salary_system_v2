@@ -11,21 +11,11 @@ import {
   SolutionOutlined,
   BarChartOutlined,
   FileTextOutlined,
-  TableOutlined,
   CalculatorOutlined,
-  DatabaseOutlined,
-  CodeOutlined,
-  EyeOutlined,
-  HomeOutlined,
   UserOutlined,
   SafetyOutlined,
   ControlOutlined,
-  AppstoreOutlined,
-  RobotOutlined,
-  BankOutlined,
   ProfileOutlined,
-  EditOutlined,
-  CalendarOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 
@@ -87,7 +77,7 @@ export const menuData: AppMenuDataItem[] = [
         icon: <SolutionOutlined />,
       },
       {
-        name: '工资版本',
+        name: '工资运行',
         titleKey: 'menu.payroll.runs',
         path: '/finance/payroll/runs',
         icon: <CalculatorOutlined />,
@@ -152,20 +142,7 @@ export const menuData: AppMenuDataItem[] = [
       },
     ],
   },
-  {
-    name: '经理视图',
-    titleKey: 'menu.manager.title',
-    path: '/manager',
-    icon: <UserSwitchOutlined />,
-    children: [
-      {
-        name: '下属管理',
-        titleKey: 'menu.manager.subordinates',
-        path: '/manager/subordinates',
-        icon: <TeamOutlined />,
-      },
-    ],
-  },
+
   {
     name: '系统管理',
     titleKey: 'menu.admin.title',
@@ -204,41 +181,7 @@ export const menuData: AppMenuDataItem[] = [
 export const generateMenuData = (isDev: boolean = false): AppMenuDataItem[] => {
   const baseMenu = [...menuData];
   
-  // 开发模式下添加测试菜单
-  if (isDev) {
-    baseMenu.push({
-      name: '测试页面',
-      titleKey: 'menu.test.title',
-      path: '/test',
-      icon: <CodeOutlined />,
-      children: [
-        {
-          name: '员工列表V3',
-          titleKey: 'menu.test.employeeListV3',
-          path: '/test/employee-list-v3',
-          icon: <TableOutlined />,
-        },
-        {
-          name: '报表表格演示',
-          titleKey: 'menu.test.reportTableDemo',
-          path: '/test/report-table-demo',
-          icon: <DatabaseOutlined />,
-        },
-        {
-          name: '报表模板演示',
-          titleKey: 'menu.test.reportTemplateDemo',
-          path: '/test/report-template-demo',
-          icon: <FileTextOutlined />,
-        },
-        {
-          name: '薪资工作流',
-          titleKey: 'menu.test.payrollWorkflow',
-          path: '/test/payroll-workflow',
-          icon: <AppstoreOutlined />,
-        },
-      ],
-    });
-  }
+
   
   return baseMenu;
 };

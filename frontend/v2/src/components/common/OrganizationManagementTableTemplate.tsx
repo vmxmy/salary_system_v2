@@ -148,7 +148,7 @@ function OrganizationManagementTableTemplate<T extends Record<string, any>>({
           // 自定义行选择工具栏右侧操作按钮
           const actions = [];
           
-          // 添加批量删除按钮
+          // 添加批量删除按钮（在取消选择按钮之前）
           if (batchDelete?.enabled && selectedRowKeys && selectedRowKeys.length > 0) {
             actions.push(
               <Button

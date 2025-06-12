@@ -192,7 +192,7 @@
     "title": "生成工资"
   },
   "hints": {
-    "noVersions": "当前期间还没有工资版本，请先生成工资数据",
+    "noVersions": "当前期间还没有工资运行，请先生成工资数据",
     "selectPeriod": "请先选择一个工资期间来开始操作"
   },
   "messages": {
@@ -212,7 +212,7 @@
     "description": "快速生成各类工资报表，支持多种格式导出",
     "generateCompleted": "报表生成完成",
     "generateFailed": "报表生成失败",
-    "noVersionSelected": "请先选择要生成报表的工资版本",
+    "noVersionSelected": "请先选择要生成报表的工资运行",
     "quickGenerate": {
       "salaryTable": "工资总表",
       "taxDeclaration": "个税申报表"

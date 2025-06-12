@@ -57,7 +57,7 @@ export const usePayrollVersions = (periodId?: number): UsePayrollVersionsResult 
 
       setVersions(sortedVersions);
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.detail?.error?.message || '获取工资版本失败';
+      const errorMessage = err?.response?.data?.detail?.error?.message || '获取工资运行失败';
       console.error('❌ [usePayrollVersions] 获取版本数据失败:', {
         periodId,
         error: err,

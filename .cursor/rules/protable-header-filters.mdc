@@ -1,0 +1,147 @@
+# ProTable 表头搜索筛选和选择筛选高级功能配置指南
+
+## 概述
+本指南详细说明如何在 Ant Design Pro Components 的 ProTable 中开启表头的搜索筛选和选择筛选功能。
+
+## 功能类型
+
+### 1. 表头自定义搜索功能
+适用于姓名、描述等文本字段，支持模糊搜索。
+
+```typescript
+{
+  title: '姓名',
+  dataIndex: 'name',
+  // 表头自定义搜索
+  filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    <div style={{ padding: 8 }}>
+      <Input
+        placeholder="搜索姓名"
+        value={selectedKeys[0]}
+        onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+        onPressEnter={() => confirm()}
+        style={{ width: 188, marginBottom: 8, display: 'block' }}
+      />
+      <Space>
+        <Button
+          type="primary"
+          onClick={() => confirm()}
+          size="small"
+          style={{ width: 90 }}
+        >
+          搜索
+        </Button>
+        <Button onClick={() => clearFilters && clearFilters()} size="small" style={{ width: 90 }}>
+          重置
+        </Button>
+      </Space>
+    </div>
+  ),
+  filterIcon: (filtered) => (
+    <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+  ),
+  onFilter: (value, record) => {
+    if (!record.name || !value) return false;
+    return record.name.toString().toLowerCase().includes((value as string).toLowerCase());
+  },
+}
+```
+
+### 2. 表头选择筛选功能
+适用于部门、状态等有限选项字段，支持多选筛选。
+
+```typescript
+{
+  title: '部门',
+  dataIndex: 'department',
+  // 只保留选择筛选功能
+  filters: (() => {
+    const departments = Array.from(new Set(dataSource.map(item => item.department).filter(Boolean)));
+    return departments.map(dept => ({ text: dept || '', value: dept || '' }));
+  })(),
+  filterMultiple: true,
+  onFilter: (value, record) => record.department === value,
+}
+```
+
+### 3. 混合筛选功能（搜索 + 选择）
+结合搜索和选择功能，提供更灵活的筛选体验。
+
+```typescript
+{
+  title: '人员身份',
+  dataIndex: 'category',
+  // 表头自定义搜索
+  filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    <div style={{ padding: 8 }}>
+      <Input
+        placeholder="搜索人员身份"
+        value={selectedKeys[0]}
+        onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+        onPressEnter={() => confirm()}
+        style={{ width: 188, marginBottom: 8, display: 'block' }}
+      />
+      <Space>
+        <Button type="primary" onClick={() => confirm()} size="small">搜索</Button>
+        <Button onClick={() => clearFilters && clearFilters()} size="small">重置</Button>
+      </Space>
+    </div>
+  ),
+  filterIcon: (filtered) => (
+    <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+  ),
+  onFilter: (value, record) => {
+    if (!record.category || !value) return false;
+    return record.category.toString().toLowerCase().includes((value as string).toLowerCase());
+  },
+  // 同时保留选择筛选功能
+  filters: (() => {
+    const categories = Array.from(new Set(dataSource.map(item => item.category).filter(Boolean)));
+    return categories.map(cat => ({ text: cat || '', value: cat || '' }));
+  })(),
+  filterMultiple: true,
+}
+```
+
+## 必需的依赖和导入
+
+```typescript
+import { Input, Button, Space } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { ProTable, type ProColumns } from '@ant-design/pro-components';
+```
+
+## 使用场景建议
+
+### 选择搜索功能的场景：
+- 姓名、用户名等唯一标识字段
+- 描述、备注等长文本字段
+- 需要模糊匹配的任何文本字段
+
+### 选择筛选功能的场景：
+- 部门、分类等有限选项字段
+- 状态、类型等枚举值字段
+- 需要精确匹配的分类字段
+
+## 配置要点
+
+1. **类型安全**: 确保 `onFilter` 函数正确处理空值和类型转换
+2. **性能优化**: 对于大数据集，考虑使用服务端筛选
+3. **用户体验**: 提供清晰的视觉反馈和重置功能
+4. **响应式设计**: 搜索框宽度适配不同屏幕尺寸
+
+## 实际应用示例
+
+参考文件: [PayrollDataModal.tsx](mdc:frontend/v2/src/pages/SimplePayroll/components/PayrollDataModal.tsx)
+
+该文件展示了完整的实现示例，包括：
+- 姓名列的搜索功能
+- 部门列的选择筛选功能  
+- 人员身份列的选择筛选功能
+
+## 注意事项
+
+1. **禁用顶部搜索**: 设置 `search={false}` 避免与表头筛选冲突
+2. **数据同步**: 确保筛选器选项与实际数据同步更新
+3. **国际化**: 考虑搜索框提示文本的多语言支持
+4. **移动端适配**: 在小屏设备上优化筛选界面布局

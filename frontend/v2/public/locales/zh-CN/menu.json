@@ -113,7 +113,7 @@
     "payroll": {
       "title": "薪资管理",
       "periods": "工资期间",
-      "runs": "工资版本",
+      "runs": "工资运行",
       "entry": "工资条目",
       "bulkImport": "批量导入",
       "components": "薪资组件"

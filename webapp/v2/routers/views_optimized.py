@@ -238,36 +238,8 @@ async def get_personnel_categories_optimized(
 
 # ==================== 薪资相关优化接口 ====================
 
-@router.get("/simple-payroll/periods")
-async def get_payroll_periods_optimized(
-    is_active: Optional[bool] = Query(None, description="是否活跃"),
-    year: Optional[int] = Query(None, description="年份"),
-    db: Session = Depends(get_db_v2)
-):
-    """🚀 高性能薪资周期查询 - 简化版"""
-    try:
-        query = text("""
-            SELECT 
-                id, name, start_date, end_date, pay_date,
-                frequency_lookup_value_id, status_lookup_value_id
-            FROM payroll.payroll_periods
-            WHERE (:year IS NULL OR EXTRACT(YEAR FROM start_date) = :year)
-            ORDER BY start_date DESC
-            LIMIT 50
-        """)
-        
-        result = db.execute(query, {"year": year})
-        periods = [dict(row._mapping) for row in result]
-        
-        return OptimizedResponse(
-            success=True,
-            data=periods,
-            message=f"成功获取 {len(periods)} 个薪资周期"
-        )
-        
-    except Exception as e:
-        logger.error(f"获取薪资周期失败: {e}")
-        raise HTTPException(status_code=500, detail=f"获取薪资周期失败: {str(e)}")
+# 删除重复路由 - /simple-payroll/periods 已在 simple_payroll.py 中定义
+# 避免路由冲突，使用 simple_payroll.py 中的统一实现
 
 @router.get("/simple-payroll/versions")
 async def get_payroll_versions_optimized(

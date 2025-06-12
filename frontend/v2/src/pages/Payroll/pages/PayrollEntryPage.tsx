@@ -111,6 +111,12 @@ const generatePayrollEntryTableColumns = (
         
         return fullName;
       },
+      ...(() => {
+        const searchProps = getColumnSearch('employee_name');
+        // 保留我们的自定义 render 函数，只使用搜索相关的属性
+        const { render, ...searchPropsWithoutRender } = searchProps;
+        return searchPropsWithoutRender;
+      })(),
     },
     {
       title: t('payroll:entries_table.column.department'),
@@ -237,6 +243,7 @@ const PayrollEntryPage: React.FC = () => {
   const [allPayrollEntries, setAllPayrollEntries] = useState<PayrollEntry[]>([]);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [personnelCategoriesTree, setPersonnelCategoriesTree] = useState<PersonnelCategory[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   
   // 模拟权限配置
   const permissions = {
@@ -361,6 +368,22 @@ const PayrollEntryPage: React.FC = () => {
     }
   }, [selectedPeriodId, fetchPayrollEntries]);
 
+  // 处理批量删除工资条目
+  const handleBatchDeleteEntries = useCallback(async (selectedKeys: React.Key[]) => {
+    try {
+      // 批量删除所有选中的工资条目
+      const deletePromises = selectedKeys.map(id => deletePayrollEntry(Number(id)));
+      await Promise.all(deletePromises);
+      
+      // 重新获取数据
+      if (selectedPeriodId) {
+        fetchPayrollEntries(selectedPeriodId);
+      }
+    } catch (error) {
+      throw error; // 让StandardListPageTemplate处理错误显示
+    }
+  }, [selectedPeriodId, fetchPayrollEntries]);
+
   // 处理查看详情
   const handleViewDetails = useCallback((entryId: string) => {
     setSelectedEntryId(entryId);
@@ -470,6 +493,18 @@ const PayrollEntryPage: React.FC = () => {
             successMessageKey: 'payroll:entry_page.message.delete_success',
             errorMessageKey: 'payroll:entry_page.message.delete_failed',
           }}
+          batchDeleteConfig={{
+            enabled: true,
+            buttonText: '批量删除',
+            confirmTitle: '确认批量删除',
+            confirmContent: '确定要删除选中的 {count} 个工资条目吗？此操作不可撤销。',
+            confirmOkText: '确定删除',
+            confirmCancelText: '取消',
+            successMessage: '成功删除 {count} 个工资条目',
+            errorMessage: '批量删除失败',
+            noSelectionMessage: '请选择要删除的工资条目',
+            onBatchDelete: handleBatchDeleteEntries,
+          }}
           exportConfig={{
             filenamePrefix: t('payroll:entry_page.title'),
             sheetName: t('payroll:entry_page.title'),
@@ -480,6 +515,8 @@ const PayrollEntryPage: React.FC = () => {
           lookupLoadingMessageKey="payroll:entry_page.loading_lookups"
           lookupDataErrorMessageKey="payroll:entry_page.lookup_data_error"
           rowKey="id"
+          selectedRowKeys={selectedRowKeys}
+          setSelectedRowKeys={setSelectedRowKeys}
         />
       </PermissionGuard>
 

@@ -1,14 +1,1 @@
-🔑 使用实际JWT_SECRET_KEY生成的Token:
-============================================================
-SECRET_KEY: Xumy8!75
-ALGORITHM: HS256
-用户名: admin
-角色: 超级管理员
-有效期: 24小时
-生成时间: 2025-06-12 05:19:49
-
-🎫 Token:
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJcdThkODVcdTdlYTdcdTdiYTFcdTc0MDZcdTU0NTgiLCJleHAiOjE3NDk3NjMxODl9.tmrOT_FApH7yVBX3B1gwodlZJsIcjFz6zOak0GmUOww
-
-💡 使用方法:
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJcdThkODVcdTdlYTdcdTdiYTFcdTc0MDZcdTU0NTgiLCJleHAiOjE3NDk3NjMxODl9.tmrOT_FApH7yVBX3B1gwodlZJsIcjFz6zOak0GmUOww

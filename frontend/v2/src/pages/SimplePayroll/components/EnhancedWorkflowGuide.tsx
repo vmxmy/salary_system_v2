@@ -242,6 +242,66 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     }
   };
 
+  // 进入审核检查状态
+  const handleEnterAudit = async () => {
+    if (!selectedVersion) return;
+    
+    await withTimeout('enter_audit', async () => {
+      console.log('🔍 [进入审核] 开始进入审核检查状态:', selectedVersion.id);
+      
+      try {
+        // 1. 首先执行审核检查
+        const auditResult = await simplePayrollApi.runAuditCheck(selectedVersion.id);
+        
+        console.log('✅ [进入审核] 审核检查完成:', auditResult.data);
+        
+        // 2. 更新状态到"已计算"（status_lookup_value_id: 61），进入审核检查步骤
+        // 注意：这里需要导入 payrollApi 而不是使用 simplePayrollApi
+        const { updatePayrollRun } = await import('../../Payroll/services/payrollApi');
+        await updatePayrollRun(selectedVersion.id, {
+          status_lookup_value_id: 61 // 61 = "已计算"状态
+        });
+        
+        console.log('✅ [进入审核] 状态已更新为"已计算"（status_lookup_value_id: 61）');
+        
+        // 3. 显示审核结果和状态更新信息
+        if (auditResult.data) {
+          const summary = auditResult.data;
+          message.success({
+            content: (
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>🔍 已进入审核检查阶段</div>
+                <div>📊 检查条目: {summary.total_entries} 条</div>
+                <div>❌ 发现异常: {summary.total_anomalies} 个</div>
+                <div>🔴 错误: {summary.error_count} 个</div>
+                <div>🟡 警告: {summary.warning_count} 个</div>
+                {summary.auto_fixable_count > 0 && (
+                  <div>🔧 可自动修复: {summary.auto_fixable_count} 个</div>
+                )}
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  工作流已进入审核检查阶段，可以开始审核操作
+                </div>
+              </div>
+            ),
+            duration: 6
+          });
+        } else {
+          message.success('已进入审核检查阶段，可以开始审核操作');
+        }
+        
+        // 4. 刷新数据以显示最新状态
+        onVersionRefresh?.() || onRefresh();
+        
+        // 5. 通知步骤变更到审核检查
+        onStepChange?.('audit_check');
+        
+      } catch (error: any) {
+        console.error('❌ [进入审核] 进入审核失败:', error);
+        message.error('进入审核失败，请重试');
+      }
+    });
+  };
+
   // API调用函数
   const handleRunAudit = async () => {
     if (!selectedVersion) return;
@@ -1022,23 +1082,6 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         disabled: !canExecuteStep(0, currentStepIndex),
         actions: [
           {
-            key: 'quick_copy',
-            label: '一键复制上月',
-            type: 'primary',
-            icon: <CopyOutlined />,
-            disabled: !selectedPeriod, // 只要有选择期间就可以复制
-            loading: loading.quick_copy,
-            onClick: handleQuickCopyPrevious
-          },
-          {
-            key: 'import_data',
-            label: '批量导入',
-            type: 'default',
-            icon: <FileTextOutlined />,
-            disabled: !selectedPeriod, // 修改：只要有选择期间就可以导入
-            onClick: () => onNavigateToBulkImport?.()
-          },
-          {
             key: 'run_calculation',
             label: '运行集成计算引擎',
             type: 'default',
@@ -1046,6 +1089,15 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             disabled: !selectedVersion, // 保持：需要有工资运行版本才能计算
             loading: loading.run_calculation,
             onClick: handleRunCalculationEngine
+          },
+          {
+            key: 'enter_audit',
+            label: '进入审核',
+            type: 'primary',
+            icon: <AuditOutlined />,
+            disabled: !selectedVersion, // 需要有工资运行版本才能进入审核
+            loading: loading.enter_audit,
+            onClick: handleEnterAudit
           }
         ],
         requirements: [
@@ -1055,8 +1107,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           '完成工资计算'
         ],
         tips: [
-          '💡 推荐使用"一键复制上月"快速创建工资数据',
-          '复制后可通过批量导入调整个别员工数据',
+          '💡 点击"进入审核"开始审核检查流程',
+          '审核将检查工资数据的完整性和准确性',
           '重点检查新入职和离职员工',
           '🚀 集成计算引擎包含完整五险一金计算',
           '📊 自动计算个人和单位扣缴，提供成本分析'
@@ -1119,15 +1171,6 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         disabled: !canExecuteStep(2, currentStepIndex),
         actions: [
           {
-            key: 'approve_payment',
-            label: '批准支付',
-            type: 'primary',
-            icon: <CheckCircleOutlined />,
-            disabled: !canExecuteStep(2, currentStepIndex),
-            loading: loading.approve_payment,
-            onClick: handleApprovePayment
-          },
-          {
             key: 'reject_payroll',
             label: '拒绝并退回',
             type: 'default',
@@ -1156,6 +1199,15 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                 }
               });
             }
+          },
+          {
+            key: 'approve_payment',
+            label: '批准支付',
+            type: 'primary',
+            icon: <CheckCircleOutlined />,
+            disabled: !canExecuteStep(2, currentStepIndex),
+            loading: loading.approve_payment,
+            onClick: handleApprovePayment
           }
         ],
         requirements: [
@@ -1212,7 +1264,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           {
             key: 'generate_reports',
             label: '一键生成报表',
-            type: 'primary',
+            type: 'default',
             icon: <FileTextOutlined />,
             disabled: !canExecuteStep(3, currentStepIndex),
             loading: loading.generate_reports,
@@ -1310,7 +1362,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           {
             key: 'mark_as_paid',
             label: '标记已支付',
-            type: 'default',
+            type: 'primary',
             icon: <CheckCircleOutlined />,
             disabled: !canExecuteStep(3, currentStepIndex),
             loading: loading.mark_paid,

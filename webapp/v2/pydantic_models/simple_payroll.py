@@ -349,13 +349,13 @@ class BatchAdjustmentRule(BaseModel):
 
 class BatchAdjustmentPreviewRequest(BaseModel):
     """批量调整预览请求"""
-    payroll_run_id: int = Field(..., description="工资版本ID")
+    payroll_run_id: int = Field(..., description="工资运行ID")
     employee_codes: List[str] = Field(..., description="员工编号列表")
     adjustment_rules: List[BatchAdjustmentRule] = Field(..., description="调整规则列表")
 
 class BatchAdjustmentRequestAdvanced(BaseModel):
     """高级批量调整请求"""
-    payroll_run_id: int = Field(..., description="工资版本ID")
+    payroll_run_id: int = Field(..., description="工资运行ID")
     employee_codes: List[str] = Field(..., description="员工编号列表")
     adjustment_rules: List[BatchAdjustmentRule] = Field(..., description="调整规则列表")
     description: Optional[str] = Field(None, description="调整说明")

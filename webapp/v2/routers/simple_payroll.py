@@ -69,10 +69,9 @@ async def get_payroll_periods(
     logger.info(f"🔄 [get_payroll_periods] 接收请求 - 参数: year={year}, month={month}, is_active={is_active}, page={page}, size={size}")
     
     try:
-        # 🚀 使用优化版服务，解决N+1查询问题
-        from ..services.simple_payroll.simple_payroll_service_optimized import SimplePayrollServiceOptimized
-        service = SimplePayrollServiceOptimized(db)
-        result = service.get_payroll_periods_ultra_fast(
+        # 使用标准的 SimplePayrollService
+        service = SimplePayrollService(db)
+        result = service.get_payroll_periods(
             year=year,
             month=month,
             is_active=is_active,
@@ -80,7 +79,7 @@ async def get_payroll_periods(
             size=size
         )
         
-        logger.info(f"✅ [get_payroll_periods] 查询成功 - 返回 {len(result.get('data', []))} 条记录, 总计: {result.get('meta', {}).get('total', 0)}")
+        logger.info(f"✅ [get_payroll_periods] 查询成功 - 返回 {len(result['data'])} 条记录, 总计: {result['meta']['total']}")
         return result
     except Exception as e:
         logger.error(f"获取工资期间列表失败: {e}", exc_info=True)
@@ -127,7 +126,7 @@ async def get_payroll_period(
         )
 
 # =============================================================================
-# 工资版本管理
+# 工资运行管理
 # =============================================================================
 
 @router.get("/versions", response_model=PaginationResponse[PayrollRunResponse])
@@ -139,24 +138,23 @@ async def get_payroll_versions(
     # ⚡️ 临时移除权限验证以提升性能
     # current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
-    """获取指定期间的工资版本列表"""
+    """获取指定期间的工资运行列表"""
     try:
-        # 🚀 使用优化版服务，解决统计查询问题
-        from ..services.simple_payroll.simple_payroll_service_optimized import SimplePayrollServiceOptimized
-        service = SimplePayrollServiceOptimized(db)
-        result = service.get_payroll_versions_ultra_fast(
+        # 使用标准的 SimplePayrollService
+        service = SimplePayrollService(db)
+        result = service.get_payroll_versions(
             period_id=period_id,
             page=page,
             size=size
         )
         return result
     except Exception as e:
-        logger.error(f"获取工资版本列表失败: {e}", exc_info=True)
+        logger.error(f"获取工资运行列表失败: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
                 status_code=500,
-                message="获取工资版本列表失败",
+                message="获取工资运行列表失败",
                 details=str(e)
             )
         )
@@ -168,7 +166,7 @@ async def get_payroll_version(
     # ⚡️ 临时移除权限验证以提升性能  
     # current_user = Depends(require_permissions(["payroll_run:view"]))
 ):
-    """获取指定工资版本详情"""
+    """获取指定工资运行详情"""
     try:
         # 直接查询工资运行记录
         from ..models.payroll import PayrollRun
@@ -179,7 +177,7 @@ async def get_payroll_version(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=create_error_response(
                     status_code=404,
-                    message="工资版本不存在",
+                    message="工资运行不存在",
                     details=f"版本ID {version_id} 未找到"
                 )
             )
@@ -219,12 +217,12 @@ async def get_payroll_version(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"获取工资版本详情失败: {e}", exc_info=True)
+        logger.error(f"获取工资运行详情失败: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=create_error_response(
                 status_code=500,
-                message="获取工资版本详情失败",
+                message="获取工资运行详情失败",
                 details=str(e)
             )
         )
