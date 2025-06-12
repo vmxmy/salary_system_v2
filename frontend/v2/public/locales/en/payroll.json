@@ -30,7 +30,7 @@
   "auto__statusid__e69caa": "未知状态(${statusId})",
   "auto_api__415049": "API响应元数据:",
   "auto_calculate": "",
-  "auto_excel_e5afbc": "导出Excel",
+  "auto_excel_e5afbc": "Export Excel",
   "auto_id_employee_actual_position_id__e8818c": "职位ID: ${employee.actual_position_id}",
   "auto_id_employee_department_id__e983a8": "部门ID: ${employee.department_id}",
   "auto_id_employee_personnel_category_id__e8baab": "身份ID: ${employee.personnel_category_id}",
@@ -58,7 +58,7 @@
   "auto_text_e7bba9": "绩效奖金",
   "auto_text_e7bc96": "auto_text_e7bc96",
   "auto_text_e88198": "聘用",
-  "auto_text_e896aa": "薪资",
+  "auto_text_e896aa": "Export Successful",
   "auto_text_e8aea1": "计税",
   "auto_text_e8afb7": "请先在表格转换器中完成数据转换",
   "auto_text_e9bb98": "默认部门",
@@ -282,20 +282,27 @@
   "end_date": "",
   "entries_table": {
     "column": {
-      "actions": "actions",
-      "department": "department",
-      "employee_id": "employee_id",
-      "employee_name": "employee_name",
-      "gross_pay": "gross_pay",
-      "net_pay": "net_pay",
-      "personnel_category": "personnel_category",
-      "status": "status",
-      "total_deductions": "total_deductions"
+      "actions": "Actions",
+      "department": "Department",
+      "employee_id": "Employee ID",
+      "employee_name": "Employee Name",
+      "gross_pay": "Gross Pay",
+      "net_pay": "Net Pay",
+      "personnel_category": "Personnel Category",
+      "status": "Status",
+      "total_deductions": "Total Deductions"
     },
     "modal": {
-      "amount": "amount",
-      "component_name": "component_name",
-      "notes": "notes"
+      "amount": "Amount",
+      "component_name": "Component Name",
+      "notes": "Notes"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft",
+      "approved": "Approved",
+      "submitted": "Submitted"
     }
   },
   "entry_detail_modal": {
@@ -384,9 +391,23 @@
   },
   "entry_page": {
     "message": {
-      "operation_success": "Operation successful"
+      "operation_success": "Operation successful",
+      "delete_success": "Entry deleted successfully",
+      "delete_failed": "Failed to delete entry",
+      "load_aux_data_failed": "Failed to load auxiliary data",
+      "lookup_data_error": "Lookup data error"
     },
-    "title": "Payroll Entry"
+    "title": "Payroll Entry",
+    "button": {
+      "add_entry": "Add Payroll Entry"
+    },
+    "delete_confirm": {
+      "title": "Confirm Delete",
+      "content": "Are you sure you want to delete this payroll entry? This action cannot be undone.",
+      "ok_text": "Delete",
+      "cancel_text": "Cancel"
+    },
+    "loading_lookups": "Loading auxiliary data..."
   },
   "entry_status": {
     "approved": "approved",

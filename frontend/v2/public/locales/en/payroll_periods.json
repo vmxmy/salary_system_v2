@@ -83,5 +83,7 @@
       "employee_count_has_data": "Employee count available",
       "employee_count_no_data": "No employee data"
     }
-  }
+  },
+  "导出Excel": "Export Excel",
+  "导出成功": "Export Successful"
 }

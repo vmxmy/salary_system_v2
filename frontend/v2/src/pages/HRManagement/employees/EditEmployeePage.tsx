@@ -303,7 +303,7 @@ const EditEmployeePage: React.FC = () => {
           }}
           initialValues={getInitialValues()}
         >
-          <ProCard title="个人基础信息" bordered>
+          <ProCard title="个人基础信息" variant="outlined">
             <ProFormGroup>
               <ProFormText
                 name="employee_code"
@@ -394,7 +394,7 @@ const EditEmployeePage: React.FC = () => {
             console.log('🔧 工作信息表单值变化:', { changedValues, allValues });
           }}
         >
-          <ProCard title="岗位信息" bordered style={{ marginBottom: 16 }}>
+          <ProCard title="岗位信息" variant="outlined" style={{ marginBottom: 16 }}>
             <ProFormGroup>
               <ProFormSelect
                 name="department_id"
@@ -496,7 +496,7 @@ const EditEmployeePage: React.FC = () => {
             </ProFormGroup>
           </ProCard>
 
-          <ProCard title="雇佣信息" bordered>
+          <ProCard title="雇佣信息" variant="outlined">
             <ProFormGroup>
               <ProFormSelect
                 name="employment_type"
@@ -562,7 +562,7 @@ const EditEmployeePage: React.FC = () => {
           }}
           initialValues={getInitialValues()}
         >
-          <ProCard title="联系方式" bordered style={{ marginBottom: 16 }}>
+          <ProCard title="联系方式" variant="outlined" style={{ marginBottom: 16 }}>
             <ProFormGroup>
               <ProFormText
                 name="phone_number"
@@ -579,7 +579,7 @@ const EditEmployeePage: React.FC = () => {
             </ProFormGroup>
           </ProCard>
 
-          <ProCard title="银行信息" bordered style={{ marginBottom: 16 }}>
+          <ProCard title="银行信息" variant="outlined" style={{ marginBottom: 16 }}>
             <ProFormGroup>
               <ProFormText
                 name="bank_name"
@@ -596,7 +596,7 @@ const EditEmployeePage: React.FC = () => {
             </ProFormGroup>
           </ProCard>
 
-          <ProCard title="紧急联系人" bordered>
+          <ProCard title="紧急联系人" variant="outlined">
             <ProFormGroup>
               <ProFormText
                 name="emergency_contact_name"

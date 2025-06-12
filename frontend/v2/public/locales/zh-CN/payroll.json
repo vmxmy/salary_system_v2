@@ -30,7 +30,7 @@
   "auto__statusid__e69caa": "自动生成_statusid_e69caa",
   "auto_api__415049": "自动生成_api_415049",
   "auto_calculate": "自动计算",
-  "auto_excel_e5afbc": "自动生成_excel_e5afbc",
+  "auto_excel_e5afbc": "导出Excel",
   "auto_id_employee_actual_position_id__e8818c": "自动生成_id_employee_actual_position_id_e8818c",
   "auto_id_employee_department_id__e983a8": "自动生成_id_employee_department_id_e983a8",
   "auto_id_employee_personnel_category_id__e8baab": "自动生成_id_employee_personnel_category_id_e8baab",
@@ -58,7 +58,7 @@
   "auto_text_e7bba9": "自动生成_text_e7bba9",
   "auto_text_e7bc96": "自动生成_text_e7bc96",
   "auto_text_e88198": "自动生成_text_e88198",
-  "auto_text_e896aa": "自动生成_text_e896aa",
+  "auto_text_e896aa": "导出成功",
   "auto_text_e8aea1": "自动生成_text_e8aea1",
   "auto_text_e8afb7": "自动生成_text_e8afb7",
   "auto_text_e9bb98": "自动生成_text_e9bb98",
@@ -291,6 +291,13 @@
       "amount": "",
       "component_name": "",
       "notes": ""
+    },
+    "status": {
+      "active": "有效",
+      "inactive": "无效",
+      "draft": "草稿",
+      "approved": "已批准",
+      "submitted": "已提交"
     }
   },
   "entry_detail_modal": {
@@ -378,9 +385,23 @@
   },
   "entry_page": {
     "message": {
-      "operation_success": ""
+      "operation_success": "操作成功",
+      "delete_success": "工资条目删除成功",
+      "delete_failed": "删除工资条目失败",
+      "load_aux_data_failed": "加载辅助数据失败",
+      "lookup_data_error": "查找数据错误"
     },
-    "title": "工资记录"
+    "title": "工资记录",
+    "button": {
+      "add_entry": "新增工资条目"
+    },
+    "delete_confirm": {
+      "title": "确认删除",
+      "content": "确定要删除此工资条目吗？此操作不可撤销。",
+      "ok_text": "确定删除",
+      "cancel_text": "取消"
+    },
+    "loading_lookups": "正在加载辅助数据..."
   },
   "entry_status": {
     "approved": "",
@@ -481,7 +502,8 @@
   "status": {
     "draft": "草稿",
     "finalized": "已定稿",
-    "paid": "已支付"
+    "paid": "已支付",
+    "unknown_status_param": "未知状态"
   },
   "status_update_failed": "",
   "status_updated": "",

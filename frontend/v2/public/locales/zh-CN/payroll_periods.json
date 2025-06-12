@@ -85,5 +85,7 @@
     }
   },
   "page_title": "薪资周期管理",
-  "create_period": "创建薪资周期"
+  "create_period": "创建薪资周期",
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功"
 }

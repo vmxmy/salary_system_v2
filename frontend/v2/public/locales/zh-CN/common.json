@@ -210,7 +210,12 @@
       "personal_income_tax": ""
     }
   },
-  "confirm": "",
+  "confirm": {
+    "batch_delete": {
+      "title": "确认批量删除",
+      "content": "您确定要删除选中的记录吗？此操作不可撤销。"
+    }
+  },
   "data_type": {
     "date": "",
     "number": "",
@@ -418,7 +423,9 @@
   "status_success": "成功",
   "export": {
     "export": "导出",
-    "formatExcel": "Excel (.xlsx)"
+    "formatExcel": "Excel (.xlsx)",
+    "button_text": "导出Excel",
+    "success_message": "导出成功"
   },
   "success": {
     "create": "",

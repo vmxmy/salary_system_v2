@@ -411,6 +411,12 @@
     "export": "",
     "update": ""
   },
+  "export": {
+    "export": "Export",
+    "formatExcel": "Excel (.xlsx)",
+    "button_text": "Export Excel",
+    "success_message": "Export Successful"
+  },
   "table": {
     "column": {
       "index": ""

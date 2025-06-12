@@ -309,15 +309,13 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   // 获取人员身份名称
   const getPersonnelCategoryName = (employee: any) => {
     if (!employee) return '';
-    return employee.personnel_category_name || 
-           (employee.personnel_category_id ?      t('payroll:auto_id_employee_personnel_category_id__e8baab'): '');
+    return employee.personnelCategoryName || employee.personnel_category_name || '未设置';
   };
 
   // 获取实际任职名称
   const getActualPositionName = (employee: any) => {
     if (!employee) return '';
-    return employee.actual_position_name || 
-           (employee.actual_position_id ?      t('payroll:auto_id_employee_actual_position_id__e8818c'): '');
+    return employee.actualPositionName || employee.actual_position_name || '未设置';
   };
 
   // 处理员工选择

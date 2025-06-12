@@ -55,5 +55,7 @@
       "delete_permission": "删除权限",
       "edit_permission": "编辑权限"
     }
-  }
+  },
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功"
 }

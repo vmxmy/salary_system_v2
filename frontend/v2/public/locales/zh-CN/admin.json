@@ -71,5 +71,6 @@
   "token_required": "请输入 Token",
   "token_tooltip": "Dify 服务提供的 API Token",
   "use_direct_config": "",
-  "use_template_config": ""
+  "use_template_config": "",
+  "ai_enabled_message": "AI 机器人已启用"
 }

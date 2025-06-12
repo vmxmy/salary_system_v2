@@ -12,7 +12,7 @@ const TypographyDemo: React.FC = () => {
       <Row gutter={[24, 24]}>
         {/* 标题样式演示 */}
         <Col span={24}>
-          <Card title="标题样式 (Typography Titles)" bordered={false}>
+          <Card title="标题样式 (Typography Titles)" variant="borderless">
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
               <div>
                 <h1 className="typography-title-primary">主标题 - 极简工资报表系统</h1>
@@ -34,7 +34,7 @@ const TypographyDemo: React.FC = () => {
 
         {/* 正文样式演示 */}
         <Col span={12}>
-          <Card title="正文样式 (Body Text)" bordered={false}>
+          <Card title="正文样式 (Body Text)" variant="borderless">
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <div>
                 <p className="typography-body-primary">
@@ -57,7 +57,7 @@ const TypographyDemo: React.FC = () => {
 
         {/* 标签样式演示 */}
         <Col span={12}>
-          <Card title="标签样式 (Labels)" bordered={false}>
+          <Card title="标签样式 (Labels)" variant="borderless">
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <div>
                 <label className="typography-label-primary">主要标签文字</label>
@@ -76,7 +76,7 @@ const TypographyDemo: React.FC = () => {
 
         {/* 数值样式演示 */}
         <Col span={24}>
-          <Card title="数值样式 (Numbers)" bordered={false}>
+          <Card title="数值样式 (Numbers)" variant="borderless">
             <Row gutter={[24, 24]}>
               <Col span={8}>
                 <div style={{ textAlign: 'center' }}>
@@ -104,7 +104,7 @@ const TypographyDemo: React.FC = () => {
 
         {/* 状态样式演示 */}
         <Col span={24}>
-          <Card title="状态样式 (Status Colors)" bordered={false}>
+          <Card title="状态样式 (Status Colors)" variant="borderless">
             <Row gutter={[24, 24]}>
               <Col span={6}>
                 <div className="typography-body-primary typography-success">
@@ -139,7 +139,7 @@ const TypographyDemo: React.FC = () => {
 
         {/* 链接样式演示 */}
         <Col span={24}>
-          <Card title="链接样式 (Links)" bordered={false}>
+          <Card title="链接样式 (Links)" variant="borderless">
             <Space size="large">
               <a href="#" className="typography-link">普通链接文字</a>
               <a href="#" className="typography-link typography-body-primary">重要链接文字</a>
@@ -153,7 +153,7 @@ const TypographyDemo: React.FC = () => {
 
         {/* 实际应用示例 */}
         <Col span={24}>
-          <Card title="实际应用示例 (Real Usage Example)" bordered={false}>
+          <Card title="实际应用示例 (Real Usage Example)" variant="borderless">
             <div style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
               <h3 className="typography-title-tertiary">薪资统计卡片</h3>
               

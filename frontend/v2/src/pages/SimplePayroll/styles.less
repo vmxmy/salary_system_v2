@@ -1579,3 +1579,109 @@
     }
   }
 }
+
+// =============================================================================
+// 🟢 工资记录颜色标识样式 (Payroll Entries Color Indicator)
+// =============================================================================
+
+// 有工资记录的月份单元格样式
+.ant-picker-cell-inner.has-payroll-entries {
+  position: relative;
+  
+  // 增强视觉效果：轻微的背景色
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(82, 196, 26, 0.08);
+    border-radius: 6px;
+    z-index: -1;
+  }
+  
+  // 鼠标悬停效果
+  &:hover::before {
+    background: rgba(82, 196, 26, 0.15);
+  }
+}
+
+// 选中状态下的工资记录标识
+.ant-picker-cell-selected .ant-picker-cell-inner.has-payroll-entries {
+  &::before {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// 今天且有工资记录的特殊样式
+.ant-picker-cell-today .ant-picker-cell-inner.has-payroll-entries {
+  border: 2px solid #52c41a;
+  
+  &::before {
+    background: rgba(82, 196, 26, 0.12);
+  }
+}
+
+// 工资记录指示器的动画效果
+.ant-picker-cell-inner.has-payroll-entries {
+  .payroll-indicator {
+    animation: payrollPulse 2s infinite;
+  }
+}
+
+@keyframes payrollPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(82, 196, 26, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+  }
+}
+
+// 确保指示器在不同状态下都可见
+.ant-picker-cell-inner {
+  .payroll-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #52c41a;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+}
+
+// 选中状态下的指示器
+.ant-picker-cell-selected .ant-picker-cell-inner .payroll-indicator {
+  border-color: rgba(255, 255, 255, 0.8);
+  background-color: #73d13d;
+}
+
+// 今天状态下的指示器
+.ant-picker-cell-today .ant-picker-cell-inner .payroll-indicator {
+  background-color: #389e0d;
+}
+
+// 工资期间选择器的说明文字样式
+.payroll-controls-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-left: 8px;
+  
+  .payroll-hint-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #52c41a;
+  }
+}

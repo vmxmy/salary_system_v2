@@ -99,6 +99,12 @@
     "edit_user": "编辑用户"
   },
   "user_list_page": {
-    "title": "用户管理"
-  }
+    "title": "用户管理",
+    "button": {
+      "create_user": "新建用户"
+    }
+  },
+  "导出Excel": "导出Excel",
+  "用": "用",
+  "导出成功": "导出成功"
 }

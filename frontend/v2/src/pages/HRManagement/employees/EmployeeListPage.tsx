@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Modal, Space, Tooltip, Input, Card, Row, Col } from 'antd';
+import { Button, message, Modal, Space, Tooltip, Input, Card, Row, Col, Select } from 'antd';
 import { PlusOutlined, DownloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -67,16 +67,50 @@ const generateEmployeeTableColumnsConfig = (
   const columns: ProColumns<EmployeeBasic>[] = [
     {
       title: t('employee:list_page.table.column.full_name'),
-      key: 'full_name', // Changed key to match dataIndex for sorter
+      key: 'full_name', 
       dataIndex: 'full_name', 
-      sorter: true, // Enable server-side sorting for this column
+      sorter: true,
       render: (_text: any, record: EmployeeBasic) => {
         if (!record.full_name || !record.full_name.trim()) {
           return <span style={{ color: '#999', fontStyle: 'italic' }}>{t('employee:list_page.name_not_set')}</span>;
         }
         return record.full_name; 
       },
-      // Client-side filter for name will be replaced by a global search input
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            placeholder="搜索姓名"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              搜索
+            </Button>
+            <Button
+              onClick={() => clearFilters && clearFilters()}
+              size="small"
+              style={{ width: 90 }}
+            >
+              重置
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+      ),
+      onFilter: (value, record) => {
+        return record.full_name?.toLowerCase().includes((value as string).toLowerCase()) || false;
+      },
     },
     {
       title: t('employee:list_page.table.column.employee_code'),
@@ -102,6 +136,12 @@ const generateEmployeeTableColumnsConfig = (
       dataIndex: 'department_name', 
       key: 'department_name',
       sorter: true,
+      filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
+        text: entry[1],
+        value: entry[1],
+      })) : [],
+      onFilter: (value, record) => record.department_name === value,
+      filterMultiple: false,
     },
     {
       title: t('employee:list_page.table.column.personnel_category'),
@@ -387,47 +427,7 @@ const EmployeeListPage: React.FC = () => {
         </Card>
       )}
       
-      <Card 
-        title="筛选条件"
-        style={{ marginBottom: 16 }}
-      >
-        <Row gutter={16}>
-          <Col span={6}>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ fontWeight: 500, color: '#262626' }}>
-                {t('employee:list_page.filter_form.label.name')}
-              </label>
-            </div>
-            <div className={styles.searchInput}>
-              <Input.Search
-                placeholder={t('employee:list_page.search_name_placeholder')}
-                onSearch={(value) => handleFilterChange('full_name_contains', value)}
-                enterButton
-                allowClear
-              />
-            </div>
-          </Col>
-          <Col span={6}>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ fontWeight: 500, color: '#262626' }}>
-                {t('employee:list_page.filter_form.label.employee_code')}
-              </label>
-            </div>
-            <div className={styles.searchInput}>
-              <Input.Search
-                placeholder={t('employee:list_page.search_employee_code_placeholder')}
-                onSearch={(value) => handleFilterChange('employee_code_contains', value)}
-                enterButton
-                allowClear
-              />
-            </div>
-          </Col>
-          {/* Add more filter inputs for department, position, status here as needed */}
-          <Col span={12} style={{ textAlign: 'right', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-            {/* 按钮已移动到表格工具栏 */}
-          </Col>
-        </Row>
-      </Card>
+
 
       <OrganizationManagementTableTemplate<EmployeeBasic> 
         addButtonText={t('employee:list_page.create_employee')}

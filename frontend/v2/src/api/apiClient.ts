@@ -66,7 +66,7 @@ const AUTH_VERIFICATION_URLS: string[] = [
     // Add any other relevant auth-related endpoints here
 ];
 
-const host = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, ''); // 移除VITE_API_BASE_URL末尾的斜杠（如果有）
+const host = import.meta.env.DEV ? (import.meta.env.VITE_API_BASE_URL || '') : ''; // 在开发环境下使用VITE_API_BASE_URL，生产环境为空字符串，以便使用相对路径
 const pathPrefix = (import.meta.env.VITE_API_PATH_PREFIX || '/v2'); // VITE_API_PATH_PREFIX，默认为 /v2
 
 // 确保 pathPrefix 以 / 开头

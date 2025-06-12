@@ -1530,35 +1530,37 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         </Paragraph>
 
         {/* 操作按钮 */}
-        <Space wrap style={{ marginBottom: 16 }}>
-          {currentStepConfig.actions.map(action => (
-            <Button
-              key={action.key}
-              type={action.type}
-              icon={action.icon}
-              disabled={action.disabled}
-              loading={action.loading}
-              danger={action.danger}
-              onClick={action.onClick}
-              size="small"
-            >
-              {action.label}
-            </Button>
-          ))}
-          
-          {/* 下一步按钮 */}
-          {currentStep === 1 && canProceedToNext(1) && (
-            <Button
-              type="primary"
-              icon={<RightOutlined />}
-              loading={loading.submit_review}
-              onClick={handleSubmitForReview}
-              size="small"
-            >
-              提交审核
-            </Button>
-          )}
-        </Space>
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <Space wrap style={{ marginBottom: 16 }}>
+            {currentStepConfig.actions.map(action => (
+              <Button
+                key={action.key}
+                type={action.type}
+                icon={action.icon}
+                disabled={action.disabled}
+                loading={action.loading}
+                danger={action.danger}
+                onClick={action.onClick}
+                size="small"
+              >
+                {action.label}
+              </Button>
+            ))}
+            
+            {/* 下一步按钮 */}
+            {currentStep === 1 && canProceedToNext(1) && (
+              <Button
+                type="primary"
+                icon={<RightOutlined />}
+                loading={loading.submit_review}
+                onClick={handleSubmitForReview}
+                size="small"
+              >
+                提交审核
+              </Button>
+            )}
+          </Space>
+        </div>
 
         {/* 审核批准步骤的特殊内容 */}
         {currentStep === 2 && selectedVersion && (
