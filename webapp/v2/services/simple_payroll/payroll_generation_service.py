@@ -271,7 +271,7 @@ class PayrollGenerationService:
             # 使用最新的工资运行记录，并清理可能的重复记录
             target_runs = self.db.query(PayrollRun).filter(
                 PayrollRun.payroll_period_id == target_period_id
-            ).order_by(desc(PayrollRun.created_at)).all()
+            ).order_by(desc(PayrollRun.run_date)).all()
 
             if target_runs:
                 # 如果存在多条记录，保留最新的，删除旧的
