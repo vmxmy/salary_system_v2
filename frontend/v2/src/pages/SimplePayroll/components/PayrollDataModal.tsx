@@ -28,6 +28,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   periodName
 }) => {
   const [dataSource, setDataSource] = useState<PayrollData[]>([]);
+  const [filteredDataSource, setFilteredDataSource] = useState<PayrollData[]>([]);
   const [loading, setLoading] = useState(false);
   const actionRef = useRef<ActionType>(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -57,6 +58,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       }));
       
       setDataSource(transformedData);
+      setFilteredDataSource(transformedData); // 初始时筛选数据等于全部数据
     } catch (error: any) {
       message.error(`获取工资数据失败: ${error.message || '未知错误'}`);
     } finally {
@@ -123,32 +125,68 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
   // 导出数据为Excel
   const handleExportExcel = () => {
-    if (dataSource.length === 0) {
+    if (filteredDataSource.length === 0) {
       message.warning('没有数据可导出');
       return;
     }
 
-    // 准备导出数据 - 按照用户要求的字段顺序
-    const exportData = dataSource.map((item, index) => ({
+    // 准备导出数据 - 使用筛选后的数据，数字字段保持原始数值，不转换为字符串
+    const exportData = filteredDataSource.map((item, index) => ({
       '序号': index + 1,
       '姓名': item.姓名 || '',
       '部门': item.部门名称 || '',
       '人员身份': item.人员类别 || '',
       '职位': item.职位名称 || '',
-      '应发合计': item.应发合计?.toFixed(2) || '0.00',
-      '扣除合计': item.扣除合计?.toFixed(2) || '0.00',
-      '实发合计': item.实发合计?.toFixed(2) || '0.00',
-      '养老保险个人应缴费额': item.养老保险个人应缴费额?.toFixed(2) || '0.00',
-      '医疗保险个人应缴费额': item.医疗保险个人应缴费额?.toFixed(2) || '0.00',
-      '职业年金个人应缴费额': item.职业年金个人应缴费额?.toFixed(2) || '0.00',
-      '失业保险个人应缴费额': item.失业保险个人应缴费额?.toFixed(2) || '0.00',
-      '住房公积金个人应缴费额': item.住房公积金个人应缴费额?.toFixed(2) || '0.00',
-      '个人所得税': item.个人所得税?.toFixed(2) || '0.00',
+      '应发合计': item.应发合计 || 0,
+      '扣除合计': item.扣除合计 || 0,
+      '实发合计': item.实发合计 || 0,
+      '养老保险个人应缴费额': item.养老保险个人应缴费额 || 0,
+      '医疗保险个人应缴费额': item.医疗保险个人应缴费额 || 0,
+      '职业年金个人应缴费额': item.职业年金个人应缴费额 || 0,
+      '失业保险个人应缴费额': item.失业保险个人应缴费额 || 0,
+      '住房公积金个人应缴费额': item.住房公积金个人应缴费额 || 0,
+      '个人所得税': item.个人所得税 || 0,
     }));
 
     // 创建工作表
     import('xlsx').then((XLSX) => {
       const ws = XLSX.utils.json_to_sheet(exportData);
+      
+      // 设置数字列的格式为两位小数
+      const numberColumns = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']; // 应发合计到个人所得税的列
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+      
+      // 为每个数字列的每一行设置数字格式
+      for (let row = 1; row <= range.e.r; row++) { // 从第2行开始（跳过表头）
+        numberColumns.forEach(col => {
+          const cellAddress = col + (row + 1);
+          if (ws[cellAddress]) {
+            // 设置单元格格式为数字，保留两位小数
+            ws[cellAddress].z = '0.00';
+            ws[cellAddress].t = 'n'; // 确保是数字类型
+          }
+        });
+      }
+      
+      // 设置列宽
+      const colWidths = [
+        { wch: 8 },  // 序号
+        { wch: 12 }, // 姓名
+        { wch: 15 }, // 部门
+        { wch: 12 }, // 人员身份
+        { wch: 12 }, // 职位
+        { wch: 12 }, // 应发合计
+        { wch: 12 }, // 扣除合计
+        { wch: 12 }, // 实发合计
+        { wch: 18 }, // 养老保险个人应缴费额
+        { wch: 18 }, // 医疗保险个人应缴费额
+        { wch: 18 }, // 职业年金个人应缴费额
+        { wch: 18 }, // 失业保险个人应缴费额
+        { wch: 20 }, // 住房公积金个人应缴费额
+        { wch: 12 }, // 个人所得税
+      ];
+      ws['!cols'] = colWidths;
+      
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, '工资数据');
       
@@ -156,7 +194,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       const fileName = `工资数据_${periodName || '当前期间'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
       XLSX.writeFile(wb, fileName);
       
-      message.success(`已导出 ${dataSource.length} 条记录到 ${fileName}`);
+      message.success(`已导出 ${filteredDataSource.length} 条记录到 ${fileName}`);
     }).catch((error) => {
       message.error('导出失败，请确保已安装Excel导出组件');
       console.error('Export error:', error);
@@ -170,7 +208,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   };
 
   // 表格列配置 - 添加表头筛选和搜索功能
-  const columns: ProColumns<PayrollData>[] = [
+  const columns: ProColumns<PayrollData>[] = React.useMemo(() => [
     {
       title: '姓名',
       dataIndex: '姓名',
@@ -341,7 +379,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         />,
       ],
     },
-  ];
+  ], [dataSource, handleViewDetail, handleEdit]);
 
   return (
     <Modal
@@ -359,14 +397,27 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         loading={loading}
         actionRef={actionRef}
         search={false}
+        onChange={(pagination, filters, sorter, extra) => {
+          // 当表格筛选、排序或分页变化时，更新筛选后的数据源
+          console.log('🔍 [PayrollDataModal] 表格变化:', {
+            pagination,
+            filters,
+            sorter,
+            currentDataSourceLength: extra.currentDataSource?.length,
+            action: extra.action
+          });
+          if (extra.currentDataSource) {
+            setFilteredDataSource(extra.currentDataSource);
+          }
+        }}
         toolBarRender={() => [
           <Button
             key="export"
             icon={<DownloadOutlined />}
             onClick={handleExportExcel}
-            disabled={dataSource.length === 0}
+            disabled={filteredDataSource.length === 0}
           >
-            导出Excel
+            导出Excel ({filteredDataSource.length}条)
           </Button>
         ]}
         columnsState={{
@@ -393,7 +444,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         scroll={{ x: 1500, y: 400 }}
         size="small"
         cardBordered
-        headerTitle={`工资数据 (${dataSource.length} 条记录)`}
+        headerTitle={`工资数据 (${filteredDataSource.length}/${dataSource.length} 条记录)`}
         tableAlertRender={({ selectedRowKeys, selectedRows }) => (
           selectedRowKeys.length > 0 && (
             <div>
