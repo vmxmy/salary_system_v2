@@ -50,15 +50,8 @@ const RightContent: React.FC<{
   currentUser: any;
   onLogout: () => void;
 }> = ({ isDark, onThemeChange, currentUser, onLogout }) => {
-  const { t, i18n } = useTranslation(['common', 'components']);
+  const { t } = useTranslation(['common', 'components']);
   const { message: messageApi } = App.useApp();
-
-  // 🔄 切换语言
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'zh-CN' ? 'en' : 'zh-CN';
-    i18n.changeLanguage(newLang);
-    messageApi.success(t('common:language_switched'));
-  };
 
   // 👤 用户菜单
   const userMenuItems = [
@@ -106,18 +99,6 @@ const RightContent: React.FC<{
           unCheckedChildren={<SunOutlined />}
           size="small"
         />
-      </Tooltip>
-
-      {/* 🌐 语言切换 */}
-      <Tooltip title={t('common:language_toggle')}>
-        <Button
-          type="text"
-          icon={<GlobalOutlined />}
-          onClick={toggleLanguage}
-          size="small"
-        >
-          {i18n.language === 'zh-CN' ? '中' : 'EN'}
-        </Button>
       </Tooltip>
 
       {/* 👤 用户信息 */}

@@ -28,6 +28,7 @@ import EmployeeSelect from '../../../components/common/EmployeeSelect';
 import type { Employee } from '../../HRManagement/types';
 import { getPayrollEntryStatusOptions, type DynamicStatusOption } from '../utils/dynamicStatusUtils';
 import { lookupService } from '../../../services/lookupService';
+import { simplePayrollApi } from '../../SimplePayroll/services/simplePayrollApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -105,6 +106,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [statusOptions, setStatusOptions] = useState<DynamicStatusOption[]>([]);
   const [loadingStatus, setLoadingStatus] = useState<boolean>(false);
   const [defaultPayrollRunId, setDefaultPayrollRunId] = useState<number | null>(null);
+  const [socialInsuranceBase, setSocialInsuranceBase] = useState<number>(0);
+  const [housingFundBase, setHousingFundBase] = useState<number>(0);
   const { message: messageApi } = App.useApp();
   
   const payrollConfig = usePayrollConfigStore();
@@ -346,12 +349,64 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       form.setFieldsValue({
         employee_name: employee ? `${employee.last_name || ''}${employee.first_name || ''}` : '',
       });
+
+      // 获取员工缴费基数
+      await fetchEmployeeInsuranceBase(employeeId);
     } catch (error) {
       messageApi.error(t('payroll:entry_form.error_fetch_employee'));
     } finally {
       setLoading(false);
     }
   }, [form, messageApi, t]);
+
+  // 获取员工缴费基数
+  const fetchEmployeeInsuranceBase = useCallback(async (employeeId: number) => {
+    if (!payrollPeriodId) return;
+    
+    try {
+      console.log('🔍 [fetchEmployeeInsuranceBase] 开始获取员工缴费基数:', {
+        employeeId,
+        payrollPeriodId
+      });
+      
+      const response = await simplePayrollApi.getEmployeeInsuranceBase(employeeId, payrollPeriodId);
+      
+      console.log('✅ [fetchEmployeeInsuranceBase] 获取成功:', response.data);
+      
+      setSocialInsuranceBase(response.data.social_insurance_base || 0);
+      setHousingFundBase(response.data.housing_fund_base || 0);
+    } catch (error) {
+      console.error('❌ [fetchEmployeeInsuranceBase] 获取员工缴费基数失败:', error);
+      // 设置默认值
+      setSocialInsuranceBase(0);
+      setHousingFundBase(0);
+    }
+  }, [payrollPeriodId]);
+
+  // 更新员工缴费基数
+  const updateEmployeeInsuranceBase = useCallback(async (employeeId: number, socialBase: number, housingBase: number) => {
+    if (!payrollPeriodId) return;
+    
+    try {
+      console.log('💾 [updateEmployeeInsuranceBase] 开始更新员工缴费基数:', {
+        employeeId,
+        payrollPeriodId,
+        socialBase,
+        housingBase
+      });
+      
+      const response = await simplePayrollApi.updateEmployeeInsuranceBase(employeeId, payrollPeriodId, {
+        social_insurance_base: socialBase,
+        housing_fund_base: housingBase,
+      });
+      
+      console.log('✅ [updateEmployeeInsuranceBase] 更新成功:', response.data);
+      messageApi.success('缴费基数更新成功');
+    } catch (error) {
+      console.error('❌ [updateEmployeeInsuranceBase] 更新员工缴费基数失败:', error);
+      messageApi.error('缴费基数更新失败');
+    }
+  }, [payrollPeriodId, messageApi]);
   
   // 初始化表单数据
   useEffect(() => {
@@ -519,9 +574,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           setDeductions([]);
         }
         
-        // 获取员工详情
+        // 获取员工详情和缴费基数
         if (entry.employee_id) {
           fetchEmployeeDetails(entry.employee_id);
+          fetchEmployeeInsuranceBase(entry.employee_id);
         }
       } else {
         // 创建新的工资明细，清空表单
@@ -977,31 +1033,78 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             </Row>
             
             {employeeDetails && (
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Form.Item
-                    label={t('payroll:entry_form.label.personnel_category')}
-                  >
-                    <Input 
-                      value={getPersonnelCategoryName(employeeDetails)}
-                      disabled 
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label={t('payroll:entry_form.label.actual_position')}
-                  >
-                    <Input 
-                      value={getActualPositionName(employeeDetails)}
-                      disabled 
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  {/* 预留将来扩展 */}
-                </Col>
-              </Row>
+              <>
+                <Row gutter={16}>
+                  <Col span={8}>
+                    <Form.Item
+                      label={t('payroll:entry_form.label.personnel_category')}
+                    >
+                      <Input 
+                        value={getPersonnelCategoryName(employeeDetails)}
+                        disabled 
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item
+                      label={t('payroll:entry_form.label.actual_position')}
+                    >
+                      <Input 
+                        value={getActualPositionName(employeeDetails)}
+                        disabled 
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    {/* 预留将来扩展 */}
+                  </Col>
+                </Row>
+                
+                {/* 缴费基数行 */}
+                <Row gutter={16}>
+                  <Col span={8}>
+                    <Form.Item label="社保缴费基数">
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        step={0.01}
+                        precision={2}
+                        value={socialInsuranceBase}
+                        onChange={(value) => setSocialInsuranceBase(value || 0)}
+                        placeholder="请输入社保缴费基数"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item label="公积金缴费基数">
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        step={0.01}
+                        precision={2}
+                        value={housingFundBase}
+                        onChange={(value) => setHousingFundBase(value || 0)}
+                        placeholder="请输入公积金缴费基数"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item label=" " style={{ marginTop: 30 }}>
+                      <Button 
+                        type="primary" 
+                        onClick={() => {
+                          if (employeeDetails?.id) {
+                            updateEmployeeInsuranceBase(employeeDetails.id, socialInsuranceBase, housingFundBase);
+                          }
+                        }}
+                        disabled={!employeeDetails?.id}
+                      >
+                        更新缴费基数
+                      </Button>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </>
             )}
           </Card>
           

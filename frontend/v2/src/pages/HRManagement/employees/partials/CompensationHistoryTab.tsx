@@ -76,9 +76,9 @@ const CompensationHistoryTab: React.FC<CompensationHistoryTabProps> = ({ employe
     Modal.confirm({
       title: t('common:modal.confirm_delete.title', 'Confirm Delete'),
       content: t('employee:detail_page.compensation_tab.delete_confirm.content', 'Are you sure you want to delete this compensation record?'),
-      okText: t('common:button.delete', 'Delete'),
+      okText: t('common:delete', 'Delete'),
       okType: 'danger',
-      cancelText: t('common:button.cancel', 'Cancel'),
+      cancelText: t('common:cancel', 'Cancel'),
       onOk: async () => {
         try {
           setLoading(true);

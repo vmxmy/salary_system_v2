@@ -1,0 +1,250 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 前后端一致性错误排查标准流程
+
+## 概述
+本规则定义了系统性排查前后端数据不一致问题的标准流程，包括字段名、API地址、数据库字段等一致性检查。
+
+## 排查流程
+
+### 1. 问题识别阶段
+
+#### 1.1 常见症状识别
+- ✅ 前端显示"无数据"但实际数据库中有数据
+- ✅ API调用返回数据但前端解析失败
+- ✅ 字段值为undefined或null但后端有返回
+- ✅ 类型错误（如字符串vs数字）
+
+#### 1.2 初步定位
+```bash
+# 检查浏览器控制台错误
+# 查看Network面板API响应
+# 检查前端代码中的字段访问
+```
+
+### 2. API层面检查
+
+#### 2.1 API地址有效性检查
+```bash
+# 使用curl验证API端点
+curl -X GET "http://localhost:8080/v2/simple-payroll/check-existing-data/{period_id}" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+
+# 检查API路由定义
+grep -r "check-existing-data" webapp/v2/routers/
+```
+
+#### 2.2 API响应结构验证
+```bash
+# 获取实际API响应并格式化
+curl -s "http://localhost:8080/v2/api-endpoint" | jq .
+
+# 对比前端期望的字段结构
+# 检查嵌套层级是否正确
+```
+
+#### 2.3 API文档一致性
+- 检查 [OpenAPI文档](mdc:webapp/v2/main.py) 中的响应模型
+- 验证Pydantic模型定义与实际返回是否一致
+- 确认字段名、类型、必填性
+
+### 3. 前端代码检查
+
+#### 3.1 字段访问路径验证
+```typescript
+// 检查前端代码中的字段访问路径
+// 示例：frontend/v2/src/pages/SimplePayroll/components/QuickActions.tsx
+const hasPayrollData = response.data.summary.payroll_entries_count > 0;
+//                                          ^^^^^^^^^^^^^^^^^^^
+//                                          检查此字段名是否正确
+```
+
+#### 3.2 类型定义检查
+```typescript
+// 检查TypeScript接口定义
+// 确保与后端响应结构匹配
+interface ApiResponse {
+  data: {
+    summary: {
+      total_payroll_entries: number;  // 注意字段名
+      total_payroll_runs: number;
+    }
+  }
+}
+```
+
+#### 3.3 API调用服务检查
+- 检查 [API服务文件](mdc:frontend/v2/src/pages/SimplePayroll/services/simplePayrollApi.ts)
+- 验证请求URL、参数、响应处理
+
+### 4. 后端代码检查
+
+#### 4.1 路由定义验证
+```python
+# 检查路由文件：webapp/v2/routers/simple_payroll.py
+@router.get("/check-existing-data/{period_id}")
+async def check_existing_data(period_id: int):
+    # 验证返回的数据结构
+```
+
+#### 4.2 服务层实现检查
+```python
+# 检查服务层实现
+# 示例：webapp/v2/services/simple_payroll/payroll_generation_service.py
+def check_existing_data(self, target_period_id: int) -> Dict[str, Any]:
+    return {
+        "summary": {
+            "total_payroll_runs": runs_count,      # 注意字段名
+            "total_payroll_entries": entries_count # 注意字段名
+        }
+    }
+```
+
+#### 4.3 Pydantic模型检查
+- 检查响应模型定义
+- 验证字段序列化配置
+- 确认alias设置
+
+### 5. 数据库层面检查
+
+#### 5.1 数据库字段有效性检查
+```bash
+# 使用mcp pgs查询数据库结构
+mcp pgs query "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'payroll_entries' AND table_schema = 'payroll';"
+
+# 检查字段是否存在
+mcp pgs query "SELECT COUNT(*) FROM payroll.payroll_entries WHERE payroll_run_id = {run_id};"
+```
+
+#### 5.2 数据完整性验证
+```bash
+# 验证数据是否真实存在
+mcp pgs query "SELECT pr.id, pr.payroll_period_id, COUNT(pe.id) as entries_count 
+FROM payroll.payroll_runs pr 
+LEFT JOIN payroll.payroll_entries pe ON pr.id = pe.payroll_run_id 
+WHERE pr.payroll_period_id = {period_id} 
+GROUP BY pr.id, pr.payroll_period_id;"
+```
+
+#### 5.3 关联关系检查
+```bash
+# 检查外键关系
+mcp pgs query "SELECT 
+  tc.table_name, 
+  kcu.column_name, 
+  ccu.table_name AS foreign_table_name,
+  ccu.column_name AS foreign_column_name 
+FROM information_schema.table_constraints AS tc 
+JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
+JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
+WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name = 'payroll_entries';"
+```
+
+### 6. 调试工具使用
+
+#### 6.1 curl命令模板
+```bash
+# GET请求模板
+curl -X GET "http://localhost:8080/v2/{endpoint}" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -w "\nHTTP Status: %{http_code}\nResponse Time: %{time_total}s\n"
+
+# POST请求模板
+curl -X POST "http://localhost:8080/v2/{endpoint}" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{json_data}' \
+  -w "\nHTTP Status: %{http_code}\n"
+```
+
+#### 6.2 mcp pgs查询模板
+```bash
+# 表结构查询
+mcp pgs query "\\d+ schema.table_name"
+
+# 数据统计查询
+mcp pgs query "SELECT COUNT(*), MIN(created_at), MAX(created_at) FROM schema.table_name WHERE condition;"
+
+# 关联数据查询
+mcp pgs query "SELECT t1.*, t2.field FROM schema.table1 t1 JOIN schema.table2 t2 ON t1.id = t2.foreign_id WHERE t1.condition;"
+```
+
+### 7. 修复验证流程
+
+#### 7.1 修复后验证步骤
+1. **后端验证**：使用curl测试API返回正确数据
+2. **前端验证**：检查浏览器Network面板响应解析
+3. **端到端验证**：完整功能流程测试
+4. **回归测试**：相关功能点测试
+
+#### 7.2 预防措施
+- 建立字段命名规范文档
+- 使用TypeScript严格类型检查
+- 实施API契约测试
+- 定期进行前后端接口一致性检查
+
+### 8. 常见问题模式
+
+#### 8.1 字段命名不一致
+```
+后端返回：total_payroll_entries
+前端期望：payroll_entries_count
+解决：统一字段命名规范
+```
+
+#### 8.2 嵌套结构不匹配
+```
+后端：{ data: { summary: { field } } }
+前端：{ data: { field } }
+解决：检查数据结构层级
+```
+
+#### 8.3 类型不匹配
+```
+后端返回：string "123"
+前端期望：number 123
+解决：统一数据类型定义
+```
+
+## 检查清单
+
+### 快速排查清单
+- [ ] API端点是否可访问（curl测试）
+- [ ] 返回数据结构是否正确（jq格式化）
+- [ ] 前端字段访问路径是否正确
+- [ ] 数据库中是否真实存在数据（mcp pgs查询）
+- [ ] 字段名是否在前后端保持一致
+- [ ] 数据类型是否匹配
+- [ ] 嵌套层级是否正确
+
+### 深度排查清单
+- [ ] Pydantic模型定义检查
+- [ ] 数据库schema验证
+- [ ] API文档与实现一致性
+- [ ] 前端TypeScript类型定义
+- [ ] 错误处理逻辑检查
+- [ ] 边界条件测试
+
+## 工具参考
+
+### 必备工具
+- **curl**: API接口测试
+- **jq**: JSON数据格式化和查询
+- **mcp pgs**: PostgreSQL数据库查询
+- **grep**: 代码搜索
+- **浏览器开发者工具**: 前端调试
+
+### 推荐IDE插件
+- REST Client: API测试
+- PostgreSQL: 数据库查询
+- TypeScript: 类型检查
+- JSON Viewer: 数据结构查看
+
+---
+
+**注意**: 本流程应该在每次遇到前后端数据不一致问题时严格执行，确保问题得到系统性解决并避免类似问题再次发生。

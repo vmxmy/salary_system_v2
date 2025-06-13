@@ -802,6 +802,92 @@ export const simplePayrollApi = {
     return response.data;
   },
 
+  /**
+   * 🗑️ 删除指定期间的所有缴费基数配置
+   */
+  deleteInsuranceBaseForPeriod: async (periodId: number): Promise<ApiResponse<{
+    success: boolean;
+    deleted_count: number;
+    message: string;
+  }>> => {
+    console.log('🗑️ [simplePayrollApi.deleteInsuranceBaseForPeriod] 发起请求:', {
+      url: `${API_BASE}/salary-configs/delete-insurance-base/${periodId}`,
+      periodId: periodId
+    });
+    
+    const response = await apiClient.delete(`${API_BASE}/salary-configs/delete-insurance-base/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.deleteInsuranceBaseForPeriod] 请求成功:', {
+      status: response.status,
+      responseData: response.data,
+      deleted: response.data?.data?.deleted_count
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 📋 获取员工在指定期间的缴费基数
+   */
+  getEmployeeInsuranceBase: async (employeeId: number, periodId: number): Promise<ApiResponse<{
+    employee_id: number;
+    period_id: number;
+    social_insurance_base: number;
+    housing_fund_base: number;
+    effective_date: string;
+    end_date?: string;
+  }>> => {
+    console.log('📋 [simplePayrollApi.getEmployeeInsuranceBase] 发起请求:', {
+      url: `${API_BASE}/salary-configs/employee/${employeeId}/period/${periodId}`,
+      employeeId: employeeId,
+      periodId: periodId
+    });
+    
+    const response = await apiClient.get(`${API_BASE}/salary-configs/employee/${employeeId}/period/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.getEmployeeInsuranceBase] 请求成功:', {
+      status: response.status,
+      socialBase: response.data?.data?.social_insurance_base,
+      housingBase: response.data?.data?.housing_fund_base
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 💾 更新员工在指定期间的缴费基数
+   */
+  updateEmployeeInsuranceBase: async (employeeId: number, periodId: number, params: {
+    social_insurance_base: number;
+    housing_fund_base: number;
+  }): Promise<ApiResponse<{
+    success: boolean;
+    employee_id: number;
+    period_id: number;
+    social_insurance_base: number;
+    housing_fund_base: number;
+    message: string;
+  }>> => {
+    console.log('💾 [simplePayrollApi.updateEmployeeInsuranceBase] 发起请求:', {
+      url: `${API_BASE}/salary-configs/employee/${employeeId}/period/${periodId}`,
+      employeeId: employeeId,
+      periodId: periodId,
+      params: params
+    });
+    
+    const response = await apiClient.put(`${API_BASE}/salary-configs/employee/${employeeId}/period/${periodId}`, params);
+    
+    console.log('✅ [simplePayrollApi.updateEmployeeInsuranceBase] 请求成功:', {
+      status: response.status,
+      responseData: response.data
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
   // ===================== 银行文件生成功能 =====================
 
   /**

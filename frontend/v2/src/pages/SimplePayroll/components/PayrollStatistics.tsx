@@ -64,9 +64,9 @@ export const PayrollStatistics: React.FC<PayrollStatisticsProps> = ({
         <Col xs={24} sm={12} xl={4} xxl={4}>
           <StatisticCard
             statistic={{
-              title: '基础信息',
+              title: '工资条目',
               value: payrollStats.recordCount,
-              suffix: '人',
+              suffix: '条',
               valueStyle: { color: '#1890ff' }
             }}
             chart={
@@ -135,7 +135,7 @@ export const PayrollStatistics: React.FC<PayrollStatisticsProps> = ({
                   扣发: <span style={{ color: '#ff4d4f' }}>¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div style={{ fontSize: '12px', color: '#666' }}>
-                  人均: ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
+                  平均: ¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}
                 </div>
               </div>
             }

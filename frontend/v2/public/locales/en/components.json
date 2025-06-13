@@ -67,12 +67,12 @@
   "auto_text_e8afb7": "请先保存报表视图",
   "auto_text_e98791": "金额",
   "batch_delete": {
-    "button_text": "button_text",
-    "confirm_content": "confirm_content",
-    "confirm_title": "confirm_title",
-    "error_message": "error_message",
-    "no_selection_message": "no_selection_message",
-    "success_message": "success_message"
+    "button_text": "Batch Delete",
+    "confirm_content": "Are you sure you want to delete the selected records? This action cannot be undone.",
+    "confirm_title": "Confirm Batch Delete",
+    "error_message": "Batch delete failed",
+    "no_selection_message": "Please select records to delete",
+    "success_message": "Batch delete successful"
   },
   "export_filename": "export_filename",
   "export_sheetname": "export_sheetname",

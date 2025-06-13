@@ -1,9 +1,9 @@
 {
   "action": {
-    "batch_delete_count_one": "",
-    "batch_delete_count_other": "",
-    "cancel": "",
-    "confirm_delete": "",
+    "batch_delete_count_one": "Batch Delete (1 item)",
+    "batch_delete_count_other": "Batch Delete ({count} items)",
+    "cancel": "Cancel",
+    "confirm_delete": "Confirm Delete",
     "create": "Create",
     "delete": "Delete",
     "edit": "Edit",
@@ -150,7 +150,7 @@
   "button": {
     "apply": "Apply",
     "back": "Back",
-    "batch_delete": "",
+    "batch_delete": "Batch Delete",
     "cancel": "Cancel",
     "close": "Close",
     "collapse": "",
@@ -181,8 +181,8 @@
     "yes": "Yes",
     "yes_delete": "Yes, Delete"
   },
-  "cancel": "",
-  "close": "",
+  "cancel": "Cancel",
+  "close": "Close",
   "collapse_sidebar": "Collapse sidebar",
   "column": {
     "actions": "Actions"

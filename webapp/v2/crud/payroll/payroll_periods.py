@@ -192,7 +192,7 @@ def update_payroll_period(db: Session, period_id: int, payroll_period: PayrollPe
 
 def delete_payroll_period(db: Session, period_id: int) -> bool:
     """
-    删除薪资周期
+    删除薪资周期（级联删除所有关联的工资运行和相关数据）
     
     Args:
         db: 数据库会话
@@ -202,14 +202,75 @@ def delete_payroll_period(db: Session, period_id: int) -> bool:
         删除是否成功
         
     Raises:
-        ValueError: 当薪资周期有关联的薪资审核时
+        Exception: 当数据库操作失败时
     """
     db_payroll_period = get_payroll_period(db, period_id)
     if not db_payroll_period:
         return False
-    has_runs = db.query(PayrollRun).filter(PayrollRun.payroll_period_id == period_id).first() is not None
-    if has_runs:
-        raise ValueError(f"Cannot delete payroll period with associated payroll runs")
-    db.delete(db_payroll_period)
-    db.commit()
-    return True 
+    
+    try:
+        # 获取该周期下的所有工资运行ID
+        payroll_run_ids = [run.id for run in db.query(PayrollRun.id).filter(
+            PayrollRun.payroll_period_id == period_id
+        ).all()]
+        
+        if payroll_run_ids:
+            # 按依赖关系顺序删除所有工资运行相关数据
+            
+            # 1. 删除审计异常记录
+            from ...models.audit import PayrollAuditAnomaly
+            db.query(PayrollAuditAnomaly).filter(
+                PayrollAuditAnomaly.payroll_run_id.in_(payroll_run_ids)
+            ).delete(synchronize_session=False)
+            
+            # 2. 删除审计历史记录
+            from ...models.audit import PayrollAuditHistory
+            db.query(PayrollAuditHistory).filter(
+                PayrollAuditHistory.payroll_run_id.in_(payroll_run_ids)
+            ).delete(synchronize_session=False)
+            
+            # 3. 删除计算审计日志
+            from ...models.calculation_rules import CalculationAuditLog
+            db.query(CalculationAuditLog).filter(
+                CalculationAuditLog.payroll_run_id.in_(payroll_run_ids)
+            ).delete(synchronize_session=False)
+            
+            # 4. 删除计算日志
+            from ...models.calculation_rules import CalculationLog
+            db.query(CalculationLog).filter(
+                CalculationLog.payroll_run_id.in_(payroll_run_ids)
+            ).delete(synchronize_session=False)
+            
+            # 5. 删除审计汇总记录
+            from ...models.audit import PayrollRunAuditSummary
+            db.query(PayrollRunAuditSummary).filter(
+                PayrollRunAuditSummary.payroll_run_id.in_(payroll_run_ids)
+            ).delete(synchronize_session=False)
+            
+            # 6. 删除薪资条目
+            db.query(PayrollEntry).filter(
+                PayrollEntry.payroll_run_id.in_(payroll_run_ids)
+            ).delete(synchronize_session=False)
+            
+            # 7. 删除工资运行记录
+            db.query(PayrollRun).filter(
+                PayrollRun.payroll_period_id == period_id
+            ).delete(synchronize_session=False)
+        
+        # 8. 删除直接关联到周期的月度薪资快照
+        from ...models.audit import MonthlyPayrollSnapshot
+        db.query(MonthlyPayrollSnapshot).filter(
+            MonthlyPayrollSnapshot.period_id == period_id
+        ).delete(synchronize_session=False)
+        
+        # 9. 最后删除薪资周期主记录
+        db.delete(db_payroll_period)
+        
+        db.commit()
+        return True 
+        
+    except Exception as e:
+        db.rollback()
+        # 记录错误日志
+        print(f"Error deleting payroll period {period_id}: {str(e)}")
+        raise 

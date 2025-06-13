@@ -352,8 +352,8 @@ const PayrollPeriodDetailPage: React.FC = () => {
   const deleteConfirmConfig = useMemo(() => ({
     titleKey: 'payroll_entries:confirm_delete_title',
     contentKey: 'payroll_entries:confirm_delete_content',
-    okTextKey: 'common:button.delete',
-    cancelTextKey: 'common:button.cancel',
+    okTextKey: 'common:delete',
+    cancelTextKey: 'common:cancel',
     successMessageKey: 'payroll_entries:delete_success',
     errorMessageKey: 'payroll_entries:delete_failure',
   }), []);
@@ -369,11 +369,11 @@ const PayrollPeriodDetailPage: React.FC = () => {
   // 批量删除配置
   const batchDeleteConfig = useMemo(() => ({
     enabled: true,
-    buttonText: t('common:button.batch_delete'),
+    buttonText: t('common:batch_delete'),
     confirmTitle: t('payroll_entries:confirm_delete_title'),
     confirmContent: t('common:message.confirm_batch_delete'),
-    confirmOkText: t('common:button.delete'),
-    confirmCancelText: t('common:button.cancel'),
+    confirmOkText: t('common:delete'),
+    confirmCancelText: t('common:cancel'),
     successMessage: t('payroll_entries:delete_success'),
     errorMessage: t('payroll_entries:delete_failure'),
     noSelectionMessage: t('common:message.no_selection'),

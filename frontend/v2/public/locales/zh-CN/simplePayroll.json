@@ -200,6 +200,8 @@
     "createSuccess": "创建工资数据成功"
   },
   "quickActions": {
+    "addEmployee": "添加员工",
+    "addPayrollRecord": "添加工资记录",
     "bulkImport": "批量导入工资数据",
     "copyLastMonth": "复制上月数据",
     "importTaxData": "导入个税数据",

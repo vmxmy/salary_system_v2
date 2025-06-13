@@ -67,12 +67,12 @@
   "auto_text_e8afb7": "请先保存报表视图",
   "auto_text_e98791": "金额",
   "batch_delete": {
-    "button_text": "button_text",
-    "confirm_content": "confirm_content",
-    "confirm_title": "confirm_title",
-    "error_message": "error_message",
-    "no_selection_message": "no_selection_message",
-    "success_message": "success_message"
+    "button_text": "批量删除",
+    "confirm_content": "确定要删除选中的记录吗？此操作不可撤销。",
+    "confirm_title": "确认批量删除",
+    "error_message": "批量删除失败",
+    "no_selection_message": "请先选择要删除的记录",
+    "success_message": "批量删除成功"
   },
   "export_filename": "export_filename",
   "export_sheetname": "export_sheetname",

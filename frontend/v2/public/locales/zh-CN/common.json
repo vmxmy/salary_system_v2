@@ -1,8 +1,8 @@
 {
   "action": {
-    "batch_delete_count_other": "",
-    "cancel": "",
-    "confirm_delete": "",
+    "batch_delete_count_other": "批量删除 ({count} 项)",
+    "cancel": "取消",
+    "confirm_delete": "确认删除",
     "create": "创建",
     "delete": "删除",
     "edit": "编辑",

@@ -209,14 +209,14 @@ const ExampleListPage: React.FC = () => {
       }}
       batchDeleteConfig={{
         enabled: true,
-        buttonText: t('components:batch_delete.button_text'),
-        confirmTitle: t('components:batch_delete.confirm_title'),
-        confirmContent: t('components:batch_delete.confirm_content'),
-        confirmOkText: t('common:button.ok'),
-        confirmCancelText: t('common:button.cancel'),
-        successMessage: t('components:batch_delete.success_message'),
-        errorMessage: t('components:batch_delete.error_message'),
-        noSelectionMessage: t('components:batch_delete.no_selection_message'),
+        buttonText: t('common:batch_delete'),
+        confirmTitle: t('common:confirm_delete'),
+        confirmContent: t('common:confirm_delete_content'),
+        confirmOkText: t('common:delete'),
+        confirmCancelText: t('common:cancel'),
+        successMessage: t('common:delete_success'),
+        errorMessage: t('common:delete_failed'),
+        noSelectionMessage: t('common:no_selection'),
         onBatchDelete: async (keys: React.Key[]) => {
           await Promise.all(keys.map(key => exampleService.deleteItem(String(key))));
           fetchData();

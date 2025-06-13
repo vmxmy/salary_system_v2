@@ -68,16 +68,16 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
   const { t } = useTranslation(['common', 'components']);
 
   const defaultTooltip: Record<TableActionButtonProps['actionType'], string> = {
-    edit: 'common:button.edit',
-    delete: 'common:button.delete',
-    add: 'common:button.add',
-    view: 'common:button.view',
-    upload: 'common:button.upload',
-    download: 'common:button.download',
-    approve: 'common:button.approve',
-    copy: 'common:button.copy',
-    print: 'common:button.print',
-    calculate: 'common:button.calculate', // Added default tooltip for calculate
+    edit: 'common:edit',
+    delete: 'common:delete',
+    add: 'common:add',
+    view: 'common:view',
+    upload: 'common:upload',
+    download: 'common:download',
+    approve: 'common:approve',
+    copy: 'common:copy',
+    print: 'common:print',
+    calculate: 'common:calculate', // Added default tooltip for calculate
   };
   
   const finalTooltipTitle = tooltipTitle || t(defaultTooltip[actionType]);

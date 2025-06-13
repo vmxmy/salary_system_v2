@@ -270,8 +270,8 @@ const PayrollPeriodsPageV2: React.FC = () => {
   const deleteConfirmConfig = useMemo(() => ({
     titleKey: 'payroll_periods_page.confirm_delete_title',
     contentKey: 'payroll_periods_page.confirm_delete_content',
-    okTextKey: 'common:button.delete',
-    cancelTextKey: 'common:button.cancel',
+    okTextKey: 'common:delete',
+    cancelTextKey: 'common:cancel',
     successMessageKey: 'payroll_periods_page.delete_success',
     errorMessageKey: 'payroll_periods_page.delete_failure',
   }), []);
@@ -309,8 +309,8 @@ const PayrollPeriodsPageV2: React.FC = () => {
     buttonText: t('payroll_periods_page.batch_delete_button_text'),
     confirmTitle: t('payroll_periods_page.confirm_batch_delete_title'),
     confirmContent: t('payroll_periods_page.confirm_batch_delete_content'),
-    confirmOkText: t('common:button.delete'),
-    confirmCancelText: t('common:button.cancel'),
+    confirmOkText: t('common:delete'),
+    confirmCancelText: t('common:cancel'),
     successMessage: t('payroll_periods_page.batch_delete_success'),
     errorMessage: t('payroll_periods_page.batch_delete_failure'),
     noSelectionMessage: t('payroll_periods_page.no_selection_message'),

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { message, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -166,15 +166,69 @@ export const usePayrollPageLogic = () => {
 
   // Event handlers
   const handleRefresh = () => {
+    console.log('🔄 [handleRefresh] 开始刷新数据:', {
+      selectedPeriodId,
+      selectedVersionId,
+      periodsCount: periods.length
+    });
+    
     setRefreshTrigger(prev => prev + 1);
     refetchPeriods();
+    
+    // 安全检查：只有当期间ID存在且在期间列表中时才获取相关数据
     if (selectedPeriodId) {
-      refetchVersions();
-      fetchDataIntegrityStats(selectedPeriodId);
+      const periodExists = periods.some(p => p.id === selectedPeriodId);
+      if (periodExists) {
+        console.log('✅ [handleRefresh] 期间存在，获取版本和统计数据');
+        refetchVersions();
+        fetchDataIntegrityStats(selectedPeriodId);
+      } else {
+        console.log('⚠️ [handleRefresh] 期间不存在，跳过版本和统计数据获取');
+        // 清除选择状态
+        setSelectedPeriodId(undefined);
+        setSelectedVersionId(undefined);
+      }
     }
+    
     if (selectedVersionId) {
-      fetchPayrollStats(selectedVersionId);
+      const versionExists = versions.some(v => v.id === selectedVersionId);
+      if (versionExists) {
+        console.log('✅ [handleRefresh] 版本存在，获取统计数据');
+        fetchPayrollStats(selectedVersionId);
+      } else {
+        console.log('⚠️ [handleRefresh] 版本不存在，跳过统计数据获取');
+        setSelectedVersionId(undefined);
+      }
     }
+  };
+
+  // 专门用于删除后的安全刷新
+  const handleRefreshAfterDelete = () => {
+    console.log('🔄 [handleRefreshAfterDelete] 删除后安全刷新');
+    
+    // 立即清除选择状态，避免使用已删除的ID
+    setSelectedPeriodId(undefined);
+    setSelectedVersionId(undefined);
+    
+    // 只刷新期间列表，不获取其他数据
+    setRefreshTrigger(prev => prev + 1);
+    refetchPeriods();
+    
+    // 重置统计数据
+    setPayrollStats({
+      recordCount: 0,
+      totalGrossPay: 0,
+      totalDeductions: 0,
+      totalNetPay: 0,
+      loading: false
+    });
+    
+    setDataIntegrityStats({
+      socialInsuranceBaseCount: 0,
+      housingFundBaseCount: 0,
+      incomeTaxPositiveCount: 0,
+      loading: false
+    });
   };
 
   const handleVersionRefresh = () => {
@@ -200,7 +254,7 @@ export const usePayrollPageLogic = () => {
   };
 
   const handleNavigateToBulkImport = () => {
-    navigate('/payroll/bulk-import');
+    navigate('/finance/payroll/bulk-import');
   };
 
   const handleImportTaxData = () => {
@@ -224,8 +278,164 @@ export const usePayrollPageLogic = () => {
           setSelectedPeriodId(response.data[0].id);
           refetchPeriods();
         } else {
-          message.warning(`未找到 ${targetName} 的工资期间`);
-          setSelectedPeriodId(undefined);
+          // 未找到薪资周期，提供创建选项
+          console.log(`🔍 [handleDateChange] 未找到 ${targetName} 的工资期间，提供创建选项`);
+          
+          Modal.confirm({
+            title: '🗓️ 创建新的工资期间',
+            content: (
+              <div style={{ lineHeight: '1.6' }}>
+                <div style={{ marginBottom: '16px', fontSize: '14px' }}>
+                  系统中还没有 <strong>{targetName}</strong> 的工资数据
+                </div>
+                
+                <div style={{ marginBottom: '16px', fontSize: '14px', color: '#1890ff' }}>
+                  我来帮您快速创建：
+                </div>
+                
+                <div style={{ 
+                  backgroundColor: '#f6ffed', 
+                  padding: '12px', 
+                  borderRadius: '6px', 
+                  marginBottom: '16px',
+                  border: '1px solid #b7eb8f'
+                }}>
+                  <div style={{ marginBottom: '8px' }}>📅 新建工资期间：{targetName}</div>
+                  <div style={{ marginBottom: '8px' }}>💼 准备工资计算环境</div>
+                  <div>⚙️ 配置基础薪资设置</div>
+                </div>
+                
+                <div style={{ fontSize: '14px', color: '#666' }}>
+                  <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>创建完成后，您就可以：</div>
+                  <div style={{ paddingLeft: '16px' }}>
+                    <div>• 导入员工工资数据</div>
+                    <div>• 设置缴费基数</div>
+                    <div>• 开始工资计算</div>
+                  </div>
+                </div>
+              </div>
+            ),
+            okText: '立即创建',
+            cancelText: '取消',
+            width: 450,
+            onOk: async () => {
+              try {
+                console.log(`🚀 [handleDateChange] 开始创建 ${targetName} 的薪资周期`);
+                
+                // 计算月份的开始和结束日期
+                const startDate = dayjs().year(year).month(month - 1).startOf('month');
+                const endDate = dayjs().year(year).month(month - 1).endOf('month');
+                
+                console.log(`📅 [handleDateChange] 期间日期计算:`, {
+                  year,
+                  month,
+                  startDate: startDate.format('YYYY-MM-DD'),
+                  endDate: endDate.format('YYYY-MM-DD')
+                });
+                
+                // 1. 创建薪资周期
+                const createPeriodResponse = await simplePayrollApi.createPayrollPeriod({
+                  name: targetName,
+                  start_date: startDate.format('YYYY-MM-DD'),
+                  end_date: endDate.format('YYYY-MM-DD'),
+                  pay_date: endDate.add(5, 'day').format('YYYY-MM-DD'), // 发薪日设为月末后5天
+                  frequency_lookup_value_id: 117 // 117 = 月度频率
+                });
+                
+                const newPeriodId = createPeriodResponse.data.id;
+                console.log(`✅ [handleDateChange] 薪资周期创建成功:`, {
+                  periodId: newPeriodId,
+                  periodName: createPeriodResponse.data.name
+                });
+                
+                // 2. 创建初始工资运行
+                console.log(`🎯 [handleDateChange] 为期间 ${newPeriodId} 创建初始工资运行`);
+                const createRunResponse = await simplePayrollApi.createPayrollRun({
+                  payroll_period_id: newPeriodId,
+                  description: `自动创建的 ${targetName} 初始版本`
+                });
+                
+                console.log(`✅ [handleDateChange] 工资运行创建成功:`, {
+                  runId: createRunResponse.data.id,
+                  periodId: newPeriodId,
+                  runStatus: createRunResponse.data.status_name
+                });
+                
+                // 3. 刷新数据并选择新创建的期间
+                await refetchPeriods();
+                setSelectedPeriodId(newPeriodId);
+                
+                message.success({
+                  content: (
+                    <div style={{ lineHeight: '1.6' }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '12px', color: '#52c41a' }}>
+                        🎉 工资期间创建成功！
+                      </div>
+                      
+                      <div style={{ 
+                        backgroundColor: '#f6ffed', 
+                        padding: '12px', 
+                        borderRadius: '6px', 
+                        marginBottom: '12px',
+                        border: '1px solid #b7eb8f'
+                      }}>
+                        <div style={{ marginBottom: '6px' }}>📅 {targetName} 工资期间已准备就绪</div>
+                        <div style={{ marginBottom: '6px' }}>💼 工资计算环境已配置完成</div>
+                        <div>📊 当前状态：{createRunResponse.data.status_name || '等待数据导入'}</div>
+                      </div>
+                      
+                      <div style={{ fontSize: '13px', color: '#666' }}>
+                        <div style={{ marginBottom: '6px', fontWeight: 'bold' }}>接下来您可以：</div>
+                        <div style={{ paddingLeft: '12px' }}>
+                          <div>• 批量导入员工工资数据</div>
+                          <div>• 设置员工缴费基数</div>
+                          <div>• 开始进行工资计算</div>
+                        </div>
+                      </div>
+                    </div>
+                  ),
+                  duration: 8
+                });
+                
+              } catch (error: any) {
+                console.error(`❌ [handleDateChange] 创建 ${targetName} 薪资周期失败:`, error);
+                const errorMessage = error?.response?.data?.detail?.message || error?.message || '创建失败';
+                message.error({
+                  content: (
+                    <div style={{ lineHeight: '1.6' }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '12px', color: '#ff4d4f' }}>
+                        ❌ 工资期间创建失败
+                      </div>
+                      
+                      <div style={{ marginBottom: '12px', fontSize: '14px' }}>
+                        抱歉，创建 <strong>{targetName}</strong> 工资期间时出现问题：
+                      </div>
+                      
+                      <div style={{ 
+                        backgroundColor: '#fff2f0', 
+                        padding: '12px', 
+                        borderRadius: '6px', 
+                        marginBottom: '12px',
+                        border: '1px solid #ffccc7',
+                        color: '#cf1322'
+                      }}>
+                        {errorMessage}
+                      </div>
+                      
+                      <div style={{ fontSize: '13px', color: '#666' }}>
+                        请稍后重试，或联系系统管理员
+                      </div>
+                    </div>
+                  ),
+                  duration: 10
+                });
+              }
+            },
+            onCancel: () => {
+              console.log(`⏹️ [handleDateChange] 用户取消创建 ${targetName} 薪资周期`);
+              setSelectedPeriodId(undefined);
+            }
+          });
         }
       }
     } catch (error) {
@@ -521,6 +731,7 @@ export const usePayrollPageLogic = () => {
     
     // Handlers
     handleRefresh,
+    handleRefreshAfterDelete,
     handleVersionRefresh,
     handleAuditRefresh,
     resetLoadingStates,

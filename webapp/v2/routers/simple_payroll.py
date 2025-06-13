@@ -193,6 +193,12 @@ async def get_payroll_version(
             PayrollPeriod.id == payroll_run.payroll_period_id
         ).first()
         
+        # 查询实际的工资条目数量
+        from ..models.payroll import PayrollEntry
+        actual_entries_count = db.query(PayrollEntry).filter(
+            PayrollEntry.payroll_run_id == payroll_run.id
+        ).count()
+        
         # 构建响应对象
         version = PayrollRunResponse(
             id=payroll_run.id,
@@ -201,7 +207,7 @@ async def get_payroll_version(
             version_number=1,
             status_id=payroll_run.status_lookup_value_id,
             status_name=status_lookup.name if status_lookup else "未知状态",
-            total_entries=payroll_run.total_employees or 0,
+            total_entries=actual_entries_count,  # 使用实际的工资条目数量
             total_gross_pay=payroll_run.total_gross_pay or 0,
             total_net_pay=payroll_run.total_net_pay or 0,
             total_deductions=payroll_run.total_deductions or 0,
@@ -1130,6 +1136,11 @@ async def update_audit_status(
                 LookupValue.id == updated_run.status_lookup_value_id
             ).first()
             
+            # 查询实际的工资条目数量
+            actual_entries_count = db.query(PayrollEntry).filter(
+                PayrollEntry.payroll_run_id == updated_run.id
+            ).count()
+            
             updated_payroll_run = PayrollRunResponse(
                 id=updated_run.id,
                 period_id=updated_run.payroll_period_id,
@@ -1137,7 +1148,7 @@ async def update_audit_status(
                 version_number=1,
                 status_id=updated_run.status_lookup_value_id,
                 status_name=status_lookup.name if status_lookup else "未知状态",
-                total_entries=updated_run.total_employees or 0,
+                total_entries=actual_entries_count,  # 使用实际的工资条目数量
                 total_gross_pay=updated_run.total_gross_pay or 0,
                 total_net_pay=updated_run.total_net_pay or 0,
                 total_deductions=updated_run.total_deductions or 0,
@@ -2810,6 +2821,277 @@ async def get_data_integrity_stats(
             detail=create_error_response(
                 status_code=500,
                 message="获取数据完整性统计时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.get("/salary-configs/employee/{employee_id}/period/{period_id}", response_model=DataResponse[Dict[str, Any]])
+async def get_employee_insurance_base(
+    employee_id: int,
+    period_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:view"]))
+):
+    """
+    📋 获取员工在指定期间的缴费基数
+    """
+    logger.info(f"📋 [API-获取员工缴费基数] 员工ID={employee_id}, 期间ID={period_id}, 用户={current_user.username}")
+    
+    try:
+        from ..models.payroll_config import EmployeeSalaryConfig
+        from ..models.payroll import PayrollPeriod
+        
+        # 获取期间信息
+        period = db.query(PayrollPeriod).filter(PayrollPeriod.id == period_id).first()
+        if not period:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="期间不存在",
+                    details=f"期间ID {period_id} 未找到"
+                )
+            )
+        
+        # 查找员工在该期间的薪资配置
+        config = db.query(EmployeeSalaryConfig).filter(
+            and_(
+                EmployeeSalaryConfig.employee_id == employee_id,
+                or_(EmployeeSalaryConfig.is_active.is_(None), EmployeeSalaryConfig.is_active == True),
+                EmployeeSalaryConfig.effective_date <= period.end_date,
+                or_(
+                    EmployeeSalaryConfig.end_date.is_(None),
+                    EmployeeSalaryConfig.end_date >= period.start_date
+                )
+            )
+        ).first()
+        
+        if config:
+            result = {
+                "employee_id": employee_id,
+                "period_id": period_id,
+                "social_insurance_base": float(config.social_insurance_base or 0),
+                "housing_fund_base": float(config.housing_fund_base or 0),
+                "effective_date": config.effective_date.isoformat() if config.effective_date else None,
+                "end_date": config.end_date.isoformat() if config.end_date else None
+            }
+        else:
+            # 如果没有找到配置，返回默认值
+            result = {
+                "employee_id": employee_id,
+                "period_id": period_id,
+                "social_insurance_base": 0.0,
+                "housing_fund_base": 0.0,
+                "effective_date": None,
+                "end_date": None
+            }
+        
+        logger.info(f"✅ [API-获取员工缴费基数] 获取成功: 社保基数={result['social_insurance_base']}, 公积金基数={result['housing_fund_base']}")
+        
+        return DataResponse(
+            data=result,
+            message="获取员工缴费基数成功"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"💥 [API-获取员工缴费基数] 获取失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取员工缴费基数时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.put("/salary-configs/employee/{employee_id}/period/{period_id}", response_model=DataResponse[Dict[str, Any]])
+async def update_employee_insurance_base(
+    employee_id: int,
+    period_id: int,
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    💾 更新员工在指定期间的缴费基数
+    """
+    logger.info(f"💾 [API-更新员工缴费基数] 员工ID={employee_id}, 期间ID={period_id}, 用户={current_user.username}")
+    
+    try:
+        from ..models.payroll_config import EmployeeSalaryConfig
+        from ..models.payroll import PayrollPeriod
+        from datetime import datetime
+        
+        social_insurance_base = request.get('social_insurance_base', 0)
+        housing_fund_base = request.get('housing_fund_base', 0)
+        
+        # 获取期间信息
+        period = db.query(PayrollPeriod).filter(PayrollPeriod.id == period_id).first()
+        if not period:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="期间不存在",
+                    details=f"期间ID {period_id} 未找到"
+                )
+            )
+        
+        # 查找员工在该期间的薪资配置
+        config = db.query(EmployeeSalaryConfig).filter(
+            and_(
+                EmployeeSalaryConfig.employee_id == employee_id,
+                or_(EmployeeSalaryConfig.is_active.is_(None), EmployeeSalaryConfig.is_active == True),
+                EmployeeSalaryConfig.effective_date <= period.end_date,
+                or_(
+                    EmployeeSalaryConfig.end_date.is_(None),
+                    EmployeeSalaryConfig.end_date >= period.start_date
+                )
+            )
+        ).first()
+        
+        if config:
+            # 更新现有配置
+            config.social_insurance_base = social_insurance_base
+            config.housing_fund_base = housing_fund_base
+            config.updated_at = datetime.utcnow()
+            config.updated_by = current_user.id
+        else:
+            # 创建新配置
+            config = EmployeeSalaryConfig(
+                employee_id=employee_id,
+                social_insurance_base=social_insurance_base,
+                housing_fund_base=housing_fund_base,
+                effective_date=period.start_date,
+                end_date=period.end_date,
+                is_active=True,
+                created_by=current_user.id,
+                updated_by=current_user.id,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db.add(config)
+        
+        db.commit()
+        
+        result = {
+            "success": True,
+            "employee_id": employee_id,
+            "period_id": period_id,
+            "social_insurance_base": float(social_insurance_base),
+            "housing_fund_base": float(housing_fund_base),
+            "message": "缴费基数更新成功"
+        }
+        
+        logger.info(f"✅ [API-更新员工缴费基数] 更新成功: 社保基数={social_insurance_base}, 公积金基数={housing_fund_base}")
+        
+        return DataResponse(
+            data=result,
+            message="更新员工缴费基数成功"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"💥 [API-更新员工缴费基数] 更新失败: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="更新员工缴费基数时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.delete("/salary-configs/delete-insurance-base/{period_id}", response_model=DataResponse[Dict[str, Any]])
+async def delete_insurance_base_for_period(
+    period_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_period:manage"]))
+):
+    """
+    🗑️ 删除指定期间的所有缴费基数配置
+    
+    Args:
+        period_id: 期间ID
+    
+    Returns:
+        删除结果统计
+    """
+    logger.info(f"🗑️ [delete_insurance_base_for_period] 删除缴费基数 - 用户: {current_user.username}, 期间: {period_id}")
+    
+    try:
+        # 获取期间信息
+        target_period = db.query(PayrollPeriod).filter(
+            PayrollPeriod.id == period_id
+        ).first()
+        
+        if not target_period:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="期间不存在",
+                    details=f"期间ID {period_id} 未找到"
+                )
+            )
+        
+        # 删除该期间的缴费基数配置
+        from ..models.payroll_config import EmployeeSalaryConfig
+        
+        # 查找该期间的所有缴费基数配置（有社保基数或公积金基数的记录）
+        base_configs = db.query(EmployeeSalaryConfig).filter(
+            and_(
+                or_(EmployeeSalaryConfig.is_active.is_(None), EmployeeSalaryConfig.is_active == True),
+                EmployeeSalaryConfig.effective_date <= target_period.end_date,
+                or_(
+                    EmployeeSalaryConfig.end_date.is_(None),
+                    EmployeeSalaryConfig.end_date >= target_period.start_date
+                ),
+                # 只删除有缴费基数的记录
+                or_(
+                    EmployeeSalaryConfig.social_insurance_base.isnot(None),
+                    EmployeeSalaryConfig.housing_fund_base.isnot(None)
+                )
+            )
+        ).all()
+        
+        deleted_count = 0
+        
+        # 删除缴费基数配置
+        for config in base_configs:
+            db.delete(config)
+            deleted_count += 1
+        
+        db.commit()
+        
+        result = {
+            "success": True,
+            "deleted_count": deleted_count,
+            "period_id": period_id,
+            "period_name": target_period.name,
+            "message": f"成功删除 {deleted_count} 条缴费基数配置"
+        }
+        
+        logger.info(f"✅ [delete_insurance_base_for_period] 删除完成 - 期间: {target_period.name}, 删除: {deleted_count} 条")
+        
+        return DataResponse(
+            data=result,
+            message=result["message"]
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"💥 [delete_insurance_base_for_period] 删除缴费基数失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="删除缴费基数时发生错误",
                 details=str(e)
             )
         )

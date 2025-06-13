@@ -206,6 +206,8 @@
     "createSuccess": ""
   },
   "quickActions": {
+    "addEmployee": "Add Employee",
+    "addPayrollRecord": "Add Payroll Record",
     "bulkImport": "",
     "copyLastMonth": "",
     "importTaxData": "",

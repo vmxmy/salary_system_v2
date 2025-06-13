@@ -40,6 +40,7 @@ const SimplePayrollPage: React.FC = () => {
     
     // Handlers
     handleRefresh,
+    handleRefreshAfterDelete,
     handleVersionRefresh,
     handleAuditRefresh,
     resetLoadingStates,
@@ -103,6 +104,7 @@ const SimplePayrollPage: React.FC = () => {
                 handleImportTaxData={handleImportTaxData}
                 setPayrollDataModalVisible={setPayrollDataModalVisible}
                 onRefresh={handleRefresh}
+                onRefreshAfterDelete={handleRefreshAfterDelete}
               />
             </Col>
 
