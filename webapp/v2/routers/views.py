@@ -977,6 +977,7 @@ class ComprehensivePayrollDataResponse(BaseModel):
     姓名: Optional[str] = None
     部门名称: Optional[str] = None
     人员类别: Optional[str] = None
+    根人员类别: Optional[str] = None
     职位名称: Optional[str] = None
     
     # 工资汇总
@@ -1037,6 +1038,7 @@ async def get_comprehensive_payroll_data(
             "姓名",
             "部门名称",
             "人员类别",
+            "根人员类别",
             "职位名称",
             COALESCE("应发合计", 0) as "应发合计",
             COALESCE("扣除合计", 0) as "扣除合计", 
@@ -1064,16 +1066,17 @@ async def get_comprehensive_payroll_data(
                 姓名=row[2],
                 部门名称=row[3],
                 人员类别=row[4],
-                职位名称=row[5],
-                应发合计=float(row[6] or 0),
-                扣除合计=float(row[7] or 0),
-                实发合计=float(row[8] or 0),
-                养老保险个人应缴费额=float(row[9] or 0),
-                医疗保险个人应缴费额=float(row[10] or 0),
-                职业年金个人应缴费额=float(row[11] or 0),
-                失业保险个人应缴费额=float(row[12] or 0),
-                住房公积金个人应缴费额=float(row[13] or 0),
-                个人所得税=float(row[14] or 0)
+                根人员类别=row[5],
+                职位名称=row[6],
+                应发合计=float(row[7] or 0),
+                扣除合计=float(row[8] or 0),
+                实发合计=float(row[9] or 0),
+                养老保险个人应缴费额=float(row[10] or 0),
+                医疗保险个人应缴费额=float(row[11] or 0),
+                职业年金个人应缴费额=float(row[12] or 0),
+                失业保险个人应缴费额=float(row[13] or 0),
+                住房公积金个人应缴费额=float(row[14] or 0),
+                个人所得税=float(row[15] or 0)
             )
             
             payroll_data.append(data)

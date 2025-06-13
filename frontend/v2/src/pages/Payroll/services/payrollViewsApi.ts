@@ -222,6 +222,7 @@ export interface ComprehensivePayrollDataView {
   姓名?: string;
   部门名称?: string;
   人员类别?: string;
+  根人员类别?: string;
   职位名称?: string;
   
   // 工资汇总

@@ -136,6 +136,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       '姓名': item.姓名 || '',
       '部门': item.部门名称 || '',
       '人员身份': item.人员类别 || '',
+      '根级身份': item.根人员类别 || '',
       '职位': item.职位名称 || '',
       '应发合计': item.应发合计 || 0,
       '扣除合计': item.扣除合计 || 0,
@@ -153,7 +154,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       const ws = XLSX.utils.json_to_sheet(exportData);
       
       // 设置数字列的格式为两位小数
-      const numberColumns = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']; // 应发合计到个人所得税的列
+      const numberColumns = ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']; // 应发合计到个人所得税的列
       const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
       
       // 为每个数字列的每一行设置数字格式
@@ -174,6 +175,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         { wch: 12 }, // 姓名
         { wch: 15 }, // 部门
         { wch: 12 }, // 人员身份
+        { wch: 10 }, // 根级身份
         { wch: 12 }, // 职位
         { wch: 12 }, // 应发合计
         { wch: 12 }, // 扣除合计
@@ -275,6 +277,29 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       })(),
       filterMultiple: true,
       onFilter: (value, record) => record.人员类别 === value,
+    },
+    {
+      title: '根级身份',
+      dataIndex: '根人员类别',
+      key: 'root_personnel_category',
+      width: 100,
+      // 添加筛选功能
+      filters: (() => {
+        const rootCategories = Array.from(new Set(dataSource.map(item => item.根人员类别).filter(Boolean)));
+        return rootCategories.map(cat => ({ text: cat || '', value: cat || '' }));
+      })(),
+      filterMultiple: true,
+      onFilter: (value, record) => record.根人员类别 === value,
+      render: (_, record) => {
+        const rootCategory = record.根人员类别;
+        // 根据根级类别设置不同的显示样式
+        if (rootCategory === '正编') {
+          return <span style={{ color: '#52c41a', fontWeight: 'bold' }}>正编</span>;
+        } else if (rootCategory === '聘用') {
+          return <span style={{ color: '#1890ff', fontWeight: 'bold' }}>聘用</span>;
+        }
+        return rootCategory || '-';
+      },
     },
     {
       title: '职位',

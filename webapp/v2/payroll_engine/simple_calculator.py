@@ -217,10 +217,9 @@ class SimplePayrollCalculator:
         计算扣发合计 - 只计算个人扣缴部分，排除单位扣缴
         
         Args:
-            deductions_data: 扣除数据字典，格式：{
-                'SOCIAL_INSURANCE': {'name': '社保', 'amount': 500},
-                'TAX': {'name': '个税', 'amount': 200}
-            }
+            deductions_data: 扣除数据字典，支持两种格式：
+                格式1: {'SOCIAL_INSURANCE': {'name': '社保', 'amount': 500}}
+                格式2: {'HOUSING_FUND_PERSONAL': {'name': '公积金个人', 'amount': 500, 'type': 'PERSONAL_DEDUCTION'}}
             
         Returns:
             扣发合计金额（只包含个人扣缴）
@@ -246,20 +245,31 @@ class SimplePayrollCalculator:
                 if isinstance(value, dict) and 'amount' in value:
                     amount = Decimal(str(value['amount']))
                     
-                    # 根据组件类型判断是否为个人扣缴
-                    component_type = component_type_map.get(key)
-                    if component_type and component_type in personal_deduction_types:
-                        total += amount
-                    # 如果找不到组件定义，默认当作个人扣缴（向后兼容）
-                    elif component_type is None:
-                        total += amount
-                        logger.warning(f"未找到组件定义: {key}，默认当作个人扣缴")
+                    # 优先使用项目内置的 type 字段判断（新格式）
+                    if 'type' in value:
+                        item_type = value['type']
+                        if item_type in personal_deduction_types:
+                            total += amount
+                            logger.debug(f"✅ [内置类型] 计入个人扣缴: {key} = {amount} (类型: {item_type})")
+                        else:
+                            logger.debug(f"❌ [内置类型] 跳过单位扣缴: {key} = {amount} (类型: {item_type})")
                     else:
-                        logger.debug(f"跳过单位扣缴项目: {key} (类型: {component_type})")
+                        # 回退到根据组件代码查询数据库（旧格式兼容）
+                        component_type = component_type_map.get(key)
+                        if component_type and component_type in personal_deduction_types:
+                            total += amount
+                            logger.debug(f"✅ [数据库类型] 计入个人扣缴: {key} = {amount} (类型: {component_type})")
+                        elif component_type is None:
+                            # 如果找不到组件定义，默认当作个人扣缴（向后兼容）
+                            total += amount
+                            logger.warning(f"⚠️ [默认处理] 未找到组件定义: {key}，默认当作个人扣缴")
+                        else:
+                            logger.debug(f"❌ [数据库类型] 跳过单位扣缴: {key} = {amount} (类型: {component_type})")
                         
                 elif isinstance(value, (int, float, Decimal)):
                     # 如果是直接的数值，默认当作个人扣缴（向后兼容）
                     total += Decimal(str(value))
+                    logger.debug(f"✅ [数值格式] 计入个人扣缴: {key} = {value} (默认处理)")
                     
         except Exception as e:
             logger.error(f"计算扣发合计时出错: {str(e)}，降级到简单计算")

@@ -203,40 +203,62 @@ class IntegratedPayrollCalculator:
             logger.info(f"🏢 [单位成本] 单位总成本: {result.gross_pay + employer_social_insurance_total}")
             
             # 第三步：更新扣除详情中的社保公积金金额（应用进位规则后的金额）
-            # 🎯 注意：只保存个人应缴费用，单位费用不应计入个人扣发
+            # 🎯 新规则：保存个人和单位扣缴项目到详情中，但只有个人部分计入扣发合计
             updated_deductions_details = {}
             if hasattr(result, 'social_insurance_components') and result.social_insurance_components:
                 for component in result.social_insurance_components:
                     if component.insurance_type == "HOUSING_FUND":
-                        # 🏠 公积金使用进位处理后的金额 - 只保存个人部分
+                        # 🏠 公积金使用进位处理后的金额 - 保存个人和单位部分
                         updated_deductions_details["HOUSING_FUND_PERSONAL"] = {
                             "amount": int(component.employee_amount),  # 进位后应该是整数，直接转int
                             "name": "住房公积金个人应缴费额",
-                            "rate": float(component.employee_rate)
+                            "rate": float(component.employee_rate),
+                            "type": "PERSONAL_DEDUCTION"
                         }
-                        # ❌ 删除单位费用，不应计入个人扣发
-                        # updated_deductions_details["HOUSING_FUND_EMPLOYER"] = ...
+                        updated_deductions_details["HOUSING_FUND_EMPLOYER"] = {
+                            "amount": int(component.employer_amount),  # 进位后应该是整数，直接转int
+                            "name": "住房公积金单位应缴费额",
+                            "rate": float(component.employer_rate),
+                            "type": "EMPLOYER_DEDUCTION"
+                        }
                     else:
-                        # 🏥 其他险种使用标准金额 - 只保存个人部分
+                        # 🏥 其他险种使用标准金额 - 保存个人和单位部分
                         personal_key = f"{component.insurance_type}_PERSONAL_AMOUNT"
-                        # ❌ 删除单位费用，不应计入个人扣发
-                        # employer_key = f"{component.insurance_type}_EMPLOYER_AMOUNT"
+                        employer_key = f"{component.insurance_type}_EMPLOYER_AMOUNT"
                         
                         updated_deductions_details[personal_key] = {
                             "amount": float(component.employee_amount),
                             "name": f"{component.component_name}个人应缴费额",
-                            "rate": float(component.employee_rate)
+                            "rate": float(component.employee_rate),
+                            "type": "PERSONAL_DEDUCTION"
                         }
-                        # ❌ 删除单位费用，不应计入个人扣发
-                        # updated_deductions_details[employer_key] = ...
+                        updated_deductions_details[employer_key] = {
+                            "amount": float(component.employer_amount),
+                            "name": f"{component.component_name}单位应缴费额",
+                            "rate": float(component.employer_rate),
+                            "type": "EMPLOYER_DEDUCTION"
+                        }
             
             # 保存更新后的扣除详情以便保存到数据库
             result.updated_deductions_details = updated_deductions_details
             
             # 🔍 调试日志：记录更新的扣除详情
-            logger.info(f"🔍 [扣除详情更新] 员工 {employee_id} updated_deductions_details: {updated_deductions_details}")
+            logger.info(f"🔍 [扣除详情更新] 员工 {employee_id} 保存了 {len(updated_deductions_details)} 个扣缴项目到详情中")
+            
+            # 统计个人和单位扣缴项目数量
+            personal_items = [k for k, v in updated_deductions_details.items() if v.get('type') == 'PERSONAL_DEDUCTION']
+            employer_items = [k for k, v in updated_deductions_details.items() if v.get('type') == 'EMPLOYER_DEDUCTION']
+            
+            logger.info(f"📋 [扣缴项目统计] 个人扣缴: {len(personal_items)} 项, 单位扣缴: {len(employer_items)} 项")
+            logger.info(f"📋 [个人扣缴项目] {personal_items}")
+            logger.info(f"📋 [单位扣缴项目] {employer_items}")
+            
             if 'HOUSING_FUND_PERSONAL' in updated_deductions_details:
                 logger.info(f"🏠 [住房公积金详情] 员工 {employee_id} 个人公积金: {updated_deductions_details['HOUSING_FUND_PERSONAL']}")
+            if 'HOUSING_FUND_EMPLOYER' in updated_deductions_details:
+                logger.info(f"🏢 [住房公积金详情] 员工 {employee_id} 单位公积金: {updated_deductions_details['HOUSING_FUND_EMPLOYER']}")
+                
+            logger.info(f"⚠️ [重要说明] 扣发合计只包含个人扣缴项目，单位扣缴项目仅保存在详情中供查看")
             
             # 第四步：构建详细计算信息
             result.calculation_details.update({
@@ -253,7 +275,7 @@ class IntegratedPayrollCalculator:
                 'net_pay': float(result.net_pay),
                 'total_employer_cost': float(result.gross_pay + employer_social_insurance_total),
                 'calculation_time': datetime.now().isoformat(),
-                'engine_version': 'integrated_v2.2_minimal_deductions'  # 🎯 更新版本号
+                'engine_version': 'integrated_v2.3_complete_deduction_details'  # 🎯 更新版本号：保存完整扣缴详情
             })
             
             logger.info(f"✅ [集成计算完成] 员工 {employee_id} - 应发: {result.gross_pay}, 扣发: {result.total_deductions}, 实发: {result.net_pay}")
@@ -502,7 +524,7 @@ class IntegratedPayrollCalculator:
             },
             'calculation_metadata': {
                 'calculation_date': datetime.now().isoformat(),
-                'engine_version': 'integrated_v2.2_minimal_deductions',
-                'calculation_order': '扣发合计=五险一金+个税'
+                'engine_version': 'integrated_v2.3_complete_deduction_details',
+                'calculation_order': '扣发合计=五险一金+个税（个人部分），详情包含单位扣缴项目'
             }
         } 
