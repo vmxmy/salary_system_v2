@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, DatePicker, InputNumber, Select, Row, Col, Divider } from 'antd';
-import { PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Modal, Form, Input, DatePicker, InputNumber, Select, Row, Col, Divider, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { SocialInsuranceConfig, CreateSocialInsuranceConfigRequest, UpdateSocialInsuranceConfigRequest } from '../types/calculationConfig';
+import { usePersonnelCategories } from '../hooks/usePersonnelCategories';
 
 interface SocialInsuranceConfigManagerProps {
   configs: SocialInsuranceConfig[];
@@ -22,6 +23,9 @@ const SocialInsuranceConfigManager: React.FC<SocialInsuranceConfigManagerProps> 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingConfig, setEditingConfig] = useState<SocialInsuranceConfig | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // 🎯 添加人员类别钩子
+  const { getPersonnelCategoryNamesString } = usePersonnelCategories();
 
   // 表格列定义
   const columns: ColumnsType<SocialInsuranceConfig> = [
@@ -29,19 +33,39 @@ const SocialInsuranceConfigManager: React.FC<SocialInsuranceConfigManagerProps> 
       title: t('payroll:calculation_config.config_name'),
       dataIndex: 'name',
       key: 'name',
-      width: 150,
+      width: 120,
     },
     {
       title: t('payroll:calculation_config.region'),
       dataIndex: 'region',
       key: 'region',
-      width: 100,
+      width: 80,
+    },
+    {
+      title: '适用人员身份',
+      dataIndex: 'applicable_personnel_categories',
+      key: 'applicable_personnel_categories',
+      width: 200,
+      render: (categories: number[]) => {
+        if (!categories || categories.length === 0) {
+          return <Tag color="default">全部人员</Tag>;
+        }
+        const categoryNames = getPersonnelCategoryNamesString(categories);
+        const shortNames = categoryNames.length > 30 ? `${categoryNames.substring(0, 30)}...` : categoryNames;
+        return (
+          <Tooltip title={categoryNames} placement="topLeft">
+            <Tag color="blue" icon={<InfoCircleOutlined />}>
+              {shortNames}
+            </Tag>
+          </Tooltip>
+        );
+      },
     },
     {
       title: t('payroll:calculation_config.effective_date'),
       dataIndex: 'effective_date',
       key: 'effective_date',
-      width: 120,
+      width: 100,
       render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
     },
     {

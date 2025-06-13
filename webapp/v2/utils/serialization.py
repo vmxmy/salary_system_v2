@@ -122,6 +122,8 @@ class CustomJSONB(TypeDecorator):
             return float(obj)
         elif isinstance(obj, (datetime, date)):
             return obj.isoformat()
+        elif isinstance(obj, int):
+            return obj  # 保持整数不变，特别重要对于公积金进位后的整数
         elif isinstance(obj, dict):
             return {key: self._convert_for_jsonb(value) for key, value in obj.items()}
         elif isinstance(obj, list):

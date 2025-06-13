@@ -2270,6 +2270,14 @@ def perform_calculation_with_progress(
                     entry.net_pay = result.net_pay
                     entry.calculation_log = result.calculation_details
                     
+                    # 🏠 更新扣除详情中的社保公积金金额（应用进位规则后的金额）
+                    if hasattr(result, 'updated_deductions_details') and result.updated_deductions_details:
+                        current_deductions = entry.deductions_details or {}
+                        # 更新社保公积金相关的扣除项目
+                        current_deductions.update(result.updated_deductions_details)
+                        entry.deductions_details = current_deductions
+                        logger.info(f"✅ [更新扣除详情] 员工 {entry.employee_id} 扣除详情已更新，包含进位后的公积金金额")
+                    
                     success_count += 1
                 except Exception as e:
                     error_count += 1
@@ -2484,7 +2492,92 @@ async def run_integrated_calculation_engine(
                 message="计算任务已启动"
             )
         
-        # 初始化集成计算器
+        # 🧹 第一步：清除所有薪资条目中的旧五险一金数据
+        logger.info(f"🧹 [清除旧数据] 开始清除 {len(entries)} 条薪资记录中的旧五险一金数据")
+        
+        # 🎯 从数据库动态获取需要清除的五险一金字段
+        social_insurance_fields_to_clear = set()
+        try:
+            from ..models.config import PayrollComponentDefinition
+            # 获取所有个人扣缴和单位扣缴项目
+            deduction_components = db.query(PayrollComponentDefinition).filter(
+                PayrollComponentDefinition.type.in_(['PERSONAL_DEDUCTION', 'EMPLOYER_DEDUCTION']),
+                PayrollComponentDefinition.is_active == True
+            ).all()
+            
+            # 🎯 个税等重要扣除项目不能清理
+            protected_deduction_fields = {
+                'PERSONAL_INCOME_TAX', 'REFUND_DEDUCTION_ADJUSTMENT', 
+                'SOCIAL_INSURANCE_ADJUSTMENT', 'PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT',
+                'REWARD_PERFORMANCE_ADJUSTMENT', 'MEDICAL_2022_DEDUCTION_ADJUSTMENT'
+            }
+            
+            for component in deduction_components:
+                # ✅ 明确保护个税等重要扣除项目
+                if component.code in protected_deduction_fields:
+                    logger.info(f"🛡️ [保护字段] {component.code} - 保留重要扣除项目，不清理")
+                    continue
+                    
+                # 🎯 只清除五险一金相关项目
+                if any(keyword in component.code.upper() for keyword in [
+                    'HOUSING_FUND', 'PENSION', 'MEDICAL', 'UNEMPLOYMENT', 
+                    'INJURY', 'SERIOUS_ILLNESS', 'OCCUPATIONAL_PENSION', 'MATERNITY'
+                ]):
+                    social_insurance_fields_to_clear.add(component.code)
+            
+            logger.info(f"🔍 [动态字段获取] 从数据库获取到 {len(social_insurance_fields_to_clear)} 个五险一金扣缴项目")
+            
+        except Exception as e:
+            logger.warning(f"⚠️ [动态字段获取] 无法从数据库获取扣缴定义，使用备用列表: {e}")
+            # 🎯 备用硬编码列表（只包含五险一金，明确排除个税等保护字段）
+            social_insurance_fields_to_clear = {
+                # 五险一金相关字段
+                'HOUSING_FUND_EMPLOYER', 'HOUSING_FUND_PERSONAL',
+                'PENSION_EMPLOYER_AMOUNT', 'PENSION_PERSONAL_AMOUNT',
+                'MEDICAL_EMPLOYER_AMOUNT', 'MEDICAL_PERSONAL_AMOUNT',
+                'UNEMPLOYMENT_EMPLOYER_AMOUNT', 'UNEMPLOYMENT_PERSONAL_AMOUNT',
+                'INJURY_EMPLOYER_AMOUNT', 'INJURY_PERSONAL_AMOUNT',
+                'SERIOUS_ILLNESS_EMPLOYER_AMOUNT', 'SERIOUS_ILLNESS_PERSONAL_AMOUNT',
+                'OCCUPATIONAL_PENSION_EMPLOYER_AMOUNT', 'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
+                'MATERNITY_EMPLOYER_AMOUNT', 'MATERNITY_PERSONAL_AMOUNT',
+                'MEDICAL_INS_EMPLOYER_TOTAL', 'MEDICAL_INS_PERSONAL_TOTAL',
+                'MEDICAL_INS_EMPLOYER_AMOUNT', 'MEDICAL_INS_PERSONAL_AMOUNT'
+                # ✅ 注意：明确不包含 PERSONAL_INCOME_TAX 等保护字段
+            }
+        
+        cleared_count = 0
+        for entry in entries:
+            if entry.deductions_details:
+                original_count = len(entry.deductions_details)
+                
+                # 创建新的扣除详情，只保留非五险一金项目
+                cleaned_deductions = {}
+                removed_fields = []
+                removed_amount = 0
+                
+                for key, value in entry.deductions_details.items():
+                    if key in social_insurance_fields_to_clear:
+                        removed_fields.append(key)
+                        # 🔍 计算被移除字段的金额
+                        if isinstance(value, dict) and 'amount' in value:
+                            removed_amount += value.get('amount', 0)
+                    else:
+                        cleaned_deductions[key] = value
+                
+                if removed_fields:
+                    entry.deductions_details = cleaned_deductions
+                    # 标记JSONB字段已修改
+                    from sqlalchemy.orm.attributes import flag_modified
+                    flag_modified(entry, 'deductions_details')
+                    cleared_count += 1
+                    
+                    logger.info(f"🗑️ [清除] 员工 {entry.employee_id}: 移除了 {len(removed_fields)} 个五险一金字段，总金额 {removed_amount}")
+                    logger.info(f"🗑️ [清除字段] {removed_fields}")
+        
+        logger.info(f"✅ [清除完成] 成功清除 {cleared_count} 条记录中的旧五险一金数据")
+        
+        # 🔄 第二步：初始化集成计算器并执行计算
+        logger.info(f"🚀 [开始计算] 初始化集成计算器，开始重新计算五险一金")
         integrated_calculator = IntegratedPayrollCalculator(db)
         
         # 批量计算
@@ -2509,6 +2602,28 @@ async def run_integrated_calculation_engine(
                     entry.total_deductions = result.total_deductions
                     entry.net_pay = result.net_pay
                     entry.calculation_log = result.calculation_details
+                    
+                    # 🎯 更新扣除详情中的社保公积金金额（应用进位规则后的金额）
+                    if hasattr(result, 'updated_deductions_details') and result.updated_deductions_details:
+                        current_deductions = entry.deductions_details or {}
+                        
+                        # 🔍 调试：记录更新前的状态
+                        old_housing_fund = current_deductions.get('HOUSING_FUND_PERSONAL', {}).get('amount', 'N/A')
+                        logger.info(f"🔍 [更新前] 员工 {entry.employee_id} 原住房公积金: {old_housing_fund}")
+                        logger.info(f"🔍 [更新数据] 员工 {entry.employee_id} updated_deductions_details: {result.updated_deductions_details}")
+                        
+                        # 将计算后的进位金额更新到扣除详情中
+                        current_deductions.update(result.updated_deductions_details)
+                        entry.deductions_details = current_deductions
+                        
+                        # 🎯 强制标记JSONB字段已修改，确保SQLAlchemy检测到变化
+                        from sqlalchemy.orm.attributes import flag_modified
+                        flag_modified(entry, 'deductions_details')
+                        
+                        # 🔍 调试：记录更新后的状态
+                        new_housing_fund = current_deductions.get('HOUSING_FUND_PERSONAL', {}).get('amount', 'N/A')
+                        logger.info(f"🔍 [更新后] 员工 {entry.employee_id} 新住房公积金: {new_housing_fund}")
+                        logger.info(f"✅ [更新扣除详情] 员工 {entry.employee_id} 扣除详情已更新，包含进位后的住房公积金金额")
                     
                     success_count += 1
                 except Exception as e:

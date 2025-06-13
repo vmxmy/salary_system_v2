@@ -116,7 +116,8 @@
       "runs": "工资运行",
       "entry": "工资条目",
       "bulkImport": "批量导入",
-      "components": "薪资组件"
+      "components": "薪资组件",
+      "calculationConfig": "计算规则配置"
     },
     "hr": {
       "title": "员工管理",

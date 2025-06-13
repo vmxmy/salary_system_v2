@@ -25,6 +25,39 @@ def get_db_connection():
     conn = psycopg2.connect(**DB_CONFIG)
     return conn
 
+
+def apply_housing_fund_rounding(amount: Decimal) -> Decimal:
+    """
+    公积金特殊进位处理：
+    如果小数部分大于等于 0.1，就进一位取整
+    否则就舍掉小数部分
+    
+    例如：
+    100.1 -> 101
+    100.09 -> 100
+    100.5 -> 101
+    100.0 -> 100
+    
+    Args:
+        amount: 原始计算金额
+        
+    Returns:
+        Decimal: 处理后的金额
+    """
+    # 获取整数部分和小数部分
+    integer_part = amount.to_integral_value(rounding='ROUND_DOWN')
+    decimal_part = amount - integer_part
+    
+    # 如果小数部分 >= 0.1，进一位
+    if decimal_part >= Decimal('0.1'):
+        result = integer_part + Decimal('1')
+    else:
+        # 否则舍去小数部分
+        result = integer_part
+    
+    print(f"🏠 [公积金进位] 原始金额: {amount}, 整数部分: {integer_part}, 小数部分: {decimal_part}, 处理后: {result}")
+    return result
+
 def calculate_social_insurance_and_housing_fund(calculation_month_str: str, employee_name: str = None):
     """
     计算指定月份每个员工的五险一金缴费。
@@ -279,8 +312,12 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 # 确定实际缴费基数（在最低和最高基数之间），并进行四舍五入取整
                 actual_base = max(rates["min_base"], min(rates["max_base"], housing_fund_base)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                 
-                personal_hf_contribution = (actual_base * rates["employee_rate"]).quantize(Decimal('0.01'))
-                employer_hf_contribution = (actual_base * rates["employer_rate"]).quantize(Decimal('0.01'))
+                # 🎯 公积金特殊进位处理：小数部分 >= 0.1 进一位，否则舍去小数
+                raw_personal_hf = actual_base * rates["employee_rate"]
+                raw_employer_hf = actual_base * rates["employer_rate"]
+                
+                personal_hf_contribution = apply_housing_fund_rounding(raw_personal_hf)
+                employer_hf_contribution = apply_housing_fund_rounding(raw_employer_hf)
                 
                 total_personal_contribution += personal_hf_contribution
                 total_employer_contribution += employer_hf_contribution

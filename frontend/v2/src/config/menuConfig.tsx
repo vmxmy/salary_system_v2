@@ -100,6 +100,12 @@ export const menuData: AppMenuDataItem[] = [
         path: '/finance/payroll/components',
         icon: <ProfileOutlined />,
       },
+      {
+        name: '计算规则配置',
+        titleKey: 'menu.payroll.calculationConfig',
+        path: '/finance/payroll/calculation-config',
+        icon: <SettingOutlined />,
+      },
     ],
   },
   {

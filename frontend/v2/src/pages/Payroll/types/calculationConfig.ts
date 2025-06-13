@@ -56,6 +56,8 @@ export interface SocialInsuranceConfig {
   housing_fund_base_min: number;
   housing_fund_base_max: number;
   base_calculation_method: 'BASIC_SALARY' | 'GROSS_SALARY' | 'TOTAL_SALARY' | 'CUSTOM';
+  applicable_personnel_categories?: number[];
+  personnel_category_names?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;

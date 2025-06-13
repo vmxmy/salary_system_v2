@@ -162,54 +162,30 @@ class IntegratedPayrollCalculator:
             result.gross_pay = gross_pay
             logger.info(f"💚 [应发合计] 总应发: {result.gross_pay}")
             
-            # 2.2 计算其他扣除项（不含社保公积金，避免重复计算）
-            logger.info(f"📊 [其他扣除] 开始计算其他扣除项...")
+            # 2.2 直接获取个人所得税（不计算其他扣除）
+            logger.info(f"💰 [个税获取] 从原始数据中获取个人所得税...")
             
-            # 🎯 定义五险一金相关的字段，需要过滤掉避免重复计算
-            social_insurance_fields = {
-                'HOUSING_FUND_EMPLOYER', 'HOUSING_FUND_PERSONAL',
-                'PENSION_EMPLOYER_AMOUNT', 'PENSION_PERSONAL_AMOUNT',
-                'MEDICAL_INS_EMPLOYER_TOTAL', 'MEDICAL_INS_PERSONAL_TOTAL',
-                'MEDICAL_INS_EMPLOYER_AMOUNT', 'MEDICAL_INS_PERSONAL_AMOUNT',
-                'UNEMPLOYMENT_EMPLOYER_AMOUNT', 'UNEMPLOYMENT_PERSONAL_AMOUNT',
-                'INJURY_EMPLOYER_AMOUNT', 'INJURY_PERSONAL_AMOUNT',
-                'SERIOUS_ILLNESS_EMPLOYER_AMOUNT', 'SERIOUS_ILLNESS_PERSONAL_AMOUNT',
-                'OCCUPATIONAL_PENSION_EMPLOYER_AMOUNT', 'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
-                'MATERNITY_EMPLOYER_AMOUNT', 'MATERNITY_PERSONAL_AMOUNT'
-            }
+            personal_income_tax = Decimal('0.00')
+            # 🎯 直接获取个人所得税，忽略其他所有扣除项目
+            tax_data = deductions_data.get('PERSONAL_INCOME_TAX', {})
+            if isinstance(tax_data, dict) and 'amount' in tax_data:
+                personal_income_tax = Decimal(str(tax_data['amount']))
+                logger.info(f"💰 [个税] 获取到个人所得税: {personal_income_tax}")
+            elif isinstance(tax_data, (int, float, Decimal)):
+                personal_income_tax = Decimal(str(tax_data))
+                logger.info(f"💰 [个税] 获取到个人所得税: {personal_income_tax}")
+            else:
+                logger.info(f"💰 [个税] 未找到个人所得税数据，默认为 0")
             
-            other_deductions = Decimal('0.00')
-            filtered_count = 0
-            
-            for key, value in deductions_data.items():
-                # 🎯 过滤掉五险一金相关项目，避免重复计算
-                if key in social_insurance_fields:
-                    filtered_count += 1
-                    logger.info(f"🚫 [过滤五险一金] {key}: 跳过，避免重复计算")
-                    continue
-                
-                if isinstance(value, dict) and 'amount' in value:
-                    amount = Decimal(str(value['amount']))
-                    other_deductions += amount
-                    logger.info(f"📉 [其他扣除项目] {key}: {amount} (字典格式)")
-                elif isinstance(value, (int, float, Decimal)):
-                    amount = Decimal(str(value))
-                    other_deductions += amount
-                    logger.info(f"📉 [其他扣除项目] {key}: {amount} (数值格式)")
-                else:
-                    logger.warning(f"⚠️ [其他扣除项目] {key}: 无法识别的格式 {type(value)} = {value}")
-            
-            logger.info(f"📉 [其他扣除合计] 过滤{filtered_count}个五险一金项目后，其他扣除: {other_deductions}")
-            
-            # 2.3 计算扣发合计（其他扣除 + 个人五险一金）
+            # 2.3 计算扣发合计（个人所得税 + 个人五险一金）
             logger.info(f"📊 [扣发计算] 开始计算扣发合计...")
             personal_social_insurance_total = result.social_insurance_employee + result.housing_fund_employee
             logger.info(f"🏦 [个人社保公积金] 个人社保: {result.social_insurance_employee}")
             logger.info(f"🏦 [个人社保公积金] 个人公积金: {result.housing_fund_employee}")
             logger.info(f"🏦 [个人社保公积金] 个人五险一金合计: {personal_social_insurance_total}")
             
-            result.total_deductions = other_deductions + personal_social_insurance_total
-            logger.info(f"📉 [扣发合计] 其他扣除({other_deductions}) + 个人五险一金({personal_social_insurance_total}) = {result.total_deductions}")
+            result.total_deductions = personal_income_tax + personal_social_insurance_total
+            logger.info(f"📉 [扣发合计] 个人所得税({personal_income_tax}) + 个人五险一金({personal_social_insurance_total}) = {result.total_deductions}")
             
             # 2.4 计算实发合计
             logger.info(f"📊 [实发计算] 开始计算实发合计...")
@@ -219,18 +195,54 @@ class IntegratedPayrollCalculator:
             # 检查实发是否为负数
             if result.net_pay < 0:
                 logger.error(f"🚨 [异常检测] 实发为负数! 应发={result.gross_pay}, 扣发={result.total_deductions}, 实发={result.net_pay}")
-                logger.error(f"🚨 [扣发明细] 其他扣除={other_deductions}, 个人五险一金={personal_social_insurance_total}")
+                logger.error(f"🚨 [扣发明细] 个人所得税={personal_income_tax}, 个人五险一金={personal_social_insurance_total}")
             
             # 2.5 单位成本合计在汇总信息中体现（应发 + 单位五险一金）
             employer_social_insurance_total = result.social_insurance_employer + result.housing_fund_employer
             logger.info(f"🏢 [单位成本] 单位五险一金合计: {employer_social_insurance_total}")
             logger.info(f"🏢 [单位成本] 单位总成本: {result.gross_pay + employer_social_insurance_total}")
             
-            # 第三步：构建详细计算信息
+            # 第三步：更新扣除详情中的社保公积金金额（应用进位规则后的金额）
+            # 🎯 注意：只保存个人应缴费用，单位费用不应计入个人扣发
+            updated_deductions_details = {}
+            if hasattr(result, 'social_insurance_components') and result.social_insurance_components:
+                for component in result.social_insurance_components:
+                    if component.insurance_type == "HOUSING_FUND":
+                        # 🏠 公积金使用进位处理后的金额 - 只保存个人部分
+                        updated_deductions_details["HOUSING_FUND_PERSONAL"] = {
+                            "amount": int(component.employee_amount),  # 进位后应该是整数，直接转int
+                            "name": "住房公积金个人应缴费额",
+                            "rate": float(component.employee_rate)
+                        }
+                        # ❌ 删除单位费用，不应计入个人扣发
+                        # updated_deductions_details["HOUSING_FUND_EMPLOYER"] = ...
+                    else:
+                        # 🏥 其他险种使用标准金额 - 只保存个人部分
+                        personal_key = f"{component.insurance_type}_PERSONAL_AMOUNT"
+                        # ❌ 删除单位费用，不应计入个人扣发
+                        # employer_key = f"{component.insurance_type}_EMPLOYER_AMOUNT"
+                        
+                        updated_deductions_details[personal_key] = {
+                            "amount": float(component.employee_amount),
+                            "name": f"{component.component_name}个人应缴费额",
+                            "rate": float(component.employee_rate)
+                        }
+                        # ❌ 删除单位费用，不应计入个人扣发
+                        # updated_deductions_details[employer_key] = ...
+            
+            # 保存更新后的扣除详情以便保存到数据库
+            result.updated_deductions_details = updated_deductions_details
+            
+            # 🔍 调试日志：记录更新的扣除详情
+            logger.info(f"🔍 [扣除详情更新] 员工 {employee_id} updated_deductions_details: {updated_deductions_details}")
+            if 'HOUSING_FUND_PERSONAL' in updated_deductions_details:
+                logger.info(f"🏠 [住房公积金详情] 员工 {employee_id} 个人公积金: {updated_deductions_details['HOUSING_FUND_PERSONAL']}")
+            
+            # 第四步：构建详细计算信息
             result.calculation_details.update({
-                'calculation_order': '先计算五险一金，再汇总',
+                'calculation_order': '扣发合计=五险一金+个税',
                 'gross_pay': float(result.gross_pay),
-                'other_deductions': float(other_deductions),
+                'personal_income_tax': float(personal_income_tax),
                 'social_insurance_employee': float(result.social_insurance_employee),
                 'social_insurance_employer': float(result.social_insurance_employer),
                 'housing_fund_employee': float(result.housing_fund_employee),
@@ -241,7 +253,7 @@ class IntegratedPayrollCalculator:
                 'net_pay': float(result.net_pay),
                 'total_employer_cost': float(result.gross_pay + employer_social_insurance_total),
                 'calculation_time': datetime.now().isoformat(),
-                'engine_version': 'integrated_v2.0_correct_order'
+                'engine_version': 'integrated_v2.2_minimal_deductions'  # 🎯 更新版本号
             })
             
             logger.info(f"✅ [集成计算完成] 员工 {employee_id} - 应发: {result.gross_pay}, 扣发: {result.total_deductions}, 实发: {result.net_pay}")
@@ -490,7 +502,7 @@ class IntegratedPayrollCalculator:
             },
             'calculation_metadata': {
                 'calculation_date': datetime.now().isoformat(),
-                'engine_version': 'integrated_v2.0_correct_order',
-                'calculation_order': '先计算五险一金，再汇总各项金额'
+                'engine_version': 'integrated_v2.2_minimal_deductions',
+                'calculation_order': '扣发合计=五险一金+个税'
             }
         } 

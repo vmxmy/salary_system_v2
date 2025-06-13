@@ -185,6 +185,9 @@ async def update_comprehensive_social_insurance_config(
 
         for config in existing_configs:
             db.delete(config)
+        
+        # 🎯 立即刷新删除操作，确保在创建新配置前删除已生效
+        db.flush()
 
         # 重新创建配置
         created_configs = []

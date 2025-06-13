@@ -249,6 +249,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         return record.姓名.toString().toLowerCase().includes((value as string).toLowerCase());
       },
     },
+
     {
       title: '部门',
       dataIndex: '部门名称',

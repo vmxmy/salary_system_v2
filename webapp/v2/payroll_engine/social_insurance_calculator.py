@@ -322,8 +322,18 @@ class SocialInsuranceCalculator:
         
         logger.info(f"💰 [缴费基数] {insurance_type}: 原始基数={base_amount}, 最低={applicable_rate['min_base']}, 最高={applicable_rate['max_base']}, 实际基数={actual_base}")
         
-        employee_amount = (actual_base * applicable_rate["employee_rate"]).quantize(Decimal('0.01'))
-        employer_amount = (actual_base * applicable_rate["employer_rate"]).quantize(Decimal('0.01'))
+        # 🎯 计算缴费金额 - 根据不同险种使用不同的舍入规则
+        raw_employee_amount = actual_base * applicable_rate["employee_rate"]
+        raw_employer_amount = actual_base * applicable_rate["employer_rate"]
+        
+        if insurance_type == "HOUSING_FUND":
+            # 🏠 公积金特殊进位处理：小数部分 >= 0.1 进一位，否则舍去小数
+            employee_amount = self._apply_housing_fund_rounding(raw_employee_amount)
+            employer_amount = self._apply_housing_fund_rounding(raw_employer_amount)
+        else:
+            # 其他险种使用标准的两位小数舍入
+            employee_amount = raw_employee_amount.quantize(Decimal('0.01'))
+            employer_amount = raw_employer_amount.quantize(Decimal('0.01'))
         
         logger.info(f"💰 [缴费计算] {insurance_type}: 个人缴费={employee_amount} (费率={applicable_rate['employee_rate']:.4f}), 单位缴费={employer_amount} (费率={applicable_rate['employer_rate']:.4f})")
         
@@ -344,6 +354,38 @@ class SocialInsuranceCalculator:
             config_name=applicable_rate["config_name"]
         )
     
+    def _apply_housing_fund_rounding(self, amount: Decimal) -> Decimal:
+        """
+        公积金特殊进位处理：
+        如果小数部分大于等于 0.1，就进一位取整
+        否则就舍掉小数部分
+        
+        例如：
+        100.1 -> 101
+        100.09 -> 100
+        100.5 -> 101
+        100.0 -> 100
+        
+        Args:
+            amount: 原始计算金额
+            
+        Returns:
+            Decimal: 处理后的金额
+        """
+        # 获取整数部分和小数部分
+        integer_part = amount.to_integral_value(rounding='ROUND_DOWN')
+        decimal_part = amount - integer_part
+        
+        # 如果小数部分 >= 0.1，进一位
+        if decimal_part >= Decimal('0.1'):
+            result = integer_part + Decimal('1')
+        else:
+            # 否则舍去小数部分
+            result = integer_part
+        
+        logger.info(f"🏠 [公积金进位] 原始金额: {amount}, 整数部分: {integer_part}, 小数部分: {decimal_part}, 处理后: {result}")
+        return result
+
     def _get_component_name(self, insurance_type: str) -> str:
         """获取组件中文名称"""
         name_mapping = {
