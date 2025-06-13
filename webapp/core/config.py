@@ -56,19 +56,10 @@ class Settings(BaseSettings):
         if self.CORS_ORIGINS_STRING:
             self.CORS_ORIGINS = [origin.strip() for origin in self.CORS_ORIGINS_STRING.split(',')]
         else:
-            self.CORS_ORIGINS = [
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://10.10.10.16:5173",
-                "http://10.31.59.108:5173",
-                "http://localhost:8080",
-                "http://127.0.0.1:8080",
-                "http://10.31.59.108:8080",
-                "http://172.28.97.217:5173",
-                "http://salary.ziikoo.com",
-                "https://salary.ziikoo.com",
-            ]
+            # 如果没有设置环境变量，使用空列表（需要通过环境变量配置）
+            self.CORS_ORIGINS = []
+            print("⚠️  警告: 未设置 CORS_ORIGINS_STRING 环境变量，CORS 将不允许任何跨域请求")
+            print("   请在 .env 文件中设置 CORS_ORIGINS_STRING 环境变量")
 
     # 文件上传设置
     UPLOAD_DIR: str = "/tmp/salary_uploads"

@@ -268,12 +268,33 @@ class PayrollGenerationService:
             logger.info(f"✅ [复制工资数据] 找到源工资运行: ID={source_run.id}, 运行日期={source_run.run_date}, 状态ID={source_run.status_lookup_value_id}")
             
             # 🎯 修改逻辑：优先使用现有工资运行，而不是总是创建新的
-            target_run = self.db.query(PayrollRun).filter(
+            # 使用最新的工资运行记录，并清理可能的重复记录
+            target_runs = self.db.query(PayrollRun).filter(
                 PayrollRun.payroll_period_id == target_period_id
-            ).first()
-            
-            if target_run:
+            ).order_by(desc(PayrollRun.created_at)).all()
+
+            if target_runs:
+                # 如果存在多条记录，保留最新的，删除旧的
+                target_run = target_runs[0]  # 最新的记录
+                
+                if len(target_runs) > 1:
+                    logger.warning(f"⚠️ [复制工资数据] 发现期间 {target_period_id} 存在 {len(target_runs)} 条工资运行记录，保留最新记录ID={target_run.id}，清理旧记录")
+                    
+                    # 删除旧的工资运行记录及其相关条目
+                    for old_run in target_runs[1:]:
+                        logger.info(f"🗑️ [复制工资数据] 删除旧工资运行: ID={old_run.id}")
+                        # 先删除相关的工资条目
+                        self.db.query(PayrollEntry).filter(
+                            PayrollEntry.payroll_run_id == old_run.id
+                        ).delete()
+                        # 再删除工资运行记录
+                        self.db.delete(old_run)
+                    
+                    self.db.commit()
+                    logger.info(f"✅ [复制工资数据] 已清理 {len(target_runs) - 1} 条重复的工资运行记录")
+                
                 logger.info(f"✅ [复制工资数据] 使用现有工资运行: ID={target_run.id}, 期间ID={target_period_id}")
+                
                 # 清空现有工资条目（如果有的话）
                 existing_entries_count = self.db.query(PayrollEntry).filter(
                     PayrollEntry.payroll_run_id == target_run.id
@@ -285,6 +306,7 @@ class PayrollGenerationService:
                     ).delete()
                     self.db.commit()
                     logger.info(f"✅ [复制工资数据] 已清理现有工资条目")
+                
                 # 重置工资运行状态为待计算
                 target_run.status_lookup_value_id = 60
                 target_run.run_date = datetime.now().date()

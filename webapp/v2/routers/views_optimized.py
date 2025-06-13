@@ -69,37 +69,85 @@ async def get_payroll_component_definitions_optimized(
     db: Session = Depends(get_db_v2)
     # ⚡️ 已无权限验证，保持现状
 ):
-    """🚀 高性能薪资组件定义查询 - 简化版"""
+    """🚀 高性能薪资组件定义查询 - 超级优化版"""
+    import time
+    start_time = time.time()
+    
     try:
-        query = text("""
+        # 🚀 使用最简单的原生SQL，减少开销
+        query = """
             SELECT 
                 id, code, name, type as component_type, is_active, 
                 display_order, calculation_method, is_taxable,
                 is_social_security_base, is_housing_fund_base
             FROM config.payroll_component_definitions
-            WHERE (:is_active IS NULL OR is_active = :is_active)
-              AND (:component_type IS NULL OR type = :component_type)
+            WHERE ($1::boolean IS NULL OR is_active = $1)
+              AND ($2::text IS NULL OR type = $2)
             ORDER BY display_order ASC, code ASC
-            LIMIT :size
-        """)
+            LIMIT $3
+        """
         
-        result = db.execute(query, {
-            "is_active": is_active,
-            "component_type": component_type,
-            "size": size
-        })
+        # 🚀 直接使用psycopg2连接，跳过SQLAlchemy开销
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
         
-        components = [dict(row._mapping) for row in result]
+        # 从SQLAlchemy获取连接字符串
+        db_url = str(db.bind.url)
+        # 转换为psycopg2格式
+        psycopg2_url = db_url.replace('postgresql+psycopg2://', 'postgresql://')
+        
+        with psycopg2.connect(psycopg2_url) as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query, (is_active, component_type, size))
+                components = [dict(row) for row in cur.fetchall()]
+        
+        execution_time = (time.time() - start_time) * 1000
+        logger.info(f"🚀 薪资组件定义查询优化版执行时间: {execution_time:.2f}ms")
         
         return OptimizedResponse(
             success=True,
             data=components,
-            message=f"成功获取 {len(components)} 个薪资组件定义"
+            message=f"成功获取 {len(components)} 个薪资组件定义 (耗时: {execution_time:.1f}ms)"
         )
         
     except Exception as e:
-        logger.error(f"获取薪资组件定义失败: {e}")
-        raise HTTPException(status_code=500, detail=f"获取薪资组件定义失败: {str(e)}")
+        execution_time = (time.time() - start_time) * 1000
+        logger.error(f"❌ 获取薪资组件定义失败 (耗时: {execution_time:.2f}ms): {e}")
+        
+        # 降级到原SQLAlchemy方案
+        try:
+            query = text("""
+                SELECT 
+                    id, code, name, type as component_type, is_active, 
+                    display_order, calculation_method, is_taxable,
+                    is_social_security_base, is_housing_fund_base
+                FROM config.payroll_component_definitions
+                WHERE (:is_active IS NULL OR is_active = :is_active)
+                  AND (:component_type IS NULL OR type = :component_type)
+                ORDER BY display_order ASC, code ASC
+                LIMIT :size
+            """)
+            
+            result = db.execute(query, {
+                "is_active": is_active,
+                "component_type": component_type,
+                "size": size
+            })
+            
+            components = [dict(row._mapping) for row in result]
+            
+            fallback_time = (time.time() - start_time) * 1000
+            logger.warning(f"⚠️ 降级到SQLAlchemy方案 (耗时: {fallback_time:.2f}ms)")
+            
+            return OptimizedResponse(
+                success=True,
+                data=components,
+                message=f"成功获取 {len(components)} 个薪资组件定义 (降级方案)"
+            )
+            
+        except Exception as fallback_error:
+            logger.error(f"💥 降级方案也失败: {fallback_error}")
+            raise HTTPException(status_code=500, detail=f"获取薪资组件定义失败: {str(fallback_error)}")
 
 @router.get("/lookup-values-public")
 async def get_lookup_values_public_optimized(
