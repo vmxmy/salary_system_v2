@@ -104,7 +104,7 @@ def test_deduction_calculation():
     print(f"\n📈 计算结果:")
     print(f"  个人扣缴合计: {total_personal_deductions}")
     print(f"  单位扣缴合计: {total_employer_deductions}")
-    print(f"  扣发合计（应发工资中扣除）: {total_personal_deductions}")
+    print(f"  扣发合计（应发合计中扣除）: {total_personal_deductions}")
     print(f"  企业成本（单位承担）: {total_employer_deductions}")
     
     # 验证计算逻辑
@@ -123,7 +123,7 @@ def test_payroll_calculation():
     # 模拟薪资数据
     test_payroll = {
         "employee_name": "张三",
-        "gross_pay": 10000,  # 应发工资
+        "gross_pay": 10000,  # 应发合计
         "earnings_details": {
             "BASIC_SALARY": {"name": "基本工资", "amount": 6000},
             "PERFORMANCE_SALARY": {"name": "绩效工资", "amount": 3000},
@@ -143,22 +143,22 @@ def test_payroll_calculation():
     # 计算个人扣缴
     personal_deductions = 500 + 800 + 600  # 1900
     
-    # 计算实发工资
+    # 计算实发合计
     net_pay = test_payroll["gross_pay"] - personal_deductions  # 10000 - 1900 = 8100
     
     print(f"📊 薪资计算示例:")
     print(f"  员工: {test_payroll['employee_name']}")
-    print(f"  应发工资: {test_payroll['gross_pay']}")
+    print(f"  应发合计: {test_payroll['gross_pay']}")
     print(f"  个人扣缴: {personal_deductions}")
-    print(f"  实发工资: {net_pay}")
+    print(f"  实发合计: {net_pay}")
     print(f"  单位成本: {1200 + 600} (不影响员工实发)")
     
     # 验证计算
     expected_net_pay = 8100
     if net_pay == expected_net_pay:
-        print(f"✅ 实发工资计算正确: {net_pay}")
+        print(f"✅ 实发合计计算正确: {net_pay}")
     else:
-        print(f"❌ 实发工资计算错误: 期望 {expected_net_pay}, 实际 {net_pay}")
+        print(f"❌ 实发合计计算错误: 期望 {expected_net_pay}, 实际 {net_pay}")
     
     print("✅ 完整薪资计算测试完成\n")
 
@@ -176,7 +176,7 @@ def main():
         print("\n📋 测试总结:")
         print("1. ✅ 前端映射：EMPLOYER_DEDUCTION 正确映射到 deductions_details")
         print("2. ✅ 计算逻辑：扣发合计只包含个人扣缴部分")
-        print("3. ✅ 业务逻辑：单位扣缴不影响员工实发工资")
+        print("3. ✅ 业务逻辑：单位扣缴不影响员工实发合计")
         print("4. ✅ 数据分离：个人扣缴和单位扣缴正确区分")
         
     except Exception as e:

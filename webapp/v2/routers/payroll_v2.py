@@ -415,8 +415,8 @@ async def get_employee_salary_history_v2(
     department_id: Optional[int] = Query(None, description="部门ID"),
     start_date: Optional[str] = Query(None, description="开始日期 (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="结束日期 (YYYY-MM-DD)"),
-    min_gross_pay: Optional[float] = Query(None, description="最低应发工资"),
-    max_gross_pay: Optional[float] = Query(None, description="最高应发工资"),
+    min_gross_pay: Optional[float] = Query(None, description="最低应发合计"),
+    max_gross_pay: Optional[float] = Query(None, description="最高应发合计"),
     
     # 分页参数
     page: int = Query(1, ge=1, description="页码"),

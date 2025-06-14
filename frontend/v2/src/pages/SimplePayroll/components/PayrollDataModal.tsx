@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Modal, message, Button, Space, Input, Card, Collapse, Switch, Tag, Select, InputNumber, Divider } from 'antd';
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { payrollViewsApi, type ComprehensivePayrollDataView } from '../../Payroll/services/payrollViewsApi';
 import PayrollEntryDetailModal from '../../Payroll/components/PayrollEntryDetailModal';
@@ -442,7 +442,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         generatedColumns.push({
           title: t('common:table.actions'),
           key: 'action',
-          width: 120,
+          width: 160,
           fixed: 'right',
           render: (_, record) => (
             <Space>
@@ -457,6 +457,15 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                 onClick={() => handleEdit(record)}
                 tooltipTitle={t('common:button.edit')}
                 actionType="edit"
+              />
+              <TableActionButton
+                icon={<DeleteOutlined />}
+                onClick={() => {
+                  console.log('删除记录:', record);
+                  message.warning('删除功能开发中...');
+                }}
+                tooltipTitle={t('common:button.delete')}
+                actionType="delete"
               />
             </Space>
           ),
@@ -611,29 +620,38 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         return column;
       });
 
-      // 添加操作列
-      generatedColumns.push({
-        title: t('common:table.actions'),
-        key: 'action',
-        width: 120,
-        fixed: 'right',
-        render: (_, record) => (
-          <Space>
-            <TableActionButton
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-              tooltipTitle={t('common:tooltip.view_details')}
-              actionType="view"
-            />
-            <TableActionButton
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-              tooltipTitle={t('common:button.edit')}
-              actionType="edit"
-            />
-          </Space>
-        ),
-      });
+              // 添加操作列
+        generatedColumns.push({
+          title: t('common:table.actions'),
+          key: 'action',
+          width: 160,
+          fixed: 'right',
+          render: (_, record) => (
+            <Space>
+              <TableActionButton
+                icon={<EyeOutlined />}
+                onClick={() => handleViewDetail(record)}
+                tooltipTitle={t('common:tooltip.view_details')}
+                actionType="view"
+              />
+              <TableActionButton
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+                tooltipTitle={t('common:button.edit')}
+                actionType="edit"
+              />
+              <TableActionButton
+                icon={<DeleteOutlined />}
+                onClick={() => {
+                  console.log('删除记录:', record);
+                  message.warning('删除功能开发中...');
+                }}
+                tooltipTitle={t('common:button.delete')}
+                actionType="delete"
+              />
+            </Space>
+          ),
+        });
       
       setDynamicColumns(generatedColumns);
     }
@@ -1103,18 +1121,42 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         scroll={{ x: 'max-content' }}
         size="small"
         cardBordered
-        tableAlertRender={({ selectedRowKeys, selectedRows }) => (
+        tableAlertRender={({ selectedRowKeys, selectedRows, onCleanSelected }) => (
           selectedRowKeys.length > 0 && (
             <div>
               已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
               &nbsp;&nbsp;
               <span>
-                应发合计: ¥{selectedRows.reduce((sum, row) => sum + (row.应发合计 || 0), 0).toFixed(2)}
+                应发合计: ¥{selectedRows.reduce((sum, row) => {
+                  const value = row.应发合计;
+                  const numValue = typeof value === 'number' ? value : (typeof value === 'string' ? parseFloat(value) : 0);
+                  return sum + (isNaN(numValue) ? 0 : numValue);
+                }, 0).toFixed(2)}
                 &nbsp;&nbsp;
-                实发合计: ¥{selectedRows.reduce((sum, row) => sum + (row.实发合计 || 0), 0).toFixed(2)}
+                实发合计: ¥{selectedRows.reduce((sum, row) => {
+                  const value = row.实发合计;
+                  const numValue = typeof value === 'number' ? value : (typeof value === 'string' ? parseFloat(value) : 0);
+                  return sum + (isNaN(numValue) ? 0 : numValue);
+                }, 0).toFixed(2)}
               </span>
             </div>
           )
+        )}
+        tableAlertOptionRender={({ selectedRowKeys, onCleanSelected }) => (
+          <div>
+            <a 
+              onClick={() => {
+                // 批量删除逻辑
+                console.log('批量删除选中的记录:', selectedRowKeys);
+                message.warning('批量删除功能开发中...');
+              }}
+              style={{ color: '#ff4d4f' }}
+            >
+              批量删除
+            </a>
+            &nbsp;&nbsp;
+            <a onClick={onCleanSelected}>取消选择</a>
+          </div>
         )}
         rowSelection={{
           type: 'checkbox',

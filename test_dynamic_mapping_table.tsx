@@ -59,7 +59,7 @@ const TestDynamicMappingTable: React.FC = () => {
       required: false
     },
     {
-      sourceField: '应发工资',
+      sourceField: '应发合计',
       targetField: '__CALCULATED_FIELD__',
       confidence: 0.80,
       category: 'calculated',

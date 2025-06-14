@@ -971,29 +971,171 @@ async def get_views_stats_summary(
 
 class ComprehensivePayrollDataResponse(BaseModel):
     """核心工资数据响应模型 - 基于 reports.v_comprehensive_employee_payroll 视图"""
-    # 基础信息
+    # 使用索引签名来动态接受所有字段
+    # 注意：这在Pydantic v1中不支持，但可以改造数据处理逻辑来实现
+    class Config:
+        extra = "allow"
+
+    # 核心基础信息
     薪资条目id: Optional[int] = None
     员工id: Optional[int] = None
+    薪资期间id: Optional[int] = None
+    薪资运行id: Optional[int] = None
+    员工编号: Optional[str] = None
+    名: Optional[str] = None
+    姓: Optional[str] = None
     姓名: Optional[str] = None
+    身份证号: Optional[str] = None
+    电话: Optional[str] = None
+    邮箱: Optional[str] = None
+    入职日期: Optional[Any] = None
+    员工状态: Optional[str] = None
     部门名称: Optional[str] = None
+    职位名称: Optional[str] = None
     人员类别: Optional[str] = None
     根人员类别: Optional[str] = None
-    职位名称: Optional[str] = None
-    
-    # 工资汇总
-    应发合计: Optional[float] = Field(default=0.0)
-    扣除合计: Optional[float] = Field(default=0.0)
-    实发合计: Optional[float] = Field(default=0.0)
-    
-    # 社保个人缴费
-    养老保险个人应缴费额: Optional[float] = Field(default=0.0)
-    医疗保险个人应缴费额: Optional[float] = Field(default=0.0)
-    职业年金个人应缴费额: Optional[float] = Field(default=0.0)
-    失业保险个人应缴费额: Optional[float] = Field(default=0.0)
-    住房公积金个人应缴费额: Optional[float] = Field(default=0.0)
-    
-    # 个税
-    个人所得税: Optional[float] = Field(default=0.0)
+    部门id: Optional[int] = None
+    实际职位id: Optional[int] = None
+    人员类别id: Optional[int] = None
+    社保客户号: Optional[str] = None
+    住房公积金客户号: Optional[str] = None
+    薪资期间名称: Optional[str] = None
+    薪资期间开始日期: Optional[Any] = None
+    薪资期间结束日期: Optional[Any] = None
+    薪资发放日期: Optional[Any] = None
+    薪资运行日期: Optional[Any] = None
+    应发合计: Optional[float] = None
+    扣除合计: Optional[float] = None
+    实发合计: Optional[float] = None
+    月奖励绩效: Optional[float] = None
+    基本工资: Optional[float] = None
+    独生子女父母奖励金: Optional[float] = None
+    公务交通补贴: Optional[float] = None
+    duty_technical_grade_salary: Optional[float] = Field(None, alias='职务/技术等级工资')
+    奖励性绩效工资: Optional[float] = None
+    level_post_grade_salary: Optional[float] = Field(None, alias='级别/岗位级别工资')
+    基础绩效奖: Optional[float] = None
+    岗位工资: Optional[float] = None
+    基础性绩效工资: Optional[float] = None
+    补发工资: Optional[float] = None
+    岗位职务补贴: Optional[float] = None
+    级别工资: Optional[float] = None
+    绩效工资: Optional[float] = None
+    薪级工资: Optional[float] = None
+    补助: Optional[float] = None
+    月基础绩效: Optional[float] = None
+    信访工作人员岗位工作津贴: Optional[float] = None
+    津贴: Optional[float] = None
+    季度绩效考核薪酬: Optional[float] = None
+    九三年工改保留津补贴: Optional[float] = None
+    奖励绩效补发: Optional[float] = None
+    公务员规范后津补贴: Optional[float] = None
+    试用期工资: Optional[float] = None
+    事业单位人员薪级工资: Optional[float] = None
+    乡镇工作补贴: Optional[float] = None
+    一次性补扣发: Optional[float] = None
+    中小学教师或护士保留原额百分之十工资: Optional[float] = None
+    中小学教师或护士提高百分之十: Optional[float] = None
+    人民警察值勤岗位津贴: Optional[float] = None
+    人民警察加班补贴: Optional[float] = None
+    住房补贴: Optional[float] = None
+    公务员十三月奖励工资: Optional[float] = None
+    公安岗位津贴: Optional[float] = None
+    公安执勤津贴: Optional[float] = None
+    公安法定工作日之外加班补贴: Optional[float] = None
+    公检法艰苦边远地区津贴: Optional[float] = None
+    卫生九三年工改保留津补贴: Optional[float] = None
+    卫生援藏津贴: Optional[float] = None
+    卫生独生子女费: Optional[float] = None
+    回民补贴: Optional[float] = None
+    国家规定的其他津补贴项目: Optional[float] = None
+    工作性津贴: Optional[float] = None
+    年度考核奖: Optional[float] = None
+    护龄津贴: Optional[float] = None
+    援藏津贴: Optional[float] = None
+    政法委机关工作津贴: Optional[float] = None
+
+    教龄津贴: Optional[float] = None
+    月奖励绩效津贴: Optional[float] = None
+    法医毒物化验人员保健津贴: Optional[float] = None
+    法检基础性绩效津补贴: Optional[float] = None
+    法院检察院工改保留津贴: Optional[float] = None
+    法院检察院执勤津贴: Optional[float] = None
+    法院检察院规范津补贴: Optional[float] = None
+    特级教师津贴: Optional[float] = None
+    特殊岗位津贴: Optional[float] = None
+    生活性津贴: Optional[float] = None
+    老粮贴: Optional[float] = None
+    纪检津贴: Optional[float] = None
+    纪委监委机构改革保留补贴: Optional[float] = None
+    绩效奖: Optional[float] = None
+    绩效工资补发: Optional[float] = None
+    补发津贴: Optional[float] = None
+    警衔津贴: Optional[float] = None
+    艰苦边远地区津贴: Optional[float] = None
+    q1_performance_bonus: Optional[float] = Field(None, alias='1季度绩效考核薪酬')
+    个人所得税: Optional[float] = None
+    养老保险个人应缴费额: Optional[float] = None
+    医疗保险个人应缴总额: Optional[float] = None
+    医疗保险个人应缴费额: Optional[float] = None
+    失业保险个人应缴费额: Optional[float] = None
+    职业年金个人应缴费额: Optional[float] = None
+    奖励绩效补扣发: Optional[float] = None
+    住房公积金个人应缴费额: Optional[float] = None
+    绩效奖金补扣发: Optional[float] = None
+    补扣社保: Optional[float] = None
+    deduct_refund_amount: Optional[float] = Field(None, alias='补扣（退）款')
+    补扣2022年医保款: Optional[float] = None
+    养老保险单位应缴费额: Optional[float] = None
+    医疗保险单位应缴总额: Optional[float] = None
+    医疗保险单位应缴费额: Optional[float] = None
+    大病医疗单位应缴费额: Optional[float] = None
+    失业保险单位应缴费额: Optional[float] = None
+    工伤保险单位应缴费额: Optional[float] = None
+    职业年金单位应缴费额: Optional[float] = None
+    住房公积金单位应缴费额: Optional[float] = None
+    养老保险缴费基数: Optional[float] = None
+    医疗保险缴费基数: Optional[float] = None
+    医疗保险缴费工资: Optional[float] = None
+    职业年金缴费基数: Optional[float] = None
+    职业年金缴费工资: Optional[float] = None
+    计税基数: Optional[float] = None
+    住房公积金缴费基数: Optional[float] = None
+    养老保险个人缴费费率: Optional[float] = None
+    养老保险单位缴费费率: Optional[float] = None
+    医疗保险个人缴费费率: Optional[float] = None
+    医疗保险单位缴纳费率: Optional[float] = None
+    大病医疗单位缴费费率: Optional[float] = None
+    失业保险个人缴费费率: Optional[float] = None
+    失业保险单位缴费费率: Optional[float] = None
+    工伤保险单位缴费费率: Optional[float] = None
+    职业年金个人费率: Optional[float] = None
+    职业年金单位缴费费率: Optional[float] = None
+    适用税率: Optional[float] = None
+    住房公积金个人缴费比例: Optional[float] = None
+    住房公积金单位缴费比例: Optional[float] = None
+    免税额: Optional[float] = None
+    应纳税所得额: Optional[float] = None
+    扣除额: Optional[float] = None
+    税后工资: Optional[float] = None
+    速算扣除数: Optional[float] = None
+    工资统发: Optional[bool] = None
+    财政供养: Optional[bool] = None
+    固定薪酬全年应发数: Optional[float] = None
+    状态id: Optional[int] = None
+    备注: Optional[str] = None
+    审计状态: Optional[str] = None
+    审计时间: Optional[Any] = None
+    审计员id: Optional[int] = None
+    审计备注: Optional[str] = None
+    版本号: Optional[int] = None
+    计算时间: Optional[Any] = None
+    更新时间: Optional[Any] = None
+    原始应发明细: Optional[Any] = None
+    原始扣除明细: Optional[Any] = None
+    原始计算输入: Optional[Any] = None
+    原始计算日志: Optional[Any] = None
+
 
 @router.get("/comprehensive-payroll-data", response_model=List[ComprehensivePayrollDataResponse])
 async def get_comprehensive_payroll_data(
@@ -1009,9 +1151,7 @@ async def get_comprehensive_payroll_data(
     获取核心工资数据 - 用于快捷操作浏览工资数据
     
     使用 reports.v_comprehensive_employee_payroll 核心视图
-    返回字段按照用户要求的顺序：姓名、部门、人员身份、职位、应发合计、扣除合计、实发合计、
-    养老保险个人应缴费额、医疗保险个人应缴费额、职业年金个人应缴费额、失业保险个人应缴费额、
-    住房公积金个人应缴费额、个人所得税
+    返回该视图的所有字段
     """
     try:
         conditions = []
@@ -1031,24 +1171,9 @@ async def get_comprehensive_payroll_data(
             
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
         
+        # 选择所有列
         query = f"""
-        SELECT 
-            "薪资条目id",
-            "员工id",
-            "姓名",
-            "部门名称",
-            "人员类别",
-            "根人员类别",
-            "职位名称",
-            COALESCE("应发合计", 0) as "应发合计",
-            COALESCE("扣除合计", 0) as "扣除合计", 
-            COALESCE("实发合计", 0) as "实发合计",
-            COALESCE("养老保险个人应缴费额", 0) as "养老保险个人应缴费额",
-            COALESCE("医疗保险个人应缴费额", 0) as "医疗保险个人应缴费额",
-            COALESCE("职业年金个人应缴费额", 0) as "职业年金个人应缴费额",
-            COALESCE("失业保险个人应缴费额", 0) as "失业保险个人应缴费额",
-            COALESCE("住房公积金个人应缴费额", 0) as "住房公积金个人应缴费额",
-            COALESCE("个人所得税", 0) as "个人所得税"
+        SELECT *
         FROM reports.v_comprehensive_employee_payroll
         {where_clause}
         ORDER BY "部门名称", "姓名"
@@ -1057,29 +1182,8 @@ async def get_comprehensive_payroll_data(
         
         result = session.execute(text(query), params)
         
-        payroll_data = []
-        for row in result:
-            # 直接使用行数据构建响应对象
-            data = ComprehensivePayrollDataResponse(
-                薪资条目id=row[0],
-                员工id=row[1],
-                姓名=row[2],
-                部门名称=row[3],
-                人员类别=row[4],
-                根人员类别=row[5],
-                职位名称=row[6],
-                应发合计=float(row[7] or 0),
-                扣除合计=float(row[8] or 0),
-                实发合计=float(row[9] or 0),
-                养老保险个人应缴费额=float(row[10] or 0),
-                医疗保险个人应缴费额=float(row[11] or 0),
-                职业年金个人应缴费额=float(row[12] or 0),
-                失业保险个人应缴费额=float(row[13] or 0),
-                住房公积金个人应缴费额=float(row[14] or 0),
-                个人所得税=float(row[15] or 0)
-            )
-            
-            payroll_data.append(data)
+        # 动态地将 RowProxy 转换为字典
+        payroll_data = [dict(row) for row in result.mappings()]
         
         return payroll_data
         

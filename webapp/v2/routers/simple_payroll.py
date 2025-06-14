@@ -1249,7 +1249,7 @@ async def generate_bank_file(
             (EmployeeBankAccount.is_primary == True)
         ).filter(
             PayrollEntry.payroll_run_id == payroll_run_id,
-            PayrollEntry.net_pay > 0  # 只包含实发工资大于0的记录
+            PayrollEntry.net_pay > 0  # 只包含实发合计大于0的记录
         ).order_by(Employee.employee_code)
         
         entries_data = entries_query.all()
@@ -1260,7 +1260,7 @@ async def generate_bank_file(
                 detail=create_error_response(
                     status_code=400,
                     message="没有可发放的工资记录",
-                    details="该工资运行中没有实发工资大于0的员工"
+                    details="该工资运行中没有实发合计大于0的员工"
                 )
             )
         
@@ -2002,7 +2002,7 @@ async def integrate_social_insurance_calculation(
     """
     将社保计算集成到现有薪资条目中
     
-    为指定的薪资运行添加社保计算，更新扣除项和实发工资
+    为指定的薪资运行添加社保计算，更新扣除项和实发合计
     """
     logger.info(f"🔄 [integrate_social_insurance] 接收请求 - 用户: {current_user.username}, 参数: {request}")
     
@@ -2215,125 +2215,6 @@ async def get_calculation_progress(
                 details=str(e)
             )
         )
-):
-    """执行带进度跟踪的计算"""
-    try:
-        from ..payroll_engine.integrated_calculator import IntegratedPayrollCalculator
-        from ..models.hr import Employee
-        from decimal import Decimal
-        
-        # 初始化集成计算器
-        integrated_calculator = IntegratedPayrollCalculator(db)
-        
-        # 更新进度：开始计算
-        update_progress("CALCULATING", 0, len(entries), None, "开始薪资计算", start_time)
-        
-        # 批量计算
-        results = integrated_calculator.batch_calculate_payroll(
-            payroll_entries=entries,
-            calculation_period=calculation_period,
-            include_social_insurance=include_social_insurance
-        )
-        
-        # 更新进度：处理结果
-        update_progress("UPDATING", 0, len(entries), None, "更新数据库记录", start_time)
-        
-        # 更新数据库记录
-        success_count = 0
-        error_count = 0
-        errors = []
-        
-        for i, result in enumerate(results):
-            entry = entries[i]
-            
-            # 更新进度
-            employee = db.query(Employee).filter(Employee.id == entry.employee_id).first()
-            employee_name = f"{employee.first_name}{employee.last_name}" if employee else f"员工ID:{entry.employee_id}"
-            update_progress("UPDATING", i + 1, len(entries), employee_name, "更新薪资记录", start_time)
-            
-            if result.status == CalculationStatus.COMPLETED:
-                try:
-                    # 更新薪资条目
-                    entry.gross_pay = result.gross_pay
-                    entry.total_deductions = result.total_deductions
-                    entry.net_pay = result.net_pay
-                    entry.calculation_log = result.calculation_details
-                    
-                    # 🏠 更新扣除详情中的社保公积金金额（应用进位规则后的金额）
-                    if hasattr(result, 'updated_deductions_details') and result.updated_deductions_details:
-                        current_deductions = entry.deductions_details or {}
-                        # 更新社保公积金相关的扣除项目
-                        current_deductions.update(result.updated_deductions_details)
-                        entry.deductions_details = current_deductions
-                        logger.info(f"✅ [更新扣除详情] 员工 {entry.employee_id} 扣除详情已更新，包含进位后的公积金金额")
-                    
-                    success_count += 1
-                except Exception as e:
-                    error_count += 1
-                    errors.append({
-                        "employee_id": entry.employee_id,
-                        "employee_name": employee_name,
-                        "error_message": str(e)
-                    })
-                    logger.error(f"更新员工 {entry.employee_id} 计算结果失败: {e}")
-            else:
-                error_count += 1
-                errors.append({
-                    "employee_id": entry.employee_id,
-                    "employee_name": employee_name,
-                    "error_message": result.error_message or "计算失败"
-                })
-        
-        # 提交更改
-        if success_count > 0:
-            db.commit()
-            
-            # 更新工资运行汇总信息
-            payroll_run = db.query(PayrollRun).filter(PayrollRun.id == payroll_run_id).first()
-            if payroll_run:
-                calculation_summary = integrated_calculator.get_calculation_summary(results)
-                payroll_totals = calculation_summary.get('payroll_totals', {})
-                payroll_run.total_gross_pay = Decimal(str(payroll_totals.get('total_gross_pay', 0)))
-                payroll_run.total_deductions = Decimal(str(payroll_totals.get('total_deductions', 0)))
-                payroll_run.total_net_pay = Decimal(str(payroll_totals.get('total_net_pay', 0)))
-                db.commit()
-        
-        # 完成计算
-        calculation_summary = integrated_calculator.get_calculation_summary(results)
-        
-        # 更新最终进度
-        final_result = {
-            "payroll_run_id": payroll_run_id,
-            "total_processed": len(entries),
-            "success_count": success_count,
-            "error_count": error_count,
-            "calculation_summary": calculation_summary.get('calculation_summary', {}),
-            "payroll_totals": calculation_summary.get('payroll_totals', {}),
-            "social_insurance_breakdown": calculation_summary.get('social_insurance_breakdown', {}),
-            "cost_analysis": calculation_summary.get('cost_analysis', {}),
-            "calculation_metadata": calculation_summary.get('calculation_metadata', {}),
-            "payroll_run_updated": success_count > 0,
-            "include_social_insurance": include_social_insurance,
-            "calculation_period": calculation_period.isoformat(),
-            "errors": errors
-        }
-        
-        update_progress("COMPLETED", len(entries), len(entries), None, f"计算完成，成功 {success_count} 条，失败 {error_count} 条", start_time)
-        
-        # 保存最终结果到文件
-        from pathlib import Path
-        import json
-        result_file = Path(f"/tmp/calculation_result_{task_id}.json")
-        with open(result_file, 'w', encoding='utf-8') as f:
-            json.dump(final_result, f, ensure_ascii=False, indent=2, default=str)
-        
-        logger.info(f"✅ [异步计算完成] 任务 {task_id} - 成功: {success_count}, 失败: {error_count}")
-        
-    except Exception as e:
-        logger.error(f"❌ [异步计算失败] 任务 {task_id}: {e}", exc_info=True)
-        update_progress("FAILED", 0, len(entries), None, f"计算失败: {str(e)}", start_time)
-        db.rollback()
-        raise
 
 @router.post("/calculation-engine/integrated-run", response_model=DataResponse[Dict[str, Any]])
 async def run_integrated_calculation_engine(

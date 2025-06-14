@@ -138,8 +138,8 @@ def test_comprehensive_view():
             print(f"   职位: {first_entry['position_name']}")
             print(f"   人员类别: {first_entry['personnel_category_name']} -> {first_entry['root_personnel_category_name']}")
             print(f"   薪资周期: {first_entry['payroll_period_name']}")
-            print(f"   应发工资: ¥{first_entry['gross_pay']:,.2f}")
-            print(f"   实发工资: ¥{first_entry['net_pay']:,.2f}")
+            print(f"   应发合计: ¥{first_entry['gross_pay']:,.2f}")
+            print(f"   实发合计: ¥{first_entry['net_pay']:,.2f}")
             print(f"   扣除合计: ¥{first_entry['total_deductions']:,.2f}")
             
             print(f"\n💰 薪资组件明细:")

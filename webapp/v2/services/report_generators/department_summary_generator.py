@@ -149,11 +149,11 @@ class DepartmentSummaryGenerator(BaseReportGenerator):
             {'key': 'department_name', 'title': '部门名称', 'type': 'string'},
             {'key': 'department_code', 'title': '部门编码', 'type': 'string'},
             {'key': 'employee_count', 'title': '员工人数', 'type': 'number'},
-            {'key': 'total_gross_pay', 'title': '应发工资合计', 'type': 'currency'},
-            {'key': 'total_net_pay', 'title': '实发工资合计', 'type': 'currency'},
+            {'key': 'total_gross_pay', 'title': '应发合计合计', 'type': 'currency'},
+            {'key': 'total_net_pay', 'title': '实发合计合计', 'type': 'currency'},
             {'key': 'total_deductions', 'title': '扣除合计', 'type': 'currency'},
-            {'key': 'avg_gross_pay', 'title': '平均应发工资', 'type': 'currency'},
-            {'key': 'avg_net_pay', 'title': '平均实发工资', 'type': 'currency'},
+            {'key': 'avg_gross_pay', 'title': '平均应发合计', 'type': 'currency'},
+            {'key': 'avg_net_pay', 'title': '平均实发合计', 'type': 'currency'},
             {'key': 'per_capita_cost', 'title': '人均成本', 'type': 'currency'},
             {'key': 'total_tax', 'title': '个税合计', 'type': 'currency'},
             {'key': 'total_social_benefits', 'title': '社保公积金合计', 'type': 'currency'},
@@ -212,13 +212,13 @@ class DepartmentSummaryGenerator(BaseReportGenerator):
         summary = {
             "部门总数": len(data),
             "员工总数": total_employees,
-            "应发工资总计": f"{total_gross_pay:.2f}",
-            "实发工资总计": f"{total_net_pay:.2f}",
+            "应发合计总计": f"{total_gross_pay:.2f}",
+            "实发合计总计": f"{total_net_pay:.2f}",
             "扣除总计": f"{total_deductions:.2f}",
             "个税总计": f"{total_tax:.2f}",
             "社保公积金总计": f"{total_social_benefits:.2f}",
-            "平均应发工资": f"{total_gross_pay / total_employees:.2f}" if total_employees > 0 else "0.00",
-            "平均实发工资": f"{total_net_pay / total_employees:.2f}" if total_employees > 0 else "0.00",
+            "平均应发合计": f"{total_gross_pay / total_employees:.2f}" if total_employees > 0 else "0.00",
+            "平均实发合计": f"{total_net_pay / total_employees:.2f}" if total_employees > 0 else "0.00",
             "生成时间": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         

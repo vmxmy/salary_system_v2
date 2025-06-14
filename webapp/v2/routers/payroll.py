@@ -661,10 +661,10 @@ async def get_payroll_entries(
     status_id: Optional[int] = None,
     department_name: Optional[str] = Query(None, description="部门名称筛选"),
     personnel_category_name: Optional[str] = Query(None, description="人员类别筛选"),
-    min_gross_pay: Optional[float] = Query(None, description="最小应发工资"),
-    max_gross_pay: Optional[float] = Query(None, description="最大应发工资"),
-    min_net_pay: Optional[float] = Query(None, description="最小实发工资"),
-    max_net_pay: Optional[float] = Query(None, description="最大实发工资"),
+    min_gross_pay: Optional[float] = Query(None, description="最小应发合计"),
+    max_gross_pay: Optional[float] = Query(None, description="最大应发合计"),
+    min_net_pay: Optional[float] = Query(None, description="最小实发合计"),
+    max_net_pay: Optional[float] = Query(None, description="最大实发合计"),
     sort_by: Optional[str] = Query(None, description="排序字段"),
     sort_order: Optional[str] = Query("asc", description="排序方向: asc 或 desc"),
     include_employee_details: bool = Query(False, description="是否包含员工姓名等详细信息"),
@@ -685,10 +685,10 @@ async def get_payroll_entries(
     - **status_id**: 状态ID，用于过滤特定状态的明细
     - **department_name**: 部门名称筛选
     - **personnel_category_name**: 人员类别筛选
-    - **min_gross_pay**: 最小应发工资
-    - **max_gross_pay**: 最大应发工资
-    - **min_net_pay**: 最小实发工资
-    - **max_net_pay**: 最大实发工资
+    - **min_gross_pay**: 最小应发合计
+    - **max_gross_pay**: 最大应发合计
+    - **min_net_pay**: 最小实发合计
+    - **max_net_pay**: 最大实发合计
     - **sort_by**: 排序字段
     - **sort_order**: 排序方向
     - **include_employee_details**: 是否包含员工姓名等详细信息

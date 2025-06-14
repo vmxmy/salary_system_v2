@@ -295,7 +295,7 @@ class EnhancedAuditService:
                     'suggested_action': "重新计算总扣除字段"
                 })
             
-            # 检查实发工资一致性
+            # 检查实发合计一致性
             if abs(entry.net_pay - calculated_net) > tolerance:
                 anomalies.append({
                     'id': str(uuid.uuid4()),
@@ -303,11 +303,11 @@ class EnhancedAuditService:
                     'employee_id': entry.employee_id,
                     'employee_code': entry.employee.employee_code if entry.employee else None,
                     'employee_name': f"{entry.employee.last_name}{entry.employee.first_name}" if entry.employee else None,
-                    'message': f"实发工资与计算不一致：记录值 ¥{entry.net_pay}，计算值 ¥{calculated_net}",
+                    'message': f"实发合计与计算不一致：记录值 ¥{entry.net_pay}，计算值 ¥{calculated_net}",
                     'details': f"差额：¥{abs(entry.net_pay - calculated_net)}",
                     'current_value': entry.net_pay,
                     'expected_value': calculated_net,
-                    'suggested_action': "重新计算实发工资字段"
+                    'suggested_action': "重新计算实发合计字段"
                 })
         
         return anomalies
@@ -330,7 +330,7 @@ class EnhancedAuditService:
                     'employee_id': entry.employee_id,
                     'employee_code': entry.employee.employee_code if entry.employee else None,
                     'employee_name': f"{entry.employee.last_name}{entry.employee.first_name}" if entry.employee else None,
-                    'message': f"实发工资 ¥{entry.net_pay} 低于最低工资标准 ¥{minimum_wage}",
+                    'message': f"实发合计 ¥{entry.net_pay} 低于最低工资标准 ¥{minimum_wage}",
                     'details': f"差额：¥{minimum_wage - entry.net_pay}",
                     'current_value': entry.net_pay,
                     'expected_value': minimum_wage,

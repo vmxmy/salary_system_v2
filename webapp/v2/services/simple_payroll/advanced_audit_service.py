@@ -120,7 +120,7 @@ class AdvancedAuditService(PayrollAuditService):
                     issues.append({
                         "type": "minimum_wage_violation",
                         "severity": "error",
-                        "message": f"实发工资 ¥{entry.net_pay:.2f} 低于最低工资标准 ¥2320",
+                        "message": f"实发合计 ¥{entry.net_pay:.2f} 低于最低工资标准 ¥2320",
                         "suggested_action": "调整基本工资或减少扣除项"
                     })
                 
@@ -275,7 +275,7 @@ class AdvancedAuditService(PayrollAuditService):
             
             # 检测异常值（3σ原则）
             for entry in entries:
-                # 应发工资异常
+                # 应发合计异常
                 if gross_std > 0:
                     gross_z_score = abs((float(entry.gross_pay) - gross_mean) / gross_std)
                     if gross_z_score > 3:
@@ -284,12 +284,12 @@ class AdvancedAuditService(PayrollAuditService):
                             "employee_name": entry.employee_name,
                             "type": "gross_pay_outlier",
                             "severity": "warning",
-                            "message": f"应发工资 ¥{entry.gross_pay:.2f} 异常偏离平均值 ¥{gross_mean:.2f}",
+                            "message": f"应发合计 ¥{entry.gross_pay:.2f} 异常偏离平均值 ¥{gross_mean:.2f}",
                             "z_score": round(gross_z_score, 2),
                             "suggested_action": "检查工资计算是否正确"
                         })
                 
-                # 实发工资异常
+                # 实发合计异常
                 if net_std > 0:
                     net_z_score = abs((float(entry.net_pay) - net_mean) / net_std)
                     if net_z_score > 3:
@@ -298,7 +298,7 @@ class AdvancedAuditService(PayrollAuditService):
                             "employee_name": entry.employee_name,
                             "type": "net_pay_outlier",
                             "severity": "warning",
-                            "message": f"实发工资 ¥{entry.net_pay:.2f} 异常偏离平均值 ¥{net_mean:.2f}",
+                            "message": f"实发合计 ¥{entry.net_pay:.2f} 异常偏离平均值 ¥{net_mean:.2f}",
                             "z_score": round(net_z_score, 2),
                             "suggested_action": "检查扣除项计算是否正确"
                         })

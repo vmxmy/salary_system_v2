@@ -513,7 +513,7 @@ class PayrollAuditService:
                     anomaly_type="SALARY_VARIANCE_CHECK",
                     severity="warning",
                     message="工资金额异常",
-                    details=f"应发工资为 {current_gross}，可能数据有误",
+                    details=f"应发合计为 {current_gross}，可能数据有误",
                     current_value=current_gross,
                     can_auto_fix=False,
                     is_ignored=False,
@@ -648,7 +648,7 @@ class PayrollAuditService:
                     created_at=datetime.now()
                 ))
             
-            # 检查实发工资一致性
+            # 检查实发合计一致性
             if abs((entry.net_pay or Decimal('0.00')) - calculated_net) > tolerance:
                 anomalies.append(AuditAnomalyResponse(
                     id=f"calc_net_{entry.id}",

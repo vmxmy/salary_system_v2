@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, or_, select, table, column, MetaData, inspect, Table
 from sqlalchemy.exc import NoSuchTableError
@@ -28,7 +28,7 @@ class ReportDataSourceCRUD:
         search: Optional[str] = None,
         is_active: Optional[bool] = None,
         schema_name: Optional[str] = None
-    ) -> (List[ReportDataSource], int):
+    ) -> Tuple[List[ReportDataSource], int]:
         query = db.query(ReportDataSource)
 
         if search:
@@ -89,7 +89,7 @@ class ReportDataSourceCRUD:
             elif "uq_report_data_sources_code" in str(e):
                 raise ValueError(f"数据源编码 '{data_source.code}' 已存在，请使用不同的编码")
             else:
-                raise e
+                raise
 
     @staticmethod
     def update(db: Session, data_source_id: int, data_source: ReportDataSourceUpdate) -> Optional[ReportDataSource]:
@@ -104,12 +104,41 @@ class ReportDataSourceCRUD:
 
     @staticmethod
     def delete(db: Session, data_source_id: int) -> bool:
-        db_data_source = db.query(ReportDataSource).filter(ReportDataSource.id == data_source_id).first()
-        if db_data_source:
+        """
+        删除数据源，支持级联删除依赖记录
+        """
+        try:
+            db_data_source = db.query(ReportDataSource).filter(ReportDataSource.id == data_source_id).first()
+            if not db_data_source:
+                return False
+
+            # 检查并处理依赖关系
+            # from sqlalchemy import text  # 已在顶部导入
+            
+            # 1. 删除报表类型定义中的引用
+            db.execute(text("DELETE FROM reports.report_type_definitions WHERE data_source_id = :data_source_id"),
+                      {"data_source_id": data_source_id})
+            
+            # 2. 删除报表模板中的引用  
+            db.execute(text("DELETE FROM config.report_templates WHERE data_source_id = :data_source_id"),
+                      {"data_source_id": data_source_id})
+            
+            # 3. 删除访问日志记录
+            db.execute(text("DELETE FROM config.report_data_source_access_logs WHERE data_source_id = :data_source_id"),
+                      {"data_source_id": data_source_id})
+            
+            # 4. 最后删除数据源本身
             db.delete(db_data_source)
             db.commit()
             return True
-        return False
+            
+        except Exception as e:
+            db.rollback()
+            # 记录错误但不抛出异常，返回False表示删除失败
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"删除数据源失败 - ID: {data_source_id}, 错误: {str(e)}")
+            return False
 
     @staticmethod
     def detect_fields(db: Session, detection: DataSourceFieldDetection) -> List[DetectedField]:
@@ -173,7 +202,7 @@ class ReportDataSourceCRUD:
             return synced_fields
         except Exception as e:
             db.rollback()
-            raise e
+            raise
 
     @staticmethod
     def get_statistics(db: Session, data_source_id: int) -> Dict[str, Any]:
@@ -208,7 +237,7 @@ class ReportDataSourceCRUD:
                         pass # Keep default values if query fails
             return stats
         except Exception as e:
-            raise e
+            raise
 
     @staticmethod
     def get_access_logs(db: Session, data_source_id: int, skip: int = 0, limit: int = 10) -> List[Dict[str, Any]]:

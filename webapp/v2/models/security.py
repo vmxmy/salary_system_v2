@@ -55,6 +55,9 @@ class User(BaseV2):
     created_batch_tasks = relationship("BatchReportTask", foreign_keys="[BatchReportTask.created_by]", back_populates="creator")
     created_files = relationship("ReportFileManager", foreign_keys="[ReportFileManager.created_by]", back_populates="creator")
     
+    # 列筛选配置关系
+    column_filter_configurations = relationship("ColumnFilterConfiguration", back_populates="user")
+    
     # 注意：报表相关权限通过Permission系统管理，不需要直接关系
 
     @property

@@ -173,8 +173,8 @@ class PayrollReportService:
                 'columns': [
                     {'key': 'department_name', 'title': '部门名称', 'type': 'string'},
                     {'key': 'employee_count', 'title': '人数', 'type': 'number'},
-                    {'key': 'total_gross_pay', 'title': '应发工资', 'type': 'currency'},
-                    {'key': 'total_net_pay', 'title': '实发工资', 'type': 'currency'},
+                    {'key': 'total_gross_pay', 'title': '应发合计', 'type': 'currency'},
+                    {'key': 'total_net_pay', 'title': '实发合计', 'type': 'currency'},
                     {'key': 'total_deductions', 'title': '扣除合计', 'type': 'currency'},
                     {'key': 'avg_gross_pay', 'title': '平均应发', 'type': 'currency'},
                     {'key': 'avg_net_pay', 'title': '平均实发', 'type': 'currency'}
@@ -241,7 +241,7 @@ class PayrollReportService:
                     'type': 'currency'
                 })
             
-            columns.append({'key': 'net_pay', 'title': '实发工资', 'type': 'currency'})
+            columns.append({'key': 'net_pay', 'title': '实发合计', 'type': 'currency'})
             
             # 转换数据
             data = []

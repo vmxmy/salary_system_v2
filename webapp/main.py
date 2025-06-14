@@ -109,7 +109,7 @@ from webapp.v2.routers import payroll_v2_router as v2_payroll_v2_router
 from webapp.v2.routers import hr_v2_router as v2_hr_v2_router
 from webapp.v2.routers import security_router as v2_security_router
 from webapp.v2.routers.auth import router as v2_auth_router
-from webapp.v2.routers import reports_router as v2_reports_router
+from webapp.v2.routers.reports import router as v2_reports_router
 from webapp.v2.routers import calculation_config_router as v2_calculation_config_router
 # from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculation_router  # 已删除复杂计算引擎
 from webapp.v2.routers import attendance_router as v2_attendance_router

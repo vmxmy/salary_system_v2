@@ -63,7 +63,7 @@ WHERE "人员类别" IN ('公务员')
 ORDER BY report_year DESC, report_month_num DESC, "部门名称", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_civil_servant_gross_pay IS '月度公务员应发工资视图 - 包含公务员和参照公务员管理人员的应发工资明细，按月汇总展示各项薪资组成';
+COMMENT ON VIEW reports.v_monthly_civil_servant_gross_pay IS '月度公务员应发合计视图 - 包含公务员和参照公务员管理人员的应发合计明细，按月汇总展示各项薪资组成';
 
 -- =====================================================
 -- 02. 参公应发月度视图
@@ -110,7 +110,7 @@ WHERE "人员类别" = '参照公务员管理'
 ORDER BY report_year DESC, report_month_num DESC, "部门名称", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_civil_servant_like_gross_pay IS '月度参公人员应发工资视图 - 包含参照公务员管理人员的应发工资明细，按月汇总展示各项薪资组成';
+COMMENT ON VIEW reports.v_monthly_civil_servant_like_gross_pay IS '月度参公人员应发合计视图 - 包含参照公务员管理人员的应发合计明细，按月汇总展示各项薪资组成';
 
 -- =====================================================
 -- 03. 事业应发月度视图
@@ -165,7 +165,7 @@ WHERE "人员类别" IN ('事业管理人员', '事业技术工人', '事业工�
 ORDER BY report_year DESC, report_month_num DESC, "部门名称", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_institution_gross_pay IS '月度事业单位人员应发工资视图 - 包含事业管理人员、事业技术工人和事业工勤人员的应发工资明细，按月汇总展示各项薪资组成';
+COMMENT ON VIEW reports.v_monthly_institution_gross_pay IS '月度事业单位人员应发合计视图 - 包含事业管理人员、事业技术工人和事业工勤人员的应发合计明细，按月汇总展示各项薪资组成';
 
 -- =====================================================
 -- 04. 公务员+参公+事业实发月度视图
@@ -183,8 +183,8 @@ SELECT
     "身份证号" as "证件号码",
     
     -- 工资总额
-    COALESCE("应发合计", 0.00)::numeric(10,2) as "应发工资",
-    COALESCE("实发合计", 0.00)::numeric(10,2) as "实发工资",
+    COALESCE("应发合计", 0.00)::numeric(10,2) as "应发合计",
+    COALESCE("实发合计", 0.00)::numeric(10,2) as "实发合计",
     COALESCE("补扣社保", 0.00)::numeric(10,2) as "补扣社保",
     COALESCE("扣除合计", 0.00)::numeric(10,2) as "扣发合计",
     
@@ -223,7 +223,7 @@ WHERE "根人员类别" = '正编'
 ORDER BY report_year DESC, report_month_num DESC, "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_fulltime_net_pay IS '月度正编人员实发工资视图 - 包含公务员、参公和事业单位正编人员的实发工资明细和各项扣除，按月汇总展示';
+COMMENT ON VIEW reports.v_monthly_fulltime_net_pay IS '月度正编人员实发合计视图 - 包含公务员、参公和事业单位正编人员的实发合计明细和各项扣除，按月汇总展示';
 
 -- =====================================================
 -- 05. 正编导入大平台工资数据月度视图
@@ -378,7 +378,7 @@ WHERE "人员类别" = '综合类'
 ORDER BY report_year DESC, report_month_num DESC, "人员类别", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_district_contract_gross_pay IS '月度区聘人员应发工资视图 - 包含所有聘用人员的应发工资明细，按月汇总展示各项薪资组成';
+COMMENT ON VIEW reports.v_monthly_district_contract_gross_pay IS '月度区聘人员应发合计视图 - 包含所有聘用人员的应发合计明细，按月汇总展示各项薪资组成';
 
 -- =====================================================
 -- 07. 原投服应发月度视图
@@ -423,7 +423,7 @@ WHERE "人员类别" = '项目经理'
 ORDER BY report_year DESC, report_month_num DESC, "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_former_investment_service_gross_pay IS '月度原投资服务局聘用人员应发工资视图 - 包含原投资服务局聘用人员的应发工资明细，按月汇总展示各项薪资组成';
+COMMENT ON VIEW reports.v_monthly_former_investment_service_gross_pay IS '月度原投资服务局聘用人员应发合计视图 - 包含原投资服务局聘用人员的应发合计明细，按月汇总展示各项薪资组成';
 
 -- =====================================================
 -- 08. 专项应发月度视图
@@ -470,7 +470,7 @@ WHERE "人员类别" IN ('项目服务专员', '项目经理')
 ORDER BY report_year DESC, report_month_num DESC, "人员类别", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_special_project_gross_pay IS '月度专项人员应发工资视图 - 包含项目服务专员和项目经理的应发工资明细，工资小计和发放合计采用特殊计算逻辑';
+COMMENT ON VIEW reports.v_monthly_special_project_gross_pay IS '月度专项人员应发合计视图 - 包含项目服务专员和项目经理的应发合计明细，工资小计和发放合计采用特殊计算逻辑';
 
 -- =====================================================
 -- 09. 专技应发月度视图
@@ -518,7 +518,7 @@ WHERE "人员类别" IN ('执业类专技人员', '管理类专技人员')
 ORDER BY report_year DESC, report_month_num DESC, "人员类别", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_professional_technical_gross_pay IS '月度专业技术人员应发工资视图 - 包含执业类和管理类专技人员的应发工资明细，包含固定薪酬全年统计和特殊计算逻辑';
+COMMENT ON VIEW reports.v_monthly_professional_technical_gross_pay IS '月度专业技术人员应发合计视图 - 包含执业类和管理类专技人员的应发合计明细，包含固定薪酬全年统计和特殊计算逻辑';
 
 -- =====================================================
 -- 10. 聘用实发表月度视图
@@ -591,7 +591,7 @@ WHERE "根人员类别" = '聘用'
 ORDER BY report_year DESC, report_month_num DESC, "人员类别", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_contract_staff_net_pay IS '月度聘用人员实发工资视图 - 包含除执业类和管理类专技人员外的所有聘用人员实发工资明细，含详细扣缴项目和特殊计算逻辑';
+COMMENT ON VIEW reports.v_monthly_contract_staff_net_pay IS '月度聘用人员实发合计视图 - 包含除执业类和管理类专技人员外的所有聘用人员实发合计明细，含详细扣缴项目和特殊计算逻辑';
 
 -- =====================================================
 -- 11. 专技实发表月度视图
@@ -670,7 +670,7 @@ WHERE "人员类别" IN ('执业类专技人员', '管理类专技人员')
 ORDER BY report_year DESC, report_month_num DESC, "人员类别", "姓名";
 
 -- 添加视图注释
-COMMENT ON VIEW reports.v_monthly_professional_technical_net_pay IS '月度专业技术人员实发工资视图 - 包含执业类和管理类专技人员的实发工资明细，含固定薪酬全年统计和详细扣缴项目计算';
+COMMENT ON VIEW reports.v_monthly_professional_technical_net_pay IS '月度专业技术人员实发合计视图 - 包含执业类和管理类专技人员的实发合计明细，含固定薪酬全年统计和详细扣缴项目计算';
 
 -- =====================================================
 -- 12. 聘用工资汇总月度视图

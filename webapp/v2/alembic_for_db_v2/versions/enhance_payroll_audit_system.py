@@ -349,9 +349,9 @@ def upgrade():
         INSERT INTO payroll.audit_rule_configurations 
         (rule_code, rule_name, rule_description, rule_category, severity_level, is_enabled, can_auto_fix, rule_parameters, error_message_template, suggested_action_template)
         VALUES 
-        ('MINIMUM_WAGE_CHECK', '最低工资标准检查', '检查实发工资是否低于当地最低工资标准', 'COMPLIANCE', 'error', true, false, 
+        ('MINIMUM_WAGE_CHECK', '最低工资标准检查', '检查实发合计是否低于当地最低工资标准', 'COMPLIANCE', 'error', true, false, 
          '{"minimum_wage": 2320, "region": "default"}', 
-         '实发工资 ¥{current_value} 低于最低工资标准 ¥{threshold_value}', 
+         '实发合计 ¥{current_value} 低于最低工资标准 ¥{threshold_value}', 
          '调整基本工资或减少扣除项'),
          
                  ('TAX_CALCULATION_CHECK', '个税计算检查', '验证个人所得税计算是否正确', 'CALCULATION', 'warning', true, true,

@@ -62,8 +62,8 @@ def test_view_optimization():
             first_entry = result['data'][0]
             print(f"   第一条记录ID: {first_entry.get('id')}")
             print(f"   员工ID: {first_entry.get('employee_id')}")
-            print(f"   应发工资: {first_entry.get('gross_pay')}")
-            print(f"   实发工资: {first_entry.get('net_pay')}")
+            print(f"   应发合计: {first_entry.get('gross_pay')}")
+            print(f"   实发合计: {first_entry.get('net_pay')}")
     else:
         print(f"❌ 视图优化失败: {response_time:.2f}ms")
 

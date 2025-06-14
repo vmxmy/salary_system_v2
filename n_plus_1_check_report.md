@@ -20905,7 +20905,7 @@ import styles from './DashboardV3.module.less';
 **行 99** - 关系属性访问
 
 ```python
-                title: t('payroll:workflow.steps.auto_calculation.total_gross_pay', '应发工资总额'),
+                title: t('payroll:workflow.steps.auto_calculation.total_gross_pay', '应发合计总额'),
 ```
 
 💡 **建议**: 检查是否需要预加载关联数据避免懒加载
@@ -20925,7 +20925,7 @@ import styles from './DashboardV3.module.less';
 **行 117** - 关系属性访问
 
 ```python
-                title: t('payroll:workflow.steps.auto_calculation.total_net_pay', '实发工资总额'),
+                title: t('payroll:workflow.steps.auto_calculation.total_net_pay', '实发合计总额'),
 ```
 
 💡 **建议**: 检查是否需要预加载关联数据避免懒加载

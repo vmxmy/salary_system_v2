@@ -29,14 +29,14 @@ class ExcelImportService:
             '奖金': 'bonus',
             '津贴': 'allowances',
             '补贴': 'allowances',
-            '应发工资': 'gross_pay',
+            '应发合计': 'gross_pay',
             '应发合计': 'gross_pay',
             '社保个人': 'social_security_personal',
             '公积金个人': 'housing_fund_personal',
             '个人所得税': 'personal_income_tax',
             '其他扣除': 'other_deductions',
             '扣除合计': 'total_deductions',
-            '实发工资': 'net_pay',
+            '实发合计': 'net_pay',
             '实发合计': 'net_pay',
             
             # 英文列名支持
@@ -307,15 +307,15 @@ class ExcelImportService:
             net_pay = float(row.get('net_pay', 0))
             
             if gross_pay > 0 and net_pay > gross_pay:
-                warnings.append(f"第{row_index}行：实发工资大于应发工资，请检查")
+                warnings.append(f"第{row_index}行：实发合计大于应发合计，请检查")
             
             if gross_pay > 0 and net_pay <= 0:
-                warnings.append(f"第{row_index}行：应发工资大于0但实发工资为0，请检查")
+                warnings.append(f"第{row_index}行：应发合计大于0但实发合计为0，请检查")
                 
             # 检查基本计算逻辑
             basic_salary = float(row.get('basic_salary', 0))
             if basic_salary > gross_pay:
-                warnings.append(f"第{row_index}行：基本工资大于应发工资，请检查")
+                warnings.append(f"第{row_index}行：基本工资大于应发合计，请检查")
                 
         except (ValueError, TypeError):
             pass  # 数值转换错误在上面已经处理了
@@ -338,12 +338,12 @@ class ExcelImportService:
             '加班费': [500, 300],
             '奖金': [1000, 2000],
             '津贴': [300, 200],
-            '应发工资': [11800, 10000],
+            '应发合计': [11800, 10000],
             '社保个人': [800, 600],
             '公积金个人': [480, 360],
             '个人所得税': [200, 150],
             '其他扣除': [100, 50],
-            '实发工资': [10220, 8840]
+            '实发合计': [10220, 8840]
         }
         
         df = pd.DataFrame(template_data)

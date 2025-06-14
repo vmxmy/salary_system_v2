@@ -120,9 +120,9 @@ def test_integrated_calculator():
         print(f"      - 单位公积金: {result.housing_fund_employer}")
         
         print(f"   📋 第二步：汇总计算")
-        print(f"      - 应发工资: {result.gross_pay}")
+        print(f"      - 应发合计: {result.gross_pay}")
         print(f"      - 扣发合计: {result.total_deductions} (含个人五险一金)")
-        print(f"      - 实发工资: {result.net_pay}")
+        print(f"      - 实发合计: {result.net_pay}")
         
         # 计算单位总成本
         employer_social_cost = result.social_insurance_employer + result.housing_fund_employer
@@ -136,9 +136,9 @@ def test_integrated_calculator():
         # 验证计算逻辑
         expected_gross = 6000  # 5000 + 1000
         if abs(float(result.gross_pay) - expected_gross) < 0.01:
-            print(f"   ✅ 应发工资计算正确")
+            print(f"   ✅ 应发合计计算正确")
         else:
-            print(f"   ❌ 应发工资计算错误: 期望 {expected_gross}, 实际 {result.gross_pay}")
+            print(f"   ❌ 应发合计计算错误: 期望 {expected_gross}, 实际 {result.gross_pay}")
         
         expected_deductions = 200 + float(result.social_insurance_employee) + float(result.housing_fund_employee)
         if abs(float(result.total_deductions) - expected_deductions) < 0.01:
@@ -148,9 +148,9 @@ def test_integrated_calculator():
         
         expected_net = expected_gross - expected_deductions
         if abs(float(result.net_pay) - expected_net) < 0.01:
-            print(f"   ✅ 实发工资计算正确")
+            print(f"   ✅ 实发合计计算正确")
         else:
-            print(f"   ❌ 实发工资计算错误: 期望 {expected_net}, 实际 {result.net_pay}")
+            print(f"   ❌ 实发合计计算错误: 期望 {expected_net}, 实际 {result.net_pay}")
         
         # 显示详细组件信息
         if result.social_insurance_components:

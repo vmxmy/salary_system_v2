@@ -389,3 +389,109 @@ class SalaryBaseBatchUpdateResponse(BaseModel):
     updated_count: int = Field(..., description="更新的记录数")
     errors: List[Dict[str, Any]] = Field([], description="错误详情列表")
     message: str = Field(..., description="操作结果消息")
+
+
+# 模态框数据模型
+class PayrollModalBasicInfo(BaseModel):
+    """薪资模态框基础信息"""
+    员工编号: Optional[str] = Field(None, description="员工编号")
+    员工姓名: Optional[str] = Field(None, description="员工姓名")
+    部门名称: Optional[str] = Field(None, description="部门名称")
+    职位名称: Optional[str] = Field(None, description="职位名称")
+    人员类别: Optional[str] = Field(None, description="人员类别")
+    编制: Optional[str] = Field(None, description="编制")
+    薪资期间名称: Optional[str] = Field(None, description="薪资期间名称")
+    期间开始日期: Optional[date] = Field(None, description="期间开始日期")
+    期间结束日期: Optional[date] = Field(None, description="期间结束日期")
+
+
+class PayrollModalSummary(BaseModel):
+    """薪资模态框汇总信息"""
+    应发合计: Decimal = Field(0, description="应发合计")
+    扣除合计: Decimal = Field(0, description="扣除合计")
+    实发合计: Decimal = Field(0, description="实发合计")
+
+
+class PayrollModalEarnings(BaseModel):
+    """薪资模态框应发明细"""
+    # 标准应发明细字段
+    基本工资: Optional[Decimal] = Field(None, description="基本工资")
+    岗位工资: Optional[Decimal] = Field(None, description="岗位工资")
+    绩效工资: Optional[Decimal] = Field(None, description="绩效工资")
+    补助: Optional[Decimal] = Field(None, description="补助")
+    信访岗位津贴: Optional[Decimal] = Field(None, description="信访岗位津贴")
+    基础绩效: Optional[Decimal] = Field(None, description="基础绩效")
+    津贴: Optional[Decimal] = Field(None, description="津贴")
+    职务技术等级工资: Optional[Decimal] = Field(None, description="职务/技术等级工资")
+    级别岗位级别工资: Optional[Decimal] = Field(None, description="级别/岗位级别工资")
+    九三年工改保留补贴: Optional[Decimal] = Field(None, description="93年工改保留补贴")
+    独生子女父母奖励金: Optional[Decimal] = Field(None, description="独生子女父母奖励金")
+    公务员规范性津贴补贴: Optional[Decimal] = Field(None, description="公务员规范性津贴补贴")
+    公务交通补贴: Optional[Decimal] = Field(None, description="公务交通补贴")
+    基础绩效奖: Optional[Decimal] = Field(None, description="基础绩效奖")
+    薪级工资: Optional[Decimal] = Field(None, description="薪级工资")
+    见习试用期工资: Optional[Decimal] = Field(None, description="见习试用期工资")
+    月基础绩效: Optional[Decimal] = Field(None, description="月基础绩效")
+    月奖励绩效: Optional[Decimal] = Field(None, description="月奖励绩效")
+    岗位职务补贴: Optional[Decimal] = Field(None, description="岗位职务补贴")
+    信访工作人员岗位津贴: Optional[Decimal] = Field(None, description="信访工作人员岗位津贴")
+    乡镇工作补贴: Optional[Decimal] = Field(None, description="乡镇工作补贴")
+    补扣社保: Optional[Decimal] = Field(None, description="补扣社保")
+    一次性补扣发: Optional[Decimal] = Field(None, description="一次性补扣发")
+    绩效奖金补扣发: Optional[Decimal] = Field(None, description="绩效奖金补扣发")
+    奖励绩效补扣发: Optional[Decimal] = Field(None, description="奖励绩效补扣发")
+    # 其他应发项目
+    其他应发项目: Dict[str, Decimal] = Field({}, description="其他应发项目")
+
+
+class PayrollModalPersonalDeductions(BaseModel):
+    """个人扣缴项目"""
+    养老保险个人应缴费额: Optional[Decimal] = Field(None, description="养老保险个人应缴费额")
+    医疗保险个人应缴费额: Optional[Decimal] = Field(None, description="医疗保险个人应缴费额")
+    失业保险个人应缴费额: Optional[Decimal] = Field(None, description="失业保险个人应缴费额")
+    职业年金个人应缴费额: Optional[Decimal] = Field(None, description="职业年金个人应缴费额")
+    住房公积金个人应缴费额: Optional[Decimal] = Field(None, description="住房公积金个人应缴费额")
+    个人所得税: Optional[Decimal] = Field(None, description="个人所得税")
+    其他个人扣缴: Dict[str, Decimal] = Field({}, description="其他个人扣缴项目")
+
+
+class PayrollModalEmployerDeductions(BaseModel):
+    """单位扣缴项目"""
+    养老保险单位应缴费额: Optional[Decimal] = Field(None, description="养老保险单位应缴费额")
+    医疗保险单位应缴总额: Optional[Decimal] = Field(None, description="医疗保险单位应缴总额")
+    医疗保险单位应缴费额: Optional[Decimal] = Field(None, description="医疗保险单位应缴费额")
+    大病医疗单位应缴费额: Optional[Decimal] = Field(None, description="大病医疗单位应缴费额")
+    失业保险单位应缴费额: Optional[Decimal] = Field(None, description="失业保险单位应缴费额")
+    工伤保险单位应缴费额: Optional[Decimal] = Field(None, description="工伤保险单位应缴费额")
+    职业年金单位应缴费额: Optional[Decimal] = Field(None, description="职业年金单位应缴费额")
+    住房公积金单位应缴费额: Optional[Decimal] = Field(None, description="住房公积金单位应缴费额")
+    其他单位扣缴: Dict[str, Decimal] = Field({}, description="其他单位扣缴项目")
+
+
+class PayrollModalDeductions(BaseModel):
+    """薪资模态框扣除明细"""
+    个人扣缴项目: PayrollModalPersonalDeductions = Field(..., description="个人扣缴项目")
+    单位扣缴项目: PayrollModalEmployerDeductions = Field(..., description="单位扣缴项目")
+
+
+class PayrollModalCalculations(BaseModel):
+    """薪资模态框计算参数"""
+    社保缴费基数: Optional[Decimal] = Field(None, description="社保缴费基数")
+    住房公积金缴费基数: Optional[Decimal] = Field(None, description="住房公积金缴费基数")
+    养老保险个人费率: Optional[Decimal] = Field(None, description="养老保险个人费率")
+    医疗保险个人费率: Optional[Decimal] = Field(None, description="医疗保险个人费率")
+    住房公积金个人费率: Optional[Decimal] = Field(None, description="住房公积金个人费率")
+    其他计算参数: Dict[str, Decimal] = Field({}, description="其他计算参数")
+
+
+class PayrollModalData(BaseModel):
+    """薪资模态框完整数据"""
+    薪资条目id: int = Field(..., description="薪资条目ID")
+    基础信息: PayrollModalBasicInfo = Field(..., description="基础信息")
+    汇总信息: PayrollModalSummary = Field(..., description="汇总信息")
+    应发明细: PayrollModalEarnings = Field(..., description="应发明细")
+    扣除明细: PayrollModalDeductions = Field(..., description="扣除明细")
+    计算参数: PayrollModalCalculations = Field(..., description="计算参数")
+    
+    class Config:
+        from_attributes = True

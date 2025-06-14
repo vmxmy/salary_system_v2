@@ -10,9 +10,9 @@
 -- 2. 清零所有计算字段
 UPDATE payroll.payroll_entries 
 SET 
-    gross_pay = 0.0000,           -- 应发工资合计
+    gross_pay = 0.0000,           -- 应发合计合计
     total_deductions = 0.0000,    -- 扣除合计  
-    net_pay = 0.0000,             -- 实发工资合计
+    net_pay = 0.0000,             -- 实发合计合计
     updated_at = CURRENT_TIMESTAMP
 WHERE 
     payroll_run_id IN (50, 51, 52, 53, 54, 55, 64);  -- 指定工资运行ID

@@ -1172,7 +1172,7 @@ async def generate_bank_file(
             (EmployeeBankAccount.is_primary == True)
         ).filter(
             PayrollEntry.payroll_run_id == payroll_run_id,
-            PayrollEntry.net_pay > 0  # 只包含实发工资大于0的记录
+            PayrollEntry.net_pay > 0  # 只包含实发合计大于0的记录
         ).order_by(Employee.employee_code)
         
         entries_data = entries_query.all()
@@ -1183,7 +1183,7 @@ async def generate_bank_file(
                 detail=create_error_response(
                     status_code=400,
                     message="没有可发放的工资记录",
-                    details="该工资运行中没有实发工资大于0的员工"
+                    details="该工资运行中没有实发合计大于0的员工"
                 )
             )
         
@@ -1925,7 +1925,7 @@ async def integrate_social_insurance_calculation(
     """
     将社保计算集成到现有薪资条目中
     
-    为指定的薪资运行添加社保计算，更新扣除项和实发工资
+    为指定的薪资运行添加社保计算，更新扣除项和实发合计
     """
     logger.info(f"🔄 [integrate_social_insurance] 接收请求 - 用户: {current_user.username}, 参数: {request}")
     

@@ -190,7 +190,7 @@ class PayrollDetailGenerator(BaseReportGenerator):
             
             columns.extend([
                 {'key': 'total_deductions', 'title': '扣除合计', 'type': 'currency'},
-                {'key': 'net_pay', 'title': '实发工资', 'type': 'currency'},
+                {'key': 'net_pay', 'title': '实发合计', 'type': 'currency'},
                 {'key': 'bank_account_number', 'title': '银行账号', 'type': 'string'},
                 {'key': 'bank_name', 'title': '开户银行', 'type': 'string'}
             ])
@@ -204,8 +204,8 @@ class PayrollDetailGenerator(BaseReportGenerator):
                 {'key': 'employee_code', 'title': '员工编号', 'type': 'string'},
                 {'key': 'employee_name', 'title': '姓名', 'type': 'string'},
                 {'key': 'department_name', 'title': '部门', 'type': 'string'},
-                {'key': 'gross_pay', 'title': '应发工资', 'type': 'currency'},
-                {'key': 'net_pay', 'title': '实发工资', 'type': 'currency'}
+                {'key': 'gross_pay', 'title': '应发合计', 'type': 'currency'},
+                {'key': 'net_pay', 'title': '实发合计', 'type': 'currency'}
             ]
     
     def _get_payroll_components(self, component_type: str) -> List[Dict[str, Any]]:
@@ -294,11 +294,11 @@ class PayrollDetailGenerator(BaseReportGenerator):
         return {
             "员工总数": len(data),
             "部门数量": len(departments),
-            "应发工资总计": f"{total_gross_pay:.2f}",
-            "实发工资总计": f"{total_net_pay:.2f}",
+            "应发合计总计": f"{total_gross_pay:.2f}",
+            "实发合计总计": f"{total_net_pay:.2f}",
             "扣除总计": f"{total_deductions:.2f}",
-            "平均应发工资": f"{total_gross_pay / len(data):.2f}" if len(data) > 0 else "0.00",
-            "平均实发工资": f"{total_net_pay / len(data):.2f}" if len(data) > 0 else "0.00",
+            "平均应发合计": f"{total_gross_pay / len(data):.2f}" if len(data) > 0 else "0.00",
+            "平均实发合计": f"{total_net_pay / len(data):.2f}" if len(data) > 0 else "0.00",
             "生成时间": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
     

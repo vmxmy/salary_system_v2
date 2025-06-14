@@ -115,7 +115,7 @@ CREATE TABLE payroll.payroll_entries (
     deductions_details JSONB,        -- 扣除明细
     total_earnings DECIMAL(15,2),    -- 总收入
     total_deductions DECIMAL(15,2),  -- 总扣除
-    net_pay DECIMAL(15,2),          -- 实发工资
+    net_pay DECIMAL(15,2),          -- 实发合计
     calculation_details JSONB,       -- 计算详情
     status_lookup_value_id INTEGER,  -- 状态
     created_at TIMESTAMP DEFAULT NOW(),

@@ -82,7 +82,7 @@ INSERT INTO reports.report_data_source_fields (data_source_id, field_name, field
 (1, 'base_salary', 'DECIMAL', '基本工资'),
 (1, 'total_earnings', 'DECIMAL', '总收入'),
 (1, 'total_deductions', 'DECIMAL', '总扣除'),
-(1, 'net_pay', 'DECIMAL', '实发工资'),
+(1, 'net_pay', 'DECIMAL', '实发合计'),
 (2, 'id', 'INTEGER', 'ID'),
 (2, 'period_name', 'VARCHAR', '周期名称'),
 (2, 'start_date', 'DATE', '开始日期'),

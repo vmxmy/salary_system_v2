@@ -57,7 +57,7 @@ class CalculationResult(BaseModel):
     basic_salary: Optional[float] = Field(None, description="基本工资")
     allowances: Optional[Dict[str, float]] = Field(None, description="津贴补贴")
     overtime_pay: Optional[float] = Field(None, description="加班费")
-    gross_salary: Optional[float] = Field(None, description="应发工资")
+    gross_salary: Optional[float] = Field(None, description="应发合计")
     
     # 扣除项
     social_insurance: Optional[Dict[str, float]] = Field(None, description="社保扣除")
@@ -67,7 +67,7 @@ class CalculationResult(BaseModel):
     total_deductions: Optional[float] = Field(None, description="扣除合计")
     
     # 最终结果
-    net_salary: Optional[float] = Field(None, description="实发工资")
+    net_salary: Optional[float] = Field(None, description="实发合计")
     
     # 计算详情
     calculation_details: Optional[Dict[str, Any]] = Field(None, description="计算详情")
@@ -169,9 +169,9 @@ class CalculationSummary(BaseModel):
     failed_count: int = Field(..., description="失败数量")
     
     # 金额汇总
-    total_gross_salary: float = Field(..., description="应发工资总额")
+    total_gross_salary: float = Field(..., description="应发合计总额")
     total_deductions: float = Field(..., description="扣除总额")
-    total_net_salary: float = Field(..., description="实发工资总额")
+    total_net_salary: float = Field(..., description="实发合计总额")
     
     # 分类汇总
     department_summary: Optional[List[Dict[str, Any]]] = Field(None, description="部门汇总")

@@ -48,8 +48,8 @@ def test_basic_view_query():
                 print(f"   第一条记录ID: {first_record.get('id')}")
                 print(f"   员工姓名: {first_record.get('employee_name', 'N/A')}")
                 print(f"   部门: {first_record.get('department_name', 'N/A')}")
-                print(f"   应发工资: {first_record.get('gross_pay', 0)}")
-                print(f"   实发工资: {first_record.get('net_pay', 0)}")
+                print(f"   应发合计: {first_record.get('gross_pay', 0)}")
+                print(f"   实发合计: {first_record.get('net_pay', 0)}")
         else:
             print(f"❌ 查询失败: {response.status_code}")
             print(f"   响应内容: {response.text[:500]}")
