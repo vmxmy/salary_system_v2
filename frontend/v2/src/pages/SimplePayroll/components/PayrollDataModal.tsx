@@ -64,6 +64,89 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const actionRef = useRef<ActionType>(null);
   const [dynamicColumns, setDynamicColumns] = useState<ProColumns<PayrollData>[]>([]);
   const [collapsed, setCollapsed] = useState(false);
+
+  // 数字格式化函数：统一显示2位小数
+  const formatNumber = (value: any) => {
+    if (value === null || value === undefined) {
+      return <span style={{ color: '#999' }}>N/A</span>;
+    }
+    
+    if (typeof value === 'number') {
+      return (
+        <span style={{ textAlign: 'right', display: 'block' }}>
+          {value.toLocaleString('zh-CN', { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+          })}
+        </span>
+      );
+    }
+    
+    if (typeof value === 'string') {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && isFinite(numValue)) {
+        return (
+          <span style={{ textAlign: 'right', display: 'block' }}>
+            {numValue.toLocaleString('zh-CN', { 
+              minimumFractionDigits: 2, 
+              maximumFractionDigits: 2 
+            })}
+          </span>
+        );
+      }
+    }
+    
+    return value.toString();
+  };
+
+  // 日期格式化函数：格式化薪资期间名称
+  const formatDate = (value: any) => {
+    if (value === null || value === undefined) {
+      return <span style={{ color: '#999' }}>N/A</span>;
+    }
+    
+    const dateStr = String(value);
+    
+    // 尝试解析各种日期格式
+    let date: Date | null = null;
+    
+    // 格式1: YYYY年MM月 (如: 2024年06月)
+    const yearMonthMatch = dateStr.match(/(\d{4})年(\d{1,2})月/);
+    if (yearMonthMatch) {
+      const year = parseInt(yearMonthMatch[1]);
+      const month = parseInt(yearMonthMatch[2]) - 1; // JavaScript月份从0开始
+      date = new Date(year, month);
+    }
+    
+    // 格式2: YYYY-MM (如: 2024-06)
+    if (!date) {
+      const dashMatch = dateStr.match(/^(\d{4})-(\d{1,2})$/);
+      if (dashMatch) {
+        const year = parseInt(dashMatch[1]);
+        const month = parseInt(dashMatch[2]) - 1;
+        date = new Date(year, month);
+      }
+    }
+    
+    // 格式3: 标准日期字符串
+    if (!date) {
+      const parsedDate = new Date(dateStr);
+      if (!isNaN(parsedDate.getTime())) {
+        date = parsedDate;
+      }
+    }
+    
+    if (date && !isNaN(date.getTime())) {
+      return (
+        <span style={{ textAlign: 'center', display: 'block' }}>
+          {date.getFullYear()}年{String(date.getMonth() + 1).padStart(2, '0')}月
+        </span>
+      );
+    }
+    
+    // 如果无法解析为日期，返回原值
+    return dateStr;
+  };
   
   // 分页状态管理
   const [pagination, setPagination] = useState({
@@ -249,8 +332,19 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
               if (typeof text === 'boolean') {
                 return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
               }
+              
+              // 特殊处理：薪资期间名称使用日期格式
+              if (key === '薪资期间名称') {
+                return formatDate(text);
+              }
+              
+              // 尝试数字格式化
+              const formattedNumber = formatNumber(text);
+              if (formattedNumber !== text.toString()) {
+                return formattedNumber;
+              }
           
-              // For numbers, strings, etc.
+              // For other strings, etc.
               return text.toString();
             },
           };
@@ -413,6 +507,17 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         
             if (typeof text === 'boolean') {
               return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
+            }
+            
+            // 特殊处理：薪资期间名称使用日期格式
+            if (key === '薪资期间名称') {
+              return formatDate(text);
+            }
+            
+            // 尝试数字格式化
+            const formattedNumber = formatNumber(text);
+            if (formattedNumber !== text.toString()) {
+              return formattedNumber;
             }
         
             return text.toString();
@@ -592,57 +697,150 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       return;
     }
 
-    // 动态生成导出数据
-    const exportData = filteredDataSource.map((item, index) => {
-      const row: { [key: string]: any } = { [t('common:index')]: index + 1 };
-      dynamicColumns.forEach(col => {
-        // 排除操作列
-        if (col.key !== 'action' && col.dataIndex) {
-          const dataIndex = col.dataIndex as keyof PayrollData;
-          row[col.title as string] = item[dataIndex] ?? '';
+    // 数据清理函数
+    const cleanValue = (value: any): any => {
+      if (value === null || value === undefined) {
+        return '';
+      }
+      if (typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      if (typeof value === 'boolean') {
+        return value ? '是' : '否';
+      }
+      if (typeof value === 'number') {
+        // 检查是否为有效数字
+        if (isNaN(value) || !isFinite(value)) {
+          return '';
         }
-      });
-      return row;
-    });
+        // 保持原始数字类型，不要转换为字符串
+        return value;
+      }
+      // 尝试将字符串转换为数字（如果可能）
+      if (typeof value === 'string') {
+        const cleanedString = value.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+        const numValue = parseFloat(cleanedString);
+        if (!isNaN(numValue) && isFinite(numValue)) {
+          return numValue;
+        }
+        return cleanedString;
+      }
+      // 清理字符串中的特殊字符
+      return String(value).replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    };
 
-    // 创建工作表
-    import('xlsx').then((XLSX) => {
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      
-      // 设置数字列的格式为两位小数
-      const numberColumns = ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']; // 应发合计到个人所得税的列
-      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-      
-      // 为每个数字列的每一行设置数字格式
-      for (let row = 1; row <= range.e.r; row++) { // 从第2行开始（跳过表头）
-        numberColumns.forEach(col => {
-          const cellAddress = col + (row + 1);
-          if (ws[cellAddress]) {
-            // 设置单元格格式为数字，保留两位小数
-            ws[cellAddress].z = '0.00';
-            ws[cellAddress].t = 'n'; // 确保是数字类型
+    try {
+      // 动态生成导出数据
+      const exportData = filteredDataSource.map((item, index) => {
+        const row: { [key: string]: any } = { '序号': index + 1 };
+        dynamicColumns.forEach(col => {
+          // 排除操作列
+          if (col.key !== 'action' && col.dataIndex) {
+            const dataIndex = col.dataIndex as keyof PayrollData;
+            const columnTitle = String(col.title || col.dataIndex);
+            const rawValue = item[dataIndex];
+            row[columnTitle] = cleanValue(rawValue);
           }
         });
+        return row;
+      });
+
+      if (exportData.length === 0) {
+        message.warning('没有可导出的数据');
+        return;
       }
-      
-      // 设置列宽 - 基于标题长度自动设置
-      const colWidths = Object.keys(exportData[0]).map(key => ({
-        wch: Math.max(key.length, 15) // 最小宽度15
-      }));
-      ws['!cols'] = colWidths;
-      
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, t('payroll:data_export_sheet_name'));
-      
-      // 生成文件名
-      const fileName = `${t('payroll:data_export_file_name')}_${periodName || t('payroll:current_period')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-      
-      message.success(`${t('payroll:export_success_message', { count: filteredDataSource.length, fileName })}`);
-    }).catch((error) => {
-      message.error(t('payroll:export_failed_message'));
-      console.error('Export error:', error);
-    });
+
+      // 创建工作表
+      import('xlsx').then((XLSX) => {
+        // 创建工作表
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        
+        // 获取工作表范围
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+        
+        // 为所有数字列设置统一的数字格式（2位小数）
+        const headers = Object.keys(exportData[0]);
+        
+        // 遍历所有单元格，设置数字格式
+        for (let row = 0; row <= range.e.r; row++) { // 从第1行开始（包括表头）
+          for (let col = 0; col <= range.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            const cell = ws[cellAddress];
+            
+            if (cell) {
+              // 跳过表头行（第0行）
+              if (row === 0) {
+                // 表头使用文本格式
+                cell.t = 's';
+                continue;
+              }
+              
+              // 数据行：检查是否为数字
+              const cellValue = cell.v;
+              
+              // 如果是数字类型，或者是可以转换为数字的字符串
+              if (typeof cellValue === 'number' || 
+                  (typeof cellValue === 'string' && !isNaN(parseFloat(cellValue)) && isFinite(parseFloat(cellValue)))) {
+                
+                // 转换为数字
+                if (typeof cellValue === 'string') {
+                  cell.v = parseFloat(cellValue);
+                }
+                
+                // 设置数字格式：千分位分隔符 + 2位小数
+                cell.z = '#,##0.00';
+                cell.t = 'n'; // 数字类型
+              } else {
+                // 非数字内容保持文本格式
+                cell.t = 's';
+              }
+            }
+          }
+        }
+        
+        // 设置列宽 - 基于内容长度自动调整
+        const colWidths = headers.map(header => {
+          const maxLength = Math.max(
+            header.length,
+            ...exportData.slice(0, 100).map(row => String(row[header] || '').length)
+          );
+          return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
+        });
+        ws['!cols'] = colWidths;
+        
+        // 创建工作簿
+        const wb = XLSX.utils.book_new();
+        
+        // 设置工作簿属性
+        wb.Props = {
+          Title: '薪资数据导出',
+          Subject: '薪资数据',
+          Author: 'Salary System',
+          CreatedDate: new Date()
+        };
+        
+        // 添加工作表
+        XLSX.utils.book_append_sheet(wb, ws, '薪资数据');
+        
+        // 生成安全的文件名（避免特殊字符）
+        const safeFileName = `薪资数据_${periodName || '当前期间'}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+        
+        // 导出文件
+        XLSX.writeFile(wb, safeFileName, { 
+          bookType: 'xlsx',
+          type: 'buffer',
+          compression: false // 关闭压缩以避免兼容性问题
+        });
+        
+        message.success(`导出成功！共导出 ${filteredDataSource.length} 条记录`);
+      }).catch((error) => {
+        console.error('Excel导出错误:', error);
+        message.error(`导出失败: ${error.message || '未知错误'}`);
+      });
+    } catch (error: any) {
+      console.error('数据处理错误:', error);
+      message.error(`数据处理失败: ${error.message || '未知错误'}`);
+    }
   };
 
   // 刷新数据
