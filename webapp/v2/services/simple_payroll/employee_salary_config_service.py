@@ -503,4 +503,258 @@ class EmployeeSalaryConfigService:
         except Exception as e:
             logger.error(f"💥 [批量更新薪资配置] 批量更新失败: {e}", exc_info=True)
             self.db.rollback()
-            raise 
+            raise
+
+    def batch_validate_salary_bases(
+        self,
+        period_id: int,
+        base_updates: List[Dict[str, Any]],
+        overwrite_mode: bool = False
+    ) -> Dict[str, Any]:
+        """
+        批量验证缴费基数导入数据
+        
+        Args:
+            period_id: 薪资周期ID
+            base_updates: 缴费基数更新数据列表
+            overwrite_mode: 是否覆盖现有配置
+            
+        Returns:
+            验证结果统计和详细信息
+        """
+        try:
+            logger.info(f"🔍 [批量验证缴费基数] 开始验证 {len(base_updates)} 条记录, 周期ID: {period_id}")
+            
+            # 预加载数据以提高性能
+            employees_map = self._preload_employees_for_validation()
+            existing_configs_map = self._preload_existing_configs_for_period(period_id)
+            period = self._validate_period_exists(period_id)
+            
+            validated_data = []
+            total = len(base_updates)
+            valid = 0
+            invalid = 0
+            warnings = 0
+            global_errors = []
+            
+            for i, base_data in enumerate(base_updates):
+                validation_result = self._validate_single_salary_base(
+                    base_data, i, employees_map, existing_configs_map, 
+                    period, overwrite_mode
+                )
+                
+                validated_data.append(validation_result)
+                
+                if validation_result["is_valid"]:
+                    valid += 1
+                else:
+                    invalid += 1
+                    
+                if validation_result["warnings"]:
+                    warnings += 1
+            
+            result = {
+                "total": total,
+                "valid": valid,
+                "invalid": invalid,
+                "warnings": warnings,
+                "errors": global_errors,
+                "validated_data": validated_data
+            }
+            
+            logger.info(f"✅ [批量验证缴费基数] 验证完成: 总计 {total} 条, 有效 {valid} 条, 无效 {invalid} 条, 警告 {warnings} 条")
+            return result
+            
+        except Exception as e:
+            logger.error(f"💥 [批量验证缴费基数] 验证失败: {e}", exc_info=True)
+            raise
+
+    def _preload_employees_for_validation(self) -> Dict[str, Dict[str, Any]]:
+        """预加载员工数据用于验证"""
+        try:
+            from webapp.v2.models.hr import Employee
+            
+            employees = self.db.query(Employee).filter(
+                Employee.is_active == True
+            ).all()
+            
+            employees_map = {}
+            
+            for emp in employees:
+                # 按ID索引
+                employees_map[f"id_{emp.id}"] = {
+                    "id": emp.id,
+                    "employee_code": emp.employee_code,
+                    "last_name": emp.last_name,
+                    "first_name": emp.first_name,
+                    "id_number": emp.id_number,
+                    "is_active": emp.is_active
+                }
+                
+                # 按姓名+身份证号索引
+                if emp.last_name and emp.first_name and emp.id_number:
+                    key = f"{emp.last_name}_{emp.first_name}_{emp.id_number}"
+                    employees_map[key] = employees_map[f"id_{emp.id}"]
+                
+                # 按身份证号索引
+                if emp.id_number:
+                    employees_map[f"id_number_{emp.id_number}"] = employees_map[f"id_{emp.id}"]
+            
+            logger.info(f"📊 [预加载员工数据] 加载了 {len(employees)} 个活跃员工")
+            return employees_map
+            
+        except Exception as e:
+            logger.error(f"❌ [预加载员工数据] 失败: {e}")
+            return {}
+
+    def _preload_existing_configs_for_period(self, period_id: int) -> Dict[int, Dict[str, Any]]:
+        """预加载指定周期的现有薪资配置"""
+        try:
+            from webapp.v2.models.payroll import PayrollPeriod
+            from sqlalchemy import and_, or_
+            
+            # 获取周期信息
+            period = self.db.query(PayrollPeriod).filter(PayrollPeriod.id == period_id).first()
+            if not period:
+                return {}
+            
+            # 查询该周期内的现有配置
+            existing_configs = self.db.query(EmployeeSalaryConfig).filter(
+                and_(
+                    or_(EmployeeSalaryConfig.is_active.is_(None), EmployeeSalaryConfig.is_active == True),
+                    EmployeeSalaryConfig.effective_date <= period.end_date,
+                    or_(
+                        EmployeeSalaryConfig.end_date.is_(None),
+                        EmployeeSalaryConfig.end_date >= period.start_date
+                    )
+                )
+            ).all()
+            
+            configs_map = {}
+            for config in existing_configs:
+                configs_map[config.employee_id] = {
+                    "id": config.id,
+                    "employee_id": config.employee_id,
+                    "social_insurance_base": config.social_insurance_base,
+                    "housing_fund_base": config.housing_fund_base,
+                    "effective_date": config.effective_date,
+                    "end_date": config.end_date
+                }
+            
+            logger.info(f"📊 [预加载配置数据] 加载了 {len(existing_configs)} 个现有配置")
+            return configs_map
+            
+        except Exception as e:
+            logger.error(f"❌ [预加载配置数据] 失败: {e}")
+            return {}
+
+    def _validate_period_exists(self, period_id: int):
+        """验证薪资周期是否存在"""
+        from webapp.v2.models.payroll import PayrollPeriod
+        
+        period = self.db.query(PayrollPeriod).filter(PayrollPeriod.id == period_id).first()
+        if not period:
+            raise ValueError(f"薪资周期 {period_id} 不存在")
+        return period
+
+    def _validate_single_salary_base(
+        self,
+        base_data: Dict[str, Any],
+        index: int,
+        employees_map: Dict[str, Dict[str, Any]],
+        existing_configs_map: Dict[int, Dict[str, Any]],
+        period,
+        overwrite_mode: bool
+    ) -> Dict[str, Any]:
+        """验证单条缴费基数记录"""
+        errors = []
+        warnings = []
+        employee_data = None
+        
+        # 1. 员工身份验证
+        employee_id = base_data.get("employee_id")
+        employee_info = base_data.get("employee_info", {})
+        
+        if employee_id:
+            # 通过员工ID匹配
+            employee_data = employees_map.get(f"id_{employee_id}")
+            if not employee_data:
+                errors.append(f"员工ID {employee_id} 不存在或不活跃")
+        elif employee_info:
+            # 通过员工信息匹配
+            last_name = employee_info.get("last_name", "").strip()
+            first_name = employee_info.get("first_name", "").strip()
+            id_number = employee_info.get("id_number", "").strip()
+            
+            if last_name and first_name and id_number:
+                # 优先使用姓名+身份证号匹配
+                key = f"{last_name}_{first_name}_{id_number}"
+                employee_data = employees_map.get(key)
+                
+                if not employee_data and id_number:
+                    # 降级到只用身份证号匹配
+                    employee_data = employees_map.get(f"id_number_{id_number}")
+                    if employee_data:
+                        warnings.append("通过身份证号匹配到员工，但姓名可能不一致")
+            elif id_number:
+                # 只有身份证号的情况
+                employee_data = employees_map.get(f"id_number_{id_number}")
+            
+            if not employee_data:
+                errors.append("无法匹配到员工，请检查姓名和身份证号")
+        else:
+            errors.append("必须提供员工ID或员工信息（姓名+身份证号）")
+        
+        # 2. 数据格式验证
+        social_insurance_base = base_data.get("social_insurance_base")
+        housing_fund_base = base_data.get("housing_fund_base")
+        
+        if social_insurance_base is not None:
+            try:
+                social_insurance_base = float(social_insurance_base)
+                if social_insurance_base < 0:
+                    errors.append("社保缴费基数不能为负数")
+                elif social_insurance_base > 100000:  # 合理性检查
+                    warnings.append("社保缴费基数较高，请确认是否正确")
+            except (ValueError, TypeError):
+                errors.append("社保缴费基数必须是有效数字")
+        
+        if housing_fund_base is not None:
+            try:
+                housing_fund_base = float(housing_fund_base)
+                if housing_fund_base < 0:
+                    errors.append("公积金缴费基数不能为负数")
+                elif housing_fund_base > 100000:  # 合理性检查
+                    warnings.append("公积金缴费基数较高，请确认是否正确")
+            except (ValueError, TypeError):
+                errors.append("公积金缴费基数必须是有效数字")
+        
+        # 检查是否至少提供了一个基数
+        if social_insurance_base is None and housing_fund_base is None:
+            errors.append("必须至少提供社保缴费基数或公积金缴费基数")
+        
+        # 3. 业务逻辑验证
+        if employee_data:
+            employee_id = employee_data["id"]
+            existing_config = existing_configs_map.get(employee_id)
+            
+            if existing_config:
+                if not overwrite_mode:
+                    errors.append("该员工已有缴费基数配置，且未启用覆盖模式")
+                else:
+                    warnings.append("将覆盖现有缴费基数配置")
+        
+        # 构建验证结果
+        result = {
+            "employee_id": employee_data["id"] if employee_data else None,
+            "employee_name": f"{employee_data['last_name']}{employee_data['first_name']}" if employee_data else None,
+            "social_insurance_base": social_insurance_base,
+            "housing_fund_base": housing_fund_base,
+            "is_valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+            "clientId": base_data.get("clientId"),
+            "originalIndex": index
+        }
+        
+        return result 

@@ -1,0 +1,44 @@
+{
+  "title": "薪资管理",
+  "menu": {
+    "dashboard": "薪资仪表盘",
+    "periods": "薪资周期",
+    "runs": "薪资核算",
+    "reports": "薪资报表",
+    "settings": "薪资设置",
+    "bulk_import": "批量导入"
+  },
+  "bulk_import": {
+    "title": "通用批量导入",
+    "steps": {
+      "select_mode": "选择模式",
+      "upload_data": "上传数据",
+      "map_fields": "字段映射",
+      "preview_confirm": "预览与确认",
+      "import_result": "导入结果",
+      "please_select_mode": "请先选择一个导入模式"
+    },
+    "upload": {
+      "drag_or_click": "点击或拖拽文件到此区域上传",
+      "hint": "支持 .xlsx, .xls, .csv 格式的文件。请确保文件内容符合模板要求。",
+      "invalid_file_type": "不支持的文件类型！",
+      "parse_success": "文件解析成功，共 {{count}} 条记录。",
+      "parse_error": "文件解析失败，请检查文件格式。",
+      "read_error": "文件读取失败。",
+      "empty_file": "文件为空或无法解析。",
+      "please_upload_file": "请先上传数据文件。",
+      "selected_file": "已选择文件"
+    },
+    "map": {
+      "please_map_required_fields": "请映射所有必填字段。"
+    },
+    "wip": {
+      "map_fields_title": "字段映射与验证功能开发中...",
+      "map_fields_desc": "将在此处配置Excel列与系统字段的对应关系",
+      "preview_title": "数据预览与确认功能开发中...",
+      "preview_desc": "将在此处预览待导入的数据并最终确认",
+      "result_title": "导入结果反馈开发中...",
+      "result_desc": "将在此处显示导入成功、失败或部分成功的详细信息"
+    }
+  }
+} 

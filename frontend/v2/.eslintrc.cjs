@@ -25,6 +25,7 @@ module.exports = {
   plugins: {
     '@typescript-eslint': require('@typescript-eslint/eslint-plugin'), // For flat config, plugins are typically objects
     'unused-imports': require('eslint-plugin-unused-imports'),
+    'react': require('eslint-plugin-react'),
   },
   rules: {
     'no-unused-vars': 'off',
@@ -35,6 +36,7 @@ module.exports = {
       { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
     ],
     '@typescript-eslint/no-explicit-any': 'warn',
+    'react/jsx-key': 'warn',
   },
   ignorePatterns: ['node_modules/', 'dist/', 'build/', '*.config.js', '*.config.ts', '.eslintrc.js', '.eslintrc.cjs'], // Added .eslintrc.cjs to ignorePatterns
 }; 

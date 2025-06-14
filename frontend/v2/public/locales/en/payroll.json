@@ -126,6 +126,27 @@
       "result_subtitle": ""
     }
   },
+  "bulk_import": {
+    "title": "Universal Bulk Import",
+    "steps": {
+      "select_mode": "Select Mode",
+      "upload_data": "Upload Data",
+      "map_fields": "Map Fields",
+      "preview_confirm": "Preview & Confirm",
+      "import_result": "Import Result",
+      "please_select_mode": "Please select an import mode first"
+    },
+    "upload": {
+      "drag_or_click": "Click or drag file to this area to upload",
+      "hint": "Supports single file upload. Supports Excel (.xls, .xlsx) files.",
+      "parse_success": "File parsed successfully, {{count}} records found.",
+      "please_upload_file": "Please upload a data file first",
+      "selected_file": "Selected file:"
+    },
+    "map": {
+      "please_map_required_fields": "Please map all required system fields to the corresponding Excel headers"
+    }
+  },
   "break_duration": "",
   "calculate": "Calculate",
   "calculating": "",

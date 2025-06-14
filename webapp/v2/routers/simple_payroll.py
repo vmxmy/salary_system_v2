@@ -2215,17 +2215,6 @@ async def get_calculation_progress(
                 details=str(e)
             )
         )
-
-# 在集成计算引擎路由之前添加辅助函数
-def perform_calculation_with_progress(
-    db: Session, 
-    entries: List[PayrollEntry], 
-    calculation_period: date, 
-    include_social_insurance: bool, 
-    task_id: str, 
-    payroll_run_id: int, 
-    update_progress, 
-    start_time: datetime
 ):
     """执行带进度跟踪的计算"""
     try:
@@ -2497,53 +2486,38 @@ async def run_integrated_calculation_engine(
         
         # 🎯 从数据库动态获取需要清除的五险一金字段
         social_insurance_fields_to_clear = set()
-        try:
-            from ..models.config import PayrollComponentDefinition
-            # 获取所有个人扣缴和单位扣缴项目
-            deduction_components = db.query(PayrollComponentDefinition).filter(
-                PayrollComponentDefinition.type.in_(['PERSONAL_DEDUCTION', 'EMPLOYER_DEDUCTION']),
-                PayrollComponentDefinition.is_active == True
-            ).all()
-            
-            # 🎯 个税等重要扣除项目不能清理
-            protected_deduction_fields = {
-                'PERSONAL_INCOME_TAX', 'REFUND_DEDUCTION_ADJUSTMENT', 
-                'SOCIAL_INSURANCE_ADJUSTMENT', 'PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT',
-                'REWARD_PERFORMANCE_ADJUSTMENT', 'MEDICAL_2022_DEDUCTION_ADJUSTMENT'
-            }
-            
-            for component in deduction_components:
-                # ✅ 明确保护个税等重要扣除项目
-                if component.code in protected_deduction_fields:
-                    logger.info(f"🛡️ [保护字段] {component.code} - 保留重要扣除项目，不清理")
-                    continue
-                    
-                # 🎯 只清除五险一金相关项目
-                if any(keyword in component.code.upper() for keyword in [
-                    'HOUSING_FUND', 'PENSION', 'MEDICAL', 'UNEMPLOYMENT', 
-                    'INJURY', 'SERIOUS_ILLNESS', 'OCCUPATIONAL_PENSION', 'MATERNITY'
-                ]):
-                    social_insurance_fields_to_clear.add(component.code)
-            
-            logger.info(f"🔍 [动态字段获取] 从数据库获取到 {len(social_insurance_fields_to_clear)} 个五险一金扣缴项目")
-            
-        except Exception as e:
-            logger.warning(f"⚠️ [动态字段获取] 无法从数据库获取扣缴定义，使用备用列表: {e}")
-            # 🎯 备用硬编码列表（只包含五险一金，明确排除个税等保护字段）
-            social_insurance_fields_to_clear = {
-                # 五险一金相关字段
-                'HOUSING_FUND_EMPLOYER', 'HOUSING_FUND_PERSONAL',
-                'PENSION_EMPLOYER_AMOUNT', 'PENSION_PERSONAL_AMOUNT',
-                'MEDICAL_EMPLOYER_AMOUNT', 'MEDICAL_PERSONAL_AMOUNT',
-                'UNEMPLOYMENT_EMPLOYER_AMOUNT', 'UNEMPLOYMENT_PERSONAL_AMOUNT',
-                'INJURY_EMPLOYER_AMOUNT', 'INJURY_PERSONAL_AMOUNT',
-                'SERIOUS_ILLNESS_EMPLOYER_AMOUNT', 'SERIOUS_ILLNESS_PERSONAL_AMOUNT',
-                'OCCUPATIONAL_PENSION_EMPLOYER_AMOUNT', 'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
-                'MATERNITY_EMPLOYER_AMOUNT', 'MATERNITY_PERSONAL_AMOUNT',
-                'MEDICAL_INS_EMPLOYER_TOTAL', 'MEDICAL_INS_PERSONAL_TOTAL',
-                'MEDICAL_INS_EMPLOYER_AMOUNT', 'MEDICAL_INS_PERSONAL_AMOUNT'
-                # ✅ 注意：明确不包含 PERSONAL_INCOME_TAX 等保护字段
-            }
+        
+        # 🎯 第一步：从数据库动态获取所有五险一金项目并清除现有数据
+        logger.info("🗑️ [准备清除] 开始获取并清除旧的五险一金数据...")
+
+        from ..models.config import PayrollComponentDefinition
+        # 获取所有个人扣缴和单位扣缴项目
+        deduction_components = db.query(PayrollComponentDefinition).filter(
+            PayrollComponentDefinition.type.in_(['PERSONAL_DEDUCTION', 'EMPLOYER_DEDUCTION']),
+            PayrollComponentDefinition.is_active == True
+        ).all()
+        
+        # 🎯 个税等重要扣除项目不能清理
+        protected_deduction_fields = {
+            'PERSONAL_INCOME_TAX', 'REFUND_DEDUCTION_ADJUSTMENT', 
+            'SOCIAL_INSURANCE_ADJUSTMENT', 'PERFORMANCE_BONUS_DEDUCTION_ADJUSTMENT',
+            'REWARD_PERFORMANCE_ADJUSTMENT', 'MEDICAL_2022_DEDUCTION_ADJUSTMENT'
+        }
+        
+        for component in deduction_components:
+            # ✅ 明确保护个税等重要扣除项目
+            if component.code in protected_deduction_fields:
+                logger.info(f"🛡️ [保护字段] {component.code} - 保留重要扣除项目，不清理")
+                continue
+                
+            # 🎯 只清除五险一金相关项目
+            if any(keyword in component.code.upper() for keyword in [
+                'HOUSING_FUND', 'PENSION', 'MEDICAL', 'UNEMPLOYMENT', 
+                'INJURY', 'SERIOUS_ILLNESS', 'OCCUPATIONAL_PENSION', 'MATERNITY'
+            ]):
+                social_insurance_fields_to_clear.add(component.code)
+        
+        logger.info(f"🔍 [动态字段获取] 从数据库获取到 {len(social_insurance_fields_to_clear)} 个五险一金扣缴项目")
         
         cleared_count = 0
         for entry in entries:
@@ -3207,6 +3181,87 @@ async def delete_insurance_base_for_period(
             detail=create_error_response(
                 status_code=500,
                 message="删除缴费基数时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.post("/salary-configs/batch-validate", response_model=DataResponse[Dict[str, Any]])
+async def batch_validate_salary_bases(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    🔍 批量验证缴费基数导入数据
+    
+    请求格式示例：
+    {
+        "period_id": 1,
+        "base_updates": [
+            {
+                "employee_id": 1,
+                "social_insurance_base": 15000.00,
+                "housing_fund_base": 20000.00,
+                "employee_info": {
+                    "last_name": "张",
+                    "first_name": "三",
+                    "id_number": "110101199001011234"
+                },
+                "_clientId": "client_123"
+            }
+        ],
+        "overwrite_mode": false
+    }
+    
+    返回验证结果，包括：
+    - 员工身份验证
+    - 数据格式验证
+    - 业务逻辑验证
+    - 数据一致性验证
+    """
+    logger.info(f"🔍 [API-批量验证缴费基数] 接收请求: 记录数={len(request.get('base_updates', []))}, 用户={current_user.username}")
+    
+    try:
+        period_id = request.get("period_id")
+        base_updates = request.get("base_updates", [])
+        overwrite_mode = request.get("overwrite_mode", False)
+        
+        if not period_id:
+            raise ValueError("period_id 是必填字段")
+        
+        if not base_updates:
+            raise ValueError("base_updates 不能为空")
+        
+        service = EmployeeSalaryConfigService(db)
+        result = service.batch_validate_salary_bases(
+            period_id=period_id,
+            base_updates=base_updates,
+            overwrite_mode=overwrite_mode
+        )
+        
+        logger.info(f"✅ [API-批量验证缴费基数] 验证完成: 总计 {result['total']} 条, 有效 {result['valid']} 条, 无效 {result['invalid']} 条")
+        
+        return DataResponse(
+            data=result,
+            message=f"缴费基数验证完成: 总计 {result['total']} 条, 有效 {result['valid']} 条, 无效 {result['invalid']} 条"
+        )
+    except ValueError as e:
+        logger.warning(f"⚠️ [API-批量验证缴费基数] 参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="批量验证缴费基数失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"💥 [API-批量验证缴费基数] 验证失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="批量验证缴费基数时发生错误",
                 details=str(e)
             )
         )

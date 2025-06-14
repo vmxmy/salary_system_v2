@@ -121,6 +121,27 @@
       "result_subtitle": ""
     }
   },
+  "bulk_import": {
+    "title": "通用批量导入",
+    "steps": {
+      "select_mode": "选择模式",
+      "upload_data": "上传数据",
+      "map_fields": "字段映射",
+      "preview_confirm": "预览确认",
+      "import_result": "导入结果",
+      "please_select_mode": "请先选择一个导入模式"
+    },
+    "upload": {
+      "drag_or_click": "点击或拖拽文件到此区域上传",
+      "hint": "支持 Excel (.xls, .xlsx) 文件。请确保文件编码为 UTF-8。",
+      "parse_success": "文件解析成功，共发现 {{count}} 条记录。",
+      "please_upload_file": "请先上传数据文件",
+      "selected_file": "已选择文件："
+    },
+    "map": {
+      "please_map_required_fields": "请为所有必填系统字段匹配对应的Excel表头"
+    }
+  },
   "break_duration": "",
   "calculate": "计算",
   "calculating": "",

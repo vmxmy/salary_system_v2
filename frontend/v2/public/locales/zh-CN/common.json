@@ -11,7 +11,11 @@
     "title": "操作",
     "view": "查看"
   },
-  "actions": "操作",
+  "actions": {
+    "previous_step": "上一步",
+    "next_step": "下一步",
+    "execute_import": "执行导入"
+  },
   "activate": "",
   "active": "",
   "adjust_balance": "",

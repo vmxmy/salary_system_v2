@@ -7,6 +7,7 @@ import PayrollRunsPageV2 from './pages/PayrollRunsPageV2';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
 import PayrollEntryPage from './pages/PayrollEntryPage';
 import PayrollBulkImportPageV3 from './pages/PayrollBulkImportPage/PayrollBulkImportPageV3';
+import UniversalImportPage from './pages/PayrollBulkImportPage/UniversalImportPage';
 import PayrollComponentsPage from './pages/PayrollComponentsPage';
 import PayrollCalculationConfigPage from './pages/PayrollCalculationConfigPage';
 import AttendanceManagementPage from './pages/AttendanceManagementPage';
@@ -81,6 +82,14 @@ export const payrollRoutes: AppRouteObject[] = [
     element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Bulk Import...') }, React.createElement(PayrollBulkImportPageV3)),
     meta: {
       title: 'payroll:batch_import.page_title', // 使用批量导入页面标题翻译键
+      requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
+    },
+  },
+  {
+    path: 'universal-import',
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Universal Import...') }, React.createElement(UniversalImportPage)),
+    meta: {
+      title: '通用批量导入', // 通用导入页面标题
       requiredPermissions: [P_PAYROLL_ENTRY_BULK_IMPORT],
     },
   },

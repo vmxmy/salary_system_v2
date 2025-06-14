@@ -330,3 +330,62 @@ class PayrollComponentDefinition(PayrollComponentDefinitionBase):
 class PayrollComponentDefinitionListResponse(PaginationResponse[PayrollComponentDefinition]):
     """薪资字段定义列表响应模型"""
     pass
+
+
+# 缴费基数批量导入相关模型
+class SalaryBaseUpdate(BaseModel):
+    """缴费基数更新模型"""
+    employee_id: Optional[int] = Field(None, description="员工ID，可选，如果未提供则通过employee_info匹配")
+    social_insurance_base: Optional[Decimal] = Field(None, description="社保缴费基数", ge=0)
+    housing_fund_base: Optional[Decimal] = Field(None, description="公积金缴费基数", ge=0)
+    # 员工匹配信息，用于批量导入时根据姓名+身份证匹配员工
+    employee_info: Optional[Dict[str, str]] = Field(None, description="员工匹配信息，包含last_name, first_name, id_number")
+    # 客户端标识，用于前端跟踪
+    clientId: Optional[str] = Field(None, description="客户端生成的唯一标识")
+
+
+class SalaryBaseBatchValidationRequest(BaseModel):
+    """缴费基数批量验证请求模型"""
+    period_id: int = Field(..., description="薪资周期ID")
+    base_updates: List[SalaryBaseUpdate] = Field(..., description="缴费基数更新列表")
+    overwrite_mode: bool = Field(False, description="是否覆盖现有配置")
+
+
+class SalaryBaseValidationResult(BaseModel):
+    """单条缴费基数验证结果"""
+    employee_id: Optional[int] = Field(None, description="员工ID")
+    employee_name: Optional[str] = Field(None, description="员工姓名")
+    social_insurance_base: Optional[Decimal] = Field(None, description="社保缴费基数")
+    housing_fund_base: Optional[Decimal] = Field(None, description="公积金缴费基数")
+    is_valid: bool = Field(..., description="是否验证通过")
+    errors: List[str] = Field([], description="验证错误信息")
+    warnings: List[str] = Field([], description="验证警告信息")
+    clientId: Optional[str] = Field(None, description="客户端生成的唯一标识")
+    originalIndex: Optional[int] = Field(None, description="原始数据索引")
+
+
+class SalaryBaseBatchValidationResponse(BaseModel):
+    """缴费基数批量验证响应模型"""
+    total: int = Field(..., description="总记录数")
+    valid: int = Field(..., description="有效记录数")
+    invalid: int = Field(..., description="无效记录数")
+    warnings: int = Field(..., description="警告记录数")
+    errors: List[str] = Field([], description="全局错误信息列表")
+    validated_data: List[SalaryBaseValidationResult] = Field([], description="验证后的数据列表")
+
+
+class SalaryBaseBatchUpdateRequest(BaseModel):
+    """缴费基数批量更新请求模型"""
+    period_id: int = Field(..., description="薪资周期ID")
+    base_updates: List[SalaryBaseUpdate] = Field(..., description="缴费基数更新列表")
+    overwrite_mode: bool = Field(False, description="是否覆盖现有配置")
+
+
+class SalaryBaseBatchUpdateResponse(BaseModel):
+    """缴费基数批量更新响应模型"""
+    success_count: int = Field(..., description="成功更新的记录数")
+    failed_count: int = Field(..., description="失败的记录数")
+    created_count: int = Field(..., description="新创建的记录数")
+    updated_count: int = Field(..., description="更新的记录数")
+    errors: List[Dict[str, Any]] = Field([], description="错误详情列表")
+    message: str = Field(..., description="操作结果消息")

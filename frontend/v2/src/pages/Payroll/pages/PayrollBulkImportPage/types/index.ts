@@ -90,4 +90,12 @@ export type {
   BulkImportValidationResult,
   FieldMappingRule,
   OverwriteMode
-}; 
+};
+
+/**
+ * 通用导入系统类型定义入口
+ * 统一导出所有类型定义
+ */
+
+// 从 universal.ts 重新导出所有类型
+export * from './universal'; 

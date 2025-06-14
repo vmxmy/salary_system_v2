@@ -12,7 +12,11 @@
     "title": "Actions",
     "view": "View"
   },
-  "actions": "",
+  "actions": {
+    "previous_step": "Previous Step",
+    "next_step": "Next Step",
+    "execute_import": "Execute Import"
+  },
   "activate": "",
   "active": "",
   "adjust_balance": "",

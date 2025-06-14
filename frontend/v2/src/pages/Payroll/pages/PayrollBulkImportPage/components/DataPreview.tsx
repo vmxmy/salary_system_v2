@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Space,
   Card,
@@ -14,7 +14,8 @@ import {
   Tag,
   Collapse,
   Badge,
-  Progress
+  Progress,
+  Tooltip
 } from 'antd';
 import {
   DatabaseOutlined,
@@ -29,9 +30,13 @@ import type {
   ImportSettings,
   PayrollPeriod,
   ValidatedPayrollEntryData,
-  BulkImportValidationResult
+  BulkImportValidationResult,
+  RawImportData,
+  ImportModeConfig,
+  FieldConfig
 } from '../types/index';
 import { OverwriteMode } from '../../../types/payrollTypes';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -53,6 +58,9 @@ interface DataPreviewProps {
     message: string;
     stage: string;
   };
+  rawImportData: RawImportData;
+  fieldMapping: Record<string, string>;
+  modeConfig: ImportModeConfig;
 }
 
 const DataPreview: React.FC<DataPreviewProps> = ({
@@ -66,8 +74,12 @@ const DataPreview: React.FC<DataPreviewProps> = ({
   onExecuteImport,
   onBackToMapping,
   loading,
-  progress
+  progress,
+  rawImportData,
+  fieldMapping,
+  modeConfig
 }) => {
+  const { t } = useTranslation('payroll');
   const successRate = Math.round((validationResult.valid / validationResult.total) * 100);
   
   // 添加调试信息
@@ -83,12 +95,12 @@ const DataPreview: React.FC<DataPreviewProps> = ({
   // 计算导入按钮的状态文本
   const getImportButtonText = () => {
     if (validationResult.valid === 0) {
-      return "无有效记录可导入";
+      return t('dataPreview.importButton.noValidRecords');
     }
     if (validationResult.errors && validationResult.errors.length > 0) {
-      return "存在错误，无法导入";
+      return t('dataPreview.importButton.hasErrors');
     }
-    return `开始导入 (${validationResult.valid} 条记录)`;
+    return t('dataPreview.importButton.startImport', { count: validationResult.valid });
   };
   
   console.log('🔍 DataPreview 按钮状态:', {
@@ -112,32 +124,32 @@ const DataPreview: React.FC<DataPreviewProps> = ({
 
     const columns = [
       {
-        title: '序号',
+        title: t('dataPreview.errorsTable.columns.index'),
         dataIndex: 'originalIndex',
         key: 'index',
         width: 60,
         render: (index: number) => index + 1,
       },
       {
-        title: '员工信息',
+        title: t('dataPreview.errorsTable.columns.employeeInfo'),
         key: 'employee',
         width: 200,
         render: (record: any) => (
           <div>
             <div style={{ fontWeight: 'bold' }}>
-              {record.employee_full_name || record.employee_name || '未知员工'}
+              {record.employee_full_name || record.employee_name || t('common.unknownEmployee', { ns: 'common' })}
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.id_number && `身份证: ${record.id_number}`}
+              {record.id_number && `${t('common.idNumber', { ns: 'common' })}: ${record.id_number}`}
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.employee_code && `工号: ${record.employee_code}`}
+              {record.employee_code && `${t('common.employeeCode', { ns: 'common' })}: ${record.employee_code}`}
             </div>
           </div>
         ),
       },
       {
-        title: '应发工资',
+        title: t('dataPreview.errorsTable.columns.grossPay'),
         dataIndex: 'gross_pay',
         key: 'gross_pay',
         width: 100,
@@ -145,7 +157,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         render: (value: number) => `¥${(value || 0).toFixed(2)}`,
       },
       {
-        title: '实发工资',
+        title: t('dataPreview.errorsTable.columns.netPay'),
         dataIndex: 'net_pay',
         key: 'net_pay',
         width: 100,
@@ -153,14 +165,14 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         render: (value: number) => `¥${(value || 0).toFixed(2)}`,
       },
       {
-        title: '验证错误',
+        title: t('dataPreview.errorsTable.columns.validationErrors'),
         dataIndex: 'validationErrors',
         key: 'validationErrors',
         render: (errors: string[]) => (
           <div>
             <Badge count={errors.length} style={{ marginBottom: 8 }}>
               <Tag color="red" icon={<ExclamationCircleOutlined />}>
-                {errors.length} 个错误
+                {t('dataPreview.errorsTable.errorCount', { count: errors.length })}
               </Tag>
             </Badge>
             <div style={{ marginTop: 8 }}>
@@ -188,7 +200,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <ExclamationCircleOutlined style={{ color: '#cf1322' }} />
-            <span>验证错误详情 ({invalidRecords.length} 条记录)</span>
+            <span>{t('dataPreview.errorsTable.title', { count: invalidRecords.length })}</span>
           </div>
         }
         style={{ marginBottom: 24 }}
@@ -196,8 +208,8 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         <Alert
           type="error"
           showIcon
-          message="发现数据验证错误"
-          description={`共 ${invalidRecords.length} 条记录存在验证错误，请查看下方详情并修正数据后重新导入。`}
+          message={t('dataPreview.errorsTable.alert.message')}
+          description={t('dataPreview.errorsTable.alert.description', { count: invalidRecords.length })}
           style={{ marginBottom: 16 }}
         />
         
@@ -210,7 +222,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
-              `第 ${range[0]}-${range[1]} 条/共 ${total} 条错误记录`,
+              t('common.table.pagination', { ns: 'common', rangeStart: range[0], rangeEnd: range[1], total: total })
           }}
           size="small"
           scroll={{ x: 800 }}
@@ -237,208 +249,318 @@ const DataPreview: React.FC<DataPreviewProps> = ({
   const getOverwriteModeText = (mode: OverwriteMode): string => {
     switch (mode) {
       case OverwriteMode.NONE:
-        return '不覆写';
-      case OverwriteMode.PARTIAL:
-        return '部分覆写';
-      case OverwriteMode.FULL:
-        return '全量覆写';
+        return t('dataPreview.overwriteModes.none');
+      case OverwriteMode.ALL:
+        return t('dataPreview.overwriteModes.all');
+      case OverwriteMode.EXISTING_ONLY:
+        return t('dataPreview.overwriteModes.existingOnly');
+      case OverwriteMode.INCREMENTAL:
+        return t('dataPreview.overwriteModes.incremental');
+      case OverwriteMode.FULL_MONTH:
+        return t('dataPreview.overwriteModes.fullMonth');
+      case OverwriteMode.SOCIAL_INSURANCE_ONLY:
+        return t('dataPreview.overwriteModes.socialInsuranceOnly');
+      case OverwriteMode.TAX_ONLY:
+        return t('dataPreview.overwriteModes.taxOnly');
+      case OverwriteMode.ADJUSTMENTS_ONLY:
+        return t('dataPreview.overwriteModes.adjustmentsOnly');
       default:
-        return '未知模式';
+        return t('common.unknown', { ns: 'common' });
     }
   };
+
+  // 辅助函数：获取覆写模式的说明
+  const getOverwriteModeDescription = (mode: OverwriteMode): string => {
+    switch (mode) {
+      case OverwriteMode.NONE:
+        return t('dataPreview.overwriteModeDescriptions.none');
+      case OverwriteMode.ALL:
+        return t('dataPreview.overwriteModeDescriptions.all');
+      case OverwriteMode.EXISTING_ONLY:
+        return t('dataPreview.overwriteModeDescriptions.existingOnly');
+      case OverwriteMode.INCREMENTAL:
+        return t('dataPreview.overwriteModeDescriptions.incremental');
+      case OverwriteMode.FULL_MONTH:
+        return t('dataPreview.overwriteModeDescriptions.fullMonth');
+      case OverwriteMode.SOCIAL_INSURANCE_ONLY:
+        return t('dataPreview.overwriteModeDescriptions.socialInsuranceOnly');
+      case OverwriteMode.TAX_ONLY:
+        return t('dataPreview.overwriteModeDescriptions.taxOnly');
+      case OverwriteMode.ADJUSTMENTS_ONLY:
+        return t('dataPreview.overwriteModeDescriptions.adjustmentsOnly');
+      default:
+        return t('common.unknown', { ns: 'common' });
+    }
+  };
+
+  const { rows, headers } = rawImportData;
+
+  const { processedData: rawProcessedData, columns: rawColumns, errorCount } = useMemo(() => {
+    const invertedMapping: Record<string, string> = {};
+    for (const key in fieldMapping) {
+      invertedMapping[fieldMapping[key]] = key;
+    }
+
+    const requiredFields = modeConfig.requiredFields;
+
+    const data = rows.map((row, rowIndex) => {
+      const rowData: Record<string, any> = { key: `row-${rowIndex}` };
+      const errors: { field: string, message: string }[] = [];
+      
+      headers.forEach((header, colIndex) => {
+        const systemKey = invertedMapping[header];
+        if (systemKey) {
+          rowData[systemKey] = row[colIndex];
+        }
+      });
+
+      requiredFields.forEach(field => {
+        if (rowData[field.key] === null || rowData[field.key] === undefined || String(rowData[field.key]).trim() === '') {
+          errors.push({ field: field.key, message: `${field.name} 是必填项` });
+        }
+      });
+      
+      rowData._errors = errors;
+      return rowData;
+    });
+
+    const allSystemFields = [...modeConfig.requiredFields, ...modeConfig.optionalFields];
+    const tableColumns = Object.keys(invertedMapping).map(excelHeader => {
+      const systemKey = invertedMapping[excelHeader];
+      const fieldConfig = allSystemFields.find(f => f.key === systemKey);
+      return {
+        title: fieldConfig?.name || systemKey,
+        dataIndex: systemKey,
+        key: systemKey,
+        render: (text: any, record: any) => {
+          const fieldError = record._errors.find((e: any) => e.field === systemKey);
+          const cellStyle = fieldError ? { color: 'red', border: '1px solid red' } : {};
+          return <span style={cellStyle}>{text}</span>;
+        },
+      };
+    });
+
+    tableColumns.push({
+      title: '验证状态',
+      key: 'status',
+      fixed: 'right',
+      width: 120,
+      render: (_: any, record: any) => {
+        if (record._errors.length > 0) {
+          return (
+            <Tooltip title={record._errors.map((e: any) => e.message).join(', ')}>
+              <Tag color="red">发现 {record._errors.length} 个错误</Tag>
+            </Tooltip>
+          );
+        }
+        return <Tag color="green">通过</Tag>;
+      },
+    });
+
+    const totalErrors = data.filter(d => d._errors.length > 0).length;
+
+    return { processedData: data, columns: tableColumns, errorCount: totalErrors };
+  }, [rows, headers, fieldMapping, modeConfig]);
+
+  // 根据导入模式配置决定显示哪些列
+  const dynamicColumns = useMemo(() => {
+    // 基础列定义
+    const baseColumns: any[] = [
+      {
+        title: t('dataPreview.previewTable.columns.index'),
+        dataIndex: 'originalIndex',
+        key: 'index',
+        width: 60,
+        fixed: 'left',
+        render: (index: number) => index + 1
+      },
+      {
+        title: t('dataPreview.previewTable.columns.employeeInfo'),
+        key: 'employee',
+        width: 200,
+        fixed: 'left',
+        render: (record: ValidatedPayrollEntryData) => (
+          <div>
+            <div style={{ fontWeight: 'bold' }}>
+              {record.employee_full_name || record.employee_name || t('common.unknownEmployee', { ns: 'common' })}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              {record.id_number && `${t('common.idNumber', { ns: 'common' })}: ${record.id_number}`}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              {record.employee_code && `${t('common.employeeCode', { ns: 'common' })}: ${record.employee_code}`}
+            </div>
+          </div>
+        )
+      },
+      {
+        title: t('dataPreview.previewTable.columns.validationStatus'),
+        key: 'validation',
+        width: 120,
+        fixed: 'left',
+        render: (record: ValidatedPayrollEntryData) => {
+          if (record.validationErrors && record.validationErrors.length > 0) {
+            return (
+              <Tooltip title={record.validationErrors.join(', ')}>
+                <Tag color="red" icon={<ExclamationCircleOutlined />}>
+                  {t('dataPreview.validationStatus.error')}
+                </Tag>
+              </Tooltip>
+            );
+          }
+          if (record.validationWarnings && record.validationWarnings.length > 0) {
+            return (
+              <Tooltip title={record.validationWarnings.join(', ')}>
+                <Tag color="warning" icon={<WarningOutlined />}>
+                {t('dataPreview.validationStatus.warning')}
+                </Tag>
+              </Tooltip>
+            );
+          }
+          return (
+            <Tag color="success" icon={<CheckCircleOutlined />}>
+              {t('dataPreview.validationStatus.valid')}
+            </Tag>
+          );
+        }
+      }
+    ];
+
+    // 从 fieldMapping 和 modeConfig 动态生成列
+    const mappedColumns = Object.keys(fieldMapping)
+      .map(fileField => {
+        const payrollField = fieldMapping[fileField];
+        const fieldConfig = modeConfig.fields[payrollField] as FieldConfig;
+        
+        // 如果字段未在配置中定义，或者被标记为内部专用，则不显示
+        if (!fieldConfig || fieldConfig.internal) {
+          return null;
+        }
+
+        return {
+          title: t(fieldConfig.label, { ns: 'payroll' }), // 假设label已经是i18n key
+          dataIndex: payrollField,
+          key: payrollField,
+          width: 150,
+          align: fieldConfig.type === 'number' ? 'right' : 'left',
+          render: (value: any, record: ValidatedPayrollEntryData) => {
+            const originalValue = record.originalData?.[fileField];
+            
+            // 如果转换后的值和原始值不同，则并排显示
+            if (value !== undefined && value !== originalValue) {
+              return (
+                <Tooltip title={`${t('dataPreview.originalValue')}: ${originalValue}`}>
+                  <span>{value}</span>
+                </Tooltip>
+              );
+            }
+            
+            // 对于金额，格式化显示
+            if (fieldConfig.type === 'number' && typeof value === 'number') {
+              return `¥${value.toFixed(2)}`;
+            }
+            
+            return value;
+          }
+        };
+      })
+      .filter(Boolean); // 过滤掉 null
+
+    return [...baseColumns, ...mappedColumns];
+  }, [fieldMapping, modeConfig, t]);
+
+  const selectedPeriod = payrollPeriods.find(p => p.id === selectedPeriodId);
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {/* 验证结果统计 */}
-      <Card title="数据验证结果">
+      <Card title={t('dataPreview.summaryCard.title')}>
         <Row gutter={16}>
-          <Col span={5}>
+          <Col span={8}>
             <Statistic
-              title="总记录数"
-              value={validationResult.total}
+              title={t('dataPreview.summaryCard.selectedPeriod')}
+              value={selectedPeriod ? selectedPeriod.name : t('common.none', { ns: 'common' })}
               prefix={<DatabaseOutlined />}
             />
           </Col>
-          <Col span={5}>
+          <Col span={8}>
             <Statistic
-              title="有效记录"
-              value={validationResult.valid}
-              valueStyle={{ color: '#3f8600' }}
-              prefix={<CheckCircleOutlined />}
+              title={t('dataPreview.summaryCard.totalRecords')}
+              value={validationResult.total}
             />
           </Col>
-          <Col span={5}>
+          <Col span={8}>
             <Statistic
-              title="无效记录"
-              value={validationResult.invalid}
-              valueStyle={{ color: '#cf1322' }}
-              prefix={<WarningOutlined />}
+              title={t('dataPreview.summaryCard.totalAmount')}
+              value={`¥ ${importData.totalAmount.toFixed(2)}`}
             />
           </Col>
-          <Col span={4}>
-            <Statistic
-              title="警告数"
-              value={validationResult.warnings || 0}
-              valueStyle={{ color: '#fa8c16' }}
-              prefix={<WarningOutlined />}
-            />
-          </Col>
-          <Col span={5}>
-            <Statistic
-              title="成功率"
-              value={successRate}
-              suffix="%"
-              valueStyle={{ color: successRate >= 90 ? '#3f8600' : '#fa8c16' }}
-            />
+          <Col span={24}>
+            <Text>{t('dataPreview.summaryCard.validationProgress')}:</Text>
+            <Progress percent={successRate} status={successRate < 100 ? "exception" : "success"} />
           </Col>
         </Row>
-        
-        {/* 覆盖模式提示 */}
-        {importSettings.overwriteMode !== OverwriteMode.NONE && validationResult.warnings > 0 && (
-          <Alert
-            style={{ marginTop: 16 }}
-            type="warning"
-            showIcon
-            message="覆写模式已启用"
-            description={`检测到 ${validationResult.warnings} 条重复记录，当前覆写模式为"${getOverwriteModeText(importSettings.overwriteMode)}"，这些记录将被相应处理。`}
-          />
-        )}
-        
-        {/* 错误详情 */}
-        {validationResult.errors && validationResult.errors.length > 0 && (
-          <Alert
-            style={{ marginTop: 16 }}
-            type="error"
-            showIcon
-            message="数据验证错误"
-            description={
-              <div>
-                <div style={{ marginBottom: 8 }}>发现以下错误，需要修正后才能导入：</div>
-                <ul style={{ margin: 0, paddingLeft: 20 }}>
-                  {validationResult.errors.slice(0, 5).map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                  {validationResult.errors.length > 5 && (
-                    <li>... 还有 {validationResult.errors.length - 5} 个错误</li>
-                  )}
-                </ul>
-              </div>
-            }
-          />
-        )}
       </Card>
 
       {/* 验证错误详情表格 */}
       {renderValidationErrorsTable()}
 
       {/* 数据样本预览 */}
-      <Card title="数据样本预览">
-        <div style={{ 
-          border: '1px solid #d9d9d9', 
-          borderRadius: 6,
-          overflow: 'hidden'
-        }}>
-          <Table
-            dataSource={importData.rows.slice(0, 5).map((row, index) => {
-              const record: any = { key: index };
-              importData.headers.forEach((header, i) => {
-                record[header] = row[i];
-              });
-              return record;
-            })}
-            columns={importData.headers.map((header, colIndex) => ({
-              title: header,
-              dataIndex: header,
-              key: `col-${colIndex}`,
-              width: 120,
-              ellipsis: {
-                showTitle: false
-              },
-              render: (value) => (
-                <span title={value || '(空)'} style={{ 
-                  display: 'inline-block',
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {value === null || value === '' ? (
-                    <Text type="secondary" italic>(空)</Text>
-                  ) : (
-                    value
-                  )}
-                </span>
-              )
-            }))}
-            pagination={false}
-            size="small"
-            scroll={{ 
-              x: Math.max(800, importData.headers.length * 120),
-              y: 240
-            }}
-            bordered
-          />
-        </div>
-        {importData.totalRecords > 5 && (
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
-            <Text type="secondary">
-              显示前5条记录，共 {importData.totalRecords} 条记录
-            </Text>
-          </div>
-        )}
-        
+      <Card title={t('dataPreview.dataPreviewCard.title')} extra={<Text>{t('dataPreview.dataPreviewCard.subtitle', { count: validationResult.valid })}</Text>}>
         <Alert
-          style={{ marginTop: 12 }}
-          message="预览说明"
-          description="表格支持水平和垂直滚动，可以查看所有字段内容。空单元格显示为「(空)」，鼠标悬停可查看完整内容。"
           type="info"
           showIcon
-          closable
+          message={t('dataPreview.dataPreviewCard.alert.message')}
+          description={t('dataPreview.dataPreviewCard.alert.description')}
+          style={{ marginBottom: 16 }}
+        />
+        <Table
+          columns={dynamicColumns}
+          dataSource={processedData}
+          rowKey={(record) => `preview-${record.originalIndex || record._clientId}`}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => t('common.table.pagination', { ns: 'common', rangeStart: range[0], rangeEnd: range[1], total: total })
+          }}
+          size="small"
         />
       </Card>
 
       {/* 导入设置 */}
-      <Card title="导入设置">
+      <Card title={t('dataPreview.settingsCard.title')}>
         <Form layout="vertical">
           <Row gutter={24}>
             <Col span={12}>
-              <Form.Item label="当前选择的薪资周期">
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#f6ffed', 
-                  border: '1px solid #b7eb8f',
-                  borderRadius: '6px'
-                }}>
-                  <Text strong>
-                    {payrollPeriods.find(p => p.id === selectedPeriodId)?.name || '未选择周期'}
-                  </Text>
-                  {selectedPeriodId && (
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                      {payrollPeriods.find(p => p.id === selectedPeriodId)?.start_date} ~ {payrollPeriods.find(p => p.id === selectedPeriodId)?.end_date}
-                    </div>
-                  )}
-                </div>
+              <Form.Item label={t('dataPreview.settingsCard.overwriteMode.label')} tooltip={getOverwriteModeDescription(importSettings.overwriteMode)}>
+                <Switch
+                  checkedChildren={getOverwriteModeText(importSettings.overwriteMode)}
+                  unCheckedChildren={getOverwriteModeText(OverwriteMode.NONE)}
+                  checked={importSettings.overwriteMode !== OverwriteMode.NONE}
+                  onChange={(checked) => {
+                    const newMode = checked ? OverwriteMode.ALL : OverwriteMode.NONE;
+                    onSettingsChange({ ...importSettings, overwriteMode: newMode });
+                    console.log('模式切换:', { newMode }); // 调试日志
+                  }}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="导入选项">
-                <Space direction="vertical">
-                  <div>
-                    <Switch 
-                      checked={importSettings.skipInvalidRecords}
-                      onChange={(checked) => onSettingsChange({...importSettings, skipInvalidRecords: checked})}
-                    /> 跳过无效记录
-                  </div>
-                  <div>
-                    覆写模式: {getOverwriteModeText(importSettings.overwriteMode)}
-                  </div>
-                  <div>
-                    <Switch 
-                      checked={importSettings.sendNotification}
-                      onChange={(checked) => onSettingsChange({...importSettings, sendNotification: checked})}
-                    /> 发送完成通知
-                  </div>
-                </Space>
+              <Form.Item label={t('dataPreview.settingsCard.skipInvalidRecords.label')}>
+                <Switch 
+                  checked={importSettings.skipInvalidRecords}
+                  onChange={(checked) => onSettingsChange({...importSettings, skipInvalidRecords: checked})}
+                /> 跳过无效记录
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label={t('dataPreview.settingsCard.sendNotification.label')}>
+                <Switch 
+                  checked={importSettings.sendNotification}
+                  onChange={(checked) => onSettingsChange({...importSettings, sendNotification: checked})}
+                /> 发送完成通知
               </Form.Item>
             </Col>
           </Row>
@@ -448,15 +570,18 @@ const DataPreview: React.FC<DataPreviewProps> = ({
       <div style={{ textAlign: 'center' }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <Space>
-            <Button onClick={onBackToMapping}>返回映射</Button>
+            <Button onClick={onBackToMapping} disabled={loading}>
+              {t('common.actions.backToMapping', { ns: 'common' })}
+            </Button>
             <Button 
               type="primary" 
               size="large" 
               onClick={onExecuteImport}
               loading={loading}
-              disabled={!canImport}
+              disabled={!canImport || loading}
+              icon={<CheckCircleOutlined />}
             >
-              {loading ? `正在导入 ${validationResult.valid} 条记录，请稍候...` : getImportButtonText()}
+              {loading ? (progress ? `${progress.stage}: ${progress.message}` : t('common.actions.importing', { ns: 'common' })) : getImportButtonText()}
             </Button>
           </Space>
           
@@ -496,8 +621,8 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             <Alert
               type="info"
               showIcon
-              message="操作提示"
-              description="您可以直接导入有效记录，或返回映射步骤修正数据后再导入。"
+              message={t('dataPreview.importButton.info.message')}
+              description={t('dataPreview.importButton.info.description')}
               style={{ textAlign: 'left' }}
             />
           )}
@@ -506,8 +631,8 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             <Alert
               type="success"
               showIcon
-              message="覆写模式提示"
-              description={`覆写模式已启用为"${getOverwriteModeText(importSettings.overwriteMode)}"，${validationResult.warnings} 条重复记录将被相应处理。点击"开始导入"继续执行。`}
+              message={t('dataPreview.importButton.success.message')}
+              description={t('dataPreview.importButton.success.description', { count: validationResult.warnings })}
               style={{ textAlign: 'left' }}
             />
           )}
@@ -516,8 +641,8 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             <Alert
               type="error"
               showIcon
-              message="无法导入"
-              description="存在数据错误，请返回映射步骤修正后重新验证。"
+              message={t('dataPreview.importButton.error.message')}
+              description={t('dataPreview.importButton.error.description')}
               style={{ textAlign: 'left' }}
             />
           )}
