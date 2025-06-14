@@ -12,6 +12,7 @@ import type {
   RawImportData,
   ProcessedRow,
   ValidationResult,
+  OverwriteMode
 } from '../types/universal';
 import { store } from '../../../../../store';
 import apiClient from '../../../../../api/apiClient';
@@ -42,12 +43,12 @@ export abstract class BaseImportStrategy {
   /**
    * 验证处理后的数据
    */
-  abstract validateData(processedData: ProcessedRow[]): ValidationResult[];
+  abstract validateData(processedData: ProcessedRow[], periodId: number, overwriteMode?: OverwriteMode): Promise<ValidationResult[]>;
 
   /**
    * 将经过验证的数据提交到后端
    */
-  abstract importData(validatedData: ProcessedRow[]): Promise<any>;
+  abstract importData(validatedData: ProcessedRow[], periodId: number, overwriteMode?: OverwriteMode): Promise<any>;
 
   /**
    * 获取必需的参考数据

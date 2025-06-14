@@ -19,7 +19,7 @@ module.exports = {
     return ''; // 生产模式下返回空字符串或特定占位符
   },
   indentation: 2, // JSON 文件缩进
-  keepRemoved: false, // 从 JSON 文件中移除代码里不再使用的 key
+  keepRemoved: ['menu'], // 从 JSON 文件中移除代码里不再使用的 key, 但保留 `menu` 命名空间下的所有键
   lexers: {
     hbs: ['HandlebarsLexer'],
     handlebars: ['HandlebarsLexer'],

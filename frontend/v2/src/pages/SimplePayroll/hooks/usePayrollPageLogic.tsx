@@ -254,7 +254,7 @@ export const usePayrollPageLogic = () => {
   };
 
   const handleNavigateToBulkImport = () => {
-    navigate('/finance/payroll/bulk-import');
+    navigate('/finance/payroll/universal-import');
   };
 
   const handleImportTaxData = () => {

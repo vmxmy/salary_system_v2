@@ -263,7 +263,7 @@ const PayrollDashboardView: React.FC = () => {
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title="平均应发工资"
+              title="平均应发合计"
               value={entryStats.averageGrossPay}
               precision={2}
               prefix="¥"
@@ -278,7 +278,7 @@ const PayrollDashboardView: React.FC = () => {
           <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="总应发工资"
+                title="总应发合计"
                 value={entryStats.totalGrossPay}
                 precision={2}
                 prefix="¥"
@@ -289,7 +289,7 @@ const PayrollDashboardView: React.FC = () => {
           <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="总实发工资"
+                title="总实发合计"
                 value={entryStats.totalNetPay}
                 precision={2}
                 prefix="¥"

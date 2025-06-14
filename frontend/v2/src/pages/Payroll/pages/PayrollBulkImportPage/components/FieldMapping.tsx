@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Select, Tag, Typography, Alert, Button, Tooltip } from 'antd';
 import * as fuzzball from 'fuzzball';
+// import * as nodejieba from 'nodejieba';
 import type { RawImportData, ImportModeConfig } from '../types/universal';
 
 const { Text } = Typography;
@@ -33,24 +34,37 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [confidence, setConfidence] = useState<Record<string, number>>({});
 
+  /**
+   * 计算两个中文文本的 Jaccard 相似度
+   * @param text1 文本1
+   * @param text2 文本2
+   * @returns 相似度分数 (0-100)
+   */
+  const calculateChineseSimilarity = (text1: string, text2: string): number => {
+    if (!text1 || !text2) return 0;
+
+    // 使用 fuzzball 的 token_set_ratio 算法，它对中文分词和乱序有很好的效果
+    // 它会标记出共同的词元，并基于此计算相似度
+    return fuzzball.token_set_ratio(text1, text2, { process: (s: string) => s.toLowerCase() });
+  };
+
   const autoMapFields = () => {
     const newMapping: Record<string, string> = {};
     const newConfidence: Record<string, number> = {};
-    const systemFieldChoices = systemFields.map(f => f.name);
 
     headers.forEach(header => {
-      const bestMatch = fuzzball.extract(String(header), systemFieldChoices, {
-        limit: 1,
-        cutoff: 60,
-      });
-
-      if (bestMatch.length > 0) {
-        const matchedSystemField = systemFields.find(f => f.name === bestMatch[0][0]);
-        const score = bestMatch[0][1];
-        if (matchedSystemField) {
-          newMapping[header] = matchedSystemField.key;
-          newConfidence[header] = score;
+      let bestMatch: { key: string; score: number } | null = null;
+      
+      systemFields.forEach(field => {
+        const score = calculateChineseSimilarity(header, field.name);
+        if (score > (bestMatch?.score ?? 0)) {
+          bestMatch = { key: field.key, score: score };
         }
+      });
+      
+      if (bestMatch && bestMatch.score > 50) { // 设置一个匹配阈值
+        newMapping[header] = bestMatch.key;
+        newConfidence[header] = bestMatch.score;
       }
     });
     setMapping(newMapping);
@@ -58,14 +72,7 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
   };
 
   useEffect(() => {
-    const invertedMapping: Record<string, string> = {};
-    for (const header in mapping) {
-      const systemKey = mapping[header];
-      if (systemKey) {
-        invertedMapping[systemKey] = header;
-      }
-    }
-    onMappingComplete(invertedMapping);
+    onMappingComplete(mapping);
   }, [mapping, onMappingComplete]);
 
   const handleMappingChange = (excelHeader: string, systemFieldKey: string | null) => {

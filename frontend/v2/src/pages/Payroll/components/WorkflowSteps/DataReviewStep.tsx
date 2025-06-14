@@ -215,7 +215,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         } else if (netAmount <= 0) {
           data_completeness = 'warning';
           validation_status = 'pending';
-          validation_notes = '实发工资异常';
+          validation_notes = '实发合计异常';
         }
         
         const departmentName = entry.employee?.departmentName || 
@@ -604,7 +604,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
   };
 
   /**
-   * 计算单条记录的应发工资
+   * 计算单条记录的应发合计
    */
   const calculateGrossPay = (record: PayrollDataForReview): number => {
     // 首先尝试使用API返回的gross_pay字段
@@ -640,7 +640,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
   };
 
   /**
-   * 计算单条记录的实发工资
+   * 计算单条记录的实发合计
    */
   const calculateNetPay = (record: PayrollDataForReview): number => {
     const grossAmount = calculateGrossPay(record);
@@ -682,7 +682,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
     console.log('💰 收入计算详情:', earningsDebug, '总额:', grossPay);
     console.log('📉 扣款计算详情:', deductionsDebug, '总额:', totalDeductions);
     
-    // 计算实发工资
+    // 计算实发合计
     const netPay = Math.max(0, grossPay - totalDeductions);
     
     const newSummary = {
@@ -738,7 +738,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
       render: (_, record) => renderEarningsDetails(record.earnings_details)
     },
     {
-      title: '应发工资',
+      title: '应发合计',
       dataIndex: 'gross_pay',
       width: 110,
       align: 'right',
@@ -823,12 +823,12 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
       }
     },
     {
-      title: '实发工资',
+      title: '实发合计',
       dataIndex: 'net_pay',
       width: 110,
       align: 'right',
       sorter: (a, b) => calculateNetPay(a) - calculateNetPay(b),
-      defaultSortOrder: 'descend', // 默认按实发工资降序排列
+      defaultSortOrder: 'descend', // 默认按实发合计降序排列
       filters: [
         { text: '≥ 8,000', value: 'high' },
         { text: '5,000 - 7,999', value: 'medium' },
@@ -1184,7 +1184,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
                       </Text>
                     </ProTable.Summary.Cell>
                     <ProTable.Summary.Cell index={2}>
-                      {/* 应发工资列 */}
+                      {/* 应发合计列 */}
                       <Space direction="vertical" size={2}>
                         <Text style={{ color: '#52c41a', fontSize: '12px' }}>
                           当前页: {currentPageStats.formattedTotalAmount}
@@ -1215,7 +1215,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
                       </Space>
                     </ProTable.Summary.Cell>
                     <ProTable.Summary.Cell index={5}>
-                      {/* 实发工资列 */}
+                      {/* 实发合计列 */}
                       <Space direction="vertical" size={2}>
                         <Text style={{ color: '#1890ff', fontSize: '12px' }}>
                           当前页: {currentPageStats.formattedTotalNet}
@@ -1452,7 +1452,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
             <Row gutter={12}>
               <Col span={8}>
                 <div style={{ textAlign: 'center', padding: '12px', backgroundColor: '#f6ffed', borderRadius: '4px', border: '1px solid #b7eb8f' }}>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>应发工资</div>
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>应发合计</div>
                   <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>
                     ¥{calculatedSummary.grossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                   </div>
@@ -1468,7 +1468,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
               </Col>
               <Col span={8}>
                 <div style={{ textAlign: 'center', padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff' }}>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>实发工资</div>
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>实发合计</div>
                   <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1890ff' }}>
                     ¥{calculatedSummary.netPay.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                   </div>

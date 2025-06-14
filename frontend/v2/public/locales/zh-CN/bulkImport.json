@@ -1,0 +1,21 @@
+{
+  "map": {
+    "please_map_required_fields": "请为所有必填系统字段匹配对应的Excel表头"
+  },
+  "steps": {
+    "import_result": "导入结果",
+    "map_fields": "字段映射",
+    "please_select_mode": "请先选择一个导入模式",
+    "please_select_period": "请先选择薪资周期",
+    "preview_confirm": "预览与确认",
+    "select_mode": "选择模式",
+    "select_period": "选择周期",
+    "upload_data": "上传数据"
+  },
+  "title": "通用批量导入",
+  "upload": {
+    "parse_success": "数据解析成功",
+    "parse_success_other": "",
+    "please_upload_file": "请先上传数据文件"
+  }
+}

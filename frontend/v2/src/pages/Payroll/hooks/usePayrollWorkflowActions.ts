@@ -435,7 +435,7 @@ export const usePayrollWorkflowActions = (
       Object.values(entry.deductions_details).reduce((sum: number, item: any) => 
         sum + (Number(item?.amount) || 0), 0) : 0;
 
-    // 计算实发工资
+    // 计算实发合计
     const netPay = grossPay - totalDeductions;
 
     return {

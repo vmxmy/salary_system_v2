@@ -1,13 +1,43 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Modal, message, Button, Space, Input } from 'antd';
+import { Modal, message, Button, Space, Input, Card, Collapse, Switch, Tag, Select, InputNumber, Divider } from 'antd';
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { payrollViewsApi, type ComprehensivePayrollDataView } from '../../Payroll/services/payrollViewsApi';
 import PayrollEntryDetailModal from '../../Payroll/components/PayrollEntryDetailModal';
 import PayrollEntryFormModal from '../../Payroll/components/PayrollEntryFormModal';
 import { getPayrollEntries, getPayrollEntryById } from '../../Payroll/services/payrollApi';
 import type { PayrollEntry } from '../../Payroll/types/payrollTypes';
 import TableActionButton from '../../../components/common/TableActionButton';
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import apiClient from '../../../api/apiClient';
+
+const { Panel } = Collapse;
+const { Option } = Select;
+
+// 筛选配置接口
+interface ColumnFilterConfig {
+  hideJsonbColumns: boolean;
+  hideZeroColumns: boolean;
+  hideEmptyColumns: boolean;
+  includePatterns: string[];
+  excludePatterns: string[];
+  minValueThreshold: number;
+  maxValueThreshold: number;
+  showOnlyNumericColumns: boolean;
+}
+
+// 默认筛选配置
+const defaultFilterConfig: ColumnFilterConfig = {
+  hideJsonbColumns: true,
+  hideZeroColumns: true,
+  hideEmptyColumns: true,
+  includePatterns: [],
+  excludePatterns: ['*id', '*时间', '*日期'],
+  minValueThreshold: 0,
+  maxValueThreshold: Infinity,
+  showOnlyNumericColumns: false,
+};
 
 // 工资数据类型定义 - 使用核心视图API返回的类型
 interface PayrollData extends ComprehensivePayrollDataView {
@@ -27,11 +57,25 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   periodId,
   periodName
 }) => {
+  const { t } = useTranslation(['payroll', 'common', 'employee']);
   const [dataSource, setDataSource] = useState<PayrollData[]>([]);
   const [filteredDataSource, setFilteredDataSource] = useState<PayrollData[]>([]);
   const [loading, setLoading] = useState(false);
   const actionRef = useRef<ActionType>(null);
+  const [dynamicColumns, setDynamicColumns] = useState<ProColumns<PayrollData>[]>([]);
   const [collapsed, setCollapsed] = useState(false);
+  
+  // 分页状态管理
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+  
+  // 筛选配置状态
+  const [filterConfig, setFilterConfig] = useState<ColumnFilterConfig>(defaultFilterConfig);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [allAvailableKeys, setAllAvailableKeys] = useState<string[]>([]);
   
   // 🎯 详情和编辑功能状态
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -40,31 +84,299 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [selectedEntry, setSelectedEntry] = useState<PayrollEntry | null>(null);
   const [payrollRunId, setPayrollRunId] = useState<number | null>(null);
 
-  // 获取工资数据
+  // 通配符匹配函数
+  const matchesPattern = (text: string, pattern: string): boolean => {
+    const regexPattern = pattern
+      .replace(/\*/g, '.*')
+      .replace(/\?/g, '.');
+    const regex = new RegExp(`^${regexPattern}$`, 'i');
+    return regex.test(text);
+  };
+
+  // 高级列筛选函数
+  const filterColumns = (keys: string[], data: PayrollData[]): string[] => {
+    return keys.filter(key => {
+      // 1. 检查包含模式
+      if (filterConfig.includePatterns.length > 0) {
+        const matchesInclude = filterConfig.includePatterns.some(pattern => 
+          matchesPattern(key, pattern)
+        );
+        if (!matchesInclude) return false;
+      }
+
+      // 2. 检查排除模式
+      if (filterConfig.excludePatterns.length > 0) {
+        const matchesExclude = filterConfig.excludePatterns.some(pattern => 
+          matchesPattern(key, pattern)
+        );
+        if (matchesExclude) return false;
+      }
+
+      // 3. 过滤 JSONB 列
+      if (filterConfig.hideJsonbColumns) {
+        if (key.includes('原始')) return false;
+        const sampleValue = data[0]?.[key as keyof PayrollData];
+        if (sampleValue !== null && typeof sampleValue === 'object' && !Array.isArray(sampleValue)) {
+          return false;
+        }
+      }
+
+      // 4. 过滤全零列
+      if (filterConfig.hideZeroColumns) {
+        const hasNonZeroValue = data.some(item => {
+          const value = item[key as keyof PayrollData];
+          return value !== null && 
+                 value !== undefined && 
+                 value !== 0 && 
+                 value !== '' &&
+                 value !== '0' &&
+                 value !== '0.00';
+        });
+        if (!hasNonZeroValue) return false;
+      }
+
+      // 5. 过滤空列（但保留重要的基础信息字段）
+      if (filterConfig.hideEmptyColumns) {
+        // 重要的基础信息字段，即使为空也要显示
+        const importantFields = ['根人员类别', '编制', '人员类别', '员工编号', '员工姓名', '部门名称', '职位名称'];
+        const isImportantField = importantFields.includes(key);
+        
+        if (!isImportantField) {
+          const hasValue = data.some(item => {
+            const value = item[key as keyof PayrollData];
+            return value !== null && value !== undefined && value !== '';
+          });
+          if (!hasValue) return false;
+        }
+      }
+
+      // 6. 只显示数值列
+      if (filterConfig.showOnlyNumericColumns) {
+        const sampleValue = data[0]?.[key as keyof PayrollData];
+        if (typeof sampleValue !== 'number') return false;
+      }
+
+      // 7. 数值范围筛选
+      if (typeof data[0]?.[key as keyof PayrollData] === 'number') {
+        const values = data.map(item => item[key as keyof PayrollData] as number).filter(v => v != null);
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
+        
+        if (maxValue < filterConfig.minValueThreshold || minValue > filterConfig.maxValueThreshold) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  // 获取工资数据 - 使用新的批量模态框API
   const fetchPayrollData = useCallback(async () => {
     if (!periodId) return;
     
     setLoading(true);
     try {
-      const response = await payrollViewsApi.getComprehensivePayrollData({
-        period_id: periodId,
-        limit: 200
-      });
-      
-      // 转换API返回的数据格式，添加id字段用于表格key
-      const transformedData: PayrollData[] = response.map((item: ComprehensivePayrollDataView, index: number) => ({
-        ...item,
-        id: item.薪资条目id || index, // 使用薪资条目id作为key，如果没有则使用索引
+      // 使用apiClient调用批量模态框API
+      const response = await apiClient.get(`/reports/payroll-modal/period/${periodId}?limit=100`);
+      const modalDataList = response.data;
+      console.log('✅ [PayrollDataModal] 批量模态框API响应:', modalDataList.length);
+
+      // 将模态框数据转换为表格数据格式
+      const transformedData: PayrollData[] = modalDataList.map((modalData: any, index: number) => ({
+        id: modalData.薪资条目id || index,
+        薪资条目id: modalData.薪资条目id,
+        员工编号: modalData.基础信息.员工编号,
+        员工姓名: modalData.基础信息.员工姓名,
+        部门名称: modalData.基础信息.部门名称,
+        职位名称: modalData.基础信息.职位名称,
+        人员类别: modalData.基础信息.人员类别,
+        编制: modalData.基础信息.编制,
+        薪资期间名称: modalData.基础信息.薪资期间名称,
+        应发合计: modalData.汇总信息.应发合计,
+        扣除合计: modalData.汇总信息.扣除合计,
+        实发合计: modalData.汇总信息.实发合计,
+        // 添加应发明细
+        ...modalData.应发明细,
+        // 添加扣除明细
+        ...modalData.扣除明细.个人扣缴项目,
+        ...modalData.扣除明细.单位扣缴项目,
+        // 添加计算参数
+        ...modalData.计算参数
       }));
+      
+      console.log('✅ [PayrollDataModal] 数据转换完成:', transformedData.length);
       
       setDataSource(transformedData);
       setFilteredDataSource(transformedData); // 初始时筛选数据等于全部数据
+
+      if (transformedData.length > 0) {
+        const firstItem = transformedData[0];
+        
+        // 存储所有可用的列名供筛选配置使用
+        const allKeys = Object.keys(firstItem);
+        setAllAvailableKeys(allKeys);
+        
+        // 使用高级筛选函数过滤列
+        const filteredKeys = filterColumns(allKeys, transformedData);
+        
+        console.log("🔍 [Column Filter] Original columns:", allKeys.length);
+        console.log("🔍 [Column Filter] After filtering:", filteredKeys.length);
+        console.log("🔍 [Column Filter] Filtered keys:", filteredKeys);
+        console.log("🔍 [Column Filter] Current config:", filterConfig);
+        
+        const generatedColumns = filteredKeys.map(key => {
+          const column: ProColumns<PayrollData> = {
+            title: t(`comprehensive_payroll_data.columns.${key}`, {
+              defaultValue: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            }),
+            dataIndex: key,
+            key: key,
+            // Handle potential objects or arrays in data
+            render: (text: any) => {
+              if (text === null || typeof text === 'undefined') {
+                return <span style={{ color: '#999' }}>N/A</span>;
+              }
+              
+              if (typeof text === 'object') {
+                return (
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
+                    {JSON.stringify(text, null, 2)}
+                  </pre>
+                );
+              }
+          
+              if (typeof text === 'boolean') {
+                return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
+              }
+          
+              // For numbers, strings, etc.
+              return text.toString();
+            },
+          };
+
+          const filterableKeys = ['部门名称', '职位名称', '人员类别', '编制'];
+          const sampleValue = transformedData.length > 0 ? transformedData[0]?.[key as keyof PayrollData] : undefined;
+
+          // 为非对象、非布尔值类型添加排序功能
+          if (sampleValue !== null && sampleValue !== undefined && typeof sampleValue !== 'object' && typeof sampleValue !== 'boolean') {
+            column.sorter = (a, b) => {
+              const valA = a[key as keyof PayrollData] as any;
+              const valB = b[key as keyof PayrollData] as any;
+              if (valA === null || valA === undefined) return -1;
+              if (valB === null || valB === undefined) return 1;
+
+              if (typeof valA === 'number' && typeof valB === 'number') {
+                return valA - valB;
+              }
+              return String(valA).localeCompare(String(valB));
+            };
+          }
+
+          // 为指定的类别列添加筛选功能
+          if (filterableKeys.includes(key)) {
+            const uniqueValues = [...new Set(transformedData.map(item => item[key as keyof PayrollData]))].filter(v => v !== null && v !== undefined && v !== '');
+            if (uniqueValues.length > 1) {
+              column.filters = uniqueValues.map(value => ({
+                text: String(value),
+                value: value as string | number,
+              }));
+              column.onFilter = (value, record) => record[key as keyof PayrollData] === value;
+            }
+          }
+
+          // 为员工姓名添加文本搜索功能
+          if (key === '员工姓名') {
+            column.filterDropdown = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+              <div style={{ padding: 8 }}>
+                <Input
+                  placeholder="搜索员工姓名"
+                  value={selectedKeys[0]}
+                  onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                  onPressEnter={() => confirm()}
+                  style={{ marginBottom: 8, display: 'block' }}
+                />
+                <Space>
+                  <Button
+                    type="primary"
+                    onClick={() => confirm()}
+                    icon={<SearchOutlined />}
+                    size="small"
+                    style={{ width: 90 }}
+                  >
+                    搜索
+                  </Button>
+                  <Button onClick={() => {
+                    console.log('🔄 [重置按钮] 点击重置，当前selectedKeys:', selectedKeys);
+                    
+                    // 1. 清空输入框
+                    setSelectedKeys([]);
+                    console.log('🔄 [重置按钮] 已清空selectedKeys');
+                    
+                    // 2. 调用clearFilters（如果存在）
+                    if (clearFilters) {
+                      clearFilters();
+                      console.log('🔄 [重置按钮] 已调用clearFilters');
+                    } else {
+                      console.warn('⚠️ [重置按钮] clearFilters函数不存在');
+                    }
+                    
+                    // 3. 强制确认以刷新表格
+                    confirm();
+                    console.log('🔄 [重置按钮] 已调用confirm刷新表格');
+                  }} size="small" style={{ width: 90 }}>
+                    重置
+                  </Button>
+                </Space>
+              </div>
+            );
+            column.filterIcon = (filtered: boolean) => (
+              <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+            );
+            column.onFilter = (value, record) => {
+              const recordValue = record[key as keyof PayrollData];
+              return recordValue ? String(recordValue).toLowerCase().includes(String(value).toLowerCase()) : false;
+            };
+          }
+
+          return column;
+        });
+
+        console.log("Dynamically generated columns:", generatedColumns);
+        
+        // 添加固定的操作列
+        generatedColumns.push({
+          title: t('common:table.actions'),
+          key: 'action',
+          width: 120,
+          fixed: 'right',
+          render: (_, record) => (
+            <Space>
+              <TableActionButton
+                icon={<EyeOutlined />}
+                onClick={() => handleViewDetail(record)}
+                tooltipTitle={t('common:tooltip.view_details')}
+                actionType="view"
+              />
+              <TableActionButton
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+                tooltipTitle={t('common:button.edit')}
+                actionType="edit"
+              />
+            </Space>
+          ),
+        });
+        
+        setDynamicColumns(generatedColumns);
+      }
+
     } catch (error: any) {
-      message.error(`获取工资数据失败: ${error.message || '未知错误'}`);
+      message.error(`${t('payroll:dataPreview.importButton.error.description')}: ${error.message || t('common:unknown_error')}`);
     } finally {
       setLoading(false);
     }
-  }, [periodId]);
+  }, [periodId, t]);
 
   // 当模态框显示时获取数据
   useEffect(() => {
@@ -72,6 +384,155 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       fetchPayrollData();
     }
   }, [visible, periodId, fetchPayrollData]);
+
+  // 当筛选配置改变时重新生成列
+  useEffect(() => {
+    if (dataSource.length > 0) {
+      const allKeys = Object.keys(dataSource[0]);
+      const filteredKeys = filterColumns(allKeys, dataSource);
+      
+      const generatedColumns = filteredKeys.map(key => {
+        const column: ProColumns<PayrollData> = {
+          title: t(`comprehensive_payroll_data.columns.${key}`, {
+            defaultValue: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          }),
+          dataIndex: key,
+          key: key,
+          render: (text: any) => {
+            if (text === null || typeof text === 'undefined') {
+              return <span style={{ color: '#999' }}>N/A</span>;
+            }
+            
+            if (typeof text === 'object') {
+              return (
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
+                  {JSON.stringify(text, null, 2)}
+                </pre>
+              );
+            }
+        
+            if (typeof text === 'boolean') {
+              return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
+            }
+        
+            return text.toString();
+          },
+        };
+        
+        const filterableKeys = ['部门名称', '职位名称', '人员类别', '编制'];
+        const sampleValue = dataSource.length > 0 ? dataSource[0]?.[key as keyof PayrollData] : undefined;
+
+        // 为非对象、非布尔值类型添加排序功能
+        if (sampleValue !== null && sampleValue !== undefined && typeof sampleValue !== 'object' && typeof sampleValue !== 'boolean') {
+          column.sorter = (a, b) => {
+            const valA = a[key as keyof PayrollData] as any;
+            const valB = b[key as keyof PayrollData] as any;
+            if (valA === null || valA === undefined) return -1;
+            if (valB === null || valB === undefined) return 1;
+
+            if (typeof valA === 'number' && typeof valB === 'number') {
+              return valA - valB;
+            }
+            return String(valA).localeCompare(String(valB));
+          };
+        }
+
+        // 为指定的类别列添加筛选功能
+        if (filterableKeys.includes(key)) {
+          const uniqueValues = [...new Set(dataSource.map(item => item[key as keyof PayrollData]))].filter(v => v !== null && v !== undefined && v !== '');
+          if (uniqueValues.length > 1) {
+            column.filters = uniqueValues.map(value => ({
+              text: String(value),
+              value: value as string | number,
+            }));
+            column.onFilter = (value, record) => record[key as keyof PayrollData] === value;
+          }
+        }
+
+        // 为员工姓名添加文本搜索功能
+        if (key === '员工姓名') {
+          column.filterDropdown = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+            <div style={{ padding: 8 }}>
+              <Input
+                placeholder="搜索员工姓名"
+                value={selectedKeys[0]}
+                onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                onPressEnter={() => confirm()}
+                style={{ marginBottom: 8, display: 'block' }}
+              />
+              <Space>
+                <Button
+                  type="primary"
+                  onClick={() => confirm()}
+                  icon={<SearchOutlined />}
+                  size="small"
+                  style={{ width: 90 }}
+                >
+                  搜索
+                </Button>
+                <Button onClick={() => {
+                  console.log('🔄 [重置按钮2] 点击重置，当前selectedKeys:', selectedKeys);
+                  
+                  // 1. 清空输入框
+                  setSelectedKeys([]);
+                  console.log('🔄 [重置按钮2] 已清空selectedKeys');
+                  
+                  // 2. 调用clearFilters（如果存在）
+                  if (clearFilters) {
+                    clearFilters();
+                    console.log('🔄 [重置按钮2] 已调用clearFilters');
+                  } else {
+                    console.warn('⚠️ [重置按钮2] clearFilters函数不存在');
+                  }
+                  
+                  // 3. 强制确认以刷新表格
+                  confirm();
+                  console.log('🔄 [重置按钮2] 已调用confirm刷新表格');
+                }} size="small" style={{ width: 90 }}>
+                  重置
+                </Button>
+              </Space>
+            </div>
+          );
+          column.filterIcon = (filtered: boolean) => (
+            <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+          );
+          column.onFilter = (value, record) => {
+            const recordValue = record[key as keyof PayrollData];
+            return recordValue ? String(recordValue).toLowerCase().includes(String(value).toLowerCase()) : false;
+          };
+        }
+        
+        return column;
+      });
+
+      // 添加操作列
+      generatedColumns.push({
+        title: t('common:table.actions'),
+        key: 'action',
+        width: 120,
+        fixed: 'right',
+        render: (_, record) => (
+          <Space>
+            <TableActionButton
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetail(record)}
+              tooltipTitle={t('common:tooltip.view_details')}
+              actionType="view"
+            />
+            <TableActionButton
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              tooltipTitle={t('common:button.edit')}
+              actionType="edit"
+            />
+          </Space>
+        ),
+      });
+      
+      setDynamicColumns(generatedColumns);
+    }
+  }, [filterConfig, dataSource, t]);
 
   // 🎯 查看详情
   const handleViewDetail = async (record: PayrollData) => {
@@ -82,7 +543,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       setSelectedEntryId(String(record.薪资条目id));
       setDetailModalVisible(true);
     } else {
-      message.warning('无法获取薪资条目详情');
+      message.warning(t('payroll:entry_form.message.update_success_no_data'));
     }
   };
 
@@ -91,7 +552,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     console.log('✏️ [PayrollDataModal] 编辑记录:', record);
     
     if (!record.薪资条目id) {
-      message.warning('无法编辑该记录，缺少薪资条目ID');
+      message.warning(t('payroll:runs_page.form.placeholder.payroll_period'));
       return;
     }
 
@@ -106,11 +567,11 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         setEditModalVisible(true);
         console.log('✅ [PayrollDataModal] 获取薪资条目数据成功:', payrollEntry);
       } else {
-        message.error('未找到对应的薪资条目数据');
+        message.error(t('payroll:entry_detail_modal.not_found'));
       }
     } catch (error: any) {
       console.error('❌ [PayrollDataModal] 获取薪资条目数据失败:', error);
-      message.error(`获取薪资条目数据失败: ${error.message || '未知错误'}`);
+      message.error(`${t('payroll:entry_form.error_fetch_employee')}: ${error.message || t('common:unknown_error')}`);
     }
   };
 
@@ -120,34 +581,29 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     setSelectedEntry(null);
     setPayrollRunId(null);
     fetchPayrollData(); // 刷新数据
-    message.success('薪资条目编辑成功');
+    message.success(t('payroll:entry_form.message.update_success'));
   };
 
   // 导出数据为Excel
   const handleExportExcel = () => {
+    // 导出当前筛选后的数据
     if (filteredDataSource.length === 0) {
-      message.warning('没有数据可导出');
+      message.warning(t('payroll:batch_import.result.no_result'));
       return;
     }
 
-    // 准备导出数据 - 使用筛选后的数据，数字字段保持原始数值，不转换为字符串
-    const exportData = filteredDataSource.map((item, index) => ({
-      '序号': index + 1,
-      '姓名': item.姓名 || '',
-      '部门': item.部门名称 || '',
-      '人员身份': item.人员类别 || '',
-      '根级身份': item.根人员类别 || '',
-      '职位': item.职位名称 || '',
-      '应发合计': item.应发合计 || 0,
-      '扣除合计': item.扣除合计 || 0,
-      '实发合计': item.实发合计 || 0,
-      '养老保险个人应缴费额': item.养老保险个人应缴费额 || 0,
-      '医疗保险个人应缴费额': item.医疗保险个人应缴费额 || 0,
-      '职业年金个人应缴费额': item.职业年金个人应缴费额 || 0,
-      '失业保险个人应缴费额': item.失业保险个人应缴费额 || 0,
-      '住房公积金个人应缴费额': item.住房公积金个人应缴费额 || 0,
-      '个人所得税': item.个人所得税 || 0,
-    }));
+    // 动态生成导出数据
+    const exportData = filteredDataSource.map((item, index) => {
+      const row: { [key: string]: any } = { [t('common:index')]: index + 1 };
+      dynamicColumns.forEach(col => {
+        // 排除操作列
+        if (col.key !== 'action' && col.dataIndex) {
+          const dataIndex = col.dataIndex as keyof PayrollData;
+          row[col.title as string] = item[dataIndex] ?? '';
+        }
+      });
+      return row;
+    });
 
     // 创建工作表
     import('xlsx').then((XLSX) => {
@@ -169,36 +625,22 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         });
       }
       
-      // 设置列宽
-      const colWidths = [
-        { wch: 8 },  // 序号
-        { wch: 12 }, // 姓名
-        { wch: 15 }, // 部门
-        { wch: 12 }, // 人员身份
-        { wch: 10 }, // 根级身份
-        { wch: 12 }, // 职位
-        { wch: 12 }, // 应发合计
-        { wch: 12 }, // 扣除合计
-        { wch: 12 }, // 实发合计
-        { wch: 18 }, // 养老保险个人应缴费额
-        { wch: 18 }, // 医疗保险个人应缴费额
-        { wch: 18 }, // 职业年金个人应缴费额
-        { wch: 18 }, // 失业保险个人应缴费额
-        { wch: 20 }, // 住房公积金个人应缴费额
-        { wch: 12 }, // 个人所得税
-      ];
+      // 设置列宽 - 基于标题长度自动设置
+      const colWidths = Object.keys(exportData[0]).map(key => ({
+        wch: Math.max(key.length, 15) // 最小宽度15
+      }));
       ws['!cols'] = colWidths;
       
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, '工资数据');
+      XLSX.utils.book_append_sheet(wb, ws, t('payroll:data_export_sheet_name'));
       
       // 生成文件名
-      const fileName = `工资数据_${periodName || '当前期间'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const fileName = `${t('payroll:data_export_file_name')}_${periodName || t('payroll:current_period')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
       XLSX.writeFile(wb, fileName);
       
-      message.success(`已导出 ${filteredDataSource.length} 条记录到 ${fileName}`);
+      message.success(`${t('payroll:export_success_message', { count: filteredDataSource.length, fileName })}`);
     }).catch((error) => {
-      message.error('导出失败，请确保已安装Excel导出组件');
+      message.error(t('payroll:export_failed_message'));
       console.error('Export error:', error);
     });
   };
@@ -206,225 +648,219 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   // 刷新数据
   const handleRefresh = () => {
     fetchPayrollData();
-    message.success('数据已刷新');
+    message.success(t('common:table.refreshSuccess'));
   };
 
-  // 表格列配置 - 添加表头筛选和搜索功能
-  const columns: ProColumns<PayrollData>[] = React.useMemo(() => [
-    {
-      title: '姓名',
-      dataIndex: '姓名',
-      key: 'employee_name',
-      width: 100,
-      fixed: 'left',
-      copyable: true,
-      // 表头自定义搜索
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            placeholder="搜索姓名"
-            value={selectedKeys[0]}
-            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => confirm()}
-            style={{ width: 188, marginBottom: 8, display: 'block' }}
-          />
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => confirm()}
-              size="small"
-              style={{ width: 90 }}
-            >
-              搜索
-            </Button>
-            <Button onClick={() => clearFilters && clearFilters()} size="small" style={{ width: 90 }}>
-              重置
-            </Button>
-          </Space>
-        </div>
-      ),
-      filterIcon: (filtered) => (
-        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
-      ),
-      onFilter: (value, record) => {
-        if (!record.姓名 || !value) return false;
-        return record.姓名.toString().toLowerCase().includes((value as string).toLowerCase());
-      },
-    },
-
-    {
-      title: '部门',
-      dataIndex: '部门名称',
-      key: 'department_name',
-      width: 120,
-      // 只保留选择筛选功能
-      filters: (() => {
-        const departments = Array.from(new Set(dataSource.map(item => item.部门名称).filter(Boolean)));
-        return departments.map(dept => ({ text: dept || '', value: dept || '' }));
-      })(),
-      filterMultiple: true,
-      onFilter: (value, record) => record.部门名称 === value,
-    },
-    {
-      title: '人员身份',
-      dataIndex: '人员类别',
-      key: 'personnel_category',
-      width: 120,
-      // 只保留选择筛选功能
-      filters: (() => {
-        const categories = Array.from(new Set(dataSource.map(item => item.人员类别).filter(Boolean)));
-        return categories.map(cat => ({ text: cat || '', value: cat || '' }));
-      })(),
-      filterMultiple: true,
-      onFilter: (value, record) => record.人员类别 === value,
-    },
-    {
-      title: '根级身份',
-      dataIndex: '根人员类别',
-      key: 'root_personnel_category',
-      width: 100,
-      // 添加筛选功能
-      filters: (() => {
-        const rootCategories = Array.from(new Set(dataSource.map(item => item.根人员类别).filter(Boolean)));
-        return rootCategories.map(cat => ({ text: cat || '', value: cat || '' }));
-      })(),
-      filterMultiple: true,
-      onFilter: (value, record) => record.根人员类别 === value,
-      render: (_, record) => {
-        const rootCategory = record.根人员类别;
-        // 根据根级类别设置不同的显示样式
-        if (rootCategory === '正编') {
-          return <span style={{ color: '#52c41a', fontWeight: 'bold' }}>正编</span>;
-        } else if (rootCategory === '聘用') {
-          return <span style={{ color: '#1890ff', fontWeight: 'bold' }}>聘用</span>;
-        }
-        return rootCategory || '-';
-      },
-    },
-    {
-      title: '职位',
-      dataIndex: '职位名称',
-      key: 'position_name',
-      width: 120,
-    },
-    {
-      title: '应发合计',
-      dataIndex: '应发合计',
-      key: 'gross_pay',
-      width: 120,
-      align: 'right',
-      render: (_, record) => `¥${record.应发合计?.toFixed(2) || '0.00'}`,
-      sorter: (a, b) => (a.应发合计 || 0) - (b.应发合计 || 0),
-    },
-    {
-      title: '扣除合计',
-      dataIndex: '扣除合计',
-      key: 'total_deductions',
-      width: 120,
-      align: 'right',
-      render: (_, record) => `¥${record.扣除合计?.toFixed(2) || '0.00'}`,
-      sorter: (a, b) => (a.扣除合计 || 0) - (b.扣除合计 || 0),
-    },
-    {
-      title: '实发合计',
-      dataIndex: '实发合计',
-      key: 'net_pay',
-      width: 120,
-      align: 'right',
-      render: (_, record) => `¥${record.实发合计?.toFixed(2) || '0.00'}`,
-      sorter: (a, b) => (a.实发合计 || 0) - (b.实发合计 || 0),
-    },
-    {
-      title: '养老保险个人应缴费额',
-      dataIndex: '养老保险个人应缴费额',
-      key: 'pension_personal',
-      width: 150,
-      align: 'right',
-      render: (_, record) => record.养老保险个人应缴费额 ? `¥${record.养老保险个人应缴费额.toFixed(2)}` : '-',
-    },
-    {
-      title: '医疗保险个人应缴费额',
-      dataIndex: '医疗保险个人应缴费额',
-      key: 'medical_personal',
-      width: 150,
-      align: 'right',
-      render: (_, record) => record.医疗保险个人应缴费额 ? `¥${record.医疗保险个人应缴费额.toFixed(2)}` : '-',
-    },
-    {
-      title: '职业年金个人应缴费额',
-      dataIndex: '职业年金个人应缴费额',
-      key: 'annuity_personal',
-      width: 150,
-      align: 'right',
-      render: (_, record) => record.职业年金个人应缴费额 ? `¥${record.职业年金个人应缴费额.toFixed(2)}` : '-',
-    },
-    {
-      title: '失业保险个人应缴费额',
-      dataIndex: '失业保险个人应缴费额',
-      key: 'unemployment_personal',
-      width: 150,
-      align: 'right',
-      render: (_, record) => record.失业保险个人应缴费额 ? `¥${record.失业保险个人应缴费额.toFixed(2)}` : '-',
-    },
-    {
-      title: '住房公积金个人应缴费额',
-      dataIndex: '住房公积金个人应缴费额',
-      key: 'housing_fund_personal',
-      width: 160,
-      align: 'right',
-      render: (_, record) => record.住房公积金个人应缴费额 ? `¥${record.住房公积金个人应缴费额.toFixed(2)}` : '-',
-    },
-    {
-      title: '个人所得税',
-      dataIndex: '个人所得税',
-      key: 'personal_income_tax',
-      width: 120,
-      align: 'right',
-      render: (_, record) => record.个人所得税 ? `¥${record.个人所得税.toFixed(2)}` : '-',
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      key: 'option',
-      width: 120,
-      fixed: 'right',
-      render: (_, record) => [
-        <TableActionButton
-          key="view"
-          actionType="view"
-          tooltipTitle="查看详情"
-          onClick={() => handleViewDetail(record)}
-          disabled={!record.薪资条目id}
-        />,
-        <TableActionButton
-          key="edit"
-          actionType="edit"
-          tooltipTitle="编辑"
-          onClick={() => handleEdit(record)}
-          disabled={!record.薪资条目id}
-        />,
-      ],
-    },
-  ], [dataSource, handleViewDetail, handleEdit]);
+  // 重置表格筛选
+  const handleResetFilters = () => {
+    console.log('🔄 [handleResetFilters] 开始重置表格筛选');
+    console.log('🔄 [handleResetFilters] 当前dataSource长度:', dataSource.length);
+    
+    // 强制刷新表格
+    if (actionRef.current) {
+      actionRef.current.clearSelected?.();
+      // 使用 setTimeout 确保状态更新后再刷新
+      setTimeout(() => {
+        actionRef.current?.reload();
+        console.log('🔄 [handleResetFilters] 已调用actionRef.reload刷新表格');
+      }, 0);
+      console.log('🔄 [handleResetFilters] 已调用actionRef.clearSelected');
+    }
+  };
 
   return (
     <Modal
-      title={`工资数据浏览 - ${periodName || '当前期间'}`}
+      title={t('payroll:payroll_data_for_period', { periodName: periodName || '' })}
       open={visible}
       onCancel={onClose}
-      width={1200}
-      footer={null}
+      footer={
+        <Button key="close" onClick={onClose}>
+          {t('common:button.close')}
+        </Button>
+      }
+      width="95%"
+      style={{ top: 20 }}
       destroyOnClose
     >
+      {/* 筛选配置面板 */}
+      {showFilterPanel && (
+        <Card 
+          title={
+            <Space>
+              <SettingOutlined />
+              列筛选配置
+              <Tag color="blue">{dynamicColumns.length - 1} 列显示</Tag>
+              <Tag color="green">{allAvailableKeys.length} 列总计</Tag>
+            </Space>
+          }
+          size="small"
+          style={{ marginBottom: 16 }}
+        >
+          <Collapse size="small">
+            <Panel header="基础筛选" key="basic">
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Space wrap>
+                  <Switch
+                    checked={filterConfig.hideJsonbColumns}
+                    onChange={(checked) => setFilterConfig(prev => ({ ...prev, hideJsonbColumns: checked }))}
+                  />
+                  <span>隐藏 JSONB 列（原始数据列）</span>
+                </Space>
+                <Space wrap>
+                  <Switch
+                    checked={filterConfig.hideZeroColumns}
+                    onChange={(checked) => setFilterConfig(prev => ({ ...prev, hideZeroColumns: checked }))}
+                  />
+                  <span>隐藏全零列</span>
+                </Space>
+                <Space wrap>
+                  <Switch
+                    checked={filterConfig.hideEmptyColumns}
+                    onChange={(checked) => setFilterConfig(prev => ({ ...prev, hideEmptyColumns: checked }))}
+                  />
+                  <span>隐藏空列</span>
+                </Space>
+                <Space wrap>
+                  <Switch
+                    checked={filterConfig.showOnlyNumericColumns}
+                    onChange={(checked) => setFilterConfig(prev => ({ ...prev, showOnlyNumericColumns: checked }))}
+                  />
+                  <span>只显示数值列</span>
+                </Space>
+              </Space>
+            </Panel>
+            
+            <Panel header="模式匹配" key="patterns">
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div>
+                  <label>包含模式（支持通配符 * 和 ?）：</label>
+                  <Select
+                    mode="tags"
+                    style={{ width: '100%' }}
+                    placeholder="例如：*工资*、保险*、*金额"
+                    value={filterConfig.includePatterns}
+                    onChange={(patterns) => setFilterConfig(prev => ({ ...prev, includePatterns: patterns }))}
+                  >
+                    <Option value="*工资*">*工资*</Option>
+                    <Option value="*保险*">*保险*</Option>
+                    <Option value="*金额">*金额</Option>
+                    <Option value="*合计">*合计</Option>
+                    <Option value="基本*">基本*</Option>
+                  </Select>
+                </div>
+                <div>
+                  <label>排除模式（支持通配符 * 和 ?）：</label>
+                  <Select
+                    mode="tags"
+                    style={{ width: '100%' }}
+                    placeholder="例如：*id、*时间、*日期"
+                    value={filterConfig.excludePatterns}
+                    onChange={(patterns) => setFilterConfig(prev => ({ ...prev, excludePatterns: patterns }))}
+                  >
+                    <Option value="*id">*id</Option>
+                    <Option value="*时间">*时间</Option>
+                    <Option value="*日期">*日期</Option>
+                    <Option value="*编号">*编号</Option>
+                    <Option value="原始*">原始*</Option>
+                  </Select>
+                </div>
+              </Space>
+            </Panel>
+            
+            <Panel header="数值范围" key="values">
+              <Space wrap>
+                <span>最小值阈值：</span>
+                <InputNumber
+                  value={filterConfig.minValueThreshold}
+                  onChange={(value) => setFilterConfig(prev => ({ ...prev, minValueThreshold: value || 0 }))}
+                  placeholder="0"
+                />
+                <span>最大值阈值：</span>
+                <InputNumber
+                  value={filterConfig.maxValueThreshold === Infinity ? undefined : filterConfig.maxValueThreshold}
+                  onChange={(value) => setFilterConfig(prev => ({ ...prev, maxValueThreshold: value || Infinity }))}
+                  placeholder="无限制"
+                />
+              </Space>
+            </Panel>
+            
+            <Panel header="快速预设" key="presets">
+              <Space wrap>
+                <Button 
+                  size="small" 
+                  onClick={() => setFilterConfig({
+                    ...defaultFilterConfig,
+                    includePatterns: ['*工资*', '*合计', '*金额'],
+                    excludePatterns: ['*id', '*时间', '*日期', '*编号']
+                  })}
+                >
+                  工资相关
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => setFilterConfig({
+                    ...defaultFilterConfig,
+                    includePatterns: ['*保险*', '*公积金*'],
+                    excludePatterns: ['*id', '*时间', '*日期']
+                  })}
+                >
+                  保险公积金
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => setFilterConfig({
+                    ...defaultFilterConfig,
+                    showOnlyNumericColumns: true,
+                    excludePatterns: ['*id', '*比例', '*费率']
+                  })}
+                >
+                  只看金额
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => setFilterConfig(defaultFilterConfig)}
+                >
+                  重置默认
+                </Button>
+              </Space>
+            </Panel>
+          </Collapse>
+        </Card>
+      )}
+
       <ProTable<PayrollData>
-        columns={columns}
-        dataSource={dataSource}
-        rowKey="id"
-        loading={loading}
         actionRef={actionRef}
+        columns={dynamicColumns}
+        dataSource={dataSource}
+        loading={loading}
+        rowKey="id"
         search={false}
+        headerTitle={false}
+        toolbar={{
+          actions: [
+            <Button 
+              key="filter" 
+              icon={<FilterOutlined />} 
+              onClick={() => setShowFilterPanel(!showFilterPanel)}
+              type={showFilterPanel ? 'primary' : 'default'}
+            >
+              列筛选配置
+            </Button>,
+            <Button key="refresh" icon={<ReloadOutlined />} onClick={handleRefresh}>
+              {t('common:button.refresh')}
+            </Button>,
+            <Button
+              key="export"
+              icon={<DownloadOutlined />}
+              onClick={handleExportExcel}
+              disabled={filteredDataSource.length === 0}
+            >
+              {t('common:button.export_excel')} ({filteredDataSource.length})
+            </Button>,
+          ]
+        }}
         onChange={(pagination, filters, sorter, extra) => {
-          // 当表格筛选、排序或分页变化时，更新筛选后的数据源
+          // 当表格筛选、排序或分页变化时，记录变化信息
           console.log('🔍 [PayrollDataModal] 表格变化:', {
             pagination,
             filters,
@@ -432,20 +868,11 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             currentDataSourceLength: extra.currentDataSource?.length,
             action: extra.action
           });
+          // 更新筛选后的数据，用于导出和分页计数
           if (extra.currentDataSource) {
             setFilteredDataSource(extra.currentDataSource);
           }
         }}
-        toolBarRender={() => [
-          <Button
-            key="export"
-            icon={<DownloadOutlined />}
-            onClick={handleExportExcel}
-            disabled={filteredDataSource.length === 0}
-          >
-            导出Excel ({filteredDataSource.length}条)
-          </Button>
-        ]}
         columnsState={{
           persistenceKey: 'payroll-data-table',
           persistenceType: 'localStorage',
@@ -461,16 +888,23 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           },
         }}
         pagination={{
-          defaultPageSize: 20,
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: filteredDataSource.length,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
           pageSizeOptions: ['10', '20', '50', '100'],
+          onChange: (page, size) => {
+            setPagination(prev => ({
+              ...prev,
+              current: page,
+              pageSize: size || prev.pageSize,
+            }));
+          },
         }}
-        scroll={{ x: 1500, y: 400 }}
+        scroll={{ x: 'max-content' }}
         size="small"
         cardBordered
-        headerTitle={`工资数据 (${filteredDataSource.length}/${dataSource.length} 条记录)`}
         tableAlertRender={({ selectedRowKeys, selectedRows }) => (
           selectedRowKeys.length > 0 && (
             <div>
@@ -512,7 +946,6 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           onClose={() => {
             setEditModalVisible(false);
             setSelectedEntry(null);
-            setPayrollRunId(null);
           }}
           onSuccess={handleEditSuccess}
         />

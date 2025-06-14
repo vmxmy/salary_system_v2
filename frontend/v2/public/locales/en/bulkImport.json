@@ -1,0 +1,22 @@
+{
+  "map": {
+    "please_map_required_fields": "Please map all required system fields to corresponding Excel headers"
+  },
+  "steps": {
+    "import_result": "Import Result",
+    "map_fields": "Map Fields",
+    "please_select_mode": "Please select an import mode first",
+    "please_select_period": "Please select a payroll period first",
+    "preview_confirm": "Preview & Confirm",
+    "select_mode": "Select Mode",
+    "select_period": "Select Period",
+    "upload_data": "Upload Data"
+  },
+  "title": "Universal Bulk Import",
+  "upload": {
+    "parse_success": "Data parsed successfully",
+    "parse_success_one": "",
+    "parse_success_other": "",
+    "please_upload_file": "Please upload a data file first"
+  }
+}

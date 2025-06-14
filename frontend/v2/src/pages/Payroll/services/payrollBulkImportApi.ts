@@ -79,7 +79,7 @@ export const validateBulkImportData = async (
       // employee_id 可选 - 后端会根据employee_info进行匹配
       payroll_period_id: periodId,
       payroll_run_id: 0, // 后端会自动创建或分配
-      status_lookup_value_id: 1, // 默认状态，后端会验证
+      status_lookup_value_id: 60, // 60 = "待计算" 状态
       
       // 数据字段
       gross_pay: entry.gross_pay || 0,
@@ -241,7 +241,7 @@ export const processRawTableData = (
       }
     });
 
-    // 设置总收入（通常等于应发工资）
+    // 设置总收入（通常等于应发合计）
     entry.total_earnings = entry.gross_pay;
     
     // 构造完整的 employee_name
@@ -356,12 +356,13 @@ export const getActivePayrollComponents = async (): Promise<PayrollComponentDefi
 export const getActivePayrollPeriods = async (): Promise<PayrollPeriod[]> => {
   try {
     const response = await apiClient.get<ApiListResponse<PayrollPeriod>>(
-      '/payroll-periods',
+      '/simple-payroll/periods', 
       {
         params: {
           is_active: true,
-          size: 50
-        }
+          size: 100
+        },
+        timeout: 10000 // 10秒超时
       }
     );
     
@@ -473,11 +474,11 @@ export const generateDynamicFieldMapping = (
     
     // 计算结果字段
     '应发': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
-    '应发工资': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
+    '应发合计': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
     '总收入': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
     '合计收入': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
     '实发': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
-    '实发工资': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
+    '实发合计': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
     '净收入': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
     '到手': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },
     '扣发合计': { target: '__CALCULATED_FIELD__', confidence: 0.70, category: 'calculated', required: false },

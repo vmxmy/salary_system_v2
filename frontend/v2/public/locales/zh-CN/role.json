@@ -53,13 +53,5 @@
   "tooltip": {
     "delete_role": "删除角色",
     "edit_role": "编辑角色"
-  },
-  "title": "角色管理",
-  "button": {
-    "create_role": "新建角色"
-  },
-  "export": {
-    "button_text": "导出Excel",
-    "success_message": "导出成功"
   }
 }

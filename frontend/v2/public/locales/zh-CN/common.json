@@ -7,14 +7,16 @@
     "delete": "删除",
     "edit": "编辑",
     "export_excel": "",
-    "refresh": "",
     "title": "操作",
     "view": "查看"
   },
   "actions": {
-    "previous_step": "上一步",
+    "cancel": "取消",
+    "confirm": "确认",
+    "execute_import": "执行导入",
     "next_step": "下一步",
-    "execute_import": "执行导入"
+    "previous_step": "上一步",
+    "start_new_import": "开始新的导入"
   },
   "activate": "",
   "active": "",
@@ -68,6 +70,7 @@
   "auto_text_e9a1b9": "",
   "auto_text_e9ab98": "",
   "back": "",
+  "batch_delete": "",
   "batch_import": {
     "button": {
       "hide_error_details": "隐藏错误详情",
@@ -76,9 +79,9 @@
     "fields": {
       "employee_code": "员工编号",
       "employee_full_name": "员工全名",
-      "gross_pay": "应发工资",
+      "gross_pay": "应发合计",
       "id_number": "身份证号",
-      "net_pay": "实发工资",
+      "net_pay": "实发合计",
       "remarks": "备注",
       "total_deductions": "扣款总额"
     },
@@ -93,14 +96,14 @@
       "employee_name": "员工姓名",
       "employee_number": "员工编号",
       "fiscal_support": "财政供养",
-      "gross_salary": "应发工资",
+      "gross_salary": "应发合计",
       "gross_total": "应发总额",
       "id_card": "身份证",
       "id_card_number": "身份证号码",
       "id_number": "身份证号",
       "name": "姓名",
       "net_pay": "实发金额",
-      "net_salary": "实发工资",
+      "net_salary": "实发合计",
       "net_total": "实发总额",
       "personnel_identity": "人员身份",
       "personnel_level": "人员层级",
@@ -149,16 +152,15 @@
     "validation": {
       "balance_mismatch": "余额不匹配",
       "employee_name_required": "员工姓名必填",
-      "gross_pay_invalid": "应发工资无效",
+      "gross_pay_invalid": "应发合计无效",
       "id_number_required": "身份证号必填",
-      "net_pay_invalid": "实发工资无效",
+      "net_pay_invalid": "实发合计无效",
       "total_deductions_invalid": "扣款总额无效"
     }
   },
   "button": {
     "apply": "应用",
     "back": "返回",
-    "batch_delete": "批量删除",
     "cancel": "取消",
     "close": "关闭",
     "collapse": "",
@@ -174,8 +176,6 @@
     "export_excel": "导出Excel",
     "fullscreen": "",
     "no": "否",
-    "view": "查看",
-    "ok": "确定",
     "preview": "预览详情",
     "refresh": "刷新",
     "refresh_and_retry": "刷新并重试",
@@ -191,7 +191,6 @@
     "yes_delete": "是的，删除"
   },
   "cancel": "取消",
-  "close": "关闭",
   "collapse_sidebar": "折叠侧边栏",
   "column": {
     "actions": "操作"
@@ -202,8 +201,22 @@
     "tooltip_title": "自定义列"
   },
   "common": {
+    "actions": {
+      "backToMapping": "",
+      "importing": ""
+    },
+    "employeeCode": "",
+    "idNumber": "",
     "no": "",
+    "none": "",
+    "notApplicable": "",
     "permission_denied_action": "",
+    "statusOptionsLoadFailed": "",
+    "table": {
+      "pagination": ""
+    },
+    "unknown": "",
+    "unknownEmployee": "",
     "yes": ""
   },
   "common_value": {
@@ -214,12 +227,9 @@
       "personal_income_tax": ""
     }
   },
-  "confirm": {
-    "batch_delete": {
-      "title": "确认批量删除",
-      "content": "您确定要删除选中的记录吗？此操作不可撤销。"
-    }
-  },
+  "confirm": "",
+  "confirm_delete": "",
+  "confirm_delete_content": "",
   "data_type": {
     "date": "",
     "number": "",
@@ -238,6 +248,8 @@
     "ok_text": "删除",
     "title": "确认删除"
   },
+  "delete_failed": "",
+  "delete_success": "",
   "edit": "编辑",
   "employee_selector": {
     "error": {
@@ -267,6 +279,9 @@
     "update_failed": ""
   },
   "error_unknown": "未知错误",
+  "errors": {
+    "data_or_config_missing": "数据或配置缺失"
+  },
   "expand_sidebar": "展开侧边栏",
   "export": "",
   "export_success": "",
@@ -291,8 +306,6 @@
     "status": "状态",
     "unknown": "未知"
   },
-  "language_switched": "语言已切换",
-  "language_toggle": "切换语言",
   "load_failed": "",
   "loading": {
     "generic_loading_text": "正在加载页面内容...",
@@ -300,7 +313,6 @@
     "user_info": "正在加载用户信息..."
   },
   "loading_data": "加载数据中",
-  "lookup_loading": "加载中...",
   "loading_page_content": "",
   "login_button": "登录",
   "lookup_select": {
@@ -367,6 +379,7 @@
   },
   "no": "否",
   "no_permission_to_view_data": "",
+  "no_selection": "",
   "page_title": {
     "not_found": ""
   },
@@ -415,28 +428,19 @@
   },
   "status": {
     "not_selected": "",
-    "enabled": "启用",
-    "disabled": "禁用",
-    "active": "活跃",
-    "inactive": "不活跃",
-    "pending": "待处理"
+    "unknown_status_param": "未知状态参数"
   },
   "status_error": "错误",
   "status_pending": "待处理",
   "status_processing": "处理中",
   "status_success": "成功",
-  "export": {
-    "export": "导出",
-    "formatExcel": "Excel (.xlsx)",
-    "button_text": "导出Excel",
-    "success_message": "导出成功"
-  },
   "success": {
     "create": "",
     "export": "",
     "update": ""
   },
   "table": {
+    "actions": "操作",
     "column": {
       "index": ""
     },
@@ -476,7 +480,8 @@
   "theme_toggle": "切换主题",
   "tooltip": {
     "column_settings": "",
-    "export_data": ""
+    "export_data": "",
+    "view_details": "查看详情"
   },
   "unavailable": "",
   "units": {
@@ -495,10 +500,10 @@
     "missing_required_fields_prefix": "",
     "required": "此项为必填项"
   },
-  "validations": {
-    "required": ""
-  },
   "view": "查看",
   "visible": "",
-  "yes": ""
+  "yes": "",
+  "tax": "税务",
+  "tax_id": "税号",
+  "tax_information": "税务信息"
 }

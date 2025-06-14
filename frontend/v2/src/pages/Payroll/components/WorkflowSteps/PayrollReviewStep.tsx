@@ -286,7 +286,7 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
       width: 120
     },
     {
-      title: '应发工资',
+      title: '应发合计',
       dataIndex: 'gross_pay',
       width: 100,
       align: 'right',
@@ -300,7 +300,7 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
       render: (value) => `¥${value?.toLocaleString() || 0}`
     },
     {
-      title: '实发工资',
+      title: '实发合计',
       dataIndex: 'net_pay',
       width: 100,
       align: 'right',
@@ -528,8 +528,8 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
         <Form form={adjustForm} layout="vertical">
           <Form.Item
             name="gross_pay"
-            label="应发工资"
-            rules={[{ required: true, message: '请输入应发工资' }]}
+            label="应发合计"
+            rules={[{ required: true, message: '请输入应发合计' }]}
           >
             <InputNumber
               style={{ width: '100%' }}
@@ -554,8 +554,8 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
 
           <Form.Item
             name="net_pay"
-            label="实发工资"
-            rules={[{ required: true, message: '请输入实发工资' }]}
+            label="实发合计"
+            rules={[{ required: true, message: '请输入实发合计' }]}
           >
             <InputNumber
               style={{ width: '100%' }}

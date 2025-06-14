@@ -8,17 +8,19 @@
     "delete": "Delete",
     "edit": "Edit",
     "export_excel": "",
-    "refresh": "",
     "title": "Actions",
     "view": "View"
   },
   "actions": {
-    "previous_step": "Previous Step",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "execute_import": "Execute Import",
     "next_step": "Next Step",
-    "execute_import": "Execute Import"
+    "previous_step": "Previous Step",
+    "start_new_import": "Start New Import"
   },
   "activate": "",
-  "active": "",
+  "active": "Active",
   "adjust_balance": "",
   "auth": {
     "logout_failed": "Logout failed",
@@ -69,6 +71,7 @@
   "auto_text_e9a1b9": "",
   "auto_text_e9ab98": "",
   "back": "",
+  "batch_delete": "",
   "batch_import": {
     "button": {
       "hide_error_details": "",
@@ -154,7 +157,6 @@
   "button": {
     "apply": "Apply",
     "back": "Back",
-    "batch_delete": "Batch Delete",
     "cancel": "Cancel",
     "close": "Close",
     "collapse": "",
@@ -170,7 +172,6 @@
     "export_excel": "Export Excel",
     "fullscreen": "",
     "no": "No",
-    "ok": "OK",
     "preview": "",
     "refresh": "Refresh",
     "refresh_and_retry": "Refresh and Retry",
@@ -186,7 +187,6 @@
     "yes_delete": "Yes, Delete"
   },
   "cancel": "Cancel",
-  "close": "Close",
   "collapse_sidebar": "Collapse sidebar",
   "column": {
     "actions": "Actions"
@@ -197,8 +197,22 @@
     "tooltip_title": "Customize columns"
   },
   "common": {
+    "actions": {
+      "backToMapping": "",
+      "importing": ""
+    },
+    "employeeCode": "",
+    "idNumber": "",
     "no": "",
+    "none": "",
+    "notApplicable": "",
     "permission_denied_action": "",
+    "statusOptionsLoadFailed": "",
+    "table": {
+      "pagination": ""
+    },
+    "unknown": "",
+    "unknownEmployee": "",
     "yes": ""
   },
   "common_value": {
@@ -210,6 +224,8 @@
     }
   },
   "confirm": "",
+  "confirm_delete": "",
+  "confirm_delete_content": "",
   "data_type": {
     "date": "",
     "number": "",
@@ -228,6 +244,8 @@
     "ok_text": "Delete",
     "title": "Confirm Delete"
   },
+  "delete_failed": "",
+  "delete_success": "",
   "edit": "",
   "employee_selector": {
     "error": {
@@ -257,6 +275,9 @@
     "update_failed": ""
   },
   "error_unknown": "error_unknown",
+  "errors": {
+    "data_or_config_missing": "Data or configuration missing"
+  },
   "expand_sidebar": "Expand sidebar",
   "export": "",
   "export_success": "",
@@ -272,7 +293,7 @@
   },
   "hidden": "Hidden",
   "hyperchain_logo": "hyperchain_logo",
-  "inactive": "",
+  "inactive": "Inactive",
   "label": {
     "actions": "Actions",
     "payroll_period_name": "Payroll Period Name",
@@ -281,8 +302,6 @@
     "status": "Status",
     "unknown": "Unknown"
   },
-  "language_switched": "Language switched",
-  "language_toggle": "Toggle language",
   "load_failed": "",
   "loading": {
     "generic_loading_text": "Loading page content...",
@@ -357,6 +376,7 @@
   },
   "no": "no",
   "no_permission_to_view_data": "",
+  "no_selection": "",
   "page_title": {
     "not_found": ""
   },
@@ -415,12 +435,6 @@
     "export": "",
     "update": ""
   },
-  "export": {
-    "export": "Export",
-    "formatExcel": "Excel (.xlsx)",
-    "button_text": "Export Excel",
-    "success_message": "Export Successful"
-  },
   "table": {
     "column": {
       "index": ""
@@ -461,7 +475,7 @@
     "people": "",
     "yuan": ""
   },
-  "unknown": "unknown",
+  "unknown": "Unknown",
   "user_menu": {
     "logout": "Logout",
     "profile": "Profile",
@@ -471,9 +485,6 @@
   "validation": {
     "max_length": "",
     "missing_required_fields_prefix": "",
-    "required": ""
-  },
-  "validations": {
     "required": ""
   },
   "view": "",

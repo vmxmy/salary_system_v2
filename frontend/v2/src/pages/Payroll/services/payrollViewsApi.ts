@@ -214,31 +214,190 @@ export interface SalaryStatistics {
 
 /**
  * 核心工资数据视图类型 - 基于 reports.v_comprehensive_employee_payroll 视图
+ *
+ * @description 该接口定义了从后端综合工资视图获取的数据结构。
+ * 它包含了员工基本信息、核心工资汇总，以及所有根据薪资组件定义动态生成的工资明细项。
+ * 字段名使用中文，与数据库视图的列名保持一致。
  */
 export interface ComprehensivePayrollDataView {
-  // 基础信息
-  薪资条目id?: number;
-  员工id?: number;
-  姓名?: string;
-  部门名称?: string;
-  人员类别?: string;
-  根人员类别?: string;
-  职位名称?: string;
+  // 核心基础信息
+  '薪资条目id'?: number;
+  '员工id'?: number;
+  '薪资期间id'?: number;
+  '薪资运行id'?: number;
+  '员工编号'?: string;
+  '名'?: string;
+  '姓'?: string;
+  '姓名'?: string;
+  '身份证号'?: string;
+  '电话'?: string;
+  '邮箱'?: string;
+  '入职日期'?: string; // date
+  '员工状态'?: string;
+  '部门名称'?: string;
+  '职位名称'?: string;
+  '人员类别'?: string;
+  '根人员类别'?: string;
+  '编制'?: string;
+  '部门id'?: number;
+  '实际职位id'?: number;
+  '人员类别id'?: number;
+  '社保客户号'?: string;
+  '住房公积金客户号'?: string;
+  '薪资期间名称'?: string;
+  '薪资期间开始日期'?: string; // date
+  '薪资期间结束日期'?: string; // date
+  '薪资发放日期'?: string; // date
+  '薪资运行日期'?: string; // date-time
+
+  // 核心汇总字段
+  '应发合计'?: number;
+  '扣除合计'?: number;
+  '实发合计'?: number;
+
+  // 动态生成的工资明细字段 (基于 config.payroll_component_definitions)
   
-  // 工资汇总
-  应发合计?: number;
-  扣除合计?: number;
-  实发合计?: number;
+  // EARNING - 收入项
+  '月奖励绩效'?: number;
+  '基本工资'?: number;
+  '独生子女父母奖励金'?: number;
+  '公务交通补贴'?: number;
+  '职务/技术等级工资'?: number;
+  '奖励性绩效工资'?: number;
+  '级别/岗位级别工资'?: number;
+  '基础绩效奖'?: number;
+  '岗位工资'?: number;
+  '基础性绩效工资'?: number;
+  '补发工资'?: number;
+  '岗位职务补贴'?: number;
+  '级别工资'?: number;
+  '绩效工资'?: number;
+  '薪级工资'?: number;
+  '补助'?: number;
+  '基础绩效'?: number;
+  '信访工作人员岗位工作津贴'?: number;
+  '津贴'?: number;
+  '季度绩效考核薪酬'?: number;
+  '九三年工改保留津补贴'?: number;
+  '奖励绩效补发'?: number;
+  '公务员规范后津补贴'?: number;
+  '试用期工资'?: number;
+  '事业单位人员薪级工资'?: number;
+  '乡镇工作补贴'?: number;
+  '一次性补扣发'?: number;
+  '中小学教师或护士保留原额百分之十工资'?: number;
+  '中小学教师或护士提高百分之十'?: number;
+  '人民警察值勤岗位津贴'?: number;
+  '人民警察加班补贴'?: number;
+  '住房补贴'?: number;
+  '公务员十三月奖励工资'?: number;
+  '公安岗位津贴'?: number;
+  '公安执勤津贴'?: number;
+  '公安法定工作日之外加班补贴'?: number;
+  '公检法艰苦边远地区津贴'?: number;
+  '卫生九三年工改保留津补贴'?: number;
+  '卫生援藏津贴'?: number;
+  '卫生独生子女费'?: number;
+  '回民补贴'?: number;
+  '国家规定的其他津补贴项目'?: number;
+  '工作性津贴'?: number;
+  '年度考核奖'?: number;
+  '护龄津贴'?: number;
+  '援藏津贴'?: number;
+  '政法委机关工作津贴'?: number;
+  '教龄津贴'?: number;
+  '月奖励绩效津贴'?: number;
+  '法医毒物化验人员保健津贴'?: number;
+  '法检基础性绩效津补贴'?: number;
+  '法院检察院工改保留津贴'?: number;
+  '法院检察院执勤津贴'?: number;
+  '法院检察院规范津补贴'?: number;
+  '特级教师津贴'?: number;
+  '特殊岗位津贴'?: number;
+  '生活性津贴'?: number;
+  '老粮贴'?: number;
+  '纪检津贴'?: number;
+  '纪委监委机构改革保留补贴'?: number;
+  '绩效奖'?: number;
+  '绩效工资补发'?: number;
+  '补发津贴'?: number;
+  '警衔津贴'?: number;
+  '艰苦边远地区津贴'?: number;
+  '1季度绩效考核薪酬'?: number;
+
+  // PERSONAL_DEDUCTION - 个人扣除项
+  '个人所得税'?: number;
+  '养老保险个人应缴费额'?: number;
+  '医疗保险个人应缴费额'?: number;
+  '失业保险个人应缴费额'?: number;
+  '职业年金个人应缴费额'?: number;
+  '住房公积金个人应缴费额'?: number;
+  '奖励绩效补扣发'?: number;
+  '绩效奖金补扣发'?: number;
+  '补扣社保'?: number;
+  '补扣（退）款'?: number;
+  '补扣2022年医保款'?: number;
   
-  // 社保个人缴费
-  养老保险个人应缴费额?: number;
-  医疗保险个人应缴费额?: number;
-  职业年金个人应缴费额?: number;
-  失业保险个人应缴费额?: number;
-  住房公积金个人应缴费额?: number;
+  // EMPLOYER_DEDUCTION - 单位扣除项
+  '养老保险单位应缴费额'?: number;
+  '医疗保险单位应缴总额'?: number;
+  '医疗保险单位应缴费额'?: number;
+  '大病医疗单位应缴费额'?: number;
+  '失业保险单位应缴费额'?: number;
+  '工伤保险单位应缴费额'?: number;
+  '职业年金单位应缴费额'?: number;
+  '住房公积金单位应缴费额'?: number;
+
+  // CALCULATION_BASE - 计算基数
+  '养老保险缴费基数'?: number;
+  '医疗保险缴费基数'?: number;
+  '医疗保险缴费工资'?: number;
+  '职业年金缴费基数'?: number;
+  '职业年金缴费工资'?: number;
+  '计税基数'?: number;
+  '住房公积金缴费基数'?: number;
+
+  // CALCULATION_RATE - 计算费率
+  '养老保险个人缴费费率'?: number;
+  '养老保险单位缴费费率'?: number;
+  '医疗保险个人缴费费率'?: number;
+  '医疗保险单位缴纳费率'?: number;
+  '大病医疗单位缴费费率'?: number;
+  '失业保险个人缴费费率'?: number;
+  '失业保险单位缴费费率'?: number;
+  '工伤保险单位缴费费率'?: number;
+  '职业年金个人费率'?: number;
+  '职业年金单位缴费费率'?: number;
+  '适用税率'?: number;
+  '住房公积金个人缴费比例'?: number;
+  '住房公积金单位缴费比例'?: number;
+
+  // CALCULATION_RESULT - 计算结果
+  '免税额'?: number;
+  '应纳税所得额'?: number;
+  '扣除额'?: number;
+  '税后工资'?: number;
+  '速算扣除数'?: number;
   
-  // 个税
-  个人所得税?: number;
+  // OTHER - 其他
+  '工资统发'?: boolean;
+  '财政供养'?: boolean;
+  '固定薪酬全年应发数'?: number;
+
+  // 核心元数据
+  '状态id'?: number;
+  '备注'?: string;
+  '审计状态'?: string;
+  '审计时间'?: string; // date-time
+  '审计员id'?: number;
+  '审计备注'?: string;
+  '版本号'?: number;
+  '计算时间'?: string; // date-time
+  '更新时间'?: string; // date-time
+  '原始应发明细'?: object; // jsonb
+  '原始扣除明细'?: object; // jsonb
+  '原始计算输入'?: object; // jsonb
+  '原始计算日志'?: object; // jsonb
 }
 
 // API 函数定义

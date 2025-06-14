@@ -65,10 +65,20 @@ export const useImportFlow = () => {
         
         console.log('✅ 初始数据加载成功:', {
           componentsCount: components.length,
-          periodsCount: periods.length
+          periodsCount: periods.length,
+          '薪资周期数据样本:': periods.slice(0, 3) // 打印前3个周期作为样本
         });
       } catch (error: any) {
         console.error('❌ 初始数据加载失败:', error);
+        // 打印更详细的错误信息，特别是网络错误相关的
+        if (error.response) {
+          console.error('❌ 错误响应数据:', error.response.data);
+          console.error('❌ 错误响应状态:', error.response.status);
+        } else if (error.request) {
+          console.error('❌ 无响应的请求:', error.request);
+        } else {
+          console.error('❌ 请求设置错误:', error.message);
+        }
         message.error(`数据加载失败: ${error.message}`);
       } finally {
         setLoading(false);
@@ -208,7 +218,7 @@ export const useImportFlow = () => {
         gross_pay: entry.gross_pay,
         total_deductions: entry.total_deductions,
         net_pay: entry.net_pay,
-        status_lookup_value_id: 64, // 已计算状态
+        status_lookup_value_id: 60, // 60 = "待计算" 状态
         remarks: entry.remarks || '',
         earnings_details: entry.earnings_details,
         deductions_details: entry.deductions_details,

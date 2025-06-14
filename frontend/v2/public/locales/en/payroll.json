@@ -16,7 +16,6 @@
   "auto____e896aa": "薪资审核详情页 (占位符)",
   "auto___e29c85": "✅ 净工资验证通过",
   "auto___e29d8c": "❌ 禁用",
-  "auto___e69c89": "有无效的收入项被过滤掉：",
   "auto___e69c8d": "服务器内部错误，请稍后重试或联系管理员",
   "auto___e69d83": "权限不足，无法获取薪资字段定义",
   "auto___e6ada3": "正在加载组件定义...",
@@ -31,9 +30,6 @@
   "auto_api__415049": "API响应元数据:",
   "auto_calculate": "",
   "auto_excel_e5afbc": "Export Excel",
-  "auto_id_employee_actual_position_id__e8818c": "职位ID: ${employee.actual_position_id}",
-  "auto_id_employee_department_id__e983a8": "部门ID: ${employee.department_id}",
-  "auto_id_employee_personnel_category_id__e8baab": "身份ID: ${employee.personnel_category_id}",
   "auto_id_entrydetails_payroll_period_id__e591a8": "周期ID: ${entryDetails.payroll_period_id}",
   "auto_id_run_payroll_period_id__e591a8": "周期ID: ${run.payroll_period_id}",
   "auto_text_e4b88d": "不计税",
@@ -61,7 +57,6 @@
   "auto_text_e896aa": "Export Successful",
   "auto_text_e8aea1": "计税",
   "auto_text_e8afb7": "请先在表格转换器中完成数据转换",
-  "auto_text_e9bb98": "默认部门",
   "basic_salary": "",
   "batch_delete_button_text": "",
   "batch_delete_failed": "",
@@ -126,28 +121,18 @@
       "result_subtitle": ""
     }
   },
+  "break_duration": "",
   "bulk_import": {
-    "title": "Universal Bulk Import",
-    "steps": {
-      "select_mode": "Select Mode",
-      "upload_data": "Upload Data",
-      "map_fields": "Map Fields",
-      "preview_confirm": "Preview & Confirm",
-      "import_result": "Import Result",
-      "please_select_mode": "Please select an import mode first"
-    },
     "upload": {
       "drag_or_click": "Click or drag file to this area to upload",
-      "hint": "Supports single file upload. Supports Excel (.xls, .xlsx) files.",
-      "parse_success": "File parsed successfully, {{count}} records found.",
-      "please_upload_file": "Please upload a data file first",
+      "empty_file": "",
+      "hint": "Support Excel (.xls, .xlsx) files. Please ensure file encoding is UTF-8.",
+      "invalid_file_type": "",
+      "parse_error": "",
+      "read_error": "",
       "selected_file": "Selected file:"
-    },
-    "map": {
-      "please_map_required_fields": "Please map all required system fields to the corresponding Excel headers"
     }
   },
-  "break_duration": "",
   "calculate": "Calculate",
   "calculating": "",
   "calculation_config": {
@@ -284,6 +269,106 @@
   "create_payroll_run": "",
   "create_success": "",
   "daily_attendance": "",
+  "dataPreview": {
+    "dataPreviewCard": {
+      "alert": {
+        "description": "The table below shows validated records. Please review to ensure data accuracy.",
+        "message": "Preview Instructions"
+      },
+      "subtitle_one": "",
+      "subtitle_other": "",
+      "title": "Data Preview"
+    },
+    "errorsTable": {
+      "alert": {
+        "description_one": "",
+        "description_other": "",
+        "message": "Data validation errors found"
+      },
+      "columns": {
+        "employeeInfo": "Employee Info",
+        "grossPay": "Gross Pay",
+        "index": "Index",
+        "netPay": "Net Pay",
+        "validationErrors": "Validation Errors"
+      },
+      "errorCount_one": "",
+      "errorCount_other": "",
+      "title_one": "",
+      "title_other": ""
+    },
+    "importButton": {
+      "error": {
+        "description": "Data errors exist, please return to mapping step to correct and re-validate.",
+        "message": "Cannot Import"
+      },
+      "hasErrors": "Errors exist, cannot import",
+      "info": {
+        "description": "You can directly import valid records, or return to mapping step to correct data before importing.",
+        "message": "Operation Tips"
+      },
+      "noValidRecords": "No valid records to import",
+      "startImport_one": "",
+      "startImport_other": "",
+      "success": {
+        "description_one": "",
+        "description_other": "",
+        "message": "Overwrite Mode Notice"
+      }
+    },
+    "originalValue": "Original Value",
+    "overwriteModeDescriptions": {
+      "adjustmentsOnly": "Only update adjustment amounts, not affecting basic salary.",
+      "all": "Completely replace existing records with data from import file.",
+      "existingOnly": "Only update employee records that already exist in the system.",
+      "fullMonth": "Delete all records for the month, then import fresh data.",
+      "incremental": "Add imported amounts to existing data.",
+      "none": "Do not import any data that conflicts with existing records.",
+      "socialInsuranceOnly": "Only update social insurance related fields.",
+      "taxOnly": "Only update personal income tax related fields."
+    },
+    "overwriteModes": {
+      "adjustmentsOnly": "Adjustments Only",
+      "all": "Full Overwrite",
+      "existingOnly": "Existing Records Only",
+      "fullMonth": "Full Month Override",
+      "incremental": "Incremental Update",
+      "none": "No Overwrite",
+      "socialInsuranceOnly": "Social Insurance Only",
+      "taxOnly": "Tax Only"
+    },
+    "previewTable": {
+      "columns": {
+        "employeeInfo": "Employee Info",
+        "index": "Index",
+        "validationStatus": "Validation Status"
+      }
+    },
+    "settingsCard": {
+      "overwriteMode": {
+        "label": "Overwrite Mode"
+      },
+      "sendNotification": {
+        "label": "Send Completion Notification"
+      },
+      "skipInvalidRecords": {
+        "label": "Skip Invalid Records"
+      },
+      "title": "Import Settings"
+    },
+    "summaryCard": {
+      "selectedPeriod": "Selected Payroll Period",
+      "title": "Data Validation Results",
+      "totalAmount": "Total Amount",
+      "totalRecords": "Total Records",
+      "validationProgress": "Validation Progress"
+    },
+    "validationStatus": {
+      "error": "Error",
+      "valid": "Valid",
+      "warning": "Warning"
+    }
+  },
   "date_range": "",
   "deactivate": "",
   "delete_failed": "Delete failed",
@@ -319,11 +404,7 @@
       "notes": "Notes"
     },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive",
-      "draft": "Draft",
-      "approved": "Approved",
-      "submitted": "Submitted"
+      "active": "Active"
     }
   },
   "entry_detail_modal": {
@@ -332,25 +413,25 @@
     "deductions_details_title": "Deductions Details",
     "deductions_table": {
       "amount": "Amount",
-      "component_name": "Deduction Component",
+      "component_name": "Component Name",
       "description": "Description"
     },
     "department": "Department",
     "earnings_details_title": "Earnings Details",
     "earnings_table": {
       "amount": "Amount",
-      "component_name": "Earnings Component",
+      "component_name": "Component Name",
       "description": "Description"
     },
     "employee_id": "Employee ID",
     "employee_name": "Employee Name",
-    "error_fetch_details": "Unable to fetch payroll entry details",
-    "error_prefix": "Error: ",
+    "error_fetch_details": "",
+    "error_prefix": "",
     "gross_pay": "Gross Pay",
-    "loading": "Loading details...",
+    "loading": "Loading...",
     "net_pay": "Net Pay",
-    "not_found": "Payroll entry data not found",
-    "notes": "Notes",
+    "not_found": "Payroll entry not found",
+    "notes": "",
     "payroll_period": "Payroll Period",
     "personnel_category": "Personnel Category",
     "salary_summary_title": "Salary Summary",
@@ -362,48 +443,34 @@
   },
   "entry_form": {
     "error": {
-      "invalid_deductions": "invalid_deductions",
-      "invalid_earnings": "invalid_earnings",
-      "no_earnings": "no_earnings"
+      "invalid_deductions": "",
+      "invalid_earnings": "",
+      "no_earnings": ""
     },
-    "error_fetch_employee": "Failed to fetch employee details",
-    "error_save": "Failed to save payroll entry",
+    "error_fetch_employee": "",
     "label": {
       "actual_position": "Actual Position",
-      "amount": "Amount",
       "department": "Department",
-      "employee": "Select Employee",
+      "employee": "Employee",
       "employee_id": "Employee ID",
       "employee_name": "Employee Name",
-      "net_pay": "Net Pay",
       "personnel_category": "Personnel Category",
-      "remarks": "Remarks",
-      "status": "Status",
-      "total_deductions": "Total Deductions",
-      "total_earnings": "Total Earnings"
+      "remarks": "Remarks"
     },
     "message": {
-      "component_already_exists": "This component already exists",
+      "component_already_exists": "Component already exists",
       "create_success": "Payroll entry created successfully",
       "update_success": "Payroll entry updated successfully",
-      "update_success_no_data": "update_success_no_data"
+      "update_success_no_data": "Update successful, no data changes"
     },
-    "no_deductions_components": "No deductions components",
-    "no_earnings_components": "No earnings components",
     "placeholder": {
-      "select_deductions_component": "Select Deductions Component",
-      "select_earnings_component": "Select Earnings Component",
-      "select_employee": "Search employee by name"
+      "select_employee": "Please select an employee"
     },
     "section": {
-      "deductions": "Deductions",
-      "earnings": "Earnings",
-      "employee_info": "Employee Information",
-      "summary": "Summary"
+      "employee_info": "Employee Information"
     },
     "title_create": "Create Payroll Entry",
     "title_edit": "Edit Payroll Entry",
-    "total": "Total",
     "validation": {
       "employee_required": "Please select an employee",
       "failed": "",
@@ -412,23 +479,9 @@
   },
   "entry_page": {
     "message": {
-      "operation_success": "Operation successful",
-      "delete_success": "Entry deleted successfully",
-      "delete_failed": "Failed to delete entry",
-      "load_aux_data_failed": "Failed to load auxiliary data",
-      "lookup_data_error": "Lookup data error"
+      "operation_success": "Operation successful"
     },
-    "title": "Payroll Entry",
-    "button": {
-      "add_entry": "Add Payroll Entry"
-    },
-    "delete_confirm": {
-      "title": "Confirm Delete",
-      "content": "Are you sure you want to delete this payroll entry? This action cannot be undone.",
-      "ok_text": "Delete",
-      "cancel_text": "Cancel"
-    },
-    "loading_lookups": "Loading auxiliary data..."
+    "title": "Payroll Entry"
   },
   "entry_status": {
     "approved": "approved",
@@ -465,6 +518,39 @@
   "notes_placeholder": "",
   "overtime_hours": "",
   "overtime_threshold": "",
+  "payroll": {
+    "entry_form": {
+      "actions": {
+        "update_payment_base": ""
+      },
+      "error_fetch_default_payroll_run": "",
+      "error_fetch_latest_data": "",
+      "label": {
+        "amount": "",
+        "housing_fund_base": "",
+        "net_pay": "",
+        "social_insurance_base": "",
+        "status": "",
+        "total_deductions": "",
+        "total_earnings": ""
+      },
+      "no_deductions_components": "",
+      "no_earnings_components": "",
+      "placeholder": {
+        "enter_housing_fund_base": "",
+        "enter_social_insurance_base": "",
+        "select_deductions_component": "",
+        "select_earnings_component": ""
+      },
+      "section": {
+        "deductions": "",
+        "earnings": "",
+        "summary": ""
+      },
+      "total": "",
+      "warning_no_payroll_run_found": ""
+    }
+  },
   "payroll_entries_table": {
     "column": {
       "deductions": "deductions",
@@ -545,11 +631,8 @@
   "workflow": {
     "messages": {
       "operation_failed": "Operation failed",
-      "operation_success": "Operation successful",
-      "step_completed": "Step completed",
-      "workflow_completed": "Workflow completed"
+      "operation_success": "Operation successful"
     },
-    "page_title": "",
     "steps": {
       "auto_calculation": {
         "average_stats": "",
@@ -559,7 +642,6 @@
         "calculation_engine": "",
         "current_employee": "",
         "deduction_rate": "",
-        "description": "Automatically calculate employee salaries based on configured rules",
         "employee_count": "",
         "engine_version": "",
         "estimated_time": "",
@@ -590,7 +672,6 @@
         "tech_validation": "",
         "tech_validation_desc": "",
         "technical_info_title": "",
-        "title": "Automatic Payroll Calculation",
         "total_deductions": "",
         "total_employees": "",
         "total_gross_pay": "",
@@ -609,7 +690,6 @@
           "no_data_title": "",
           "title": "Data Initialization"
         },
-        "description": "Review the completeness and accuracy of payroll base data",
         "form": {
           "payroll_period": "Payroll Period",
           "payroll_period_placeholder": "",
@@ -633,23 +713,7 @@
           "employee_data": "Employee basic information completeness",
           "employee_data_desc": "",
           "title": "Review Points"
-        },
-        "title": "Payroll Data Review",
-        "validation": {
-          "must_initialize_data": ""
         }
-      },
-      "payroll_distribution": {
-        "description": "",
-        "title": ""
-      },
-      "period_approval": {
-        "description": "Final approval for payroll distribution",
-        "title": "Payroll Period Approval"
-      },
-      "period_review": {
-        "description": "Review the accuracy of calculation results",
-        "title": "Payroll Period Review"
       }
     }
   }

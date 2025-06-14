@@ -462,11 +462,11 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
           message="🎉 合计计算完成！"
           description={
             <div>
-              <p>三项合计计算已成功完成，所有薪资记录的应发工资、扣款合计、实发工资都已重新计算并保存。</p>
+              <p>三项合计计算已成功完成，所有薪资记录的应发合计、扣款合计、实发合计都已重新计算并保存。</p>
               <div style={{ marginTop: 8, color: '#52c41a' }}>
-                ✅ 应发工资 = 所有收入明细项目合计<br/>
+                ✅ 应发合计 = 所有收入明细项目合计<br/>
                 ✅ 扣款合计 = 所有扣款明细项目合计<br/>
-                ✅ 实发工资 = 应发工资 - 扣款合计
+                ✅ 实发合计 = 应发合计 - 扣款合计
               </div>
             </div>
           }
@@ -582,7 +582,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
               <Col span={8}>
                 <div style={{ padding: '12px', backgroundColor: '#f6ffed', borderRadius: '6px', border: '1px solid #b7eb8f' }}>
                   <div style={{ color: '#52c41a', fontWeight: 600, marginBottom: 4 }}>
-                    💰 应发工资计算
+                    💰 应发合计计算
                   </div>
                   <div style={{ fontSize: '12px', color: '#666' }}>
                     汇总所有收入明细项目<br/>
@@ -604,10 +604,10 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
               <Col span={8}>
                 <div style={{ padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '6px', border: '1px solid #91d5ff' }}>
                   <div style={{ color: '#1890ff', fontWeight: 600, marginBottom: 4 }}>
-                    💎 实发工资计算
+                    💎 实发合计计算
                   </div>
                   <div style={{ fontSize: '12px', color: '#666' }}>
-                    应发工资减去扣款合计<br/>
+                    应发合计减去扣款合计<br/>
                     确保计算精度
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
         extra={
           <div>
             <div style={{ color: '#52c41a', fontWeight: 500, marginBottom: 4 }}>
-              ✅ 合计计算：基于明细数据自动计算应发工资、扣款合计、实发工资
+              ✅ 合计计算：基于明细数据自动计算应发合计、扣款合计、实发合计
             </div>
             <div style={{ color: '#999', fontSize: '12px' }}>
               其他高级计算模块正在开发中，将在后续版本中开放使用

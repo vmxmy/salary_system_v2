@@ -14,11 +14,6 @@
     "myLeave": "",
     "title": "Employee Management"
   },
-  "manager": {
-    "leaveApprovals": "Leave Approvals",
-    "subordinates": "Subordinate Management",
-    "title": "Manager View"
-  },
   "organization": {
     "departments": "Department Management",
     "personnelCategories": "Personnel Categories",
@@ -32,8 +27,5 @@
     "periods": "Payroll Periods",
     "runs": "Payroll Runs",
     "title": "Payroll Management"
-  },
-  "test": {
-    "title": "Test Pages"
   }
 }

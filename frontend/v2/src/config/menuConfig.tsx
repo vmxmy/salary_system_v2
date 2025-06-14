@@ -54,55 +54,55 @@ export interface AppMenuDataItem extends MenuDataItem {
 export const menuData: AppMenuDataItem[] = [
   {
     name: '简单工资',
-    titleKey: 'menu.simplePayroll.title',
+    titleKey: 'simplePayroll.title',
     path: '/simple-payroll',
     icon: <CalculatorOutlined />,
   },
   {
     name: '报表管理',
-    titleKey: 'menu.admin.reportConfig',
+    titleKey: 'admin.reportConfig',
     path: '/admin/report-config',
     icon: <BarChartOutlined />,
   },
   {
     name: '薪资管理',
-    titleKey: 'menu.payroll.title',
+    titleKey: 'payroll.title',
     path: '/finance/payroll',
     icon: <DollarCircleOutlined />,
     children: [
       {
         name: '工资期间',
-        titleKey: 'menu.payroll.periods',
+        titleKey: 'payroll.periods',
         path: '/finance/payroll/periods',
         icon: <SolutionOutlined />,
       },
       {
         name: '工资运行',
-        titleKey: 'menu.payroll.runs',
+        titleKey: 'payroll.runs',
         path: '/finance/payroll/runs',
         icon: <CalculatorOutlined />,
       },
       {
         name: '工资条目',
-        titleKey: 'menu.payroll.entry',
+        titleKey: 'payroll.entry',
         path: '/finance/payroll/entry',
         icon: <FileTextOutlined />,
       },
       {
         name: '批量导入',
-        titleKey: 'menu.payroll.bulkImport',
+        titleKey: 'payroll.bulkImport',
         path: '/finance/payroll/bulk-import',
         icon: <UploadOutlined />,
       },
       {
         name: '薪资组件',
-        titleKey: 'menu.payroll.components',
+        titleKey: 'payroll.components',
         path: '/finance/payroll/components',
         icon: <ProfileOutlined />,
       },
       {
         name: '计算规则配置',
-        titleKey: 'menu.payroll.calculationConfig',
+        titleKey: 'payroll.calculationConfig',
         path: '/finance/payroll/calculation-config',
         icon: <SettingOutlined />,
       },
@@ -110,25 +110,25 @@ export const menuData: AppMenuDataItem[] = [
   },
   {
     name: '员工管理',
-    titleKey: 'menu.hr.title',
+    titleKey: 'hr.title',
     path: '/hr',
     icon: <TeamOutlined />,
     children: [
       {
         name: '员工列表',
-        titleKey: 'menu.hr.employees',
+        titleKey: 'hr.employees',
         path: '/hr/employees',
         icon: <UserOutlined />,
       },
       {
         name: '新增员工',
-        titleKey: 'menu.hr.employeesNew',
+        titleKey: 'hr.employeesNew',
         path: '/hr/employees/new',
         icon: <UserAddOutlined />,
       },
       {
         name: '批量导入',
-        titleKey: 'menu.hr.bulkImport',
+        titleKey: 'hr.bulkImport',
         path: '/employee-management/bulk-import',
         icon: <UploadOutlined />,
       },
@@ -136,13 +136,13 @@ export const menuData: AppMenuDataItem[] = [
   },
   {
     name: '组织架构',
-    titleKey: 'menu.organization.title',
+    titleKey: 'organization.title',
     path: '/admin/organization',
     icon: <ApartmentOutlined />,
     children: [
       {
         name: '组织管理',
-        titleKey: 'menu.organization.managementV2',
+        titleKey: 'organization.managementV2',
         path: '/admin/organization/management-v2',
         icon: <SettingOutlined />,
       },
@@ -151,31 +151,31 @@ export const menuData: AppMenuDataItem[] = [
 
   {
     name: '系统管理',
-    titleKey: 'menu.admin.title',
+    titleKey: 'admin.title',
     path: '/admin',
     icon: <SettingOutlined />,
     children: [
       {
         name: '用户管理',
-        titleKey: 'menu.admin.users',
+        titleKey: 'admin.users',
         path: '/admin/users',
         icon: <TeamOutlined />,
       },
       {
         name: '角色管理',
-        titleKey: 'menu.admin.roles',
+        titleKey: 'admin.roles',
         path: '/admin/roles',
         icon: <UserSwitchOutlined />,
       },
       {
         name: '权限管理',
-        titleKey: 'menu.admin.permissions',
+        titleKey: 'admin.permissions',
         path: '/admin/permissions',
         icon: <SafetyOutlined />,
       },
       {
         name: '系统配置',
-        titleKey: 'menu.admin.systemSettings',
+        titleKey: 'admin.systemSettings',
         path: '/admin/config',
         icon: <ControlOutlined />,
       },

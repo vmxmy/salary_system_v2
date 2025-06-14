@@ -39,7 +39,9 @@ export const i18nInitOptions = {
     'reportManagement',
     'role',
     'user',
-    'menu'
+    'menu',
+    'bulkImport',
+    'payrollEntryForm'
   ],
   defaultNS: 'common', 
   backend: {

@@ -9,6 +9,7 @@ import { employeeManagementApi } from '../../../pages/EmployeeManagement/service
 import EmployeeName from '../../../components/common/EmployeeName';
 import dayjs from 'dayjs';
 import { getPayrollEntryStatusInfo } from '../utils/payrollUtils';
+import { payrollModalApi, type PayrollModalData } from '../services/payrollModalApi';
 
 const { Title, Text } = Typography;
 
@@ -43,6 +44,7 @@ interface PayrollEntryDetailModalProps {
 const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entryId, visible, onClose }) => {
   const { t } = useTranslation(['common', 'payroll']);
   const [entryDetails, setEntryDetails] = useState<PayrollEntry | null>(null);
+  const [modalData, setModalData] = useState<PayrollModalData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [employeeInfo, setEmployeeInfo] = useState<{ firstName?: string; lastName?: string; displayName?: string } | null>(null);
@@ -111,19 +113,18 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     }
   };
 
-  // 获取薪资条目详情
+  // 获取薪资条目详情 - 使用新的模态框API
   const fetchEntryDetails = async (id: string) => {
     setLoading(true);
     setError(null);
     try {
+      // 使用新的模态框API获取结构化数据
+      const modalResponse = await payrollModalApi.getPayrollModalData(Number(id));
+      setModalData(modalResponse);
+      
+      // 仍然获取原始数据用于兼容性
       const response = await getPayrollEntryById(Number(id));
       setEntryDetails(response.data);
-      
-      // 增强的调试输出，检查员工信息详情
-      // Safe logging for earnings_details
-      // Safe logging for deductions_details
-      
-      // 检查原始API响应中的所有顶级字段
       
       // 如果没有员工姓名，获取员工详细信息
       if (!response.data.employee_name && response.data.employee_id) {
@@ -132,6 +133,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     } catch (err: any) {
       setError(err.message || t('payroll:entry_detail_modal.error_fetch_details'));
       setEntryDetails(null);
+      setModalData(null);
     }
     setLoading(false);
   };
@@ -147,6 +149,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
   useEffect(() => {
     if (!visible) {
       setEntryDetails(null);
+      setModalData(null);
       setError(null);
       setEmployeeInfo(null);
     }
@@ -283,125 +286,172 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
         />
       )}
 
-      {!loading && !error && entryDetails && componentDefinitionsLoaded && (
+      {!loading && !error && modalData && (
         <div>
           {/* 基本信息 */}
-          <Card title={t('payroll:entry_detail_modal.basic_info_title')} style={{ marginBottom: 16 }}>
+          <Card title="基础信息" style={{ marginBottom: 16 }}>
             <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.employee_id')}>
-                {entryDetails.employee_id}
+              <Descriptions.Item label="员工编号">
+                {modalData.基础信息.员工编号 || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.employee_name')}>
-                {getEmployeeName(entryDetails)}
+              <Descriptions.Item label="员工姓名">
+                {modalData.基础信息.员工姓名 || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.department')}>
-                {getDepartmentName(entryDetails)}
+              <Descriptions.Item label="部门名称">
+                {modalData.基础信息.部门名称 || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.personnel_category')}>
-                {getPersonnelCategoryName(entryDetails)}
+              <Descriptions.Item label="职位名称">
+                {modalData.基础信息.职位名称 || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.payroll_period')}>
-                {entryDetails.payroll_run?.payroll_period?.name || t('payroll:auto_id_entrydetails_payroll_period_id__e591a8')}
+              <Descriptions.Item label="人员类别">
+                {modalData.基础信息.人员类别 || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.status')}>
-                {(() => {
-                  const statusInfo = getPayrollEntryStatusInfo(entryDetails.status_lookup_value_id);
-                  return (
-                    <Tag color={statusInfo.color === 'green' ? 'success' : statusInfo.color === 'red' ? 'error' : 'default'}>
-                      {t(statusInfo.key)}
-                    </Tag>
-                  );
-                })()}
+              <Descriptions.Item label="编制">
+                {modalData.基础信息.编制 || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="薪资期间">
+                {modalData.基础信息.薪资期间名称 || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="期间开始日期">
+                {modalData.基础信息.期间开始日期 || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="期间结束日期">
+                {modalData.基础信息.期间结束日期 || '-'}
               </Descriptions.Item>
             </Descriptions>
           </Card>
 
           {/* 薪资汇总 */}
-          <Card title={t('payroll:entry_detail_modal.salary_summary_title')} style={{ marginBottom: 16 }}>
+          <Card title="薪资汇总" style={{ marginBottom: 16 }}>
             <Row gutter={24}>
               <Col span={8}>
                 <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f6ffed', borderRadius: '6px' }}>
-                  <Text type="secondary">{t('payroll:entry_detail_modal.gross_pay')}</Text>
+                  <Text type="secondary">应发合计</Text>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a', marginTop: '8px' }}>
-                    {formatAmount(entryDetails.gross_pay)}
+                    ¥{parseFloat(modalData.汇总信息.应发合计).toFixed(2)}
                   </div>
                 </div>
               </Col>
               <Col span={8}>
                 <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#fff2e8', borderRadius: '6px' }}>
-                  <Text type="secondary">{t('payroll:entry_detail_modal.total_deductions')}</Text>
+                  <Text type="secondary">扣除合计</Text>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fa8c16', marginTop: '8px' }}>
-                    {formatAmount(entryDetails.total_deductions)}
+                    ¥{parseFloat(modalData.汇总信息.扣除合计).toFixed(2)}
                   </div>
                 </div>
               </Col>
               <Col span={8}>
                 <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#e6f7ff', borderRadius: '6px' }}>
-                  <Text type="secondary">{t('payroll:entry_detail_modal.net_pay')}</Text>
+                  <Text type="secondary">实发合计</Text>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff', marginTop: '8px' }}>
-                    {formatAmount(entryDetails.net_pay)}
+                    ¥{parseFloat(modalData.汇总信息.实发合计).toFixed(2)}
                   </div>
                 </div>
               </Col>
             </Row>
           </Card>
 
-          {/* 收入明细 */}
-          {entryDetails.earnings_details && Object.keys(entryDetails.earnings_details).length > 0 && componentDefinitionsLoaded && (
-            <Card title={t('payroll:entry_detail_modal.earnings_details_title')} style={{ marginBottom: 16 }}>
-              <Table
-                columns={earningsColumns}
-                dataSource={Object.entries(entryDetails.earnings_details).map(([code, detail]: [string, any]) => ({
-                  key: code,
-                  component_name: getComponentDisplayName(code),
-                  amount: detail.amount,
-                  description: detail.description,
-                }))}
-                pagination={false}
-                size="small"
-              />
-            </Card>
-          )}
+          {/* 应发明细 */}
+          <Card title="应发明细" style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>标准应发项目</Title>
+              <Descriptions bordered column={2} size="small">
+                {Object.entries(modalData.应发明细).filter(([key]) => key !== '其他应发项目').map(([key, value]) => (
+                  value && parseFloat(value as string) > 0 && (
+                    <Descriptions.Item key={key} label={key}>
+                      ¥{parseFloat(value as string).toFixed(2)}
+                    </Descriptions.Item>
+                  )
+                ))}
+              </Descriptions>
+            </div>
+            
+            {Object.keys(modalData.应发明细.其他应发项目).length > 0 && (
+              <div>
+                <Title level={5}>其他应发项目</Title>
+                <Descriptions bordered column={2} size="small">
+                  {Object.entries(modalData.应发明细.其他应发项目).map(([key, value]) => (
+                    parseFloat(value) > 0 && (
+                      <Descriptions.Item key={key} label={key}>
+                        ¥{parseFloat(value).toFixed(2)}
+                      </Descriptions.Item>
+                    )
+                  ))}
+                </Descriptions>
+              </div>
+            )}
+          </Card>
 
-          {/* 扣缴明细 */}
-          {entryDetails.deductions_details && Object.keys(entryDetails.deductions_details).length > 0 && componentDefinitionsLoaded && (
-            <Card title={t('payroll:entry_detail_modal.deductions_details_title')} style={{ marginBottom: 16 }}>
-              <Table
-                columns={deductionsColumns}
-                dataSource={Object.entries(entryDetails.deductions_details).map(([code, detail]: [string, any]) => ({
-                  key: code,
-                  component_name: getComponentDisplayName(code),
-                  amount: detail.amount,
-                  description: detail.description,
-                }))}
-                pagination={false}
-                size="small"
-              />
-            </Card>
-          )}
+          {/* 扣除明细 */}
+          <Card title="扣除明细" style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>个人扣缴项目</Title>
+              <Descriptions bordered column={2} size="small">
+                {Object.entries(modalData.扣除明细.个人扣缴项目).filter(([key]) => key !== '其他个人扣缴').map(([key, value]) => (
+                  value && parseFloat(value as string) > 0 && (
+                    <Descriptions.Item key={key} label={key}>
+                      ¥{parseFloat(value as string).toFixed(2)}
+                    </Descriptions.Item>
+                  )
+                ))}
+                {Object.entries(modalData.扣除明细.个人扣缴项目.其他个人扣缴).map(([key, value]) => (
+                  parseFloat(value) > 0 && (
+                    <Descriptions.Item key={key} label={key}>
+                      ¥{parseFloat(value).toFixed(2)}
+                    </Descriptions.Item>
+                  )
+                ))}
+              </Descriptions>
+            </div>
+            
+            <div>
+              <Title level={5}>单位扣缴项目</Title>
+              <Descriptions bordered column={2} size="small">
+                {Object.entries(modalData.扣除明细.单位扣缴项目).filter(([key]) => key !== '其他单位扣缴').map(([key, value]) => (
+                  value && parseFloat(value as string) > 0 && (
+                    <Descriptions.Item key={key} label={key}>
+                      ¥{parseFloat(value as string).toFixed(2)}
+                    </Descriptions.Item>
+                  )
+                ))}
+                {Object.entries(modalData.扣除明细.单位扣缴项目.其他单位扣缴).map(([key, value]) => (
+                  parseFloat(value) > 0 && (
+                    <Descriptions.Item key={key} label={key}>
+                      ¥{parseFloat(value).toFixed(2)}
+                    </Descriptions.Item>
+                  )
+                ))}
+              </Descriptions>
+            </div>
+          </Card>
 
-          {/* 时间信息 */}
-          <Card title={t('payroll:entry_detail_modal.time_info_title')}>
-            <Descriptions bordered column={1}>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.created_at')}>
-                {entryDetails.created_at ? dayjs(entryDetails.created_at).format('YYYY-MM-DD HH:mm:ss'): '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('payroll:entry_detail_modal.updated_at')}>
-                {entryDetails.updated_at ? dayjs(entryDetails.updated_at).format('YYYY-MM-DD HH:mm:ss'): '-'}
-              </Descriptions.Item>
-              {entryDetails.remarks && (
-                <Descriptions.Item label={t('payroll:entry_detail_modal.notes')}>
-                  {entryDetails.remarks}
-                </Descriptions.Item>
-              )}
+          {/* 计算参数 */}
+          <Card title="计算参数" style={{ marginBottom: 16 }}>
+            <Descriptions bordered column={2} size="small">
+              {Object.entries(modalData.计算参数).filter(([key]) => key !== '其他计算参数').map(([key, value]) => (
+                value && parseFloat(value as string) > 0 && (
+                  <Descriptions.Item key={key} label={key}>
+                    {key.includes('费率') ? `${(parseFloat(value as string) * 100).toFixed(2)}%` : `¥${parseFloat(value as string).toFixed(2)}`}
+                  </Descriptions.Item>
+                )
+              ))}
+              {Object.entries(modalData.计算参数.其他计算参数).map(([key, value]) => (
+                parseFloat(value) > 0 && (
+                  <Descriptions.Item key={key} label={key}>
+                    {key.includes('费率') ? `${(parseFloat(value) * 100).toFixed(2)}%` : `¥${parseFloat(value).toFixed(2)}`}
+                  </Descriptions.Item>
+                )
+              ))}
             </Descriptions>
           </Card>
+
+
         </div>
       )}
 
-      {!loading && !error && !entryDetails && (
+      {!loading && !error && !modalData && (
         <Alert 
-          message={t('payroll:entry_detail_modal.not_found')} 
+          message="薪资数据未找到" 
           type="warning" 
           showIcon 
         />

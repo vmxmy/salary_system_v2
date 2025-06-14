@@ -14,9 +14,11 @@ import {
   Typography, 
   InputNumber,
   Space,
-  App
+  App,
+  Tabs,
+  Alert
 } from 'antd';
-import { PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, SaveOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { PayrollEntry, PayrollItemDetail, PayrollComponentDefinition, PayrollEntryPatch, CreatePayrollEntryPayload, LookupValue, PayrollRun } from '../types/payrollTypes';
 import { updatePayrollEntryDetails, getPayrollEntryById, createPayrollEntry, getPayrollRuns } from '../services/payrollApi';
@@ -29,10 +31,12 @@ import type { Employee } from '../../HRManagement/types';
 import { getPayrollEntryStatusOptions, type DynamicStatusOption } from '../utils/dynamicStatusUtils';
 import { lookupService } from '../../../services/lookupService';
 import { simplePayrollApi } from '../../SimplePayroll/services/simplePayrollApi';
+import { payrollModalApi, type PayrollModalData } from '../services/payrollModalApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
+// 移除TabPane，使用items属性
 
 // 测试函数，用于检查PATCH数据格式转换
 const testPatchFormatConversion = (data: Record<string, any>): Record<string, any> => {
@@ -96,7 +100,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { t } = useTranslation(['payroll_runs', 'common']);
+  const { t } = useTranslation('payrollEntryForm');
   const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -109,6 +113,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [socialInsuranceBase, setSocialInsuranceBase] = useState<number>(0);
   const [housingFundBase, setHousingFundBase] = useState<number>(0);
   const { message: messageApi } = App.useApp();
+  
+  // 新增：模态框API数据状态
+  const [modalData, setModalData] = useState<PayrollModalData | null>(null);
+  const [loadingModalData, setLoadingModalData] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('basic');
   
   const payrollConfig = usePayrollConfigStore();
   
@@ -129,7 +138,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         console.log('✅ [PayrollEntryFormModal] 动态状态选项加载成功:', dynamicOptions);
       } catch (error) {
         console.error('❌ [PayrollEntryFormModal] 状态选项加载失败:', error);
-        messageApi.error('状态选项加载失败');
+        messageApi.error(t('common.statusOptionsLoadFailed', { ns: 'common' }));
       } finally {
         setLoadingStatus(false);
       }
@@ -138,7 +147,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     if (visible) {
       loadStatusOptions();
     }
-  }, [visible, messageApi]);
+  }, [visible, messageApi, t]);
   
   // 当状态选项加载完成后，设置表单的状态值
   useEffect(() => {
@@ -164,12 +173,42 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     }
   }, [visible, entry, statusOptions, form]);
   
-  // 重新获取最新的工资条目数据
+  // 使用新的模态框API加载数据
   useEffect(() => {
-    const fetchLatestEntryData = async () => {
+    const fetchModalData = async () => {
+      if (visible && entry && entry.id) {
+        setLoadingModalData(true);
+        try {
+          console.log('🔄 [PayrollEntryFormModal] 使用模态框API获取数据:', entry.id);
+          const data = await payrollModalApi.getPayrollModalData(entry.id);
+          setModalData(data);
+          
+          console.log('✅ [PayrollEntryFormModal] 模态框API数据加载成功:', data);
+          
+          // 设置基础信息到表单
+          form.setFieldsValue({
+            employee_id: data.基础信息.员工编号,
+            employee_name: data.基础信息.员工姓名,
+            department: data.基础信息.部门名称,
+            personnel_category: data.基础信息.人员类别,
+            actual_position: data.基础信息.职位名称,
+          });
+          
+        } catch (error) {
+          console.error('❌ [PayrollEntryFormModal] 模态框API数据加载失败:', error);
+          messageApi.error('获取薪资数据失败，将使用传统方式加载');
+          // 如果新API失败，回退到原有逻辑
+          await fetchLatestEntryDataFallback();
+        } finally {
+          setLoadingModalData(false);
+        }
+      }
+    };
+
+    const fetchLatestEntryDataFallback = async () => {
       if (visible && entry && entry.id) {
         try {
-          console.log('🔄 [PayrollEntryFormModal] 重新获取最新的工资条目数据:', entry.id);
+          console.log('🔄 [PayrollEntryFormModal] 回退：重新获取最新的工资条目数据:', entry.id);
           const result = await getPayrollEntryById(entry.id);
           const latestEntry = result.data;
           
@@ -192,12 +231,13 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           }
         } catch (error) {
           console.error('❌ [PayrollEntryFormModal] 获取最新数据失败:', error);
+          messageApi.error(t('payroll.entry_form.error_fetch_latest_data'));
         }
       }
     };
 
-    fetchLatestEntryData();
-  }, [visible, entry?.id, statusOptions, form]);
+    fetchModalData();
+  }, [visible, entry?.id, statusOptions, form, messageApi, t]);
   
   // 当模态框可见时，加载薪资字段定义
   useEffect(() => {
@@ -225,16 +265,18 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           } else {
             console.log('⚠️ [PayrollEntryFormModal] 未找到该期间的工资运行');
             setDefaultPayrollRunId(null);
+            messageApi.warning(t('payroll.entry_form.warning_no_payroll_run_found'));
           }
         } catch (error) {
           console.error('❌ [PayrollEntryFormModal] 获取默认工资运行失败:', error);
           setDefaultPayrollRunId(null);
+          messageApi.error(t('payroll.entry_form.error_fetch_default_payroll_run'));
         }
       }
     };
 
     fetchDefaultPayrollRun();
-  }, [visible, payrollPeriodId, entry]);
+  }, [visible, payrollPeriodId, entry, messageApi, t]);
   
   // 获取组件的类型，兼容不同的字段名
   const getComponentType = (comp: any): string => {
@@ -303,22 +345,17 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   
   // 获取部门名称
   const getDepartmentName = (employee: any) => {
-    if (!employee) return '';
-    // 尝试不同可能的字段名称
-    return employee.department_name || employee.departmentName || 
-           (employee.department_id ?      t('payroll:auto_id_employee_department_id__e983a8'): '');
+    return employeeDetails?.department_name || t('common.notApplicable', { ns: 'common' });
   };
 
   // 获取人员身份名称
   const getPersonnelCategoryName = (employee: any) => {
-    if (!employee) return '';
-    return employee.personnelCategoryName || employee.personnel_category_name || '未设置';
+    return employeeDetails?.personnel_category_name || t('common.notApplicable', { ns: 'common' });
   };
 
   // 获取实际任职名称
   const getActualPositionName = (employee: any) => {
-    if (!employee) return '';
-    return employee.actualPositionName || employee.actual_position_name || '未设置';
+    return employeeDetails?.actual_position_name || t('common.notApplicable', { ns: 'common' });
   };
 
   // 处理员工选择
@@ -361,27 +398,25 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
 
   // 获取员工缴费基数
   const fetchEmployeeInsuranceBase = useCallback(async (employeeId: number) => {
-    if (!payrollPeriodId) return;
-    
-    try {
-      console.log('🔍 [fetchEmployeeInsuranceBase] 开始获取员工缴费基数:', {
-        employeeId,
-        payrollPeriodId
-      });
-      
-      const response = await simplePayrollApi.getEmployeeInsuranceBase(employeeId, payrollPeriodId);
-      
-      console.log('✅ [fetchEmployeeInsuranceBase] 获取成功:', response.data);
-      
-      setSocialInsuranceBase(response.data.social_insurance_base || 0);
-      setHousingFundBase(response.data.housing_fund_base || 0);
-    } catch (error) {
-      console.error('❌ [fetchEmployeeInsuranceBase] 获取员工缴费基数失败:', error);
-      // 设置默认值
-      setSocialInsuranceBase(0);
-      setHousingFundBase(0);
+    if (employeeId && payrollPeriodId) {
+      try {
+        console.log(`🔍 [fetchEmployeeInsuranceBase] 开始获取员工缴费基数: {employeeId: ${employeeId}, payrollPeriodId: ${payrollPeriodId}}`);
+        const response = await simplePayrollApi.getEmployeeInsuranceBase(employeeId, payrollPeriodId);
+        console.log(`✅ [fetchEmployeeInsuranceBase] 获取成功:`, response.data);
+        if (response.data) {
+          form.setFieldsValue({
+            social_insurance_base: response.data.social_insurance_base,
+            housing_fund_base: response.data.housing_fund_base,
+          });
+          setSocialInsuranceBase(response.data.social_insurance_base || 0);
+          setHousingFundBase(response.data.housing_fund_base || 0);
+        }
+      } catch (error) {
+        console.error('❌ [fetchEmployeeInsuranceBase] 获取员工缴费基数失败:', error);
+        message.error(t('error.fetch_employee_insurance_base'));
+      }
     }
-  }, [payrollPeriodId]);
+  }, [payrollPeriodId, form, t]);
 
   // 更新员工缴费基数
   const updateEmployeeInsuranceBase = useCallback(async (employeeId: number, socialBase: number, housingBase: number) => {
@@ -588,6 +623,22 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       }
     }
   }, [visible, entry, form, fetchEmployeeDetails, payrollConfig.componentDefinitions]);
+
+  useEffect(() => {
+    if (employeeDetails) {
+      console.log('✅ [PayrollEntryFormModal] 接收到员工详情:', JSON.stringify(employeeDetails, null, 2));
+      form.setFieldsValue({
+        employee_name: employeeDetails.full_name,
+        department: employeeDetails.department_name,
+        personnel_category: employeeDetails.personnel_category_name,
+        actual_position: employeeDetails.position_name,
+        social_insurance_base: employeeDetails.social_insurance_base,
+        housing_fund_base: employeeDetails.housing_fund_base,
+      });
+      setSocialInsuranceBase(employeeDetails.social_insurance_base || 0);
+      setHousingFundBase(employeeDetails.housing_fund_base || 0);
+    }
+  }, [employeeDetails, form]);
 
   // 当earnings或deductions变化时，自动更新汇总项
   useEffect(() => {
@@ -956,7 +1007,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
 
   return (
     <Modal
-      title={entry ?      t('payroll:entry_form.title_edit'): t('payroll:entry_form.title_create')}
+      title={entry ? t('payroll:entry_form.title_edit') : t('payroll:entry_form.title_create')}
       open={visible}
       onCancel={onClose}
       width={800}
@@ -971,11 +1022,22 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           loading={submitting}
           onClick={handleSubmit}
         >
-          {entry ?      t('common:button.save'): t('common:button.create')}
+          {entry ? t('common:button.save') : t('common:button.create')}
         </Button>
       ]}
     >
-      <Spin spinning={loading}>
+      <Spin spinning={loading || loadingModalData}>
+        {/* 如果有模态框数据，显示增强的编辑界面 */}
+        {modalData && (
+          <Alert
+            message="数据加载成功"
+            description={`正在编辑 ${modalData.基础信息.员工姓名} 的薪资记录`}
+            type="success"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        
         <Form
           form={form}
           layout="vertical"
@@ -985,26 +1047,26 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             }
           }
         >
-          {/* 员工信息区域 */}
-          <Card title={t('payroll:entry_form.section.employee_info')} variant="outlined">
+              {/* 员工信息区域 */}
+              <Card title={t('section.employee_info')} variant="outlined">
             <Row gutter={16}>
               <Col span={8}>
                 {entry ? (
                   <Form.Item
-                    label={t('payroll:entry_form.label.employee_id')}
+                    label={t('label.employee_id')}
                     name="employee_id"
-                    rules={[{ required: true, message: t('payroll:entry_form.validation.employee_required') }]}
+                    rules={[{ required: true, message: t('validation.employee_required') }]}
                   >
                     <Input disabled />
                   </Form.Item>
                 ) : (
                   <Form.Item
-                    label={t('payroll:entry_form.label.employee')}
+                    label={t('label.employee')}
                     name="employee_id"
-                    rules={[{ required: true, message: t('payroll:entry_form.validation.employee_required') }]}
+                    rules={[{ required: true, message: t('validation.employee_required') }]}
                   >
                     <EmployeeSelect 
-                      placeholder={t('payroll:entry_form.placeholder.select_employee')}
+                      placeholder={t('placeholder.select_employee')}
                       onChange={handleEmployeeSelect}
                       showEmployeeCode
                       allowClear
@@ -1014,7 +1076,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Col>
               <Col span={8}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.employee_name')}
+                  label={t('label.employee_name')}
                   name="employee_name"
                 >
                   <Input disabled />
@@ -1022,12 +1084,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Col>
               <Col span={8}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.department')}
+                  label={t('label.department')}
+                  name="department"
                 >
-                  <Input 
-                    value={getDepartmentName(employeeDetails)}
-                    disabled 
-                  />
+                  <Input disabled />
                 </Form.Item>
               </Col>
             </Row>
@@ -1037,22 +1097,18 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 <Row gutter={16}>
                   <Col span={8}>
                     <Form.Item
-                      label={t('payroll:entry_form.label.personnel_category')}
+                      label={t('label.personnel_category')}
+                      name="personnel_category"
                     >
-                      <Input 
-                        value={getPersonnelCategoryName(employeeDetails)}
-                        disabled 
-                      />
+                      <Input disabled />
                     </Form.Item>
                   </Col>
                   <Col span={8}>
                     <Form.Item
-                      label={t('payroll:entry_form.label.actual_position')}
+                      label={t('label.actual_position')}
+                      name="actual_position"
                     >
-                      <Input 
-                        value={getActualPositionName(employeeDetails)}
-                        disabled 
-                      />
+                      <Input disabled />
                     </Form.Item>
                   </Col>
                   <Col span={8}>
@@ -1062,51 +1118,44 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 
                 {/* 缴费基数行 */}
                 <Row gutter={16}>
-                  <Col span={8}>
-                    <Form.Item label="社保缴费基数">
-                      <InputNumber
-                        style={{ width: '100%' }}
-                        min={0}
-                        step={0.01}
-                        precision={2}
-                        value={socialInsuranceBase}
-                        onChange={(value) => setSocialInsuranceBase(value || 0)}
-                        placeholder="请输入社保缴费基数"
-                      />
+                  <Col span={6}>
+                    <Form.Item
+                      label={t('label.social_insurance_base')}
+                      name="social_insurance_base"
+                    >
+                      <InputNumber style={{ width: '100%' }} placeholder={t('placeholder.enter_social_insurance_base')} />
                     </Form.Item>
                   </Col>
-                  <Col span={8}>
-                    <Form.Item label="公积金缴费基数">
-                      <InputNumber
-                        style={{ width: '100%' }}
-                        min={0}
-                        step={0.01}
-                        precision={2}
-                        value={housingFundBase}
-                        onChange={(value) => setHousingFundBase(value || 0)}
-                        placeholder="请输入公积金缴费基数"
-                      />
+                  <Col span={6}>
+                    <Form.Item
+                      label={t('label.housing_fund_base')}
+                      name="housing_fund_base"
+                    >
+                      <InputNumber style={{ width: '100%' }} placeholder={t('placeholder.enter_housing_fund_base')} />
                     </Form.Item>
                   </Col>
-                  <Col span={8}>
-                    <Form.Item label=" " style={{ marginTop: 30 }}>
+                  <Col span={12}>
+                    <Form.Item label=" ">
                       <Button 
                         type="primary" 
                         onClick={() => {
                           if (employeeDetails?.id) {
-                            updateEmployeeInsuranceBase(employeeDetails.id, socialInsuranceBase, housingFundBase);
+                            const formValues = form.getFieldsValue();
+                            const socialBase = formValues.social_insurance_base || 0;
+                            const housingBase = formValues.housing_fund_base || 0;
+                            updateEmployeeInsuranceBase(employeeDetails.id, socialBase, housingBase);
                           }
                         }}
                         disabled={!employeeDetails?.id}
                       >
-                        更新缴费基数
+                        {t('actions.update_payment_base')}
                       </Button>
                     </Form.Item>
                   </Col>
                 </Row>
               </>
             )}
-          </Card>
+              </Card>
           
           <Divider />
           
@@ -1114,13 +1163,13 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           <Card
             title={
               <Space>
-                {t('payroll:entry_form.section.earnings')}
-                <Text type="secondary">({t('payroll:entry_form.total')}: {typeof totalEarnings === 'number' ? totalEarnings.toFixed(2) : '0.00'})</Text>
+                {t('section.earnings')}
+                <Text type="secondary">({t('total')}: {typeof totalEarnings === 'number' ? totalEarnings.toFixed(2) : '0.00'})</Text>
               </Space>
             }
             extra={
               <Select 
-                placeholder={t('payroll:entry_form.placeholder.select_earnings_component')}
+                placeholder={t('placeholder.select_earnings_component')}
                 style={{ width: 200 }}
                 onChange={handleAddEarning}
                 value={undefined}
@@ -1135,7 +1184,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             bordered={false}
           >
             {earnings.length === 0 ? (
-              <Text type="secondary">{t('payroll:entry_form.no_earnings_components')}</Text>
+              <Text type="secondary">{t('no_earnings_components')}</Text>
             ) : (
               earnings.map((item, index) => {
                 const component = earningComponents.find(comp => comp.code === item.name);
@@ -1147,7 +1196,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label={t('payroll:entry_form.label.amount')}>
+                      <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
                           min={0}
@@ -1164,19 +1213,20 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             )}
           </Card>
           
+          
           <Divider />
           
           {/* 扣缴项区域 */}
           <Card
             title={
               <Space>
-                {t('payroll:entry_form.section.deductions')}
-                <Text type="secondary">({t('payroll:entry_form.total')}: {typeof totalDeductions === 'number' ? totalDeductions.toFixed(2) : '0.00'})</Text>
+                {t('section.deductions')}
+                <Text type="secondary">({t('total')}: {typeof totalDeductions === 'number' ? totalDeductions.toFixed(2) : '0.00'})</Text>
               </Space>
             }
             extra={
               <Select 
-                placeholder={t('payroll:entry_form.placeholder.select_deductions_component')}
+                placeholder={t('placeholder.select_deductions_component')}
                 style={{ width: 200 }}
                 onChange={handleAddDeduction}
                 value={undefined}
@@ -1191,7 +1241,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             bordered={false}
           >
             {deductions.length === 0 ? (
-              <Text type="secondary">{t('payroll:entry_form.no_deductions_components')}</Text>
+              <Text type="secondary">{t('no_deductions_components')}</Text>
             ) : (
               deductions.map((item, index) => {
                 const component = deductionComponents.find(comp => comp.code === item.name);
@@ -1203,7 +1253,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label={t('payroll:entry_form.label.amount')}>
+                      <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
                           min={0}
@@ -1220,14 +1270,15 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             )}
           </Card>
           
+          
           <Divider />
           
           {/* 汇总区域 */}
-                      <Card title={t('payroll:entry_form.section.summary')} variant="outlined">
+                      <Card title={t('section.summary')} variant="outlined">
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.total_earnings')}
+                  label={t('label.total_earnings')}
                   name="total_earnings"
                 >
                   <InputNumber
@@ -1240,7 +1291,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Col>
               <Col span={8}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.total_deductions')}
+                  label={t('label.total_deductions')}
                   name="total_deductions"
                 >
                   <InputNumber
@@ -1253,7 +1304,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Col>
               <Col span={8}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.net_pay')}
+                  label={t('label.net_pay')}
                   name="net_pay"
                 >
                   <InputNumber
@@ -1269,9 +1320,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.status')}
+                  label={t('label.status')}
                   name="status_lookup_value_id"
-                  rules={[{ required: true, message: t('payroll:entry_form.validation.status_required') }]}
+                  rules={[{ required: true, message: t('validation.status_required') }]}
                 >
                   <Select>
                     {statusOptions.map(status => (
@@ -1284,7 +1335,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label={t('payroll:entry_form.label.remarks')}
+                  label={t('label.remarks')}
                   name="remarks"
                 >
                   <TextArea rows={1} />

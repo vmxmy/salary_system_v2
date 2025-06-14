@@ -56,13 +56,5 @@
   "tooltip": {
     "delete_role": "Delete Role",
     "edit_role": "Edit Role"
-  },
-  "title": "Role Management",
-  "button": {
-    "create_role": "Create Role"
-  },
-  "export": {
-    "button_text": "Export Excel",
-    "success_message": "Export Successful"
   }
 }

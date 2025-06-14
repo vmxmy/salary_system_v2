@@ -1,4 +1,9 @@
 {
+  "name": "姓名",
+  "department": "部门",
+  "personnel_category": "人员类别",
+  "root_personnel_category": "编制",
+  "position": "职位",
   "common": {
     "no_employee_found": "",
     "select_employee": ""
@@ -253,8 +258,6 @@
     },
     "name_not_set": "未设置姓名",
     "page_title": "员工列表",
-    "search_employee_code_placeholder": "搜索员工编号",
-    "search_name_placeholder": "搜索员工姓名",
     "table": {
       "column": {
         "action": "操作",

@@ -97,7 +97,7 @@ export const CalculationResultSummary: React.FC<CalculationResultSummaryProps> =
             />
             <StatisticCard
               statistic={{
-                title: t('payroll:workflow.steps.auto_calculation.total_gross_pay', '应发工资总额'),
+                title: t('payroll:workflow.steps.auto_calculation.total_gross_pay', '应发合计总额'),
                 value: summaryStats.total_gross_pay,
                 precision: 2,
                 icon: <DollarOutlined style={{ color: '#52c41a' }} />,
@@ -115,7 +115,7 @@ export const CalculationResultSummary: React.FC<CalculationResultSummaryProps> =
             />
             <StatisticCard
               statistic={{
-                title: t('payroll:workflow.steps.auto_calculation.total_net_pay', '实发工资总额'),
+                title: t('payroll:workflow.steps.auto_calculation.total_net_pay', '实发合计总额'),
                 value: summaryStats.total_net_pay,
                 precision: 2,
                 icon: <DollarOutlined style={{ color: '#13c2c2' }} />,

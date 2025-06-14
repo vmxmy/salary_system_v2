@@ -165,7 +165,7 @@ export class PayrollWorkflowAsyncUtils {
       return await payrollWorkflowApi.createPayrollRun({
         payroll_period_id: periodId,
         run_date: PayrollWorkflowUtils.getCurrentDateString(),
-        status_lookup_value_id: 1, // 假设1是"处理中"状态
+        status_lookup_value_id: 60, // 60 = "待计算" 状态
         notes: PayrollWorkflowUtils.createPayrollRunNotes(calculationModules)
       });
     } catch (error) {

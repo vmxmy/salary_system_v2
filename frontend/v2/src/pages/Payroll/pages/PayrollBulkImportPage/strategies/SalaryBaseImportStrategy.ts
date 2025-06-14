@@ -1,5 +1,14 @@
 import { BaseImportStrategy } from './BaseImportStrategy';
-import type { ImportModeConfig, FieldConfig, UniversalImportData, UniversalValidationResult } from '../types';
+import type { 
+  ImportModeConfig, 
+  FieldConfig, 
+  RawImportData, 
+  ProcessedRow, 
+  ValidationResult,
+  OverwriteMode
+} from '../types';
+import { getBackendOverwriteMode, DEFAULT_IMPORT_SETTINGS } from '../constants/overwriteMode';
+import { nanoid } from 'nanoid';
 
 /**
  * 缴费基数导入策略
@@ -206,123 +215,129 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
     return fields;
   }
 
-  processData(data: UniversalImportData, mapping: Record<string, string>): any[] {
-    const processed = super.processData(data, mapping);
-
-    // 自动拆分姓名
-    return processed.map(row => {
-      if (row.employee_name) {
-        row.last_name = this.extractLastName(row.employee_name);
-        row.first_name = this.extractFirstName(row.employee_name);
-      }
-      return row;
+  processData(
+    rawData: RawImportData,
+    mapping: Record<string, string>
+  ): ProcessedRow[] {
+    const { headers, rows } = rawData;
+    
+    return rows.map((row, rowIndex) => {
+      const rowData: Record<string, any> = {};
+      headers.forEach((header, colIndex) => {
+        const systemKey = mapping[header];
+        if (systemKey) {
+          rowData[systemKey] = row[colIndex];
+        }
+      });
+      return {
+        data: rowData,
+        _meta: {
+          rowIndex: rowIndex,
+          clientId: nanoid(),
+        },
+      };
     });
   }
 
-  async validateData(
-    data: UniversalImportData[],
-    settings: Record<string, any>
-  ): Promise<UniversalValidationResult> {
+  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<ValidationResult[]> {
+    const apiPayload = {
+      period_id: periodId,
+      base_updates: processedData.map(row => {
+        // 从完整姓名中提取姓和名
+        const fullName = row.data.employee_name || '';
+        const lastName = this.extractLastName(fullName);
+        const firstName = this.extractFirstName(fullName);
+        
+        console.log(`🔍 [缴费基数-姓名转换] 完整姓名: "${fullName}" -> 姓: "${lastName}", 名: "${firstName}"`);
+        
+        return {
+          employee_id: row.data.employee_id,
+          social_insurance_base: row.data.social_insurance_base,
+          housing_fund_base: row.data.housing_fund_base,
+          employee_info: {
+            last_name: lastName,
+            first_name: firstName,
+            id_number: row.data.id_number || ''
+          },
+          clientId: row._meta.clientId,
+        };
+      }),
+      overwrite_mode: getBackendOverwriteMode(overwriteMode)
+    };
+
     try {
-      // 转换数据格式
-      const baseUpdates = data.map((item, index) => ({
-        employee_id: item.employee_id || undefined,
-        social_insurance_base: item.social_insurance_base || undefined,
-        housing_fund_base: item.housing_fund_base || undefined,
-        employee_info: {
-          last_name: item.last_name,
-          first_name: item.first_name,
-          id_number: item.id_number as string
-        },
-        clientId: item._clientId || `salary_base_${index}_${Date.now()}`
-      }));
-
-      // 调用后端验证API
-      const response = await fetch('/v2/simple-payroll/salary-configs/batch-validate', {
+      const response = await this.makeRequest('/v2/simple-payroll/salary-configs/batch-validate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
-        },
-        body: JSON.stringify({
-          period_id: settings.periodId,
-          base_updates: baseUpdates,
-          overwrite_mode: settings.overwriteMode || false
-        })
+        body: JSON.stringify(apiPayload)
       });
+      const result = await this.handleResponse(response);
 
-      if (!response.ok) {
-        throw new Error(`验证请求失败: ${response.statusText}`);
-      }
+      const validatedData = result.data.validated_data || [];
 
-      const result = await response.json();
-      
-      return {
-        isValid: result.data.invalid === 0,
-        totalRecords: result.data.total,
-        validRecords: result.data.valid,
-        invalidRecords: result.data.invalid,
-        warnings: result.data.warnings,
-        errors: result.data.errors || [],
-        validatedData: result.data.validated_data.map((item: any) => ({
-          ...item,
-          _clientId: item.clientId,
-          __isValid: item.is_valid,
-          __errors: item.errors,
-          __warnings: item.warnings
-        }))
-      };
+      return processedData.map((row, index) => {
+        const validation = validatedData[index];
+        if (validation) {
+          return {
+            isValid: validation.is_valid || false,
+            clientId: row._meta.clientId,
+            errors: validation.errors || [],
+            warnings: validation.warnings || [],
+          };
+        }
+        return {
+          isValid: false,
+          clientId: row._meta.clientId,
+          errors: [{ field: 'general', message: '后端未返回此记录的验证结果' }],
+          warnings: [],
+        };
+      });
     } catch (error) {
       console.error('缴费基数验证失败:', error);
-      throw error;
+      return processedData.map(row => ({
+        isValid: false,
+        clientId: row._meta.clientId,
+        errors: [{ field: 'general', message: `API请求失败: ${error instanceof Error ? error.message : '未知错误'}` }],
+        warnings: [],
+      }));
     }
   }
 
-  async executeImport(
-    validatedData: any[],
-    settings: Record<string, any>
-  ): Promise<any> {
+  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<any> {
+    console.log(`准备导入缴费基数到周期 ID: ${periodId}`, validatedData);
+    
+    const apiPayload = {
+      period_id: periodId,
+      base_updates: validatedData.map(row => {
+        // 从完整姓名中提取姓和名
+        const fullName = row.data.employee_name || '';
+        const lastName = this.extractLastName(fullName);
+        const firstName = this.extractFirstName(fullName);
+        
+        return {
+          employee_id: row.data.employee_id,
+          social_insurance_base: row.data.social_insurance_base,
+          housing_fund_base: row.data.housing_fund_base,
+          employee_info: {
+            last_name: lastName,
+            first_name: firstName,
+            id_number: row.data.id_number || ''
+          }
+        };
+      })
+    };
+    
     try {
-      // 只处理有效的记录
-      const validRecords = validatedData.filter(item => item.__isValid);
-      
-      if (validRecords.length === 0) {
-        throw new Error('没有有效的记录可以导入');
-      }
-
-      // 转换为后端期望的格式
-      const baseUpdates = validRecords.map(item => ({
-        employee_id: item.employee_id,
-        social_insurance_base: item.social_insurance_base,
-        housing_fund_base: item.housing_fund_base,
-        employee_info: {
-          last_name: item.last_name,
-          first_name: item.first_name,
-          id_number: item.id_number
-        }
-      }));
-
-      // 调用后端执行API
-      const response = await fetch('/v2/simple-payroll/salary-configs/batch-update', {
+      const response = await this.makeRequest('/v2/simple-payroll/salary-configs/batch-update', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
-        },
-        body: JSON.stringify(baseUpdates)
+        body: JSON.stringify(apiPayload)
       });
-
-      if (!response.ok) {
-        throw new Error(`导入执行失败: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await this.handleResponse(response);
       
       return {
         success: true,
-        successCount: result.data.updated_count + result.data.created_count,
-        failedCount: result.data.failed_count,
-        message: result.data.message,
+        successCount: (result.data.updated_count || 0) + (result.data.created_count || 0),
+        failedCount: result.data.failed_count || 0,
+        message: result.data.message || '导入完成',
         details: result.data
       };
     } catch (error) {
@@ -333,14 +348,35 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
 
   protected extractLastName(fullName: string): string {
     if (!fullName) return '';
-    // 简单的姓名分割逻辑，假设姓为第一个字符
-    return fullName.charAt(0);
+    
+    const trimmedName = fullName.trim();
+    
+    // 常见复姓列表
+    const compoundSurnames = [
+      '欧阳', '太史', '端木', '上官', '司马', '东方', '独孤', '南宫', '万俟', '闻人',
+      '夏侯', '诸葛', '尉迟', '公羊', '赫连', '澹台', '皇甫', '宗政', '濮阳', '公冶',
+      '太叔', '申屠', '公孙', '慕容', '仲孙', '钟离', '长孙', '宇文', '司徒', '鲜于'
+    ];
+    
+    // 检查是否是复姓
+    for (const surname of compoundSurnames) {
+      if (trimmedName.startsWith(surname)) {
+        return surname;
+      }
+    }
+    
+    // 默认取第一个字符作为姓
+    return trimmedName.charAt(0);
   }
 
   protected extractFirstName(fullName: string): string {
     if (!fullName) return '';
-    // 简单的姓名分割逻辑，假设名为除第一个字符外的其余部分
-    return fullName.slice(1);
+    
+    const trimmedName = fullName.trim();
+    const lastName = this.extractLastName(trimmedName);
+    
+    // 返回除姓之外的部分作为名
+    return trimmedName.slice(lastName.length);
   }
 
 } 

@@ -55,24 +55,13 @@
       "default": "Failed to create user, please check input or contact administrator."
     },
     "create_user_success": "User \"{username}\" created successfully!",
-    "delete_user_error": {
-      "default": "Failed to delete user."
-    },
-    "delete_user_success": "User \"{username}\" deleted successfully.",
     "fetch_roles_error": "Failed to load role list",
     "update_user_error": {
       "default": "Failed to update user."
     },
-    "update_user_success": "User \"{username}\" updated successfully!",
-    "user_not_found_for_edit": ""
+    "update_user_success": "User \"{username}\" updated successfully!"
   },
   "modal": {
-    "confirm_delete": {
-      "cancel_text": "Cancel",
-      "content": "This action cannot be undone.",
-      "ok_text": "Confirm Delete",
-      "title": "Confirm Delete User \"{username}\"?"
-    },
     "title": {
       "create_user": "Create User",
       "edit_user": "Edit User"
@@ -80,7 +69,6 @@
   },
   "table": {
     "column": {
-      "actions": "Actions",
       "created_at": "Created At",
       "employee_id": "Associated Employee ID",
       "id": "ID",
@@ -97,8 +85,5 @@
   "tooltip": {
     "delete_user": "Delete User",
     "edit_user": "Edit User"
-  },
-  "user_list_page": {
-    "title": ""
   }
 }

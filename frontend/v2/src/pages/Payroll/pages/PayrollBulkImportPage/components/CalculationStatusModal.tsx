@@ -163,7 +163,7 @@ const CalculationStatusModal: React.FC<CalculationStatusModalProps> = ({
     
     const steps = [
       { title: '准备数据', description: '加载员工信息和配置' },
-      { title: '基础薪资计算', description: '计算应发工资和基础扣除' },
+      { title: '基础薪资计算', description: '计算应发合计和基础扣除' },
       { title: '五险一金计算', description: '计算社保和公积金' },
       { title: '汇总统计', description: '生成最终报告' }
     ];

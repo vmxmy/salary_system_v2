@@ -91,7 +91,7 @@ export interface PayrollEntry {
   employee_name?: string; // 员工姓名，用于表格显示
   employee_first_name?: string; // 新增：员工名
   employee_last_name?: string; // 新增：员工姓
-  gross_pay: number; // 应发工资 - 数据库实际字段
+  gross_pay: number; // 应发合计 - 数据库实际字段
   total_deductions: number;
   net_pay: number;
   total_earnings?: number; // 总收入，通常等于gross_pay，用于显示
@@ -178,9 +178,9 @@ export interface RawPayrollEntryData {
   id_number?: string;
   department_name?: string; 
   position_name?: string;
-  gross_pay: number; // 应发工资
+  gross_pay: number; // 应发合计
   total_deductions: number; // 扣发合计
-  net_pay: number; // 实发工资
+  net_pay: number; // 实发合计
   earnings_details: Record<string, { amount: number; name?: string }>; // 收入明细
   deductions_details: Record<string, { amount: number; name?: string }>; // 扣除明细
   status_lookup_value_id?: number | null;

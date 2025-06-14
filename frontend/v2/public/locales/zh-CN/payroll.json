@@ -1,4 +1,7 @@
 {
+  "total_deductions": "扣发合计",
+  "payroll_data_for_period": "“{periodName}”期间工资数据",
+  "payroll_data_list": "工资数据列表",
   "absent": "缺勤",
   "absent_days": "缺勤天数",
   "activate": "激活",
@@ -165,7 +168,7 @@
     "effective_date": "生效日期",
     "elderly_deduction": "赡养老人附加扣除",
     "expiry_date": "失效日期",
-    "gross_salary": "应发工资",
+    "gross_salary": "应发合计",
     "housing_fund": "住房公积金",
     "housing_fund_base_limits": "住房公积金基数上下限",
     "housing_fund_base_max": "住房公积金基数上限",
@@ -246,10 +249,10 @@
     "sync_mode": "同步模式",
     "title": "薪资计算预览",
     "total_employees": "总员工数",
-    "total_gross_salary": "应发工资总额",
+    "total_gross_salary": "应发合计总额",
     "total_housing_fund_employee": "代扣公积金总额 (个人)",
     "total_housing_fund_employer": "代扣公积金总额 (公司)",
-    "total_net_salary": "实发工资总额",
+    "total_net_salary": "实发合计总额",
     "total_social_insurance_employee": "代扣社保总额 (个人)",
     "total_social_insurance_employer": "代扣社保总额 (公司)",
     "total_tax": "代扣个税总额"
@@ -302,8 +305,8 @@
       "department": "部门",
       "employee_id": "员工ID",
       "employee_name": "员工姓名",
-      "gross_pay": "应发工资",
-      "net_pay": "实发工资",
+      "gross_pay": "应发合计",
+      "net_pay": "实发合计",
       "personnel_category": "人员类别",
       "status": "状态",
       "total_deductions": "扣款总额"
@@ -341,9 +344,9 @@
     "employee_name": "员工姓名",
     "error_fetch_details": "获取详情失败",
     "error_prefix": "错误：",
-    "gross_pay": "应发工资",
+    "gross_pay": "应发合计",
     "loading": "加载中...",
-    "net_pay": "实发工资",
+    "net_pay": "实发合计",
     "not_found": "未找到",
     "notes": "备注",
     "payroll_period": "薪资周期",
@@ -369,12 +372,14 @@
       "employee": "员工",
       "employee_id": "员工ID",
       "employee_name": "员工姓名",
-      "net_pay": "实发工资",
+      "net_pay": "实发合计",
       "personnel_category": "人员类别",
       "remarks": "备注",
       "status": "状态",
       "total_deductions": "扣款总额",
-      "total_earnings": "应发总额"
+      "total_earnings": "应发总额",
+      "social_insurance_base": "社保基数",
+      "housing_fund_base": "公积金基数"
     },
     "message": {
       "component_already_exists": "组成部分已存在",
@@ -387,7 +392,9 @@
     "placeholder": {
       "select_deductions_component": "选择扣款组成部分",
       "select_earnings_component": "选择应发组成部分",
-      "select_employee": "选择员工"
+      "select_employee": "选择员工",
+      "enter_social_insurance_base": "请输入社保基数",
+      "enter_housing_fund_base": "请输入公积金基数"
     },
     "section": {
       "deductions": "扣款项",
@@ -398,6 +405,9 @@
     "title_create": "创建工资记录",
     "title_edit": "编辑工资记录",
     "total": "总计",
+    "actions": {
+      "update_payment_base": "更新缴费基数"
+    },
     "validation": {
       "employee_required": "员工为必填项",
       "failed": "验证失败",
@@ -434,7 +444,7 @@
   "export_failed": "导出失败",
   "export_success": "导出成功",
   "exporting": "正在导出...",
-  "gross_salary": "应发工资",
+  "gross_salary": "应发合计",
   "housing_fund_employee": "代扣公积金 (个人)",
   "id": "编号",
   "inactive": "",
@@ -451,7 +461,7 @@
   "mark_as_paid_failed": "标记为已支付失败",
   "mark_as_paid_success": "成功标记为已支付",
   "maternity_leave": "",
-  "net_salary": "实发工资",
+  "net_salary": "实发合计",
   "no_payroll_period": "未找到薪资周期信息，无法执行计算。",
   "no_selection_message": "",
   "normal": "",

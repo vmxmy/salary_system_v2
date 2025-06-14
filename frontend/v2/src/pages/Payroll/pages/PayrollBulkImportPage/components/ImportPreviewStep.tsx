@@ -157,11 +157,11 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
                 <Typography.Text>{selectedRecordErrors.record?.id_number || '-'}</Typography.Text>
               </Col>
               <Col span={8}>
-                <Typography.Text strong>应发工资：</Typography.Text>
+                <Typography.Text strong>应发合计：</Typography.Text>
                 <Typography.Text>{formatCurrency(selectedRecordErrors.record?.gross_pay)}</Typography.Text>
               </Col>
               <Col span={8}>
-                <Typography.Text strong>实发工资：</Typography.Text>
+                <Typography.Text strong>实发合计：</Typography.Text>
                 <Typography.Text>{formatCurrency(selectedRecordErrors.record?.net_pay)}</Typography.Text>
               </Col>
               <Col span={8}>
@@ -273,7 +273,7 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
         copyable: true,
       },
       {
-        title: '应发工资',
+        title: '应发合计',
         dataIndex: 'gross_pay',
         key: 'gross_pay',
         width: 100,
@@ -281,7 +281,7 @@ const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
         render: (value) => formatCurrency(value),
       },
       {
-        title: '实发工资',
+        title: '实发合计',
         dataIndex: 'net_pay',
         key: 'net_pay',
         width: 100,

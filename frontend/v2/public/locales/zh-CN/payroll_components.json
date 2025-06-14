@@ -15,8 +15,7 @@
       "required": ""
     },
     "view": "",
-    "yes": "",
-    "loading": "加载中..."
+    "yes": ""
   },
   "payroll_components": {
     "add": "",
@@ -31,10 +30,6 @@
     "sort_order": "",
     "type": "",
     "update_failed": "",
-    "update_success": "",
-    "title": "薪资组件管理"
-  },
-  "payroll_components": {
-    "title": "薪资组件"
+    "update_success": ""
   }
 }

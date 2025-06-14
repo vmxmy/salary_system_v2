@@ -1,107 +1,4 @@
 {
-  "audit": {
-    "allClear": "审核通过",
-    "anomalies": "异常",
-    "anomalyType": "异常类型",
-    "autoFix": "自动修复",
-    "autoFixable": "可修复",
-    "autoFixableCount": "可自动修复数量",
-    "autoFixFailed": "自动修复失败",
-    "autoFixSuccess": "自动修复完成：成功 {fixed} 项，失败 {failed} 项",
-    "checkCompleted": "审核检查完成",
-    "checkFailed": "审核检查失败",
-    "description": "自动检查工资数据的准确性和完整性，发现异常并提供修复建议",
-    "detailModal": {
-      "title": "审核详情"
-    },
-    "employee": "员工",
-    "goBackFailed": "退回上一步失败",
-    "goBackSuccess": "已成功退回到上一步",
-    "goBackToPreviousStep": "退回上一步",
-    "hasIssues": "发现异常",
-    "ignore": "忽略",
-    "ignoreConfirm": "确定要忽略此异常吗？",
-    "ignoreReason": "忽略原因",
-    "ignored": "已忽略",
-    "ignoreFailed": "忽略异常失败",
-    "ignoreSuccess": "忽略异常成功",
-    "message": "异常信息",
-    "noAuditData": "尚未执行审核检查",
-    "runCheck": "执行审核",
-    "selectVersionHint": "请先选择版本",
-    "severity": "严重程度",
-    "showAll": "显示全部",
-    "showOnlyErrors": "仅显示错误",
-    "status": "状态",
-    "statusUpdated": "状态已更新",
-    "statusUpdateFailed": "状态更新失败",
-    "submitForReview": "提交审核",
-    "title": "审核检查",
-    "totalAnomalies": "共 {total} 项异常",
-    "totalEntries": "总条目数",
-    "viewDetails": "查看详情"
-  },
-  "batchAdjust": {
-    "actions": {
-      "execute": "执行调整",
-      "preview": "预览调整"
-    },
-    "columns": {
-      "component": "薪资组件",
-      "description": "说明",
-      "operation": "操作",
-      "value": "数值"
-    },
-    "description": {
-      "label": "调整说明",
-      "placeholder": "请输入本次批量调整的详细说明..."
-    },
-    "employeeSelection": {
-      "clearAll": "清空",
-      "placeholder": "搜索并选择员工",
-      "selectAll": "全选",
-      "selected_other": "",
-      "title": "选择员工"
-    },
-    "errors": {
-      "execute": "执行批量调整失败",
-      "fetchComponents": "获取薪资组件失败",
-      "fetchEmployees": "获取员工列表失败",
-      "preview": "预览调整结果失败"
-    },
-    "info": {
-      "description": "对 {{period}} 期间的 {{entries}} 条薪资记录进行批量调整",
-      "title": "批量调整信息"
-    },
-    "messages": {
-      "success_other": ""
-    },
-    "placeholders": {
-      "description": "调整说明",
-      "selectComponent": "选择薪资组件"
-    },
-    "preview": {
-      "component": "组件",
-      "difference": "差额",
-      "employeeCode": "员工编号",
-      "employeeName": "员工姓名",
-      "newValue": "调整后",
-      "oldValue": "调整前",
-      "summary_other": "",
-      "title": "预览调整结果"
-    },
-    "rules": {
-      "add": "添加规则",
-      "empty": "暂无调整规则，点击上方按钮添加",
-      "help": "支持绝对值调整、百分比调整等多种方式",
-      "title": "调整规则"
-    },
-    "title": "批量调整",
-    "warnings": {
-      "noRules": "请先添加调整规则",
-      "previewFirst": "请先预览调整结果"
-    }
-  },
   "common": {
     "entries": "条"
   },
@@ -126,8 +23,8 @@
       "department": "部门",
       "employeeCode": "员工编号",
       "employeeName": "姓名",
-      "grossPay": "应发工资",
-      "netPay": "实发工资"
+      "grossPay": "应发合计",
+      "netPay": "实发合计"
     },
     "continueValidation": "继续验证",
     "downloadTemplate": "下载导入模板",
@@ -157,11 +54,11 @@
       "title": "上传要求"
     },
     "validation": {
-      "grossPayMismatch": "第{{row}}行：应发工资计算不匹配",
+      "grossPayMismatch": "第{{row}}行：应发合计计算不匹配",
       "missingEmployeeCode": "第{{row}}行：缺少员工编号",
       "missingEmployeeName": "第{{row}}行：缺少员工姓名",
       "negativeBasicSalary": "第{{row}}行：基本工资不能为负数",
-      "netPayMismatch": "第{{row}}行：实发工资计算不匹配"
+      "netPayMismatch": "第{{row}}行：实发合计计算不匹配"
     },
     "validationErrors_other": "",
     "validationPassed": "数据验证通过",
@@ -191,10 +88,6 @@
     "noPeriodSelected": "请先选择期间",
     "title": "生成工资"
   },
-  "hints": {
-    "noVersions": "当前期间还没有工资运行，请先生成工资数据",
-    "selectPeriod": "请先选择一个工资期间来开始操作"
-  },
   "messages": {
     "copySuccess": "复制工资数据成功",
     "createSuccess": "创建工资数据成功"
@@ -202,7 +95,7 @@
   "quickActions": {
     "addEmployee": "添加员工",
     "addPayrollRecord": "添加工资记录",
-    "bulkImport": "批量导入工资数据",
+    "bulkImport": "批量导入数据",
     "copyLastMonth": "复制上月数据",
     "importTaxData": "导入个税数据",
     "importTaxDataMessage": "导入个税数据功能待实现",

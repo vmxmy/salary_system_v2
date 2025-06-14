@@ -397,7 +397,7 @@ export const simplePayrollApi = {
       end_date: params.end_date,
       pay_date: params.pay_date,
       frequency_lookup_value_id: params.frequency_lookup_value_id || 117, // 117 = 月度频率
-      status_lookup_value_id: 115 // 115 = "活动" 状态
+      status_lookup_value_id: 134 // 134 = "活动" 状态（薪资周期）
     };
 
     console.log('🚀 [simplePayrollApi.createPayrollPeriod] 发起请求:', {

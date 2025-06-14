@@ -95,6 +95,11 @@ export interface ImportModeConfig {
   };
 }
 
+/**
+ * 导入模式的唯一标识符
+ */
+export type ImportModeID = string;
+
 // ================================
 // 通用导入流程相关类型
 // ================================
@@ -183,6 +188,37 @@ export interface UniversalImportResult {
 }
 
 // ================================
+// 新版策略模式（基于抽象类）
+// ================================
+
+/**
+ * 经过处理的一行数据
+ */
+export interface ProcessedRow {
+  data: Record<string, any>; // 键为系统字段key，值为单元格数据
+  _meta: {
+    rowIndex: number; // 原始Excel中的行号
+    clientId: string; // 前端生成的唯一ID
+  };
+}
+
+/**
+ * 单行数据的验证结果
+ */
+export interface ValidationResult {
+  isValid: boolean;
+  clientId: string; // 对应 ProcessedRow 的 clientId
+  errors: {
+    field: string;
+    message: string;
+  }[];
+  warnings: {
+    field: string;
+    message: string;
+  }[];
+}
+
+// ================================
 // 策略模式相关类型
 // ================================
 
@@ -244,17 +280,17 @@ export interface ImportStrategy {
 // ================================
 
 /**
- * 模式选择器Props
+ * 导入模式选择器组件的属性
  */
 export interface ImportModeSelectorProps {
-  selectedMode: string;
-  onModeChange: (mode: string) => void;
+  selectedMode: ImportModeID | null;
+  onModeChange: (mode: ImportModeID) => void;
   availableModes: ImportModeConfig[];
   loading?: boolean;
 }
 
 /**
- * 通用上传组件Props
+ * 通用数据上传组件的属性
  */
 export interface UniversalDataUploadProps {
   mode: string;
@@ -325,6 +361,53 @@ export interface UniversalStepConfig {
   title: string;
   description: string;
   icon: string;
+}
+
+/**
+ * 覆写模式枚举
+ */
+export type OverwriteMode = 'append' | 'replace';
+
+/**
+ * 覆写模式选项配置
+ */
+export interface OverwriteModeOption {
+  value: OverwriteMode;
+  label: string;
+  description: string;
+  icon: string;
+  risk: 'low' | 'medium' | 'high';
+  warning?: string;
+}
+
+/**
+ * 导入预览信息
+ */
+export interface ImportPreview {
+  newEmployees: number;        // 新增员工数
+  existingEmployees: number;   // 已存在员工数
+  willBeUpdated: number;       // 将被更新的员工数
+  willBeSkipped: number;       // 将被跳过的员工数
+  affectedFields: string[];    // 受影响的字段列表
+}
+
+/**
+ * 导入设置
+ */
+export interface ImportSettings {
+  overwriteMode: OverwriteMode;
+  showPreview: boolean;
+  confirmBeforeExecute: boolean;
+}
+
+/**
+ * 导入详情
+ */
+export interface ImportDetail {
+  employeeName: string;
+  action: 'created' | 'updated' | 'skipped' | 'failed';
+  reason?: string;
+  errors?: string[];
 }
 
  
