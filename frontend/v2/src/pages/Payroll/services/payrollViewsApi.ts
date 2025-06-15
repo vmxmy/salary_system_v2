@@ -250,6 +250,38 @@ export interface ComprehensivePayrollDataView {
   '薪资发放日期'?: string; // date
   '薪资运行日期'?: string; // date-time
 
+  // 员工详细信息 - 联系信息
+  '家庭住址'?: string;
+  '紧急联系人'?: string;
+  '紧急联系电话'?: string;
+  
+  // 员工详细信息 - 个人信息
+  '出生日期'?: string;
+  '性别'?: string;
+  '民族'?: string;
+  '民族详情'?: string;
+  '婚姻状况'?: string;
+  '学历'?: string;
+  '政治面貌'?: string;
+  
+  // 员工详细信息 - 工作信息
+  '首次工作日期'?: string;
+  '现职位开始日期'?: string;
+  '中断服务年限'?: string;
+  '用工类型'?: string;
+  '合同类型'?: string;
+  '薪级'?: string;
+  '薪档'?: string;
+  '职位等级'?: string;
+  
+  // 员工详细信息 - 银行账号信息
+  '开户银行'?: string;
+  '账户持有人'?: string;
+  '银行账号'?: string;
+  '开户支行'?: string;
+  '银行代码'?: string;
+  '账户类型'?: string;
+
   // 核心汇总字段
   '应发合计'?: number;
   '扣除合计'?: number;

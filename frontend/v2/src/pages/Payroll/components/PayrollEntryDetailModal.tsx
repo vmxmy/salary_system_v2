@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Descriptions, Spin, Alert, Typography, Card, Empty, Tooltip, Tag, Row, Col, Divider, Table, Space } from 'antd';
+import { Modal, Descriptions, Spin, Alert, Typography, Card, Empty, Tooltip, Tag, Row, Col, Divider, Table, Space, Tabs } from 'antd';
 import { getPayrollEntryById } from '../services/payrollApi';
 import type { PayrollEntry, ApiSingleResponse, PayrollItemDetail } from '../types/payrollTypes';
 import { useTranslation } from 'react-i18next';
@@ -321,6 +321,136 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
             </Descriptions>
           </Card>
 
+          {/* 员工详细信息 */}
+          {modalData.员工详细信息 && (
+            <Card title="员工详细信息" style={{ marginBottom: 16 }}>
+              <Tabs 
+                defaultActiveKey="contact" 
+                size="small"
+                items={[
+                  {
+                    key: 'contact',
+                    label: '联系信息',
+                    children: (
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="手机号码">
+                          {modalData.员工详细信息.联系信息?.手机号码 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="电子邮箱">
+                          {modalData.员工详细信息.联系信息?.电子邮箱 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="家庭地址">
+                          {modalData.员工详细信息.联系信息?.家庭地址 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="紧急联系人">
+                          {modalData.员工详细信息.联系信息?.紧急联系人 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="紧急联系人电话">
+                          {modalData.员工详细信息.联系信息?.紧急联系人电话 || '-'}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    )
+                  },
+                  {
+                    key: 'personal',
+                    label: '个人信息',
+                    children: (
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="身份证号">
+                          {modalData.员工详细信息.个人信息?.身份证号 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="性别">
+                          {modalData.员工详细信息.个人信息?.性别 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="出生日期">
+                          {modalData.员工详细信息.个人信息?.出生日期 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="民族">
+                          {modalData.员工详细信息.个人信息?.民族 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="政治面貌">
+                          {modalData.员工详细信息.个人信息?.政治面貌 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="婚姻状况">
+                          {modalData.员工详细信息.个人信息?.婚姻状况 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="学历">
+                          {modalData.员工详细信息.个人信息?.学历 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="专业">
+                          {modalData.员工详细信息.个人信息?.专业 || '-'}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    )
+                  },
+                  {
+                    key: 'work',
+                    label: '工作信息',
+                    children: (
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="入职日期">
+                          {modalData.员工详细信息.工作信息?.入职日期 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="工作状态">
+                          {modalData.员工详细信息.工作信息?.工作状态 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="合同类型">
+                          {modalData.员工详细信息.工作信息?.合同类型 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="合同开始日期">
+                          {modalData.员工详细信息.工作信息?.合同开始日期 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="合同结束日期">
+                          {modalData.员工详细信息.工作信息?.合同结束日期 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="试用期结束日期">
+                          {modalData.员工详细信息.工作信息?.试用期结束日期 || '-'}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    )
+                  },
+                  {
+                    key: 'insurance',
+                    label: '社保公积金',
+                    children: (
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="社保账号">
+                          {modalData.员工详细信息.社保公积金信息?.社保账号 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="公积金账号">
+                          {modalData.员工详细信息.社保公积金信息?.公积金账号 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="社保缴费基数">
+                          {modalData.员工详细信息.社保公积金信息?.社保缴费基数 ? `¥${parseFloat(modalData.员工详细信息.社保公积金信息.社保缴费基数).toFixed(2)}` : '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="公积金缴费基数">
+                          {modalData.员工详细信息.社保公积金信息?.公积金缴费基数 ? `¥${parseFloat(modalData.员工详细信息.社保公积金信息.公积金缴费基数).toFixed(2)}` : '-'}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    )
+                  },
+                  {
+                    key: 'bank',
+                    label: '银行账号',
+                    children: (
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="银行名称">
+                          {modalData.员工详细信息.银行账号信息?.银行名称 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="银行账号">
+                          {modalData.员工详细信息.银行账号信息?.银行账号 || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="开户行">
+                          {modalData.员工详细信息.银行账号信息?.开户行 || '-'}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    )
+                  }
+                ]}
+              />
+            </Card>
+          )}
+
           {/* 薪资汇总 */}
           <Card title="薪资汇总" style={{ marginBottom: 16 }}>
             <Row gutter={24}>
@@ -356,7 +486,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
             <div style={{ marginBottom: 16 }}>
               <Title level={5}>标准应发项目</Title>
               <Descriptions bordered column={2} size="small">
-                {Object.entries(modalData.应发明细).filter(([key]) => key !== '其他应发项目').map(([key, value]) => (
+                {Object.entries(modalData.应发明细 || {}).filter(([key]) => key !== '其他应发项目').map(([key, value]) => (
                   value && parseFloat(value as string) > 0 && (
                     <Descriptions.Item key={key} label={key}>
                       ¥{parseFloat(value as string).toFixed(2)}
@@ -366,11 +496,11 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
               </Descriptions>
             </div>
             
-            {Object.keys(modalData.应发明细.其他应发项目).length > 0 && (
+            {Object.keys(modalData.应发明细?.其他应发项目 || {}).length > 0 && (
               <div>
                 <Title level={5}>其他应发项目</Title>
                 <Descriptions bordered column={2} size="small">
-                  {Object.entries(modalData.应发明细.其他应发项目).map(([key, value]) => (
+                  {Object.entries(modalData.应发明细?.其他应发项目 || {}).map(([key, value]) => (
                     parseFloat(value) > 0 && (
                       <Descriptions.Item key={key} label={key}>
                         ¥{parseFloat(value).toFixed(2)}
@@ -387,14 +517,14 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
             <div style={{ marginBottom: 16 }}>
               <Title level={5}>个人扣缴项目</Title>
               <Descriptions bordered column={2} size="small">
-                {Object.entries(modalData.扣除明细.个人扣缴项目).filter(([key]) => key !== '其他个人扣缴').map(([key, value]) => (
+                {Object.entries(modalData.扣除明细?.个人扣缴项目 || {}).filter(([key]) => key !== '其他个人扣缴').map(([key, value]) => (
                   value && parseFloat(value as string) > 0 && (
                     <Descriptions.Item key={key} label={key}>
                       ¥{parseFloat(value as string).toFixed(2)}
                     </Descriptions.Item>
                   )
                 ))}
-                {Object.entries(modalData.扣除明细.个人扣缴项目.其他个人扣缴).map(([key, value]) => (
+                {Object.entries(modalData.扣除明细?.个人扣缴项目?.其他个人扣缴 || {}).map(([key, value]) => (
                   parseFloat(value) > 0 && (
                     <Descriptions.Item key={key} label={key}>
                       ¥{parseFloat(value).toFixed(2)}
@@ -407,14 +537,14 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
             <div>
               <Title level={5}>单位扣缴项目</Title>
               <Descriptions bordered column={2} size="small">
-                {Object.entries(modalData.扣除明细.单位扣缴项目).filter(([key]) => key !== '其他单位扣缴').map(([key, value]) => (
+                {Object.entries(modalData.扣除明细?.单位扣缴项目 || {}).filter(([key]) => key !== '其他单位扣缴').map(([key, value]) => (
                   value && parseFloat(value as string) > 0 && (
                     <Descriptions.Item key={key} label={key}>
                       ¥{parseFloat(value as string).toFixed(2)}
                     </Descriptions.Item>
                   )
                 ))}
-                {Object.entries(modalData.扣除明细.单位扣缴项目.其他单位扣缴).map(([key, value]) => (
+                {Object.entries(modalData.扣除明细?.单位扣缴项目?.其他单位扣缴 || {}).map(([key, value]) => (
                   parseFloat(value) > 0 && (
                     <Descriptions.Item key={key} label={key}>
                       ¥{parseFloat(value).toFixed(2)}
@@ -428,14 +558,14 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
           {/* 计算参数 */}
           <Card title="计算参数" style={{ marginBottom: 16 }}>
             <Descriptions bordered column={2} size="small">
-              {Object.entries(modalData.计算参数).filter(([key]) => key !== '其他计算参数').map(([key, value]) => (
+              {Object.entries(modalData.计算参数 || {}).filter(([key]) => key !== '其他计算参数').map(([key, value]) => (
                 value && parseFloat(value as string) > 0 && (
                   <Descriptions.Item key={key} label={key}>
                     {key.includes('费率') ? `${(parseFloat(value as string) * 100).toFixed(2)}%` : `¥${parseFloat(value as string).toFixed(2)}`}
                   </Descriptions.Item>
                 )
               ))}
-              {Object.entries(modalData.计算参数.其他计算参数).map(([key, value]) => (
+              {Object.entries(modalData.计算参数?.其他计算参数 || {}).map(([key, value]) => (
                 parseFloat(value) > 0 && (
                   <Descriptions.Item key={key} label={key}>
                     {key.includes('费率') ? `${(parseFloat(value) * 100).toFixed(2)}%` : `¥${parseFloat(value).toFixed(2)}`}

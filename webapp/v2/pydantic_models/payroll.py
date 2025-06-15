@@ -484,10 +484,72 @@ class PayrollModalCalculations(BaseModel):
     其他计算参数: Dict[str, Decimal] = Field({}, description="其他计算参数")
 
 
+# 员工详细信息相关模型
+class PayrollModalContactInfo(BaseModel):
+    """联系信息"""
+    电话: Optional[str] = Field(None, description="电话")
+    邮箱: Optional[str] = Field(None, description="邮箱")
+    家庭住址: Optional[str] = Field(None, description="家庭住址")
+    紧急联系人: Optional[str] = Field(None, description="紧急联系人")
+    紧急联系电话: Optional[str] = Field(None, description="紧急联系电话")
+
+
+class PayrollModalPersonalInfo(BaseModel):
+    """个人信息"""
+    身份证号: Optional[str] = Field(None, description="身份证号")
+    出生日期: Optional[date] = Field(None, description="出生日期")
+    性别: Optional[str] = Field(None, description="性别")
+    民族: Optional[str] = Field(None, description="民族")
+    民族详情: Optional[str] = Field(None, description="民族详情")
+    婚姻状况: Optional[str] = Field(None, description="婚姻状况")
+    学历: Optional[str] = Field(None, description="学历")
+    政治面貌: Optional[str] = Field(None, description="政治面貌")
+
+
+class PayrollModalWorkInfo(BaseModel):
+    """工作信息"""
+    入职日期: Optional[date] = Field(None, description="入职日期")
+    首次工作日期: Optional[date] = Field(None, description="首次工作日期")
+    现职位开始日期: Optional[date] = Field(None, description="现职位开始日期")
+    中断服务年限: Optional[Decimal] = Field(None, description="中断服务年限")
+    员工状态: Optional[str] = Field(None, description="员工状态")
+    用工类型: Optional[str] = Field(None, description="用工类型")
+    合同类型: Optional[str] = Field(None, description="合同类型")
+    薪级: Optional[str] = Field(None, description="薪级")
+    薪档: Optional[str] = Field(None, description="薪档")
+    职位等级: Optional[str] = Field(None, description="职位等级")
+
+
+class PayrollModalSocialSecurityInfo(BaseModel):
+    """社保公积金信息"""
+    社保客户号: Optional[str] = Field(None, description="社保客户号")
+    住房公积金客户号: Optional[str] = Field(None, description="住房公积金客户号")
+
+
+class PayrollModalBankInfo(BaseModel):
+    """银行账号信息"""
+    开户银行: Optional[str] = Field(None, description="开户银行")
+    账户持有人: Optional[str] = Field(None, description="账户持有人")
+    银行账号: Optional[str] = Field(None, description="银行账号")
+    开户支行: Optional[str] = Field(None, description="开户支行")
+    银行代码: Optional[str] = Field(None, description="银行代码")
+    账户类型: Optional[str] = Field(None, description="账户类型")
+
+
+class PayrollModalEmployeeDetails(BaseModel):
+    """员工详细信息"""
+    联系信息: PayrollModalContactInfo = Field(..., description="联系信息")
+    个人信息: PayrollModalPersonalInfo = Field(..., description="个人信息")
+    工作信息: PayrollModalWorkInfo = Field(..., description="工作信息")
+    社保公积金信息: PayrollModalSocialSecurityInfo = Field(..., description="社保公积金信息")
+    银行账号信息: PayrollModalBankInfo = Field(..., description="银行账号信息")
+
+
 class PayrollModalData(BaseModel):
     """薪资模态框完整数据"""
     薪资条目id: int = Field(..., description="薪资条目ID")
     基础信息: PayrollModalBasicInfo = Field(..., description="基础信息")
+    员工详细信息: Optional[PayrollModalEmployeeDetails] = Field(None, description="员工详细信息")
     汇总信息: PayrollModalSummary = Field(..., description="汇总信息")
     应发明细: PayrollModalEarnings = Field(..., description="应发明细")
     扣除明细: PayrollModalDeductions = Field(..., description="扣除明细")

@@ -644,7 +644,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   useEffect(() => {
     // 只有在模态框可见且Form实例已初始化时才更新总计
     if (visible && form) {
-      updateTotals(earnings, deductions);
+    updateTotals(earnings, deductions);
     }
   }, [earnings, deductions, visible, form]);
   
@@ -723,7 +723,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       // 在数据设置完成后，更新汇总项
       setTimeout(() => {
         if (visible && form) {
-          updateTotals(newEarnings, newDeductions);
+        updateTotals(newEarnings, newDeductions);
         }
       }, 0);
     }
@@ -964,11 +964,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     const totalDeductions = deductionsData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     
     try {
-      form.setFieldsValue({
-        total_earnings: totalEarnings,
-        total_deductions: totalDeductions,
-        net_pay: totalEarnings - totalDeductions
-      });
+    form.setFieldsValue({
+      total_earnings: totalEarnings,
+      total_deductions: totalDeductions,
+      net_pay: totalEarnings - totalDeductions
+    });
     } catch (error) {
       console.warn('⚠️ [updateTotals] Form 实例未就绪，跳过更新:', error);
     }
@@ -1056,7 +1056,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           form={form}
           layout="vertical"
           initialValues={{
-            status_lookup_value_id: 64, // 默认使用64(已录入)状态
+              status_lookup_value_id: 64, // 默认使用64(已录入)状态
           }}
         >
               {/* 员工信息区域 */}

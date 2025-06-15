@@ -308,7 +308,7 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
           <div className={styles.cardTitleRow}>
             <div className={styles.cardTitleLeft}>
               <Title level={4} className={styles.cardTitleText}>
-                <AppstoreOutlined /> 报表配置预设管理
+                <AppstoreOutlined /> 报表配置预设报表管理
               </Title>
             </div>
             <div className={styles.cardTitleRight}>

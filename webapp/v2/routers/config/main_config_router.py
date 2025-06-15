@@ -28,6 +28,7 @@ from .tax_bracket_router import router as tax_bracket_router
 from .social_security_rate_router import router as social_security_rate_router
 from .lookup_router import router as lookup_router
 from .report_definition_router import router as report_definition_router
+from .user_preferences_router import router as user_preferences_router
 
 
 # 创建logger实例
@@ -45,3 +46,4 @@ router.include_router(tax_bracket_router)
 router.include_router(social_security_rate_router)
 router.include_router(lookup_router)
 router.include_router(report_definition_router)
+router.include_router(user_preferences_router)

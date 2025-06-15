@@ -424,7 +424,7 @@
     },
     "title": "工资记录",
     "button": {
-      "add_entry": "新增工资条目"
+      "add_entry": "添加条目"
     },
     "delete_confirm": {
       "title": "确认删除",
@@ -678,9 +678,129 @@
       "unknown_status_param": "未知状态"
     }
   },
-  "entry_page": {
-    "button": {
-      "add_entry": "添加条目"
+  "comprehensive_payroll_data": {
+    "columns": {
+      "key": "序号",
+      "员工姓名": "员工姓名",
+      "部门名称": "部门名称",
+      "职位名称": "职位名称",
+      "人员类别": "人员类别",
+      "编制": "编制",
+      "薪资期间名称": "薪资期间名称",
+      "应发合计": "应发合计",
+      "扣除合计": "扣除合计",
+      "实发合计": "实发合计",
+      "基本工资": "基本工资",
+      "岗位工资": "岗位工资",
+      "绩效工资": "绩效工资",
+      "养老保险个人应缴费额": "养老保险个人应缴费额",
+      "个人所得税": "个人所得税",
+      "养老保险单位应缴费额": "养老保险单位应缴费额",
+      "社保缴费基数": "社保缴费基数",
+      "住房公积金缴费基数": "住房公积金缴费基数",
+      "电话": "电话",
+      "身份证号": "身份证号",
+      "性别": "性别",
+      "民族": "民族",
+      "学历": "学历",
+      "中断服务年限": "中断服务年限",
+      "员工状态": "员工状态",
+      "薪级": "薪级",
+      "薪档": "薪档",
+      "职位等级": "职位等级",
+      "住房公积金客户号": "住房公积金客户号",
+      "开户银行": "开户银行",
+      "账户持有人": "账户持有人",
+      "银行账号": "银行账号",
+      "出生日期": "出生日期",
+      "入职日期": "入职日期",
+      "首次工作日期": "首次工作日期",
+      "现职位开始日期": "现职位开始日期"
+    }
+  },
+  "presets": {
+    "manager_title": "预设报表管理",
+    "save_current": "保存当前配置",
+    "no_presets": "暂无预设配置",
+    "create_first": "创建第一个预设",
+    "apply": "应用",
+    "duplicate": "复制",
+    "set_as_default": "设为默认",
+    "default_preset": "默认预设",
+    "default": "默认",
+    "public": "公共",
+    "usage_count": "使用次数",
+    "last_used": "最后使用",
+    "export": "导出",
+    "export_coming_soon": "导出功能即将推出",
+    "applied_successfully": "已成功应用预设 {{name}}",
+    "save_success": "预设保存成功",
+    "save_failed": "预设保存失败",
+    "apply_success": "预设应用成功",
+    "apply_failed": "预设应用失败",
+    "delete_success": "预设删除成功",
+    "delete_failed": "预设删除失败",
+    "set_default_success": "默认预设设置成功",
+    "set_default_failed": "默认预设设置失败",
+    "duplicate_success": "预设复制成功",
+    "duplicate_failed": "预设复制失败",
+    "duplicate_auto_renamed": "预设已复制并自动重命名为 \"{{name}}\"",
+    "update_success": "预设更新成功",
+    "update_failed": "预设更新失败",
+    "write_current_config": "储存当前视图",
+    "write_current_success": "当前配置已成功写入预设 \"{{name}}\"",
+    "write_current_error": "写入当前配置失败",
+    "write_current_confirm": {
+      "title": "确认储存当前视图",
+      "content": "确定要将当前的列配置和筛选设置写入预设 \"{{name}}\" 吗？这将覆盖该预设的现有配置。",
+      "ok": "确认写入"
+    },
+    "save_modal": {
+      "title": "保存预设配置",
+      "name": "预设名称",
+      "name_required": "请输入预设名称",
+      "name_placeholder": "例如：工资相关列",
+      "description": "描述",
+      "description_placeholder": "可选：描述此预设的用途",
+      "set_as_default": "设为默认预设",
+      "make_public": "设为公共预设（其他用户可见）"
+    },
+    "edit_modal": {
+      "title": "编辑预设配置",
+      "name": "预设名称",
+      "name_required": "请输入预设名称",
+      "name_placeholder": "例如：工资相关列",
+      "description": "描述",
+      "description_placeholder": "可选：描述此预设的用途",
+      "set_as_default": "设为默认预设",
+      "make_public": "设为公共预设（其他用户可见）"
+    },
+    "duplicate_modal": {
+      "title": "复制预设",
+      "description": "将复制预设 \"{{name}}\"，请为新预设输入一个名称：",
+      "new_name_label": "新预设名称",
+      "new_name_placeholder": "请输入新预设名称",
+      "name_required": "请输入新预设名称"
+    },
+    "delete_confirm": {
+      "title": "确认删除预设",
+      "content": "确定要删除预设 \"{{name}}\" 吗？此操作不可撤销。"
+    },
+    "view_modal": {
+      "title": "预设详情",
+      "basic_info": "基本信息",
+      "name": "名称",
+      "description": "描述",
+      "properties": "属性",
+      "filter_config": "筛选配置",
+      "column_settings": "列设置",
+      "hide_jsonb_columns": "隐藏JSONB列",
+      "hide_zero_columns": "隐藏全零列",
+      "hide_empty_columns": "隐藏空列",
+      "exclude_patterns": "排除模式",
+      "visible": "显示",
+      "hidden": "隐藏",
+      "fixed": "固定"
     }
   }
 }

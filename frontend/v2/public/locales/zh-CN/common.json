@@ -187,6 +187,7 @@
     "sync": "同步",
     "update": "更新",
     "upload": "上传",
+    "view": "查看",
     "yes": "是",
     "yes_delete": "是的，删除"
   },
@@ -194,6 +195,9 @@
   "collapse_sidebar": "折叠侧边栏",
   "column": {
     "actions": "操作"
+  },
+  "table": {
+    "action": "操作"
   },
   "column_control": {
     "button_text": "列设置",
@@ -440,6 +444,7 @@
     "update": ""
   },
   "table": {
+    "action": "操作",
     "actions": "操作",
     "column": {
       "index": ""

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Modal, message, Button, Space, Input, Card, Collapse, Switch, Tag, Select, InputNumber, Divider, Row, Col } from 'antd';
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined, DeleteOutlined, UpOutlined, DownOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined, DeleteOutlined, UpOutlined, DownOutlined, BookOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { payrollViewsApi, type ComprehensivePayrollDataView } from '../../Payroll/services/payrollViewsApi';
 import PayrollEntryDetailModal from '../../Payroll/components/PayrollEntryDetailModal';
@@ -21,16 +21,20 @@ import {
   type PayrollDataFilters 
 } from '../../../hooks/usePayrollDataQuery';
 
-
-
 // 搜索功能导入
 import { usePayrollSearch } from '../../../hooks/usePayrollSearch';
 import { SearchMode } from '../../../utils/searchUtils';
 import { ProFormGlobalSearch } from '../../../components/PayrollDataModal/ProFormGlobalSearch';
 import { TableCellHighlight } from '../../../components/PayrollDataModal/HighlightText';
 
+// 预设报表管理功能导入
+import { PresetManager } from '../../../components/PayrollDataModal/PresetManager';
+import { usePayrollDataPresets } from '../../../hooks/usePayrollDataPresets';
+import type { ColumnFilterConfig as PresetColumnFilterConfig, ColumnSettings } from '../../../types/payrollDataPresets';
+
 const { Panel } = Collapse;
 const { Option } = Select;
+const { TextArea } = Input;
 
 // 筛选配置接口
 interface ColumnFilterConfig {
@@ -303,6 +307,56 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     // 如果无法解析为日期，返回原值
     return dateStr;
   };
+
+  // 日期格式化函数：将日期格式化为中文年月格式 (YYYY年MM月)
+  const formatDateToChinese = (value: any) => {
+    if (value === null || value === undefined) {
+      return <span style={{ color: '#999' }}>N/A</span>;
+    }
+    
+    const dateStr = String(value);
+    
+    // 尝试解析各种日期格式
+    let date: Date | null = null;
+    
+    // 格式1: 标准日期字符串 (YYYY-MM-DD)
+    const standardMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (standardMatch) {
+      const year = parseInt(standardMatch[1]);
+      const month = parseInt(standardMatch[2]) - 1;
+      const day = parseInt(standardMatch[3]);
+      date = new Date(year, month, day);
+    }
+    
+    // 格式2: 已经是中文格式 (YYYY年MM月)
+    if (!date) {
+      const chineseMatch = dateStr.match(/(\d{4})年(\d{1,2})月/);
+      if (chineseMatch) {
+        const year = parseInt(chineseMatch[1]);
+        const month = parseInt(chineseMatch[2]) - 1;
+        date = new Date(year, month);
+      }
+    }
+    
+    // 格式3: 其他标准日期格式
+    if (!date) {
+      const parsedDate = new Date(dateStr);
+      if (!isNaN(parsedDate.getTime())) {
+        date = parsedDate;
+      }
+    }
+    
+    if (date && !isNaN(date.getTime())) {
+      return (
+        <span style={{ textAlign: 'center', display: 'block' }}>
+          {date.getFullYear()}年{String(date.getMonth() + 1).padStart(2, '0')}月
+        </span>
+      );
+    }
+    
+    // 如果无法解析为日期，返回原值
+    return dateStr;
+  };
   
   // 分页状态管理
   const [pagination, setPagination] = useState({
@@ -326,6 +380,12 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [selectedEntry, setSelectedEntry] = useState<PayrollEntry | null>(null);
   const [payrollRunId, setPayrollRunId] = useState<number | null>(null);
 
+  // 🎯 预设报表管理功能状态
+  const [presetManagerVisible, setPresetManagerVisible] = useState(false);
+  
+  // 🎯 预设报表管理Hook
+  const { defaultPreset, loadDefaultPreset } = usePayrollDataPresets();
+
   // 通配符匹配函数 - 使用 useCallback 避免无限循环
   const matchesPattern = useCallback((text: string, pattern: string): boolean => {
     const regexPattern = pattern
@@ -335,12 +395,103 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     return regex.test(text);
   }, []); // 无依赖项，纯函数
 
-
-
   // 🚀 React Query 数据处理逻辑 - 使用搜索功能管理过滤数据源
   // filteredDataSource 现在由搜索功能管理
 
   // 🚀 React Query 会自动处理数据获取，无需手动调用
+
+  // 🎯 加载默认预设配置
+  useEffect(() => {
+    if (visible) {
+      loadDefaultPreset().then(preset => {
+        if (preset) {
+          // 应用默认预设的筛选配置
+          setFilterConfig(preset.filterConfig);
+          // 注意：列设置会在列生成后通过 columnsState 应用
+          console.log('✅ [PayrollDataModal] 已加载默认预设:', preset.name);
+        }
+      }).catch(error => {
+        console.warn('⚠️ [PayrollDataModal] 加载默认预设失败:', error);
+      });
+    }
+  }, [visible, loadDefaultPreset]);
+
+  // 🔧 修复列设置交互事件冲突（按钮点击、拖拽等）
+  useEffect(() => {
+    if (!visible) return;
+
+    const handleInteractionEvent = (e: Event) => {
+      const target = e.target as HTMLElement;
+      
+      // 处理移动按钮点击
+      const button = target.closest('[aria-label*="vertical-align"]');
+      if (button) {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        const ariaLabel = button.getAttribute('aria-label');
+        const isTopButton = ariaLabel?.includes('vertical-align-top');
+        const isBottomButton = ariaLabel?.includes('vertical-align-bottom');
+        
+        console.log('🎯 [按钮点击] 移动按钮被正确处理:', {
+          type: isTopButton ? '移到最上面' : isBottomButton ? '移到最下面' : '未知',
+          ariaLabel
+        });
+        return;
+      }
+      
+      // 处理拖拽手柄交互
+      const dragHandle = target.closest('[aria-label="holder"]');
+      if (dragHandle) {
+        // 不阻止拖拽事件，但确保不会触发字段选择
+        console.log('🔄 [拖拽手柄] 拖拽操作被正确处理');
+        return;
+      }
+      
+      // 处理复选框点击
+      const checkbox = target.closest('.ant-tree-checkbox');
+      if (checkbox) {
+        console.log('☑️ [复选框] 复选框操作被正确处理');
+        return;
+      }
+    };
+
+    const handleDragStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const dragHandle = target.closest('[aria-label="holder"]');
+      if (dragHandle) {
+        console.log('🚀 [拖拽开始] 拖拽操作开始');
+        // 确保拖拽时不会触发其他事件
+        e.stopPropagation();
+      }
+    };
+
+    // 使用捕获阶段监听，确保在树节点事件之前处理
+    const timer = setTimeout(() => {
+      const columnSetting = document.querySelector('.ant-pro-table-column-setting');
+      if (columnSetting) {
+        // 监听点击事件
+        columnSetting.addEventListener('click', handleInteractionEvent, true);
+        // 监听拖拽开始事件
+        columnSetting.addEventListener('dragstart', handleDragStart, true);
+        // 监听鼠标按下事件（用于拖拽）
+        columnSetting.addEventListener('mousedown', handleInteractionEvent, true);
+        
+        console.log('✅ [事件监听] 列设置交互事件监听器已添加');
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      const columnSetting = document.querySelector('.ant-pro-table-column-setting');
+      if (columnSetting) {
+        columnSetting.removeEventListener('click', handleInteractionEvent, true);
+        columnSetting.removeEventListener('dragstart', handleDragStart, true);
+        columnSetting.removeEventListener('mousedown', handleInteractionEvent, true);
+        console.log('🧹 [事件清理] 列设置交互事件监听器已移除');
+      }
+    };
+  }, [visible]);
 
   // 当筛选配置改变时重新生成列 - 保持用户列设置
   useEffect(() => {
@@ -350,107 +501,128 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       
       // 直接在 useEffect 内部实现筛选逻辑，避免函数依赖
       const filteredKeys = allKeys.filter(key => {
-        // 1. 检查包含模式
-        if (filterConfig.includePatterns.length > 0) {
-          const matchesInclude = filterConfig.includePatterns.some(pattern => 
-            matchesPattern(key, pattern)
-          );
-          if (!matchesInclude) return false;
-        }
+      // 1. 检查包含模式
+      if (filterConfig.includePatterns.length > 0) {
+        const matchesInclude = filterConfig.includePatterns.some(pattern => 
+          matchesPattern(key, pattern)
+        );
+        if (!matchesInclude) return false;
+      }
 
-        // 2. 检查排除模式
-        if (filterConfig.excludePatterns.length > 0) {
-          const matchesExclude = filterConfig.excludePatterns.some(pattern => 
-            matchesPattern(key, pattern)
-          );
-          if (matchesExclude) return false;
-        }
+      // 2. 检查排除模式
+      if (filterConfig.excludePatterns.length > 0) {
+        const matchesExclude = filterConfig.excludePatterns.some(pattern => 
+          matchesPattern(key, pattern)
+        );
+        if (matchesExclude) return false;
+      }
 
-        // 3. 过滤 JSONB 列
-        if (filterConfig.hideJsonbColumns) {
-          if (key.includes('原始')) return false;
+      // 3. 过滤 JSONB 列
+      if (filterConfig.hideJsonbColumns) {
+        if (key.includes('原始')) return false;
           const sampleValue = dataSource[0]?.[key as keyof PayrollData];
-          if (sampleValue !== null && typeof sampleValue === 'object' && !Array.isArray(sampleValue)) {
-            return false;
-          }
+        if (sampleValue !== null && typeof sampleValue === 'object' && !Array.isArray(sampleValue)) {
+          return false;
         }
+      }
 
-        // 4. 过滤全零列
-        if (filterConfig.hideZeroColumns) {
+      // 4. 过滤全零列
+      if (filterConfig.hideZeroColumns) {
           const hasNonZeroValue = dataSource.some(item => {
-            const value = item[key as keyof PayrollData];
-            return value !== null && 
-                   value !== undefined && 
-                   value !== 0 && 
-                   value !== '' &&
-                   value !== '0' &&
-                   value !== '0.00';
-          });
-          if (!hasNonZeroValue) return false;
-        }
+          const value = item[key as keyof PayrollData];
+          return value !== null && 
+                 value !== undefined && 
+                 value !== 0 && 
+                 value !== '' &&
+                 value !== '0' &&
+                 value !== '0.00';
+        });
+        if (!hasNonZeroValue) return false;
+      }
 
-        // 5. 过滤空列（但保留重要的基础信息字段）
-        if (filterConfig.hideEmptyColumns) {
-          // 重要的基础信息字段，即使为空也要显示
-          const importantFields = ['根人员类别', '编制', '人员类别', '员工编号', '员工姓名', '部门名称', '职位名称'];
-          const isImportantField = importantFields.includes(key);
-          
-          if (!isImportantField) {
+      // 5. 过滤空列（但保留重要的基础信息字段）
+      if (filterConfig.hideEmptyColumns) {
+        // 重要的基础信息字段，即使为空也要显示
+        const importantFields = ['根人员类别', '编制', '人员类别', '员工编号', '员工姓名', '部门名称', '职位名称'];
+        const isImportantField = importantFields.includes(key);
+        
+        if (!isImportantField) {
             const hasValue = dataSource.some(item => {
-              const value = item[key as keyof PayrollData];
-              return value !== null && value !== undefined && value !== '';
-            });
-            if (!hasValue) return false;
-          }
+            const value = item[key as keyof PayrollData];
+            return value !== null && value !== undefined && value !== '';
+          });
+          if (!hasValue) return false;
         }
+      }
 
-        // 6. 只显示数值列
-        if (filterConfig.showOnlyNumericColumns) {
+      // 6. 只显示数值列
+      if (filterConfig.showOnlyNumericColumns) {
           const sampleValue = dataSource[0]?.[key as keyof PayrollData];
-          if (typeof sampleValue !== 'number') return false;
-        }
+        if (typeof sampleValue !== 'number') return false;
+      }
 
-        // 7. 数值范围筛选
+      // 7. 数值范围筛选
         if (typeof dataSource[0]?.[key as keyof PayrollData] === 'number') {
           const values = dataSource.map(item => item[key as keyof PayrollData] as number).filter(v => v != null);
-          const maxValue = Math.max(...values);
-          const minValue = Math.min(...values);
-          
-          if (maxValue < filterConfig.minValueThreshold || minValue > filterConfig.maxValueThreshold) {
-            return false;
-          }
-        }
-
-        return true;
-      });
-      
-      const generatedColumns = filteredKeys.map(key => {
-        const column: ProColumns<PayrollData> = {
-          title: t(`comprehensive_payroll_data.columns.${key}`, {
-            defaultValue: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          }),
-          dataIndex: key,
-          key: key,
-          render: (text: any, record: PayrollData) => {
-            if (text === null || typeof text === 'undefined') {
-              return <span style={{ color: '#999' }}>N/A</span>;
-            }
-            
-            if (typeof text === 'object') {
-              return (
-                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
-                  {JSON.stringify(text, null, 2)}
-                </pre>
-              );
-            }
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
         
-            if (typeof text === 'boolean') {
-              return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
+        if (maxValue < filterConfig.minValueThreshold || minValue > filterConfig.maxValueThreshold) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+        
+        const generatedColumns = filteredKeys.map(key => {
+          const column: ProColumns<PayrollData> = {
+            title: t(`comprehensive_payroll_data.columns.${key}`, {
+              defaultValue: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            }),
+            dataIndex: key,
+            key: key,
+          render: (text: any, record: PayrollData) => {
+              if (text === null || typeof text === 'undefined') {
+                return <span style={{ color: '#999' }}>N/A</span>;
+              }
+              
+              if (typeof text === 'object') {
+                return (
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
+                    {JSON.stringify(text, null, 2)}
+                  </pre>
+                );
+              }
+          
+              if (typeof text === 'boolean') {
+                return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
+              }
+              
+              // 特殊处理：薪资期间名称使用日期格式
+              if (key === '薪资期间名称') {
+                return formatDate(text);
+              }
+              
+            // 特殊处理：日期字段使用中文年月格式
+            const dateFields = ['出生日期', '入职日期', '首次工作日期', '现职位开始日期'];
+            if (dateFields.includes(key)) {
+              return formatDateToChinese(text);
             }
             
-            // 特殊处理：薪资期间名称使用日期格式
-            if (key === '薪资期间名称') {
-              return formatDate(text);
+            // 特殊处理：序号、电话、身份证号、住房公积金客户号、银行账号使用文本格式，不进行数字格式化
+            if (key === '序号' || key === '电话' || key === '身份证号' || key === '住房公积金客户号' || key === '银行账号') {
+              // 对于这些字段，即使是数字也显示为文本
+              if (!isEmptyQuery) {
+                return (
+                  <TableCellHighlight
+                    text={text.toString()}
+                    searchQuery={searchQuery}
+                    type="text"
+                  />
+                );
+              }
+              return text.toString();
             }
             
             // 检查是否为数字类型，使用专门的渲染函数
@@ -463,7 +635,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                     searchQuery={searchQuery}
                     type="number"
                   />
-                );
+            );
               }
               return renderNumber(text);
             }
@@ -514,8 +686,12 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           }
         }
 
-        // 为员工姓名添加文本搜索功能
+        // 为员工姓名添加文本搜索功能和固定在左侧
         if (key === '员工姓名') {
+          // 固定姓名列在左侧
+          column.fixed = 'left';
+          column.width = 120;
+          
           column.filterDropdown = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
             <div style={{ padding: 8 }}>
               <Input
@@ -554,7 +730,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             return name ? String(name).toLowerCase().includes(String(value).toLowerCase()) : false;
           };
         }
-
+        
         return column;
       });
 
@@ -597,7 +773,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         if (prevColumns.length === 0) {
           console.log('🔄 [列同步] 首次生成列，直接使用新列配置');
           return generatedColumns;
-        }
+    }
         
         // 检查列是否发生了实质性变化（列的key集合是否不同）
         const prevKeys = new Set(prevColumns.map(col => col.key));
@@ -759,44 +935,44 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       } catch (error) {
         console.warn('渲染函数执行失败:', error);
         return cleanValue(rawValue);
-      }
+    }
     }
     
     // 没有渲染函数，直接清理原始值
     return cleanValue(rawValue);
   };
 
-  // 数据清理函数
-  const cleanValue = (value: any): any => {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    if (typeof value === 'object') {
-      return JSON.stringify(value);
-    }
-    if (typeof value === 'boolean') {
-      return value ? '是' : '否';
-    }
-    if (typeof value === 'number') {
-      // 检查是否为有效数字
-      if (isNaN(value) || !isFinite(value)) {
+    // 数据清理函数
+    const cleanValue = (value: any): any => {
+      if (value === null || value === undefined) {
         return '';
       }
-      // 保持原始数字类型，不要转换为字符串
-      return value;
-    }
-    // 尝试将字符串转换为数字（如果可能）
-    if (typeof value === 'string') {
-      const cleanedString = value.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
-      const numValue = parseFloat(cleanedString);
-      if (!isNaN(numValue) && isFinite(numValue)) {
-        return numValue;
+      if (typeof value === 'object') {
+        return JSON.stringify(value);
       }
-      return cleanedString;
-    }
-    // 清理字符串中的特殊字符
-    return String(value).replace(/[\x00-\x1F\x7F-\x9F]/g, '');
-  };
+      if (typeof value === 'boolean') {
+        return value ? '是' : '否';
+      }
+      if (typeof value === 'number') {
+        // 检查是否为有效数字
+        if (isNaN(value) || !isFinite(value)) {
+          return '';
+        }
+        // 保持原始数字类型，不要转换为字符串
+        return value;
+      }
+      // 尝试将字符串转换为数字（如果可能）
+      if (typeof value === 'string') {
+        const cleanedString = value.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+        const numValue = parseFloat(cleanedString);
+        if (!isNaN(numValue) && isFinite(numValue)) {
+          return numValue;
+        }
+        return cleanedString;
+      }
+      // 清理字符串中的特殊字符
+      return String(value).replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    };
 
   // 导出数据为Excel
   const handleExportExcel = () => {
@@ -991,7 +1167,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                 }
               } else if (typeof cellValue === 'string' && !isNaN(parseFloat(cellValue)) && isFinite(parseFloat(cellValue))) {
                 // 字符串数字：转换为数字并设置格式
-                cell.v = parseFloat(cellValue);
+                  cell.v = parseFloat(cellValue);
                 cell.z = '#,##0.00';
                 cell.t = 'n';
                 numberCellCount++;
@@ -1096,6 +1272,44 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     }
   };
 
+  // 🎯 预设应用处理函数
+  const handleApplyPreset = useCallback((filterConfig: PresetColumnFilterConfig, columnSettings: ColumnSettings) => {
+    try {
+      console.log('🎯 [PayrollDataModal] 开始应用预设配置:', { filterConfig, columnSettings });
+      
+      // 应用筛选配置
+      setFilterConfig(filterConfig);
+      
+      // 应用列设置
+      if (columnSettings) {
+        setCurrentColumnsState(columnSettings);
+        console.log('📊 [PayrollDataModal] 已更新列状态:', columnSettings);
+        
+        // 强制刷新表格以确保列配置生效
+        setTimeout(() => {
+          if (actionRef.current) {
+            actionRef.current.reload();
+            console.log('🔄 [PayrollDataModal] 已强制刷新表格');
+          }
+        }, 100);
+      }
+      
+      message.success(t('payroll:presets.apply_success'));
+      console.log('✅ [PayrollDataModal] 预设配置应用完成');
+    } catch (error) {
+      console.error('❌ [PayrollDataModal] 应用预设失败:', error);
+      message.error(t('payroll:presets.apply_failed'));
+    }
+  }, [t]);
+
+  // 🎯 获取当前配置用于保存预设
+  const getCurrentConfig = useCallback(() => {
+    return {
+      filterConfig,
+      columnSettings: currentColumnsState,
+    };
+  }, [filterConfig, currentColumnsState]);
+
   return (
     <Modal
       title={t('payroll:payroll_data_for_period', { periodName: periodName || '' })}
@@ -1110,18 +1324,280 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       style={{ top: 20 }}
       destroyOnClose
     >
-      <style>{`
-        @media (max-width: 768px) {
-          .search-card-toggle-text {
-            display: none !important;
+        <style>{`
+          @media (max-width: 768px) {
+            .search-card-toggle-text {
+              display: none !important;
+            }
           }
-        }
-        @media (min-width: 769px) {
-          .search-card-toggle-text {
-            display: inline !important;
+          @media (min-width: 769px) {
+            .search-card-toggle-text {
+              display: inline !important;
+            }
           }
-        }
-      `}</style>
+          
+          /* 多选框自适应多行样式 */
+          .ant-select-selector {
+            min-height: 32px !important;
+            height: auto !important;
+            padding: 4px 11px !important;
+          }
+          
+          .ant-select-selection-overflow {
+            flex-wrap: wrap !important;
+          }
+          
+          .ant-select-selection-item {
+            margin: 2px 4px 2px 0 !important;
+            max-width: calc(100% - 24px) !important;
+            height: 24px !important;
+            line-height: 22px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+          }
+          
+          .ant-select-selection-search {
+            margin: 2px 0 !important;
+            min-width: 100px !important;
+          }
+          
+          .ant-select-selection-search-input {
+            height: 24px !important;
+            line-height: 22px !important;
+          }
+          
+          .ant-select-selection-placeholder {
+            line-height: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+          }
+          
+          /* 改善列设置面板中移动按钮的样式 */
+          .ant-pro-table-column-setting .ant-tree-treenode {
+            position: relative;
+            padding: 2px 0;
+          }
+          
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 36px;
+            padding: 6px 4px 6px 8px;
+            border-radius: 4px;
+            transition: background-color 0.15s ease-in-out;
+            /* 确保字段名和按钮区域有足够间距 */
+            gap: 12px;
+          }
+          
+          /* 拖拽手柄区域 - 独立交互区域 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper .anticon[aria-label="holder"] {
+            opacity: 0.5;
+            margin-right: 8px;
+            padding: 4px;
+            border-radius: 4px;
+            cursor: grab;
+            z-index: 40 !important;
+            position: relative;
+            pointer-events: auto !important;
+            transition: all 0.15s ease-in-out;
+            /* 为拖拽手柄创建独立的交互边界 */
+            min-width: 20px;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper .anticon[aria-label="holder"]:hover {
+            opacity: 1;
+            background-color: #f0f0f0;
+            cursor: grabbing;
+          }
+          
+          /* 复选框区域 - 独立交互区域 */
+          .ant-pro-table-column-setting .ant-tree-checkbox {
+            margin-right: 8px;
+            z-index: 35 !important;
+            pointer-events: auto !important;
+          }
+          
+          /* 字段名区域 - 精确限制点击区域 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper > span:first-child {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            /* 为字段名区域添加右侧间距 */
+            padding-right: 8px;
+            /* 精确限制字段选择的点击区域 */
+            max-width: calc(100% - 100px); /* 为拖拽手柄和按钮留出更多空间 */
+            overflow: hidden;
+          }
+          
+          /* 字段名文本区域 - 进一步限制 */
+          .ant-pro-table-column-setting .ant-tree-title {
+            max-width: calc(100% - 120px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            pointer-events: auto;
+            z-index: 5;
+            position: relative;
+          }
+          
+          /* 重写树节点的点击区域，精确排除所有交互元素 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper {
+            position: relative;
+          }
+          
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper::before {
+            content: '';
+            position: absolute;
+            left: 60px; /* 排除左侧拖拽手柄和复选框区域 */
+            top: 0;
+            right: 100px; /* 排除右侧按钮区域 */
+            bottom: 0;
+            z-index: 1;
+            pointer-events: auto;
+          }
+          
+          /* 按钮容器区域 - 完全独立的交互区域 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper > span:last-child {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            /* 确保按钮区域完全独立 */
+            pointer-events: auto !important;
+            z-index: 30 !important;
+            position: relative;
+            /* 为按钮区域创建独立的交互空间 */
+            padding: 4px 6px;
+            margin: -4px -2px;
+            border-radius: 6px;
+            background-color: transparent;
+            transition: background-color 0.1s ease-in-out;
+            /* 阻止事件冒泡到父元素 */
+            isolation: isolate;
+          }
+          
+          /* 按钮区域悬停效果 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper > span:last-child:hover {
+            background-color: rgba(24, 144, 255, 0.08);
+          }
+          
+          /* 移动按钮容器 - 始终显示所有按钮 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper .anticon[aria-label*="vertical-align"] {
+            min-width: 22px;
+            min-height: 22px;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 3px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 50 !important;
+            position: relative;
+            /* 始终可见，但透明度较低 */
+            opacity: 0.5;
+            background-color: transparent;
+            transition: all 0.15s ease-in-out;
+            /* 确保按钮完全独立，不被任何元素遮挡 */
+            pointer-events: auto !important;
+            /* 为每个按钮添加独立的交互边界 */
+            border: 1px solid transparent;
+            /* 阻止事件冒泡 */
+            isolation: isolate;
+          }
+          
+          /* 🎯 最优解决方案：基于 Web 最佳实践的精确指针事件控制 */
+          
+          /* 1. 禁用整个树节点的默认指针事件 */
+          .ant-pro-table-column-setting .ant-tree-treenode .ant-tree-node-content-wrapper {
+            pointer-events: none;
+          }
+          
+          /* 2. 为字段选择创建精确的点击区域（伪元素方案） */
+          .ant-pro-table-column-setting .ant-tree-treenode .ant-tree-node-content-wrapper::before {
+            pointer-events: auto;
+            cursor: pointer;
+          }
+          
+          /* 3. 启用所有交互元素的指针事件 */
+          .ant-pro-table-column-setting .ant-tree-treenode .ant-tree-switcher,
+          .ant-pro-table-column-setting .ant-tree-treenode .ant-tree-checkbox,
+          .ant-pro-table-column-setting .ant-tree-treenode .anticon[aria-label="holder"] {
+            pointer-events: auto !important;
+          }
+          
+          /* 4. 确保按钮区域完全独立且可点击 */
+          .ant-pro-table-column-setting .ant-tree-treenode .ant-tree-node-content-wrapper > span:last-child {
+            pointer-events: auto !important;
+            /* 创建独立的交互层 */
+            isolation: isolate;
+            z-index: 50;
+          }
+          
+          /* 5. 按钮本身必须可点击 */
+          .ant-pro-table-column-setting .ant-tree-treenode .ant-tree-node-content-wrapper > span:last-child * {
+            pointer-events: auto !important;
+          }
+          
+          /* 按钮悬停效果 - 立即响应 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper .anticon[aria-label*="vertical-align"]:hover {
+            opacity: 1 !important;
+            background-color: #1890ff !important;
+            color: white !important;
+            transform: scale(1.05);
+            border-color: #1890ff !important;
+            box-shadow: 0 2px 4px rgba(24, 144, 255, 0.3);
+            transition: all 0.15s ease-in-out;
+          }
+          
+          /* 节点悬停时的样式 - 只影响字段名区域 */
+          .ant-pro-table-column-setting .ant-tree-treenode:hover .ant-tree-node-content-wrapper > span:first-child {
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: 4px;
+          }
+          
+          /* 节点悬停时按钮区域保持独立 */
+          .ant-pro-table-column-setting .ant-tree-treenode:hover .anticon[aria-label*="vertical-align"] {
+            opacity: 0.7;
+          }
+          
+          /* 选中节点的特殊样式 */
+          .ant-pro-table-column-setting .ant-tree-treenode.ant-tree-treenode-selected .ant-tree-node-content-wrapper {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+          }
+          
+          .ant-pro-table-column-setting .ant-tree-treenode.ant-tree-treenode-selected .anticon[aria-label*="vertical-align"] {
+            opacity: 0.8;
+            border-color: rgba(24, 144, 255, 0.2);
+          }
+          
+          /* 按钮区域与字段名区域的分隔线 */
+          .ant-pro-table-column-setting .ant-tree-node-content-wrapper > span:last-child::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 16px;
+            background-color: rgba(0, 0, 0, 0.06);
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+          }
+          
+          .ant-pro-table-column-setting .ant-tree-treenode:hover .ant-tree-node-content-wrapper > span:last-child::before {
+            opacity: 1;
+          }
+          
+
+        `}</style>
 
       
       {/* 筛选配置面板 */}
@@ -1178,32 +1654,55 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                   <label>包含模式（支持通配符 * 和 ?）：</label>
                   <Select
                     mode="tags"
-                    style={{ width: '100%' }}
+                    style={{ 
+                      width: '100%',
+                      minHeight: '32px'
+                    }}
                     placeholder="例如：*工资*、保险*、*金额"
                     value={filterConfig.includePatterns}
                     onChange={(patterns) => setFilterConfig(prev => ({ ...prev, includePatterns: patterns }))}
+                    maxTagCount="responsive"
+                    maxTagTextLength={20}
+                    allowClear
+                    showSearch
+                    filterOption={false}
+                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                   >
                     <Option value="*工资*">*工资*</Option>
                     <Option value="*保险*">*保险*</Option>
                     <Option value="*金额">*金额</Option>
                     <Option value="*合计">*合计</Option>
                     <Option value="基本*">基本*</Option>
+                    <Option value="*津贴*">*津贴*</Option>
+                    <Option value="*补贴*">*补贴*</Option>
+                    <Option value="*奖金*">*奖金*</Option>
                   </Select>
                 </div>
                 <div>
                   <label>排除模式（支持通配符 * 和 ?）：</label>
                   <Select
                     mode="tags"
-                    style={{ width: '100%' }}
+                    style={{ 
+                      width: '100%',
+                      minHeight: '32px'
+                    }}
                     placeholder="例如：*id、*时间、*日期"
                     value={filterConfig.excludePatterns}
                     onChange={(patterns) => setFilterConfig(prev => ({ ...prev, excludePatterns: patterns }))}
+                    maxTagCount="responsive"
+                    maxTagTextLength={20}
+                    allowClear
+                    showSearch
+                    filterOption={false}
+                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                   >
                     <Option value="*id">*id</Option>
                     <Option value="*时间">*时间</Option>
                     <Option value="*日期">*日期</Option>
                     <Option value="*编号">*编号</Option>
                     <Option value="原始*">原始*</Option>
+                    <Option value="*备注*">*备注*</Option>
+                    <Option value="*说明*">*说明*</Option>
                   </Select>
                 </div>
               </Space>
@@ -1386,17 +1885,6 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         headerTitle={false}
         toolbar={{
           actions: [
-            <Button 
-              key="filter" 
-              icon={<FilterOutlined />} 
-              onClick={() => setShowFilterPanel(!showFilterPanel)}
-              type={showFilterPanel ? 'primary' : 'default'}
-            >
-              列筛选配置
-            </Button>,
-            <Button key="refresh" icon={<ReloadOutlined />} onClick={handleRefresh}>
-              {t('common:button.refresh')}
-            </Button>,
             <Button
               key="export"
               icon={<DownloadOutlined />}
@@ -1405,6 +1893,37 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             >
               {t('common:button.export_excel')} ({filteredDataSource.length})
             </Button>,
+            <Button 
+              key="presets" 
+              icon={<BookOutlined />} 
+              onClick={() => setPresetManagerVisible(true)}
+            >
+              预设报表管理
+            </Button>,
+            <Button 
+              key="filter" 
+              icon={<FilterOutlined />} 
+              onClick={() => setShowFilterPanel(!showFilterPanel)}
+              type="text"
+              shape="circle"
+              size="middle"
+              style={{ 
+                color: showFilterPanel ? '#1890ff' : '#00000073',
+                backgroundColor: showFilterPanel ? '#e6f7ff' : 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                width: '32px',
+                height: '32px',
+                minWidth: '32px',
+                padding: 0,
+                margin: '0 4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}
+              title="列筛选配置"
+            />,
           ]
         }}
         onChange={(pagination, filters, sorter, extra) => {
@@ -1421,6 +1940,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         columnsState={{
           persistenceKey: 'payroll-data-table',
           persistenceType: 'localStorage',
+          value: currentColumnsState, // 🎯 关键修复：将状态传递给ProTable
           onChange: (newColumnsState) => {
             console.log('📊 [ProTable] 列状态变化:', newColumnsState);
             setCurrentColumnsState(newColumnsState || {});
@@ -1432,7 +1952,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           fullScreen: true,
           setting: {
             listsHeight: 400,
-            draggable: false,
+            draggable: true,  // ✅ 启用列拖拽排序功能
             checkable: true,
           },
         }}
@@ -1522,6 +2042,15 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           onSuccess={handleEditSuccess}
         />
       )}
+
+      {/* 🎯 预设报表管理Modal */}
+      <PresetManager
+        visible={presetManagerVisible}
+        onClose={() => setPresetManagerVisible(false)}
+        currentFilterConfig={filterConfig}
+        currentColumnSettings={currentColumnsState}
+        onApplyPreset={handleApplyPreset}
+      />
     </Modal>
   );
 }; 

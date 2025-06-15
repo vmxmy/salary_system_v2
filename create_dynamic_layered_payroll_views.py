@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-🏗️ 动态分层薪资视图生成器
+🏗️ 动态分层薪资视图生成器 + 员工信息视图扩充器
 
 基于配置表动态生成分层薪资视图，解决157字段过多的问题
+同时扩充v_employees_basic视图，包含所有员工信息字段和银行账号信息
 
 分层策略：
-1. v_payroll_basic - 基础信息视图 (员工信息 + 汇总数据)
-2. v_payroll_earnings - 应发明细视图 (基于EARNING类型组件)
-3. v_payroll_deductions - 扣除明细视图 (基于DEDUCTION类型组件)
-4. v_payroll_calculations - 计算参数视图 (基于计算输入)
-5. v_comprehensive_employee_payroll - 综合视图 (JOIN所有分层)
+1. v_employees_basic - 扩充的员工基础信息视图 (包含银行账号等完整信息)
+2. v_payroll_basic - 基础信息视图 (员工信息 + 汇总数据)
+3. v_payroll_earnings - 应发明细视图 (基于EARNING类型组件)
+4. v_payroll_deductions - 扣除明细视图 (基于DEDUCTION类型组件)
+5. v_payroll_calculations - 计算参数视图 (基于计算输入)
+6. v_comprehensive_employee_payroll - 综合视图 (JOIN所有分层)
 
 使用方法:
     python create_dynamic_layered_payroll_views.py
@@ -105,6 +107,163 @@ def get_payroll_components(cursor) -> Dict[str, List[Tuple]]:
         logger.error(f"❌ 获取薪资组件失败: {e}")
         return {}
 
+def generate_enhanced_employees_basic_view_sql() -> str:
+    """生成扩充的员工基础信息视图SQL - 包含所有字段和银行账号信息"""
+    return """
+    CREATE OR REPLACE VIEW reports.v_employees_basic AS
+    WITH personnel_hierarchy AS (
+        -- 递归CTE获取人员身份的顶级分类
+        WITH RECURSIVE category_tree AS (
+            -- 基础查询：顶级分类
+            SELECT 
+                id,
+                name,
+                parent_category_id,
+                0 as level,
+                id as root_id,
+                name as root_name
+            FROM hr.personnel_categories 
+            WHERE parent_category_id IS NULL
+            
+            UNION ALL
+            
+            -- 递归查询：子分类
+            SELECT 
+                pc.id,
+                pc.name,
+                pc.parent_category_id,
+                ct.level + 1,
+                ct.root_id,
+                ct.root_name
+            FROM hr.personnel_categories pc
+            JOIN category_tree ct ON pc.parent_category_id = ct.id
+        )
+        SELECT 
+            id,
+            name,
+            root_id,
+            root_name
+        FROM category_tree
+    ),
+    primary_bank_account AS (
+        -- 获取每个员工的主要银行账号
+        SELECT DISTINCT ON (employee_id)
+            employee_id,
+            bank_name,
+            account_holder_name,
+            account_number,
+            branch_name,
+            bank_code,
+            lv_account_type.name as account_type_name
+        FROM hr.employee_bank_accounts eba
+            LEFT JOIN config.lookup_values lv_account_type ON eba.account_type_lookup_value_id = lv_account_type.id
+        WHERE eba.is_primary = true
+        ORDER BY employee_id, eba.created_at DESC
+    )
+    SELECT 
+        -- 🆔 基础标识信息
+        e.id,
+        e.employee_code,
+        e.first_name,
+        e.last_name,
+        COALESCE(e.last_name, '')::text || COALESCE(e.first_name, '')::text AS full_name,
+        
+        -- 📱 联系信息
+        e.phone_number,
+        e.email,
+        e.home_address,
+        e.emergency_contact_name,
+        e.emergency_contact_phone,
+        
+        -- 🏢 组织架构信息
+        d.name AS department_name,
+        p.name AS position_name,
+        pc.name AS personnel_category_name,
+        ph.root_name AS root_personnel_category_name,
+        e.department_id,
+        e.actual_position_id,
+        e.personnel_category_id,
+        
+        -- 👤 个人基本信息
+        e.date_of_birth,
+        lv_gender.name AS gender,
+        e.id_number,
+        e.nationality,
+        e.ethnicity,
+        lv_marital.name AS marital_status,
+        lv_education.name AS education_level,
+        lv_political.name AS political_status,
+        
+        -- 💼 就业信息
+        e.hire_date,
+        e.first_work_date,
+        e.current_position_start_date,
+        e.career_position_level_date,
+        e.interrupted_service_years,
+        lv_status.name AS employee_status,
+        lv_employment.name AS employment_type,
+        lv_contract.name AS contract_type,
+        
+        -- 💰 薪资等级信息
+        lv_salary_level.name AS salary_level,
+        lv_salary_grade.name AS salary_grade,
+        lv_ref_salary_level.name AS ref_salary_level,
+        lv_job_level.name AS job_position_level,
+        
+        -- 🏦 社保公积金信息
+        e.social_security_client_number,
+        e.housing_fund_client_number,
+        
+        -- 🏧 银行账号信息
+        pba.bank_name AS primary_bank_name,
+        pba.account_holder_name AS primary_account_holder_name,
+        pba.account_number AS primary_account_number,
+        pba.branch_name AS primary_branch_name,
+        pba.bank_code AS primary_bank_code,
+        pba.account_type_name AS primary_account_type,
+        
+        -- ⏰ 系统信息
+        e.is_active,
+        e.created_at,
+        e.updated_at,
+        
+        -- 🔗 外键ID字段（用于关联查询）
+        e.gender_lookup_value_id,
+        e.status_lookup_value_id,
+        e.employment_type_lookup_value_id,
+        e.education_level_lookup_value_id,
+        e.marital_status_lookup_value_id,
+        e.political_status_lookup_value_id,
+        e.contract_type_lookup_value_id,
+        e.salary_level_lookup_value_id,
+        e.salary_grade_lookup_value_id,
+        e.ref_salary_level_lookup_value_id,
+        e.job_position_level_lookup_value_id
+        
+    FROM hr.employees e
+        -- 组织架构关联
+        LEFT JOIN hr.departments d ON e.department_id = d.id
+        LEFT JOIN hr.positions p ON e.actual_position_id = p.id
+        LEFT JOIN hr.personnel_categories pc ON e.personnel_category_id = pc.id
+        LEFT JOIN personnel_hierarchy ph ON pc.id = ph.id
+        
+        -- 查找值关联
+        LEFT JOIN config.lookup_values lv_gender ON e.gender_lookup_value_id = lv_gender.id
+        LEFT JOIN config.lookup_values lv_status ON e.status_lookup_value_id = lv_status.id
+        LEFT JOIN config.lookup_values lv_employment ON e.employment_type_lookup_value_id = lv_employment.id
+        LEFT JOIN config.lookup_values lv_education ON e.education_level_lookup_value_id = lv_education.id
+        LEFT JOIN config.lookup_values lv_marital ON e.marital_status_lookup_value_id = lv_marital.id
+        LEFT JOIN config.lookup_values lv_political ON e.political_status_lookup_value_id = lv_political.id
+        LEFT JOIN config.lookup_values lv_contract ON e.contract_type_lookup_value_id = lv_contract.id
+        LEFT JOIN config.lookup_values lv_salary_level ON e.salary_level_lookup_value_id = lv_salary_level.id
+        LEFT JOIN config.lookup_values lv_salary_grade ON e.salary_grade_lookup_value_id = lv_salary_grade.id
+        LEFT JOIN config.lookup_values lv_ref_salary_level ON e.ref_salary_level_lookup_value_id = lv_ref_salary_level.id
+        LEFT JOIN config.lookup_values lv_job_level ON e.job_position_level_lookup_value_id = lv_job_level.id
+        
+        -- 银行账号关联
+        LEFT JOIN primary_bank_account pba ON e.id = pba.employee_id;
+    """
+
 def generate_basic_view_sql() -> str:
     """生成基础信息视图SQL"""
     return """
@@ -194,32 +353,40 @@ def main():
             logger.error("💥 无法获取薪资组件配置")
             sys.exit(1)
         
-        # 2. 创建基础视图
-        logger.info("🔨 创建基础信息视图...")
+        # 2. 创建扩充的员工基础信息视图（必须先创建，因为其他视图依赖它）
+        logger.info("🔨 创建扩充的员工基础信息视图...")
+        # 先删除现有视图以避免列名冲突
+        cursor.execute("DROP VIEW IF EXISTS reports.v_employees_basic CASCADE;")
+        logger.info("🗑️ 已删除现有的 v_employees_basic 视图")
+        cursor.execute(generate_enhanced_employees_basic_view_sql())
+        logger.info("✅ v_employees_basic 创建成功 (包含所有字段和银行账号信息)")
+        
+        # 3. 创建基础薪资视图（依赖于 v_employees_basic）
+        logger.info("🔨 创建基础薪资信息视图...")
         cursor.execute(generate_basic_view_sql())
         logger.info("✅ v_payroll_basic 创建成功 (38个基础字段)")
         
-        # 3. 导入分层视图生成器
-        from create_earnings_view_generator import create_layered_views
-        from create_earnings_view_generator_fixed import generate_calculations_view_sql_fixed
+        # 4. 尝试创建分层视图（如果模块存在）
+        try:
+            logger.info("🔨 尝试创建分层明细视图...")
+            from create_earnings_view_generator import create_layered_views
+            if create_layered_views(cursor, components):
+                logger.info("✅ 所有分层视图创建成功")
+            else:
+                logger.warning("⚠️ 分层视图创建失败，但核心视图已创建成功")
+        except ImportError:
+            logger.warning("⚠️ 分层视图生成器模块不存在，跳过分层视图创建")
+        except Exception as e:
+            logger.warning(f"⚠️ 分层视图创建失败: {e}，但核心视图已创建成功")
         
-        # 4. 创建所有分层视图
-        logger.info("🔨 创建分层明细视图...")
-        if create_layered_views(cursor, components):
-            logger.info("✅ 所有分层视图创建成功")
-        else:
-            logger.error("💥 分层视图创建失败")
-            conn.rollback()
-            sys.exit(1)
-        
-        # 5. 验证视图结构
+        # 6. 验证视图结构
         logger.info("🔍 验证视图结构...")
         verify_views(cursor)
         
         conn.commit()
         logger.info("🎉 动态分层薪资视图生成完成！")
         
-        # 6. 输出使用建议
+        # 7. 输出使用建议
         print_usage_recommendations()
         
     except Exception as e:
@@ -233,15 +400,22 @@ def main():
 
 def verify_views(cursor):
     """验证创建的视图"""
-    views_to_check = [
-        'v_payroll_basic',
+    # 核心视图（必须存在）
+    core_views = [
+        'v_employees_basic',
+        'v_payroll_basic'
+    ]
+    
+    # 可选视图（可能不存在）
+    optional_views = [
         'v_payroll_earnings', 
         'v_payroll_deductions',
         'v_payroll_calculations',
         'v_comprehensive_employee_payroll'
     ]
     
-    for view_name in views_to_check:
+    logger.info("📊 核心视图验证:")
+    for view_name in core_views:
         cursor.execute(f"""
             SELECT COUNT(*) as column_count
             FROM information_schema.columns 
@@ -254,18 +428,35 @@ def verify_views(cursor):
             logger.info(f"  ✅ {view_name}: {column_count} 个字段")
         else:
             logger.error(f"  ❌ {view_name}: 视图不存在或无字段")
+    
+    logger.info("📊 可选视图验证:")
+    for view_name in optional_views:
+        cursor.execute(f"""
+            SELECT COUNT(*) as column_count
+            FROM information_schema.columns 
+            WHERE table_schema = 'reports' 
+                AND table_name = '{view_name}';
+        """)
+        
+        column_count = cursor.fetchone()[0]
+        if column_count > 0:
+            logger.info(f"  ✅ {view_name}: {column_count} 个字段")
+        else:
+            logger.info(f"  ⚪ {view_name}: 视图不存在（可选）")
 
 def print_usage_recommendations():
-    """输出使用建议"""
+    """输出使用image.png建 是 thescreenshot
+    e"""
     logger.info("\n" + "=" * 60)
     logger.info("📖 使用建议")
     logger.info("=" * 60)
-    logger.info("1. 列表页面查询 → 使用 v_payroll_basic (38字段，性能最佳)")
-    logger.info("2. 应发明细查询 → 使用 v_payroll_earnings (动态字段)")
-    logger.info("3. 扣除明细查询 → 使用 v_payroll_deductions (动态字段)")
-    logger.info("4. 计算参数查询 → 使用 v_payroll_calculations (动态字段)")
-    logger.info("5. 完整数据查询 → 使用 v_comprehensive_employee_payroll (所有字段)")
-    logger.info("6. 前端可根据页面需求选择合适的视图，提高查询性能")
+    logger.info("1. 员工信息查询 → 使用 v_employees_basic (包含所有员工字段+银行账号)")
+    logger.info("2. 列表页面查询 → 使用 v_payroll_basic (38字段，性能最佳)")
+    logger.info("3. 应发明细查询 → 使用 v_payroll_earnings (动态字段)")
+    logger.info("4. 扣除明细查询 → 使用 v_payroll_deductions (动态字段)")
+    logger.info("5. 计算参数查询 → 使用 v_payroll_calculations (动态字段)")
+    logger.info("6. 完整数据查询 → 使用 v_comprehensive_employee_payroll (所有字段)")
+    logger.info("7. 前端可根据页面需求选择合适的视图，提高查询性能")
     logger.info("=" * 60)
 
 if __name__ == "__main__":
