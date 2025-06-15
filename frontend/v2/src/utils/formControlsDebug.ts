@@ -98,7 +98,7 @@ export function disableFormControlsDebug(): void {
 /**
  * 监听DOM变化，自动检查新添加的表单控件
  */
-export function startFormControlsMonitoring(): void {
+export function startFormControlsMonitoring(): MutationObserver {
   const observer = new MutationObserver((mutations) => {
     let hasFormControls = false;
     

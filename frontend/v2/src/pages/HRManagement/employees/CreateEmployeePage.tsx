@@ -223,7 +223,7 @@ const CreateEmployeePage: React.FC = () => {
             icon: <IdcardOutlined />,
           }}
         >
-          <ProCard title="个人基础信息" variant="outlined">
+          <ProCard title="个人基础信息" bordered>
             <ProFormGroup>
               <ProFormText
                 name="employee_code"
@@ -327,7 +327,7 @@ const CreateEmployeePage: React.FC = () => {
             icon: <ContactsOutlined />,
           }}
         >
-          <ProCard title="岗位信息" variant="outlined" style={{ marginBottom: 16 }}>
+          <ProCard title="岗位信息" bordered style={{ marginBottom: 16 }}>
             <ProFormGroup>
               <ProFormSelect
                 name="department_id"
@@ -429,7 +429,7 @@ const CreateEmployeePage: React.FC = () => {
             </ProFormGroup>
           </ProCard>
 
-          <ProCard title="雇佣信息" variant="outlined">
+          <ProCard title="雇佣信息" bordered>
             <ProFormGroup>
               <ProFormSelect
                 name="employment_type"
@@ -508,7 +508,7 @@ const CreateEmployeePage: React.FC = () => {
             icon: <BankOutlined />,
           }}
         >
-          <ProCard title="联系方式" variant="outlined" style={{ marginBottom: 16 }}>
+          <ProCard title="联系方式" bordered style={{ marginBottom: 16 }}>
             <ProFormGroup>
               <ProFormText
                 name="phone_number"
@@ -531,7 +531,7 @@ const CreateEmployeePage: React.FC = () => {
             </ProFormGroup>
           </ProCard>
 
-          <ProCard title="银行信息" variant="outlined" style={{ marginBottom: 16 }}>
+          <ProCard title="银行信息" bordered style={{ marginBottom: 16 }}>
             <ProFormGroup>
               <ProFormText
                 name="bank_name"
@@ -551,7 +551,7 @@ const CreateEmployeePage: React.FC = () => {
             </ProFormGroup>
           </ProCard>
 
-          <ProCard title="紧急联系人" variant="outlined">
+          <ProCard title="紧急联系人" bordered>
             <ProFormGroup>
               <ProFormText
                 name="emergency_contact_name"

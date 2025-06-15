@@ -89,7 +89,7 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
   className,
 }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const formRef = useRef<any>();
+  const formRef = useRef<any>(null);
   
   // 搜索历史管理
   const { 

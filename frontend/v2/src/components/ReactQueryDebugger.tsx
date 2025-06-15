@@ -16,9 +16,10 @@ export const ReactQueryDebugger: React.FC = () => {
     acc.total++;
     acc[status] = (acc[status] || 0) + 1;
     
-    if (state.isStale) acc.stale++;
-    if (state.isFetching) acc.fetching++;
-    if (state.isPaused) acc.paused++;
+    // 修复API调用 - 使用正确的属性名
+    if (query.isStale()) acc.stale++;
+    if (state.fetchStatus === 'fetching') acc.fetching++;
+    if (state.fetchStatus === 'paused') acc.paused++;
     if (!query.getObserversCount()) acc.inactive++;
     
     return acc;
@@ -68,9 +69,9 @@ export const ReactQueryDebugger: React.FC = () => {
                   <Tag color={state.status === 'success' ? 'green' : state.status === 'error' ? 'red' : 'blue'}>
                     {state.status}
                   </Tag>
-                  {state.isStale && <Tag color="orange">过期</Tag>}
-                  {state.isFetching && <Tag color="blue">获取中</Tag>}
-                  {state.isPaused && <Tag color="purple">暂停</Tag>}
+                  {query.isStale() && <Tag color="orange">过期</Tag>}
+                  {state.fetchStatus === 'fetching' && <Tag color="blue">获取中</Tag>}
+                  {state.fetchStatus === 'paused' && <Tag color="purple">暂停</Tag>}
                   {!query.getObserversCount() && <Tag color="gray">非活跃</Tag>}
                 </div>
                 <div><strong>观察者数量:</strong> {query.getObserversCount()}</div>

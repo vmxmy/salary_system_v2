@@ -1,6 +1,6 @@
 {
   "total_deductions": "扣发合计",
-  "payroll_data_for_period": "“{periodName}”期间工资数据",
+  "payroll_data_for_period": "{{periodName}}期间工资数据",
   "payroll_data_list": "工资数据列表",
   "absent": "缺勤",
   "absent_days": "缺勤天数",

@@ -136,7 +136,7 @@ export const testNumberFormatPreservation = () => {
   // 4. 验证数字格式是否保持
   const numericFields = ['应发合计', '扣除合计', '实发合计', '基本工资', '绩效工资', '个人所得税'];
   const validation = numericFields.map(field => {
-    const originalValue = mockPayrollData[0][field];
+    const originalValue = mockPayrollData[0][field as keyof typeof mockPayrollData[0]];
     const exportValue = exportData[0][field];
     
     return {

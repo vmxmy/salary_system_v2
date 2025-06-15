@@ -16,11 +16,11 @@ export const usePersonnelCategories = () => {
 
   useEffect(() => {
     // 从lookupMaps中获取人员类别数据
-    if (lookupMaps && lookupMaps.personnelCategories) {
-      const categories = Object.values(lookupMaps.personnelCategories).map((category: any) => ({
-        id: category.id,
-        name: category.name,
-        code: category.code || '',
+    if (lookupMaps && lookupMaps.personnelCategoryMap) {
+      const categories = Array.from(lookupMaps.personnelCategoryMap.entries()).map(([key, value]) => ({
+        id: key,
+        name: value,
+        code: key,
       }));
       setPersonnelCategories(categories);
     }
