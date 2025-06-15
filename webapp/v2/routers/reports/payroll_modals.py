@@ -138,43 +138,39 @@ async def get_payroll_modal_data(
                     "实发合计": basic_result[12] or Decimal('0.00')
                 },
                 "应发明细": {
-                    # 标准应发明细字段
+                    # 基础工资项目
                     "基本工资": earnings_data.get("基本工资", Decimal('0.00')),
                     "岗位工资": earnings_data.get("岗位工资", Decimal('0.00')),
                     "绩效工资": earnings_data.get("绩效工资", Decimal('0.00')),
                     "补助": earnings_data.get("补助", Decimal('0.00')),
-                    "信访岗位津贴": earnings_data.get("信访工作人员岗位工作津贴", Decimal('0.00')),
+                    "信访工作人员岗位工作津贴": earnings_data.get("信访工作人员岗位工作津贴", Decimal('0.00')),
                     "基础绩效": earnings_data.get("基础绩效", Decimal('0.00')),
                     "津贴": earnings_data.get("津贴", Decimal('0.00')),
                     "职务技术等级工资": earnings_data.get("职务/技术等级工资", Decimal('0.00')),
                     "级别岗位级别工资": earnings_data.get("级别/岗位级别工资", Decimal('0.00')),
-                    "93年工改保留补贴": earnings_data.get("九三年工改保留津补贴", Decimal('0.00')),
+                    "九三年工改保留津补贴": earnings_data.get("九三年工改保留津补贴", Decimal('0.00')),
                     "独生子女父母奖励金": earnings_data.get("独生子女父母奖励金", Decimal('0.00')),
                     "公务员规范性津贴补贴": earnings_data.get("公务员规范后津补贴", Decimal('0.00')),
                     "公务交通补贴": earnings_data.get("公务交通补贴", Decimal('0.00')),
                     "基础绩效奖": earnings_data.get("基础绩效奖", Decimal('0.00')),
                     "薪级工资": earnings_data.get("薪级工资", Decimal('0.00')),
-                    "见习试用期工资": earnings_data.get("试用期工资", Decimal('0.00')),
-                    "月基础绩效": earnings_data.get("基础性绩效工资", Decimal('0.00')),
+                    "试用期工资": earnings_data.get("试用期工资", Decimal('0.00')),
+                    "基础性绩效工资": earnings_data.get("基础性绩效工资", Decimal('0.00')),
                     "月奖励绩效": earnings_data.get("月奖励绩效", Decimal('0.00')),
                     "岗位职务补贴": earnings_data.get("岗位职务补贴", Decimal('0.00')),
-                    "信访工作人员岗位津贴": earnings_data.get("信访工作人员岗位工作津贴", Decimal('0.00')),
                     "乡镇工作补贴": earnings_data.get("乡镇工作补贴", Decimal('0.00')),
                     "补扣社保": earnings_data.get("补扣社保", Decimal('0.00')),
                     "一次性补扣发": earnings_data.get("一次性补扣发", Decimal('0.00')),
                     "绩效奖金补扣发": earnings_data.get("绩效奖金补扣发", Decimal('0.00')),
-                    "奖励绩效补扣发": earnings_data.get("奖励绩效补发", Decimal('0.00')),
-                    # 其他应发项目（排除标准字段和合计字段）
+                    "奖励绩效补扣发": earnings_data.get("奖励绩效补扣发", Decimal('0.00')),
+                    # 其他应发项目（包含所有剩余字段）
                     "其他应发项目": {k: v for k, v in earnings_data.items() 
-                                     if k not in [
-                                         "基本工资", "岗位工资", "绩效工资", "补助", "信访工作人员岗位工作津贴", 
-                                         "基础绩效", "津贴", "职务/技术等级工资", "级别/岗位级别工资", 
-                                         "九三年工改保留津补贴", "独生子女父母奖励金", "公务员规范后津补贴", 
-                                         "公务交通补贴", "基础绩效奖", "薪级工资", "试用期工资", 
-                                         "基础性绩效工资", "月奖励绩效", "岗位职务补贴", "乡镇工作补贴", 
-                                         "补扣社保", "一次性补扣发", "绩效奖金补扣发", "奖励绩效补发",
-                                         "应发合计", "扣除合计", "实发合计"
-                                     ] and v > 0}
+                                      if k not in ["基本工资", "岗位工资", "绩效工资", "补助", "信访工作人员岗位工作津贴", 
+                                                   "基础绩效", "津贴", "职务/技术等级工资", "级别/岗位级别工资", 
+                                                   "九三年工改保留津补贴", "独生子女父母奖励金", "公务员规范后津补贴", 
+                                                   "公务交通补贴", "基础绩效奖", "薪级工资", "试用期工资", 
+                                                   "基础性绩效工资", "月奖励绩效", "岗位职务补贴", "乡镇工作补贴", 
+                                                   "补扣社保", "一次性补扣发", "绩效奖金补扣发", "奖励绩效补扣发"] and v > 0}
                 },
                 "扣除明细": {
                     # 个人扣缴项目
@@ -433,6 +429,49 @@ async def get_batch_payroll_modal_data(
         """)
         calculations_results = db.execute(calculations_query).fetchall()
         
+        # 批量获取员工详细信息
+        employee_details_query = text(f"""
+        SELECT 
+            pb."薪资条目id",
+            pb."员工id",
+            eb.phone_number,
+            eb.email,
+            eb.home_address,
+            eb.emergency_contact_name,
+            eb.emergency_contact_phone,
+            eb.id_number,
+            eb.date_of_birth,
+            eb.gender,
+            eb.nationality,
+            eb.ethnicity,
+            eb.marital_status,
+            eb.education_level,
+            eb.political_status,
+            eb.hire_date,
+            eb.first_work_date,
+            eb.current_position_start_date,
+            eb.interrupted_service_years,
+            eb.employee_status,
+            eb.employment_type,
+            eb.contract_type,
+            eb.salary_level,
+            eb.salary_grade,
+            eb.job_position_level,
+            eb.social_security_client_number,
+            eb.housing_fund_client_number,
+            eb.primary_bank_name,
+            eb.primary_account_holder_name,
+            eb.primary_account_number,
+            eb.primary_branch_name,
+            eb.primary_bank_code,
+            eb.primary_account_type
+        FROM reports.v_payroll_basic pb
+        LEFT JOIN reports.v_employees_basic eb ON pb."员工id" = eb.id
+        WHERE pb."薪资条目id" IN ({ids_str})
+        ORDER BY pb."薪资条目id"
+        """)
+        employee_details_results = db.execute(employee_details_query).fetchall()
+        
         # 构建完整的模态框数据列表
         modal_data_list = []
         for entry_id in payroll_entry_ids:
@@ -504,61 +543,94 @@ async def get_batch_payroll_modal_data(
                     }
                     break
             
+            # 获取该条目的员工详细信息
+            employee_details_data = None
+            for row in employee_details_results:
+                if row[0] == entry_id:
+                    employee_details_data = {
+                        "联系信息": {
+                            "电话": row[2],
+                            "邮箱": row[3],
+                            "家庭住址": row[4],
+                            "紧急联系人": row[5],
+                            "紧急联系电话": row[6]
+                        },
+                        "个人信息": {
+                            "身份证号": row[7],
+                            "出生日期": row[8],
+                            "性别": row[9],
+                            "民族": row[10],
+                            "民族详情": row[11],
+                            "婚姻状况": row[12],
+                            "学历": row[13],
+                            "政治面貌": row[14]
+                        },
+                        "工作信息": {
+                            "入职日期": row[15],
+                            "首次工作日期": row[16],
+                            "现职位开始日期": row[17],
+                            "中断服务年限": row[18],
+                            "员工状态": row[19],
+                            "用工类型": row[20],
+                            "合同类型": row[21],
+                            "薪级": row[22],
+                            "薪档": row[23],
+                            "职位等级": row[24]
+                        },
+                        "社保公积金信息": {
+                            "社保客户号": row[25],
+                            "住房公积金客户号": row[26]
+                        },
+                        "银行账号信息": {
+                            "开户银行": row[27],
+                            "账户持有人": row[28],
+                            "银行账号": row[29],
+                            "开户支行": row[30],
+                            "银行代码": row[31],
+                            "账户类型": row[32]
+                        }
+                    }
+                    break
+            
             # 构建完整的模态框数据（简化版，只包含核心字段）
             modal_data = PayrollModalData(
                 **{
                     **basic_data_dict[entry_id],
+                    "员工详细信息": employee_details_data,
                     "应发明细": {
                         # 基础工资项目
                         "基本工资": earnings_data.get("基本工资", Decimal('0.00')),
                         "岗位工资": earnings_data.get("岗位工资", Decimal('0.00')),
-                        "薪级工资": earnings_data.get("薪级工资", Decimal('0.00')),
-                        "级别工资": earnings_data.get("级别工资", Decimal('0.00')),
-                        "级别/岗位级别工资": earnings_data.get("级别/岗位级别工资", Decimal('0.00')),
-                        "职务/技术等级工资": earnings_data.get("职务/技术等级工资", Decimal('0.00')),
-                        "事业单位人员薪级工资": earnings_data.get("事业单位人员薪级工资", Decimal('0.00')),
-                        "试用期工资": earnings_data.get("试用期工资", Decimal('0.00')),
-                        # 绩效工资项目
                         "绩效工资": earnings_data.get("绩效工资", Decimal('0.00')),
-                        "奖励性绩效工资": earnings_data.get("奖励性绩效工资", Decimal('0.00')),
-                        "基础性绩效工资": earnings_data.get("基础性绩效工资", Decimal('0.00')),
-                        "绩效奖": earnings_data.get("绩效奖", Decimal('0.00')),
-                        "基础绩效": earnings_data.get("基础绩效", Decimal('0.00')),
-                        "基础绩效奖": earnings_data.get("基础绩效奖", Decimal('0.00')),
-                        "月奖励绩效": earnings_data.get("月奖励绩效", Decimal('0.00')),
-                        "月奖励绩效津贴": earnings_data.get("月奖励绩效津贴", Decimal('0.00')),
-                        "季度绩效考核薪酬": earnings_data.get("季度绩效考核薪酬", Decimal('0.00')),
-                        "1季度绩效考核薪酬": earnings_data.get("1季度绩效考核薪酬", Decimal('0.00')),
-                        # 津贴补贴项目
-                        "津贴": earnings_data.get("津贴", Decimal('0.00')),
                         "补助": earnings_data.get("补助", Decimal('0.00')),
-                        "公务员规范后津补贴": earnings_data.get("公务员规范后津补贴", Decimal('0.00')),
-                        "公务交通补贴": earnings_data.get("公务交通补贴", Decimal('0.00')),
-                        "乡镇工作补贴": earnings_data.get("乡镇工作补贴", Decimal('0.00')),
-                        "艰苦边远地区津贴": earnings_data.get("艰苦边远地区津贴", Decimal('0.00')),
-                        "住房补贴": earnings_data.get("住房补贴", Decimal('0.00')),
-                        "生活性津贴": earnings_data.get("生活性津贴", Decimal('0.00')),
-                        "工作性津贴": earnings_data.get("工作性津贴", Decimal('0.00')),
-                        "特殊岗位津贴": earnings_data.get("特殊岗位津贴", Decimal('0.00')),
-                        # 专业津贴项目
-                        "教龄津贴": earnings_data.get("教龄津贴", Decimal('0.00')),
-                        "护龄津贴": earnings_data.get("护龄津贴", Decimal('0.00')),
-                        "警衔津贴": earnings_data.get("警衔津贴", Decimal('0.00')),
-                        "特级教师津贴": earnings_data.get("特级教师津贴", Decimal('0.00')),
-                        # 奖励项目
-                        "年度考核奖": earnings_data.get("年度考核奖", Decimal('0.00')),
-                        "公务员十三月奖励工资": earnings_data.get("公务员十三月奖励工资", Decimal('0.00')),
+                        "信访工作人员岗位工作津贴": earnings_data.get("信访工作人员岗位工作津贴", Decimal('0.00')),
+                        "基础绩效": earnings_data.get("基础绩效", Decimal('0.00')),
+                        "津贴": earnings_data.get("津贴", Decimal('0.00')),
+                        "职务技术等级工资": earnings_data.get("职务/技术等级工资", Decimal('0.00')),
+                        "级别岗位级别工资": earnings_data.get("级别/岗位级别工资", Decimal('0.00')),
+                        "九三年工改保留津补贴": earnings_data.get("九三年工改保留津补贴", Decimal('0.00')),
                         "独生子女父母奖励金": earnings_data.get("独生子女父母奖励金", Decimal('0.00')),
+                        "公务员规范性津贴补贴": earnings_data.get("公务员规范后津补贴", Decimal('0.00')),
+                        "公务交通补贴": earnings_data.get("公务交通补贴", Decimal('0.00')),
+                        "基础绩效奖": earnings_data.get("基础绩效奖", Decimal('0.00')),
+                        "薪级工资": earnings_data.get("薪级工资", Decimal('0.00')),
+                        "试用期工资": earnings_data.get("试用期工资", Decimal('0.00')),
+                        "基础性绩效工资": earnings_data.get("基础性绩效工资", Decimal('0.00')),
+                        "月奖励绩效": earnings_data.get("月奖励绩效", Decimal('0.00')),
+                        "岗位职务补贴": earnings_data.get("岗位职务补贴", Decimal('0.00')),
+                        "乡镇工作补贴": earnings_data.get("乡镇工作补贴", Decimal('0.00')),
+                        "补扣社保": earnings_data.get("补扣社保", Decimal('0.00')),
+                        "一次性补扣发": earnings_data.get("一次性补扣发", Decimal('0.00')),
+                        "绩效奖金补扣发": earnings_data.get("绩效奖金补扣发", Decimal('0.00')),
+                        "奖励绩效补扣发": earnings_data.get("奖励绩效补扣发", Decimal('0.00')),
                         # 其他应发项目（包含所有剩余字段）
                         "其他应发项目": {k: v for k, v in earnings_data.items() 
-                                      if k not in ["基本工资", "岗位工资", "薪级工资", "级别工资", "级别/岗位级别工资", 
-                                                   "职务/技术等级工资", "事业单位人员薪级工资", "试用期工资", "绩效工资", 
-                                                   "奖励性绩效工资", "基础性绩效工资", "绩效奖", "基础绩效", "基础绩效奖", 
-                                                   "月奖励绩效", "月奖励绩效津贴", "季度绩效考核薪酬", "1季度绩效考核薪酬", 
-                                                   "津贴", "补助", "公务员规范后津补贴", "公务交通补贴", "乡镇工作补贴", 
-                                                   "艰苦边远地区津贴", "住房补贴", "生活性津贴", "工作性津贴", "特殊岗位津贴", 
-                                                   "教龄津贴", "护龄津贴", "警衔津贴", "特级教师津贴", "年度考核奖", 
-                                                   "公务员十三月奖励工资", "独生子女父母奖励金"] and v > 0}
+                                      if k not in ["基本工资", "岗位工资", "绩效工资", "补助", "信访工作人员岗位工作津贴", 
+                                                   "基础绩效", "津贴", "职务/技术等级工资", "级别/岗位级别工资", 
+                                                   "九三年工改保留津补贴", "独生子女父母奖励金", "公务员规范后津补贴", 
+                                                   "公务交通补贴", "基础绩效奖", "薪级工资", "试用期工资", 
+                                                   "基础性绩效工资", "月奖励绩效", "岗位职务补贴", "乡镇工作补贴", 
+                                                   "补扣社保", "一次性补扣发", "绩效奖金补扣发", "奖励绩效补扣发"] and v > 0}
                     },
                     "扣除明细": {
                         "个人扣缴项目": {

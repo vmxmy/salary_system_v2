@@ -419,22 +419,21 @@ class PayrollModalEarnings(BaseModel):
     岗位工资: Optional[Decimal] = Field(None, description="岗位工资")
     绩效工资: Optional[Decimal] = Field(None, description="绩效工资")
     补助: Optional[Decimal] = Field(None, description="补助")
-    信访岗位津贴: Optional[Decimal] = Field(None, description="信访岗位津贴")
+    信访工作人员岗位工作津贴: Optional[Decimal] = Field(None, description="信访工作人员岗位工作津贴")
     基础绩效: Optional[Decimal] = Field(None, description="基础绩效")
     津贴: Optional[Decimal] = Field(None, description="津贴")
     职务技术等级工资: Optional[Decimal] = Field(None, description="职务/技术等级工资")
     级别岗位级别工资: Optional[Decimal] = Field(None, description="级别/岗位级别工资")
-    九三年工改保留补贴: Optional[Decimal] = Field(None, description="93年工改保留补贴")
+    九三年工改保留津补贴: Optional[Decimal] = Field(None, description="93年工改保留津补贴")
     独生子女父母奖励金: Optional[Decimal] = Field(None, description="独生子女父母奖励金")
     公务员规范性津贴补贴: Optional[Decimal] = Field(None, description="公务员规范性津贴补贴")
     公务交通补贴: Optional[Decimal] = Field(None, description="公务交通补贴")
     基础绩效奖: Optional[Decimal] = Field(None, description="基础绩效奖")
     薪级工资: Optional[Decimal] = Field(None, description="薪级工资")
-    见习试用期工资: Optional[Decimal] = Field(None, description="见习试用期工资")
-    月基础绩效: Optional[Decimal] = Field(None, description="月基础绩效")
+    试用期工资: Optional[Decimal] = Field(None, description="试用期工资")
+    基础性绩效工资: Optional[Decimal] = Field(None, description="基础性绩效工资")
     月奖励绩效: Optional[Decimal] = Field(None, description="月奖励绩效")
     岗位职务补贴: Optional[Decimal] = Field(None, description="岗位职务补贴")
-    信访工作人员岗位津贴: Optional[Decimal] = Field(None, description="信访工作人员岗位津贴")
     乡镇工作补贴: Optional[Decimal] = Field(None, description="乡镇工作补贴")
     补扣社保: Optional[Decimal] = Field(None, description="补扣社保")
     一次性补扣发: Optional[Decimal] = Field(None, description="一次性补扣发")
@@ -442,6 +441,10 @@ class PayrollModalEarnings(BaseModel):
     奖励绩效补扣发: Optional[Decimal] = Field(None, description="奖励绩效补扣发")
     # 其他应发项目
     其他应发项目: Dict[str, Decimal] = Field({}, description="其他应发项目")
+    
+    class Config:
+        # 允许通过字段名或别名进行赋值
+        allow_population_by_field_name = True
 
 
 class PayrollModalPersonalDeductions(BaseModel):
