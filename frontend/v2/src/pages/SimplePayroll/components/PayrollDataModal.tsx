@@ -734,8 +734,74 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         return column;
       });
 
+      // 🎯 按照指定顺序重新排列列：员工信息｜应发合计｜扣发合计｜实发合计｜应发明细｜个人扣发明细｜单位扣发明细
+      const orderedColumns: ProColumns<PayrollData>[] = [];
+      
+      // 1. 员工信息字段（按重要性排序）
+      const employeeInfoFields = [
+        '员工姓名', '员工编号', '部门名称', '职位名称', '人员类别', '编制', 
+        '薪资期间名称', '期间开始日期', '期间结束日期'
+      ];
+      
+      // 2. 汇总字段
+      const summaryFields = ['应发合计', '扣除合计', '实发合计'];
+      
+      // 3. 应发明细字段（按重要性排序）
+      const earningsFields = [
+        '基本工资', '岗位工资', '薪级工资', '绩效工资', '津贴', '补助',
+        '职务技术等级工资', '级别岗位级别工资', '基础绩效', '月奖励绩效',
+        '独生子女父母奖励金', '公务员规范性津贴补贴', '公务交通补贴',
+        '九三年工改保留津补贴', '信访工作人员岗位工作津贴', '乡镇工作补贴'
+      ];
+      
+      // 4. 个人扣缴字段
+      const personalDeductionFields = [
+        '养老保险个人应缴费额', '医疗保险个人应缴费额', '失业保险个人应缴费额',
+        '职业年金个人应缴费额', '住房公积金个人应缴费额', '个人所得税'
+      ];
+      
+      // 5. 单位扣缴字段
+      const employerDeductionFields = [
+        '养老保险单位应缴费额', '医疗保险单位应缴费额', '医疗保险单位应缴总额',
+        '大病医疗单位应缴费额', '失业保险单位应缴费额', '工伤保险单位应缴费额',
+        '职业年金单位应缴费额', '住房公积金单位应缴费额'
+      ];
+      
+      // 按顺序添加字段
+      const fieldGroups = [
+        employeeInfoFields,
+        summaryFields,
+        earningsFields,
+        personalDeductionFields,
+        employerDeductionFields
+      ];
+      
+      // 创建字段映射
+      const columnMap = new Map<string, ProColumns<PayrollData>>();
+      generatedColumns.forEach(col => {
+        if (col.key) {
+          columnMap.set(String(col.key), col);
+        }
+      });
+      
+      // 按组顺序添加列
+      fieldGroups.forEach(group => {
+        group.forEach(fieldKey => {
+          const column = columnMap.get(fieldKey);
+          if (column) {
+            orderedColumns.push(column);
+            columnMap.delete(fieldKey); // 避免重复添加
+          }
+        });
+      });
+      
+      // 添加剩余的其他字段
+      columnMap.forEach(column => {
+        orderedColumns.push(column);
+      });
+
       // 添加操作列
-      generatedColumns.push({
+      orderedColumns.push({
         title: t('common:table.action'),
         key: 'action',
         fixed: 'right',
@@ -772,12 +838,12 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         // 如果是首次生成或列结构发生重大变化，直接使用新列
         if (prevColumns.length === 0) {
           console.log('🔄 [列同步] 首次生成列，直接使用新列配置');
-          return generatedColumns;
+          return orderedColumns;
     }
         
         // 检查列是否发生了实质性变化（列的key集合是否不同）
         const prevKeys = new Set(prevColumns.map(col => col.key));
-        const newKeys = new Set(generatedColumns.map(col => col.key));
+        const newKeys = new Set(orderedColumns.map(col => col.key));
         const keysChanged = prevKeys.size !== newKeys.size || 
                            [...prevKeys].some(key => !newKeys.has(key)) ||
                            [...newKeys].some(key => !prevKeys.has(key));
@@ -791,7 +857,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           const updatedColumnsState: Record<string, any> = {};
           
           // 遍历新列，检查是否在用户设置中存在
-          generatedColumns.forEach(newCol => {
+          orderedColumns.forEach(newCol => {
             const key = String(newCol.key || '');
             const existingState = currentColumnsState[key];
             
@@ -809,7 +875,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           // 更新列状态（这会触发ProTable重新渲染）
           setCurrentColumnsState(updatedColumnsState);
           
-          return generatedColumns;
+          return orderedColumns;
         } else {
           console.log('🔄 [列同步] 列结构未变化，保持现有列配置');
           return prevColumns;
