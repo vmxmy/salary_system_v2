@@ -34,11 +34,41 @@ export const usePayrollDataPresets = () => {
   // 加载默认预设
   const loadDefaultPreset = useCallback(async () => {
     try {
-      const preset = await payrollDataPresetsApi.getDefaultPreset();
+      console.log('🔍 [usePayrollDataPresets] 开始加载默认预设...');
+      let preset = await payrollDataPresetsApi.getDefaultPreset();
+      console.log('🔍 [usePayrollDataPresets] API返回的默认预设:', preset);
+      
+      // 如果没有默认预设，尝试获取最近使用的预设
+      if (!preset) {
+        console.log('🔍 [usePayrollDataPresets] 没有默认预设，尝试获取最近使用的预设...');
+        const response = await payrollDataPresetsApi.getPresets();
+        const presets = response.presets || [];
+        
+        // 按使用次数和最后使用时间排序，选择最活跃的预设
+        const sortedPresets = presets.sort((a, b) => {
+          // 优先按使用次数排序
+          if ((b.usageCount || 0) !== (a.usageCount || 0)) {
+            return (b.usageCount || 0) - (a.usageCount || 0);
+          }
+          // 使用次数相同时按最后使用时间排序
+          if (a.lastUsedAt && b.lastUsedAt) {
+            return new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime();
+          }
+          // 如果没有使用时间，按创建时间排序
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        
+        if (sortedPresets.length > 0) {
+          preset = sortedPresets[0];
+          console.log('🔍 [usePayrollDataPresets] 使用最活跃的预设作为当前预设:', preset);
+        }
+      }
+      
       setDefaultPreset(preset);
+      console.log('🔍 [usePayrollDataPresets] 已设置defaultPreset状态:', preset);
       return preset;
     } catch (error) {
-      console.error('Failed to load default preset:', error);
+      console.error('❌ [usePayrollDataPresets] 加载默认预设失败:', error);
       return null;
     }
   }, []);

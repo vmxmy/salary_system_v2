@@ -386,6 +386,16 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   // 🎯 预设报表管理Hook
   const { defaultPreset, loadDefaultPreset } = usePayrollDataPresets();
 
+  // 🔍 调试：监听defaultPreset状态变化
+  useEffect(() => {
+    console.log('🔍 [PayrollDataModal] defaultPreset状态变化:', {
+      defaultPreset: defaultPreset,
+      presetName: defaultPreset?.name,
+      presetId: defaultPreset?.id,
+      timestamp: new Date().toISOString()
+    });
+  }, [defaultPreset]);
+
   // 通配符匹配函数 - 使用 useCallback 避免无限循环
   const matchesPattern = useCallback((text: string, pattern: string): boolean => {
     const regexPattern = pattern
@@ -403,12 +413,21 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   // 🎯 加载默认预设配置
   useEffect(() => {
     if (visible) {
+      console.log('🔍 [PayrollDataModal] 开始加载默认预设配置...');
       loadDefaultPreset().then(preset => {
+        console.log('🔍 [PayrollDataModal] 默认预设加载结果:', {
+          preset: preset,
+          presetName: preset?.name,
+          presetId: preset?.id,
+          hasPreset: !!preset
+        });
         if (preset) {
           // 应用默认预设的筛选配置
           setFilterConfig(preset.filterConfig);
           // 注意：列设置会在列生成后通过 columnsState 应用
           console.log('✅ [PayrollDataModal] 已加载默认预设:', preset.name);
+        } else {
+          console.log('⚠️ [PayrollDataModal] 没有找到默认预设配置');
         }
       }).catch(error => {
         console.warn('⚠️ [PayrollDataModal] 加载默认预设失败:', error);
@@ -1295,7 +1314,63 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         XLSX.utils.book_append_sheet(wb, ws, '薪资数据');
         
         // 生成安全的文件名（避免特殊字符）
-        const safeFileName = `薪资数据_${periodName || '当前期间'}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+        const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+        
+        // 🔍 调试：检查预设名称获取情况
+        console.log('🔍 [导出Excel] 预设名称调试信息:', {
+          defaultPreset: defaultPreset,
+          presetName: defaultPreset?.name,
+          hasDefaultPreset: !!defaultPreset,
+          presetId: defaultPreset?.id,
+          presetDescription: defaultPreset?.description
+        });
+        
+        // 获取当前预设名称，尝试多种方式
+        let presetName = '薪资数据'; // 默认名称
+        
+        // 方式1：从defaultPreset获取
+        if (defaultPreset?.name) {
+          presetName = defaultPreset.name;
+          console.log('✅ [导出Excel] 使用defaultPreset名称:', presetName);
+        }
+        // 方式2：从当前筛选配置推断预设类型
+        else if (filterConfig.includePatterns.length > 0) {
+          const patterns = filterConfig.includePatterns.join(',');
+          if (patterns.includes('工资')) {
+            presetName = '工资明细报表';
+          } else if (patterns.includes('保险') || patterns.includes('公积金')) {
+            presetName = '保险公积金报表';
+          } else if (filterConfig.showOnlyNumericColumns) {
+            presetName = '数值汇总报表';
+          } else {
+            presetName = '自定义筛选报表';
+          }
+          console.log('✅ [导出Excel] 根据筛选配置推断预设名称:', presetName);
+        }
+        // 方式3：根据期间名称生成
+        else if (periodName) {
+          presetName = `${periodName}_薪资数据`;
+          console.log('✅ [导出Excel] 使用期间名称:', presetName);
+        }
+        
+        console.log('🔍 [导出Excel] 最终确定的预设名称:', presetName);
+        
+        // 清理预设名称中的特殊字符
+        const safePresetName = presetName.replace(/[<>:"/\\|?*]/g, '_');
+        
+        console.log('🔍 [导出Excel] 文件名生成调试:', {
+          原始预设名称: defaultPreset?.name,
+          使用的预设名称: presetName,
+          安全预设名称: safePresetName,
+          日期字符串: dateStr,
+          时间字符串: timeStr
+        });
+        
+        const safeFileName = `${safePresetName}_${dateStr}_${timeStr}.xlsx`;
+        
+        console.log('🔍 [导出Excel] 最终文件名:', safeFileName);
         
         // 导出文件
         XLSX.writeFile(wb, safeFileName, { 
@@ -1727,8 +1802,8 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                     placeholder="例如：*工资*、保险*、*金额"
                     value={filterConfig.includePatterns}
                     onChange={(patterns) => setFilterConfig(prev => ({ ...prev, includePatterns: patterns }))}
-                    maxTagCount="responsive"
-                    maxTagTextLength={20}
+                    maxTagCount={10}
+                    maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
                     allowClear
                     showSearch
                     filterOption={false}
@@ -1755,8 +1830,8 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                     placeholder="例如：*id、*时间、*日期"
                     value={filterConfig.excludePatterns}
                     onChange={(patterns) => setFilterConfig(prev => ({ ...prev, excludePatterns: patterns }))}
-                    maxTagCount="responsive"
-                    maxTagTextLength={20}
+                    maxTagCount={10}
+                    maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
                     allowClear
                     showSearch
                     filterOption={false}
