@@ -1,0 +1,138 @@
+/* 全局表单控件高度统一管理 */
+
+/* 基础高度变量 */
+:root {
+  --form-control-height: 32px;
+  --form-control-line-height: 1.5715;
+  --form-control-padding-vertical: 4px;
+  --form-control-padding-horizontal: 11px;
+  --form-control-border-radius: 6px;
+}
+
+/* 统一所有输入框高度 */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-picker {
+  height: var(--form-control-height) !important;
+  line-height: var(--form-control-line-height) !important;
+  padding: var(--form-control-padding-vertical) var(--form-control-padding-horizontal) !important;
+  border-radius: var(--form-control-border-radius);
+}
+
+/* 统一所有选择器高度 */
+.ant-select-selector {
+  height: var(--form-control-height) !important;
+  padding: 0 var(--form-control-padding-horizontal) !important;
+  border-radius: var(--form-control-border-radius);
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+.ant-select-selection-item,
+.ant-select-selection-placeholder {
+  line-height: calc(var(--form-control-height) - 2px) !important;
+  height: calc(var(--form-control-height) - 2px) !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+/* 选择器内容不换行，防止撑高 */
+.ant-select-selection-item > * {
+  display: inline-flex !important;
+  align-items: center !important;
+  max-height: calc(var(--form-control-height) - 4px) !important;
+  overflow: hidden !important;
+}
+
+/* 统一所有按钮高度 */
+.ant-btn {
+  height: var(--form-control-height) !important;
+  line-height: var(--form-control-line-height) !important;
+  padding: var(--form-control-padding-vertical) 15px !important;
+  border-radius: var(--form-control-border-radius);
+}
+
+.ant-btn-sm {
+  height: 24px !important;
+  padding: 0 7px !important;
+  font-size: 12px;
+}
+
+.ant-btn-lg {
+  height: 40px !important;
+  padding: 6.4px 15px !important;
+  font-size: 16px;
+}
+
+/* ProForm 组件特殊处理 */
+.ant-pro-field {
+  min-height: var(--form-control-height);
+}
+
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+.ant-form-item-control-input {
+  min-height: var(--form-control-height);
+}
+
+/* 确保图标对齐 */
+.ant-input-prefix,
+.ant-input-suffix,
+.ant-select-arrow,
+.anticon {
+  display: flex;
+  align-items: center;
+}
+
+/* 特殊组件处理 */
+.ant-cascader-picker,
+.ant-tree-select-selector,
+.ant-mentions {
+  height: var(--form-control-height) !important;
+  line-height: var(--form-control-line-height) !important;
+}
+
+/* 日期选择器特殊处理 */
+.ant-picker-input > input {
+  height: calc(var(--form-control-height) - 2px) !important;
+  line-height: calc(var(--form-control-height) - 2px) !important;
+}
+
+/* 数字输入框特殊处理 */
+.ant-input-number-input {
+  height: calc(var(--form-control-height) - 2px) !important;
+  line-height: calc(var(--form-control-height) - 2px) !important;
+}
+
+/* 搜索组件专用样式 */
+.search-form-controls .ant-form-item {
+  margin-bottom: 0 !important;
+}
+
+.search-form-controls .ant-form-item-control {
+  height: var(--form-control-height);
+  display: flex;
+  align-items: center;
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+  :root {
+    --form-control-height: 36px;
+    --form-control-padding-vertical: 6px;
+  }
+}
+
+/* 调试模式 */
+.debug-form-controls .ant-input,
+.debug-form-controls .ant-select-selector,
+.debug-form-controls .ant-btn {
+  border: 2px solid red !important;
+  background-color: rgba(255, 0, 0, 0.1) !important;
+} 

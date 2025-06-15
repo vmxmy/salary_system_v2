@@ -3,8 +3,7 @@ import { debounce } from 'lodash';
 import { 
   ProForm,
   ProFormText,
-  ProFormSelect,
-  ProFormDependency
+  ProFormSelect
 } from '@ant-design/pro-components';
 import { 
   Space, 
@@ -13,8 +12,7 @@ import {
   Tooltip,
   Badge,
   Typography,
-  AutoComplete,
-  Form
+  AutoComplete
 } from 'antd';
 import { 
   SearchOutlined, 
@@ -27,6 +25,7 @@ import {
 } from '@ant-design/icons';
 import { SearchMode } from '../../utils/searchUtils';
 import { useSearchHistory } from '../../hooks/usePayrollSearch';
+import styles from './ProFormGlobalSearch.module.css';
 
 const { Text } = Typography;
 
@@ -89,8 +88,8 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
   showPerformance = true,
   className,
 }) => {
-  const [form] = Form.useForm();
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const formRef = useRef<any>();
   
   // 搜索历史管理
   const { 
@@ -109,14 +108,6 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
     }, 300), // 300ms 防抖延迟
     [onSearch]
   );
-
-  // 初始化表单值
-  useEffect(() => {
-    form.setFieldsValue({
-      searchQuery: value,
-      searchMode: searchMode
-    });
-  }, [value, searchMode, form]);
 
   // 组件卸载时清理防抖函数
   useEffect(() => {
@@ -174,7 +165,7 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
 
   // 处理清空
   const handleClear = () => {
-    form.setFieldsValue({ searchQuery: '' });
+    formRef.current?.setFieldsValue({ searchQuery: '' });
     setShowSuggestions(false);
     onClear();
   };
@@ -244,115 +235,110 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
     </div>
   );
 
+  // 使用 useMemo 确保 initialValues 只在必要时重新计算
+  const initialValues = React.useMemo(() => ({
+    searchQuery: value,
+    searchMode: searchMode
+  }), []); // 空依赖数组，只在组件首次渲染时计算
+
+  // 使用 useEffect 来同步外部 props 到表单
+  useEffect(() => {
+    if (formRef.current) {
+      formRef.current.setFieldsValue({
+        searchQuery: value,
+        searchMode: searchMode
+      });
+    }
+  }, [value, searchMode]);
+
   return (
-    <div className={className}>
+    <div className={`${className} search-form-controls`}>
       <ProForm
-        form={form}
+        formRef={formRef}
         layout="horizontal"
         submitter={false}
         onFinish={handleFinish}
         onValuesChange={handleValuesChange}
-        initialValues={{
-          searchQuery: value,
-          searchMode: searchMode
-        }}
+        initialValues={initialValues}
         autoFocusFirstInput={false}
+        preserve={false}
       >
-        <Space.Compact style={{ width: '100%' }}>
+        <div className={styles.searchContainer}>
           {/* 搜索模式选择器 */}
-          <ProFormSelect
-            name="searchMode"
-            width={120}
-            options={Object.entries(SEARCH_MODE_CONFIG).map(([mode, config]) => ({
-              label: (
-                <Space size={4}>
-                  {config.icon}
-                  {config.label}
-                </Space>
-              ),
-              value: mode
-            }))}
-            fieldProps={{
-              size: 'middle',
-              disabled: disabled,
-              style: { minWidth: 120 }
-            }}
-            tooltip={SEARCH_MODE_CONFIG[searchMode].description}
-          />
+          <div style={{ flexShrink: 0 }}>
+            <ProFormSelect
+              name="searchMode"
+              width={120}
+              options={Object.entries(SEARCH_MODE_CONFIG).map(([mode, config]) => ({
+                label: (
+                  <Space size={4} style={{ height: '20px', lineHeight: '20px' }}>
+                    <span style={{ fontSize: '12px', lineHeight: '20px' }}>{config.icon}</span>
+                    <span style={{ fontSize: '14px', lineHeight: '20px' }}>{config.label}</span>
+                  </Space>
+                ),
+                value: mode
+              }))}
+              fieldProps={{
+                size: 'middle',
+                disabled: disabled,
+                style: { 
+                  minWidth: 120,
+                  maxHeight: '32px',
+                  overflow: 'hidden'
+                },
+                optionLabelProp: 'label'
+              }}
+              tooltip={SEARCH_MODE_CONFIG[searchMode].description}
+            />
+          </div>
 
           {/* 搜索输入框 */}
-          <ProFormDependency name={['searchQuery']}>
-            {({ searchQuery }) => (
-              <ProFormText
-                name="searchQuery"
-                placeholder={placeholder}
-                fieldProps={{
-                  style: { flex: 1 },
-                  disabled: disabled,
-                  prefix: isSearching ? 
-                    <LoadingOutlined style={{ color: '#1890ff' }} /> : 
-                    <SearchOutlined style={{ color: '#999' }} />,
-                  suffix: (
-                    <Space size={4}>
-                      {searchQuery && (
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<ClearOutlined />}
-                          onClick={handleClear}
-                          style={{ color: '#999' }}
-                        />
-                      )}
-                    </Space>
-                  ),
-                  onPressEnter: () => {
-                    const values = form.getFieldsValue();
+          <div style={{ flex: 1 }}>
+            <ProFormText
+              name="searchQuery"
+              placeholder={placeholder}
+              fieldProps={{
+                size: 'middle',
+                style: { width: '100%' },
+                disabled: disabled,
+                prefix: isSearching ? 
+                  <LoadingOutlined style={{ color: '#1890ff' }} /> : 
+                  <SearchOutlined style={{ color: '#999' }} />,
+                suffix: (
+                  <Space size={4}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<ClearOutlined />}
+                      onClick={handleClear}
+                      style={{ color: '#999' }}
+                    />
+                  </Space>
+                ),
+                onPressEnter: () => {
+                  const values = formRef.current?.getFieldsValue();
+                  if (values) {
                     handleFinish(values);
-                  },
-                  autoComplete: 'off'
-                }}
-                // 简化为普通输入框，移除复杂的自动完成功能
-                fieldProps={{
-                  style: { flex: 1 },
-                  disabled: disabled,
-                  prefix: isSearching ? 
-                    <LoadingOutlined style={{ color: '#1890ff' }} /> : 
-                    <SearchOutlined style={{ color: '#999' }} />,
-                  suffix: (
-                    <Space size={4}>
-                      {form.getFieldValue('searchQuery') && (
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<ClearOutlined />}
-                          onClick={handleClear}
-                          style={{ color: '#999' }}
-                        />
-                      )}
-                    </Space>
-                  ),
-                  onPressEnter: () => {
-                    const values = form.getFieldsValue();
-                    handleFinish(values);
-                  },
-                  autoComplete: 'off'
-                }}
-              />
-            )}
-          </ProFormDependency>
+                  }
+                },
+                autoComplete: 'off'
+              }}
+            />
+          </div>
 
           {/* 历史清空按钮 */}
           {showHistory && history.length > 0 && (
-            <Tooltip title="清空搜索历史">
-              <Button
-                icon={<HistoryOutlined />}
-                onClick={clearHistory}
-                disabled={disabled}
-                style={{ flexShrink: 0 }}
-              />
-            </Tooltip>
+            <div style={{ flexShrink: 0 }}>
+              <Tooltip title="清空搜索历史">
+                <Button
+                  icon={<HistoryOutlined />}
+                  onClick={clearHistory}
+                  disabled={disabled}
+                />
+              </Tooltip>
+            </div>
           )}
-        </Space.Compact>
+        </div>
       </ProForm>
 
       {/* 性能信息和搜索模式标签 */}
@@ -379,31 +365,27 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
       )}
 
       {/* 快捷搜索标签 */}
-      <ProFormDependency name={['searchQuery']}>
-        {({ searchQuery }) => (
-          searchQuery && suggestions.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12, marginRight: 8 }}>
-                快捷搜索:
-              </Text>
-              <Space size={4} wrap>
-                {suggestions.slice(0, 3).map((suggestion, index) => (
-                  <Tag
-                    key={index}
-                    style={{ cursor: 'pointer', fontSize: 11 }}
-                    onClick={() => {
-                      form.setFieldsValue({ searchQuery: suggestion });
-                      handleFinish({ searchQuery: suggestion, searchMode });
-                    }}
-                  >
-                    {suggestion}
-                  </Tag>
-                ))}
-              </Space>
-            </div>
-          )
-        )}
-      </ProFormDependency>
+      {formRef.current?.getFieldValue('searchQuery') && suggestions.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <Text type="secondary" style={{ fontSize: 12, marginRight: 8 }}>
+            快捷搜索:
+          </Text>
+          <Space size={4} wrap>
+            {suggestions.slice(0, 3).map((suggestion, index) => (
+              <Tag
+                key={index}
+                style={{ cursor: 'pointer', fontSize: 11 }}
+                onClick={() => {
+                  formRef.current?.setFieldsValue({ searchQuery: suggestion });
+                  handleFinish({ searchQuery: suggestion, searchMode });
+                }}
+              >
+                {suggestion}
+              </Tag>
+            ))}
+          </Space>
+        </div>
+      )}
     </div>
   );
 }; 

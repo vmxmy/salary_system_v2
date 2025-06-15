@@ -1,0 +1,193 @@
+/* 搜索组件统一样式管理 */
+.searchContainer {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.searchContainer > div {
+  display: flex;
+  align-items: stretch;
+}
+
+/* 统一所有表单控件的高度 */
+.searchContainer :global(.ant-form-item) {
+  margin-bottom: 0 !important;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer :global(.ant-form-item-control) {
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer :global(.ant-form-item-control-input) {
+  height: 32px !important;
+  min-height: 32px !important;
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer :global(.ant-form-item-control-input-content) {
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+/* 输入框样式统一 */
+.searchContainer :global(.ant-input),
+.searchContainer :global(.ant-input-affix-wrapper) {
+  height: 32px !important;
+  line-height: 1.5715 !important;
+  padding: 4px 11px !important;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer :global(.ant-input-affix-wrapper-focused),
+.searchContainer :global(.ant-input-affix-wrapper:focus) {
+  height: 32px !important;
+}
+
+/* 选择器样式统一 */
+.searchContainer :global(.ant-select) {
+  height: 32px !important;
+  max-height: 32px !important;
+}
+
+.searchContainer :global(.ant-select-selector) {
+  height: 32px !important;
+  max-height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  display: flex !important;
+  align-items: center !important;
+  border-radius: 6px;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.searchContainer :global(.ant-select-selection-search) {
+  height: 30px !important;
+  max-height: 30px !important;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.searchContainer :global(.ant-select-selection-item) {
+  height: 30px !important;
+  max-height: 30px !important;
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+.searchContainer :global(.ant-select-selection-placeholder) {
+  height: 30px !important;
+  max-height: 30px !important;
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+/* 强制限制选择器内容高度 */
+.searchContainer :global(.ant-select-selection-item) > * {
+  max-height: 28px !important;
+  overflow: hidden !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.searchContainer :global(.ant-space) {
+  max-height: 28px !important;
+  overflow: hidden !important;
+}
+
+.searchContainer :global(.ant-space-item) {
+  max-height: 28px !important;
+  overflow: hidden !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* 按钮样式统一 */
+.searchContainer :global(.ant-btn) {
+  height: 32px !important;
+  line-height: 1.5715 !important;
+  padding: 4px 15px !important;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchContainer :global(.ant-btn-sm) {
+  height: 24px !important;
+  padding: 0px 7px !important;
+  font-size: 12px;
+}
+
+/* ProForm 特殊样式处理 */
+.searchContainer :global(.ant-pro-field) {
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer :global(.ant-pro-field-label) {
+  height: 32px;
+  line-height: 32px;
+}
+
+/* 图标对齐 */
+.searchContainer :global(.ant-input-prefix),
+.searchContainer :global(.ant-input-suffix) {
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer :global(.anticon) {
+  display: flex;
+  align-items: center;
+}
+
+/* 特殊情况：确保所有子元素都对齐 */
+.searchContainer * {
+  box-sizing: border-box;
+}
+
+/* 响应式处理 */
+@media (max-width: 768px) {
+  .searchContainer {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .searchContainer > div {
+    width: 100%;
+  }
+}
+
+/* 调试样式（开发环境可用） */
+.debug .searchContainer > div {
+  border: 1px solid red;
+}
+
+.debug .searchContainer :global(.ant-form-item) {
+  border: 1px solid blue;
+}
+
+.debug .searchContainer :global(.ant-input),
+.debug .searchContainer :global(.ant-select-selector) {
+  border: 2px solid green !important;
+} 

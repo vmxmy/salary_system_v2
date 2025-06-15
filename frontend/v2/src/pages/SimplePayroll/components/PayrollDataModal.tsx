@@ -21,15 +21,12 @@ import {
   type PayrollDataFilters 
 } from '../../../hooks/usePayrollDataQuery';
 
-// 调试组件
-import { ReactQueryDebugger } from '../../../components/ReactQueryDebugger';
-import { ReactQueryCleaner } from '../../../components/ReactQueryCleaner';
+
 
 // 搜索功能导入
 import { usePayrollSearch } from '../../../hooks/usePayrollSearch';
 import { SearchMode } from '../../../utils/searchUtils';
 import { ProFormGlobalSearch } from '../../../components/PayrollDataModal/ProFormGlobalSearch';
-import { AdvancedSearchForm } from '../../../components/PayrollDataModal/AdvancedSearchForm';
 import { TableCellHighlight } from '../../../components/PayrollDataModal/HighlightText';
 
 const { Panel } = Collapse;
@@ -197,7 +194,6 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [dynamicColumns, setDynamicColumns] = useState<ProColumns<PayrollData>[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [searchCardCollapsed, setSearchCardCollapsed] = useState(false);
-  const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
 
   // 数字格式化函数：统一显示2位小数
   const formatNumber = (value: any) => {
@@ -957,15 +953,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           }
         }
       `}</style>
-      {/* 🔍 React Query 调试信息 */}
-      {import.meta.env.DEV && (
-        <>
-          <ReactQueryDebugger />
-          <div style={{ margin: '8px 0' }}>
-            <ReactQueryCleaner />
-          </div>
-        </>
-      )}
+
       
       {/* 筛选配置面板 */}
       {showFilterPanel && (
@@ -1120,27 +1108,13 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             <Col flex="auto">
                           <Space wrap size={8}>
               <SearchOutlined />
-              <span>{useAdvancedSearch ? '高级搜索' : '智能搜索'}</span>
+              <span>智能搜索</span>
               {!isEmptyQuery && (
                 <Tag color="blue" style={{ margin: 0 }}>
                   {totalResults} 条结果
                   {performance.isOptimal && <span style={{ color: '#52c41a' }}> ⚡</span>}
                 </Tag>
               )}
-              <Button
-                type="text"
-                size="small"
-                icon={useAdvancedSearch ? <SearchOutlined /> : <SettingOutlined />}
-                onClick={() => setUseAdvancedSearch(!useAdvancedSearch)}
-                style={{ 
-                  padding: '2px 6px', 
-                  height: 'auto',
-                  fontSize: '12px',
-                  color: '#1890ff'
-                }}
-              >
-                {useAdvancedSearch ? '简单' : '高级'}
-              </Button>
             </Space>
             </Col>
             <Col flex="none">
@@ -1173,31 +1147,14 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
           overflow: 'hidden'
         }}
-        bodyStyle={{ 
-          padding: searchCardCollapsed ? 0 : '16px',
-          backgroundColor: '#fafafa'
+        styles={{ 
+          body: {
+            padding: searchCardCollapsed ? 0 : '16px',
+            backgroundColor: '#fafafa'
+          }
         }}
       >
                 {!searchCardCollapsed && (
-          useAdvancedSearch ? (
-            /* 高级搜索表单 */
-            <AdvancedSearchForm
-              onSearch={(values) => {
-                console.log('🔍 [PayrollDataModal] 高级搜索参数:', values);
-                // 这里需要根据高级搜索的参数来执行搜索
-                if (values.keyword) {
-                  search(values.keyword, values.searchMode || SearchMode.AUTO);
-                } else {
-                  clearSearch();
-                }
-              }}
-              onReset={clearSearch}
-              loading={isSearching}
-              totalResults={totalResults}
-              searchTime={searchTime}
-              collapsed={false}
-            />
-          ) : (
             /* 简单搜索 */
             <Row gutter={[16, 12]}>
               {/* 搜索组件 */}
@@ -1266,7 +1223,6 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                 </Col>
               )}
             </Row>
-          )
         )}
       </Card>
 
@@ -1326,7 +1282,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           fullScreen: true,
           setting: {
             listsHeight: 400,
-            draggable: true,
+            draggable: false,
             checkable: true,
           },
         }}
@@ -1347,7 +1303,6 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         }}
         scroll={{ x: 'max-content' }}
         size="small"
-        cardBordered
         tableAlertRender={({ selectedRowKeys, selectedRows, onCleanSelected }) => (
           selectedRowKeys.length > 0 && (
             <div>

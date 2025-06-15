@@ -642,8 +642,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
 
   // 当earnings或deductions变化时，自动更新汇总项
   useEffect(() => {
-    updateTotals(earnings, deductions);
-  }, [earnings, deductions]);
+    // 只有在模态框可见且Form实例已初始化时才更新总计
+    if (visible && form) {
+      updateTotals(earnings, deductions);
+    }
+  }, [earnings, deductions, visible, form]);
   
   // 当组件定义加载完成后，重新过滤earnings和deductions
   useEffect(() => {
@@ -719,7 +722,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       
       // 在数据设置完成后，更新汇总项
       setTimeout(() => {
-        updateTotals(newEarnings, newDeductions);
+        if (visible && form) {
+          updateTotals(newEarnings, newDeductions);
+        }
       }, 0);
     }
   }, [visible, entry, payrollConfig.componentDefinitions.length]);
@@ -950,14 +955,23 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   
   // 更新总计
   const updateTotals = (earningsData: PayrollItemDetail[], deductionsData: PayrollItemDetail[]) => {
+    // 确保 form 实例存在且已连接
+    if (!form || !visible) {
+      return;
+    }
+    
     const totalEarnings = earningsData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const totalDeductions = deductionsData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     
-    form.setFieldsValue({
-      total_earnings: totalEarnings,
-      total_deductions: totalDeductions,
-      net_pay: totalEarnings - totalDeductions
-    });
+    try {
+      form.setFieldsValue({
+        total_earnings: totalEarnings,
+        total_deductions: totalDeductions,
+        net_pay: totalEarnings - totalDeductions
+      });
+    } catch (error) {
+      console.warn('⚠️ [updateTotals] Form 实例未就绪，跳过更新:', error);
+    }
   };
   
   // 添加新的收入项
@@ -1041,11 +1055,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         <Form
           form={form}
           layout="vertical"
-          initialValues={
-            entry ? {} : {
-              status_lookup_value_id: 64, // 默认使用64(已录入)状态
-            }
-          }
+          initialValues={{
+            status_lookup_value_id: 64, // 默认使用64(已录入)状态
+          }}
         >
               {/* 员工信息区域 */}
               <Card title={t('section.employee_info')} variant="outlined">
@@ -1181,7 +1193,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 ))}
               </Select>
             }
-            bordered={false}
+            variant="borderless"
           >
             {earnings.length === 0 ? (
               <Text type="secondary">{t('no_earnings_components')}</Text>
@@ -1238,7 +1250,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 ))}
               </Select>
             }
-            bordered={false}
+            variant="borderless"
           >
             {deductions.length === 0 ? (
               <Text type="secondary">{t('no_deductions_components')}</Text>

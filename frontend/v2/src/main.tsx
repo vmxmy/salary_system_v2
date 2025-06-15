@@ -20,6 +20,12 @@ import AppWrapper from './AppWrapper';
 import { createBrowserRouter } from 'react-router-dom'; // 导入 react-router-dom 的 createBrowserRouter
 import { routes } from './router/routes'; // 从 routes.tsx 导入路由配置数组
 import './styles/index.less'; // 只导入 index.less，它会再导入其他需要的样式
+import './styles/form-controls.css'; // 导入全局表单控件样式
+
+// 在开发环境中导入调试工具
+if (import.meta.env.DEV) {
+  import('./utils/formControlsDebug');
+}
 import { App } from 'antd'; // 导入 Ant Design 的 App 组件
 
 // React Query 配置
