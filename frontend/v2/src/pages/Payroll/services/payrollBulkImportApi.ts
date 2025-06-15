@@ -732,4 +732,78 @@ export const generateComponentSelectOptions = (components: PayrollComponentDefin
   });
 
   return optionGroups;
+};
+
+/**
+ * 获取薪资数据 - 用于 PayrollDataModal
+ * @param filters 筛选参数
+ * @returns 薪资数据响应
+ */
+export const getPayrollData = async (filters: {
+  periodId?: string;
+  departmentId?: string;
+  employeeId?: string;
+  page?: number;
+  size?: number;
+  [key: string]: any;
+}) => {
+  try {
+    console.log('🔄 [getPayrollData] 开始获取薪资数据', { filters });
+    
+    // 构建查询参数
+    const params = new URLSearchParams();
+    if (filters.size) params.append('limit', filters.size.toString());
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.departmentId) params.append('department_id', filters.departmentId);
+    if (filters.employeeId) params.append('employee_id', filters.employeeId);
+    
+    // 使用现有的批量模态框API
+    const periodId = filters.periodId || filters.period_id;
+    if (!periodId) {
+      throw new Error('Period ID is required');
+    }
+    
+    const url = `/reports/payroll-modal/period/${periodId}?${params.toString()}`;
+    const response = await apiClient.get(url);
+    
+    console.log('✅ [getPayrollData] API响应成功', {
+      dataLength: response.data?.length || 0,
+      url
+    });
+    
+    // 转换数据格式以匹配 React Query Hook 的期望
+    const modalDataList = response.data || [];
+    const transformedData = modalDataList.map((modalData: any, index: number) => ({
+      id: modalData.薪资条目id || index,
+      key: modalData.薪资条目id || `row-${index}`,
+      薪资条目id: modalData.薪资条目id,
+      员工编号: modalData.基础信息?.员工编号,
+      员工姓名: modalData.基础信息?.员工姓名,
+      部门名称: modalData.基础信息?.部门名称,
+      职位名称: modalData.基础信息?.职位名称,
+      人员类别: modalData.基础信息?.人员类别,
+      编制: modalData.基础信息?.编制,
+      薪资期间名称: modalData.基础信息?.薪资期间名称,
+      应发合计: modalData.汇总信息?.应发合计,
+      扣除合计: modalData.汇总信息?.扣除合计,
+      实发合计: modalData.汇总信息?.实发合计,
+      // 添加应发明细
+      ...modalData.应发明细,
+      // 添加扣除明细
+      ...modalData.扣除明细?.个人扣缴项目,
+      ...modalData.扣除明细?.单位扣缴项目,
+      // 添加计算参数
+      ...modalData.计算参数
+    }));
+    
+    return {
+      data: transformedData,
+      total: transformedData.length,
+      page: filters.page || 1,
+      size: filters.size || 100,
+    };
+  } catch (error: any) {
+    console.error('❌ [getPayrollData] 获取薪资数据失败', error);
+    throw error;
+  }
 }; 

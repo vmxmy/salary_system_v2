@@ -7,11 +7,6 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
   server: {
     host: '0.0.0.0',
     allowedHosts: ['salary.ziikoo.com'],
@@ -113,11 +108,34 @@ export default defineConfig({
       'react-i18next',
       'i18next',
       '@reduxjs/toolkit',
-      'react-redux'
+      'react-redux',
+      '@tanstack/react-query',
+      '@tanstack/react-query-devtools'
     ],
     exclude: [
       'xlsx',
-      'xlsx-js-style' // 这些库较大，延迟加载
+      'xlsx-js-style', // 这些库较大，延迟加载
+      '@mapbox/node-pre-gyp' // 排除有问题的包
     ]
+  },
+  
+  // 定义外部依赖，避免构建错误
+  define: {
+    global: 'globalThis',
+  },
+  
+  // 解决 Node.js 模块兼容性问题
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  
+  // ESBuild 配置
+  esbuild: {
+    // 忽略某些警告
+    logOverride: {
+      'this-is-undefined-in-esm': 'silent'
+    }
   }
 })

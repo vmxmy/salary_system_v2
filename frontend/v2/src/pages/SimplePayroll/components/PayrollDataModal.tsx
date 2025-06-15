@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Modal, message, Button, Space, Input, Card, Collapse, Switch, Tag, Select, InputNumber, Divider } from 'antd';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Modal, message, Button, Space, Input, Card, Collapse, Switch, Tag, Select, InputNumber, Divider, Row, Col } from 'antd';
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined, DeleteOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, FilterOutlined, SettingOutlined, DeleteOutlined, UpOutlined, DownOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { payrollViewsApi, type ComprehensivePayrollDataView } from '../../Payroll/services/payrollViewsApi';
 import PayrollEntryDetailModal from '../../Payroll/components/PayrollEntryDetailModal';
@@ -11,6 +11,26 @@ import type { PayrollEntry } from '../../Payroll/types/payrollTypes';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import apiClient from '../../../api/apiClient';
+
+// React Query 相关导入
+import { 
+  usePayrollDataQuery, 
+  useRefreshPayrollData, 
+  usePayrollDataCacheStatus,
+  usePayrollDataMutations,
+  type PayrollDataFilters 
+} from '../../../hooks/usePayrollDataQuery';
+
+// 调试组件
+import { ReactQueryDebugger } from '../../../components/ReactQueryDebugger';
+import { ReactQueryCleaner } from '../../../components/ReactQueryCleaner';
+
+// 搜索功能导入
+import { usePayrollSearch } from '../../../hooks/usePayrollSearch';
+import { SearchMode } from '../../../utils/searchUtils';
+import { ProFormGlobalSearch } from '../../../components/PayrollDataModal/ProFormGlobalSearch';
+import { AdvancedSearchForm } from '../../../components/PayrollDataModal/AdvancedSearchForm';
+import { TableCellHighlight } from '../../../components/PayrollDataModal/HighlightText';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -58,12 +78,126 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   periodName
 }) => {
   const { t } = useTranslation(['payroll', 'common', 'employee']);
-  const [dataSource, setDataSource] = useState<PayrollData[]>([]);
-  const [filteredDataSource, setFilteredDataSource] = useState<PayrollData[]>([]);
-  const [loading, setLoading] = useState(false);
   const actionRef = useRef<ActionType>(null);
+  
+  // 🚀 React Query 集成
+  const queryFilters = useMemo<PayrollDataFilters>(() => {
+    // 确保 periodId 是有效的（不为 0 或 null）
+    const validPeriodId = periodId && periodId > 0 ? periodId.toString() : undefined;
+    
+    return {
+      periodId: validPeriodId,
+      size: 100,
+      page: 1,
+    };
+  }, [periodId]);
+  
+  // 使用 useMemo 缓存查询配置，避免每次渲染都创建新对象
+  const queryOptions = useMemo(() => ({
+    enabled: visible && !!periodId && periodId > 0 && !!queryFilters.periodId,
+    onSuccess: (data: any) => {
+      console.log('✅ [PayrollDataModal] React Query 数据获取成功', {
+        total: data.total,
+        dataLength: data.data.length
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ [PayrollDataModal] React Query 数据获取失败', error);
+    },
+  }), [visible, periodId, queryFilters.periodId]);
+
+  const {
+    data: queryData,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+    status,
+    fetchStatus,
+  } = usePayrollDataQuery(queryFilters, queryOptions);
+
+  // 🔍 调试日志
+  console.log('🔍 [PayrollDataModal] React Query 状态:', {
+    visible,
+    periodId,
+    enabled: visible && !!periodId,
+    status,
+    fetchStatus,
+    isLoading,
+    isFetching,
+    hasData: !!queryData,
+    dataLength: queryData?.data?.length || 0,
+    queryFilters,
+    error: error?.message
+  });
+  
+  // 从 React Query 数据中提取状态
+  const dataSource = queryData?.data || [];
+  const loading = isLoading || isFetching;
+
+  // 🔍 调试：检查数据源结构
+  useEffect(() => {
+    if (dataSource.length > 0) {
+      console.log('🔍 [PayrollDataModal] 数据源调试信息:', {
+        dataLength: dataSource.length,
+        sampleRecord: dataSource[0],
+        availableKeys: Object.keys(dataSource[0]),
+        searchKeys: ['员工姓名', '员工编号', '部门名称', '职位名称', '人员类别', '编制', '薪资期间名称'],
+        keyExists: {
+          '员工姓名': '员工姓名' in dataSource[0],
+          '员工编号': '员工编号' in dataSource[0],
+          '部门名称': '部门名称' in dataSource[0],
+          '职位名称': '职位名称' in dataSource[0],
+          '人员类别': '人员类别' in dataSource[0],
+          '编制': '编制' in dataSource[0],
+          '薪资期间名称': '薪资期间名称' in dataSource[0]
+        }
+      });
+    }
+  }, [dataSource]);
+
+  // 🔍 搜索功能集成
+  const {
+    query: searchQuery,
+    results: searchResults,
+    isSearching,
+    searchMode,
+    suggestions,
+    totalResults,
+    searchTime,
+    search,
+    clearSearch,
+    setSearchMode,
+    isEmptyQuery,
+    hasResults,
+    performance,
+  } = usePayrollSearch(dataSource, {
+    keys: [
+      '员工姓名',
+      '员工编号', 
+      '部门名称',
+      '职位名称',
+      '人员类别',
+      '编制',
+      '薪资期间名称'
+    ],
+    threshold: 0.3,
+    debounceDelay: 300,
+    enableSuggestions: true,
+    maxSuggestions: 5,
+  });
+
+  // 使用搜索结果作为表格数据源
+  const filteredDataSource = isEmptyQuery ? dataSource : searchResults.map(result => result.item);
+  
+  // React Query 相关 Hooks
+  const { refreshFiltered, clearCache } = useRefreshPayrollData();
+  const { getCacheSize, getQueryStatus } = usePayrollDataCacheStatus();
+  const { onDeleteSuccess, onBatchOperationSuccess } = usePayrollDataMutations();
   const [dynamicColumns, setDynamicColumns] = useState<ProColumns<PayrollData>[]>([]);
   const [collapsed, setCollapsed] = useState(false);
+  const [searchCardCollapsed, setSearchCardCollapsed] = useState(false);
+  const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
 
   // 数字格式化函数：统一显示2位小数
   const formatNumber = (value: any) => {
@@ -170,332 +304,103 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [selectedEntry, setSelectedEntry] = useState<PayrollEntry | null>(null);
   const [payrollRunId, setPayrollRunId] = useState<number | null>(null);
 
-  // 通配符匹配函数
-  const matchesPattern = (text: string, pattern: string): boolean => {
+  // 通配符匹配函数 - 使用 useCallback 避免无限循环
+  const matchesPattern = useCallback((text: string, pattern: string): boolean => {
     const regexPattern = pattern
       .replace(/\*/g, '.*')
       .replace(/\?/g, '.');
     const regex = new RegExp(`^${regexPattern}$`, 'i');
     return regex.test(text);
-  };
+  }, []); // 无依赖项，纯函数
 
-  // 高级列筛选函数
-  const filterColumns = (keys: string[], data: PayrollData[]): string[] => {
-    return keys.filter(key => {
-      // 1. 检查包含模式
-      if (filterConfig.includePatterns.length > 0) {
-        const matchesInclude = filterConfig.includePatterns.some(pattern => 
-          matchesPattern(key, pattern)
-        );
-        if (!matchesInclude) return false;
-      }
 
-      // 2. 检查排除模式
-      if (filterConfig.excludePatterns.length > 0) {
-        const matchesExclude = filterConfig.excludePatterns.some(pattern => 
-          matchesPattern(key, pattern)
-        );
-        if (matchesExclude) return false;
-      }
 
-      // 3. 过滤 JSONB 列
-      if (filterConfig.hideJsonbColumns) {
-        if (key.includes('原始')) return false;
-        const sampleValue = data[0]?.[key as keyof PayrollData];
-        if (sampleValue !== null && typeof sampleValue === 'object' && !Array.isArray(sampleValue)) {
-          return false;
-        }
-      }
+  // 🚀 React Query 数据处理逻辑 - 使用搜索功能管理过滤数据源
+  // filteredDataSource 现在由搜索功能管理
 
-      // 4. 过滤全零列
-      if (filterConfig.hideZeroColumns) {
-        const hasNonZeroValue = data.some(item => {
-          const value = item[key as keyof PayrollData];
-          return value !== null && 
-                 value !== undefined && 
-                 value !== 0 && 
-                 value !== '' &&
-                 value !== '0' &&
-                 value !== '0.00';
-        });
-        if (!hasNonZeroValue) return false;
-      }
+  // 🚀 React Query 会自动处理数据获取，无需手动调用
 
-      // 5. 过滤空列（但保留重要的基础信息字段）
-      if (filterConfig.hideEmptyColumns) {
-        // 重要的基础信息字段，即使为空也要显示
-        const importantFields = ['根人员类别', '编制', '人员类别', '员工编号', '员工姓名', '部门名称', '职位名称'];
-        const isImportantField = importantFields.includes(key);
-        
-        if (!isImportantField) {
-          const hasValue = data.some(item => {
-            const value = item[key as keyof PayrollData];
-            return value !== null && value !== undefined && value !== '';
-          });
-          if (!hasValue) return false;
-        }
-      }
-
-      // 6. 只显示数值列
-      if (filterConfig.showOnlyNumericColumns) {
-        const sampleValue = data[0]?.[key as keyof PayrollData];
-        if (typeof sampleValue !== 'number') return false;
-      }
-
-      // 7. 数值范围筛选
-      if (typeof data[0]?.[key as keyof PayrollData] === 'number') {
-        const values = data.map(item => item[key as keyof PayrollData] as number).filter(v => v != null);
-        const maxValue = Math.max(...values);
-        const minValue = Math.min(...values);
-        
-        if (maxValue < filterConfig.minValueThreshold || minValue > filterConfig.maxValueThreshold) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  };
-
-  // 获取工资数据 - 使用新的批量模态框API
-  const fetchPayrollData = useCallback(async () => {
-    if (!periodId) return;
-    
-    setLoading(true);
-    try {
-      // 使用apiClient调用批量模态框API
-      const response = await apiClient.get(`/reports/payroll-modal/period/${periodId}?limit=100`);
-      const modalDataList = response.data;
-      console.log('✅ [PayrollDataModal] 批量模态框API响应:', modalDataList.length);
-
-      // 将模态框数据转换为表格数据格式
-      const transformedData: PayrollData[] = modalDataList.map((modalData: any, index: number) => ({
-        id: modalData.薪资条目id || index,
-        薪资条目id: modalData.薪资条目id,
-        员工编号: modalData.基础信息.员工编号,
-        员工姓名: modalData.基础信息.员工姓名,
-        部门名称: modalData.基础信息.部门名称,
-        职位名称: modalData.基础信息.职位名称,
-        人员类别: modalData.基础信息.人员类别,
-        编制: modalData.基础信息.编制,
-        薪资期间名称: modalData.基础信息.薪资期间名称,
-        应发合计: modalData.汇总信息.应发合计,
-        扣除合计: modalData.汇总信息.扣除合计,
-        实发合计: modalData.汇总信息.实发合计,
-        // 添加应发明细
-        ...modalData.应发明细,
-        // 添加扣除明细
-        ...modalData.扣除明细.个人扣缴项目,
-        ...modalData.扣除明细.单位扣缴项目,
-        // 添加计算参数
-        ...modalData.计算参数
-      }));
-      
-      console.log('✅ [PayrollDataModal] 数据转换完成:', transformedData.length);
-      
-      setDataSource(transformedData);
-      setFilteredDataSource(transformedData); // 初始时筛选数据等于全部数据
-
-      if (transformedData.length > 0) {
-        const firstItem = transformedData[0];
-        
-        // 存储所有可用的列名供筛选配置使用
-        const allKeys = Object.keys(firstItem);
-        setAllAvailableKeys(allKeys);
-        
-        // 使用高级筛选函数过滤列
-        const filteredKeys = filterColumns(allKeys, transformedData);
-        
-        console.log("🔍 [Column Filter] Original columns:", allKeys.length);
-        console.log("🔍 [Column Filter] After filtering:", filteredKeys.length);
-        console.log("🔍 [Column Filter] Filtered keys:", filteredKeys);
-        console.log("🔍 [Column Filter] Current config:", filterConfig);
-        
-        const generatedColumns = filteredKeys.map(key => {
-          const column: ProColumns<PayrollData> = {
-            title: t(`comprehensive_payroll_data.columns.${key}`, {
-              defaultValue: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            }),
-            dataIndex: key,
-            key: key,
-            // Handle potential objects or arrays in data
-            render: (text: any) => {
-              if (text === null || typeof text === 'undefined') {
-                return <span style={{ color: '#999' }}>N/A</span>;
-              }
-              
-              if (typeof text === 'object') {
-                return (
-                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
-                    {JSON.stringify(text, null, 2)}
-                  </pre>
-                );
-              }
-          
-              if (typeof text === 'boolean') {
-                return text ? <CheckCircleOutlined style={{ color: 'green' }} /> : <CloseCircleOutlined style={{ color: 'red' }} />;
-              }
-              
-              // 特殊处理：薪资期间名称使用日期格式
-              if (key === '薪资期间名称') {
-                return formatDate(text);
-              }
-              
-              // 尝试数字格式化
-              const formattedNumber = formatNumber(text);
-              if (formattedNumber !== text.toString()) {
-                return formattedNumber;
-              }
-          
-              // For other strings, etc.
-              return text.toString();
-            },
-          };
-
-          const filterableKeys = ['部门名称', '职位名称', '人员类别', '编制'];
-          const sampleValue = transformedData.length > 0 ? transformedData[0]?.[key as keyof PayrollData] : undefined;
-
-          // 为非对象、非布尔值类型添加排序功能
-          if (sampleValue !== null && sampleValue !== undefined && typeof sampleValue !== 'object' && typeof sampleValue !== 'boolean') {
-            column.sorter = (a, b) => {
-              const valA = a[key as keyof PayrollData] as any;
-              const valB = b[key as keyof PayrollData] as any;
-              if (valA === null || valA === undefined) return -1;
-              if (valB === null || valB === undefined) return 1;
-
-              if (typeof valA === 'number' && typeof valB === 'number') {
-                return valA - valB;
-              }
-              return String(valA).localeCompare(String(valB));
-            };
-          }
-
-          // 为指定的类别列添加筛选功能
-          if (filterableKeys.includes(key)) {
-            const uniqueValues = [...new Set(transformedData.map(item => item[key as keyof PayrollData]))].filter(v => v !== null && v !== undefined && v !== '');
-            if (uniqueValues.length > 1) {
-              column.filters = uniqueValues.map(value => ({
-                text: String(value),
-                value: value as string | number,
-              }));
-              column.onFilter = (value, record) => record[key as keyof PayrollData] === value;
-            }
-          }
-
-          // 为员工姓名添加文本搜索功能
-          if (key === '员工姓名') {
-            column.filterDropdown = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-              <div style={{ padding: 8 }}>
-                <Input
-                  placeholder="搜索员工姓名"
-                  value={selectedKeys[0]}
-                  onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-                  onPressEnter={() => confirm()}
-                  style={{ marginBottom: 8, display: 'block' }}
-                />
-                <Space>
-                  <Button
-                    type="primary"
-                    onClick={() => confirm()}
-                    icon={<SearchOutlined />}
-                    size="small"
-                    style={{ width: 90 }}
-                  >
-                    搜索
-                  </Button>
-                  <Button onClick={() => {
-                    console.log('🔄 [重置按钮] 点击重置，当前selectedKeys:', selectedKeys);
-                    
-                    // 1. 清空输入框
-                    setSelectedKeys([]);
-                    console.log('🔄 [重置按钮] 已清空selectedKeys');
-                    
-                    // 2. 调用clearFilters（如果存在）
-                    if (clearFilters) {
-                      clearFilters();
-                      console.log('🔄 [重置按钮] 已调用clearFilters');
-                    } else {
-                      console.warn('⚠️ [重置按钮] clearFilters函数不存在');
-                    }
-                    
-                    // 3. 强制确认以刷新表格
-                    confirm();
-                    console.log('🔄 [重置按钮] 已调用confirm刷新表格');
-                  }} size="small" style={{ width: 90 }}>
-                    重置
-                  </Button>
-                </Space>
-              </div>
-            );
-            column.filterIcon = (filtered: boolean) => (
-              <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
-            );
-            column.onFilter = (value, record) => {
-              const recordValue = record[key as keyof PayrollData];
-              return recordValue ? String(recordValue).toLowerCase().includes(String(value).toLowerCase()) : false;
-            };
-          }
-
-          return column;
-        });
-
-        console.log("Dynamically generated columns:", generatedColumns);
-        
-        // 添加固定的操作列
-        generatedColumns.push({
-          title: t('common:table.actions'),
-          key: 'action',
-          width: 160,
-          fixed: 'right',
-          render: (_, record) => (
-            <Space>
-              <TableActionButton
-                icon={<EyeOutlined />}
-                onClick={() => handleViewDetail(record)}
-                tooltipTitle={t('common:tooltip.view_details')}
-                actionType="view"
-              />
-              <TableActionButton
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-                tooltipTitle={t('common:button.edit')}
-                actionType="edit"
-              />
-              <TableActionButton
-                icon={<DeleteOutlined />}
-                onClick={() => {
-                  console.log('删除记录:', record);
-                  message.warning('删除功能开发中...');
-                }}
-                tooltipTitle={t('common:button.delete')}
-                actionType="delete"
-              />
-            </Space>
-          ),
-        });
-        
-        setDynamicColumns(generatedColumns);
-      }
-
-    } catch (error: any) {
-      message.error(`${t('payroll:dataPreview.importButton.error.description')}: ${error.message || t('common:unknown_error')}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [periodId, t]);
-
-  // 当模态框显示时获取数据
-  useEffect(() => {
-    if (visible && periodId) {
-      fetchPayrollData();
-    }
-  }, [visible, periodId, fetchPayrollData]);
-
-  // 当筛选配置改变时重新生成列
+  // 当筛选配置改变时重新生成列 - 避免重复生成
   useEffect(() => {
     if (dataSource.length > 0) {
       const allKeys = Object.keys(dataSource[0]);
-      const filteredKeys = filterColumns(allKeys, dataSource);
+      setAllAvailableKeys(allKeys); // 更新可用列名
+      
+      // 直接在 useEffect 内部实现筛选逻辑，避免函数依赖
+      const filteredKeys = allKeys.filter(key => {
+        // 1. 检查包含模式
+        if (filterConfig.includePatterns.length > 0) {
+          const matchesInclude = filterConfig.includePatterns.some(pattern => 
+            matchesPattern(key, pattern)
+          );
+          if (!matchesInclude) return false;
+        }
+
+        // 2. 检查排除模式
+        if (filterConfig.excludePatterns.length > 0) {
+          const matchesExclude = filterConfig.excludePatterns.some(pattern => 
+            matchesPattern(key, pattern)
+          );
+          if (matchesExclude) return false;
+        }
+
+        // 3. 过滤 JSONB 列
+        if (filterConfig.hideJsonbColumns) {
+          if (key.includes('原始')) return false;
+          const sampleValue = dataSource[0]?.[key as keyof PayrollData];
+          if (sampleValue !== null && typeof sampleValue === 'object' && !Array.isArray(sampleValue)) {
+            return false;
+          }
+        }
+
+        // 4. 过滤全零列
+        if (filterConfig.hideZeroColumns) {
+          const hasNonZeroValue = dataSource.some(item => {
+            const value = item[key as keyof PayrollData];
+            return value !== null && 
+                   value !== undefined && 
+                   value !== 0 && 
+                   value !== '' &&
+                   value !== '0' &&
+                   value !== '0.00';
+          });
+          if (!hasNonZeroValue) return false;
+        }
+
+        // 5. 过滤空列（但保留重要的基础信息字段）
+        if (filterConfig.hideEmptyColumns) {
+          // 重要的基础信息字段，即使为空也要显示
+          const importantFields = ['根人员类别', '编制', '人员类别', '员工编号', '员工姓名', '部门名称', '职位名称'];
+          const isImportantField = importantFields.includes(key);
+          
+          if (!isImportantField) {
+            const hasValue = dataSource.some(item => {
+              const value = item[key as keyof PayrollData];
+              return value !== null && value !== undefined && value !== '';
+            });
+            if (!hasValue) return false;
+          }
+        }
+
+        // 6. 只显示数值列
+        if (filterConfig.showOnlyNumericColumns) {
+          const sampleValue = dataSource[0]?.[key as keyof PayrollData];
+          if (typeof sampleValue !== 'number') return false;
+        }
+
+        // 7. 数值范围筛选
+        if (typeof dataSource[0]?.[key as keyof PayrollData] === 'number') {
+          const values = dataSource.map(item => item[key as keyof PayrollData] as number).filter(v => v != null);
+          const maxValue = Math.max(...values);
+          const minValue = Math.min(...values);
+          
+          if (maxValue < filterConfig.minValueThreshold || minValue > filterConfig.maxValueThreshold) {
+            return false;
+          }
+        }
+
+        return true;
+      });
       
       const generatedColumns = filteredKeys.map(key => {
         const column: ProColumns<PayrollData> = {
@@ -504,7 +409,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           }),
           dataIndex: key,
           key: key,
-          render: (text: any) => {
+          render: (text: any, record: PayrollData) => {
             if (text === null || typeof text === 'undefined') {
               return <span style={{ color: '#999' }}>N/A</span>;
             }
@@ -529,7 +434,29 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             // 尝试数字格式化
             const formattedNumber = formatNumber(text);
             if (formattedNumber !== text.toString()) {
+              // 对于数字类型，也支持搜索高亮
+              if (!isEmptyQuery && typeof text === 'number') {
+                return (
+                  <TableCellHighlight
+                    text={text.toString()}
+                    searchQuery={searchQuery}
+                    type="number"
+                  />
+                );
+              }
               return formattedNumber;
+            }
+
+            // 对于文本类型，添加搜索高亮
+            const textFields = ['员工姓名', '员工编号', '部门名称', '职位名称', '人员类别', '编制'];
+            if (!isEmptyQuery && textFields.includes(key)) {
+              return (
+                <TableCellHighlight
+                  text={text}
+                  searchQuery={searchQuery}
+                  type="text"
+                />
+              );
             }
         
             return text.toString();
@@ -658,7 +585,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       
       setDynamicColumns(generatedColumns);
     }
-  }, [filterConfig, dataSource, t]);
+  }, [dataSource, t, filterConfig, matchesPattern]); // 添加 matchesPattern 依赖
 
   // 🎯 查看详情
   const handleViewDetail = async (record: PayrollData) => {
@@ -706,7 +633,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     setEditModalVisible(false);
     setSelectedEntry(null);
     setPayrollRunId(null);
-    fetchPayrollData(); // 刷新数据
+    refetch(); // 🚀 使用 React Query 刷新数据
     message.success(t('payroll:entry_form.message.update_success'));
   };
 
@@ -983,7 +910,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
   // 刷新数据
   const handleRefresh = () => {
-    fetchPayrollData();
+    refetch(); // 🚀 使用 React Query 刷新数据
     message.success(t('common:table.refreshSuccess'));
   };
 
@@ -1018,6 +945,28 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       style={{ top: 20 }}
       destroyOnClose
     >
+      <style>{`
+        @media (max-width: 768px) {
+          .search-card-toggle-text {
+            display: none !important;
+          }
+        }
+        @media (min-width: 769px) {
+          .search-card-toggle-text {
+            display: inline !important;
+          }
+        }
+      `}</style>
+      {/* 🔍 React Query 调试信息 */}
+      {import.meta.env.DEV && (
+        <>
+          <ReactQueryDebugger />
+          <div style={{ margin: '8px 0' }}>
+            <ReactQueryCleaner />
+          </div>
+        </>
+      )}
+      
       {/* 筛选配置面板 */}
       {showFilterPanel && (
         <Card 
@@ -1164,10 +1113,167 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         </Card>
       )}
 
+      {/* 🔍 智能搜索卡片 */}
+      <Card 
+        title={
+          <Row justify="space-between" align="middle" wrap={false}>
+            <Col flex="auto">
+                          <Space wrap size={8}>
+              <SearchOutlined />
+              <span>{useAdvancedSearch ? '高级搜索' : '智能搜索'}</span>
+              {!isEmptyQuery && (
+                <Tag color="blue" style={{ margin: 0 }}>
+                  {totalResults} 条结果
+                  {performance.isOptimal && <span style={{ color: '#52c41a' }}> ⚡</span>}
+                </Tag>
+              )}
+              <Button
+                type="text"
+                size="small"
+                icon={useAdvancedSearch ? <SearchOutlined /> : <SettingOutlined />}
+                onClick={() => setUseAdvancedSearch(!useAdvancedSearch)}
+                style={{ 
+                  padding: '2px 6px', 
+                  height: 'auto',
+                  fontSize: '12px',
+                  color: '#1890ff'
+                }}
+              >
+                {useAdvancedSearch ? '简单' : '高级'}
+              </Button>
+            </Space>
+            </Col>
+            <Col flex="none">
+              <Button 
+                type="text" 
+                size="small"
+                onClick={() => setSearchCardCollapsed(!searchCardCollapsed)}
+                icon={searchCardCollapsed ? <DownOutlined /> : <UpOutlined />}
+                style={{ 
+                  padding: '4px 8px',
+                  height: 'auto',
+                  lineHeight: 1
+                }}
+              >
+                <span 
+                  style={{ fontSize: '12px' }}
+                  className="search-card-toggle-text"
+                >
+                  {searchCardCollapsed ? '展开' : '收起'}
+                </span>
+              </Button>
+            </Col>
+          </Row>
+        }
+        size="small"
+        style={{ 
+          marginBottom: 16,
+          border: '1px solid #d9d9d9',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+          overflow: 'hidden'
+        }}
+        bodyStyle={{ 
+          padding: searchCardCollapsed ? 0 : '16px',
+          backgroundColor: '#fafafa'
+        }}
+      >
+                {!searchCardCollapsed && (
+          useAdvancedSearch ? (
+            /* 高级搜索表单 */
+            <AdvancedSearchForm
+              onSearch={(values) => {
+                console.log('🔍 [PayrollDataModal] 高级搜索参数:', values);
+                // 这里需要根据高级搜索的参数来执行搜索
+                if (values.keyword) {
+                  search(values.keyword, values.searchMode || SearchMode.AUTO);
+                } else {
+                  clearSearch();
+                }
+              }}
+              onReset={clearSearch}
+              loading={isSearching}
+              totalResults={totalResults}
+              searchTime={searchTime}
+              collapsed={false}
+            />
+          ) : (
+            /* 简单搜索 */
+            <Row gutter={[16, 12]}>
+              {/* 搜索组件 */}
+              <Col xs={24} sm={24} md={24} lg={24}>
+                <ProFormGlobalSearch
+                  value={searchQuery}
+                  onSearch={search}
+                  onClear={clearSearch}
+                  suggestions={suggestions}
+                  searchMode={searchMode}
+                  onSearchModeChange={setSearchMode}
+                  isSearching={isSearching}
+                  totalResults={totalResults}
+                  searchTime={searchTime}
+                  showPerformance={true}
+                  placeholder="搜索员工姓名、编号、部门、职位..."
+                />
+              </Col>
+              
+              {/* 搜索统计信息 */}
+              <Col xs={24} sm={18} md={20} lg={20}>
+                <div style={{ 
+                  fontSize: 12, 
+                  color: '#666',
+                  padding: '8px 12px',
+                  backgroundColor: isEmptyQuery ? '#e6f7ff' : '#f0f0f0',
+                  borderRadius: '6px',
+                  border: isEmptyQuery ? '1px solid #91d5ff' : '1px solid #d9d9d9',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  {isEmptyQuery ? (
+                    <Space size={4}>
+                      <span>💡 支持多关键词搜索，用空格分隔</span>
+                    </Space>
+                  ) : (
+                    <Space size={8} wrap>
+                      <span>搜索耗时: <strong>{searchTime.toFixed(1)}ms</strong></span>
+                      {performance.isOptimal && (
+                        <Tag color="success" style={{ margin: 0 }}>高效</Tag>
+                      )}
+                    </Space>
+                  )}
+                </div>
+              </Col>
+              
+              {/* 搜索模式指示器 */}
+              {!isEmptyQuery && (
+                <Col xs={24} sm={6} md={4} lg={4}>
+                  <div style={{ 
+                    fontSize: 11,
+                    color: '#999',
+                    padding: '8px 12px',
+                    backgroundColor: '#fff',
+                    border: '1px solid #e8e8e8',
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    模式: {searchMode === 'fuzzy' ? '模糊' : searchMode === 'exact' ? '精确' : '智能'}
+                  </div>
+                </Col>
+              )}
+            </Row>
+          )
+        )}
+      </Card>
+
       <ProTable<PayrollData>
         actionRef={actionRef}
         columns={dynamicColumns}
-        dataSource={dataSource}
+        dataSource={filteredDataSource}
         loading={loading}
         rowKey="id"
         search={false}
@@ -1204,10 +1310,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             currentDataSourceLength: extra.currentDataSource?.length,
             action: extra.action
           });
-          // 更新筛选后的数据，用于导出和分页计数
-          if (extra.currentDataSource) {
-            setFilteredDataSource(extra.currentDataSource);
-          }
+          // 注意：我们现在直接使用 dataSource，不再需要状态同步
         }}
         columnsState={{
           persistenceKey: 'payroll-data-table',
