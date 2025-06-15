@@ -342,7 +342,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
   // 🚀 React Query 会自动处理数据获取，无需手动调用
 
-  // 当筛选配置改变时重新生成列 - 避免重复生成
+  // 当筛选配置改变时重新生成列 - 保持用户列设置
   useEffect(() => {
     if (dataSource.length > 0) {
       const allKeys = Object.keys(dataSource[0]);
@@ -537,22 +537,9 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                 </Button>
                 <Button onClick={() => {
                   console.log('🔄 [重置按钮2] 点击重置，当前selectedKeys:', selectedKeys);
-                  
-                  // 1. 清空输入框
-                  setSelectedKeys([]);
-                  console.log('🔄 [重置按钮2] 已清空selectedKeys');
-                  
-                  // 2. 调用clearFilters（如果存在）
                   if (clearFilters) {
                     clearFilters();
-                    console.log('🔄 [重置按钮2] 已调用clearFilters');
-                  } else {
-                    console.warn('⚠️ [重置按钮2] clearFilters函数不存在');
                   }
-                  
-                  // 3. 强制确认以刷新表格
-                  confirm();
-                  console.log('🔄 [重置按钮2] 已调用confirm刷新表格');
                 }} size="small" style={{ width: 90 }}>
                   重置
                 </Button>
@@ -563,50 +550,97 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
           );
           column.onFilter = (value, record) => {
-            const recordValue = record[key as keyof PayrollData];
-            return recordValue ? String(recordValue).toLowerCase().includes(String(value).toLowerCase()) : false;
+            const name = record[key as keyof PayrollData];
+            return name ? String(name).toLowerCase().includes(String(value).toLowerCase()) : false;
           };
         }
-        
+
         return column;
       });
 
-              // 添加操作列
-        generatedColumns.push({
-          title: t('common:table.actions'),
-          key: 'action',
-          width: 160,
-          fixed: 'right',
-          render: (_, record) => (
-            <Space>
-              <TableActionButton
-                icon={<EyeOutlined />}
-                onClick={() => handleViewDetail(record)}
-                tooltipTitle={t('common:tooltip.view_details')}
-                actionType="view"
-              />
-              <TableActionButton
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-                tooltipTitle={t('common:button.edit')}
-                actionType="edit"
-              />
-              <TableActionButton
-                icon={<DeleteOutlined />}
-                onClick={() => {
-                  console.log('删除记录:', record);
-                  message.warning('删除功能开发中...');
-                }}
-                tooltipTitle={t('common:button.delete')}
-                actionType="delete"
-              />
-            </Space>
-          ),
-        });
+      // 添加操作列
+      generatedColumns.push({
+        title: t('common:table.action'),
+        key: 'action',
+        fixed: 'right',
+        width: 120,
+        render: (_, record) => (
+          <Space size="small">
+            <TableActionButton
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetail(record)}
+              tooltipTitle={t('common:button.view')}
+              actionType="view"
+            />
+            <TableActionButton
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              tooltipTitle={t('common:button.edit')}
+              actionType="edit"
+            />
+            <TableActionButton
+              icon={<DeleteOutlined />}
+              onClick={() => {
+                console.log('🗑️ [删除操作] 删除记录:', record);
+                message.warning('删除功能开发中...');
+              }}
+              tooltipTitle={t('common:button.delete')}
+              actionType="delete"
+            />
+          </Space>
+        ),
+      });
       
-      setDynamicColumns(generatedColumns);
+      // 🎯 智能同步机制：保持用户的列设置
+      setDynamicColumns(prevColumns => {
+        // 如果是首次生成或列结构发生重大变化，直接使用新列
+        if (prevColumns.length === 0) {
+          console.log('🔄 [列同步] 首次生成列，直接使用新列配置');
+          return generatedColumns;
+        }
+        
+        // 检查列是否发生了实质性变化（列的key集合是否不同）
+        const prevKeys = new Set(prevColumns.map(col => col.key));
+        const newKeys = new Set(generatedColumns.map(col => col.key));
+        const keysChanged = prevKeys.size !== newKeys.size || 
+                           [...prevKeys].some(key => !newKeys.has(key)) ||
+                           [...newKeys].some(key => !prevKeys.has(key));
+        
+        if (keysChanged) {
+          console.log('🔄 [列同步] 列结构发生变化，需要同步用户设置');
+          console.log('🔄 [列同步] 旧列keys:', [...prevKeys]);
+          console.log('🔄 [列同步] 新列keys:', [...newKeys]);
+          
+          // 🎯 保持用户的列设置：将现有的列状态应用到新列
+          const updatedColumnsState: Record<string, any> = {};
+          
+          // 遍历新列，检查是否在用户设置中存在
+          generatedColumns.forEach(newCol => {
+            const key = String(newCol.key || '');
+            const existingState = currentColumnsState[key];
+            
+            if (existingState) {
+              // 保持用户的显示/隐藏和顺序设置
+              updatedColumnsState[key] = existingState;
+              console.log(`🔄 [列同步] 保持列 ${key} 的用户设置:`, existingState);
+            } else {
+              // 新列默认显示
+              updatedColumnsState[key] = { show: true };
+              console.log(`🔄 [列同步] 新列 ${key} 默认显示`);
+            }
+          });
+          
+          // 更新列状态（这会触发ProTable重新渲染）
+          setCurrentColumnsState(updatedColumnsState);
+          
+          return generatedColumns;
+        } else {
+          console.log('🔄 [列同步] 列结构未变化，保持现有列配置');
+          return prevColumns;
+        }
+      });
     }
-  }, [dataSource, t, filterConfig, matchesPattern]); // 添加 matchesPattern 依赖
+  }, [dataSource, t, filterConfig, matchesPattern]); // 移除 currentColumnsState 依赖避免循环
 
   // 🎯 查看详情
   const handleViewDetail = async (record: PayrollData) => {
