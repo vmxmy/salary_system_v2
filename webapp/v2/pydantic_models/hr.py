@@ -498,4 +498,109 @@ class BulkEmployeeCreateResult(BaseModel):
     created_employees: List[Employee] = Field(..., description="成功创建/更新的员工列表")
     failed_records: List[BulkEmployeeFailedRecord] = Field(..., description="失败的记录列表")
 
+
+# 批量导入相关模型
+class EmployeeBatchImportItem(BaseModel):
+    """批量导入员工数据项"""
+    client_id: Optional[str] = Field(None, description="客户端生成的唯一ID")
+    
+    # 基础字段
+    employee_code: Optional[str] = Field(None, description="员工编号")
+    first_name: Optional[str] = Field(None, description="名")
+    last_name: Optional[str] = Field(None, description="姓")
+    id_number: Optional[str] = Field(None, description="身份证号")
+    hire_date: Optional[date] = Field(None, description="入职日期")
+    
+    # 个人信息字段
+    date_of_birth: Optional[date] = Field(None, description="出生日期")
+    nationality: Optional[str] = Field(None, description="国籍")
+    ethnicity: Optional[str] = Field(None, description="民族")
+    email: Optional[EmailStr] = Field(None, description="邮箱")
+    phone_number: Optional[str] = Field(None, description="电话号码")
+    home_address: Optional[str] = Field(None, description="家庭地址")
+    emergency_contact_name: Optional[str] = Field(None, description="紧急联系人姓名")
+    emergency_contact_phone: Optional[str] = Field(None, description="紧急联系人电话")
+    
+    # 工作信息字段
+    first_work_date: Optional[date] = Field(None, description="首次工作日期")
+    current_position_start_date: Optional[date] = Field(None, description="当前职位开始日期")
+    career_position_level_date: Optional[date] = Field(None, description="职级评定日期")
+    interrupted_service_years: Optional[float] = Field(None, description="中断服务年限")
+    social_security_client_number: Optional[str] = Field(None, description="社保个人客户号")
+    housing_fund_client_number: Optional[str] = Field(None, description="公积金个人客户号")
+    
+    # 银行账户字段
+    bank_name: Optional[str] = Field(None, description="银行名称")
+    bank_account_number: Optional[str] = Field(None, description="银行账号")
+    account_holder_name: Optional[str] = Field(None, description="账户持有人姓名")
+    branch_name: Optional[str] = Field(None, description="开户支行")
+    
+    # 字典值字段（通过名称）
+    gender_name: Optional[str] = Field(None, description="性别")
+    employee_status: Optional[str] = Field(None, description="员工状态")
+    employment_type_name: Optional[str] = Field(None, description="雇佣类型")
+    education_level_name: Optional[str] = Field(None, description="教育水平")
+    marital_status_name: Optional[str] = Field(None, description="婚姻状况")
+    political_status_name: Optional[str] = Field(None, description="政治面貌")
+    contract_type_name: Optional[str] = Field(None, description="合同类型")
+    job_position_level_name: Optional[str] = Field(None, description="职务级别")
+    salary_level_name: Optional[str] = Field(None, description="工资级别")
+    salary_grade_name: Optional[str] = Field(None, description="工资档次")
+    
+    # 关联字段（通过名称）
+    department_name: Optional[str] = Field(None, description="部门名称")
+    position_name: Optional[str] = Field(None, description="职位名称")
+    personnel_category_name: Optional[str] = Field(None, description="人员类别名称")
+
+
+class EmployeeBatchValidationRequest(BaseModel):
+    """员工批量验证请求"""
+    employees: List[EmployeeBatchImportItem] = Field(..., description="待验证的员工数据列表")
+    overwrite_mode: str = Field("append", description="覆盖模式：append(追加) 或 replace(替换)")
+
+
+class EmployeeBatchValidationError(BaseModel):
+    """验证错误信息"""
+    field: str = Field(..., description="错误字段")
+    message: str = Field(..., description="错误消息")
+
+
+class EmployeeBatchValidationWarning(BaseModel):
+    """验证警告信息"""
+    field: str = Field(..., description="警告字段")
+    message: str = Field(..., description="警告消息")
+
+
+class EmployeeBatchValidationResult(BaseModel):
+    """单个员工验证结果"""
+    client_id: Optional[str] = Field(None, description="客户端ID")
+    is_valid: bool = Field(..., description="是否验证通过")
+    errors: List[EmployeeBatchValidationError] = Field(default_factory=list, description="错误列表")
+    warnings: List[EmployeeBatchValidationWarning] = Field(default_factory=list, description="警告列表")
+    employee_id: Optional[int] = Field(None, description="如果是更新现有员工，返回员工ID")
+
+
+class EmployeeBatchValidationResponse(BaseModel):
+    """员工批量验证响应"""
+    validation_results: List[EmployeeBatchValidationResult] = Field(..., description="验证结果列表")
+    summary: Dict[str, Any] = Field(default_factory=dict, description="验证摘要信息")
+
+
+class EmployeeBatchImportRequest(BaseModel):
+    """员工批量导入请求"""
+    employees: List[EmployeeBatchImportItem] = Field(..., description="待导入的员工数据列表")
+    overwrite_mode: str = Field("append", description="覆盖模式：append(追加) 或 replace(替换)")
+
+
+class EmployeeBatchImportResponse(BaseModel):
+    """员工批量导入响应"""
+    success_count: int = Field(..., description="成功导入的员工数量")
+    error_count: int = Field(..., description="导入失败的员工数量")
+    message: str = Field(..., description="导入结果消息")
+    details: Dict[str, Any] = Field(default_factory=dict, description="详细信息")
+
+# 重新构建所有模型以解决前向引用
 BulkEmployeeCreateResult.model_rebuild()
+EmployeeBatchValidationResult.model_rebuild()
+EmployeeBatchValidationResponse.model_rebuild()
+EmployeeBatchImportResponse.model_rebuild()

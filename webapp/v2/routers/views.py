@@ -1191,4 +1191,256 @@ async def get_comprehensive_payroll_data(
         print(f"Error in get_comprehensive_payroll_data: {str(e)}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"查询核心工资数据失败: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"查询核心工资数据失败: {str(e)}")
+
+# =============================================================================
+# 缴费基数查询 API - 基于 v_payroll_calculations 视图
+# =============================================================================
+
+class PayrollCalculationsResponse(BaseModel):
+    """薪资计算参数响应模型 - 基于 reports.v_payroll_calculations 视图"""
+    薪资条目id: int
+    员工id: int
+    社保缴费基数: Optional[float] = None
+    住房公积金缴费基数: Optional[float] = None
+    基本工资: Optional[float] = None
+    医疗保险缴费基数: Optional[float] = None
+    医疗保险缴费工资: Optional[float] = None
+    职业年金缴费基数: Optional[float] = None
+    职业年金缴费工资: Optional[float] = None
+    养老保险缴费基数: Optional[float] = None
+    计税基数: Optional[float] = None
+    养老保险个人费率: Optional[float] = None
+    医疗保险个人费率: Optional[float] = None
+    住房公积金个人费率: Optional[float] = None
+    养老保险单位费率: Optional[float] = None
+    医疗保险单位费率: Optional[float] = None
+    住房公积金单位费率: Optional[float] = None
+    适用税率: Optional[float] = None
+    速算扣除数: Optional[float] = None
+    应发合计: Optional[float] = None
+    扣发合计: Optional[float] = None
+    实发合计: Optional[float] = None
+    税后工资: Optional[float] = None
+    应纳税所得额: Optional[float] = None
+    扣除额: Optional[float] = None
+    免税额: Optional[float] = None
+    原始计算输入: Optional[Dict[str, Any]] = None
+    原始计算日志: Optional[Dict[str, Any]] = None
+
+@router.get("/payroll-calculations", response_model=List[PayrollCalculationsResponse])
+async def get_payroll_calculations(
+    period_id: Optional[int] = Query(None, description="薪资周期ID"),
+    employee_id: Optional[int] = Query(None, description="员工ID"),
+    limit: int = Query(100, le=200, description="返回记录数限制"),
+    offset: int = Query(0, ge=0, description="偏移量"),
+    session: Session = Depends(get_session),
+    current_user_id: int = Depends(get_current_user_id)
+):
+    """
+    获取薪资计算参数数据 - 专门用于缴费基数查询和批量导入
+    
+    使用 reports.v_payroll_calculations 视图，包含所有计算基数、费率和结果
+    特别适用于缴费基数的批量导入和查询功能
+    """
+    try:
+        conditions = []
+        params = {}
+
+        if period_id is not None:
+            conditions.append('"薪资条目id" IN (SELECT id FROM payroll.payroll_entries WHERE payroll_period_id = :period_id)')
+            params["period_id"] = period_id
+        
+        if employee_id is not None:
+            conditions.append('"员工id" = :employee_id')
+            params["employee_id"] = employee_id
+            
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        
+        query = f"""
+        SELECT 
+            "薪资条目id",
+            "员工id",
+            "社保缴费基数",
+            "住房公积金缴费基数",
+            "基本工资",
+            "医疗保险缴费基数",
+            "医疗保险缴费工资",
+            "职业年金缴费基数",
+            "职业年金缴费工资",
+            "养老保险缴费基数",
+            "计税基数",
+            "养老保险个人费率",
+            "医疗保险个人费率",
+            "住房公积金个人费率",
+            "养老保险单位费率",
+            "医疗保险单位费率",
+            "住房公积金单位费率",
+            "适用税率",
+            "速算扣除数",
+            "应发合计",
+            "扣发合计",
+            "实发合计",
+            "税后工资",
+            "应纳税所得额",
+            "扣除额",
+            "免税额",
+            "原始计算输入",
+            "原始计算日志"
+        FROM reports.v_payroll_calculations
+        {where_clause}
+        ORDER BY "员工id", "薪资条目id"
+        LIMIT {limit} OFFSET {offset}
+        """
+        
+        result = session.execute(text(query), params)
+        
+        calculations_data = []
+        for row_proxy in result:
+            row = dict(row_proxy._mapping)
+            
+            # 构建响应数据
+            calc_data = PayrollCalculationsResponse(
+                薪资条目id=row['薪资条目id'],
+                员工id=row['员工id'],
+                社保缴费基数=float(row['社保缴费基数']) if row['社保缴费基数'] is not None else None,
+                住房公积金缴费基数=float(row['住房公积金缴费基数']) if row['住房公积金缴费基数'] is not None else None,
+                基本工资=float(row['基本工资']) if row['基本工资'] is not None else None,
+                医疗保险缴费基数=float(row['医疗保险缴费基数']) if row['医疗保险缴费基数'] is not None else None,
+                医疗保险缴费工资=float(row['医疗保险缴费工资']) if row['医疗保险缴费工资'] is not None else None,
+                职业年金缴费基数=float(row['职业年金缴费基数']) if row['职业年金缴费基数'] is not None else None,
+                职业年金缴费工资=float(row['职业年金缴费工资']) if row['职业年金缴费工资'] is not None else None,
+                养老保险缴费基数=float(row['养老保险缴费基数']) if row['养老保险缴费基数'] is not None else None,
+                计税基数=float(row['计税基数']) if row['计税基数'] is not None else None,
+                养老保险个人费率=float(row['养老保险个人费率']) if row['养老保险个人费率'] is not None else None,
+                医疗保险个人费率=float(row['医疗保险个人费率']) if row['医疗保险个人费率'] is not None else None,
+                住房公积金个人费率=float(row['住房公积金个人费率']) if row['住房公积金个人费率'] is not None else None,
+                养老保险单位费率=float(row['养老保险单位费率']) if row['养老保险单位费率'] is not None else None,
+                医疗保险单位费率=float(row['医疗保险单位费率']) if row['医疗保险单位费率'] is not None else None,
+                住房公积金单位费率=float(row['住房公积金单位费率']) if row['住房公积金单位费率'] is not None else None,
+                适用税率=float(row['适用税率']) if row['适用税率'] is not None else None,
+                速算扣除数=float(row['速算扣除数']) if row['速算扣除数'] is not None else None,
+                应发合计=float(row['应发合计']) if row['应发合计'] is not None else None,
+                扣发合计=float(row['扣发合计']) if row['扣发合计'] is not None else None,
+                实发合计=float(row['实发合计']) if row['实发合计'] is not None else None,
+                税后工资=float(row['税后工资']) if row['税后工资'] is not None else None,
+                应纳税所得额=float(row['应纳税所得额']) if row['应纳税所得额'] is not None else None,
+                扣除额=float(row['扣除额']) if row['扣除额'] is not None else None,
+                免税额=float(row['免税额']) if row['免税额'] is not None else None,
+                原始计算输入=row['原始计算输入'],
+                原始计算日志=row['原始计算日志']
+            )
+            
+            calculations_data.append(calc_data)
+        
+        return calculations_data
+        
+    except Exception as e:
+        print(f"Error in get_payroll_calculations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"查询薪资计算参数失败: {str(e)}")
+
+@router.get("/salary-base-summary", response_model=List[Dict[str, Any]])
+async def get_salary_base_summary(
+    period_id: Optional[int] = Query(None, description="薪资周期ID"),
+    department_id: Optional[int] = Query(None, description="部门ID"),
+    limit: int = Query(100, le=200, description="返回记录数限制"),
+    offset: int = Query(0, ge=0, description="偏移量"),
+    session: Session = Depends(get_session),
+    current_user_id: int = Depends(get_current_user_id)
+):
+    """
+    获取缴费基数汇总信息 - 结合员工基础信息和计算参数
+    
+    专门用于缴费基数批量导入的数据展示，包含员工信息和当前缴费基数
+    """
+    try:
+        conditions = []
+        params = {}
+
+        if period_id is not None:
+            conditions.append('pe.payroll_period_id = :period_id')
+            params["period_id"] = period_id
+        
+        if department_id is not None:
+            conditions.append('eb.department_id = :department_id')
+            params["department_id"] = department_id
+            
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        
+        query = f"""
+        SELECT 
+            eb.id as employee_id,
+            eb.employee_code,
+            eb.first_name,
+            eb.last_name,
+            eb.full_name,
+            eb.id_number,
+            eb.department_name,
+            eb.position_name,
+            eb.personnel_category_name,
+            pe.id as payroll_entry_id,
+            pe.payroll_period_id as period_id,
+            pp.name as period_name,
+            pc."社保缴费基数",
+            pc."住房公积金缴费基数",
+            pc."医疗保险缴费基数",
+            pc."职业年金缴费基数",
+            pc."养老保险缴费基数",
+            pc."计税基数",
+            pc."养老保险个人费率",
+            pc."医疗保险个人费率",
+            pc."住房公积金个人费率"
+        FROM reports.v_employees_basic eb
+        LEFT JOIN payroll.payroll_entries pe ON eb.id = pe.employee_id
+        LEFT JOIN payroll.payroll_periods pp ON pe.payroll_period_id = pp.id
+        LEFT JOIN reports.v_payroll_calculations pc ON pe.id = pc."薪资条目id"
+        {where_clause}
+        ORDER BY eb.department_name, eb.full_name
+        LIMIT {limit} OFFSET {offset}
+        """
+        
+        result = session.execute(text(query), params)
+        
+        summary_data = []
+        for row_proxy in result:
+            row = dict(row_proxy._mapping)
+            
+            summary_item = {
+                "employee_id": row['employee_id'],
+                "employee_code": row['employee_code'],
+                "first_name": row['first_name'],
+                "last_name": row['last_name'],
+                "full_name": row['full_name'],
+                "id_number": row['id_number'],
+                "department_name": row['department_name'],
+                "position_name": row['position_name'],
+                "personnel_category_name": row['personnel_category_name'],
+                "payroll_entry_id": row['payroll_entry_id'],
+                "period_id": row['period_id'],
+                "period_name": row['period_name'],
+                "current_salary_bases": {
+                    "social_insurance_base": float(row['社保缴费基数']) if row['社保缴费基数'] is not None else 0.0,
+                    "housing_fund_base": float(row['住房公积金缴费基数']) if row['住房公积金缴费基数'] is not None else 0.0,
+                    "medical_insurance_base": float(row['医疗保险缴费基数']) if row['医疗保险缴费基数'] is not None else 0.0,
+                    "occupational_pension_base": float(row['职业年金缴费基数']) if row['职业年金缴费基数'] is not None else 0.0,
+                    "pension_base": float(row['养老保险缴费基数']) if row['养老保险缴费基数'] is not None else 0.0,
+                    "tax_base": float(row['计税基数']) if row['计税基数'] is not None else 0.0
+                },
+                "current_rates": {
+                    "pension_personal_rate": float(row['养老保险个人费率']) if row['养老保险个人费率'] is not None else 0.0,
+                    "medical_personal_rate": float(row['医疗保险个人费率']) if row['医疗保险个人费率'] is not None else 0.0,
+                    "housing_fund_personal_rate": float(row['住房公积金个人费率']) if row['住房公积金个人费率'] is not None else 0.0
+                }
+            }
+            
+            summary_data.append(summary_item)
+        
+        return summary_data
+        
+    except Exception as e:
+        print(f"Error in get_salary_base_summary: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"查询缴费基数汇总失败: {str(e)}") 

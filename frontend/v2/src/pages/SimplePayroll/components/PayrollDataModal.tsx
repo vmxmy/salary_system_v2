@@ -160,6 +160,9 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [allAvailableKeys, setAllAvailableKeys] = useState<string[]>([]);
   
+  // 🎯 ProTable列状态管理
+  const [currentColumnsState, setCurrentColumnsState] = useState<Record<string, any>>({});
+  
   // 🎯 详情和编辑功能状态
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -707,6 +710,112 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     message.success(t('payroll:entry_form.message.update_success'));
   };
 
+  // 从React渲染结果中提取文本内容
+  const extractTextFromRender = (renderResult: any): string => {
+    if (renderResult === null || renderResult === undefined) {
+      return '';
+    }
+    
+    // 如果是React元素
+    if (React.isValidElement(renderResult)) {
+      const props = renderResult.props as any;
+      
+      // 处理span元素（如格式化的数字、日期）
+      if (renderResult.type === 'span') {
+        if (props.children !== undefined) {
+          return String(props.children);
+        }
+        if (props.style?.color === '#999' && props.children === 'N/A') {
+          return 'N/A';
+        }
+      }
+      
+      // 处理pre元素（JSON数据）
+      if (renderResult.type === 'pre') {
+        return props.children || '';
+      }
+      
+      // 处理图标元素（布尔值）
+      if (typeof renderResult.type === 'function' && (renderResult.type as any).displayName) {
+        const displayName = (renderResult.type as any).displayName;
+        if (displayName === 'CheckCircleOutlined') return '是';
+        if (displayName === 'CloseCircleOutlined') return '否';
+      }
+      
+      // 尝试获取children
+      if (props && props.children !== undefined) {
+        return extractTextFromRender(props.children);
+      }
+      
+      return '';
+    }
+    
+    // 如果是数组，递归处理
+    if (Array.isArray(renderResult)) {
+      return renderResult.map(item => extractTextFromRender(item)).join('');
+    }
+    
+    // 基本类型直接返回
+    return String(renderResult);
+  };
+
+  // 处理单元格值，应用与表格相同的渲染逻辑
+  const processValue = (rawValue: any, column: ProColumns<PayrollData>, record: PayrollData, index: number): any => {
+    // 如果列有自定义渲染函数，使用它
+    if (column.render) {
+      try {
+        const renderResult = column.render(rawValue, record, index, {} as any, {} as any);
+        const textContent = extractTextFromRender(renderResult);
+        
+        // 尝试转换为数字（保持Excel中的数字格式）
+        const numValue = parseFloat(textContent);
+        if (!isNaN(numValue) && isFinite(numValue) && textContent !== 'N/A') {
+          return numValue;
+        }
+        
+        return textContent;
+      } catch (error) {
+        console.warn('渲染函数执行失败:', error);
+        return cleanValue(rawValue);
+      }
+    }
+    
+    // 没有渲染函数，直接清理原始值
+    return cleanValue(rawValue);
+  };
+
+  // 数据清理函数
+  const cleanValue = (value: any): any => {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (typeof value === 'object') {
+      return JSON.stringify(value);
+    }
+    if (typeof value === 'boolean') {
+      return value ? '是' : '否';
+    }
+    if (typeof value === 'number') {
+      // 检查是否为有效数字
+      if (isNaN(value) || !isFinite(value)) {
+        return '';
+      }
+      // 保持原始数字类型，不要转换为字符串
+      return value;
+    }
+    // 尝试将字符串转换为数字（如果可能）
+    if (typeof value === 'string') {
+      const cleanedString = value.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+      const numValue = parseFloat(cleanedString);
+      if (!isNaN(numValue) && isFinite(numValue)) {
+        return numValue;
+      }
+      return cleanedString;
+    }
+    // 清理字符串中的特殊字符
+    return String(value).replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+  };
+
   // 导出数据为Excel
   const handleExportExcel = () => {
     // 导出当前筛选后的数据
@@ -715,51 +824,55 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       return;
     }
 
-    // 数据清理函数
-    const cleanValue = (value: any): any => {
-      if (value === null || value === undefined) {
-        return '';
-      }
-      if (typeof value === 'object') {
-        return JSON.stringify(value);
-      }
-      if (typeof value === 'boolean') {
-        return value ? '是' : '否';
-      }
-      if (typeof value === 'number') {
-        // 检查是否为有效数字
-        if (isNaN(value) || !isFinite(value)) {
-          return '';
-        }
-        // 保持原始数字类型，不要转换为字符串
-        return value;
-      }
-      // 尝试将字符串转换为数字（如果可能）
-      if (typeof value === 'string') {
-        const cleanedString = value.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
-        const numValue = parseFloat(cleanedString);
-        if (!isNaN(numValue) && isFinite(numValue)) {
-          return numValue;
-        }
-        return cleanedString;
-      }
-      // 清理字符串中的特殊字符
-      return String(value).replace(/[\x00-\x1F\x7F-\x9F]/g, '');
-    };
-
     try {
-      // 动态生成导出数据
+      // 🎯 方案一：使用实时跟踪的ProTable列状态
+      console.log('📊 [导出Excel] 当前列状态:', currentColumnsState);
+      console.log('📊 [导出Excel] 动态列配置:', dynamicColumns.map(col => ({ key: col.key, title: col.title })));
+
+      // 🎯 确定可见列及其顺序（排除操作列）
+      const visibleColumns = dynamicColumns
+        .filter(col => col.key !== 'action') // 排除操作列
+        .filter(col => {
+          // 检查列是否可见（默认可见，除非明确设置为隐藏）
+          const columnKey = String(col.key || '');
+          const columnState = currentColumnsState[columnKey];
+          const isVisible = columnState?.show !== false; // 默认显示，除非明确隐藏
+          console.log(`📋 [列筛选] ${columnKey}: show=${columnState?.show}, visible=${isVisible}`);
+          return isVisible;
+        })
+        .sort((a, b) => {
+          // 按照用户调整后的列顺序排序
+          const keyA = String(a.key || '');
+          const keyB = String(b.key || '');
+          const stateA = currentColumnsState[keyA];
+          const stateB = currentColumnsState[keyB];
+          const orderA = typeof stateA?.order === 'number' ? stateA.order : 999;
+          const orderB = typeof stateB?.order === 'number' ? stateB.order : 999;
+          console.log(`📋 [列排序] ${keyA}: order=${orderA}, ${keyB}: order=${orderB}`);
+          return orderA - orderB;
+        });
+
+      console.log('📋 [导出Excel] 可见列:', visibleColumns.map(col => ({ 
+        key: col.key, 
+        title: col.title,
+        order: currentColumnsState[String(col.key || '')]?.order 
+      })));
+
+      // 🎯 生成导出数据，应用与表格相同的渲染逻辑
       const exportData = filteredDataSource.map((item, index) => {
         const row: { [key: string]: any } = { '序号': index + 1 };
-        dynamicColumns.forEach(col => {
-          // 排除操作列
-          if (col.key !== 'action' && col.dataIndex) {
+        
+        visibleColumns.forEach(col => {
+          if (col.dataIndex) {
             const dataIndex = col.dataIndex as keyof PayrollData;
             const columnTitle = String(col.title || col.dataIndex);
             const rawValue = item[dataIndex];
-            row[columnTitle] = cleanValue(rawValue);
+            
+            // 应用与表格相同的处理逻辑
+            row[columnTitle] = processValue(rawValue, col, item, index);
           }
         });
+        
         return row;
       });
 
@@ -767,6 +880,13 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         message.warning('没有可导出的数据');
         return;
       }
+
+      console.log('📤 [导出Excel] 导出数据预览:', {
+        总行数: exportData.length,
+        列数: Object.keys(exportData[0]).length,
+        列名: Object.keys(exportData[0]),
+        首行数据: exportData[0]
+      });
 
       // 创建工作表
       import('xlsx').then((XLSX) => {
@@ -1092,6 +1212,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         columnsState={{
           persistenceKey: 'payroll-data-table',
           persistenceType: 'localStorage',
+          onChange: (newColumnsState) => {
+            console.log('📊 [ProTable] 列状态变化:', newColumnsState);
+            setCurrentColumnsState(newColumnsState || {});
+          },
         }}
         options={{
           reload: handleRefresh,

@@ -14,7 +14,9 @@ from webapp.v2.database import get_db_v2
 from webapp.v2.crud import hr as v2_hr_crud
 from webapp.v2.pydantic_models.hr import (
     EmployeeCreate, EmployeeUpdate, Employee as EmployeeResponseSchema, 
-    EmployeeListResponse, EmployeeWithNames, BulkEmployeeCreateResult, BulkEmployeeFailedRecord
+    EmployeeListResponse, EmployeeWithNames, BulkEmployeeCreateResult, BulkEmployeeFailedRecord,
+    EmployeeBatchValidationRequest, EmployeeBatchValidationResponse, 
+    EmployeeBatchImportRequest, EmployeeBatchImportResponse
 )
 from webapp.v2.pydantic_models.common import DataResponse, PaginationResponse, PaginationMeta
 from webapp import auth
@@ -451,6 +453,108 @@ async def delete_employee(
             detail=utils.create_error_response(
                 status_code=500,
                 message="Internal Server Error",
+                details=str(e)
+            )
+        )
+
+
+@router.post("/batch-validate", response_model=EmployeeBatchValidationResponse)
+async def batch_validate_employees(
+    request: EmployeeBatchValidationRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(auth.require_permissions(["employee:create"]))
+):
+    """
+    批量验证员工数据
+    
+    - 验证员工数据的有效性
+    - 检查重复记录
+    - 验证字典值和关联数据
+    - 返回详细的验证结果
+    """
+    try:
+        logger.info(f"开始批量验证员工数据，共 {len(request.employees)} 条记录")
+        
+        # 调用CRUD层进行验证
+        validation_results = await v2_hr_crud.batch_validate_employees(
+            db=db, 
+            employees_data=request.employees,
+            overwrite_mode=request.overwrite_mode
+        )
+        
+        # 统计验证结果
+        valid_count = sum(1 for result in validation_results if result.is_valid)
+        invalid_count = len(validation_results) - valid_count
+        total_errors = sum(len(result.errors) for result in validation_results)
+        total_warnings = sum(len(result.warnings) for result in validation_results)
+        
+        summary = {
+            "total_records": len(request.employees),
+            "valid_records": valid_count,
+            "invalid_records": invalid_count,
+            "total_errors": total_errors,
+            "total_warnings": total_warnings
+        }
+        
+        logger.info(f"员工数据验证完成: {summary}")
+        
+        return EmployeeBatchValidationResponse(
+            validation_results=validation_results,
+            summary=summary
+        )
+        
+    except Exception as e:
+        logger.error(f"批量验证员工数据失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=utils.create_error_response(
+                status_code=500,
+                message="批量验证失败",
+                details=str(e)
+            )
+        )
+
+
+@router.post("/batch-import", response_model=EmployeeBatchImportResponse)
+async def batch_import_employees(
+    request: EmployeeBatchImportRequest,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(auth.require_permissions(["employee:create"]))
+):
+    """
+    批量导入员工数据
+    
+    - 批量创建或更新员工信息
+    - 支持个人信息、工作信息、银行账户信息
+    - 支持覆盖模式选择
+    - 返回详细的导入结果
+    """
+    try:
+        logger.info(f"开始批量导入员工数据，共 {len(request.employees)} 条记录")
+        
+        # 调用CRUD层进行导入
+        import_result = await v2_hr_crud.batch_import_employees(
+            db=db,
+            employees_data=request.employees,
+            overwrite_mode=request.overwrite_mode
+        )
+        
+        logger.info(f"员工数据导入完成: 成功 {import_result['success_count']} 条，失败 {import_result['error_count']} 条")
+        
+        return EmployeeBatchImportResponse(
+            success_count=import_result["success_count"],
+            error_count=import_result["error_count"],
+            message=import_result.get("message", "员工信息批量导入完成"),
+            details=import_result.get("details", {})
+        )
+        
+    except Exception as e:
+        logger.error(f"批量导入员工数据失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=utils.create_error_response(
+                status_code=500,
+                message="批量导入失败",
                 details=str(e)
             )
         )

@@ -53,55 +53,55 @@ def get_payroll_entries(
         
         # 基础筛选条件
         if employee_id:
-            conditions.append('"员工id" = :employee_id')
+            conditions.append('pb."员工id" = :employee_id')
             params['employee_id'] = employee_id
             
         if period_id:
-            conditions.append('"薪资期间id" = :period_id')
+            conditions.append('pb."薪资期间id" = :period_id')
             params['period_id'] = period_id
             
         if run_id:
-            conditions.append('"薪资运行id" = :run_id')
+            conditions.append('pb."薪资运行id" = :run_id')
             params['run_id'] = run_id
             
         # 部门筛选
         if department_name:
-            conditions.append('"部门名称" ILIKE :department_name')
+            conditions.append('eb.department_name ILIKE :department_name')
             params['department_name'] = f"%{department_name}%"
             
         # 人员类别筛选
         if personnel_category_name:
-            conditions.append('"人员类别" ILIKE :personnel_category_name')
+            conditions.append('eb.personnel_category_name ILIKE :personnel_category_name')
             params['personnel_category_name'] = f"%{personnel_category_name}%"
             
         # 工资范围筛选
         if min_gross_pay is not None:
-            conditions.append('"应发合计" >= :min_gross_pay')
+            conditions.append('pb."应发合计" >= :min_gross_pay')
             params['min_gross_pay'] = min_gross_pay
             
         if max_gross_pay is not None:
-            conditions.append('"应发合计" <= :max_gross_pay')
+            conditions.append('pb."应发合计" <= :max_gross_pay')
             params['max_gross_pay'] = max_gross_pay
             
         if min_net_pay is not None:
-            conditions.append('"实发合计" >= :min_net_pay')
+            conditions.append('pb."实发合计" >= :min_net_pay')
             params['min_net_pay'] = min_net_pay
             
         if max_net_pay is not None:
-            conditions.append('"实发合计" <= :max_net_pay')
+            conditions.append('pb."实发合计" <= :max_net_pay')
             params['max_net_pay'] = max_net_pay
             
         # 搜索筛选
         if search_term:
             if search_term.isdigit():
-                conditions.append('"薪资条目id" = :search_entry_id')
+                conditions.append('pb."薪资条目id" = :search_entry_id')
                 params['search_entry_id'] = int(search_term)
             else:
                 conditions.append("""(
-                    "名" ILIKE :search_term OR 
-                    "姓" ILIKE :search_term OR 
-                    "姓名" ILIKE :search_term OR
-                    "员工编号" ILIKE :search_term
+                    eb.first_name ILIKE :search_term OR 
+                    eb.last_name ILIKE :search_term OR 
+                    eb.full_name ILIKE :search_term OR
+                    eb.employee_code ILIKE :search_term
                 )""")
                 params['search_term'] = f"%{search_term}%"
         
@@ -111,23 +111,23 @@ def get_payroll_entries(
             where_clause = "WHERE " + " AND ".join(conditions)
         
         # 排序处理
-        order_clause = 'ORDER BY "薪资条目id" DESC'  # 默认排序
+        order_clause = 'ORDER BY pb."薪资条目id" DESC'  # 默认排序
         if sort_by:
             sort_direction = "DESC" if sort_order.lower() == 'desc' else "ASC"
             
-            # 映射排序字段到视图中实际存在的字段
+            # 映射排序字段到新视图体系中实际存在的字段
             sort_field_mapping = {
-                'employee_name': '"姓名"',
-                'department': '"部门名称"',
-                'gross_pay': '"应发合计"',
-                'net_pay': '"实发合计"',
-                'calculated_at': '"计算时间"'
+                'employee_name': 'eb.full_name',
+                'department': 'eb.department_name',
+                'gross_pay': 'pb."应发合计"',
+                'net_pay': 'pb."实发合计"',
+                'calculated_at': 'pb."计算时间"'
             }
             
             if sort_by in sort_field_mapping:
                 order_clause = f"ORDER BY {sort_field_mapping[sort_by]} {sort_direction}"
             elif sort_by == 'id':
-                order_clause = f'ORDER BY "薪资条目id" {sort_direction}'
+                order_clause = f'ORDER BY pb."薪资条目id" {sort_direction}'
         
         # 分页参数
         params['limit'] = limit
@@ -136,74 +136,78 @@ def get_payroll_entries(
         # 查询总数
         count_sql = f"""
             SELECT COUNT(*) as total
-            FROM reports.v_comprehensive_employee_payroll
+            FROM reports.v_payroll_basic pb
+            LEFT JOIN reports.v_employees_basic eb ON pb."员工id" = eb.id
             {where_clause}
         """
         
         count_result = db.execute(text(count_sql), params).fetchone()
         total = count_result.total if count_result else 0
         
-        # 查询数据 - 使用正确的中文列名
+        # 查询数据 - 使用新视图体系的字段映射
         data_sql = f"""
             SELECT 
-                "薪资条目id" as id,
-                "员工id" as employee_id,
-                "薪资期间id" as payroll_period_id,
-                "薪资运行id" as payroll_run_id,
-                "员工编号" as employee_code,
-                "名" as first_name,
-                "姓" as last_name,
-                "姓名" as employee_name,
-                "部门名称" as department_name,
-                "职位名称" as position_name,
-                "人员类别" as personnel_category_name,
-                "根人员类别" as root_personnel_category_name,
-                "薪资期间名称" as payroll_period_name,
-                "应发合计" as gross_pay,
-                "实发合计" as net_pay,
-                "扣除合计" as total_deductions,
+                pb."薪资条目id" as id,
+                pb."员工id" as employee_id,
+                pb."薪资期间id" as payroll_period_id,
+                pb."薪资运行id" as payroll_run_id,
+                eb.employee_code as employee_code,
+                eb.first_name as first_name,
+                eb.last_name as last_name,
+                eb.full_name as employee_name,
+                eb.department_name as department_name,
+                eb.position_name as position_name,
+                eb.personnel_category_name as personnel_category_name,
+                eb.root_personnel_category_name as root_personnel_category_name,
+                pb."薪资期间名称" as payroll_period_name,
+                pb."应发合计" as gross_pay,
+                pb."实发合计" as net_pay,
+                pb."扣除合计" as total_deductions,
                 
-                -- 应发项目
-                "基本工资" as basic_salary,
-                "奖励性绩效工资" as performance_bonus,
-                "月基础绩效" as basic_performance_salary,
-                "岗位工资" as position_salary,
-                "级别/岗位级别工资" as grade_salary,
-                "薪级工资" as salary_grade,
-                "补助" as allowance,
-                "津贴" as general_allowance,
-                "公务交通补贴" as traffic_allowance,
-                "独生子女父母奖励金" as only_child_bonus,
-                "乡镇工作补贴" as township_allowance,
-                "岗位职务补贴" as position_allowance,
-                "公务员规范后津补贴" as civil_standard_allowance,
-                "一次性补扣发" as back_pay,
-                "绩效工资" as performance_salary,
-                "月奖励绩效" as monthly_performance_bonus,
+                -- 应发项目（从earnings视图获取）
+                pe."基本工资" as basic_salary,
+                pe."奖励性绩效工资" as performance_bonus,
+                pe."基础绩效" as basic_performance_salary,
+                pe."岗位工资" as position_salary,
+                pe."级别/岗位级别工资" as grade_salary,
+                pe."薪级工资" as salary_grade,
+                pe."补助" as allowance,
+                pe."津贴" as general_allowance,
+                pe."公务交通补贴" as traffic_allowance,
+                pe."独生子女父母奖励金" as only_child_bonus,
+                pe."乡镇工作补贴" as township_allowance,
+                pe."岗位职务补贴" as position_allowance,
+                pe."公务员规范后津补贴" as civil_standard_allowance,
+                pe."一次性补扣发" as back_pay,
+                pe."绩效工资" as performance_salary,
+                pe."月奖励绩效" as monthly_performance_bonus,
                 
-                -- 个人扣除项目（使用正确的字段名）
-                "个人所得税" as personal_income_tax,
-                "养老保险个人应缴费额" as pension_personal,
-                "医疗保险个人应缴费额" as medical_personal,
-                "失业保险个人应缴费额" as unemployment_personal,
-                "住房公积金个人应缴费额" as housing_fund_personal,
-                "职业年金个人应缴费额" as annuity_personal,
-                "补扣（退）款" as one_time_adjustment,
-                "补扣社保" as social_insurance_adjustment,
+                -- 个人扣除项目（从deductions视图获取）
+                pd."个人所得税" as personal_income_tax,
+                pd."养老保险个人应缴费额" as pension_personal,
+                pd."医疗保险个人应缴费额" as medical_personal,
+                pd."失业保险个人应缴费额" as unemployment_personal,
+                pd."住房公积金个人应缴费额" as housing_fund_personal,
+                pd."职业年金个人应缴费额" as annuity_personal,
+                pe."补扣（退）款" as one_time_adjustment,
+                pd."补扣社保" as social_insurance_adjustment,
                 
                 -- 单位扣除项目
-                "养老保险单位应缴费额" as pension_employer_amount,
-                "医疗保险单位应缴费额" as medical_ins_employer_amount,
-                "住房公积金单位应缴费额" as housing_fund_employer,
+                pd."养老保险单位应缴费额" as pension_employer_amount,
+                pd."医疗保险单位应缴费额" as medical_ins_employer_amount,
+                pd."住房公积金单位应缴费额" as housing_fund_employer,
                 
                 -- 原始JSONB数据
-                "原始应发明细" as earnings_details,
-                "原始扣除明细" as deductions_details,
+                pe."原始应发明细" as earnings_details,
+                pd."原始扣除明细" as deductions_details,
                 
                 -- 时间字段
-                "计算时间" as calculated_at,
-                "更新时间" as updated_at
-            FROM reports.v_comprehensive_employee_payroll
+                pb."计算时间" as calculated_at,
+                pb."更新时间" as updated_at
+            FROM reports.v_payroll_basic pb
+            LEFT JOIN reports.v_employees_basic eb ON pb."员工id" = eb.id
+            LEFT JOIN reports.v_payroll_earnings pe ON pb."薪资条目id" = pe."薪资条目id"
+            LEFT JOIN reports.v_payroll_deductions pd ON pb."薪资条目id" = pd."薪资条目id"
             {where_clause}
             {order_clause}
             LIMIT :limit OFFSET :offset

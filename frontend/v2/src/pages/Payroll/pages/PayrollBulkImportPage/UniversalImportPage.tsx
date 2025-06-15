@@ -36,7 +36,7 @@ const DataPreview: React.FC<{
     const allSystemFields = [...modeConfig.requiredFields, ...modeConfig.optionalFields];
     const mappedSystemKeys = Object.keys(processedData[0]?.data || {});
 
-    const tableColumns: (ColumnType<ProcessedRow> & { fixed?: string })[] = mappedSystemKeys.map(systemKey => {
+    const tableColumns: ColumnType<ProcessedRow>[] = mappedSystemKeys.map(systemKey => {
       const fieldConfig = allSystemFields.find(f => f.key === systemKey);
       return {
         title: fieldConfig?.name || systemKey,
@@ -48,7 +48,6 @@ const DataPreview: React.FC<{
     tableColumns.push({
       title: '验证状态',
       key: 'status',
-      fixed: 'right',
       width: 150,
       render: (_: any, record: ProcessedRow) => {
         const result = validationResults.find(r => r.clientId === record._meta.clientId);
@@ -429,7 +428,7 @@ const UniversalImportPage: React.FC = () => {
 
   // 状态管理
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedMode, setSelectedMode] = useState<ImportModeID | null>(null);
+  const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [availableModes, setAvailableModes] = useState<ImportModeConfig[]>([]);
   const [rawImportData, setRawImportData] = useState<RawImportData | null>(null);
@@ -497,7 +496,7 @@ const UniversalImportPage: React.FC = () => {
   }, []);
 
   // 处理模式变更
-  const handleModeChange = (modeId: ImportModeID) => {
+  const handleModeChange = (modeId: string) => {
     setSelectedMode(modeId);
   };
 
@@ -545,7 +544,7 @@ const UniversalImportPage: React.FC = () => {
       }
 
       // 3. Import valid data
-      const result = await strategy.importData(validData, selectedPeriodId, importSettings.overwriteMode);
+      const result = await strategy.importData(validData, selectedPeriodId!, importSettings.overwriteMode);
 
       setImportResult(result);
       setCurrentStep(steps.length - 1); // Go to the last step

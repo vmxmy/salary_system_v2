@@ -5,6 +5,7 @@
 
 import { PayrollImportStrategy } from './PayrollImportStrategy';
 import { SalaryBaseImportStrategy } from './SalaryBaseImportStrategy';
+import { EmployeeImportStrategy } from './EmployeeImportStrategy';
 import type { BaseImportStrategy } from './BaseImportStrategy';
 import type { ImportModeConfig } from '../types';
 
@@ -12,8 +13,8 @@ import type { ImportModeConfig } from '../types';
 const STRATEGY_MAP = {
   payroll: PayrollImportStrategy,
   salary_base: SalaryBaseImportStrategy,
+  employee: EmployeeImportStrategy,
   // 未来可以添加更多策略
-  // employee: EmployeeImportStrategy,
   // attendance: AttendanceImportStrategy,
 } as const;
 
@@ -121,7 +122,7 @@ export class ImportStrategyFactory {
 }
 
 // 导出策略类型
-export { PayrollImportStrategy, SalaryBaseImportStrategy };
+export { PayrollImportStrategy, SalaryBaseImportStrategy, EmployeeImportStrategy };
 export type { BaseImportStrategy };
 
 // 导出常用方法的简化版本
