@@ -195,8 +195,34 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [searchCardCollapsed, setSearchCardCollapsed] = useState(false);
 
-  // 数字格式化函数：统一显示2位小数
-  const formatNumber = (value: any) => {
+  // 数字格式化函数：只返回格式化的字符串，保持原始数据类型用于Excel导出
+  const formatNumber = (value: any): string => {
+    if (value === null || value === undefined) {
+      return 'N/A';
+    }
+    
+    if (typeof value === 'number') {
+      return value.toLocaleString('zh-CN', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      });
+    }
+    
+    if (typeof value === 'string') {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && isFinite(numValue)) {
+        return numValue.toLocaleString('zh-CN', { 
+          minimumFractionDigits: 2, 
+          maximumFractionDigits: 2 
+        });
+      }
+    }
+    
+    return value.toString();
+  };
+
+  // 数字渲染函数：用于表格显示，返回React元素
+  const renderNumber = (value: any) => {
     if (value === null || value === undefined) {
       return <span style={{ color: '#999' }}>N/A</span>;
     }
@@ -427,9 +453,8 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
               return formatDate(text);
             }
             
-            // 尝试数字格式化
-            const formattedNumber = formatNumber(text);
-            if (formattedNumber !== text.toString()) {
+            // 检查是否为数字类型，使用专门的渲染函数
+            if (typeof text === 'number' || (typeof text === 'string' && !isNaN(parseFloat(text)) && isFinite(parseFloat(text)))) {
               // 对于数字类型，也支持搜索高亮
               if (!isEmptyQuery && typeof text === 'number') {
                 return (
@@ -440,7 +465,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                   />
                 );
               }
-              return formattedNumber;
+              return renderNumber(text);
             }
 
             // 对于文本类型，添加搜索高亮
@@ -781,7 +806,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         order: currentColumnsState[String(col.key || '')]?.order 
       })));
 
-      // 🎯 生成导出数据，应用与表格相同的渲染逻辑
+      // 🎯 生成导出数据，转换字符串数字为数字类型
       const exportData = filteredDataSource.map((item, index) => {
         const row: { [key: string]: any } = { '序号': index + 1 };
         
@@ -791,8 +816,20 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             const columnTitle = String(col.title || col.dataIndex);
             const rawValue = item[dataIndex];
             
-            // 应用与表格相同的处理逻辑
-            row[columnTitle] = processValue(rawValue, col, item, index);
+            // 保持原始数据类型，特别保护数字类型
+            if (typeof rawValue === 'number') {
+              // 数字类型直接保持，Excel会正确识别
+              row[columnTitle] = rawValue;
+            } else if (typeof rawValue === 'string' && !isNaN(parseFloat(rawValue)) && isFinite(parseFloat(rawValue))) {
+              // 字符串数字转换为数字类型
+              row[columnTitle] = parseFloat(rawValue);
+            } else if (rawValue === null || rawValue === undefined) {
+              // 空值保持为null，Excel会显示为空
+              row[columnTitle] = null;
+            } else {
+              // 其他类型保持原样
+              row[columnTitle] = rawValue;
+            }
           }
         });
         
@@ -811,6 +848,71 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         首行数据: exportData[0]
       });
 
+      // 🔍 调试：检查数据类型和数字格式保持情况
+      if (exportData.length > 0) {
+        const sampleRow = exportData[0];
+        const typeAnalysis: Record<string, any> = {};
+        
+        Object.entries(sampleRow).forEach(([key, value]) => {
+          typeAnalysis[key] = {
+            value: value,
+            type: typeof value,
+            isNumber: typeof value === 'number',
+            isValidNumber: typeof value === 'number' && !isNaN(value) && isFinite(value),
+            canParseAsNumber: typeof value === 'string' && !isNaN(parseFloat(value)) && isFinite(parseFloat(value)),
+            isNull: value === null || value === undefined
+          };
+        });
+        
+        console.log('🔍 [数据类型分析]:', typeAnalysis);
+        
+        // 统计数字字段
+        const numberFields = Object.entries(typeAnalysis)
+          .filter(([key, info]) => info.isValidNumber)
+          .map(([key]) => key);
+        
+        const stringNumberFields = Object.entries(typeAnalysis)
+          .filter(([key, info]) => info.canParseAsNumber)
+          .map(([key]) => key);
+
+        const nullFields = Object.entries(typeAnalysis)
+          .filter(([key, info]) => info.isNull)
+          .map(([key]) => key);
+          
+        console.log('🔢 [数字格式保持统计]:', {
+          原生数字字段: numberFields,
+          字符串数字字段: stringNumberFields,
+          空值字段: nullFields,
+          原生数字字段数量: numberFields.length,
+          字符串数字字段数量: stringNumberFields.length,
+          空值字段数量: nullFields.length,
+          总字段数量: Object.keys(typeAnalysis).length
+        });
+
+        // 验证数字格式是否正确保持
+        const numericColumns = ['应发合计', '扣除合计', '实发合计', '基本工资', '绩效工资'];
+        const formatValidation = numericColumns.map(col => {
+          const value = sampleRow[col];
+          return {
+            列名: col,
+            原始值: value,
+            类型: typeof value,
+            是否为数字: typeof value === 'number',
+            格式正确: typeof value === 'number' || value === null
+          };
+        });
+
+        console.log('✅ [数字格式验证]:', formatValidation);
+        
+        // 检查是否有格式错误
+        const formatErrors = formatValidation.filter(item => !item.格式正确);
+        if (formatErrors.length > 0) {
+          console.warn('⚠️ [格式警告] 发现数字格式问题:', formatErrors);
+        } else {
+          console.log('✅ [格式验证] 所有数字字段格式正确！');
+        }
+      }
+
       // 创建工作表
       import('xlsx').then((XLSX) => {
         // 创建工作表
@@ -822,42 +924,75 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         // 为所有数字列设置统一的数字格式（2位小数）
         const headers = Object.keys(exportData[0]);
         
-        // 遍历所有单元格，设置数字格式
-        for (let row = 0; row <= range.e.r; row++) { // 从第1行开始（包括表头）
+        // 遍历所有单元格，设置基本格式
+        let numberCellCount = 0;
+        let textCellCount = 0;
+        let nullCellCount = 0;
+        
+        for (let row = 0; row <= range.e.r; row++) {
           for (let col = 0; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             const cell = ws[cellAddress];
             
             if (cell) {
-              // 跳过表头行（第0行）
+              // 表头行使用文本格式
               if (row === 0) {
-                // 表头使用文本格式
                 cell.t = 's';
                 continue;
               }
               
-              // 数据行：检查是否为数字
+              // 数据行：根据原始数据类型设置格式
               const cellValue = cell.v;
               
-              // 如果是数字类型，或者是可以转换为数字的字符串
-              if (typeof cellValue === 'number' || 
-                  (typeof cellValue === 'string' && !isNaN(parseFloat(cellValue)) && isFinite(parseFloat(cellValue)))) {
-                
-                // 转换为数字
-                if (typeof cellValue === 'string') {
-                  cell.v = parseFloat(cellValue);
-                }
-                
-                // 设置数字格式：千分位分隔符 + 2位小数
+              if (typeof cellValue === 'number' && !isNaN(cellValue) && isFinite(cellValue)) {
+                // 数字类型：设置千分位分隔符 + 2位小数
                 cell.z = '#,##0.00';
-                cell.t = 'n'; // 数字类型
-              } else {
-                // 非数字内容保持文本格式
+                cell.t = 'n';
+                numberCellCount++;
+                
+                // 调试：记录数字单元格
+                if (row === 1) { // 只记录第一行数据
+                  const colHeader = headers[col];
+                  console.log(`🔢 [数字单元格] ${colHeader}: ${cellValue} (${typeof cellValue})`);
+                }
+              } else if (typeof cellValue === 'string' && !isNaN(parseFloat(cellValue)) && isFinite(parseFloat(cellValue))) {
+                // 字符串数字：转换为数字并设置格式
+                cell.v = parseFloat(cellValue);
+                cell.z = '#,##0.00';
+                cell.t = 'n';
+                numberCellCount++;
+                
+                // 调试：记录转换的数字单元格
+                if (row === 1) { // 只记录第一行数据
+                  const colHeader = headers[col];
+                  console.log(`🔄 [转换数字单元格] ${colHeader}: "${cellValue}" -> ${parseFloat(cellValue)} (string->number)`);
+                }
+              } else if (cellValue === null || cellValue === undefined) {
+                // 空值处理
+                cell.v = '';
                 cell.t = 's';
+                nullCellCount++;
+              } else {
+                // 其他类型保持原样
+                cell.t = 's';
+                textCellCount++;
+                
+                // 调试：记录文本单元格
+                if (row === 1) { // 只记录第一行数据
+                  const colHeader = headers[col];
+                  console.log(`📝 [文本单元格] ${colHeader}: ${cellValue} (${typeof cellValue})`);
+                }
               }
             }
           }
         }
+        
+        console.log('📊 [Excel格式化统计]:', {
+          数字单元格数量: numberCellCount,
+          文本单元格数量: textCellCount,
+          空值单元格数量: nullCellCount,
+          总单元格数量: numberCellCount + textCellCount + nullCellCount
+        });
         
         // 设置列宽 - 基于内容长度自动调整
         const colWidths = headers.map(header => {
@@ -1106,16 +1241,16 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         title={
           <Row justify="space-between" align="middle" wrap={false}>
             <Col flex="auto">
-                          <Space wrap size={8}>
-              <SearchOutlined />
-              <span>智能搜索</span>
-              {!isEmptyQuery && (
-                <Tag color="blue" style={{ margin: 0 }}>
-                  {totalResults} 条结果
-                  {performance.isOptimal && <span style={{ color: '#52c41a' }}> ⚡</span>}
-                </Tag>
-              )}
-            </Space>
+              <Space wrap size={8}>
+                <SearchOutlined />
+                <span>智能搜索</span>
+                {!isEmptyQuery && (
+                  <Tag color="blue" style={{ margin: 0 }}>
+                    {totalResults} 条结果
+                    {performance.isOptimal && <span style={{ color: '#52c41a' }}> ⚡</span>}
+                  </Tag>
+                )}
+              </Space>
             </Col>
             <Col flex="none">
               <Button 
@@ -1157,7 +1292,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                 {!searchCardCollapsed && (
             /* 简单搜索 */
             <Row gutter={[16, 12]}>
-              {/* 搜索组件 */}
+                            {/* 搜索组件 */}
               <Col xs={24} sm={24} md={24} lg={24}>
                 <ProFormGlobalSearch
                   value={searchQuery}
@@ -1194,6 +1329,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                   ) : (
                     <Space size={8} wrap>
                       <span>搜索耗时: <strong>{searchTime.toFixed(1)}ms</strong></span>
+                      <span>返回结果: <strong>{totalResults}</strong> 条</span>
                       {performance.isOptimal && (
                         <Tag color="success" style={{ margin: 0 }}>高效</Tag>
                       )}
@@ -1201,27 +1337,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                   )}
                 </div>
               </Col>
-              
-              {/* 搜索模式指示器 */}
-              {!isEmptyQuery && (
-                <Col xs={24} sm={6} md={4} lg={4}>
-                  <div style={{ 
-                    fontSize: 11,
-                    color: '#999',
-                    padding: '8px 12px',
-                    backgroundColor: '#fff',
-                    border: '1px solid #e8e8e8',
-                    borderRadius: '6px',
-                    textAlign: 'center',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    模式: {searchMode === 'fuzzy' ? '模糊' : searchMode === 'exact' ? '精确' : '智能'}
-                  </div>
-                </Col>
-              )}
+
             </Row>
         )}
       </Card>
