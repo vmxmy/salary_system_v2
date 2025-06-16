@@ -69,7 +69,7 @@ const generatePermissionTableColumns = (
       key: 'action',
       width: 120,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="edit"

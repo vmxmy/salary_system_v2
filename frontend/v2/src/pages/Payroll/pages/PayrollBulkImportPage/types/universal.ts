@@ -206,6 +206,7 @@ export interface ProcessedRow {
  * 单行数据的验证结果
  */
 export interface ValidationResult {
+  fieldConflicts: boolean;
   isValid: boolean;
   clientId: string; // 对应 ProcessedRow 的 clientId
   errors: {

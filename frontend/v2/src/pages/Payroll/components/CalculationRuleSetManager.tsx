@@ -70,13 +70,13 @@ const CalculationRuleSetManager: React.FC<CalculationRuleSetManagerProps> = ({
       title: String(t('payroll:calculation_config.rules_count')),
       key: 'rules_count',
       width: 100,
-      render: (_, record) => record.rules?.length || 0,
+      render: (_, record, index) => record.rules?.length || 0,
     },
     {
       title: t('common:actions'),
       key: 'actions',
       width: 200,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space>
           <Button
             type="link"

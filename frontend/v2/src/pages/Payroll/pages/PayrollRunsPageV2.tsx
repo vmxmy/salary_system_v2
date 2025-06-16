@@ -74,7 +74,7 @@ const generatePayrollRunTableColumns = (
       title: t('payroll:payroll_period'),
       dataIndex: ['payroll_period', 'name'],
       key: 'payroll_period_name',
-      render: (_, record) => record.payroll_period?.name || '-',
+      render: (_, record, index) => record.payroll_period?.name || '-',
       sorter: (a, b) => {
         const nameA = a.payroll_period?.name || '';
         const nameB = b.payroll_period?.name || '';
@@ -127,7 +127,7 @@ const generatePayrollRunTableColumns = (
       key: 'actions',
       width: 350,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="view"

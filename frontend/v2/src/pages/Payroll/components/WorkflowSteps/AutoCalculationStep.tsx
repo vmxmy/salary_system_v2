@@ -251,7 +251,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       title: '员工信息',
       dataIndex: 'employee_name',
       width: 140,
-      render: (text, record) => (
+      render: (text, record, index) => (
         <div>
           <div style={{ fontWeight: 500 }}>{text}</div>
           <div style={{ fontSize: '12px', color: '#666' }}>{record.department_name}</div>
@@ -264,7 +264,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       dataIndex: 'allowances',
       width: 120,
       align: 'right',
-      render: (_, record) => {
+      render: (_, record, index) => {
         const value = record.allowances || 0;
         return (
           <Text style={{ color: '#52c41a', fontWeight: 500 }}>
@@ -278,7 +278,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       dataIndex: 'deductions',
       width: 120,
       align: 'right',
-      render: (_, record) => {
+      render: (_, record, index) => {
         const value = record.deductions || 0;
         return (
           <Text style={{ color: '#fa8c16', fontWeight: 500 }}>
@@ -292,7 +292,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       dataIndex: 'estimated_gross',
       width: 120,
       align: 'right',
-      render: (_, record) => {
+      render: (_, record, index) => {
         const value = record.estimated_gross || 0;
         return (
           <Text style={{ color: '#1890ff' }}>
@@ -306,7 +306,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       dataIndex: 'estimated_net',
       width: 120,
       align: 'right',
-      render: (_, record) => {
+      render: (_, record, index) => {
         const value = record.estimated_net || 0;
         return (
           <Text strong style={{ color: '#13c2c2' }}>
@@ -319,7 +319,7 @@ export const AutoCalculationStep: React.FC<AutoCalculationStepProps> = ({ workfl
       title: '状态',
       width: 80,
       align: 'center',
-      render: (_, record) => {
+      render: (_, record, index) => {
         const hasData = record.estimated_gross > 0;
         
         if (typedCalculationProgress?.status === 'completed') {

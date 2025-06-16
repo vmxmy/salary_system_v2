@@ -38,7 +38,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       dataIndex: 'effectiveDate',
       key: 'effectiveDate',
       sorter: (a, b) => dayjs(a.effectiveDate).unix() - dayjs(b.effectiveDate).unix(),
-      render: (_, record) => dayjs(record.effectiveDate).isValid() ? dayjs(record.effectiveDate).format('YYYY-MM-DD'): naText,
+      render: (_, record, index) => dayjs(record.effectiveDate).isValid() ? dayjs(record.effectiveDate).format('YYYY-MM-DD'): naText,
       width: 120,
     },
     {
@@ -50,7 +50,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
         const deptB = b.department_id ? (lookupMaps?.departmentMap?.get(String(b.department_id)) || '') : '';
         return deptA.localeCompare(deptB);
       },
-      render: (_, record) => record.department_id ? (lookupMaps?.departmentMap?.get(String(record.department_id)) || String(record.department_id)) : naText,
+      render: (_, record, index) => record.department_id ? (lookupMaps?.departmentMap?.get(String(record.department_id)) || String(record.department_id)) : naText,
       width: 150,
     },
     {
@@ -62,7 +62,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
         const catB = b.personnel_category_id ? (lookupMaps?.personnelCategoryMap?.get(String(b.personnel_category_id)) || '') : '';
         return catA.localeCompare(catB);
       },
-      render: (_, record) => record.personnel_category_id ? (lookupMaps?.personnelCategoryMap?.get(String(record.personnel_category_id)) || String(record.personnel_category_id)) : naText,
+      render: (_, record, index) => record.personnel_category_id ? (lookupMaps?.personnelCategoryMap?.get(String(record.personnel_category_id)) || String(record.personnel_category_id)) : naText,
       width: 150,
     },
     {
@@ -73,7 +73,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       valueEnum: lookupMaps?.employmentTypeMap 
         ? Object.fromEntries(Array.from(lookupMaps.employmentTypeMap.entries()).map(([id, name]) => [id, { text: name }]))
         : {},
-      render: (_, record) => {
+      render: (_, record, index) => {
         const typeText = record.employment_type_lookup_value_id ? (lookupMaps?.employmentTypeMap?.get(record.employment_type_lookup_value_id) || String(record.employment_type_lookup_value_id)) : naText;
         return <Tag>{typeText}</Tag>;
       },
@@ -85,7 +85,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       key: 'salary',
       sorter: (a, b) => (a.salary || 0) - (b.salary || 0),
       align: 'right',
-      render: (_, record) => record.salary ? record.salary.toLocaleString() : naText,
+      render: (_, record, index) => record.salary ? record.salary.toLocaleString() : naText,
       width: 100,
     },
     {
@@ -93,7 +93,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       dataIndex: 'remarks',
       key: 'remarks',
       ellipsis: true,
-      render: (_, record) => record.remarks || dashText,
+      render: (_, record, index) => record.remarks || dashText,
     },
   ];
 
@@ -104,7 +104,7 @@ const JobHistoryTable: React.FC<JobHistoryTableProps> = ({
       align: 'center',
       width: 100,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           {canEditJobHistory && (
             <TableActionButton

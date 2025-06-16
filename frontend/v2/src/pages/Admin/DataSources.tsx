@@ -150,7 +150,7 @@ const DataSources: React.FC = () => {
       key: 'name',
       width: 180,
       ellipsis: true,
-      render: (text, record) => (
+      render: (text, record, index) => (
         <div>
           <Space>
             <DatabaseOutlined style={{ color: '#1890ff' }} />
@@ -169,7 +169,7 @@ const DataSources: React.FC = () => {
       key: 'datasource_display',
       width: 200,
       ellipsis: true,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const sourceName = record.source_type === 'table' ? record.table_name : record.view_name;
         const fullName = sourceName ? `${record.schema_name}.${sourceName}` : '-';
         
@@ -248,7 +248,7 @@ const DataSources: React.FC = () => {
       key: 'actions',
       width: 160,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <Tooltip title={t('data_source.action.view_fields')}>
             <Button
@@ -301,7 +301,7 @@ const DataSources: React.FC = () => {
       title: t('data_source.field_column.name'),
       dataIndex: 'field_name',
       key: 'field_name',
-      render: (name, record) => (
+      render: (name, record, index) => (
         <Space>
           <Text strong>{name}</Text>
           {record.is_primary_key && <Tag color="gold">PK</Tag>}
@@ -312,7 +312,7 @@ const DataSources: React.FC = () => {
       title: t('data_source.field_column.type'),
       dataIndex: 'data_type',
       key: 'data_type',
-      render: (type, record) => {
+      render: (type, record, index) => {
         let typeStr = type;
         if (record.length) typeStr += `(${record.length})`;
         if (record.precision !== undefined && record.scale !== undefined) {

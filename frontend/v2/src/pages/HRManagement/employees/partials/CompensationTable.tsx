@@ -35,7 +35,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       dataIndex: 'effective_date',
       key: 'effective_date',
       sorter: (a, b) => dayjs(a.effective_date).unix() - dayjs(b.effective_date).unix(),
-      render: (_, record) => dayjs(record.effective_date).isValid() ? dayjs(record.effective_date).format('YYYY-MM-DD'): naText,
+      render: (_, record, index) => dayjs(record.effective_date).isValid() ? dayjs(record.effective_date).format('YYYY-MM-DD'): naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_basic_salary', 'Basic Salary'),
@@ -43,7 +43,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       key: 'basic_salary',
       align: 'right',
       sorter: (a, b) => a.basic_salary - b.basic_salary,
-      render: (_, record) => typeof record.basic_salary === 'number' ? record.basic_salary.toFixed(2) : naText,
+      render: (_, record, index) => typeof record.basic_salary === 'number' ? record.basic_salary.toFixed(2) : naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_allowances', 'Allowances'),
@@ -51,7 +51,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       key: 'allowances',
       align: 'right',
       sorter: (a, b) => (a.allowances || 0) - (b.allowances || 0),
-      render: (_, record) => typeof record.allowances === 'number' ? record.allowances.toFixed(2) : (record.allowances === null || record.allowances === undefined ? zeroDecimalText : naText),
+      render: (_, record, index) => typeof record.allowances === 'number' ? record.allowances.toFixed(2) : (record.allowances === null || record.allowances === undefined ? zeroDecimalText : naText),
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_total_salary', 'Total Salary'),
@@ -59,14 +59,14 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       key: 'total_salary',
       align: 'right',
       sorter: (a, b) => (a.total_salary || 0) - (b.total_salary || 0),
-      render: (_, record) => typeof record.total_salary === 'number' ? record.total_salary.toFixed(2) : naText,
+      render: (_, record, index) => typeof record.total_salary === 'number' ? record.total_salary.toFixed(2) : naText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_pay_frequency', 'Pay Frequency'),
       dataIndex: 'pay_frequency_lookup_value_id',
       key: 'pay_frequency_lookup_value_id',
       sorter: true,
-      render: (_, record) => {
+      render: (_, record, index) => {
         return lookupMaps?.payFrequencyMap?.get(record.pay_frequency_lookup_value_id) || record.pay_frequency_lookup_value_id?.toString() || naText;
       },
     },
@@ -75,7 +75,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       dataIndex: 'currency',
       key: 'currency',
       sorter: true,
-      render: (_, record) => record.currency || defaultCurrencyText,
+      render: (_, record, index) => record.currency || defaultCurrencyText,
     },
     {
       title: t('employee:detail_page.compensation_tab.table.column_change_reason', 'Reason for Change'),
@@ -100,7 +100,7 @@ const CompensationTable: React.FC<CompensationTableProps> = ({ dataSource, loadi
       align: 'center',
       fixed: 'right',
       width: 120,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           {canEdit && (
             <TableActionButton

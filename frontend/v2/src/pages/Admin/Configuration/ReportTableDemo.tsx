@@ -99,7 +99,7 @@ const ReportTableDemo: React.FC = () => {
         active: { text: t('admin:report_demo_status_active'), status: 'Success' },
         inactive: { text: t('admin:report_demo_status_inactive'), status: 'Error' },
       },
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Tag color={record.status === 'active' ? 'success' : 'error'}>
           {record.status === 'active' ? t('admin:report_demo_status_active') : t('admin:report_demo_status_inactive')}
         </Tag>

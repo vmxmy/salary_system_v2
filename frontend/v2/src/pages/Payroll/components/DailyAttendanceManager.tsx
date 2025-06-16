@@ -92,7 +92,7 @@ const DailyAttendanceManager: React.FC = () => {
       title: t('payroll:status'),
       key: 'status',
       width: 120,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size={4}>
           {record.is_late && <Tag color="orange">{t('payroll:late')}</Tag>}
           {record.is_early_leave && <Tag color="red">{t('payroll:early_leave')}</Tag>}
@@ -108,7 +108,7 @@ const DailyAttendanceManager: React.FC = () => {
       key: 'actions',
       width: 150,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="edit"

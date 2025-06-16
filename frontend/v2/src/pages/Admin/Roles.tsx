@@ -233,7 +233,7 @@ const RoleListPage: React.FC = () => {
       key: 'permissions',
       width: 300,
       search: false,
-      render: (_, record) => {
+      render: (_, record, index) => {
         if (!record.permissions || record.permissions.length === 0) return '-';
         return record.permissions.map(p => p.code).join(', ');
       },
@@ -243,7 +243,7 @@ const RoleListPage: React.FC = () => {
       key: 'actions',
       width: 120,
       search: false,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="middle">
           <TableActionButton
             actionType="edit"

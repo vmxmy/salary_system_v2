@@ -2842,6 +2842,7 @@ async def get_employee_insurance_base(
                 "period_id": period_id,
                 "social_insurance_base": float(config.social_insurance_base or 0),
                 "housing_fund_base": float(config.housing_fund_base or 0),
+                "occupational_pension_base": float(getattr(config, 'occupational_pension_base', None) or 0),
                 "effective_date": config.effective_date.isoformat() if config.effective_date else None,
                 "end_date": config.end_date.isoformat() if config.end_date else None
             }
@@ -2852,11 +2853,12 @@ async def get_employee_insurance_base(
                 "period_id": period_id,
                 "social_insurance_base": 0.0,
                 "housing_fund_base": 0.0,
+                "occupational_pension_base": 0.0,
                 "effective_date": None,
                 "end_date": None
             }
         
-        logger.info(f"✅ [API-获取员工缴费基数] 获取成功: 社保基数={result['social_insurance_base']}, 公积金基数={result['housing_fund_base']}")
+        logger.info(f"✅ [API-获取员工缴费基数] 获取成功: 社保基数={result['social_insurance_base']}, 公积金基数={result['housing_fund_base']}, 职业年金基数={result['occupational_pension_base']}")
         
         return DataResponse(
             data=result,
@@ -2896,6 +2898,7 @@ async def update_employee_insurance_base(
         
         social_insurance_base = request.get('social_insurance_base', 0)
         housing_fund_base = request.get('housing_fund_base', 0)
+        occupational_pension_base = request.get('occupational_pension_base', 0)
         
         # 获取期间信息
         period = db.query(PayrollPeriod).filter(PayrollPeriod.id == period_id).first()
@@ -2926,14 +2929,19 @@ async def update_employee_insurance_base(
             # 更新现有配置
             config.social_insurance_base = social_insurance_base
             config.housing_fund_base = housing_fund_base
+            if hasattr(config, 'occupational_pension_base'):
+                config.occupational_pension_base = occupational_pension_base
             config.updated_at = datetime.utcnow()
             config.updated_by = current_user.id
         else:
             # 创建新配置
+            basic_salary = request.get('basic_salary', 0.0)  # 从请求中获取基本工资，默认为0
             config = EmployeeSalaryConfig(
                 employee_id=employee_id,
+                basic_salary=basic_salary,
                 social_insurance_base=social_insurance_base,
                 housing_fund_base=housing_fund_base,
+                occupational_pension_base=occupational_pension_base,
                 effective_date=period.start_date,
                 end_date=period.end_date,
                 is_active=True,
@@ -2952,10 +2960,11 @@ async def update_employee_insurance_base(
             "period_id": period_id,
             "social_insurance_base": float(social_insurance_base),
             "housing_fund_base": float(housing_fund_base),
+            "occupational_pension_base": float(occupational_pension_base),
             "message": "缴费基数更新成功"
         }
         
-        logger.info(f"✅ [API-更新员工缴费基数] 更新成功: 社保基数={social_insurance_base}, 公积金基数={housing_fund_base}")
+        logger.info(f"✅ [API-更新员工缴费基数] 更新成功: 社保基数={social_insurance_base}, 公积金基数={housing_fund_base}, 职业年金基数={occupational_pension_base}")
         
         return DataResponse(
             data=result,
@@ -3143,6 +3152,169 @@ async def batch_validate_salary_bases(
             detail=create_error_response(
                 status_code=500,
                 message="批量验证缴费基数时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.post("/salary-configs/batch-update-bases", response_model=DataResponse[Dict[str, Any]])
+async def batch_update_salary_bases(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    💰 批量更新缴费基数
+    
+    请求格式示例：
+    {
+        "period_id": 1,
+        "base_updates": [
+            {
+                "employee_id": 1,
+                "social_insurance_base": 15000.00,
+                "housing_fund_base": 20000.00,
+                "occupational_pension_base": 15000.00,
+                "employee_info": {
+                    "last_name": "张",
+                    "first_name": "三",
+                    "id_number": "110101199001011234"
+                }
+            }
+        ],
+        "overwrite_mode": false
+    }
+    
+    执行缴费基数的批量更新，包括：
+    - 社保缴费基数
+    - 公积金缴费基数
+    - 职业年金缴费基数
+    """
+    logger.info(f"💰 [API-批量更新缴费基数] 接收请求: 记录数={len(request.get('base_updates', []))}, 用户={current_user.username}")
+    
+    try:
+        period_id = request.get("period_id")
+        base_updates = request.get("base_updates", [])
+        overwrite_mode = request.get("overwrite_mode", False)
+        
+        if not period_id:
+            raise ValueError("period_id 是必填字段")
+        
+        if not base_updates:
+            raise ValueError("base_updates 不能为空")
+        
+        service = EmployeeSalaryConfigService(db)
+        result = service.batch_update_salary_bases(
+            period_id=period_id,
+            base_updates=base_updates,
+            user_id=current_user.id,
+            overwrite_mode=overwrite_mode
+        )
+        
+        logger.info(f"✅ [API-批量更新缴费基数] 更新完成: {result['message']}")
+        
+        return DataResponse(
+            data=result,
+            message=result["message"]
+        )
+    except ValueError as e:
+        logger.warning(f"⚠️ [API-批量更新缴费基数] 参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="批量更新缴费基数失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"💥 [API-批量更新缴费基数] 更新失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="批量更新缴费基数时发生错误",
+                details=str(e)
+            )
+        )
+
+@router.post("/salary-configs/batch-update-insurance-bases-only", response_model=DataResponse[Dict[str, Any]])
+async def batch_update_insurance_bases_only(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_run:manage"]))
+):
+    """
+    🎯 专门用于批量更新缴费基数的API
+    
+    这个API专门用于缴费基数导入场景，只更新现有薪资配置的缴费基数字段，
+    不会涉及基本工资等其他薪资信息。
+    
+    请求格式示例：
+    {
+        "period_id": 1,
+        "base_updates": [
+            {
+                "employee_id": 1,
+                "social_insurance_base": 15000.00,
+                "housing_fund_base": 20000.00,
+                "occupational_pension_base": 15000.00,
+                "employee_info": {
+                    "last_name": "张",
+                    "first_name": "三",
+                    "id_number": "110101199001011234"
+                }
+            }
+        ],
+        "create_if_missing": false
+    }
+    
+    参数说明：
+    - create_if_missing: 如果员工没有现有薪资配置，是否创建最小配置（basic_salary=0）
+    """
+    logger.info(f"🎯 [API-专门更新缴费基数] 接收请求: 记录数={len(request.get('base_updates', []))}, 用户={current_user.username}")
+    
+    try:
+        period_id = request.get("period_id")
+        base_updates = request.get("base_updates", [])
+        create_if_missing = request.get("create_if_missing", False)
+        
+        if not period_id:
+            raise ValueError("period_id 是必填字段")
+        
+        if not base_updates:
+            raise ValueError("base_updates 不能为空")
+        
+        service = EmployeeSalaryConfigService(db)
+        result = service.batch_update_insurance_bases_only(
+            period_id=period_id,
+            base_updates=base_updates,
+            user_id=current_user.id,
+            create_if_missing=create_if_missing
+        )
+        
+        logger.info(f"✅ [API-专门更新缴费基数] 更新完成: {result['message']}")
+        
+        return DataResponse(
+            data=result,
+            message=result["message"]
+        )
+    except ValueError as e:
+        logger.warning(f"⚠️ [API-专门更新缴费基数] 参数错误: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=create_error_response(
+                status_code=422,
+                message="专门更新缴费基数失败",
+                details=str(e)
+            )
+        )
+    except Exception as e:
+        logger.error(f"💥 [API-专门更新缴费基数] 更新失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="专门更新缴费基数时发生错误",
                 details=str(e)
             )
         )

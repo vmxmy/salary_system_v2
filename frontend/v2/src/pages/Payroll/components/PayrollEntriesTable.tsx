@@ -211,7 +211,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       width: 130,
       valueType: 'text',
       sorter: (a, b) => (a.employee_name || '').localeCompare(b.employee_name || ''),
-      render: (_, record) => (
+      render: (_, record, index) => (
         <EmployeeName
           employeeId={record.employee_id}
           employeeName={record.employee_name}
@@ -229,7 +229,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       align: 'right',
       valueType: 'money',
       sorter: (a, b) => (Number(a.gross_pay) || 0) - (Number(b.gross_pay) || 0),
-      render: (_, record) => (Number(record.gross_pay) || 0).toFixed(2),
+      render: (_, record, index) => (Number(record.gross_pay) || 0).toFixed(2),
       search: false,
     },
     {
@@ -240,7 +240,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       align: 'right',
       valueType: 'money',
       sorter: (a, b) => (Number(a.total_deductions) || 0) - (Number(b.total_deductions) || 0),
-      render: (_, record) => (Number(record.total_deductions) || 0).toFixed(2),
+      render: (_, record, index) => (Number(record.total_deductions) || 0).toFixed(2),
       search: false,
     },
     {
@@ -250,7 +250,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       width: 110,
       align: 'right',
       valueType: 'money',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Typography.Text strong>{(Number(record.net_pay) || 0).toFixed(2)}</Typography.Text>
       ),
       sorter: (a, b) => (Number(a.net_pay) || 0) - (Number(b.net_pay) || 0),
@@ -268,7 +268,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
         2: { text: t('payroll:status.finalized'), status: 'processing' },
         3: { text: t('payroll:status.paid'), status: 'success' },
       },
-      render: (_, record) => {
+      render: (_, record, index) => {
         const statusInfo = getPayrollEntryStatusInfo(record.status_lookup_value_id);
         return <Tag color={statusInfo.color}>{t(`payroll:${statusInfo.key}`, statusInfo.params)}</Tag>;
       },
@@ -281,7 +281,7 @@ const PayrollEntriesTable: React.FC<PayrollEntriesTableProps> = ({ payrollRunId 
       align: 'center',
       valueType: 'option',
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <PermissionGuard requiredPermissions={[P_PAYROLL_ENTRY_VIEW]}>
             <TableActionButton

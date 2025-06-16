@@ -256,7 +256,7 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
       title: '选择',
       dataIndex: 'is_selected',
       width: 50,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Checkbox
           checked={selectedEntries.includes(record)}
           onChange={(e) => {
@@ -273,7 +273,7 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
       title: '员工姓名',
       dataIndex: 'employee_name',
       width: 100,
-      render: (text, record) => (
+      render: (text, record, index) => (
         <div>
           <div style={{ fontWeight: 500 }}>{text}</div>
           <div style={{ fontSize: '12px', color: '#666' }}>{record.department_name}</div>
@@ -310,7 +310,7 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
       title: '复核状态',
       dataIndex: 'review_status',
       width: 100,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <div>
           <Tag color={getStatusColor(record.review_status || PAYROLL_ENTRY_STATUS.PENDING)}>
             {getStatusText(record.review_status || PAYROLL_ENTRY_STATUS.PENDING)}
@@ -326,7 +326,7 @@ export const PayrollReviewStep: React.FC<PayrollReviewStepProps> = ({ workflow }
     {
       title: '操作',
       width: 150,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <Tooltip title="查看详情">
             <Button 

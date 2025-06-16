@@ -64,7 +64,7 @@ export class ImportStrategyFactory {
   }
 
     /**
-   * 获取所有可用的导入模式配置
+   * 获取所有可用的导入模式配置（不初始化策略）
    */
   static async getAllModeConfigs(): Promise<ImportModeConfig[]> {
     try {
@@ -76,22 +76,43 @@ export class ImportStrategyFactory {
           console.log(`正在获取模式配置: ${modeId}`);
           
           try {
-            const strategy = await ImportStrategyFactory.getStrategy(modeId as ImportModeId);
-            console.log(`策略获取成功: ${modeId}`, strategy);
+            // 创建策略实例但不初始化
+            const StrategyClass = STRATEGY_MAP[modeId as ImportModeId];
+            if (!StrategyClass) {
+              throw new Error(`未找到导入策略: ${modeId}`);
+            }
             
-            const config = await strategy.getModeConfig();
+            const instance = new StrategyClass();
+            console.log(`策略实例创建成功: ${modeId}`, instance);
+            
+            // 直接获取配置，不调用initialize
+            const config = await instance.getModeConfig();
             console.log(`配置获取成功: ${modeId}`, config);
             
             return config;
           } catch (error) {
             console.error(`获取模式配置失败: ${modeId}`, error);
-            throw error;
+            // 返回一个基础配置，避免整个加载失败
+            return {
+              id: modeId as ImportModeId,
+              name: `${modeId} 导入`,
+              description: '配置加载失败',
+              icon: '❌',
+              fields: [],
+              requiredFields: [],
+              optionalFields: [],
+              validationRules: [],
+              apiEndpoints: { validate: '', execute: '', getRefData: [] },
+              fieldMappingHints: {},
+              sampleTemplate: { headers: [], sampleRows: [] },
+              importSettings: { supportsBatch: false, maxBatchSize: 100, requiresPeriodSelection: false, supportsOverwrite: false, defaultOverwriteMode: false }
+            };
           }
         })
       );
       
       console.log('所有模式配置获取成功:', configs);
-      return configs;
+      return configs.filter(config => config.icon !== '❌'); // 过滤掉失败的配置
     } catch (error) {
       console.error('获取所有模式配置失败:', error);
       throw error;

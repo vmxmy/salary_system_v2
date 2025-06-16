@@ -233,6 +233,7 @@ class BulkValidatePayrollEntriesPayload(BaseModel):
     payroll_period_id: int = Field(..., description="薪资周期ID")
     entries: List[PayrollEntryCreate] = Field(..., description="待验证的薪资明细列表")
     overwrite_mode: OverwriteMode = Field(..., description="覆写模式")
+    field_conflict_check: bool = Field(False, description="是否启用字段级冲突检测")
 
 class BulkValidatePayrollEntriesResult(BaseModel):
     """批量验证薪资明细的响应模型"""
@@ -338,6 +339,7 @@ class SalaryBaseUpdate(BaseModel):
     employee_id: Optional[int] = Field(None, description="员工ID，可选，如果未提供则通过employee_info匹配")
     social_insurance_base: Optional[Decimal] = Field(None, description="社保缴费基数", ge=0)
     housing_fund_base: Optional[Decimal] = Field(None, description="公积金缴费基数", ge=0)
+    occupational_pension_base: Optional[Decimal] = Field(None, description="职业年金缴费基数", ge=0)
     # 员工匹配信息，用于批量导入时根据姓名+身份证匹配员工
     employee_info: Optional[Dict[str, str]] = Field(None, description="员工匹配信息，包含last_name, first_name, id_number")
     # 客户端标识，用于前端跟踪
@@ -357,6 +359,7 @@ class SalaryBaseValidationResult(BaseModel):
     employee_name: Optional[str] = Field(None, description="员工姓名")
     social_insurance_base: Optional[Decimal] = Field(None, description="社保缴费基数")
     housing_fund_base: Optional[Decimal] = Field(None, description="公积金缴费基数")
+    occupational_pension_base: Optional[Decimal] = Field(None, description="职业年金缴费基数")
     is_valid: bool = Field(..., description="是否验证通过")
     errors: List[str] = Field([], description="验证错误信息")
     warnings: List[str] = Field([], description="验证警告信息")
@@ -481,6 +484,7 @@ class PayrollModalCalculations(BaseModel):
     """薪资模态框计算参数"""
     社保缴费基数: Optional[Decimal] = Field(None, description="社保缴费基数")
     住房公积金缴费基数: Optional[Decimal] = Field(None, description="住房公积金缴费基数")
+    职业年金缴费基数: Optional[Decimal] = Field(None, description="职业年金缴费基数")
     养老保险个人费率: Optional[Decimal] = Field(None, description="养老保险个人费率")
     医疗保险个人费率: Optional[Decimal] = Field(None, description="医疗保险个人费率")
     住房公积金个人费率: Optional[Decimal] = Field(None, description="住房公积金个人费率")

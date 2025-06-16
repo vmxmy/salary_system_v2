@@ -40,7 +40,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       dataIndex: 'contract_type_lookup_value_id',
       key: 'contract_type_lookup_value_id',
       sorter: true,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const id = record.contract_type_lookup_value_id;
         const typeText = lookupMaps?.contractTypeMap?.get(id) || String(id);
         return <Tag>{typeText || naText}</Tag>;
@@ -51,7 +51,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       dataIndex: 'start_date',
       key: 'start_date',
       sorter: true,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const date = record.start_date;
         return dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD'): naText;
       },
@@ -61,7 +61,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       dataIndex: 'end_date',
       key: 'end_date',
       sorter: true,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const date = record.end_date;
         return dayjs(date).isValid() ? dayjs(date).format('YYYY-MM-DD'): naText;
       },
@@ -71,7 +71,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       dataIndex: 'contract_status_lookup_value_id',
       key: 'contract_status_lookup_value_id',
       sorter: true,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const id = record.contract_status_lookup_value_id;
         const statusText = lookupMaps?.contractStatusMap?.get(id) || String(id);
         let color = 'default';
@@ -94,7 +94,7 @@ const ContractTable: React.FC<ContractTableProps> = ({ dataSource, loading, onEd
       key: 'actions',
       align: 'center',
       width: 120,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           {canEditContract && (
             <TableActionButton

@@ -80,7 +80,7 @@ const generatePayrollPeriodTableColumns = (
       sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
       width: 200,
       valueType: 'text',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <span style={{ fontWeight: 500 }}>{record.name}</span>
       ),
       ...getColumnSearch('name'),
@@ -89,7 +89,7 @@ const generatePayrollPeriodTableColumns = (
       title: t('payroll_periods_page.table.column_frequency'),
       dataIndex: 'frequency_lookup_value_id',
       key: 'frequency',
-      render: (_, record) => {
+      render: (_, record, index) => {
         // 使用lookup映射显示频率
         return lookupMaps?.payFrequencyMap?.get(record.frequency_lookup_value_id as number) || '-';
       },
@@ -113,7 +113,7 @@ const generatePayrollPeriodTableColumns = (
       sorter: (a, b) => new Date(a.start_date || '').getTime() - new Date(b.start_date || '').getTime(),
       width: 130,
       valueType: 'date',
-      render: (_, record) => record.start_date ? format(new Date(record.start_date), 'yyyy-MM-dd') : '',
+      render: (_, record, index) => record.start_date ? format(new Date(record.start_date), 'yyyy-MM-dd') : '',
       search: false,
     },
     {
@@ -123,7 +123,7 @@ const generatePayrollPeriodTableColumns = (
       sorter: (a, b) => new Date(a.end_date || '').getTime() - new Date(b.end_date || '').getTime(),
       width: 130,
       valueType: 'date',
-      render: (_, record) => record.end_date ? format(new Date(record.end_date), 'yyyy-MM-dd') : '',
+      render: (_, record, index) => record.end_date ? format(new Date(record.end_date), 'yyyy-MM-dd') : '',
       search: false,
     },
     {
@@ -133,7 +133,7 @@ const generatePayrollPeriodTableColumns = (
       sorter: (a, b) => new Date(a.pay_date || '').getTime() - new Date(b.pay_date || '').getTime(),
       width: 130,
       valueType: 'date',
-      render: (_, record) => record.pay_date ? format(new Date(record.pay_date), 'yyyy-MM-dd') : '',
+      render: (_, record, index) => record.pay_date ? format(new Date(record.pay_date), 'yyyy-MM-dd') : '',
       search: false,
     },
     {
@@ -141,7 +141,7 @@ const generatePayrollPeriodTableColumns = (
       dataIndex: 'status_lookup_value_id',
       key: 'status',
       width: 120,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const status = statusOptions.find(opt => opt.id === record.status_lookup_value_id);
         if (!status) return '-';
         
@@ -168,7 +168,7 @@ const generatePayrollPeriodTableColumns = (
       width: 120,
       align: 'center',
       valueType: 'text',
-      render: (_, record) => {
+      render: (_, record, index) => {
         const employeeCount = (record as any).employee_count ?? 0;
         
         if (employeeCount > 0) {

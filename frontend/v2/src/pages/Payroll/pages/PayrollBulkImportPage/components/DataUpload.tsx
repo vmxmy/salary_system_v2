@@ -375,7 +375,7 @@ const DataUpload: React.FC<DataUploadProps> = ({
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
         header: 1, // 使用数组格式而不是对象格式
         defval: '', // 空单元格默认值
-        raw: false // 不保留原始值，转换为字符串
+        raw: true // 🔧 修复：保留原始值，避免身份证号等长数字被转换导致精度丢失
       });
       
       console.log('📊 解析的原始数据:', jsonData);
@@ -388,8 +388,41 @@ const DataUpload: React.FC<DataUploadProps> = ({
       const headers = jsonData[0] as string[];
       const dataRows = jsonData.slice(1) as any[][];
       
+      // 🔧 修复：处理身份证号等长数字字段，确保转换为字符串
+      const processedRows = dataRows.map(row => {
+        return row.map((cell: any, colIndex: number) => {
+          const header = headers[colIndex];
+          
+          // 🎯 关键修复：身份证号相关字段强制转换为字符串
+          if (header && (
+            header.includes('身份证') || 
+            header.includes('ID') || 
+            header.includes('id') ||
+            header.toLowerCase().includes('id_number') ||
+            header.includes('证件号') ||
+            header.includes('员工编号') ||
+            header.includes('工号') ||
+            header.includes('人员编号')
+          )) {
+            // 对于身份证号等字段，确保转换为字符串并保持完整性
+            if (cell !== null && cell !== undefined && cell !== '') {
+              // 如果是数字，转换为字符串（避免科学计数法）
+              if (typeof cell === 'number') {
+                return cell.toString();
+              }
+              // 如果已经是字符串，直接返回
+              return String(cell);
+            }
+            return '';
+          }
+          
+          // 其他字段保持原样
+          return cell;
+        });
+      });
+      
       // 过滤掉完全空白的行
-      const filteredRows = filterEmptyRows(dataRows);
+      const filteredRows = filterEmptyRows(processedRows);
       
       if (!headers || headers.length === 0) {
         throw new Error('未找到有效的表头信息');

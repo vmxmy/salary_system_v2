@@ -171,7 +171,7 @@ const CalculationLogsPage: React.FC = () => {
       title: '员工',
       key: 'employee',
       width: 120,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <div>
           <div>{record.employee_name}</div>
           <Text type="secondary" style={{ fontSize: 12 }}>ID: {record.employee_id}</Text>
@@ -234,7 +234,7 @@ const CalculationLogsPage: React.FC = () => {
       key: 'actions',
       width: 120,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           {record.payroll_run_id && (
             <Popconfirm

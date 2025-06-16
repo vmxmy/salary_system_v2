@@ -245,7 +245,7 @@ const DynamicMappingTable: React.FC<DynamicMappingTableProps> = ({
             title: '目标字段',
             dataIndex: 'targetField',
             width: 300,
-            render: (text, record) => (
+            render: (text, record, index) => (
               <div>
                 {/* 显示层：显示中文名称 */}
                 <div style={{ 

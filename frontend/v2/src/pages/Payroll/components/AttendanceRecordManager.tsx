@@ -55,7 +55,7 @@ const AttendanceRecordManager: React.FC = () => {
       dataIndex: ['attendance_period', 'name'],
       key: 'attendance_period_name',
       width: 150,
-      render: (_, record) => record.attendance_period?.name || '-',
+      render: (_, record, index) => record.attendance_period?.name || '-',
     },
     {
       title: t('payroll:work_days'),
@@ -103,7 +103,7 @@ const AttendanceRecordManager: React.FC = () => {
       key: 'actions',
       width: 150,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="edit"

@@ -86,6 +86,7 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 veb.last_name,
                 COALESCE(esc.social_insurance_base, 0) AS social_insurance_base,
                 COALESCE(esc.housing_fund_base, 0) AS housing_fund_base,
+                COALESCE(esc.occupational_pension_base, 0) AS occupational_pension_base,
                 veb.root_personnel_category_name,
                 veb.personnel_category_id,
                 veb.housing_fund_client_number -- Directly select housing_fund_client_number from v_employees_basic
@@ -122,7 +123,7 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
         param_header = ["姓名", "员工ID", "编制/人员身份", "人员身份ID", "查询月份"]
         print("| " + " | ".join(param_header) + " |")
         print("|" + "---" * len(param_header) + "|")
-        for emp_id, first_name, last_name, social_insurance_base, housing_fund_base, personnel_category_name, personnel_category_id, housing_fund_client_number in employees_data:
+        for emp_id, first_name, last_name, social_insurance_base, housing_fund_base, occupational_pension_base, personnel_category_name, personnel_category_id, housing_fund_client_number in employees_data:
             full_name = f"{last_name}{first_name}"
             row_params = [
                 full_name,
@@ -207,10 +208,11 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
         housing_fund_type = "HOUSING_FUND"
 
         results = []
-        for emp_id, first_name, last_name, social_insurance_base, housing_fund_base, personnel_category_name, personnel_category_id, housing_fund_client_number in employees_data:
+        for emp_id, first_name, last_name, social_insurance_base, housing_fund_base, occupational_pension_base, personnel_category_name, personnel_category_id, housing_fund_client_number in employees_data:
             full_name = f"{last_name}{first_name}"
             social_insurance_base = Decimal(str(social_insurance_base))
             housing_fund_base = Decimal(str(housing_fund_base))
+            occupational_pension_base = Decimal(str(occupational_pension_base))
 
             total_personal_contribution = Decimal('0.00')
             total_employer_contribution = Decimal('0.00')
@@ -253,8 +255,16 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 if applicable_rate: # 如果找到了适用的费率
                     rates = applicable_rate # 将适用的费率赋值给 rates
                     
+                    # 根据险种选择合适的缴费基数
+                    if ins_type == "OCCUPATIONAL_PENSION":
+                        # 职业年金使用专门的职业年金缴费基数，如果没有则使用社保基数
+                        base_for_calculation = occupational_pension_base if occupational_pension_base > 0 else social_insurance_base
+                    else:
+                        # 其他险种使用社保缴费基数
+                        base_for_calculation = social_insurance_base
+                    
                     # 确定实际缴费基数（在最低和最高基数之间），并进行四舍五入取整
-                    actual_base = max(rates["min_base"], min(rates["max_base"], social_insurance_base)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                    actual_base = max(rates["min_base"], min(rates["max_base"], base_for_calculation)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                     
                     personal_contribution = (actual_base * rates["employee_rate"]).quantize(Decimal('0.01'))
                     employer_contribution = (actual_base * rates["employer_rate"]).quantize(Decimal('0.01'))
@@ -349,6 +359,7 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 "人员身份": personnel_category_name,
                 "社保基数": social_insurance_base,
                 "公积金基数": housing_fund_base,
+                "职业年金基数": occupational_pension_base,
                 "五险一金个人合计": total_personal_contribution,
                 "五险一金单位合计": total_employer_contribution,
                 "个人客户号": housing_fund_client_number if housing_fund_client_number else "N/A",
@@ -403,7 +414,7 @@ def calculate_social_insurance_and_housing_fund(calculation_month_str: str, empl
                 for col_name in new_header:
                     value = None
                     if col_name == "职业年金缴费基数":
-                        value = res.get("社保基数") # 职业年金基数同社保基数
+                        value = res.get("职业年金基数") or res.get("社保基数") # 优先使用职业年金基数，如果没有则使用社保基数
                     elif col_name == "养老保险单位缴费费率":
                         value = res.get("PENSION_单位_费率")
                     elif col_name == "养老保险单位应缴费额":
@@ -560,7 +571,7 @@ def export_to_csv(results, calculation_month_str, employee_name=None):
                     
                     # 映射字段值
                     if col_name == "职业年金缴费基数":
-                        value = res.get("社保基数")
+                        value = res.get("职业年金基数") or res.get("社保基数") # 优先使用职业年金基数，如果没有则使用社保基数
                     elif col_name == "养老保险单位缴费费率":
                         value = res.get("PENSION_单位_费率")
                     elif col_name == "养老保险单位应缴费额":

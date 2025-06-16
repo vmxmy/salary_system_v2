@@ -82,6 +82,7 @@ export const usePayrollDataPresets = () => {
       description?: string;
       isDefault?: boolean;
       isPublic?: boolean;
+      tableFilterState?: any; // 🎯 关键修复：添加表头筛选状态支持
     } = {}
   ) => {
     try {
@@ -91,6 +92,13 @@ export const usePayrollDataPresets = () => {
         columnSettings,
         ...options
       };
+
+      console.log('💾 [usePayrollDataPresets] 保存预设数据:', {
+        name,
+        hasTableFilterState: !!options.tableFilterState,
+        tableFilterStateKeys: options.tableFilterState ? Object.keys(options.tableFilterState) : [],
+        data
+      });
 
       const newPreset = await payrollDataPresetsApi.savePreset(data);
       setPresets(prev => [...prev, newPreset]);
@@ -230,6 +238,12 @@ export const usePayrollDataPresets = () => {
     }
   }, [t]);
 
+  // 手动设置当前预设（用于预设切换时同步状态）
+  const setCurrentPreset = useCallback((preset: PayrollDataModalPreset | null) => {
+    console.log('🔧 [usePayrollDataPresets] 手动设置当前预设:', preset);
+    setDefaultPreset(preset);
+  }, []);
+
   // 初始化加载
   useEffect(() => {
     loadPresets();
@@ -247,6 +261,7 @@ export const usePayrollDataPresets = () => {
     deletePreset,
     setAsDefault,
     duplicatePreset,
-    updatePreset
+    updatePreset,
+    setCurrentPreset
   };
 }; 

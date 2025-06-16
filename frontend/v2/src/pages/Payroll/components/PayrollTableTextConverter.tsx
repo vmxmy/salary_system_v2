@@ -276,7 +276,7 @@ const PayrollTableTextConverter: React.FC = () => {
       dataIndex: 'type',
       key: 'type',
       width: 100,
-      render: (text, record) => {
+      render: (text, record, index) => {
         // 可选：根据API字段的预期类型进一步细化
         const selectedApiField = defaultApiFields.find(f => f.key === record.apiField);
         if (selectedApiField) {

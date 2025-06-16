@@ -669,7 +669,7 @@ const MappingTable: React.FC<MappingTableProps> = ({
             title: '目标字段',
             dataIndex: 'targetField',
             width: 200,
-            render: (text, record) => (
+            render: (text, record, index) => (
               <div>
                 {/* 显示层：显示中文名称 */}
                 <div style={{ 
@@ -776,7 +776,7 @@ const MappingTable: React.FC<MappingTableProps> = ({
             title: '置信度',
             dataIndex: 'confidence',
             width: 120,
-            render: (value, record) => {
+            render: (value, record, index) => {
               // 获取智能映射结果的置信度
               const smartResult = smartMappingResults.find(r => r.sourceField === record.sourceField);
               const confidence = smartResult?.bestMatch?.confidence || value || 0;

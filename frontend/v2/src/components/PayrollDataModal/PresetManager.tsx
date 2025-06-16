@@ -48,7 +48,12 @@ interface PresetManagerProps {
   onClose: () => void;
   currentFilterConfig: ColumnFilterConfig;
   currentColumnSettings: ColumnSettings;
-  onApplyPreset: (filterConfig: ColumnFilterConfig, columnSettings: ColumnSettings) => void;
+  getCurrentConfig?: () => {
+    filterConfig: ColumnFilterConfig;
+    columnSettings: ColumnSettings;
+    tableFilterState: any;
+  };
+  onApplyPreset: (preset: PayrollDataModalPreset) => void;
 }
 
 interface SavePresetModalProps {
@@ -232,6 +237,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
   onClose,
   currentFilterConfig,
   currentColumnSettings,
+  getCurrentConfig,
   onApplyPreset
 }) => {
   const { t } = useTranslation(['payroll', 'common']);
@@ -261,10 +267,25 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     isPublic?: boolean
   ) => {
     try {
-      await savePreset(name, currentFilterConfig, currentColumnSettings, {
+      // 🎯 关键修复：使用完整配置（包含表头筛选状态）
+      const fullConfig = getCurrentConfig ? getCurrentConfig() : {
+        filterConfig: currentFilterConfig,
+        columnSettings: currentColumnSettings,
+        tableFilterState: {}
+      };
+      
+      console.log('💾 [PresetManager] 保存预设配置:', {
+        name,
+        fullConfig,
+        hasTableFilterState: !!fullConfig.tableFilterState,
+        tableFilterStateKeys: Object.keys(fullConfig.tableFilterState || {})
+      });
+      
+      await savePreset(name, fullConfig.filterConfig, fullConfig.columnSettings, {
         description,
         isDefault,
-        isPublic
+        isPublic,
+        tableFilterState: fullConfig.tableFilterState // 🎯 关键：传递表头筛选状态
       });
       setSaveModalVisible(false);
     } catch (error) {
@@ -276,7 +297,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
   const handleApplyPreset = async (preset: PayrollDataModalPreset) => {
     try {
       await applyPreset(preset);
-      onApplyPreset(preset.filterConfig, preset.columnSettings);
+      onApplyPreset(preset);
       message.success(t('payroll:presets.applied_successfully', { name: preset.name }));
     } catch (error) {
       // Error handled in hook
@@ -340,13 +361,28 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
       cancelText: t('common:button.cancel'),
       onOk: async () => {
         try {
+          // 🎯 关键修复：使用完整配置（包含表头筛选状态）
+          const fullConfig = getCurrentConfig ? getCurrentConfig() : {
+            filterConfig: currentFilterConfig,
+            columnSettings: currentColumnSettings,
+            tableFilterState: {}
+          };
+          
+          console.log('💾 [PresetManager] 写入当前配置到预设:', {
+            presetName: preset.name,
+            fullConfig,
+            hasTableFilterState: !!fullConfig.tableFilterState,
+            tableFilterStateKeys: Object.keys(fullConfig.tableFilterState || {})
+          });
+          
           await updatePreset(preset.id!, {
             name: preset.name,
             description: preset.description,
             isDefault: preset.isDefault,
             isPublic: preset.isPublic,
-            filterConfig: currentFilterConfig,
-            columnSettings: currentColumnSettings
+            filterConfig: fullConfig.filterConfig,
+            columnSettings: fullConfig.columnSettings,
+            tableFilterState: fullConfig.tableFilterState // 🎯 关键：传递表头筛选状态
           });
           message.success(t('payroll:presets.write_current_success', { name: preset.name }));
         } catch (error) {

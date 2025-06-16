@@ -42,7 +42,8 @@ def bulk_validate_payroll_entries(
     db: Session,
     payroll_period_id: int,
     entries: List[PayrollEntryCreate],
-    overwrite_mode: OverwriteMode = OverwriteMode.NONE
+    overwrite_mode: OverwriteMode = OverwriteMode.NONE,
+    field_conflict_check: bool = False
 ) -> Dict[str, Any]:
     """
     批量验证薪资明细数据 - 🚀 使用优化API提升性能
@@ -52,6 +53,7 @@ def bulk_validate_payroll_entries(
         payroll_period_id: 薪资周期ID
         entries: 薪资明细创建数据列表
         overwrite_mode: 是否启用覆盖模式
+        field_conflict_check: 是否启用字段级冲突检测
     
     Returns:
         Dict[str, Any]: 验证结果，包含统计信息和验证后的数据
@@ -278,12 +280,63 @@ def bulk_validate_payroll_entries(
                 
                 if existing_entry_id:
                     validated_entry["__isNew"] = False
-                    if overwrite_mode == OverwriteMode.NONE:
-                        # 不覆写模式下，重复记录视为错误
-                        validation_errors.append(f"Payroll entry already exists for employee {employee_id} in this period")
+                    
+                    # 字段级冲突检测
+                    if field_conflict_check:
+                        field_conflicts = []
+                        
+                        # 获取现有记录的详细信息
+                        existing_entry = db.query(PayrollEntry).filter(PayrollEntry.id == existing_entry_id).first()
+                        if existing_entry:
+                            # 检查earnings_details冲突
+                            new_earnings = entry_data.earnings_details or {}
+                            existing_earnings = existing_entry.earnings_details or {}
+                            
+                            for field_code, new_value in new_earnings.items():
+                                if field_code in existing_earnings:
+                                    current_value = existing_earnings[field_code]
+                                    if current_value != new_value:
+                                        field_conflicts.append({
+                                            "field": f"earnings_details.{field_code}",
+                                            "fieldName": f"收入项目-{field_code}",
+                                            "currentValue": current_value,
+                                            "newValue": new_value
+                                        })
+                            
+                            # 检查deductions_details冲突
+                            new_deductions = entry_data.deductions_details or {}
+                            existing_deductions = existing_entry.deductions_details or {}
+                            
+                            for field_code, new_value in new_deductions.items():
+                                if field_code in existing_deductions:
+                                    current_value = existing_deductions[field_code]
+                                    if current_value != new_value:
+                                        field_conflicts.append({
+                                            "field": f"deductions_details.{field_code}",
+                                            "fieldName": f"扣除项目-{field_code}",
+                                            "currentValue": current_value,
+                                            "newValue": new_value
+                                        })
+                        
+                        # 如果有字段冲突，不视为错误，而是提供冲突信息
+                        if field_conflicts:
+                            validated_entry["field_conflicts"] = field_conflicts
+                            validated_entry["__isValid"] = True  # 字段冲突不算错误
+                            valid += 1
+                        elif overwrite_mode == OverwriteMode.NONE:
+                            # 没有字段冲突但有重复记录，且不允许覆盖
+                            validation_errors.append(f"Payroll entry already exists for employee {employee_id} in this period")
+                        else:
+                            # 覆盖模式下，重复记录不是错误，只是标记为警告
+                            warnings += 1
                     else:
-                        # 覆盖模式下（全量或部分），重复记录不是错误，只是标记为警告
-                        warnings += 1
+                        # 传统模式：不进行字段冲突检测
+                        if overwrite_mode == OverwriteMode.NONE:
+                            # 不覆写模式下，重复记录视为错误
+                            validation_errors.append(f"Payroll entry already exists for employee {employee_id} in this period")
+                        else:
+                            # 覆盖模式下（全量或部分），重复记录不是错误，只是标记为警告
+                            warnings += 1
             
             # 设置验证结果
             if validation_errors:
@@ -529,11 +582,23 @@ def bulk_create_payroll_entries_optimized(
         employee_infos = []
         
         # 收集所有需要查询的员工信息
-        for entry_data in entries:
+        for i, entry_data in enumerate(entries):
+            logger.info(f"🔍 [调试] 第{i+1}条记录类型: {type(entry_data)}")
+            logger.info(f"🔍 [调试] 第{i+1}条记录内容: {entry_data}")
+            logger.info(f"🔍 [调试] 第{i+1}条记录: hasattr(employee_info)={hasattr(entry_data, 'employee_info')}, employee_info={getattr(entry_data, 'employee_info', None)}")
             if hasattr(entry_data, 'employee_info') and entry_data.employee_info:
                 info = entry_data.employee_info
-                if info and info.get('last_name') and info.get('first_name') and info.get('id_number'):
+                logger.info(f"🔍 [调试] employee_info内容: {info}")
+                logger.info(f"🔍 [调试] employee_info类型: {type(info)}")
+                if info and info.get('last_name') and info.get('first_name'):
                     employee_infos.append(info)
+                    logger.info(f"🔍 [调试] 添加员工信息: {info}")
+                else:
+                    logger.warning(f"🔍 [调试] 员工信息不完整: last_name={info.get('last_name') if info else None}, first_name={info.get('first_name') if info else None}, id_number={info.get('id_number') if info else None}")
+            else:
+                logger.warning(f"🔍 [调试] 第{i+1}条记录缺少employee_info字段")
+                
+        logger.info(f"🔍 [调试] 收集到的员工信息总数: {len(employee_infos)}")
         
         # 批量查询员工
         if employee_infos:
@@ -543,14 +608,23 @@ def bulk_create_payroll_entries_optimized(
             params = {}
             
             for i, info in enumerate(employee_infos):
-                conditions.append(f"""
-                    (e.last_name = :last_name_{i} 
-                     AND e.first_name = :first_name_{i} 
-                     AND e.id_number = :id_number_{i})
-                """)
-                params[f'last_name_{i}'] = info['last_name']
-                params[f'first_name_{i}'] = info['first_name']
-                params[f'id_number_{i}'] = info['id_number']
+                # 优先使用姓名+身份证匹配，如果身份证为空则仅使用姓名匹配
+                if info.get('id_number') and info['id_number'].strip():
+                    conditions.append(f"""
+                        (e.last_name = :last_name_{i} 
+                         AND e.first_name = :first_name_{i} 
+                         AND e.id_number = :id_number_{i})
+                    """)
+                    params[f'last_name_{i}'] = info['last_name']
+                    params[f'first_name_{i}'] = info['first_name']
+                    params[f'id_number_{i}'] = info['id_number']
+                else:
+                    conditions.append(f"""
+                        (e.last_name = :last_name_{i} 
+                         AND e.first_name = :first_name_{i})
+                    """)
+                    params[f'last_name_{i}'] = info['last_name']
+                    params[f'first_name_{i}'] = info['first_name']
             
             if conditions:
                 query = text(f"""
@@ -562,8 +636,10 @@ def bulk_create_payroll_entries_optimized(
                 
                 result = db.execute(query, params)
                 for row in result:
-                    key = f"{row.last_name}_{row.first_name}_{row.id_number}"
-                    employee_lookup[key] = {
+                    # 支持两种查找方式：姓名+身份证 或 仅姓名
+                    key_with_id = f"{row.last_name}_{row.first_name}_{row.id_number}"
+                    key_name_only = f"{row.last_name}_{row.first_name}"
+                    employee_data = {
                         'id': row.id,
                         'employee_code': row.employee_code,
                         'last_name': row.last_name,
@@ -571,6 +647,9 @@ def bulk_create_payroll_entries_optimized(
                         'id_number': row.id_number,
                         'is_active': row.is_active
                     }
+                    # 同时存储两种查找方式
+                    employee_lookup[key_with_id] = employee_data
+                    employee_lookup[key_name_only] = employee_data
         
         logger.info(f"已预加载 {len(employee_lookup)} 个员工信息")
         
@@ -616,9 +695,16 @@ def bulk_create_payroll_entries_optimized(
                 # 先尝试从预加载数据中查找
                 if hasattr(entry_data, 'employee_info') and entry_data.employee_info:
                     info = entry_data.employee_info
-                    if info and info.get('last_name') and info.get('first_name') and info.get('id_number'):
-                        key = f"{info['last_name']}_{info['first_name']}_{info['id_number']}"
-                        employee_data = employee_lookup.get(key)
+                    if info and info.get('last_name') and info.get('first_name'):
+                        # 优先尝试姓名+身份证匹配
+                        if info.get('id_number') and info['id_number'].strip():
+                            key = f"{info['last_name']}_{info['first_name']}_{info['id_number']}"
+                            employee_data = employee_lookup.get(key)
+                        
+                        # 如果没找到或身份证为空，尝试仅姓名匹配
+                        if not employee_data:
+                            key = f"{info['last_name']}_{info['first_name']}"
+                            employee_data = employee_lookup.get(key)
                 
                 # 如果预加载数据中没有，且有employee_id，尝试单独查询
                 if not employee_data and hasattr(entry_data, 'employee_id') and entry_data.employee_id:

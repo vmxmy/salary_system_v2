@@ -103,14 +103,14 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       title: t('hr:auto_text_e680bb'), 
       dataIndex: 'total_entitlement', 
       key: 'total_entitlement', 
-      render: (_, record) => `${record.total_entitlement} ${record.unit}`,
+      render: (_, record, index) => `${record.total_entitlement} ${record.unit}`,
       search: false,
     },
     { 
       title: t('hr:auto_text_e5b7b2'), 
       dataIndex: 'taken', 
       key: 'taken', 
-      render: (_, record) => `${record.taken} ${record.unit}`,
+      render: (_, record, index) => `${record.taken} ${record.unit}`,
       search: false,
     },
     {
@@ -118,7 +118,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       dataIndex: 'balance',
       key: 'balance',
       search: false,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const balance = record.total_entitlement - record.taken;
         const percent = record.total_entitlement > 0 ? (record.taken / record.total_entitlement) * 100 : 0;
         return (
@@ -146,7 +146,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       title: t('hr:auto_text_e69c89'), 
       dataIndex: 'validityDate', 
       key: 'validityDate', 
-      render: (_, record) => dayjs(record.validity_date).isValid() ? dayjs(record.validity_date).format('YYYY-MM-DD'): '',
+      render: (_, record, index) => dayjs(record.validity_date).isValid() ? dayjs(record.validity_date).format('YYYY-MM-DD'): '',
       search: false,
     },
     {
@@ -155,7 +155,7 @@ const LeaveBalanceTab: React.FC<LeaveBalanceTabProps> = ({ employeeId }) => {
       fixed: 'right',
       width: 150,
       search: false,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="middle">
           {hasPermission('leave:adjust_balance') && (
             <TableActionButton 

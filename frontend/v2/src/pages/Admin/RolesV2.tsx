@@ -80,7 +80,7 @@ const generateRoleTableColumns = (
       key: 'permissions',
       width: 300,
       search: false,
-      render: (_, record) => {
+      render: (_, record, index) => {
         if (!record.permissions || record.permissions.length === 0) return '-';
         return record.permissions.map(p => p.code).join(', ');
       },
@@ -90,7 +90,7 @@ const generateRoleTableColumns = (
       key: 'action',
       width: 120,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="edit"

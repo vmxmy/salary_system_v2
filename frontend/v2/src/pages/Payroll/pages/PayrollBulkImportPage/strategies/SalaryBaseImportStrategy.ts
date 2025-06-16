@@ -51,13 +51,13 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
         },
         {
           type: 'custom',
-          fields: ['social_insurance_base', 'housing_fund_base'],
+          fields: ['social_insurance_base', 'housing_fund_base', 'occupational_pension_base'],
           rule: 'at_least_one_required',
-          message: '必须至少提供社保缴费基数或公积金缴费基数'
+          message: '必须至少提供社保缴费基数、公积金缴费基数或职业年金缴费基数'
         },
         {
           type: 'range',
-          fields: ['social_insurance_base', 'housing_fund_base'],
+          fields: ['social_insurance_base', 'housing_fund_base', 'occupational_pension_base'],
           rule: 'positive_number',
           message: '缴费基数必须为正数'
         }
@@ -65,10 +65,10 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
       
       // API配置
       apiEndpoints: {
-        validate: '/v2/simple-payroll/salary-configs/batch-validate',
-        execute: '/v2/simple-payroll/salary-configs/batch-update',
+        validate: '/simple-payroll/salary-configs/batch-validate',
+        execute: '/simple-payroll/salary-configs/batch-update-insurance-bases-only',
         getRefData: [
-          '/v2/simple-payroll/periods?status=ACTIVE'
+          '/simple-payroll/periods?status=ACTIVE'
         ]
       },
       
@@ -109,18 +109,30 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
           targetField: 'housing_fund_base',
           confidence: 0.8,
           description: '住房公积金基数'
+        },
+        {
+          sourcePattern: /^职业年金(缴费)?基数$/i,
+          targetField: 'occupational_pension_base',
+          confidence: 0.95,
+          description: '职业年金缴费基数字段'
+        },
+        {
+          sourcePattern: /^年金基数$/i,
+          targetField: 'occupational_pension_base',
+          confidence: 0.8,
+          description: '年金基数（职业年金缴费基数）'
         }
       ],
       
       // 示例模板
       sampleTemplate: {
         headers: [
-          '员工姓名', '身份证号', '社保缴费基数', '公积金缴费基数', '备注'
+          '员工姓名', '身份证号', '社保缴费基数', '公积金缴费基数', '职业年金缴费基数', '备注'
         ],
         sampleRows: [
-          ['张三', '110101199001011234', 15000, 16000, '2025年1月调整'],
-          ['李四', '110101199002022345', 18000, 20000, '新入职员工'],
-          ['王五', '110101199003033456', 12000, 12000, '标准基数']
+          ['张三', '110101199001011234', 15000, 16000, 15000, '2025年1月调整'],
+          ['李四', '110101199002022345', 18000, 20000, 18000, '新入职员工'],
+          ['王五', '110101199003033456', 12000, 12000, 12000, '标准基数']
         ]
       },
       
@@ -193,6 +205,19 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
           max: 100000,
           message: '公积金缴费基数应在0-100000之间'
         }
+      },
+      {
+        key: 'occupational_pension_base',
+        name: '职业年金缴费基数',
+        type: 'number',
+        category: 'salary_base',
+        required: false,
+        description: '职业年金缴费基数，用于计算职业年金费用',
+        validation: {
+          min: 0,
+          max: 100000,
+          message: '职业年金缴费基数应在0-100000之间'
+        }
       }
     );
     
@@ -254,6 +279,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
           employee_id: row.data.employee_id,
           social_insurance_base: row.data.social_insurance_base,
           housing_fund_base: row.data.housing_fund_base,
+          occupational_pension_base: row.data.occupational_pension_base,
           employee_info: {
             last_name: lastName,
             first_name: firstName,
@@ -266,7 +292,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
     };
 
     try {
-      const response = await this.makeRequest('/v2/simple-payroll/salary-configs/batch-validate', {
+      const response = await this.makeRequest('/simple-payroll/salary-configs/batch-validate', {
         method: 'POST',
         body: JSON.stringify(apiPayload)
       });
@@ -303,7 +329,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
   }
 
   async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<any> {
-    console.log(`准备导入缴费基数到周期 ID: ${periodId}`, validatedData);
+    console.log(`🎯 [缴费基数导入] 准备导入到周期 ID: ${periodId}, 覆写模式: ${overwriteMode}`, validatedData);
     
     const apiPayload = {
       period_id: periodId,
@@ -317,31 +343,37 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
           employee_id: row.data.employee_id,
           social_insurance_base: row.data.social_insurance_base,
           housing_fund_base: row.data.housing_fund_base,
+          occupational_pension_base: row.data.occupational_pension_base,
           employee_info: {
             last_name: lastName,
             first_name: firstName,
             id_number: row.data.id_number || ''
           }
         };
-      })
+      }),
+      create_if_missing: true // 缴费基数导入默认允许创建新记录
     };
     
     try {
-      const response = await this.makeRequest('/v2/simple-payroll/salary-configs/batch-update', {
+      console.log(`🚀 [缴费基数导入] 调用新API: /simple-payroll/salary-configs/batch-update-insurance-bases-only`);
+      const response = await this.makeRequest('/simple-payroll/salary-configs/batch-update-insurance-bases-only', {
         method: 'POST',
         body: JSON.stringify(apiPayload)
       });
       const result = await this.handleResponse(response);
       
+      console.log(`✅ [缴费基数导入] API调用成功:`, result.data);
+      
       return {
         success: true,
         successCount: (result.data.updated_count || 0) + (result.data.created_count || 0),
         failedCount: result.data.failed_count || 0,
-        message: result.data.message || '导入完成',
+        skippedCount: result.data.skipped_count || 0,
+        message: result.data.message || '缴费基数导入完成',
         details: result.data
       };
     } catch (error) {
-      console.error('缴费基数导入执行失败:', error);
+      console.error('💥 [缴费基数导入] 执行失败:', error);
       throw error;
     }
   }

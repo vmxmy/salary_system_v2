@@ -102,6 +102,11 @@ class SocialInsuranceCalculator:
                 bases = self._get_employee_base_amounts(employee_id, calculation_period)
                 social_insurance_base = social_insurance_base or bases.get('social_insurance_base', Decimal('0'))
                 housing_fund_base = housing_fund_base or bases.get('housing_fund_base', Decimal('0'))
+                occupational_pension_base = bases.get('occupational_pension_base', Decimal('0'))
+            else:
+                # 如果提供了参数，也需要获取职业年金缴费基数
+                bases = self._get_employee_base_amounts(employee_id, calculation_period)
+                occupational_pension_base = bases.get('occupational_pension_base', Decimal('0'))
             
             # 3. 获取适用的社保配置
             rates_list = self._get_applicable_rates(calculation_period)
@@ -112,14 +117,25 @@ class SocialInsuranceCalculator:
                 calculation_period=calculation_period
             )
             
-            # 计算五险
+            # 计算五险（不包括职业年金）
             for insurance_type in INSURANCE_TYPES:
-                component = self._calculate_insurance_component(
-                    insurance_type,
-                    employee_info,
-                    social_insurance_base,
-                    rates_list
-                )
+                if insurance_type == "OCCUPATIONAL_PENSION":
+                    # 职业年金使用专门的缴费基数
+                    component = self._calculate_insurance_component(
+                        insurance_type,
+                        employee_info,
+                        occupational_pension_base,
+                        rates_list
+                    )
+                else:
+                    # 其他险种使用社保缴费基数
+                    component = self._calculate_insurance_component(
+                        insurance_type,
+                        employee_info,
+                        social_insurance_base,
+                        rates_list
+                    )
+                
                 if component:
                     result.components.append(component)
                     result.total_employee_amount += component.employee_amount
@@ -150,8 +166,9 @@ class SocialInsuranceCalculator:
                 'personnel_category': employee_info.get('personnel_category_name'),
                 'social_insurance_base': float(social_insurance_base),
                 'housing_fund_base': float(housing_fund_base),
+                'occupational_pension_base': float(occupational_pension_base),
                 'calculation_time': datetime.now().isoformat(),
-                'engine_version': 'social_insurance_v1.0'
+                'engine_version': 'social_insurance_v1.1'
             }
             
             logger.info(f"员工 {employee_id} 社保计算完成: 个人合计={result.total_employee_amount}, 单位合计={result.total_employer_amount}")
@@ -204,12 +221,14 @@ class SocialInsuranceCalculator:
         if config:
             return {
                 'social_insurance_base': Decimal(str(config.social_insurance_base or 0)),
-                'housing_fund_base': Decimal(str(config.housing_fund_base or 0))
+                'housing_fund_base': Decimal(str(config.housing_fund_base or 0)),
+                'occupational_pension_base': Decimal(str(getattr(config, 'occupational_pension_base', None) or 0))
             }
         
         return {
             'social_insurance_base': Decimal('0'),
-            'housing_fund_base': Decimal('0')
+            'housing_fund_base': Decimal('0'),
+            'occupational_pension_base': Decimal('0')
         }
     
     def _get_applicable_rates(self, calculation_period: date) -> List[Dict[str, Any]]:

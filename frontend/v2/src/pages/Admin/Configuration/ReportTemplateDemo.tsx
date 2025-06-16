@@ -115,7 +115,7 @@ const ReportTemplateDemo: React.FC = () => {
         active: { text: '在职', status: 'Success' },
         inactive: { text: '离职', status: 'Error' },
       },
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Tag color={record.status === 'active' ? 'success' : 'error'}>
           {record.status === 'active' ? '在职' : '离职'}
         </Tag>

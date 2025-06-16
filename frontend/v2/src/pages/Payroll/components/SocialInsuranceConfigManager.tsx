@@ -72,19 +72,19 @@ const SocialInsuranceConfigManager: React.FC<SocialInsuranceConfigManagerProps> 
       title: t('payroll:calculation_config.pension_rate'),
       key: 'pension_rate',
       width: 110,
-      render: (_, record) => `${(record.pension_employee_rate * 100).toFixed(1)}% / ${(record.pension_employer_rate * 100).toFixed(1)}%`,
+      render: (_, record, index) => `${(record.pension_employee_rate * 100).toFixed(1)}% / ${(record.pension_employer_rate * 100).toFixed(1)}%`,
     },
     {
       title: t('payroll:calculation_config.unemployment_rate'),
       key: 'unemployment_rate',
       width: 110,
-      render: (_, record) => `${(record.unemployment_employee_rate * 100).toFixed(1)}% / ${(record.unemployment_employer_rate * 100).toFixed(1)}%`,
+      render: (_, record, index) => `${(record.unemployment_employee_rate * 100).toFixed(1)}% / ${(record.unemployment_employer_rate * 100).toFixed(1)}%`,
     },
     {
       title: t('payroll:calculation_config.injury_rate'),
       key: 'injury_rate',
       width: 90,
-      render: (_, record) => `${(record.injury_employer_rate * 100).toFixed(1)}%`,
+      render: (_, record, index) => `${(record.injury_employer_rate * 100).toFixed(1)}%`,
     },
     {
       title: t('common:status'),
@@ -101,7 +101,7 @@ const SocialInsuranceConfigManager: React.FC<SocialInsuranceConfigManagerProps> 
       title: t('common:actions'),
       key: 'actions',
       width: 100,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Button
           type="link"
           size="small"

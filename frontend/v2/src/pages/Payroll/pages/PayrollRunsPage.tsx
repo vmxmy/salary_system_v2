@@ -86,7 +86,7 @@ const PayrollRunsPage: React.FC = () => {
       title: t('payroll:payroll_period'),
       dataIndex: ['payroll_period', 'name'],
       key: 'payroll_period_name',
-      render: (_, record) => record.payroll_period?.name || '-',
+      render: (_, record, index) => record.payroll_period?.name || '-',
     },
     {
       title: t('payroll:run_date'),
@@ -128,7 +128,7 @@ const PayrollRunsPage: React.FC = () => {
       key: 'actions',
       width: 280,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="view"

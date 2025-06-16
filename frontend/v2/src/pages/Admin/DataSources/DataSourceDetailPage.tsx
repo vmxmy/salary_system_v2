@@ -45,7 +45,7 @@ const DataSourceDetailPage: React.FC = () => {
   }, [dataSource]);
 
   const structureColumns: ProColumns<DataSourceField>[] = [
-    { title: t('data_source.field_column.name'), dataIndex: 'field_name', key: 'field_name', render: (text, record) => <Space><Typography.Text strong>{text}</Typography.Text>{record.is_primary_key && <Tag color="gold">PK</Tag>}</Space> },
+    { title: t('data_source.field_column.name'), dataIndex: 'field_name', key: 'field_name', render: (text, record, index) => <Space><Typography.Text strong>{text}</Typography.Text>{record.is_primary_key && <Tag color="gold">PK</Tag>}</Space> },
     { title: t('data_source.field_column.type'), dataIndex: 'data_type', key: 'data_type' },
     { title: t('data_source.field_column.alias'), dataIndex: 'field_alias', key: 'field_alias' },
     { title: t('data_source.field_column.description'), dataIndex: 'description', key: 'description', ellipsis: true },

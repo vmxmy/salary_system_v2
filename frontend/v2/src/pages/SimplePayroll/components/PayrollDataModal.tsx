@@ -30,7 +30,7 @@ import { TableCellHighlight } from '../../../components/PayrollDataModal/Highlig
 // 预设报表管理功能导入
 import { PresetManager } from '../../../components/PayrollDataModal/PresetManager';
 import { usePayrollDataPresets } from '../../../hooks/usePayrollDataPresets';
-import type { ColumnFilterConfig as PresetColumnFilterConfig, ColumnSettings } from '../../../types/payrollDataPresets';
+import type { ColumnFilterConfig as PresetColumnFilterConfig, ColumnSettings, PayrollDataModalPreset } from '../../../types/payrollDataPresets';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -373,6 +373,17 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   // 🎯 ProTable列状态管理
   const [currentColumnsState, setCurrentColumnsState] = useState<Record<string, any>>({});
   
+  // 🎯 新增：表头筛选状态管理
+  const [tableFilterState, setTableFilterState] = useState<{
+    filters: Record<string, any>;
+    sorter: any;
+    pagination: { current: number; pageSize: number; total: number };
+  }>({
+    filters: {},
+    sorter: {},
+    pagination: { current: 1, pageSize: 10, total: 0 }
+  });
+  
   // 🎯 详情和编辑功能状态
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -384,7 +395,26 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [presetManagerVisible, setPresetManagerVisible] = useState(false);
   
   // 🎯 预设报表管理Hook
-  const { defaultPreset, loadDefaultPreset } = usePayrollDataPresets();
+  const { defaultPreset, loadDefaultPreset, setCurrentPreset } = usePayrollDataPresets();
+
+  // 💡 安全的 JSON 序列化函数，避免循环引用
+  const safeStringify = useCallback((obj: any): string => {
+    try {
+      const seen = new WeakSet();
+      return JSON.stringify(obj, (key, val) => {
+        if (val != null && typeof val === 'object') {
+          if (seen.has(val)) {
+            return '[Circular Reference]';
+          }
+          seen.add(val);
+        }
+        return val;
+      }, 2); // 添加缩进以保持可读性
+    } catch (error) {
+      console.warn('JSON序列化失败:', error);
+      return '[Object]';
+    }
+  }, []);
 
   // 🔍 调试：监听defaultPreset状态变化
   useEffect(() => {
@@ -601,7 +631,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             }),
             dataIndex: key,
             key: key,
-          render: (text: any, record: PayrollData) => {
+          render: (text: any, record: PayrollData, index: number) => {
               if (text === null || typeof text === 'undefined') {
                 return <span style={{ color: '#999' }}>N/A</span>;
               }
@@ -609,7 +639,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
               if (typeof text === 'object') {
                 return (
                   <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
-                    {JSON.stringify(text, null, 2)}
+                    {safeStringify(text)}
                   </pre>
                 );
               }
@@ -1033,7 +1063,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         return '';
       }
       if (typeof value === 'object') {
-        return JSON.stringify(value);
+        return safeStringify(value);
       }
       if (typeof value === 'boolean') {
         return value ? '是' : '否';
@@ -1414,26 +1444,90 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   };
 
   // 🎯 预设应用处理函数
-  const handleApplyPreset = useCallback((filterConfig: PresetColumnFilterConfig, columnSettings: ColumnSettings) => {
+  const handleApplyPreset = useCallback((preset: PayrollDataModalPreset) => {
     try {
-      console.log('🎯 [PayrollDataModal] 开始应用预设配置:', { filterConfig, columnSettings });
+      console.log('🎯 [PayrollDataModal] 开始应用预设配置:', preset);
+      
+      // 🔧 关键修复：更新当前预设状态
+      // 这里我们需要通过Hook来更新defaultPreset状态
+      // 由于我们不能直接调用Hook的内部方法，我们需要另一种方式
+      
+      // 🎯 关键修复：同步更新当前预设状态
+      setCurrentPreset(preset);
+      console.log('🔧 [PayrollDataModal] 已更新当前预设状态:', preset.name);
       
       // 应用筛选配置
-      setFilterConfig(filterConfig);
+      setFilterConfig(preset.filterConfig);
       
       // 应用列设置
-      if (columnSettings) {
-        setCurrentColumnsState(columnSettings);
-        console.log('📊 [PayrollDataModal] 已更新列状态:', columnSettings);
-        
-        // 强制刷新表格以确保列配置生效
-        setTimeout(() => {
-          if (actionRef.current) {
-            actionRef.current.reload();
-            console.log('🔄 [PayrollDataModal] 已强制刷新表格');
-          }
-        }, 100);
+      if (preset.columnSettings) {
+        setCurrentColumnsState(preset.columnSettings);
+        console.log('📊 [PayrollDataModal] 已更新列状态:', preset.columnSettings);
       }
+      
+      // 🎯 应用表头筛选状态
+      if (preset.tableFilterState) {
+        // 恢复全局搜索状态
+        if (preset.tableFilterState.searchQuery) {
+          search(preset.tableFilterState.searchQuery);
+          console.log('🔍 [PayrollDataModal] 已恢复搜索查询:', preset.tableFilterState.searchQuery);
+        } else {
+          // 如果预设没有搜索查询，清空当前搜索
+          clearSearch();
+          console.log('🔍 [PayrollDataModal] 已清空搜索查询');
+        }
+        
+        // 恢复搜索模式
+        if (preset.tableFilterState.searchMode) {
+          setSearchMode(preset.tableFilterState.searchMode as any);
+          console.log('🔍 [PayrollDataModal] 已恢复搜索模式:', preset.tableFilterState.searchMode);
+        }
+        
+        // 恢复分页状态
+        if (preset.tableFilterState.pagination) {
+          setPagination(prev => ({
+            ...prev,
+            current: preset.tableFilterState?.pagination?.current || 1,
+            pageSize: preset.tableFilterState?.pagination?.pageSize || 10
+          }));
+          console.log('📄 [PayrollDataModal] 已恢复分页状态:', preset.tableFilterState.pagination);
+        }
+        
+        // 🎯 关键修复：恢复表头筛选和排序状态
+        setTableFilterState(prev => ({
+          ...prev,
+          filters: preset.tableFilterState?.filters || {},
+          sorter: preset.tableFilterState?.sorter || {},
+          pagination: {
+            current: preset.tableFilterState?.pagination?.current || 1,
+            pageSize: preset.tableFilterState?.pagination?.pageSize || 10,
+            total: prev.pagination.total // 保持当前总数
+          }
+        }));
+        
+        console.log('🎯 [PayrollDataModal] 已恢复表头筛选状态:', {
+          filters: preset.tableFilterState?.filters,
+          sorter: preset.tableFilterState?.sorter,
+          pagination: preset.tableFilterState?.pagination
+        });
+      } else {
+        // 如果预设没有表头筛选状态，清空当前状态
+        setTableFilterState({
+          filters: {},
+          sorter: {},
+          pagination: { current: 1, pageSize: 10, total: 0 }
+        });
+        clearSearch();
+        console.log('🎯 [PayrollDataModal] 预设无表头筛选状态，已清空当前状态');
+      }
+      
+      // 强制刷新表格以确保所有配置生效
+      setTimeout(() => {
+        if (actionRef.current) {
+          actionRef.current.reload();
+          console.log('🔄 [PayrollDataModal] 已强制刷新表格');
+        }
+      }, 100);
       
       message.success(t('payroll:presets.apply_success'));
       console.log('✅ [PayrollDataModal] 预设配置应用完成');
@@ -1441,15 +1535,34 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       console.error('❌ [PayrollDataModal] 应用预设失败:', error);
       message.error(t('payroll:presets.apply_failed'));
     }
-  }, [t]);
+  }, [t, search, setSearchMode, setPagination, setCurrentPreset]);
 
   // 🎯 获取当前配置用于保存预设
   const getCurrentConfig = useCallback(() => {
+    const currentTableFilterState = {
+      filters: tableFilterState.filters,
+      sorter: tableFilterState.sorter,
+      pagination: {
+        current: pagination.current,
+        pageSize: pagination.pageSize,
+        total: pagination.total
+      },
+      searchQuery: searchQuery,
+      searchMode: searchMode
+    };
+    
+    console.log('📋 [PayrollDataModal] 获取当前配置:', {
+      filterConfig,
+      columnSettings: currentColumnsState,
+      tableFilterState: currentTableFilterState
+    });
+    
     return {
       filterConfig,
       columnSettings: currentColumnsState,
+      tableFilterState: currentTableFilterState
     };
-  }, [filterConfig, currentColumnsState]);
+  }, [filterConfig, currentColumnsState, tableFilterState, pagination, searchQuery, searchMode]);
 
   return (
     <Modal
@@ -2016,7 +2129,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         )}
       </Card>
 
-      <ProTable<PayrollData>
+              <ProTable<PayrollData>
         actionRef={actionRef}
         columns={dynamicColumns}
         dataSource={filteredDataSource}
@@ -2024,6 +2137,15 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         rowKey="id"
         search={false}
         headerTitle={false}
+        params={{
+          // 🎯 关键修复：将表头筛选状态作为params传递给ProTable
+          // 当这些参数变化时，ProTable会自动重新渲染并应用筛选/排序
+          // 注意：不再使用 JSON.stringify，直接传递状态变化的时间戳来触发重新渲染
+          filtersHash: Object.keys(tableFilterState.filters || {}).length,
+          sorterField: typeof tableFilterState.sorter === 'object' && tableFilterState.sorter ? (tableFilterState.sorter.field || '') : '',
+          sorterOrder: typeof tableFilterState.sorter === 'object' && tableFilterState.sorter ? (tableFilterState.sorter.order || '') : '',
+          timestamp: Date.now() // 强制刷新标识
+        }}
         toolbar={{
           actions: [
             <Button
@@ -2076,7 +2198,24 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             currentDataSourceLength: extra.currentDataSource?.length,
             action: extra.action
           });
-          // 注意：我们现在直接使用 dataSource，不再需要状态同步
+          
+          // 🎯 保存表头筛选状态
+          setTableFilterState(prev => ({
+            ...prev,
+            filters: filters || {},
+            sorter: sorter || {},
+            pagination: {
+              current: pagination?.current || 1,
+              pageSize: pagination?.pageSize || 10,
+              total: pagination?.total || 0
+            }
+          }));
+          
+          console.log('💾 [PayrollDataModal] 已保存表头筛选状态:', {
+            filters,
+            sorter,
+            pagination
+          });
         }}
         columnsState={{
           persistenceKey: 'payroll-data-table',
@@ -2190,6 +2329,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         onClose={() => setPresetManagerVisible(false)}
         currentFilterConfig={filterConfig}
         currentColumnSettings={currentColumnsState}
+        getCurrentConfig={getCurrentConfig}
         onApplyPreset={handleApplyPreset}
       />
     </Modal>

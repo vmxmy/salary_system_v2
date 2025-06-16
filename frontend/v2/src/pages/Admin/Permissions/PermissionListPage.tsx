@@ -109,7 +109,7 @@ const PermissionListPage: React.FC = () => {
       title: t('list_page.table.column.actions'),
       key: 'actions',
       search: false,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="middle">
           <TableActionButton 
             actionType="edit" 

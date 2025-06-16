@@ -849,7 +849,7 @@ const ReportTypes: React.FC = () => {
             key: 'action',
             width: 120,
             fixed: 'right' as const,
-            render: (_, record) => (
+            render: (_, record, index) => (
                 <Space size="small">
                     <Tooltip title={t('common:button.preview', '预览详情')}>
                         <Button 

@@ -165,7 +165,7 @@ const generateEmployeeTableColumnsConfig = (
       title: t('employee:list_page.table.column.hire_date'),
       dataIndex: 'hire_date',
       key: 'hire_date',
-      render: (dom, entity) => {
+      render: (dom, entity, index) => {
         const date = entity.hire_date;
         if (!date) return '';
         return typeof date === 'string' ? new Date(date).toLocaleDateString() : (date as any).toLocaleDateString();
@@ -178,7 +178,7 @@ const generateEmployeeTableColumnsConfig = (
       key: 'action',
       width: 150,
       fixed: 'right',
-      render: (dom, entity) => (
+      render: (dom, entity, index) => (
         <Space size="small">
           {employeePermissions.canViewDetail && (
             <TableActionButton 

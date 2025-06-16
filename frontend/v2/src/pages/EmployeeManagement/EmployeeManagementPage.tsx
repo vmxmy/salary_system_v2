@@ -174,7 +174,7 @@ const EmployeeManagementPage: React.FC = () => {
       key: 'full_name',
       width: 120,
       sorter: true,
-      render: (text, record) => (
+      render: (text, record, index) => (
         <Button
           type="link"
           size="small"
@@ -247,7 +247,7 @@ const EmployeeManagementPage: React.FC = () => {
       key: 'action',
       width: 150,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="view"

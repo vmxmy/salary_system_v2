@@ -315,7 +315,7 @@ const ActualPositionPageV2: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
       sorter: true,
-      render: (text, record) => (
+      render: (text, record, index) => (
         <Space>
           <Text strong>{text}</Text>
           {!record.is_active && <Tag color="red">停用</Tag>}
@@ -382,7 +382,7 @@ const ActualPositionPageV2: React.FC = () => {
         true: { text: '启用', status: 'Success' },
         false: { text: '停用', status: 'Error' },
       },
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Tag 
           color={record.is_active ? 'green' : 'red'}
           icon={record.is_active ? <CheckCircleOutlined /> : <StopOutlined />}
@@ -396,7 +396,7 @@ const ActualPositionPageV2: React.FC = () => {
       key: 'action',
       width: 200,
       hideInSearch: true,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <Tooltip title="查看详情">
             <ActionButton

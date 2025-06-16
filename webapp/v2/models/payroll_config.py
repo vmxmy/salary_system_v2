@@ -23,6 +23,7 @@ class EmployeeSalaryConfig(Base):
     # 社保公积金基数
     social_insurance_base = Column(Numeric(10, 2), nullable=True, comment="社保基数")
     housing_fund_base = Column(Numeric(10, 2), nullable=True, comment="公积金基数")
+    occupational_pension_base = Column(Numeric(15, 2), nullable=True, comment="职业年金缴费基数")
     
     # 专项附加扣除
     child_education_deduction = Column(Numeric(10, 2), default=0, comment="子女教育扣除")

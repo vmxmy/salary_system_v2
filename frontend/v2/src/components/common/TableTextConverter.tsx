@@ -479,7 +479,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   title: t('components:auto_text_e8a1a8'),
                   dataIndex: 'tableField',
                   valueType: 'text',
-                  render: (_, record) => (
+                  render: (_, record, index) => (
                     <span style={{ 
                       color: record.isIgnored ? '#999' : 'inherit',
                       textDecoration: record.isIgnored ? 'line-through' : 'none'
@@ -493,7 +493,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   title: t('components:auto_api_415049'),
                   dataIndex: 'apiField',
                   valueType: 'select',
-                  render: (_, record) => {
+                  render: (_, record, index) => {
                     if (record.isIgnored) {
                       return (
                         <span style={{ color: '#ff9500', fontWeight: 'bold' }}>

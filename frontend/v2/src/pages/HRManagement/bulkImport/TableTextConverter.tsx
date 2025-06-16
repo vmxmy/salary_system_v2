@@ -561,7 +561,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   title: t('hr:auto_api_415049'),
                   dataIndex: 'apiField',
                   valueType: 'select',
-                  render: (_, record) => {
+                  render: (_, record, index) => {
                     // 调试: 查看渲染下拉列表时的字段数组
                     return (
                       <Select
@@ -583,7 +583,7 @@ const TableTextConverter: React.FC<TableTextConverterProps> = ({
                   title: t('hr:auto_text_e695b0'),
                   dataIndex: 'type',
                   valueType: 'text',
-                  render: (_, record) => record.type
+                  render: (_, record, index) => record.type
                 }
               ] as ProColumns<FieldMapping & { key: number }>[]}
               pagination={false}

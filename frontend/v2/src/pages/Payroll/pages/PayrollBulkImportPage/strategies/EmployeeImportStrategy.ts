@@ -49,9 +49,23 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
   private async loadLookupTypes(): Promise<void> {
     try {
       console.log('正在加载字典类型...');
-      const response = await this.makeRequest('/config/lookup-values-public?size=1000');
-      const result = await this.handleResponse(response);
-      this.lookupTypes = result.data || [];
+      // 加载多个常用的字典类型
+      const lookupTypes = ['GENDER', 'EMPLOYEE_STATUS', 'EMPLOYMENT_TYPE', 'MARITAL_STATUS', 'EDUCATION_LEVEL'];
+      const allLookupValues = [];
+      
+      for (const typeCode of lookupTypes) {
+        try {
+          const response = await this.makeRequest(`/config/lookup-values-public?lookup_type_code=${typeCode}`);
+          const result = await this.handleResponse(response);
+          if (result.data) {
+            allLookupValues.push(...result.data);
+          }
+        } catch (error) {
+          console.warn(`加载字典类型 ${typeCode} 失败:`, error);
+        }
+      }
+      
+      this.lookupTypes = allLookupValues;
       console.log(`字典类型加载成功: 共 ${this.lookupTypes.length} 个选项`);
     } catch (error) {
       console.error('加载字典类型失败:', error);
@@ -111,7 +125,8 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
    * 获取员工导入模式配置
    */
   async getModeConfig(): Promise<ImportModeConfig> {
-    await this.initialize(); // 确保数据已加载
+    // 在页面加载时不初始化，避免API调用
+    console.log('🔄 [员工导入策略] 获取配置，数据加载状态:', this.isDataLoaded);
     
     const fields = this.generateFieldConfigs();
     const requiredFields = fields.filter(f => f.required);
@@ -472,11 +487,16 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
       }
     );
     
-    // 动态添加字典值字段
-    this.addLookupFields(fields);
-    
-    // 动态添加关联字段
-    this.addRelationFields(fields);
+    // 只有在数据已加载时才添加动态字段
+    if (this.isDataLoaded) {
+      // 动态添加字典值字段
+      this.addLookupFields(fields);
+      
+      // 动态添加关联字段
+      this.addRelationFields(fields);
+    } else {
+      console.log('🔄 [员工导入策略] 数据未加载，跳过动态字段生成');
+    }
     
     return fields;
   }

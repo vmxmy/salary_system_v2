@@ -1025,7 +1025,8 @@ async def bulk_validate_payroll_entries(
             db=db,
             payroll_period_id=payload.payroll_period_id,
             entries=payload.entries,
-            overwrite_mode=payload.overwrite_mode
+            overwrite_mode=payload.overwrite_mode,
+            field_conflict_check=getattr(payload, 'field_conflict_check', False)
         )
 
         # 构建响应

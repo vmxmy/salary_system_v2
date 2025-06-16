@@ -102,7 +102,7 @@ const generatePayrollEntryTableColumns = (
         return nameA.localeCompare(nameB);
       },
       width: 150,
-      render: (_, record) => {
+      render: (_, record, index) => {
         const fullName = record.employee_name || `${(record as any).last_name || ''}${(record as any).first_name || ''}`.trim();
         
         if (!fullName) {
@@ -122,7 +122,7 @@ const generatePayrollEntryTableColumns = (
       title: t('payroll:entries_table.column.department'),
       key: 'department',
       width: 150,
-      render: (_, record) => (record as any).department_name || '',
+      render: (_, record, index) => (record as any).department_name || '',
       filters: lookupMaps?.departmentMap ? Array.from(lookupMaps.departmentMap.entries()).map((entry: any) => ({
         text: entry[1],
         value: entry[1],
@@ -133,7 +133,7 @@ const generatePayrollEntryTableColumns = (
       title: t('payroll:entries_table.column.personnel_category'),
       key: 'personnel_identity',
       width: 180,
-      render: (_, record) => (record as any).personnel_category_name || '',
+      render: (_, record, index) => (record as any).personnel_category_name || '',
       filters: lookupMaps?.personnelCategoryMap ? Array.from(lookupMaps.personnelCategoryMap.entries()).map((entry: any) => ({
         text: entry[1],
         value: entry[1],

@@ -20,12 +20,36 @@ export interface ColumnSettings {
   };
 }
 
+// 新增：表头筛选状态
+export interface TableFilterState {
+  filters?: Record<string, any>; // ProTable的filters状态
+  sorter?: {
+    field?: string;
+    order?: 'ascend' | 'descend';
+    column?: any;
+    columnKey?: string;
+  } | Array<{
+    field?: string;
+    order?: 'ascend' | 'descend';
+    column?: any;
+    columnKey?: string;
+  }>; // ProTable的sorter状态
+  pagination?: {
+    current?: number;
+    pageSize?: number;
+    total?: number;
+  }; // 分页状态
+  searchQuery?: string; // 全局搜索查询
+  searchMode?: 'fuzzy' | 'exact' | 'regex'; // 搜索模式
+}
+
 export interface PayrollDataModalPreset {
   id?: number;
   name: string;
   description?: string;
   filterConfig: ColumnFilterConfig;
   columnSettings: ColumnSettings;
+  tableFilterState?: TableFilterState; // 新增：表头筛选状态
   isDefault?: boolean;
   isPublic?: boolean;
   createdAt?: string;
@@ -39,6 +63,7 @@ export interface PresetSaveRequest {
   description?: string;
   filterConfig: ColumnFilterConfig;
   columnSettings: ColumnSettings;
+  tableFilterState?: TableFilterState; // 新增：表头筛选状态
   isDefault?: boolean;
   isPublic?: boolean;
 }

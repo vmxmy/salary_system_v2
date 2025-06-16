@@ -256,7 +256,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
           return {
             ...baseColumn,
             align: colConfig.align as 'left' | 'center' | 'right' || 'right',
-            render: (_, record) => {
+            render: (_, record, index) => {
               const value = record[colConfig.dataIndex as keyof PayrollEntry];
               const amount = Number(value) || 0;
               if (colConfig.key === 'net_pay') {
@@ -283,7 +283,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
         } else if (colConfig.valueType === 'select' && colConfig.key === 'status') {
           return {
             ...baseColumn,
-            render: (_, record) => {
+            render: (_, record, index) => {
               const statusInfo = getPayrollEntryStatusInfo(record.status_lookup_value_id);
               return <StatusTag status={statusInfo.type} text={t(`payroll:${statusInfo.key}`)} />;
             },
@@ -291,7 +291,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
         } else if (colConfig.valueType === 'option' && colConfig.key === 'action') {
           return {
             ...baseColumn,
-            render: (_, record) => (
+            render: (_, record, index) => (
               <Space size="small">
                 {permissions.canViewDetail && (
                   <TableActionButton 
@@ -321,7 +321,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
         } else if (colConfig.valueType === 'text') {
           return {
             ...baseColumn,
-            render: (_, record) => {
+            render: (_, record, index) => {
               const value = record[colConfig.dataIndex as keyof PayrollEntry];
               if (colConfig.key === 'employee_name') {
                 return String(value || record.employee?.first_name + ' ' + record.employee?.last_name || '-');
@@ -334,7 +334,7 @@ const PayrollPeriodDetailPage: React.FC = () => {
           // 默认文本渲染
           return {
             ...baseColumn,
-            render: (_, record) => {
+            render: (_, record, index) => {
               const value = record[colConfig.dataIndex as keyof PayrollEntry];
               return String(value || '-');
             },

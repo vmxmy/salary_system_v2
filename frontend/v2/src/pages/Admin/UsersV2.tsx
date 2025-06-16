@@ -83,7 +83,7 @@ const generateUserTableColumns = (
       dataIndex: 'roles',
       key: 'roles',
       search: false,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <div>
           {record.roles.map((role, index) => (
             <Tag color="blue" key={index}>
@@ -99,7 +99,7 @@ const generateUserTableColumns = (
       key: 'is_active',
       width: 100,
       search: false,
-      render: (_, record) => (
+      render: (_, record, index) => (
         record.is_active ? 
           <Tag color="green">{t('table.value.active')}</Tag> :
           <Tag color="red">{t('table.value.inactive')}</Tag>
@@ -123,7 +123,7 @@ const generateUserTableColumns = (
       key: 'action',
       width: 120,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <TableActionButton
             actionType="edit"

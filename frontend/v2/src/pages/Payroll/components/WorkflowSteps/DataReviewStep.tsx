@@ -710,7 +710,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         .map(dept => ({ text: dept!, value: dept! })),
       onFilter: (value, record) => record.department_name === value,
       filterSearch: true,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <div>
           <div style={{ fontWeight: 500 }}>{record.employee_name}</div>
           <div style={{ fontSize: '12px', color: '#666' }}>{record.department_name}</div>
@@ -735,7 +735,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         const hasEarnings = record.earnings_details && Object.keys(record.earnings_details).length > 0;
         return value === 'has_earnings' ? hasEarnings : !hasEarnings;
       },
-      render: (_, record) => renderEarningsDetails(record.earnings_details)
+      render: (_, record, index) => renderEarningsDetails(record.earnings_details)
     },
     {
       title: '应发合计',
@@ -761,7 +761,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
           default: return true;
         }
       },
-      render: (_, record) => {
+      render: (_, record, index) => {
         const grossAmount = calculateGrossPay(record);
         return (
           <Text strong={grossAmount > 0} style={{ color: grossAmount > 0 ? '#52c41a' : '#999' }}>
@@ -787,7 +787,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         const hasDeductions = record.deductions_details && Object.keys(record.deductions_details).length > 0;
         return value === 'has_deductions' ? hasDeductions : !hasDeductions;
       },
-      render: (_, record) => renderDeductionsDetails(record.deductions_details)
+      render: (_, record, index) => renderDeductionsDetails(record.deductions_details)
     },
     {
       title: '扣款合计',
@@ -813,7 +813,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
           default: return true;
         }
       },
-      render: (_, record) => {
+      render: (_, record, index) => {
         const deductionsAmount = calculateTotalDeductions(record);
         return (
           <Text style={{ color: deductionsAmount > 0 ? '#fa8c16' : '#999' }}>
@@ -847,7 +847,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
           default: return true;
         }
       },
-      render: (_, record) => {
+      render: (_, record, index) => {
         const netAmount = calculateNetPay(record);
         return (
           <Text strong style={{ color: netAmount > 0 ? '#1890ff' : '#999' }}>
@@ -872,7 +872,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         { text: '不完整', value: 'incomplete' },
       ],
       onFilter: (value, record) => record.data_completeness === value,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <div>
           <Tag color={getCompletenessColor(record.data_completeness || 'incomplete')}>
             {getCompletenessText(record.data_completeness || 'incomplete')}
@@ -901,7 +901,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         { text: '无效', value: 'invalid' },
       ],
       onFilter: (value, record) => record.validation_status === value,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Tag color={getValidationColor(record.validation_status || 'pending')}>
           {getValidationText(record.validation_status || 'pending')}
         </Tag>
@@ -916,7 +916,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
         const bTime = b.last_updated ? new Date(b.last_updated).getTime() : 0;
         return aTime - bTime;
       },
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Text type="secondary" style={{ fontSize: '12px' }}>
           {record.last_updated ? new Date(record.last_updated).toLocaleString() : '-'}
         </Text>
@@ -926,7 +926,7 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
       title: '操作',
       width: 120,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <Tooltip title="查看详情">
             <Button 

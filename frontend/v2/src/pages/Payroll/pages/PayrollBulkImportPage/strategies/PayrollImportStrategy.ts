@@ -262,22 +262,52 @@ export class PayrollImportStrategy extends BaseImportStrategy {
     mapping: Record<string, string>
   ): ProcessedRow[] {
     const { headers, rows } = rawData;
-    const systemToExcelMap: Record<string, string> = {};
-    for (const excelHeader in mapping) {
-      const systemKey = mapping[excelHeader];
-      if (systemKey) {
-        systemToExcelMap[systemKey] = excelHeader;
-      }
-    }
-
+    
     return rows.map((row, rowIndex) => {
       const rowData: Record<string, any> = {};
+      const earnings_details: Record<string, any> = {};
+      const deductions_details: Record<string, any> = {};
+      
       headers.forEach((header, colIndex) => {
         const systemKey = mapping[header];
-        if (systemKey) {
-          rowData[systemKey] = row[colIndex];
+        const cellValue = row[colIndex];
+        
+        if (systemKey && cellValue !== null && cellValue !== undefined && cellValue !== '') {
+          // 处理基础字段
+          if (systemKey === 'employee_name' || systemKey === 'id_number' || systemKey === 'remarks') {
+            rowData[systemKey] = cellValue;
+          }
+          // 处理薪资组件字段
+          else if (systemKey.startsWith('earning_')) {
+            const componentCode = systemKey.replace('earning_', '');
+            const amount = parseFloat(String(cellValue)) || 0;
+            if (amount > 0) {
+              earnings_details[componentCode] = { amount }; // 修复：使用对象格式
+            }
+          }
+          else if (systemKey.startsWith('deduction_')) {
+            const componentCode = systemKey.replace('deduction_', '');
+            const amount = parseFloat(String(cellValue)) || 0;
+            if (amount > 0) {
+              deductions_details[componentCode] = { amount }; // 修复：使用对象格式
+            }
+          }
+          // 忽略其他数值字段，不进行任何计算
+          else {
+            rowData[systemKey] = cellValue;
+          }
         }
       });
+      
+      // 只设置必要的字段
+      rowData.earnings_details = earnings_details;
+      rowData.deductions_details = deductions_details;
+      
+      console.log(`🔍 [数据处理] 第${rowIndex + 1}行 ${rowData.employee_name}:`, {
+        earnings_details,
+        deductions_details
+      });
+      
       return {
         data: rowData,
         _meta: {
@@ -298,66 +328,94 @@ export class PayrollImportStrategy extends BaseImportStrategy {
       
       console.log(`🔍 [姓名转换] 完整姓名: "${fullName}" -> 姓: "${lastName}", 名: "${firstName}"`);
       
-      return {
+      const entry = {
         payroll_period_id: periodId,
         payroll_run_id: 0, // 后端会自动创建或分配
         status_lookup_value_id: 60, // 60 = "待计算" 状态
-        gross_pay: row.data.gross_pay || 0,
-        total_deductions: row.data.total_deductions || 0,
-        net_pay: row.data.net_pay || 0,
+        // 移除所有计算字段，让后端自行计算
         earnings_details: row.data.earnings_details || {},
         deductions_details: row.data.deductions_details || {},
         remarks: row.data.remarks || '',
         employee_info: {
           last_name: lastName,
           first_name: firstName,
-          id_number: row.data.id_number || ''
-        }
+          id_number: String(row.data.id_number || '')
+        },
+        _clientId: row._meta.clientId
       };
+      
+      console.log(`🔍 [发送数据] 第${processedData.indexOf(row) + 1}行:`, entry);
+      return entry;
     });
 
-    const apiPayload = {
-      payroll_period_id: periodId,
-      entries,
-      overwrite_mode: getBackendOverwriteMode(overwriteMode)
-    };
-
     try {
+      // 调用后端验证API，包含字段级冲突检测
       const response = await this.makeRequest('/payroll-entries/bulk/validate', {
         method: 'POST',
-        body: JSON.stringify(apiPayload)
+        body: JSON.stringify({
+          payroll_period_id: periodId,
+          entries: entries,
+          overwrite_mode: getBackendOverwriteMode(overwriteMode),
+          field_conflict_check: true // 启用字段级冲突检测
+        })
       });
-      const result = await this.handleResponse(response);
 
-      // 将后端返回的结果映射为 ValidationResult[]
-      const validatedData = result.validatedData || [];
-      
-      return processedData.map((row, index) => {
-        const validation = validatedData[index];
-        if (validation) {
+      const result = await this.handleResponse(response);
+      console.log(`🔍 [调试] 后端验证响应:`, result);
+
+      if (result && result.validatedData) {
+        return result.validatedData.map((validation: any, index: number) => {
+          console.log(`🔍 [后端验证结果] 第${index + 1}行:`, validation);
+          
+          // 处理错误格式，确保符合ValidationResult接口
+          let processedErrors: Array<{field: string, message: string}> = [];
+          if (validation.__errors && Array.isArray(validation.__errors)) {
+            processedErrors = validation.__errors.map((error: any) => {
+              if (typeof error === 'string') {
+                return { field: 'general', message: error };
+              } else if (error && typeof error === 'object') {
+                return {
+                  field: error.field || 'general',
+                  message: error.message || error.toString()
+                };
+              }
+              return { field: 'general', message: '未知错误' };
+            });
+          }
+          
+          // 处理字段冲突信息
+          let fieldConflicts: Array<{field: string, currentValue: any, newValue: any}> = [];
+          if (validation.field_conflicts && Array.isArray(validation.field_conflicts)) {
+            fieldConflicts = validation.field_conflicts;
+          }
+          
+          console.log(`🔍 [处理后错误] 第${index + 1}行:`, processedErrors);
+          console.log(`🔍 [字段冲突] 第${index + 1}行:`, fieldConflicts);
+          
           return {
             isValid: validation.__isValid || false,
-            clientId: row._meta.clientId,
-            errors: validation.__errors || [],
+            clientId: processedData[index]?._meta.clientId || `validate_${index}`,
+            errors: processedErrors,
             warnings: validation.warnings || [],
+            fieldConflicts: fieldConflicts // 新增字段冲突信息
           };
-        }
-        // 如果后端没有返回此条记录的验证结果，则标记为无效
-        return {
-          isValid: false,
-          clientId: row._meta.clientId,
-          errors: [{ field: 'general', message: '后端未返回此记录的验证结果' }],
-          warnings: [],
-        };
-      });
-    } catch (error) {
-      console.error('薪资数据验证失败:', error);
-      // 如果整个请求失败，将所有行标记为错误
-      return processedData.map(row => ({
+        });
+      }
+
+      throw new Error('Invalid response format from validation API');
+    } catch (error: any) {
+      console.error('验证失败:', error);
+      
+      // 返回错误结果
+      return processedData.map((row, index) => ({
         isValid: false,
         clientId: row._meta.clientId,
-        errors: [{ field: 'general', message: `API请求失败: ${error instanceof Error ? error.message : '未知错误'}` }],
+        errors: [{ 
+          field: 'general', 
+          message: `API请求失败: ${error.message}` 
+        }],
         warnings: [],
+        fieldConflicts: []
       }));
     }
   }
@@ -379,25 +437,43 @@ export class PayrollImportStrategy extends BaseImportStrategy {
         payroll_period_id: periodId,
         payroll_run_id: 0, // 后端会自动创建或分配
         status_lookup_value_id: 60, // 60 = "待计算" 状态
-        gross_pay: row.data.gross_pay || 0,
-        total_deductions: row.data.total_deductions || 0,
-        net_pay: row.data.net_pay || 0,
+        // 移除所有计算字段，让后端自行计算
         earnings_details: row.data.earnings_details || {},
         deductions_details: row.data.deductions_details || {},
         remarks: row.data.remarks || '',
         employee_info: {
           last_name: lastName,
           first_name: firstName,
-          id_number: row.data.id_number || ''
+          id_number: String(row.data.id_number || '')
         }
       };
     });
 
+    // 智能选择覆写模式：如果是个税等单一字段导入，使用partial模式
+    let finalOverwriteMode = overwriteMode;
+    
+    // 检查是否只导入了少量字段（如个税）
+    const hasOnlyFewFields = entries.every(entry => {
+      const earningsCount = Object.keys(entry.earnings_details).length;
+      const deductionsCount = Object.keys(entry.deductions_details).length;
+      const totalFields = earningsCount + deductionsCount;
+      
+      // 如果每个员工只有1-3个薪资字段，认为是部分导入
+      return totalFields <= 3;
+    });
+    
+    if (hasOnlyFewFields && overwriteMode === 'append') {
+      finalOverwriteMode = 'replace'; // 前端的replace对应后端的partial
+      console.log(`🔍 [智能模式] 检测到部分字段导入，自动切换到部分更新模式`);
+    }
+
     const apiPayload = {
       payroll_period_id: periodId,
       entries,
-      overwrite_mode: getBackendOverwriteMode(overwriteMode)
+      overwrite_mode: getBackendOverwriteMode(finalOverwriteMode)
     };
+    
+    console.log(`🔍 [导入模式] 前端模式: ${overwriteMode} -> 最终模式: ${finalOverwriteMode} -> 后端模式: ${getBackendOverwriteMode(finalOverwriteMode)}`);
     
     try {
       const response = await this.makeRequest('/payroll-entries/bulk', {

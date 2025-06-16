@@ -184,7 +184,25 @@ export const processRawTableData = (
       } else if (targetField === 'employee_code') {
         entry.employee_code = String(value).trim();
       } else if (targetField === 'id_number') {
-        entry.id_number = String(value).trim();
+        // 🔧 修复：身份证号特殊处理，确保保持完整性
+        if (value !== null && value !== undefined && value !== '') {
+          // 如果是数字类型，直接转换为字符串（避免科学计数法）
+          if (typeof value === 'number') {
+            entry.id_number = value.toString();
+          } else {
+            entry.id_number = String(value).trim();
+          }
+          
+          // 🔍 调试：记录身份证号处理过程
+          console.log('🔍 [身份证号处理]:', {
+            原始值: value,
+            原始类型: typeof value,
+            处理后: entry.id_number,
+            处理后类型: typeof entry.id_number
+          });
+        } else {
+          entry.id_number = '';
+        }
       } else if (targetField === 'department') {
         entry.department_name = String(value).trim();
       } else if (targetField === 'employee_category') {
@@ -254,9 +272,15 @@ export const processRawTableData = (
       entry.employee_info = {
         last_name: entry.last_name,
         first_name: entry.first_name,
-        id_number: entry.id_number || '', // 提供默认值，因为当前只使用姓名校验
-        // 只使用姓名校验，不传递身份证号码和员工代码
+        id_number: entry.id_number || '', // 🔧 修复：确保身份证号正确传递
       };
+      
+      // 🔍 调试：记录employee_info构建过程
+      console.log('🔍 [employee_info构建]:', {
+        员工姓名: `${entry.last_name}${entry.first_name}`,
+        身份证号: entry.id_number,
+        employee_info: entry.employee_info
+      });
     }
 
     processedData.push(entry);
