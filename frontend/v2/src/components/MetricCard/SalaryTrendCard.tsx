@@ -4,8 +4,8 @@ import {
   LineChartOutlined, 
   FullscreenOutlined,
   CalendarOutlined,
-  TrendingUpOutlined,
-  TrendingDownOutlined,
+  RiseOutlined,
+  FallOutlined,
   InfoCircleOutlined,
   EyeOutlined,
   DownloadOutlined
@@ -247,9 +247,9 @@ export const SalaryTrendCard: React.FC<SalaryTrendCardProps> = ({
           {trendAnalysis && (
             <div className={`trend-indicator ${trendAnalysis[key as keyof typeof trendAnalysis]?.direction}`}>
               {trendAnalysis[key as keyof typeof trendAnalysis]?.direction === 'up' ? (
-                <TrendingUpOutlined />
+                <RiseOutlined />
               ) : trendAnalysis[key as keyof typeof trendAnalysis]?.direction === 'down' ? (
-                <TrendingDownOutlined />
+                <FallOutlined />
               ) : null}
               <span className="trend-percentage">
                 {Math.abs(trendAnalysis[key as keyof typeof trendAnalysis]?.percentage || 0).toFixed(1)}%
@@ -377,7 +377,7 @@ export const SalaryTrendCard: React.FC<SalaryTrendCardProps> = ({
         
         {trendAnalysis && (
           <div className="insight-row">
-            <TrendingUpOutlined className="insight-icon" />
+            <RiseOutlined className="insight-icon" />
             <Text className="insight-text">
               环比变化: 应发
               <Tag color={trendAnalysis.grossSalary.direction === 'up' ? 'green' : trendAnalysis.grossSalary.direction === 'down' ? 'red' : 'default'}>
