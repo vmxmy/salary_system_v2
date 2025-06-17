@@ -10,7 +10,7 @@ import { QuickActions } from './components/QuickActions';
 import { EmptyState } from './components/EmptyState';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
 import { PayrollDataModal } from './components/PayrollDataModal';
-import './styles.less';
+import './styles-modern.less';
 
 const { Header, Content } = Layout;
 
@@ -52,7 +52,7 @@ const SimplePayrollPage: React.FC = () => {
   } = usePayrollPageLogic();
 
   return (
-    <Layout className="simple-payroll-layout">
+    <Layout className="simple-payroll-modern">
       {/* Page Header Area */}
       <Header className="payroll-header">
         <div className="header-content">
@@ -62,15 +62,15 @@ const SimplePayrollPage: React.FC = () => {
       </Header>
 
       {/* Main Content Area */}
-      <Content className="payroll-content-area">
+      <Content className="payroll-content">
         {periodsLoading ? (
           <div className="loading-container">
             <Spin size="large" />
           </div>
         ) : (
-          <Row gutter={[24, 24]}>
-            {/* Statistics Card - Full Width - Only show when version is selected */}
-            <Col span={24}>
+          <>
+            {/* Statistics Section - Full Width */}
+            <div className="stats-grid">
               <PayrollStatistics
                 selectedVersionId={selectedVersionId}
                 currentPeriod={currentPeriod}
@@ -82,50 +82,46 @@ const SimplePayrollPage: React.FC = () => {
                 auditLoading={auditLoading}
                 resetLoadingStates={resetLoadingStates}
               />
-            </Col>
+            </div>
 
-            {/* 左列：控制面板和快捷操作 */}
-            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
-              {/* 核心控制 */}
-              <PayrollControls
-                currentPeriod={currentPeriod}
-                handleDateChange={handleDateChange}
-              />
+            {/* Main Content Grid */}
+            <div className="main-grid">
+              {/* Sidebar Controls */}
+              <div className="sidebar-controls">
+                <PayrollControls
+                  currentPeriod={currentPeriod}
+                  handleDateChange={handleDateChange}
+                />
+                
+                <QuickActions
+                  selectedPeriodId={selectedPeriodId}
+                  selectedVersionId={selectedVersionId}
+                  handleNavigateToBulkImport={handleNavigateToBulkImport}
+                  handleImportTaxData={handleImportTaxData}
+                  setPayrollDataModalVisible={setPayrollDataModalVisible}
+                  onRefresh={handleRefresh}
+                  onRefreshAfterDelete={handleRefreshAfterDelete}
+                />
+              </div>
 
-              {/* 快捷操作 */}
-              <QuickActions
-                selectedPeriodId={selectedPeriodId}
-                selectedVersionId={selectedVersionId}
-                handleNavigateToBulkImport={handleNavigateToBulkImport}
-                handleImportTaxData={handleImportTaxData}
-                setPayrollDataModalVisible={setPayrollDataModalVisible}
-                onRefresh={handleRefresh}
-                onRefreshAfterDelete={handleRefreshAfterDelete}
-              />
-            </Col>
-
-            {/* Right Column: Workflow and Information */}
-            <Col xs={24} lg={16}>
-              {!selectedPeriodId ? (
-                <EmptyState />
-              ) : (
-                <Row gutter={[24, 24]}>
-                  {/* Workflow Guide Card */}
-                  <Col span={24}>
-                    <EnhancedWorkflowGuide 
-                      selectedPeriod={currentPeriod || null}
-                      selectedVersion={currentVersion || null}
-                      auditSummary={auditSummary}
-                      onRefresh={handleRefresh}
-                      onAuditRefresh={handleAuditRefresh}
-                      onVersionRefresh={handleVersionRefresh}
-                      onDeleteVersion={handleDeleteVersion}
-                    />
-                  </Col>
-                </Row>
-              )}
-            </Col>
-          </Row>
+              {/* Main Workspace */}
+              <div className="main-workspace">
+                {!selectedPeriodId ? (
+                  <EmptyState />
+                ) : (
+                  <EnhancedWorkflowGuide 
+                    selectedPeriod={currentPeriod || null}
+                    selectedVersion={currentVersion || null}
+                    auditSummary={auditSummary}
+                    onRefresh={handleRefresh}
+                    onAuditRefresh={handleAuditRefresh}
+                    onVersionRefresh={handleVersionRefresh}
+                    onDeleteVersion={handleDeleteVersion}
+                  />
+                )}
+              </div>
+            </div>
+          </>
         )}
       </Content>
 

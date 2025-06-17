@@ -1,0 +1,1169 @@
+// =============================================================================
+// 🎨 现代化商业风格样式表 (Modern Business UI Styles)
+// =============================================================================
+// 基于现代企业级应用设计系统 (Stripe, Linear, Notion)
+// 使用设计令牌系统确保一致性和可维护性
+
+// =============================================================================
+// 📝 字体系统 (Modern Typography System)
+// =============================================================================
+
+// Inter字体引入 - 现代无衬线字体
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+// 字体族定义 - 现代化字体栈
+@font-family-primary: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+@font-family-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+// 字体大小系统 (基于1.25倍比率)
+@font-size-xs: 12px;      // 辅助信息
+@font-size-sm: 14px;      // 正文小字
+@font-size-base: 16px;    // 基础文字
+@font-size-lg: 18px;      // 重要信息
+@font-size-xl: 20px;      // 小标题
+@font-size-2xl: 24px;     // 大标题
+@font-size-3xl: 30px;     // 页面主标题
+@font-size-4xl: 36px;     // 特大标题
+
+// 字重系统
+@font-weight-light: 300;
+@font-weight-normal: 400;
+@font-weight-medium: 500;
+@font-weight-semibold: 600;
+@font-weight-bold: 700;
+@font-weight-extrabold: 800;
+
+// 行高系统
+@line-height-tight: 1.25;
+@line-height-normal: 1.5;
+@line-height-relaxed: 1.75;
+
+// =============================================================================
+// 🎨 现代色彩系统 (Modern Color System)
+// =============================================================================
+
+// 主色调 - 现代深蓝商务色
+@primary-50: #eff6ff;
+@primary-100: #dbeafe;
+@primary-200: #bfdbfe;
+@primary-300: #93c5fd;
+@primary-400: #60a5fa;
+@primary-500: #3b82f6;  // 主色
+@primary-600: #2563eb;
+@primary-700: #1d4ed8;
+@primary-800: #1e40af;
+@primary-900: #1e3a8a;
+
+// 中性色 - 现代灰度系统
+@neutral-50: #f9fafb;
+@neutral-100: #f3f4f6;
+@neutral-200: #e5e7eb;
+@neutral-300: #d1d5db;
+@neutral-400: #9ca3af;
+@neutral-500: #6b7280;
+@neutral-600: #4b5563;
+@neutral-700: #374151;
+@neutral-800: #1f2937;
+@neutral-900: #111827;
+
+// 功能色 - 语义化状态色
+@success-50: #ecfdf5;
+@success-500: #10b981;
+@success-600: #059669;
+
+@warning-50: #fffbeb;
+@warning-500: #f59e0b;
+@warning-600: #d97706;
+
+@error-50: #fef2f2;
+@error-500: #ef4444;
+@error-600: #dc2626;
+
+@info-50: #eff6ff;
+@info-500: #3b82f6;
+@info-600: #2563eb;
+
+// 背景色系统
+@bg-primary: #ffffff;
+@bg-secondary: #f9fafb;
+@bg-tertiary: #f3f4f6;
+@bg-accent: #eff6ff;
+
+// 文字色系统
+@text-primary: #111827;
+@text-secondary: #374151;
+@text-tertiary: #6b7280;
+@text-quaternary: #9ca3af;
+@text-inverse: #ffffff;
+@text-accent: #3b82f6;
+
+// 边框色系统
+@border-light: #f3f4f6;
+@border-default: #e5e7eb;
+@border-medium: #d1d5db;
+@border-strong: #9ca3af;
+
+// =============================================================================
+// 📐 空间系统 (Modern Spacing System)
+// =============================================================================
+
+// 基于8px网格的空间系统
+@space-1: 4px;
+@space-2: 8px;
+@space-3: 12px;
+@space-4: 16px;
+@space-5: 20px;
+@space-6: 24px;
+@space-8: 32px;
+@space-10: 40px;
+@space-12: 48px;
+@space-16: 64px;
+@space-20: 80px;
+@space-24: 96px;
+
+// =============================================================================
+// 🎭 阴影系统 (Modern Shadow System)
+// =============================================================================
+
+@shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+@shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+@shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+@shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+@shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// 彩色阴影
+@shadow-primary: 0 4px 14px 0 rgba(59, 130, 246, 0.15);
+@shadow-success: 0 4px 14px 0 rgba(16, 185, 129, 0.15);
+@shadow-warning: 0 4px 14px 0 rgba(245, 158, 11, 0.15);
+@shadow-error: 0 4px 14px 0 rgba(239, 68, 68, 0.15);
+
+// =============================================================================
+// 🔘 圆角系统 (Modern Border Radius System)
+// =============================================================================
+
+@radius-sm: 4px;
+@radius-base: 6px;
+@radius-md: 8px;
+@radius-lg: 12px;
+@radius-xl: 16px;
+@radius-2xl: 20px;
+@radius-full: 9999px;
+
+// =============================================================================
+// ⚡ 动画系统 (Modern Animation System)  
+// =============================================================================
+
+@duration-fast: 150ms;
+@duration-base: 200ms;
+@duration-slow: 300ms;
+
+@ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+@ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+@ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
+
+// =============================================================================
+// 🎯 现代化排版样式类 (Modern Typography Classes)
+// =============================================================================
+
+.typography-display-1 {
+  font-family: @font-family-primary;
+  font-size: @font-size-4xl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  letter-spacing: -0.025em;
+}
+
+.typography-display-2 {
+  font-family: @font-family-primary;
+  font-size: @font-size-3xl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  letter-spacing: -0.025em;
+}
+
+.typography-heading-1 {
+  font-family: @font-family-primary;
+  font-size: @font-size-2xl;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+}
+
+.typography-heading-2 {
+  font-family: @font-family-primary;
+  font-size: @font-size-xl;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+}
+
+.typography-heading-3 {
+  font-family: @font-family-primary;
+  font-size: @font-size-lg;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-normal;
+  color: @text-primary;
+}
+
+.typography-body-large {
+  font-family: @font-family-primary;
+  font-size: @font-size-lg;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-primary;
+}
+
+.typography-body {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-primary;
+}
+
+.typography-body-secondary {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-secondary;
+}
+
+.typography-caption {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-tertiary;
+}
+
+.typography-caption-strong {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-medium;
+  line-height: @line-height-normal;
+  color: @text-secondary;
+}
+
+.typography-small {
+  font-family: @font-family-primary;
+  font-size: @font-size-xs;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-tertiary;
+}
+
+// 数值显示专用样式
+.typography-number-large {
+  font-family: @font-family-primary;
+  font-size: @font-size-3xl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
+
+.typography-number-medium {
+  font-family: @font-family-primary;
+  font-size: @font-size-xl;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.typography-number-small {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-medium;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+// =============================================================================
+// 🏗️ 现代化布局系统 (Modern Layout System)
+// =============================================================================
+
+// 页面布局
+.modern-layout {
+  min-height: 100vh;
+  background-color: @bg-secondary;
+  font-family: @font-family-primary;
+  
+  .ant-layout-content {
+    padding: @space-6;
+    
+    @media (max-width: 768px) {
+      padding: @space-4;
+    }
+  }
+}
+
+// 页面头部
+.modern-header {
+  background-color: @bg-primary;
+  padding: @space-6 @space-8;
+  border-bottom: 1px solid @border-default;
+  
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    
+    .header-title {
+      .typography-display-2();
+      margin: 0 0 @space-2 0;
+    }
+    
+    .header-subtitle {
+      .typography-body-secondary();
+      margin: 0;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    padding: @space-4 @space-6;
+    
+    .header-content {
+      .header-title {
+        font-size: @font-size-2xl;
+      }
+    }
+  }
+}
+
+// 主内容区域
+.modern-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: @space-6;
+  
+  @media (max-width: 768px) {
+    padding: @space-4;
+  }
+}
+
+// =============================================================================
+// 🎯 现代化卡片系统 (Modern Card System)
+// =============================================================================
+
+.modern-card {
+  background: @bg-primary;
+  border: 1px solid @border-default;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-sm;
+  transition: all @duration-base @ease-out;
+  overflow: hidden;
+  
+  &:hover {
+    border-color: @border-medium;
+    box-shadow: @shadow-md;
+    transform: translateY(-1px);
+  }
+  
+  // 卡片头部
+  .card-header {
+    padding: @space-6;
+    border-bottom: 1px solid @border-light;
+    background: @bg-secondary;
+    
+    .card-title {
+      .typography-heading-3();
+      margin: 0 0 @space-1 0;
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .card-icon {
+        color: @text-accent;
+        font-size: @font-size-lg;
+      }
+    }
+    
+    .card-subtitle {
+      .typography-caption();
+      margin: 0;
+    }
+  }
+  
+  // 卡片内容
+  .card-content {
+    padding: @space-6;
+  }
+  
+  // 卡片底部
+  .card-footer {
+    padding: @space-4 @space-6;
+    border-top: 1px solid @border-light;
+    background: @bg-secondary;
+    
+    .card-actions {
+      display: flex;
+      gap: @space-3;
+      justify-content: flex-end;
+    }
+  }
+  
+  // 紧凑型卡片
+  &.compact {
+    .card-header {
+      padding: @space-4 @space-5;
+    }
+    
+    .card-content {
+      padding: @space-4 @space-5;
+    }
+    
+    .card-footer {
+      padding: @space-3 @space-5;
+    }
+  }
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    .card-header,
+    .card-content {
+      padding: @space-4;
+    }
+    
+    .card-footer {
+      padding: @space-3 @space-4;
+    }
+  }
+}
+
+// =============================================================================
+// 📊 现代化统计卡片 (Modern Statistic Cards)
+// =============================================================================
+
+.modern-stat-card {
+  .modern-card();
+  
+  .stat-header {
+    padding: @space-4 @space-5;
+    border-bottom: 1px solid @border-light;
+    background: linear-gradient(135deg, @primary-50 0%, @neutral-50 100%);
+    
+    .stat-title {
+      .typography-caption-strong();
+      color: @text-secondary;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .stat-icon {
+        color: @primary-500;
+        font-size: @font-size-sm;
+      }
+    }
+  }
+  
+  .stat-content {
+    padding: @space-5;
+    text-align: center;
+    
+    .stat-value {
+      .typography-number-medium();
+      margin: 0 0 @space-1 0;
+      color: @text-primary;
+    }
+    
+    .stat-label {
+      .typography-small();
+      margin: 0;
+      color: @text-tertiary;
+    }
+    
+    .stat-change {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: @space-1;
+      margin-top: @space-2;
+      
+      .stat-change-value {
+        .typography-small();
+        font-weight: @font-weight-medium;
+      }
+      
+      .stat-change-icon {
+        font-size: @font-size-xs;
+      }
+      
+      &.positive {
+        color: @success-600;
+      }
+      
+      &.negative {
+        color: @error-600;
+      }
+      
+      &.neutral {
+        color: @text-tertiary;
+      }
+    }
+  }
+  
+  // 主题变体
+  &.theme-success {
+    .stat-header {
+      background: linear-gradient(135deg, @success-50 0%, @neutral-50 100%);
+      
+      .stat-icon {
+        color: @success-500;
+      }
+    }
+    
+    .stat-content .stat-value {
+      color: @success-600;
+    }
+  }
+  
+  &.theme-warning {
+    .stat-header {
+      background: linear-gradient(135deg, @warning-50 0%, @neutral-50 100%);
+      
+      .stat-icon {
+        color: @warning-500;
+      }
+    }
+    
+    .stat-content .stat-value {
+      color: @warning-600;
+    }
+  }
+  
+  &.theme-error {
+    .stat-header {
+      background: linear-gradient(135deg, @error-50 0%, @neutral-50 100%);
+      
+      .stat-icon {
+        color: @error-500;
+      }
+    }
+    
+    .stat-content .stat-value {
+      color: @error-600;
+    }
+  }
+}
+
+// =============================================================================
+// 🎮 现代化按钮系统 (Modern Button System)
+// =============================================================================
+
+.modern-button {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-medium;
+  line-height: 1;
+  border-radius: @radius-md;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all @duration-base @ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: @space-2;
+  text-decoration: none;
+  
+  // 尺寸变体
+  &.size-sm {
+    padding: @space-2 @space-3;
+    font-size: @font-size-xs;
+    min-height: 32px;
+  }
+  
+  &.size-md {
+    padding: @space-3 @space-4;
+    font-size: @font-size-sm;
+    min-height: 40px;
+  }
+  
+  &.size-lg {
+    padding: @space-4 @space-6;
+    font-size: @font-size-base;
+    min-height: 48px;
+  }
+  
+  // 主要按钮
+  &.variant-primary {
+    background: @primary-500;
+    color: @text-inverse;
+    border-color: @primary-500;
+    box-shadow: @shadow-sm;
+    
+    &:hover {
+      background: @primary-600;
+      border-color: @primary-600;
+      box-shadow: @shadow-primary;
+      transform: translateY(-1px);
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: @shadow-sm;
+    }
+  }
+  
+  // 次要按钮
+  &.variant-secondary {
+    background: @bg-primary;
+    color: @text-primary;
+    border-color: @border-default;
+    box-shadow: @shadow-sm;
+    
+    &:hover {
+      background: @bg-secondary;
+      border-color: @primary-300;
+      color: @primary-600;
+      box-shadow: @shadow-md;
+      transform: translateY(-1px);
+    }
+  }
+  
+  // 幽灵按钮
+  &.variant-ghost {
+    background: transparent;
+    color: @primary-600;
+    border-color: transparent;
+    
+    &:hover {
+      background: @primary-50;
+      color: @primary-700;
+    }
+  }
+  
+  // 危险按钮
+  &.variant-danger {
+    background: @error-500;
+    color: @text-inverse;
+    border-color: @error-500;
+    box-shadow: @shadow-sm;
+    
+    &:hover {
+      background: @error-600;
+      border-color: @error-600;
+      box-shadow: @shadow-error;
+      transform: translateY(-1px);
+    }
+  }
+  
+  // 禁用状态
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: @shadow-sm !important;
+  }
+}
+
+// =============================================================================
+// 🔥 Ant Design 组件现代化覆盖 (Modern Ant Design Overrides)
+// =============================================================================
+
+// 全局字体覆盖
+.ant-typography,
+.ant-card,
+.ant-btn,
+.ant-input,
+.ant-select,
+.ant-table,
+.ant-form,
+.ant-menu,
+.ant-dropdown,
+.ant-modal,
+.ant-drawer,
+.ant-notification,
+.ant-message,
+.ant-alert,
+.ant-tag,
+.ant-badge,
+.ant-tooltip,
+.ant-popover {
+  font-family: @font-family-primary !important;
+}
+
+// 现代化卡片样式
+.ant-card {
+  border-radius: @radius-lg !important;
+  border-color: @border-default !important;
+  box-shadow: @shadow-sm !important;
+  transition: all @duration-base @ease-out !important;
+  
+  &:hover {
+    border-color: @border-medium !important;
+    box-shadow: @shadow-md !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .ant-card-head {
+    background: @bg-secondary !important;
+    border-bottom-color: @border-light !important;
+    padding: @space-4 @space-6 !important;
+    
+    .ant-card-head-title {
+      .typography-heading-3() !important;
+      font-weight: @font-weight-semibold !important;
+    }
+  }
+  
+  .ant-card-body {
+    padding: @space-6 !important;
+  }
+}
+
+// 现代化按钮样式
+.ant-btn {
+  border-radius: @radius-md !important;
+  font-weight: @font-weight-medium !important;
+  transition: all @duration-base @ease-out !important;
+  box-shadow: @shadow-sm !important;
+  
+  &:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: @shadow-md !important;
+  }
+  
+  &.ant-btn-primary {
+    background: @primary-500 !important;
+    border-color: @primary-500 !important;
+    
+    &:hover {
+      background: @primary-600 !important;
+      border-color: @primary-600 !important;
+      box-shadow: @shadow-primary !important;
+    }
+  }
+  
+  &.ant-btn-default {
+    background: @bg-primary !important;
+    border-color: @border-default !important;
+    color: @text-primary !important;
+    
+    &:hover {
+      background: @bg-secondary !important;
+      border-color: @primary-300 !important;
+      color: @primary-600 !important;
+    }
+  }
+}
+
+// 现代化输入框样式
+.ant-input,
+.ant-select-selector,
+.ant-picker {
+  border-radius: @radius-md !important;
+  border-color: @border-default !important;
+  transition: all @duration-base @ease-out !important;
+  font-size: @font-size-sm !important;
+  
+  &:hover {
+    border-color: @primary-300 !important;
+  }
+  
+  &:focus,
+  &.ant-input-focused,
+  &.ant-select-focused,
+  &.ant-picker-focused {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+}
+
+// 现代化表格样式
+.ant-table {
+  .ant-table-thead > tr > th {
+    background: @bg-secondary !important;
+    border-bottom-color: @border-default !important;
+    color: @text-secondary !important;
+    font-weight: @font-weight-semibold !important;
+    font-size: @font-size-sm !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    border-bottom-color: @border-light !important;
+    color: @text-primary !important;
+    font-size: @font-size-sm !important;
+  }
+  
+  .ant-table-tbody > tr:hover > td {
+    background: @bg-secondary !important;
+  }
+}
+
+// 现代化标签样式
+.ant-tag {
+  border-radius: @radius-base !important;
+  font-size: @font-size-xs !important;
+  font-weight: @font-weight-medium !important;
+  border: none !important;
+  
+  &.ant-tag-success {
+    background: @success-50 !important;
+    color: @success-600 !important;
+  }
+  
+  &.ant-tag-warning {
+    background: @warning-50 !important;
+    color: @warning-600 !important;
+  }
+  
+  &.ant-tag-error {
+    background: @error-50 !important;
+    color: @error-600 !important;
+  }
+  
+  &.ant-tag-blue {
+    background: @info-50 !important;
+    color: @info-600 !important;
+  }
+}
+
+// 现代化警告框样式
+.ant-alert {
+  border-radius: @radius-md !important;
+  border: none !important;
+  font-size: @font-size-sm !important;
+  
+  &.ant-alert-success {
+    background: @success-50 !important;
+    .ant-alert-message,
+    .ant-alert-description {
+      color: @success-600 !important;
+    }
+  }
+  
+  &.ant-alert-warning {
+    background: @warning-50 !important;
+    .ant-alert-message,
+    .ant-alert-description {
+      color: @warning-600 !important;
+    }
+  }
+  
+  &.ant-alert-error {
+    background: @error-50 !important;
+    .ant-alert-message,
+    .ant-alert-description {
+      color: @error-600 !important;
+    }
+  }
+  
+  &.ant-alert-info {
+    background: @info-50 !important;
+    .ant-alert-message,
+    .ant-alert-description {
+      color: @info-600 !important;
+    }
+  }
+}
+
+// =============================================================================
+// 🎯 SimplePayroll 页面专用样式 (SimplePayroll Page Specific Styles)
+// =============================================================================
+
+.simple-payroll-modern {
+  .modern-layout();
+  
+  // 页面头部
+  .payroll-header {
+    .modern-header();
+  }
+  
+  // 主内容区域
+  .payroll-content {
+    .modern-content();
+  }
+  
+  // 统计卡片组
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: @space-6;
+    margin-bottom: @space-8;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: @space-4;
+      margin-bottom: @space-6;
+    }
+  }
+  
+  // 主要布局网格
+  .main-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: @space-8;
+    
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+      gap: @space-6;
+    }
+  }
+  
+  // 侧边栏控制面板
+  .sidebar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: @space-6;
+    
+    .control-section {
+      .modern-card();
+      
+      .section-title {
+        .typography-heading-3();
+        margin: 0 0 @space-4 0;
+        color: @text-primary;
+      }
+      
+      .control-group {
+        margin-bottom: @space-4;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        .control-label {
+          .typography-caption-strong();
+          display: block;
+          margin-bottom: @space-2;
+          color: @text-secondary;
+        }
+      }
+    }
+  }
+  
+  // 主要工作区
+  .main-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: @space-6;
+    
+    .workflow-guide {
+      .modern-card();
+      
+      .workflow-header {
+        .card-header();
+        
+        .workflow-title {
+          .typography-heading-2();
+          margin: 0;
+          color: @text-primary;
+        }
+      }
+      
+      .workflow-content {
+        .card-content();
+      }
+    }
+  }
+  
+  // 空状态
+  .empty-state {
+    .modern-card();
+    text-align: center;
+    padding: @space-16 @space-8;
+    
+    .empty-icon {
+      font-size: 48px;
+      color: @text-quaternary;
+      margin-bottom: @space-4;
+    }
+    
+    .empty-title {
+      .typography-heading-3();
+      margin: 0 0 @space-2 0;
+      color: @text-secondary;
+    }
+    
+    .empty-description {
+      .typography-body-secondary();
+      margin: 0 0 @space-6 0;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .empty-actions {
+      display: flex;
+      gap: @space-3;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    .main-grid {
+      gap: @space-4;
+    }
+    
+    .sidebar-controls {
+      gap: @space-4;
+    }
+    
+    .main-workspace {
+      gap: @space-4;
+    }
+    
+    .empty-state {
+      padding: @space-12 @space-4;
+      
+      .empty-icon {
+        font-size: 36px;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🔄 加载状态和微交互 (Loading States & Micro-interactions)
+// =============================================================================
+
+// 加载骨架屏
+.skeleton {
+  background: linear-gradient(90deg, @neutral-200 25%, @neutral-100 50%, @neutral-200 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite ease-in-out;
+  border-radius: @radius-base;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// 脉冲动画
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// 淡入动画
+.fade-in {
+  animation: fadeIn @duration-slow @ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 弹性缩放动画
+.scale-in {
+  animation: scaleIn @duration-base @ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// =============================================================================
+// 🌙 深色模式支持 (Dark Mode Support)
+// =============================================================================
+
+[data-theme="dark"] {
+  // 深色模式变量覆盖
+  --bg-primary: #{@neutral-900};
+  --bg-secondary: #{@neutral-800};
+  --bg-tertiary: #{@neutral-700};
+  --text-primary: #{@neutral-100};
+  --text-secondary: #{@neutral-300};
+  --text-tertiary: #{@neutral-400};
+  --border-default: #{@neutral-700};
+  --border-light: #{@neutral-800};
+  
+  // 深色模式下的卡片样式
+  .modern-card {
+    background: var(--bg-primary);
+    border-color: var(--border-default);
+    
+    .card-header {
+      background: var(--bg-secondary);
+      border-bottom-color: var(--border-light);
+    }
+    
+    .card-footer {
+      background: var(--bg-secondary);
+      border-top-color: var(--border-light);
+    }
+  }
+  
+  // 深色模式下的按钮样式
+  .modern-button.variant-secondary {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+    
+    &:hover {
+      background: var(--bg-secondary);
+    }
+  }
+}
+
+// =============================================================================
+// 📱 移动端专用优化 (Mobile-specific Optimizations)
+// =============================================================================
+
+@media (max-width: 768px) {
+  // 触控优化 - 最小触控目标44px
+  .modern-button,
+  .ant-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  // 移动端间距优化
+  .modern-card {
+    margin-bottom: @space-4;
+    
+    .card-header,
+    .card-content,
+    .card-footer {
+      padding: @space-4 !important;
+    }
+  }
+  
+  // 移动端字体优化
+  .typography-display-1 {
+    font-size: @font-size-3xl;
+  }
+  
+  .typography-display-2 {
+    font-size: @font-size-2xl;
+  }
+  
+  .typography-heading-1 {
+    font-size: @font-size-xl;
+  }
+}
