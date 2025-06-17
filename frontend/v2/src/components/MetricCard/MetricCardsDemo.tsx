@@ -1,8 +1,13 @@
 import React from 'react';
 import { Row, Col } from 'antd';
-import { DepartmentCostCard, DepartmentCostData } from './DepartmentCostCard';
-import { EmployeeTypeCard, EmployeeTypeData } from './EmployeeTypeCard';
-import { SalaryTrendCard, SalaryTrendDataPoint } from './SalaryTrendCard';
+import { 
+  DepartmentCostCard, 
+  EmployeeTypeCard, 
+  SalaryTrendCard,
+  type DepartmentCostData,
+  type EmployeeTypeData,
+  type SalaryTrendDataPoint
+} from './index';
 
 // 模拟部门成本数据
 const departmentCostData: DepartmentCostData[] = [
