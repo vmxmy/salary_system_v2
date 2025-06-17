@@ -1,0 +1,812 @@
+// =============================================================================
+// 📊 现代化指标卡样式 (Modern Metric Cards)
+// =============================================================================
+
+@import '../../pages/SimplePayroll/styles-modern.less';
+
+// =============================================================================
+// 🏗️ 基础指标卡样式 (Base Metric Card)
+// =============================================================================
+
+.modern-metric-card {
+  .modern-card();
+  min-height: 300px;
+  
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @space-4;
+    padding-bottom: @space-3;
+    border-bottom: 1px solid @border-light;
+    
+    .metric-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .metric-icon {
+        color: @primary-500;
+        font-size: @font-size-lg;
+      }
+      
+      .metric-title {
+        .typography-heading-3();
+        margin: 0;
+        color: @text-primary;
+      }
+      
+      .info-icon {
+        color: @text-tertiary;
+        font-size: @font-size-sm;
+        cursor: pointer;
+        
+        &:hover {
+          color: @text-secondary;
+        }
+      }
+    }
+    
+    .chart-controls,
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+    }
+  }
+}
+
+// =============================================================================
+// 🏢 部门成本分布卡片 (Department Cost Card)
+// =============================================================================
+
+.department-cost-card {
+  
+  .chart-section {
+    margin: @space-6 0;
+    min-height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  // 饼图样式
+  .pie-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .pie-slice {
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        filter: brightness(1.1);
+        stroke-width: 3;
+      }
+    }
+  }
+  
+  // 柱状图样式
+  .bar-chart-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 200px;
+    padding: @space-4;
+    gap: @space-2;
+    
+    .bar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 60px;
+      cursor: pointer;
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        transform: translateY(-2px);
+        
+        .bar {
+          filter: brightness(1.1);
+        }
+      }
+      
+      .bar-wrapper {
+        height: 160px;
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+        position: relative;
+        
+        .bar {
+          width: 100%;
+          min-height: 20px;
+          border-radius: @radius-sm @radius-sm 0 0;
+          position: relative;
+          transition: all @duration-base @ease-out;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          
+          .bar-value {
+            position: absolute;
+            top: -20px;
+            font-size: @font-size-xs;
+            font-weight: @font-weight-semibold;
+            color: @text-secondary;
+            white-space: nowrap;
+          }
+        }
+      }
+      
+      .bar-label {
+        margin-top: @space-2;
+        text-align: center;
+        
+        .department-name {
+          font-size: @font-size-xs;
+          color: @text-secondary;
+          margin-bottom: @space-1;
+        }
+        
+        .change-indicator {
+          font-size: @font-size-xs;
+          font-weight: @font-weight-medium;
+          
+          &.up {
+            color: @success-600;
+          }
+          
+          &.down {
+            color: @error-600;
+          }
+          
+          &.stable {
+            color: @text-tertiary;
+          }
+        }
+      }
+    }
+  }
+  
+  // 部门列表
+  .department-list {
+    .department-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: @space-3 0;
+      border-bottom: 1px solid @border-light;
+      cursor: pointer;
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        background: @bg-secondary;
+        margin: 0 -@space-6;
+        padding-left: @space-6;
+        padding-right: @space-6;
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .department-info {
+        display: flex;
+        align-items: center;
+        gap: @space-3;
+        flex: 1;
+        
+        .color-indicator {
+          width: 12px;
+          height: 12px;
+          border-radius: @radius-sm;
+          flex-shrink: 0;
+        }
+        
+        .department-details {
+          .department-name {
+            .typography-caption-strong();
+            color: @text-primary;
+          }
+          
+          .employee-count {
+            .typography-small();
+            color: @text-tertiary;
+          }
+        }
+      }
+      
+      .cost-info {
+        text-align: right;
+        margin-right: @space-4;
+        
+        .current-cost {
+          .typography-caption-strong();
+          color: @text-primary;
+        }
+        
+        .cost-change {
+          .typography-small();
+          
+          &.up {
+            color: @success-600;
+          }
+          
+          &.down {
+            color: @error-600;
+          }
+          
+          &.stable {
+            color: @text-tertiary;
+          }
+        }
+      }
+      
+      .percentage {
+        .typography-caption-strong();
+        color: @primary-600;
+        min-width: 50px;
+        text-align: right;
+      }
+    }
+    
+    .more-departments {
+      text-align: center;
+      padding: @space-4 0;
+      cursor: pointer;
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        background: @bg-secondary;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 👥 员工类型分布卡片 (Employee Type Card)
+// =============================================================================
+
+.employee-type-card {
+  
+  .summary-metrics {
+    display: flex;
+    justify-content: space-around;
+    margin: @space-4 0;
+    padding: @space-4;
+    background: @bg-secondary;
+    border-radius: @radius-md;
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .summary-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: @radius-full;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: @font-size-sm;
+        
+        &.positive {
+          background: @success-50;
+          color: @success-600;
+        }
+        
+        &.negative {
+          background: @error-50;
+          color: @error-600;
+        }
+      }
+      
+      .summary-info {
+        .summary-value {
+          .typography-number-small();
+          font-weight: @font-weight-semibold;
+        }
+        
+        .summary-label {
+          .typography-small();
+          color: @text-tertiary;
+        }
+      }
+    }
+  }
+  
+  .employee-type-content {
+    margin: @space-6 0;
+    min-height: 240px;
+  }
+  
+  // 环形图样式
+  .donut-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: @space-4;
+    
+    .donut-chart {
+      position: relative;
+      
+      .donut-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .donut-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        
+        .total-count {
+          .typography-number-medium();
+          color: @text-primary;
+          font-weight: @font-weight-bold;
+        }
+        
+        .total-label {
+          .typography-small();
+          color: @text-tertiary;
+        }
+      }
+    }
+    
+    .chart-legend {
+      display: flex;
+      gap: @space-6;
+      
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: @space-2;
+        
+        .legend-color {
+          width: 12px;
+          height: 12px;
+          border-radius: @radius-sm;
+        }
+        
+        .legend-info {
+          .legend-label {
+            .typography-caption-strong();
+            color: @text-primary;
+          }
+          
+          .legend-value {
+            .typography-small();
+            color: @text-tertiary;
+          }
+        }
+      }
+    }
+  }
+  
+  // 对比视图样式
+  .comparison-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: @space-4;
+    
+    .type-comparison-card {
+      border: 1px solid @border-default;
+      border-radius: @radius-md;
+      padding: @space-4;
+      cursor: pointer;
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        border-color: @primary-300;
+        box-shadow: @shadow-md;
+        transform: translateY(-1px);
+      }
+      
+      .type-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: @space-3;
+        
+        .type-info {
+          display: flex;
+          align-items: center;
+          gap: @space-2;
+          
+          .type-icon {
+            font-size: @font-size-lg;
+          }
+          
+          .type-name {
+            .typography-caption-strong();
+            color: @text-primary;
+          }
+        }
+        
+        .change-badge {
+          padding: @space-1 @space-2;
+          border-radius: @radius-base;
+          font-size: @font-size-xs;
+          font-weight: @font-weight-semibold;
+          
+          &.up {
+            background: @success-50;
+            color: @success-600;
+          }
+          
+          &.down {
+            background: @error-50;
+            color: @error-600;
+          }
+          
+          &.stable {
+            background: @neutral-100;
+            color: @text-tertiary;
+          }
+        }
+      }
+      
+      .type-metrics {
+        .metric-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: @space-2;
+          
+          .metric-label {
+            .typography-small();
+            color: @text-tertiary;
+          }
+          
+          .metric-value {
+            .typography-caption-strong();
+            color: @text-primary;
+          }
+        }
+      }
+      
+      .type-flow {
+        display: flex;
+        justify-content: space-between;
+        margin-top: @space-3;
+        padding-top: @space-3;
+        border-top: 1px solid @border-light;
+        
+        .flow-item {
+          text-align: center;
+          
+          .flow-label {
+            .typography-small();
+            color: @text-tertiary;
+            display: block;
+          }
+          
+          .flow-value {
+            .typography-caption-strong();
+            display: block;
+            margin-top: @space-1;
+          }
+          
+          &.positive .flow-value {
+            color: @success-600;
+          }
+          
+          &.negative .flow-value {
+            color: @error-600;
+          }
+        }
+      }
+    }
+  }
+  
+  .detailed-analysis {
+    margin-top: @space-6;
+    padding-top: @space-4;
+    border-top: 1px solid @border-light;
+    
+    .analysis-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: @space-3;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .analysis-label {
+        .typography-caption-strong();
+        color: @text-secondary;
+        min-width: 80px;
+      }
+      
+      .analysis-value {
+        display: flex;
+        gap: @space-2;
+        flex-wrap: wrap;
+        
+        .salary-comparison {
+          .typography-small();
+          color: @text-primary;
+        }
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 📈 工资趋势分析卡片 (Salary Trend Card)
+// =============================================================================
+
+.salary-trend-card {
+  
+  .key-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: @space-4;
+    margin: @space-4 0;
+    
+    .metric-item {
+      text-align: center;
+      padding: @space-3;
+      background: @bg-secondary;
+      border-radius: @radius-md;
+      
+      .metric-label {
+        .typography-small();
+        color: @text-tertiary;
+        display: block;
+        margin-bottom: @space-1;
+      }
+      
+      .metric-value {
+        .typography-number-small();
+        font-weight: @font-weight-semibold;
+        display: block;
+        margin-bottom: @space-1;
+        
+        &.primary {
+          color: @primary-600;
+        }
+        
+        &.success {
+          color: @success-600;
+        }
+        
+        &.warning {
+          color: @warning-600;
+        }
+      }
+      
+      .metric-change {
+        .typography-small();
+        font-weight: @font-weight-medium;
+        
+        &.up {
+          color: @success-600;
+        }
+        
+        &.down {
+          color: @error-600;
+        }
+        
+        &.stable,
+        &.neutral {
+          color: @text-tertiary;
+        }
+      }
+    }
+  }
+  
+  .line-chart-container {
+    margin: @space-6 0;
+    height: 240px;
+    position: relative;
+    
+    .salary-trend-chart {
+      width: 100%;
+      height: 100%;
+      border: 1px solid @border-light;
+      border-radius: @radius-md;
+      background: @bg-primary;
+    }
+  }
+  
+  .chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: @space-6;
+    margin: @space-4 0;
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      cursor: pointer;
+      padding: @space-2 @space-3;
+      border-radius: @radius-base;
+      transition: all @duration-base @ease-out;
+      
+      &.active {
+        background: @bg-secondary;
+      }
+      
+      &.inactive {
+        opacity: 0.5;
+      }
+      
+      &:hover {
+        background: @bg-secondary;
+      }
+      
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: @radius-sm;
+      }
+      
+      .legend-label {
+        .typography-caption-strong();
+        color: @text-primary;
+      }
+      
+      .trend-indicator {
+        display: flex;
+        align-items: center;
+        gap: @space-1;
+        margin-left: @space-2;
+        
+        &.up {
+          color: @success-600;
+        }
+        
+        &.down {
+          color: @error-600;
+        }
+        
+        &.stable {
+          color: @text-tertiary;
+        }
+        
+        .trend-percentage {
+          .typography-small();
+          font-weight: @font-weight-medium;
+        }
+      }
+    }
+  }
+  
+  .data-insights {
+    margin-top: @space-6;
+    padding: @space-4;
+    background: @bg-secondary;
+    border-radius: @radius-md;
+    
+    .insight-row {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      margin-bottom: @space-2;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .insight-icon {
+        color: @primary-500;
+        font-size: @font-size-sm;
+      }
+      
+      .insight-text {
+        .typography-small();
+        color: @text-secondary;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 📱 响应式优化 (Responsive Design)
+// =============================================================================
+
+@media (max-width: 768px) {
+  .modern-metric-card {
+    .metric-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: @space-3;
+    }
+    
+    .chart-controls,
+    .view-controls {
+      align-self: stretch;
+      justify-content: flex-end;
+    }
+  }
+  
+  .department-cost-card {
+    .bar-chart-container {
+      overflow-x: auto;
+      padding-bottom: @space-6;
+      
+      .bar-item {
+        min-width: 50px;
+      }
+    }
+    
+    .department-list {
+      .department-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: @space-2;
+        
+        .cost-info {
+          align-self: stretch;
+          display: flex;
+          justify-content: space-between;
+          margin-right: 0;
+        }
+      }
+    }
+  }
+  
+  .employee-type-card {
+    .comparison-view {
+      grid-template-columns: 1fr;
+    }
+    
+    .summary-metrics {
+      flex-direction: column;
+      gap: @space-3;
+    }
+  }
+  
+  .salary-trend-card {
+    .key-metrics {
+      grid-template-columns: 1fr;
+      gap: @space-3;
+    }
+    
+    .chart-legend {
+      flex-direction: column;
+      gap: @space-3;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .modern-metric-card {
+    min-height: auto;
+    
+    .card-content {
+      padding: @space-4;
+    }
+  }
+  
+  .department-cost-card {
+    .pie-chart-container svg {
+      width: 140px;
+      height: 140px;
+    }
+  }
+  
+  .employee-type-card {
+    .donut-chart-container {
+      .donut-chart {
+        transform: scale(0.8);
+      }
+    }
+  }
+  
+  .salary-trend-card {
+    .line-chart-container {
+      height: 180px;
+    }
+  }
+}
