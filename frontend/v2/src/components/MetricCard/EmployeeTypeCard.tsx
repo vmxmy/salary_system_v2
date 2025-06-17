@@ -314,16 +314,18 @@ export const EmployeeTypeCard: React.FC<EmployeeTypeCardProps> = ({
         </div>
       </div>
 
-      {/* 核心指标摘要 */}
-      {renderSummaryMetrics()}
-
       {/* 主要内容区域 */}
-      <div className="employee-type-content">
-        {viewMode === 'overview' ? renderDonutChart() : renderComparisonView()}
-      </div>
+      <div className="metric-content">
+        {/* 核心指标摘要 */}
+        {renderSummaryMetrics()}
 
-      {/* 详细分析 */}
-      <div className="detailed-analysis">
+        {/* 图表内容区域 */}
+        <div className="employee-type-content">
+          {viewMode === 'overview' ? renderDonutChart() : renderComparisonView()}
+        </div>
+
+        {/* 详细分析 */}
+        <div className="detailed-analysis">
         <div className="analysis-row">
           <Text className="analysis-label">编制比例</Text>
           <div className="analysis-value">
@@ -347,6 +349,7 @@ export const EmployeeTypeCard: React.FC<EmployeeTypeCardProps> = ({
               </span>
             ))}
           </div>
+        </div>
         </div>
       </div>
     </Card>

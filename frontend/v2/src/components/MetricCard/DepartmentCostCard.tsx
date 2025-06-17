@@ -229,13 +229,15 @@ export const DepartmentCostCard: React.FC<DepartmentCostCardProps> = ({
         </div>
       </div>
 
-      {/* 图表区域 */}
-      <div className="chart-section">
-        {viewMode === 'pie' ? renderPieChart() : renderBarChart()}
-      </div>
+      {/* 主要内容区域 */}
+      <div className="metric-content">
+        {/* 图表区域 */}
+        <div className="chart-section">
+          {viewMode === 'pie' ? renderPieChart() : renderBarChart()}
+        </div>
 
-      {/* 详细数据列表 */}
-      <div className="department-list">
+        {/* 详细数据列表 */}
+        <div className="department-list">
         {data.slice(0, 5).map((item, index) => {
           const change = calculateChange(item.currentCost, item.previousCost);
           
@@ -276,6 +278,7 @@ export const DepartmentCostCard: React.FC<DepartmentCostCardProps> = ({
             <Text type="secondary">查看全部 {data.length} 个部门 →</Text>
           </div>
         )}
+        </div>
       </div>
     </Card>
   );
