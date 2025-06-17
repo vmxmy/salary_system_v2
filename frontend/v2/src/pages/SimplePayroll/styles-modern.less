@@ -882,15 +882,40 @@
   
   // 统计卡片组
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: @space-6;
     margin-bottom: @space-8;
     
+    // 增强版统计组件样式
+    .enhanced-payroll-statistics {
+      .ant-pro-statistic-card-group {
+        margin-bottom: @space-6;
+      }
+      
+      // 新指标卡片网格
+      .ant-row {
+        .ant-col {
+          margin-bottom: @space-6;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+    
     @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-      gap: @space-4;
       margin-bottom: @space-6;
+      
+      .enhanced-payroll-statistics {
+        .ant-pro-statistic-card-group {
+          margin-bottom: @space-4;
+        }
+        
+        .ant-row {
+          .ant-col {
+            margin-bottom: @space-4;
+          }
+        }
+      }
     }
   }
   

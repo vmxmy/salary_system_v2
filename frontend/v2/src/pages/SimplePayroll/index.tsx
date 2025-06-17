@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 // 引入拆分后的组件和Hook
 import { usePayrollPageLogic } from './hooks/usePayrollPageLogic';
-import { PayrollStatistics } from './components/PayrollStatistics';
+import { EnhancedPayrollStatistics } from './components/EnhancedPayrollStatistics';
 import { PayrollControls } from './components/PayrollControls';
 import { QuickActions } from './components/QuickActions';
 import { EmptyState } from './components/EmptyState';
@@ -69,9 +69,9 @@ const SimplePayrollPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Statistics Section - Full Width */}
+            {/* Enhanced Statistics Section - Full Width */}
             <div className="stats-grid">
-              <PayrollStatistics
+              <EnhancedPayrollStatistics
                 selectedVersionId={selectedVersionId}
                 currentPeriod={currentPeriod}
                 currentVersion={currentVersion}
