@@ -2146,7 +2146,7 @@ async def run_integrated_calculation_engine(
     current_user = Depends(require_permissions(["payroll_run:manage"]))
 ):
     """
-    运行集成计算引擎（包含社保计算）
+    计算五险一金（包含社保计算）
     
     重新计算指定工资运行的所有条目，包括基础薪资和社保计算
     现在支持异步执行和进度跟踪

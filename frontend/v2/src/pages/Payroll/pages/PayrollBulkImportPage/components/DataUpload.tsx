@@ -536,7 +536,7 @@ const DataUpload: React.FC<DataUploadProps> = ({
         >
           <Alert
             message="暂无计算引擎运行记录"
-            description="当有薪资数据需要处理时，系统会自动运行集成计算引擎进行五险一金计算"
+            description="当有薪资数据需要处理时，系统会自动计算五险一金进行五险一金计算"
             type="info"
             showIcon
           />

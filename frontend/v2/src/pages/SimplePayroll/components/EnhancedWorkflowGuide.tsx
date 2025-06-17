@@ -1083,7 +1083,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         actions: [
           {
             key: 'run_calculation',
-            label: '运行集成计算引擎',
+            label: '计算五险一金',
             type: 'default',
             icon: <CalculatorOutlined />,
             disabled: !selectedVersion, // 保持：需要有工资运行版本才能计算

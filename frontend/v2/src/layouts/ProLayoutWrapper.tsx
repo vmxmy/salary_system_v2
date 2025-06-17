@@ -29,7 +29,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store';
 import { menuData, generateMenuData, transformMenuDataWithI18n, getBreadcrumbNameMap } from '../config/menuConfig';
-import { defaultProLayoutSettings, proLayoutExtendedSettings, getThemeConfig, type ThemeMode } from '../config/theme';
+import { defaultProLayoutSettings, proLayoutExtendedSettings } from '../config/theme';
 import type { AppMenuDataItem } from '../config/menuConfig';
 import hyperchainLogo from '../assets/images/hyperchainLogo.svg';
 
@@ -42,11 +42,9 @@ interface ProLayoutWrapperProps {
 
 // 🌐 右上角操作区域组件
 const RightContent: React.FC<{
-  isDark: boolean;
-  onThemeChange: (checked: boolean) => void;
   currentUser: any;
   onLogout: () => void;
-}> = ({ isDark, onThemeChange, currentUser, onLogout }) => {
+}> = ({ currentUser, onLogout }) => {
   const { t } = useTranslation(['common', 'components']);
   const { message: messageApi } = App.useApp();
 
@@ -133,7 +131,6 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
   const currentUser = useSelector((state: RootState) => state.auth.currentUser);
   
   const [collapsed, setCollapsed] = useState(true); // 默认收起侧边栏
-  const [themeMode, setThemeMode] = useState<ThemeMode>('light');
   const [layoutSettings, setLayoutSettings] = useState(defaultProLayoutSettings);
   const [logoError, setLogoError] = useState(false);
 
@@ -144,19 +141,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     setCollapsed(shouldCollapse);
   }, [screens]);
 
-  // 🎨 主题切换处理
-  const handleThemeChange = useCallback((checked: boolean) => {
-    const newMode: ThemeMode = checked ? 'dark' : 'light';
-    setThemeMode(newMode);
-    
-    // 更新 ProLayout 设置
-    setLayoutSettings(prev => ({
-      ...prev,
-      navTheme: checked ? 'realDark' : 'light', // 根据主题切换明暗色
-    }));
-    
-    messageApi.success(t(`common:theme_switched_to_${newMode}`));
-  }, [t, messageApi]);
+
 
   // 🚪 登出处理
   const handleLogout = useCallback(async () => {
@@ -207,6 +192,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     location,
     // 响应式侧边栏配置
     layout: 'side',
+    fixedHeader: true, // 固定头部，确保右上角内容正确显示
     fixSiderbar: true,
     collapsed: collapsed, // 使用响应式的 collapsed 状态
     onCollapse: (value: boolean) => {
@@ -215,6 +201,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     siderWidth: 220, // 设置合适的侧边栏宽度
     collapsedWidth: 48, // 收起时的宽度
     breakpoint: 'md', // 在 md 断点以下自动收起
+    headerHeight: 64, // 设置头部高度
     // 通过menuProps设置默认展开的菜单项
     menuProps: {
       defaultOpenKeys: ['/business', '/system', '/business/payroll', '/business/hr', '/business/employees', '/system/permissions', '/system/organization', '/system/payroll-config', '/system/ai-config', '/personal', '/reports'],
@@ -241,14 +228,13 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
       ...routers,
     ],
     itemRender: (route: any) => route.breadcrumbName,
-    rightContentRender: () => (
+    actionsRender: () => [
       <RightContent
-        isDark={themeMode === 'dark'}
-        onThemeChange={handleThemeChange}
+        key="user-info"
         currentUser={currentUser}
         onLogout={handleLogout}
       />
-    ),
+    ],
     headerTitleRender: (logo: React.ReactNode, title: React.ReactNode, props: any) => (
       <div
         style={{
@@ -295,6 +281,7 @@ const ProLayoutWrapper: React.FC<ProLayoutWrapperProps> = ({ children }) => {
     contentStyle: {
       margin: 0,
       minHeight: 'calc(100vh - 64px - 48px)', // 减去头部和脚部高度
+      paddingTop: 0, // 确保内容区域不会被固定头部遮挡
     },
     logo: renderLogo(),
   } as any;

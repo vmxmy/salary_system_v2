@@ -594,7 +594,7 @@ export const simplePayrollApi = {
   },
 
   /**
-   * 运行集成计算引擎 - 🚀 包含五险一金完整计算
+   * 计算五险一金 - 🚀 包含五险一金完整计算
    */
   runIntegratedCalculationEngine: async (params: {
     payroll_run_id: number;
