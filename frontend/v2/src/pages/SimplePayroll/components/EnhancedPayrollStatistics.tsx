@@ -46,7 +46,11 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
   
   // 生成模拟的部门成本数据
   const departmentCostData: DepartmentCostData[] = useMemo(() => {
-    if (!payrollStats.totalGrossPay || payrollStats.totalGrossPay === 0) {
+    // 使用真实数据或默认模拟数据
+    const totalGrossPay = payrollStats.totalGrossPay || 1650000; // 默认165万
+    const recordCount = payrollStats.recordCount || 73; // 默认73人
+    
+    if (!selectedVersionId) {
       return [];
     }
 
@@ -61,8 +65,8 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
     ];
 
     return departments.map(dept => {
-      const currentCost = payrollStats.totalGrossPay * dept.ratio;
-      const employeeCount = Math.round(payrollStats.recordCount * dept.employeeRatio);
+      const currentCost = totalGrossPay * dept.ratio;
+      const employeeCount = Math.round(recordCount * dept.employeeRatio);
       const previousCost = currentCost * (0.95 + Math.random() * 0.1); // 模拟上月数据
       
       return {
@@ -75,26 +79,30 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         color: dept.color
       };
     });
-  }, [payrollStats.totalGrossPay, payrollStats.recordCount]);
+  }, [payrollStats.totalGrossPay, payrollStats.recordCount, selectedVersionId]);
 
   // 生成模拟的员工类型数据
   const employeeTypeData: EmployeeTypeData[] = useMemo(() => {
-    if (!payrollStats.recordCount || payrollStats.recordCount === 0) {
+    // 使用真实数据或默认模拟数据
+    const totalGrossPay = payrollStats.totalGrossPay || 1650000; // 默认165万
+    const recordCount = payrollStats.recordCount || 73; // 默认73人
+    
+    if (!selectedVersionId) {
       return [];
     }
 
-    const regularCount = Math.round(payrollStats.recordCount * 0.62); // 62% 正编
-    const contractCount = payrollStats.recordCount - regularCount;
+    const regularCount = Math.round(recordCount * 0.62); // 62% 正编
+    const contractCount = recordCount - regularCount;
     
-    const regularCost = payrollStats.totalGrossPay * 0.68; // 正编占总成本68%
-    const contractCost = payrollStats.totalGrossPay - regularCost;
+    const regularCost = totalGrossPay * 0.68; // 正编占总成本68%
+    const contractCost = totalGrossPay - regularCost;
     
     return [
       {
         type: 'regular',
         typeName: '正编',
         count: regularCount,
-        percentage: (regularCount / payrollStats.recordCount) * 100,
+        percentage: (regularCount / recordCount) * 100,
         avgSalary: regularCount > 0 ? regularCost / regularCount : 0,
         totalCost: regularCost,
         previousCount: regularCount - Math.floor(Math.random() * 3) + 1, // 模拟上月人数
@@ -111,7 +119,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         type: 'contract',
         typeName: '聘用',
         count: contractCount,
-        percentage: (contractCount / payrollStats.recordCount) * 100,
+        percentage: (contractCount / recordCount) * 100,
         avgSalary: contractCount > 0 ? contractCost / contractCount : 0,
         totalCost: contractCost,
         previousCount: contractCount + Math.floor(Math.random() * 3) - 1,
@@ -125,10 +133,16 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         }
       }
     ];
-  }, [payrollStats.recordCount, payrollStats.totalGrossPay]);
+  }, [payrollStats.recordCount, payrollStats.totalGrossPay, selectedVersionId]);
 
   // 生成模拟的工资趋势数据
   const salaryTrendData: SalaryTrendDataPoint[] = useMemo(() => {
+    // 使用真实数据或默认模拟数据
+    const totalGrossPay = payrollStats.totalGrossPay || 1650000; // 默认165万
+    const totalDeductions = payrollStats.totalDeductions || 330000; // 默认33万
+    const totalNetPay = payrollStats.totalNetPay || 1320000; // 默认132万
+    const recordCount = payrollStats.recordCount || 73; // 默认73人
+    
     const currentDate = dayjs();
     const data: SalaryTrendDataPoint[] = [];
     
@@ -137,9 +151,9 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
       const date = currentDate.subtract(i, 'month');
       const monthFactor = 0.85 + (11 - i) * 0.015 + Math.random() * 0.1; // 模拟增长趋势
       
-      const grossSalary = payrollStats.totalGrossPay * monthFactor;
-      const deductions = payrollStats.totalDeductions * monthFactor;
-      const netSalary = payrollStats.totalNetPay * monthFactor;
+      const grossSalary = totalGrossPay * monthFactor;
+      const deductions = totalDeductions * monthFactor;
+      const netSalary = totalNetPay * monthFactor;
       
       data.push({
         month: date.format('YYYY-MM'),
@@ -147,14 +161,14 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         grossSalary,
         deductions,
         netSalary,
-        employeeCount: Math.round(payrollStats.recordCount * (0.9 + Math.random() * 0.2)),
-        avgGrossSalary: grossSalary / payrollStats.recordCount,
-        avgNetSalary: netSalary / payrollStats.recordCount
+        employeeCount: Math.round(recordCount * (0.9 + Math.random() * 0.2)),
+        avgGrossSalary: grossSalary / recordCount,
+        avgNetSalary: netSalary / recordCount
       });
     }
     
     return data;
-  }, [payrollStats.totalGrossPay, payrollStats.totalDeductions, payrollStats.totalNetPay, payrollStats.recordCount]);
+  }, [payrollStats.totalGrossPay, payrollStats.totalDeductions, payrollStats.totalNetPay, payrollStats.recordCount, selectedVersionId]);
 
   // 处理部门点击
   const handleDepartmentClick = (department: DepartmentCostData) => {
@@ -365,14 +379,14 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
       </StatisticCard.Group>
 
       {/* 新增的高级指标卡片 */}
-      {payrollStats.totalGrossPay > 0 && (
+      {selectedVersionId && (
         <Row gutter={[24, 24]}>
           {/* 部门成本分布 */}
           <Col xs={24} lg={12}>
             <DepartmentCostCard
               title="部门成本分布"
               data={departmentCostData}
-              totalCost={payrollStats.totalGrossPay}
+              totalCost={payrollStats.totalGrossPay || 1650000}
               onDepartmentClick={handleDepartmentClick}
               onViewDetails={() => handleViewDetails('部门成本')}
             />
@@ -383,7 +397,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
             <EmployeeTypeCard
               title="编制分布"
               data={employeeTypeData}
-              totalEmployees={payrollStats.recordCount}
+              totalEmployees={payrollStats.recordCount || 73}
               onTypeClick={handleEmployeeTypeClick}
               onViewDetails={() => handleViewDetails('编制分布')}
             />
