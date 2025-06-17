@@ -24,6 +24,7 @@ class PayrollDataModalPresetBase(BaseModel):
     description: Optional[str] = Field(None, max_length=500, description="预设描述")
     filterConfig: ColumnFilterConfig = Field(..., description="列筛选配置")
     columnSettings: Dict[str, Any] = Field(default_factory=dict, description="列设置配置")
+    tableFilterState: Optional[Dict[str, Any]] = Field(default_factory=dict, description="表头筛选状态")
     isDefault: bool = Field(default=False, description="是否为默认预设")
     isPublic: bool = Field(default=False, description="是否为公共预设")
 
@@ -39,6 +40,7 @@ class PayrollDataModalPresetUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=500, description="预设描述")
     filterConfig: Optional[ColumnFilterConfig] = Field(None, description="列筛选配置")
     columnSettings: Optional[Dict[str, Any]] = Field(None, description="列设置配置")
+    tableFilterState: Optional[Dict[str, Any]] = Field(None, description="表头筛选状态")
     isDefault: Optional[bool] = Field(None, description="是否为默认预设")
     isPublic: Optional[bool] = Field(None, description="是否为公共预设")
 
@@ -73,6 +75,9 @@ class PresetSaveRequest(BaseModel):
     """保存预设请求"""
     name: str = Field(..., min_length=1, max_length=100, description="预设名称")
     description: Optional[str] = Field(None, max_length=500, description="预设描述")
+    filterConfig: ColumnFilterConfig = Field(..., description="列筛选配置")
+    columnSettings: Dict[str, Any] = Field(default_factory=dict, description="列设置配置")
+    tableFilterState: Optional[Dict[str, Any]] = Field(default_factory=dict, description="表头筛选状态")
     isDefault: bool = Field(default=False, description="是否设为默认")
     isPublic: bool = Field(default=False, description="是否设为公共")
 

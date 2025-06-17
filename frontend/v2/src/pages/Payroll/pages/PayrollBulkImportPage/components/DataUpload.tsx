@@ -406,12 +406,13 @@ const DataUpload: React.FC<DataUploadProps> = ({
           )) {
             // 对于身份证号等字段，确保转换为字符串并保持完整性
             if (cell !== null && cell !== undefined && cell !== '') {
-              // 如果是数字，转换为字符串（避免科学计数法）
+              // 🔧 增强修复：处理超长数字，避免精度丢失
               if (typeof cell === 'number') {
-                return cell.toString();
+                // 使用 toFixed(0) 确保整数不会有小数点，然后转字符串
+                return Math.round(cell).toString();
               }
-              // 如果已经是字符串，直接返回
-              return String(cell);
+              // 如果已经是字符串，直接返回并去除首尾空格
+              return String(cell).trim();
             }
             return '';
           }

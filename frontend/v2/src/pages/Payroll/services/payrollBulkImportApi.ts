@@ -186,9 +186,10 @@ export const processRawTableData = (
       } else if (targetField === 'id_number') {
         // 🔧 修复：身份证号特殊处理，确保保持完整性
         if (value !== null && value !== undefined && value !== '') {
-          // 如果是数字类型，直接转换为字符串（避免科学计数法）
+          // 🔧 增强修复：处理数字类型的身份证号，避免精度丢失
           if (typeof value === 'number') {
-            entry.id_number = value.toString();
+            // 使用 Math.round 确保整数，然后转字符串
+            entry.id_number = Math.round(value).toString();
           } else {
             entry.id_number = String(value).trim();
           }
@@ -198,8 +199,18 @@ export const processRawTableData = (
             原始值: value,
             原始类型: typeof value,
             处理后: entry.id_number,
-            处理后类型: typeof entry.id_number
+            处理后类型: typeof entry.id_number,
+            长度: entry.id_number.length
           });
+          
+          // 🔧 验证身份证号格式
+          const idPattern = /^\d{17}[\dXx]$/;
+          if (!idPattern.test(entry.id_number)) {
+            console.warn('⚠️ [身份证号格式警告]:', {
+              身份证号: entry.id_number,
+              格式正确: false
+            });
+          }
         } else {
           entry.id_number = '';
         }

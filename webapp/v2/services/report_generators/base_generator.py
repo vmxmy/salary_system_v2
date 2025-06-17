@@ -123,7 +123,15 @@ class BaseReportGenerator(ABC):
         """
         report_name = self.__class__.__name__.replace('Generator', '')
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        return f"{report_name}_{timestamp}.{export_format}"
+        
+        # 如果配置中包含期间信息，添加到文件名中
+        period_name = config.get('period_name')
+        if period_name:
+            # 清理期间名称中的特殊字符
+            safe_period_name = period_name.replace('/', '_').replace('\\', '_').replace(':', '_')
+            return f"{safe_period_name}_{report_name}_{timestamp}.{export_format}"
+        else:
+            return f"{report_name}_{timestamp}.{export_format}"
     
     def create_excel_file(
         self,

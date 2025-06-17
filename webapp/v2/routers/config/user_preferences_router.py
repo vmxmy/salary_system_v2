@@ -56,6 +56,7 @@ async def get_payroll_data_modal_presets(
                 description=config.get('description'),
                 filterConfig=config.get('filter_config', {}),
                 columnSettings=config.get('column_settings', {}),
+                tableFilterState=config.get('table_filter_state', {}),
                 isDefault=config.get('is_default', False),
                 isPublic=config.get('is_public', False),
                 usageCount=config.get('usage_count', 0),
@@ -124,6 +125,7 @@ async def create_payroll_data_modal_preset(
             "description": preset_data.description,
             "filter_config": preset_data.filterConfig.model_dump(),
             "column_settings": preset_data.columnSettings,
+            "table_filter_state": preset_data.tableFilterState or {},
             "is_default": preset_data.isDefault,
             "is_public": preset_data.isPublic,
             "usage_count": 0,
@@ -150,6 +152,7 @@ async def create_payroll_data_modal_preset(
             description=config.get('description'),
             filterConfig=config.get('filter_config', {}),
             columnSettings=config.get('column_settings', {}),
+            tableFilterState=config.get('table_filter_state', {}),
             isDefault=config.get('is_default', False),
             isPublic=config.get('is_public', False),
             usageCount=config.get('usage_count', 0),
@@ -239,6 +242,8 @@ async def update_payroll_data_modal_preset(
             current_config['filter_config'] = preset_data.filterConfig.model_dump()
         if preset_data.columnSettings is not None:
             current_config['column_settings'] = preset_data.columnSettings
+        if preset_data.tableFilterState is not None:
+            current_config['table_filter_state'] = preset_data.tableFilterState
         if preset_data.isDefault is not None:
             current_config['is_default'] = preset_data.isDefault
         if preset_data.isPublic is not None:
@@ -256,6 +261,7 @@ async def update_payroll_data_modal_preset(
             description=config.get('description'),
             filterConfig=config.get('filter_config', {}),
             columnSettings=config.get('column_settings', {}),
+            tableFilterState=config.get('table_filter_state', {}),
             isDefault=config.get('is_default', False),
             isPublic=config.get('is_public', False),
             usageCount=config.get('usage_count', 0),
@@ -351,6 +357,7 @@ async def get_default_payroll_data_modal_preset(
             description=config.get('description'),
             filterConfig=config.get('filter_config', {}),
             columnSettings=config.get('column_settings', {}),
+            tableFilterState=config.get('table_filter_state', {}),
             isDefault=config.get('is_default', False),
             isPublic=config.get('is_public', False),
             usageCount=config.get('usage_count', 0),
@@ -416,6 +423,7 @@ async def apply_payroll_data_modal_preset(
             description=config.get('description'),
             filterConfig=config.get('filter_config', {}),
             columnSettings=config.get('column_settings', {}),
+            tableFilterState=config.get('table_filter_state', {}),
             isDefault=config.get('is_default', False),
             isPublic=config.get('is_public', False),
             usageCount=config.get('usage_count', 0),

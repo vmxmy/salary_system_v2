@@ -20,6 +20,56 @@ from .payroll_runs import create_payroll_run
 logger = logging.getLogger(__name__)
 
 
+def normalize_id_number(id_number: str) -> str:
+    """
+    标准化身份证号处理
+    
+    Args:
+        id_number: 原始身份证号（可能是字符串或数字）
+    
+    Returns:
+        标准化后的身份证号字符串
+    """
+    if not id_number:
+        return ""
+    
+    # 转换为字符串并去除空格
+    id_str = str(id_number).strip()
+    
+    # 如果是空字符串，直接返回
+    if not id_str:
+        return ""
+    
+    # 处理可能的科学计数法（如 1.1010119900101e+17）
+    if 'e' in id_str.lower() or 'E' in id_str:
+        try:
+            # 尝试转换为整数再转回字符串
+            id_str = str(int(float(id_str)))
+        except (ValueError, OverflowError):
+            logger.warning(f"无法处理科学计数法身份证号: {id_str}")
+            return id_str
+    
+    # 确保身份证号长度正确（18位）
+    if len(id_str) == 18:
+        # 验证格式：17位数字 + 1位数字或X
+        import re
+        pattern = r'^\d{17}[\dXx]$'
+        if re.match(pattern, id_str):
+            # 统一X为大写
+            return id_str.upper()
+        else:
+            logger.warning(f"身份证号格式不正确: {id_str}")
+            return id_str
+    elif len(id_str) < 18:
+        # 如果长度不足18位，可能是数字精度丢失导致的
+        logger.warning(f"身份证号长度不足18位: {id_str} (长度: {len(id_str)})")
+        return id_str
+    else:
+        # 长度超过18位，截取前18位
+        logger.warning(f"身份证号长度超过18位: {id_str} (长度: {len(id_str)})，截取前18位")
+        return id_str[:18].upper()
+
+
 def get_employee_by_name_only(db: Session, last_name: str, first_name: str) -> Optional[Employee]:
     """
     根据姓名获取员工（不需要身份证号码）
@@ -93,6 +143,9 @@ def bulk_validate_payroll_entries(
             params = {}
             
             for i, info in enumerate(employee_infos):
+                # 🔧 修复：标准化身份证号
+                normalized_id = normalize_id_number(info.get('id_number', ''))
+                
                 conditions.append(f"""
                     (e.last_name = :last_name_{i} 
                      AND e.first_name = :first_name_{i} 
@@ -100,7 +153,7 @@ def bulk_validate_payroll_entries(
                 """)
                 params[f'last_name_{i}'] = info['last_name']
                 params[f'first_name_{i}'] = info['first_name']
-                params[f'id_number_{i}'] = info['id_number']
+                params[f'id_number_{i}'] = normalized_id
             
             if conditions:
                 query = text(f"""
@@ -204,7 +257,9 @@ def bulk_validate_payroll_entries(
                 
                 # 优先尝试姓名+身份证号匹配
                 if info and info.get('last_name') and info.get('first_name') and info.get('id_number'):
-                    key = f"{info['last_name']}_{info['first_name']}_{info['id_number']}"
+                    # 🔧 修复：标准化身份证号
+                    normalized_id = normalize_id_number(info.get('id_number', ''))
+                    key = f"{info['last_name']}_{info['first_name']}_{normalized_id}"
                     employee_data = employees_map.get(key)
                     
                     # 如果预加载数据中没有，降级到单独查询
@@ -213,7 +268,7 @@ def bulk_validate_payroll_entries(
                             db, 
                             info['last_name'], 
                             info['first_name'], 
-                            info['id_number']
+                            normalized_id
                         )
                         if employee:
                             employee_data = {
@@ -608,23 +663,17 @@ def bulk_create_payroll_entries_optimized(
             params = {}
             
             for i, info in enumerate(employee_infos):
-                # 优先使用姓名+身份证匹配，如果身份证为空则仅使用姓名匹配
-                if info.get('id_number') and info['id_number'].strip():
-                    conditions.append(f"""
-                        (e.last_name = :last_name_{i} 
-                         AND e.first_name = :first_name_{i} 
-                         AND e.id_number = :id_number_{i})
-                    """)
-                    params[f'last_name_{i}'] = info['last_name']
-                    params[f'first_name_{i}'] = info['first_name']
-                    params[f'id_number_{i}'] = info['id_number']
-                else:
-                    conditions.append(f"""
-                        (e.last_name = :last_name_{i} 
-                         AND e.first_name = :first_name_{i})
-                    """)
-                    params[f'last_name_{i}'] = info['last_name']
-                    params[f'first_name_{i}'] = info['first_name']
+                # 🔧 修复：标准化身份证号
+                normalized_id = normalize_id_number(info.get('id_number', ''))
+                
+                conditions.append(f"""
+                    (e.last_name = :last_name_{i} 
+                     AND e.first_name = :first_name_{i} 
+                     AND e.id_number = :id_number_{i})
+                """)
+                params[f'last_name_{i}'] = info['last_name']
+                params[f'first_name_{i}'] = info['first_name']
+                params[f'id_number_{i}'] = normalized_id
             
             if conditions:
                 query = text(f"""

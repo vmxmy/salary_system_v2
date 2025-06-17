@@ -22,6 +22,56 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
+def normalize_id_number(id_number: str) -> str:
+    """
+    标准化身份证号处理
+    
+    Args:
+        id_number: 原始身份证号（可能是字符串或数字）
+    
+    Returns:
+        标准化后的身份证号字符串
+    """
+    if not id_number:
+        return ""
+    
+    # 转换为字符串并去除空格
+    id_str = str(id_number).strip()
+    
+    # 如果是空字符串，直接返回
+    if not id_str:
+        return ""
+    
+    # 处理可能的科学计数法（如 1.1010119900101e+17）
+    if 'e' in id_str.lower() or 'E' in id_str:
+        try:
+            # 尝试转换为整数再转回字符串
+            id_str = str(int(float(id_str)))
+        except (ValueError, OverflowError):
+            logger.warning(f"无法处理科学计数法身份证号: {id_str}")
+            return id_str
+    
+    # 确保身份证号长度正确（18位）
+    if len(id_str) == 18:
+        # 验证格式：17位数字 + 1位数字或X
+        import re
+        pattern = r'^\d{17}[\dXx]$'
+        if re.match(pattern, id_str):
+            # 统一X为大写
+            return id_str.upper()
+        else:
+            logger.warning(f"身份证号格式不正确: {id_str}")
+            return id_str
+    elif len(id_str) < 18:
+        # 如果长度不足18位，可能是数字精度丢失导致的
+        logger.warning(f"身份证号长度不足18位: {id_str} (长度: {len(id_str)})")
+        return id_str
+    else:
+        # 长度超过18位，截取前18位
+        logger.warning(f"身份证号长度超过18位: {id_str} (长度: {len(id_str)})，截取前18位")
+        return id_str[:18].upper()
+
+
 def get_employees(
     db: Session,
     search: Optional[str] = None,
@@ -170,7 +220,11 @@ def get_employee_by_id_number(db: Session, id_number: str) -> Optional[Employee]
     Returns:
         员工对象，如果不存在则返回None
     """
-    return db.query(Employee).filter(Employee.id_number == id_number).first()
+    # 🔧 修复：标准化身份证号
+    normalized_id = normalize_id_number(id_number)
+    if not normalized_id:
+        return None
+    return db.query(Employee).filter(Employee.id_number == normalized_id).first()
 
 
 def get_employee_by_name_and_id_number(
@@ -191,10 +245,14 @@ def get_employee_by_name_and_id_number(
     Returns:
         员工对象，如果不存在则返回None
     """
+    # 🔧 修复：标准化身份证号
+    normalized_id = normalize_id_number(id_number)
+    if not normalized_id:
+        return None
     return db.query(Employee).filter(
         Employee.last_name == last_name,
         Employee.first_name == first_name,
-        Employee.id_number == id_number
+        Employee.id_number == normalized_id
     ).first()
 
 

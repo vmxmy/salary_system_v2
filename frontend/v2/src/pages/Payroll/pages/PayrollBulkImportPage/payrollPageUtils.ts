@@ -74,8 +74,9 @@ export const parseNumber = (value: any): number => {
 export const validateIdNumber = (idNumber: string): boolean => {
   if (!idNumber || typeof idNumber !== 'string') return false;
   
-  // 18位身份证号验证
-  const pattern = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
+  // 🔧 修复：统一身份证号验证规则，与后端保持一致
+  // 支持18位身份证号，最后一位可以是数字或大小写X
+  const pattern = /^\d{17}[\dXx]$/;
   return pattern.test(idNumber);
 };
 

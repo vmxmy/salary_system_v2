@@ -172,7 +172,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
         required: false,
         description: '员工身份证号码，用于精确匹配员工',
         validation: {
-          pattern: /^\d{17}(\d|X)$/i,
+          pattern: /^\d{17}[\dXx]$/,
           message: '身份证号格式不正确'
         }
       }

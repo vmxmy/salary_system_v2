@@ -156,7 +156,7 @@ const EmployeeBulkImportPage: React.FC = () => {
     if (!record.id_number) {
       errors.push(t('bulk_import.validation.id_number_required'));
     } else {
-      const idRegex = /^\d{17}(\d|X)$/i;
+      const idRegex = /^\d{17}[\dXx]$/;
       const idTestFailed = !idRegex.test(String(record.id_number));
       if (idTestFailed) {
         errors.push(t('bulk_import.validation.id_number_invalid'));

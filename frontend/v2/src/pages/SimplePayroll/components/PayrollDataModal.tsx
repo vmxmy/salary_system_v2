@@ -188,8 +188,8 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     maxSuggestions: 5,
   });
 
-  // 使用搜索结果作为表格数据源
-  const filteredDataSource = isEmptyQuery ? dataSource : searchResults.map(result => result.item);
+  // 临时使用基础筛选逻辑，完整筛选逻辑将在 tableFilterState 定义后实现
+  const baseFilteredDataSource = isEmptyQuery ? dataSource : searchResults.map(result => result.item);
   
   // React Query 相关 Hooks
   const { refreshFiltered, clearCache } = useRefreshPayrollData();
@@ -383,6 +383,38 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     sorter: {},
     pagination: { current: 1, pageSize: 10, total: 0 }
   });
+
+  // 🎯 综合筛选逻辑：同时考虑搜索筛选和表头筛选
+  const filteredDataSource = useMemo(() => {
+    // 首先应用搜索筛选
+    let baseData = baseFilteredDataSource;
+    
+    // 然后应用表头筛选器
+    if (tableFilterState.filters && Object.keys(tableFilterState.filters).length > 0) {
+      baseData = baseData.filter(record => {
+        return Object.entries(tableFilterState.filters).every(([filterKey, filterValues]) => {
+          if (!filterValues || (Array.isArray(filterValues) && filterValues.length === 0)) {
+            return true; // 没有筛选条件，通过
+          }
+          
+          const recordValue = record[filterKey as keyof PayrollData];
+          
+          if (Array.isArray(filterValues)) {
+            // 多选筛选
+            return filterValues.includes(recordValue);
+          } else {
+            // 单值筛选（如搜索框）
+            if (typeof recordValue === 'string' && typeof filterValues === 'string') {
+              return recordValue.toLowerCase().includes(filterValues.toLowerCase());
+            }
+            return recordValue === filterValues;
+          }
+        });
+      });
+    }
+    
+    return baseData;
+  }, [baseFilteredDataSource, tableFilterState.filters]);
   
   // 🎯 详情和编辑功能状态
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -732,6 +764,13 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
               value: value as string | number,
             }));
             column.onFilter = (value, record) => record[key as keyof PayrollData] === value;
+            
+            // 🎯 关键修复：设置预设的筛选值
+            const presetFilterValue = tableFilterState.filters?.[key];
+            if (presetFilterValue) {
+              column.filteredValue = Array.isArray(presetFilterValue) ? presetFilterValue : [presetFilterValue];
+              console.log(`🔍 [列筛选恢复] ${key}: 恢复筛选值`, column.filteredValue);
+            }
           }
         }
 
@@ -778,6 +817,13 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             const name = record[key as keyof PayrollData];
             return name ? String(name).toLowerCase().includes(String(value).toLowerCase()) : false;
           };
+          
+          // 🎯 关键修复：设置预设的搜索筛选值
+          const presetFilterValue = tableFilterState.filters?.[key];
+          if (presetFilterValue) {
+            column.filteredValue = Array.isArray(presetFilterValue) ? presetFilterValue : [presetFilterValue];
+            console.log(`🔍 [搜索筛选恢复] ${key}: 恢复搜索值`, column.filteredValue);
+          }
         }
         
         return column;
@@ -1398,7 +1444,15 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           时间字符串: timeStr
         });
         
-        const safeFileName = `${safePresetName}_${dateStr}_${timeStr}.xlsx`;
+        // 构建包含薪资周期的文件名
+        let safeFileName = '';
+        if (periodName) {
+          // 清理期间名称中的特殊字符
+          const safePeriodName = periodName.replace(/[<>:"/\\|?*]/g, '_');
+          safeFileName = `${safePeriodName}_${safePresetName}_${dateStr}_${timeStr}.xlsx`;
+        } else {
+          safeFileName = `${safePresetName}_${dateStr}_${timeStr}.xlsx`;
+        }
         
         console.log('🔍 [导出Excel] 最终文件名:', safeFileName);
         
@@ -1510,6 +1564,14 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           sorter: preset.tableFilterState?.sorter,
           pagination: preset.tableFilterState?.pagination
         });
+        
+        // 🎯 关键修复：强制重新生成列以应用筛选状态
+        // 通过触发依赖项变化来重新生成动态列
+        setTimeout(() => {
+          console.log('🔄 [PayrollDataModal] 触发列重新生成以应用筛选状态');
+          // 这里我们可以通过更新一个状态来触发列重新生成
+          setFilterConfig(prev => ({ ...prev }));
+        }, 50);
       } else {
         // 如果预设没有表头筛选状态，清空当前状态
         setTableFilterState({
@@ -1537,11 +1599,99 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     }
   }, [t, search, setSearchMode, setPagination, setCurrentPreset]);
 
+  // 🎯 安全序列化函数 - 排除循环引用和不可序列化的对象
+  const safeSerialize = (obj: any): any => {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+    
+    // 基本数据类型直接返回
+    if (typeof obj !== 'object') {
+      return obj;
+    }
+    
+    // 处理数组
+    if (Array.isArray(obj)) {
+      return obj.map(item => {
+        // 只保留基本数据类型和简单对象
+        if (typeof item === 'object' && item !== null) {
+          // 检查是否是DOM元素或React组件
+          if (item.nodeType || item._owner || item.$$typeof) {
+            return null;
+          }
+          return safeSerialize(item);
+        }
+        return item;
+      }).filter(item => item !== null);
+    }
+    
+    // 处理对象
+    const result: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        const value = obj[key];
+        
+        // 跳过函数、Symbol、DOM元素和React组件
+        if (typeof value === 'function' || 
+            typeof value === 'symbol' ||
+            (value && typeof value === 'object' && (
+              value.nodeType || 
+              value._owner || 
+              value.$$typeof ||
+              value instanceof Element ||
+              value instanceof Node
+            ))) {
+          continue;
+        }
+        
+        // 递归处理嵌套对象
+        if (typeof value === 'object' && value !== null) {
+          result[key] = safeSerialize(value);
+        } else {
+          result[key] = value;
+        }
+      }
+    }
+    
+    return result;
+  };
+
   // 🎯 获取当前配置用于保存预设
   const getCurrentConfig = useCallback(() => {
+    // 安全提取筛选器状态，只保留可序列化的数据
+    const safeFilters: Record<string, any> = {};
+    if (tableFilterState.filters) {
+      Object.keys(tableFilterState.filters).forEach(key => {
+        const filterValue = tableFilterState.filters[key];
+        // 只保留基本数据类型的筛选值
+        if (Array.isArray(filterValue)) {
+          safeFilters[key] = filterValue.filter(v => 
+            typeof v === 'string' || 
+            typeof v === 'number' || 
+            typeof v === 'boolean'
+          );
+        } else if (typeof filterValue === 'string' || 
+                   typeof filterValue === 'number' || 
+                   typeof filterValue === 'boolean') {
+          safeFilters[key] = filterValue;
+        }
+      });
+    }
+    
+    // 安全提取排序状态
+    const safeSorter: any = {};
+    if (tableFilterState.sorter) {
+      if (typeof tableFilterState.sorter.field === 'string') {
+        safeSorter.field = tableFilterState.sorter.field;
+      }
+      if (typeof tableFilterState.sorter.order === 'string') {
+        safeSorter.order = tableFilterState.sorter.order;
+      }
+    }
+    
     const currentTableFilterState = {
-      filters: tableFilterState.filters,
-      sorter: tableFilterState.sorter,
+      filters: safeFilters,
+      sorter: safeSorter,
       pagination: {
         current: pagination.current,
         pageSize: pagination.pageSize,
@@ -1551,17 +1701,46 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       searchMode: searchMode
     };
     
+    // 使用安全序列化函数进一步清理
+    const safeTableFilterState = safeSerialize(currentTableFilterState);
+    
     console.log('📋 [PayrollDataModal] 获取当前配置:', {
       filterConfig,
       columnSettings: currentColumnsState,
-      tableFilterState: currentTableFilterState
+      tableFilterState: safeTableFilterState
     });
     
-    return {
+    // 最终验证：尝试序列化整个配置对象
+    const finalConfig = {
       filterConfig,
       columnSettings: currentColumnsState,
-      tableFilterState: currentTableFilterState
+      tableFilterState: safeTableFilterState
     };
+    
+    try {
+      JSON.stringify(finalConfig);
+      console.log('✅ [PayrollDataModal] 配置对象可以安全序列化');
+    } catch (error) {
+      console.error('❌ [PayrollDataModal] 配置对象序列化失败:', error);
+      // 如果仍然有序列化问题，返回一个更安全的版本
+      return {
+        filterConfig: safeSerialize(filterConfig),
+        columnSettings: safeSerialize(currentColumnsState),
+        tableFilterState: {
+          filters: {},
+          sorter: {},
+          pagination: {
+            current: pagination.current || 1,
+            pageSize: pagination.pageSize || 50,
+            total: pagination.total || 0
+          },
+          searchQuery: typeof searchQuery === 'string' ? searchQuery : '',
+          searchMode: typeof searchMode === 'string' ? searchMode : 'simple'
+        }
+      };
+    }
+    
+    return finalConfig;
   }, [filterConfig, currentColumnsState, tableFilterState, pagination, searchQuery, searchMode]);
 
   return (
@@ -1915,12 +2094,43 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                     placeholder="例如：*工资*、保险*、*金额"
                     value={filterConfig.includePatterns}
                     onChange={(patterns) => setFilterConfig(prev => ({ ...prev, includePatterns: patterns }))}
-                    maxTagCount={10}
+                    maxTagCount="responsive"
                     maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
                     allowClear
                     showSearch
                     filterOption={false}
                     dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                    tagRender={(props) => {
+                      const { label, closable, onClose } = props;
+                      return (
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            margin: '2px',
+                            backgroundColor: '#e6f7ff',
+                            border: '1px solid #91d5ff',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            maxWidth: '120px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                          title={String(label)}
+                        >
+                          {label}
+                          {closable && (
+                            <span
+                              style={{ marginLeft: '4px', cursor: 'pointer' }}
+                              onClick={onClose}
+                            >
+                              ×
+                            </span>
+                          )}
+                        </span>
+                      );
+                    }}
                   >
                     <Option value="*工资*">*工资*</Option>
                     <Option value="*保险*">*保险*</Option>
@@ -1943,12 +2153,43 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                     placeholder="例如：*id、*时间、*日期"
                     value={filterConfig.excludePatterns}
                     onChange={(patterns) => setFilterConfig(prev => ({ ...prev, excludePatterns: patterns }))}
-                    maxTagCount={10}
+                    maxTagCount="responsive"
                     maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
                     allowClear
                     showSearch
                     filterOption={false}
                     dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                    tagRender={(props) => {
+                      const { label, closable, onClose } = props;
+                      return (
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            margin: '2px',
+                            backgroundColor: '#f0f0f0',
+                            border: '1px solid #d9d9d9',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            maxWidth: '120px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                          title={String(label)}
+                        >
+                          {label}
+                          {closable && (
+                            <span
+                              style={{ marginLeft: '4px', cursor: 'pointer' }}
+                              onClick={onClose}
+                            >
+                              ×
+                            </span>
+                          )}
+                        </span>
+                      );
+                    }}
                   >
                     <Option value="*id">*id</Option>
                     <Option value="*时间">*时间</Option>
@@ -2150,6 +2391,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           actions: [
             <Button
               key="export"
+              type="primary"
               icon={<DownloadOutlined />}
               onClick={handleExportExcel}
               disabled={filteredDataSource.length === 0}
@@ -2167,26 +2409,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
               key="filter" 
               icon={<FilterOutlined />} 
               onClick={() => setShowFilterPanel(!showFilterPanel)}
-              type="text"
-              shape="circle"
-              size="middle"
-              style={{ 
-                color: showFilterPanel ? '#1890ff' : '#00000073',
-                backgroundColor: showFilterPanel ? '#e6f7ff' : 'transparent',
-                border: 'none',
-                boxShadow: 'none',
-                width: '32px',
-                height: '32px',
-                minWidth: '32px',
-                padding: 0,
-                margin: '0 4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}
               title="列筛选配置"
-            />,
+            >
+              列筛选配置
+            </Button>,
           ]
         }}
         onChange={(pagination, filters, sorter, extra) => {
