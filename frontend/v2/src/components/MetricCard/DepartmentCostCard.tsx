@@ -60,12 +60,12 @@ export const DepartmentCostCard: React.FC<DepartmentCostCardProps> = ({
   // 饼图SVG组件
   const renderPieChart = () => {
     let currentAngle = 0;
-    const radius = 80;
-    const center = 90;
+    const radius = 65;
+    const center = 75;
     
     return (
       <div className="pie-chart-container">
-        <svg width="180" height="180" viewBox="0 0 180 180">
+        <svg width="150" height="150" viewBox="0 0 150 150">
           {data.map((item, index) => {
             const startAngle = currentAngle;
             const endAngle = currentAngle + (item.percentage / 100) * 360;
