@@ -344,13 +344,7 @@ const MainLayout: React.FC = () => {
         icon: <EditOutlined />,
       });
     }
-    if (hasPermission(P_PAYROLL_ENTRY_BULK_IMPORT)) {
-      currentPayrollManagementChildren.push({
-        key: '/finance/payroll/bulk-import',
-        label: <Link to="/finance/payroll/bulk-import">{t('menu:payroll.bulkImport', { defaultValue: 'Payroll Bulk Import' })}</Link>,
-        icon: <UploadOutlined />,
-      });
-    }
+
     if (hasPermission(P_PAYROLL_COMPONENT_VIEW)) {
       currentPayrollManagementChildren.push({
         key: '/finance/payroll/components',

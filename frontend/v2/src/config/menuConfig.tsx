@@ -88,12 +88,7 @@ export const menuData: AppMenuDataItem[] = [
         path: '/finance/payroll/entry',
         icon: <FileTextOutlined />,
       },
-      {
-        name: '批量导入',
-        titleKey: 'payroll.bulkImport',
-        path: '/finance/payroll/bulk-import',
-        icon: <UploadOutlined />,
-      },
+
       {
         name: '薪资组件',
         titleKey: 'payroll.components',
@@ -126,12 +121,7 @@ export const menuData: AppMenuDataItem[] = [
         path: '/hr/employees/new',
         icon: <UserAddOutlined />,
       },
-      {
-        name: '批量导入',
-        titleKey: 'hr.bulkImport',
-        path: '/employee-management/bulk-import',
-        icon: <UploadOutlined />,
-      },
+
     ],
   },
   {

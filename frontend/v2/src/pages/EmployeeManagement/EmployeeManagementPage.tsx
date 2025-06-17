@@ -22,7 +22,6 @@ import {
   SearchOutlined,
   ReloadOutlined,
   ExportOutlined,
-  ImportOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -367,12 +366,7 @@ const EmployeeManagementPage: React.FC = () => {
                 </Button>
               )}
               <Button icon={<ExportOutlined />}>导出Excel</Button>
-              <Button 
-                icon={<ImportOutlined />}
-                onClick={() => navigate('/employee-management/bulk-import')}
-              >
-                批量导入
-              </Button>
+
             </Space>
           </Col>
         </Row>

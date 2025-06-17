@@ -45,8 +45,7 @@ import UnauthorizedPage from '../pages/UnauthorizedPage'; // 我们将创建这�
 // Admin pages (lazy loaded)
 const OrganizationManagementPageV2 = lazy(() => import('../pages/Admin/Organization/OrganizationManagementPageV2'));
 
-// Lazy load the new bulk import page
-const EmployeeBulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
+
 
 // Import EmployeeListPageV3
 const EmployeeListPageV3 = lazy(() => import('../pages/HRManagement/employees/EmployeeListPage'));
@@ -56,7 +55,7 @@ const EmployeeManagementPage = lazy(() => import('../pages/EmployeeManagement/Em
 const EmployeeDetailPage = lazy(() => import('../pages/EmployeeManagement/EmployeeDetailPage'));
 const CreateEmployeePage = lazy(() => import('../pages/EmployeeManagement/CreateEmployeePage'));
 const EditEmployeePage = lazy(() => import('../pages/EmployeeManagement/EditEmployeePage'));
-const BulkImportPage = lazy(() => import('../pages/HRManagement/bulkImport/EmployeeBulkImportPage'));
+
 
 // 在顶部导入 ReportTableDemo 组件
 import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
@@ -277,14 +276,7 @@ export const routes: AppRouteObject[] = [
               requiredPermissions: ['employee:update']
             }
           },
-          {
-            path: 'bulk-import',
-            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Bulk Import...</div>}><BulkImportPage /></React.Suspense>,
-            meta: { 
-              title: 'menu:employeeManagement.bulkImport',
-              requiredPermissions: ['employee:create']
-            }
-          },
+
         ],
       },
       {

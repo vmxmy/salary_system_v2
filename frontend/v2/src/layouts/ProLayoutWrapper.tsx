@@ -11,7 +11,6 @@ import {
   Dropdown,
   Avatar,
   Space,
-  Switch,
   Tooltip,
   Grid,
   App,
@@ -23,8 +22,6 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   GlobalOutlined,
-  SunOutlined,
-  MoonOutlined,
   BankOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -90,17 +87,6 @@ const RightContent: React.FC<{
 
   return (
     <Space size="middle">
-      {/* 🌓 主题切换 */}
-      <Tooltip title={t('common:theme_toggle')}>
-        <Switch
-          checked={isDark}
-          onChange={onThemeChange}
-          checkedChildren={<MoonOutlined />}
-          unCheckedChildren={<SunOutlined />}
-          size="small"
-        />
-      </Tooltip>
-
       {/* 👤 用户信息 */}
       <Dropdown
         menu={{ items: userMenuItems }}

@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tag, Space, message } from 'antd';
+import { Tag, Space, App } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import { format } from 'date-fns';
 
@@ -150,6 +150,7 @@ const generateUserTableColumns = (
 
 const UsersPageV2: React.FC = () => {
   const { t } = useTranslation(['user', 'pageTitle', 'common']); 
+  const { message } = App.useApp();
   
   const permissions = useUserPermissions();
   const { userPermissions, userRoleCodes, hasPermission } = usePermissions();
