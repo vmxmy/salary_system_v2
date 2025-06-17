@@ -1,6 +1,7 @@
 import React from 'react';
 import { Radio, Alert, Space, Typography } from 'antd';
-import type { OverwriteMode, OverwriteModeOption } from '../types/universal';
+import type { OverwriteModeOption } from '../types/universal';
+import { OverwriteMode } from '../../../types/payrollTypes';
 import { OVERWRITE_MODE_OPTIONS } from '../constants/overwriteMode';
 
 const { Text } = Typography;
@@ -111,7 +112,7 @@ export const OverwriteModeSelector: React.FC<OverwriteModeSelectorProps> = ({
       )}
 
       {/* 根据已存在员工数量显示相应提示 */}
-      {existingCount > 0 && value === 'append' && (
+      {existingCount > 0 && value === OverwriteMode.NONE && (
         <Alert
           message={`将跳过 ${existingCount} 名已存在的员工，只添加新员工`}
           type="info"
@@ -120,7 +121,7 @@ export const OverwriteModeSelector: React.FC<OverwriteModeSelectorProps> = ({
         />
       )}
 
-      {existingCount > 0 && value === 'replace' && (
+      {existingCount > 0 && value === OverwriteMode.PARTIAL && (
         <Alert
           message={`将更新 ${existingCount} 名已存在员工的数据，此操作不可撤销`}
           type="warning"

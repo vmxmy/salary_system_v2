@@ -334,19 +334,19 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
                     children: (
                       <Descriptions bordered column={2} size="small">
                         <Descriptions.Item label="手机号码">
-                          {modalData.员工详细信息.联系信息?.手机号码 || '-'}
+                          {modalData.员工详细信息.联系信息?.电话 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="电子邮箱">
-                          {modalData.员工详细信息.联系信息?.电子邮箱 || '-'}
+                          {modalData.员工详细信息.联系信息?.邮箱 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="家庭地址">
-                          {modalData.员工详细信息.联系信息?.家庭地址 || '-'}
+                          {modalData.员工详细信息.联系信息?.家庭住址 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="紧急联系人">
                           {modalData.员工详细信息.联系信息?.紧急联系人 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="紧急联系人电话">
-                          {modalData.员工详细信息.联系信息?.紧急联系人电话 || '-'}
+                          {modalData.员工详细信息.联系信息?.紧急联系电话 || '-'}
                         </Descriptions.Item>
                       </Descriptions>
                     )
@@ -378,7 +378,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
                           {modalData.员工详细信息.个人信息?.学历 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="专业">
-                          {modalData.员工详细信息.个人信息?.专业 || '-'}
+                          {modalData.员工详细信息.个人信息?.学历 || '-'}
                         </Descriptions.Item>
                       </Descriptions>
                     )
@@ -392,7 +392,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
                           {modalData.员工详细信息.工作信息?.入职日期 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="工作状态">
-                          {modalData.员工详细信息.工作信息?.工作状态 || '-'}
+                          {modalData.员工详细信息.工作信息?.员工状态 || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="合同类型">
                           {modalData.员工详细信息.工作信息?.合同类型 || '-'}

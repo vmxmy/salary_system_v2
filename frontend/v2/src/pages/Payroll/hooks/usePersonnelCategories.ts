@@ -18,7 +18,7 @@ export const usePersonnelCategories = () => {
     // 从lookupMaps中获取人员类别数据
     if (lookupMaps && lookupMaps.personnelCategoryMap) {
       const categories = Array.from(lookupMaps.personnelCategoryMap.entries()).map(([key, value]) => ({
-        id: key,
+        id: parseInt(key, 10),
         name: value,
         code: key,
       }));

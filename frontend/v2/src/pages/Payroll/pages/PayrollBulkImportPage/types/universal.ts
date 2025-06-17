@@ -15,9 +15,11 @@ import React from 'react';
 export interface FieldConfig {
   key: string;                    // 字段标识符
   name: string;                   // 显示名称
+  label?: string;                 // i18n 标签键
   type: 'text' | 'number' | 'date' | 'select' | 'multiselect' | 'boolean';
   category: 'base' | 'earning' | 'deduction' | 'lookup' | 'calculated' | 'employee' | 'salary_base' | 'other';
   required: boolean;              // 是否必填
+  internal?: boolean;             // 是否为内部字段，不在UI中显示
   lookupType?: string;           // 对于select类型字段的查找类型
   description?: string;          // 字段描述
   validation?: {
@@ -364,10 +366,8 @@ export interface UniversalStepConfig {
   icon: string;
 }
 
-/**
- * 覆写模式枚举
- */
-export type OverwriteMode = 'append' | 'replace';
+// 导入 OverwriteMode 从 payrollTypes
+import { OverwriteMode } from '../../../types/payrollTypes';
 
 /**
  * 覆写模式选项配置

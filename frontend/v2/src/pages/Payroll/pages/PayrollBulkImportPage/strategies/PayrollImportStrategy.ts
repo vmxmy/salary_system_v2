@@ -4,15 +4,15 @@
  */
 
 import { BaseImportStrategy } from './BaseImportStrategy';
-import type { 
-  ImportModeConfig, 
-  FieldConfig, 
-  RawImportData, 
-  ProcessedRow, 
-  ValidationResult, 
-  PayrollPeriod,
-  OverwriteMode
-} from '../types';
+import type {
+  ImportModeConfig,
+  FieldConfig,
+  RawImportData,
+  ProcessedRow,
+  ValidationResult as UniversalValidationResult
+} from '../types/universal';
+import type { PayrollPeriod } from '../../../types/payrollTypes';
+import { OverwriteMode } from '../../../types/payrollTypes';
 import { getBackendOverwriteMode, DEFAULT_IMPORT_SETTINGS } from '../constants/overwriteMode';
 import { nanoid } from 'nanoid';
 
@@ -136,7 +136,7 @@ export class PayrollImportStrategy extends BaseImportStrategy {
       },
       
       // 薪资周期数据
-      payrollPeriods: this.payrollPeriods,
+      // payrollPeriods: this.payrollPeriods, // 移除不兼容的属性
     };
   }
 
@@ -213,7 +213,7 @@ export class PayrollImportStrategy extends BaseImportStrategy {
         key: `${category}_${code}`,
         name: name,
         type: 'number',
-        category,
+        category: category as 'base' | 'earning' | 'deduction' | 'lookup' | 'calculated' | 'employee' | 'salary_base' | 'other',
         required: false,
         description: component.description || `${name}金额`,
         validation: {
@@ -318,7 +318,7 @@ export class PayrollImportStrategy extends BaseImportStrategy {
     });
   }
 
-  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<ValidationResult[]> {
+  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = OverwriteMode.NONE): Promise<UniversalValidationResult[]> {
     // 转换为后端期望的格式
     const entries = processedData.map(row => {
       // 从完整姓名中提取姓和名
@@ -415,7 +415,7 @@ export class PayrollImportStrategy extends BaseImportStrategy {
           message: `API请求失败: ${error.message}` 
         }],
         warnings: [],
-        fieldConflicts: []
+        fieldConflicts: false
       }));
     }
   }
@@ -423,7 +423,7 @@ export class PayrollImportStrategy extends BaseImportStrategy {
   /**
    * 将经过验证的数据提交到后端
    */
-  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<any> {
+  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = OverwriteMode.NONE): Promise<any> {
     console.log(`准备导入薪资数据到周期 ID: ${periodId}`, validatedData);
 
     // 转换为后端期望的格式
@@ -462,8 +462,8 @@ export class PayrollImportStrategy extends BaseImportStrategy {
       return totalFields <= 3;
     });
     
-    if (hasOnlyFewFields && overwriteMode === 'append') {
-      finalOverwriteMode = 'replace'; // 前端的replace对应后端的partial
+    if (hasOnlyFewFields && overwriteMode === OverwriteMode.NONE) {
+      finalOverwriteMode = OverwriteMode.PARTIAL; // 前端的PARTIAL对应后端的partial
       console.log(`🔍 [智能模式] 检测到部分字段导入，自动切换到部分更新模式`);
     }
 

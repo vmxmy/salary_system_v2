@@ -55,7 +55,7 @@ export const usePayrollDataPresets = () => {
             return new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime();
           }
           // 如果没有使用时间，按创建时间排序
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
         });
         
         if (sortedPresets.length > 0) {

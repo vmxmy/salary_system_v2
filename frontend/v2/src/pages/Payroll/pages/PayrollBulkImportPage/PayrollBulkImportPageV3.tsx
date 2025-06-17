@@ -98,6 +98,24 @@ const PayrollBulkImportPageV3: React.FC = () => {
             onBackToMapping={() => setCurrentStep(1)}
               loading={loading}
             progress={progress}
+            rawImportData={importData!}
+            fieldMapping={mappingRules.reduce((acc, rule) => ({ ...acc, [rule.sourceField]: rule.targetField }), {})}
+            modeConfig={{
+              id: 'payroll',
+              name: '薪资导入',
+              description: '薪资数据批量导入',
+              icon: '💰',
+              fields: [],
+              requiredFields: [],
+              optionalFields: [],
+              validationRules: [],
+              apiEndpoints: {
+                validate: '/v2/payroll/validate',
+                execute: '/v2/payroll/import',
+                getRefData: []
+              },
+              fieldMappingHints: []
+            }}
           />
         );
         

@@ -18,6 +18,7 @@ export interface ImportData {
   headers: string[];
   rows: any[][];
   totalRecords: number;
+  totalAmount?: number; // 总金额，用于统计显示
 }
 
 // 字段映射规则类型
@@ -97,5 +98,14 @@ export type {
  * 统一导出所有类型定义
  */
 
-// 从 universal.ts 重新导出所有类型
-export * from './universal'; 
+// 从 universal.ts 重新导出所有类型（除了 OverwriteMode，避免冲突）
+export type {
+  ImportModeID,
+  ImportModeConfig,
+  FieldConfig,
+  RawImportData,
+  ProcessedRow,
+  ValidationResult as UniversalValidationResult,
+  ImportSettings as UniversalImportSettings,
+  OverwriteModeOption
+} from './universal'; 

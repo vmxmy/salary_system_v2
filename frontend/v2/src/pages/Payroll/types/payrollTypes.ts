@@ -202,6 +202,8 @@ export interface RawPayrollEntryData {
 // Interface for validated payroll entry data
 export interface ValidatedPayrollEntryData extends RawPayrollEntryData {
   validationErrors?: string[]; // 添加可选的验证错误数组
+  validationWarnings?: string[]; // 添加可选的验证警告数组
+  originalData?: Record<string, any>; // 原始数据，用于对比显示
   __isValid: boolean; // 前端处理使用：标记记录是否有效
   __errors: string[]; // 验证错误信息
   __rowId: string; // 唯一行ID
@@ -230,9 +232,16 @@ export interface CreatePayrollEntryPayload {
 
 // 新增：覆写模式枚举
 export enum OverwriteMode {
-  NONE = 'none',           // 不覆写，重复记录报错
-  FULL = 'full',           // 全量覆写，完全替换现有记录
-  PARTIAL = 'partial'      // 部分覆写，只更新导入的字段
+  NONE = 'none',                          // 不覆写，重复记录报错
+  ALL = 'all',                           // 全量覆写，完全替换现有记录
+  EXISTING_ONLY = 'existing_only',       // 仅更新已存在的记录
+  INCREMENTAL = 'incremental',           // 增量更新
+  FULL_MONTH = 'full_month',            // 全月覆盖
+  SOCIAL_INSURANCE_ONLY = 'social_insurance_only', // 仅社保数据
+  TAX_ONLY = 'tax_only',                // 仅税务数据
+  ADJUSTMENTS_ONLY = 'adjustments_only', // 仅调整项
+  FULL = 'full',                        // 全量覆写（保持向后兼容）
+  PARTIAL = 'partial'                   // 部分覆写（保持向后兼容）
 }
 
 // Payload for bulk creating payroll entries

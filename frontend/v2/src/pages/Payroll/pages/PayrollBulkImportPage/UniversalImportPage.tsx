@@ -19,7 +19,8 @@ import { OverwriteModeSelector } from './components/OverwriteModeSelector';
 import { usePayrollPeriods } from '../../services/payrollPeriodService';
 import { ImportStrategyFactory } from './strategies';
 import { DEFAULT_IMPORT_SETTINGS } from './constants/overwriteMode';
-import type { ImportModeID, ImportModeConfig, RawImportData, ProcessedRow, ValidationResult, OverwriteMode, ImportSettings } from './types/universal';
+import type { ImportModeID, ImportModeConfig, RawImportData, ProcessedRow, ValidationResult, ImportSettings } from './types/universal';
+import { OverwriteMode } from '../../types/payrollTypes';
 
 const { Step } = Steps;
 const { Panel } = Collapse;
@@ -31,7 +32,7 @@ const DataPreview: React.FC<{
   modeConfig: ImportModeConfig;
   importSettings: ImportSettings;
   onSettingsChange: (settings: ImportSettings) => void;
-}> = ({ processedData, validationResults, modeConfig, importSettings, onSettingsChange }) => {
+}> = ({ processedData, validationResults, modeConfig, importSettings, onSettingsChange }): React.ReactElement => {
   const { columns, errorCount } = useMemo(() => {
     const allSystemFields = [...modeConfig.requiredFields, ...modeConfig.optionalFields];
     const mappedSystemKeys = Object.keys(processedData[0]?.data || {});
@@ -186,7 +187,7 @@ const DataPreview: React.FC<{
       hasExistingRecords: hasExisting, 
       existingEmployeeCount: existingCount 
     };
-  }, [validationResults]);
+  }, [validationResults, processedData]);
 
   const handleOverwriteModeChange = (mode: OverwriteMode) => {
     onSettingsChange({
@@ -197,13 +198,13 @@ const DataPreview: React.FC<{
 
   // 当没有重复记录时，自动设置为追加模式
   React.useEffect(() => {
-    if (!hasExistingRecords && importSettings.overwriteMode !== 'append') {
+    if (!hasExistingRecords && importSettings.overwriteMode !== OverwriteMode.NONE) {
       onSettingsChange({
         ...importSettings,
-        overwriteMode: 'append'
+        overwriteMode: OverwriteMode.NONE
       });
     }
-  }, [hasExistingRecords, importSettings, onSettingsChange]);
+  }, [hasExistingRecords, importSettings.overwriteMode, onSettingsChange]);
 
   // 收集所有错误和警告信息用于详细展示
   const { errorDetails, warningDetails } = useMemo(() => {
@@ -590,7 +591,7 @@ const UniversalImportPage: React.FC = () => {
         const processed = strategy.processData(rawImportData, fieldMapping);
         
         // 先用默认的追加模式进行验证，获取重复记录信息
-        const validation = await strategy.validateData(processed, selectedPeriodId, 'append');
+        const validation = await strategy.validateData(processed, selectedPeriodId, OverwriteMode.NONE);
         
         // 调试信息：打印验证结果的结构
         console.log('🔍 [调试] 处理后的数据:', processed);

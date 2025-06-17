@@ -45,7 +45,7 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
 
     // 使用 fuzzball 的 token_set_ratio 算法，它对中文分词和乱序有很好的效果
     // 它会标记出共同的词元，并基于此计算相似度
-    return fuzzball.token_set_ratio(text1, text2, { process: (s: string) => s.toLowerCase() });
+    return fuzzball.token_set_ratio(text1, text2);
   };
 
   const autoMapFields = () => {
@@ -62,9 +62,9 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
         }
       });
       
-      if (bestMatch && bestMatch.score > 50) { // 设置一个匹配阈值
-        newMapping[header] = bestMatch.key;
-        newConfidence[header] = bestMatch.score;
+      if (bestMatch && (bestMatch as any).score > 50) { // 设置一个匹配阈值
+        newMapping[header] = (bestMatch as any).key;
+        newConfidence[header] = (bestMatch as any).score;
       }
     });
     setMapping(newMapping);

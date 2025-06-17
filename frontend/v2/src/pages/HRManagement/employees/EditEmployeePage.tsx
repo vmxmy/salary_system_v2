@@ -252,7 +252,7 @@ const EditEmployeePage: React.FC = () => {
           );
         }}
         submitter={{
-          render: (props, dom, index) => {
+          render: (props, dom) => {
             return (
               <div style={{ textAlign: 'right', marginTop: 24, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
                 <Space>

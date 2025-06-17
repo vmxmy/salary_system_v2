@@ -4,14 +4,14 @@
  */
 
 import { BaseImportStrategy } from './BaseImportStrategy';
-import type { 
-  ImportModeConfig, 
-  FieldConfig, 
-  RawImportData, 
-  ProcessedRow, 
-  ValidationResult,
-  OverwriteMode
+import type {
+  ImportModeConfig,
+  FieldConfig,
+  RawImportData,
+  ProcessedRow,
+  ValidationResult as UniversalValidationResult
 } from '../types/universal';
+import { OverwriteMode } from '../../../types/payrollTypes';
 import { getBackendOverwriteMode, DEFAULT_IMPORT_SETTINGS } from '../constants/overwriteMode';
 import { nanoid } from 'nanoid';
 
@@ -895,7 +895,7 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
   /**
    * 验证处理后的数据
    */
-  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<ValidationResult[]> {
+  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = OverwriteMode.NONE): Promise<UniversalValidationResult[]> {
     console.log(`开始验证员工数据，共 ${processedData.length} 条记录`);
     
     // 转换为后端期望的格式
@@ -923,6 +923,7 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
         return {
           isValid: backendResult?.is_valid || false,
           clientId: row._meta.clientId,
+          fieldConflicts: false,
           errors: this.formatValidationMessages(backendResult?.errors || []),
           warnings: this.formatValidationMessages(backendResult?.warnings || [])
         };
@@ -933,6 +934,7 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
       return processedData.map(row => ({
         isValid: false,
         clientId: row._meta.clientId,
+        fieldConflicts: false,
         errors: [{ field: 'general', message: '验证服务暂时不可用' }],
         warnings: []
       }));
@@ -962,7 +964,7 @@ export class EmployeeImportStrategy extends BaseImportStrategy {
   /**
    * 执行员工数据导入
    */
-  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<any> {
+  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = OverwriteMode.NONE): Promise<any> {
     console.log(`准备导入员工数据，共 ${validatedData.length} 条记录`);
 
     // 转换为后端期望的格式

@@ -7,7 +7,7 @@ import { PayrollImportStrategy } from './PayrollImportStrategy';
 import { SalaryBaseImportStrategy } from './SalaryBaseImportStrategy';
 import { EmployeeImportStrategy } from './EmployeeImportStrategy';
 import type { BaseImportStrategy } from './BaseImportStrategy';
-import type { ImportModeConfig } from '../types';
+import type { ImportModeConfig } from '../types/universal';
 
 // 导入策略映射
 const STRATEGY_MAP = {
@@ -103,7 +103,7 @@ export class ImportStrategyFactory {
               optionalFields: [],
               validationRules: [],
               apiEndpoints: { validate: '', execute: '', getRefData: [] },
-              fieldMappingHints: {},
+              fieldMappingHints: [],
               sampleTemplate: { headers: [], sampleRows: [] },
               importSettings: { supportsBatch: false, maxBatchSize: 100, requiresPeriodSelection: false, supportsOverwrite: false, defaultOverwriteMode: false }
             };

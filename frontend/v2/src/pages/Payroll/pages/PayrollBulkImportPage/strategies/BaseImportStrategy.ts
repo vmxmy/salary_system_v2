@@ -11,9 +11,9 @@ import type {
   FieldConfig,
   RawImportData,
   ProcessedRow,
-  ValidationResult,
-  OverwriteMode
+  ValidationResult as UniversalValidationResult2
 } from '../types/universal';
+import { OverwriteMode } from '../../../types/payrollTypes';
 import { store } from '../../../../../store';
 import apiClient from '../../../../../api/apiClient';
 
@@ -43,7 +43,7 @@ export abstract class BaseImportStrategy {
   /**
    * 验证处理后的数据
    */
-  abstract validateData(processedData: ProcessedRow[], periodId: number, overwriteMode?: OverwriteMode): Promise<ValidationResult[]>;
+  abstract validateData(processedData: ProcessedRow[], periodId: number, overwriteMode?: OverwriteMode): Promise<UniversalValidationResult2[]>;
 
   /**
    * 将经过验证的数据提交到后端
@@ -92,8 +92,8 @@ export abstract class BaseImportStrategy {
    * 生成样例模板
    * 默认实现基于字段配置生成，子类可以重写
    */
-  generateSampleTemplate(): { headers: string[]; sampleRows: any[][] } {
-    const config = this.getModeConfig();
+  async generateSampleTemplate(): Promise<{ headers: string[]; sampleRows: any[][] }> {
+    const config = await this.getModeConfig();
     
     if (config.sampleTemplate) {
       return config.sampleTemplate;
@@ -112,9 +112,9 @@ export abstract class BaseImportStrategy {
    * 验证设置
    * 默认实现返回空数组，子类可以重写
    */
-  validateSettings(settings: Record<string, any>): string[] {
+  async validateSettings(settings: Record<string, any>): Promise<string[]> {
     const errors: string[] = [];
-    const config = this.getModeConfig();
+    const config = await this.getModeConfig();
     
     // 检查必需的设置
     if (config.importSettings?.requiresPeriodSelection && !settings.periodId) {
@@ -207,7 +207,7 @@ export abstract class BaseImportStrategy {
       url,
       method: (options.method as any) || 'GET',
       data: options.body ? JSON.parse(options.body as string) : undefined,
-      headers: options.headers
+      headers: options.headers ? Object.fromEntries(new Headers(options.headers)) : undefined
     };
     
     try {

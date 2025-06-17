@@ -1,12 +1,12 @@
 import { BaseImportStrategy } from './BaseImportStrategy';
-import type { 
-  ImportModeConfig, 
-  FieldConfig, 
-  RawImportData, 
-  ProcessedRow, 
-  ValidationResult,
-  OverwriteMode
-} from '../types';
+import type {
+  ImportModeConfig,
+  FieldConfig,
+  RawImportData,
+  ProcessedRow,
+  ValidationResult as UniversalValidationResult
+} from '../types/universal';
+import { OverwriteMode } from '../../../types/payrollTypes';
 import { getBackendOverwriteMode, DEFAULT_IMPORT_SETTINGS } from '../constants/overwriteMode';
 import { nanoid } from 'nanoid';
 
@@ -264,7 +264,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
     });
   }
 
-  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<ValidationResult[]> {
+  async validateData(processedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = OverwriteMode.NONE): Promise<UniversalValidationResult[]> {
     const apiPayload = {
       period_id: periodId,
       base_updates: processedData.map(row => {
@@ -304,6 +304,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
         const validation = validatedData[index];
         if (validation) {
           return {
+            fieldConflicts: false,
             isValid: validation.is_valid || false,
             clientId: row._meta.clientId,
             errors: validation.errors || [],
@@ -311,6 +312,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
           };
         }
         return {
+          fieldConflicts: false,
           isValid: false,
           clientId: row._meta.clientId,
           errors: [{ field: 'general', message: '后端未返回此记录的验证结果' }],
@@ -320,6 +322,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
     } catch (error) {
       console.error('缴费基数验证失败:', error);
       return processedData.map(row => ({
+        fieldConflicts: false,
         isValid: false,
         clientId: row._meta.clientId,
         errors: [{ field: 'general', message: `API请求失败: ${error instanceof Error ? error.message : '未知错误'}` }],
@@ -328,7 +331,7 @@ export class SalaryBaseImportStrategy extends BaseImportStrategy {
     }
   }
 
-  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = 'append'): Promise<any> {
+  async importData(validatedData: ProcessedRow[], periodId: number, overwriteMode: OverwriteMode = OverwriteMode.NONE): Promise<any> {
     console.log(`🎯 [缴费基数导入] 准备导入到周期 ID: ${periodId}, 覆写模式: ${overwriteMode}`, validatedData);
     
     const apiPayload = {

@@ -343,8 +343,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
     tableColumns.push({
       title: '验证状态',
       key: 'status',
-      fixed: 'right',
-      width: 120,
+      dataIndex: 'status',
       render: (_: any, record: any) => {
         if (record._errors.length > 0) {
           return (
@@ -430,7 +429,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
     const mappedColumns = Object.keys(fieldMapping)
       .map(fileField => {
         const payrollField = fieldMapping[fileField];
-        const fieldConfig = modeConfig.fields[payrollField] as FieldConfig;
+        const fieldConfig = modeConfig.fields.find(f => f.key === payrollField) as FieldConfig;
         
         // 如果字段未在配置中定义，或者被标记为内部专用，则不显示
         if (!fieldConfig || fieldConfig.internal) {
@@ -438,7 +437,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         }
 
         return {
-          title: t(fieldConfig.label, { ns: 'payroll' }), // 假设label已经是i18n key
+          title: fieldConfig.label ? t(fieldConfig.label, { ns: 'payroll' }) : fieldConfig.name,
           dataIndex: payrollField,
           key: payrollField,
           width: 150,
@@ -492,7 +491,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
           <Col span={8}>
             <Statistic
               title={t('dataPreview.summaryCard.totalAmount')}
-              value={`¥ ${importData.totalAmount.toFixed(2)}`}
+              value={`¥ ${(importData.totalAmount || 0).toFixed(2)}`}
             />
           </Col>
           <Col span={24}>

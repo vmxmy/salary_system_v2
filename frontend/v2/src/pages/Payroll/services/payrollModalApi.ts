@@ -30,6 +30,7 @@ export interface PayrollModalData {
       民族详情?: string;
       婚姻状况?: string;
       学历?: string;
+      专业?: string;
       政治面貌?: string;
     };
     工作信息: {
@@ -38,18 +39,28 @@ export interface PayrollModalData {
       现职位开始日期?: string;
       中断服务年限?: string;
       员工状态?: string;
+      工作状态?: string;
       用工类型?: string;
       合同类型?: string;
+      合同开始日期?: string;
+      合同结束日期?: string;
+      试用期结束日期?: string;
       薪级?: string;
       薪档?: string;
       职位等级?: string;
     };
     社保公积金信息: {
       社保客户号?: string;
+      社保账号?: string;
       住房公积金客户号?: string;
+      公积金账号?: string;
+      社保缴费基数?: string;
+      公积金缴费基数?: string;
     };
     银行账号信息: {
       开户银行?: string;
+      银行名称?: string;
+      开户行?: string;
       账户持有人?: string;
       银行账号?: string;
       开户支行?: string;
