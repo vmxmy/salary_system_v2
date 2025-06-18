@@ -379,6 +379,7 @@ export interface OverwriteModeOption {
   icon: string;
   risk: 'low' | 'medium' | 'high';
   warning?: string;
+  isDefault?: boolean; // 是否为默认选项
 }
 
 /**

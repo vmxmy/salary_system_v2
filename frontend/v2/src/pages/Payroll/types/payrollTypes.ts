@@ -233,6 +233,7 @@ export interface CreatePayrollEntryPayload {
 // 新增：覆写模式枚举
 export enum OverwriteMode {
   NONE = 'none',                          // 不覆写，重复记录报错
+  SMART_MERGE = 'smart_merge',           // 智能合并模式（推荐）- 只更新Excel中有值的字段
   ALL = 'all',                           // 全量覆写，完全替换现有记录
   EXISTING_ONLY = 'existing_only',       // 仅更新已存在的记录
   INCREMENTAL = 'incremental',           // 增量更新

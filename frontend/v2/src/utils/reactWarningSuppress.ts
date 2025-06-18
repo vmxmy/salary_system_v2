@@ -24,7 +24,10 @@ export function initReactWarningSuppress() {
          message.includes('destroyOnClose') ||
          message.includes('destroyOnHidden') ||
          fullMessage.includes('destroyOnClose') ||
-         fullMessage.includes('destroyOnHidden'))) {
+         fullMessage.includes('destroyOnHidden') ||
+         // 抑制 useForm 未连接到 Form 元素的警告
+         message.includes('Instance created by `useForm` is not connected to any Form element') ||
+         fullMessage.includes('Instance created by `useForm` is not connected to any Form element'))) {
       // 静默忽略
       return;
     }
@@ -50,7 +53,10 @@ export function initReactWarningSuppress() {
          message.includes('destroyOnClose') ||
          message.includes('destroyOnHidden') ||
          fullMessage.includes('destroyOnClose') ||
-         fullMessage.includes('destroyOnHidden'))) {
+         fullMessage.includes('destroyOnHidden') ||
+         // 抑制 useForm 未连接到 Form 元素的警告
+         message.includes('Instance created by `useForm` is not connected to any Form element') ||
+         fullMessage.includes('Instance created by `useForm` is not connected to any Form element'))) {
       // 静默忽略
       return;
     }

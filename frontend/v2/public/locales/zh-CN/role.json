@@ -1,9 +1,9 @@
 {
-  "batch_delete_button_other": "",
-  "batch_delete_confirm_content_other": "",
+  "batch_delete_button_other": "批量删除 ({count} 项)",
+  "batch_delete_confirm_content_other": "您确定要删除选中的 {count} 个角色吗？此操作不可撤销。",
   "batch_delete_confirm_title": "确认批量删除",
   "batch_delete_failed": "批量删除失败",
-  "batch_delete_success_other": "",
+  "batch_delete_success_other": "成功删除 {count} 个角色",
   "export_filename_prefix": "角色",
   "export_sheet_name": "角色",
   "export_excel": "导出Excel",
@@ -58,6 +58,10 @@
   },
   "title": "角色管理",
   "button": {
-    "create_role": "新建角色"
+    "create_role": "创建角色"
+  },
+  "export": {
+    "button_text": "导出Excel",
+    "success_message": "导出成功"
   }
 }

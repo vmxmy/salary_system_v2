@@ -57,5 +57,8 @@
     }
   },
   "导出Excel": "导出Excel",
-  "导出成功": "导出成功"
+  "导出成功": "导出成功",
+  "pageTitle": {
+    "permission_management": "权限管理"
+  }
 }

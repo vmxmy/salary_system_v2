@@ -223,6 +223,7 @@ class PayrollEntryListResponse(PaginationResponse[PayrollEntry]):
 class OverwriteMode(str, Enum):
     """覆写模式枚举"""
     NONE = "none"           # 不覆写，重复记录报错
+    SMART_MERGE = "smart_merge"  # 智能合并模式 - 只更新Excel中有值的字段
     FULL = "full"           # 全量覆写，完全替换现有记录
     PARTIAL = "partial"     # 部分覆写，只更新导入的字段
 
