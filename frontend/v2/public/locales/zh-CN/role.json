@@ -6,6 +6,8 @@
   "batch_delete_success_other": "",
   "export_filename_prefix": "角色",
   "export_sheet_name": "角色",
+  "export_excel": "导出Excel",
+  "export_success": "导出成功",
   "message": {
     "create_role_error": "创建角色失败",
     "create_role_error_name_code_required": "角色名称和代码是必填项。",
@@ -53,5 +55,9 @@
   "tooltip": {
     "delete_role": "删除角色",
     "edit_role": "编辑角色"
+  },
+  "title": "角色管理",
+  "button": {
+    "create_role": "新建角色"
   }
 }

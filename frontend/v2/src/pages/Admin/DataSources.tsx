@@ -358,8 +358,13 @@ const DataSources: React.FC = () => {
   return (
     <div style={{ padding: '0' }}>
       <Card 
-        style={{ borderRadius: '8px' }}
-        bodyStyle={{ padding: '20px' }}
+        title="数据源配置" 
+        extra={<Button type="primary" onClick={() => {
+          setEditingSource(null);
+          form.resetFields();
+          setModalVisible(true);
+        }}>添加数据源</Button>} 
+        styles={{ body: { padding: '20px' } }}
       >
         <div style={{ marginBottom: '20px' }}>
           <Row justify="space-between" align="middle" gutter={[16, 8]}>
@@ -379,18 +384,6 @@ const DataSources: React.FC = () => {
                   size="middle"
                 >
                   {t('common:button.refresh')}
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    setEditingSource(null);
-                    form.resetFields();
-                    setModalVisible(true);
-                  }}
-                  size="middle"
-                >
-                  {t('data_source.new_data_source')}
                 </Button>
               </Space>
             </Col>

@@ -1,4 +1,6 @@
 {
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功",
   "total_deductions": "扣发合计",
   "payroll_data_for_period": "{{periodName}}期间工资数据",
   "payroll_data_list": "工资数据列表",

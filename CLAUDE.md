@@ -73,12 +73,26 @@ docker-compose down     # Stop all services
 - Use React Query for server state management and API caching
 - Implement permission-based UI rendering with PermissionGuard component
 
+### Chart Component Patterns (`MetricCard` components)
+- **Dual Component Architecture**: Full-size and Mini versions for different layouts
+- **Tooltip Handling**: Use `onReady` event listeners with DOM manipulation rather than `customContent` for complex tooltips
+- **Error Boundaries**: Wrap chart components in `MetricCardErrorBoundary` for fault tolerance
+- **Data Processing**: Use `safeNumber()` utility for robust number conversion and null handling
+- **Multi-line Charts**: For Line charts with multiple series, ensure data format matches `{xField, yField, seriesField}` structure
+- **Color Configuration**: Use callback functions `color: (datum) => datum.color` for dynamic coloring
+
 ### Backend Patterns
 - Follow the modular router structure in `routers/` directory
 - Use Pydantic models for request/response validation in `pydantic_models/`
 - Implement CRUD operations following the pattern in `crud/` directory
 - Use database views for complex queries (defined in migration files)
 - Follow the service layer pattern in `services/` directory for business logic
+
+### Analytics Service Pattern
+- Service classes in `services/simple_payroll/analytics_service.py` for complex data analysis
+- Use database views (`reports.v_payroll_basic`) for optimized cross-schema queries
+- Implement comprehensive logging with emoji prefixes for easy debugging
+- Return structured Pydantic models for type safety
 
 ### Database Patterns
 - Use Alembic migrations for all schema changes
@@ -109,14 +123,29 @@ docker-compose down     # Stop all services
 - Always run linting commands before committing
 - Ensure test coverage for critical business logic
 
+### Debugging Patterns
+- **Chart Debugging**: Add comprehensive console logging in chart event handlers to trace data flow
+- **API Data Validation**: Log API responses with detailed structure analysis before processing
+- **Async Data Issues**: Check loading states and data availability in chart tooltip handlers
+- **Component Rendering**: Use distinctive console log prefixes (e.g., 🎯🎯🎯) to identify which component version is rendering
+
 ## Technology Stack Details
 
 ### Frontend Dependencies
 - Core: React 18.2+, TypeScript 5.8+, Vite 6.3+
 - UI: Ant Design 5.25+, @ant-design/pro-components 2.8+
+- Charts: @ant-design/charts 2.3+ (based on G2 engine)
 - State: @reduxjs/toolkit 2.8+, @tanstack/react-query 5.80+
 - Routing: react-router-dom 7.6+
 - Utils: lodash, dayjs, axios, xlsx
+
+### Chart Library Specifics (@ant-design/charts)
+- **Column Charts**: Use `{data, xField, yField, colorField}` configuration
+- **Pie Charts**: Use `{data, angleField, colorField, radius, innerRadius}` configuration  
+- **Line Charts**: Use `{data, xField, yField, seriesField}` for multi-line charts
+- **Tooltip Issues**: `customContent` may not work reliably; use `onReady` with event listeners
+- **Color Mapping**: Use functions `color: (datum) => datum.color` rather than arrays for precise control
+- **Data Structure**: Ensure data objects contain all required fields before passing to chart
 
 ### Backend Dependencies  
 - Core: FastAPI, SQLAlchemy 2.0+, Alembic 1.12+

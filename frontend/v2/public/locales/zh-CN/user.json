@@ -85,5 +85,12 @@
   "tooltip": {
     "delete_user": "删除用户",
     "edit_user": "编辑用户"
+  },
+  "导出Excel": "导出Excel",
+  "用": "导出成功",
+  "user_list_page": {
+    "button": {
+      "create_user": "新建用户"
+    }
   }
 }

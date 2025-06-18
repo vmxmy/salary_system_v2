@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 // 引入拆分后的组件和Hook
 import { usePayrollPageLogic } from './hooks/usePayrollPageLogic';
 import { EnhancedPayrollStatistics } from './components/EnhancedPayrollStatistics';
-import { PayrollControls } from './components/PayrollControls';
+import { PayrollHeaderControls } from './components/PayrollHeaderControls';
 import { QuickActions } from './components/QuickActions';
 import { EmptyState } from './components/EmptyState';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
@@ -48,7 +48,8 @@ const SimplePayrollPage: React.FC = () => {
     handleNavigateToBulkImport,
     handleImportTaxData,
     handleDateChange,
-    handleDeleteVersion
+    handleDeleteVersion,
+    handleVersionChange
   } = usePayrollPageLogic();
 
   return (
@@ -69,6 +70,19 @@ const SimplePayrollPage: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Header Controls - Primary Action Section */}
+            <div className="header-controls-section">
+              <PayrollHeaderControls
+                currentPeriod={currentPeriod}
+                currentVersion={currentVersion}
+                versions={versions}
+                selectedVersionId={selectedVersionId}
+                handleDateChange={handleDateChange}
+                onVersionChange={handleVersionChange}
+                payrollStats={payrollStats}
+              />
+            </div>
+
             {/* Enhanced Statistics Section - Full Width */}
             <div className="stats-grid">
               <EnhancedPayrollStatistics
@@ -88,11 +102,6 @@ const SimplePayrollPage: React.FC = () => {
             <div className="main-grid">
               {/* Sidebar Controls */}
               <div className="sidebar-controls">
-                <PayrollControls
-                  currentPeriod={currentPeriod}
-                  handleDateChange={handleDateChange}
-                />
-                
                 <QuickActions
                   selectedPeriodId={selectedPeriodId}
                   selectedVersionId={selectedVersionId}

@@ -2,7 +2,29 @@
   "permissions": {
     "allow": [
       "Bash(git commit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(claude mcp:*)",
+      "Bash(python:*)",
+      "Bash(conda activate:*)",
+      "Bash(psql:*)",
+      "Bash(grep:*)",
+      "Bash(zsh:*)",
+      "Bash(curl:*)",
+      "Bash(npm install:*)",
+      "Bash(npm search:*)",
+      "Bash(mcp-cli:*)",
+      "Bash(browser-tools-mcp:*)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "mcp__postgres__query",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "WebFetch(domain:charts.ant.design)",
+      "WebFetch(domain:ant-design-charts.antgroup.com)",
+      "Bash(rm:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }

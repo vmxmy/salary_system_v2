@@ -1,18 +1,17 @@
-import React, { useMemo } from 'react';
-import { Button, Row, Col, Space, Divider } from 'antd';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Button, Row, Col, Space, Divider, message } from 'antd';
 import { StatisticCard } from '@ant-design/pro-components';
 import { DollarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { 
-  DepartmentCostCard, 
-  EmployeeTypeCard, 
-  SalaryTrendCard,
+  CombinedMetricsCard,
   type DepartmentCostData,
   type EmployeeTypeData,
   type SalaryTrendDataPoint
 } from '../../../components/MetricCard';
 import type { PayrollPeriodResponse, PayrollRunResponse } from '../types/simplePayroll';
 import type { PayrollStats, DataIntegrityStats } from '../hooks/usePayrollPageLogic';
+import { simplePayrollApi } from '../services/simplePayrollApi';
 
 interface EnhancedPayrollStatisticsProps {
   selectedVersionId?: number;
@@ -43,132 +42,265 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
   auditLoading,
   resetLoadingStates
 }) => {
+  console.log('🌟🌟🌟 [EnhancedPayrollStatistics] 组件渲染开始 🌟🌟🌟');
+  console.log('🌟 [EnhancedPayrollStatistics] selectedVersionId:', selectedVersionId);
   
-  // 生成模拟的部门成本数据
-  const departmentCostData: DepartmentCostData[] = useMemo(() => {
-    // 使用真实数据或默认模拟数据
-    const totalGrossPay = payrollStats.totalGrossPay || 1650000; // 默认165万
-    const recordCount = payrollStats.recordCount || 73; // 默认73人
-    
-    if (!selectedVersionId) {
-      return [];
-    }
+  // 状态管理
+  const [departmentCostData, setDepartmentCostData] = useState<DepartmentCostData[]>([]);
+  const [employeeTypeData, setEmployeeTypeData] = useState<EmployeeTypeData[]>([]);
+  const [salaryTrendData, setSalaryTrendData] = useState<SalaryTrendDataPoint[]>([]);
+  const [loadingStates, setLoadingStates] = useState({
+    departmentCost: false,
+    employeeType: false,
+    salaryTrend: false
+  });
 
-    // 模拟部门分布 - 实际应用中这些数据应该从API获取
-    const departments = [
-      { name: '技术部', ratio: 0.35, employeeRatio: 0.34, color: '#3b82f6' },
-      { name: '销售部', ratio: 0.25, employeeRatio: 0.25, color: '#10b981' },
-      { name: '市场部', ratio: 0.17, employeeRatio: 0.16, color: '#f59e0b' },
-      { name: '人事部', ratio: 0.11, employeeRatio: 0.11, color: '#ef4444' },
-      { name: '财务部', ratio: 0.08, employeeRatio: 0.09, color: '#8b5cf6' },
-      { name: '行政部', ratio: 0.04, employeeRatio: 0.05, color: '#06b6d4' }
-    ];
+  // 预定义的颜色
+  const departmentColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'];
+  const employeeTypeColors = {
+    'regular': '#3b82f6',  // 正编 - 蓝色
+    'contract': '#f59e0b',  // 聘用 - 橙色
+    'intern': '#10b981',   // 实习 - 绿色
+    'consultant': '#ef4444',  // 顾问 - 红色
+    'default': '#8b5cf6'   // 默认 - 紫色
+  };
 
-    return departments.map(dept => {
-      const currentCost = totalGrossPay * dept.ratio;
-      const employeeCount = Math.round(recordCount * dept.employeeRatio);
-      const previousCost = currentCost * (0.95 + Math.random() * 0.1); // 模拟上月数据
-      
-      return {
-        departmentName: dept.name,
-        currentCost,
-        previousCost,
-        employeeCount,
-        avgCostPerEmployee: employeeCount > 0 ? currentCost / employeeCount : 0,
-        percentage: dept.ratio * 100,
-        color: dept.color
-      };
-    });
-  }, [payrollStats.totalGrossPay, payrollStats.recordCount, selectedVersionId]);
-
-  // 生成模拟的员工类型数据
-  const employeeTypeData: EmployeeTypeData[] = useMemo(() => {
-    // 使用真实数据或默认模拟数据
-    const totalGrossPay = payrollStats.totalGrossPay || 1650000; // 默认165万
-    const recordCount = payrollStats.recordCount || 73; // 默认73人
+  // 获取部门成本数据
+  const fetchDepartmentCostData = async (periodId: number) => {
+    console.log('🏢 [fetchDepartmentCostData] 开始获取部门成本数据:', { periodId });
+    if (!periodId) return;
     
-    if (!selectedVersionId) {
-      return [];
-    }
-
-    const regularCount = Math.round(recordCount * 0.62); // 62% 正编
-    const contractCount = recordCount - regularCount;
-    
-    const regularCost = totalGrossPay * 0.68; // 正编占总成本68%
-    const contractCost = totalGrossPay - regularCost;
-    
-    return [
-      {
-        type: 'regular',
-        typeName: '正编',
-        count: regularCount,
-        percentage: (regularCount / recordCount) * 100,
-        avgSalary: regularCount > 0 ? regularCost / regularCount : 0,
-        totalCost: regularCost,
-        previousCount: regularCount - Math.floor(Math.random() * 3) + 1, // 模拟上月人数
-        newHires: Math.floor(Math.random() * 3) + 1,
-        departures: Math.floor(Math.random() * 2),
-        color: '#3b82f6',
-        details: {
-          senior: Math.round(regularCount * 0.2),
-          middle: Math.round(regularCount * 0.5),
-          junior: Math.round(regularCount * 0.3)
-        }
-      },
-      {
-        type: 'contract',
-        typeName: '聘用',
-        count: contractCount,
-        percentage: (contractCount / recordCount) * 100,
-        avgSalary: contractCount > 0 ? contractCost / contractCount : 0,
-        totalCost: contractCost,
-        previousCount: contractCount + Math.floor(Math.random() * 3) - 1,
-        newHires: Math.floor(Math.random() * 2),
-        departures: Math.floor(Math.random() * 3) + 1,
-        color: '#f59e0b',
-        details: {
-          senior: Math.round(contractCount * 0.15),
-          middle: Math.round(contractCount * 0.45),
-          junior: Math.round(contractCount * 0.4)
-        }
-      }
-    ];
-  }, [payrollStats.recordCount, payrollStats.totalGrossPay, selectedVersionId]);
-
-  // 生成模拟的工资趋势数据
-  const salaryTrendData: SalaryTrendDataPoint[] = useMemo(() => {
-    // 使用真实数据或默认模拟数据
-    const totalGrossPay = payrollStats.totalGrossPay || 1650000; // 默认165万
-    const totalDeductions = payrollStats.totalDeductions || 330000; // 默认33万
-    const totalNetPay = payrollStats.totalNetPay || 1320000; // 默认132万
-    const recordCount = payrollStats.recordCount || 73; // 默认73人
-    
-    const currentDate = dayjs();
-    const data: SalaryTrendDataPoint[] = [];
-    
-    // 生成最近12个月的数据
-    for (let i = 11; i >= 0; i--) {
-      const date = currentDate.subtract(i, 'month');
-      const monthFactor = 0.85 + (11 - i) * 0.015 + Math.random() * 0.1; // 模拟增长趋势
-      
-      const grossSalary = totalGrossPay * monthFactor;
-      const deductions = totalDeductions * monthFactor;
-      const netSalary = totalNetPay * monthFactor;
-      
-      data.push({
-        month: date.format('YYYY-MM'),
-        monthLabel: date.format('M月'),
-        grossSalary,
-        deductions,
-        netSalary,
-        employeeCount: Math.round(recordCount * (0.9 + Math.random() * 0.2)),
-        avgGrossSalary: grossSalary / recordCount,
-        avgNetSalary: netSalary / recordCount
+    setLoadingStates(prev => ({ ...prev, departmentCost: true }));
+    try {
+      // @ts-ignore - API响应结构与类型定义不匹配
+      const response = await simplePayrollApi.getDepartmentCostAnalysis(periodId);
+      console.log('🏢 [fetchDepartmentCostData] API响应:', {
+        hasData: !!response.data,
+        departmentCount: response.data?.departments?.length,
+        totalCost: response.data?.total_cost,
+        dataKeys: response.data ? Object.keys(response.data) : []
       });
+      
+      if (response.data && response.data.departments?.length > 0) {
+        const transformedData: DepartmentCostData[] = response.data.departments.map((dept: any, index: number) => ({
+          departmentId: dept.department_id || index + 1,
+          departmentName: dept.department_name,
+          currentCost: Number(dept.current_cost) || 0,
+          currentDeductions: Number(dept.current_deductions) || 0,
+          currentNetPay: Number(dept.current_net_pay) || 0,
+          previousCost: Number(dept.previous_cost) || 0,
+          previousDeductions: Number(dept.previous_deductions) || 0,
+          previousNetPay: Number(dept.previous_net_pay) || 0,
+          employeeCount: dept.employee_count || 0,
+          avgCostPerEmployee: Number(dept.avg_cost_per_employee) || 0,
+          avgDeductionsPerEmployee: Number(dept.avg_deductions_per_employee) || 0,
+          avgNetPayPerEmployee: Number(dept.avg_net_pay_per_employee) || 0,
+          percentage: dept.percentage || 0,
+          costChange: dept.cost_change ? Number(dept.cost_change) : undefined,
+          costChangeRate: dept.cost_change_rate ? Number(dept.cost_change_rate) : undefined,
+          netPayChange: dept.net_pay_change ? Number(dept.net_pay_change) : undefined,
+          netPayChangeRate: dept.net_pay_change_rate ? Number(dept.net_pay_change_rate) : undefined,
+          color: departmentColors[index % departmentColors.length]
+        }));
+        console.log('🏢 [fetchDepartmentCostData] 转换后的数据:', transformedData);
+        setDepartmentCostData(transformedData);
+      } else {
+        console.log('🏢 [fetchDepartmentCostData] API返回失败或无数据');
+        setDepartmentCostData([]);
+        console.warn('暂无部门成本数据');
+      }
+    } catch (error) {
+      console.error('获取部门成本数据失败:', error);
+      console.warn('部门成本分析暂时不可用，可能是后端接口问题');
+      setDepartmentCostData([]);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, departmentCost: false }));
     }
+  };
+
+  // 获取员工编制数据
+  const fetchEmployeeTypeData = async (periodId: number) => {
+    if (!periodId) return;
     
-    return data;
-  }, [payrollStats.totalGrossPay, payrollStats.totalDeductions, payrollStats.totalNetPay, payrollStats.recordCount, selectedVersionId]);
+    setLoadingStates(prev => ({ ...prev, employeeType: true }));
+    try {
+      // @ts-ignore - API响应结构与类型定义不匹配
+      const response = await simplePayrollApi.getEmployeeTypeAnalysis(periodId);
+      console.log('👥 [fetchEmployeeTypeData] API响应:', {
+        hasData: !!response.data,
+        typeCount: response.data?.employee_types?.length,
+        totalEmployees: response.data?.total_employees,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      });
+      
+      if (response.data && response.data.employee_types?.length > 0) {
+        console.log('👥 [fetchEmployeeTypeData] 原始API employee_types数据:', response.data.employee_types);
+        
+        const transformedData: EmployeeTypeData[] = response.data.employee_types.map((type: any, index: number) => {
+          console.log(`👥 [fetchEmployeeTypeData] 处理编制类型 ${index}:`, type);
+          console.log(`👥 [fetchEmployeeTypeData] 原始工资字段:`, {
+            avg_salary: type.avg_salary,
+            total_cost: type.total_cost,
+            avgSalary: type.avgSalary,
+            totalCost: type.totalCost,
+            salary: type.salary,
+            cost: type.cost
+          });
+          
+          // 根据类型名称判断是哪种编制
+          const typeKey = type.type_name.includes('正编') ? 'regular' : 
+                          type.type_name.includes('聘用') ? 'contract' :
+                          type.type_name.includes('实习') ? 'intern' :
+                          type.type_name.includes('顾问') ? 'consultant' : 'default';
+          
+          // 处理API返回的工资数据（字符串转数字）
+          const avgSalary = Number(type.avg_salary || 0);
+          const totalCost = Number(type.total_cost || 0);
+          
+          console.log(`👥 [fetchEmployeeTypeData] 最终工资数据:`, { avgSalary, totalCost });
+          
+          return {
+            typeId: type.personnel_category_id || 0,
+            typeName: type.type_name,
+            employeeCount: type.employee_count || 0,
+            percentage: type.percentage || 0,
+            avgSalary: avgSalary,
+            totalCost: totalCost,
+            previousCount: type.previous_count || type.employee_count,
+            countChange: type.count_change || 0,
+            newHires: type.new_hires || 0,
+            departures: type.departures || 0,
+            color: employeeTypeColors[typeKey] || employeeTypeColors.default,
+            details: {
+              senior: Math.round((type.employee_count || 0) * 0.2),
+              middle: Math.round((type.employee_count || 0) * 0.5),
+              junior: Math.round((type.employee_count || 0) * 0.3)
+            }
+          };
+        });
+        console.log('👥 [fetchEmployeeTypeData] 转换后的数据:', transformedData);
+        setEmployeeTypeData(transformedData);
+      } else {
+        console.log('👥 [fetchEmployeeTypeData] API返回失败或无数据');
+        setEmployeeTypeData([]);
+        message.warning('暂无员工编制数据');
+      }
+    } catch (error) {
+      console.error('获取员工编制数据失败:', error);
+      console.warn('员工编制分析暂时不可用，可能是后端接口问题');
+      setEmployeeTypeData([]);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, employeeType: false }));
+    }
+  };
+
+  // 获取工资趋势数据
+  const fetchSalaryTrendData = async () => {
+    setLoadingStates(prev => ({ ...prev, salaryTrend: true }));
+    try {
+      // @ts-ignore - API响应结构与类型定义不匹配
+      const response = await simplePayrollApi.getSalaryTrendAnalysis(12);
+      console.log('📈 [fetchSalaryTrendData] API响应:', {
+        hasData: !!response.data,
+        dataPointCount: response.data?.data_points?.length,
+        timeRange: response.data?.time_range,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      });
+      
+      if (response.data && response.data.data_points?.length > 0) {
+        console.log('📈 [fetchSalaryTrendData] 所有数据点:', response.data.data_points);
+        
+        // 处理所有数据点
+        const allDataPoints = response.data.data_points || [];
+        
+        if (allDataPoints.length > 0) {
+          const transformedData: SalaryTrendDataPoint[] = allDataPoints.map((point: any) => {
+            // 调试输出原始数据点
+            console.log('🔍 [fetchSalaryTrendData] 原始数据点:', point);
+            
+            // 确保数值转换正确
+            const grossSalary = typeof point.gross_salary === 'string' 
+              ? parseFloat(point.gross_salary) 
+              : (typeof point.gross_salary === 'number' ? point.gross_salary : 0);
+              
+            const deductions = typeof point.deductions === 'string'
+              ? parseFloat(point.deductions)
+              : (typeof point.deductions === 'number' ? point.deductions : 0);
+              
+            const netSalary = typeof point.net_salary === 'string'
+              ? parseFloat(point.net_salary)
+              : (typeof point.net_salary === 'number' ? point.net_salary : 0);
+            
+            // 调试输出转换后的值
+            console.log('🔢 [fetchSalaryTrendData] 转换后的值:', {
+              grossSalary,
+              deductions,
+              netSalary,
+              employeeCount: point.employee_count || 0
+            });
+            
+            return {
+              month: point.year_month,
+              monthLabel: dayjs(point.year_month).format('M月'),
+              grossSalary: grossSalary,
+              deductions: deductions,
+              netSalary: netSalary,
+              employeeCount: point.employee_count || 0,
+              avgGrossSalary: Number(point.avg_gross_salary) || 0,
+              avgNetSalary: Number(point.avg_net_salary) || 0
+            };
+          });
+          
+          console.log('📈 [fetchSalaryTrendData] 转换后的数据:', transformedData);
+          // 按时间顺序排序，确保最新的数据在数组末尾
+          const sortedData = [...transformedData].sort((a, b) => {
+            const dateA = a.month ? new Date(a.month) : new Date(0);
+            const dateB = b.month ? new Date(b.month) : new Date(0);
+            return dateA.getTime() - dateB.getTime();
+          });
+          console.log('📈 [fetchSalaryTrendData] 排序后的数据:', sortedData);
+          setSalaryTrendData(sortedData);
+        } else {
+          console.log('📈 [fetchSalaryTrendData] 没有数据点');
+          setSalaryTrendData([]);
+          message.warning('暂无工资趋势数据');
+        }
+      } else {
+        console.log('📈 [fetchSalaryTrendData] API返回失败或无数据');
+        setSalaryTrendData([]);
+        message.warning('暂无工资趋势数据');
+      }
+    } catch (error) {
+      console.error('获取工资趋势数据失败:', error);
+      message.error('获取工资趋势数据失败');
+      setSalaryTrendData([]);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, salaryTrend: false }));
+    }
+  };
+
+  // 数据获取效果钩子
+  useEffect(() => {
+    console.log('🔄 [EnhancedPayrollStatistics] useEffect 触发:', {
+      selectedVersionId,
+      currentPeriodId: currentPeriod?.id,
+      currentPeriodName: currentPeriod?.name
+    });
+    
+    if (selectedVersionId && currentPeriod) {
+      console.log('✅ [EnhancedPayrollStatistics] 开始获取分析数据...');
+      // 当期间或版本变化时，获取新数据
+      fetchDepartmentCostData(currentPeriod.id);
+      fetchEmployeeTypeData(currentPeriod.id);
+      fetchSalaryTrendData();
+    } else {
+      console.log('❌ [EnhancedPayrollStatistics] 条件不满足，跳过数据获取');
+      // 清空所有图表数据
+      setDepartmentCostData([]);
+      setEmployeeTypeData([]);
+      setSalaryTrendData([]);
+    }
+  }, [selectedVersionId, currentPeriod?.id]);
 
   // 处理部门点击
   const handleDepartmentClick = (department: DepartmentCostData) => {
@@ -378,43 +510,33 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         </Row>
       </StatisticCard.Group>
 
-      {/* 新增的高级指标卡片 */}
+      {/* 合并的指标卡片 */}
       {selectedVersionId && (
-        <Row gutter={[24, 24]}>
-          {/* 部门成本分布 */}
-          <Col xs={24} lg={12}>
-            <DepartmentCostCard
-              title="部门成本分布"
-              data={departmentCostData}
-              totalCost={payrollStats.totalGrossPay || 1650000}
-              onDepartmentClick={handleDepartmentClick}
-              onViewDetails={() => handleViewDetails('部门成本')}
-            />
-          </Col>
-
-          {/* 员工编制分布 */}
-          <Col xs={24} lg={12}>
-            <EmployeeTypeCard
-              title="编制分布"
-              data={employeeTypeData}
-              totalEmployees={payrollStats.recordCount || 73}
-              onTypeClick={handleEmployeeTypeClick}
-              onViewDetails={() => handleViewDetails('编制分布')}
-            />
-          </Col>
-
-          {/* 工资趋势分析 - 全宽 */}
-          <Col span={24}>
-            <SalaryTrendCard
-              title="工资趋势分析"
-              data={salaryTrendData}
-              timeRange="12months"
-              onTimeRangeChange={handleTimeRangeChange}
-              onViewDetails={() => handleViewDetails('工资趋势')}
-              onExport={handleExport}
-            />
-          </Col>
-        </Row>
+        <CombinedMetricsCard
+          title="关键指标概览"
+          
+          // 部门成本数据
+          departmentCostData={departmentCostData}
+          totalCost={payrollStats.totalGrossPay || 0}
+          totalDeductions={payrollStats.totalDeductions || 0}
+          totalNetPay={payrollStats.totalNetPay || 0}
+          departmentCostLoading={loadingStates.departmentCost}
+          
+          // 编制分布数据
+          employeeTypeData={employeeTypeData}
+          totalEmployees={payrollStats.recordCount || 0}
+          employeeTypeLoading={loadingStates.employeeType}
+          
+          // 工资趋势数据
+          salaryTrendData={salaryTrendData}
+          salaryTrendLoading={loadingStates.salaryTrend}
+          
+          // 事件处理
+          onViewDetails={() => handleViewDetails('合并指标')}
+          onDepartmentClick={handleDepartmentClick}
+          onEmployeeTypeClick={handleEmployeeTypeClick}
+          onExportTrend={handleExport}
+        />
       )}
     </div>
   );

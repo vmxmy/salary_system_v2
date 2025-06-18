@@ -427,7 +427,7 @@ export const getPayrollComponentDefinitions = async (params: {
       {
         params: {
           is_active: true,
-          size: 200,
+          size: 100,
           ...params
         }
       }

@@ -1,11 +1,22 @@
 // 指标卡组件导出文件
-export { DepartmentCostCard } from './DepartmentCostCard';
-export type { DepartmentCostData, DepartmentCostCardProps } from './DepartmentCostCard';
 
-export { EmployeeTypeCard } from './EmployeeTypeCard';
-export type { EmployeeTypeData, EmployeeTypeCardProps } from './EmployeeTypeCard';
+// 类型导出
+export type { EmployeeTypeData } from './MiniEmployeeTypeCard';
+export type { DepartmentCostData } from './MiniDepartmentCostCard';
+export type { SalaryTrendDataPoint } from './MiniSalaryTrendCard';
 
-export { SalaryTrendCard } from './SalaryTrendCard';
-export type { SalaryTrendDataPoint, SalaryTrendCardProps } from './SalaryTrendCard';
+// Mini版指标卡
+export { CombinedMetricsCard } from './CombinedMetricsCard';
+export type { CombinedMetricsCardProps } from './CombinedMetricsCard';
 
-export { MetricCardsDemo } from './MetricCardsDemo';
+export { MiniDepartmentCostCard } from './MiniDepartmentCostCard';
+export type { MiniDepartmentCostCardProps } from './MiniDepartmentCostCard';
+
+export { MiniEmployeeTypeCard } from './MiniEmployeeTypeCard';
+export type { MiniEmployeeTypeCardProps } from './MiniEmployeeTypeCard';
+
+export { MiniSalaryTrendCard } from './MiniSalaryTrendCard';
+export type { MiniSalaryTrendCardProps } from './MiniSalaryTrendCard';
+
+// 错误边界组件
+export { MetricCardErrorBoundary } from './MetricCardErrorBoundary';

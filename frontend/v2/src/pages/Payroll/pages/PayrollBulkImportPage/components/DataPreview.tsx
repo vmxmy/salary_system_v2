@@ -137,13 +137,13 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         render: (record: any) => (
           <div>
             <div style={{ fontWeight: 'bold' }}>
-              {record.employee_full_name || record.employee_name || t('common.unknownEmployee', { ns: 'common' })}
+              {record.employee_full_name || record.employee_name || t('common:unknownEmployee')}
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.id_number && `${t('common.idNumber', { ns: 'common' })}: ${record.id_number}`}
+              {record.id_number && `${t('common:idNumber')}: ${record.id_number}`}
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.employee_code && `${t('common.employeeCode', { ns: 'common' })}: ${record.employee_code}`}
+              {record.employee_code && `${t('common:employeeCode')}: ${record.employee_code}`}
             </div>
           </div>
         ),
@@ -381,13 +381,13 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         render: (record: ValidatedPayrollEntryData) => (
           <div>
             <div style={{ fontWeight: 'bold' }}>
-              {record.employee_full_name || record.employee_name || t('common.unknownEmployee', { ns: 'common' })}
+              {record.employee_full_name || record.employee_name || t('common:unknownEmployee')}
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.id_number && `${t('common.idNumber', { ns: 'common' })}: ${record.id_number}`}
+              {record.id_number && `${t('common:idNumber')}: ${record.id_number}`}
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.employee_code && `${t('common.employeeCode', { ns: 'common' })}: ${record.employee_code}`}
+              {record.employee_code && `${t('common:employeeCode')}: ${record.employee_code}`}
             </div>
           </div>
         )
@@ -478,7 +478,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
           <Col span={8}>
             <Statistic
               title={t('dataPreview.summaryCard.selectedPeriod')}
-              value={selectedPeriod ? selectedPeriod.name : t('common.none', { ns: 'common' })}
+              value={selectedPeriod ? selectedPeriod.name : t('common:none')}
               prefix={<DatabaseOutlined />}
             />
           </Col>
@@ -522,7 +522,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => t('common.table.pagination', { ns: 'common', rangeStart: range[0], rangeEnd: range[1], total: total })
+            showTotal: (total, range) => t('common:table.pagination', { rangeStart: range[0], rangeEnd: range[1], total: total })
           }}
           size="small"
         />
@@ -570,7 +570,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
         <Space direction="vertical" style={{ width: '100%' }}>
           <Space>
             <Button onClick={onBackToMapping} disabled={loading}>
-              {t('common.actions.backToMapping', { ns: 'common' })}
+              {t('common:actions.backToMapping')}
             </Button>
             <Button 
               type="primary" 
@@ -580,7 +580,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
               disabled={!canImport || loading}
               icon={<CheckCircleOutlined />}
             >
-              {loading ? (progress ? `${progress.stage}: ${progress.message}` : t('common.actions.importing', { ns: 'common' })) : getImportButtonText()}
+              {loading ? (progress ? `${progress.stage}: ${progress.message}` : t('common:actions.importing')) : getImportButtonText()}
             </Button>
           </Space>
           

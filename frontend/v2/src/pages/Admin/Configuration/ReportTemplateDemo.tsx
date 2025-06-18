@@ -175,7 +175,7 @@ const ReportTemplateDemo: React.FC = () => {
         title={t('admin:report_template_config_title')}
         size="small"
         style={{ marginBottom: '16px' }}
-        bodyStyle={{ padding: '16px' }}
+        styles={{ body: { padding: '16px' } }}
         extra={
           <Space>
             <Switch 

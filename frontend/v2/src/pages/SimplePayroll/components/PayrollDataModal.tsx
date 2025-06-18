@@ -884,6 +884,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         group.forEach(fieldKey => {
           const column = columnMap.get(fieldKey);
           if (column) {
+            // 确保所有列默认都有filteredValue属性，没有筛选时设为undefined
+            if (column.filteredValue === undefined && !tableFilterState.filters?.[String(column.key)]) {
+              column.filteredValue = undefined;
+            }
             orderedColumns.push(column);
             columnMap.delete(fieldKey); // 避免重复添加
           }
@@ -892,6 +896,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       
       // 添加剩余的其他字段
       columnMap.forEach(column => {
+        // 确保所有列默认都有filteredValue属性，没有筛选时设为undefined
+        if (column.filteredValue === undefined && !tableFilterState.filters?.[String(column.key)]) {
+          column.filteredValue = undefined;
+        }
         orderedColumns.push(column);
       });
 

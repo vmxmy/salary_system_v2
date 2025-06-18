@@ -16,7 +16,9 @@
     "execute_import": "执行导入",
     "next_step": "下一步",
     "previous_step": "上一步",
-    "start_new_import": "开始新的导入"
+    "start_new_import": "开始新的导入",
+    "backToMapping": "返回映射",
+    "importing": "导入中"
   },
   "activate": "",
   "active": "",
@@ -197,7 +199,21 @@
     "actions": "操作"
   },
   "table": {
-    "action": "操作"
+    "action": "操作",
+    "actions": "操作",
+    "column": {
+      "index": ""
+    },
+    "density": {
+      "comfortable": "",
+      "compact": "",
+      "default": ""
+    },
+    "empty_data": "暂无数据",
+    "noData": "暂无数据",
+    "refreshError": "刷新失败",
+    "refreshSuccess": "刷新成功",
+    "pagination": "显示第 {rangeStart}-{rangeEnd} 条，共 {total} 条"
   },
   "column_control": {
     "button_text": "列设置",
@@ -209,10 +225,10 @@
       "backToMapping": "",
       "importing": ""
     },
-    "employeeCode": "",
-    "idNumber": "",
+    "employeeCode": "员工编号",
+    "idNumber": "身份证号",
     "no": "",
-    "none": "",
+    "none": "无",
     "notApplicable": "",
     "permission_denied_action": "",
     "statusOptionsLoadFailed": "",
@@ -220,7 +236,7 @@
       "pagination": ""
     },
     "unknown": "",
-    "unknownEmployee": "",
+    "unknownEmployee": "未知员工",
     "yes": ""
   },
   "common_value": {
@@ -231,7 +247,12 @@
       "personal_income_tax": ""
     }
   },
-  "confirm": "",
+  "confirm": {
+    "batch_delete": {
+      "title": "确认批量删除",
+      "content": "您确定要删除选中的记录吗？此操作不可撤销。"
+    }
+  },
   "confirm_delete": "",
   "confirm_delete_content": "",
   "data_type": {
@@ -287,8 +308,13 @@
     "data_or_config_missing": "数据或配置缺失"
   },
   "expand_sidebar": "展开侧边栏",
-  "export": "",
-  "export_success": "",
+  "export": {
+    "button_text": "导出Excel",
+    "success_message": "导出成功",
+    "export": "导出",
+    "formatExcel": "Excel (.xlsx)"
+  },
+  "export_success": "导出成功",
   "footer": {
     "copyright_text": "",
     "hyperchain_logo_alt_text": ""
@@ -432,7 +458,10 @@
   },
   "status": {
     "not_selected": "",
-    "unknown_status_param": "未知状态参数"
+    "unknown_status_param": "未知状态参数",
+    "active": "活跃",
+    "enabled": "已启用",
+    "disabled": "已禁用"
   },
   "status_error": "错误",
   "status_pending": "待处理",
@@ -442,22 +471,6 @@
     "create": "",
     "export": "",
     "update": ""
-  },
-  "table": {
-    "action": "操作",
-    "actions": "操作",
-    "column": {
-      "index": ""
-    },
-    "density": {
-      "comfortable": "",
-      "compact": "",
-      "default": ""
-    },
-    "empty_data": "暂无数据",
-    "noData": "暂无数据",
-    "refreshError": "刷新失败",
-    "refreshSuccess": "刷新成功"
   },
   "table_converter": {
     "api_field": "API字段",
@@ -510,5 +523,6 @@
   "yes": "",
   "tax": "税务",
   "tax_id": "税号",
-  "tax_information": "税务信息"
+  "tax_information": "税务信息",
+  "lookup_loading": "正在加载数据..."
 }

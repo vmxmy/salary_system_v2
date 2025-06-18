@@ -209,7 +209,7 @@ export const SmartCopyConfirmModal: React.FC<SmartCopyConfirmModalProps> = ({
                 border: action.force_overwrite ? '1px solid #ff7875' : '1px solid #1890ff',
                 backgroundColor: action.force_overwrite ? '#fff2f0' : '#f6ffed'
               }}
-              bodyStyle={{ padding: '16px' }}
+              styles={{ body: { padding: '16px' } }}
             >
               <Row align="middle" justify="space-between">
                 <Col flex={1}>

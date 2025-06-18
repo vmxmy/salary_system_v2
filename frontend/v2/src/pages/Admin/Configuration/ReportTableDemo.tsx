@@ -149,7 +149,7 @@ const ReportTableDemo: React.FC = () => {
         title={t('admin:report_demo_config_panel_title')} 
         size="small"
         style={{ marginBottom: '16px' }}
-        bodyStyle={{ padding: '16px' }}
+        styles={{ body: { padding: '16px' } }}
       >
         <Form layout="inline" style={{ width: '100%' }}>
           <Form.Item label={t('admin:report_demo_title_label')} style={{ marginBottom: '12px', minWidth: '300px' }}>

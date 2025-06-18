@@ -76,14 +76,320 @@
 }
 
 // =============================================================================
+// 📊 组合指标卡样式 (Combined Metrics Card)
+// =============================================================================
+
+.combined-metrics-card {
+  .modern-card();
+  height: auto;
+  
+  .ant-card-body {
+    padding: @space-4;
+  }
+  
+  .metrics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @space-3;
+    padding-bottom: @space-2;
+    border-bottom: 1px solid @border-light;
+    
+    .metrics-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .metrics-icon {
+        color: @primary-500;
+        font-size: @font-size-lg;
+      }
+      
+      .metrics-title {
+        .typography-heading-3();
+        margin: 0;
+        color: @text-primary;
+      }
+    }
+    
+    .metrics-controls {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .control-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid @border-light;
+        border-radius: @radius-md;
+        background: @bg-primary;
+        color: @text-secondary;
+        cursor: pointer;
+        transition: all @duration-base @ease-out;
+        font-size: @font-size-base;
+        
+        &:hover {
+          border-color: @primary-400;
+          color: @primary-600;
+          background: @primary-50;
+          transform: translateY(-1px);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+  
+  .metrics-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: @space-4;
+    min-height: 240px; // 减半高度，从480px减至240px
+    
+    // 中等屏幕：保持三列布局
+    @media (max-width: 1399px) and (min-width: 992px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: @space-3;
+      min-height: 240px; // 减半高度，从480px减至240px
+    }
+    
+    // 小屏幕：改为单列布局
+    @media (max-width: 991px) {
+      grid-template-columns: 1fr;
+      gap: @space-2;
+      min-height: auto; // 小屏幕保持自适应
+    }
+    
+    .metric-column {
+      min-height: 240px; // 减半高度，从480px减至240px
+      display: flex;
+      flex-direction: column;
+      
+      // 小屏幕恢复原始高度
+      @media (max-width: 991px) {
+        min-height: 120px; // 减半高度，从240px减至120px
+      }
+    }
+  }
+  
+  // 嵌入式指标卡样式重写
+  .embedded-metric-card {
+    height: 400px;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    
+    .ant-card-body {
+      padding: 0;
+    }
+    
+    // 减小图表高度
+    .chart-section {
+      height: 180px !important;
+    }
+    
+    // 减小饼图高度
+    .pie-chart-container {
+      height: 180px !important;
+    }
+    
+    // 减小柱状图高度
+    .bar-chart-container {
+      height: 180px !important;
+    }
+    
+    // 减小线图高度
+    .line-chart-container {
+      height: 180px !important;
+    }
+  }
+}
+
+// =============================================================================
 // 🏢 部门成本分布卡片 (Department Cost Card)
 // =============================================================================
 
 .department-cost-card {
   
+  // 增强的指标摘要样式
+  .metric-summary-enhanced {
+    display: flex;
+    gap: @space-4;
+    margin: @space-3 0;
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      flex: 1;
+      padding: @space-2 @space-3;
+      background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+      border-radius: @radius-md;
+      border: 1px solid @border-light;
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: @shadow-sm;
+      }
+      
+      .summary-icon {
+        font-size: @font-size-lg;
+        color: @primary-500;
+        width: 24px;
+        text-align: center;
+      }
+      
+      .summary-content {
+        flex: 1;
+        
+        .summary-value {
+          .typography-number-small();
+          font-weight: @font-weight-bold;
+          color: @text-primary;
+          margin-bottom: 2px;
+        }
+        
+        .summary-label {
+          .typography-small();
+          color: @text-tertiary;
+          line-height: 1;
+        }
+      }
+    }
+  }
+  
+  // 关键洞察样式
+  .key-insights {
+    display: flex;
+    gap: @space-3;
+    margin: @space-3 0;
+    
+    .insight-item {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      flex: 1;
+      padding: @space-2 @space-3;
+      background: @bg-secondary;
+      border-radius: @radius-base;
+      border: 1px solid @border-light;
+      
+      .insight-icon {
+        font-size: @font-size-base;
+        
+        &.highest {
+          color: @error-500;
+        }
+        
+        &.lowest {
+          color: @success-500;
+        }
+      }
+      
+      .insight-content {
+        display: flex;
+        align-items: center;
+        gap: @space-2;
+        flex: 1;
+        
+        .insight-label {
+          .typography-small();
+          color: @text-tertiary;
+          min-width: 32px;
+        }
+        
+        .insight-value {
+          .typography-caption-strong();
+          color: @text-primary;
+          flex: 1;
+        }
+      }
+    }
+  }
+  
+  // 增强的部门列表项样式
+  .department-item-enhanced {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: @space-3 0;
+    border-bottom: 1px solid @border-light;
+    cursor: pointer;
+    transition: all @duration-base @ease-out;
+    
+    &:hover {
+      background: @bg-secondary;
+      margin: 0 -@space-6;
+      padding-left: @space-6;
+      padding-right: @space-6;
+      border-radius: @radius-base;
+    }
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .department-info {
+      display: flex;
+      align-items: flex-start;
+      gap: @space-3;
+      flex: 1;
+      
+      .color-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: @radius-sm;
+        flex-shrink: 0;
+        margin-top: 4px;
+      }
+      
+      .department-details {
+        flex: 1;
+        
+        .department-name {
+          .typography-caption-strong();
+          color: @text-primary;
+          line-height: 1.3;
+          margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .employee-count {
+          .typography-small();
+          color: @text-tertiary;
+          line-height: 1.2;
+          margin-bottom: 6px;
+        }
+      }
+    }
+    
+    .cost-info {
+      text-align: right;
+      
+      .current-cost {
+        .typography-caption-strong();
+        color: @text-primary;
+        margin-bottom: 4px;
+      }
+      
+      .percentage {
+        .typography-small();
+        color: @primary-600;
+        font-weight: @font-weight-medium;
+      }
+    }
+  }
+  
   .chart-section {
-    height: 240px; // 固定图表高度
-    margin: @space-2 0;
+    height: 200px; // 减少图表高度为柱状图留出更多空间
+    margin: @space-2 0 @space-1 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -91,11 +397,17 @@
     flex-shrink: 0;
   }
   
-  // 饼图样式
+  // 饼图样式 - 使用 Flexbox 布局优化
   .pie-chart-container {
+    // 使用 Flexbox 实现居中
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center; // 水平居中
+    align-items: center;     // 垂直居中
+    
+    width: 100%;
+    height: 100%; // 撑满父容器
+    padding: 10px; // 给图表一些呼吸空间
+    box-sizing: border-box;
     
     .pie-slice {
       transition: all @duration-base @ease-out;
@@ -104,6 +416,11 @@
         filter: brightness(1.1);
         stroke-width: 3;
       }
+    }
+    
+    // 移除绝对定位的中心信息，因为现在使用SVG内置文字
+    .pie-center-info {
+      display: none; // 隐藏，使用SVG内置的文字代替
     }
   }
   
@@ -201,7 +518,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: @space-2 0;
+      padding: @space-1 0; // 减少垂直内边距
       border-bottom: 1px solid @border-light;
       cursor: pointer;
       transition: all @duration-base @ease-out;
@@ -234,11 +551,14 @@
           .department-name {
             .typography-caption-strong();
             color: @text-primary;
+            line-height: 1.2; // 减少行高优化垂直空间
+            margin-bottom: 2px;
           }
           
           .employee-count {
             .typography-small();
             color: @text-tertiary;
+            line-height: 1;
           }
         }
       }
@@ -285,6 +605,59 @@
       
       &:hover {
         background: @bg-secondary;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 📊 Recharts 自定义样式 (Recharts Custom Styles)
+// =============================================================================
+
+.custom-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid @border-default;
+  border-radius: @radius-lg;
+  padding: @space-3;
+  box-shadow: @shadow-lg;
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  
+  .tooltip-title {
+    .typography-caption-strong();
+    color: @text-primary;
+    margin: 0 0 @space-2 0;
+    border-bottom: 1px solid @border-light;
+    padding-bottom: @space-1;
+  }
+  
+  .tooltip-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: @space-1 0;
+    gap: @space-3;
+    
+    span:first-child {
+      .typography-small();
+      color: @text-secondary;
+      min-width: 40px;
+    }
+    
+    .tooltip-value {
+      .typography-caption-strong();
+      color: @text-primary;
+      
+      &.up {
+        color: @success-600;
+      }
+      
+      &.down {
+        color: @error-600;
+      }
+      
+      &.stable {
+        color: @text-tertiary;
       }
     }
   }
@@ -353,7 +726,7 @@
     flex-shrink: 0;
   }
   
-  // 环形图样式
+  // 环形图样式 - 使用 Flexbox 布局优化
   .donut-chart-container {
     height: 100%;
     display: flex;
@@ -363,9 +736,13 @@
     padding: @space-2 0;
     
     .donut-chart {
-      position: relative;
-      width: 140px;
-      height: 140px;
+      // 使用 Flexbox 实现居中
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      
+      width: 100%;
+      height: 200px;
       flex-shrink: 0;
       
       .donut-ring {
@@ -375,24 +752,9 @@
         transform: translate(-50%, -50%);
       }
       
+      // 移除绝对定位的中心信息，使用SVG内置文字
       .donut-center {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-        width: 80px;
-        
-        .total-count {
-          .typography-number-medium();
-          color: @text-primary;
-          font-weight: @font-weight-bold;
-        }
-        
-        .total-label {
-          .typography-small();
-          color: @text-tertiary;
-        }
+        display: none; // 隐藏，使用SVG内置的文字代替
       }
     }
     
@@ -755,6 +1117,342 @@
 }
 
 // =============================================================================
+// 🎛️ 合并指标卡样式 (Combined Metrics Card)
+// =============================================================================
+
+.combined-metrics-card {
+  .modern-card();
+  height: auto;
+  
+  .ant-card-body {
+    padding: @space-4;
+  }
+  
+  .metrics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @space-4;
+    padding-bottom: @space-3;
+    border-bottom: 1px solid @border-light;
+    
+    .metrics-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .metrics-icon {
+        color: @primary-500;
+        font-size: @font-size-lg;
+      }
+      
+      .metrics-title {
+        .typography-heading-3();
+        margin: 0;
+        color: @text-primary;
+      }
+    }
+    
+    .metrics-controls {
+      .control-button {
+        border: none;
+        background: transparent;
+        color: @text-tertiary;
+        cursor: pointer;
+        padding: @space-2;
+        border-radius: @radius-base;
+        transition: all @duration-base @ease-out;
+        
+        &:hover {
+          color: @primary-500;
+          background: @bg-secondary;
+        }
+      }
+    }
+  }
+  
+  .metrics-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: @space-4;
+    
+    // 中等屏幕：保持三列布局
+    @media (max-width: 1399px) and (min-width: 992px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: @space-3;
+    }
+    
+    // 小屏幕：单列布局
+    @media (max-width: 991px) {
+      grid-template-columns: 1fr;
+      gap: @space-3;
+    }
+    
+    .metric-column {
+      display: flex;
+      flex-direction: column;
+      
+      // 确保所有列等高
+      min-height: 240px;
+    }
+  }
+}
+
+// =============================================================================
+// 🎴 Mini 指标卡基础样式 (Mini Metric Cards Base)
+// =============================================================================
+
+.mini-metric-card {
+  background: @bg-primary;
+  border: 1px solid @border-light;
+  border-radius: @radius-lg;
+  padding: @space-4;
+  height: 240px; // 减半高度，从480px减至240px
+  display: flex;
+  flex-direction: column;
+  transition: all @duration-base @ease-out;
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    border-color: @primary-300;
+    box-shadow: @shadow-md;
+    transform: translateY(-2px);
+  }
+  
+  // 加载状态
+  .mini-card-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: @space-3;
+    
+    .ant-spin {
+      color: @primary-500;
+    }
+  }
+  
+  // 头部图标信息区域
+  .mini-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: @space-2;
+    flex-shrink: 0;
+    
+    .icon-info {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      &.primary {
+        flex: 1;
+      }
+      
+      .icon-wrapper {
+        width: 28px;
+        height: 28px;
+        border-radius: @radius-lg;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: @font-size-base;
+        background: linear-gradient(135deg, @primary-50 0%, @primary-100 100%);
+        color: @primary-600;
+        flex-shrink: 0;
+      }
+      
+      .info-content {
+        .info-value {
+          .typography-number-small();
+          font-weight: @font-weight-bold;
+          color: @text-primary;
+          line-height: 1.2;
+          margin-bottom: 1px;
+        }
+        
+        .info-label {
+          .typography-small();
+          color: @text-tertiary;
+          line-height: 1;
+          font-size: 11px;
+        }
+      }
+    }
+  }
+  
+  // 图表容器 - 优化布局
+  .mini-chart-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: @space-1;
+    margin: @space-1 0;
+    height: 140px;
+    
+    // 确保图表组件有足够的空间并居中
+    > div {
+      width: 100%;
+      height: 100%;
+      max-width: 350px; // 限制最大宽度，防止图表过大
+      max-height: 350px;
+      
+      // 如果是ResponsiveContainer，确保它居中
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .empty-chart {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: @space-2;
+      height: 120px;
+      
+      .empty-icon {
+        font-size: @font-size-xl;
+        color: #9ca3af; // 使用具体的颜色值避免变量未定义错误
+      }
+    }
+  }
+  
+  // 底部摘要
+  .mini-card-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: @space-2;
+    border-top: 1px solid @border-light;
+    flex-shrink: 0;
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .summary-label {
+        .typography-small();
+        color: @text-tertiary;
+        font-size: 11px;
+      }
+      
+      .summary-value {
+        .typography-caption-strong();
+        font-size: 12px;
+        
+        &.success {
+          color: @success-600;
+        }
+        
+        &.error {
+          color: @error-600;
+        }
+        
+        &.positive {
+          color: @success-600;
+        }
+        
+        &.negative {
+          color: @error-600;
+        }
+      }
+      
+      .summary-row {
+        display: flex;
+        align-items: center;
+        gap: @space-1;
+        
+        .change-icon {
+          font-size: 10px;
+          
+          &.positive {
+            color: @success-600;
+          }
+          
+          &.negative {
+            color: @error-600;
+          }
+        }
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🏢 Mini 部门成本卡特殊样式
+// =============================================================================
+
+.mini-department-cost {
+  .icon-wrapper {
+    background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+    color: @primary-600;
+  }
+}
+
+// =============================================================================
+// 👥 Mini 编制分布卡特殊样式  
+// =============================================================================
+
+.mini-employee-type {
+  .icon-wrapper {
+    background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+    color: @success-600;
+  }
+}
+
+// =============================================================================
+// 📈 Mini 工资趋势卡特殊样式
+// =============================================================================
+
+.mini-salary-trend {
+  .icon-wrapper {
+    background: linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%);
+    color: @warning-600;
+  }
+  
+  .trend-icon {
+    font-size: @font-size-sm;
+    
+    &.up {
+      color: @success-600;
+    }
+    
+    &.down {
+      color: @error-600;
+    }
+    
+    &.stable {
+      color: @text-tertiary;
+    }
+  }
+  
+  .export-button {
+    border: none;
+    background: transparent;
+    color: @text-tertiary;
+    cursor: pointer;
+    padding: @space-1;
+    border-radius: @radius-sm;
+    transition: all @duration-base @ease-out;
+    
+    &:hover {
+      color: @primary-500;
+      background: @bg-secondary;
+    }
+    
+    .export-icon {
+      font-size: 12px;
+    }
+  }
+}
+
+// =============================================================================
 // 📱 响应式优化 (Responsive Design)
 // =============================================================================
 
@@ -821,6 +1519,35 @@
       gap: @space-3;
     }
   }
+  
+  // Mini 卡片响应式
+  .combined-metrics-card {
+    .metrics-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: @space-2;
+    }
+  }
+  
+  .mini-metric-card {
+    height: auto;
+    min-height: 200px;
+    
+    .mini-card-header {
+      flex-direction: column;
+      gap: @space-3;
+      
+      .icon-info {
+        align-self: stretch;
+        justify-content: space-between;
+      }
+    }
+    
+    .mini-chart-container {
+      height: 100px;
+      margin-bottom: @space-2;
+    }
+  }
 }
 
 @media (max-width: 576px) {
@@ -832,7 +1559,7 @@
     }
   }
   
-  .department-cost-card {
+ .department-cost-card {
     .pie-chart-container svg {
       width: 140px;
       height: 140px;
@@ -850,6 +1577,29 @@
   .salary-trend-card {
     .line-chart-container {
       height: 180px;
+    }
+  }
+  
+  // Mini 卡片小屏幕优化
+  .mini-metric-card {
+    padding: @space-3;
+    
+    .mini-card-header {
+      margin-bottom: @space-3;
+      
+      .icon-wrapper {
+        width: 28px;
+        height: 28px;
+        font-size: @font-size-sm;
+      }
+      
+      .info-value {
+        font-size: @font-size-base;
+      }
+    }
+    
+    .mini-chart-container {
+      height: 80px;
     }
   }
 }

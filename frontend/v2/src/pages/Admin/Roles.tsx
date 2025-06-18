@@ -288,7 +288,7 @@ const RoleListPage: React.FC = () => {
             onClick={showCreateModal}
             shape="round"
           >
-            t('button.create_role')
+            {t('button.create_role')}
           </Button>
         </Space>
       }
@@ -316,7 +316,7 @@ const RoleListPage: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={showCreateModal}
             >
-              t('button.create_role')
+              {t('button.create_role')}
             </Button>
           ]}
         />

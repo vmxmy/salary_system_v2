@@ -273,8 +273,8 @@ const StandardListPageTemplate = <T extends Record<string, any>>({
     {
       filename: generateExportFilename(),
       sheetName: exportConfig.sheetName,
-      buttonText: t(exportConfig.buttonText, t('components:auto_excel_e5afbc')), // StandardListPage usually has a dedicated Excel export button text
-      successMessage: t(exportConfig.successMessage, t('components:auto_text_e5afbc')),
+      buttonText: t(exportConfig.buttonText, t('role:export_excel')),
+      successMessage: t(exportConfig.successMessage, t('role:export_success')),
       supportedFormats: ['excel'], // Explicitly stating only excel for client mode
       // onExportRequest is NOT provided, so it will use client-side Excel export by default
     }

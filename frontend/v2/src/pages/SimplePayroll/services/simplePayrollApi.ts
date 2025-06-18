@@ -24,16 +24,41 @@ const API_BASE = '/simple-payroll';
 
 // 响应拦截器 - 统一错误处理（仅用于调试日志）
 const logResponse = (response: any) => {
-  console.log('✅ [simplePayrollApi] 响应成功:', {
-    status: response.status,
-    url: response.config.url,
-    dataType: typeof response.data,
-    hasData: !!response.data?.data,
-    dataCount: Array.isArray(response.data?.data) ? response.data.data.length : 'N/A',
-    responseData: response.data,
-    responseHeaders: response.headers
-  });
-  return response;
+  // 只在开发环境中记录响应
+  if (import.meta.env.DEV) {
+    try {
+      const url = response?.config?.url || 'unknown';
+      const method = response?.config?.method?.toUpperCase() || 'GET';
+      const status = response?.status || 'unknown';
+      const dataType = typeof response?.data;
+      
+      let dataInfo: any = {
+        status,
+        url,
+        dataType,
+        hasData: !!response?.data,
+        dataCount: 'N/A',
+        responseData: response?.data,
+        responseHeaders: response?.headers
+      };
+      
+      // 分析数据结构和数量
+      if (response?.data) {
+        if (Array.isArray(response.data.data)) {
+          dataInfo.dataCount = response.data.data.length;
+        } else if (typeof response.data.data === 'object' && response.data.data !== null) {
+          dataInfo.dataType = 'object';
+          if (Array.isArray(response.data.data.items)) {
+            dataInfo.dataCount = response.data.data.items.length;
+          }
+        }
+      }
+      
+      console.log('✅ [simplePayrollApi] 响应成功:', dataInfo);
+    } catch (error) {
+      console.error('记录响应时出错:', error);
+    }
+  }
 };
 
 const logError = (error: any) => {
@@ -1030,6 +1055,135 @@ export const simplePayrollApi = {
       processed: response.data?.data?.processed,
       total: response.data?.data?.total,
       stage: response.data?.data?.stage
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  // =============================================================================
+  // 统计分析 API
+  // =============================================================================
+
+  /**
+   * 获取部门成本分析
+   */
+  getDepartmentCostAnalysis: async (periodId: number): Promise<ApiResponse<{
+    period_id: number;
+    period_name: string;
+    total_cost: number;
+    total_employees: number;
+    departments: Array<{
+      department_id?: number;
+      department_name: string;
+      current_cost: number;
+      previous_cost?: number;
+      employee_count: number;
+      avg_cost_per_employee: number;
+      percentage: number;
+      cost_change?: number;
+      cost_change_rate?: number;
+    }>;
+  }>> => {
+    console.log('🏢 [simplePayrollApi.getDepartmentCostAnalysis] 获取部门成本分析:', { periodId });
+    
+    const response = await apiClient.get(`${API_BASE}/analytics/department-costs/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.getDepartmentCostAnalysis] 获取成功:', {
+      status: response.status,
+      departmentCount: response.data?.data?.departments?.length,
+      totalCost: response.data?.data?.total_cost
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 获取员工编制分析
+   */
+  getEmployeeTypeAnalysis: async (periodId: number): Promise<ApiResponse<{
+    period_id: number;
+    period_name: string;
+    total_employees: number;
+    total_cost: number;
+    employee_types: Array<{
+      personnel_category_id: number;
+      type_name: string;
+      employee_count: number;
+      percentage: number;
+      avg_salary: number;
+      total_cost: number;
+      previous_count?: number;
+      count_change?: number;
+      new_hires?: number;
+      departures?: number;
+    }>;
+  }>> => {
+    console.log('👥 [simplePayrollApi.getEmployeeTypeAnalysis] 获取员工编制分析:', { periodId });
+    
+    const response = await apiClient.get(`${API_BASE}/analytics/employee-types/${periodId}`);
+    
+    console.log('✅ [simplePayrollApi.getEmployeeTypeAnalysis] 获取成功:', {
+      status: response.status,
+      typeCount: response.data?.data?.employee_types?.length,
+      totalEmployees: response.data?.data?.total_employees
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
+
+  /**
+   * 获取工资趋势分析
+   */
+  getSalaryTrendAnalysis: async (months: number = 12): Promise<ApiResponse<{
+    time_range: string;
+    data_points: Array<{
+      period_id: number;
+      period_name: string;
+      year_month: string;
+      employee_count: number;
+      gross_salary: number;
+      deductions: number;
+      net_salary: number;
+      avg_gross_salary: number;
+      avg_net_salary: number;
+    }>;
+    trend_summary: {
+      period_count: number;
+      start_period: string;
+      end_period: string;
+      gross_salary_trend: {
+        start_value: number;
+        end_value: number;
+        change: number;
+        change_rate: number;
+      };
+      net_salary_trend: {
+        start_value: number;
+        end_value: number;
+        change: number;
+        change_rate: number;
+      };
+      employee_count_trend: {
+        start_value: number;
+        end_value: number;
+        change: number;
+        change_rate: number;
+      };
+    };
+  }>> => {
+    console.log('📈 [simplePayrollApi.getSalaryTrendAnalysis] 获取工资趋势分析:', { months });
+    
+    const response = await apiClient.get(`${API_BASE}/analytics/salary-trends`, {
+      params: { months }
+    });
+    
+    console.log('✅ [simplePayrollApi.getSalaryTrendAnalysis] 获取成功:', {
+      status: response.status,
+      dataPointCount: response.data?.data?.data_points?.length,
+      timeRange: response.data?.data?.time_range
     });
     
     logResponse(response);

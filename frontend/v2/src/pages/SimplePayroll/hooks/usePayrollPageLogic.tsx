@@ -486,6 +486,15 @@ export const usePayrollPageLogic = () => {
     }
   };
 
+  const handleVersionChange = (versionId: number) => {
+    console.log('🔄 [handleVersionChange] 版本变更:', {
+      from: selectedVersionId,
+      to: versionId,
+      versionInfo: versions.find(v => v.id === versionId)
+    });
+    setSelectedVersionId(versionId);
+  };
+
   const handleQuickCreateCurrentMonth = async () => {
     try {
       const now = new Date();
@@ -741,6 +750,7 @@ export const usePayrollPageLogic = () => {
     handleDateChange,
     handleCreateFirstVersion,
     handleDeleteVersion,
+    handleVersionChange,
     handleQuickCreateCurrentMonth,
     fetchPayrollStats,
     fetchDataIntegrityStats

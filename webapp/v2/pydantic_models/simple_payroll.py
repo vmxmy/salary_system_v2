@@ -396,4 +396,87 @@ class BatchAdjustmentResult(BaseModel):
     """批量调整结果"""
     affected_count: int = Field(..., description="影响条目数量")
     description: str = Field(..., description="调整描述")
-    task_id: Optional[str] = Field(None, description="任务ID") 
+    task_id: Optional[str] = Field(None, description="任务ID")
+
+# =============================================================================
+# 统计分析响应模型
+# =============================================================================
+
+class DepartmentCostData(BaseModel):
+    """部门成本数据"""
+    department_id: Optional[int] = Field(None, description="部门ID")
+    department_name: str = Field(..., description="部门名称")
+    current_cost: Decimal = Field(..., description="应发合计")
+    current_deductions: Decimal = Field(Decimal('0.00'), description="扣发合计")
+    current_net_pay: Decimal = Field(..., description="实发合计")
+    previous_cost: Optional[Decimal] = Field(None, description="上期应发合计")
+    previous_deductions: Optional[Decimal] = Field(None, description="上期扣发合计")
+    previous_net_pay: Optional[Decimal] = Field(None, description="上期实发合计")
+    employee_count: int = Field(..., description="员工数量")
+    avg_cost_per_employee: Decimal = Field(..., description="人均应发成本")
+    avg_deductions_per_employee: Decimal = Field(Decimal('0.00'), description="人均扣发")
+    avg_net_pay_per_employee: Decimal = Field(..., description="人均实发")
+    percentage: float = Field(..., description="应发成本占比")
+    cost_change: Optional[Decimal] = Field(None, description="应发成本变化")
+    cost_change_rate: Optional[float] = Field(None, description="应发成本变化率")
+    net_pay_change: Optional[Decimal] = Field(None, description="实发成本变化")
+    net_pay_change_rate: Optional[float] = Field(None, description="实发成本变化率")
+
+class DepartmentCostAnalysisResponse(BaseModel):
+    """部门成本分析响应"""
+    period_id: int = Field(..., description="期间ID")
+    period_name: str = Field(..., description="期间名称")
+    total_cost: Decimal = Field(..., description="总应发成本")
+    total_deductions: Decimal = Field(Decimal('0.00'), description="总扣发")
+    total_net_pay: Decimal = Field(..., description="总实发")
+    total_employees: int = Field(..., description="总员工数")
+    departments: List[DepartmentCostData] = Field(..., description="部门成本列表")
+
+class EmployeeTypeData(BaseModel):
+    """员工类型数据"""
+    personnel_category_id: int = Field(..., description="人员类别ID")
+    type_name: str = Field(..., description="类型名称")
+    employee_count: int = Field(..., description="员工数量")
+    percentage: float = Field(..., description="人员占比")
+    avg_salary: Decimal = Field(..., description="平均薪资")
+    total_cost: Decimal = Field(..., description="总成本")
+    previous_count: Optional[int] = Field(None, description="上期人数")
+    count_change: Optional[int] = Field(None, description="人数变化")
+    new_hires: Optional[int] = Field(None, description="新入职")
+    departures: Optional[int] = Field(None, description="离职")
+
+class EmployeeTypeAnalysisResponse(BaseModel):
+    """员工编制分析响应"""
+    period_id: int = Field(..., description="期间ID")
+    period_name: str = Field(..., description="期间名称")
+    total_employees: int = Field(..., description="总员工数")
+    total_cost: Decimal = Field(..., description="总成本")
+    employee_types: List[EmployeeTypeData] = Field(..., description="员工类型列表")
+
+class SalaryTrendDataPoint(BaseModel):
+    """工资趋势数据点"""
+    period_id: int = Field(..., description="期间ID")
+    period_name: str = Field(..., description="期间名称")
+    year_month: str = Field(..., description="年月(YYYY-MM)")
+    employee_count: int = Field(..., description="员工数量")
+    gross_salary: Decimal = Field(..., description="应发工资")
+    deductions: Decimal = Field(..., description="扣除金额")
+    net_salary: Decimal = Field(..., description="实发工资")
+    avg_gross_salary: Decimal = Field(..., description="平均应发工资")
+    avg_net_salary: Decimal = Field(..., description="平均实发工资")
+
+class SalaryTrendAnalysisResponse(BaseModel):
+    """工资趋势分析响应"""
+    time_range: str = Field(..., description="时间范围")
+    data_points: List[SalaryTrendDataPoint] = Field(..., description="趋势数据点")
+    trend_summary: Dict[str, Any] = Field(..., description="趋势摘要")
+
+# =============================================================================
+# 综合统计响应模型
+# =============================================================================
+
+class PayrollAnalyticsResponse(BaseModel):
+    """薪资分析统计响应"""
+    department_cost_analysis: DepartmentCostAnalysisResponse
+    employee_type_analysis: EmployeeTypeAnalysisResponse
+    salary_trend_analysis: SalaryTrendAnalysisResponse 

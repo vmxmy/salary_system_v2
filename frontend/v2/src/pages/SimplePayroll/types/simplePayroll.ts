@@ -14,6 +14,7 @@ export interface PayrollPeriodResponse {
   is_active: boolean;
   start_date?: string;
   end_date?: string;
+  pay_date?: string;
   runs_count: number;
   entries_count: number;
   created_at: string;
@@ -32,6 +33,7 @@ export interface PayrollPeriod {
   is_active: boolean;
   start_date?: string;
   end_date?: string;
+  pay_date?: string;
   runs_count: number;
   entries_count: number;
   created_at: string;

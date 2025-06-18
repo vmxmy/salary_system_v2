@@ -62,7 +62,7 @@ const GenerateReportsCard: React.FC<GenerateReportsCardProps> = ({
         </Space>
       }
       style={{ height: '400px' }}
-      bodyStyle={{ padding: '16px' }}
+      styles={{ body: { padding: '16px' } }}
       hoverable
     >
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

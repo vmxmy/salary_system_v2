@@ -9,6 +9,7 @@
       "fetch": ""
     },
     "inactive": "",
+    "loading": "正在加载...",
     "no": "",
     "status": "",
     "validation": {
@@ -28,8 +29,11 @@
     "is_taxable": "",
     "name": "",
     "sort_order": "",
+    "title": "薪资组件管理",
     "type": "",
     "update_failed": "",
     "update_success": ""
-  }
+  },
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功"
 }
