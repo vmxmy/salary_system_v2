@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Row, Col, Spin, Tag, Affix, DatePicker, Select, Space, Divider } from 'antd';
+import { Layout, Row, Col, Spin, Tag, Affix, DatePicker, Select, Space, Divider, Card } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { CalendarOutlined, BranchesOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -69,53 +69,55 @@ const SimplePayrollPage: React.FC = () => {
         </div>
       </Header>
 
-      {/* 当前薪资周期悬浮显示 */}
+      {/* 当前薪资周期悬浮显示 - 使用系统统一卡片风格 */}
       <Affix offsetTop={0}>
-        <div className="current-period-indicator">
-          <div className="period-info">
-            <CalendarOutlined /> 当前周期:
-          </div>
-          <DatePicker
-            picker="month"
-            value={currentPeriod ? dayjs(currentPeriod.start_date) : undefined}
-            onChange={(date) => {
-              if (date) {
-                handleDateChange(date.year(), date.month() + 1);
-              }
-            }}
-            format="YYYY年MM月"
-            allowClear={false}
-            bordered={false}
-            suffixIcon={null}
-            className="period-picker"
-            dropdownClassName="period-picker-dropdown"
-          />
-          
-          <Divider type="vertical" className="indicator-divider" />
-          
-          <div className="version-info">
-            <BranchesOutlined /> 版本:
-          </div>
-          {versions && versions.length > 0 ? (
-            <Select
-              value={selectedVersionId}
-              onChange={handleVersionChange}
+        <Card className="period-indicator-card modern-card">
+          <div className="period-indicator-content">
+            <div className="period-info">
+              <CalendarOutlined className="indicator-icon" /> 当前周期:
+            </div>
+            <DatePicker
+              picker="month"
+              value={currentPeriod ? dayjs(currentPeriod.start_date) : undefined}
+              onChange={(date) => {
+                if (date) {
+                  handleDateChange(date.year(), date.month() + 1);
+                }
+              }}
+              format="YYYY年MM月"
+              allowClear={false}
               bordered={false}
-              className="version-picker"
-              dropdownClassName="version-picker-dropdown"
               suffixIcon={null}
-              disabled={!currentPeriod || versions.length === 0}
-            >
-              {versions.map(version => (
-                <Option key={version.id} value={version.id}>
-                  V{version.version_number} {version.description ? `(${version.description})` : ''}
-                </Option>
-              ))}
-            </Select>
-          ) : (
-            <span className="no-version">无版本</span>
-          )}
-        </div>
+              className="period-picker"
+              dropdownClassName="period-picker-dropdown"
+            />
+            
+            <Divider type="vertical" className="indicator-divider" />
+            
+            <div className="version-info">
+              <BranchesOutlined className="indicator-icon" /> 版本:
+            </div>
+            {versions && versions.length > 0 ? (
+              <Select
+                value={selectedVersionId}
+                onChange={handleVersionChange}
+                bordered={false}
+                className="version-picker"
+                dropdownClassName="version-picker-dropdown"
+                suffixIcon={null}
+                disabled={!currentPeriod || versions.length === 0}
+              >
+                {versions.map(version => (
+                  <Option key={version.id} value={version.id}>
+                    V{version.version_number} {version.description ? `(${version.description})` : ''}
+                  </Option>
+                ))}
+              </Select>
+            ) : (
+              <span className="no-version">无版本</span>
+            )}
+          </div>
+        </Card>
       </Affix>
 
       {/* Main Content Area */}

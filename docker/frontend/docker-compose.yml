@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ../../  # 上下文设置为项目根目录
+      dockerfile: docker/frontend/Dockerfile
+    container_name: salary_system_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - salary_network
+    depends_on:
+      - backend
+  
+  # 引用后端服务配置
+  backend:
+    build:
+      context: ../../  # 上下文设置为项目根目录
+      dockerfile: docker/backend/Dockerfile
+    container_name: salary_system_backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:810705@db:5432/salary_system_v2
+      - PYTHONPATH=/app
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "python", "/app/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - salary_network
+
+  # 数据库服务
+  db:
+    image: postgres:15-alpine
+    container_name: salary_system_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=810705
+      - POSTGRES_DB=salary_system_v2
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d salary_system_v2"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - salary_network
+
+networks:
+  salary_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local 

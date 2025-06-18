@@ -47,6 +47,7 @@ export interface PayrollDataModalPreset {
   id?: number;
   name: string;
   description?: string;
+  category?: string; // 新增：预设分组
   filterConfig: ColumnFilterConfig;
   columnSettings: ColumnSettings;
   tableFilterState?: TableFilterState; // 新增：表头筛选状态
@@ -61,6 +62,7 @@ export interface PayrollDataModalPreset {
 export interface PresetSaveRequest {
   name: string;
   description?: string;
+  category?: string; // 新增：预设分组
   filterConfig: ColumnFilterConfig;
   columnSettings: ColumnSettings;
   tableFilterState?: TableFilterState; // 新增：表头筛选状态
@@ -77,4 +79,16 @@ export interface PresetCategory {
   key: string;
   label: string;
   presets: PayrollDataModalPreset[];
+}
+
+// 预设分组管理接口
+export interface PresetGroup {
+  id?: number;
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
 } 

@@ -226,6 +226,34 @@ async def read_root():
     """Root endpoint providing a welcome message."""
     return {"message": "Welcome to the Salary Information Management System API"}
 
+@app.get("/health", tags=["System"])
+async def health_check():
+    """健康检查端点，用于Docker容器的健康检查"""
+    try:
+        # 简单的数据库连接检查
+        from sqlalchemy import text
+        from webapp.database import engine
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "database": "connected",
+            "version": settings.API_VERSION
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "unhealthy",
+                "timestamp": datetime.now().isoformat(),
+                "error": str(e),
+                "version": settings.API_VERSION
+            }
+        )
+
 # --- 以下端点已移至salary_data.py路由器 ---
 # @app.get("/api/salary_data/pay_periods", response_model=PayPeriodsResponse)
 # @app.get("/api/salary_data", response_model=PaginatedSalaryResponse)

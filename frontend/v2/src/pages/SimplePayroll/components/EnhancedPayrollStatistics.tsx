@@ -362,35 +362,11 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         style={{ marginBottom: 24 }}
       >
         <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} xl={4} xxl={4}>
+          <Col xs={24} sm={12} xl={6} xxl={6}>
             <StatisticCard
               statistic={{
-                title: '工资条目',
+                title: '工资记录数量',
                 value: payrollStats.recordCount,
-                suffix: '条',
-                valueStyle: { color: '#1890ff' }
-              }}
-              chart={
-                <div style={{ padding: '8px 0' }}>
-                  <Divider style={{ margin: '8px 0' }} />
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                    期间: {currentPeriod?.name || '-'}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                    状态: <span style={{ color: '#52c41a' }}>{currentPeriod?.status_name || '-'}</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>
-                    版本: v{currentVersion?.version_number || '-'} ({versions.length}个)
-                  </div>
-                </div>
-              }
-            />
-          </Col>
-          <Col xs={24} sm={12} xl={4} xxl={4}>
-            <StatisticCard
-              statistic={{
-                title: '数据完整性',
-                value: (dataIntegrityStats?.socialInsuranceBaseCount || 0) + (dataIntegrityStats?.housingFundBaseCount || 0) + (dataIntegrityStats?.incomeTaxPositiveCount || 0),
                 suffix: '条',
                 valueStyle: { color: '#722ed1' }
               }}
@@ -414,10 +390,10 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                   </div>
                 </div>
               }
-              loading={dataIntegrityStats?.loading || false}
+              loading={payrollStats.loading || dataIntegrityStats?.loading || false}
             />
           </Col>
-          <Col xs={24} sm={12} xl={4} xxl={4}>
+          <Col xs={24} sm={12} xl={6} xxl={6}>
             <StatisticCard
               statistic={{
                 title: '财务信息',
@@ -442,7 +418,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
               }
             />
           </Col>
-          <Col xs={24} sm={12} xl={4} xxl={4}>
+          <Col xs={24} sm={12} xl={6} xxl={6}>
             <StatisticCard
               statistic={{
                 title: '版本状态',
@@ -472,7 +448,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
               }
             />
           </Col>
-          <Col xs={24} sm={12} xl={4} xxl={4}>
+          <Col xs={24} sm={12} xl={6} xxl={6}>
             <StatisticCard
               statistic={{
                 title: '审核状态',

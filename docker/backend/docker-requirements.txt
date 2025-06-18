@@ -1,0 +1,6 @@
+# 导入主要依赖
+-r /app/webapp-requirements.txt
+
+# Docker环境特定依赖
+# 健康检查依赖 (虽然已在主requirements.txt中，但这里明确标注)
+requests>=2.31.0 

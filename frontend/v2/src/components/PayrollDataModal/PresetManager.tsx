@@ -17,7 +17,9 @@ import {
   Typography,
   Divider,
   Empty,
-  Card
+  Card,
+  Select,
+  Collapse
 } from 'antd';
 import {
   SaveOutlined,
@@ -31,17 +33,21 @@ import {
   UploadOutlined,
   MoreOutlined,
   ClockCircleOutlined,
-  EyeOutlined
+  EyeOutlined,
+  FolderOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { usePayrollDataPresets } from '../../hooks/usePayrollDataPresets';
 import type {
   PayrollDataModalPreset,
   ColumnFilterConfig,
-  ColumnSettings
+  ColumnSettings,
+  PresetGroup
 } from '../../types/payrollDataPresets';
 
 const { Text, Title } = Typography;
+const { Panel } = Collapse;
 
 interface PresetManagerProps {
   visible: boolean;
@@ -59,16 +65,18 @@ interface PresetManagerProps {
 interface SavePresetModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (name: string, description?: string, isDefault?: boolean, isPublic?: boolean) => void;
+  onSave: (name: string, description?: string, isDefault?: boolean, isPublic?: boolean, category?: string) => void;
   loading?: boolean;
+  availableGroups?: PresetGroup[];
 }
 
 interface EditPresetModalProps {
   visible: boolean;
   preset: PayrollDataModalPreset | null;
   onClose: () => void;
-  onSave: (id: number, name: string, description?: string, isDefault?: boolean, isPublic?: boolean) => void;
+  onSave: (id: number, name: string, description?: string, isDefault?: boolean, isPublic?: boolean, category?: string) => void;
   loading?: boolean;
+  availableGroups?: PresetGroup[];
 }
 
 const SavePresetModal: React.FC<SavePresetModalProps> = ({
