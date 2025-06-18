@@ -34,7 +34,7 @@ const ConfigPage: React.FC = () => {
   return (
     <div className={styles.configPageContainer}> {/* 应用样式 */}
       <Title level={2} className={styles.configPageTitle}> {/* 应用样式 */}
-        t('configpage.title')
+        {t('configpage.title')}
       </Title>
       <Card>
         <UnifiedTabs 

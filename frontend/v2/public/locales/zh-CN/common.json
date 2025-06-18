@@ -6,7 +6,7 @@
     "create": "创建",
     "delete": "删除",
     "edit": "编辑",
-    "export_excel": "",
+    "export_excel": "导出Excel",
     "title": "操作",
     "view": "查看"
   },
@@ -339,7 +339,7 @@
   "load_failed": "",
   "loading": {
     "generic_loading_text": "正在加载页面内容...",
-    "loading_details": "",
+    "loading_details": "正在加载详细信息...",
     "user_info": "正在加载用户信息..."
   },
   "loading_data": "加载数据中",
@@ -457,7 +457,7 @@
     }
   },
   "status": {
-    "not_selected": "",
+    "not_selected": "未选择",
     "unknown_status_param": "未知状态参数",
     "active": "活跃",
     "enabled": "已启用",

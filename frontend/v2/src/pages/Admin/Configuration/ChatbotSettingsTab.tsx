@@ -17,6 +17,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const ChatbotSettingsTab: React.FC = () => {
+  // 创建表单实例并确保它被正确连接到Form组件
   const [form] = Form.useForm();
   const dispatch: AppDispatch = useDispatch();
   const { t } = useTranslation(['admin', 'common']); // Ensure 'common' namespace is included if translations are there
@@ -26,18 +27,8 @@ const ChatbotSettingsTab: React.FC = () => {
   const chatbotConfig = initialChatbotConfig; // 临时使用默认配置
   const chatbotIsEnabled = false; // 临时禁用chatbot
 
-  useEffect(() => {
-    // Set form fields only if chatbotConfig is available
-    if (chatbotConfig) {
-      form.setFieldsValue({
-        token: chatbotConfig.token,
-        baseUrl: chatbotConfig.baseUrl,
-        customCss: chatbotConfig.customCss,
-        customJs: chatbotConfig.customJs,
-        systemVariables: JSON.stringify(chatbotConfig.systemVariables || [], null, 2),
-      });
-    }
-  }, [chatbotConfig, form]);
+  // 移除useEffect中的form.setFieldsValue，避免与initialValues冲突
+  // 当chatbotConfig变化时，我们不需要手动设置表单值，因为我们已经在Form组件中设置了initialValues
 
   const { message } = App.useApp(); // 使用 App.useApp() 获取 message 实例
 
@@ -87,7 +78,7 @@ const ChatbotSettingsTab: React.FC = () => {
     <Card variant="borderless">
       <Title level={4} className={styles.tabTitle}>{t('admin:chatbot_settings_title', 'AI 聊天机器人设置')}</Title>
       <Form
-        form={form}
+        form={form} // 确保form实例正确连接到Form组件
         layout="vertical"
         onFinish={handleSave}
         initialValues={{
