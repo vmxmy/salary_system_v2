@@ -41,6 +41,50 @@
       "result_desc": "将在此处显示导入成功、失败或部分成功的详细信息"
     }
   },
+  "batch_import": {
+    "result": {
+      "no_result": "暂无导入结果",
+      "success_title": "导入成功",
+      "success_subtitle": "成功导入 {{count}} 条记录",
+      "partial_title": "部分导入成功",
+      "partial_subtitle": "成功导入 {{success}} 条，失败 {{error}} 条记录",
+      "failure_title": "导入失败",
+      "failure_subtitle": "{{count}} 条记录导入失败",
+      "statistics": {
+        "total_processed": "总处理数",
+        "successful": "成功数量",
+        "failed": "失败数量"
+      },
+      "error_details_title": "错误详情",
+      "error_alert_title": "导入过程中发现以下错误",
+      "error_alert_desc": "请查看详细错误信息，修正数据后重新导入",
+      "error_table": {
+        "index": "序号",
+        "employee_id": "员工ID",
+        "error_message": "错误信息"
+      },
+      "success_details_title": "成功导入 {{count}} 条记录",
+      "success_alert_title": "导入成功",
+      "success_alert_desc": "已成功导入 {{count}} 条薪资记录",
+      "created_entries_preview": "已创建的薪资记录预览：",
+      "entry_item": "ID: {{id}} - {{employeeName}} - 实发工资: ¥{{amount}}",
+      "more_entries": "还有 {{count}} 条记录...",
+      "next_steps_title": "下一步操作",
+      "success_suggestion": "所有记录已成功导入，您可以前往薪资记录页面查看详细信息。",
+      "partial_suggestion": "部分记录导入成功",
+      "partial_suggestion_desc": "请检查失败记录的错误信息，修正后重新导入。",
+      "failure_suggestion": "导入失败",
+      "failure_suggestion_desc": "请检查错误信息，修正数据后重新尝试导入。"
+    },
+    "step": {
+      "result": "导入结果",
+      "result_subtitle": "查看导入操作的详细结果"
+    },
+    "button": {
+      "start_again": "重新导入",
+      "view_entries": "查看薪资记录"
+    }
+  },
   "presets": {
     "group_manager": {
       "title": "分组管理",

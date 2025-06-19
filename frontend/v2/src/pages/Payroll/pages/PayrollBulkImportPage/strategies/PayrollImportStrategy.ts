@@ -224,6 +224,32 @@ export class PayrollImportStrategy extends BaseImportStrategy {
       });
     });
     
+    // JSONB 字段
+    fields.push(
+      {
+        key: 'earnings_details',
+        name: '收入明细',
+        type: 'text',
+        category: 'earning',
+        required: false,
+        description: '收入项目的详细金额，以JSON格式存储',
+        validation: {
+          message: '收入明细格式不正确'
+        }
+      },
+      {
+        key: 'deductions_details',
+        name: '扣除明细',
+        type: 'text',
+        category: 'deduction',
+        required: false,
+        description: '扣除项目的详细金额，以JSON格式存储',
+        validation: {
+          message: '扣除明细格式不正确'
+        }
+      }
+    );
+    
     // 备注字段
     fields.push({
       key: 'remarks',
@@ -263,33 +289,75 @@ export class PayrollImportStrategy extends BaseImportStrategy {
   ): ProcessedRow[] {
     const { headers, rows } = rawData;
     
+    console.log('🔍 [PayrollImportStrategy] 开始处理数据:', { 
+      headerCount: headers.length, 
+      rowCount: rows.length 
+    });
+    console.log('🔍 [PayrollImportStrategy] Headers:', headers);
+    console.log('🔍 [PayrollImportStrategy] Mapping:', mapping);
+    
     return rows.map((row, rowIndex) => {
       const rowData: Record<string, any> = {};
       const earnings_details: Record<string, any> = {};
       const deductions_details: Record<string, any> = {};
       
+      console.log(`🔍 [PayrollImportStrategy] 处理第${rowIndex + 1}行数据:`, row);
+      
       headers.forEach((header, colIndex) => {
         const systemKey = mapping[header];
         const cellValue = row[colIndex];
+        
+        console.log(`🔍 [PayrollImportStrategy] 列${colIndex}: "${header}" → "${systemKey}" = "${cellValue}"`);
         
         if (systemKey && cellValue !== null && cellValue !== undefined && cellValue !== '') {
           // 处理基础字段
           if (systemKey === 'employee_name' || systemKey === 'id_number' || systemKey === 'remarks') {
             rowData[systemKey] = cellValue;
           }
-          // 处理薪资组件字段
+          // 处理点号语法的薪资组件字段（如 earnings_details.BASIC_SALARY.amount）
+          else if (systemKey.includes('earnings_details.') && systemKey.includes('.amount')) {
+            const parts = systemKey.split('.');
+            console.log(`🔍 [PayrollImportStrategy] 检测到 earnings_details 点号语法: ${systemKey}`, { parts });
+            if (parts.length === 3 && parts[0] === 'earnings_details' && parts[2] === 'amount') {
+              const componentCode = parts[1];
+              const amount = parseFloat(String(cellValue)) || 0;
+              console.log(`🔍 [PayrollImportStrategy] 处理收入组件: ${componentCode} = ${amount}`);
+              if (amount !== 0) { // 允许负数
+                earnings_details[componentCode] = { amount };
+                console.log(`✅ [PayrollImportStrategy] 已添加收入组件: ${componentCode}`, earnings_details);
+              }
+            }
+          }
+          else if (systemKey.includes('deductions_details.') && systemKey.includes('.amount')) {
+            const parts = systemKey.split('.');
+            console.log(`🔍 [PayrollImportStrategy] 检测到 deductions_details 点号语法: ${systemKey}`, { parts });
+            if (parts.length === 3 && parts[0] === 'deductions_details' && parts[2] === 'amount') {
+              const componentCode = parts[1];
+              const amount = parseFloat(String(cellValue)) || 0;
+              console.log(`🔍 [PayrollImportStrategy] 处理扣除组件: ${componentCode} = ${amount}`);
+              if (amount !== 0) { // 允许负数
+                deductions_details[componentCode] = { amount };
+                console.log(`✅ [PayrollImportStrategy] 已添加扣除组件: ${componentCode}`, deductions_details);
+              }
+            }
+          }
+          // 处理前缀形式的薪资组件字段（向后兼容）
           else if (systemKey.startsWith('earning_')) {
             const componentCode = systemKey.replace('earning_', '');
             const amount = parseFloat(String(cellValue)) || 0;
-            if (amount > 0) {
-              earnings_details[componentCode] = { amount }; // 修复：使用对象格式
+            console.log(`🔍 [PayrollImportStrategy] 前缀形式收入组件: ${componentCode} = ${amount}`);
+            if (amount !== 0) { // 允许负数
+              earnings_details[componentCode] = { amount };
+              console.log(`✅ [PayrollImportStrategy] 已添加前缀收入组件: ${componentCode}`, earnings_details);
             }
           }
           else if (systemKey.startsWith('deduction_')) {
             const componentCode = systemKey.replace('deduction_', '');
             const amount = parseFloat(String(cellValue)) || 0;
-            if (amount > 0) {
-              deductions_details[componentCode] = { amount }; // 修复：使用对象格式
+            console.log(`🔍 [PayrollImportStrategy] 前缀形式扣除组件: ${componentCode} = ${amount}`);
+            if (amount !== 0) { // 允许负数
+              deductions_details[componentCode] = { amount };
+              console.log(`✅ [PayrollImportStrategy] 已添加前缀扣除组件: ${componentCode}`, deductions_details);
             }
           }
           // 忽略其他数值字段，不进行任何计算
@@ -303,9 +371,11 @@ export class PayrollImportStrategy extends BaseImportStrategy {
       rowData.earnings_details = earnings_details;
       rowData.deductions_details = deductions_details;
       
-      console.log(`🔍 [数据处理] 第${rowIndex + 1}行 ${rowData.employee_name}:`, {
+      console.log(`🔍 [PayrollImportStrategy] 第${rowIndex + 1}行 ${rowData.employee_name} 处理完成:`, {
         earnings_details,
-        deductions_details
+        deductions_details,
+        earningsCount: Object.keys(earnings_details).length,
+        deductionsCount: Object.keys(deductions_details).length
       });
       
       return {

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Steps, Card, Button, message as staticMessage, Table, Alert, Tag, Tooltip, App, Collapse } from 'antd';
+import { Steps, Card, Button, message as staticMessage, Table, Alert, Tag, Tooltip, App, Collapse, Typography } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import { PageContainer } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
@@ -16,14 +16,17 @@ import UniversalDataUpload from './components/UniversalDataUpload';
 import FieldMapping from './components/FieldMapping';
 import PayrollPeriodSelector from './components/PayrollPeriodSelector';
 import { OverwriteModeSelector } from './components/OverwriteModeSelector';
+import ImportResultStep from './components/ImportResultStep';
 import { usePayrollPeriods } from '../../services/payrollPeriodService';
 import { ImportStrategyFactory } from './strategies';
 import { DEFAULT_IMPORT_SETTINGS } from './constants/overwriteMode';
 import type { ImportModeID, ImportModeConfig, RawImportData, ProcessedRow, ValidationResult, ImportSettings } from './types/universal';
+import type { UploadResult } from './types/constants';
 import { OverwriteMode } from '../../types/payrollTypes';
 
 const { Step } = Steps;
 const { Panel } = Collapse;
+const { Text } = Typography;
 
 // --- DataPreview Sub-Component (Dumbed down) ---
 const DataPreview: React.FC<{
@@ -33,12 +36,66 @@ const DataPreview: React.FC<{
   importSettings: ImportSettings;
   onSettingsChange: (settings: ImportSettings) => void;
 }> = ({ processedData, validationResults, modeConfig, importSettings, onSettingsChange }): React.ReactElement => {
+  
+  console.log('🔍 [DataPreview] 接收到的数据:', { 
+    processedDataCount: processedData.length,
+    firstRowData: processedData[0]?.data,
+    validationResultsCount: validationResults.length
+  });
+  
   const { columns, errorCount } = useMemo(() => {
     const allSystemFields = [...modeConfig.requiredFields, ...modeConfig.optionalFields];
     const mappedSystemKeys = Object.keys(processedData[0]?.data || {});
+    
+    console.log('🔍 [DataPreview] 字段分析:', {
+      allSystemFields: allSystemFields.map(f => f.key),
+      mappedSystemKeys,
+      earnings_details: processedData[0]?.data?.earnings_details,
+      deductions_details: processedData[0]?.data?.deductions_details
+    });
 
     const tableColumns: ColumnType<ProcessedRow>[] = mappedSystemKeys.map(systemKey => {
       const fieldConfig = allSystemFields.find(f => f.key === systemKey);
+      
+      // 为 JSONB 字段添加自定义渲染
+      if (systemKey === 'earnings_details' || systemKey === 'deductions_details') {
+        return {
+          title: fieldConfig?.name || systemKey,
+          dataIndex: ['data', systemKey],
+          key: systemKey,
+          width: 300,
+          render: (value: Record<string, any>) => {
+            console.log(`🔍 [DataPreview] 渲染 ${systemKey}:`, { value, type: typeof value });
+            
+            if (!value || typeof value !== 'object' || Object.keys(value).length === 0) {
+              console.log(`⚠️ [DataPreview] ${systemKey} 为空或无效:`, value);
+              return <Text type="secondary">-</Text>;
+            }
+            
+            const items = Object.entries(value).map(([code, detail]: [string, any]) => {
+              const amount = detail?.amount || detail;
+              console.log(`🔍 [DataPreview] ${systemKey} 组件:`, { code, detail, amount });
+              return (
+                <div key={code} style={{ marginBottom: 4 }}>
+                  <Tag color="blue" style={{ fontSize: '12px' }}>
+                    {code}: ¥{typeof amount === 'number' ? amount.toFixed(2) : amount}
+                  </Tag>
+                </div>
+              );
+            });
+            
+            console.log(`✅ [DataPreview] ${systemKey} 渲染 ${items.length} 个组件`);
+            
+            return (
+              <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                {items}
+              </div>
+            );
+          }
+        };
+      }
+      
+      // 普通字段
       return {
         title: fieldConfig?.name || systemKey,
         dataIndex: ['data', systemKey],
@@ -434,7 +491,7 @@ const UniversalImportPage: React.FC = () => {
   const [availableModes, setAvailableModes] = useState<ImportModeConfig[]>([]);
   const [rawImportData, setRawImportData] = useState<RawImportData | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
-  const [importResult, setImportResult] = useState<any>(null);
+  const [importResult, setImportResult] = useState<UploadResult | null>(null);
   const [processedData, setProcessedData] = useState<ProcessedRow[] | null>(null);
   const [validationResults, setValidationResults] = useState<ValidationResult[] | null>(null);
   const [importSettings, setImportSettings] = useState<ImportSettings>(DEFAULT_IMPORT_SETTINGS);
@@ -553,7 +610,19 @@ const UniversalImportPage: React.FC = () => {
       console.error("导入失败:", error);
       const errorMessage = error instanceof Error ? error.message : "导入过程中发生未知错误。";
       message.error(errorMessage);
-      setImportResult({ success: false, message: errorMessage, successCount: 0, failedCount: rawImportData?.rows.length || 0 });
+      const totalRecords = rawImportData?.rows.length || 0;
+      const errorResult: UploadResult = {
+        success_count: 0,
+        error_count: totalRecords,
+        errors: [{
+          index: 0,
+          error: errorMessage
+        }],
+        successCount: 0,
+        errorCount: totalRecords,
+        createdEntries: []
+      };
+      setImportResult(errorResult);
       setCurrentStep(steps.length - 1); // Also go to results page on failure
     } finally {
       setLoading(false);
@@ -587,16 +656,30 @@ const UniversalImportPage: React.FC = () => {
       }
       setLoading(true);
       try {
+        console.log('🔍 [UniversalImportPage] 开始数据处理:', {
+          selectedMode,
+          fieldMapping,
+          rawImportDataHeaders: rawImportData.headers,
+          rawImportDataRowCount: rawImportData.rows.length
+        });
+        
         const strategy = await ImportStrategyFactory.getStrategy(selectedMode);
         const processed = strategy.processData(rawImportData, fieldMapping);
+        
+        console.log('🔍 [UniversalImportPage] 数据处理完成:', {
+          processedCount: processed.length,
+          firstProcessedData: processed[0]?.data,
+          earnings_details_first: processed[0]?.data?.earnings_details,
+          deductions_details_first: processed[0]?.data?.deductions_details
+        });
         
         // 先用默认的追加模式进行验证，获取重复记录信息
         const validation = await strategy.validateData(processed, selectedPeriodId, OverwriteMode.NONE);
         
-        // 调试信息：打印验证结果的结构
-        console.log('🔍 [调试] 处理后的数据:', processed);
-        console.log('🔍 [调试] 验证结果:', validation);
-        console.log('🔍 [调试] 验证结果示例:', validation[0]);
+        console.log('🔍 [UniversalImportPage] 验证完成:', {
+          validationCount: validation.length,
+          validationExample: validation[0]
+        });
         
         setProcessedData(processed);
         setValidationResults(validation);
@@ -676,27 +759,22 @@ const UniversalImportPage: React.FC = () => {
           />
         );
       case 5:
-        if (!importResult) {
-          return <p>正在生成导入结果...</p>;
-        }
         return (
-          <Card title="导入结果">
-            {importResult.success ? (
-              <Alert
-                message={`导入完成`}
-                description={`成功导入 ${importResult.successCount} 条记录，失败 ${importResult.failedCount} 条。`}
-                type="success"
-                showIcon
-              />
-            ) : (
-              <Alert
-                message="导入失败"
-                description={importResult.message}
-                type="error"
-                showIcon
-              />
-            )}
-          </Card>
+          <ImportResultStep
+            uploadResult={importResult}
+            onStartAgain={() => {
+              setCurrentStep(0);
+              setImportResult(null);
+              setRawImportData(null);
+              setFieldMapping({});
+              setProcessedData(null);
+              setValidationResults(null);
+            }}
+            onNavigateToEntries={() => {
+              // Navigate to payroll entries page
+              window.location.href = '/payroll/runs';
+            }}
+          />
         );
       default:
         return <p>未知步骤</p>;
