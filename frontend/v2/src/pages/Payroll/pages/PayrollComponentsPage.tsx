@@ -7,7 +7,8 @@ import { stringSorter, numberSorter } from '../../../components/common/TableUtil
 import TableActionButton from '../../../components/common/TableActionButton';
 import StandardListPageTemplate from '../../../components/common/StandardListPageTemplate';
 import * as payrollApi from '../services/payrollApi';
-import * as configApi from '../../../api/config';
+import * as configApi from '@/api/config';
+import apiClient from '@/api/apiClient';
 import type { PayrollComponentDefinition } from '../types/payrollTypes';
 
 const { Option } = Select;
@@ -22,62 +23,80 @@ const usePayrollComponentPermissions = () => ({
   canExport: true,
 });
 
+interface LookupData {
+  typeMap: Map<string, string>;
+  typeInfo: Record<string, { text: string; color: string }>;
+}
+
 // 查找数据管理
 const usePayrollComponentLookups = () => {
-  const [lookupMaps, setLookupMaps] = useState<any>({});
+  const [lookupMaps, setLookupMaps] = useState<LookupData>({ typeMap: new Map(), typeInfo: {} });
   const [loadingLookups, setLoadingLookups] = useState(true);
   const [errorLookups, setErrorLookups] = useState<any>(null);
 
   const fetchLookups = useCallback(async () => {
+    console.log('🔄 [PayrollComponentsPage] Fetching component types...');
     setLoadingLookups(true);
     setErrorLookups(null);
+   
+    
     try {
-      const response = await configApi.getPayrollComponentTypes();
-      
-      const typeMap = new Map();
-      const typeInfo: Record<string, { text: string, color: string }> = {};
-      
-      response.data.forEach((type: any) => {
-        const typeCode = type.code || type.value_code;
-        const typeName = type.name || type.value_name;
-        
-        // 获取颜色
-        let color = 'default';
-        switch(typeCode.toUpperCase()){
-          case 'EARNING':
-            color = 'green';
-            break;
-          case 'STAT':
-          case 'STATUTORY':
-            color = 'blue';
-            break;
-          case 'DEDUCTION':
-            color = 'red';
-            break;
-          case 'EMPLOYER_DEDUCTION':
-            color = 'orange';
-            break;
-          case 'PERSONAL_DEDUCTION':
-            color = 'purple';
-            break;
-          case 'BENEFIT':
-            color = 'cyan';
-            break;
-          case 'OTHER':
-            color = 'gray';
-            break;
+      // 优先使用lookup值表获取类型（已预设好的中文名称）
+      const response = await apiClient.get('/config/lookup-values-public', {
+        params: {
+          lookup_type_code: 'PAYROLL_COMPONENT_TYPE'
         }
-        
-        typeMap.set(typeCode, typeName);
-        typeInfo[typeCode] = { text: typeName, color };
       });
+      console.log('✅ [PayrollComponentsPage] 组件类型Lookup API Response:', response);
+
+      const newTypeMap = new Map<string, string>();
+      const newTypeInfo: Record<string, { text: string, color: string }> = {};
+
+      // 处理查找到的组件类型，正确访问嵌套的 data 数组
+      const lookupData = response?.data?.data;
+      if (lookupData && Array.isArray(lookupData) && lookupData.length > 0) {
+        lookupData.forEach((item: any) => {
+          if (item.code && item.name) {
+            let color = 'default';
+            
+            // 根据类型设置颜色
+            switch(item.code.toUpperCase()) {
+              case 'EARNING': color = 'green'; break;
+              case 'DEDUCTION': color = 'red'; break;
+              case 'PERSONAL_DEDUCTION': color = 'purple'; break;
+              case 'EMPLOYER_DEDUCTION': color = 'orange'; break;
+              case 'STATUTORY': case 'STAT': color = 'blue'; break;
+              case 'BENEFIT': color = 'cyan'; break;
+              case 'OTHER': color = 'gray'; break;
+              case 'CALCULATION_BASE': color = 'geekblue'; break;
+              case 'CALCULATION_RATE': color = 'geekblue'; break;
+              case 'CALCULATION_RESULT': color = 'geekblue'; break;
+              case 'TAX': color = 'magenta'; break;
+              case 'REFUND_DEDUCTION_ADJUSTMENT': color = 'volcano'; break;
+            }
+            
+            newTypeMap.set(item.code, item.name);
+            newTypeInfo[item.code] = { text: item.name, color };
+          }
+        });
+        
+        console.log('✅ [PayrollComponentsPage] 从lookup获取到的类型数量:', lookupData.length);
+        console.log('✅ [PayrollComponentsPage] 类型内容:', Array.from(newTypeMap.entries()));
+      }
       
-      setLookupMaps({
-        typeMap,
-        typeInfo,
+      setLookupMaps({ typeMap: newTypeMap, typeInfo: newTypeInfo });
+      console.log('✅ [PayrollComponentsPage] 处理后的组件类型:', { 
+        typeMapSize: newTypeMap.size, 
+        typeInfoKeys: Object.keys(newTypeInfo),
+        typeMapEntries: Array.from(newTypeMap.entries())
       });
     } catch (error) {
+      console.error('❌ [PayrollComponentsPage] Failed to fetch component types:', error);
       setErrorLookups(error);
+      
+      // API失败时，设置为空
+      console.warn('⚠️ [PayrollComponentsPage] API获取组件类型失败，设置为空');
+      setLookupMaps({ typeMap: new Map(), typeInfo: {} });
     } finally {
       setLoadingLookups(false);
     }
@@ -295,13 +314,29 @@ const PayrollComponentsPageNew: React.FC = () => {
 
   // 处理模态框确认
   const handleModalOk = async () => {
+    setLoadingData(true);
     try {
-      const values = await form.validateFields();
+      // 表单验证
+      const values = await form.validateFields().catch(errorInfo => {
+        console.error("表单验证错误:", errorInfo);
+        // 显示第一个错误字段的错误信息
+        if (errorInfo && errorInfo.errorFields && errorInfo.errorFields.length > 0) {
+          const firstError = errorInfo.errorFields[0];
+          messageApi.error(`${firstError.name[0]} ${firstError.errors[0]}`);
+        } else {
+          messageApi.error(t('common.validation.form_has_errors'));
+        }
+        throw errorInfo; // 重新抛出错误，阻止后续处理
+      });
       
-      // 映射前端字段名到后端期望的字段名
+      // 表单验证通过，准备提交数据
+      console.log("表单验证通过，准备提交数据:", values);
+      
+      // 数据映射转换
       const mappedValues = {
         ...values,
-        display_order: values.sort_order,
+        display_order: parseInt(values.sort_order) || 0,
+        calculation_method: values.calculation_method || 'FIXED_AMOUNT',
       };
       
       delete mappedValues.sort_order;
@@ -392,18 +427,24 @@ const PayrollComponentsPageNew: React.FC = () => {
               label={t('payroll_components.type')}
               rules={[{ required: true, message: t('common.validation.required') }]}
             >
-              <Select>
-                {lookupMaps?.typeInfo ? (
-                  Object.entries(lookupMaps.typeInfo).map(([typeCode, typeData]: [string, any]) => (
-                    <Option key={typeCode} value={typeCode}>{typeData.text}</Option>
-                  ))
-                ) : (
-                  <>
-                    <Option value="EARNING">收入项</Option>
-                    <Option value="DEDUCTION">扣除项</Option>
-                  </>
-                )}
-              </Select>
+              <Select
+                placeholder={t('payroll_components.placeholders.type')}
+                loading={loadingLookups}
+                disabled={loadingLookups}
+                options={
+                  lookupMaps && lookupMaps.typeMap && lookupMaps.typeMap.size > 0
+                  ? Array.from(lookupMaps.typeMap.entries()).map(([code, name]) => {
+                      console.log(`转换类型选项: ${code} -> ${name}`);
+                      return {
+                        value: code,
+                        label: name,
+                      };
+                    }) 
+                  : []
+                }
+                showSearch
+                optionFilterProp="label"
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -437,7 +478,7 @@ const PayrollComponentsPageNew: React.FC = () => {
           </Col>
         </Row>
 
-        <Divider>t('payroll_components.options')</Divider>
+        <Divider>{t('payroll_components.options')}</Divider>
 
         <Row gutter={16}>
           <Col span={8}>
@@ -812,58 +853,60 @@ const PayrollComponentsPageNew: React.FC = () => {
     </Modal>
   );
 
+  const templateProps = {
+    translationNamespaces: ['payroll_components', 'common'],
+    pageTitleKey: 'payroll_components.title',
+    addButtonTextKey: 'payroll_components.add',
+    dataSource,
+    loadingData,
+    permissions,
+    lookupMaps,
+    loadingLookups,
+    errorLookups,
+    fetchData,
+    deleteItem,
+    onAddClick: handleAddClick,
+    onEditClick: handleEditClick,
+    onViewDetailsClick: handleViewDetailsClick,
+    generateTableColumns: generatePayrollComponentTableColumns,
+    deleteConfirmConfig: {
+      titleKey: 'common.confirmDelete',
+      contentKey: 'common.confirmDeleteContent',
+      okTextKey: 'common.yes',
+      cancelTextKey: 'common.no',
+      successMessageKey: 'payroll_components.delete_success',
+      errorMessageKey: 'common.error.delete',
+    },
+    batchDeleteConfig: {
+      enabled: true,
+      buttonText: t('payroll:auto_text_e689b9'),
+      confirmTitle: t('payroll:auto_text_e7a1ae'),
+      confirmContent: t('payroll:auto____e7a1ae'),
+      confirmOkText: t('payroll:auto_text_e7a1ae'),
+      confirmCancelText: t('payroll:auto_text_e58f96'),
+      successMessage: t('payroll:auto_text_e689b9'),
+      errorMessage: t('payroll:auto_text_e689b9'),
+      noSelectionMessage: t('payroll:auto_text_e8afb7'),
+      onBatchDelete: async (keys: React.Key[]) => {
+        await Promise.all(keys.map(key => payrollApi.deletePayrollComponentDefinition(Number(key))));
+        fetchData();
+      },
+    },
+    exportConfig: {
+      filenamePrefix: t('payroll:auto_text_e896aa'),
+      sheetName: t('payroll:auto_text_e896aa'),
+      buttonText: t('payroll:auto_excel_e5afbc'),
+      successMessage: t('payroll:auto_text_e896aa'),
+    },
+    lookupErrorMessageKey: 'common.error.fetch',
+    lookupLoadingMessageKey: 'common.loading',
+    lookupDataErrorMessageKey: 'common.error.loadData',
+    rowKey: 'id',
+  };
+
   return (
     <>
-      <StandardListPageTemplate<PayrollComponentDefinition>
-        translationNamespaces={['payroll_components', 'common']}
-        pageTitleKey="payroll_components.title"
-        addButtonTextKey="payroll_components.add"
-        dataSource={dataSource}
-        loadingData={loadingData}
-        permissions={permissions}
-        lookupMaps={lookupMaps}
-        loadingLookups={loadingLookups}
-        errorLookups={errorLookups}
-        fetchData={fetchData}
-        deleteItem={deleteItem}
-        onAddClick={handleAddClick}
-        onEditClick={handleEditClick}
-        onViewDetailsClick={handleViewDetailsClick}
-        generateTableColumns={generatePayrollComponentTableColumns}
-        deleteConfirmConfig={{
-          titleKey: 'common.confirmDelete',
-          contentKey: 'common.confirmDeleteContent',
-          okTextKey: 'common.yes',
-          cancelTextKey: 'common.no',
-          successMessageKey: 'payroll_components.delete_success',
-          errorMessageKey: 'common.error.delete',
-        }}
-        batchDeleteConfig={{
-          enabled: true,
-          buttonText: t('payroll:auto_text_e689b9'),
-          confirmTitle: t('payroll:auto_text_e7a1ae'),
-          confirmContent: t('payroll:auto____e7a1ae'),
-          confirmOkText: t('payroll:auto_text_e7a1ae'),
-          confirmCancelText: t('payroll:auto_text_e58f96'),
-          successMessage: t('payroll:auto_text_e689b9'),
-          errorMessage: t('payroll:auto_text_e689b9'),
-          noSelectionMessage: t('payroll:auto_text_e8afb7'),
-          onBatchDelete: async (keys: React.Key[]) => {
-            await Promise.all(keys.map(key => payrollApi.deletePayrollComponentDefinition(Number(key))));
-            fetchData();
-          },
-        }}
-        exportConfig={{
-          filenamePrefix: t('payroll:auto_text_e896aa'),
-          sheetName: t('payroll:auto_text_e896aa'),
-          buttonText: t('payroll:auto_excel_e5afbc'),
-          successMessage: t('payroll:auto_text_e896aa'),
-        }}
-        lookupErrorMessageKey="common.error.fetch"
-        lookupLoadingMessageKey="common.loading"
-        lookupDataErrorMessageKey="common.error.loadData"
-        rowKey="id"
-      />
+      <StandardListPageTemplate {...templateProps} />
       {renderModal()}
       {renderDetailModal()}
     </>

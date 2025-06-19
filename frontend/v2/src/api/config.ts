@@ -18,7 +18,12 @@ export const getLookupValues = async (typeCode: string, options?: any): Promise<
  * @returns 薪资字段类型列表响应
  */
 export const getPayrollComponentTypes = async (): Promise<PaginatedResponse<LookupValue>> => {
-  const url = `/config/payroll-component-types`;
-  const response = await apiClient.get(url);
+  const url = `/config/lookup-values-public`;
+  const response = await apiClient.get(url, { 
+    params: {
+      lookup_type_code: 'PAYROLL_COMPONENT_TYPE'
+    }
+  });
+  console.log('✅ getPayrollComponentTypes response:', response.data);
   return response.data;
 } 

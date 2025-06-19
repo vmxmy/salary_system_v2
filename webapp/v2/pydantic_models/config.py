@@ -154,28 +154,22 @@ class PayrollComponentDefinitionCreate(PayrollComponentDefinitionBase):
 
 
 class PayrollComponentDefinitionUpdate(BaseModel):
-    """更新薪资组件定义模型"""
-    code: Optional[str] = Field(None, description="Component code, unique identifier")
-    name: Optional[str] = Field(None, description="Component name")
+    """更新薪资组件定义模型 - 与Base对齐，所有字段可选"""
+    code: Optional[str] = Field(None, description="Unique code for the component")
+    name: Optional[str] = Field(None, description="Name of the component")
+    type: Optional[Literal["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", 
+                             "BENEFIT", "STATUTORY", "STAT", "OTHER",
+                             "CALCULATION_BASE", "CALCULATION_RATE", "CALCULATION_RESULT", "TAX"]] = Field(None, description="Component type")
+    calculation_method: Optional[str] = Field(None, description="Method used for calculation")
+    calculation_parameters: Optional[Dict[str, Any]] = Field(None, description="Parameters for the calculation method")
+    is_taxable: Optional[bool] = Field(None, description="Whether this component is subject to income tax")
+    is_social_security_base: Optional[bool] = Field(None, description="Whether this component contributes to social security base")
+    is_housing_fund_base: Optional[bool] = Field(None, description="Whether this component contributes to housing fund base")
+    display_order: Optional[int] = Field(None, description="Order for displaying on payslip")
+    is_active: Optional[bool] = Field(None, description="Whether this component is active")
+    effective_date: Optional[date] = Field(None, description="Definition effective date")
+    end_date: Optional[date] = Field(None, description="Definition end date")
     description: Optional[str] = Field(None, description="Component description")
-    component_type: Optional[str] = Field(None, description="Component type, e.g., 'Earning', 'Deduction'")
-    calculation_method: Optional[str] = Field(None, description="How the component value is calculated")
-    calculation_formula: Optional[str] = Field(None, description="Formula or rules for calculating this component")
-    unit_type: Optional[str] = Field(None, description="Unit type for this component (e.g., 'Amount', 'Percentage')")
-    applies_to_employee_groups: Optional[str] = Field(None, description="Which employee groups this component applies to")
-    tax_implications: Optional[str] = Field(None, description="Tax implications or treatment of this component")
-    is_mandatory: Optional[bool] = Field(None, description="Whether this component is mandatory for payroll calculation")
-    is_visible_to_employee: Optional[bool] = Field(None, description="Whether this component is visible to employees")
-    is_active: Optional[bool] = Field(None, description="Whether this component definition is currently active")
-    effective_date: Optional[date] = Field(None, description="Date when this component definition becomes effective")
-    end_date: Optional[date] = Field(None, description="Date when this component definition expires")
-    display_order: Optional[int] = Field(None, description="Order in which this component should be displayed")
-    rounding_rule: Optional[str] = Field(None, description="Rules for rounding the calculated value")
-    minimum_value: Optional[float] = Field(None, description="Minimum allowed value for this component")
-    maximum_value: Optional[float] = Field(None, description="Maximum allowed value for this component")
-    default_value: Optional[float] = Field(None, description="Default value for this component if not specified")
-    approval_required: Optional[bool] = Field(None, description="Whether changes to this component require approval")
-    created_by_user_id: Optional[int] = Field(None, description="ID of user who created this definition")
     
     class Config:
         title = "PayrollComponentUpdate"

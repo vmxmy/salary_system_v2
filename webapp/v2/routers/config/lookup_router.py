@@ -15,6 +15,7 @@ from ...pydantic_models.common import DataResponse
 from webapp.auth import get_current_user, require_permissions, smart_require_permissions # User for some, permissions for others
 from ...utils import create_error_response
 from ...pydantic_models import security as v2_security_schemas # Import security schemas for User model
+from ...models.config import PayrollComponentDefinition
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,23 +31,56 @@ router = APIRouter(
 @router.get("/payroll-component-types", response_model=LookupValueListResponse)
 async def get_payroll_component_types(
     db: Session = Depends(get_db_v2),
-    current_user: v2_security_schemas.User = Depends(get_current_user), # Corrected type hint
+    current_user: v2_security_schemas.User = Depends(get_current_user),
 ):
     """获取薪资字段类型列表 (这是一个特殊的lookup)"""
     try:
-        lookup_type = crud.get_lookup_type_by_code(db, "PAYROLL_COMPONENT_TYPE")
-        if not lookup_type:
-            return LookupValueListResponse(data=[], meta={"page":1, "size":0, "total": 0, "totalPages":0}) # Ensure meta is complete
-        
-        lookup_values, total = crud.get_lookup_values(
-            db=db, 
-            lookup_type_id=lookup_type.id,
-            is_active=True # Assuming we only want active ones here
+        # 从 payroll.payroll_component_definitions 表中直接获取所有唯一的 type 值
+        distinct_types_query = db.query(PayrollComponentDefinition.type).distinct().filter(
+            PayrollComponentDefinition.type.isnot(None)
         )
-        # Assuming crud.get_lookup_values doesn't return full ListResponse structure
+        distinct_types = [row[0] for row in distinct_types_query.all() if row[0] is not None]
+        
+        # 添加调试日志
+        logger.info(f"从数据库获取到的PayrollComponentDefinition类型: {distinct_types}")
+        
+        # 标准化类型名称和显示（简单映射中英文）
+        type_display_map = {
+            "EARNING": "应发项",
+            "DEDUCTION": "扣除项",
+            "PERSONAL_DEDUCTION": "个人扣缴项",
+            "EMPLOYER_DEDUCTION": "单位扣缴项", 
+            "STATUTORY": "法定项目",
+            "STAT": "法定项目",
+            "BENEFIT": "福利项目",
+            "OTHER": "其他项目",
+            "REFUND_DEDUCTION_ADJUSTMENT": "补扣（退）款"
+        }
+        
+        if len(distinct_types) == 0:
+            # 如果数据库中没有类型，提供默认类型
+            logger.warning("数据库中没有找到薪资组件类型，使用默认值")
+            distinct_types = ["EARNING", "DEDUCTION", "PERSONAL_DEDUCTION", "EMPLOYER_DEDUCTION", "STATUTORY", "BENEFIT", "OTHER", "REFUND_DEDUCTION_ADJUSTMENT"]
+
+        # 将查询结果转换为前端期望的 LookupValue 格式
+        lookup_values_pydantic = []
+        for i, type_code in enumerate(distinct_types):
+            name = type_display_map.get(type_code, type_code)
+            lookup_values_pydantic.append(
+                LookupValue(
+                    id=i + 1,
+                    lookup_type_id=999,
+                    code=type_code,
+                    name=name,
+                    is_active=True
+                )
+            )
+
+        logger.info(f"返回的薪资组件类型数量: {len(lookup_values_pydantic)}")
+        
         return LookupValueListResponse(
-            data=lookup_values, 
-            meta={"page":1, "size":len(lookup_values), "total": total, "totalPages":1}
+            data=lookup_values_pydantic,
+            meta={"page":1, "size":len(lookup_values_pydantic), "total": len(lookup_values_pydantic), "totalPages":1}
         )
     except Exception as e:
         logger.error(f"Error getting payroll component types: {e}", exc_info=True)

@@ -139,7 +139,8 @@ def update_lookup_type(db: Session, lookup_type_id: int, lookup_type: LookupType
     # 更新查找类型
     update_data = lookup_type.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(db_lookup_type, key, value)
+        if value is not None:
+            setattr(db_lookup_type, key, value)
 
     db.commit()
     db.refresh(db_lookup_type)
@@ -316,7 +317,8 @@ def update_lookup_value(db: Session, lookup_value_id: int, lookup_value: LookupV
     # 更新查找值
     update_data = lookup_value.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(db_lookup_value, key, value)
+        if value is not None:
+            setattr(db_lookup_value, key, value)
 
     db.commit()
     db.refresh(db_lookup_value)
@@ -457,7 +459,8 @@ def update_system_parameter(db: Session, param_key: str, parameter: SystemParame
     # 更新系统参数
     update_data = parameter.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(db_parameter, key, value)
+        if value is not None:
+            setattr(db_parameter, key, value)
 
     db.commit()
     db.refresh(db_parameter)
@@ -608,21 +611,36 @@ def update_payroll_component_definition(
     更新薪资字段定义。
     """
     # Log received data at the beginning of the CRUD function
-    logging.info(f"CRUD update_payroll_component_definition: Received component_id: {component_id}")
-    logging.info(f"CRUD update_payroll_component_definition: Received component_data type: {type(component_data)}")
-    logging.info(f"CRUD update_payroll_component_definition: Received component_data content: {str(component_data)[:500]}...") # Log first 500 chars
+    logging.info(f"即将更新组件 {component_id}，使用数据: {component_data}")
 
     db_component = db.query(PayrollComponentDefinition).filter(PayrollComponentDefinition.id == component_id).first()
     if not db_component:
         return None
         
+    # 在更新前增加对type字段的校验
+    if 'type' in component_data:
+        new_type = component_data['type']
+        allowed_types = [
+            'EARNING', 'DEDUCTION', 'PERSONAL_DEDUCTION', 
+            'EMPLOYER_DEDUCTION', 'BENEFIT', 'STATUTORY', 'STAT', 
+            'OTHER', 'CALCULATION_BASE', 'CALCULATION_RATE', 
+            'CALCULATION_RESULT', 'TAX'
+        ]
+        if new_type not in allowed_types:
+            raise ValueError(f"类型 '{new_type}' 无效。允许的类型包括: {', '.join(allowed_types)}")
+
+    # 更新数据库对象
     for key, value in component_data.items():
         if hasattr(db_component, key):
             setattr(db_component, key, value)
-            
-    db.commit()
-    db.refresh(db_component)
-    return db_component
+    
+    try:
+        db.commit()
+        db.refresh(db_component)
+        return db_component
+    except Exception as e:
+        db.rollback()
+        raise ValueError(f"更新薪资字段失败: {str(e)}")
 
 def delete_payroll_component_definition(
     db: Session,

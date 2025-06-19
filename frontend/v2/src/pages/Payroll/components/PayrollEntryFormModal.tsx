@@ -375,17 +375,36 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
 
   // 处理员工选择
   const handleEmployeeSelect = (employeeId: number, employee: Employee) => {
+    // 添加调试日志
+    console.log('📝 [handleEmployeeSelect] 员工选择：', {
+      employeeId,
+      employee,
+      hasEmployeeObject: !!employee
+    });
+    
     if (employee) {
         setEmployeeDetails(employee);
+        
+        // 确保正确设置employee_id
         form.setFieldsValue({
-            employee_id: employee.id,
+            employee_id: employeeId,  // 使用参数中的employeeId，而不是employee.id
+            department: getDepartmentName(employee),
+            personnel_category: getPersonnelCategoryName(employee),
+            actual_position: getActualPositionName(employee),
+        });
+        
+        // 添加调试日志确认表单已更新
+        console.log('✅ [handleEmployeeSelect] 表单值已设置：', {
+            employee_id: employeeId,
             department: getDepartmentName(employee),
             personnel_category: getPersonnelCategoryName(employee),
             actual_position: getActualPositionName(employee),
         });
     } else {
+        console.warn('⚠️ [handleEmployeeSelect] 无效的员工对象，清除相关字段');
         setEmployeeDetails(null);
         form.setFieldsValue({
+            employee_id: undefined, // 确保清除员工ID
             department: null,
             personnel_category: null,
             actual_position: null,
@@ -961,6 +980,25 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       }
     } catch (error) {
         console.error('❌ [PayrollEntryFormModal] Form validation failed:', error);
+        
+        // 详细记录错误信息，帮助诊断问题
+        if (error && typeof error === 'object') {
+          if ('errorFields' in error) {
+            const formErrors = (error as any).errorFields;
+            console.error('表单验证错误字段:', JSON.stringify(formErrors, null, 2));
+            
+            // 获取第一个错误字段的错误信息
+            const firstErrorMsg = formErrors && formErrors.length > 0 
+              ? formErrors[0].errors[0]
+              : '请检查表单数据';
+              
+            // 显示具体的字段错误信息
+            messageApi.error(firstErrorMsg || t('payroll.entry_form.validation.check_form'));
+            return;
+          }
+        }
+        
+        // 默认错误消息
         messageApi.error(t('payroll.entry_form.validation.check_form'));
     }
   };
@@ -1015,7 +1053,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     const newItem: PayrollItemDetail = {
       name: componentName,
       amount: 0,
-      description: component?.description || ''
+      description: component?.description || '',
+      // 为特定字段类型设置允许负值
+      allowNegative: componentName === 'REFUND_DEDUCTION_ADJUSTMENT' || component?.type === 'REFUND_DEDUCTION_ADJUSTMENT'
     };
     
     const newEarnings = [...earnings, newItem];
@@ -1035,7 +1075,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
     const newItem: PayrollItemDetail = {
       name: componentName,
       amount: 0,
-      description: component?.description || ''
+      description: component?.description || '',
+      // 为特定字段类型设置允许负值
+      allowNegative: componentName === 'REFUND_DEDUCTION_ADJUSTMENT' || component?.type === 'REFUND_DEDUCTION_ADJUSTMENT'
     };
     
     const newDeductions = [...deductions, newItem];
@@ -1170,20 +1212,22 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Space>
             }
             extra={
-              <Select 
-                placeholder={t('placeholder.select_earnings_component')}
-                style={{ width: 200 }}
-                onChange={handleAddEarning}
-                value={undefined}
-                showSearch
-                optionFilterProp="children"
-              >
-                {earningComponents.map(comp => (
-                  <Option key={comp.code} value={comp.code}>
-                    {comp.name}
-                  </Option>
-                ))}
-              </Select>
+              <Form.Item label={t('label.add_earning')}>
+                <Select 
+                  style={{ width: '100%' }}
+                  placeholder={t('placeholder.select_earning_component')}
+                  onChange={handleAddEarning}
+                  value={undefined}
+                  showSearch
+                  optionFilterProp="label"
+                >
+                  {earningComponents.map(comp => (
+                    <Option key={comp.code} value={comp.code}>
+                      {comp.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
             }
             variant="borderless"
           >
@@ -1229,20 +1273,22 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
               </Space>
             }
             extra={
-              <Select 
-                placeholder={t('placeholder.select_deductions_component')}
-                style={{ width: 200 }}
-                onChange={handleAddDeduction}
-                value={undefined}
-                showSearch
-                optionFilterProp="children"
-              >
-                {deductionComponents.map(comp => (
-                  <Option key={comp.code} value={comp.code}>
-                    {comp.name}
-                  </Option>
-                ))}
-              </Select>
+              <Form.Item label={t('label.add_deduction')}>
+                <Select 
+                  style={{ width: '100%' }}
+                  placeholder={t('placeholder.select_deduction_component')}
+                  onChange={handleAddDeduction}
+                  value={undefined}
+                  showSearch
+                  optionFilterProp="label"
+                >
+                  {deductionComponents.map(comp => (
+                    <Option key={comp.code} value={comp.code}>
+                      {comp.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
             }
             variant="borderless"
           >

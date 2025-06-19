@@ -141,7 +141,7 @@ async def update_payroll_component(
     更新工资组件定义信息。
     """
     try:
-        update_data = component.model_dump(exclude_unset=True)
+        update_data = component.model_dump()
         updated_component = crud.update_payroll_component_definition(
             db=db,
             component_id=component_id,
