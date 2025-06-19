@@ -143,7 +143,7 @@ const OrganizationManagementTemplate: React.FC<OrganizationManagementTemplatePro
               }
               loading={treeLoading}
               style={{ height: treeHeight }}
-              styles={{ body: { padding: '16px', overflow: 'auto' } }}
+              bodyStyle={{ padding: '16px', overflow: 'auto' }}
             >
               {treeChildren}
             </ProCard>
@@ -193,7 +193,7 @@ const OrganizationManagementTemplate: React.FC<OrganizationManagementTemplatePro
                   </Space>
                 }
                 style={{ height: detailHeight }}
-                styles={{ body: { padding: '16px', overflow: 'auto' } }}
+                bodyStyle={{ padding: '16px', overflow: 'auto' }}
                 loading={detailLoading}
               >
                 <ProDescriptions
@@ -207,13 +207,11 @@ const OrganizationManagementTemplate: React.FC<OrganizationManagementTemplatePro
               <ProCard
                 bordered
                 style={{ height: detailHeight }}
-                styles={{ 
-                  body: { 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    color: '#999'
-                  }
+                bodyStyle={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: '#999'
                 }}
               >
                 <div style={{ textAlign: 'center' }}>

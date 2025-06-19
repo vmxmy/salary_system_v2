@@ -2,7 +2,7 @@
 
 // 类型导出
 export type { EmployeeTypeData } from './MiniEmployeeTypeCard';
-export type { DepartmentCostData } from './MiniDepartmentCostCard';
+export type { DepartmentCostData } from './types';
 export type { SalaryTrendDataPoint } from './MiniSalaryTrendCard';
 
 // Mini版指标卡

@@ -6,7 +6,7 @@ import {
   BarChartOutlined
 } from '@ant-design/icons';
 import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { DepartmentCostData } from './index';
+import type { DepartmentCostData } from './types';
 import './MetricCard.less';
 
 const { Text } = Typography;

@@ -53,6 +53,13 @@ interface ImpactAnalysis {
   }[];
 }
 
+interface FieldConflict {
+  field: string;
+  fieldName: string;
+  currentValue: any;
+  newValue: any;
+}
+
 export const ImportImpactSummary: React.FC<ImportImpactSummaryProps> = ({
   parsedData,
   payrollPeriodName,
@@ -80,12 +87,13 @@ export const ImportImpactSummary: React.FC<ImportImpactSummaryProps> = ({
       } else {
         existingEmployees.push(record);
         
+        const conflicts = (record as any).field_conflicts;
         // 分析字段更新（如果有字段冲突信息）
-        if (record.field_conflicts && record.field_conflicts.length > 0) {
+        if (conflicts && conflicts.length > 0 && typeof record.employee_id === 'number') {
           fieldUpdates.push({
             employeeId: record.employee_id,
             employeeName: record.employee_name || record.employee_full_name || '未知',
-            updates: record.field_conflicts.map(conflict => ({
+            updates: conflicts.map((conflict: FieldConflict) => ({
               field: conflict.field,
               fieldName: conflict.fieldName,
               oldValue: conflict.currentValue,
