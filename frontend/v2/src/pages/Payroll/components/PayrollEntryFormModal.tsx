@@ -1175,6 +1175,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 style={{ width: 200 }}
                 onChange={handleAddEarning}
                 value={undefined}
+                showSearch
+                optionFilterProp="children"
               >
                 {earningComponents.map(comp => (
                   <Option key={comp.code} value={comp.code}>
@@ -1201,7 +1203,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
-                          min={0}
+                          min={item.name === 'REFUND_DEDUCTION_ADJUSTMENT' ? undefined : 0}
                           step={0.01}
                           precision={2}
                           value={item.amount}
@@ -1232,6 +1234,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 style={{ width: 200 }}
                 onChange={handleAddDeduction}
                 value={undefined}
+                showSearch
+                optionFilterProp="children"
               >
                 {deductionComponents.map(comp => (
                   <Option key={comp.code} value={comp.code}>
@@ -1258,7 +1262,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
-                          min={0}
+                          min={item.name === 'REFUND_DEDUCTION_ADJUSTMENT' ? undefined : 0}
                           step={0.01}
                           precision={2}
                           value={item.amount}

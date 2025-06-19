@@ -307,36 +307,37 @@ export const getFontSize = (size: keyof typeof designTokens.typography.fontSize)
 };
 
 /**
- * 生成CSS变量的工具函数
+ * 将设计令牌转换为CSS变量字符串 (适用于亮色和暗色主题)
+ * @returns {string} 包含CSS变量的字符串
  */
-export const generateCSSVariables = () => {
-  const cssVars: Record<string, string> = {};
-  
-  // 颜色变量
-  const flattenColors = (obj: any, prefix = '') => {
-    Object.entries(obj).forEach(([key, value]) => {
-      const varName = prefix ? `${prefix}-${key}` : key;
-      if (typeof value === 'string') {
-        cssVars[`--color-${varName}`] = value;
-      } else if (typeof value === 'object') {
-        flattenColors(value, varName);
-      }
-    });
-  };
-  
-  flattenColors(designTokens.colors);
-  
-  // 间距变量
-  Object.entries(designTokens.spacing).forEach(([key, value]) => {
-    cssVars[`--spacing-${key}`] = value;
-  });
-  
-  // 字体变量
-  Object.entries(designTokens.typography.fontSize).forEach(([key, value]) => {
-    cssVars[`--font-size-${key}`] = value;
-  });
-  
-  return cssVars;
+export const generateCSSVariables = (): string => {
+  const lightVars = `
+    :root, [data-theme='light'] {
+      --bg-primary: ${designTokens.colors.background.primary};
+      --bg-secondary: ${designTokens.colors.background.secondary};
+      --bg-tertiary: ${designTokens.colors.background.tertiary};
+      --text-primary: ${designTokens.colors.text.primary};
+      --text-secondary: ${designTokens.colors.text.secondary};
+      --text-tertiary: ${designTokens.colors.text.tertiary};
+      --border-default: ${designTokens.colors.border.default};
+      --border-light: ${designTokens.colors.border.light};
+    }
+  `;
+
+  const darkVars = `
+    [data-theme='dark'] {
+      --bg-primary: ${designTokens.colors.neutral[900]};
+      --bg-secondary: ${designTokens.colors.neutral[800]};
+      --bg-tertiary: ${designTokens.colors.neutral[700]};
+      --text-primary: ${designTokens.colors.neutral[100]};
+      --text-secondary: ${designTokens.colors.neutral[300]};
+      --text-tertiary: ${designTokens.colors.neutral[400]};
+      --border-default: ${designTokens.colors.neutral[700]};
+      --border-light: ${designTokens.colors.neutral[800]};
+    }
+  `;
+
+  return lightVars + darkVars;
 };
 
 export default designTokens;
