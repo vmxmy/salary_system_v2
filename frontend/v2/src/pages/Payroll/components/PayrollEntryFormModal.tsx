@@ -188,7 +188,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           // 设置基础信息到表单
           form.setFieldsValue({
             employee_id: {
-              id: data.基础信息.员工ID, 
+              id: data.基础信息.员工编号, 
               name: data.基础信息.员工姓名
             },
             employee_name: data.基础信息.员工姓名,
@@ -217,12 +217,13 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           
           // 修正回退逻辑
           if (latestEntry.employee) {
+            const fullName = `${latestEntry.employee.last_name || ''}${latestEntry.employee.first_name || ''}`;
             form.setFieldsValue({
               employee_id: {
                 id: latestEntry.employee_id,
-                name: latestEntry.employee.full_name
+                name: fullName
               },
-              employee_name: latestEntry.employee.full_name,
+              employee_name: fullName,
             });
           }
           
@@ -381,22 +382,14 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             department: getDepartmentName(employee),
             personnel_category: getPersonnelCategoryName(employee),
             actual_position: getActualPositionName(employee),
-            social_insurance_base: employee.social_insurance_base,
-            housing_fund_base: employee.housing_fund_base,
         });
-        setSocialInsuranceBase(employee.social_insurance_base ?? 0);
-        setHousingFundBase(employee.housing_fund_base ?? 0);
     } else {
         setEmployeeDetails(null);
         form.setFieldsValue({
             department: null,
             personnel_category: null,
             actual_position: null,
-            social_insurance_base: 0,
-            housing_fund_base: 0,
         });
-        setSocialInsuranceBase(0);
-        setHousingFundBase(0);
     }
   };
   
@@ -657,11 +650,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         department: employeeDetails.department_name,
         personnel_category: employeeDetails.personnel_category_name,
         actual_position: employeeDetails.position_name,
-        social_insurance_base: employeeDetails.social_insurance_base,
-        housing_fund_base: employeeDetails.housing_fund_base,
       });
-      setSocialInsuranceBase(employeeDetails.social_insurance_base || 0);
-      setHousingFundBase(employeeDetails.housing_fund_base || 0);
     }
   }, [employeeDetails, form]);
 
@@ -1164,44 +1153,6 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                   </Col>
                   <Col span={8}>
                     {/* 预留将来扩展 */}
-                  </Col>
-                </Row>
-                
-                {/* 缴费基数行 */}
-                <Row gutter={16}>
-                  <Col span={6}>
-                    <Form.Item
-                      label={t('label.social_insurance_base')}
-                      name="social_insurance_base"
-                    >
-                      <InputNumber style={{ width: '100%' }} placeholder={t('placeholder.enter_social_insurance_base')} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={6}>
-                    <Form.Item
-                      label={t('label.housing_fund_base')}
-                      name="housing_fund_base"
-                    >
-                      <InputNumber style={{ width: '100%' }} placeholder={t('placeholder.enter_housing_fund_base')} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item label=" ">
-                      <Button 
-                        type="primary" 
-                        onClick={() => {
-                          if (employeeDetails?.id) {
-                            const formValues = form.getFieldsValue();
-                            const socialBase = formValues.social_insurance_base || 0;
-                            const housingBase = formValues.housing_fund_base || 0;
-                            updateEmployeeInsuranceBase(employeeDetails.id, socialBase, housingBase);
-                          }
-                        }}
-                        disabled={!employeeDetails?.id}
-                      >
-                        {t('actions.update_payment_base')}
-                      </Button>
-                    </Form.Item>
                   </Col>
                 </Row>
               </>
