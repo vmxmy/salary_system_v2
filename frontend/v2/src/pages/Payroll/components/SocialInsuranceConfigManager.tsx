@@ -98,18 +98,19 @@ const SocialInsuranceConfigManager: React.FC<SocialInsuranceConfigManagerProps> 
       ),
     },
     {
-      title: t('common:actions'),
       key: 'actions',
-      width: 100,
-      render: (_, record, index) => (
-        <Button
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => handleEdit(record)}
-        >
-          {t('common:edit')}
-        </Button>
+      title: t('common:action.title'),
+      render: (_: any, record: SocialInsuranceConfig) => (
+        <Space>
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+          >
+            {t('common:edit')}
+          </Button>
+        </Space>
       ),
     },
   ];

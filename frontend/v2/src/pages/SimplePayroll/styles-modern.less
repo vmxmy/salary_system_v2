@@ -990,200 +990,323 @@
     padding-top: 20px;
   }
 
-  // 头部控制器区域
-  .header-controls-section {
-    margin-bottom: @space-6;
+  
+  // 控制组件基础样式
+  .control-section {
+    width: 100%;
     
-    .payroll-header-controls {
-      position: relative;
-      overflow: hidden;
+    .control-label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: @font-weight-medium;
+      color: @text-secondary;
+      transition: all @duration-base @ease-out;
       
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(24, 144, 255, 0.05) 0%, rgba(82, 196, 26, 0.05) 100%);
-        pointer-events: none;
-      }
-      
-      .ant-card-body {
-        position: relative;
-        z-index: 1;
-      }
-      
-      // 控制器动画效果
-      .control-section {
-        transition: all @duration-base @ease-out;
-        
-        &:hover {
-          transform: translateY(-1px);
-        }
-        
-        .control-label {
-          animation: fadeIn @duration-slow @ease-out;
-        }
-      }
-      
-      // 快速信息面板样式
-      .quick-info {
-        backdrop-filter: blur(10px);
-        transition: all @duration-base @ease-out;
-        
-        &:hover {
-          background: rgba(255, 255, 255, 0.9) !important;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .info-item {
-          transition: all @duration-base @ease-out;
-          
-          &:hover {
-            transform: scale(1.02);
-          }
-        }
-      }
-      
-      // 自定义日期选择器样式增强
-      .custom-date-picker {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: all @duration-base @ease-out;
-        
-        &:hover {
-          box-shadow: 0 4px 16px rgba(24, 144, 255, 0.2);
-          transform: translateY(-1px);
-        }
-        
-        &.ant-picker-focused {
-          box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3);
-        }
-        
-        .has-payroll-entries {
-          background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%) !important;
-          font-weight: @font-weight-medium;
-          position: relative;
-          
-          &::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 8px;
-            height: 8px;
-            background: linear-gradient(45deg, #52c41a 0%, #73d13d 100%);
-            border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(82, 196, 26, 0.3);
-          }
-        }
-      }
-      
-      // 版本选择器样式增强
-      .ant-select {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: all @duration-base @ease-out;
-        
-        &:hover {
-          box-shadow: 0 4px 16px rgba(82, 196, 26, 0.2);
-          transform: translateY(-1px);
-        }
-        
-        &.ant-select-focused {
-          box-shadow: 0 4px 16px rgba(82, 196, 26, 0.3);
-        }
-        
-        .ant-select-selection-item {
-          display: flex;
-          align-items: center;
-          gap: @space-2;
-        }
-      }
-      
-      // 标签增强样式
-      .ant-tag {
-        font-size: @font-size-xs;
-        font-weight: @font-weight-medium;
-        border-radius: @radius-base;
-        padding: 2px 8px;
-        border: none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        
-        &[color="orange"] {
-          background: linear-gradient(135deg, #fff7e6 0%, #ffd591 100%);
-          color: #d48806;
-        }
-        
-        &[color="blue"] {
-          background: linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%);
-          color: #096dd9;
-        }
-        
-        &[color="green"] {
-          background: linear-gradient(135deg, #f6ffed 0%, #b7eb8f 100%);
-          color: #389e0d;
-        }
-        
-        &[color="purple"] {
-          background: linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%);
-          color: #722ed1;
-        }
-      }
-    }
-    
-    @media (max-width: 768px) {
-      margin-bottom: @space-4;
-      
-      .payroll-header-controls {
-        .ant-card-body {
-          padding: @space-4 !important;
-        }
-        
-        .ant-row {
-          gap: @space-3 !important;
-        }
-        
-        .quick-info {
-          margin-top: @space-4;
-        }
+      &:hover {
+        color: @text-primary;
       }
     }
   }
   
-  // 统计卡片组
+  // 薪资状态指示器
+  .payroll-status-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: all @duration-base @ease-out;
+    
+    &:hover {
+      transform: scale(1.2);
+    }
+  }
+  
+  // 统计卡片组 - 响应式优化
   .stats-grid {
     margin-bottom: @space-8;
     
-    // 增强版统计组件样式
-    .enhanced-payroll-statistics {
-      .ant-pro-statistic-card-group {
-        margin-bottom: @space-6;
-      }
+    // 固定在顶部时的样式优化
+    &.sticky-stats {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      z-index: 100;
+      padding: 6px 0; // 减少内边距
       
-      // 新指标卡片网格
-      .ant-row {
-        .ant-col {
-          margin-bottom: @space-6;
+      .enhanced-payroll-statistics {
+        .ant-pro-statistic-card-group {
+          margin-bottom: 0;
+          background: transparent;
           
-          &:last-child {
-            margin-bottom: 0;
+          // 优化卡片在固定状态下的视觉效果
+          .ant-statistic-card {
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            min-height: 60px; // 减少最小高度50%
+            
+            // 压缩卡片内容
+            .ant-statistic-card-head {
+              padding: 4px 8px; // 减少头部padding
+              min-height: unset;
+              
+              .ant-statistic-card-title {
+                font-size: 10px; // 减少标题字体
+                line-height: 1.2;
+                margin-bottom: 2px;
+              }
+            }
+            
+            .ant-statistic-card-body {
+              padding: 4px 8px; // 减少内容padding
+              
+              .ant-statistic {
+                .ant-statistic-content {
+                  .ant-statistic-content-value {
+                    font-size: 14px !important; // 减少数值字体
+                    line-height: 1.2;
+                  }
+                }
+              }
+            }
+            
+            .ant-statistic-card-chart {
+              padding: 2px 4px; // 减少图表区域padding
+              
+              .ant-divider {
+                margin: 1px 0; // 减少分割线间距
+              }
+              
+              > div {
+                font-size: 8px !important; // 减少图表文字
+                line-height: 1.1;
+                margin-bottom: 1px;
+              }
+            }
           }
         }
       }
     }
     
+    // 增强版统计组件样式 - 压缩高度50%
+    .enhanced-payroll-statistics {
+      .ant-pro-statistic-card-group {
+        margin-bottom: @space-3; // 减少外边距50%
+        
+        // 响应式网格优化 - 充分利用屏幕宽度
+        .ant-row {
+          // 确保卡片能够均匀分布并充分利用屏幕宽度
+          display: flex;
+          flex-wrap: wrap;
+          width: 100%;
+          
+          .ant-col {
+            margin-bottom: @space-1; // 减少列间距
+            
+            // 统计卡片内容优化 - 压缩高度
+            .ant-statistic-card {
+              height: 100%;
+              min-height: 80px; // 设置更小的最小高度
+              transition: all @duration-base @ease-out;
+              border-radius: @radius-md;
+              
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: @shadow-md;
+              }
+              
+              // 卡片标题样式 - 压缩
+              .ant-statistic-card-head {
+                padding: 6px 12px; // 减少头部padding
+                min-height: unset;
+                
+                .ant-statistic-card-title {
+                  font-size: 11px; // 减少标题字体50%
+                  font-weight: @font-weight-medium;
+                  color: @text-secondary;
+                  line-height: 1.2;
+                  margin-bottom: 2px;
+                }
+              }
+              
+              // 卡片内容区域 - 压缩
+              .ant-statistic-card-body {
+                padding: 6px 12px; // 减少内容padding
+                
+                // 数值显示优化 - 压缩字体
+                .ant-statistic {
+                  .ant-statistic-content {
+                    .ant-statistic-content-value {
+                      font-weight: @font-weight-semibold;
+                      line-height: 1.2;
+                      
+                      // 响应式字体大小 - 全部减少50%
+                      @media (max-width: 768px) {
+                        font-size: 12px !important;
+                      }
+                      
+                      @media (min-width: 769px) and (max-width: 1200px) {
+                        font-size: 14px !important;
+                      }
+                      
+                      @media (min-width: 1201px) {
+                        font-size: 16px !important;
+                      }
+                    }
+                  }
+                }
+              }
+              
+              // 图表区域样式 - 大幅压缩
+              .ant-statistic-card-chart {
+                padding: 3px 6px; // 减少图表区域padding
+                
+                .ant-divider {
+                  margin: 1px 0; // 最小化分割线间距
+                }
+                
+                > div {
+                  font-size: 8px !important; // 统一减少图表文字
+                  line-height: 1.1;
+                  margin-bottom: 1px;
+                }
+                
+                // 小屏幕优化
+                @media (max-width: 768px) {
+                  padding: 2px 4px;
+                  
+                  .ant-divider {
+                    margin: 0.5px 0;
+                  }
+                  
+                  > div {
+                    font-size: 7px !important;
+                  }
+                }
+                
+                // 中等屏幕优化
+                @media (min-width: 769px) and (max-width: 1200px) {
+                  padding: 3px 6px;
+                  
+                  > div {
+                    font-size: 8px !important;
+                  }
+                }
+                
+                // 大屏幕优化
+                @media (min-width: 1201px) {
+                  padding: 4px 8px;
+                  
+                  > div {
+                    font-size: 9px !important;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // 日期选择器卡片特殊样式
+    .custom-date-picker {
+      width: 100%;
+      
+      &.ant-picker-small {
+        height: 28px;
+        border-radius: @radius-base;
+      }
+      
+      // 响应式优化
+      @media (max-width: 768px) {
+        font-size: @font-size-xs;
+      }
+    }
+    
+    // 移动端优化
     @media (max-width: 768px) {
-      margin-bottom: @space-6;
+      margin-bottom: @space-4;
       
       .enhanced-payroll-statistics {
         .ant-pro-statistic-card-group {
-          margin-bottom: @space-4;
+          margin-bottom: @space-3;
+          
+          .ant-row {
+            .ant-col {
+              margin-bottom: @space-2;
+              
+              .ant-statistic-card {
+                .ant-statistic-card-chart {
+                  font-size: 9px;
+                  line-height: 1.1;
+                }
+              }
+            }
+          }
         }
-        
-        .ant-row {
-          .ant-col {
-            margin-bottom: @space-4;
+      }
+      
+      &.sticky-stats {
+        // 移动端固定时减少阴影效果
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    // 平板优化 - 更好地利用空间
+    @media (min-width: 769px) and (max-width: 1200px) {
+      .enhanced-payroll-statistics {
+        .ant-pro-statistic-card-group {
+          .ant-row {
+            .ant-col {
+              .ant-statistic-card {
+                .ant-statistic-card-chart {
+                  font-size: 10px;
+                  line-height: 1.2;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // 大屏和超宽屏优化 - 最大化利用屏幕宽度
+    @media (min-width: 1201px) {
+      .enhanced-payroll-statistics {
+        .ant-pro-statistic-card-group {
+          .ant-row {
+            justify-content: space-between;
+            
+            .ant-col {
+              // 确保在大屏上卡片能够充分利用空间
+              flex: 1;
+              max-width: none;
+              
+              .ant-statistic-card {
+                .ant-statistic-card-chart {
+                  font-size: 11px;
+                  line-height: 1.3;
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      &.sticky-stats {
+        // 大屏固定时的优化
+        .enhanced-payroll-statistics {
+          .ant-pro-statistic-card-group {
+            .ant-statistic-card {
+              background: rgba(255, 255, 255, 0.95);
+            }
           }
         }
       }
@@ -1381,6 +1504,53 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+// 日期选择器专用动画
+@keyframes border-glow {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  100% {
+    filter: hue-rotate(30deg) brightness(1.1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes background-shift {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(5px) translateY(-3px);
+  }
+  50% {
+    transform: translateX(-3px) translateY(5px);
+  }
+  75% {
+    transform: translateX(3px) translateY(3px);
   }
 }
 

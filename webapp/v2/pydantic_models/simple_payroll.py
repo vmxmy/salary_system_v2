@@ -480,3 +480,21 @@ class PayrollAnalyticsResponse(BaseModel):
     department_cost_analysis: DepartmentCostAnalysisResponse
     employee_type_analysis: EmployeeTypeAnalysisResponse
     salary_trend_analysis: SalaryTrendAnalysisResponse 
+
+
+# =============================================================================
+# 月度状态概览模型
+# =============================================================================
+
+class MonthlyRecordStatusSummary(BaseModel):
+    """月度工资记录状态汇总"""
+    not_calculated: int = Field(0, description="未计算数量")
+    pending_audit: int = Field(0, description="待审计数量")
+    approved: int = Field(0, description="已核准数量")
+    
+class MonthlyPayrollSummary(BaseModel):
+    """月度薪资状态概览"""
+    year: int = Field(..., description="年份")
+    month: int = Field(..., description="月份")
+    has_payroll_run: bool = Field(False, description="是否存在薪资运行")
+    record_status_summary: MonthlyRecordStatusSummary = Field(default_factory=MonthlyRecordStatusSummary, description="工资记录状态汇总") 

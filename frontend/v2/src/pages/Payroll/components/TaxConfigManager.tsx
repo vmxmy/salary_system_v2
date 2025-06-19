@@ -70,7 +70,7 @@ const TaxConfigManager: React.FC<TaxConfigManagerProps> = ({
       ),
     },
     {
-      title: t('common:actions'),
+      title: t('common:action.title'),
       key: 'actions',
       width: 100,
       render: (_, record) => (
@@ -113,7 +113,7 @@ const TaxConfigManager: React.FC<TaxConfigManagerProps> = ({
       render: (amount: number) => `¥${amount.toLocaleString()}`,
     },
     {
-      title: t('common:actions'),
+      title: t('common:action.title'),
       key: 'actions',
       render: (_, record, index) => (
         <Button

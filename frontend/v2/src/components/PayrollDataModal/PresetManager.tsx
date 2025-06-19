@@ -39,12 +39,14 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { usePayrollDataPresets } from '../../hooks/usePayrollDataPresets';
+import { usePresetGroups } from '../../hooks/usePresetGroups';
 import type {
   PayrollDataModalPreset,
   ColumnFilterConfig,
   ColumnSettings,
   PresetGroup
 } from '../../types/payrollDataPresets';
+import { PresetGroupManager } from './PresetGroupManager';
 
 const { Text, Title } = Typography;
 const { Panel } = Collapse;
@@ -68,6 +70,8 @@ interface SavePresetModalProps {
   onSave: (name: string, description?: string, isDefault?: boolean, isPublic?: boolean, category?: string) => void;
   loading?: boolean;
   availableGroups?: PresetGroup[];
+  presets?: PayrollDataModalPreset[];
+  getGroupPresetCount?: (groupId: number) => number;
 }
 
 interface EditPresetModalProps {
@@ -77,13 +81,18 @@ interface EditPresetModalProps {
   onSave: (id: number, name: string, description?: string, isDefault?: boolean, isPublic?: boolean, category?: string) => void;
   loading?: boolean;
   availableGroups?: PresetGroup[];
+  presets?: PayrollDataModalPreset[];
+  getGroupPresetCount?: (groupId: number) => number;
 }
 
 const SavePresetModal: React.FC<SavePresetModalProps> = ({
   visible,
   onClose,
   onSave,
-  loading = false
+  loading = false,
+  availableGroups = [],
+  presets = [],
+  getGroupPresetCount = () => 0
 }) => {
   const { t } = useTranslation(['payroll', 'common']);
   const [form] = Form.useForm();
@@ -91,7 +100,7 @@ const SavePresetModal: React.FC<SavePresetModalProps> = ({
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      onSave(values.name, values.description, values.isDefault, values.isPublic);
+      onSave(values.name, values.description, values.isDefault, values.isPublic, values.category);
       form.resetFields();
     } catch (error) {
       console.error('Form validation failed:', error);
@@ -132,6 +141,33 @@ const SavePresetModal: React.FC<SavePresetModalProps> = ({
           />
         </Form.Item>
 
+        <Form.Item
+          name="category"
+          label={t('payroll:presets.save_modal.category')}
+        >
+          <Select
+            placeholder={t('payroll:presets.save_modal.category_placeholder')}
+            allowClear
+            options={[
+              { value: '', label: t('payroll:presets.save_modal.no_category') },
+              ...availableGroups.map(group => {
+                const presetCount = getGroupPresetCount(group.id!);
+                return {
+                  value: group.name,
+                  label: (
+                    <Space>
+                      <span style={{ color: group.color }}>{group.name}</span>
+                      <Tag color={group.color} style={{ fontSize: '11px' }}>
+                        {presetCount} 个预设
+                      </Tag>
+                    </Space>
+                  )
+                };
+              })
+            ]}
+          />
+        </Form.Item>
+
         <Form.Item name="isDefault" valuePropName="checked">
           <Switch />
           <span style={{ marginLeft: 8 }}>
@@ -155,7 +191,10 @@ const EditPresetModal: React.FC<EditPresetModalProps> = ({
   preset,
   onClose,
   onSave,
-  loading = false
+  loading = false,
+  availableGroups = [],
+  presets = [],
+  getGroupPresetCount = () => 0
 }) => {
   const { t } = useTranslation(['payroll', 'common']);
   const [form] = Form.useForm();
@@ -166,6 +205,7 @@ const EditPresetModal: React.FC<EditPresetModalProps> = ({
       form.setFieldsValue({
         name: preset.name,
         description: preset.description,
+        category: preset.category,
         isDefault: preset.isDefault,
         isPublic: preset.isPublic
       });
@@ -177,7 +217,7 @@ const EditPresetModal: React.FC<EditPresetModalProps> = ({
     
     try {
       const values = await form.validateFields();
-      onSave(preset.id, values.name, values.description, values.isDefault, values.isPublic);
+      onSave(preset.id, values.name, values.description, values.isDefault, values.isPublic, values.category);
     } catch (error) {
       console.error('Form validation failed:', error);
     }
@@ -222,6 +262,33 @@ const EditPresetModal: React.FC<EditPresetModalProps> = ({
           />
         </Form.Item>
 
+        <Form.Item
+          name="category"
+          label={t('payroll:presets.edit_modal.category')}
+        >
+          <Select
+            placeholder={t('payroll:presets.edit_modal.category_placeholder')}
+            allowClear
+            options={[
+              { value: '', label: t('payroll:presets.edit_modal.no_category') },
+              ...availableGroups.map(group => {
+                const presetCount = getGroupPresetCount(group.id!);
+                return {
+                  value: group.name,
+                  label: (
+                    <Space>
+                      <span style={{ color: group.color }}>{group.name}</span>
+                      <Tag color={group.color} style={{ fontSize: '11px' }}>
+                        {presetCount} 个预设
+                      </Tag>
+                    </Space>
+                  )
+                };
+              })
+            ]}
+          />
+        </Form.Item>
+
         <Form.Item name="isDefault" valuePropName="checked">
           <Switch />
           <span style={{ marginLeft: 8 }}>
@@ -254,6 +321,14 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
   const [duplicateModalVisible, setDuplicateModalVisible] = useState(false);
   const [duplicatingPreset, setDuplicatingPreset] = useState<PayrollDataModalPreset | null>(null);
   const [viewingPreset, setViewingPreset] = useState<PayrollDataModalPreset | null>(null);
+  const [groupManagerVisible, setGroupManagerVisible] = useState(false);
+
+  // 使用真实的分组数据
+  const { 
+    groups: availableGroups, 
+    getGroupPresetCount,
+    refreshStats 
+  } = usePresetGroups();
 
   const {
     presets,
@@ -272,7 +347,8 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     name: string,
     description?: string,
     isDefault?: boolean,
-    isPublic?: boolean
+    isPublic?: boolean,
+    category?: string
   ) => {
     try {
       // 🎯 关键修复：使用完整配置（包含表头筛选状态）
@@ -291,10 +367,14 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
       
       await savePreset(name, fullConfig.filterConfig, fullConfig.columnSettings, {
         description,
+        category,
         isDefault,
         isPublic,
         tableFilterState: fullConfig.tableFilterState // 🎯 关键：传递表头筛选状态
-      });
+      } as any);
+      
+      // 刷新分组统计信息
+      refreshStats();
       setSaveModalVisible(false);
     } catch (error) {
       // Error handled in hook
@@ -345,12 +425,14 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     name: string,
     description?: string,
     isDefault?: boolean,
-    isPublic?: boolean
+    isPublic?: boolean,
+    category?: string
   ) => {
     try {
       await updatePreset(id, {
         name,
         description,
+        category,
         isDefault,
         isPublic
       });
@@ -386,6 +468,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
           await updatePreset(preset.id!, {
             name: preset.name,
             description: preset.description,
+            category: preset.category,
             isDefault: preset.isDefault,
             isPublic: preset.isPublic,
             filterConfig: fullConfig.filterConfig,
@@ -480,6 +563,121 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     );
   };
 
+  // 按分组渲染预设列表
+  const renderGroupedPresets = () => {
+    // 对预设按分组进行分类
+    const groupedPresets = presets.reduce((acc, preset) => {
+      const category = preset.category || '未分组';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(preset);
+      return acc;
+    }, {} as Record<string, PayrollDataModalPreset[]>);
+
+    const groupKeys = Object.keys(groupedPresets);
+    
+    if (groupKeys.length <= 1) {
+      // 只有一个分组或无分组，使用简单列表
+      return (
+        <List
+          dataSource={presets}
+          loading={loading}
+          renderItem={(preset) => renderPresetItem(preset)}
+        />
+      );
+    }
+
+    // 多个分组，使用折叠面板
+    return (
+      <Collapse
+        defaultActiveKey={groupKeys}
+        ghost
+        items={groupKeys.map(category => {
+          const group = availableGroups.find(g => g.name === category);
+          return {
+            key: category,
+            label: (
+              <Space>
+                <FolderOutlined style={{ color: group?.color || '#666' }} />
+                <span>{category}</span>
+                <Tag color={group?.color || 'default'}>{groupedPresets[category].length}</Tag>
+              </Space>
+            ),
+            children: (
+              <List
+                dataSource={groupedPresets[category]}
+                renderItem={(preset) => renderPresetItem(preset)}
+                size="small"
+              />
+            )
+          };
+        })}
+      />
+    );
+  };
+
+  // 渲染单个预设项
+  const renderPresetItem = (preset: PayrollDataModalPreset) => (
+    <List.Item
+      key={preset.id}
+      actions={[
+        <Button
+          key="apply"
+          type="primary"
+          size="small"
+          icon={<EyeOutlined />}
+          onClick={() => handleApplyPreset(preset)}
+        >
+          {t('payroll:presets.apply')}
+        </Button>,
+        renderPresetActions(preset)
+      ]}
+    >
+      <List.Item.Meta
+        title={
+          <Space>
+            <span>{preset.name}</span>
+            {defaultPreset?.id === preset.id && (
+              <Tag color="gold" icon={<StarFilled />}>
+                {t('payroll:presets.default')}
+              </Tag>
+            )}
+            {preset.isPublic && (
+              <Tag color="blue">
+                {t('payroll:presets.public')}
+              </Tag>
+            )}
+            {preset.category && (
+              <Tag color={availableGroups.find(g => g.name === preset.category)?.color || 'default'}>
+                {preset.category}
+              </Tag>
+            )}
+          </Space>
+        }
+        description={
+          <div>
+            {preset.description && (
+              <Text type="secondary">{preset.description}</Text>
+            )}
+            <div style={{ marginTop: 4 }}>
+              <Space size="small">
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  <ClockCircleOutlined /> {t('payroll:presets.usage_count')}: {preset.usageCount || 0}
+                </Text>
+                {preset.lastUsedAt && (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {t('payroll:presets.last_used')}: {new Date(preset.lastUsedAt).toLocaleDateString()}
+                  </Text>
+                )}
+              </Space>
+            </div>
+          </div>
+        }
+      />
+    </List.Item>
+  );
+
   return (
     <>
       <Modal
@@ -492,6 +690,9 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
         open={visible}
         onCancel={onClose}
         footer={[
+          <Button key="manage-groups" icon={<FolderOutlined />} onClick={() => setGroupManagerVisible(true)}>
+            {t('payroll:presets.manage_groups')}
+          </Button>,
           <Button key="save-current" type="primary" icon={<SaveOutlined />} onClick={() => setSaveModalVisible(true)}>
             {t('payroll:presets.save_current')}
           </Button>,
@@ -513,64 +714,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
               </Button>
             </Empty>
           ) : (
-            <List
-              dataSource={presets}
-              loading={loading}
-              renderItem={(preset) => (
-                <List.Item
-                  key={preset.id}
-                  actions={[
-                    <Button
-                      key="apply"
-                      type="primary"
-                      size="small"
-                      icon={<EyeOutlined />}
-                      onClick={() => handleApplyPreset(preset)}
-                    >
-                      {t('payroll:presets.apply')}
-                    </Button>,
-                    renderPresetActions(preset)
-                  ]}
-                >
-                  <List.Item.Meta
-                    title={
-                      <Space>
-                        <span>{preset.name}</span>
-                        {defaultPreset?.id === preset.id && (
-                          <Tag color="gold" icon={<StarFilled />}>
-                            {t('payroll:presets.default')}
-                          </Tag>
-                        )}
-                        {preset.isPublic && (
-                          <Tag color="blue">
-                            {t('payroll:presets.public')}
-                          </Tag>
-                        )}
-                      </Space>
-                    }
-                    description={
-                      <div>
-                        {preset.description && (
-                          <Text type="secondary">{preset.description}</Text>
-                        )}
-                        <div style={{ marginTop: 4 }}>
-                          <Space size="small">
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              <ClockCircleOutlined /> {t('payroll:presets.usage_count')}: {preset.usageCount || 0}
-                            </Text>
-                            {preset.lastUsedAt && (
-                              <Text type="secondary" style={{ fontSize: 12 }}>
-                                {t('payroll:presets.last_used')}: {new Date(preset.lastUsedAt).toLocaleDateString()}
-                              </Text>
-                            )}
-                          </Space>
-                        </div>
-                      </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
+            renderGroupedPresets()
           )}
         </div>
       </Modal>
@@ -580,6 +724,9 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
         visible={saveModalVisible}
         onClose={() => setSaveModalVisible(false)}
         onSave={handleSavePreset}
+        availableGroups={availableGroups}
+        presets={presets}
+        getGroupPresetCount={getGroupPresetCount}
       />
 
       {/* 编辑预设模态框 */}
@@ -589,6 +736,9 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
         onClose={() => setEditingPreset(null)}
         onSave={handleEditPreset}
         loading={loading}
+        availableGroups={availableGroups}
+        presets={presets}
+        getGroupPresetCount={getGroupPresetCount}
       />
 
       {/* 预设详情查看模态框 */}
@@ -629,6 +779,12 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
                   <div>
                     <Text type="secondary">{t('payroll:presets.view_modal.description')}:</Text>
                     <Text style={{ marginLeft: 8 }}>{viewingPreset.description}</Text>
+                  </div>
+                )}
+                {viewingPreset.category && (
+                  <div>
+                    <Text type="secondary">{t('payroll:presets.view_modal.category')}:</Text>
+                    <Text style={{ marginLeft: 8 }}>{viewingPreset.category}</Text>
                   </div>
                 )}
                 <div>
@@ -770,6 +926,12 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 详细分组管理页面 */}
+      <PresetGroupManager
+        visible={groupManagerVisible}
+        onClose={() => setGroupManagerVisible(false)}
+      />
     </>
   );
 }; 

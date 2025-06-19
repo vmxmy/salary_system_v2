@@ -860,6 +860,7 @@ export const simplePayrollApi = {
     period_id: number;
     social_insurance_base: number;
     housing_fund_base: number;
+    occupational_pension_base?: number;
     effective_date: string;
     end_date?: string;
   }>> => {
@@ -887,12 +888,14 @@ export const simplePayrollApi = {
   updateEmployeeInsuranceBase: async (employeeId: number, periodId: number, params: {
     social_insurance_base: number;
     housing_fund_base: number;
+    occupational_pension_base?: number;
   }): Promise<ApiResponse<{
     success: boolean;
     employee_id: number;
     period_id: number;
     social_insurance_base: number;
     housing_fund_base: number;
+    occupational_pension_base?: number;
     message: string;
   }>> => {
     console.log('💾 [simplePayrollApi.updateEmployeeInsuranceBase] 发起请求:', {
@@ -1188,5 +1191,17 @@ export const simplePayrollApi = {
     
     logResponse(response);
     return response.data;
-  }
+  },
+
+  /**
+   * 获取月度薪资状态概览
+   */
+  getMonthlySummary: async (start_year: number, end_year: number): Promise<ApiResponse<any>> => {
+    console.log('🚀 [simplePayrollApi.getMonthlySummary] 发起请求:', { start_year, end_year });
+    const response = await apiClient.get(`${API_BASE}/monthly-summary`, {
+      params: { start_year, end_year }
+    });
+    logResponse(response);
+    return response.data;
+  },
 }; 

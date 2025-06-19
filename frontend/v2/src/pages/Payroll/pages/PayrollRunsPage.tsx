@@ -124,7 +124,7 @@ const PayrollRunsPage: React.FC = () => {
       ),
     },
     {
-      title: t('common:actions'),
+      title: t('common:action.title'),
       key: 'actions',
       width: 280,
       fixed: 'right',

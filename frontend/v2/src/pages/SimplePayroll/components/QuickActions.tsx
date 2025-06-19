@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Space, message, Modal, Form, Input, Select, DatePicker, Row, Col, Spin } from 'antd';
+import { Button, Space, message, Modal, Form, Input, Select, DatePicker, Row, Col, Spin, Checkbox } from 'antd';
 import { ProCard } from '@ant-design/pro-components';
 import { AppstoreOutlined, PlusOutlined, DollarOutlined, ReloadOutlined, EyeOutlined, BankOutlined, DeleteOutlined, UserAddOutlined, FileAddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -334,397 +334,387 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       return;
     }
 
-    // 声明变量在更高的作用域，确保在catch块中可以访问
-    let currentPeriod: any = null;
-    let previousPeriod: any = null;
-
-    try {
-      setLoading(prev => ({ ...prev, copy_payroll_entries: true }));
-
-      console.log('🚀 [复制工资记录] 开始获取期间列表');
-      
-      // 获取所有期间列表
-      const periodsResponse = await simplePayrollApi.getPayrollPeriods({});
-      const allPeriods = periodsResponse.data;
-      
-      // 找到当前期间
-      currentPeriod = allPeriods.find(p => p.id === selectedPeriodId);
-      if (!currentPeriod) {
-        message.error('无法找到当前期间信息');
-        return;
-      }
-
-      console.log('📋 [复制工资记录] 当前期间:', currentPeriod);
-      console.log('📋 [复制工资记录] 所有期间:', allPeriods.map(p => ({ id: p.id, name: p.name })));
-
-      // 🔍 检查当前期间是否已有工资记录
-      console.log('🔍 [复制工资记录] 检查当前期间是否已有工资记录');
-      const existingDataCheck = await simplePayrollApi.checkExistingData(selectedPeriodId);
-      
-      if (existingDataCheck.data.summary.total_payroll_entries > 0) {
-        const summary = existingDataCheck.data.summary;
-        message.warning({
-          content: (
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠️ 当前期间已有工资记录</div>
-              <div>📋 期间：{currentPeriod.name}</div>
-              <div>👥 工资记录：{summary.total_payroll_entries} 条</div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>请先删除现有工资记录或选择其他期间</div>
-            </div>
-          ),
-          duration: 8
-        });
-        return;
-      }
-
-      // 按时间降序排序，找到比当前期间时间更早的最近期间（真正的上个月）
-      const parseYearMonth = (name: string) => {
-        console.log('🔍 [parseYearMonth] 解析期间名称:', name);
+    // 使用Modal.confirm替换为自定义对话框
+    Modal.confirm({
+      title: '复制上月数据',
+      icon: <ReloadOutlined style={{ color: '#1890ff' }} />,
+      content: (
+        <div style={{ marginTop: 16 }}>
+          <p>请选择要复制的数据类型：</p>
+          <Form layout="vertical">
+            <Form.Item>
+              <Checkbox defaultChecked>工资记录</Checkbox>
+            </Form.Item>
+            <Form.Item>
+              <Checkbox defaultChecked>缴费基数（社保、公积金、职业年金）</Checkbox>
+            </Form.Item>
+          </Form>
+          <p style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
+            将从上月复制选中的数据到当前期间
+          </p>
+        </div>
+      ),
+      okText: '确认复制',
+      cancelText: '取消',
+      onOk: async () => {
+        // 获取选中的复制选项 (通过DOM查询，因为Modal.confirm不支持Form的常规数据获取方式)
+        const checkboxes = document.querySelectorAll('.ant-modal-content .ant-checkbox-wrapper');
+        const copyPayroll = checkboxes[0]?.querySelector('input')?.checked !== false;
+        const copyInsuranceBase = checkboxes[1]?.querySelector('input')?.checked !== false;
         
-        // 支持中文格式：2025年06月、2025年6月
-        let match = name.match(/(\d{4})年(\d{1,2})月/);
-        if (match) {
-          const result = { year: parseInt(match[1]), month: parseInt(match[2]) };
-          console.log('✅ [parseYearMonth] 中文格式解析成功:', result);
-          return result;
+        if (!copyPayroll && !copyInsuranceBase) {
+          message.warning('请至少选择一种数据类型进行复制');
+          return;
         }
-        
-        // 支持英文格式：2025-06、2025-6
-        match = name.match(/(\d{4})-(\d{1,2})/);
-        if (match) {
-          const result = { year: parseInt(match[1]), month: parseInt(match[2]) };
-          console.log('✅ [parseYearMonth] 英文格式解析成功:', result);
-          return result;
-        }
-        
-        console.log('❌ [parseYearMonth] 解析失败，不支持的格式:', name);
-        return null;
-      };
-      
-      const sortedPeriods = allPeriods
-        .filter(p => {
-          const currentYearMonth = parseYearMonth(currentPeriod.name);
-          const pYearMonth = parseYearMonth(p.name);
+
+        // 声明变量在更高的作用域，确保在catch块中可以访问
+        let currentPeriod: any = null;
+        let previousPeriod: any = null;
+
+        try {
+          setLoading(prev => ({ 
+            ...prev, 
+            copy_payroll_entries: copyPayroll,
+            copy_base_amounts: copyInsuranceBase
+          }));
+
+          console.log('🚀 [复制数据] 开始获取期间列表');
           
-          if (!currentYearMonth || !pYearMonth) return false;
+          // 获取所有期间列表
+          const periodsResponse = await simplePayrollApi.getPayrollPeriods({});
+          const allPeriods = periodsResponse.data;
           
-          // 比较年月：确保是更早的期间
-          if (pYearMonth.year < currentYearMonth.year) return true;
-          if (pYearMonth.year === currentYearMonth.year && pYearMonth.month < currentYearMonth.month) return true;
-          return false;
-        })
-        .sort((a, b) => {
-          const aYearMonth = parseYearMonth(a.name);
-          const bYearMonth = parseYearMonth(b.name);
-          
-          if (!aYearMonth || !bYearMonth) return 0;
-          
-          if (aYearMonth.year !== bYearMonth.year) return bYearMonth.year - aYearMonth.year;
-          return bYearMonth.month - aYearMonth.month;
-        });
-      
-      if (sortedPeriods.length === 0) {
-        message.warning('没有找到更早的期间，无法复制工资记录');
-        return;
-      }
+          // 找到当前期间
+          currentPeriod = allPeriods.find(p => p.id === selectedPeriodId);
+          if (!currentPeriod) {
+            message.error('无法找到当前期间信息');
+            return;
+          }
 
-      previousPeriod = sortedPeriods[0];
+          console.log('📋 [复制数据] 当前期间:', currentPeriod);
+          console.log('📋 [复制数据] 所有期间:', allPeriods.map(p => ({ id: p.id, name: p.name })));
 
-      console.log('🎯 [复制工资记录] 选择源期间:', {
-        从: previousPeriod.name,
-        到: currentPeriod.name,
-        sourcePeriodId: previousPeriod.id,
-        targetPeriodId: selectedPeriodId
-      });
-
-      // 🎯 调用复制薪资条目API（完整复制工资记录数据）
-      const result = await simplePayrollApi.copyPreviousPayroll({
-        target_period_id: selectedPeriodId,
-        source_period_id: previousPeriod.id,
-        description: `复制 ${previousPeriod.name} 工资记录到 ${currentPeriod.name}`,
-        force_overwrite: false
-      });
-
-      console.log('✅ [复制工资记录] 复制完成:', result);
-
-      if (result.data) {
-        message.success({
-          content: (
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 工资记录复制成功</div>
-              <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
-              <div>✅ 运行ID: {result.data.id}</div>
-              <div>📊 版本: {result.data.version_number}</div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>薪资条目记录已复制，可以运行计算引擎</div>
-            </div>
-          ),
-          duration: 6
-        });
-
-        // 刷新数据
-        onRefresh?.();
-      } else {
-        message.error('复制工资记录失败');
-      }
-
-    } catch (error: any) {
-      console.error('❌ [复制工资记录] 复制失败:', error);
-      console.log('🔍 [复制工资记录] 错误详情:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        errorCode: error.response?.data?.detail?.error?.code
-      });
-      
-      // 检查是否是需要确认的情况（409或422状态码，包含CONFIRMATION_REQUIRED错误码）
-      if ((error.response?.status === 409 || error.response?.status === 422) && 
-          error.response?.data?.detail?.error?.code === 'CONFIRMATION_REQUIRED') {
-        console.log('🔍 [复制工资记录] 检测到需要用户确认的情况');
-        const existingData = error.response.data.detail.error.existing_data;
-        
-        // 显示确认对话框
-        Modal.confirm({
-          title: '目标期间已有数据',
-          content: (
-            <div>
-              <p>期间 <strong>{existingData.target_period_name}</strong> 已有数据：</p>
-              <ul>
-                <li>工资运行: {existingData.summary.total_payroll_runs} 个</li>
-                <li>工资条目: {existingData.summary.total_payroll_entries} 条</li>
-                <li>薪资配置: {existingData.summary.total_salary_configs} 条</li>
-              </ul>
-              <p>是否要强制覆盖现有数据？</p>
-            </div>
-          ),
-          okText: '强制覆盖',
-          cancelText: '取消',
-          onOk: async () => {
-            // 用户确认后，重新调用API并设置force_overwrite为true
-            try {
-              setLoading(prev => ({ ...prev, copy_payroll_entries: true }));
-              
-              const result = await simplePayrollApi.copyPreviousPayroll({
-                target_period_id: selectedPeriodId,
-                source_period_id: previousPeriod.id,
-                description: `复制 ${previousPeriod.name} 工资记录到 ${currentPeriod.name}`,
-                force_overwrite: true  // 强制覆盖
+          // 如果需要复制工资记录，先检查当前期间是否已有工资记录
+          if (copyPayroll) {
+            console.log('🔍 [复制数据] 检查当前期间是否已有工资记录');
+            const existingDataCheck = await simplePayrollApi.checkExistingData(selectedPeriodId);
+            
+            if (existingDataCheck.data.summary.total_payroll_entries > 0) {
+              const summary = existingDataCheck.data.summary;
+              message.warning({
+                content: (
+                  <div>
+                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠️ 当前期间已有工资记录</div>
+                    <div>📋 期间：{currentPeriod.name}</div>
+                    <div>👥 工资记录：{summary.total_payroll_entries} 条</div>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>请先删除现有工资记录或选择其他期间</div>
+                  </div>
+                ),
+                duration: 8
               });
-
-              if (result.data) {
-                message.success({
-                  content: (
-                    <div>
-                      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 工资记录复制成功（已覆盖）</div>
-                      <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
-                      <div>✅ 运行ID: {result.data.id}</div>
-                      <div>📊 条目数: {result.data.total_entries}</div>
-                    </div>
-                  ),
-                  duration: 6
-                });
-                onRefresh?.();
-              }
-            } catch (retryError: any) {
-              console.error('❌ [复制工资记录] 强制覆盖失败:', retryError);
-              const retryErrorMessage = retryError?.response?.data?.detail?.message || retryError?.message || '强制覆盖失败';
-              message.error(`强制覆盖失败: ${retryErrorMessage}`);
-            } finally {
-              setLoading(prev => ({ ...prev, copy_payroll_entries: false }));
+              return;
             }
           }
-        });
-        return;
-      }
-      
-      // 普通错误处理
-      const errorDetails = error?.response?.data?.detail;
-      let errorMessage = '复制工资记录失败';
-      let detailMessage = '';
-      
-      if (errorDetails) {
-        if (errorDetails.error) {
-          errorMessage = errorDetails.error.message || errorMessage;
-          detailMessage = errorDetails.error.details || '';
-        } else if (errorDetails.message) {
-          errorMessage = errorDetails.message;
-          detailMessage = errorDetails.details || '';
-        }
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      message.error({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold' }}>❌ 复制工资记录失败</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
-            {detailMessage && (
-              <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>{detailMessage}</div>
-            )}
-            <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-              状态码: {error?.response?.status || 'Unknown'}
-            </div>
-          </div>
-        ),
-        duration: 8
-      });
-    } finally {
-      setLoading(prev => ({ ...prev, copy_payroll_entries: false }));
-    }
-  };
 
-  // 一键复制上月缴费基数
-  const handleCopyPreviousBaseAmounts = async () => {
-    if (!selectedPeriodId) {
-      message.error('请先选择一个工资期间');
-      return;
-    }
+          // 如果需要复制缴费基数，检查当前期间是否已有缴费基数配置
+          if (copyInsuranceBase) {
+            console.log('🔍 [复制数据] 检查当前期间是否已有缴费基数配置');
+            const existingBaseCheck = await simplePayrollApi.checkExistingInsuranceBase(selectedPeriodId);
+            
+            if (existingBaseCheck.data.has_insurance_base_data) {
+              const baseConfigs = existingBaseCheck.data.base_configs;
+              message.warning({
+                content: (
+                  <div>
+                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠️ 当前期间已有缴费基数配置</div>
+                    <div>📋 期间：{currentPeriod.name}</div>
+                    <div>👥 涉及员工：{baseConfigs.unique_employees} 人</div>
+                    {baseConfigs.employees_with_social_base > 0 && <div>🏥 有社保基数：{baseConfigs.employees_with_social_base} 人</div>}
+                    {baseConfigs.employees_with_housing_base > 0 && <div>🏠 有公积金基数：{baseConfigs.employees_with_housing_base} 人</div>}
+                    {/* 职业年金基数信息 - 后端API可能尚未更新返回此字段 */}
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>包含社保、公积金和职业年金基数</div>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                      {existingBaseCheck.data.recommendation.message}
+                    </div>
+                  </div>
+                ),
+                duration: 8
+              });
+              return;
+            }
+          }
 
-    try {
-      setLoading(prev => ({ ...prev, copy_base_amounts: true }));
+          // 按时间降序排序，找到比当前期间时间更早的最近期间（真正的上个月）
+          const parseYearMonth = (name: string) => {
+            console.log('🔍 [parseYearMonth] 解析期间名称:', name);
+            
+            // 支持中文格式：2025年06月、2025年6月
+            let match = name.match(/(\d{4})年(\d{1,2})月/);
+            if (match) {
+              const result = { year: parseInt(match[1]), month: parseInt(match[2]) };
+              console.log('✅ [parseYearMonth] 中文格式解析成功:', result);
+              return result;
+            }
+            
+            // 支持英文格式：2025-06、2025-6
+            match = name.match(/(\d{4})-(\d{1,2})/);
+            if (match) {
+              const result = { year: parseInt(match[1]), month: parseInt(match[2]) };
+              console.log('✅ [parseYearMonth] 英文格式解析成功:', result);
+              return result;
+            }
+            
+            console.log('❌ [parseYearMonth] 解析失败，不支持的格式:', name);
+            return null;
+          };
+          
+          const sortedPeriods = allPeriods
+            .filter(p => {
+              const currentYearMonth = parseYearMonth(currentPeriod.name);
+              const pYearMonth = parseYearMonth(p.name);
+              
+              if (!currentYearMonth || !pYearMonth) return false;
+              
+              // 比较年月：确保是更早的期间
+              if (pYearMonth.year < currentYearMonth.year) return true;
+              if (pYearMonth.year === currentYearMonth.year && pYearMonth.month < currentYearMonth.month) return true;
+              return false;
+            })
+            .sort((a, b) => {
+              const aYearMonth = parseYearMonth(a.name);
+              const bYearMonth = parseYearMonth(b.name);
+              
+              if (!aYearMonth || !bYearMonth) return 0;
+              
+              if (aYearMonth.year !== bYearMonth.year) return bYearMonth.year - aYearMonth.year;
+              return bYearMonth.month - aYearMonth.month;
+            });
+          
+          if (sortedPeriods.length === 0) {
+            message.warning('没有找到更早的期间，无法复制工资记录');
+            return;
+          }
 
-      console.log('🚀 [一键复制缴费基数] 开始获取期间列表');
-      
-      // 获取所有期间列表
-      const periodsResponse = await simplePayrollApi.getPayrollPeriods({});
-      const allPeriods = periodsResponse.data;
-      
-      // 找到当前期间
-      const currentPeriod = allPeriods.find(p => p.id === selectedPeriodId);
-      if (!currentPeriod) {
-        message.error('无法找到当前期间信息');
-        return;
-      }
+          previousPeriod = sortedPeriods[0];
 
-      console.log('📋 [一键复制缴费基数] 当前期间:', currentPeriod);
+          console.log('🎯 [复制工资记录] 选择源期间:', {
+            从: previousPeriod.name,
+            到: currentPeriod.name,
+            sourcePeriodId: previousPeriod.id,
+            targetPeriodId: selectedPeriodId
+          });
 
-      // 🔍 检查当前期间是否已有缴费基数配置
-      console.log('🔍 [一键复制缴费基数] 检查当前期间是否已有缴费基数配置');
-      const existingBaseCheck = await simplePayrollApi.checkExistingInsuranceBase(selectedPeriodId);
-      
-      if (existingBaseCheck.data.has_insurance_base_data) {
-        const baseConfigs = existingBaseCheck.data.base_configs;
-        const summary = existingBaseCheck.data.summary;
-        message.warning({
-          content: (
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠️ 当前期间已有缴费基数配置</div>
-              <div>📋 期间：{currentPeriod.name}</div>
-              <div>👥 涉及员工：{baseConfigs.unique_employees} 人</div>
-              {baseConfigs.employees_with_social_base > 0 && <div>🏥 有社保基数：{baseConfigs.employees_with_social_base} 人</div>}
-              {baseConfigs.employees_with_housing_base > 0 && <div>🏠 有公积金基数：{baseConfigs.employees_with_housing_base} 人</div>}
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                {existingBaseCheck.data.recommendation.message}
+          // 🎯 调用复制薪资条目API（完整复制工资记录数据）
+          const result = await simplePayrollApi.copyPreviousPayroll({
+            target_period_id: selectedPeriodId,
+            source_period_id: previousPeriod.id,
+            description: `复制 ${previousPeriod.name} 工资记录到 ${currentPeriod.name}`,
+            force_overwrite: false
+          });
+
+          console.log('✅ [复制工资记录] 复制完成:', result);
+
+          let payrollCopySuccess = false;
+          let insuranceBaseCopySuccess = false;
+
+          if (result.data) {
+            payrollCopySuccess = true;
+            if (!copyInsuranceBase) {
+              // 如果只复制工资记录，直接显示成功消息
+              message.success({
+                content: (
+                  <div>
+                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 工资记录复制成功</div>
+                    <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
+                    <div>✅ 运行ID: {result.data.id}</div>
+                    <div>📊 版本: {result.data.version_number}</div>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>薪资条目记录已复制，可以运行计算引擎</div>
+                  </div>
+                ),
+                duration: 6
+              });
+            }
+          } else {
+            message.error('复制工资记录失败');
+          }
+
+          // 如果需要复制缴费基数，调用缴费基数复制API
+          if (copyInsuranceBase) {
+            try {
+              console.log('🚀 [复制缴费基数] 开始复制缴费基数');
+              
+              // 调用专门的缴费基数复制API
+              const baseResult = await simplePayrollApi.copyInsuranceBaseAmounts({
+                source_period_id: previousPeriod.id,
+                target_period_id: selectedPeriodId
+              });
+              
+              console.log('✅ [复制缴费基数] 复制完成:', baseResult);
+              
+              if (baseResult.data && baseResult.data.success) {
+                insuranceBaseCopySuccess = true;
+                
+                if (!payrollCopySuccess) {
+                  // 如果只复制了缴费基数，显示缴费基数复制成功消息
+                  message.success({
+                    content: (
+                      <div>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 缴费基数复制成功</div>
+                        <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
+                        <div>✅ 新建: {baseResult.data.copied_count} 条</div>
+                        <div>🔄 更新: {baseResult.data.updated_count} 条</div>
+                        <div>⏭ 跳过: {baseResult.data.skipped_count} 条</div>
+                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>包含社保、公积金和职业年金基数</div>
+                      </div>
+                    ),
+                    duration: 6
+                  });
+                }
+              } else {
+                message.error('复制缴费基数失败');
+              }
+            } catch (baseError: any) {
+              console.error('❌ [复制缴费基数] 复制失败:', baseError);
+              const errorMessage = baseError?.response?.data?.detail?.message || baseError?.message || '复制缴费基数失败';
+              message.error({
+                content: (
+                  <div>
+                    <div style={{ fontWeight: 'bold' }}>❌ 复制缴费基数失败</div>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
+                  </div>
+                ),
+                duration: 6
+              });
+            }
+          }
+          
+          // 如果两种数据都复制成功，显示综合成功消息
+          if (payrollCopySuccess && insuranceBaseCopySuccess) {
+            message.success({
+              content: (
+                <div>
+                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 数据复制成功</div>
+                  <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
+                  <div>✅ 工资记录和缴费基数已成功复制</div>
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>包含社保、公积金和职业年金基数</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>现在可以运行计算引擎</div>
+                </div>
+              ),
+              duration: 6
+            });
+          }
+
+          // 刷新数据
+          onRefresh?.();
+        } catch (error: any) {
+          console.error('❌ [复制工资记录] 复制失败:', error);
+          console.log('🔍 [复制工资记录] 错误详情:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            errorCode: error.response?.data?.detail?.error?.code
+          });
+          
+          // 检查是否是需要确认的情况（409或422状态码，包含CONFIRMATION_REQUIRED错误码）
+          if ((error.response?.status === 409 || error.response?.status === 422) && 
+              error.response?.data?.detail?.error?.code === 'CONFIRMATION_REQUIRED') {
+            console.log('🔍 [复制工资记录] 检测到需要用户确认的情况');
+            const existingData = error.response.data.detail.error.existing_data;
+            
+            // 显示确认对话框
+            Modal.confirm({
+              title: '目标期间已有数据',
+              content: (
+                <div>
+                  <p>期间 <strong>{existingData.target_period_name}</strong> 已有数据：</p>
+                  <ul>
+                    <li>工资运行: {existingData.summary.total_payroll_runs} 个</li>
+                    <li>工资条目: {existingData.summary.total_payroll_entries} 条</li>
+                    <li>薪资配置: {existingData.summary.total_salary_configs} 条</li>
+                  </ul>
+                  <p>是否要强制覆盖现有数据？</p>
+                </div>
+              ),
+              okText: '强制覆盖',
+              cancelText: '取消',
+              onOk: async () => {
+                // 用户确认后，重新调用API并设置force_overwrite为true
+                try {
+                  setLoading(prev => ({ ...prev, copy_payroll_entries: true }));
+                  
+                  const result = await simplePayrollApi.copyPreviousPayroll({
+                    target_period_id: selectedPeriodId,
+                    source_period_id: previousPeriod.id,
+                    description: `复制 ${previousPeriod.name} 工资记录到 ${currentPeriod.name}`,
+                    force_overwrite: true  // 强制覆盖
+                  });
+
+                  if (result.data) {
+                    message.success({
+                      content: (
+                        <div>
+                          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 工资记录复制成功（已覆盖）</div>
+                          <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
+                          <div>✅ 运行ID: {result.data.id}</div>
+                          <div>📊 条目数: {result.data.total_entries}</div>
+                        </div>
+                      ),
+                      duration: 6
+                    });
+                    onRefresh?.();
+                  }
+                } catch (retryError: any) {
+                  console.error('❌ [复制工资记录] 强制覆盖失败:', retryError);
+                  const retryErrorMessage = retryError?.response?.data?.detail?.message || retryError?.message || '强制覆盖失败';
+                  message.error(`强制覆盖失败: ${retryErrorMessage}`);
+                } finally {
+                  setLoading(prev => ({ ...prev, copy_payroll_entries: false }));
+                }
+              }
+            });
+            return;
+          }
+          
+          // 普通错误处理
+          const errorDetails = error?.response?.data?.detail;
+          let errorMessage = '复制工资记录失败';
+          let detailMessage = '';
+          
+          if (errorDetails) {
+            if (errorDetails.error) {
+              errorMessage = errorDetails.error.message || errorMessage;
+              detailMessage = errorDetails.error.details || '';
+            } else if (errorDetails.message) {
+              errorMessage = errorDetails.message;
+              detailMessage = errorDetails.details || '';
+            }
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
+          message.error({
+            content: (
+              <div>
+                <div style={{ fontWeight: 'bold' }}>❌ 复制工资记录失败</div>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
+                {detailMessage && (
+                  <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>{detailMessage}</div>
+                )}
+                <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                  状态码: {error?.response?.status || 'Unknown'}
+                </div>
               </div>
-            </div>
-          ),
-          duration: 8
-        });
-        return;
-      }
-
-      // 按时间降序排序，找到比当前期间时间更早的最近期间（真正的上个月）
-      const parseYearMonth = (name: string) => {
-        console.log('🔍 [parseYearMonth-缴费基数] 解析期间名称:', name);
-        
-        // 支持中文格式：2025年06月、2025年6月
-        let match = name.match(/(\d{4})年(\d{1,2})月/);
-        if (match) {
-          const result = { year: parseInt(match[1]), month: parseInt(match[2]) };
-          console.log('✅ [parseYearMonth-缴费基数] 中文格式解析成功:', result);
-          return result;
+            ),
+            duration: 8
+          });
+        } finally {
+          setLoading(prev => ({ 
+            ...prev, 
+            copy_payroll_entries: false,
+            copy_base_amounts: false
+          }));
         }
-        
-        // 支持英文格式：2025-06、2025-6
-        match = name.match(/(\d{4})-(\d{1,2})/);
-        if (match) {
-          const result = { year: parseInt(match[1]), month: parseInt(match[2]) };
-          console.log('✅ [parseYearMonth-缴费基数] 英文格式解析成功:', result);
-          return result;
-        }
-        
-        console.log('❌ [parseYearMonth-缴费基数] 解析失败，不支持的格式:', name);
-        return null;
-      };
-      
-      const sortedPeriods = allPeriods
-        .filter(p => {
-          const currentYearMonth = parseYearMonth(currentPeriod.name);
-          const pYearMonth = parseYearMonth(p.name);
-          
-          if (!currentYearMonth || !pYearMonth) return false;
-          
-          // 比较年月：确保是更早的期间
-          if (pYearMonth.year < currentYearMonth.year) return true;
-          if (pYearMonth.year === currentYearMonth.year && pYearMonth.month < currentYearMonth.month) return true;
-          return false;
-        })
-        .sort((a, b) => {
-          const aYearMonth = parseYearMonth(a.name);
-          const bYearMonth = parseYearMonth(b.name);
-          
-          if (!aYearMonth || !bYearMonth) return 0;
-          
-          if (aYearMonth.year !== bYearMonth.year) return bYearMonth.year - aYearMonth.year;
-          return bYearMonth.month - aYearMonth.month;
-        });
-      
-      if (sortedPeriods.length === 0) {
-        message.warning('没有找到更早的期间，无法复制缴费基数');
-        return;
       }
-
-      const previousPeriod = sortedPeriods[0];
-
-      console.log('🎯 [一键复制缴费基数] 选择源期间:', {
-        从: previousPeriod.name,
-        到: currentPeriod.name,
-        sourcePeriodId: previousPeriod.id,
-        targetPeriodId: selectedPeriodId
-      });
-
-      // 🎯 调用专门的缴费基数复制API（只复制社保和公积金基数）
-      const result = await simplePayrollApi.copyInsuranceBaseAmounts({
-        source_period_id: previousPeriod.id,
-        target_period_id: selectedPeriodId
-      });
-
-      console.log('✅ [一键复制缴费基数] 复制完成:', result);
-
-      if (result.data.success) {
-        message.success({
-          content: (
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 缴费基数复制成功</div>
-              <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
-              <div>✅ 新建: {result.data.copied_count} 条</div>
-              <div>🔄 更新: {result.data.updated_count} 条</div>
-              <div>⏭ 跳过: {result.data.skipped_count} 条</div>
-            </div>
-          ),
-          duration: 6
-        });
-
-        // 刷新数据
-        onRefresh?.();
-      } else {
-        message.error('复制缴费基数失败');
-      }
-
-    } catch (error: any) {
-      console.error('❌ [一键复制缴费基数] 复制失败:', error);
-      const errorMessage = error?.response?.data?.detail?.message || error?.message || '复制缴费基数失败';
-      message.error({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold' }}>❌ 复制缴费基数失败</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
-          </div>
-        ),
-        duration: 6
-      });
-    } finally {
-      setLoading(prev => ({ ...prev, copy_base_amounts: false }));
-    }
+    });
   };
 
   // 🔥 删除本月数据（删除薪资周期、工资运行、薪资记录、缴费基数）

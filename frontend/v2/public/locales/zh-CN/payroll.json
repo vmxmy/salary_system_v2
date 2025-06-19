@@ -257,7 +257,12 @@
     "total_net_salary": "实发合计总额",
     "total_social_insurance_employee": "代扣社保总额 (个人)",
     "total_social_insurance_employer": "代扣社保总额 (公司)",
-    "total_tax": "代扣个税总额"
+    "total_tax": "代扣个税总额",
+    "total_deductions": "扣除总额",
+    "total_earnings": "应发总额",
+    "total_net_pay": "实发总额",
+    "trigger_calculation_failed": "触发计算失败",
+    "trigger_calculation_success": "触发计算成功"
   },
   "calculation_success": "计算任务已成功触发/完成。",
   "check_in_time": "",
@@ -717,7 +722,24 @@
       "出生日期": "出生日期",
       "入职日期": "入职日期",
       "首次工作日期": "首次工作日期",
-      "现职位开始日期": "现职位开始日期"
+      "现职位开始日期": "现职位开始日期",
+      "补助": "补助",
+      "信访工作人员岗位工作津贴": "信访工作人员岗位工作津贴",
+      "基础绩效": "基础绩效",
+      "津贴": "津贴",
+      "职务技术等级工资": "职务技术等级工资",
+      "级别岗位级别工资": "级别岗位级别工资",
+      "九三年工改保留津补贴": "九三年工改保留津补贴",
+      "独生子女父母奖励金": "独生子女父母奖励金",
+      "公务员规范性津贴补贴": "公务员规范性津贴补贴",
+      "公务交通补贴": "公务交通补贴",
+      "基础绩效奖": "基础绩效奖",
+      "薪级工资": "薪级工资",
+      "试用期工资": "试用期工资",
+      "月奖励绩效": "月奖励绩效",
+      "岗位职务补贴": "岗位职务补贴",
+      "乡镇工作补贴": "乡镇工作补贴",
+      "民族详情": "民族详情"
     }
   },
   "presets": {
@@ -765,7 +787,10 @@
       "description": "描述",
       "description_placeholder": "可选：描述此预设的用途",
       "set_as_default": "设为默认预设",
-      "make_public": "设为公共预设（其他用户可见）"
+      "make_public": "设为公共预设（其他用户可见）",
+      "category": "分类",
+      "category_placeholder": "选择或创建分类",
+      "no_category": "无分类"
     },
     "edit_modal": {
       "title": "编辑预设配置",
@@ -775,7 +800,10 @@
       "description": "描述",
       "description_placeholder": "可选：描述此预设的用途",
       "set_as_default": "设为默认预设",
-      "make_public": "设为公共预设（其他用户可见）"
+      "make_public": "设为公共预设（其他用户可见）",
+      "category": "分类",
+      "category_placeholder": "选择或创建分类",
+      "no_category": "无分类"
     },
     "duplicate_modal": {
       "title": "复制预设",
@@ -803,6 +831,43 @@
       "visible": "显示",
       "hidden": "隐藏",
       "fixed": "固定"
-    }
-  }
+    },
+    "group_manager": {
+      "title": "预设分组管理",
+      "create_group": "创建新分组",
+      "edit_group": "编辑分组",
+      "manage_groups": "详细分组管理",
+      "total_groups": "个分组",
+      "group_name": "分组名称",
+      "name_required": "请输入分组名称",
+      "name_too_long": "分组名称不能超过50个字符",
+      "name_placeholder": "请输入分组名称",
+      "group_description": "分组描述",
+      "description_too_long": "描述不能超过200个字符",
+      "description_placeholder": "请输入分组描述",
+      "group_color": "分组颜色",
+      "preset_colors": "预设颜色",
+      "group_icon": "分组图标",
+      "icon_placeholder": "选择一个图标",
+      "preview": "预览效果",
+      "preview_name": "预览分组名称",
+      "preview_tag": "标签示例",
+      "drag_to_reorder": "拖动排序",
+      "delete_confirm_title": "确认删除分组",
+      "delete_confirm_content": "确定要删除分组 \"{{name}}\" 吗？此操作不可撤销。",
+      "presets_count": "个预设",
+      "created_at": "创建于",
+      "no_groups": "暂无预设分组",
+      "create_first_group": "创建第一个预设分组以便更好地组织您的预设",
+      "update_success": "分组更新成功",
+      "save_failed": "保存分组失败",
+      "delete_success": "分组删除成功",
+      "delete_failed": "删除分组失败",
+      "create_success": "分组创建成功"
+    },
+    "manage_groups": "管理预设组"
+  },
+  "calculation_rule": "计算规则",
+  "calculation_rule_set": "薪资计算规则集",
+  "calculation_rule_sets": "薪资计算规则集"
 }

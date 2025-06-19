@@ -22,6 +22,7 @@ class PayrollDataModalPresetBase(BaseModel):
     """工资数据模态框预设基础模型"""
     name: str = Field(..., min_length=1, max_length=100, description="预设名称")
     description: Optional[str] = Field(None, max_length=500, description="预设描述")
+    category: Optional[str] = Field(None, max_length=50, description="预设分组/分类")
     filterConfig: ColumnFilterConfig = Field(..., description="列筛选配置")
     columnSettings: Dict[str, Any] = Field(default_factory=dict, description="列设置配置")
     tableFilterState: Optional[Dict[str, Any]] = Field(default_factory=dict, description="表头筛选状态")
@@ -38,6 +39,7 @@ class PayrollDataModalPresetUpdate(BaseModel):
     """更新工资数据模态框预设"""
     name: Optional[str] = Field(None, min_length=1, max_length=100, description="预设名称")
     description: Optional[str] = Field(None, max_length=500, description="预设描述")
+    category: Optional[str] = Field(None, max_length=50, description="预设分组/分类")
     filterConfig: Optional[ColumnFilterConfig] = Field(None, description="列筛选配置")
     columnSettings: Optional[Dict[str, Any]] = Field(None, description="列设置配置")
     tableFilterState: Optional[Dict[str, Any]] = Field(None, description="表头筛选状态")
@@ -75,6 +77,7 @@ class PresetSaveRequest(BaseModel):
     """保存预设请求"""
     name: str = Field(..., min_length=1, max_length=100, description="预设名称")
     description: Optional[str] = Field(None, max_length=500, description="预设描述")
+    category: Optional[str] = Field(None, max_length=50, description="预设分组/分类")
     filterConfig: ColumnFilterConfig = Field(..., description="列筛选配置")
     columnSettings: Dict[str, Any] = Field(default_factory=dict, description="列设置配置")
     tableFilterState: Optional[Dict[str, Any]] = Field(default_factory=dict, description="表头筛选状态")
@@ -99,6 +102,7 @@ class PresetDuplicateRequest(BaseModel):
     """复制预设请求"""
     newName: str = Field(..., min_length=1, max_length=100, description="新预设名称")
     description: Optional[str] = Field(None, max_length=500, description="新预设描述")
+    category: Optional[str] = Field(None, max_length=50, description="预设分组/分类")
 
 
 class PresetExportResponse(BaseModel):
@@ -125,4 +129,66 @@ class PresetImportResponse(BaseModel):
     importedPresets: List[PayrollDataModalPresetResponse] = Field(
         default_factory=list, 
         description="导入的预设列表"
-    ) 
+    )
+
+
+# ===== 预设分组相关模型 =====
+
+class PresetGroupBase(BaseModel):
+    """预设分组基础模型"""
+    name: str = Field(..., min_length=1, max_length=50, description="分组名称")
+    description: Optional[str] = Field(None, max_length=200, description="分组描述")
+    color: Optional[str] = Field(None, max_length=7, description="分组颜色(十六进制)")
+    icon: Optional[str] = Field(None, max_length=50, description="分组图标")
+    sort_order: int = Field(default=0, description="排序顺序")
+    is_active: bool = Field(default=True, description="是否激活")
+
+
+class PresetGroupCreate(PresetGroupBase):
+    """创建预设分组"""
+    pass
+
+
+class PresetGroupUpdate(BaseModel):
+    """更新预设分组"""
+    name: Optional[str] = Field(None, min_length=1, max_length=50, description="分组名称")
+    description: Optional[str] = Field(None, max_length=200, description="分组描述")
+    color: Optional[str] = Field(None, max_length=7, description="分组颜色(十六进制)")
+    icon: Optional[str] = Field(None, max_length=50, description="分组图标")
+    sort_order: Optional[int] = Field(None, description="排序顺序")
+    is_active: Optional[bool] = Field(None, description="是否激活")
+
+
+class PresetGroupResponse(PresetGroupBase):
+    """预设分组响应"""
+    id: int = Field(..., description="分组ID")
+    user_id: int = Field(..., description="用户ID")
+    created_at: datetime = Field(..., description="创建时间")
+    updated_at: datetime = Field(..., description="更新时间")
+
+    class Config:
+        from_attributes = True
+
+
+class PresetGroupListResponse(BaseModel):
+    """预设分组列表响应"""
+    groups: List[PresetGroupResponse] = Field(..., description="分组列表")
+    total: int = Field(..., description="总数量")
+
+
+class PresetGroupStatsResponse(BaseModel):
+    """预设分组统计响应"""
+    group_id: int = Field(..., description="分组ID", alias="groupId")
+    preset_count: int = Field(..., description="预设数量", alias="presetCount")
+    last_used_at: Optional[datetime] = Field(None, description="最后使用时间", alias="lastUsedAt")
+
+    class Config:
+        populate_by_name = True
+
+
+class PresetGroupReorderRequest(BaseModel):
+    """预设分组重新排序请求"""
+    group_ids: List[int] = Field(..., description="分组ID列表（按新顺序排列）", alias="groupIds")
+
+    class Config:
+        populate_by_name = True 

@@ -40,5 +40,65 @@
       "result_title": "导入结果反馈开发中...",
       "result_desc": "将在此处显示导入成功、失败或部分成功的详细信息"
     }
+  },
+  "presets": {
+    "group_manager": {
+      "title": "分组管理",
+      "manage_groups": "管理分组",
+      "total_groups": "个分组",
+      "create_group": "创建分组",
+      "edit_group": "编辑分组",
+      "delete_group": "删除分组",
+      "group_name": "分组名称",
+      "group_description": "分组描述",
+      "group_color": "分组颜色",
+      "group_icon": "分组图标",
+      "name_required": "请输入分组名称",
+      "name_too_long": "分组名称不能超过50个字符",
+      "description_too_long": "分组描述不能超过200个字符",
+      "name_placeholder": "请输入分组名称",
+      "description_placeholder": "请输入分组描述（可选）",
+      "icon_placeholder": "选择图标",
+      "preset_colors": "预设颜色",
+      "preview": "预览",
+      "preview_name": "示例分组",
+      "preview_tag": "示例",
+      "no_groups": "暂无分组",
+      "create_first_group": "创建第一个分组来开始组织您的预设配置",
+      "presets_count": "个预设",
+      "created_at": "创建时间",
+      "delete_confirm_title": "确认删除分组",
+      "delete_confirm_content": "确定要删除分组"{{name}}"吗？该分组下的所有预设将移至默认分组。",
+      "drag_to_reorder": "拖拽调整顺序",
+      "load_failed": "加载分组失败",
+      "create_success": "创建分组成功",
+      "create_failed": "创建分组失败",
+      "update_success": "更新分组成功",
+      "update_failed": "更新分组失败",
+      "delete_success": "删除分组成功",
+      "delete_failed": "删除分组失败",
+      "reorder_success": "调整排序成功",
+      "reorder_failed": "调整排序失败"
+    },
+    "category": "分组",
+    "select_category": "选择分组",
+    "default_category": "默认分组",
+    "save_modal": {
+      "title": "保存预设",
+      "name": "预设名称",
+      "name_required": "请输入预设名称",
+      "name_placeholder": "请输入预设名称",
+      "description": "描述",
+      "description_placeholder": "请输入预设描述（可选）",
+      "category": "分组",
+      "category_placeholder": "选择分组",
+      "no_category": "无分组",
+      "set_as_default": "设为默认预设",
+      "make_public": "设为公共预设"
+    },
+    "edit_modal": {
+      "title": "编辑预设",
+      "category": "分组"
+    }
   }
 } 

@@ -80,6 +80,7 @@ export const usePayrollDataPresets = () => {
     columnSettings: ColumnSettings,
     options: {
       description?: string;
+      category?: string; // 新增：分组支持
       isDefault?: boolean;
       isPublic?: boolean;
       tableFilterState?: any; // 🎯 关键修复：添加表头筛选状态支持

@@ -30,7 +30,8 @@ from ..pydantic_models.simple_payroll import (
     BatchAdjustmentResult,
     DepartmentCostAnalysisResponse,
     EmployeeTypeAnalysisResponse,
-    SalaryTrendAnalysisResponse
+    SalaryTrendAnalysisResponse,
+    MonthlyPayrollSummary
 )
 from ..pydantic_models.config import (
     ReportTemplateResponse
@@ -45,6 +46,7 @@ from ..services.simple_payroll.analytics_service import PayrollAnalyticsService
 from ..models.config import LookupValue
 from ..models.payroll import PayrollEntry, PayrollRun, PayrollPeriod
 from ..payroll_engine.simple_calculator import CalculationStatus
+from ..crud import simple_payroll as crud_simple_payroll
 
 logger = logging.getLogger(__name__)
 
@@ -3445,6 +3447,37 @@ async def get_salary_trend_analysis(
             detail=create_error_response(
                 status_code=500,
                 message="工资趋势分析失败",
+                details=str(e)
+            )
+        )
+
+@router.get("/monthly-summary", response_model=DataResponse[List[MonthlyPayrollSummary]], summary="获取月度薪资状态概览")
+async def get_monthly_summary(
+    start_year: int = Query(..., description="开始年份", example=datetime.now().year - 1),
+    end_year: int = Query(..., description="结束年份", example=datetime.now().year),
+    db: Session = Depends(get_db_v2)
+    # current_user = Depends(require_permissions(["payroll_period:view"])) # 权限可以后续添加
+):
+    """
+    获取指定年份范围内每个月的薪资状态概览。
+    - **has_payroll_run**: 当月是否存在至少一个薪资运行。
+    - **record_status_summary**: 工资记录的状态分布。
+        - `not_calculated`: 状态为 'PENDING' 的记录数。
+        - `pending_audit`: 状态为 'PENDING_AUDIT' 的记录数。
+        - `approved`: 状态为 'APPROVED' 的记录数。
+    """
+    logger.info(f"🔄 [get_monthly_summary] 接收请求 - start_year: {start_year}, end_year: {end_year}")
+    try:
+        summary_data = crud_simple_payroll.get_monthly_payroll_summary(db, start_year, end_year)
+        logger.info(f"✅ [get_monthly_summary] 查询成功 - 返回 {len(summary_data)} 条月度记录")
+        return DataResponse(data=summary_data)
+    except Exception as e:
+        logger.error(f"获取月度薪资概览失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="获取月度薪资概览失败",
                 details=str(e)
             )
         )

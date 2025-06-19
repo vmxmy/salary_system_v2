@@ -277,6 +277,39 @@ class ReportUserPreference(Base):
     user = relationship("User", back_populates="report_preferences")
 
 
+class ReportUserPreferenceGroup(Base):
+    """用户偏好分组模型"""
+    __tablename__ = "report_user_preference_groups"
+    __table_args__ = (
+        Index('idx_user_preference_groups_user', 'user_id'),
+        Index('idx_user_preference_groups_name', 'user_id', 'name'),
+        Index('idx_user_preference_groups_order', 'user_id', 'sort_order'),
+        # 用户内分组名称唯一约束
+        Index('uq_user_preference_group_name', 'user_id', 'name', unique=True),
+        {'schema': 'config'}
+    )
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("security.users.id"), nullable=False, comment="用户ID")
+    
+    # 分组基本信息
+    name = Column(String(50), nullable=False, comment="分组名称")
+    description = Column(String(200), comment="分组描述")
+    color = Column(String(7), comment="分组颜色(十六进制)")
+    icon = Column(String(50), comment="分组图标")
+    
+    # 排序和状态
+    sort_order = Column(Integer, default=0, nullable=False, comment="排序顺序")
+    is_active = Column(Boolean, default=True, nullable=False, comment="是否激活")
+    
+    # 审计字段
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新时间")
+
+    # 关系
+    user = relationship("User", back_populates="report_preference_groups")
+
+
 
 
 

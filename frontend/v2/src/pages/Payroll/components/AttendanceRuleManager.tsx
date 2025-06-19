@@ -98,8 +98,8 @@ const AttendanceRuleManager: React.FC = () => {
       ),
     },
     {
-      title: t('common:actions'),
       key: 'actions',
+      title: t('common:action.title'),
       width: 200,
       fixed: 'right',
       render: (_, record, index) => (

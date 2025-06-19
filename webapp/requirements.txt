@@ -137,4 +137,4 @@ sentry-sdk[fastapi]>=1.38.0
 ipaddress>=1.0.23
 
 # 特定于薪资系统的依赖
-decimal>=1.70
+# decimal>=1.70 # 此行被注释，因为decimal是Python内置模块，无需通过pip安装

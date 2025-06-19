@@ -123,9 +123,9 @@ const generatePayrollRunTableColumns = (
       search: false,
     },
     {
-      title: t('common:actions'),
+      title: t('common:action.title'),
       key: 'actions',
-      width: 350,
+      width: 280,
       fixed: 'right',
       render: (_, record, index) => (
         <Space size="small">

@@ -99,11 +99,10 @@ const AttendanceRecordManager: React.FC = () => {
       render: (value: number) => value > 0 ? <Tag color="red">{value}</Tag> : '-',
     },
     {
-      title: t('common:actions'),
       key: 'actions',
-      width: 150,
-      fixed: 'right',
-      render: (_, record, index) => (
+      title: t('common:action.title'),
+      dataIndex: 'actions',
+      render: (_: any, record: AttendanceRecord) => (
         <Space size="small">
           <TableActionButton
             actionType="edit"

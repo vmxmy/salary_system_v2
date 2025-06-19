@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7天
 
     # 数据库设置
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:810705@localhost:5432/salary_system_v2")
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
 
     # CORS设置
     CORS_ORIGINS_STRING: Optional[str] = os.getenv("CORS_ORIGINS_STRING", None)

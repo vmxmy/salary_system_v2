@@ -73,8 +73,8 @@ const CalculationRuleSetManager: React.FC<CalculationRuleSetManagerProps> = ({
       render: (_, record, index) => record.rules?.length || 0,
     },
     {
-      title: t('common:actions'),
       key: 'actions',
+      title: t('common:action.title'),
       width: 200,
       render: (_, record, index) => (
         <Space>

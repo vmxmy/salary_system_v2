@@ -104,8 +104,9 @@ const DailyAttendanceManager: React.FC = () => {
       ),
     },
     {
-      title: t('common:actions'),
       key: 'actions',
+      title: t('common:action.title'),
+      dataIndex: 'actions',
       width: 150,
       fixed: 'right',
       render: (_, record, index) => (

@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r docker-requirements.txt
 
 # 复制应用代码
-COPY webapp/ .
+COPY webapp/ /app/webapp/
 
 # 复制健康检查脚本
 COPY docker/backend/healthcheck.py /app/healthcheck.py
@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD python /app/healthcheck.py
 
 # 启动命令
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"] 
+CMD ["uvicorn", "webapp.main:app", "--host", "0.0.0.0", "--port", "8080"] 
