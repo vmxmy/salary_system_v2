@@ -187,7 +187,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           
           // 设置基础信息到表单
           form.setFieldsValue({
-            employee_id: data.基础信息.员工编号,
+            employee_id: {
+              id: data.基础信息.员工ID, 
+              name: data.基础信息.员工姓名
+            },
             employee_name: data.基础信息.员工姓名,
             department: data.基础信息.部门名称,
             personnel_category: data.基础信息.人员类别,
@@ -211,6 +214,17 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           console.log('🔄 [PayrollEntryFormModal] 回退：重新获取最新的工资条目数据:', entry.id);
           const result = await getPayrollEntryById(entry.id);
           const latestEntry = result.data;
+          
+          // 修正回退逻辑
+          if (latestEntry.employee) {
+            form.setFieldsValue({
+              employee_id: {
+                id: latestEntry.employee_id,
+                name: latestEntry.employee.full_name
+              },
+              employee_name: latestEntry.employee.full_name,
+            });
+          }
           
           console.log('✅ [PayrollEntryFormModal] 获取到最新数据:', {
             old_status: entry.status_lookup_value_id,
@@ -360,18 +374,29 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
 
   // 处理员工选择
   const handleEmployeeSelect = (employeeId: number, employee: Employee) => {
-    
-    // 设置表单的员工ID和姓名
-    form.setFieldsValue({
-      employee_id: employeeId,
-      employee_name: `${employee.last_name || ''}${employee.first_name || ''}`,
-    });
-    
-    // 如果详细信息不完整，尝试重新获取
-    if (!getDepartmentName(employee) || !getPersonnelCategoryName(employee) || !getActualPositionName(employee)) {
-      fetchEmployeeDetails(employeeId);
+    if (employee) {
+        setEmployeeDetails(employee);
+        form.setFieldsValue({
+            employee_id: employee.id,
+            department: getDepartmentName(employee),
+            personnel_category: getPersonnelCategoryName(employee),
+            actual_position: getActualPositionName(employee),
+            social_insurance_base: employee.social_insurance_base,
+            housing_fund_base: employee.housing_fund_base,
+        });
+        setSocialInsuranceBase(employee.social_insurance_base ?? 0);
+        setHousingFundBase(employee.housing_fund_base ?? 0);
     } else {
-      setEmployeeDetails(employee);
+        setEmployeeDetails(null);
+        form.setFieldsValue({
+            department: null,
+            personnel_category: null,
+            actual_position: null,
+            social_insurance_base: 0,
+            housing_fund_base: 0,
+        });
+        setSocialInsuranceBase(0);
+        setHousingFundBase(0);
     }
   };
   
@@ -732,7 +757,12 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   // 处理表单提交
   const handleSubmit = async () => {
     try {
+      console.log('🔄 [PayrollEntryFormModal] Save button clicked - starting submit process');
+      console.log('🔄 [PayrollEntryFormModal] Entry ID:', entry?.id);
+      console.log('🔄 [PayrollEntryFormModal] onSuccess callback:', typeof onSuccess);
+      
       const values = await form.validateFields();
+      console.log('🔄 [PayrollEntryFormModal] Form validation passed, values:', values);
       
       // 验证所有收入项代码是否有效
       const invalidEarningCodes = earnings.filter(item => 
@@ -861,7 +891,9 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       try {
         if (entry) {
           // 更新现有工资明细
+          console.log('🔄 [PayrollEntryFormModal] Calling updatePayrollEntryDetails API...');
           const result = await updatePayrollEntryDetails(entry.id, cleanSubmitData);
+          console.log('✅ [PayrollEntryFormModal] API call successful:', result);
           
           if (result && result.data) {
             // 验证返回的数据中是否包含我们提交的更改
@@ -882,6 +914,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           } else {
             messageApi.warning(t('payroll:entry_form.message.update_success_no_data'));
           }
+          
+          console.log('🔄 [PayrollEntryFormModal] Calling onSuccess callback...');
+          onSuccess?.();
+          console.log('✅ [PayrollEntryFormModal] Submit process completed successfully');
         } else {
           // 创建新的工资明细
           if (!payrollPeriodId) {
@@ -916,11 +952,12 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           } else {
             messageApi.success(t('payroll:entry_form.message.create_success'));
           }
+          console.log('🔄 [PayrollEntryFormModal] Calling onSuccess callback (create mode)...');
+          onSuccess();
+          console.log('✅ [PayrollEntryFormModal] Submit process completed successfully (create mode)');
         }
-        
-        onSuccess();
       } catch (error: any) {
-        console.error("Failed to update payroll entry:", error);
+        console.error("❌ [PayrollEntryFormModal] Failed to update payroll entry:", error);
         let errorMessage = t('payroll:entry_form.validation.failed');
         if (error.response && error.response.data && error.response.data.detail) {
           if (typeof error.response.data.detail === 'string') {
@@ -934,6 +971,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         setSubmitting(false);
       }
     } catch (error) {
+        console.error('❌ [PayrollEntryFormModal] Form validation failed:', error);
+        messageApi.error(t('payroll.entry_form.validation.check_form'));
     }
   };
   

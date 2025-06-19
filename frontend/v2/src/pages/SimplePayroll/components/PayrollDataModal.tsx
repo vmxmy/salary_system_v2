@@ -1002,6 +1002,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
   // 🎯 编辑记录
   const handleEdit = async (record: PayrollData) => {
+    console.log('🔄 [PayrollDataModal] Edit button clicked for entry:', record.薪资条目id);
     console.log('✏️ [PayrollDataModal] 编辑记录:', record);
     
     if (!record.薪资条目id) {
@@ -1011,10 +1012,12 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
     try {
       // 根据薪资条目ID获取完整的薪资条目数据
+      console.log('🔄 [PayrollDataModal] Fetching payroll entry by ID:', record.薪资条目id);
       const response = await getPayrollEntryById(record.薪资条目id);
       
       if (response.data) {
         const payrollEntry = response.data;
+        console.log('🔄 [PayrollDataModal] Setting selected entry and opening modal');
         setSelectedEntry(payrollEntry);
         setPayrollRunId(payrollEntry.payroll_run_id);
         setEditModalVisible(true);
@@ -1030,11 +1033,14 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
   // 🎯 编辑成功回调
   const handleEditSuccess = () => {
+    console.log('🔄 [PayrollDataModal] Edit success callback triggered');
+    console.log('🔄 [PayrollDataModal] Closing edit modal and refreshing data');
     setEditModalVisible(false);
     setSelectedEntry(null);
     setPayrollRunId(null);
     refetch(); // 🚀 使用 React Query 刷新数据
     message.success(t('payroll:entry_form.message.update_success'));
+    console.log('✅ [PayrollDataModal] Edit success processing completed');
   };
 
   // 从React渲染结果中提取文本内容
