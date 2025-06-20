@@ -348,6 +348,31 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
   // 获取月度数据（只需要获取一次）
   useEffect(() => {
     fetchMonthlyData();
+    
+    // 添加全局调试函数
+    if (typeof window !== 'undefined') {
+      (window as any).debugPayrollStats = {
+        getCurrentPeriod: () => currentPeriod,
+        getSelectedVersionId: () => selectedVersionId,
+        getEmployeeTypeData: () => employeeTypeData,
+        getDepartmentCostData: () => departmentCostData,
+        getPayrollStats: () => payrollStats,
+        getLoadingStates: () => loadingStates,
+        testFetchEmployeeTypeData: (periodId: number) => fetchEmployeeTypeData(periodId),
+        testPersonnelCategoryStats: async (periodId: number) => {
+          try {
+            const response = await simplePayrollApi.getPersonnelCategoryStats(periodId);
+            console.log('🧪 测试人员类别统计:', { periodId, response });
+            return response;
+          } catch (error) {
+            console.error('🧪 测试人员类别统计失败:', error);
+            return null;
+          }
+        }
+      };
+      
+      console.log('🛠️ [EnhancedPayrollStatistics] 调试辅助函数已注册到全局，可以使用 window.debugPayrollStats 进行调试');
+    }
   }, []);
 
   // 处理部门点击
@@ -633,6 +658,14 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
 
       {/* 合并的指标卡片 */}
       {selectedVersionId && (
+        <>
+          {console.log('🎯 [EnhancedPayrollStatistics] 渲染CombinedMetricsCard:', {
+            selectedVersionId,
+            periodId: currentPeriod?.id,
+            periodName: currentPeriod?.name,
+            employeeTypeDataLength: employeeTypeData.length,
+            totalEmployees: payrollStats.recordCount
+          })}
         <CombinedMetricsCard
           title="关键指标概览"
           periodId={currentPeriod?.id} // 传递当前期间ID
@@ -659,6 +692,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
           onEmployeeTypeClick={handleEmployeeTypeClick}
           onExportTrend={handleExport}
         />
+        </>
       )}
     </div>
   );

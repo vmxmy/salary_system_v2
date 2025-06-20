@@ -209,13 +209,15 @@ export const MiniDepartmentCostCard: React.FC<MiniDepartmentCostCardProps> = ({
 
       {/* 底部摘要 */}
       <div className="mini-card-summary">
+        <div className="summary-row">
         <div className="summary-item">
-          <Text className="summary-label">实发</Text>
+            <Text className="summary-label">实</Text>
           <Text className="summary-value success">{formatAmount(totalNetPay, true)}</Text>
         </div>
         <div className="summary-item">
-          <Text className="summary-label">扣发</Text>
+            <Text className="summary-label">扣</Text>
           <Text className="summary-value error">{formatAmount(totalDeductions, true)}</Text>
+          </div>
         </div>
       </div>
     </div>

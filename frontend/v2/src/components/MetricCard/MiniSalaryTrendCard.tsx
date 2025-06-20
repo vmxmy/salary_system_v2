@@ -411,13 +411,14 @@ export const MiniSalaryTrendCard: React.FC<MiniSalaryTrendCardProps> = ({
 
       {/* 底部摘要 */}
       <div className="mini-card-summary">
+        <div className="summary-row">
         <div className="summary-item">
           <Text className="summary-label">范围</Text>
           <Text className="summary-value">
-            {currentYearData.length > 0 ? `${currentYear}年${currentYearData.length}个月` : '-'}
+              {currentYearData.length > 0 ? `${currentYear}/${currentYearData.length}月` : '-'}
           </Text>
         </div>
-        <div className="summary-item">
+          <div className="summary-action">
           <button
             type="button"
             className="export-button"
@@ -426,6 +427,7 @@ export const MiniSalaryTrendCard: React.FC<MiniSalaryTrendCardProps> = ({
           >
             <DownloadOutlined className="export-icon" />
           </button>
+          </div>
         </div>
       </div>
     </div>

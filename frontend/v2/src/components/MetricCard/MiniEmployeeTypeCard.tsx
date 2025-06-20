@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Spin } from 'antd';
+import { Typography, Spin, Button, Tooltip, message } from 'antd';
 import { 
   UserOutlined,
   TeamOutlined,
-  PieChartOutlined,
   RiseOutlined,
   FallOutlined,
   BankOutlined,
-  DollarCircleOutlined
+  DollarCircleOutlined,
+  InfoCircleOutlined,
+  PieChartOutlined
 } from '@ant-design/icons';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { simplePayrollApi } from '../../pages/SimplePayroll/services/simplePayrollApi';
 import './MetricCard.less';
 
@@ -55,15 +56,26 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
         personnel_category: string;
         employee_count: number;
         gross_pay_total: number;
+        deductions_total: number;  // 添加扣除总额字段
         net_pay_total: number;
         avg_gross_pay: number;
+        avg_deductions: number;  // 添加平均扣除字段
         avg_net_pay: number;
+        percentage_of_total_employees?: number;
+        percentage_of_total_cost?: number;
       }>;
       summary: {
         total_employees: number;
         total_gross_pay: number;
+        total_deductions: number;  // 添加总扣除字段
         total_net_pay: number;
+        avg_gross_pay_overall?: number;
+        avg_deductions_overall?: number;
+        avg_net_pay_overall?: number;
       };
+      period_id?: number;
+      period_name?: string;
+      generated_at?: string;
     } | null;
   }>({
     loading: false,
@@ -75,19 +87,44 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
     const fetchPersonnelStats = async () => {
       console.log('🔍 [MiniEmployeeTypeCard] 开始获取人员身份统计数据:', { periodId });
       
+      if (!periodId) {
+        console.warn('⚠️ [MiniEmployeeTypeCard] 缺少periodId，无法获取人员身份统计');
+        setPersonnelStats({ loading: false, data: null });
+        return;
+      }
+      
       try {
         setPersonnelStats(prev => ({ ...prev, loading: true }));
         console.log('🔄 [MiniEmployeeTypeCard] 调用API中...', { periodId });
         
         const response = await simplePayrollApi.getPersonnelCategoryStats(periodId);
         console.log('📊 [MiniEmployeeTypeCard] API响应:', response);
+        console.log('📊 [MiniEmployeeTypeCard] 完整API响应数据:', JSON.stringify(response));
         
-        if (response.success && response.data) {
+        if (response && response.data) {
           console.log('✅ [MiniEmployeeTypeCard] 数据获取成功:', {
             categories: response.data.categories,
             categoriesLength: response.data.categories?.length,
             summary: response.data.summary
           });
+          
+          console.log('💰 [MiniEmployeeTypeCard] 完整分类数据对象结构:', JSON.stringify(response.data.categories[0]));
+          
+          // 详细输出分类数据
+          if (response.data.categories && response.data.categories.length > 0) {
+            response.data.categories.forEach((cat, index) => {
+              console.log(`✅ [MiniEmployeeTypeCard] 分类 ${index+1}:`, {
+                name: cat.personnel_category,
+                count: cat.employee_count,
+                grossPayTotal: cat.gross_pay_total,
+                deductionsTotal: cat.deductions_total,
+                netPayTotal: cat.net_pay_total,
+                fullObject: JSON.stringify(cat)
+              });
+            });
+          } else {
+            console.warn('⚠️ [MiniEmployeeTypeCard] API返回了数据但没有分类数据');
+          }
           
           setPersonnelStats({
             loading: false,
@@ -95,8 +132,7 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
           });
         } else {
           console.warn('⚠️ [MiniEmployeeTypeCard] API响应无效:', { 
-            success: response.success, 
-            hasData: !!response.data 
+            hasData: !!response?.data 
           });
           setPersonnelStats({ loading: false, data: null });
         }
@@ -106,9 +142,81 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
       }
     };
 
-    // 只有在有periodId或者需要获取全部数据时才调用API
-    console.log('🎯 [MiniEmployeeTypeCard] useEffect触发:', { periodId, shouldFetch: true });
-    fetchPersonnelStats();
+    // 只有在有periodId时才调用API
+    console.log('🎯 [MiniEmployeeTypeCard] useEffect触发:', { periodId, shouldFetch: !!periodId });
+    if (periodId) {
+      fetchPersonnelStats();
+    } else {
+      console.warn('⚠️ [MiniEmployeeTypeCard] 未提供periodId，跳过API调用');
+      setPersonnelStats({ loading: false, data: null });
+    }
+    
+    // 将测试函数暴露到全局对象，方便调试
+    if (typeof window !== 'undefined') {
+      (window as any).testPersonnelStats = async (testPeriodId: number) => {
+        console.log(`📣 [DEBUG] 测试人员身份统计 API，期间ID: ${testPeriodId}`);
+        try {
+          const response = await simplePayrollApi.getPersonnelCategoryStats(testPeriodId);
+          console.log('📣 [DEBUG] API响应:', response);
+          console.log('📣 [DEBUG] API响应结构:', {
+            isObject: typeof response === 'object',
+            hasDataProperty: response && 'data' in response,
+            dataType: response?.data ? typeof response.data : 'undefined',
+            dataIsObject: response?.data ? typeof response.data === 'object' : false,
+            dataHasCategories: response?.data?.categories ? Array.isArray(response.data.categories) : false,
+            categoriesLength: response?.data?.categories?.length
+          });
+          
+          if (response?.data?.categories?.length > 0) {
+            console.log('📣 [DEBUG] 分类数据示例:', response.data.categories[0]);
+          }
+          
+          return response;
+        } catch (error) {
+          console.error('📣 [DEBUG] API调用失败:', error);
+          return null;
+        }
+      };
+      
+      // 添加解析并显示函数
+      (window as any).parsePersonnelStats = (response: any) => {
+        console.log('🔍 [DEBUG] 解析响应:', response);
+        
+        try {
+          const data = response?.data;
+          if (!data) {
+            console.error('❌ [DEBUG] 响应中没有data字段');
+            return;
+          }
+          
+          console.log('✅ [DEBUG] 数据总览:', {
+            periodId: data.period_id,
+            periodName: data.period_name,
+            totalEmployees: data.summary?.total_employees,
+            totalNetPay: data.summary?.total_net_pay,
+            categories: data.categories?.length
+          });
+          
+          if (data.categories && data.categories.length > 0) {
+            data.categories.forEach((cat: any, index: number) => {
+              console.log(`👤 [DEBUG] 分类 ${index+1}:`, {
+                name: cat.personnel_category,
+                count: cat.employee_count,
+                netPayTotal: cat.net_pay_total,
+                percentage: cat.percentage_of_total_employees
+              });
+            });
+          }
+        } catch (err) {
+          console.error('❌ [DEBUG] 解析出错:', err);
+        }
+      };
+      
+      // 添加调试帮助信息
+      console.log('🛠️ [MiniEmployeeTypeCard] 调试辅助函数已注册到全局:');
+      console.log('- window.testPersonnelStats(期间ID): 测试API并返回结果');
+      console.log('- window.parsePersonnelStats(response): 解析API响应并显示结构');
+    }
   }, [periodId]);
   console.log('👥 [MiniEmployeeTypeCard] 组件渲染开始');
   console.log('👥 [MiniEmployeeTypeCard] 输入数据:', { data, totalEmployees, loading });
@@ -130,18 +238,21 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
     return defaultValue;
   };
 
-  // 格式化金额（紧凑显示）
-  const formatAmount = (amount: any, withSymbol: boolean = false): string => {
-    const num = safeNumber(amount, 0);
-    const symbol = withSymbol ? '¥' : '';
+  // 格式化金额，添加千位分隔符
+  const formatAmount = (amount: number | string, useShortFormat: boolean = false): string => {
+    if (amount === undefined || amount === null) return '0.00';
     
-    if (num >= 100000000) {
-      return `${symbol}${(num / 100000000).toFixed(1)}亿`;
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    
+    if (isNaN(numAmount)) return '0.00';
+    
+    // 对于特别大的数值使用万元作为单位（如果useShortFormat为true）
+    if (useShortFormat && numAmount >= 10000) {
+      return (numAmount / 10000).toFixed(2) + '万';
     }
-    if (num >= 10000) {
-      return `${symbol}${(num / 10000).toFixed(1)}万`;
-    }
-    return `${symbol}${Math.round(num).toLocaleString('zh-CN')}`;
+    
+    // 完整显示带千位分隔符的数字
+    return numAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   // 计算人员变化
@@ -331,7 +442,7 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
                   );
                 })}
               </Pie>
-              <Tooltip content={renderTooltip} />
+              <RechartsTooltip content={renderTooltip} />
               
               {/* 在图表中心添加总人数 */}
               <text 
@@ -376,12 +487,28 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
             <Spin size="small" />
             <Text type="secondary">加载统计中...</Text>
           </div>
-        ) : personnelStats.data && personnelStats.data.categories.length > 0 ? (
+        ) : personnelStats.data && Array.isArray(personnelStats.data.categories) && personnelStats.data.categories.length > 0 ? (
           <div className="personnel-stats-row">
-            {/* 确保正编显示在左边，聘用显示在右边 */}
             {(() => {
+              console.log('🔍 [MiniEmployeeTypeCard] 渲染状态栏，当前数据:', {
+                hasData: !!personnelStats.data,
+                categories: personnelStats.data?.categories,
+                categoriesLength: personnelStats.data?.categories?.length
+              });
+              
               const regular = personnelStats.data.categories.find(cat => cat.personnel_category === '正编');
               const contract = personnelStats.data.categories.find(cat => cat.personnel_category === '聘用');
+              
+              console.log('🔍 [MiniEmployeeTypeCard] 找到的编制数据:', {
+                regular: regular ? { 
+                  count: regular.employee_count, 
+                  netPay: regular.net_pay_total 
+                } : '未找到',
+                contract: contract ? { 
+                  count: contract.employee_count, 
+                  netPay: contract.net_pay_total 
+                } : '未找到'
+              });
               
               return (
                 <>
@@ -391,19 +518,17 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
                       <>
                         <div className="stat-header">
                           <BankOutlined className="stat-icon primary" />
-                          <Text className="stat-label">正编</Text>
-                        </div>
-                        <div className="stat-value">
-                          <Text className="main-value primary">{formatAmount(regular.net_pay_total, true)}</Text>
+                          <Text className="stat-label">正编 {regular.employee_count}人</Text>
                         </div>
                         <div className="stat-details">
-                          <Text className="detail-text">{regular.employee_count}人 · 人均{formatAmount(regular.avg_net_pay, true)}</Text>
+                          <Text className="detail-text">应发:{formatAmount(regular.gross_pay_total, false)}</Text>
+                          <Text className="detail-text">实发:{formatAmount(regular.net_pay_total, false)}</Text>                     
                         </div>
                       </>
                     ) : (
                       <div className="stat-empty">
-                        <Text type="secondary">正编数据</Text>
-                        <Text type="secondary">暂无</Text>
+                        <Text type="secondary">正编</Text>
+                        <Text type="secondary">暂无数据</Text>
                       </div>
                     )}
                   </div>
@@ -414,19 +539,17 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
                       <>
                         <div className="stat-header">
                           <TeamOutlined className="stat-icon secondary" />
-                          <Text className="stat-label">聘用</Text>
-                        </div>
-                        <div className="stat-value">
-                          <Text className="main-value secondary">{formatAmount(contract.net_pay_total, true)}</Text>
+                          <Text className="stat-label">聘用 {contract.employee_count}人</Text>
                         </div>
                         <div className="stat-details">
-                          <Text className="detail-text">{contract.employee_count}人 · 人均{formatAmount(contract.avg_net_pay, true)}</Text>
+                          <Text className="detail-text">应发:{formatAmount(contract.gross_pay_total, false)}</Text>
+                          <Text className="detail-text">实发:{formatAmount(contract.net_pay_total, false)}</Text>
                         </div>
                       </>
                     ) : (
                       <div className="stat-empty">
-                        <Text type="secondary">聘用数据</Text>
-                        <Text type="secondary">暂无</Text>
+                        <Text type="secondary">聘用</Text>
+                        <Text type="secondary">暂无数据</Text>
                       </div>
                     )}
                   </div>
@@ -438,6 +561,25 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
           <div className="personnel-stats-empty">
             <UserOutlined className="empty-icon" />
             <Text type="secondary">暂无编制统计数据</Text>
+            <Tooltip title="数据获取情况">
+              <Button 
+                type="text" 
+                icon={<InfoCircleOutlined />} 
+                size="small" 
+                onClick={() => {
+                  console.log('📊 [MiniEmployeeTypeCard] 调试数据情况:', {
+                    periodId,
+                    loading: personnelStats.loading,
+                    hasData: !!personnelStats.data,
+                    hasCategories: !!personnelStats.data?.categories,
+                    categoriesLength: personnelStats.data?.categories?.length || 0,
+                    categoriesIsArray: Array.isArray(personnelStats.data?.categories),
+                    categories: personnelStats.data?.categories
+                  });
+                  message.info(`期间ID: ${periodId || '未设置'}`);
+                }}
+              />
+            </Tooltip>
           </div>
         )}
       </div>
