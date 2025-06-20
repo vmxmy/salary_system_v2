@@ -14,9 +14,21 @@
   },
   "title": "Universal Bulk Import",
   "upload": {
+    "drag_or_click": "Click or drag file to this area to upload",
+    "empty_file": "File is empty, please upload valid data",
+    "hint": "Support Excel (.xls, .xlsx) files. Please ensure file encoding is UTF-8.",
+    "invalid_file_type": "Unsupported file type, please upload Excel files",
+    "parse_error": "Error parsing file, please check file format",
     "parse_success": "Data parsed successfully",
-    "parse_success_one": "",
-    "parse_success_other": "",
-    "please_upload_file": "Please upload a data file first"
+    "parse_success_one": "File parsed successfully, found 1 record",
+    "parse_success_other": "File parsed successfully, found {{count}} records",
+    "please_upload_file": "Please upload a data file first",
+    "read_error": "Failed to read file, please try again",
+    "selected_file": "Selected file:"
+  },
+  "result": {
+    "NaN": "Data Error",
+    "success_count": "Successfully Imported",
+    "error_count": "Import Failed"
   }
 }

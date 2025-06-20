@@ -256,18 +256,15 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
       <ProForm
         formRef={formRef}
         layout="horizontal"
-        submitter={false}
+        submitter={{
+          render: () => null
+        }}
         onFinish={handleFinish}
         onValuesChange={handleValuesChange}
         initialValues={initialValues}
         autoFocusFirstInput={false}
         preserve={false}
         style={{ margin: 0 }}
-        contentRender={(dom) => (
-          <div style={{ padding: 0 }}>
-            {dom}
-          </div>
-        )}
       >
         <div className={styles.searchContainer}>
           {/* 搜索模式选择器 */}

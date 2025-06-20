@@ -63,62 +63,62 @@
   "batch_delete_success": "",
   "batch_import": {
     "button": {
-      "start_again": "",
-      "view_entries": ""
+      "start_again": "Start Again",
+      "view_entries": "View Entries"
     },
-    "error_api_not_found": "",
-    "error_fetch_components": "",
-    "error_permission_denied": "",
+    "error_api_not_found": "API Not Found",
+    "error_fetch_components": "Failed to fetch components",
+    "error_permission_denied": "Permission Denied",
     "field_categories": {
-      "base": "",
-      "calculated": "",
-      "deduction": "",
-      "earning": "",
-      "other": "",
-      "stat": ""
+      "base": "Base Information",
+      "calculated": "Calculated Items",
+      "deduction": "Deduction Items",
+      "earning": "Earning Items",
+      "other": "Other Fields",
+      "stat": "Statistical Items"
     },
     "result": {
-      "created_entries_preview": "",
-      "entry_item": "",
-      "error_alert_desc": "",
-      "error_alert_title": "",
-      "error_details_title": "",
+      "created_entries_preview": "Preview of created entries:",
+      "entry_item": "ID: {{id}} - {{employeeName}} (Net Pay: {{amount}})",
+      "error_alert_desc": "Please check the errors below and correct the data before reimporting.",
+      "error_alert_title": "Errors occurred during import",
+      "error_details_title": "Error Details",
       "error_table": {
-        "employee_id": "",
-        "error_message": "",
-        "index": ""
+        "employee_id": "Employee ID",
+        "error_message": "Error Message",
+        "index": "Index"
       },
-      "failure_subtitle_one": "",
-      "failure_subtitle_other": "",
-      "failure_suggestion": "",
-      "failure_suggestion_desc": "",
-      "failure_title": "",
-      "more_entries_one": "",
-      "more_entries_other": "",
-      "next_steps_title": "",
-      "no_result": "",
-      "partial_subtitle": "",
-      "partial_suggestion": "",
-      "partial_suggestion_desc": "",
-      "partial_title": "",
+      "failure_subtitle_one": "The record failed to import.",
+      "failure_subtitle_other": "All {{count}} records failed to import.",
+      "failure_suggestion": "Import Failed Completely",
+      "failure_suggestion_desc": "Please check your data format and content, ensure employee information is correct. Correct and try again.",
+      "failure_title": "Import Failed",
+      "more_entries_one": "...and 1 more record",
+      "more_entries_other": "...and {{count}} more records",
+      "next_steps_title": "Next Steps",
+      "no_result": "No import result",
+      "partial_subtitle": "Successfully imported {{success}} records, {{error}} records failed.",
+      "partial_suggestion": "Partial Import Success",
+      "partial_suggestion_desc": "Some records were successfully imported. You can check the error details and reimport the failed records after correction.",
+      "partial_title": "Partial Import Success",
       "statistics": {
-        "failed": "",
-        "successful": "",
-        "total_processed": ""
+        "failed": "Failed Records",
+        "successful": "Successful Records",
+        "total_processed": "Total Processed"
       },
-      "success_alert_desc_one": "",
-      "success_alert_desc_other": "",
-      "success_alert_title": "",
-      "success_details_title_one": "",
-      "success_details_title_other": "",
-      "success_subtitle_one": "",
-      "success_subtitle_other": "",
-      "success_suggestion": "",
-      "success_title": ""
+      "success_alert_desc_one": "Successfully imported 1 record.",
+      "success_alert_desc_other": "Successfully imported {{count}} records.",
+      "success_alert_title": "Import Successful",
+      "success_details_title_one": "Successfully imported 1 record",
+      "success_details_title_other": "Successfully imported {{count}} records",
+      "success_subtitle_one": "The record has been successfully imported.",
+      "success_subtitle_other": "All {{count}} records have been successfully imported.",
+      "success_suggestion": "All data has been successfully imported. You can view the imported entries or start a new import.",
+      "success_title": "Import Successful"
     },
     "step": {
-      "result": "",
-      "result_subtitle": ""
+      "result": "Import Result",
+      "result_subtitle": "View detailed results of the import operation"
     }
   },
   "break_duration": "",
