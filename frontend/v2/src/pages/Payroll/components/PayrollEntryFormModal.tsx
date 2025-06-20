@@ -503,18 +503,21 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
 
   // 手动更新缴费基数按钮处理函数
   const handleUpdateInsuranceBase = useCallback(async () => {
-    if (!entry?.employee_id) {
+    // 获取员工ID，优先使用entry中的，如果是创建模式则从表单中获取
+    const employeeId = entry?.employee_id || form.getFieldValue('employee_id');
+    
+    if (!employeeId) {
       messageApi.error('请先选择员工');
       return;
     }
     
     await updateEmployeeInsuranceBase(
-      entry.employee_id, 
+      employeeId, 
       socialInsuranceBase, 
       housingFundBase, 
       occupationalPensionBase
     );
-  }, [entry?.employee_id, socialInsuranceBase, housingFundBase, occupationalPensionBase, updateEmployeeInsuranceBase, messageApi]);
+  }, [entry?.employee_id, form, socialInsuranceBase, housingFundBase, occupationalPensionBase, updateEmployeeInsuranceBase, messageApi]);
   
   // 初始化表单数据
   useEffect(() => {
