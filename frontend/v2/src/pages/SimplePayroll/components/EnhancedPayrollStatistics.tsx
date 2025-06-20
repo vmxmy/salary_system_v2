@@ -482,10 +482,10 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
             </Button>
           ) : null
         }
-        loading={payrollStats.loading}
-        style={{ marginBottom: 24 }}
+                loading={payrollStats.loading}
+        style={{ marginBottom: 6 }}
       >
-        <Row gutter={[12, 12]} justify="space-between" align="stretch">
+        <Row gutter={[8, 8]} justify="space-between" align="stretch">
           {/* 日期选择器卡片 */}
           <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
             <StatisticCard
@@ -495,7 +495,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                 valueStyle: { color: '#1890ff', fontSize: '16px', fontWeight: 'bold' }
               }}
               chart={
-                <div style={{ padding: '6px 0' }}>
+                <div style={{ padding: '3px 0' }}>
                   <DatePicker
                     picker="month"
                     value={currentPeriod ? dayjs(currentPeriod.start_date) : dayjs()}
@@ -504,7 +504,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                         handleDateChange(date.year(), date.month() + 1);
                       }
                     }}
-                    style={{ width: '100%', marginBottom: '6px' }}
+                    style={{ width: '100%', marginBottom: '2px' }}
                     format="YYYY年MM月"
                     placeholder="选择月份"
                     allowClear={false}
@@ -659,15 +659,18 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
       {/* 合并的指标卡片 */}
       {selectedVersionId && (
         <>
-          {console.log('🎯 [EnhancedPayrollStatistics] 渲染CombinedMetricsCard:', {
-            selectedVersionId,
-            periodId: currentPeriod?.id,
-            periodName: currentPeriod?.name,
-            employeeTypeDataLength: employeeTypeData.length,
-            totalEmployees: payrollStats.recordCount
-          })}
-        <CombinedMetricsCard
-          title="关键指标概览"
+          {(() => {
+            console.log('🎯 [EnhancedPayrollStatistics] 渲染CombinedMetricsCard:', {
+              selectedVersionId,
+              periodId: currentPeriod?.id,
+              periodName: currentPeriod?.name,
+              employeeTypeDataLength: employeeTypeData.length,
+              totalEmployees: payrollStats.recordCount
+            });
+            return null; // 确保返回 null，而不是 void
+          })()}
+          <CombinedMetricsCard
+            title="关键指标概览"
           periodId={currentPeriod?.id} // 传递当前期间ID
           
           // 部门成本数据
