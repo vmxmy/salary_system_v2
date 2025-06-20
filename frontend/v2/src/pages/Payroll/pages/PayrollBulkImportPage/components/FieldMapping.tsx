@@ -196,7 +196,7 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
         console.log('🔍 [FieldMapping] 使用优化端点获取薪资组件...');
         const response = await getPayrollComponentDefinitionsOptimized({ 
           is_active: true, 
-          size: 200 
+          size: 100  // 修改为符合后端限制的最大值
         });
         
         console.log('🔍 [FieldMapping] 优化端点响应:', response);

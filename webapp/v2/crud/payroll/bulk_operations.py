@@ -143,17 +143,13 @@ def bulk_validate_payroll_entries(
             params = {}
             
             for i, info in enumerate(employee_infos):
-                # 🔧 修复：标准化身份证号
-                normalized_id = normalize_id_number(info.get('id_number', ''))
-                
+                # 仅使用姓名进行匹配，不再要求身份证号
                 conditions.append(f"""
                     (e.last_name = :last_name_{i} 
-                     AND e.first_name = :first_name_{i} 
-                     AND e.id_number = :id_number_{i})
+                     AND e.first_name = :first_name_{i})
                 """)
                 params[f'last_name_{i}'] = info['last_name']
                 params[f'first_name_{i}'] = info['first_name']
-                params[f'id_number_{i}'] = normalized_id
             
             if conditions:
                 query = text(f"""
@@ -167,7 +163,7 @@ def bulk_validate_payroll_entries(
                 
                 result = db.execute(query, params)
                 for row in result:
-                    key = f"{row.last_name}_{row.first_name}_{row.id_number}"
+                    key = f"{row.last_name}_{row.first_name}"
                     employees_map[key] = dict(row._mapping)
                 
                 logger.info(f"批量员工查询完成: 找到 {len(employees_map)} 个匹配员工")
@@ -259,7 +255,7 @@ def bulk_validate_payroll_entries(
                 if info and info.get('last_name') and info.get('first_name') and info.get('id_number'):
                     # 🔧 修复：标准化身份证号
                     normalized_id = normalize_id_number(info.get('id_number', ''))
-                    key = f"{info['last_name']}_{info['first_name']}_{normalized_id}"
+                    key = f"{info['last_name']}_{info['first_name']}"
                     employee_data = employees_map.get(key)
                     
                     # 如果预加载数据中没有，降级到单独查询
@@ -663,23 +659,21 @@ def bulk_create_payroll_entries_optimized(
             params = {}
             
             for i, info in enumerate(employee_infos):
-                # 🔧 修复：标准化身份证号
-                normalized_id = normalize_id_number(info.get('id_number', ''))
-                
+                # 仅使用姓名进行匹配，不再要求身份证号
                 conditions.append(f"""
                     (e.last_name = :last_name_{i} 
-                     AND e.first_name = :first_name_{i} 
-                     AND e.id_number = :id_number_{i})
+                     AND e.first_name = :first_name_{i})
                 """)
                 params[f'last_name_{i}'] = info['last_name']
                 params[f'first_name_{i}'] = info['first_name']
-                params[f'id_number_{i}'] = normalized_id
             
             if conditions:
                 query = text(f"""
                     SELECT 
-                        e.id, e.employee_code, e.last_name, e.first_name, e.id_number, e.is_active
+                        e.id, e.employee_code, e.last_name, e.first_name, e.id_number,
+                        e.is_active, d.name as department_name, d.id as department_id
                     FROM hr.employees e
+                    LEFT JOIN hr.departments d ON e.department_id = d.id
                     WHERE e.is_active = true AND ({' OR '.join(conditions)})
                 """)
                 
@@ -745,15 +739,10 @@ def bulk_create_payroll_entries_optimized(
                 if hasattr(entry_data, 'employee_info') and entry_data.employee_info:
                     info = entry_data.employee_info
                     if info and info.get('last_name') and info.get('first_name'):
-                        # 优先尝试姓名+身份证匹配
-                        if info.get('id_number') and info['id_number'].strip():
-                            key = f"{info['last_name']}_{info['first_name']}_{info['id_number']}"
-                            employee_data = employee_lookup.get(key)
-                        
-                        # 如果没找到或身份证为空，尝试仅姓名匹配
-                        if not employee_data:
-                            key = f"{info['last_name']}_{info['first_name']}"
-                            employee_data = employee_lookup.get(key)
+                        # 仅使用姓名匹配
+                        key = f"{info['last_name']}_{info['first_name']}"
+                        employee_data = employee_lookup.get(key)
+                        logger.info(f"🔍 [员工匹配] 通过姓名匹配: {info['last_name']}{info['first_name']} -> {employee_data['id'] if employee_data else 'Not Found'}")
                 
                 # 如果预加载数据中没有，且有employee_id，尝试单独查询
                 if not employee_data and hasattr(entry_data, 'employee_id') and entry_data.employee_id:
@@ -767,6 +756,7 @@ def bulk_create_payroll_entries_optimized(
                             'id_number': employee.id_number,
                             'is_active': employee.is_active
                         }
+                        logger.info(f"🔍 [员工匹配] 通过ID匹配: {entry_data.employee_id} -> {employee_data['id']}")
                 
                 if not employee_data:
                     errors.append({

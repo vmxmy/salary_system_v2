@@ -35,7 +35,13 @@ export const getPayrollComponentDefinitionsOptimized = async (params?: {
   component_type?: string;
   size?: number;
 }) => {
-  const response = await apiClient.get<OptimizedResponse<any[]>>('/views-optimized/payroll-component-definitions', { params });
+  // 确保 size 参数不超过后端限制（100）
+  const safeParams = {
+    ...params,
+    size: params?.size ? Math.min(params.size, 100) : 100
+  };
+  
+  const response = await apiClient.get<OptimizedResponse<any[]>>('/views-optimized/payroll-component-definitions', { params: safeParams });
   return response.data;
 };
 
