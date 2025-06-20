@@ -497,4 +497,30 @@ class MonthlyPayrollSummary(BaseModel):
     year: int = Field(..., description="年份")
     month: int = Field(..., description="月份")
     has_payroll_run: bool = Field(False, description="是否存在薪资运行")
-    record_status_summary: MonthlyRecordStatusSummary = Field(default_factory=MonthlyRecordStatusSummary, description="工资记录状态汇总") 
+    record_status_summary: MonthlyRecordStatusSummary = Field(default_factory=MonthlyRecordStatusSummary, description="工资记录状态汇总")
+
+
+# =============================================================================
+# 人员身份分类统计模型
+# =============================================================================
+
+class PersonnelCategoryStatsData(BaseModel):
+    """人员身份分类统计数据"""
+    personnel_category: str = Field(..., description="人员身份类别名称")
+    employee_count: int = Field(..., description="人员数量")
+    gross_pay_total: Decimal = Field(..., description="应发合计")
+    deductions_total: Decimal = Field(..., description="扣发合计")
+    net_pay_total: Decimal = Field(..., description="实发合计")
+    avg_gross_pay: Decimal = Field(..., description="平均应发")
+    avg_deductions: Decimal = Field(..., description="平均扣发")
+    avg_net_pay: Decimal = Field(..., description="平均实发")
+    percentage_of_total_employees: float = Field(..., description="人员占比")
+    percentage_of_total_cost: float = Field(..., description="成本占比")
+
+class PersonnelCategoryStatsResponse(BaseModel):
+    """人员身份分类统计响应"""
+    period_id: Optional[int] = Field(None, description="薪资期间ID")
+    period_name: Optional[str] = Field(None, description="薪资期间名称")
+    summary: Dict[str, Any] = Field(..., description="汇总信息")
+    categories: List[PersonnelCategoryStatsData] = Field(..., description="分类统计数据")
+    generated_at: datetime = Field(default_factory=datetime.now, description="生成时间") 

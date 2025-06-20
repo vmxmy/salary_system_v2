@@ -1204,4 +1204,48 @@ export const simplePayrollApi = {
     logResponse(response);
     return response.data;
   },
+
+  /**
+   * 📊 获取人员身份分类工资统计
+   */
+  getPersonnelCategoryStats: async (periodId?: number): Promise<ApiResponse<{
+    period_id?: number;
+    period_name?: string;
+    summary: {
+      total_employees: number;
+      total_gross_pay: number;
+      total_deductions: number;
+      total_net_pay: number;
+      avg_gross_pay_overall: number;
+      avg_deductions_overall: number;
+      avg_net_pay_overall: number;
+    };
+    categories: Array<{
+      personnel_category: string;
+      employee_count: number;
+      gross_pay_total: number;
+      deductions_total: number;
+      net_pay_total: number;
+      avg_gross_pay: number;
+      avg_deductions: number;
+      avg_net_pay: number;
+      percentage_of_total_employees: number;
+      percentage_of_total_cost: number;
+    }>;
+    generated_at: string;
+  }>> => {
+    console.log('📊 [simplePayrollApi.getPersonnelCategoryStats] 获取人员身份统计:', { periodId });
+    
+    const params = periodId ? { period_id: periodId } : {};
+    const response = await apiClient.get(`${API_BASE}/personnel-category-stats`, { params });
+    
+    console.log('✅ [simplePayrollApi.getPersonnelCategoryStats] 获取成功:', {
+      status: response.status,
+      categoriesCount: response.data?.data?.categories?.length,
+      totalEmployees: response.data?.data?.summary?.total_employees
+    });
+    
+    logResponse(response);
+    return response.data;
+  },
 }; 

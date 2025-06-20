@@ -38,7 +38,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 // 移除TabPane，使用items属性
 
-// 允许输入负值的薪资组件代码
+// 允许输入负值的薪资组件代码 - 现在所有组件都允许负值
 const ALLOW_NEGATIVE_COMPONENTS = [
   'REFUND_DEDUCTION_ADJUSTMENT', // 补扣退款调整
   'SOCIAL_INSURANCE_MAKEUP',     // 补扣社保
@@ -1215,7 +1215,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                     >
                       <InputNumber
                         style={{ width: '100%' }}
-                        min={0}
+                        min={undefined}
                         step={0.01}
                         precision={2}
                         onChange={(value) => {
@@ -1234,7 +1234,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                     >
                       <InputNumber
                         style={{ width: '100%' }}
-                        min={0}
+                        min={undefined}
                         step={0.01}
                         precision={2}
                         onChange={(value) => {
@@ -1253,7 +1253,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                     >
                       <InputNumber
                         style={{ width: '100%' }}
-                        min={0}
+                        min={undefined}
                         step={0.01}
                         precision={2}
                         disabled
@@ -1315,7 +1315,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
-                          min={ALLOW_NEGATIVE_COMPONENTS.includes(item.name) ? undefined : 0}
+                          min={undefined}
                           step={0.01}
                           precision={2}
                           value={item.amount}
@@ -1379,7 +1379,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
-                          min={ALLOW_NEGATIVE_COMPONENTS.includes(item.name) ? undefined : 0}
+                          min={undefined}
                           step={0.01}
                           precision={2}
                           value={item.amount}

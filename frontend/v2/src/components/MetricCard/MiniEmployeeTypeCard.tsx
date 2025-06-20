@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Spin } from 'antd';
 import { 
   UserOutlined,
   TeamOutlined,
   PieChartOutlined,
   RiseOutlined,
-  FallOutlined
+  FallOutlined,
+  BankOutlined,
+  DollarCircleOutlined
 } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { simplePayrollApi } from '../../pages/SimplePayroll/services/simplePayrollApi';
 import './MetricCard.less';
 
 const { Text } = Typography;
@@ -34,14 +37,79 @@ export interface MiniEmployeeTypeCardProps {
   totalEmployees: number;
   loading?: boolean;
   onTypeClick?: (type: EmployeeTypeData) => void;
+  periodId?: number; // 添加期间ID，用于获取人员身份统计
 }
 
 export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
   data,
   totalEmployees,
   loading = false,
-  onTypeClick
+  onTypeClick,
+  periodId
 }) => {
+  // 人员身份统计数据状态
+  const [personnelStats, setPersonnelStats] = useState<{
+    loading: boolean;
+    data: {
+      categories: Array<{
+        personnel_category: string;
+        employee_count: number;
+        gross_pay_total: number;
+        net_pay_total: number;
+        avg_gross_pay: number;
+        avg_net_pay: number;
+      }>;
+      summary: {
+        total_employees: number;
+        total_gross_pay: number;
+        total_net_pay: number;
+      };
+    } | null;
+  }>({
+    loading: false,
+    data: null
+  });
+
+  // 获取人员身份统计数据
+  useEffect(() => {
+    const fetchPersonnelStats = async () => {
+      console.log('🔍 [MiniEmployeeTypeCard] 开始获取人员身份统计数据:', { periodId });
+      
+      try {
+        setPersonnelStats(prev => ({ ...prev, loading: true }));
+        console.log('🔄 [MiniEmployeeTypeCard] 调用API中...', { periodId });
+        
+        const response = await simplePayrollApi.getPersonnelCategoryStats(periodId);
+        console.log('📊 [MiniEmployeeTypeCard] API响应:', response);
+        
+        if (response.success && response.data) {
+          console.log('✅ [MiniEmployeeTypeCard] 数据获取成功:', {
+            categories: response.data.categories,
+            categoriesLength: response.data.categories?.length,
+            summary: response.data.summary
+          });
+          
+          setPersonnelStats({
+            loading: false,
+            data: response.data
+          });
+        } else {
+          console.warn('⚠️ [MiniEmployeeTypeCard] API响应无效:', { 
+            success: response.success, 
+            hasData: !!response.data 
+          });
+          setPersonnelStats({ loading: false, data: null });
+        }
+      } catch (error) {
+        console.error('❌ [MiniEmployeeTypeCard] 获取人员身份统计失败:', error);
+        setPersonnelStats({ loading: false, data: null });
+      }
+    };
+
+    // 只有在有periodId或者需要获取全部数据时才调用API
+    console.log('🎯 [MiniEmployeeTypeCard] useEffect触发:', { periodId, shouldFetch: true });
+    fetchPersonnelStats();
+  }, [periodId]);
   console.log('👥 [MiniEmployeeTypeCard] 组件渲染开始');
   console.log('👥 [MiniEmployeeTypeCard] 输入数据:', { data, totalEmployees, loading });
   console.log('👥 [MiniEmployeeTypeCard] 详细工资数据检查:', 
@@ -301,22 +369,77 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
         )}
       </div>
 
-      {/* 底部摘要 */}
+      {/* 人员身份统计信息 */}
       <div className="mini-card-summary">
-        <div className="summary-item">
-          <div className="summary-row">
-            <RiseOutlined className="change-icon positive" />
-            <Text className="summary-label">入职</Text>
-            <Text className="summary-value positive">+{changeStats.newHires}</Text>
+        {personnelStats.loading ? (
+          <div className="summary-loading">
+            <Spin size="small" />
+            <Text type="secondary">加载统计中...</Text>
           </div>
-        </div>
-        <div className="summary-item">
-          <div className="summary-row">
-            <FallOutlined className="change-icon negative" />
-            <Text className="summary-label">离职</Text>
-            <Text className="summary-value negative">-{changeStats.departures}</Text>
+        ) : personnelStats.data && personnelStats.data.categories.length > 0 ? (
+          <div className="personnel-stats-row">
+            {/* 确保正编显示在左边，聘用显示在右边 */}
+            {(() => {
+              const regular = personnelStats.data.categories.find(cat => cat.personnel_category === '正编');
+              const contract = personnelStats.data.categories.find(cat => cat.personnel_category === '聘用');
+              
+              return (
+                <>
+                  {/* 左侧：正编 */}
+                  <div className="personnel-stat-item left">
+                    {regular ? (
+                      <>
+                        <div className="stat-header">
+                          <BankOutlined className="stat-icon primary" />
+                          <Text className="stat-label">正编</Text>
+                        </div>
+                        <div className="stat-value">
+                          <Text className="main-value primary">{formatAmount(regular.net_pay_total, true)}</Text>
+                        </div>
+                        <div className="stat-details">
+                          <Text className="detail-text">{regular.employee_count}人 · 人均{formatAmount(regular.avg_net_pay, true)}</Text>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="stat-empty">
+                        <Text type="secondary">正编数据</Text>
+                        <Text type="secondary">暂无</Text>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 右侧：聘用 */}
+                  <div className="personnel-stat-item right">
+                    {contract ? (
+                      <>
+                        <div className="stat-header">
+                          <TeamOutlined className="stat-icon secondary" />
+                          <Text className="stat-label">聘用</Text>
+                        </div>
+                        <div className="stat-value">
+                          <Text className="main-value secondary">{formatAmount(contract.net_pay_total, true)}</Text>
+                        </div>
+                        <div className="stat-details">
+                          <Text className="detail-text">{contract.employee_count}人 · 人均{formatAmount(contract.avg_net_pay, true)}</Text>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="stat-empty">
+                        <Text type="secondary">聘用数据</Text>
+                        <Text type="secondary">暂无</Text>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
-        </div>
+        ) : (
+          <div className="personnel-stats-empty">
+            <UserOutlined className="empty-icon" />
+            <Text type="secondary">暂无编制统计数据</Text>
+          </div>
+        )}
       </div>
     </div>
   );

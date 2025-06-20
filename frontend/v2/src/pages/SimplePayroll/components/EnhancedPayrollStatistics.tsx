@@ -635,6 +635,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
       {selectedVersionId && (
         <CombinedMetricsCard
           title="关键指标概览"
+          periodId={currentPeriod?.id} // 传递当前期间ID
           
           // 部门成本数据
           departmentCostData={departmentCostData}

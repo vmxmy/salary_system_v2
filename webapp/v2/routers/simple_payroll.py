@@ -31,7 +31,8 @@ from ..pydantic_models.simple_payroll import (
     DepartmentCostAnalysisResponse,
     EmployeeTypeAnalysisResponse,
     SalaryTrendAnalysisResponse,
-    MonthlyPayrollSummary
+    MonthlyPayrollSummary,
+    PersonnelCategoryStatsResponse
 )
 from ..pydantic_models.config import (
     ReportTemplateResponse
@@ -3478,6 +3479,141 @@ async def get_monthly_summary(
             detail=create_error_response(
                 status_code=500,
                 message="获取月度薪资概览失败",
+                details=str(e)
+            )
+        )
+
+
+# =============================================================================
+# 人员身份分类统计分析
+# =============================================================================
+
+@router.get("/personnel-category-stats", response_model=DataResponse[PersonnelCategoryStatsResponse])
+async def get_personnel_category_statistics(
+    period_id: Optional[int] = Query(None, description="薪资期间ID，不指定则统计所有期间"),
+    db: Session = Depends(get_db_v2)
+    # current_user = Depends(require_permissions(["payroll:view"]))  # 权限验证可后续添加
+):
+    """
+    获取根据人员身份分类（正编/聘用）的工资统计数据
+    
+    返回数据包括：
+    - 各人员类别的人数、应发合计、扣发合计、实发合计
+    - 平均薪资水平
+    - 人员占比和成本占比
+    """
+    logger.info(f"🔄 [get_personnel_category_statistics] 接收请求 - period_id: {period_id}")
+    
+    try:
+        from sqlalchemy import text
+        from decimal import Decimal
+        
+        # 构建查询条件
+        where_clause = ""
+        params = {}
+        if period_id:
+            where_clause = "WHERE 薪资期间id = :period_id"
+            params["period_id"] = period_id
+        
+        # 获取人员类别统计数据
+        stats_query = text(f"""
+        SELECT 
+            根人员类别,
+            COUNT(*) as 人数,
+            SUM(应发合计) as 应发合计,
+            SUM(扣除合计) as 扣除合计,
+            SUM(实发合计) as 实发合计,
+            AVG(应发合计) as 平均应发,
+            AVG(扣除合计) as 平均扣除,
+            AVG(实发合计) as 平均实发
+        FROM reports.v_payroll_basic 
+        {where_clause}
+        AND 根人员类别 IS NOT NULL
+        GROUP BY 根人员类别
+        ORDER BY 根人员类别
+        """)
+        
+        stats_results = db.execute(stats_query, params).fetchall()
+        
+        # 计算总计数据
+        total_employees = sum(row[1] for row in stats_results)
+        total_gross_pay = sum(row[2] or Decimal('0') for row in stats_results)
+        total_deductions = sum(row[3] or Decimal('0') for row in stats_results)
+        total_net_pay = sum(row[4] or Decimal('0') for row in stats_results)
+        
+        # 获取期间信息
+        period_name = None
+        if period_id:
+            period_query = text("""
+            SELECT DISTINCT 薪资期间名称 
+            FROM reports.v_payroll_basic 
+            WHERE 薪资期间id = :period_id
+            LIMIT 1
+            """)
+            period_result = db.execute(period_query, {"period_id": period_id}).fetchone()
+            period_name = period_result[0] if period_result else None
+        
+        # 构建响应数据
+        categories_data = []
+        for row in stats_results:
+            personnel_category = row[0]
+            employee_count = row[1]
+            gross_pay_total = row[2] or Decimal('0')
+            deductions_total = row[3] or Decimal('0')
+            net_pay_total = row[4] or Decimal('0')
+            avg_gross_pay = row[5] or Decimal('0')
+            avg_deductions = row[6] or Decimal('0')
+            avg_net_pay = row[7] or Decimal('0')
+            
+            # 计算占比
+            employee_percentage = (employee_count / total_employees * 100) if total_employees > 0 else 0
+            cost_percentage = (float(gross_pay_total) / float(total_gross_pay) * 100) if total_gross_pay > 0 else 0
+            
+            categories_data.append({
+                "personnel_category": personnel_category,
+                "employee_count": employee_count,
+                "gross_pay_total": gross_pay_total,
+                "deductions_total": deductions_total,
+                "net_pay_total": net_pay_total,
+                "avg_gross_pay": avg_gross_pay,
+                "avg_deductions": avg_deductions,
+                "avg_net_pay": avg_net_pay,
+                "percentage_of_total_employees": round(employee_percentage, 2),
+                "percentage_of_total_cost": round(cost_percentage, 2)
+            })
+        
+        # 构建汇总信息
+        summary = {
+            "total_employees": total_employees,
+            "total_gross_pay": total_gross_pay,
+            "total_deductions": total_deductions,
+            "total_net_pay": total_net_pay,
+            "avg_gross_pay_overall": total_gross_pay / total_employees if total_employees > 0 else Decimal('0'),
+            "avg_deductions_overall": total_deductions / total_employees if total_employees > 0 else Decimal('0'),
+            "avg_net_pay_overall": total_net_pay / total_employees if total_employees > 0 else Decimal('0')
+        }
+        
+        response_data = PersonnelCategoryStatsResponse(
+            period_id=period_id,
+            period_name=period_name,
+            summary=summary,
+            categories=categories_data
+        )
+        
+        logger.info(f"✅ [get_personnel_category_statistics] 统计完成 - 共 {len(categories_data)} 个人员类别, 总人数: {total_employees}")
+        
+        return DataResponse(
+            data=response_data,
+            message=f"人员身份分类统计完成，共统计 {total_employees} 人，{len(categories_data)} 个类别"
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ [get_personnel_category_statistics] 统计失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="人员身份分类统计失败",
                 details=str(e)
             )
         )

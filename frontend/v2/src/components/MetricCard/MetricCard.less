@@ -1324,52 +1324,141 @@
   
   // 底部摘要
   .mini-card-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding-top: @space-2;
     border-top: 1px solid @border-light;
     flex-shrink: 0;
     
-    .summary-item {
+    .summary-loading {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: @space-2;
+      padding: @space-2;
+    }
+    
+    // 人员统计行布局
+    .personnel-stats-row {
+      display: flex;
+      justify-content: space-between;
+      gap: @space-3;
       
-      .summary-label {
-        .typography-small();
+      .personnel-stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        
+        &.left {
+          align-items: flex-start;
+          text-align: left;
+        }
+        
+        &.right {
+          align-items: flex-end;
+          text-align: right;
+        }
+        
+        .stat-header {
+          display: flex;
+          align-items: center;
+          gap: @space-1;
+          margin-bottom: @space-1;
+          
+          .stat-icon {
+            font-size: 12px;
+            
+            &.primary {
+              color: @primary-600;
+            }
+            
+            &.secondary {
+              color: @success-600;
+            }
+          }
+          
+          .stat-label {
+            .typography-small();
+            color: @text-secondary;
+            font-size: 11px;
+            font-weight: @font-weight-medium;
+          }
+        }
+        
+        .stat-value {
+          margin-bottom: @space-1;
+          
+          .main-value {
+            .typography-number-small();
+            font-size: 14px;
+            font-weight: @font-weight-bold;
+            line-height: 1.2;
+            
+            &.primary {
+              color: @primary-600;
+            }
+            
+            &.secondary {
+              color: @success-600;
+            }
+          }
+        }
+        
+        .stat-details {
+          .detail-text {
+            .typography-small();
+            color: @text-tertiary;
+            font-size: 9px;
+            line-height: 1.2;
+          }
+        }
+        
+        .stat-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: @space-1;
+          padding: @space-2;
+          
+          .ant-typography {
+            font-size: 10px;
+          }
+        }
+      }
+    }
+    
+    // 空状态
+    .personnel-stats-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: @space-2;
+      padding: @space-3;
+      
+      .empty-icon {
+        font-size: 16px;
         color: @text-tertiary;
+      }
+      
+      .ant-typography {
         font-size: 11px;
       }
-      
-      .summary-value {
-        .typography-caption-strong();
-        font-size: 12px;
-        
-        &.success {
-          color: @success-600;
-        }
-        
-        &.error {
-          color: @error-600;
-        }
-        
-        &.positive {
-          color: @success-600;
-        }
-        
-        &.negative {
-          color: @error-600;
-        }
-      }
+    }
+    
+    // 兼容原有的摘要项目样式（非人员统计使用）
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: @space-1;
       
       .summary-row {
         display: flex;
         align-items: center;
-        gap: @space-1;
+        justify-content: space-between;
+        gap: @space-2;
         
         .change-icon {
-          font-size: 10px;
+          font-size: 12px;
           
           &.positive {
             color: @success-600;
@@ -1378,6 +1467,62 @@
           &.negative {
             color: @error-600;
           }
+          
+          &.primary {
+            color: @primary-600;
+          }
+          
+          &.secondary {
+            color: @success-600;
+          }
+        }
+        
+        .summary-label {
+          .typography-small();
+          color: @text-secondary;
+          font-size: 12px;
+          font-weight: @font-weight-medium;
+        }
+        
+        .summary-value {
+          .typography-caption-strong();
+          font-size: 13px;
+          font-weight: @font-weight-bold;
+          
+          &.success {
+            color: @success-600;
+          }
+          
+          &.error {
+            color: @error-600;
+          }
+          
+          &.positive {
+            color: @success-600;
+          }
+          
+          &.negative {
+            color: @error-600;
+          }
+          
+          &.primary {
+            color: @primary-600;
+          }
+          
+          &.secondary {
+            color: @success-600;
+          }
+        }
+      }
+      
+      .summary-details {
+        padding-left: 20px; // 与图标对齐
+        
+        .detail-text {
+          .typography-small();
+          color: @text-tertiary;
+          font-size: 10px;
+          line-height: 1.2;
         }
       }
     }

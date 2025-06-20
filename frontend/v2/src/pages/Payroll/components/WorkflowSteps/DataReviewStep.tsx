@@ -1352,14 +1352,12 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
                           name={`earnings_${code}`}
                           style={{ marginBottom: 12 }}
                           rules={[
-                            { required: item.is_required !== false, message: '请输入金额' },
-                            { type: 'number', min: 0, message: '金额不能为负数' }
+                            { required: item.is_required !== false, message: '请输入金额' }
                           ]}
                         >
                           <InputNumber 
                             style={{ width: '100%', maxWidth: '200px' }}
                             size="small"
-                            min={0}
                             precision={2}
                             placeholder="请输入金额"
                             prefix="¥"
@@ -1412,14 +1410,12 @@ export const DataReviewStep: React.FC<DataReviewStepProps> = ({ workflow }) => {
                           name={`deductions_${code}`}
                           style={{ marginBottom: 12 }}
                           rules={[
-                            { required: item.is_required !== false, message: '请输入金额' },
-                            { type: 'number', min: 0, message: '金额不能为负数' }
+                            { required: item.is_required !== false, message: '请输入金额' }
                           ]}
                         >
                           <InputNumber 
                             style={{ width: '100%', maxWidth: '200px' }}
                             size="small"
-                            min={0}
                             precision={2}
                             placeholder="请输入金额"
                             prefix="¥"

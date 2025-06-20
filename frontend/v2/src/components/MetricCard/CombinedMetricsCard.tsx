@@ -23,6 +23,9 @@ const { Title } = Typography;
 export interface CombinedMetricsCardProps {
   title?: string;
   
+  // 期间数据
+  periodId?: number; // 新增：当前选择的薪资期间ID
+  
   // 部门成本数据
   departmentCostData: DepartmentCostData[];
   totalCost: number;
@@ -48,6 +51,7 @@ export interface CombinedMetricsCardProps {
 
 export const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
   title = "关键指标概览",
+  periodId,
   departmentCostData = [],
   totalCost = 0,
   totalDeductions = 0,
@@ -65,6 +69,13 @@ export const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
 }) => {
   console.log('🔴🔴🔴 [CombinedMetricsCard] 组件渲柕开始 🔴🔴🔴');
   console.log('🔴 [CombinedMetricsCard] title:', title);
+  console.log('🔴 [CombinedMetricsCard] periodId:', periodId);
+  console.log('🔴 [CombinedMetricsCard] props:', { 
+    periodId, 
+    totalEmployees, 
+    employeeTypeLoading,
+    employeeTypeDataLength: employeeTypeData.length 
+  });
   // 状态管理
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -157,6 +168,7 @@ export const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
             data={employeeTypeData}
             totalEmployees={safeNumber(totalEmployees, 0)}
             loading={employeeTypeLoading}
+            periodId={periodId}
             onTypeClick={handleEmployeeTypeClick}
           />
         </MetricCardErrorBoundary>
