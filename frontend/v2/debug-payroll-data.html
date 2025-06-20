@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Payroll Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .json-container { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>薪资数据调试</h1>
+    <button onclick="fetchPayrollData()">获取薪资数据</button>
+    <button onclick="testRenderFunctions()">测试渲染函数</button>
+    
+    <h2>API 返回数据:</h2>
+    <div id="api-data" class="json-container">
+        <pre id="api-json">点击"获取薪资数据"按钮...</pre>
+    </div>
+    
+    <h2>处理后数据:</h2>
+    <div id="processed-data" class="json-container">
+        <pre id="processed-json">等待数据处理...</pre>
+    </div>
+    
+    <h2>渲染测试:</h2>
+    <div id="render-test" class="json-container">
+        <pre id="render-result">点击"测试渲染函数"按钮...</pre>
+    </div>
+
+    <script>
+        async function fetchPayrollData() {
+            try {
+                console.log('开始获取薪资数据...');
+                
+                // 模拟API调用 - 这里需要实际的periodId
+                const periodId = 1; // 使用一个测试期间ID
+                const response = await fetch(`/api/reports/payroll-modal/period/${periodId}?limit=5`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const modalDataList = await response.json();
+                console.log('API返回数据:', modalDataList);
+                
+                document.getElementById('api-json').textContent = JSON.stringify(modalDataList, null, 2);
+                
+                // 处理数据 - 模拟usePayrollDataQuery中的逻辑
+                const processedData = modalDataList.map((modalData, index) => ({
+                    id: modalData.薪资条目id || index,
+                    key: modalData.薪资条目id || `row-${index}`,
+                    薪资条目id: modalData.薪资条目id,
+                    员工编号: modalData.基础信息?.员工编号,
+                    员工姓名: modalData.基础信息?.员工姓名,
+                    部门名称: modalData.基础信息?.部门名称,
+                    职位名称: modalData.基础信息?.职位名称,
+                    人员类别: modalData.基础信息?.人员类别,
+                    编制: modalData.基础信息?.编制,
+                    薪资期间名称: modalData.基础信息?.薪资期间名称,
+                    应发合计: modalData.汇总信息?.应发合计,
+                    扣除合计: modalData.汇总信息?.扣除合计,
+                    实发合计: modalData.汇总信息?.实发合计,
+                    // 展开应发明细
+                    ...modalData.应发明细,
+                    // 展开扣除明细
+                    ...modalData.扣除明细?.个人扣缴项目,
+                    ...modalData.扣除明细?.单位扣缴项目,
+                    // 展开计算参数
+                    ...modalData.计算参数
+                }));
+                
+                console.log('处理后数据:', processedData);
+                document.getElementById('processed-json').textContent = JSON.stringify(processedData, null, 2);
+                
+                // 分析数据类型
+                if (processedData.length > 0) {
+                    analyzeDataTypes(processedData[0]);
+                }
+                
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                document.getElementById('api-json').textContent = `错误: ${error.message}`;
+            }
+        }
+        
+        function analyzeDataTypes(sampleData) {
+            console.log('=== 数据类型分析 ===');
+            Object.entries(sampleData).forEach(([key, value]) => {
+                const type = typeof value;
+                const isObject = type === 'object' && value !== null;
+                const isArray = Array.isArray(value);
+                const displayType = isArray ? 'array' : isObject ? 'object' : type;
+                
+                console.log(`${key}: ${displayType}`, value);
+                
+                if (isObject && !isArray) {
+                    console.log(`  ⚠️ 对象字段 ${key} 可能显示为 [object Object]:`, value);
+                }
+            });
+        }
+        
+        function testRenderFunctions() {
+            console.log('=== 测试渲染函数 ===');
+            
+            const testData = {
+                '基本工资': 5000,
+                '部门名称': '技术部',
+                '应发合计': 8500.50,
+                '对象字段': { name: '测试', value: 123 },
+                '数组字段': ['a', 'b', 'c'],
+                '空值': null,
+                '未定义': undefined,
+                '布尔值': true
+            };
+            
+            let result = '测试结果:\n';
+            
+            Object.entries(testData).forEach(([key, value]) => {
+                const type = typeof value;
+                const isObject = type === 'object' && value !== null && !Array.isArray(value);
+                
+                if (isObject) {
+                    result += `${key}: [object Object] ❌ - 需要使用 safeStringify\n`;
+                    result += `  正确显示: ${JSON.stringify(value)}\n`;
+                } else {
+                    result += `${key}: ${value} ✅\n`;
+                }
+            });
+            
+            document.getElementById('render-result').textContent = result;
+            console.log(result);
+        }
+        
+        // 页面加载时的初始化
+        window.addEventListener('load', function() {
+            console.log('调试页面已加载');
+            console.log('可用的调试函数: fetchPayrollData(), testRenderFunctions()');
+        });
+    </script>
+</body>
+</html>

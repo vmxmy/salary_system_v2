@@ -251,6 +251,16 @@ export const usePayrollDataPresets = () => {
     loadDefaultPreset();
   }, [loadPresets, loadDefaultPreset]);
 
+  // 获取当前配置
+  const getCurrentConfig = useCallback((filterConfig: any, searchQuery: string, searchMode: string) => {
+    return {
+      filterConfig,
+      searchQuery,
+      searchMode,
+      timestamp: new Date().toISOString()
+    };
+  }, []);
+
   return {
     presets,
     defaultPreset,
@@ -263,6 +273,7 @@ export const usePayrollDataPresets = () => {
     setAsDefault,
     duplicatePreset,
     updatePreset,
-    setCurrentPreset
+    setCurrentPreset,
+    getCurrentConfig
   };
 }; 

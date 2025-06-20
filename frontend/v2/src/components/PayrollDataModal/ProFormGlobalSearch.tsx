@@ -291,7 +291,7 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
                 },
                 optionLabelProp: 'label'
               }}
-              tooltip={SEARCH_MODE_CONFIG[searchMode].description}
+              tooltip={SEARCH_MODE_CONFIG[searchMode]?.description || '选择搜索模式'}
             />
           </div>
 

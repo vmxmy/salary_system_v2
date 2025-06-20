@@ -24,7 +24,10 @@
       "WebFetch(domain:ant-design-charts.antgroup.com)",
       "Bash(rm:*)",
       "Bash(git checkout:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
