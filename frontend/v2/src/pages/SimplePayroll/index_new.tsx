@@ -79,6 +79,7 @@ const SimplePayrollPage: React.FC = () => {
                 dataIntegrityStats={{
                   socialInsuranceBaseCount: 0,
                   housingFundBaseCount: 0,
+                  occupationalPensionBaseCount: 0,
                   incomeTaxPositiveCount: 0,
                   loading: false
                 }}

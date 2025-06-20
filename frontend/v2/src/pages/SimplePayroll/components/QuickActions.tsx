@@ -968,7 +968,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   };
 
   // 处理员工创建成功回调
-  const handleEmployeeCreateSuccess = () => {
+  const handleEmployeeCreateSuccess: () => void = () => {
     setEmployeeCreateModalVisible(false);
     message.success('员工创建成功，您现在可以为该员工创建工资记录');
   };

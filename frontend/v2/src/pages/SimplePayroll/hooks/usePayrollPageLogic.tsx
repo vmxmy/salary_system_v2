@@ -21,6 +21,7 @@ export interface PayrollStats {
 export interface DataIntegrityStats {
   socialInsuranceBaseCount: number;
   housingFundBaseCount: number;
+  occupationalPensionBaseCount: number;
   incomeTaxPositiveCount: number;
   loading: boolean;
 }
@@ -48,6 +49,7 @@ export const usePayrollPageLogic = () => {
   const [dataIntegrityStats, setDataIntegrityStats] = useState<DataIntegrityStats>({
     socialInsuranceBaseCount: 0,
     housingFundBaseCount: 0,
+    occupationalPensionBaseCount: 0,
     incomeTaxPositiveCount: 0,
     loading: false
   });
@@ -91,6 +93,7 @@ export const usePayrollPageLogic = () => {
         setDataIntegrityStats({
           socialInsuranceBaseCount: integrityData.social_insurance_base_count || 0,
           housingFundBaseCount: integrityData.housing_fund_base_count || 0,
+          occupationalPensionBaseCount: integrityData.occupational_pension_base_count || 0,
           incomeTaxPositiveCount: integrityData.income_tax_positive_count || 0,
           loading: false
         });
@@ -100,6 +103,7 @@ export const usePayrollPageLogic = () => {
         setDataIntegrityStats({
           socialInsuranceBaseCount: 0,
           housingFundBaseCount: 0,
+          occupationalPensionBaseCount: 0,
           incomeTaxPositiveCount: 0,
           loading: false
         });
@@ -110,6 +114,7 @@ export const usePayrollPageLogic = () => {
       setDataIntegrityStats({
         socialInsuranceBaseCount: 0,
         housingFundBaseCount: 0,
+        occupationalPensionBaseCount: 0,
         incomeTaxPositiveCount: 0,
         loading: false
       });
@@ -226,6 +231,7 @@ export const usePayrollPageLogic = () => {
     setDataIntegrityStats({
       socialInsuranceBaseCount: 0,
       housingFundBaseCount: 0,
+      occupationalPensionBaseCount: 0,
       incomeTaxPositiveCount: 0,
       loading: false
     });
@@ -537,6 +543,7 @@ export const usePayrollPageLogic = () => {
       setDataIntegrityStats({
         socialInsuranceBaseCount: 0,
         housingFundBaseCount: 0,
+        occupationalPensionBaseCount: 0,
         incomeTaxPositiveCount: 0,
         loading: false
       });

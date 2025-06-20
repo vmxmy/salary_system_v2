@@ -23,7 +23,10 @@ def upgrade() -> None:
     
     print("🔧 正在修复 v_comprehensive_employee_payroll 视图的JSONB路径...")
     
-    # 删除现有视图
+    # 先删除可能存在的、导致依赖问题的旧视图
+    op.execute("DROP VIEW IF EXISTS reports.v_payroll_calculations CASCADE;")
+    
+    # 再删除主视图
     op.execute("DROP VIEW IF EXISTS reports.v_comprehensive_employee_payroll CASCADE;")
     
     # 重新创建修复后的视图，使用正确的JSONB路径 ->'field'->>'amount'
@@ -230,7 +233,10 @@ def downgrade() -> None:
     
     print("⬇️ 正在恢复到之前的视图版本...")
     
-    # 删除当前视图
+    # 先删除可能存在的、导致依赖问题的旧视图
+    op.execute("DROP VIEW IF EXISTS reports.v_payroll_calculations CASCADE;")
+    
+    # 再删除主视图
     op.execute("DROP VIEW IF EXISTS reports.v_comprehensive_employee_payroll CASCADE;")
     
     # 恢复到之前的版本（使用错误的JSONB路径）

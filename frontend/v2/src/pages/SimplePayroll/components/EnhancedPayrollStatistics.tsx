@@ -548,6 +548,11 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                       {dataIntegrityStats?.housingFundBaseCount || 0}
                     </span>
                   </div>
+                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
+                    职业年金: <span style={{ color: (dataIntegrityStats?.occupationalPensionBaseCount || 0) > 0 ? '#52c41a' : '#ff4d4f' }}>
+                      {dataIntegrityStats?.occupationalPensionBaseCount || 0}
+                    </span>
+                  </div>
                   <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.1' }}>
                     个税&gt;0: <span style={{ color: (dataIntegrityStats?.incomeTaxPositiveCount || 0) > 0 ? '#52c41a' : '#fa8c16' }}>
                       {dataIntegrityStats?.incomeTaxPositiveCount || 0}

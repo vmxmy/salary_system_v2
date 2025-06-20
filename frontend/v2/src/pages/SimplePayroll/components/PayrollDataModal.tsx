@@ -2453,6 +2453,110 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             listsHeight: 400,
             draggable: true,  // ✅ 启用列拖拽排序功能
             checkable: true,
+            extra: [
+              <div key="pin-controls" style={{ borderTop: '1px solid #f0f0f0', paddingTop: 8, marginTop: 8 }}>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: 4 }}>快速固定列操作</div>
+                <Space wrap size={[4, 4]}>
+                  <Button 
+                    size="small" 
+                    type="text"
+                    title="选择当前表格中第一个未固定的列，固定到最左侧"
+                    onClick={() => {
+                      const newColumnsState = { ...currentColumnsState };
+                      // 获取当前所有可见列，按显示顺序排序
+                      const allColumns = dynamicColumns.map(col => col.dataIndex || col.key).filter(Boolean);
+                      // 找到第一个未固定且可见的列（排除员工姓名）
+                      const targetColumn = allColumns.find(key => {
+                        const keyStr = String(key || '');
+                        return keyStr !== '员工姓名' && 
+                               keyStr !== 'action' &&
+                               (newColumnsState[keyStr]?.show !== false) && 
+                               !newColumnsState[keyStr]?.fixed;
+                      });
+                      
+                      if (targetColumn) {
+                        const targetColumnStr = String(targetColumn);
+                        newColumnsState[targetColumnStr] = { 
+                          ...newColumnsState[targetColumnStr], 
+                          fixed: 'left' 
+                        };
+                        setCurrentColumnsState(newColumnsState);
+                        message.success(`已固定 "${targetColumnStr}" 到最左侧`);
+                      } else {
+                        message.info('没有可固定到左侧的列');
+                      }
+                    }}
+                  >
+                    📌 左固定
+                  </Button>
+                  <Button 
+                    size="small" 
+                    type="text"
+                    title="选择当前表格中最后一个未固定的列，固定到最右侧"
+                    onClick={() => {
+                      const newColumnsState = { ...currentColumnsState };
+                      // 获取当前所有可见列，按显示顺序排序
+                      const allColumns = dynamicColumns.map(col => col.dataIndex || col.key).filter(Boolean);
+                      // 找到最后一个未固定且可见的列（排除操作列）
+                      const visibleUnpinnedColumns = allColumns.filter(key => {
+                        const keyStr = String(key || '');
+                        return keyStr !== '员工姓名' && 
+                               keyStr !== 'action' &&
+                               (newColumnsState[keyStr]?.show !== false) && 
+                               !newColumnsState[keyStr]?.fixed;
+                      });
+                      
+                      if (visibleUnpinnedColumns.length > 0) {
+                        const targetColumn = visibleUnpinnedColumns[visibleUnpinnedColumns.length - 1];
+                        const targetColumnStr = String(targetColumn);
+                        newColumnsState[targetColumnStr] = { 
+                          ...newColumnsState[targetColumnStr], 
+                          fixed: 'right' 
+                        };
+                        setCurrentColumnsState(newColumnsState);
+                        message.success(`已固定 "${targetColumnStr}" 到最右侧`);
+                      } else {
+                        message.info('没有可固定到右侧的列');
+                      }
+                    }}
+                  >
+                    📌 右固定
+                  </Button>
+                  <Button 
+                    size="small" 
+                    type="text"
+                    title="取消所有用户自定义的固定列设置"
+                    onClick={() => {
+                      const newColumnsState = { ...currentColumnsState };
+                      let unfixedCount = 0;
+                      
+                      Object.keys(newColumnsState).forEach(key => {
+                        // 保留员工姓名和操作列的默认固定设置
+                        if (key !== '员工姓名' && key !== 'action' && newColumnsState[key]?.fixed) {
+                          newColumnsState[key] = { 
+                            ...newColumnsState[key], 
+                            fixed: undefined 
+                          };
+                          unfixedCount++;
+                        }
+                      });
+                      
+                      setCurrentColumnsState(newColumnsState);
+                      if (unfixedCount > 0) {
+                        message.success(`已取消 ${unfixedCount} 列的固定设置`);
+                      } else {
+                        message.info('没有需要取消固定的列');
+                      }
+                    }}
+                  >
+                    🔓 取消固定
+                  </Button>
+                </Space>
+                <div style={{ fontSize: '11px', color: '#999', marginTop: 4 }}>
+                  💡 提示：员工姓名和操作列默认固定，可在每列设置中单独调整
+                </div>
+              </div>
+            ],
           },
         }}
         pagination={{

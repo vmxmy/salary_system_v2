@@ -354,11 +354,14 @@ class EmployeeSalaryConfigService:
                         # 🎯 只更新社保和公积金基数
                         existing_config.social_insurance_base = source_config.social_insurance_base
                         existing_config.housing_fund_base = source_config.housing_fund_base
+                        # 🔧 添加职业年金缴费基数复制
+                        if hasattr(source_config, 'occupational_pension_base'):
+                            existing_config.occupational_pension_base = source_config.occupational_pension_base
                         existing_config.updated_at = datetime.now()
                         existing_config.updated_by = user_id
                         
                         updated_count += 1
-                        logger.debug(f"更新员工 {source_config.employee_id} 的缴费基数: 社保基数={source_config.social_insurance_base}, 公积金基数={source_config.housing_fund_base}")
+                        logger.debug(f"更新员工 {source_config.employee_id} 的缴费基数: 社保基数={source_config.social_insurance_base}, 公积金基数={source_config.housing_fund_base}, 职业年金基数={getattr(source_config, 'occupational_pension_base', None)}")
                     else:
                         # 🎯 只创建包含基数的最小配置
                         # 获取当前员工的基础薪资信息（从最近的配置中获取）
@@ -373,13 +376,17 @@ class EmployeeSalaryConfigService:
                         # 设置基本工资，如果没有历史记录则使用默认值
                         basic_salary = latest_config.basic_salary if latest_config else Decimal('5000.00')
                         
+                        # 获取职业年金基数（如果存在）
+                        occupational_pension_base = getattr(source_config, 'occupational_pension_base', None)
+                        
                         new_config = EmployeeSalaryConfig(
                             employee_id=source_config.employee_id,
                             basic_salary=basic_salary,  # 保留基本工资，其他薪资相关字段使用默认值
                             salary_grade_id=latest_config.salary_grade_id if latest_config else None,
-                            # 🎯 核心：只复制社保和公积金基数
+                            # 🎯 核心：复制社保、公积金和职业年金基数
                             social_insurance_base=source_config.social_insurance_base,
                             housing_fund_base=source_config.housing_fund_base,
+                            occupational_pension_base=occupational_pension_base,  # 🔧 添加职业年金基数
                             # 专项扣除使用默认值（不复制）
                             child_education_deduction=Decimal('0'),
                             continuing_education_deduction=Decimal('0'),
@@ -396,7 +403,7 @@ class EmployeeSalaryConfigService:
                         )
                         self.db.add(new_config)
                         copied_count += 1
-                        logger.debug(f"为员工 {source_config.employee_id} 创建新缴费基数配置: 社保基数={source_config.social_insurance_base}, 公积金基数={source_config.housing_fund_base}")
+                        logger.debug(f"为员工 {source_config.employee_id} 创建新缴费基数配置: 社保基数={source_config.social_insurance_base}, 公积金基数={source_config.housing_fund_base}, 职业年金基数={occupational_pension_base}")
                     
                     # 每50条提交一次，提高性能
                     if (copied_count + updated_count) % 50 == 0:

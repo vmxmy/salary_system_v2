@@ -2777,6 +2777,7 @@ async def check_existing_insurance_base(
                 "employee_name": employee_name,
                 "social_insurance_base": float(config.social_insurance_base) if config.social_insurance_base else 0,
                 "housing_fund_base": float(config.housing_fund_base) if config.housing_fund_base else 0,
+                "occupational_pension_base": float(getattr(config, 'occupational_pension_base', 0)) if getattr(config, 'occupational_pension_base', None) is not None else 0,
                 "effective_date": config.effective_date.isoformat() if config.effective_date else None,
                 "end_date": config.end_date.isoformat() if config.end_date else None
             })
@@ -2795,6 +2796,7 @@ async def check_existing_insurance_base(
                 "总配置数": base_configs_info["total_configs"],
                 "有社保基数员工": base_configs_info["employees_with_social_base"],
                 "有公积金基数员工": base_configs_info["employees_with_housing_base"],
+                "有职业年金基数员工": base_configs_info["employees_with_occupational_pension_base"],
                 "涉及员工总数": base_configs_info["unique_employees"]
             },
             "recommendation": {
@@ -2886,6 +2888,20 @@ async def get_data_integrity_stats(
             )
         ).count()
         
+        # 🎯 统计职业年金基数记录数量
+        occupational_pension_base_count = db.query(EmployeeSalaryConfig).filter(
+            and_(
+                or_(EmployeeSalaryConfig.is_active.is_(None), EmployeeSalaryConfig.is_active == True),
+                EmployeeSalaryConfig.effective_date <= target_period.end_date,
+                or_(
+                    EmployeeSalaryConfig.end_date.is_(None),
+                    EmployeeSalaryConfig.end_date >= target_period.start_date
+                ),
+                EmployeeSalaryConfig.occupational_pension_base.isnot(None),
+                EmployeeSalaryConfig.occupational_pension_base > 0
+            )
+        ).count()
+        
         # 🎯 统计个人所得税>0的记录数量
         # 首先获取该期间的工资运行
         payroll_runs = db.query(PayrollRun).filter(
@@ -2914,17 +2930,19 @@ async def get_data_integrity_stats(
             "data_integrity": {
                 "social_insurance_base_count": social_insurance_base_count,
                 "housing_fund_base_count": housing_fund_base_count,
+                "occupational_pension_base_count": occupational_pension_base_count,
                 "income_tax_positive_count": income_tax_positive_count
             },
             "summary": {
                 "统计类型": "数据完整性统计",
                 "社保基数记录数": social_insurance_base_count,
-                "公积金基数记录数": housing_fund_base_count,  
+                "公积金基数记录数": housing_fund_base_count,
+                "职业年金基数记录数": occupational_pension_base_count,
                 "个税大于0记录数": income_tax_positive_count
             }
         }
         
-        logger.info(f"✅ [API-数据完整性统计] 统计完成: 期间={target_period.name}, 社保基数={social_insurance_base_count}, 公积金基数={housing_fund_base_count}, 个税>0={income_tax_positive_count}")
+        logger.info(f"✅ [API-数据完整性统计] 统计完成: 期间={target_period.name}, 社保基数={social_insurance_base_count}, 公积金基数={housing_fund_base_count}, 职业年金基数={occupational_pension_base_count}, 个税>0={income_tax_positive_count}")
         
         return DataResponse(
             data=result,

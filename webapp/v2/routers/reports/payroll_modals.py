@@ -215,13 +215,15 @@ async def get_payroll_modal_data(
                 "计算参数": {
                     "社保缴费基数": calculations_data.get("社保缴费基数", Decimal('0.00')),
                     "住房公积金缴费基数": calculations_data.get("住房公积金缴费基数", Decimal('0.00')),
+                    "职业年金缴费基数": calculations_data.get("职业年金缴费基数", Decimal('0.00')),
                     "养老保险个人费率": calculations_data.get("养老保险个人费率", Decimal('0.00')),
                     "医疗保险个人费率": calculations_data.get("医疗保险个人费率", Decimal('0.00')),
                     "住房公积金个人费率": calculations_data.get("住房公积金个人费率", Decimal('0.00')),
                     "其他计算参数": {k: v for k, v in calculations_data.items() 
                                     if k not in [
-                                        "社保缴费基数", "住房公积金缴费基数", "养老保险个人费率", 
-                                        "医疗保险个人费率", "住房公积金个人费率"
+                                        "社保缴费基数", "住房公积金缴费基数", "职业年金缴费基数", 
+                                        "养老保险个人费率", "医疗保险个人费率", 
+                                        "住房公积金个人费率"
                                     ] and v > 0}
                 }
             }
@@ -422,7 +424,11 @@ async def get_batch_payroll_modal_data(
         SELECT 
             pc."薪资条目id",
             COALESCE(pc."社保缴费基数", 0.00) AS "社保缴费基数",
-            COALESCE(pc."住房公积金缴费基数", 0.00) AS "住房公积金缴费基数"
+            COALESCE(pc."住房公积金缴费基数", 0.00) AS "住房公积金缴费基数",
+            COALESCE(pc."职业年金缴费基数", 0.00) AS "职业年金缴费基数",
+            COALESCE(pc."养老保险个人费率", 0.00) AS "养老保险个人费率",
+            COALESCE(pc."医疗保险个人费率", 0.00) AS "医疗保险个人费率",
+            COALESCE(pc."住房公积金个人费率", 0.00) AS "住房公积金个人费率"
         FROM reports.v_payroll_calculations pc
         WHERE pc."薪资条目id" IN ({ids_str})
         ORDER BY pc."薪资条目id"
@@ -539,7 +545,11 @@ async def get_batch_payroll_modal_data(
                 if row[0] == entry_id:
                     calculations_data = {
                         "社保缴费基数": row[1] or Decimal('0.00'),
-                        "住房公积金缴费基数": row[2] or Decimal('0.00')
+                        "住房公积金缴费基数": row[2] or Decimal('0.00'),
+                        "职业年金缴费基数": row[3] or Decimal('0.00'),
+                        "养老保险个人费率": row[4] or Decimal('0.00'),
+                        "医疗保险个人费率": row[5] or Decimal('0.00'),
+                        "住房公积金个人费率": row[6] or Decimal('0.00'),
                     }
                     break
             
@@ -660,7 +670,16 @@ async def get_batch_payroll_modal_data(
                     "计算参数": {
                         "社保缴费基数": calculations_data.get("社保缴费基数", Decimal('0.00')),
                         "住房公积金缴费基数": calculations_data.get("住房公积金缴费基数", Decimal('0.00')),
-                        "其他计算参数": {k: v for k, v in calculations_data.items() if v > 0}
+                        "职业年金缴费基数": calculations_data.get("职业年金缴费基数", Decimal('0.00')),
+                        "养老保险个人费率": calculations_data.get("养老保险个人费率", Decimal('0.00')),
+                        "医疗保险个人费率": calculations_data.get("医疗保险个人费率", Decimal('0.00')),
+                        "住房公积金个人费率": calculations_data.get("住房公积金个人费率", Decimal('0.00')),
+                        "其他计算参数": {k: v for k, v in calculations_data.items() 
+                                      if k not in [
+                                          "社保缴费基数", "住房公积金缴费基数", "职业年金缴费基数", 
+                                          "养老保险个人费率", "医疗保险个人费率", 
+                                          "住房公积金个人费率"
+                                      ] and v > 0}
                     }
                 }
             )
