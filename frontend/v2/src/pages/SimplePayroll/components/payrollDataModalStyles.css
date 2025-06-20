@@ -1,0 +1,22 @@
+/* 确保列设置面板在拖拽层之上 */
+.ant-popover.ant-pro-table-column-setting-overlay {
+  z-index: 10000 !important; /* 比拖拽层的z-index更高 */
+}
+
+/* 确保面板内的交互元素正常工作 */
+.ant-pro-table-column-setting-list-item {
+  position: relative;
+  z-index: 10001 !important;
+}
+
+/* 确保复选框可点击 */
+.ant-pro-table-column-setting-list-item .ant-checkbox-wrapper {
+  z-index: 10002 !important;
+  position: relative;
+}
+
+/* 确保固定按钮可点击 */
+.ant-pro-table-column-setting-action-rest-button {
+  position: relative;
+  z-index: 10002 !important;
+} 
