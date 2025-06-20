@@ -119,6 +119,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [defaultPayrollRunId, setDefaultPayrollRunId] = useState<number | null>(null);
   const [socialInsuranceBase, setSocialInsuranceBase] = useState<number>(0);
   const [housingFundBase, setHousingFundBase] = useState<number>(0);
+  const [occupationalPensionBase, setOccupationalPensionBase] = useState<number>(0);
+  const [updatingInsuranceBase, setUpdatingInsuranceBase] = useState<boolean>(false);
   const { message: messageApi } = App.useApp();
   
   // 新增：模态框API数据状态
@@ -451,9 +453,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           form.setFieldsValue({
             social_insurance_base: response.data.social_insurance_base,
             housing_fund_base: response.data.housing_fund_base,
+            occupational_pension_base: response.data.occupational_pension_base,
           });
           setSocialInsuranceBase(response.data.social_insurance_base || 0);
           setHousingFundBase(response.data.housing_fund_base || 0);
+          setOccupationalPensionBase(response.data.occupational_pension_base || 0);
         }
       } catch (error) {
         console.error('❌ [fetchEmployeeInsuranceBase] 获取员工缴费基数失败:', error);
@@ -463,29 +467,54 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   }, [payrollPeriodId, form, t]);
 
   // 更新员工缴费基数
-  const updateEmployeeInsuranceBase = useCallback(async (employeeId: number, socialBase: number, housingBase: number) => {
+  const updateEmployeeInsuranceBase = useCallback(async (employeeId: number, socialBase: number, housingBase: number, occupationalBase?: number) => {
     if (!payrollPeriodId) return;
     
+    setUpdatingInsuranceBase(true);
     try {
       console.log('💾 [updateEmployeeInsuranceBase] 开始更新员工缴费基数:', {
         employeeId,
         payrollPeriodId,
         socialBase,
-        housingBase
+        housingBase,
+        occupationalBase
       });
       
-      const response = await simplePayrollApi.updateEmployeeInsuranceBase(employeeId, payrollPeriodId, {
+      const updateData: any = {
         social_insurance_base: socialBase,
         housing_fund_base: housingBase,
-      });
+      };
+      
+      if (occupationalBase !== undefined) {
+        updateData.occupational_pension_base = occupationalBase;
+      }
+      
+      const response = await simplePayrollApi.updateEmployeeInsuranceBase(employeeId, payrollPeriodId, updateData);
       
       console.log('✅ [updateEmployeeInsuranceBase] 更新成功:', response.data);
       messageApi.success('缴费基数更新成功');
     } catch (error) {
       console.error('❌ [updateEmployeeInsuranceBase] 更新员工缴费基数失败:', error);
       messageApi.error('缴费基数更新失败');
+    } finally {
+      setUpdatingInsuranceBase(false);
     }
   }, [payrollPeriodId, messageApi]);
+
+  // 手动更新缴费基数按钮处理函数
+  const handleUpdateInsuranceBase = useCallback(async () => {
+    if (!entry?.employee_id) {
+      messageApi.error('请先选择员工');
+      return;
+    }
+    
+    await updateEmployeeInsuranceBase(
+      entry.employee_id, 
+      socialInsuranceBase, 
+      housingFundBase, 
+      occupationalPensionBase
+    );
+  }, [entry?.employee_id, socialInsuranceBase, housingFundBase, occupationalPensionBase, updateEmployeeInsuranceBase, messageApi]);
   
   // 初始化表单数据
   useEffect(() => {
@@ -1222,9 +1251,6 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                           // 确保 value 为数字类型
                           const numValue = typeof value === 'string' ? parseFloat(value) : (value || 0);
                           setSocialInsuranceBase(numValue);
-                          if (entry?.employee_id && value !== null) {
-                            updateEmployeeInsuranceBase(entry.employee_id, numValue, housingFundBase);
-                          }
                         }}
                       />
                     </Form.Item>
@@ -1243,9 +1269,6 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                           // 确保 value 为数字类型
                           const numValue = typeof value === 'string' ? parseFloat(value) : (value || 0);
                           setHousingFundBase(numValue);
-                          if (entry?.employee_id && value !== null) {
-                            updateEmployeeInsuranceBase(entry.employee_id, socialInsuranceBase, numValue);
-                          }
                         }}
                       />
                     </Form.Item>
@@ -1260,12 +1283,32 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                         min={undefined}
                         step={0.01}
                         precision={2}
-                        disabled
-                        placeholder="暂未启用"
+                        onChange={(value) => {
+                          // 确保 value 为数字类型
+                          const numValue = typeof value === 'string' ? parseFloat(value) : (value || 0);
+                          setOccupationalPensionBase(numValue);
+                        }}
                       />
                     </Form.Item>
                   </Col>
                 </Row>
+                
+                {/* 更新缴费基数按钮 */}
+                {entry?.employee_id && (
+                  <Row gutter={16} style={{ marginTop: 16 }}>
+                    <Col span={24}>
+                      <Button
+                        type="primary"
+                        icon={<SaveOutlined />}
+                        loading={updatingInsuranceBase}
+                        onClick={handleUpdateInsuranceBase}
+                        style={{ width: '100%' }}
+                      >
+                        更新缴费基数
+                      </Button>
+                    </Col>
+                  </Row>
+                )}
               </>
             )}
               </Card>
