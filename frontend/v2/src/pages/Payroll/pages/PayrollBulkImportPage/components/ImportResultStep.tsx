@@ -121,39 +121,44 @@ const ImportResultStep: React.FC<ImportResultStepProps> = ({
   };
 
   // 渲染统计信息
-  const renderStatistics = () => (
-    <Row gutter={16} style={{ marginBottom: 24 }}>
-      <Col span={8}>
-        <Card>
-          <Statistic
-            title={t('batch_import.result.statistics.total_processed')}
-            value={successCount + errorCount}
-            prefix={<ExclamationCircleOutlined />}
-          />
-        </Card>
-      </Col>
-      <Col span={8}>
-        <Card>
-          <Statistic
-            title={t('batch_import.result.statistics.successful')}
-            value={successCount}
-            valueStyle={{ color: '#3f8600' }}
-            prefix={<CheckCircleOutlined />}
-          />
-        </Card>
-      </Col>
-      <Col span={8}>
-        <Card>
-          <Statistic
-            title={t('batch_import.result.statistics.failed')}
-            value={errorCount}
-            valueStyle={{ color: '#cf1322' }}
-            prefix={<CloseCircleOutlined />}
-          />
-        </Card>
-      </Col>
-    </Row>
-  );
+  const renderStatistics = () => {
+    // 确保总数是有效数字
+    const totalProcessed = (successCount || 0) + (errorCount || 0);
+    
+    return (
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title={t('batch_import.result.statistics.total_processed')}
+              value={totalProcessed}
+              prefix={<ExclamationCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title={t('batch_import.result.statistics.successful')}
+              value={successCount || 0}
+              valueStyle={{ color: '#3f8600' }}
+              prefix={<CheckCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title={t('batch_import.result.statistics.failed')}
+              value={errorCount || 0}
+              valueStyle={{ color: '#cf1322' }}
+              prefix={<CloseCircleOutlined />}
+            />
+          </Card>
+        </Col>
+      </Row>
+    );
+  };
 
   // 渲染错误详情
   const renderErrorDetails = () => {

@@ -503,38 +503,40 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
             targetPeriodId: selectedPeriodId
           });
 
-          // 🎯 调用复制薪资条目API（完整复制工资记录数据）
-          const result = await simplePayrollApi.copyPreviousPayroll({
-            target_period_id: selectedPeriodId,
-            source_period_id: previousPeriod.id,
-            description: `复制 ${previousPeriod.name} 工资记录到 ${currentPeriod.name}`,
-            force_overwrite: false
-          });
-
-          console.log('✅ [复制工资记录] 复制完成:', result);
-
           let payrollCopySuccess = false;
           let insuranceBaseCopySuccess = false;
 
-          if (result.data) {
-            payrollCopySuccess = true;
-            if (!copyInsuranceBase) {
-              // 如果只复制工资记录，直接显示成功消息
-              message.success({
-                content: (
-                  <div>
-                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 工资记录复制成功</div>
-                    <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
-                    <div>✅ 运行ID: {result.data.id}</div>
-                    <div>📊 版本: {result.data.version_number}</div>
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>薪资条目记录已复制，可以运行计算引擎</div>
-                  </div>
-                ),
-                duration: 6
-              });
+          // 🎯 只有选择了工资记录才调用复制薪资条目API
+          if (copyPayroll) {
+            const result = await simplePayrollApi.copyPreviousPayroll({
+              target_period_id: selectedPeriodId,
+              source_period_id: previousPeriod.id,
+              description: `复制 ${previousPeriod.name} 工资记录到 ${currentPeriod.name}`,
+              force_overwrite: false
+            });
+
+            console.log('✅ [复制工资记录] 复制完成:', result);
+
+            if (result.data) {
+              payrollCopySuccess = true;
+              if (!copyInsuranceBase) {
+                // 如果只复制工资记录，直接显示成功消息
+                message.success({
+                  content: (
+                    <div>
+                      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 工资记录复制成功</div>
+                      <div>📋 从 {previousPeriod.name} 复制到 {currentPeriod.name}</div>
+                      <div>✅ 运行ID: {result.data.id}</div>
+                      <div>📊 版本: {result.data.version_number}</div>
+                      <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>薪资条目记录已复制，可以运行计算引擎</div>
+                    </div>
+                  ),
+                  duration: 6
+                });
+              }
+            } else {
+              message.error('复制工资记录失败');
             }
-          } else {
-            message.error('复制工资记录失败');
           }
 
           // 如果需要复制缴费基数，调用缴费基数复制API
@@ -553,7 +555,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
               if (baseResult.data && baseResult.data.success) {
                 insuranceBaseCopySuccess = true;
                 
-                if (!payrollCopySuccess) {
+                if (!copyPayroll) {
                   // 如果只复制了缴费基数，显示缴费基数复制成功消息
                   message.success({
                     content: (
