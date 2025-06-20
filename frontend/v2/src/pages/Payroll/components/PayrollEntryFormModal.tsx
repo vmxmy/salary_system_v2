@@ -1219,9 +1219,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                         step={0.01}
                         precision={2}
                         onChange={(value) => {
-                          setSocialInsuranceBase(value || 0);
+                          // 确保 value 为数字类型
+                          const numValue = typeof value === 'string' ? parseFloat(value) : (value || 0);
+                          setSocialInsuranceBase(numValue);
                           if (entry?.employee_id && value !== null) {
-                            updateEmployeeInsuranceBase(entry.employee_id, value, housingFundBase);
+                            updateEmployeeInsuranceBase(entry.employee_id, numValue, housingFundBase);
                           }
                         }}
                       />
@@ -1238,9 +1240,11 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                         step={0.01}
                         precision={2}
                         onChange={(value) => {
-                          setHousingFundBase(value || 0);
+                          // 确保 value 为数字类型
+                          const numValue = typeof value === 'string' ? parseFloat(value) : (value || 0);
+                          setHousingFundBase(numValue);
                           if (entry?.employee_id && value !== null) {
-                            updateEmployeeInsuranceBase(entry.employee_id, socialInsuranceBase, value);
+                            updateEmployeeInsuranceBase(entry.employee_id, socialInsuranceBase, numValue);
                           }
                         }}
                       />
