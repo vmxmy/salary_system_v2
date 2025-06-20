@@ -926,12 +926,13 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       }
       bordered
       style={{ marginBottom: 16 }}
+      bodyStyle={{ padding: '12px' }}
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      <Space direction="vertical" style={{ width: '100%' }} size="small">
         <Button 
           onClick={() => setPayrollDataModalVisible(true)}
           block 
-          size="large"
+          size="middle"
           icon={<EyeOutlined />}
           disabled={!selectedVersionId}
         >
@@ -941,7 +942,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <Button 
           onClick={handleNavigateToBulkImport} 
           block 
-          size="large"
+          size="middle"
           icon={<PlusOutlined />}
         >
           {t('simplePayroll:quickActions.bulkImport')}
@@ -950,7 +951,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <Button 
           onClick={handleCopyPreviousPayrollEntries}
           block 
-          size="large"
+          size="middle"
           icon={<ReloadOutlined />}
           loading={loading.copy_payroll_entries}
         >
@@ -958,22 +959,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         </Button>
 
         <Button 
-          onClick={handleDeleteCurrentMonthData}
-          block 
-          size="large"
-          icon={<DeleteOutlined />}
-          loading={loading.delete_month_data}
-          type="primary"
-          danger
-          className={styles.dangerButton}
-        >
-          删除本月数据
-        </Button>
-
-        <Button 
           onClick={handleAddEmployee}
           block 
-          size="large"
+          size="middle"
           icon={<UserAddOutlined />}
         >
           {t('simplePayroll:quickActions.addEmployee')}
@@ -982,10 +970,21 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <Button 
           onClick={handleAddPayrollRecord}
           block 
-          size="large"
+          size="middle"
           icon={<FileAddOutlined />}
         >
           {t('simplePayroll:quickActions.addPayrollRecord')}
+        </Button>
+
+        <Button 
+          onClick={handleDeleteCurrentMonthData}
+          block 
+          size="middle"
+          icon={<DeleteOutlined />}
+          loading={loading.delete_month_data}
+          danger
+        >
+          删除本月数据
         </Button>
       </Space>
 
