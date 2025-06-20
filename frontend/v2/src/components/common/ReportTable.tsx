@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ProTable } from '@ant-design/pro-components';
 import { Card, Typography, Row, Col, Space, Button, Dropdown, Menu, message, Divider, Tooltip } from 'antd';
 import type { ProColumns, ProTableProps, ActionType } from '@ant-design/pro-components';
+import type { ColumnsType } from 'antd/es/table';
 import {
   PrinterOutlined,
 } from '@ant-design/icons';
@@ -13,100 +14,105 @@ const { Title, Text } = Typography;
 
 const ReportContainer = styled.div`
   .report-header {
-    background: #fff;
-    padding: 24px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     margin-bottom: 16px;
+  }
+
+  .report-content {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .description-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+    
+    li {
+      margin: 4px 0;
+      color: #666;
+      font-size: 14px;
+    }
+  }
+
+  .toolbar-button {
+    border: 1px solid #d9d9d9;
     border-radius: 6px;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    border: 1px solid #f0f0f0;
-  }
-  
-  .report-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #262626;
-    margin: 0 0 8px 0;
-    text-align: center;
-  }
-  
-  .report-description {
-    font-size: 14px;
-    color: #8c8c8c;
-    margin: 0;
-    text-align: center;
-    line-height: 1.5;
-  }
-  
-  .report-actions {
-    margin-top: 16px;
-    text-align: right;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    
+    &:hover {
+      border-color: #1890ff;
+      color: #1890ff;
+    }
   }
 `;
 
-const StyledProTable = styled(ProTable)`
-  .ant-pro-table-list-toolbar {
-    padding: 0;
-    margin-bottom: 16px;
-  }
-  .ant-table-thead > tr > th {
-    background-color: #fafafa;
-    font-weight: 500;
-  }
-` as any;
+// 导出格式枚举
+export type ExportFormat = 'excel' | 'csv' | 'pdf';
 
-export type ExportFormat = 'excel' | 'pdf' | 'csv';
-
-export interface ReportTableProps<T> extends Omit<ProTableProps<T, any, any>, 'headerTitle' | 'toolbar'> {
+// 报表配置接口
+export interface ReportConfig {
   reportTitle?: string;
-  reportDescription?: string | string[]; // 支持字符串或字符串数组
-  reportConfig?: {
-    reportTitle?: string;
-    reportDescription?: string;
-    reportDescriptionLines?: string[];
-  }; // 从报表模板配置中读取
-  columns: ProColumns<T>[];
-  bordered?: boolean;
-  extraActions?: React.ReactNode;
-  showSearch?: boolean;
-  showToolbar?: boolean;
-  exportConfig?: {
-    enabled?: boolean;
-    filename?: string;
-    formats?: ExportFormat[];
-    onExport?: (format: ExportFormat, data: T[]) => Promise<void>;
-  };
-  printConfig?: {
-    enabled?: boolean;
-    title?: string;
-    onPrint?: (data: T[]) => Promise<void>;
-  };
-  tableConfig?: {
-    showIndex?: boolean;
-    showSelection?: boolean;
-    bordered?: boolean;
-    size?: 'small' | 'middle' | 'large';
-    showPagination?: boolean;
-    pagination?: {
-      pageSize?: number;
-      showSizeChanger?: boolean;
-      showQuickJumper?: boolean;
-      showTotal?: boolean;
-    };
-    showToolbar?: boolean;
-    showDensity?: boolean;
-    showColumnSetting?: boolean;
-    showFullscreen?: boolean;
-    showRefresh?: boolean;
+  reportDescription?: string;
+  reportDescriptionLines?: string[];
+}
+
+// 导出配置接口
+export interface ExportConfig {
+  formats?: ExportFormat[];
+  filename?: string;
+  enabled?: boolean; // 添加启用/禁用导出功能的选项
+}
+
+// 打印配置接口
+export interface PrintConfig {
+  enabled?: boolean;
+  title?: string;
+}
+
+// 表格配置接口
+export interface TableConfig {
+  scroll?: { x?: number; y?: number };
+  size?: 'small' | 'middle' | 'large';
+  showIndex?: boolean; // 是否显示序号列
+  showSelection?: boolean; // 是否显示选择列
+  showPagination?: boolean; // 是否显示分页
+  showToolbar?: boolean; // 是否显示工具栏
+  showDensity?: boolean; // 是否显示密度设置
+  showColumnSetting?: boolean; // 是否显示列设置
+  showFullscreen?: boolean; // 是否显示全屏按钮
+  showRefresh?: boolean; // 是否显示刷新按钮
+  pagination?: {
+    pageSize?: number;
+    showSizeChanger?: boolean;
+    showQuickJumper?: boolean;
+    showTotal?: boolean;
   };
 }
 
-export function ReportTable<T extends Record<string, any>>({
+// 主组件 Props 接口
+export interface ReportTableProps<T extends Record<string, any>> extends ProTableProps<T, any> {
+  reportTitle?: string;
+  reportDescription?: string | string[];
+  reportConfig?: ReportConfig;
+  showSearch?: boolean;
+  showToolbar?: boolean;
+  exportConfig?: ExportConfig;
+  printConfig?: PrintConfig;
+  tableConfig?: TableConfig;
+}
+
+export default function ReportTable<T extends Record<string, any>>({
+  columns = [],
   reportTitle,
   reportDescription,
   reportConfig,
-  columns,
-  bordered = true,
-  extraActions,
   showSearch = false,
   showToolbar = true,
   exportConfig,
@@ -128,21 +134,17 @@ export function ReportTable<T extends Record<string, any>>({
     if (format === 'excel') {
       exportToExcelWithHeader();
     } else if (format === 'csv') {
-      exportToCSVWithHeader();
-    } else {
-      message.info(t('payroll:pdf_export_not_supported'));
+      exportToCSV();
     }
   };
 
-  // 使用现有的导出功能作为基础，但添加自定义回调
-  const { ExportButton } = useTableExport(
-    restProps.dataSource as T[],
-    columns as any,
+  // 使用自定义导出钩子
+  const exportUtils = useTableExport<Record<string, any>>(
+    // 传递正确的参数类型
+    (restProps.dataSource || []) as Record<string, any>[],
+    columns as ColumnsType<Record<string, any>>,
     {
       filename: exportConfig?.filename || finalTitle,
-      sheetName: finalTitle,
-      supportedFormats: exportConfig?.formats || ['excel'],
-      successMessage: t('payroll:export_success'),
       onExportRequest: handleCustomExport, // 使用自定义导出回调
     }
   );
@@ -150,37 +152,79 @@ export function ReportTable<T extends Record<string, any>>({
   // Excel 导出实现（包含标题和说明行）
   const exportToExcelWithHeader = () => {
     try {
-      // 动态导入 xlsx-js-style（支持样式）
-      import('xlsx-js-style').then((XLSX) => {
-                 const dataSource = restProps.dataSource || [];
-         const worksheetData: any[][] = [];
-         
-         // 先定义表头
-         const headers = columns
-           .filter(col => col.dataIndex && col.title)
-           .map(col => col.title as string);
-         
-         // 添加标题行
-         worksheetData.push([finalTitle]);
-         
-         // 添加说明行
-         if (finalDescription && finalDescription.length > 0) {
-           if (Array.isArray(finalDescription)) {
-             // 如果是数组，将每个说明项放在不同的单元格中
-             const descriptionRow = [...finalDescription];
-             // 确保说明行的长度至少与表头列数相同
-             while (descriptionRow.length < headers.length) {
-               descriptionRow.push('');
-             }
-             worksheetData.push(descriptionRow);
-           } else {
-             // 如果是字符串，放在第一个单元格并合并
-             worksheetData.push([finalDescription]);
-           }
-         }
-         
-         // 添加表头
-         worksheetData.push(headers);
+      // 动态导入 exceljs（支持样式）
+      import('exceljs').then((ExcelJS) => {
+        const dataSource = restProps.dataSource || [];
+        
+        // 先定义表头
+        const headers = columns
+          .filter(col => col.dataIndex && col.title)
+          .map(col => col.title as string);
+        
+        // 创建工作簿和工作表
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sheet1');
+        
+        // 设置工作簿属性
+        workbook.creator = 'Report System';
+        workbook.lastModifiedBy = 'Report System';
+        workbook.created = new Date();
+        workbook.modified = new Date();
+        
+        let currentRow = 1;
+        
+        // 添加标题行
+        const titleCell = worksheet.getCell(currentRow, 1);
+        titleCell.value = finalTitle;
+        titleCell.font = { name: '微软雅黑', size: 16, bold: true };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
+        
+        // 合并标题行
+        worksheet.mergeCells(currentRow, 1, currentRow, headers.length);
+        worksheet.getRow(currentRow).height = 30;
+        currentRow++;
+        
+        // 添加说明行
+        if (finalDescription && finalDescription.length > 0) {
+          if (Array.isArray(finalDescription)) {
+            // 如果是数组，将每个说明项放在不同的单元格中
+            finalDescription.forEach((desc, index) => {
+              if (index < headers.length) {
+                const cell = worksheet.getCell(currentRow, index + 1);
+                cell.value = desc;
+                cell.font = { name: '微软雅黑', size: 11, color: { argb: 'FF666666' } };
+                cell.alignment = { horizontal: 'left', vertical: 'middle' };
+              }
+            });
+          } else {
+            // 如果是字符串，放在第一个单元格并合并
+            const descCell = worksheet.getCell(currentRow, 1);
+            descCell.value = finalDescription;
+            descCell.font = { name: '微软雅黑', size: 11, color: { argb: 'FF666666' } };
+            descCell.alignment = { horizontal: 'left', vertical: 'middle' };
+            worksheet.mergeCells(currentRow, 1, currentRow, headers.length);
+          }
+          worksheet.getRow(currentRow).height = 20;
+          currentRow++;
+        }
+        
+        // 添加表头
+        headers.forEach((header, index) => {
+          const cell = worksheet.getCell(currentRow, index + 1);
+          cell.value = header;
+          cell.font = { name: '微软雅黑', size: 12, bold: true };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F3FF' } };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+        worksheet.getRow(currentRow).height = 25;
+        currentRow++;
         
         // 添加数据行
         dataSource.forEach(row => {
@@ -194,192 +238,80 @@ export function ReportTable<T extends Record<string, any>>({
               }
               return value || '';
             });
-          worksheetData.push(rowData);
+          
+          rowData.forEach((data, index) => {
+            const cell = worksheet.getCell(currentRow, index + 1);
+            cell.value = data;
+            cell.font = { name: '微软雅黑', size: 10 };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+              left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+              bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+              right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+            };
+          });
+          currentRow++;
         });
-
-                 // 创建并下载Excel文件
-         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-         const workbook = XLSX.utils.book_new();
-         XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-         
-         // 确保工作簿支持样式
-         workbook.Props = {
-           Title: reportTitle,
-           Subject: "Report Export",
-           Author: "Report System",
-           CreatedDate: new Date()
-         };
-         
-         // 设置列宽
-         const colWidths = headers.map(() => ({ wch: 15 }));
-         worksheet['!cols'] = colWidths;
-         
-         // 设置行高
-         const rowHeights = [];
-         rowHeights[0] = { hpt: 30 }; // 标题行高度
-         if (finalDescription && finalDescription.length > 0) {
-           rowHeights[1] = { hpt: 20 }; // 说明行高度
-           rowHeights[2] = { hpt: 25 }; // 表头行高度
-         } else {
-           rowHeights[1] = { hpt: 25 }; // 表头行高度
-         }
-         worksheet['!rows'] = rowHeights;
-         
-         // 设置标题样式（合并单元格）
-         const merges = [
-           { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }, // 标题行合并
-         ];
-         
-         // 只有当说明行是字符串时才合并说明行
-         if (finalDescription && !Array.isArray(finalDescription)) {
-           merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } });
-         }
-         
-         worksheet['!merges'] = merges;
-         
-         // 设置单元格样式
-         const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-         
-         // 创建样式对象（xlsx-js-style 格式）
-         const styles = {
-           title: {
-             font: { 
-               name: "微软雅黑", 
-               sz: 16, 
-               bold: true,
-               color: { rgb: "000000" }
-             },
-             alignment: { 
-               horizontal: "center", 
-               vertical: "center",
-               wrapText: true
-             },
-             fill: { 
-               fgColor: { rgb: "F0F0F0" },
-               patternType: "solid"
-             }
-           },
-           description: {
-             font: { 
-               name: "微软雅黑", 
-               sz: 11,
-               color: { rgb: "666666" }
-             },
-             alignment: { 
-               horizontal: "left", 
-               vertical: "center",
-               wrapText: true
-             }
-           },
-           header: {
-             font: { 
-               name: "微软雅黑", 
-               sz: 12, 
-               bold: true,
-               color: { rgb: "000000" }
-             },
-             alignment: { 
-               horizontal: "center", 
-               vertical: "center",
-               wrapText: true
-             },
-             fill: { 
-               fgColor: { rgb: "E6F3FF" },
-               patternType: "solid"
-             },
-             border: {
-               top: { style: "thin", color: { rgb: "000000" } },
-               bottom: { style: "thin", color: { rgb: "000000" } },
-               left: { style: "thin", color: { rgb: "000000" } },
-               right: { style: "thin", color: { rgb: "000000" } }
-             }
-           },
-           data: {
-             font: { 
-               name: "微软雅黑", 
-               sz: 10,
-               color: { rgb: "000000" }
-             },
-             alignment: { 
-               horizontal: "left", 
-               vertical: "center",
-               wrapText: true
-             },
-             border: {
-               top: { style: "thin", color: { rgb: "CCCCCC" } },
-               bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-               left: { style: "thin", color: { rgb: "CCCCCC" } },
-               right: { style: "thin", color: { rgb: "CCCCCC" } }
-             }
-           }
-         };
-         
-         // 应用样式到单元格
-         for (let R = range.s.r; R <= range.e.r; ++R) {
-           for (let C = range.s.c; C <= range.e.c; ++C) {
-             const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-             if (!worksheet[cellAddress]) {
-               worksheet[cellAddress] = { t: 's', v: '' };
-             }
-             
-             if (R === 0) {
-               // 第一行：大标题样式
-               worksheet[cellAddress].s = styles.title;
-             } else if (R === 1 && finalDescription && finalDescription.length > 0) {
-               // 第二行：说明行样式
-               worksheet[cellAddress].s = styles.description;
-             } else if (R === (finalDescription && finalDescription.length > 0 ? 2 : 1)) {
-               // 表头行：小标题样式
-               worksheet[cellAddress].s = styles.header;
-             } else {
-               // 数据行：普通样式
-               worksheet[cellAddress].s = styles.data;
-             }
-           }
-         }
         
-                 const fileName = `${exportConfig?.filename || finalTitle}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-         
-         // 使用支持样式的写入选项
-         XLSX.writeFile(workbook, fileName, { 
-           bookType: 'xlsx',
-           type: 'binary',
-           cellStyles: true
-         });
-         
-         message.success(t('payroll:export_success'));
+        // 设置列宽
+        headers.forEach((_, index) => {
+          worksheet.getColumn(index + 1).width = 15;
+        });
+        
+        // 生成文件名
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const fileName = `${exportConfig?.filename || finalTitle}_${timestamp}.xlsx`;
+        
+        // 下载文件
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          message.success(t('common.export_success', '导出成功'));
+        });
+        
+      }).catch(err => {
+        console.error('Excel export failed:', err);
+        message.error('导出失败，请重试');
       });
     } catch (error) {
+      console.error('Excel export error:', error);
       message.error('导出失败，请重试');
     }
   };
 
-  // CSV 导出实现（包含标题和说明行）
-  const exportToCSVWithHeader = () => {
+  // CSV 导出实现
+  const exportToCSV = () => {
     try {
       const dataSource = restProps.dataSource || [];
-      let csvContent = '';
       
-             // 添加标题行
-       csvContent += `"${finalTitle}"\n`;
-       
-       // 添加说明行
-       if (finalDescription && finalDescription.length > 0) {
-         if (Array.isArray(finalDescription)) {
-           // 如果是数组，将每个说明项放在不同的单元格中
-           const descriptionRow = finalDescription.map(desc => `"${desc}"`);
-           csvContent += descriptionRow.join(',') + '\n';
-         } else {
-           // 如果是字符串，放在第一个单元格
-           csvContent += `"${finalDescription}"\n`;
-         }
-       }
-      
-      // 添加表头
+      // 先定义表头
       const headers = columns
         .filter(col => col.dataIndex && col.title)
-        .map(col => `"${col.title}"`);
-      csvContent += headers.join(',') + '\n';
+        .map(col => col.title as string);
+      
+      // 创建 CSV 内容
+      let csvContent = '';
+      
+      // 添加标题行
+      csvContent += `"${finalTitle}"\n`;
+      
+      // 添加说明行
+      if (finalDescription && finalDescription.length > 0) {
+        if (Array.isArray(finalDescription)) {
+          csvContent += finalDescription.map(desc => `"${desc}"`).join(',') + '\n';
+        } else {
+          csvContent += `"${finalDescription}"\n`;
+        }
+      }
+      
+      // 添加表头
+      csvContent += headers.map(header => `"${header}"`).join(',') + '\n';
       
       // 添加数据行
       dataSource.forEach(row => {
@@ -387,106 +319,138 @@ export function ReportTable<T extends Record<string, any>>({
           .filter(col => col.dataIndex)
           .map(col => {
             const value = row[col.dataIndex as string];
-            return `"${value || ''}"`;
+            return value ? `"${value}"` : '""';
           });
         csvContent += rowData.join(',') + '\n';
       });
-
-      // 创建并下载CSV文件
+      
+      // 生成文件名并下载
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const fileName = `${exportConfig?.filename || finalTitle}_${timestamp}.csv`;
+      
       const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${exportConfig?.filename || finalTitle}_${new Date().toISOString().slice(0, 10)}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      message.success(t('payroll:export_success'));
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      message.success(t('common.export_success', '导出成功'));
     } catch (error) {
+      console.error('CSV export error:', error);
       message.error('导出失败，请重试');
     }
   };
 
-  // 打印功能（仅做提示，实际打印逻辑需补充）
-  const handlePrint = async () => {
-    message.info('打印功能演示');
+  // 导出菜单项
+  const exportMenuItems = [
+    {
+      key: 'excel',
+      label: (
+        <Space>
+          <span>Excel 格式</span>
+        </Space>
+      ),
+      onClick: () => handleCustomExport('excel'),
+    },
+    {
+      key: 'csv', 
+      label: (
+        <Space>
+          <span>CSV 格式</span>
+        </Space>
+      ),
+      onClick: () => handleCustomExport('csv'),
+    },
+  ];
+
+  // 打印功能
+  const handlePrint = () => {
+    window.print();
   };
 
+  // 工具栏组件
   const renderToolbar = () => {
-    const defaultButtons = [];
-    if (exportConfig?.enabled) {
-      defaultButtons.push(
-        <ExportButton key="export" />
-      );
-    }
-    if (printConfig?.enabled) {
-      defaultButtons.push(
-        <Tooltip key="print" title="打印报表">
-          <Button 
-            icon={<PrinterOutlined />} 
-            onClick={handlePrint}
-            shape="round"
-            type="default"
-          >
-            打印
+    if (!showToolbar) return null;
+
+    return (
+      <Space style={{ marginBottom: 16 }}>
+        <Dropdown 
+          menu={{ items: exportMenuItems }}
+          placement="bottomLeft"
+        >
+          <Button className="toolbar-button">
+            导出数据
           </Button>
-        </Tooltip>
-      );
-    }
-    // 删除重复的刷新和全屏按钮，使用 ProTable 内置的
-    return defaultButtons;
+        </Dropdown>
+        
+        {printConfig?.enabled !== false && (
+          <Tooltip title="打印报表">
+            <Button 
+              className="toolbar-button"
+              icon={<PrinterOutlined />}
+              onClick={handlePrint}
+            >
+              打印
+            </Button>
+          </Tooltip>
+        )}
+      </Space>
+    );
   };
 
-  const tableOptions = {
-    density: tableConfig?.showDensity,
-    setting: tableConfig?.showColumnSetting ? {
-      draggable: true,
-      checkable: true,
-    } : false,
-    fullScreen: tableConfig?.showFullscreen, // 恢复内置全屏按钮
-    reload: tableConfig?.showRefresh, // 恢复内置刷新按钮
+  // 渲染说明信息
+  const renderDescription = () => {
+    if (!finalDescription || finalDescription.length === 0) return null;
+
+    return (
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={24}>
+          {Array.isArray(finalDescription) ? (
+            <ul className="description-list">
+              {finalDescription.map((desc, index) => (
+                <li key={index}>{desc}</li>
+              ))}
+            </ul>
+          ) : (
+            <Text type="secondary" style={{ fontSize: 14 }}>
+              {finalDescription}
+            </Text>
+          )}
+        </Col>
+      </Row>
+    );
   };
 
   return (
     <ReportContainer>
-      {/* 第一行：大标题 */}
-      {/* 第二行：说明文本 */}
-      <div className="report-header">
-        <div className="report-title">{finalTitle}</div>
-        {finalDescription && finalDescription.length > 0 && (
-          <div className="report-description">
-            {Array.isArray(finalDescription) 
-              ? finalDescription.join(' | ') 
-              : finalDescription
-            }
-          </div>
-        )}
-        {extraActions && (
-          <div className="report-actions">
-            <Space>{extraActions}</Space>
-          </div>
-        )}
-      </div>
-      
-      {/* 第三行：表格字段和数据 */}
-      <StyledProTable
-        {...restProps}
-        actionRef={actionRef}
-        columns={columns}
-        bordered={tableConfig?.bordered ?? bordered}
-        search={showSearch}
-        toolbar={showToolbar ? { actions: renderToolbar() } : false}
-        options={showToolbar ? tableOptions : false}
-        pagination={tableConfig?.showPagination ? {
-          pageSize: tableConfig.pagination?.pageSize || 10,
-          showSizeChanger: tableConfig.pagination?.showSizeChanger,
-          showQuickJumper: tableConfig.pagination?.showQuickJumper,
-          showTotal: tableConfig.pagination?.showTotal ? (total: number) => `共 ${total} 条` : undefined,
-        } : false}
-        size={tableConfig?.size}
-        rowSelection={tableConfig?.showSelection ? { type: 'checkbox' } : undefined}
-      />
+      <Card className="report-header" bordered={false}>
+        <Row gutter={16} align="middle">
+          <Col flex="auto">
+            <Title level={3} style={{ margin: 0, fontSize: 20 }}>
+              {finalTitle}
+            </Title>
+          </Col>
+          <Col>
+            {renderToolbar()}
+          </Col>
+        </Row>
+        {renderDescription()}
+      </Card>
+
+      <Card className="report-content" bordered={false}>
+        <ProTable<T>
+          {...restProps}
+          actionRef={actionRef}
+          columns={columns}
+          search={showSearch ? restProps.search : false}
+          options={false}
+          pagination={restProps.pagination}
+          scroll={tableConfig?.scroll || { x: 'max-content' }}
+          size={tableConfig?.size || 'middle'}
+        />
+      </Card>
     </ReportContainer>
   );
-} 
+}

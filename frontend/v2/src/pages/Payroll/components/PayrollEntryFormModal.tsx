@@ -38,6 +38,13 @@ const { Option } = Select;
 const { TextArea } = Input;
 // 移除TabPane，使用items属性
 
+// 允许输入负值的薪资组件代码
+const ALLOW_NEGATIVE_COMPONENTS = [
+  'REFUND_DEDUCTION_ADJUSTMENT', // 补扣退款调整
+  'SOCIAL_INSURANCE_MAKEUP',     // 补扣社保
+  'PERFORMANCE_BONUS_MAKEUP'     // 奖励绩效补扣发
+];
+
 // 测试函数，用于检查PATCH数据格式转换
 const testPatchFormatConversion = (data: Record<string, any>): Record<string, any> => {
   const result = { ...data };
@@ -1055,7 +1062,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       amount: 0,
       description: component?.description || '',
       // 为特定字段类型设置允许负值
-      allowNegative: componentName === 'REFUND_DEDUCTION_ADJUSTMENT' || component?.type === 'REFUND_DEDUCTION_ADJUSTMENT'
+      allowNegative: ALLOW_NEGATIVE_COMPONENTS.includes(componentName) || 
+                     ALLOW_NEGATIVE_COMPONENTS.includes(component?.type || '')
     };
     
     const newEarnings = [...earnings, newItem];
@@ -1077,7 +1085,8 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
       amount: 0,
       description: component?.description || '',
       // 为特定字段类型设置允许负值
-      allowNegative: componentName === 'REFUND_DEDUCTION_ADJUSTMENT' || component?.type === 'REFUND_DEDUCTION_ADJUSTMENT'
+      allowNegative: ALLOW_NEGATIVE_COMPONENTS.includes(componentName) || 
+                     ALLOW_NEGATIVE_COMPONENTS.includes(component?.type || '')
     };
     
     const newDeductions = [...deductions, newItem];
@@ -1197,6 +1206,62 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                     {/* 预留将来扩展 */}
                   </Col>
                 </Row>
+                
+                <Row gutter={16}>
+                  <Col span={8}>
+                    <Form.Item
+                      label={t('label.social_insurance_base')}
+                      name="social_insurance_base"
+                    >
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        step={0.01}
+                        precision={2}
+                        onChange={(value) => {
+                          setSocialInsuranceBase(value || 0);
+                          if (entry?.employee_id && value !== null) {
+                            updateEmployeeInsuranceBase(entry.employee_id, value, housingFundBase);
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item
+                      label={t('label.housing_fund_base')}
+                      name="housing_fund_base"
+                    >
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        step={0.01}
+                        precision={2}
+                        onChange={(value) => {
+                          setHousingFundBase(value || 0);
+                          if (entry?.employee_id && value !== null) {
+                            updateEmployeeInsuranceBase(entry.employee_id, socialInsuranceBase, value);
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item
+                      label={t('label.occupational_pension_base')}
+                      name="occupational_pension_base"
+                    >
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        step={0.01}
+                        precision={2}
+                        disabled
+                        placeholder="暂未启用"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
               </>
             )}
               </Card>
@@ -1219,7 +1284,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                   onChange={handleAddEarning}
                   value={undefined}
                   showSearch
-                  optionFilterProp="label"
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                  }
                 >
                   {earningComponents.map(comp => (
                     <Option key={comp.code} value={comp.code}>
@@ -1247,7 +1315,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
-                          min={item.name === 'REFUND_DEDUCTION_ADJUSTMENT' ? undefined : 0}
+                          min={ALLOW_NEGATIVE_COMPONENTS.includes(item.name) ? undefined : 0}
                           step={0.01}
                           precision={2}
                           value={item.amount}
@@ -1280,7 +1348,10 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                   onChange={handleAddDeduction}
                   value={undefined}
                   showSearch
-                  optionFilterProp="label"
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                  }
                 >
                   {deductionComponents.map(comp => (
                     <Option key={comp.code} value={comp.code}>
@@ -1308,7 +1379,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
-                          min={item.name === 'REFUND_DEDUCTION_ADJUSTMENT' ? undefined : 0}
+                          min={ALLOW_NEGATIVE_COMPONENTS.includes(item.name) ? undefined : 0}
                           step={0.01}
                           precision={2}
                           value={item.amount}

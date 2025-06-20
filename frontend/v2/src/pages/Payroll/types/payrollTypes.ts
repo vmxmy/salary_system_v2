@@ -75,6 +75,7 @@ export interface PayrollItemDetail {
   amount: number;
   currency?: string;    // e.g., "CNY"
   description?: string; // Optional description for the item
+  allowNegative?: boolean; // 是否允许负值
   // Add other common fields if any, like type, category, etc.
 }
 

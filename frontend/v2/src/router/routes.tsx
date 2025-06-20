@@ -57,9 +57,7 @@ const CreateEmployeePage = lazy(() => import('../pages/EmployeeManagement/Create
 const EditEmployeePage = lazy(() => import('../pages/EmployeeManagement/EditEmployeePage'));
 
 
-// 在顶部导入 ReportTableDemo 组件
-import ReportTableDemo from '../pages/Admin/Configuration/ReportTableDemo';
-import ReportTemplateDemo from '../pages/Admin/Configuration/ReportTemplateDemo';
+// 移除 ReportTableDemo 导入
 
 // 导入报表配置管理组件
 const ReportConfigManagement = lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement'));
@@ -328,16 +326,13 @@ export const routes: AppRouteObject[] = [
             element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Employee List V3...</div>}><EmployeeListPageV3 /></React.Suspense>,
             meta: { title: 'menu:test.employeeListV3' },
           },
-          {
-            path: 'report-table-demo',
-            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Table Demo...</div>}><ReportTableDemo /></React.Suspense>,
-            meta: { title: 'menu:test.reportTableDemo' },
-          },
-          {
-            path: 'report-template-demo',
-            element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Template Demo...</div>}><ReportTemplateDemo /></React.Suspense>,
-            meta: { title: 'menu:test.reportTemplateDemo' },
-          },
+          // 移除 report-table-demo 路由
+          // 移除已删除的 ReportTemplateDemo 路由
+          // {
+          //   path: 'report-template-demo',
+          //   element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Template Demo...</div>}><ReportTemplateDemo /></React.Suspense>,
+          //   meta: { title: 'menu:test.reportTemplateDemo' },
+          // },
           // Commented out as PayrollWorkflowPage doesn't exist
           // {
           //   path: 'payroll-workflow',

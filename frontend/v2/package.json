@@ -33,6 +33,7 @@
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "exceljs": "^4.4.0",
     "fuse.js": "^7.1.0",
     "fuzzball": "^2.2.2",
     "i18next": "^25.2.0",

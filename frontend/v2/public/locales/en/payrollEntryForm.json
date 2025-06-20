@@ -1,0 +1,61 @@
+{
+  "total": "Total",
+  "no_earnings_components": "No earnings components available",
+  "no_deductions_components": "No deductions components available",
+  "section": {
+    "earnings": "Earnings",
+    "deductions": "Deductions",
+    "summary": "Summary",
+    "employee_info": "Employee Information"
+  },
+  "placeholder": {
+    "select_earnings_component": "Select earnings component",
+    "select_earning_component": "Select earnings component",
+    "select_deductions_component": "Select deductions component",
+    "select_deduction_component": "Select deductions component",
+    "select_employee": "Please select employee",
+    "enter_social_insurance_base": "Enter social insurance base",
+    "enter_housing_fund_base": "Enter housing fund base"
+  },
+  "label": {
+    "add_earning": "Add Earning",
+    "add_deduction": "Add Deduction",
+    "total_earnings": "Total Earnings",
+    "total_deductions": "Total Deductions",
+    "net_pay": "Net Pay",
+    "status": "Status",
+    "amount": "Amount",
+    "social_insurance_base": "Social Insurance Base",
+    "housing_fund_base": "Housing Fund Base",
+    "occupational_pension_base": "Occupational Pension Base",
+    "employee": "Employee",
+    "employee_id": "Employee ID",
+    "employee_name": "Employee Name",
+    "department": "Department",
+    "actual_position": "Actual Position",
+    "personnel_category": "Personnel Category",
+    "remarks": "Remarks"
+  },
+  "actions": {
+    "update_payment_base": "Update Payment Base"
+  },
+  "validation": {
+    "employee_required": "Please select an employee",
+    "status_required": "Status is required",
+    "failed": "Validation failed"
+  },
+  "message": {
+    "component_already_exists": "This component already exists",
+    "create_success": "Payroll entry created successfully",
+    "update_success": "Payroll entry updated successfully",
+    "update_success_no_data": "Update successful, but no data changed"
+  },
+  "error": {
+    "invalid_deductions": "Invalid deductions data",
+    "invalid_earnings": "Invalid earnings data",
+    "no_earnings": "At least one earning component is required",
+    "fetch_employee": "Failed to fetch employee information"
+  },
+  "title_create": "Create Payroll Entry",
+  "title_edit": "Edit Payroll Entry"
+} 
