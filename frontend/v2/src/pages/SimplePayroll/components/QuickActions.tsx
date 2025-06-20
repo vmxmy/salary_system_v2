@@ -4,7 +4,6 @@ import { ProCard } from '@ant-design/pro-components';
 import { AppstoreOutlined, PlusOutlined, DollarOutlined, ReloadOutlined, EyeOutlined, BankOutlined, DeleteOutlined, UserAddOutlined, FileAddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { simplePayrollApi } from '../services/simplePayrollApi';
-import { deletePayrollPeriod } from '../../Payroll/services/payrollApi';
 import PayrollEntryFormModal from '../../Payroll/components/PayrollEntryFormModal';
 import { employeeManagementApi } from '../../EmployeeManagement/services/employeeManagementApi';
 import type { CreateEmployeeData } from '../../EmployeeManagement/types';
@@ -431,7 +430,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                     <div>👥 涉及员工：{baseConfigs.unique_employees} 人</div>
                     {baseConfigs.employees_with_social_base > 0 && <div>🏥 有社保基数：{baseConfigs.employees_with_social_base} 人</div>}
                     {baseConfigs.employees_with_housing_base > 0 && <div>🏠 有公积金基数：{baseConfigs.employees_with_housing_base} 人</div>}
-                    {/* 职业年金基数信息 - 后端API可能尚未更新返回此字段 */}
+                    {baseConfigs.employees_with_occupational_pension_base > 0 && <div>💰 有职业年金基数：{baseConfigs.employees_with_occupational_pension_base} 人</div>}
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>包含社保、公积金和职业年金基数</div>
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                       {existingBaseCheck.data.recommendation.message}
@@ -769,38 +768,39 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         return;
       }
 
-      // 显示确认删除对话框
+      // 显示选择删除内容的对话框
       Modal.confirm({
         title: '🔥 删除本月数据',
         icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
         content: (
-          <div>
+          <div style={{ marginTop: 16 }}>
             <div style={{ marginBottom: '16px' }}>
-              <strong>⚠️ 确认要删除 {currentPeriod.name} 的所有数据吗？</strong>
+              <strong>⚠️ 请选择要删除的数据类型：</strong>
             </div>
-            <div style={{ backgroundColor: '#fff7e6', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
-              <div style={{ color: '#d46b08', fontWeight: 'bold', marginBottom: '8px' }}>将删除以下数据：</div>
+            <Form layout="vertical">
               {hasPayrollData && (
-                <div>
-                  <div>🗂️ 薪资周期记录</div>
-                  <div>💼 工资运行批次：{existingDataCheck.data.summary.total_payroll_runs} 个</div>
-                  <div>💰 薪资条目记录：{existingDataCheck.data.summary.total_payroll_entries} 条</div>
-                  <div>📊 审计记录和计算日志</div>
-                </div>
+                <Form.Item>
+                  <Checkbox defaultChecked>
+                    <span>工资记录</span>
+                    <div style={{ fontSize: '12px', color: '#666', marginLeft: '24px' }}>
+                      包括工资运行批次 {existingDataCheck.data.summary.total_payroll_runs} 个，
+                      薪资条目记录 {existingDataCheck.data.summary.total_payroll_entries} 条
+                    </div>
+                  </Checkbox>
+                </Form.Item>
               )}
               {hasBaseData && (
-                <div style={{ marginTop: hasPayrollData ? '8px' : '0' }}>
-                  <div>🏦 员工缴费基数：{existingBaseCheck.data.base_configs.unique_employees} 人</div>
-                  {existingBaseCheck.data.base_configs.employees_with_social_base > 0 && (
-                    <div>　　社保基数：{existingBaseCheck.data.base_configs.employees_with_social_base} 人</div>
-                  )}
-                  {existingBaseCheck.data.base_configs.employees_with_housing_base > 0 && (
-                    <div>　　公积金基数：{existingBaseCheck.data.base_configs.employees_with_housing_base} 人</div>
-                  )}
-                </div>
+                <Form.Item>
+                  <Checkbox defaultChecked>
+                    <span>缴费基数数据</span>
+                    <div style={{ fontSize: '12px', color: '#666', marginLeft: '24px' }}>
+                      包括 {existingBaseCheck.data.base_configs.unique_employees} 名员工的社保、公积金、职业年金基数
+                    </div>
+                  </Checkbox>
+                </Form.Item>
               )}
-            </div>
-            <div style={{ backgroundColor: '#fff1f0', padding: '12px', borderRadius: '6px' }}>
+            </Form>
+            <div style={{ backgroundColor: '#fff1f0', padding: '12px', borderRadius: '6px', marginTop: '12px' }}>
               <div style={{ color: '#cf1322', fontWeight: 'bold' }}>⚠️ 此操作不可撤销！</div>
               <div style={{ color: '#cf1322', fontSize: '12px' }}>所有相关数据将被永久删除</div>
             </div>
@@ -811,17 +811,94 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         okType: 'danger',
         width: 500,
         onOk: async () => {
+          // 获取选中的删除选项
+          const checkboxes = document.querySelectorAll('.ant-modal-content .ant-checkbox-wrapper');
+          let deletePayroll = false;
+          let deleteInsuranceBase = false;
+          
+          console.log('🔍 [删除本月数据] 检查用户选择:', {
+            checkboxes_length: checkboxes.length,
+            hasPayrollData,
+            hasBaseData,
+            checkboxes_details: Array.from(checkboxes).map((cb, index) => ({
+              index,
+              checked: cb.querySelector('input')?.checked,
+              text: cb.textContent?.trim()
+            }))
+          });
+          
+          if (hasPayrollData && hasBaseData) {
+            // 两种数据都有时，检查用户选择
+            deletePayroll = checkboxes[0]?.querySelector('input')?.checked !== false;
+            deleteInsuranceBase = checkboxes[1]?.querySelector('input')?.checked !== false;
+          } else if (hasPayrollData) {
+            // 只有工资数据
+            deletePayroll = checkboxes[0]?.querySelector('input')?.checked !== false;
+          } else if (hasBaseData) {
+            // 只有缴费基数数据
+            deleteInsuranceBase = checkboxes[0]?.querySelector('input')?.checked !== false;
+          }
+          
+          console.log('🔍 [删除本月数据] 用户选择结果:', {
+            deletePayroll,
+            deleteInsuranceBase,
+            hasPayrollData,
+            hasBaseData
+          });
+          
+          if (!deletePayroll && !deleteInsuranceBase) {
+            message.warning('请至少选择一种数据类型进行删除');
+            return;
+          }
+
           try {
             setLoading(prev => ({ ...prev, delete_month_data: true }));
 
-            // 1. 如果有薪资数据，删除薪资周期（级联删除所有相关数据）
-            if (hasPayrollData) {
-              console.log('🗂️ [删除本月数据] 开始删除薪资周期:', selectedPeriodId);
-              await deletePayrollPeriod(selectedPeriodId);
-            } else if (hasBaseData) {
-              // 2. 如果只有缴费基数，单独删除缴费基数
-              console.log('🏦 [删除本月数据] 删除缴费基数:', selectedPeriodId);
-              await simplePayrollApi.deleteInsuranceBaseForPeriod(selectedPeriodId);
+            let deletionResults = [];
+
+            console.log('🔍 [删除本月数据] 执行删除操作:', {
+              deletePayroll,
+              deleteInsuranceBase,
+              hasPayrollData,
+              hasBaseData,
+              selectedPeriodId,
+              periodName: currentPeriod.name
+            });
+
+            // 重要：删除顺序很关键
+            // 1. 先删除缴费基数（如果选择了）
+            // 2. 再删除工资记录/期间（如果选择了）
+            // 这样避免了期间被删除后无法删除缴费基数的问题
+
+            // 1. 删除缴费基数数据
+            if (deleteInsuranceBase && hasBaseData) {
+              console.log('🏦 [删除本月数据] 开始删除缴费基数:', {
+                periodId: selectedPeriodId,
+                periodName: currentPeriod.name
+              });
+              
+              try {
+                const deleteResponse = await simplePayrollApi.deleteInsuranceBaseForPeriod(selectedPeriodId);
+                console.log('✅ [删除本月数据] 缴费基数删除API响应:', deleteResponse);
+                deletionResults.push('缴费基数数据');
+              } catch (error: any) {
+                console.error('❌ [删除本月数据] 删除缴费基数失败:', error);
+                throw error; // 重新抛出错误，让外层catch处理
+              }
+            }
+
+            // 2. 删除工资记录数据（只删除工资记录，保留期间）
+            if (deletePayroll && hasPayrollData) {
+              console.log('🗂️ [删除本月数据] 开始删除工资记录数据:', selectedPeriodId);
+              
+              try {
+                const deleteResponse = await simplePayrollApi.deletePayrollDataForPeriod(selectedPeriodId);
+                console.log('✅ [删除本月数据] 工资记录删除API响应:', deleteResponse);
+                deletionResults.push('工资记录');
+              } catch (error: any) {
+                console.error('❌ [删除本月数据] 删除工资记录失败:', error);
+                throw error; // 重新抛出错误，让外层catch处理
+              }
             }
 
             message.success({
@@ -830,8 +907,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                   <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎉 删除成功</div>
                   <div>📋 期间 {currentPeriod.name} 的数据已被删除</div>
                   <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                    {hasPayrollData ? '包括薪资周期、工资运行、薪资记录' : ''}
-                    {hasBaseData ? '包括缴费基数配置' : ''}
+                    已删除：{deletionResults.join('、')}
                   </div>
                 </div>
               ),
@@ -839,22 +915,11 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
             });
 
             // 延迟刷新数据，确保后端删除操作完全完成
-            // 删除期间后需要特殊处理，因为当前选择的期间/版本已被删除
             setTimeout(() => {
-              console.log('🔄 [删除本月数据] 开始刷新，当前选择的期间/版本已被删除');
+              console.log('🔄 [删除本月数据] 开始刷新');
               
-              // 清除当前选择状态（避免404错误）
-              const url = new URL(window.location.href);
-              url.searchParams.delete('periodId');
-              url.searchParams.delete('versionId');
-              window.history.replaceState({}, '', url.toString());
-              
-              // 触发删除后的安全刷新
-              if (onRefreshAfterDelete) {
-                console.log('🔄 [删除本月数据] 使用删除后安全刷新');
-                onRefreshAfterDelete();
-              } else if (onRefresh) {
-                console.log('🔄 [删除本月数据] 使用普通刷新（可能有错误）');
+              // 由于期间不会被删除，只需要普通刷新
+              if (onRefresh) {
                 onRefresh();
               }
             }, 1000);

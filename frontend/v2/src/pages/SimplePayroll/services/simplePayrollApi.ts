@@ -752,12 +752,14 @@ export const simplePayrollApi = {
       total_configs: number;
       employees_with_social_base: number;
       employees_with_housing_base: number;
+      employees_with_occupational_pension_base: number;
       unique_employees: number;
       configs_detail: Array<{
         employee_id: number;
         employee_name: string;
         social_insurance_base: number;
         housing_fund_base: number;
+        occupational_pension_base?: number;
         effective_date: string | null;
         end_date: string | null;
       }>;
@@ -835,21 +837,80 @@ export const simplePayrollApi = {
     deleted_count: number;
     message: string;
   }>> => {
-    console.log('🗑️ [simplePayrollApi.deleteInsuranceBaseForPeriod] 发起请求:', {
+    console.log('🗑️ [simplePayrollApi.deleteInsuranceBaseForPeriod] 发起删除缴费基数请求:', {
       url: `${API_BASE}/salary-configs/delete-insurance-base/${periodId}`,
-      periodId: periodId
+      periodId: periodId,
+      timestamp: new Date().toISOString()
     });
     
-    const response = await apiClient.delete(`${API_BASE}/salary-configs/delete-insurance-base/${periodId}`);
-    
-    console.log('✅ [simplePayrollApi.deleteInsuranceBaseForPeriod] 请求成功:', {
-      status: response.status,
-      responseData: response.data,
-      deleted: response.data?.data?.deleted_count
+    try {
+      const response = await apiClient.delete(`${API_BASE}/salary-configs/delete-insurance-base/${periodId}`);
+      
+      console.log('✅ [simplePayrollApi.deleteInsuranceBaseForPeriod] 请求成功:', {
+        status: response.status,
+        statusText: response.statusText,
+        responseData: response.data,
+        deleted_count: response.data?.data?.deleted_count,
+        success: response.data?.data?.success,
+        message: response.data?.data?.message
+      });
+      
+      logResponse(response);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [simplePayrollApi.deleteInsuranceBaseForPeriod] 请求失败:', {
+        periodId,
+        error: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data
+      });
+      throw error;
+    }
+  },
+
+  /**
+   * 🗑️ 删除指定期间的工资记录数据（不删除期间本身）
+   */
+  deletePayrollDataForPeriod: async (periodId: number): Promise<ApiResponse<{
+    success: boolean;
+    deleted_runs: number;
+    deleted_entries: number;
+    deleted_audit_records: number;
+    deleted_snapshots: number;
+    message: string;
+  }>> => {
+    console.log('🗑️ [simplePayrollApi.deletePayrollDataForPeriod] 发起删除工资记录请求:', {
+      url: `${API_BASE}/payroll-data/${periodId}`,
+      periodId: periodId,
+      timestamp: new Date().toISOString()
     });
     
-    logResponse(response);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`${API_BASE}/payroll-data/${periodId}`);
+      
+      console.log('✅ [simplePayrollApi.deletePayrollDataForPeriod] 请求成功:', {
+        status: response.status,
+        statusText: response.statusText,
+        responseData: response.data,
+        deleted_runs: response.data?.data?.deleted_runs,
+        deleted_entries: response.data?.data?.deleted_entries,
+        success: response.data?.data?.success,
+        message: response.data?.data?.message
+      });
+      
+      logResponse(response);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [simplePayrollApi.deletePayrollDataForPeriod] 请求失败:', {
+        periodId,
+        error: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data
+      });
+      throw error;
+    }
   },
 
   /**

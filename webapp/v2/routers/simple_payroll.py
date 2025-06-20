@@ -2559,6 +2559,145 @@ async def run_integrated_calculation_engine(
             )
         )   
 
+@router.delete("/payroll-data/{period_id}", response_model=DataResponse[Dict[str, Any]])
+async def delete_payroll_data_for_period(
+    period_id: int,
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_period:manage"]))
+):
+    """
+    🗑️ 删除指定期间的工资记录数据（不删除期间本身）
+    
+    Args:
+        period_id: 期间ID
+    
+    Returns:
+        删除结果统计
+    """
+    logger.info(f"🗑️ [delete_payroll_data_for_period] 删除工资记录数据 - 用户: {current_user.username}, 期间: {period_id}")
+    
+    try:
+        # 获取期间信息
+        target_period = db.query(PayrollPeriod).filter(
+            PayrollPeriod.id == period_id
+        ).first()
+        
+        if not target_period:
+            logger.error(f"❌ [delete_payroll_data_for_period] 期间不存在: {period_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=create_error_response(
+                    status_code=404,
+                    message="期间不存在",
+                    details=f"期间ID {period_id} 未找到"
+                )
+            )
+        
+        logger.info(f"✅ [delete_payroll_data_for_period] 找到目标期间: {target_period.name} ({target_period.start_date} ~ {target_period.end_date})")
+        
+        # 删除该期间的工资记录数据，但保留期间本身
+        deleted_runs = 0
+        deleted_entries = 0
+        deleted_audit_records = 0
+        
+        # 获取该期间的所有工资运行
+        payroll_runs = db.query(PayrollRun).filter(
+            PayrollRun.payroll_period_id == period_id
+        ).all()
+        
+        logger.info(f"🔍 [delete_payroll_data_for_period] 找到 {len(payroll_runs)} 个工资运行需要删除")
+        
+        for run in payroll_runs:
+            logger.info(f"🗑️ [delete_payroll_data_for_period] 删除工资运行: ID={run.id}, 版本={run.version_number}")
+            
+            # 删除审计相关数据
+            from ..models.audit import PayrollAuditAnomaly, PayrollAuditHistory
+            from ..models.calculation import CalculationAuditLog, CalculationLog
+            from ..models.audit import PayrollRunAuditSummary
+            
+            # 删除审计异常
+            audit_anomalies = db.query(PayrollAuditAnomaly).filter(
+                PayrollAuditAnomaly.payroll_run_id == run.id
+            ).delete()
+            
+            # 删除审计历史
+            audit_history = db.query(PayrollAuditHistory).filter(
+                PayrollAuditHistory.payroll_run_id == run.id
+            ).delete()
+            
+            # 删除计算审计日志
+            calc_audit_logs = db.query(CalculationAuditLog).filter(
+                CalculationAuditLog.payroll_run_id == run.id
+            ).delete()
+            
+            # 删除计算日志
+            calc_logs = db.query(CalculationLog).filter(
+                CalculationLog.payroll_run_id == run.id
+            ).delete()
+            
+            # 删除工资运行审计摘要
+            audit_summary = db.query(PayrollRunAuditSummary).filter(
+                PayrollRunAuditSummary.payroll_run_id == run.id
+            ).delete()
+            
+            deleted_audit_records += (audit_anomalies + audit_history + calc_audit_logs + calc_logs + audit_summary)
+            
+            # 删除工资条目
+            entries_count = db.query(PayrollEntry).filter(
+                PayrollEntry.payroll_run_id == run.id
+            ).count()
+            
+            db.query(PayrollEntry).filter(
+                PayrollEntry.payroll_run_id == run.id
+            ).delete()
+            
+            deleted_entries += entries_count
+            
+            # 删除工资运行
+            db.delete(run)
+            deleted_runs += 1
+        
+        # 删除月度快照（如果存在）
+        from ..models.payroll import MonthlyPayrollSnapshot
+        snapshots_deleted = db.query(MonthlyPayrollSnapshot).filter(
+            MonthlyPayrollSnapshot.period_id == period_id
+        ).delete()
+        
+        logger.info(f"💾 [delete_payroll_data_for_period] 提交删除操作: 运行={deleted_runs}, 条目={deleted_entries}, 审计记录={deleted_audit_records}, 快照={snapshots_deleted}")
+        db.commit()
+        logger.info(f"✅ [delete_payroll_data_for_period] 删除操作已提交")
+        
+        result = {
+            "success": True,
+            "deleted_runs": deleted_runs,
+            "deleted_entries": deleted_entries,
+            "deleted_audit_records": deleted_audit_records,
+            "deleted_snapshots": snapshots_deleted,
+            "period_id": period_id,
+            "period_name": target_period.name,
+            "message": f"成功删除期间 {target_period.name} 的工资记录数据：{deleted_runs} 个运行批次，{deleted_entries} 条薪资记录"
+        }
+        
+        logger.info(f"✅ [delete_payroll_data_for_period] 删除完成 - 期间: {target_period.name}, 运行: {deleted_runs}, 条目: {deleted_entries}")
+        
+        return DataResponse(
+            data=result,
+            message=result["message"]
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"💥 [delete_payroll_data_for_period] 删除工资记录数据失败: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="删除工资记录数据时发生错误",
+                details=str(e)
+            )
+        )
+
 # 在 check_existing_data 路由后添加新的检查缴费基数的路由
 
 @router.get("/check-existing-insurance-base/{period_id}", response_model=DataResponse[Dict[str, Any]])
@@ -2602,10 +2741,11 @@ async def check_existing_insurance_base(
                     EmployeeSalaryConfig.end_date.is_(None),
                     EmployeeSalaryConfig.end_date >= target_period.start_date
                 ),
-                # 🎯 关键：只检查有缴费基数的记录（社保基数或公积金基数不为空）
+                # 🎯 关键：只检查有缴费基数的记录（社保基数或公积金基数或职业年金基数不为空）
                 or_(
                     EmployeeSalaryConfig.social_insurance_base.isnot(None),
-                    EmployeeSalaryConfig.housing_fund_base.isnot(None)
+                    EmployeeSalaryConfig.housing_fund_base.isnot(None),
+                    EmployeeSalaryConfig.occupational_pension_base.isnot(None)
                 )
             )
         ).all()
@@ -2613,6 +2753,7 @@ async def check_existing_insurance_base(
         # 统计分析
         employees_with_social_base = len([c for c in existing_base_configs if c.social_insurance_base is not None and c.social_insurance_base > 0])
         employees_with_housing_base = len([c for c in existing_base_configs if c.housing_fund_base is not None and c.housing_fund_base > 0])
+        employees_with_occupational_pension_base = len([c for c in existing_base_configs if getattr(c, 'occupational_pension_base', None) is not None and getattr(c, 'occupational_pension_base', 0) > 0])
         
         # 构建详细的基数信息
         base_configs_info = {
@@ -2620,6 +2761,7 @@ async def check_existing_insurance_base(
             "total_configs": len(existing_base_configs),
             "employees_with_social_base": employees_with_social_base,
             "employees_with_housing_base": employees_with_housing_base,
+            "employees_with_occupational_pension_base": employees_with_occupational_pension_base,
             "unique_employees": len(set(config.employee_id for config in existing_base_configs)),
             "configs_detail": []
         }
@@ -3016,6 +3158,7 @@ async def delete_insurance_base_for_period(
         ).first()
         
         if not target_period:
+            logger.error(f"❌ [delete_insurance_base_for_period] 期间不存在: {period_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=create_error_response(
@@ -3025,11 +3168,13 @@ async def delete_insurance_base_for_period(
                 )
             )
         
+        logger.info(f"✅ [delete_insurance_base_for_period] 找到目标期间: {target_period.name} ({target_period.start_date} ~ {target_period.end_date})")
+        
         # 删除该期间的缴费基数配置
         from ..models.payroll_config import EmployeeSalaryConfig
         
-        # 查找该期间的所有缴费基数配置（有社保基数或公积金基数的记录）
-        base_configs = db.query(EmployeeSalaryConfig).filter(
+        # 查找该期间的所有缴费基数配置（有社保基数或公积金基数或职业年金基数的记录）
+        base_configs_query = db.query(EmployeeSalaryConfig).filter(
             and_(
                 or_(EmployeeSalaryConfig.is_active.is_(None), EmployeeSalaryConfig.is_active == True),
                 EmployeeSalaryConfig.effective_date <= target_period.end_date,
@@ -3040,19 +3185,37 @@ async def delete_insurance_base_for_period(
                 # 只删除有缴费基数的记录
                 or_(
                     EmployeeSalaryConfig.social_insurance_base.isnot(None),
-                    EmployeeSalaryConfig.housing_fund_base.isnot(None)
+                    EmployeeSalaryConfig.housing_fund_base.isnot(None),
+                    EmployeeSalaryConfig.occupational_pension_base.isnot(None)
                 )
             )
-        ).all()
+        )
+        
+        # 打印查询条件日志
+        logger.info(f"🔍 [delete_insurance_base_for_period] 查询条件: 期间={target_period.name}, 生效日期<={target_period.end_date}, 结束日期>={target_period.start_date}")
+        
+        base_configs = base_configs_query.all()
+        
+        logger.info(f"🔍 [delete_insurance_base_for_period] 查询到 {len(base_configs)} 条缴费基数配置需要删除")
+        
+        # 详细记录每个配置
+        for i, config in enumerate(base_configs):
+            logger.info(f"📋 [delete_insurance_base_for_period] 配置 {i+1}: 员工ID={config.employee_id}, "
+                       f"社保基数={config.social_insurance_base}, 公积金基数={config.housing_fund_base}, "
+                       f"职业年金基数={getattr(config, 'occupational_pension_base', None)}, "
+                       f"生效期={config.effective_date}~{config.end_date}")
         
         deleted_count = 0
         
         # 删除缴费基数配置
         for config in base_configs:
+            logger.info(f"🗑️ [delete_insurance_base_for_period] 删除配置: 员工ID={config.employee_id}")
             db.delete(config)
             deleted_count += 1
         
+        logger.info(f"💾 [delete_insurance_base_for_period] 提交删除操作, 共删除 {deleted_count} 条配置")
         db.commit()
+        logger.info(f"✅ [delete_insurance_base_for_period] 删除操作已提交")
         
         result = {
             "success": True,
