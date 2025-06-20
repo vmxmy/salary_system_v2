@@ -1294,7 +1294,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                 </Row>
                 
                 {/* 更新缴费基数按钮 */}
-                {entry?.employee_id && (
+                {(entry?.employee_id || (!entry && employeeDetails)) && (
                   <Row gutter={16} style={{ marginTop: 16 }}>
                     <Col span={24}>
                       <Button
