@@ -262,16 +262,22 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
         initialValues={initialValues}
         autoFocusFirstInput={false}
         preserve={false}
+        style={{ margin: 0 }}
+        contentRender={(dom) => (
+          <div style={{ padding: 0 }}>
+            {dom}
+          </div>
+        )}
       >
         <div className={styles.searchContainer}>
           {/* 搜索模式选择器 */}
           <div style={{ flexShrink: 0 }}>
             <ProFormSelect
               name="searchMode"
-              width={120}
+              width={110}
               options={Object.entries(SEARCH_MODE_CONFIG).map(([mode, config]) => ({
                 label: (
-                  <Space size={4} style={{ height: '20px', lineHeight: '20px' }}>
+                  <Space size={2} style={{ height: '20px', lineHeight: '20px' }}>
                     <span style={{ fontSize: '12px', lineHeight: '20px' }}>{config.icon}</span>
                     <span style={{ fontSize: '14px', lineHeight: '20px' }}>{config.label}</span>
                   </Space>
@@ -282,7 +288,7 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
                 size: 'middle',
                 disabled: disabled,
                 style: { 
-                  minWidth: 120,
+                  minWidth: 110,
                   maxHeight: '32px',
                   overflow: 'hidden'
                 },
@@ -340,52 +346,6 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
           )}
         </div>
       </ProForm>
-
-      {/* 性能信息和搜索模式标签 */}
-      {(performanceInfo || searchMode !== SearchMode.AUTO) && (
-        <div style={{ 
-          marginTop: 8, 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 8
-        }}>
-          {performanceInfo}
-          
-          {searchMode !== SearchMode.AUTO && (
-            <Tag 
-              color={SEARCH_MODE_CONFIG[searchMode].color}
-              icon={SEARCH_MODE_CONFIG[searchMode].icon}
-            >
-              {SEARCH_MODE_CONFIG[searchMode].label}
-            </Tag>
-          )}
-        </div>
-      )}
-
-      {/* 快捷搜索标签 */}
-      {formRef.current?.getFieldValue('searchQuery') && suggestions.length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <Text type="secondary" style={{ fontSize: 12, marginRight: 8 }}>
-            快捷搜索:
-          </Text>
-          <Space size={4} wrap>
-            {suggestions.slice(0, 3).map((suggestion, index) => (
-              <Tag
-                key={index}
-                style={{ cursor: 'pointer', fontSize: 11 }}
-                onClick={() => {
-                  formRef.current?.setFieldsValue({ searchQuery: suggestion });
-                  handleFinish({ searchQuery: suggestion, searchMode });
-                }}
-              >
-                {suggestion}
-              </Tag>
-            ))}
-          </Space>
-        </div>
-      )}
     </div>
   );
 }; 

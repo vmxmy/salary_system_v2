@@ -1,19 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Steps, Card, Button, Space, Alert, Typography, Tag, Progress, Divider, message, Modal } from 'antd';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Button, Space, message, Modal, Tooltip, Badge, Progress, Tag, Popover, Spin, Typography, Steps, Card, Alert, Divider } from 'antd';
 import { ProCard, StatisticCard } from '@ant-design/pro-components';
-import {
-  FileTextOutlined,
-  CalculatorOutlined,
-  AuditOutlined,
-  CheckCircleOutlined,
-  BankOutlined,
+import { 
+  PlayCircleOutlined, 
+  CheckCircleOutlined, 
+  CloseCircleOutlined, 
+  RocketOutlined, 
+  AuditOutlined, 
+  FileSearchOutlined, 
+  BarChartOutlined, 
+  BankOutlined, 
+  CheckOutlined, 
   ClockCircleOutlined,
   ExclamationCircleOutlined,
-  RightOutlined,
-  LoadingOutlined,
+  FileTextOutlined,
+  CalculatorOutlined,
   WarningOutlined,
   CopyOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  RightOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { PayrollRunResponse, PayrollPeriodResponse, AuditSummary, ReportGenerationRequest } from '../types/simplePayroll';
@@ -547,184 +553,213 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       calculationPeriod: selectedPeriod.start_date
     });
     
-    // 清空之前的结果
-    setCalculationFinalResult(null);
-    setCalculationProgress(null);
-    
-    setActionLoading('run_calculation', true);
-    try {
-      // 🚀 切换到集成计算引擎 - 包含完整五险一金计算
-      // 🎯 使用当前选择的工资期间的开始日期作为计算期间
-      console.log('🎯 [计算引擎] 使用计算期间:', {
-        工资运行ID: selectedVersion.id,
-        期间ID: selectedPeriod.id,
-        期间名称: selectedPeriod.name,
-        期间开始日期: selectedPeriod.start_date,
-        计算期间: selectedPeriod.start_date
-      });
-      
-      const result = await simplePayrollApi.runIntegratedCalculationEngine({
-        payroll_run_id: selectedVersion.id,
-        calculation_period: selectedPeriod.start_date, // 🎯 使用当前选择期间的开始日期
-        recalculate_all: true,
-        include_social_insurance: true, // 启用五险一金计算
-        async_mode: false // 🎯 强制使用同步模式，确保立即返回计算结果
-      });
-      
-      // 显示详细的计算结果
-      console.log('✅ [计算引擎] API调用成功，响应数据:', result);
-      
-      if (result.data) {
-        console.log('🔍 [计算引擎] API响应数据结构:', result.data);
-        
-        // 安全地访问数据结构
-        const payroll_totals = result.data.payroll_totals || {};
-        const social_insurance_breakdown = result.data.social_insurance_breakdown || { employee_totals: {}, employer_totals: {} };
-        const cost_analysis = result.data.cost_analysis || {};
-        
-        // 设置计算结果到状态中，用于状态显示组件
-        const calculationResultData: CalculationResult = {
-          success_count: result.data.success_count || 0,
-          error_count: result.data.error_count || 0,
-          total_processed: result.data.total_processed || 0,
-          payroll_totals: {
-            total_gross_pay: payroll_totals.total_gross_pay || 0,
-            total_deductions: payroll_totals.total_deductions || 0,
-            total_net_pay: payroll_totals.total_net_pay || 0,
-            total_employer_cost: payroll_totals.total_employer_cost || 0
-          },
-          social_insurance_breakdown: {
-            employee_totals: {
-              social_insurance: social_insurance_breakdown.employee_totals?.social_insurance || 0,
-              housing_fund: social_insurance_breakdown.employee_totals?.housing_fund || 0,
-              total: social_insurance_breakdown.employee_totals?.total || 0
-            },
-            employer_totals: {
-              social_insurance: social_insurance_breakdown.employer_totals?.social_insurance || 0,
-              housing_fund: social_insurance_breakdown.employer_totals?.housing_fund || 0,
-              total: social_insurance_breakdown.employer_totals?.total || 0
-            }
-          },
-          cost_analysis: {
-            social_cost_ratio: cost_analysis.social_cost_ratio || 0
-          },
-          duration: 0 // 暂时设为0，后端可能没有这个字段
-        };
-        setCalculationFinalResult(calculationResultData);
-        
-        // 构建显示内容
-        const displayContent = [];
-        displayContent.push(
-          <div key="title" style={{ fontWeight: 'bold', marginBottom: '8px' }}>🎯 集成计算引擎执行完成</div>
-        );
-        
-        if (payroll_totals.total_gross_pay !== undefined) {
-          displayContent.push(
-            <div key="gross">📊 应发: ¥{(payroll_totals.total_gross_pay || 0).toLocaleString()}</div>
-          );
-        }
-        
-        if (payroll_totals.total_deductions !== undefined) {
-          const employeeTotal = social_insurance_breakdown.employee_totals?.total || 0;
-          displayContent.push(
-            <div key="deductions">📉 扣发: ¥{(payroll_totals.total_deductions || 0).toLocaleString()} (含个人五险一金: ¥{employeeTotal.toLocaleString()})</div>
-          );
-        }
-        
-        if (payroll_totals.total_net_pay !== undefined) {
-          displayContent.push(
-            <div key="net">💰 实发: ¥{(payroll_totals.total_net_pay || 0).toLocaleString()}</div>
-          );
-        }
-        
-        if (payroll_totals.total_employer_cost !== undefined) {
-          const employerTotal = social_insurance_breakdown.employer_totals?.total || 0;
-          displayContent.push(
-            <div key="employer">🏢 单位成本: ¥{(payroll_totals.total_employer_cost || 0).toLocaleString()} (含单位五险一金: ¥{employerTotal.toLocaleString()})</div>
-          );
-        }
-        
-        if (cost_analysis.social_cost_ratio !== undefined) {
-          displayContent.push(
-            <div key="ratio" style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              社保成本比例: {(cost_analysis.social_cost_ratio || 0).toFixed(1)}%
-            </div>
-          );
-        }
-        
-        // 如果没有详细数据，显示基本成功信息
-        if (displayContent.length === 1) {
-          displayContent.push(
-            <div key="basic">✅ 计算完成，请查看工资数据</div>
-          );
-        }
-        
-        message.success({
-          content: <div>{displayContent}</div>,
-          duration: 8 // 显示8秒，让用户有时间查看详细信息
-        });
-      } else {
-        // 如果没有数据但API调用成功，设置基本的成功状态
-        const basicResult: CalculationResult = {
-          success_count: 0,
-          error_count: 0,
-          total_processed: 0,
-          payroll_totals: {
-            total_gross_pay: 0,
-            total_deductions: 0,
-            total_net_pay: 0,
-            total_employer_cost: 0
-          },
-          social_insurance_breakdown: {
-            employee_totals: {
-              social_insurance: 0,
-              housing_fund: 0,
-              total: 0
-            },
-            employer_totals: {
-              social_insurance: 0,
-              housing_fund: 0,
-              total: 0
-            }
-          },
-          cost_analysis: {
-            social_cost_ratio: 0
-          },
-          duration: 0
-        };
-        setCalculationFinalResult(basicResult);
-        message.success('集成计算引擎执行完成');
-      }
-      
-      onVersionRefresh?.() || onRefresh();
-    } catch (error: any) {
-      console.error('🔥 集成计算引擎执行失败:', error);
-      console.error('🔥 [计算引擎] 错误详情:', {
-        error: error,
-        response: error?.response,
-        responseData: error?.response?.data,
-        errorMessage: error?.message,
-        fullError: JSON.stringify(error, null, 2)
-      });
-      
-      // 清空计算结果
-      setCalculationFinalResult(null);
-      setCalculationProgress(null);
-      
-      // 显示详细错误信息
-      const errorMessage = error?.response?.data?.detail?.message || error?.message || '计算引擎执行失败';
-      message.error({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold' }}>❌ 集成计算引擎执行失败</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
+    // 添加确认对话框，提示用户手调的五险一金金额会被覆盖
+    Modal.confirm({
+      title: '运行计算引擎确认',
+      icon: <ExclamationCircleOutlined style={{ color: '#faad14' }} />,
+      content: (
+        <div style={{ marginTop: 16 }}>
+          <p><strong>⚠️ 重要提示：</strong></p>
+          <div style={{ marginLeft: 16, marginTop: 8 }}>
+            <p>1. 运行计算引擎将根据标准规则重新计算所有薪资项目</p>
+            <p>2. <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>如果您之前手动调整过五险一金金额，计算后将被覆盖为标准金额</span></p>
+            <p>3. 包括社保、公积金和职业年金的个人和单位部分</p>
           </div>
-        ),
-        duration: 6
-      });
-    } finally {
-      setActionLoading('run_calculation', false);
-    }
+          <div style={{ backgroundColor: '#fffbe6', padding: 12, marginTop: 12, borderRadius: 4 }}>
+            <p style={{ margin: 0 }}>建议：如需保留手调金额，请在计算后重新进行调整</p>
+          </div>
+        </div>
+      ),
+      okText: '确认运行',
+      cancelText: '取消',
+      onOk: async () => {
+        // 清空之前的结果
+        setCalculationFinalResult(null);
+        setCalculationProgress(null);
+        
+        setActionLoading('run_calculation', true);
+        try {
+          // 🚀 切换到集成计算引擎 - 包含完整五险一金计算
+          // 🎯 使用当前选择的工资期间的开始日期作为计算期间
+          console.log('🎯 [计算引擎] 使用计算期间:', {
+            工资运行ID: selectedVersion.id,
+            期间ID: selectedPeriod.id,
+            期间名称: selectedPeriod.name,
+            期间开始日期: selectedPeriod.start_date,
+            计算期间: selectedPeriod.start_date
+          });
+          
+          const result = await simplePayrollApi.runIntegratedCalculationEngine({
+            payroll_run_id: selectedVersion.id,
+            calculation_period: selectedPeriod.start_date, // 🎯 使用当前选择期间的开始日期
+            recalculate_all: true,
+            include_social_insurance: true, // 启用五险一金计算
+            async_mode: false // 🎯 强制使用同步模式，确保立即返回计算结果
+          });
+          
+          // 显示详细的计算结果
+          console.log('✅ [计算引擎] API调用成功，响应数据:', result);
+          
+          if (result.data) {
+            console.log('🔍 [计算引擎] API响应数据结构:', result.data);
+            
+            // 安全地访问数据结构
+            const payroll_totals = result.data.payroll_totals || {};
+            const social_insurance_breakdown = result.data.social_insurance_breakdown || { employee_totals: {}, employer_totals: {} };
+            const cost_analysis = result.data.cost_analysis || {};
+            
+            // 设置计算结果到状态中，用于状态显示组件
+            const calculationResultData: CalculationResult = {
+              success_count: result.data.success_count || 0,
+              error_count: result.data.error_count || 0,
+              total_processed: result.data.total_processed || 0,
+              payroll_totals: {
+                total_gross_pay: payroll_totals.total_gross_pay || 0,
+                total_deductions: payroll_totals.total_deductions || 0,
+                total_net_pay: payroll_totals.total_net_pay || 0,
+                total_employer_cost: payroll_totals.total_employer_cost || 0
+              },
+              social_insurance_breakdown: {
+                employee_totals: {
+                  social_insurance: social_insurance_breakdown.employee_totals?.social_insurance || 0,
+                  housing_fund: social_insurance_breakdown.employee_totals?.housing_fund || 0,
+                  total: social_insurance_breakdown.employee_totals?.total || 0
+                },
+                employer_totals: {
+                  social_insurance: social_insurance_breakdown.employer_totals?.social_insurance || 0,
+                  housing_fund: social_insurance_breakdown.employer_totals?.housing_fund || 0,
+                  total: social_insurance_breakdown.employer_totals?.total || 0
+                }
+              },
+              cost_analysis: {
+                social_cost_ratio: cost_analysis.social_cost_ratio || 0
+              },
+              duration: 0 // 暂时设为0，后端可能没有这个字段
+            };
+            setCalculationFinalResult(calculationResultData);
+            
+            // 构建显示内容
+            const displayContent = [];
+            displayContent.push(
+              <div key="title" style={{ fontWeight: 'bold', marginBottom: '8px' }}>🎯 集成计算引擎执行完成</div>
+            );
+            
+            if (payroll_totals.total_gross_pay !== undefined) {
+              displayContent.push(
+                <div key="gross">📊 应发: ¥{(payroll_totals.total_gross_pay || 0).toLocaleString()}</div>
+              );
+            }
+            
+            if (payroll_totals.total_deductions !== undefined) {
+              const employeeTotal = social_insurance_breakdown.employee_totals?.total || 0;
+              displayContent.push(
+                <div key="deductions">📉 扣发: ¥{(payroll_totals.total_deductions || 0).toLocaleString()} (含个人五险一金: ¥{employeeTotal.toLocaleString()})</div>
+              );
+            }
+            
+            if (payroll_totals.total_net_pay !== undefined) {
+              displayContent.push(
+                <div key="net">💰 实发: ¥{(payroll_totals.total_net_pay || 0).toLocaleString()}</div>
+              );
+            }
+            
+            if (payroll_totals.total_employer_cost !== undefined) {
+              const employerTotal = social_insurance_breakdown.employer_totals?.total || 0;
+              displayContent.push(
+                <div key="employer">🏢 单位成本: ¥{(payroll_totals.total_employer_cost || 0).toLocaleString()} (含单位五险一金: ¥{employerTotal.toLocaleString()})</div>
+              );
+            }
+            
+            if (cost_analysis.social_cost_ratio !== undefined) {
+              displayContent.push(
+                <div key="ratio" style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  社保成本比例: {(cost_analysis.social_cost_ratio || 0).toFixed(1)}%
+                </div>
+              );
+            }
+            
+            // 添加五险一金重新计算提示
+            displayContent.push(
+              <div key="reminder" style={{ fontSize: '12px', color: '#ff4d4f', marginTop: '8px' }}>
+                注：所有五险一金金额已按标准规则重新计算
+              </div>
+            );
+            
+            // 如果没有详细数据，显示基本成功信息
+            if (displayContent.length === 1) {
+              displayContent.push(
+                <div key="basic">✅ 计算完成，请查看工资数据</div>
+              );
+            }
+            
+            message.success({
+              content: <div>{displayContent}</div>,
+              duration: 8 // 显示8秒，让用户有时间查看详细信息
+            });
+          } else {
+            // 如果没有数据但API调用成功，设置基本的成功状态
+            const basicResult: CalculationResult = {
+              success_count: 0,
+              error_count: 0,
+              total_processed: 0,
+              payroll_totals: {
+                total_gross_pay: 0,
+                total_deductions: 0,
+                total_net_pay: 0,
+                total_employer_cost: 0
+              },
+              social_insurance_breakdown: {
+                employee_totals: {
+                  social_insurance: 0,
+                  housing_fund: 0,
+                  total: 0
+                },
+                employer_totals: {
+                  social_insurance: 0,
+                  housing_fund: 0,
+                  total: 0
+                }
+              },
+              cost_analysis: {
+                social_cost_ratio: 0
+              },
+              duration: 0
+            };
+            setCalculationFinalResult(basicResult);
+            message.success('集成计算引擎执行完成');
+          }
+          
+          onVersionRefresh?.() || onRefresh();
+        } catch (error: any) {
+          console.error('🔥 集成计算引擎执行失败:', error);
+          console.error('🔥 [计算引擎] 错误详情:', {
+            error: error,
+            response: error?.response,
+            responseData: error?.response?.data,
+            errorMessage: error?.message,
+            fullError: JSON.stringify(error, null, 2)
+          });
+          
+          // 清空计算结果
+          setCalculationFinalResult(null);
+          setCalculationProgress(null);
+          
+          // 显示详细错误信息
+          const errorMessage = error?.response?.data?.detail?.message || error?.message || '计算引擎执行失败';
+          message.error({
+            content: (
+              <div>
+                <div style={{ fontWeight: 'bold' }}>❌ 集成计算引擎执行失败</div>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{errorMessage}</div>
+              </div>
+            ),
+            duration: 6
+          });
+        } finally {
+          setActionLoading('run_calculation', false);
+        }
+      }
+    });
   };
 
   // 一键复制上月数据

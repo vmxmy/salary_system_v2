@@ -1,39 +1,39 @@
 /* 搜索组件统一样式管理 */
 .searchContainer {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
-  align-items: stretch;
+  align-items: center;
 }
 
 .searchContainer > div {
   display: flex;
-  align-items: stretch;
+  align-items: center;
 }
 
 /* 统一所有表单控件的高度 */
 .searchContainer :global(.ant-form-item) {
   margin-bottom: 0 !important;
-  height: 32px;
+  height: 30px;
   display: flex;
   align-items: center;
 }
 
 .searchContainer :global(.ant-form-item-control) {
-  height: 32px;
+  height: 30px;
   display: flex;
   align-items: center;
 }
 
 .searchContainer :global(.ant-form-item-control-input) {
-  height: 32px !important;
-  min-height: 32px !important;
+  height: 30px !important;
+  min-height: 30px !important;
   display: flex;
   align-items: center;
 }
 
 .searchContainer :global(.ant-form-item-control-input-content) {
-  height: 32px;
+  height: 30px;
   display: flex;
   align-items: center;
 }
@@ -41,33 +41,33 @@
 /* 输入框样式统一 */
 .searchContainer :global(.ant-input),
 .searchContainer :global(.ant-input-affix-wrapper) {
-  height: 32px !important;
-  line-height: 1.5715 !important;
-  padding: 4px 11px !important;
-  border-radius: 6px;
+  height: 30px !important;
+  line-height: 1.5 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px;
   display: flex;
   align-items: center;
 }
 
 .searchContainer :global(.ant-input-affix-wrapper-focused),
 .searchContainer :global(.ant-input-affix-wrapper:focus) {
-  height: 32px !important;
+  height: 30px !important;
 }
 
 /* 选择器样式统一 */
 .searchContainer :global(.ant-select) {
-  height: 32px !important;
-  max-height: 32px !important;
+  height: 30px !important;
+  max-height: 30px !important;
 }
 
 .searchContainer :global(.ant-select-selector) {
-  height: 32px !important;
-  max-height: 32px !important;
-  min-height: 32px !important;
-  padding: 0 11px !important;
+  height: 30px !important;
+  max-height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 8px !important;
   display: flex !important;
   align-items: center !important;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden !important;
   box-sizing: border-box !important;
 }

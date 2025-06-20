@@ -2283,7 +2283,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         title={
           <Row justify="space-between" align="middle" wrap={false}>
             <Col flex="auto">
-              <Space wrap size={8}>
+              <Space wrap size={4} align="center">
                 <SearchOutlined />
                 <span>智能搜索</span>
                 {!isEmptyQuery && (
@@ -2291,6 +2291,11 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                     {totalResults} 条结果
                     {performance.isOptimal && <span style={{ color: '#52c41a' }}> ⚡</span>}
                   </Tag>
+                )}
+                {isEmptyQuery && (
+                  <span style={{ fontSize: '12px', color: '#666', marginLeft: '2px' }}>
+                    💡 支持多关键词搜索，用空格分隔
+                  </span>
                 )}
               </Space>
             </Col>
@@ -2301,7 +2306,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
                 onClick={() => setSearchCardCollapsed(!searchCardCollapsed)}
                 icon={searchCardCollapsed ? <DownOutlined /> : <UpOutlined />}
                 style={{ 
-                  padding: '4px 8px',
+                  padding: '2px 6px',
                   height: 'auto',
                   lineHeight: 1
                 }}
@@ -2325,62 +2330,36 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
           overflow: 'hidden'
         }}
         styles={{ 
+          header: {
+            padding: '6px 12px',
+            minHeight: 'auto',
+            borderBottom: searchCardCollapsed ? '0px' : '1px solid #f0f0f0'
+          },
           body: {
-            padding: searchCardCollapsed ? 0 : '16px',
+            padding: searchCardCollapsed ? 0 : '6px 8px',
             backgroundColor: '#fafafa'
           }
         }}
       >
-                {!searchCardCollapsed && (
-            /* 简单搜索 */
-            <Row gutter={[16, 12]}>
-                            {/* 搜索组件 */}
-              <Col xs={24} sm={24} md={24} lg={24}>
-                <ProFormGlobalSearch
-                  value={searchQuery}
-                  onSearch={search}
-                  onClear={clearSearch}
-                  suggestions={suggestions}
-                  searchMode={searchMode}
-                  onSearchModeChange={setSearchMode}
-                  isSearching={isSearching}
-                  totalResults={totalResults}
-                  searchTime={searchTime}
-                  showPerformance={true}
-                  placeholder="搜索员工姓名、编号、部门、职位..."
-                />
-              </Col>
-              
-              {/* 搜索统计信息 */}
-              <Col xs={24} sm={18} md={20} lg={20}>
-                <div style={{ 
-                  fontSize: 12, 
-                  color: '#666',
-                  padding: '8px 12px',
-                  backgroundColor: isEmptyQuery ? '#e6f7ff' : '#f0f0f0',
-                  borderRadius: '6px',
-                  border: isEmptyQuery ? '1px solid #91d5ff' : '1px solid #d9d9d9',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  {isEmptyQuery ? (
-                    <Space size={4}>
-                      <span>💡 支持多关键词搜索，用空格分隔</span>
-                    </Space>
-                  ) : (
-                    <Space size={8} wrap>
-                      <span>搜索耗时: <strong>{searchTime.toFixed(1)}ms</strong></span>
-                      <span>返回结果: <strong>{totalResults}</strong> 条</span>
-                      {performance.isOptimal && (
-                        <Tag color="success" style={{ margin: 0 }}>高效</Tag>
-                      )}
-                    </Space>
-                  )}
-                </div>
-              </Col>
-
-            </Row>
+        {!searchCardCollapsed && (
+          /* 简单搜索 */
+          <Row style={{ margin: 0 }}>
+            <Col span={24} style={{ padding: 0 }}>
+              <ProFormGlobalSearch
+                value={searchQuery}
+                onSearch={search}
+                onClear={clearSearch}
+                suggestions={suggestions}
+                searchMode={searchMode}
+                onSearchModeChange={setSearchMode}
+                isSearching={isSearching}
+                totalResults={totalResults}
+                searchTime={searchTime}
+                showPerformance={true}
+                placeholder="搜索员工姓名、编号、部门、职位..."
+              />
+            </Col>
+          </Row>
         )}
       </Card>
 

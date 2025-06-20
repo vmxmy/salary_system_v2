@@ -2608,11 +2608,11 @@ async def delete_payroll_data_for_period(
         logger.info(f"🔍 [delete_payroll_data_for_period] 找到 {len(payroll_runs)} 个工资运行需要删除")
         
         for run in payroll_runs:
-            logger.info(f"🗑️ [delete_payroll_data_for_period] 删除工资运行: ID={run.id}, 版本={run.version_number}")
+            logger.info(f"🗑️ [delete_payroll_data_for_period] 删除工资运行: ID={run.id}")
             
             # 删除审计相关数据
             from ..models.audit import PayrollAuditAnomaly, PayrollAuditHistory
-            from ..models.calculation import CalculationAuditLog, CalculationLog
+            from ..models.calculation_rules import CalculationAuditLog, CalculationLog
             from ..models.audit import PayrollRunAuditSummary
             
             # 删除审计异常
@@ -2658,7 +2658,7 @@ async def delete_payroll_data_for_period(
             deleted_runs += 1
         
         # 删除月度快照（如果存在）
-        from ..models.payroll import MonthlyPayrollSnapshot
+        from ..models.audit import MonthlyPayrollSnapshot
         snapshots_deleted = db.query(MonthlyPayrollSnapshot).filter(
             MonthlyPayrollSnapshot.period_id == period_id
         ).delete()

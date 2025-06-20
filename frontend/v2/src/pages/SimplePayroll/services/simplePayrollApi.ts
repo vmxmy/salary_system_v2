@@ -109,6 +109,49 @@ export const simplePayrollApi = {
   },
 
   /**
+   * 获取最近有薪资记录的期间
+   * 按照条目数量排序，返回有最多薪资记录的期间
+   */
+  getLatestPayrollPeriodWithData: async (): Promise<ApiResponse<PayrollPeriod>> => {
+    console.log('🚀 [simplePayrollApi.getLatestPayrollPeriodWithData] 发起请求');
+    
+    // 先获取所有期间，按照开始日期倒序排列
+    const response = await apiClient.get(`${API_BASE}/periods`, { 
+      params: {
+        is_active: true,
+        page: 1,
+        size: 50
+      }
+    });
+    
+    if (!response.data || !response.data.data || response.data.data.length === 0) {
+      console.log('⚠️ [simplePayrollApi.getLatestPayrollPeriodWithData] 未找到任何期间');
+      return { data: null };
+    }
+    
+    // 筛选出有记录的期间（entries_count > 0）
+    const periodsWithData = response.data.data.filter((period: PayrollPeriod) => 
+      period.entries_count > 0
+    );
+    
+    console.log('🔍 [simplePayrollApi.getLatestPayrollPeriodWithData] 找到有记录的期间:', 
+      periodsWithData.map((p: PayrollPeriod) => ({ id: p.id, name: p.name, entries: p.entries_count }))
+    );
+    
+    // 如果有期间包含记录，返回最近的一个（已经按日期倒序排列）
+    if (periodsWithData.length > 0) {
+      console.log('✅ [simplePayrollApi.getLatestPayrollPeriodWithData] 返回最近有记录的期间:', 
+        periodsWithData[0].name);
+      return { data: periodsWithData[0] };
+    }
+    
+    // 如果没有期间包含记录，返回最近的期间
+    console.log('⚠️ [simplePayrollApi.getLatestPayrollPeriodWithData] 未找到有记录的期间，返回最近期间:', 
+      response.data.data[0].name);
+    return { data: response.data.data[0] };
+  },
+
+  /**
    * 获取指定期间详情
    */
   getPayrollPeriod: async (periodId: number): Promise<ApiResponse<PayrollPeriod>> => {

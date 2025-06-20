@@ -553,47 +553,83 @@ export const usePayrollPageLogic = () => {
     });
   }, [periods, periodsLoading]);
 
-  // 自动选择当前月份期间
+  // Smart period selection on initial load
   useEffect(() => {
     if (!periodsLoading && periods.length > 0 && !selectedPeriodId) {
-      const now = dayjs();
-      const currentYear = now.year();
-      const currentMonth = now.month() + 1;
-      const targetName = `${currentYear}年${currentMonth.toString().padStart(2, '0')}月`;
-      
-      console.log('🎯 [SimplePayrollPage] 尝试自动选择当前月份期间:', {
-        currentTime: now.format('YYYY-MM-DD HH:mm:ss'),
-        currentYear,
-        currentMonth,
-        targetName,
-        availablePeriods: periods.map(p => ({ id: p.id, name: p.name }))
+      console.log('🚀 [SimplePayrollPage] 初始化选择薪资周期:', {
+        periodsCount: periods.length,
+        firstPeriod: periods[0]
       });
       
-      let currentMonthPeriod = periods.find(p => p.name.includes(targetName));
+      // 修改为获取最近有薪资记录的月份
+      const selectLatestPeriodWithData = async () => {
+        try {
+          console.log('🔍 [SimplePayrollPage] 尝试获取最近有薪资记录的月份');
+          const response = await simplePayrollApi.getLatestPayrollPeriodWithData();
+          
+          if (response.data) {
+            console.log('✅ [SimplePayrollPage] 成功获取最近有薪资记录的月份:', {
+              id: response.data.id,
+              name: response.data.name,
+              entriesCount: response.data.entries_count
+            });
+            setSelectedPeriodId(response.data.id);
+          } else {
+            // 如果没有找到有记录的月份，则回退到原来的逻辑
+            console.log('⚠️ [SimplePayrollPage] 未找到有薪资记录的月份，回退到默认逻辑');
+            fallbackToDefaultPeriodSelection();
+          }
+        } catch (error) {
+          console.error('❌ [SimplePayrollPage] 获取最近有薪资记录的月份失败:', error);
+          // 出错时回退到原来的逻辑
+          fallbackToDefaultPeriodSelection();
+        }
+      };
       
-      if (!currentMonthPeriod) {
-        const alternativeTargets = [
-          `${currentYear}年${currentMonth}月`,
-          `${currentYear}-${currentMonth.toString().padStart(2, '0')}`,
-          `${currentYear}-${currentMonth}`,
-        ];
+      // 原来的逻辑作为回退方案
+      const fallbackToDefaultPeriodSelection = () => {
+        const now = dayjs();
+        const currentYear = now.year();
+        const currentMonth = now.month() + 1;
+        const targetName = `${currentYear}年${currentMonth.toString().padStart(2, '0')}月`;
         
-        for (const altTarget of alternativeTargets) {
-          currentMonthPeriod = periods.find(p => p.name.includes(altTarget));
-          if (currentMonthPeriod) {
-            console.log('✅ [SimplePayrollPage] 使用备选格式找到期间:', altTarget, currentMonthPeriod);
-            break;
+        console.log('🎯 [SimplePayrollPage] 尝试自动选择当前月份期间:', {
+          currentTime: now.format('YYYY-MM-DD HH:mm:ss'),
+          currentYear,
+          currentMonth,
+          targetName,
+          availablePeriods: periods.map(p => ({ id: p.id, name: p.name }))
+        });
+        
+        let currentMonthPeriod = periods.find(p => p.name.includes(targetName));
+        
+        if (!currentMonthPeriod) {
+          const alternativeTargets = [
+            `${currentYear}年${currentMonth}月`,
+            `${currentYear}-${currentMonth.toString().padStart(2, '0')}`,
+            `${currentYear}-${currentMonth}`,
+          ];
+          
+          for (const altTarget of alternativeTargets) {
+            currentMonthPeriod = periods.find(p => p.name.includes(altTarget));
+            if (currentMonthPeriod) {
+              console.log('✅ [SimplePayrollPage] 使用备选格式找到期间:', altTarget, currentMonthPeriod);
+              break;
+            }
           }
         }
-      }
+        
+        if (currentMonthPeriod) {
+          console.log('✅ [SimplePayrollPage] 找到当前月份期间，自动选择:', currentMonthPeriod);
+          setSelectedPeriodId(currentMonthPeriod.id);
+        } else {
+          console.log('⚠️ [SimplePayrollPage] 未找到当前月份期间，选择最新期间:', periods[0]);
+          setSelectedPeriodId(periods[0].id);
+        }
+      };
       
-      if (currentMonthPeriod) {
-        console.log('✅ [SimplePayrollPage] 找到当前月份期间，自动选择:', currentMonthPeriod);
-        setSelectedPeriodId(currentMonthPeriod.id);
-      } else {
-        console.log('⚠️ [SimplePayrollPage] 未找到当前月份期间，选择最新期间:', periods[0]);
-        setSelectedPeriodId(periods[0].id);
-      }
+      // 执行新的选择逻辑
+      selectLatestPeriodWithData();
     }
   }, [periods, periodsLoading]);
 
