@@ -4,6 +4,7 @@ import { FilterOutlined, CloseOutlined, PushpinOutlined, PushpinFilled, Question
 import { useTranslation } from 'react-i18next';
 import type { ColumnFilterConfig } from '../../hooks/usePayrollDataProcessing';
 import { matchesPattern } from '../../utils/payrollDataUtils';
+import { ColumnQuickSort } from './ColumnQuickSort';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -356,6 +357,61 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
     }
   };
 
+  // 智能排序预设
+  const applySortingPreset = (sortMode: string) => {
+    console.log('✅ [FilterConfigPanel] 应用排序预设:', sortMode);
+    
+    switch (sortMode) {
+      case 'byCategory':
+        updateFilterConfig({
+          ...filterConfig,
+          columnSortMode: 'byCategory',
+          customColumnOrder: []
+        });
+        message.success('已应用"按类别排序"');
+        break;
+      case 'byAlphabet':
+        updateFilterConfig({
+          ...filterConfig,
+          columnSortMode: 'byAlphabet',
+          customColumnOrder: []
+        });
+        message.success('已应用"按字母排序"');
+        break;
+      case 'byImportance':
+        updateFilterConfig({
+          ...filterConfig,
+          columnSortMode: 'byImportance',
+          customColumnOrder: []
+        });
+        message.success('已应用"按重要性排序"');
+        break;
+      case 'byDataType':
+        updateFilterConfig({
+          ...filterConfig,
+          columnSortMode: 'byDataType',
+          customColumnOrder: []
+        });
+        message.success('已应用"数字列优先"');
+        break;
+    }
+  };
+
+  // 自定义排序
+  const applyCustomSorting = (customOrder: string[]) => {
+    console.log('✅ [FilterConfigPanel] 应用自定义排序:', customOrder);
+    
+    updateFilterConfig({
+      ...filterConfig,
+      columnSortMode: 'custom',
+      customColumnOrder: customOrder
+    });
+    
+    if (customOrder.length > 0) {
+      message.success(`已设置自定义排序，${customOrder.length}个字段优先显示`);
+    }
+  };
+
   if (!visible) return null;
 
   return (
@@ -398,6 +454,11 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
             {isCollapsing && <span style={{ color: '#999', fontSize: '12px' }}>即将收起...</span>}
           </Space>
           <Space>
+            <ColumnQuickSort
+              availableColumns={availableColumns}
+              filterConfig={filterConfig}
+              onFilterConfigChange={onFilterConfigChange}
+            />
             <Tooltip title={isPinned ? "取消固定" : "固定面板"}>
               <Button
                 type="text"
@@ -696,6 +757,67 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
             >
               重置默认
             </Button>
+          </Space>
+        </Panel>
+
+        <Panel header="智能排序" key="sorting">
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <div>
+              <label style={{ marginBottom: '8px', display: 'block' }}>
+                按字段类型排序：
+                <span style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>
+                  基础信息 → 薪资项目 → 扣减项目 → 合计金额
+                </span>
+              </label>
+              <Space wrap>
+                <Button 
+                  size="small" 
+                  onClick={() => applySortingPreset('byCategory')}
+                >
+                  按类别排序
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => applySortingPreset('byAlphabet')}
+                >
+                  按字母排序
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => applySortingPreset('byImportance')}
+                >
+                  按重要性排序
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => applySortingPreset('byDataType')}
+                >
+                  数字列优先
+                </Button>
+              </Space>
+            </div>
+            
+            <div>
+              <label style={{ marginBottom: '8px', display: 'block' }}>
+                自定义排序模式：
+              </label>
+              <Select
+                style={{ width: '100%' }}
+                placeholder="选择字段排序到前面"
+                mode="tags"
+                onChange={(values) => applyCustomSorting(values)}
+                tokenSeparators={[',', '，', ';', '；', ' ']}
+              >
+                {availableColumns.map(columnName => (
+                  <Option key={columnName} value={columnName}>
+                    {columnName}
+                  </Option>
+                ))}
+              </Select>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                选中的字段将按选择顺序排在前面，其他字段保持默认顺序
+              </div>
+            </div>
           </Space>
         </Panel>
         

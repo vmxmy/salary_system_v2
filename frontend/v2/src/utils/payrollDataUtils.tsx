@@ -1,13 +1,35 @@
 import React from 'react';
 
 /**
+ * 检查字段是否应该作为字符串处理（不格式化为数字）
+ */
+export const isStringOnlyField = (fieldName: string): boolean => {
+  const stringFieldPatterns = [
+    /电话/i, /手机/i, /联系方式/i, /phone/i, /mobile/i,
+    /账号/i, /账户/i, /account/i, /卡号/i, /银行/i,
+    /身份证/i, /证件/i, /id.*card/i, /identity/i,
+    /客户号/i, /编号/i, /工号/i, /员工号/i, /人员编号/i,
+    /邮编/i, /postal/i, /zip/i, /code/i,
+    /qq/i, /微信/i, /wechat/i, /email/i, /邮箱/i
+  ];
+  
+  return stringFieldPatterns.some(pattern => pattern.test(fieldName));
+};
+
+/**
  * 数字格式化函数：只返回格式化的字符串，保持原始数据类型用于Excel导出
  * @param value 需要格式化的值
+ * @param fieldName 字段名称，用于判断是否为字符串字段
  * @returns 格式化后的字符串
  */
-export const formatNumber = (value: any): string => {
+export const formatNumber = (value: any, fieldName?: string): string => {
   if (value === null || value === undefined) {
     return 'N/A';
+  }
+  
+  // 如果是字符串字段，直接返回字符串
+  if (fieldName && isStringOnlyField(fieldName)) {
+    return String(value);
   }
   
   if (typeof value === 'number') {
@@ -18,6 +40,11 @@ export const formatNumber = (value: any): string => {
   }
   
   if (typeof value === 'string') {
+    // 如果是字符串字段，不尝试转换为数字
+    if (fieldName && isStringOnlyField(fieldName)) {
+      return value;
+    }
+    
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && isFinite(numValue)) {
       return numValue.toLocaleString('zh-CN', { 
@@ -33,11 +60,17 @@ export const formatNumber = (value: any): string => {
 /**
  * 数字渲染函数：用于表格显示，返回React元素
  * @param value 需要渲染的值
+ * @param fieldName 字段名称，用于判断是否为字符串字段
  * @returns React元素
  */
-export const renderNumber = (value: any) => {
+export const renderNumber = (value: any, fieldName?: string) => {
   if (value === null || value === undefined) {
     return 'N/A';
+  }
+  
+  // 如果是字符串字段，直接返回字符串
+  if (fieldName && isStringOnlyField(fieldName)) {
+    return String(value);
   }
   
   if (typeof value === 'number') {
@@ -48,6 +81,11 @@ export const renderNumber = (value: any) => {
   }
   
   if (typeof value === 'string') {
+    // 如果是字符串字段，不尝试转换为数字
+    if (fieldName && isStringOnlyField(fieldName)) {
+      return value;
+    }
+    
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && isFinite(numValue)) {
       return numValue.toLocaleString('zh-CN', { 
@@ -493,7 +531,7 @@ export const deepCleanValue = (value: any): any => {
  * @param value 需要清理的值
  * @returns 清理后的值
  */
-export const cleanValue = (value: any): any => {
+export const cleanValue = (value: any, fieldName?: string): any => {
   // 首先进行深度清理
   const deepCleaned = deepCleanValue(value);
   
@@ -516,6 +554,12 @@ export const cleanValue = (value: any): any => {
   
   if (typeof deepCleaned === 'string') {
     const cleanedString = deepCleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    
+    // 如果是字符串字段，不尝试转换为数字
+    if (fieldName && isStringOnlyField(fieldName)) {
+      return cleanedString;
+    }
+    
     const numValue = parseFloat(cleanedString);
     if (!isNaN(numValue) && isFinite(numValue) && !cleanedString.includes('{') && !cleanedString.includes('[')) {
       return numValue;
@@ -546,11 +590,18 @@ export const processValue = <T extends Record<string, any>>(
   record: T, 
   index: number
 ): any => {
+  const fieldName = column.dataIndex || column.key;
+  
   // 如果列有自定义渲染函数，使用它
   if (column.render) {
     try {
       const renderResult = column.render(rawValue, record, index, {} as any, {} as any);
       const textContent = extractTextFromRender(renderResult);
+      
+      // 如果是字符串字段，不尝试转换为数字
+      if (fieldName && isStringOnlyField(fieldName)) {
+        return textContent;
+      }
       
       // 尝试转换为数字（保持Excel中的数字格式）
       const numValue = parseFloat(textContent);
@@ -561,12 +612,12 @@ export const processValue = <T extends Record<string, any>>(
       return textContent;
     } catch (error) {
       console.warn('渲染函数执行失败:', error);
-      return cleanValue(rawValue);
+      return cleanValue(rawValue, fieldName);
     }
   }
   
   // 没有渲染函数，直接清理原始值
-  return cleanValue(rawValue);
+  return cleanValue(rawValue, fieldName);
 };
 
 /**

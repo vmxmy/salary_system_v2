@@ -22,6 +22,9 @@ import { createColumnConfig, generateColumns as generateColumnsFromConfig, shoul
 
 import type { ComprehensivePayrollDataView } from '../pages/Payroll/services/payrollViewsApi';
 
+// 列排序模式
+export type ColumnSortMode = 'byCategory' | 'byAlphabet' | 'byImportance' | 'byDataType' | 'custom';
+
 // 筛选配置接口
 export interface ColumnFilterConfig {
   hideJsonbColumns: boolean;
@@ -32,6 +35,8 @@ export interface ColumnFilterConfig {
   minValueThreshold: number;
   maxValueThreshold: number;
   showOnlyNumericColumns: boolean;
+  columnSortMode?: ColumnSortMode;
+  customColumnOrder?: string[];
 }
 
 // 默认筛选配置
@@ -44,6 +49,8 @@ export const defaultFilterConfig: ColumnFilterConfig = {
   minValueThreshold: 0,
   maxValueThreshold: Infinity,
   showOnlyNumericColumns: false,
+  columnSortMode: 'byCategory',
+  customColumnOrder: [],
 };
 
 // 表格筛选状态
@@ -165,74 +172,20 @@ export const usePayrollDataProcessing = ({
 
   // 直接使用 ColumnConfig.tsx 中的 shouldShowField 和 generateColumns 函数
 
-  // 导出到Excel
-  const exportToExcel = useCallback(async (exportData: PayrollData[], columns: ProColumns<PayrollData>[]) => {
-    try {
-      message.loading({ content: '正在生成Excel文件...', key: 'export' });
-
-      // 获取可见列并排序
-      const visibleColumns = columns
-        .filter(col => !col.hideInTable)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-      // 生成表头
-      const headers = visibleColumns.map(col => col.title as string);
-
-      // 处理数据
-      const processedData = exportData.map((record, index) => {
-        const row: any = {};
-        
-        visibleColumns.forEach(col => {
-          const fieldName = col.dataIndex as string;
-          const rawValue = (record as any)[fieldName];
-          
-          // 使用与表格相同的处理逻辑
-          const processedValue = processValue(rawValue, col, record, index);
-          row[col.title as string] = processedValue;
-        });
-        
-        return row;
-      });
-
-      // 创建工作簿
-      const wb = XLSX.utils.book_new();
-      
-      // 创建工作表
-      const ws = XLSX.utils.json_to_sheet(processedData, { header: headers });
-
-      // 设置列宽
-      const colWidths = visibleColumns.map(col => {
-        const title = col.title as string;
-        const maxLength = Math.max(
-          title.length,
-          ...processedData.slice(0, 100).map(row => 
-            String(row[title] || '').length
-          )
-        );
-        return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
-      });
-      ws['!cols'] = colWidths;
-
-      // 添加工作表到工作簿
-      const sheetName = `工资数据_${periodName || '未知期间'}`;
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-      // 生成文件名
-      const fileName = `工资数据_${periodName || '导出'}_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')}.xlsx`;
-
-      // 导出文件
-      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: 'application/octet-stream' });
-      saveAs(blob, fileName);
-
-      message.success({ content: `导出完成！文件：${fileName}`, key: 'export' });
-      
-      return true;
-    } catch (error) {
-      console.error('导出Excel失败:', error);
-      message.error({ content: '导出失败，请重试', key: 'export' });
-      return false;
-    }
+  // 导出到Excel - 使用统一的导出服务
+  const exportToExcel = useCallback(async (
+    exportData: PayrollData[], 
+    columns: ProColumns<PayrollData>[],
+    presetName?: string
+  ) => {
+    // 导入并使用统一的导出服务
+    const { exportToExcel: serviceExportToExcel } = await import('../services/payrollExportService');
+    
+    const result = await serviceExportToExcel(exportData, columns, periodName, {
+      presetName: presetName || '默认预设'
+    });
+    
+    return result.success;
   }, [periodName]);
 
   // 生成列配置（当数据或筛选配置变化时）
@@ -268,7 +221,10 @@ export const usePayrollDataProcessing = ({
     filterConfig.hideEmptyColumns,
     filterConfig.showOnlyNumericColumns,
     filterConfig.minValueThreshold,
-    filterConfig.maxValueThreshold
+    filterConfig.maxValueThreshold,
+    // 监听排序配置的变化
+    filterConfig.columnSortMode,
+    filterConfig.customColumnOrder?.join(',')
   ]);
 
   return {

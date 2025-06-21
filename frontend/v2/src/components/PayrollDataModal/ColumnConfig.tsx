@@ -283,6 +283,55 @@ export const createColumnConfig = (
     width: 150, // 可以设置一个默认宽度
   };
 
+  // 员工姓名固定在左侧
+  if (fieldName === '员工姓名' || fieldName === 'employee_name' || fieldName.includes('姓名')) {
+    column.fixed = 'left';
+    column.width = 120; // 姓名列设置合适的宽度
+  }
+
+  // 检查字段是否应该作为字符串处理（不格式化为数字）
+  const isStringField = (fieldName: string): boolean => {
+    const stringFieldPatterns = [
+      /电话/i, /手机/i, /联系方式/i, /phone/i, /mobile/i,
+      /账号/i, /账户/i, /account/i, /卡号/i, /银行/i,
+      /身份证/i, /证件/i, /id.*card/i, /identity/i,
+      /客户号/i, /编号/i, /工号/i, /员工号/i, /人员编号/i,
+      /邮编/i, /postal/i, /zip/i, /code/i,
+      /qq/i, /微信/i, /wechat/i, /email/i, /邮箱/i
+    ];
+    
+    return stringFieldPatterns.some(pattern => pattern.test(fieldName));
+  };
+
+  // 检查字段是否为数字类型（需要格式化）
+  const isNumericField = (fieldName: string, sampleValue: any): boolean => {
+    // 如果是字符串字段，直接返回false
+    if (isStringField(fieldName)) {
+      return false;
+    }
+    
+    // 检查样本数据
+    if (typeof sampleValue === 'number') {
+      return true;
+    }
+    
+    if (typeof sampleValue === 'string') {
+      const numValue = parseFloat(sampleValue);
+      return !isNaN(numValue) && isFinite(numValue);
+    }
+    
+    // 检查字段名是否包含数字相关关键词
+    const numericFieldPatterns = [
+      /金额/i, /工资/i, /薪/i, /费/i, /津贴/i, /补贴/i, /奖金/i,
+      /保险/i, /公积金/i, /税/i, /扣/i, /合计/i, /总/i, /实发/i, /应发/i,
+      /比例/i, /率/i, /percent/i, /ratio/i, /amount/i, /salary/i, /pay/i
+    ];
+    
+    return numericFieldPatterns.some(pattern => pattern.test(fieldName));
+  };
+
+  const isNumeric = isNumericField(fieldName, sampleValue);
+
   // 渲染函数 - 处理React元素污染和数据显示
   column.render = (cellValue: any, record: any, index: number) => {
     // React元素检测函数
@@ -305,27 +354,18 @@ export const createColumnConfig = (
       try {
         if (cellValue.props && cellValue.props.children !== undefined) {
           const extractedValue = cellValue.props.children;
-          if (typeof extractedValue === 'number') {
-            return extractedValue.toLocaleString();
-          }
-          return String(extractedValue);
+          return processExtractedValue(extractedValue);
         }
         if (cellValue.props && cellValue.props.value !== undefined) {
           const extractedValue = cellValue.props.value;
-          if (typeof extractedValue === 'number') {
-            return extractedValue.toLocaleString();
-          }
-          return String(extractedValue);
+          return processExtractedValue(extractedValue);
         }
         if (cellValue.props) {
           const propsKeys = Object.keys(cellValue.props);
           for (const key of propsKeys) {
             const value = cellValue.props[key];
             if (typeof value === 'string' || typeof value === 'number') {
-              if (typeof value === 'number') {
-                return value.toLocaleString();
-              }
-              return String(value);
+              return processExtractedValue(value);
             }
           }
         }
@@ -353,10 +393,7 @@ export const createColumnConfig = (
       for (const key of possibleValueKeys) {
         if (key in cellValue && cellValue[key] !== null && cellValue[key] !== undefined) {
           const extractedValue = cellValue[key];
-          if (typeof extractedValue === 'number') {
-            return extractedValue.toLocaleString();
-          }
-          return String(extractedValue);
+          return processExtractedValue(extractedValue);
         }
       }
       
@@ -365,10 +402,7 @@ export const createColumnConfig = (
       for (const key of objKeys) {
         const value = cellValue[key];
         if (typeof value !== 'function' && value !== null && value !== undefined) {
-          if (typeof value === 'number') {
-            return value.toLocaleString();
-          }
-          return String(value);
+          return processExtractedValue(value);
         }
       }
       
@@ -384,22 +418,46 @@ export const createColumnConfig = (
       }
     }
 
-    // 3. 原始类型直接显示
-    if (typeof cellValue === 'boolean') {
-      return cellValue ? '是' : '否';
+    // 4. 直接处理原始值
+    return processExtractedValue(cellValue);
+
+    // 处理提取的值的函数
+    function processExtractedValue(value: any): string {
+      if (value === null || value === undefined) {
+        return '-';
+      }
+      
+      if (typeof value === 'boolean') {
+        return value ? '是' : '否';
+      }
+      
+      // 字符串字段处理
+      if (isStringField(fieldName)) {
+        return String(value);
+      }
+      
+      // 数字字段处理
+      if (typeof value === 'number') {
+        return value.toLocaleString('zh-CN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+      
+      // 字符串值转数字处理
+      if (typeof value === 'string' && isNumeric) {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue) && isFinite(numValue)) {
+          return numValue.toLocaleString('zh-CN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        }
+      }
+      
+      // 其他情况返回字符串
+      return String(value) || '-';
     }
-    
-    if (typeof cellValue === 'number') {
-      return cellValue.toLocaleString();
-    }
-    
-    // 4. 字符串类型
-    if (typeof cellValue === 'string') {
-      return cellValue || '-';
-    }
-    
-    // 5. 其他情况
-    return String(cellValue);
   };
 
 
@@ -508,19 +566,243 @@ export const generateColumns = (
   console.log(`🔍 [generateColumns] 过滤后剩余 ${filteredColumns.length} 列，原始 ${allColumns.length} 列`);
   console.log('🔍 [generateColumns] 过滤后的列:', filteredColumns.map(col => col.title));
 
-  // 4. 按字段组重新排序列
-  const sortedColumns = filteredColumns.sort((a, b) => {
-    const aGroup = getFieldGroup(a.title as string);
-    const bGroup = getFieldGroup(b.title as string);
+  // 4. 按指定模式排序列
+  const sortedColumns = applySortingMode(filteredColumns, filterConfig, data);
+
+  console.log('✅ [generateColumns] 列配置完成:', sortedColumns.length, '列');
+
+  return sortedColumns;
+};
+
+/**
+ * 根据排序模式对列进行排序
+ */
+export const applySortingMode = (
+  columns: ProColumns<PayrollData>[],
+  filterConfig: ColumnFilterConfig,
+  data: PayrollData[]
+): ProColumns<PayrollData>[] => {
+  const sortMode = filterConfig.columnSortMode || 'byCategory';
+  
+  console.log(`🔄 [applySortingMode] 应用排序模式: ${sortMode}`);
+  
+  switch (sortMode) {
+    case 'byCategory':
+      return sortByCategory(columns);
+    
+    case 'byAlphabet':
+      return sortByAlphabet(columns);
+    
+    case 'byImportance':
+      return sortByImportance(columns);
+    
+    case 'byDataType':
+      return sortByDataType(columns, data);
+    
+    case 'custom':
+      return sortByCustomOrder(columns, filterConfig.customColumnOrder || []);
+    
+    default:
+      return sortByCategory(columns);
+  }
+};
+
+/**
+ * 检查是否为员工姓名字段
+ */
+const isEmployeeNameField = (fieldName: string): boolean => {
+  return fieldName === '员工姓名' || 
+         fieldName === 'employee_name' || 
+         fieldName.includes('姓名') ||
+         fieldName === '姓名';
+};
+
+/**
+ * 按类别排序（默认模式）
+ */
+const sortByCategory = (columns: ProColumns<PayrollData>[]): ProColumns<PayrollData>[] => {
+  return columns.sort((a, b) => {
+    const aTitle = a.title as string;
+    const bTitle = b.title as string;
+    
+    // 员工姓名永远排在最前面
+    if (isEmployeeNameField(aTitle) && !isEmployeeNameField(bTitle)) return -1;
+    if (!isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 1;
+    if (isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 0;
+    
+    const aGroup = getFieldGroup(aTitle);
+    const bGroup = getFieldGroup(bTitle);
     
     if (aGroup.priority !== bGroup.priority) {
       return aGroup.priority - bGroup.priority;
     }
     
-    return (a.title as string).localeCompare(b.title as string, 'zh-CN');
+    return aTitle.localeCompare(bTitle, 'zh-CN');
   });
+};
 
-  console.log('✅ [generateColumns] 列配置完成:', sortedColumns.length, '列');
+/**
+ * 按字母顺序排序
+ */
+const sortByAlphabet = (columns: ProColumns<PayrollData>[]): ProColumns<PayrollData>[] => {
+  return columns.sort((a, b) => {
+    const aTitle = a.title as string;
+    const bTitle = b.title as string;
+    
+    // 员工姓名永远排在最前面
+    if (isEmployeeNameField(aTitle) && !isEmployeeNameField(bTitle)) return -1;
+    if (!isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 1;
+    if (isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 0;
+    
+    return aTitle.localeCompare(bTitle, 'zh-CN');
+  });
+};
 
-  return sortedColumns;
+/**
+ * 按重要性排序
+ */
+const sortByImportance = (columns: ProColumns<PayrollData>[]): ProColumns<PayrollData>[] => {
+  // 定义重要性等级
+  const importanceMap: Record<string, number> = {
+    // 核心身份信息 - 最高优先级（员工姓名排第一）
+    '员工姓名': 1, '员工编号': 2, '身份证号': 3, '部门名称': 4, '职位名称': 5,
+    
+    // 关键薪资项目
+    '基本工资': 10, '岗位工资': 11, '津贴合计': 12, '补贴合计': 13, '奖金合计': 14,
+    '应发合计': 15, '实发合计': 16,
+    
+    // 扣减项目
+    '个人所得税': 20, '养老保险': 21, '医疗保险': 22, '失业保险': 23, '住房公积金': 24,
+    
+    // 其他重要字段
+    '工作天数': 30, '考勤天数': 31, '加班费': 32,
+  };
+  
+  return columns.sort((a, b) => {
+    const aTitle = a.title as string;
+    const bTitle = b.title as string;
+    
+    // 员工姓名永远排在最前面（即使重要性等级相同）
+    if (isEmployeeNameField(aTitle) && !isEmployeeNameField(bTitle)) return -1;
+    if (!isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 1;
+    
+    const aImportance = importanceMap[aTitle] || 999;
+    const bImportance = importanceMap[bTitle] || 999;
+    
+    if (aImportance !== bImportance) {
+      return aImportance - bImportance;
+    }
+    
+    // 相同重要性级别时按字母排序
+    return aTitle.localeCompare(bTitle, 'zh-CN');
+  });
+};
+
+/**
+ * 按数据类型排序（数字列优先）
+ */
+const sortByDataType = (
+  columns: ProColumns<PayrollData>[],
+  data: PayrollData[]
+): ProColumns<PayrollData>[] => {
+  return columns.sort((a, b) => {
+    const aFieldName = a.title as string;
+    const bFieldName = b.title as string;
+    
+    // 员工姓名永远排在最前面
+    if (isEmployeeNameField(aFieldName) && !isEmployeeNameField(bFieldName)) return -1;
+    if (!isEmployeeNameField(aFieldName) && isEmployeeNameField(bFieldName)) return 1;
+    if (isEmployeeNameField(aFieldName) && isEmployeeNameField(bFieldName)) return 0;
+    
+    // 检查是否为数字类型字段
+    const aIsNumeric = isNumericField(aFieldName, data);
+    const bIsNumeric = isNumericField(bFieldName, data);
+    
+    // 数字字段优先
+    if (aIsNumeric && !bIsNumeric) return -1;
+    if (!aIsNumeric && bIsNumeric) return 1;
+    
+    // 同类型时按字母排序
+    return aFieldName.localeCompare(bFieldName, 'zh-CN');
+  });
+};
+
+/**
+ * 按自定义顺序排序
+ */
+const sortByCustomOrder = (
+  columns: ProColumns<PayrollData>[],
+  customOrder: string[]
+): ProColumns<PayrollData>[] => {
+  if (!customOrder || customOrder.length === 0) {
+    return sortByCategory(columns);
+  }
+  
+  // 创建顺序映射，但为员工姓名保留最高优先级
+  const orderMap = new Map<string, number>();
+  let nextIndex = 1; // 从1开始，为员工姓名保留0
+  
+  customOrder.forEach((field) => {
+    if (!isEmployeeNameField(field)) {
+      orderMap.set(field, nextIndex++);
+    }
+  });
+  
+  return columns.sort((a, b) => {
+    const aTitle = a.title as string;
+    const bTitle = b.title as string;
+    
+    // 员工姓名永远排在最前面
+    if (isEmployeeNameField(aTitle) && !isEmployeeNameField(bTitle)) return -1;
+    if (!isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 1;
+    if (isEmployeeNameField(aTitle) && isEmployeeNameField(bTitle)) return 0;
+    
+    const aOrder = orderMap.get(aTitle);
+    const bOrder = orderMap.get(bTitle);
+    
+    // 在自定义顺序中的字段优先
+    if (aOrder !== undefined && bOrder !== undefined) {
+      return aOrder - bOrder;
+    }
+    if (aOrder !== undefined && bOrder === undefined) return -1;
+    if (aOrder === undefined && bOrder !== undefined) return 1;
+    
+    // 不在自定义顺序中的字段按类别排序
+    const aGroup = getFieldGroup(aTitle);
+    const bGroup = getFieldGroup(bTitle);
+    
+    if (aGroup.priority !== bGroup.priority) {
+      return aGroup.priority - bGroup.priority;
+    }
+    
+    return aTitle.localeCompare(bTitle, 'zh-CN');
+  });
+};
+
+/**
+ * 检查字段是否为数字类型
+ */
+const isNumericField = (fieldName: string, data: PayrollData[]): boolean => {
+  if (!data || data.length === 0) return false;
+  
+  // 基于字段名判断
+  const numericPatterns = [
+    /金额/i, /工资/i, /薪/i, /费/i, /津贴/i, /补贴/i, /奖金/i,
+    /保险/i, /公积金/i, /税/i, /扣/i, /合计/i, /总/i, /实发/i, /应发/i,
+    /天数/i, /小时/i, /次数/i, /比例/i, /率/i
+  ];
+  
+  const isNumericByName = numericPatterns.some(pattern => pattern.test(fieldName));
+  
+  // 基于数据内容判断（取前几个样本）
+  const samples = data.slice(0, 10);
+  const numericValues = samples.filter(item => {
+    const value = (item as any)[fieldName];
+    return typeof value === 'number' || 
+           (typeof value === 'string' && !isNaN(parseFloat(value)) && isFinite(parseFloat(value)));
+  });
+  
+  const isNumericByData = numericValues.length / samples.length > 0.7; // 70%以上为数字
+  
+  return isNumericByName || isNumericByData;
 };

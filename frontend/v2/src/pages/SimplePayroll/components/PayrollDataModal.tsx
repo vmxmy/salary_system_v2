@@ -40,6 +40,7 @@ import {
   BatchActionsOptions,
   ModalFooterActions
 } from '../../../components/PayrollDataModal/ActionButtons';
+import { exportSelectedRows } from '../../../services/payrollExportService';
 
 // 导入CSS样式
 import './payrollDataModalStyles.css';
@@ -235,6 +236,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   // 📊 状态管理
   const [presetManagerVisible, setPresetManagerVisible] = useState(false);
   const [filterConfigVisible, setFilterConfigVisible] = useState(false);
+  const [currentPresetName, setCurrentPresetName] = useState<string>('默认预设');
   
   // 当筛选配置面板打开时，输出当前配置
   useEffect(() => {
@@ -293,9 +295,15 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     const columns = currentColumnsState.length > 0 ? currentColumnsState : generateDynamicColumns(filteredDataSource, filterConfig);
     
     console.log('✅ [PayrollDataModal] 最终列配置:', columns.length, '列');
+    console.log('📋 [PayrollDataModal] 列顺序详情:', columns.map((col, index) => ({
+      index,
+      title: col.title,
+      dataIndex: col.dataIndex,
+      fixed: col.fixed
+    })));
     
     // 添加操作列
-    return [
+    const finalColumns = [
       ...columns,
       {
         title: t('common:table.action'),
@@ -312,6 +320,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         ),
       }
     ];
+    
+    console.log('📋 [PayrollDataModal] 最终表格列配置(含操作列):', finalColumns.map(col => col.title));
+    
+    return finalColumns;
   }, [currentColumnsState, generateDynamicColumns, filteredDataSource, filterConfig, t]);
   const handleViewDetail = async (record: PayrollData) => {
     console.log('📋 [PayrollDataModal] 查看详情:', record);
@@ -369,9 +381,24 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       return;
     }
 
+    console.log('📤 [Export] 开始导出，准备列配置', {
+      dynamicColumnsCount: dynamicColumns.length,
+      dynamicColumnsOrder: dynamicColumns.map(col => col.title)
+    });
+
     setIsExporting(true);
     try {
-      await exportToExcel(filteredDataSource, dynamicColumns, periodName, {});
+      // 🎯 使用当前表格实际显示的列配置
+      const exportColumns = [...dynamicColumns]; // 创建副本确保引用正确
+      
+      console.log('📤 [Export] 实际导出列配置:', {
+        exportColumnsCount: exportColumns.length,
+        exportColumnsOrder: exportColumns.map(col => col.title)
+      });
+      
+      await exportToExcel(filteredDataSource, exportColumns, periodName, {
+        presetName: currentPresetName
+      });
     } catch (error) {
       console.error('导出失败:', error);
     } finally {
@@ -387,6 +414,32 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     });
   };
 
+  const handleBatchExport = async (selectedRows: PayrollData[]) => {
+    if (selectedRows.length === 0) {
+      message.warning('请先选择要导出的数据');
+      return;
+    }
+
+    console.log('📤 [BatchExport] 开始批量导出，准备列配置', {
+      selectedRowsCount: selectedRows.length,
+      dynamicColumnsOrder: dynamicColumns.map(col => col.title)
+    });
+
+    setIsExporting(true);
+    try {
+      // 🎯 使用当前表格实际显示的列配置
+      const exportColumns = [...dynamicColumns]; // 创建副本确保引用正确
+      
+      await exportSelectedRows(selectedRows, exportColumns, periodName, {
+        presetName: currentPresetName
+      });
+    } catch (error) {
+      console.error('批量导出失败:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleApplyPreset = (preset: any) => {
     console.log('🏷️ [预设应用] 开始应用预设', {
       presetName: preset.name,
@@ -395,6 +448,9 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       hasTableFilterState: !!preset.tableFilterState,
       preset
     });
+    
+    // 记录当前预设名称
+    setCurrentPresetName(preset.name || '默认预设');
     
     // 应用筛选配置
     if (preset.filterConfig) {
@@ -452,6 +508,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         tableFilterState // 保存表格状态
       }
     );
+    
+    // 更新当前预设名称
+    setCurrentPresetName(name);
+    
     message.success(`预设 "${name}" 保存成功`);
   };
 
@@ -540,6 +600,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             selectedRowKeys={selectedRowKeys}
             selectedRows={selectedRows}
             onCleanSelected={onCleanSelected}
+            onBatchExport={handleBatchExport}
           />
         )}
         options={{
@@ -560,6 +621,18 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         onClose={() => setPresetManagerVisible(false)}
         currentFilterConfig={filterConfig} // 使用当前的筛选配置
         currentColumnSettings={{}}
+        getCurrentConfig={() => ({
+          filterConfig,
+          columnSettings: {},
+          tableFilterState: {
+            searchQuery: searchQuery || undefined,
+            searchMode: searchMode || SearchMode.AUTO,
+            pagination: {
+              current: 1,
+              pageSize: 20
+            }
+          }
+        })}
         onApplyPreset={handleApplyPreset}
       />
 
