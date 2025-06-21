@@ -138,7 +138,7 @@ export const generateSearchConfig = <T>(data: T[]): SearchConfig => {
 
 // 🧹 重构后的统一搜索引擎
 export class UnifiedSearchEngine<T> {
-  private fuse: Fuse<T>;
+  private fuse!: Fuse<T>;
   private data: T[] = [];
   private config: SearchConfig;
 
@@ -495,4 +495,32 @@ export const containsRangeExpression = (query: string): boolean => {
     /\d+(?:\.\d+)?\s*(>=|<=|>|<|!=|=)\s*[^><=!]+/
   ];
   return rangePatterns.some(pattern => pattern.test(query));
+};
+
+// 高亮工具函数（向后兼容）
+export const getHighlightRanges = (text: string, matches?: FuseResultMatch[]): Array<[number, number]> => {
+  if (!matches || !text) return [];
+
+  const ranges: Array<[number, number]> = [];
+  
+  matches.forEach(match => {
+    if (match.indices) {
+      match.indices.forEach(([start, end]) => {
+        ranges.push([start, end + 1]);
+      });
+    }
+  });
+
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged: Array<[number, number]> = [];
+  
+  for (const range of ranges) {
+    if (merged.length === 0 || merged[merged.length - 1][1] < range[0]) {
+      merged.push(range);
+    } else {
+      merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], range[1]);
+    }
+  }
+
+  return merged;
 };

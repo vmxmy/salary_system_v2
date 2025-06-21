@@ -38,7 +38,7 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const [isPinned, setIsPinned] = React.useState(false);
   const [isCollapsing, setIsCollapsing] = React.useState(false);
-  const collapseTimeoutRef = useRef<NodeJS.Timeout>();
+  const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 更新筛选配置
   const updateFilterConfig = (updates: Partial<ColumnFilterConfig>) => {

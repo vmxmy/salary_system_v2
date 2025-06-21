@@ -27,7 +27,7 @@ export interface FieldGroup {
 
 // 默认字段组配置
 export const defaultFieldGroups: FieldGroup[] = [
-  { name: 'basic', priority: 1, patterns: ['姓名', '身份证号', '部门', '岗位', '职务', '账号', '人员编号'] },
+  { name: 'basic', priority: 1, patterns: ['*姓名*', '*身份证号*', '*部门*', '*岗位*', '*职务*', '*账号*', '*人员编号*', '*员工编号*', '*人员类别*', '*编制*'] },
   { name: 'salary', priority: 2, patterns: ['*工资*', '*薪酬*', '*基本*', '*岗位*', '*职务*', '*津贴*', '*补贴*'] },
   { name: 'bonus', priority: 3, patterns: ['*奖金*', '*绩效*', '*考核*', '*年终*'] },
   { name: 'allowance', priority: 4, patterns: ['*补助*', '*费用*', '*交通*', '*通讯*', '*住房*'] },
@@ -62,9 +62,21 @@ export const shouldShowField = (
   allData: PayrollData[], 
   filterConfig: ColumnFilterConfig
 ): boolean => {
-  // 员工姓名列始终显示，不受任何过滤规则影响
-  if (fieldName === '员工姓名') {
-    console.log('✅ [shouldShowField] 员工姓名列强制通过所有过滤');
+  // 重要基础字段始终显示，不受任何过滤规则影响
+  const protectedFields = [
+    '员工姓名', 
+    '员工编号', 
+    '部门名称', 
+    '职位名称', 
+    '人员类别', 
+    '编制',
+    '身份证号',
+    '实发合计',
+    '应发合计'
+  ];
+  
+  if (protectedFields.includes(fieldName)) {
+    console.log(`✅ [shouldShowField] 重要字段 "${fieldName}" 强制通过所有过滤`);
     return true;
   }
 
@@ -447,12 +459,26 @@ export const generateColumns = (
   const employeeNameColumn = allColumns.find(col => col.title === '员工姓名');
   console.log('🔍 [generateColumns] 员工姓名列存在:', !!employeeNameColumn);
   
-  // 3. 应用过滤条件，但确保员工姓名列不被过滤掉
+  // 3. 应用过滤条件，但确保重要基础字段不被过滤掉
+  const protectedFields = [
+    '员工姓名', 
+    '员工编号', 
+    '部门名称', 
+    '职位名称', 
+    '人员类别', 
+    '编制',
+    '身份证号',
+    '实发合计',
+    '应发合计'
+  ];
+  
   const filteredColumns = allColumns.filter(col => {
     const fieldName = col.title as string;
-    if (fieldName === '员工姓名') {
-      console.log('✅ [generateColumns] 员工姓名列被强制保留');
-      return true; // 员工姓名列始终显示
+    
+    // 重要字段强制保留
+    if (protectedFields.includes(fieldName)) {
+      console.log(`✅ [generateColumns] 重要字段 "${fieldName}" 被强制保留`);
+      return true;
     }
     
     const shouldShow = shouldShowField(
@@ -462,9 +488,9 @@ export const generateColumns = (
       filterConfig
     );
     
-    // 只记录重要字段的过滤情况，减少日志噪音
-    if (!shouldShow && ['员工编号', '部门名称', '职位名称'].includes(fieldName)) {
-      console.log(`❌ [generateColumns] 重要字段 "${fieldName}" 被过滤掉`);
+    // 记录被过滤掉的字段
+    if (!shouldShow) {
+      console.log(`❌ [generateColumns] 字段 "${fieldName}" 被过滤掉`);
     }
     
     return shouldShow;

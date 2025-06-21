@@ -63,6 +63,12 @@ const SEARCH_MODE_CONFIG = {
     icon: <FilterOutlined />,
     color: 'orange',
     description: '完全匹配搜索内容'
+  },
+  [SearchMode.RANGE]: {
+    label: '数值范围',
+    icon: <FilterOutlined />,
+    color: 'purple',
+    description: '支持数值范围搜索，如: 实发合计>10000'
   }
 };
 

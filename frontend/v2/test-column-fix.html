@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列显示修复验证</title>
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .test-case { margin-bottom: 20px; padding: 15px; border: 1px solid #d9d9d9; border-radius: 6px; }
+        .test-title { font-weight: bold; color: #1890ff; margin-bottom: 10px; }
+        .test-result { padding: 10px; margin-top: 10px; border-radius: 4px; }
+        .success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .error { background: #fff2f0; border: 1px solid #ffb3b3; color: #ff4d4f; }
+        .info { background: #f0f5ff; border: 1px solid #91d5ff; color: #1890ff; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas', monospace; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #d9d9d9; padding: 8px; text-align: left; }
+        th { background: #fafafa; font-weight: bold; }
+        .status-icon { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 PayrollDataModal 列显示修复验证</h1>
+        <p>验证修复后的重要基础字段保护机制</p>
+
+        <div class="test-case">
+            <div class="test-title">🛡️ 测试1: 重要字段保护机制</div>
+            <div class="test-result info">
+                <strong>修复内容:</strong> 为重要基础字段添加保护机制，确保不被过滤规则误删
+                <table>
+                    <tr><th>受保护字段</th><th>说明</th></tr>
+                    <tr><td><code>员工姓名</code></td><td>员工基本信息</td></tr>
+                    <tr><td><code>员工编号</code></td><td>员工唯一标识</td></tr>
+                    <tr><td><code>部门名称</code></td><td>所属部门信息</td></tr>
+                    <tr><td><code>职位名称</code></td><td>岗位信息</td></tr>
+                    <tr><td><code>人员类别</code></td><td>人员身份分类</td></tr>
+                    <tr><td><code>编制</code></td><td>人员编制信息</td></tr>
+                    <tr><td><code>身份证号</code></td><td>身份证信息</td></tr>
+                    <tr><td><code>实发合计</code></td><td>实际发放金额</td></tr>
+                    <tr><td><code>应发合计</code></td><td>应发金额</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">📊 测试2: 过滤配置影响</div>
+            <div class="test-result info">
+                <strong>修复前问题:</strong> <code>hideEmptyColumns: true</code> 导致部分重要字段被误过滤
+                <br><strong>修复后效果:</strong> 重要字段强制保留，不受过滤配置影响
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">🔄 测试3: 字段分组优化</div>
+            <div class="test-result info">
+                <strong>优化内容:</strong> 更新字段模式匹配，确保基础字段正确分类
+                <br><strong>基础字段组模式:</strong> <code>['*姓名*', '*身份证号*', '*部门*', '*岗位*', '*职务*', '*账号*', '*人员编号*', '*员工编号*', '*人员类别*', '*编制*']</code>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">🎯 验证步骤</div>
+            <div class="test-result success">
+                <span class="status-icon">✅</span><strong>第1步:</strong> 打开工资数据弹窗，检查表格列
+                <br><span class="status-icon">✅</span><strong>第2步:</strong> 确认以下字段显示：员工姓名、员工编号、部门名称、职位名称、人员类别、编制
+                <br><span class="status-icon">✅</span><strong>第3步:</strong> 打开列筛选面板，测试不同过滤配置
+                <br><span class="status-icon">✅</span><strong>第4步:</strong> 确认重要字段在任何过滤配置下都保持显示
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">🚀 期望结果</div>
+            <div class="test-result success">
+                <strong>修复后应该看到的改进:</strong>
+                <ul>
+                    <li>表格中恢复显示 <strong>部门名称</strong> 列</li>
+                    <li>表格中恢复显示 <strong>人员类别</strong> 列（如果数据中有此字段）</li>
+                    <li>表格中恢复显示 <strong>编制</strong> 列（如果数据中有此字段）</li>
+                    <li>这些重要字段不会因为过滤配置被隐藏</li>
+                    <li>搜索功能正常工作，包括对这些字段的搜索</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">🔍 调试信息</div>
+            <div class="test-result info">
+                打开浏览器开发者工具控制台，查看以下调试信息：
+                <ul>
+                    <li><code>✅ [shouldShowField] 重要字段 "部门名称" 强制通过所有过滤</code></li>
+                    <li><code>✅ [generateColumns] 重要字段 "人员类别" 被强制保留</code></li>
+                    <li><code>✅ [generateColumns] 重要字段 "编制" 被强制保留</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 PayrollDataModal 列显示修复验证页面已加载');
+        console.log('📋 请在实际应用中测试工资数据弹窗的列显示功能');
+        console.log('🎯 重点验证: 部门名称、人员类别、编制等字段是否正确显示');
+    </script>
+</body>
+</html>
