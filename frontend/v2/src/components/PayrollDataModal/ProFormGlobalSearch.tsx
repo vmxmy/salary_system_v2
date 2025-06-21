@@ -53,7 +53,7 @@ const SEARCH_MODE_CONFIG = {
     label: '智能搜索',
     icon: <ThunderboltOutlined />,
     color: 'blue',
-    description: '自动判断搜索模式'
+    description: '自动判断搜索模式，支持数值范围查询'
   },
   [SearchMode.FUZZY]: {
     label: '模糊搜索',
@@ -66,6 +66,12 @@ const SEARCH_MODE_CONFIG = {
     icon: <FilterOutlined />,
     color: 'orange',
     description: '完全匹配搜索内容'
+  },
+  [SearchMode.RANGE]: {
+    label: '数值搜索',
+    icon: <ClockCircleOutlined />,
+    color: 'purple',
+    description: '数值范围搜索：实发合计>10000'
   }
 };
 
@@ -74,7 +80,7 @@ const SEARCH_MODE_CONFIG = {
  */
 export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
   value = '',
-  placeholder = '搜索员工姓名、编号、部门、职位...',
+  placeholder = '搜索员工姓名、编号、部门、职位... 或 实发合计>10000',
   onSearch,
   onClear,
   suggestions = [],
@@ -271,22 +277,22 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
           <div style={{ flexShrink: 0 }}>
             <ProFormSelect
               name="searchMode"
-              width={110}
+              width={96}
               options={Object.entries(SEARCH_MODE_CONFIG).map(([mode, config]) => ({
                 label: (
-                  <Space size={2} style={{ height: '20px', lineHeight: '20px' }}>
-                    <span style={{ fontSize: '12px', lineHeight: '20px' }}>{config.icon}</span>
-                    <span style={{ fontSize: '14px', lineHeight: '20px' }}>{config.label}</span>
+                  <Space size={1} style={{ height: '18px', lineHeight: '18px' }}>
+                    <span style={{ fontSize: '11px', lineHeight: '18px' }}>{config.icon}</span>
+                    <span style={{ fontSize: '12px', lineHeight: '18px' }}>{config.label}</span>
                   </Space>
                 ),
                 value: mode
               }))}
               fieldProps={{
-                size: 'middle',
+                size: 'small',
                 disabled: disabled,
                 style: { 
-                  minWidth: 110,
-                  maxHeight: '32px',
+                  minWidth: 96,
+                  maxHeight: '26px',
                   overflow: 'hidden'
                 },
                 optionLabelProp: 'label'
@@ -301,20 +307,20 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
               name="searchQuery"
               placeholder={placeholder}
               fieldProps={{
-                size: 'middle',
+                size: 'small',
                 style: { width: '100%' },
                 disabled: disabled,
                 prefix: isSearching ? 
-                  <LoadingOutlined style={{ color: '#1890ff' }} /> : 
-                  <SearchOutlined style={{ color: '#999' }} />,
+                  <LoadingOutlined style={{ color: '#1890ff', fontSize: '12px' }} /> : 
+                  <SearchOutlined style={{ color: '#999', fontSize: '12px' }} />,
                 suffix: (
-                  <Space size={4}>
+                  <Space size={2}>
                     <Button
                       type="text"
                       size="small"
-                      icon={<ClearOutlined />}
+                      icon={<ClearOutlined style={{ fontSize: '12px' }} />}
                       onClick={handleClear}
-                      style={{ color: '#999' }}
+                      style={{ color: '#999', padding: '0 2px' }}
                     />
                   </Space>
                 ),
@@ -334,9 +340,11 @@ export const ProFormGlobalSearch: React.FC<ProFormGlobalSearchProps> = ({
             <div style={{ flexShrink: 0 }}>
               <Tooltip title="清空搜索历史">
                 <Button
-                  icon={<HistoryOutlined />}
+                  size="small"
+                  icon={<HistoryOutlined style={{ fontSize: '12px' }} />}
                   onClick={clearHistory}
                   disabled={disabled}
+                  style={{ padding: '0 4px' }}
                 />
               </Tooltip>
             </div>

@@ -75,11 +75,17 @@ export const usePayrollSearch = <T>(
       dataLength: data.length,
       hasData: data.length > 0,
       sampleData: data.slice(0, 1),
-      searchKeys: finalConfig.keys
+      configKeys: finalConfig.keys
     });
     
+    // 动态生成搜索配置，不使用固定的keys
+    const dynamicConfig = {
+      ...finalConfig,
+      keys: undefined // 清除固定keys，让搜索引擎自动生成
+    };
+    
     // 即使是空数组也创建搜索引擎，这样后续可以正确更新
-    return new PayrollSearchEngine(data, finalConfig);
+    return new PayrollSearchEngine(data, dynamicConfig);
   }, [data, finalConfig]);
 
   // 🔄 修复：监听数据变化并重新处理搜索状态 - 避免循环依赖
@@ -127,6 +133,7 @@ export const usePayrollSearch = <T>(
     }));
 
     try {
+      console.log('🔍 [usePayrollSearch] 准备执行搜索', { query, mode });
       const results = smartSearch(searchEngine, query, mode);
       const endTime = performance.now();
       const searchTime = endTime - startTime;

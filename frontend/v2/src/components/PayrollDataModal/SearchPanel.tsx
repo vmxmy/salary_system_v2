@@ -95,42 +95,40 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
       }
       size="small"
       style={{ 
-        marginBottom: 16,
+        marginBottom: 8,
         border: '1px solid #d9d9d9',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+        borderRadius: '6px',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
         overflow: 'hidden'
       }}
       styles={{ 
         header: {
-          padding: '6px 12px',
-          minHeight: 'auto',
+          padding: '4px 8px',
+          minHeight: '28px',
           borderBottom: searchCardCollapsed ? '0px' : '1px solid #f0f0f0'
         },
         body: {
-          padding: searchCardCollapsed ? 0 : '6px 8px',
+          padding: searchCardCollapsed ? 0 : '4px 6px',
           backgroundColor: '#fafafa'
         }
       }}
     >
       {!searchCardCollapsed && (
-        <Row style={{ margin: 0 }}>
-          <Col span={24} style={{ padding: 0 }}>
-            <ProFormGlobalSearch
-              value={searchQuery}
-              onSearch={onSearch}
-              onClear={onClear}
-              suggestions={suggestions}
-              searchMode={searchMode}
-              onSearchModeChange={onSearchModeChange}
-              isSearching={isSearching}
-              totalResults={totalResults}
-              searchTime={searchTime}
-              showPerformance={showPerformance}
-              placeholder={placeholder}
-            />
-          </Col>
-        </Row>
+        <div style={{ margin: 0, padding: 0 }}>
+          <ProFormGlobalSearch
+            value={searchQuery}
+            onSearch={onSearch}
+            onClear={onClear}
+            suggestions={suggestions}
+            searchMode={searchMode}
+            onSearchModeChange={onSearchModeChange}
+            isSearching={isSearching}
+            totalResults={totalResults}
+            searchTime={searchTime}
+            showPerformance={showPerformance}
+            placeholder={placeholder}
+          />
+        </div>
       )}
     </Card>
   );

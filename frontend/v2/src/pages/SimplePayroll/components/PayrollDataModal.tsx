@@ -167,15 +167,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     hasResults,
     performance,
   } = usePayrollSearch(validatedDataSource, {
-    keys: [
-      '员工姓名',
-      '员工编号', 
-      '部门名称',
-      '职位名称',
-      '人员类别',
-      '编制',
-      '薪资期间名称'
-    ],
+    // 移除固定的keys，让系统动态生成
     threshold: 0.3,
     debounceDelay: 300,
     enableSuggestions: true,
@@ -457,7 +449,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         onSearch={search}
         onClear={clearSearch}
         onSearchModeChange={setSearchMode}
-        placeholder="搜索员工姓名、编号、部门、职位..."
+        placeholder="搜索员工姓名、编号、部门、职位... 或 实发合计>10000"
         showPerformance={true}
       />
 

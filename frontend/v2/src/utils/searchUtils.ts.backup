@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js';
 import { debounce } from 'lodash';
 
-// 直接定义类型，避免 Fuse.js 类型导入问题
+// 直接定义类型，避免复杂的导入
 type FuseResultMatch = {
   indices: readonly [number, number][];
   value?: string;
@@ -11,11 +11,11 @@ type FuseResultMatch = {
 
 // 搜索配置类型
 export type SearchConfig = {
-  threshold: number; // 模糊匹配阈值 (0-1)
+  threshold: number;
   includeScore: boolean;
   includeMatches: boolean;
   minMatchCharLength: number;
-  keys: string[]; // 搜索字段
+  keys: string[];
 };
 
 // 搜索结果类型
@@ -25,31 +25,166 @@ export type SearchResult<T> = {
   matches?: FuseResultMatch[];
 };
 
-// 默认搜索配置
+// 确保导出
+export type { SearchConfig as SearchConfigType, SearchResult as SearchResultType };
+
+// 搜索模式枚举
+export enum SearchMode {
+  FUZZY = 'fuzzy',
+  EXACT = 'exact',
+  AUTO = 'auto',
+  RANGE = 'range'  // 新增：数值范围搜索
+}
+
+// 默认配置
 const DEFAULT_SEARCH_CONFIG: SearchConfig = {
-  threshold: 0.3, // 0.3 表示70%匹配度
+  threshold: 0.3,
   includeScore: true,
   includeMatches: true,
   minMatchCharLength: 1,
   keys: [
     '员工姓名',
     '员工编号', 
+    '身份证号',    // 添加身份证号
     '部门名称',
     '职位名称',
     '人员类别',
     '编制',
-    '薪资期间名称'
+    '薪资期间名称',
+    // 添加常用的数值字段以便搜索
+    '实发合计',
+    '应发合计',
+    '扣除合计',
+    '基本工资'
   ]
 };
 
-// 创建搜索引擎类
+// 动态生成搜索配置
+export const generateSearchConfig = <T>(data: T[]): SearchConfig => {
+  if (!data || data.length === 0) {
+    console.log('⚠️ [generateSearchConfig] 数据为空，使用默认配置');
+    return DEFAULT_SEARCH_CONFIG;
+  }
+
+  const firstItem = data[0] as any;
+  const allKeys = Object.keys(firstItem);
+  
+  console.log('🔧 [generateSearchConfig] 动态生成搜索配置', {
+    totalFields: allKeys.length,
+    allFields: allKeys.slice(0, 20) // 显示前20个字段
+  });
+
+  // 分类字段
+  const textFields: string[] = [];
+  const numericFields: string[] = [];
+  const priorityFields: string[] = [];
+  
+  // 高优先级字段（重要的业务字段）
+  const priorityPatterns = [
+    /^员工姓名$|^姓名$/,
+    /^员工编号$|^编号$/,
+    /^身份证号$/,
+    /^部门名称$|^部门$/,
+    /^职位名称$|^职位$|^岗位$/,
+    /^人员类别$/,
+    /^编制$/
+  ];
+
+  // 数值字段模式
+  const numericPatterns = [
+    /合计$/,
+    /工资$/,
+    /津贴$/,
+    /奖金$/,
+    /补贴$/,
+    /扣除$/,
+    /金额$/,
+    /费用$/,
+    /^基本/,
+    /保险$/,
+    /公积金$/
+  ];
+
+  // 排除字段模式
+  const excludePatterns = [
+    /^id$|.*id$/i,
+    /^key$/,
+    /时间$|日期$/,
+    /创建|更新|修改/,
+    /^\$|^_/
+  ];
+
+  allKeys.forEach(key => {
+    // 跳过排除的字段
+    if (excludePatterns.some(pattern => pattern.test(key))) {
+      return;
+    }
+
+    const value = firstItem[key];
+    
+    // 检查是否是高优先级字段
+    const isPriority = priorityPatterns.some(pattern => pattern.test(key));
+    if (isPriority) {
+      priorityFields.push(key);
+      return;
+    }
+
+    // 检查是否是数值字段
+    const isNumeric = typeof value === 'number' || 
+                     (typeof value === 'string' && !isNaN(Number(value)) && value.trim() !== '') ||
+                     numericPatterns.some(pattern => pattern.test(key));
+    
+    if (isNumeric) {
+      numericFields.push(key);
+    } else if (typeof value === 'string' && value.trim() !== '') {
+      textFields.push(key);
+    }
+  });
+
+  // 组合最终的搜索字段：高优先级 + 重要文本字段 + 重要数值字段
+  const searchKeys = [
+    ...priorityFields,
+    ...textFields.slice(0, 10), // 取前10个文本字段
+    ...numericFields.slice(0, 15) // 取前15个数值字段
+  ];
+
+  console.log('🔧 [generateSearchConfig] 字段分类结果', {
+    priorityFields: priorityFields.length,
+    textFields: textFields.length,
+    numericFields: numericFields.length,
+    totalSearchKeys: searchKeys.length,
+    finalKeys: searchKeys
+  });
+
+  return {
+    ...DEFAULT_SEARCH_CONFIG,
+    keys: searchKeys
+  };
+};
+
+// 搜索引擎类
 export class PayrollSearchEngine<T> {
   private fuse: Fuse<T>;
   private data: T[] = [];
   private config: SearchConfig;
 
   constructor(data: T[], config: Partial<SearchConfig> = {}) {
-    this.config = { ...DEFAULT_SEARCH_CONFIG, ...config };
+    // 先生成基础配置
+    const baseConfig = { ...DEFAULT_SEARCH_CONFIG, ...config };
+    
+    // 如果没有提供keys或keys为空，则动态生成
+    if (!config.keys || config.keys.length === 0) {
+      const dynamicConfig = generateSearchConfig(data);
+      this.config = { ...baseConfig, keys: dynamicConfig.keys };
+    } else {
+      this.config = baseConfig;
+    }
+    
+    // 确保keys存在且是数组
+    if (!this.config.keys || !Array.isArray(this.config.keys)) {
+      this.config.keys = [];
+    }
+    
     this.data = data;
     this.fuse = new Fuse(data, {
       threshold: this.config.threshold,
@@ -57,25 +192,99 @@ export class PayrollSearchEngine<T> {
       includeMatches: this.config.includeMatches,
       minMatchCharLength: this.config.minMatchCharLength,
       keys: this.config.keys,
-      // 支持中文搜索优化
+      ignoreLocation: true,
+      findAllMatches: true,
+    });
+
+    console.log('🚀 [PayrollSearchEngine] 搜索引擎初始化完成', {
+      dataLength: data.length,
+      searchKeys: this.config.keys.length,
+      threshold: this.config.threshold,
+      actualKeys: this.config.keys.slice(0, 10)
+    });
+  }
+
+  updateData(newData: T[]): void {
+    this.data = newData;
+    
+    // 如果有新数据，重新生成搜索配置
+    if (newData.length > 0) {
+      const newConfig = generateSearchConfig(newData);
+      this.config = { ...this.config, keys: newConfig.keys };
+      
+      console.log('🔄 [updateData] 重新生成搜索配置', {
+        newDataLength: newData.length,
+        newSearchKeys: this.config.keys.length,
+        sampleKeys: this.config.keys.slice(0, 10)
+      });
+    }
+    
+    // 确保keys存在且是数组
+    if (!this.config.keys || !Array.isArray(this.config.keys)) {
+      this.config.keys = [];
+    }
+    
+    // 重新创建Fuse实例
+    this.fuse = new Fuse(newData, {
+      threshold: this.config.threshold,
+      includeScore: this.config.includeScore,
+      includeMatches: this.config.includeMatches,
+      minMatchCharLength: this.config.minMatchCharLength,
+      keys: this.config.keys,
       ignoreLocation: true,
       findAllMatches: true,
     });
   }
 
-  // 更新数据源
-  updateData(newData: T[]): void {
-    this.data = newData;
-    this.fuse.setCollection(newData);
+  // 获取当前搜索配置信息
+  getSearchInfo() {
+    return {
+      searchKeys: this.config.keys,
+      dataLength: this.data.length,
+      threshold: this.config.threshold
+    };
   }
 
-  // 执行搜索
   search(query: string): SearchResult<T>[] {
+    console.log(`🔍 [PayrollSearchEngine] 搜索`, {
+      query,
+      dataLength: this.data.length,
+      keys: this.config.keys,
+      sampleData: this.data.slice(0, 1)
+    });
+
+    // 详细检查数据结构
+    if (this.data.length > 0) {
+      const firstItem = this.data[0] as any;
+      console.log('🔍 [数据结构检查] 第一条数据的所有字段:', Object.keys(firstItem));
+      console.log('🔍 [数据结构检查] 搜索字段的值:', {
+        员工姓名: firstItem['员工姓名'],
+        员工编号: firstItem['员工编号'],
+        身份证号: firstItem['身份证号'],
+        部门名称: firstItem['部门名称'],
+        职位名称: firstItem['职位名称'],
+        实发合计: firstItem['实发合计'],
+        应发合计: firstItem['应发合计']
+      });
+      
+      // 检查哪些搜索字段实际存在
+      const existingKeys = this.config.keys.filter(key => firstItem.hasOwnProperty(key));
+      const missingKeys = this.config.keys.filter(key => !firstItem.hasOwnProperty(key));
+      console.log('🔍 [数据结构检查] 存在的搜索字段:', existingKeys);
+      console.log('🔍 [数据结构检查] 缺失的搜索字段:', missingKeys);
+    }
+
     if (!query.trim()) {
       return this.data.map(item => ({ item }));
     }
 
     const results = this.fuse.search(query);
+    console.log(`🔍 [PayrollSearchEngine] Fuse搜索结果`, {
+      query,
+      resultsCount: results.length,
+      sampleResults: results.slice(0, 2)
+    });
+
     return results.map(result => ({
       item: result.item,
       score: result.score,
@@ -83,7 +292,6 @@ export class PayrollSearchEngine<T> {
     }));
   }
 
-  // 多关键词搜索（空格分隔）
   searchMultipleKeywords(query: string): SearchResult<T>[] {
     if (!query.trim()) {
       return this.data.map(item => ({ item }));
@@ -94,7 +302,6 @@ export class PayrollSearchEngine<T> {
       return this.search(query);
     }
 
-    // 对每个关键词进行搜索，然后取交集
     let results = this.data.map(item => ({ item }));
     
     for (const keyword of keywords) {
@@ -106,7 +313,6 @@ export class PayrollSearchEngine<T> {
     return results;
   }
 
-  // 精确匹配搜索
   exactSearch(query: string): SearchResult<T>[] {
     if (!query.trim()) {
       return this.data.map(item => ({ item }));
@@ -124,7 +330,263 @@ export class PayrollSearchEngine<T> {
       .map(item => ({ item }));
   }
 
-  // 获取搜索建议（基于已有数据）
+  // 新增：数值范围搜索
+  rangeSearch(query: string): SearchResult<T>[] {
+    if (!query.trim()) {
+      return this.data.map(item => ({ item }));
+    }
+
+    console.log('🔢 [rangeSearch] 开始数值范围搜索', {
+      query,
+      dataLength: this.data.length,
+      sampleData: this.data.slice(0, 1)
+    });
+
+    const rangeExpressions = this.parseRangeQuery(query);
+    if (rangeExpressions.length === 0) {
+      console.log('⚠️ [rangeSearch] 未识别到范围表达式，回退到模糊搜索');
+      // 如果没有识别到范围表达式，回退到模糊搜索
+      return this.searchMultipleKeywords(query);
+    }
+
+    console.log('🔢 [rangeSearch] 解析的范围表达式:', rangeExpressions);
+
+    const filteredData = this.data.filter(item => {
+      // 所有范围条件都必须满足（AND逻辑）
+      const result = rangeExpressions.every(expr => this.evaluateRangeExpression(item, expr));
+      
+      if (result) {
+        console.log('✅ [rangeSearch] 匹配的数据项:', {
+          item: (item as any)['员工姓名'] || 'Unknown',
+          expressions: rangeExpressions.map(expr => ({
+            field: expr.field,
+            operator: expr.operator,
+            value: expr.value,
+            fieldValue: (item as any)[expr.field]
+          }))
+        });
+      }
+      
+      return result;
+    });
+
+    console.log('🔢 [rangeSearch] 搜索完成', {
+      totalData: this.data.length,
+      filteredCount: filteredData.length,
+      expressions: rangeExpressions
+    });
+
+    return filteredData.map(item => ({ item }));
+  }
+
+  // 解析范围查询表达式
+  private parseRangeQuery(query: string): Array<{
+    field: string;
+    operator: '>' | '<' | '>=' | '<=' | '=' | '!=';
+    value: number;
+    originalText: string;
+  }> {
+    console.log('🔍 [parseRangeQuery] 开始解析范围查询:', query);
+    
+    const expressions: Array<{
+      field: string;
+      operator: '>' | '<' | '>=' | '<=' | '=' | '!=';
+      value: number;
+      originalText: string;
+    }> = [];
+
+    // 匹配各种范围表达式模式
+    const patterns = [
+      // 字段名>数值 或 字段名 > 数值
+      /([^><=!]+)\s*(>=|<=|>|<|!=|=)\s*(\d+(?:\.\d+)?)/g,
+      // 数值<字段名 (反向表达式)
+      /(\d+(?:\.\d+)?)\s*(>=|<=|>|<|!=|=)\s*([^><=!]+)/g
+    ];
+
+    for (let patternIndex = 0; patternIndex < patterns.length; patternIndex++) {
+      const pattern = patterns[patternIndex];
+      console.log(`🔍 [parseRangeQuery] 尝试模式 ${patternIndex + 1}:`, pattern);
+      
+      let match;
+      while ((match = pattern.exec(query)) !== null) {
+        const [fullMatch, left, operator, right] = match;
+        console.log('🔍 [parseRangeQuery] 找到匹配:', { fullMatch, left, operator, right });
+        
+        let field: string;
+        let value: number;
+        let actualOperator = operator as '>' | '<' | '>=' | '<=' | '=' | '!=';
+        
+        // 判断是正向还是反向表达式
+        if (isNaN(Number(left))) {
+          // 正向：字段名 操作符 数值
+          field = left.trim();
+          value = parseFloat(right);
+          console.log('🔍 [parseRangeQuery] 正向表达式:', { field, operator, value });
+        } else {
+          // 反向：数值 操作符 字段名 (需要翻转操作符)
+          field = right.trim();
+          value = parseFloat(left);
+          // 翻转操作符
+          const operatorMap: Record<string, '>' | '<' | '>=' | '<=' | '=' | '!'> = {
+            '>': '<',
+            '<': '>',
+            '>=': '<=',
+            '<=': '>=',
+            '=': '=',
+            '!=': '!='
+          };
+          actualOperator = operatorMap[operator] as '>' | '<' | '>=' | '<=' | '=' | '!=';
+          console.log('🔍 [parseRangeQuery] 反向表达式:', { field, originalOperator: operator, flippedOperator: actualOperator, value });
+        }
+
+        // 查找匹配的数据字段
+        const matchedKey = this.findMatchingDataKey(field);
+        if (matchedKey) {
+          const expression = {
+            field: matchedKey,
+            operator: actualOperator,
+            value,
+            originalText: fullMatch
+          };
+          expressions.push(expression);
+          console.log('✅ [parseRangeQuery] 添加表达式:', expression);
+        } else {
+          console.log('❌ [parseRangeQuery] 未找到匹配的字段:', field);
+        }
+      }
+    }
+
+    console.log('🔍 [parseRangeQuery] 解析完成，找到表达式:', expressions);
+    return expressions;
+  }
+
+  // 查找匹配的数据字段键
+  private findMatchingDataKey(searchField: string): string | null {
+    const lowerSearchField = searchField.toLowerCase().trim();
+    
+    console.log('🔍 [findMatchingDataKey] 查找字段匹配', {
+      searchField,
+      lowerSearchField,
+      configKeys: this.config.keys,
+      dataLength: this.data.length
+    });
+
+    // 首先检查是否有直接匹配的键
+    const directMatch = this.config.keys.find(key => 
+      key.toLowerCase() === lowerSearchField
+    );
+    if (directMatch) {
+      console.log('✅ [findMatchingDataKey] 直接匹配:', directMatch);
+      return directMatch;
+    }
+
+    // 检查包含关系
+    const containsMatch = this.config.keys.find(key => 
+      key.toLowerCase().includes(lowerSearchField) || 
+      lowerSearchField.includes(key.toLowerCase())
+    );
+    if (containsMatch) {
+      console.log('✅ [findMatchingDataKey] 包含匹配:', containsMatch);
+      return containsMatch;
+    }
+
+    // 获取所有可能的数值字段（通过检查第一条数据）
+    if (this.data.length > 0) {
+      const firstItem = this.data[0] as any;
+      const allKeys = Object.keys(firstItem);
+      const numericKeys = allKeys.filter(key => {
+        const value = firstItem[key];
+        const isNumeric = typeof value === 'number' || 
+                         (typeof value === 'string' && !isNaN(Number(value)) && value.trim() !== '');
+        return isNumeric;
+      });
+
+      console.log('🔍 [findMatchingDataKey] 所有字段:', allKeys.slice(0, 10));
+      console.log('🔍 [findMatchingDataKey] 数值字段:', numericKeys.slice(0, 10));
+      console.log('🔍 [findMatchingDataKey] 第一条数据示例:', {
+        员工姓名: firstItem['员工姓名'],
+        实发合计: firstItem['实发合计'],
+        应发合计: firstItem['应发合计'],
+        基本工资: firstItem['基本工资']
+      });
+
+      const numericMatch = numericKeys.find(key => 
+        key.toLowerCase().includes(lowerSearchField) || 
+        lowerSearchField.includes(key.toLowerCase())
+      );
+      if (numericMatch) {
+        console.log('✅ [findMatchingDataKey] 数值字段匹配:', numericMatch, '值:', firstItem[numericMatch]);
+        return numericMatch;
+      }
+    }
+
+    console.log('❌ [findMatchingDataKey] 未找到匹配字段');
+    return null;
+  }
+
+  // 评估范围表达式
+  private evaluateRangeExpression(item: any, expr: {
+    field: string;
+    operator: '>' | '<' | '>=' | '<=' | '=' | '!=';
+    value: number;
+  }): boolean {
+    const fieldValue = item[expr.field];
+    
+    console.log('🔢 [evaluateRangeExpression] 评估表达式', {
+      field: expr.field,
+      operator: expr.operator,
+      targetValue: expr.value,
+      fieldValue,
+      fieldValueType: typeof fieldValue
+    });
+
+    if (fieldValue == null) {
+      console.log('❌ [evaluateRangeExpression] 字段值为null或undefined');
+      return false;
+    }
+
+    const numValue = typeof fieldValue === 'number' ? fieldValue : parseFloat(String(fieldValue));
+    if (isNaN(numValue)) {
+      console.log('❌ [evaluateRangeExpression] 无法转换为数值', {
+        originalValue: fieldValue,
+        stringValue: String(fieldValue),
+        parsedValue: numValue
+      });
+      return false;
+    }
+
+    let result = false;
+    switch (expr.operator) {
+      case '>':
+        result = numValue > expr.value;
+        break;
+      case '<':
+        result = numValue < expr.value;
+        break;
+      case '>=':
+        result = numValue >= expr.value;
+        break;
+      case '<=':
+        result = numValue <= expr.value;
+        break;
+      case '=':
+        result = numValue === expr.value;
+        break;
+      case '!=':
+        result = numValue !== expr.value;
+        break;
+      default:
+        result = false;
+    }
+
+    console.log('🔢 [evaluateRangeExpression] 评估结果', {
+      expression: `${numValue} ${expr.operator} ${expr.value}`,
+      result
+    });
+
+    return result;
+  }
+
   getSuggestions(query: string, limit: number = 5): string[] {
     if (!query.trim()) return [];
 
@@ -147,18 +609,20 @@ export class PayrollSearchEngine<T> {
   }
 }
 
-// 创建防抖搜索函数
+// 防抖搜索函数
 export const createDebouncedSearch = <T>(
   searchEngine: PayrollSearchEngine<T>,
   delay: number = 300
 ) => {
   return debounce((query: string, callback: (results: SearchResult<T>[]) => void) => {
-    const results = searchEngine.searchMultipleKeywords(query);
+    console.log('🕐 [createDebouncedSearch] 执行防抖搜索', { query });
+    // 使用智能搜索替代固定的多关键词搜索
+    const results = smartSearch(searchEngine, query, SearchMode.AUTO);
     callback(results);
   }, delay);
 };
 
-// 高亮匹配文本的工具函数
+// 高亮工具函数
 export const getHighlightRanges = (text: string, matches?: FuseResultMatch[]): Array<[number, number]> => {
   if (!matches || !text) return [];
 
@@ -167,12 +631,11 @@ export const getHighlightRanges = (text: string, matches?: FuseResultMatch[]): A
   matches.forEach(match => {
     if (match.indices) {
       match.indices.forEach(([start, end]) => {
-        ranges.push([start, end + 1]); // Fuse.js 的 end 是包含的，需要 +1
+        ranges.push([start, end + 1]);
       });
     }
   });
 
-  // 合并重叠的范围
   ranges.sort((a, b) => a[0] - b[0]);
   const merged: Array<[number, number]> = [];
   
@@ -187,44 +650,68 @@ export const getHighlightRanges = (text: string, matches?: FuseResultMatch[]): A
   return merged;
 };
 
-// 搜索模式枚举
-export enum SearchMode {
-  FUZZY = 'fuzzy',    // 模糊搜索
-  EXACT = 'exact',    // 精确搜索
-  AUTO = 'auto'       // 自动判断
-}
-
-// 智能搜索函数（自动判断搜索模式）
+// 智能搜索函数
 export const smartSearch = <T>(
   searchEngine: PayrollSearchEngine<T>,
   query: string,
   mode: SearchMode = SearchMode.AUTO
 ): SearchResult<T>[] => {
+  console.log('🤖 [smartSearch] 开始智能搜索', { query, mode });
+  
   if (!query.trim()) {
     return searchEngine.search('');
   }
 
-  // 自动判断搜索模式
   if (mode === SearchMode.AUTO) {
-    // 如果查询包含引号，使用精确搜索
+    console.log('🤖 [smartSearch] 自动模式，开始检查搜索类型');
+    
+    // 检查是否包含数值范围表达式
+    if (containsRangeExpression(query)) {
+      console.log('🔢 [smartSearch] 检测到数值范围表达式，使用范围搜索');
+      return searchEngine.rangeSearch(query);
+    }
+    
     if (query.includes('"')) {
+      console.log('🎯 [smartSearch] 检测到引号，使用精确搜索');
       const exactQuery = query.replace(/"/g, '');
       return searchEngine.exactSearch(exactQuery);
     }
-    // 如果查询很短（1-2个字符），使用精确搜索
     if (query.length <= 2) {
+      console.log('🎯 [smartSearch] 短查询，使用精确搜索');
       return searchEngine.exactSearch(query);
     }
-    // 否则使用模糊搜索
+    console.log('🔍 [smartSearch] 使用多关键词模糊搜索');
     return searchEngine.searchMultipleKeywords(query);
   }
 
-  // 根据指定模式搜索
+  console.log('🎛️ [smartSearch] 手动模式:', mode);
   switch (mode) {
     case SearchMode.EXACT:
       return searchEngine.exactSearch(query);
     case SearchMode.FUZZY:
+      return searchEngine.searchMultipleKeywords(query);
+    case SearchMode.RANGE:
+      return searchEngine.rangeSearch(query);
     default:
       return searchEngine.searchMultipleKeywords(query);
   }
+};
+
+// 检查查询是否包含数值范围表达式
+export const containsRangeExpression = (query: string): boolean => {
+  console.log('🔍 [containsRangeExpression] 检查是否包含范围表达式:', query);
+  
+  const rangePatterns = [
+    /[^><=!]+\s*(>=|<=|>|<|!=|=)\s*\d+(?:\.\d+)?/,  // 字段名 操作符 数值
+    /\d+(?:\.\d+)?\s*(>=|<=|>|<|!=|=)\s*[^><=!]+/   // 数值 操作符 字段名
+  ];
+  
+  const result = rangePatterns.some((pattern, index) => {
+    const matches = pattern.test(query);
+    console.log(`🔍 [containsRangeExpression] 模式 ${index + 1} (${pattern}) 匹配结果:`, matches);
+    return matches;
+  });
+  
+  console.log('🔍 [containsRangeExpression] 最终结果:', result);
+  return result;
 }; 
