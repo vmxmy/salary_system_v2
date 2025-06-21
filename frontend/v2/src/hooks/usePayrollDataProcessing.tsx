@@ -18,7 +18,7 @@ import {
   processValue
 } from '../utils/payrollDataUtils';
 import { SearchMode } from '../utils/searchUtils';
-import { createColumnConfig, generateColumns as generateColumnsFromConfig } from '../components/PayrollDataModal/ColumnConfig';
+import { createColumnConfig, generateColumns as generateColumnsFromConfig, shouldShowField } from '../components/PayrollDataModal/ColumnConfig';
 
 import type { ComprehensivePayrollDataView } from '../pages/Payroll/services/payrollViewsApi';
 
@@ -163,68 +163,7 @@ export const usePayrollDataProcessing = ({
     return { name: 'unknown', priority: 999, patterns: [] };
   }, [fieldGroups]);
 
-  // 判断字段是否应该显示
-  const shouldShowField = useCallback((fieldName: string, fieldValue: any, allData: PayrollData[], config: ColumnFilterConfig) => {
-    // 检查包含模式
-    if (config.includePatterns.length > 0) {
-      const shouldInclude = config.includePatterns.some(pattern => 
-        matchesPattern(fieldName, pattern)
-      );
-      if (!shouldInclude) return false;
-    }
-
-    // 检查排除模式
-    if (config.excludePatterns.length > 0) {
-      const shouldExclude = config.excludePatterns.some(pattern => 
-        matchesPattern(fieldName, pattern)
-      );
-      if (shouldExclude) return false;
-    }
-
-    // 隐藏JSONB列
-    if (config.hideJsonbColumns && typeof fieldValue === 'object' && fieldValue !== null) {
-      return false;
-    }
-
-    // 隐藏空列
-    if (config.hideEmptyColumns) {
-      const hasNonEmptyValue = allData.some(item => {
-        const value = (item as any)[fieldName];
-        return value !== null && value !== undefined && value !== '' && value !== 0;
-      });
-      if (!hasNonEmptyValue) return false;
-    }
-
-    // 隐藏零值列
-    if (config.hideZeroColumns) {
-      const hasNonZeroValue = allData.some(item => {
-        const value = (item as any)[fieldName];
-        if (typeof value === 'number') {
-          return value !== 0;
-        }
-        if (typeof value === 'string') {
-          const numValue = parseFloat(value);
-          return !isNaN(numValue) && numValue !== 0;
-        }
-        return true;
-      });
-      if (!hasNonZeroValue) return false;
-    }
-
-    // 只显示数值列
-    if (config.showOnlyNumericColumns) {
-      const isNumericColumn = allData.some(item => {
-        const value = (item as any)[fieldName];
-        return typeof value === 'number' || 
-               (typeof value === 'string' && !isNaN(parseFloat(value)) && isFinite(parseFloat(value)));
-      });
-      if (!isNumericColumn) return false;
-    }
-
-    return true;
-  }, []);
-
-  // 直接使用 ColumnConfig.tsx 中的 generateColumns 函数（已包含员工姓名列特殊处理）
+  // 直接使用 ColumnConfig.tsx 中的 shouldShowField 和 generateColumns 函数
 
   // 导出到Excel
   const exportToExcel = useCallback(async (exportData: PayrollData[], columns: ProColumns<PayrollData>[]) => {
@@ -296,20 +235,41 @@ export const usePayrollDataProcessing = ({
     }
   }, [periodName]);
 
-  // 生成列配置（当数据变化时）- 简化版本，避免循环依赖
+  // 生成列配置（当数据或筛选配置变化时）
   useEffect(() => {
     if (data && data.length > 0) {
-      console.log('🔄 [usePayrollDataProcessing] 生成列配置', {
+      console.log('🔄 [usePayrollDataProcessing] 重新生成列配置', {
         dataLength: data.length,
-        filterConfigKeys: Object.keys(filterConfig)
+        filterConfig: {
+          includePatterns: filterConfig.includePatterns,
+          excludePatterns: filterConfig.excludePatterns,
+          hideJsonbColumns: filterConfig.hideJsonbColumns,
+          hideZeroColumns: filterConfig.hideZeroColumns,
+          hideEmptyColumns: filterConfig.hideEmptyColumns,
+          showOnlyNumericColumns: filterConfig.showOnlyNumericColumns
+        }
       });
       
       const columns = generateColumnsFromConfig(data, filterConfig);
       setCurrentColumnsState(columns);
+      
+      console.log('✅ [usePayrollDataProcessing] 列配置生成完成，列数:', columns.length);
     } else {
+      console.log('⚠️ [usePayrollDataProcessing] 数据为空，清空列配置');
       setCurrentColumnsState([]);
     }
-  }, [data.length, filterConfig.hideJsonbColumns, filterConfig.hideZeroColumns, filterConfig.hideEmptyColumns]); // 移除generateColumns依赖避免循环
+  }, [
+    data.length, 
+    // 监听所有筛选配置的变化
+    filterConfig.includePatterns?.join(','),
+    filterConfig.excludePatterns?.join(','),
+    filterConfig.hideJsonbColumns, 
+    filterConfig.hideZeroColumns, 
+    filterConfig.hideEmptyColumns,
+    filterConfig.showOnlyNumericColumns,
+    filterConfig.minValueThreshold,
+    filterConfig.maxValueThreshold
+  ]);
 
   return {
     // 数据

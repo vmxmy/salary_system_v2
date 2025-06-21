@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { Modal, message } from 'antd';
 import { ProTable, type ActionType } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
@@ -213,6 +213,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const {
     filteredDataSource,
     filterConfig,
+    currentColumnsState,
     generateColumns: generateDynamicColumns,
     exportToExcel: exportData,
     setFilterConfig
@@ -235,6 +236,19 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [presetManagerVisible, setPresetManagerVisible] = useState(false);
   const [filterConfigVisible, setFilterConfigVisible] = useState(false);
   
+  // 当筛选配置面板打开时，输出当前配置
+  useEffect(() => {
+    if (filterConfigVisible) {
+      console.log('🔧 [PayrollDataModal] 筛选配置面板已打开，当前配置:', {
+        includePatterns: filterConfig.includePatterns,
+        excludePatterns: filterConfig.excludePatterns,
+        hideEmptyColumns: filterConfig.hideEmptyColumns,
+        hideZeroColumns: filterConfig.hideZeroColumns,
+        showOnlyNumericColumns: filterConfig.showOnlyNumericColumns
+      });
+    }
+  }, [filterConfigVisible, filterConfig]);
+
   // 详情和编辑模态框状态
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -249,18 +263,36 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   // 生成动态列配置
   const dynamicColumns = useMemo(() => {
     if (!filteredDataSource || filteredDataSource.length === 0) {
-      console.log('⚠️ [PayrollDataModal] filteredDataSource为空，不生成列配置');
-      return [];
+      console.log('⚠️ [PayrollDataModal] filteredDataSource为空，使用当前列配置');
+      return currentColumnsState.length > 0 ? [
+        ...currentColumnsState,
+        {
+          title: t('common:table.action'),
+          key: 'action',
+          fixed: 'right' as const,
+          width: 120,
+          render: (_: any, record: PayrollData) => (
+            <TableRowActions
+              record={record}
+              onViewDetail={handleViewDetail}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ),
+        }
+      ] : [];
     }
     
-    console.log('🔄 [PayrollDataModal] 生成列配置', {
+    console.log('🔄 [PayrollDataModal] 使用列配置', {
       dataCount: filteredDataSource.length,
+      currentColumnsCount: currentColumnsState.length,
       sampleKeys: filteredDataSource[0] ? Object.keys(filteredDataSource[0]).slice(0, 5) : []
     });
     
-    const columns = generateDynamicColumns(filteredDataSource, filterConfig);
+    // 优先使用hook中生成的列配置
+    const columns = currentColumnsState.length > 0 ? currentColumnsState : generateDynamicColumns(filteredDataSource, filterConfig);
     
-    console.log('✅ [PayrollDataModal] 列配置完成:', columns.length, '列');
+    console.log('✅ [PayrollDataModal] 最终列配置:', columns.length, '列');
     
     // 添加操作列
     return [
@@ -280,7 +312,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         ),
       }
     ];
-  }, [generateDynamicColumns, filteredDataSource, filterConfig, t]);
+  }, [currentColumnsState, generateDynamicColumns, filteredDataSource, filterConfig, t]);
   const handleViewDetail = async (record: PayrollData) => {
     console.log('📋 [PayrollDataModal] 查看详情:', record);
     

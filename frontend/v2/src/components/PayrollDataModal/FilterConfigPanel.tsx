@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react';
-import { Card, Collapse, Switch, Select, InputNumber, Button, Space, Tooltip, Popover } from 'antd';
+import { Card, Collapse, Switch, Select, InputNumber, Button, Space, Tooltip, Popover, message } from 'antd';
 import { FilterOutlined, CloseOutlined, PushpinOutlined, PushpinFilled, QuestionCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ColumnFilterConfig } from '../../hooks/usePayrollDataProcessing';
+import { matchesPattern } from '../../utils/payrollDataUtils';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -265,30 +266,44 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
 
   // 快速预设配置
   const applyPreset = (presetType: string) => {
+    console.log('✅ [FilterConfigPanel] 应用预设:', presetType);
+    
     switch (presetType) {
       case 'salary':
         updateFilterConfig({
           ...defaultFilterConfig,
-          includePatterns: ['*工资*', '*合计', '*金额'],
-          excludePatterns: ['*id', '*时间', '*日期', '*编号']
+          includePatterns: ['*工资*', '*薪资*', '*薪酬*', '*合计*', '*金额*', '*应发*', '*实发*', '*津贴*', '*补贴*', '*奖金*'],
+          excludePatterns: ['*id*', '*时间*', '*日期*', '*编号*']
         });
+        message.success('已应用"工资相关"预设');
         break;
       case 'insurance':
         updateFilterConfig({
           ...defaultFilterConfig,
-          includePatterns: ['*保险*', '*公积金*'],
-          excludePatterns: ['*id', '*时间', '*日期']
+          includePatterns: ['*保险*', '*公积金*', '*社保*', '*医疗*', '*养老*', '*失业*', '*工伤*', '*生育*'],
+          excludePatterns: ['*id*', '*时间*', '*日期*']
         });
+        message.success('已应用"保险公积金"预设');
         break;
       case 'amounts':
         updateFilterConfig({
           ...defaultFilterConfig,
           showOnlyNumericColumns: true,
-          excludePatterns: ['*id', '*比例', '*费率']
+          excludePatterns: ['*id*', '*比例*', '*费率*']
         });
+        message.success('已应用"只看金额"预设');
         break;
       case 'reset':
         updateFilterConfig(defaultFilterConfig);
+        message.success('已重置为默认配置');
+        break;
+      case 'all':
+        updateFilterConfig({
+          ...defaultFilterConfig,
+          includePatterns: ['*'],
+          excludePatterns: []
+        });
+        message.success('已应用"显示所有列"预设');
         break;
     }
   };
@@ -407,32 +422,45 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
         <Panel header="模式匹配" key="patterns">
           <Space direction="vertical" style={{ width: '100%' }}>
             <div>
-              <label>包含模式（支持通配符 * 和 ?）：</label>
+              <label>
+                包含模式（支持通配符 * 和 ?）：
+                <span style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>
+                  设置后仅显示匹配的列，例如 "*工资*" 显示所有包含"工资"的列
+                </span>
+              </label>
               <Select
                 mode="tags"
                 style={{ 
                   width: '100%',
                   minHeight: '32px'
                 }}
-                placeholder="例如：*工资*、保险*、*金额"
+                placeholder="例如：*工资*、*保险*、*金额*（使用*通配符）"
                 value={filterConfig.includePatterns}
-                onChange={(patterns) => updateFilterConfig({ includePatterns: patterns })}
+                onChange={(patterns) => {
+                  console.log('✅ [FilterConfigPanel] 更新包含模式:', patterns);
+                  updateFilterConfig({ includePatterns: patterns });
+                }}
                 maxTagCount="responsive"
                 maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
                 allowClear
                 showSearch
+                tokenSeparators={[',', '，', ';', '；', ' ']}
                 filterOption={false}
                 dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                 tagRender={renderIncludeTag}
               >
-                <Option value="*工资*">*工资*</Option>
-                <Option value="*保险*">*保险*</Option>
-                <Option value="*金额">*金额</Option>
-                <Option value="*合计">*合计</Option>
-                <Option value="基本*">基本*</Option>
-                <Option value="*津贴*">*津贴*</Option>
-                <Option value="*补贴*">*补贴*</Option>
-                <Option value="*奖金*">*奖金*</Option>
+                <Option value="员工姓名">员工姓名（精确匹配）</Option>
+                <Option value="部门名称">部门名称（精确匹配）</Option>
+                <Option value="职位名称">职位名称（精确匹配）</Option>
+                <Option value="*工资*">*工资*（包含"工资"）</Option>
+                <Option value="*保险*">*保险*（包含"保险"）</Option>
+                <Option value="*金额*">*金额*（包含"金额"）</Option>
+                <Option value="*合计*">*合计*（包含"合计"）</Option>
+                <Option value="*津贴*">*津贴*（包含"津贴"）</Option>
+                <Option value="*补贴*">*补贴*（包含"补贴"）</Option>
+                <Option value="*奖金*">*奖金*（包含"奖金"）</Option>
+                <Option value="基本*">基本*（以"基本"开头）</Option>
+                <Option value="*费额">*费额（以"费额"结尾）</Option>
               </Select>
             </div>
             <div>
@@ -445,11 +473,15 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
                 }}
                 placeholder="例如：*id、*时间、*日期"
                 value={filterConfig.excludePatterns}
-                onChange={(patterns) => updateFilterConfig({ excludePatterns: patterns })}
+                onChange={(patterns) => {
+                  console.log('✅ [FilterConfigPanel] 更新排除模式:', patterns);
+                  updateFilterConfig({ excludePatterns: patterns });
+                }}
                 maxTagCount="responsive"
                 maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
                 allowClear
                 showSearch
+                tokenSeparators={[',', '，', ';', '；', ' ']}
                 filterOption={false}
                 dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                 tagRender={renderExcludeTag}
@@ -502,12 +534,83 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
             </Button>
             <Button 
               size="small" 
+              type="primary"
+              onClick={() => applyPreset('all')}
+            >
+              显示所有列
+            </Button>
+            <Button 
+              size="small" 
               onClick={() => applyPreset('reset')}
             >
               重置默认
             </Button>
           </Space>
         </Panel>
+        
+        {/* 调试面板 - 仅在开发环境显示 */}
+        {process.env.NODE_ENV === 'development' && (
+          <Panel header="调试工具" key="debug">
+            <Space wrap>
+              <Button 
+                size="small" 
+                type="dashed"
+                onClick={() => {
+                  console.log('🔧 [调试] 当前筛选配置:', filterConfig);
+                  
+                  // 测试通配符匹配
+                  const testPatterns = [
+                    '*工资*',
+                    '工资*',
+                    '*工资',
+                    '*金额*',
+                    '?薪酬',
+                    '*'
+                  ];
+                  
+                  const testFields = [
+                    '基本工资',
+                    '工资合计',
+                    '薪酬标准',
+                    '实发金额',
+                    '个税',
+                    '社保'
+                  ];
+                  
+                  console.log('🔧 [调试] 通配符匹配测试:');
+                  testPatterns.forEach(pattern => {
+                    console.log(`模式: "${pattern}"`);
+                    testFields.forEach(field => {
+                      // 使用导入的matchesPattern函数
+                      const matches = matchesPattern(field, pattern);
+                      console.log(`  "${field}" ${matches ? '✅ 匹配' : '❌ 不匹配'}`);
+                    });
+                  });
+                  
+                  message.info('调试信息已输出到控制台');
+                }}
+              >
+                测试通配符匹配
+              </Button>
+              
+              <Button 
+                size="small" 
+                type="dashed"
+                onClick={() => {
+                  // 测试包含模式
+                  updateFilterConfig({
+                    ...filterConfig,
+                    includePatterns: ['*工资*'],
+                    excludePatterns: []
+                  });
+                  message.info('已设置包含模式: *工资*');
+                }}
+              >
+                测试包含模式
+              </Button>
+            </Space>
+          </Panel>
+        )}
       </Collapse>
     </Card>
   );

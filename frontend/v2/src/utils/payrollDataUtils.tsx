@@ -275,11 +275,64 @@ export const safeStringify = (obj: any): string => {
  * @returns 是否匹配
  */
 export const matchesPattern = (text: string, pattern: string): boolean => {
-  const regexPattern = pattern
-    .replace(/\*/g, '.*')
-    .replace(/\?/g, '.');
-  const regex = new RegExp(`^${regexPattern}$`, 'i');
-  return regex.test(text);
+  // 确保输入是字符串
+  if (text === null || text === undefined) {
+    return false;
+  }
+  
+  // 精确匹配（区分大小写）
+  if (text === pattern) {
+    console.log(`✅ [matchesPattern] 精确匹配成功: "${text}" === "${pattern}"`);
+    return true;
+  }
+  
+  // 将字符串转换为小写以进行不区分大小写的匹配
+  const textStr = String(text).toLowerCase();
+  const patternStr = String(pattern).toLowerCase();
+  
+  // 不区分大小写的精确匹配
+  if (textStr === patternStr) {
+    console.log(`✅ [matchesPattern] 不区分大小写的精确匹配成功: "${textStr}" === "${patternStr}"`);
+    return true;
+  }
+  
+  // 特殊情况：如果模式是 * 或 **，匹配所有内容
+  if (patternStr === '*' || patternStr === '**') {
+    return true;
+  }
+  
+  // 特殊处理：*text* 模式 (包含匹配)
+  if (patternStr.startsWith('*') && patternStr.endsWith('*') && patternStr.length > 2) {
+    const innerText = patternStr.substring(1, patternStr.length - 1);
+    return textStr.includes(innerText);
+  }
+  
+  // 特殊处理：text* 模式 (前缀匹配)
+  if (patternStr.endsWith('*') && !patternStr.startsWith('*')) {
+    const prefix = patternStr.substring(0, patternStr.length - 1);
+    return textStr.startsWith(prefix);
+  }
+  
+  // 特殊处理：*text 模式 (后缀匹配)
+  if (patternStr.startsWith('*') && !patternStr.endsWith('*')) {
+    const suffix = patternStr.substring(1);
+    return textStr.endsWith(suffix);
+  }
+  
+  // 如果包含通配符，使用正则表达式匹配
+  if (patternStr.includes('*') || patternStr.includes('?')) {
+    // 转义正则表达式特殊字符，但保留 * 和 ?
+    const regexPattern = patternStr
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&') // 转义特殊字符
+      .replace(/\*/g, '.*')  // * 转换为 .*
+      .replace(/\?/g, '.'); // ? 转换为 .
+    
+    const regex = new RegExp(`^${regexPattern}$`, 'i');
+    return regex.test(textStr);
+  }
+  
+  // 如果没有通配符，执行精确匹配
+  return textStr === patternStr;
 };
 
 /**
