@@ -1,103 +1,126 @@
-// 基础变量定义 - Ant Design 默认主题变量
+// 基础变量定义 - 基于设计令牌系统
 // 这些是最常用的基本变量，在整个应用中被引用
 
 // ===== 圆角 =====
-@border-radius-base: 2px;
-@border-radius-sm: 2px;
-@border-radius-lg: 4px;
+@border-radius-base: 6px;
+@border-radius-sm: 4px;
+@border-radius-md: 8px;
+@border-radius-lg: 12px;
+@border-radius-xl: 16px;
+@border-radius-full: 9999px;
 
 // ===== 基础颜色 =====
-@primary-color: #1890ff;
-@primary-color-hover: #40a9ff;
-@primary-color-active: #096dd9;
-@success-color: #52c41a;
-@warning-color: #faad14;
-@error-color: #f5222d;
-@info-color: #1677ff;
+@primary-color: #3b82f6;
+@primary-color-hover: #60a5fa;
+@primary-color-active: #2563eb;
+@success-color: #10b981;
+@warning-color: #f59e0b;
+@error-color: #ef4444;
+@info-color: #3b82f6;
 
 // ===== 文本颜色 =====
-@text-color: rgba(0, 0, 0, 0.85);
-@text-color-secondary: rgba(0, 0, 0, 0.45);
-@text-color-disabled: rgba(0, 0, 0, 0.25);
-@heading-color: rgba(0, 0, 0, 0.85);
-@disabled-color: rgba(0, 0, 0, 0.25);
+@text-color: #111827;
+@text-color-secondary: #374151;
+@text-color-tertiary: #6b7280;
+@text-color-quaternary: #9ca3af;
+@text-color-disabled: #9ca3af;
+@heading-color: #111827;
+@disabled-color: #9ca3af;
 
 // ===== 边框颜色 =====
-@border-color-base: #d9d9d9;
-@border-color-split: #f0f0f0;
+@border-color-base: #e5e7eb;
+@border-color-light: #f3f4f6;
+@border-color-medium: #d1d5db;
+@border-color-strong: #9ca3af;
+@border-color-split: #f3f4f6;
 
 // ===== 背景颜色 =====
-@body-background: #f0f2f5;
+@body-background: #f9fafb;
 @component-background: #ffffff;
-@background-color-light: #f5f5f5;
-@background-color-base: #f5f5f5;
+@background-color-light: #f3f4f6;
+@background-color-base: #f9fafb;
+@background-color-accent: #eff6ff;
 
 // ===== 字体 =====
-@font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-  'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-  'Noto Color Emoji';
-@font-family-code: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-@code-family: @font-family-code; // 别名，兼容旧代码
-@font-size-base: 14px;
-@font-size-sm: 12px;
-@font-size-lg: 16px;
+@font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+@font-family-code: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+@code-family: @font-family-code;
+@font-size-base: 16px;
+@font-size-sm: 14px;
+@font-size-xs: 12px;
+@font-size-lg: 18px;
+@font-size-xl: 20px;
+@font-size-2xl: 24px;
+@font-size-3xl: 30px;
+@font-size-4xl: 36px;
+@font-size-5xl: 48px;
 
 // ===== 行高 =====
+@line-height-tight: 1.25;
 @line-height-base: 1.5;
+@line-height-relaxed: 1.75;
 
 // ===== 间距 =====
-@spacing-unit: 8px;
-@spacing-xs: @spacing-unit / 2; // 4px
-@spacing-sm: @spacing-unit; // 8px
-@spacing-md: @spacing-unit * 2; // 16px
-@spacing-lg: @spacing-unit * 3; // 24px
-@spacing-xl: @spacing-unit * 4; // 32px
-@spacing-xxl: @spacing-unit * 5; // 40px
+@spacing-unit: 4px;
+@spacing-0: 0px;
+@spacing-1: @spacing-unit; // 4px
+@spacing-2: @spacing-unit * 2; // 8px
+@spacing-3: @spacing-unit * 3; // 12px
+@spacing-4: @spacing-unit * 4; // 16px
+@spacing-5: @spacing-unit * 5; // 20px
+@spacing-6: @spacing-unit * 6; // 24px
+@spacing-8: @spacing-unit * 8; // 32px
+@spacing-10: @spacing-unit * 10; // 40px
+@spacing-12: @spacing-unit * 12; // 48px
+@spacing-16: @spacing-unit * 16; // 64px
+@spacing-20: @spacing-unit * 20; // 80px
+@spacing-24: @spacing-unit * 24; // 96px
 
-// Ant Design 内置间距
-@padding-xs: 8px;
-@padding-sm: 12px;
-@padding-md: 16px;
-@padding-lg: 24px;
-@padding-xl: 32px;
+// Ant Design 兼容间距
+@padding-xs: @spacing-2;
+@padding-sm: @spacing-3;
+@padding-md: @spacing-4;
+@padding-lg: @spacing-6;
+@padding-xl: @spacing-8;
 
-@margin-xs: 8px;
-@margin-sm: 12px;
-@margin-md: 16px;
-@margin-lg: 24px;
-@margin-xl: 32px;
+@margin-xs: @spacing-2;
+@margin-sm: @spacing-3;
+@margin-md: @spacing-4;
+@margin-lg: @spacing-6;
+@margin-xl: @spacing-8;
 
 // ===== 表格相关 =====
-@table-header-bg: #fafafa;
+@table-header-bg: #f9fafb;
 @table-header-color: @heading-color;
-@table-row-hover-bg: #f5f5f5;
-@table-selected-row-bg: #e6f7ff;
+@table-row-hover-bg: #f3f4f6;
+@table-selected-row-bg: #eff6ff;
 
 // ===== 表单相关 =====
-@form-item-margin-bottom: 24px;
-@form-vertical-label-padding: 0 0 8px;
+@form-item-margin-bottom: @spacing-6;
+@form-vertical-label-padding: 0 0 @spacing-2;
 @form-vertical-label-margin: 0;
 
 // ===== 阴影 =====
-@box-shadow-base: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
-@box-shadow-card: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);
+@box-shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+@box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+@box-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+@box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+@box-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+@box-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+@box-shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+@box-shadow-card: @box-shadow-base;
 
 // ===== 卡片相关 =====
-@card-padding-base: 24px;
-@card-shadow: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);
-
-// ===== 阴影变量 =====
-@shadow-1-down: 0 2px 8px rgba(0, 0, 0, 0.15);
-@shadow-2: 0 4px 12px rgba(0, 0, 0, 0.15);
-@shadow-3: 0 6px 16px rgba(0, 0, 0, 0.12);
+@card-padding-base: @spacing-6;
+@card-shadow: @box-shadow-base;
 
 // ===== 响应式断点 =====
 @screen-xs: 480px;
-@screen-sm: 576px;
+@screen-sm: 640px;
 @screen-md: 768px;
-@screen-lg: 992px;
-@screen-xl: 1200px;
-@screen-xxl: 1600px;
+@screen-lg: 1024px;
+@screen-xl: 1280px;
+@screen-xxl: 1536px;
 
 // ===== 输入框高度 =====
 @input-height-base: 32px;
@@ -107,9 +130,26 @@
 // ===== 按钮样式 =====
 @btn-default-bg: #ffffff;
 @btn-default-border: @border-color-base;
+@btn-padding-base: 0 @spacing-4;
+@btn-padding-sm: 0 @spacing-3;
+@btn-padding-lg: 0 @spacing-5;
 
 // ===== 标题字体大小 =====
-@heading-4-size: 16px;
+@heading-1-size: @font-size-4xl;
+@heading-2-size: @font-size-3xl;
+@heading-3-size: @font-size-2xl;
+@heading-4-size: @font-size-xl;
+@heading-5-size: @font-size-lg;
 
-// ===== 更多阴影变量 =====
-@shadow-1-right: 2px 0 8px rgba(0, 0, 0, 0.15);
+// ===== 图表配色方案 =====
+@chart-color-primary: @primary-color;
+@chart-color-success: @success-color;
+@chart-color-warning: @warning-color;
+@chart-color-error: @error-color;
+@chart-color-info: @info-color;
+
+// 图表分类颜色数组
+@chart-colors-categorical: @primary-color, #10b981, #f59e0b, #8b5cf6, #ec4899, #06b6d4, #84cc16, #6366f1, #f43f5e, #0ea5e9;
+
+// 部门图表专用颜色
+@chart-colors-departments: @primary-color, #10b981, #f59e0b, #8b5cf6, #ec4899, #06b6d4, #84cc16, #6366f1, #f43f5e, #0ea5e9, #14b8a6, #d946ef, #f97316, #eab308, #22c55e;

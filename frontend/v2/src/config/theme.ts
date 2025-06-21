@@ -1,26 +1,27 @@
 import type { ThemeConfig } from 'antd';
 import { theme } from 'antd';
 import type { ProSettings } from '@ant-design/pro-components';
+import { designTokens } from '../styles/design-tokens';
 
 // 🎨 设计令牌配置
-export const designTokens = {
+export const designTokensAntd = {
   // 主要颜色
-  colorPrimary: '#1890ff',
-  colorSuccess: '#52c41a',
-  colorWarning: '#faad14',
-  colorError: '#f5222d',
-  colorInfo: '#13c2c2',
+  colorPrimary: designTokens.colors.primary[500],
+  colorSuccess: designTokens.colors.semantic.success[500],
+  colorWarning: designTokens.colors.semantic.warning[500],
+  colorError: designTokens.colors.semantic.error[500],
+  colorInfo: designTokens.colors.semantic.info[500],
   
   // 灰阶颜色
-  colorBgContainer: '#ffffff',
-  colorBgLayout: '#f5f5f5',
-  colorBgElevated: '#ffffff',
-  colorFillSecondary: '#f5f5f5',
+  colorBgContainer: designTokens.colors.background.primary,
+  colorBgLayout: designTokens.colors.background.secondary,
+  colorBgElevated: designTokens.colors.background.primary,
+  colorFillSecondary: designTokens.colors.background.tertiary,
   
   // 边框和阴影
   borderRadius: 6,
-  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
-  boxShadowSecondary: '0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)',
+  boxShadow: designTokens.shadows.base,
+  boxShadowSecondary: designTokens.shadows.lg,
   
   // 间距
   padding: 24,
@@ -43,7 +44,7 @@ export const designTokens = {
   controlHeightSM: 24,
   controlHeightLG: 40,
   
-  // 响应式断点
+  // 响应式断点 - 直接定义，不引用 designTokens
   screenXS: 480,
   screenSM: 576,
   screenMD: 768,
@@ -54,31 +55,56 @@ export const designTokens = {
 
 // 🌈 Ant Design 主题配置
 export const antdTheme: ThemeConfig = {
-  token: {},
-  algorithm: [],
-  components: {},
+  token: {
+    colorPrimary: designTokensAntd.colorPrimary,
+    colorSuccess: designTokensAntd.colorSuccess,
+    colorWarning: designTokensAntd.colorWarning, 
+    colorError: designTokensAntd.colorError,
+    colorInfo: designTokensAntd.colorInfo,
+    borderRadius: designTokensAntd.borderRadius,
+    fontSize: designTokensAntd.fontSize
+  },
+  algorithm: [theme.defaultAlgorithm],
+  components: {
+    Card: {
+      colorBgContainer: designTokens.colors.background.primary,
+      boxShadow: designTokens.shadows.sm,
+      borderRadiusLG: 8
+    },
+    Button: {
+      borderRadius: 6,
+      controlHeight: designTokensAntd.controlHeight,
+      controlHeightSM: designTokensAntd.controlHeightSM,
+      controlHeightLG: designTokensAntd.controlHeightLG
+    },
+    Table: {
+      borderRadius: 6,
+      colorBgContainer: designTokens.colors.background.primary
+    }
+    // 移除不支持的 Statistic 配置
+  },
 };
 
 // 🔧 ProLayout 基础配置
 export const defaultProLayoutSettings: Partial<ProSettings> = {
-  layout: 'side', // 侧边菜单布局
-  contentWidth: 'Fluid', // 流式宽度
-  fixedHeader: false, // 不固定顶部头部
-  fixSiderbar: true, // 固定侧边栏
+  layout: 'side',
+  contentWidth: 'Fluid',
+  fixedHeader: false,
+  fixSiderbar: true,
   colorWeak: false,
   title: '人事管理系统',
-  navTheme: 'light', // 'light' | 'realDark'
-  splitMenus: false, // 是否拆分菜单
+  navTheme: 'light',
+  splitMenus: false,
   menu: {
-    locale: false, // 是否国际化菜单
+    locale: false,
   },
 };
 
 // 🎛️ ProLayout 扩展配置
 export const proLayoutExtendedSettings = {
   // 布局尺寸
-  siderWidth: 208, // 侧边栏宽度
-  headerHeight: 48, // 头部高度
+  siderWidth: 208,
+  headerHeight: 48,
   
   // 响应式断点
   breakpoint: 'lg',
@@ -98,63 +124,63 @@ export const proLayoutExtendedSettings = {
 
 // 📱 响应式配置
 export const responsiveConfig = {
-  // 断点定义
+  // 断点定义 - 直接使用数字而不是引用 designTokens
   breakpoints: {
-    xs: designTokens.screenXS,
-    sm: designTokens.screenSM,
-    md: designTokens.screenMD,
-    lg: designTokens.screenLG,
-    xl: designTokens.screenXL,
-    xxl: designTokens.screenXXL,
+    xs: 480,
+    sm: 576,
+    md: 768,
+    lg: 992,
+    xl: 1200,
+    xxl: 1600,
   },
   
   // 仪表盘卡片列配置
   dashboardCardCols: {
-    xs: { span: 24 }, // 移动端：单列
-    sm: { span: 12 }, // 小屏：两列
-    md: { span: 12 }, // 中屏：两列
-    lg: { span: 6 },  // 大屏：四列
-    xl: { span: 6 },  // 超大屏：四列
-    xxl: { span: 6 }, // 超超大屏：四列
+    xs: { span: 24 },
+    sm: { span: 12 },
+    md: { span: 12 },
+    lg: { span: 6 },
+    xl: { span: 6 },
+    xxl: { span: 6 },
   },
   
   // 图表区域列配置
   dashboardChartCols: {
-    xs: { span: 24 }, // 移动端：全宽
-    sm: { span: 24 }, // 小屏：全宽
-    md: { span: 12 }, // 中屏：一半宽
-    lg: { span: 12 }, // 大屏：一半宽
-    xl: { span: 12 }, // 超大屏：一半宽
-    xxl: { span: 12 }, // 超超大屏：一半宽
+    xs: { span: 24 },
+    sm: { span: 24 },
+    md: { span: 12 },
+    lg: { span: 12 },
+    xl: { span: 12 },
+    xxl: { span: 12 },
   },
   
   // 表格区域列配置
   dashboardTableCols: {
-    xs: { span: 24 }, // 移动端：全宽
-    sm: { span: 24 }, // 小屏：全宽
-    md: { span: 24 }, // 中屏：全宽
-    lg: { span: 24 }, // 大屏：全宽
-    xl: { span: 24 }, // 超大屏：全宽
-    xxl: { span: 24 }, // 超超大屏：全宽
+    xs: { span: 24 },
+    sm: { span: 24 },
+    md: { span: 24 },
+    lg: { span: 24 },
+    xl: { span: 24 },
+    xxl: { span: 24 },
   },
   
   // ProLayout 响应式设置
   proLayoutResponsive: {
     xs: {
-      siderWidth: 208, // 移动端侧边栏宽度
-      collapsed: true, // 移动端默认收起
+      siderWidth: 208,
+      collapsed: true,
     },
     sm: {
-      siderWidth: 208, // 小屏侧边栏宽度
-      collapsed: true, // 小屏默认收起
+      siderWidth: 208,
+      collapsed: true,
     },
     md: {
-      siderWidth: 256, // 中屏侧边栏宽度
-      collapsed: true, // 中屏默认收起
+      siderWidth: 256,
+      collapsed: true,
     },
     lg: {
-      siderWidth: 256, // 大屏侧边栏宽度
-      collapsed: true, // 大屏默认收起
+      siderWidth: 256,
+      collapsed: true,
     },
   },
 };
