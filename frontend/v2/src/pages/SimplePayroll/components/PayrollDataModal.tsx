@@ -31,7 +31,7 @@ import { usePayrollDataPresets } from '../../../hooks/usePayrollDataPresets';
 import { usePayrollDataProcessing } from '../../../hooks/usePayrollDataProcessing';
 import { SearchPanel } from '../../../components/PayrollDataModal/SearchPanel';
 import { FilterConfigPanel } from '../../../components/PayrollDataModal/FilterConfigPanel';
-import { generateColumns } from '../../../components/PayrollDataModal/ColumnConfig';
+// generateColumns 现在通过 usePayrollDataProcessing 提供
 import { exportToExcel } from '../../../services/payrollExportService';
 import { 
   TableRowActions, 
@@ -182,6 +182,42 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     maxSuggestions: 5,
   });
 
+  // 修复搜索结果索引映射
+  const searchResultIndices = useMemo(() => {
+    if (isEmptyQuery || !searchResults || searchResults.length === 0) {
+      console.log('🔍 [搜索结果映射] 无搜索查询或结果为空');
+      return undefined;
+    }
+    
+    console.log('🔍 [搜索结果映射] 开始映射搜索结果', {
+      searchResultsCount: searchResults.length,
+      searchResultsSample: searchResults.slice(0, 2),
+      dataSourceCount: validatedDataSource.length
+    });
+    
+    const indices = searchResults.map(result => {
+      // 修复：使用result.item而不是result
+      const index = validatedDataSource.findIndex(item => item === result.item);
+      console.log('🔍 [搜索结果映射] 映射结果', {
+        resultItem: result.item,
+        foundIndex: index,
+        itemPreview: result.item ? {
+          员工姓名: (result.item as any)['员工姓名'],
+          员工编号: (result.item as any)['员工编号']
+        } : null
+      });
+      return index;
+    }).filter(index => index !== -1);
+    
+    console.log('✅ [搜索结果映射] 映射完成', {
+      originalCount: searchResults.length,
+      mappedCount: indices.length,
+      indices: indices.slice(0, 5)
+    });
+    
+    return new Set(indices);
+  }, [searchResults, validatedDataSource, isEmptyQuery]);
+
   const {
     filteredDataSource,
     filterConfig,
@@ -191,9 +227,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   } = usePayrollDataProcessing({
     data: validatedDataSource,
     periodName,
-    searchResults: isEmptyQuery ? undefined : new Set(
-      searchResults.map(result => validatedDataSource.findIndex(item => item === result))
-    ),
+    searchResults: searchResultIndices,
     searchMode
   });
 
@@ -232,7 +266,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       sampleKeys: filteredDataSource[0] ? Object.keys(filteredDataSource[0]).slice(0, 5) : []
     });
     
-    const columns = generateDynamicColumns(filteredDataSource);
+    const columns = generateDynamicColumns(filteredDataSource, filterConfig);
     
     console.log('✅ [PayrollDataModal] 列配置完成:', columns.length, '列');
     
@@ -254,7 +288,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         ),
       }
     ];
-  }, [generateDynamicColumns, filteredDataSource, t]);
+  }, [generateDynamicColumns, filteredDataSource, filterConfig, t]);
   const handleViewDetail = async (record: PayrollData) => {
     console.log('📋 [PayrollDataModal] 查看详情:', record);
     
@@ -330,33 +364,68 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   };
 
   const handleApplyPreset = (preset: any) => {
-    if (preset.searchQuery) {
-      search(preset.searchQuery);
+    console.log('🏷️ [预设应用] 开始应用预设', {
+      presetName: preset.name,
+      hasFilterConfig: !!preset.filterConfig,
+      hasSearchQuery: !!preset.searchQuery,
+      hasTableFilterState: !!preset.tableFilterState,
+      preset
+    });
+    
+    // 应用筛选配置
+    if (preset.filterConfig) {
+      console.log('✅ [预设应用] 应用筛选配置', preset.filterConfig);
+      setFilterConfig(preset.filterConfig);
     }
-    setSearchMode(preset.searchMode || SearchMode.AUTO);
+    
+    // 应用搜索查询（从tableFilterState或直接从preset）
+    const searchQuery = preset.tableFilterState?.searchQuery || preset.searchQuery;
+    if (searchQuery) {
+      console.log('✅ [预设应用] 应用搜索查询', searchQuery);
+      search(searchQuery);
+    }
+    
+    // 应用搜索模式
+    const searchMode = preset.tableFilterState?.searchMode || preset.searchMode || SearchMode.AUTO;
+    console.log('✅ [预设应用] 应用搜索模式', searchMode);
+    setSearchMode(searchMode);
+    
     message.success(`已应用预设: ${preset.name}`);
   };
 
   const handleSavePreset = (name: string, description?: string) => {
-    // 创建默认的筛选配置
-    const defaultFilterConfig = {
-      hideJsonbColumns: true,
-      hideZeroColumns: true,
-      hideEmptyColumns: true,
-      includePatterns: [],
-      excludePatterns: ['*id', '*时间', '*日期'],
-      minValueThreshold: 0,
-      maxValueThreshold: Infinity,
-      showOnlyNumericColumns: false
+    console.log('💾 [预设保存] 开始保存预设', {
+      name,
+      description,
+      currentFilterConfig: filterConfig,
+      currentSearchQuery: searchQuery,
+      currentSearchMode: searchMode
+    });
+    
+    // 构建表格筛选状态
+    const tableFilterState = {
+      searchQuery: searchQuery || undefined,
+      searchMode: searchMode || SearchMode.AUTO,
+      pagination: {
+        current: 1,
+        pageSize: 20
+      }
     };
+    
+    console.log('💾 [预设保存] 保存的配置', {
+      filterConfig,
+      tableFilterState,
+      category: periodName
+    });
     
     savePreset(
       name,
-      defaultFilterConfig,
-      {}, // columnSettings
+      filterConfig, // 使用当前的筛选配置
+      {}, // columnSettings（暂时为空）
       {
         description,
-        category: periodName
+        category: periodName,
+        tableFilterState // 保存表格状态
       }
     );
     message.success(`预设 "${name}" 保存成功`);
@@ -465,16 +534,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       <PresetManager
         visible={presetManagerVisible}
         onClose={() => setPresetManagerVisible(false)}
-        currentFilterConfig={{
-          hideJsonbColumns: true,
-          hideZeroColumns: true,
-          hideEmptyColumns: true,
-          includePatterns: [],
-          excludePatterns: ['*id', '*时间', '*日期'],
-          minValueThreshold: 0,
-          maxValueThreshold: Infinity,
-          showOnlyNumericColumns: false
-        }}
+        currentFilterConfig={filterConfig} // 使用当前的筛选配置
         currentColumnSettings={{}}
         onApplyPreset={handleApplyPreset}
       />

@@ -18,7 +18,7 @@ import {
   processValue
 } from '../utils/payrollDataUtils';
 import { SearchMode } from '../utils/searchUtils';
-import { createColumnConfig } from '../components/PayrollDataModal/ColumnConfig';
+import { createColumnConfig, generateColumns as generateColumnsFromConfig } from '../components/PayrollDataModal/ColumnConfig';
 
 import type { ComprehensivePayrollDataView } from '../pages/Payroll/services/payrollViewsApi';
 
@@ -81,11 +81,40 @@ export const usePayrollDataProcessing = ({
 
   // 过滤后的数据源
   const filteredDataSource = useMemo(() => {
+    console.log('🔄 [usePayrollDataProcessing] 开始数据过滤', {
+      originalDataCount: data?.length || 0,
+      hasSearchResults: !!(searchResults && searchResults.size > 0),
+      searchResultsSize: searchResults?.size || 0,
+      hasTableFilters: !!(tableFilterState.filters && Object.keys(tableFilterState.filters).length > 0)
+    });
+    
     let filtered = data || [];
 
     // 应用搜索筛选
     if (searchResults && searchResults.size > 0) {
-      filtered = filtered.filter((item, index) => searchResults.has(index));
+      console.log('🔍 [usePayrollDataProcessing] 应用搜索过滤', {
+        originalCount: filtered.length,
+        searchIndices: Array.from(searchResults).slice(0, 10)
+      });
+      
+      filtered = filtered.filter((item, index) => {
+        const included = searchResults.has(index);
+        if (included && index < 3) {
+          console.log(`✅ [搜索过滤] 索引${index}包含:`, {
+            员工姓名: (item as any)['员工姓名'],
+            员工编号: (item as any)['员工编号']
+          });
+        }
+        return included;
+      });
+      
+      console.log('✅ [usePayrollDataProcessing] 搜索过滤完成', {
+        filteredCount: filtered.length,
+        sampleFiltered: filtered.slice(0, 2).map(item => ({
+          员工姓名: (item as any)['员工姓名'],
+          员工编号: (item as any)['员工编号']
+        }))
+      });
     }
 
     // 应用表格筛选
@@ -99,6 +128,11 @@ export const usePayrollDataProcessing = ({
         }
       });
     }
+
+    console.log('✅ [usePayrollDataProcessing] 数据过滤完成', {
+      finalCount: filtered.length,
+      originalCount: data?.length || 0
+    });
 
     return filtered;
   }, [data, searchResults, tableFilterState.filters]);
@@ -190,34 +224,7 @@ export const usePayrollDataProcessing = ({
     return true;
   }, []);
 
-  // 生成动态列配置
-  const generateColumns = useCallback((data: PayrollData[], config = filterConfig): ProColumns<PayrollData>[] => {
-    if (!data || data.length === 0) return [];
-
-    const firstRecord = data[0];
-    const fields = Object.keys(firstRecord);
-    
-    // 生成列配置，使用 ColumnConfig.tsx 中的 createColumnConfig 函数
-    const columns: ProColumns<PayrollData>[] = fields
-      .filter(field => shouldShowField(field, firstRecord[field as keyof PayrollData], data, config))
-      .map((field): ProColumns<PayrollData> => {
-        return createColumnConfig(field, firstRecord[field as keyof PayrollData], data);
-      });
-
-    // 按字段组重新排序列
-    const sortedColumns = columns.sort((a, b) => {
-      const aGroup = getFieldGroup(a.title as string);
-      const bGroup = getFieldGroup(b.title as string);
-      
-      if (aGroup.priority !== bGroup.priority) {
-        return aGroup.priority - bGroup.priority;
-      }
-      
-      return (a.title as string).localeCompare(b.title as string, 'zh-CN');
-    });
-
-    return sortedColumns;
-  }, [shouldShowField, getFieldGroup]);
+  // 直接使用 ColumnConfig.tsx 中的 generateColumns 函数（已包含员工姓名列特殊处理）
 
   // 导出到Excel
   const exportToExcel = useCallback(async (exportData: PayrollData[], columns: ProColumns<PayrollData>[]) => {
@@ -297,12 +304,12 @@ export const usePayrollDataProcessing = ({
         filterConfigKeys: Object.keys(filterConfig)
       });
       
-      const columns = generateColumns(data, filterConfig);
+      const columns = generateColumnsFromConfig(data, filterConfig);
       setCurrentColumnsState(columns);
     } else {
       setCurrentColumnsState([]);
     }
-  }, [data.length, filterConfig.hideJsonbColumns, filterConfig.hideZeroColumns, filterConfig.hideEmptyColumns, generateColumns]); // 只依赖关键的变化
+  }, [data.length, filterConfig.hideJsonbColumns, filterConfig.hideZeroColumns, filterConfig.hideEmptyColumns]); // 移除generateColumns依赖避免循环
 
   return {
     // 数据
@@ -321,7 +328,7 @@ export const usePayrollDataProcessing = ({
     setCurrentColumnsState,
     
     // 功能函数
-    generateColumns,
+    generateColumns: generateColumnsFromConfig,
     exportToExcel,
     shouldShowField,
     getFieldGroup,

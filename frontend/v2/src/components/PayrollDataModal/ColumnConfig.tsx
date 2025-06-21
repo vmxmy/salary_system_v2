@@ -62,24 +62,42 @@ export const shouldShowField = (
   allData: PayrollData[], 
   filterConfig: ColumnFilterConfig
 ): boolean => {
+  // 员工姓名列始终显示，不受任何过滤规则影响
+  if (fieldName === '员工姓名') {
+    console.log('✅ [shouldShowField] 员工姓名列强制通过所有过滤');
+    return true;
+  }
+
+  // 防御性检查：如果filterConfig为undefined，返回true显示所有列
+  if (!filterConfig) {
+    console.warn('⚠️ [shouldShowField] filterConfig为undefined，默认显示所有列');
+    return true;
+  }
+
   // 检查包含模式
-  if (filterConfig.includePatterns.length > 0) {
+  if (filterConfig.includePatterns && filterConfig.includePatterns.length > 0) {
     const shouldInclude = filterConfig.includePatterns.some(pattern => 
       matchesPattern(fieldName, pattern)
     );
-    if (!shouldInclude) return false;
+    if (!shouldInclude) {
+      console.log(`❌ [shouldShowField] 字段 "${fieldName}" 不符合包含模式`);
+      return false;
+    }
   }
 
   // 检查排除模式
-  if (filterConfig.excludePatterns.length > 0) {
+  if (filterConfig.excludePatterns && filterConfig.excludePatterns.length > 0) {
     const shouldExclude = filterConfig.excludePatterns.some(pattern => 
       matchesPattern(fieldName, pattern)
     );
-    if (shouldExclude) return false;
+    if (shouldExclude) {
+      console.log(`❌ [shouldShowField] 字段 "${fieldName}" 被排除模式过滤`);
+      return false;
+    }
   }
 
   // 隐藏JSONB列 - 检查是否整个字段都是对象类型
-  if (filterConfig.hideJsonbColumns) {
+  if (filterConfig.hideJsonbColumns === true) {
     const hasOnlyObjects = allData.every(item => {
       const value = (item as any)[fieldName];
       return typeof value === 'object' && value !== null;
@@ -90,16 +108,19 @@ export const shouldShowField = (
   }
 
   // 隐藏空列
-  if (filterConfig.hideEmptyColumns) {
+  if (filterConfig.hideEmptyColumns === true) {
     const hasNonEmptyValue = allData.some(item => {
       const value = (item as any)[fieldName];
       return value !== null && value !== undefined && value !== '' && value !== 0;
     });
-    if (!hasNonEmptyValue) return false;
+    if (!hasNonEmptyValue) {
+      console.log(`❌ [shouldShowField] 字段 "${fieldName}" 被隐藏（空列）`);
+      return false;
+    }
   }
 
   // 隐藏零值列
-  if (filterConfig.hideZeroColumns) {
+  if (filterConfig.hideZeroColumns === true) {
     const hasNonZeroValue = allData.some(item => {
       const value = (item as any)[fieldName];
       if (typeof value === 'number') {
@@ -115,7 +136,7 @@ export const shouldShowField = (
   }
 
   // 只显示数值列
-  if (filterConfig.showOnlyNumericColumns) {
+  if (filterConfig.showOnlyNumericColumns === true) {
     const isNumericColumn = allData.some(item => {
       const value = (item as any)[fieldName];
       return typeof value === 'number' || 
@@ -125,7 +146,8 @@ export const shouldShowField = (
   }
 
   // 数值范围检查
-  if (filterConfig.minValueThreshold > 0 || filterConfig.maxValueThreshold < Infinity) {
+  if ((filterConfig.minValueThreshold && filterConfig.minValueThreshold > 0) || 
+      (filterConfig.maxValueThreshold && filterConfig.maxValueThreshold < Infinity)) {
     const maxValue = Math.max(...allData.map(item => {
       const value = (item as any)[fieldName];
       if (typeof value === 'number') return value;
@@ -136,7 +158,8 @@ export const shouldShowField = (
       return 0;
     }));
 
-    if (maxValue < filterConfig.minValueThreshold || maxValue > filterConfig.maxValueThreshold) {
+    if ((filterConfig.minValueThreshold && maxValue < filterConfig.minValueThreshold) || 
+        (filterConfig.maxValueThreshold && maxValue > filterConfig.maxValueThreshold)) {
       return false;
     }
   }
@@ -384,11 +407,6 @@ export const createColumnConfig = (
   return column;
 };
 
-// ... (文件底部的其他函数 generateColumns, updateColumnConfig 等保持不变) ...
-
-// ... (文件底部的其他函数 generateColumns, updateColumnConfig 等保持不变) ...
-
-// ... (文件底部的其他函数 generateColumns, updateColumnConfig 等保持不变) ...
 /**
  * 获取列的统计信息
  */
@@ -414,9 +432,67 @@ export const generateColumns = (
 ): ProColumns<PayrollData>[] => {
   if (!data || data.length === 0) return [];
 
-  const columns = data[0] ? Object.keys(data[0]).map(field => 
+  console.log('🔍 [generateColumns] 开始生成列配置', {
+    dataLength: data.length,
+    hasEmployeeName: data[0] ? '员工姓名' in data[0] : false,
+    employeeNameValue: data[0] ? data[0]['员工姓名' as keyof PayrollData] : undefined
+  });
+
+  // 1. 先获取所有可能的列
+  const allColumns = data[0] ? Object.keys(data[0]).map(field => 
     createColumnConfig(field, data[0][field as keyof PayrollData], data)
   ) : [];
 
-  return columns;
+  // 2. 确保员工姓名列始终存在并固定在左侧
+  const employeeNameColumn = allColumns.find(col => col.title === '员工姓名');
+  console.log('🔍 [generateColumns] 员工姓名列存在:', !!employeeNameColumn);
+  
+  // 3. 应用过滤条件，但确保员工姓名列不被过滤掉
+  const filteredColumns = allColumns.filter(col => {
+    const fieldName = col.title as string;
+    if (fieldName === '员工姓名') {
+      console.log('✅ [generateColumns] 员工姓名列被强制保留');
+      return true; // 员工姓名列始终显示
+    }
+    
+    const shouldShow = shouldShowField(
+      fieldName, 
+      data[0][fieldName as keyof PayrollData], 
+      data, 
+      filterConfig
+    );
+    
+    // 只记录重要字段的过滤情况，减少日志噪音
+    if (!shouldShow && ['员工编号', '部门名称', '职位名称'].includes(fieldName)) {
+      console.log(`❌ [generateColumns] 重要字段 "${fieldName}" 被过滤掉`);
+    }
+    
+    return shouldShow;
+  });
+
+  // 4. 如果员工姓名列存在，确保它被固定在左侧
+  if (employeeNameColumn) {
+    employeeNameColumn.fixed = 'left';
+    employeeNameColumn.width = 120;
+  }
+
+  // 5. 按字段组重新排序列
+  const sortedColumns = filteredColumns.sort((a, b) => {
+    // 员工姓名列始终排在最前面
+    if (a.title === '员工姓名') return -1;
+    if (b.title === '员工姓名') return 1;
+    
+    const aGroup = getFieldGroup(a.title as string);
+    const bGroup = getFieldGroup(b.title as string);
+    
+    if (aGroup.priority !== bGroup.priority) {
+      return aGroup.priority - bGroup.priority;
+    }
+    
+    return (a.title as string).localeCompare(b.title as string, 'zh-CN');
+  });
+
+  console.log('✅ [generateColumns] 列配置完成:', sortedColumns.length, '列，员工姓名列已固定左侧');
+
+  return sortedColumns;
 };

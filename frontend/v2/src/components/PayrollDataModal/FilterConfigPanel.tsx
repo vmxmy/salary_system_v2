@@ -1,6 +1,6 @@
-import React from 'react';
-import { Card, Collapse, Switch, Select, InputNumber, Button, Space } from 'antd';
-import { FilterOutlined } from '@ant-design/icons';
+import React, { useRef, useEffect } from 'react';
+import { Card, Collapse, Switch, Select, InputNumber, Button, Space, Tooltip, Popover } from 'antd';
+import { FilterOutlined, CloseOutlined, PushpinOutlined, PushpinFilled, QuestionCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ColumnFilterConfig } from '../../hooks/usePayrollDataProcessing';
 
@@ -35,11 +35,167 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
   dataSource
 }) => {
   const { t } = useTranslation(['payroll', 'common']);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [isPinned, setIsPinned] = React.useState(false);
+  const [isCollapsing, setIsCollapsing] = React.useState(false);
+  const collapseTimeoutRef = useRef<NodeJS.Timeout>();
 
   // 更新筛选配置
   const updateFilterConfig = (updates: Partial<ColumnFilterConfig>) => {
     onFilterConfigChange({ ...filterConfig, ...updates });
   };
+
+  // 智能收起逻辑
+  const handleMouseLeave = () => {
+    if (!isPinned && visible) {
+      setIsCollapsing(true);
+      collapseTimeoutRef.current = setTimeout(() => {
+        onClose();
+        setIsCollapsing(false);
+      }, 800); // 800ms延迟，给用户重新进入的机会
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (collapseTimeoutRef.current) {
+      clearTimeout(collapseTimeoutRef.current);
+      setIsCollapsing(false);
+    }
+  };
+
+  const handlePinToggle = () => {
+    setIsPinned(!isPinned);
+    if (collapseTimeoutRef.current) {
+      clearTimeout(collapseTimeoutRef.current);
+      setIsCollapsing(false);
+    }
+  };
+
+  const handleManualClose = () => {
+    if (collapseTimeoutRef.current) {
+      clearTimeout(collapseTimeoutRef.current);
+    }
+    setIsCollapsing(false);
+    onClose();
+  };
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      if (collapseTimeoutRef.current) {
+        clearTimeout(collapseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // ESC键关闭（当未固定时）
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && visible && !isPinned) {
+        handleManualClose();
+      }
+    };
+
+    if (visible) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [visible, isPinned]);
+
+  // 智能收起功能说明内容
+  const smartCollapseHelpContent = (
+    <div style={{ maxWidth: 280, fontSize: '13px' }}>
+      <div style={{ 
+        marginBottom: 12, 
+        fontWeight: 600, 
+        color: '#1890ff', 
+        borderBottom: '1px solid #f0f0f0',
+        paddingBottom: 6
+      }}>
+        🎯 智能面板控制
+      </div>
+      <div style={{ lineHeight: '1.7' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          marginBottom: 8,
+          padding: '4px 0'
+        }}>
+          <span style={{ 
+            minWidth: '20px', 
+            fontSize: '16px', 
+            marginRight: '8px' 
+          }}>🖱️</span>
+          <div>
+            <div style={{ fontWeight: 500, color: '#333' }}>智能收起</div>
+            <div style={{ color: '#666', fontSize: '12px' }}>
+              鼠标离开后 <span style={{ color: '#f5222d', fontWeight: 500 }}>800ms</span> 自动收起
+            </div>
+          </div>
+        </div>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          marginBottom: 8,
+          padding: '4px 0'
+        }}>
+          <span style={{ 
+            minWidth: '20px', 
+            fontSize: '16px', 
+            marginRight: '8px' 
+          }}>📌</span>
+          <div>
+            <div style={{ fontWeight: 500, color: '#333' }}>固定模式</div>
+            <div style={{ color: '#666', fontSize: '12px' }}>
+              点击图钉{isPinned && <span style={{ color: '#52c41a', fontWeight: 500 }}> (当前已固定)</span>}
+            </div>
+          </div>
+        </div>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          marginBottom: 8,
+          padding: '4px 0'
+        }}>
+          <span style={{ 
+            minWidth: '20px', 
+            fontSize: '16px', 
+            marginRight: '8px' 
+          }}>⌨️</span>
+          <div>
+            <div style={{ fontWeight: 500, color: '#333' }}>快捷键</div>
+            <div style={{ color: '#666', fontSize: '12px' }}>
+              按 <kbd style={{ 
+                padding: '1px 4px', 
+                background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)', 
+                border: '1px solid #d9d9d9', 
+                borderRadius: '3px',
+                fontSize: '11px',
+                fontFamily: 'monospace'
+              }}>ESC</kbd> 快速关闭
+            </div>
+          </div>
+        </div>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start',
+          padding: '4px 0'
+        }}>
+          <span style={{ 
+            minWidth: '20px', 
+            fontSize: '16px', 
+            marginRight: '8px' 
+          }}>✕</span>
+          <div>
+            <div style={{ fontWeight: 500, color: '#333' }}>手动关闭</div>
+            <div style={{ color: '#666', fontSize: '12px' }}>
+              点击关闭按钮随时关闭
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   // 自定义标签渲染函数 - 包含模式
   const renderIncludeTag = (props: any) => {
@@ -137,20 +293,82 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
     }
   };
 
-  if (!visible) {
-    return null;
-  }
+  if (!visible) return null;
 
   return (
     <Card 
+      ref={panelRef}
       title={
-        <Space>
-          <FilterOutlined />
-          <span>列筛选配置</span>
+        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Space>
+            <FilterOutlined />
+            <span>列筛选配置</span>
+            <Popover
+              content={smartCollapseHelpContent}
+              title={null}
+              trigger={["hover", "click"]}
+              placement="bottomLeft"
+              overlayStyle={{ 
+                zIndex: 1050,
+                maxWidth: 350
+              }}
+              mouseEnterDelay={0.5}
+              mouseLeaveDelay={0.1}
+              destroyTooltipOnHide
+            >
+              <QuestionCircleOutlined 
+                style={{ 
+                  color: '#999', 
+                  fontSize: '14px', 
+                  cursor: 'help',
+                  marginLeft: '4px',
+                  transition: 'color 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#1890ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#999';
+                }}
+              />
+            </Popover>
+            {isCollapsing && <span style={{ color: '#999', fontSize: '12px' }}>即将收起...</span>}
+          </Space>
+          <Space>
+            <Tooltip title={isPinned ? "取消固定" : "固定面板"}>
+              <Button
+                type="text"
+                size="small"
+                icon={isPinned ? <PushpinFilled /> : <PushpinOutlined />}
+                onClick={handlePinToggle}
+                style={{ 
+                  color: isPinned ? '#1890ff' : '#999',
+                  padding: '0 4px'
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="关闭面板 (ESC)">
+              <Button
+                type="text"
+                size="small"
+                icon={<CloseOutlined />}
+                onClick={handleManualClose}
+                style={{ color: '#999', padding: '0 4px' }}
+              />
+            </Tooltip>
+          </Space>
         </Space>
       }
       size="small"
-      style={{ marginBottom: 16 }}
+      style={{ 
+        marginBottom: 16,
+        border: isPinned ? '2px solid #1890ff' : undefined,
+        boxShadow: isPinned ? '0 4px 12px rgba(24, 144, 255, 0.2)' : undefined,
+        transition: 'all 0.3s ease',
+        opacity: isCollapsing ? 0.7 : 1
+      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <Collapse size="small">
         <Panel header="基础筛选" key="basic">
