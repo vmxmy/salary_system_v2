@@ -41,6 +41,54 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
   const [isCollapsing, setIsCollapsing] = React.useState(false);
   const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 动态获取所有列名
+  const availableColumns = React.useMemo(() => {
+    if (!dataSource || dataSource.length === 0) {
+      return [];
+    }
+    
+    // 从数据源中提取所有唯一的列名
+    const allColumns = new Set<string>();
+    dataSource.forEach(item => {
+      Object.keys(item).forEach(key => {
+        // 过滤掉一些不需要的字段
+        if (key !== 'id' && key !== 'key' && !key.startsWith('_')) {
+          allColumns.add(key);
+        }
+      });
+    });
+    
+    return Array.from(allColumns).sort();
+  }, [dataSource]);
+
+  // 按类别分组列名
+  const groupedColumns = React.useMemo(() => {
+    const groups = {
+      basic: [] as string[],
+      salary: [] as string[],
+      insurance: [] as string[],
+      deduction: [] as string[],
+      others: [] as string[]
+    };
+
+    availableColumns.forEach(column => {
+      const lowerColumn = column.toLowerCase();
+      if (lowerColumn.includes('姓名') || lowerColumn.includes('编号') || lowerColumn.includes('部门') || lowerColumn.includes('职位')) {
+        groups.basic.push(column);
+      } else if (lowerColumn.includes('工资') || lowerColumn.includes('薪') || lowerColumn.includes('津贴') || lowerColumn.includes('补贴') || lowerColumn.includes('奖金')) {
+        groups.salary.push(column);
+      } else if (lowerColumn.includes('保险') || lowerColumn.includes('公积金') || lowerColumn.includes('社保')) {
+        groups.insurance.push(column);
+      } else if (lowerColumn.includes('扣') || lowerColumn.includes('税') || lowerColumn.includes('费')) {
+        groups.deduction.push(column);
+      } else {
+        groups.others.push(column);
+      }
+    });
+
+    return groups;
+  }, [availableColumns]);
+
   // 更新筛选配置
   const updateFilterConfig = (updates: Partial<ColumnFilterConfig>) => {
     onFilterConfigChange({ ...filterConfig, ...updates });
@@ -445,13 +493,14 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
                 allowClear
                 showSearch
                 tokenSeparators={[',', '，', ';', '；', ' ']}
-                filterOption={false}
+                filterOption={(input, option) => {
+                  const label = typeof option?.children === 'string' ? option.children : String(option?.children || '');
+                  return label.toLowerCase().includes(input.toLowerCase());
+                }}
                 dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                 tagRender={renderIncludeTag}
               >
-                <Option value="员工姓名">员工姓名（精确匹配）</Option>
-                <Option value="部门名称">部门名称（精确匹配）</Option>
-                <Option value="职位名称">职位名称（精确匹配）</Option>
+                {/* 常用模式选项 */}
                 <Option value="*工资*">*工资*（包含"工资"）</Option>
                 <Option value="*保险*">*保险*（包含"保险"）</Option>
                 <Option value="*金额*">*金额*（包含"金额"）</Option>
@@ -461,6 +510,86 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
                 <Option value="*奖金*">*奖金*（包含"奖金"）</Option>
                 <Option value="基本*">基本*（以"基本"开头）</Option>
                 <Option value="*费额">*费额（以"费额"结尾）</Option>
+                
+                {/* 基础信息字段 */}
+                {groupedColumns.basic.length > 0 && (
+                  <>
+                    {groupedColumns.basic.map(columnName => (
+                      <Option key={columnName} value={columnName}>
+                        {columnName}（精确匹配）
+                      </Option>
+                    ))}
+                    {groupedColumns.basic.map(columnName => (
+                      <Option key={`*${columnName}*`} value={`*${columnName}*`}>
+                        *{columnName}*（包含匹配）
+                      </Option>
+                    ))}
+                  </>
+                )}
+                
+                {/* 薪资相关字段 */}
+                {groupedColumns.salary.length > 0 && (
+                  <>
+                    {groupedColumns.salary.map(columnName => (
+                      <Option key={columnName} value={columnName}>
+                        {columnName}（精确匹配）
+                      </Option>
+                    ))}
+                    {groupedColumns.salary.map(columnName => (
+                      <Option key={`*${columnName}*`} value={`*${columnName}*`}>
+                        *{columnName}*（包含匹配）
+                      </Option>
+                    ))}
+                  </>
+                )}
+                
+                {/* 保险公积金字段 */}
+                {groupedColumns.insurance.length > 0 && (
+                  <>
+                    {groupedColumns.insurance.map(columnName => (
+                      <Option key={columnName} value={columnName}>
+                        {columnName}（精确匹配）
+                      </Option>
+                    ))}
+                    {groupedColumns.insurance.map(columnName => (
+                      <Option key={`*${columnName}*`} value={`*${columnName}*`}>
+                        *{columnName}*（包含匹配）
+                      </Option>
+                    ))}
+                  </>
+                )}
+                
+                {/* 扣减相关字段 */}
+                {groupedColumns.deduction.length > 0 && (
+                  <>
+                    {groupedColumns.deduction.map(columnName => (
+                      <Option key={columnName} value={columnName}>
+                        {columnName}（精确匹配）
+                      </Option>
+                    ))}
+                    {groupedColumns.deduction.map(columnName => (
+                      <Option key={`*${columnName}*`} value={`*${columnName}*`}>
+                        *{columnName}*（包含匹配）
+                      </Option>
+                    ))}
+                  </>
+                )}
+                
+                {/* 其他字段 */}
+                {groupedColumns.others.length > 0 && (
+                  <>
+                    {groupedColumns.others.map(columnName => (
+                      <Option key={columnName} value={columnName}>
+                        {columnName}（精确匹配）
+                      </Option>
+                    ))}
+                    {groupedColumns.others.map(columnName => (
+                      <Option key={`*${columnName}*`} value={`*${columnName}*`}>
+                        *{columnName}*（包含匹配）
+                      </Option>
+                    ))}
+                  </>
+                )}
               </Select>
             </div>
             <div>
@@ -482,14 +611,36 @@ export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
                 allowClear
                 showSearch
                 tokenSeparators={[',', '，', ';', '；', ' ']}
-                filterOption={false}
+                filterOption={(input, option) => {
+                  const label = typeof option?.children === 'string' ? option.children : String(option?.children || '');
+                  return label.toLowerCase().includes(input.toLowerCase());
+                }}
                 dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                 tagRender={renderExcludeTag}
               >
+                {/* 常用排除模式 */}
                 <Option value="*id">*id</Option>
                 <Option value="*时间">*时间</Option>
                 <Option value="*日期">*日期</Option>
                 <Option value="*编号">*编号</Option>
+                
+                {/* 动态列名选项 - 按分组显示 */}
+                {Object.entries(groupedColumns).map(([groupName, columns]) => 
+                  columns.length > 0 ? (
+                    <React.Fragment key={groupName}>
+                      {columns.map(columnName => (
+                        <Option key={`exclude-${columnName}`} value={columnName}>
+                          {columnName}（精确排除）
+                        </Option>
+                      ))}
+                      {columns.map(columnName => (
+                        <Option key={`exclude-*${columnName}*`} value={`*${columnName}*`}>
+                          *{columnName}*（包含排除）
+                        </Option>
+                      ))}
+                    </React.Fragment>
+                  ) : null
+                )}
               </Select>
             </div>
           </Space>
