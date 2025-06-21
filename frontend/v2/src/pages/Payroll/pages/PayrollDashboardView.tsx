@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Select, Spin, Alert, Typography, Space, Button } from 'antd';
+import { Card, Row, Col, Statistic, Table, Select, Spin, Alert, Typography, Space, Button, Tag } from 'antd';
 import { ReloadOutlined, BarChartOutlined, PieChartOutlined, LineChartOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useMessage } from '../../../hooks/useMessage';
@@ -10,6 +10,7 @@ import {
   payrollViewsApi,
   type PayrollSummaryAnalysisView
 } from '../hooks';
+import styles from './PayrollDashboard.module.less';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -184,27 +185,33 @@ const PayrollDashboardView: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className={styles.dashboardContainer}>
       {/* 页面标题和控制区域 */}
-      <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
+      <Row justify="space-between" align="middle" className={styles.pageHeader}>
         <Col>
-          <Title level={2}>
-            <BarChartOutlined /> 薪资数据仪表板
+          <Title level={2} className={styles.pageTitle}>
+            <BarChartOutlined className={styles.titleIcon} /> 薪资数据仪表板
           </Title>
           <Text type="secondary">基于视图API的高性能薪资数据展示</Text>
         </Col>
         <Col>
-          <Space>
+          <Space className={styles.controlsContainer} size="middle">
             <Select
               placeholder="选择薪资周期"
-              style={{ width: 200 }}
+              className={styles.periodSelector}
               value={selectedPeriodId}
               onChange={handlePeriodChange}
               loading={periodsLoading}
             >
               {periods.map(period => (
                 <Option key={period.id} value={period.id}>
-                  {period.name} ({period.status_name})
+                  {period.name} 
+                  <Tag 
+                    color={period.status_name === '已完成' ? 'success' : 'processing'} 
+                    className={styles.statusTag}
+                  >
+                    {period.status_name}
+                  </Tag>
                 </Option>
               ))}
             </Select>
@@ -212,6 +219,7 @@ const PayrollDashboardView: React.FC = () => {
               icon={<ReloadOutlined />} 
               onClick={handleRefreshAll}
               loading={periodsLoading || runsLoading || entriesLoading}
+              className={styles.refreshButton}
             >
               刷新数据
             </Button>
@@ -226,47 +234,48 @@ const PayrollDashboardView: React.FC = () => {
           description={periodsError || runsError || entriesError}
           type="error"
           showIcon
-          style={{ marginBottom: '24px' }}
+          className={styles.sectionMargin}
         />
       )}
 
       {/* 总体统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[24, 24]} className={styles.cardGrid}>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className={styles.statCard} hoverable>
             <Statistic
               title="活跃薪资周期"
               value={periodStats.activePeriods}
               suffix={`/ ${periodStats.totalPeriods}`}
-              prefix={<PieChartOutlined />}
+              prefix={<PieChartOutlined className={styles.primaryStat} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className={styles.statCard} hoverable>
             <Statistic
               title="薪资运行总数"
               value={runStats.totalRuns}
-              prefix={<LineChartOutlined />}
+              prefix={<LineChartOutlined className={styles.primaryStat} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className={styles.statCard} hoverable>
             <Statistic
               title="薪资条目总数"
               value={entryStats.totalEntries}
-              prefix={<BarChartOutlined />}
+              prefix={<BarChartOutlined className={styles.primaryStat} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className={styles.statCard} hoverable>
             <Statistic
               title="平均应发合计"
               value={entryStats.averageGrossPay}
               precision={2}
               prefix="¥"
+              valueStyle={{ color: '#3b82f6' }}
             />
           </Card>
         </Col>
@@ -274,48 +283,48 @@ const PayrollDashboardView: React.FC = () => {
 
       {/* 当前周期详细统计 */}
       {selectedPeriodId && (
-        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Row gutter={[24, 24]} className={styles.cardGrid}>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card className={styles.statCard} hoverable>
               <Statistic
                 title="总应发合计"
                 value={entryStats.totalGrossPay}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: '#3f8600' }}
+                valueStyle={{ color: '#10b981' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card className={styles.statCard} hoverable>
               <Statistic
                 title="总实发合计"
                 value={entryStats.totalNetPay}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: '#3b82f6' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card className={styles.statCard} hoverable>
               <Statistic
                 title="总扣除金额"
                 value={entryStats.totalDeductions}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: '#cf1322' }}
+                valueStyle={{ color: '#ef4444' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card className={styles.statCard} hoverable>
               <Statistic
                 title="个人所得税"
                 value={entryStats.totalIncomeTax}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: '#fa8c16' }}
+                valueStyle={{ color: '#f59e0b' }}
               />
             </Card>
           </Col>
@@ -324,9 +333,14 @@ const PayrollDashboardView: React.FC = () => {
 
       {/* 收入和扣除明细表格 */}
       {selectedPeriodId && (
-        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Row gutter={[24, 24]} className={styles.cardGrid}>
           <Col xs={24} lg={12}>
-            <Card title="收入明细分解" loading={entriesLoading}>
+            <Card 
+              title="收入明细分解" 
+              loading={entriesLoading}
+              className={styles.tableCard}
+              bordered={false}
+            >
               <Table
                 columns={earningsColumns}
                 dataSource={earningsTableData}
@@ -337,7 +351,12 @@ const PayrollDashboardView: React.FC = () => {
             </Card>
           </Col>
           <Col xs={24} lg={12}>
-            <Card title="扣除明细分解" loading={entriesLoading}>
+            <Card 
+              title="扣除明细分解" 
+              loading={entriesLoading}
+              className={styles.tableCard}
+              bordered={false}
+            >
               <Table
                 columns={deductionsColumns}
                 dataSource={deductionsTableData}
@@ -352,7 +371,12 @@ const PayrollDashboardView: React.FC = () => {
 
       {/* 部门汇总分析 */}
       {selectedPeriodId && (
-        <Card title="部门薪资汇总分析" loading={summaryLoading}>
+        <Card 
+          title="部门薪资汇总分析" 
+          loading={summaryLoading}
+          className={styles.tableCard}
+          bordered={false}
+        >
           <Table
             columns={summaryColumns}
             dataSource={summaryData}

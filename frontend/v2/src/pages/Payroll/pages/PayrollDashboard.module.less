@@ -1,0 +1,78 @@
+@import '../../../styles/variables.less';
+
+.dashboardContainer {
+  padding: @spacing-6;
+}
+
+.pageHeader {
+  margin-bottom: @spacing-6;
+}
+
+.pageTitle {
+  display: flex;
+  align-items: center;
+  gap: @spacing-2;
+  margin-bottom: @spacing-2;
+  
+  .titleIcon {
+    color: @primary-color;
+    margin-right: @spacing-2;
+  }
+}
+
+.sectionMargin {
+  margin-bottom: @spacing-6;
+}
+
+.cardGrid {
+  margin-bottom: @spacing-6;
+}
+
+.statCard {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: @box-shadow-md;
+    transform: translateY(-2px);
+  }
+}
+
+.primaryStat {
+  color: @primary-color;
+}
+
+.successStat {
+  color: @success-color;
+}
+
+.warningStat {
+  color: @warning-color;
+}
+
+.errorStat {
+  color: @error-color;
+}
+
+.tableCard {
+  .ant-card-head-title {
+    font-weight: 500;
+  }
+}
+
+.statusTag {
+  margin-left: @spacing-2;
+}
+
+.controlsContainer {
+  display: flex;
+  gap: @spacing-3;
+}
+
+.periodSelector {
+  min-width: 200px;
+}
+
+.refreshButton {
+  display: flex;
+  align-items: center;
+} 
