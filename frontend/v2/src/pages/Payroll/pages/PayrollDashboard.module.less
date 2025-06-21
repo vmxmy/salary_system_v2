@@ -75,4 +75,141 @@
 .refreshButton {
   display: flex;
   align-items: center;
+}
+
+// 步骤条相关样式
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: @spacing-2;
+  
+  .cardTitleIcon {
+    color: @primary-color;
+  }
+}
+
+.workflowSteps {
+  margin: @spacing-4 0;
+  
+  :global {
+    .ant-steps-item {
+      cursor: pointer;
+      
+      &:hover {
+        .ant-steps-item-title {
+          color: @primary-color;
+        }
+      }
+    }
+    
+    .ant-steps-item-finish {
+      .ant-steps-item-icon {
+        background-color: @success-color;
+        border-color: @success-color;
+      }
+    }
+    
+    .ant-steps-item-process {
+      .ant-steps-item-icon {
+        background-color: @primary-color;
+        border-color: @primary-color;
+      }
+    }
+    
+    .ant-steps-item-wait {
+      .ant-steps-item-icon {
+        background-color: @background-color-light;
+        border-color: @border-color-base;
+      }
+    }
+  }
+}
+
+.stepContent {
+  margin-top: @spacing-6;
+  padding: @spacing-4;
+  background-color: @background-color-light;
+  border-radius: @border-radius-base;
+}
+
+.stepDescription {
+  p {
+    margin-bottom: @spacing-2;
+    color: @text-color-secondary;
+    line-height: @line-height-base;
+  }
+}
+
+// 快捷操作区域样式
+.quickActions {
+  padding: @spacing-2 0;
+}
+
+.actionButton {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  transition: all 0.3s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: @box-shadow-sm;
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  :global {
+    .anticon {
+      margin-right: @spacing-2;
+      font-size: 16px;
+    }
+  }
+}
+
+// 可交互清单样式
+.checklistContainer {
+  padding: @spacing-2 0;
+}
+
+.checklistItem {
+  width: 100%;
+  margin-bottom: @spacing-2;
+  
+  :global {
+    .ant-checkbox-wrapper {
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    .ant-checkbox {
+      top: 2px;
+    }
+  }
+}
+
+.checklistText {
+  margin-left: @spacing-2;
+  font-size: @font-size-base;
+  line-height: @line-height-base;
+}
+
+.checklistSummary {
+  margin-top: @spacing-6;
+  padding-top: @spacing-4;
+  border-top: 1px solid @border-color-light;
+  
+  :global {
+    .ant-progress {
+      margin-bottom: @spacing-3;
+    }
+  }
+}
+
+.checklistStatus {
+  display: flex;
+  justify-content: flex-end;
 } 

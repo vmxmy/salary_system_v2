@@ -1,6 +1,20 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Select, Spin, Alert, Typography, Space, Button, Tag } from 'antd';
-import { ReloadOutlined, BarChartOutlined, PieChartOutlined, LineChartOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Statistic, Table, Select, Spin, Alert, Typography, Space, Button, Tag, Steps, Popover, message, Checkbox, Progress } from 'antd';
+import { 
+  ReloadOutlined, 
+  BarChartOutlined, 
+  PieChartOutlined, 
+  LineChartOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
+  ClockCircleOutlined,
+  FileAddOutlined,
+  CalculatorOutlined,
+  AuditOutlined,
+  BankOutlined,
+  FileDoneOutlined,
+  CheckSquareOutlined
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useMessage } from '../../../hooks/useMessage';
 import {
@@ -14,6 +28,7 @@ import styles from './PayrollDashboard.module.less';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { Step } = Steps;
 
 /**
  * 薪资仪表板视图页面
@@ -26,6 +41,91 @@ const PayrollDashboardView: React.FC = () => {
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
   const [summaryData, setSummaryData] = useState<PayrollSummaryAnalysisView[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [checklist, setChecklist] = useState<{ [key: string]: boolean }>({
+    dataImported: false,
+    dataVerified: false,
+    calculationCompleted: false,
+    approvalObtained: false,
+    bankFileGenerated: false
+  });
+
+  // 从本地存储加载清单状态
+  useEffect(() => {
+    const savedChecklist = localStorage.getItem('payrollChecklist');
+    if (savedChecklist) {
+      try {
+        setChecklist(JSON.parse(savedChecklist));
+      } catch (e) {
+        console.error('Failed to parse saved checklist:', e);
+      }
+    }
+  }, []);
+
+  // 保存清单状态到本地存储
+  const saveChecklist = (newChecklist: typeof checklist) => {
+    localStorage.setItem('payrollChecklist', JSON.stringify(newChecklist));
+    setChecklist(newChecklist);
+  };
+
+  // 处理清单项变更
+  const handleChecklistChange = (key: string, checked: boolean) => {
+    const newChecklist = { ...checklist, [key]: checked };
+    saveChecklist(newChecklist);
+  };
+
+  // 处理全选/取消全选
+  const handleCheckAll = (checked: boolean) => {
+    const newChecklist = Object.keys(checklist).reduce((acc, key) => {
+      acc[key] = checked;
+      return acc;
+    }, {} as typeof checklist);
+    saveChecklist(newChecklist);
+  };
+
+  // 检查是否全部完成
+  const isAllChecked = Object.values(checklist).every(v => v);
+  // 检查是否部分完成
+  const isSomeChecked = Object.values(checklist).some(v => v) && !isAllChecked;
+
+  // 薪资流程步骤定义
+  const payrollSteps = [
+    {
+      title: '创建周期',
+      description: '创建新的薪资周期',
+      icon: <FileAddOutlined />,
+      status: 'finish',
+      content: '创建薪资周期是薪资处理的第一步，需要设置周期名称、开始和结束日期等基本信息。'
+    },
+    {
+      title: '数据录入',
+      description: '录入薪资基础数据',
+      icon: <SyncOutlined />,
+      status: 'finish',
+      content: '在此阶段，需要录入或导入员工的考勤、加班、奖金等基础数据。'
+    },
+    {
+      title: '薪资计算',
+      description: '执行薪资计算',
+      icon: <CalculatorOutlined />,
+      status: 'process',
+      content: '系统根据配置的薪资规则和导入的基础数据，自动计算每位员工的薪资。'
+    },
+    {
+      title: '审核确认',
+      description: '审核薪资数据',
+      icon: <AuditOutlined />,
+      status: 'wait',
+      content: '财务人员和管理层需要审核计算结果，确保数据准确无误。'
+    },
+    {
+      title: '发放薪资',
+      description: '执行薪资发放',
+      icon: <BankOutlined />,
+      status: 'wait',
+      content: '完成审核后，系统生成银行代发文件，执行实际的薪资发放操作。'
+    }
+  ];
 
   // 使用视图Hooks
   const {
@@ -184,6 +284,13 @@ const PayrollDashboardView: React.FC = () => {
     },
   ];
 
+  // 处理步骤点击事件
+  const handleStepClick = (current: number) => {
+    setCurrentStep(current);
+    message.info(`您点击了"${payrollSteps[current].title}"步骤`);
+    // 这里可以根据步骤执行相应的操作，如跳转到对应的功能页面
+  };
+
   return (
     <div className={styles.dashboardContainer}>
       {/* 页面标题和控制区域 */}
@@ -330,6 +437,203 @@ const PayrollDashboardView: React.FC = () => {
           </Col>
         </Row>
       )}
+
+      {/* 智能流程引导 - 交互式步骤条 */}
+      <Card 
+        title={
+          <div className={styles.cardTitle}>
+            <FileDoneOutlined className={styles.cardTitleIcon} />
+            <span>智能薪资流程引导</span>
+          </div>
+        }
+        className={`${styles.tableCard} ${styles.sectionMargin}`}
+        bordered={false}
+      >
+        <Steps 
+          current={currentStep} 
+          onChange={handleStepClick}
+          className={styles.workflowSteps}
+          labelPlacement="vertical"
+        >
+          {payrollSteps.map((step, index) => (
+            <Step 
+              key={index}
+              title={step.title}
+              description={step.description}
+              icon={step.icon}
+              status={step.status as any}
+            />
+          ))}
+        </Steps>
+        <div className={styles.stepContent}>
+          <Popover 
+            content={payrollSteps[currentStep].content} 
+            title={`${payrollSteps[currentStep].title}步骤说明`}
+            trigger="hover"
+          >
+            <div className={styles.stepDescription}>
+              <p>{payrollSteps[currentStep].content}</p>
+              <Button type="link">了解更多</Button>
+            </div>
+          </Popover>
+        </div>
+      </Card>
+
+      {/* 快捷操作区域 */}
+      <Card 
+        title={
+          <div className={styles.cardTitle}>
+            <CalculatorOutlined className={styles.cardTitleIcon} />
+            <span>快捷操作</span>
+          </div>
+        }
+        className={`${styles.tableCard} ${styles.sectionMargin}`}
+        bordered={false}
+      >
+        <div className={styles.quickActions}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Button 
+                type="primary" 
+                size="large" 
+                icon={<FileAddOutlined />} 
+                className={styles.actionButton}
+                block
+              >
+                批量导入数据
+              </Button>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Button 
+                size="large" 
+                icon={<CalculatorOutlined />} 
+                className={styles.actionButton}
+                block
+              >
+                执行薪资计算
+              </Button>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Button 
+                size="large" 
+                icon={<AuditOutlined />} 
+                className={styles.actionButton}
+                block
+              >
+                审核薪资数据
+              </Button>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Button 
+                size="large" 
+                icon={<BankOutlined />} 
+                className={styles.actionButton}
+                block
+              >
+                生成银行代发文件
+              </Button>
+            </Col>
+          </Row>
+        </div>
+      </Card>
+
+      {/* 完成要求清单 */}
+      <Card 
+        title={
+          <div className={styles.cardTitle}>
+            <CheckSquareOutlined className={styles.cardTitleIcon} />
+            <span>薪资处理完成要求</span>
+          </div>
+        }
+        className={`${styles.tableCard} ${styles.sectionMargin}`}
+        bordered={false}
+        extra={
+          <Checkbox 
+            indeterminate={isSomeChecked} 
+            checked={isAllChecked}
+            onChange={(e) => handleCheckAll(e.target.checked)}
+          >
+            全选
+          </Checkbox>
+        }
+      >
+        <div className={styles.checklistContainer}>
+          <Row gutter={[24, 16]}>
+            <Col xs={24} md={12}>
+              <Checkbox
+                checked={checklist.dataImported}
+                onChange={(e) => handleChecklistChange('dataImported', e.target.checked)}
+                className={styles.checklistItem}
+              >
+                <span className={styles.checklistText}>
+                  已导入所有员工的基础薪资数据
+                </span>
+              </Checkbox>
+            </Col>
+            <Col xs={24} md={12}>
+              <Checkbox
+                checked={checklist.dataVerified}
+                onChange={(e) => handleChecklistChange('dataVerified', e.target.checked)}
+                className={styles.checklistItem}
+              >
+                <span className={styles.checklistText}>
+                  已核对所有导入数据的准确性
+                </span>
+              </Checkbox>
+            </Col>
+            <Col xs={24} md={12}>
+              <Checkbox
+                checked={checklist.calculationCompleted}
+                onChange={(e) => handleChecklistChange('calculationCompleted', e.target.checked)}
+                className={styles.checklistItem}
+              >
+                <span className={styles.checklistText}>
+                  已完成薪资计算并检查计算结果
+                </span>
+              </Checkbox>
+            </Col>
+            <Col xs={24} md={12}>
+              <Checkbox
+                checked={checklist.approvalObtained}
+                onChange={(e) => handleChecklistChange('approvalObtained', e.target.checked)}
+                className={styles.checklistItem}
+              >
+                <span className={styles.checklistText}>
+                  已获得管理层对薪资数据的审批
+                </span>
+              </Checkbox>
+            </Col>
+            <Col xs={24} md={12}>
+              <Checkbox
+                checked={checklist.bankFileGenerated}
+                onChange={(e) => handleChecklistChange('bankFileGenerated', e.target.checked)}
+                className={styles.checklistItem}
+              >
+                <span className={styles.checklistText}>
+                  已生成银行代发文件并确认无误
+                </span>
+              </Checkbox>
+            </Col>
+          </Row>
+          <div className={styles.checklistSummary}>
+            <Progress 
+              percent={Math.round(Object.values(checklist).filter(Boolean).length / Object.keys(checklist).length * 100)} 
+              status="active" 
+              strokeColor={{
+                '0%': '#3b82f6',
+                '100%': '#10b981',
+              }}
+            />
+            <div className={styles.checklistStatus}>
+              {isAllChecked ? (
+                <Tag color="success" icon={<CheckCircleOutlined />}>所有要求已完成</Tag>
+              ) : (
+                <Tag color="processing" icon={<SyncOutlined spin />}>处理中</Tag>
+              )}
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* 收入和扣除明细表格 */}
       {selectedPeriodId && (
