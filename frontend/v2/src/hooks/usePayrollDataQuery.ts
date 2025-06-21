@@ -68,30 +68,66 @@ export function usePayrollDataQuery(
         const response = await apiClient.get(`/reports/payroll-modal/period/${filters.periodId}?limit=${filters.size || 100}`);
         const modalDataList = response.data;
         
-        console.log('✅ [usePayrollDataQuery] 批量模态框API响应:', modalDataList.length);
-        
-        // 🔍 选择"职位等级"字段进行详细追踪
-        const TRACE_FIELD = '职位等级';
-        if (modalDataList[0] && modalDataList[0].员工详细信息?.工作信息?.职位等级) {
-          console.log(`🔍 [API原始] ${TRACE_FIELD}:`, modalDataList[0].员工详细信息.工作信息.职位等级, `(类型: ${typeof modalDataList[0].员工详细信息.工作信息.职位等级})`);
-        }
+        // 增强的React元素检测和清理函数 - 移到前面
+        const isReactElement = (val: any): boolean => {
+          return val && (
+            val.$$typeof === Symbol.for('react.element') ||
+            val.$$typeof === Symbol.for('react.portal') ||
+            val.$$typeof === Symbol.for('react.fragment') ||
+            (typeof val === 'object' && val !== null && (
+              val.$$typeof || 
+              val.$typeof || 
+              (val.type && val.props) ||
+              (val._owner !== undefined)
+            ))
+          );
+        };
+
+        console.log('✅ [usePayrollDataQuery] API响应数据:', modalDataList.length, '条记录');
+
+        // 深度清理函数，彻底移除React元素
+        const deepCleanReactElements = (obj: any): any => {
+          if (obj === null || obj === undefined) return obj;
+          
+          if (isReactElement(obj)) {
+            console.warn(`[深度清理] 发现并移除React元素:`, obj);
+            return '[已清理的React元素]';
+          }
+          
+          if (Array.isArray(obj)) {
+            return obj.map(item => deepCleanReactElements(item));
+          }
+          
+          if (typeof obj === 'object') {
+            const cleaned: any = {};
+            Object.entries(obj).forEach(([key, value]) => {
+              cleaned[key] = deepCleanReactElements(value);
+            });
+            return cleaned;
+          }
+          
+          return obj;
+        };
 
         // 安全地展开对象字段的辅助函数
         const safeSpread = (obj: any): Record<string, any> => {
           if (!obj || typeof obj !== 'object') return {};
+          
+          // 先深度清理React元素
+          const cleanedObj = deepCleanReactElements(obj);
+          
           const result: Record<string, any> = {};
-          Object.entries(obj).forEach(([key, value]) => {
-            // 确保所有值都是原始类型，防止React元素进入数据
+          Object.entries(cleanedObj).forEach(([key, value]) => {
+            // 再次确保所有值都是原始类型
             if (typeof value === 'object' && value !== null) {
-              // 检查是否是React元素
-              const isReactElement = (value as any).$$typeof || (value as any).$typeof || ((value as any).type && (value as any).props);
-              if (isReactElement) {
-                console.warn(`[数据处理] 在字段 "${key}" 中发现React元素，跳过:`, value);
-                result[key] = '[React元素]';
-              } else if (Array.isArray(value)) {
+              if (Array.isArray(value)) {
                 result[key] = value; // 保持数组
               } else {
-                result[key] = JSON.stringify(value); // 转换普通对象为字符串
+                try {
+                  result[key] = JSON.stringify(value); // 转换普通对象为字符串
+                } catch (e) {
+                  result[key] = '[无法序列化的对象]';
+                }
               }
             } else {
               result[key] = value; // 保持原始类型
@@ -171,24 +207,13 @@ export function usePayrollDataQuery(
           };
         });
 
-        console.log('✅ [usePayrollDataQuery] 数据转换完成:', processedData.length);
+        console.log('✅ [usePayrollDataQuery] 数据转换完成:', processedData.length, '条记录');
         
-        // 🔍 追踪处理后的职位等级字段
-        if (processedData[0] && processedData[0][TRACE_FIELD] !== undefined) {
-          console.log(`🔍 [数据转换后] ${TRACE_FIELD}:`, processedData[0][TRACE_FIELD], `(类型: ${typeof processedData[0][TRACE_FIELD]})`);
-        }
-        
-        // 🧹 深度清理数据 - 使用深度清理函数确保没有React元素进入缓存
-        const cleanedData = processedData.map((item: any, index: number) => {
+        // 深度清理数据 - 确保没有React元素进入缓存
+        const cleanedData = processedData.map((item: any) => {
           const cleanedItem: any = {};
           Object.keys(item).forEach(key => {
-            // 使用深度清理函数处理每个值
             cleanedItem[key] = deepCleanValue((item as any)[key]);
-            
-            // 🔍 特别关注目标字段
-            if (key === TRACE_FIELD) {
-              console.log(`🧹 [深度清理-${TRACE_FIELD}] 清理前:`, (item as any)[key], `清理后:`, cleanedItem[key]);
-            }
           });
           return cleanedItem;
         });
@@ -215,11 +240,6 @@ export function usePayrollDataQuery(
         });
         
         console.log('✅ [usePayrollDataQuery] 数据验证完成:', validatedData.length);
-        
-        // 🔍 追踪验证后的职位等级字段
-        if (validatedData[0] && validatedData[0][TRACE_FIELD] !== undefined) {
-          console.log(`🔍 [数据验证后] ${TRACE_FIELD}:`, validatedData[0][TRACE_FIELD], `(类型: ${typeof validatedData[0][TRACE_FIELD]})`);
-        }
 
         const result: PayrollDataResponse = {
           data: validatedData,

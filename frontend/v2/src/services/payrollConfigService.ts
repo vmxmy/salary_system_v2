@@ -2,7 +2,7 @@ import apiClient from '../api/apiClient';
 import type { ApiListResponse } from '../pages/Payroll/types/payrollTypes'; // Corrected path
 import type { PayrollComponentDefinition } from '../pages/Payroll/types/payrollTypes';
 
-const PAYROLL_COMPONENTS_ENDPOINT = '/views-optimized/payroll-component-definitions';
+const PAYROLL_COMPONENTS_ENDPOINT = '/config/payroll-component-definitions';
 
 /**
  * Fetches a list of payroll component definitions.

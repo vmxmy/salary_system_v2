@@ -17,7 +17,7 @@ export const usePayrollComponents = () => {
     setLoadingComponents(true);
     try {
       const response = await getPayrollComponentDefinitions({ 
-        is_enabled: true,
+        is_active: true, // 修复：使用is_active替代is_enabled，与后端API匹配
         size: 100
       });
       

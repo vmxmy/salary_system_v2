@@ -69,37 +69,61 @@ export const usePayrollSearch = <T>(
     searchTime: 0,
   });
 
-  // 创建搜索引擎实例
+  // 创建搜索引擎实例 - 修复竞态条件问题
   const searchEngine = useMemo(() => {
-    console.log(`🔍 [usePayrollSearch] 创建搜索引擎`, {
+    console.log(`🔍 [usePayrollSearch] 创建/更新搜索引擎`, {
       dataLength: data.length,
-      sampleData: data.slice(0, 2),
+      hasData: data.length > 0,
+      sampleData: data.slice(0, 1),
       searchKeys: finalConfig.keys
     });
+    
+    // 即使是空数组也创建搜索引擎，这样后续可以正确更新
     return new PayrollSearchEngine(data, finalConfig);
   }, [data, finalConfig]);
 
-  // 更新搜索引擎数据 - 移除自动重新搜索，避免循环
+  // 🔄 修复：监听数据变化并重新处理搜索状态 - 避免循环依赖
   useEffect(() => {
-    searchEngine.updateData(data);
-    // 移除自动重新搜索，改为只更新数据
-    // 如果需要重新搜索，应该由用户手动触发
-  }, [data, searchEngine]);
+    console.log(`🔄 [usePayrollSearch] 数据变化检测`, {
+      dataLength: data.length,
+      hasCurrentQuery: !!searchState.query.trim()
+    });
 
-  // 执行搜索的核心函数
-  const performSearch = useCallback((query: string, mode: SearchMode = SearchMode.AUTO) => {
-    console.log(`🔍 [usePayrollSearch] 开始搜索`, {
+    // 更新搜索引擎数据
+    searchEngine.updateData(data);
+    
+    // 只在数据从空变为非空时，初始化显示所有数据
+    if (data.length > 0 && searchState.results.length === 0 && !searchState.query.trim()) {
+      console.log(`🔄 [usePayrollSearch] 初始化显示所有数据`);
+      setSearchState(prev => ({
+        ...prev,
+        results: data.map(item => ({ item })),
+        totalResults: data.length,
+      }));
+    }
+  }, [data.length]); // 只依赖数据长度变化
+
+  // 内部搜索函数 - 避免依赖循环
+  const performSearchInternal = useCallback((query: string, mode: SearchMode = SearchMode.AUTO) => {
+    console.log(`🔍 [usePayrollSearch] 执行内部搜索`, {
       query,
       mode,
       dataLength: data.length,
       searchEngineKeys: finalConfig.keys
     });
 
+    if (data.length === 0) {
+      console.log(`⚠️ [usePayrollSearch] 数据为空，跳过搜索`);
+      return;
+    }
+
     const startTime = performance.now();
     
     setSearchState(prev => ({
       ...prev,
       isSearching: true,
+      query,
+      searchMode: mode,
     }));
 
     try {
@@ -107,20 +131,18 @@ export const usePayrollSearch = <T>(
       const endTime = performance.now();
       const searchTime = endTime - startTime;
 
-      console.log(`🔍 [usePayrollSearch] 搜索结果`, {
+      console.log(`🔍 [usePayrollSearch] 搜索完成`, {
         query,
         mode,
         resultsCount: results.length,
         searchTime: `${searchTime.toFixed(2)}ms`,
-        sampleResults: results.slice(0, 3).map(r => r.item)
+        sampleResults: results.slice(0, 2).map(r => r.item)
       });
 
       setSearchState(prev => ({
         ...prev,
-        query,
         results,
         isSearching: false,
-        searchMode: mode,
         totalResults: results.length,
         searchTime,
       }));
@@ -146,7 +168,12 @@ export const usePayrollSearch = <T>(
         totalResults: 0,
       }));
     }
-  }, [searchEngine, finalConfig, data.length]); // 恢复必要的依赖
+  }, [searchEngine, finalConfig, data.length]);
+
+  // 执行搜索的核心函数 - 公开接口
+  const performSearch = useCallback((query: string, mode: SearchMode = SearchMode.AUTO) => {
+    performSearchInternal(query, mode);
+  }, [performSearchInternal]);
 
   // 创建防抖搜索函数
   const debouncedSearch = useMemo(() => {
@@ -228,16 +255,7 @@ export const usePayrollSearch = <T>(
     return searchEngine.getSuggestions(query, finalConfig.maxSuggestions);
   }, [searchEngine, finalConfig.maxSuggestions]);
 
-  // 初始化时显示所有数据
-  useEffect(() => {
-    if (data.length > 0 && searchState.results.length === 0 && !searchState.query) {
-      setSearchState(prev => ({
-        ...prev,
-        results: data.map(item => ({ item })),
-        totalResults: data.length,
-      }));
-    }
-  }, [data, searchState.results.length, searchState.query]);
+  // 移除冗余的初始化逻辑 - 现在由数据变化监听处理
 
   return {
     // 搜索状态

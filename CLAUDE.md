@@ -48,4 +48,6 @@ docker-compose down     # Stop all services
 
 ## Architecture
 
-[... rest of the existing content remains unchanged ...]
+## Development Notes
+
+- 前后端服务器都已经启动,并且都是热加载状态,你不用启动服务,只需要调用和测试.

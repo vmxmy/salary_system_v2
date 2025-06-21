@@ -52,7 +52,7 @@ const DynamicMappingTable: React.FC<DynamicMappingTableProps> = ({
         
         const response = await getPayrollComponentDefinitions({
           is_active: true,
-          size: 200 // 获取更多数据
+          size: 100 // 修复：将size从200改为100，符合后端验证限制
         });
         
         if (response.data && Array.isArray(response.data)) {

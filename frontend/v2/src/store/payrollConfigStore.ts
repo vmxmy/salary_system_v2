@@ -22,7 +22,7 @@ const usePayrollConfigStore = create<PayrollConfigState>((set, get) => ({
       // 确保加载所有组件定义，设置较大的size参数
       const requestParams = {
         size: 100, // 设置为API允许的最大值100
-        is_enabled: true, // v2 API使用is_enabled参数
+        is_active: true, // 修复：使用is_active替代is_enabled，与后端API匹配
         ...params
       };
       const response: ApiListResponse<PayrollComponentDefinition> = await getPayrollComponentDefinitions(requestParams);

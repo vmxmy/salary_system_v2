@@ -30,6 +30,7 @@ import { usePayrollDataPresets } from '../../../hooks/usePayrollDataPresets';
 // 新建的拆分组件导入
 import { usePayrollDataProcessing } from '../../../hooks/usePayrollDataProcessing';
 import { SearchPanel } from '../../../components/PayrollDataModal/SearchPanel';
+import { FilterConfigPanel } from '../../../components/PayrollDataModal/FilterConfigPanel';
 import { generateColumns } from '../../../components/PayrollDataModal/ColumnConfig';
 import { exportToExcel } from '../../../services/payrollExportService';
 import { 
@@ -106,38 +107,21 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const dataSource = useMemo(() => {
     if (!queryResult?.data) return [];
     
-    const TRACE_FIELD = '职位等级';
-    console.log('🔍 [API数据源] 接收到的数据条数:', queryResult.data.length);
-    
-    // 🔍 追踪目标字段在数据源阶段的状态
-    if (queryResult.data[0] && queryResult.data[0][TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [Modal数据源接收] ${TRACE_FIELD}:`, queryResult.data[0][TRACE_FIELD], `(类型: ${typeof queryResult.data[0][TRACE_FIELD]})`);
-    }
+    console.log('📊 [API数据源] 接收到的数据条数:', queryResult.data.length);
     
     const result = queryResult.data.map((item, index) => ({
       ...item,
       id: item.id || index,
     }));
     
-    // 🔍 追踪目标字段在映射后的状态
-    if (result[0] && result[0][TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [Modal数据源映射后] ${TRACE_FIELD}:`, result[0][TRACE_FIELD], `(类型: ${typeof result[0][TRACE_FIELD]})`);
-    }
-    
     console.log('📊 [数据源处理] 最终数据条数:', result.length);
     return result;
   }, [queryResult]);
 
-  // 🎯 数据源验证 - 最后一道防线
+  // 数据源验证 - 最后一道防线
   const validatedDataSource = useMemo(() => {
-    const TRACE_FIELD = '职位等级';
     console.log('🔍 [数据验证] 开始验证数据源...');
     let reactElementCount = 0;
-    
-    // 🔍 追踪目标字段在验证前的状态
-    if (dataSource[0] && dataSource[0][TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [Modal验证前] ${TRACE_FIELD}:`, dataSource[0][TRACE_FIELD], `(类型: ${typeof dataSource[0][TRACE_FIELD]})`);
-    }
     
     const validated = dataSource.map((item, index) => {
       const validatedItem: any = { ...item };
@@ -151,11 +135,6 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             reactElementCount++;
             console.error(`❌ [数据验证] 第${index}条记录的字段"${key}"中发现React元素:`, value);
             validatedItem[key] = '[数据错误:React元素]';
-            
-            // 🔍 特别关注目标字段
-            if (key === TRACE_FIELD) {
-              console.error(`🚨 [CRITICAL TRACE] ${TRACE_FIELD} 字段被React元素污染!`, value);
-            }
           }
         }
       });
@@ -163,80 +142,13 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       return validatedItem;
     });
     
-    // 🔍 追踪目标字段在验证后的状态
-    if (validated[0] && validated[0][TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [Modal验证后] ${TRACE_FIELD}:`, validated[0][TRACE_FIELD], `(类型: ${typeof validated[0][TRACE_FIELD]})`);
-    }
-    
     if (reactElementCount > 0) {
       console.error(`❌ [数据验证] 总共发现 ${reactElementCount} 个React元素在数据中!`);
     } else {
       console.log('✅ [数据验证] 数据源验证通过，无React元素');
     }
     
-    // ========================[ 核心修改点 ]========================
-    // 在将数据传递给表格前，深度冻结每一条记录
-    console.log('🧊 [数据冻结] 准备冻结数据...');
-    
-    /**
-     * 深度冻结一个对象，使其所有嵌套属性都变为只读。
-     * @param obj 需要深度冻结的对象
-     * @returns 被深度冻结的对象
-     */
-    function deepFreeze<T extends object>(obj: T): T {
-      // 如果对象已经是冻结的，或者不是一个对象，则直接返回
-      if (obj === null || typeof obj !== 'object' || Object.isFrozen(obj)) {
-        return obj;
-      }
-
-      // 递归冻结所有自身的属性
-      Object.getOwnPropertyNames(obj).forEach(prop => {
-        const value = (obj as any)[prop];
-        // 如果属性值是对象，则递归调用 deepFreeze
-        if (value && typeof value === 'object') {
-          deepFreeze(value);
-        }
-      });
-
-      // 最后，冻结对象自身
-      return Object.freeze(obj);
-    }
-    
-    const frozenData = validated.map(record => {
-      try {
-        // 深度冻结对象及其所有属性
-        return deepFreeze({...record});
-      } catch (error) {
-        console.error('❌ [数据冻结] 冻结记录失败:', error);
-        return record; // 如果冻结失败，返回原始记录
-      }
-    });
-    
-    // 验证冻结是否生效
-    if (frozenData.length > 0) {
-      console.log('🔍 [验证冻结] 第一条记录是否已冻结?', Object.isFrozen(frozenData[0]));
-      
-      // 检查一些常见的嵌套对象字段
-      const nestedFields = ['其他个人扣缴', '其他单位扣缴', '其他应发项目', '其他计算参数'];
-      nestedFields.forEach(field => {
-        const value = (frozenData[0] as any)[field];
-        if (value && typeof value === 'object') {
-          console.log(`🔍 [验证冻结] 嵌套对象字段 "${field}" 是否已冻结?`, Object.isFrozen(value));
-        }
-      });
-      
-      // 特别检查职位等级字段
-      const targetField = '职位等级';
-      const targetValue = (frozenData[0] as any)[targetField];
-      if (targetValue && typeof targetValue === 'object') {
-        console.log(`🔍 [验证冻结] 目标字段 "${targetField}" 是否已冻结?`, Object.isFrozen(targetValue));
-      }
-    }
-    
-    console.log('✅ [数据冻结] 数据已全部深度冻结!');
-    // =============================================================
-    
-    return frozenData;
+    return validated;
   }, [dataSource]);
 
   // 🔍 搜索功能集成
@@ -274,11 +186,14 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
     filteredDataSource,
     filterConfig,
     generateColumns: generateDynamicColumns,
-    exportToExcel: exportData
+    exportToExcel: exportData,
+    setFilterConfig
   } = usePayrollDataProcessing({
     data: validatedDataSource,
     periodName,
-    searchResults: isEmptyQuery ? undefined : new Set(searchResults.map((_, index) => index)),
+    searchResults: isEmptyQuery ? undefined : new Set(
+      searchResults.map(result => validatedDataSource.findIndex(item => item === result))
+    ),
     searchMode
   });
 
@@ -292,6 +207,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
 
   // 📊 状态管理
   const [presetManagerVisible, setPresetManagerVisible] = useState(false);
+  const [filterConfigVisible, setFilterConfigVisible] = useState(false);
   
   // 详情和编辑模态框状态
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -304,9 +220,21 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // 🔄 生成动态列配置
+  // 生成动态列配置
   const dynamicColumns = useMemo(() => {
-    const columns = generateColumns(dataSource, filterConfig);
+    if (!filteredDataSource || filteredDataSource.length === 0) {
+      console.log('⚠️ [PayrollDataModal] filteredDataSource为空，不生成列配置');
+      return [];
+    }
+    
+    console.log('🔄 [PayrollDataModal] 生成列配置', {
+      dataCount: filteredDataSource.length,
+      sampleKeys: filteredDataSource[0] ? Object.keys(filteredDataSource[0]).slice(0, 5) : []
+    });
+    
+    const columns = generateDynamicColumns(filteredDataSource);
+    
+    console.log('✅ [PayrollDataModal] 列配置完成:', columns.length, '列');
     
     // 添加操作列
     return [
@@ -326,9 +254,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         ),
       }
     ];
-  }, [dataSource, filterConfig, t]);
-
-  // 📋 事件处理函数
+  }, [generateDynamicColumns, filteredDataSource, t]);
   const handleViewDetail = async (record: PayrollData) => {
     console.log('📋 [PayrollDataModal] 查看详情:', record);
     
@@ -466,6 +392,15 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         showPerformance={true}
       />
 
+      {/* 🔧 筛选配置面板 */}
+      <FilterConfigPanel
+        visible={filterConfigVisible}
+        onClose={() => setFilterConfigVisible(false)}
+        filterConfig={filterConfig}
+        onFilterConfigChange={setFilterConfig}
+        dataSource={validatedDataSource}
+      />
+
       {/* 📊 数据表格 */}
       <ProTable<PayrollData>
         actionRef={actionRef}
@@ -475,6 +410,10 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         loading={isLoading}
         size="small"
         scroll={{ x: 'max-content', y: 600 }}
+        search={false}
+        onLoad={() => {
+          console.log('📊 [ProTable] 表格加载完成，列数:', dynamicColumns.length, '数据:', filteredDataSource.length);
+        }}
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,
@@ -488,6 +427,7 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
             dataCount: filteredDataSource.length,
             onExport: handleExportExcel,
             onOpenPresets: () => setPresetManagerVisible(true),
+            onOpenFilter: () => setFilterConfigVisible(true),
             onRefresh: handleRefresh,
             isExporting,
             isRefreshing

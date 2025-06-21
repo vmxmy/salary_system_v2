@@ -23,7 +23,7 @@ export const fetchPayrollComponentDefinitions = createAsyncThunk(
       // Ensure loading all component definitions, set a larger size parameter
       const requestParams = {
         size: 100, // Set to API allowed max 100
-        is_enabled: true, // v2 API uses is_enabled parameter
+        is_active: true, // 修复：使用is_active替代is_enabled，与后端API匹配
         ...params
       };
       const response: ApiListResponse<PayrollComponentDefinition> = await getPayrollComponentDefinitions(requestParams);

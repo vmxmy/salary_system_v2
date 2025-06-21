@@ -21,14 +21,18 @@ const defaultFilterConfig: ColumnFilterConfig = {
 
 interface FilterConfigPanelProps {
   visible: boolean;
+  onClose: () => void;
   filterConfig: ColumnFilterConfig;
   onFilterConfigChange: (config: ColumnFilterConfig) => void;
+  dataSource: any[];
 }
 
 export const FilterConfigPanel: React.FC<FilterConfigPanelProps> = ({
   visible,
+  onClose,
   filterConfig,
-  onFilterConfigChange
+  onFilterConfigChange,
+  dataSource
 }) => {
   const { t } = useTranslation(['payroll', 'common']);
 

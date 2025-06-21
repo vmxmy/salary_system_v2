@@ -73,6 +73,7 @@ interface ToolbarActionsProps {
   dataCount: number;
   onExport: () => void;
   onOpenPresets: () => void;
+  onOpenFilter?: () => void;
   onRefresh: () => void;
   isExporting?: boolean;
   isRefreshing?: boolean;
@@ -83,11 +84,12 @@ export const ToolbarActions = ({
   dataCount,
   onExport,
   onOpenPresets,
+  onOpenFilter,
   onRefresh,
   isExporting = false,
   isRefreshing = false
 }: ToolbarActionsProps): React.ReactNode[] => {
-  return [
+  const buttons = [
     <Button
       key="export"
       type="primary"
@@ -115,6 +117,21 @@ export const ToolbarActions = ({
       刷新
     </Button>
   ];
+
+  // 如果提供了筛选回调，添加筛选按钮
+  if (onOpenFilter) {
+    buttons.splice(buttons.length - 1, 0,
+      <Button 
+        key="filter" 
+        icon={<FilterOutlined />} 
+        onClick={onOpenFilter}
+      >
+        列筛选
+      </Button>
+    );
+  }
+
+  return buttons;
 };
 
 // 批量操作栏属性

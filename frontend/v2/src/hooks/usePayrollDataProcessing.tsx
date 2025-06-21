@@ -18,6 +18,7 @@ import {
   processValue
 } from '../utils/payrollDataUtils';
 import { SearchMode } from '../utils/searchUtils';
+import { createColumnConfig } from '../components/PayrollDataModal/ColumnConfig';
 
 import type { ComprehensivePayrollDataView } from '../pages/Payroll/services/payrollViewsApi';
 
@@ -80,13 +81,7 @@ export const usePayrollDataProcessing = ({
 
   // 过滤后的数据源
   const filteredDataSource = useMemo(() => {
-    const TRACE_FIELD = '职位等级';
     let filtered = data || [];
-
-    // 🔍 追踪目标字段在处理前的状态
-    if (filtered[0] && filtered[0][TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [Processing开始] ${TRACE_FIELD}:`, filtered[0][TRACE_FIELD], `(类型: ${typeof filtered[0][TRACE_FIELD]})`);
-    }
 
     // 应用搜索筛选
     if (searchResults && searchResults.size > 0) {
@@ -103,11 +98,6 @@ export const usePayrollDataProcessing = ({
           });
         }
       });
-    }
-
-    // 🔍 追踪目标字段在筛选后的状态
-    if (filtered[0] && filtered[0][TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [Processing筛选后] ${TRACE_FIELD}:`, filtered[0][TRACE_FIELD], `(类型: ${typeof filtered[0][TRACE_FIELD]})`);
     }
 
     return filtered;
@@ -140,30 +130,30 @@ export const usePayrollDataProcessing = ({
   }, [fieldGroups]);
 
   // 判断字段是否应该显示
-  const shouldShowField = useCallback((fieldName: string, fieldValue: any, allData: PayrollData[]) => {
+  const shouldShowField = useCallback((fieldName: string, fieldValue: any, allData: PayrollData[], config: ColumnFilterConfig) => {
     // 检查包含模式
-    if (filterConfig.includePatterns.length > 0) {
-      const shouldInclude = filterConfig.includePatterns.some(pattern => 
+    if (config.includePatterns.length > 0) {
+      const shouldInclude = config.includePatterns.some(pattern => 
         matchesPattern(fieldName, pattern)
       );
       if (!shouldInclude) return false;
     }
 
     // 检查排除模式
-    if (filterConfig.excludePatterns.length > 0) {
-      const shouldExclude = filterConfig.excludePatterns.some(pattern => 
+    if (config.excludePatterns.length > 0) {
+      const shouldExclude = config.excludePatterns.some(pattern => 
         matchesPattern(fieldName, pattern)
       );
       if (shouldExclude) return false;
     }
 
     // 隐藏JSONB列
-    if (filterConfig.hideJsonbColumns && typeof fieldValue === 'object' && fieldValue !== null) {
+    if (config.hideJsonbColumns && typeof fieldValue === 'object' && fieldValue !== null) {
       return false;
     }
 
     // 隐藏空列
-    if (filterConfig.hideEmptyColumns) {
+    if (config.hideEmptyColumns) {
       const hasNonEmptyValue = allData.some(item => {
         const value = (item as any)[fieldName];
         return value !== null && value !== undefined && value !== '' && value !== 0;
@@ -172,7 +162,7 @@ export const usePayrollDataProcessing = ({
     }
 
     // 隐藏零值列
-    if (filterConfig.hideZeroColumns) {
+    if (config.hideZeroColumns) {
       const hasNonZeroValue = allData.some(item => {
         const value = (item as any)[fieldName];
         if (typeof value === 'number') {
@@ -188,7 +178,7 @@ export const usePayrollDataProcessing = ({
     }
 
     // 只显示数值列
-    if (filterConfig.showOnlyNumericColumns) {
+    if (config.showOnlyNumericColumns) {
       const isNumericColumn = allData.some(item => {
         const value = (item as any)[fieldName];
         return typeof value === 'number' || 
@@ -198,101 +188,20 @@ export const usePayrollDataProcessing = ({
     }
 
     return true;
-  }, [filterConfig]);
+  }, []);
 
   // 生成动态列配置
-  const generateColumns = useCallback((data: PayrollData[]): ProColumns<PayrollData>[] => {
-    const TRACE_FIELD = '职位等级';
+  const generateColumns = useCallback((data: PayrollData[], config = filterConfig): ProColumns<PayrollData>[] => {
     if (!data || data.length === 0) return [];
 
     const firstRecord = data[0];
     const fields = Object.keys(firstRecord);
     
-    // 🔍 追踪目标字段在列生成时的状态
-    if (firstRecord[TRACE_FIELD] !== undefined) {
-      console.log(`🔍 [列生成] ${TRACE_FIELD}:`, firstRecord[TRACE_FIELD], `(类型: ${typeof firstRecord[TRACE_FIELD]})`);
-    }
-    
-    // 生成列配置
+    // 生成列配置，使用 ColumnConfig.tsx 中的 createColumnConfig 函数
     const columns: ProColumns<PayrollData>[] = fields
-      .filter(field => shouldShowField(field, firstRecord[field as keyof PayrollData], data))
+      .filter(field => shouldShowField(field, firstRecord[field as keyof PayrollData], data, config))
       .map((field): ProColumns<PayrollData> => {
-        // 获取字段的示例值以确定数据类型 - 修正null值处理
-        const sampleValue = firstRecord[field as keyof PayrollData];
-        const isNull = sampleValue === null;
-        const isNumeric = typeof sampleValue === 'number' || 
-                         (typeof sampleValue === 'string' && !isNaN(parseFloat(sampleValue as string)));
-        const isDate = field.includes('期间') || field.includes('时间') || field.includes('日期');
-        const isBoolean = typeof sampleValue === 'boolean';
-
-        // 基础列配置
-        const column: ProColumns<PayrollData> = {
-          title: field,
-          dataIndex: field,
-          key: field,
-          width: 120,
-          ellipsis: true,
-          sorter: true,
-          fixed: false,
-        };
-
-        // 设置渲染函数 - 确保渲染函数不会污染数据
-        if (isBoolean) {
-          column.render = (value: any, record: any, index: number) => {
-            // 确保只在表格渲染时创建React元素
-            if (value === true) {
-              return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
-            } else if (value === false) {
-              return <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
-            }
-            return <span style={{ color: '#999' }}>-</span>;
-          };
-          column.filters = [
-            { text: '是', value: true },
-            { text: '否', value: false }
-          ];
-          column.onFilter = (value, record) => (record as any)[field] === value;
-        } else if (isNumeric) {
-          column.render = (value: any, record: any, index: number) => {
-            // 确保只返回React元素用于显示
-            return renderNumber(value);
-          };
-          column.sorter = (a, b) => {
-            const aVal = parseFloat(String((a as any)[field])) || 0;
-            const bVal = parseFloat(String((b as any)[field])) || 0;
-            return aVal - bVal;
-          };
-        } else if (isDate && !isNull) {
-          column.render = (value: any, record: any, index: number) => {
-            // 确保只返回React元素用于显示
-            return field.includes('期间') ? formatDate(value) : formatDateToChinese(value);
-          };
-          column.width = 100;
-        } else if (typeof sampleValue === 'object' && sampleValue !== null) {
-          column.render = (value: any, record: any, index: number) => (
-            <pre style={{ margin: 0, fontSize: '12px', maxWidth: '200px', overflow: 'auto' }}>
-              {safeStringify(value)}
-            </pre>
-          );
-          column.width = 200;
-        } else {
-          // 字符串类型，添加筛选功能
-          const uniqueValues = Array.from(new Set(
-            data.map(item => (item as any)[field])
-              .filter(value => value !== null && value !== undefined && value !== '')
-              .slice(0, 50) // 限制筛选选项数量
-          ));
-          
-          if (uniqueValues.length > 1 && uniqueValues.length <= 20) {
-            column.filters = uniqueValues.map(value => ({
-              text: String(value),
-              value: value
-            }));
-            column.onFilter = (value, record) => (record as any)[field] === value;
-          }
-        }
-
-        return column;
+        return createColumnConfig(field, firstRecord[field as keyof PayrollData], data);
       });
 
     // 按字段组重新排序列
@@ -380,13 +289,20 @@ export const usePayrollDataProcessing = ({
     }
   }, [periodName]);
 
-  // 生成列配置（当数据变化时）
+  // 生成列配置（当数据变化时）- 简化版本，避免循环依赖
   useEffect(() => {
     if (data && data.length > 0) {
-      const columns = generateColumns(data);
+      console.log('🔄 [usePayrollDataProcessing] 生成列配置', {
+        dataLength: data.length,
+        filterConfigKeys: Object.keys(filterConfig)
+      });
+      
+      const columns = generateColumns(data, filterConfig);
       setCurrentColumnsState(columns);
+    } else {
+      setCurrentColumnsState([]);
     }
-  }, [data, generateColumns]);
+  }, [data.length, filterConfig.hideJsonbColumns, filterConfig.hideZeroColumns, filterConfig.hideEmptyColumns, generateColumns]); // 只依赖关键的变化
 
   return {
     // 数据

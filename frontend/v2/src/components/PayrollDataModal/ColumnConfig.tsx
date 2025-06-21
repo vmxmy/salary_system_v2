@@ -215,6 +215,13 @@ const analyzeFieldDataTypes = (fieldName: string, allData: PayrollData[]) => {
 /**
  * 创建单个列配置 (最终调试版)
  */
+// 文件: ColumnConfig.tsx
+
+// ... (文件顶部的所有 import 和 payrollDataUtils 等函数保持不变) ...
+
+/**
+ * 创建单个列配置 (生产环境最终版)
+ */
 export const createColumnConfig = (
   fieldName: string,
   sampleValue: any,
@@ -222,60 +229,162 @@ export const createColumnConfig = (
 ): ProColumns<PayrollData> => {
   
   const column: ProColumns<PayrollData> = {
-    title: fieldName,
+    title: fieldName, // 这里使用原始字段名作为标题
     dataIndex: fieldName,
     key: fieldName,
-    // ... 其他基础配置
+    ellipsis: true,
+    width: 150, // 可以设置一个默认宽度
   };
 
-  // ======================[ 最终核心修改 ]======================
-  // 这是我们最终的 render 函数，它将捕获到副本
-  column.render = (value: any, record: any, index: number) => {
+  // 渲染函数 - 处理React元素污染和数据显示
+  column.render = (cellValue: any, record: any, index: number) => {
+    // React元素检测函数
+    const isReactElement = (val: any): boolean => {
+      return val && (
+        val.$$typeof === Symbol.for('react.element') ||
+        val.$$typeof === Symbol.for('react.portal') ||
+        val.$$typeof === Symbol.for('react.fragment') ||
+        (typeof val === 'object' && val !== null && (
+          val.$$typeof || 
+          val.$typeof || 
+          (val.type && val.props) ||
+          (val._owner !== undefined)
+        ))
+      );
+    };
+
+    // 1. React元素检测和数据提取
+    if (isReactElement(cellValue)) {
+      try {
+        if (cellValue.props && cellValue.props.children !== undefined) {
+          const extractedValue = cellValue.props.children;
+          if (typeof extractedValue === 'number') {
+            return extractedValue.toLocaleString();
+          }
+          return String(extractedValue);
+        }
+        if (cellValue.props && cellValue.props.value !== undefined) {
+          const extractedValue = cellValue.props.value;
+          if (typeof extractedValue === 'number') {
+            return extractedValue.toLocaleString();
+          }
+          return String(extractedValue);
+        }
+        if (cellValue.props) {
+          const propsKeys = Object.keys(cellValue.props);
+          for (const key of propsKeys) {
+            const value = cellValue.props[key];
+            if (typeof value === 'string' || typeof value === 'number') {
+              if (typeof value === 'number') {
+                return value.toLocaleString();
+              }
+              return String(value);
+            }
+          }
+        }
+      } catch (e) {
+        // 提取失败，降级处理
+      }
+      
+      return '[无法提取数据]';
+    }
     
-    // **决定性检查**：检查传入的 record 是否还是被冻结的状态
-    // 如果不是，说明它是一个副本，我们在这里立即抛出错误来捕获堆栈！
-    if (!Object.isFrozen(record)) {
-      console.error(`🚨🚨🚨 [污染源头已锁定!] 字段 "${fieldName}" 在渲染时收到了一个未被冻结的“副本”数据。这意味着在 ProTable 内部的某个地方数据被复制并污染了。`, {
-        fieldName,
-        record,
-      });
-      // 抛出一个自定义的、明确的错误，以便我们捕获其堆栈跟踪
-      throw new Error(`[Data Contamination] Unfrozen record copy detected for field: "${fieldName}"`);
-    }
-
-    // --- 以下是正常的渲染逻辑 ---
-
-    // 检查已知的污染 (作为第二道防线)
-    if (typeof value === 'object' && value !== null && (value.$$typeof || (value.type && value.props))) {
-      console.error(`🚨 [CRITICAL] 字段 "${fieldName}" 接收到React元素作为输入值，数据已被污染!`, value);
-      return '❌数据错误';
-    }
-
-    // null 或 undefined 值处理
-    if (value === null || value === undefined) {
+    // 2. null/undefined 检查
+    if (cellValue === null || cellValue === undefined) {
       return '-';
     }
-    
-    // 根据数据类型进行渲染
-    if (typeof value === 'boolean') {
-      return value ? '是' : '否';
-    }
-    if (typeof value === 'number') {
-      return renderNumber(value); 
-    }
-    if (typeof value === 'object' && value !== null) {
-      return formatObjectForDisplay(value);
-    }
-    
-    // 默认作为字符串处理
-    return String(value);
-  };
-  // ======================[ 修改结束 ]======================
 
-  // ... (函数剩余的 sorter, filter, width 等配置逻辑可以保持原样) ...
+    // 3. 对象类型处理
+    if (typeof cellValue === 'object' && cellValue !== null) {
+      // 数组处理
+      if (Array.isArray(cellValue)) {
+        return `[数组:${cellValue.length}项]`;
+      }
+      
+      // 普通对象 - 尝试找到值属性
+      const possibleValueKeys = ['value', 'text', 'label', 'name', 'title', 'content', 'data'];
+      for (const key of possibleValueKeys) {
+        if (key in cellValue && cellValue[key] !== null && cellValue[key] !== undefined) {
+          const extractedValue = cellValue[key];
+          if (typeof extractedValue === 'number') {
+            return extractedValue.toLocaleString();
+          }
+          return String(extractedValue);
+        }
+      }
+      
+      // 使用第一个有效属性
+      const objKeys = Object.keys(cellValue);
+      for (const key of objKeys) {
+        const value = cellValue[key];
+        if (typeof value !== 'function' && value !== null && value !== undefined) {
+          if (typeof value === 'number') {
+            return value.toLocaleString();
+          }
+          return String(value);
+        }
+      }
+      
+      // 最后尝试JSON序列化（简化版）
+      try {
+        const jsonStr = JSON.stringify(cellValue);
+        if (jsonStr.length > 50) {
+          return `[对象: ${objKeys.slice(0, 3).join(', ')}]`;
+        }
+        return jsonStr;
+      } catch (e) {
+        return '[复杂对象]';
+      }
+    }
+
+    // 3. 原始类型直接显示
+    if (typeof cellValue === 'boolean') {
+      return cellValue ? '是' : '否';
+    }
+    
+    if (typeof cellValue === 'number') {
+      return cellValue.toLocaleString();
+    }
+    
+    // 4. 字符串类型
+    if (typeof cellValue === 'string') {
+      return cellValue || '-';
+    }
+    
+    // 5. 其他情况
+    return String(cellValue);
+  };
+
+
+  // --- 根据数据类型配置 sorter, filter 等 ---
+  // 注意：这里的排序和筛选逻辑也需要从对象中提取 .value
+  const hasNumericValue = sampleValue && typeof sampleValue.value === 'number';
+
+  if (hasNumericValue) {
+    column.sorter = (a: any, b: any) => {
+      // 安全地从对象中提取值进行比较
+      const aField = a[fieldName];
+      const bField = b[fieldName];
+      const aVal = (aField && typeof aField === 'object' && 'value' in aField) ? aField.value || 0 : (aField || 0);
+      const bVal = (bField && typeof bField === 'object' && 'value' in bField) ? bField.value || 0 : (bField || 0);
+      return aVal - bVal;
+    };
+  } else {
+    // 字符串排序
+    column.sorter = (a: any, b: any) => {
+      // 安全地从对象中提取值进行比较
+      const aField = a[fieldName];
+      const bField = b[fieldName];
+      const aVal = String((aField && typeof aField === 'object' && 'value' in aField) ? aField.value || '' : (aField || ''));
+      const bVal = String((bField && typeof bField === 'object' && 'value' in bField) ? bField.value || '' : (bField || ''));
+      return aVal.localeCompare(bVal, 'zh-CN');
+    }
+  }
 
   return column;
 };
+
+// ... (文件底部的其他函数 generateColumns, updateColumnConfig 等保持不变) ...
 
 // ... (文件底部的其他函数 generateColumns, updateColumnConfig 等保持不变) ...
 
