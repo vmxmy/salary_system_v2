@@ -422,69 +422,69 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
             {/* 中间：饼图 */}
             <ResponsiveContainer width="60%" height="100%" aspect={1}>
               <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
                   outerRadius="80%"
                   innerRadius="55%"
-                  paddingAngle={2}
-                  dataKey="value"
-                  onClick={(data) => {
-                    const originalType = data.find((t: any) => t.typeName === data.fullName);
-                    if (originalType && onTypeClick) {
-                      onTypeClick(originalType);
-                    }
-                  }}
-                  style={{ cursor: onTypeClick ? 'pointer' : 'default' }}
-                >
-                  {pieData.map((entry, index) => {
-                    // 定义固定的颜色数组
-                    const COLORS = [
-                      '#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', 
-                      '#eb2f96', '#2f54eb', '#fa8c16', '#a0d911', '#1890ff', '#fa541c', 
-                      '#08979c', '#531dab', '#7cb305', '#c41d7f'
-                    ];
-                    
-                    // 直接使用固定颜色数组，不依赖entry.color
-                    return (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={COLORS[index % COLORS.length]} 
-                      />
-                    );
-                  })}
-                </Pie>
-                <RechartsTooltip content={renderTooltip} />
-                
-                {/* 在图表中心添加总人数 */}
-                <text 
-                  x="50%" 
-                  y="48%" 
-                  textAnchor="middle" 
-                  dominantBaseline="middle" 
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    fill: '#1677ff'
-                  }}
-                >
-                  {totalEmployees}
-                </text>
-                <text 
-                  x="50%" 
-                  y="58%" 
-                  textAnchor="middle" 
-                  dominantBaseline="middle" 
-                  style={{
-                    fontSize: '10px',
-                    fill: '#8c8c8c'
-                  }}
-                >
-                  总人数
-                </text>
-              </PieChart>
-            </ResponsiveContainer>
+                paddingAngle={2}
+                dataKey="value"
+                onClick={(data) => {
+                  const originalType = data.find((t: any) => t.typeName === data.fullName);
+                  if (originalType && onTypeClick) {
+                    onTypeClick(originalType);
+                  }
+                }}
+                style={{ cursor: onTypeClick ? 'pointer' : 'default' }}
+              >
+                {pieData.map((entry, index) => {
+                  // 定义固定的颜色数组
+                  const COLORS = [
+                    '#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', 
+                    '#eb2f96', '#2f54eb', '#fa8c16', '#a0d911', '#1890ff', '#fa541c', 
+                    '#08979c', '#531dab', '#7cb305', '#c41d7f'
+                  ];
+                  
+                  // 直接使用固定颜色数组，不依赖entry.color
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                    />
+                  );
+                })}
+              </Pie>
+              <RechartsTooltip content={renderTooltip} />
+              
+              {/* 在图表中心添加总人数 */}
+              <text 
+                x="50%" 
+                y="48%" 
+                textAnchor="middle" 
+                dominantBaseline="middle" 
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  fill: '#1677ff'
+                }}
+              >
+                {totalEmployees}
+              </text>
+              <text 
+                x="50%" 
+                y="58%" 
+                textAnchor="middle" 
+                dominantBaseline="middle" 
+                style={{
+                  fontSize: '10px',
+                  fill: '#8c8c8c'
+                }}
+              >
+                总人数
+              </text>
+            </PieChart>
+          </ResponsiveContainer>
             
             {/* 右侧：聘用 */}
             {personnelStats.data && Array.isArray(personnelStats.data.categories) && personnelStats.data.categories.length > 0 && (() => {
@@ -513,29 +513,29 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
 
       {/* 人员身份统计信息 - 已移至图表两侧 */}
       {!personnelStats.data && (
-        <div className="mini-card-summary">
-          {personnelStats.loading ? (
-            <div className="summary-loading">
-              <Spin size="small" />
-              <Text type="secondary">加载统计中...</Text>
-            </div>
-          ) : (
-            <div className="personnel-stats-empty">
-              <UserOutlined className="empty-icon" />
-              <Text type="secondary">暂无编制统计数据</Text>
-              <Tooltip title="数据获取情况">
-                <Button 
-                  type="text" 
-                  icon={<InfoCircleOutlined />} 
-                  size="small" 
-                  onClick={() => {
-                    message.info(`期间ID: ${periodId || '未设置'}`);
-                  }}
-                />
-              </Tooltip>
-            </div>
-          )}
-        </div>
+      <div className="mini-card-summary">
+        {personnelStats.loading ? (
+          <div className="summary-loading">
+            <Spin size="small" />
+            <Text type="secondary">加载统计中...</Text>
+          </div>
+        ) : (
+          <div className="personnel-stats-empty">
+            <UserOutlined className="empty-icon" />
+            <Text type="secondary">暂无编制统计数据</Text>
+            <Tooltip title="数据获取情况">
+              <Button 
+                type="text" 
+                icon={<InfoCircleOutlined />} 
+                size="small" 
+                onClick={() => {
+                  message.info(`期间ID: ${periodId || '未设置'}`);
+                }}
+              />
+            </Tooltip>
+          </div>
+        )}
+      </div>
       )}
 
       {/* 总薪资摘要栏 */}

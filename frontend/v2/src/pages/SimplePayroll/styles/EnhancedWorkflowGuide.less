@@ -1,0 +1,807 @@
+// 工作流指南垂直时间轴样式
+@import '../../../styles/variables.less';
+
+.enhanced-workflow-guide {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  
+  // 卡片标题样式优化
+  .workflow-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .title-icon {
+      color: @primary-color;
+      font-size: 18px;
+    }
+    
+    .title-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: @heading-color;
+    }
+  }
+  
+  // 主体内容区域
+  .workflow-content {
+    display: flex;
+    height: 100%;
+    margin-top: 16px;
+    
+    // 垂直时间轴区域
+    .timeline-container {
+      width: 280px;
+      padding-right: 16px;
+      border-right: 1px solid @border-color-split;
+      overflow-y: auto;
+      flex-shrink: 0;
+      
+      .timeline-step {
+        position: relative;
+        padding: 16px 16px 16px 24px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        transition: all 0.3s;
+        
+        &:hover {
+          background-color: fade(@primary-color, 5%);
+        }
+        
+        &.current {
+          background-color: fade(@primary-color, 10%);
+          border-left: 3px solid @primary-color;
+        }
+        
+        &.completed {
+          .step-icon {
+            color: @success-color;
+            background-color: fade(@success-color, 10%);
+          }
+          
+          .step-connector {
+            background-color: @success-color;
+          }
+        }
+        
+        &.waiting {
+          opacity: 0.6;
+        }
+        
+        .step-icon {
+          position: absolute;
+          left: -12px;
+          top: 16px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background-color: fade(@primary-color, 10%);
+          color: @primary-color;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1;
+        }
+        
+        .step-connector {
+          position: absolute;
+          left: 0;
+          top: 40px;
+          bottom: -8px;
+          width: 2px;
+          background-color: @border-color-split;
+        }
+        
+        .step-title {
+          font-weight: 500;
+          margin-bottom: 4px;
+          color: @heading-color;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .step-description {
+          color: @text-color-secondary;
+          font-size: 12px;
+        }
+        
+        .step-status {
+          margin-top: 8px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          
+          .status-tag {
+            font-size: 11px;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 10px;
+          }
+        }
+      }
+    }
+    
+    // 步骤详情区域
+    .step-detail-container {
+      flex: 1;
+      padding-left: 24px;
+      overflow-y: auto;
+      
+      .step-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid @border-color-split;
+        
+        .step-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          
+          .step-icon {
+            font-size: 20px;
+            color: @primary-color;
+          }
+          
+          .step-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: @heading-color;
+            margin: 0;
+          }
+          
+          .step-status-icon {
+            margin-left: 8px;
+          }
+        }
+        
+        .step-description {
+          color: @text-color-secondary;
+          font-size: 14px;
+        }
+      }
+      
+      // 状态卡片
+      .status-card {
+        margin-bottom: 24px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        
+        .ant-statistic-title {
+          font-size: 13px;
+        }
+        
+        .ant-statistic-content {
+          font-size: 16px;
+        }
+      }
+      
+      // 操作按钮区
+      .actions-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: @background-color-light;
+        border-radius: 8px;
+        
+        .action-button {
+          min-width: 120px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          
+          &.primary-action {
+            background: linear-gradient(135deg, @primary-color, darken(@primary-color, 10%));
+            border: none;
+            box-shadow: 0 2px 6px fade(@primary-color, 30%);
+            
+            &:hover {
+              background: linear-gradient(135deg, lighten(@primary-color, 5%), @primary-color);
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px fade(@primary-color, 40%);
+            }
+          }
+        }
+        
+        .action-group {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+      }
+      
+      // 要求和提示区
+      .requirements-tips-container {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+        
+        @media (max-width: 768px) {
+          flex-direction: column;
+        }
+        
+        .section-container {
+          flex: 1;
+          padding: 16px;
+          border-radius: 8px;
+          background-color: @background-color-light;
+          
+          .section-title {
+            font-weight: 500;
+            color: @heading-color;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            
+            .section-icon {
+              color: @primary-color;
+            }
+          }
+          
+          .section-list {
+            padding-left: 20px;
+            margin-bottom: 0;
+            
+            li {
+              margin-bottom: 8px;
+              color: @text-color-secondary;
+              
+              &:last-child {
+                margin-bottom: 0;
+              }
+            }
+          }
+        }
+      }
+      
+      // 警告和提示框
+      .alert-container {
+        margin-bottom: 24px;
+      }
+    }
+  }
+  
+  // 模态框样式优化
+  .anomalies-modal {
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .anomaly-card {
+      margin-bottom: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .anomaly-header {
+        padding: 10px 16px;
+        background-color: fade(@error-color, 8%);
+        border-bottom: 1px solid fade(@error-color, 15%);
+        
+        .anomaly-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+      
+      .anomaly-content {
+        padding: 12px 16px;
+        
+        p {
+          margin-bottom: 6px;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+          
+          strong {
+            color: @heading-color;
+            margin-right: 4px;
+          }
+        }
+      }
+      
+      .anomaly-actions {
+        padding: 8px 16px;
+        background-color: @background-color-light;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+    }
+  }
+  
+  // 响应式调整
+  @media (max-width: 992px) {
+    .workflow-content {
+      flex-direction: column;
+      
+      .timeline-container {
+        width: 100%;
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid @border-color-split;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        max-height: 200px;
+        
+        .timeline-step {
+          padding: 12px;
+          margin-bottom: 4px;
+        }
+      }
+      
+      .step-detail-container {
+        padding-left: 0;
+      }
+    }
+  }
+}
+
+/* EnhancedWorkflowGuide 组件样式 */
+
+.workflow-guide-container {
+  margin-bottom: 24px;
+  
+  // 水平布局容器
+  .workflow-horizontal-layout {
+    display: flex;
+    gap: 24px;
+    min-height: 500px;
+    
+    @media (max-width: 1024px) {
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+  
+  // 左侧：水平流程步骤卡片区域
+  .workflow-steps-horizontal {
+    flex: 1;
+    max-width: 70%;
+    
+    @media (max-width: 1024px) {
+      flex: none;
+      max-width: none;
+    }
+    
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      
+      @media (max-width: 1024px) {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        gap: 16px;
+      }
+    }
+    
+    .horizontal-step-card {
+      position: relative;
+      padding: 20px;
+      border: 2px solid #e8e8e8;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-height: 140px;
+      flex: 1;
+      
+      @media (max-width: 1024px) {
+        min-width: 200px;
+        flex-shrink: 0;
+        flex: none;
+      }
+      
+      &:hover {
+        border-color: #1890ff;
+        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+        transform: translateY(-2px);
+      }
+      
+      &.active {
+        border-color: #1890ff;
+        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.25);
+        background: linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%);
+      }
+      
+      &.completed {
+        border-color: #52c41a;
+        background: linear-gradient(135deg, #f6ffed 0%, #ffffff 100%);
+        
+        .step-number {
+          background-color: #52c41a;
+        }
+      }
+      
+      &.error {
+        border-color: #ff4d4f;
+        background: linear-gradient(135deg, #fff2f0 0%, #ffffff 100%);
+        
+        .step-number {
+          background-color: #ff4d4f;
+        }
+      }
+      
+      &.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        
+        &:hover {
+          transform: none;
+          border-color: #e8e8e8;
+          box-shadow: none;
+        }
+      }
+      
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        
+        .step-number {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background-color: #1890ff;
+          color: #fff;
+          font-size: 12px;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+        
+        .step-icon {
+          font-size: 16px;
+          color: #1890ff;
+          flex-shrink: 0;
+        }
+        
+        .step-status {
+          margin-left: auto;
+          flex-shrink: 0;
+        }
+      }
+      
+      .step-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        color: #1f1f1f;
+        line-height: 1.3;
+      }
+      
+      .step-description {
+        font-size: 13px;
+        color: #666;
+        margin: 0;
+        line-height: 1.5;
+      }
+      
+      .step-connector {
+        position: absolute;
+        right: -20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #d9d9d9;
+        font-size: 12px;
+        
+        @media (max-width: 1024px) {
+          position: static;
+          transform: none;
+          margin-top: 8px;
+          text-align: center;
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+  
+  // 右侧：当前步骤详情和操作区域
+  .workflow-guide-detail {
+    flex: 0 0 30%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 280px;
+    
+    @media (max-width: 1024px) {
+      flex: none;
+      max-width: none;
+      min-width: 0;
+    }
+  }
+  
+  .workflow-timeline {
+    margin: 16px 0;
+    
+    .ant-timeline-item {
+      padding-bottom: 12px;
+      
+      &-head {
+        width: 16px;
+        height: 16px;
+        
+        &-blue {
+          color: #1890ff;
+          border-color: #1890ff;
+        }
+        
+        &-green {
+          color: #52c41a;
+          border-color: #52c41a;
+        }
+        
+        &-red {
+          color: #ff4d4f;
+          border-color: #ff4d4f;
+        }
+        
+        &-gray {
+          color: #d9d9d9;
+          border-color: #d9d9d9;
+        }
+      }
+      
+      &-content {
+        margin-left: 28px;
+        top: -5px;
+      }
+    }
+  }
+  
+  .step-card {
+    margin-bottom: 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s;
+    
+    &:hover {
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.active {
+      border-left: 4px solid #1890ff;
+    }
+    
+    &.completed {
+      border-left: 4px solid #52c41a;
+    }
+    
+    &.error {
+      border-left: 4px solid #ff4d4f;
+    }
+    
+    &.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .step-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      
+      .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #1890ff;
+        color: #fff;
+        font-size: 12px;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      
+      .step-icon {
+        font-size: 16px;
+        margin-right: 8px;
+      }
+      
+      .step-title {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0;
+      }
+      
+      .step-status {
+        margin-left: auto;
+      }
+    }
+    
+    .step-content {
+      padding: 12px;
+      
+      .step-description {
+        margin-bottom: 12px;
+        color: rgba(0, 0, 0, 0.65);
+        font-size: 12px;
+      }
+      
+      .step-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+    }
+  }
+  
+  .workflow-summary {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    
+    .summary-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    
+    .summary-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      
+      .summary-item {
+        min-width: 120px;
+        
+        .item-label {
+          color: rgba(0, 0, 0, 0.45);
+          font-size: 12px;
+        }
+        
+        .item-value {
+          font-size: 16px;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+  
+  .current-step-card {
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    
+    .ant-card-head-title {
+      padding: 8px 0;
+      
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background-color: #1890ff;
+        color: #fff;
+        font-size: 13px;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      
+      .step-title {
+        font-size: 15px;
+        font-weight: 500;
+      }
+    }
+    
+    .ant-card-head {
+      min-height: 40px;
+      padding: 0 16px;
+      
+      .ant-card-head-wrapper {
+        height: 40px;
+      }
+      
+      .ant-card-extra {
+        padding: 8px 0;
+      }
+    }
+    
+    .ant-card-body {
+      padding: 12px 16px;
+    }
+    
+    .step-description-box {
+      padding: 8px 0;
+      display: flex;
+      align-items: flex-start;
+      
+      .step-description {
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+    }
+    
+    .step-actions-container {
+      margin-top: 8px;
+      
+      .step-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        
+        .action-button {
+          font-size: 13px;
+          height: 30px;
+          padding: 0 12px;
+        }
+        
+        .next-step-button {
+          margin-left: auto;
+        }
+      }
+    }
+  }
+  
+  ul {
+    padding-left: 16px;
+    
+    li {
+      margin-bottom: 3px;
+      font-size: 12px;
+    }
+  }
+  
+  .typography-label-primary {
+    font-size: 13px;
+  }
+  
+  .typography-body-secondary {
+    font-size: 12px;
+  }
+  
+  @media (max-width: 768px) {
+    .workflow-timeline {
+      margin: 12px 0;
+    }
+    
+    .step-card {
+      margin-bottom: 6px;
+      
+      .step-header {
+        padding: 6px 10px;
+        
+        .step-number {
+          width: 18px;
+          height: 18px;
+          font-size: 11px;
+        }
+        
+        .step-icon {
+          font-size: 14px;
+        }
+        
+        .step-title {
+          font-size: 13px;
+        }
+      }
+    }
+  }
+} 

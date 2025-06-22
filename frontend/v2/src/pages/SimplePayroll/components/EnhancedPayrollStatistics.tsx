@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Button, Row, Col, Space, Divider, message, DatePicker, Tooltip, Affix } from 'antd';
+import { Button, Row, Col, Space, Divider, message, DatePicker, Tooltip } from 'antd';
 import { StatisticCard } from '@ant-design/pro-components';
 import { DollarOutlined, CalendarOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -461,7 +461,6 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
   return (
     <div className="enhanced-payroll-statistics">
       {/* 原有的基础统计卡片 */}
-      <Affix offsetTop={0}>
         <div className="stats-grid sticky-stats">
           <StatisticCard.Group
         title={
@@ -659,7 +658,6 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         </Row>
           </StatisticCard.Group>
         </div>
-      </Affix>
 
       {/* 合并的指标卡片 */}
       {selectedVersionId && (

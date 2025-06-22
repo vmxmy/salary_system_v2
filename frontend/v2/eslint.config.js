@@ -14,7 +14,7 @@ export default tseslint.config(
   },
   {
     // Configurations for JS, JSX, TS, TSX files
-    files: ["frontend/v2/src/**/*.{js,jsx,ts,tsx}"],
+    files: ["src/**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       parser: tseslint.parser, 
       parserOptions: {
@@ -23,7 +23,7 @@ export default tseslint.config(
         ecmaFeatures: {
           jsx: true,
         },
-        project: "./frontend/v2/tsconfig.json",
+        project: "./tsconfig.app.json",
       },
       globals: {
         ...globals.browser,

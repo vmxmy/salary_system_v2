@@ -1,39 +1,34 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button, Space, message, Modal, Tooltip, Badge, Progress, Tag, Popover, Spin, Typography, Steps, Card, Alert, Divider } from 'antd';
-import { ProCard, StatisticCard } from '@ant-design/pro-components';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Space, message, Modal, Badge, Tag, Typography, Steps, Card, Alert, Divider, Timeline } from 'antd';
+import { StatisticCard } from '@ant-design/pro-components';
 import { 
-  PlayCircleOutlined, 
   CheckCircleOutlined, 
   CloseCircleOutlined, 
-  RocketOutlined, 
   AuditOutlined, 
-  FileSearchOutlined, 
-  BarChartOutlined, 
   BankOutlined, 
-  CheckOutlined, 
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   FileTextOutlined,
   CalculatorOutlined,
   WarningOutlined,
-  CopyOutlined,
   ArrowLeftOutlined,
   RightOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
+import '../styles/EnhancedWorkflowGuide.less';
 import { useTranslation } from 'react-i18next';
 import type { PayrollRunResponse, PayrollPeriodResponse, AuditSummary, ReportGenerationRequest } from '../types/simplePayroll';
 import { simplePayrollApi } from '../services/simplePayrollApi';
-import type { WorkflowStepConfig, WorkflowAction } from './PayrollWorkflowGuide';
+import type { WorkflowStepConfig } from './PayrollWorkflowGuide';
 import CalculationStatusModal, { 
   CalculationStatus, 
   type CalculationProgress, 
-  type CalculationResult,
-  type CurrentEmployee
+  type CalculationResult
 } from '../../../components/CalculationStatusModal';
 
-const { Step } = Steps;
-const { Title, Text, Paragraph } = Typography;
+const { Step: _Step } = Steps;
+const { Title: _Title, Text, Paragraph } = Typography;
 const { confirm } = Modal;
 
 interface EnhancedWorkflowGuideProps {
@@ -56,13 +51,13 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   onAuditRefresh,
   onVersionRefresh,
   onStepChange,
-  onNavigateToBulkImport,
-  onDeleteVersion
+  onNavigateToBulkImport: _onNavigateToBulkImport,
+  onDeleteVersion: _onDeleteVersion
 }) => {
-  const { t } = useTranslation(['simplePayroll', 'common']);
+  const { t: _t } = useTranslation(['simplePayroll', 'common']);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [stepProgress, setStepProgress] = useState<Record<string, number>>({});
+  const [_stepProgress, _setStepProgress] = useState<Record<string, number>>({});
   const [anomaliesModalVisible, setAnomaliesModalVisible] = useState(false);
   const [anomalies, setAnomalies] = useState<any[]>([]);
   
@@ -85,7 +80,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   }, []);
 
   // 手动重置所有loading状态的函数
-  const resetAllLoadingStates = () => {
+  const _resetAllLoadingStates = () => {
     console.log('🔄 [EnhancedWorkflowGuide] 手动重置所有loading状态');
     setLoading({});
     message.info('已重置所有加载状态');
@@ -217,15 +212,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
     }
   }, [selectedVersion]);
 
-  // 自动执行审核检查
-  useEffect(() => {
-    if (selectedVersion && selectedVersion.status_name === '已计算') {
-      autoRunAuditCheck();
-    }
-  }, [selectedVersion]);
-
   // 自动执行审核检查函数 - 💡 修改为仅检查状态，不自动执行审核
-  const autoRunAuditCheck = async () => {
+  const autoRunAuditCheck = useCallback(async () => {
     if (!selectedVersion) return;
 
     console.log('🔍 [EnhancedWorkflowGuide] 检查审核记录，版本ID:', selectedVersion.id);
@@ -240,13 +228,20 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         } else {
           console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据，等待用户手动执行审核检查');
         }
-      } catch (error) {
+      } catch {
         console.log('ℹ️ [EnhancedWorkflowGuide] 没有现有审核数据');
       }
     } catch (error) {
       console.error('❌ [EnhancedWorkflowGuide] 检查审核记录失败:', error);
     }
-  };
+  }, [selectedVersion]);
+
+  // 自动执行审核检查
+  useEffect(() => {
+    if (selectedVersion && selectedVersion.status_name === '已计算') {
+      autoRunAuditCheck();
+    }
+  }, [selectedVersion, autoRunAuditCheck]);
 
   // 进入审核检查状态
   const handleEnterAudit = async () => {
@@ -763,7 +758,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
   };
 
   // 一键复制上月数据
-  const handleQuickCopyPrevious = async () => {
+  const _handleQuickCopyPrevious = async () => {
     if (!selectedPeriod) {
       console.log('❌ [一键复制] 没有选择期间，无法执行复制操作');
       return;
@@ -961,7 +956,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           });
           message.success('已提交审核');
           onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
-        } catch (error) {
+        } catch {
           message.error('提交审核失败');
         } finally {
           setActionLoading('submit_review', false);
@@ -985,7 +980,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           });
           message.success('已批准支付');
           onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
-        } catch (error) {
+        } catch {
           message.error('批准支付失败');
         } finally {
           setActionLoading('approve_payment', false);
@@ -1009,7 +1004,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           });
           message.success('已标记为已支付');
           onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
-        } catch (error) {
+        } catch {
           message.error('标记失败');
         } finally {
           setActionLoading('mark_paid', false);
@@ -1053,9 +1048,9 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           });
           message.success(`已成功退回到"${stepName}"阶段`);
           onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
-        } catch (error) {
+        } catch (err) {
           message.error('退回上一步失败');
-          console.error('❌ 退回上一步失败:', error);
+          console.error('❌ 退回上一步失败:', err);
         } finally {
           setActionLoading('go_back_step', false);
         }
@@ -1221,12 +1216,12 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                   setActionLoading('reject_payroll', true);
                   try {
                     await simplePayrollApi.updateAuditStatus({
-                      payroll_run_id: selectedVersion!.id,
+                      payroll_run_id: selectedVersion?.id || 0,
                       status: 'REJECTED'
                     });
                     message.success('已拒绝，工资数据已退回');
                     onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
-                  } catch (error) {
+                  } catch {
                     message.error('拒绝操作失败');
                   } finally {
                     setActionLoading('reject_payroll', false);
@@ -1282,12 +1277,12 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                   setActionLoading('revoke_approval', true);
                   try {
                     await simplePayrollApi.updateAuditStatus({
-                      payroll_run_id: selectedVersion!.id,
+                      payroll_run_id: selectedVersion?.id || 0,
                       status: 'REJECTED'
                     });
                     message.success('已撤销批准，工资数据已退回到数据准备阶段');
                     onVersionRefresh?.() || onRefresh(); // 状态更新，刷新版本数据
-                  } catch (error) {
+                  } catch {
                     message.error('撤销批准失败');
                   } finally {
                     setActionLoading('revoke_approval', false);
@@ -1341,7 +1336,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
               if (!selectedVersion) return;
               
               // 显示银行选择对话框
-              const bankOptions = [
+              const _bankOptions = [
                 { label: '工商银行 (ICBC)', value: 'ICBC' },
                 { label: '建设银行 (CCB)', value: 'CCB' },
                 { label: '农业银行 (ABC)', value: 'ABC' },
@@ -1350,7 +1345,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                 { label: '通用格式', value: 'GENERIC' }
               ];
               
-              const formatOptions = [
+              const _formatOptions = [
                 { label: 'TXT文本文件', value: 'txt' },
                 { label: 'CSV表格文件', value: 'csv' },
                 { label: 'Excel文件', value: 'excel' }
@@ -1477,50 +1472,56 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           <span className="typography-title-tertiary">智能流程引导</span>
         </Space>
       }
+      className="workflow-guide-container"
       style={{ height: '100%' }}
     >
-      {/* 步骤进度条 */}
-      <ProCard split="vertical" style={{ marginBottom: 24 }}>
-        {stepsConfig.map((step, index) => (
-          <ProCard 
-            key={step.key}
-            title={
-              <Space>
-                {step.icon}
-                <span 
-                  className="typography-label-primary"
-                  style={{ 
-                    color: step.status === 'finish' ? '#52c41a' : 
-                           step.status === 'process' ? '#1890ff' : 
-                           step.status === 'error' ? '#ff4d4f' : '#8c8c8c'
-                  }}
+      {/* 水平布局：步骤卡片 + 详情引导 */}
+      <div className="workflow-horizontal-layout">
+        {/* 左侧：水平流程步骤卡片 */}
+        <div className="workflow-steps-horizontal">
+          <div className="steps-container">
+            {stepsConfig.map((step, index) => {
+              // 确定是否为当前步骤
+              const isCurrent = index === currentStep;
+              
+              return (
+                <div 
+                  key={step.key}
+                  className={`horizontal-step-card ${isCurrent ? 'active' : ''} 
+                              ${step.status === 'finish' ? 'completed' : ''} 
+                              ${step.status === 'error' ? 'error' : ''} 
+                              ${step.disabled ? 'disabled' : ''}`}
+                  onClick={() => !step.disabled && onStepChange?.(step.key)}
                 >
-                  {step.title}
-                </span>
-              </Space>
-            }
-            colSpan="20%"
-            style={{
-              backgroundColor: step.status === 'process' ? '#f6ffed' : 'transparent',
-              border: step.status === 'process' ? '1px solid #b7eb8f' : 'none'
-            }}
-          >
-            <Typography.Text 
-              className="typography-label-secondary"
-              style={{ 
-                color: step.status === 'finish' ? '#52c41a' : 
-                       step.status === 'process' ? '#1890ff' : '#8c8c8c'
-              }}
-            >
-              {step.description}
-            </Typography.Text>
-          </ProCard>
-        ))}
-      </ProCard>
-
-      {/* 审核状态概览 */}
-      {auditSummary && (currentStep === 1 || currentStep === 2) && (
-        <Alert
+                  <div className="step-header">
+                    <span className="step-number">{index + 1}</span>
+                    <span className="step-icon">{step.icon}</span>
+                    <div className="step-status">
+                      {step.status === 'finish' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                      {step.status === 'process' && <LoadingOutlined style={{ color: '#1890ff' }} />}
+                      {step.status === 'error' && <CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
+                    </div>
+                  </div>
+                  <h3 className="step-title">{step.title}</h3>
+                  <p className="step-description">{step.description}</p>
+                  
+                  {/* 连接线 */}
+                  {index < stepsConfig.length - 1 && (
+                    <div className="step-connector">
+                      <RightOutlined />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* 右侧：当前步骤详情和操作区域 */}
+        <div className="workflow-guide-detail">
+          {/* 审核状态概览 */}
+          {auditSummary && (currentStep === 1 || currentStep === 2) && (
+            <Alert
           message={
             <Space>
               <span>审核状态：</span>
@@ -1549,24 +1550,51 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         />
       )}
 
-      {/* 当前步骤详情 */}
-      <div>
-        <Title level={4} className="typography-title-tertiary" style={{ marginBottom: 16 }}>
+      {/* 当前步骤详情 - 卡片式设计 */}
+      <Card 
+        className="current-step-card"
+        title={
           <Space>
+            <span className="step-number">{currentStep + 1}</span>
             {currentStepConfig.icon}
-            {currentStepConfig.title}
-            {currentStepConfig.status === 'process' && <LoadingOutlined />}
+            <span className="step-title">{currentStepConfig.title}</span>
+            {currentStepConfig.status === 'process' && <LoadingOutlined style={{ color: '#1890ff' }} />}
             {currentStepConfig.status === 'error' && <WarningOutlined style={{ color: '#ff4d4f' }} />}
           </Space>
-        </Title>
-        
-        <Paragraph className="typography-body-secondary" style={{ marginBottom: 16 }}>
-          {currentStepConfig.description}
-        </Paragraph>
+        }
+        extra={
+          <Space>
+            <Badge 
+              status={
+                currentStepConfig.status === 'finish' ? 'success' : 
+                currentStepConfig.status === 'process' ? 'processing' :
+                currentStepConfig.status === 'error' ? 'error' : 'default'
+              } 
+              text={
+                currentStepConfig.status === 'finish' ? '已完成' : 
+                currentStepConfig.status === 'process' ? '进行中' :
+                currentStepConfig.status === 'error' ? '异常' : '等待中'
+              } 
+            />
+          </Space>
+        }
+        bordered={false}
+        size="small"
+        style={{ 
+          marginBottom: 16,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.09)'
+        }}
+      >
+        <div className="step-description-box">
+          <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+          <Paragraph className="step-description">
+            {currentStepConfig.description}
+          </Paragraph>
+        </div>
 
-        {/* 操作按钮 */}
-        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <Space wrap style={{ marginBottom: 16 }}>
+        {/* 操作按钮区 - 更现代的布局 */}
+        <div className="step-actions-container">
+          <div className="step-actions">
             {currentStepConfig.actions.map(action => (
               <Button
                 key={action.key}
@@ -1577,6 +1605,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                 danger={action.danger}
                 onClick={action.onClick}
                 size="small"
+                className="action-button"
               >
                 {action.label}
               </Button>
@@ -1590,125 +1619,126 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
                 loading={loading.submit_review}
                 onClick={handleSubmitForReview}
                 size="small"
+                className="next-step-button"
               >
                 提交审核
               </Button>
             )}
-          </Space>
+          </div>
         </div>
+      </Card>
 
-        {/* 审核批准步骤的特殊内容 */}
-        {currentStep === 2 && selectedVersion && (
-          <StatisticCard.Group style={{ marginBottom: 16 }}>
-            <StatisticCard
-              statistic={{
-                title: '审核状态',
-                value: selectedVersion.status_name,
-                valueStyle: { color: '#1890ff' },
-              }}
-              chart={<Tag color="blue">{selectedVersion.status_name}</Tag>}
-            />
-            <StatisticCard
-              statistic={{
-                title: '应发总额',
-                value: selectedVersion.total_gross_pay,
-                precision: 2,
-                prefix: '¥',
-                valueStyle: { color: '#52c41a' },
-              }}
-            />
-            <StatisticCard
-              statistic={{
-                title: '扣发总额',
-                value: selectedVersion.total_deductions,
-                precision: 2,
-                prefix: '¥',
-                valueStyle: { color: '#ff4d4f' },
-              }}
-            />
-            <StatisticCard
-              statistic={{
-                title: '实发总额',
-                value: selectedVersion.total_net_pay,
-                precision: 2,
-                prefix: '¥',
-                valueStyle: { color: '#1890ff', fontSize: '20px' },
-              }}
-            />
-          </StatisticCard.Group>
-        )}
-
-        {/* 阻塞提示 */}
-        {currentStep === 1 && !canProceedToNext(1) && (
-          <Alert
-            message="无法进入下一步"
-            description={
-              <div>
-                <p style={{ marginBottom: 8 }}>
-                  {(() => {
-                    const effectiveErrorCount = auditSummary ? auditSummary.error_count - (auditSummary.manually_ignored_count || 0) : 0;
-                    return (
-                      <>
-                        还有 <strong style={{ color: '#ff4d4f' }}>{effectiveErrorCount}</strong> 个审核异常需要处理
-                        {auditSummary && auditSummary.manually_ignored_count > 0 && (
-                          <span style={{ color: '#999', fontSize: '12px', marginLeft: '8px' }}>
-                            (总计{auditSummary.error_count}个，已忽略{auditSummary.manually_ignored_count}个)
-                          </span>
-                        )}
-                      </>
-                    );
-                  })()}
-                </p>
-                <Space>
-                                     <Button
-                     type="primary"
-                     size="small"
-                     icon={<ExclamationCircleOutlined />}
-                     loading={loading.load_anomalies}
-                     onClick={handleViewAnomalies}
-                   >
-                     查看异常详情
-                   </Button>
-                                     <Button
-                     size="small"
-                     onClick={handleIgnoreAllAnomalies}
-                   >
-                     批量忽略
-                   </Button>
-                </Space>
-              </div>
-            }
-            type="warning"
-            showIcon
-            style={{ marginBottom: 16 }}
+      {/* 审核批准步骤的特殊内容 */}
+      {currentStep === 2 && selectedVersion && (
+        <StatisticCard.Group style={{ marginBottom: 16 }}>
+          <StatisticCard
+            statistic={{
+              title: '审核状态',
+              value: selectedVersion.status_name,
+              valueStyle: { color: '#1890ff' },
+            }}
+            chart={<Tag color="blue">{selectedVersion.status_name}</Tag>}
           />
-        )}
+          <StatisticCard
+            statistic={{
+              title: '应发总额',
+              value: selectedVersion.total_gross_pay,
+              precision: 2,
+              prefix: '¥',
+              valueStyle: { color: '#52c41a' },
+            }}
+          />
+          <StatisticCard
+            statistic={{
+              title: '扣发总额',
+              value: selectedVersion.total_deductions,
+              precision: 2,
+              prefix: '¥',
+              valueStyle: { color: '#ff4d4f' },
+            }}
+          />
+          <StatisticCard
+            statistic={{
+              title: '实发总额',
+              value: selectedVersion.total_net_pay,
+              precision: 2,
+              prefix: '¥',
+              valueStyle: { color: '#1890ff', fontSize: '20px' },
+            }}
+          />
+        </StatisticCard.Group>
+      )}
 
-        <Divider />
+      {/* 阻塞提示 */}
+      {currentStep === 1 && !canProceedToNext(1) && (
+        <Alert
+          message="无法进入下一步"
+          description={
+            <div>
+              <p style={{ marginBottom: 8 }}>
+                {(() => {
+                  const effectiveErrorCount = auditSummary ? auditSummary.error_count - (auditSummary.manually_ignored_count || 0) : 0;
+                  return (
+                    <>
+                      还有 <strong style={{ color: '#ff4d4f' }}>{effectiveErrorCount}</strong> 个审核异常需要处理
+                      {auditSummary && auditSummary.manually_ignored_count > 0 && (
+                        <span style={{ color: '#999', fontSize: '12px', marginLeft: '8px' }}>
+                          (总计{auditSummary.error_count}个，已忽略{auditSummary.manually_ignored_count}个)
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
+              </p>
+              <Space>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<ExclamationCircleOutlined />}
+                  loading={loading.load_anomalies}
+                  onClick={handleViewAnomalies}
+                >
+                  查看异常详情
+                </Button>
+                <Button
+                  size="small"
+                  onClick={handleIgnoreAllAnomalies}
+                >
+                  批量忽略
+                </Button>
+              </Space>
+            </div>
+          }
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
-        {/* 要求和提示 */}
-        <div style={{ display: 'flex', gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <Text strong className="typography-label-primary">完成要求：</Text>
-            <ul style={{ marginTop: 8, paddingLeft: 20 }}>
-              {currentStepConfig.requirements.map((req, index) => (
-                <li key={index} style={{ marginBottom: 4 }}>
-                  <Text className="typography-body-secondary">{req}</Text>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div style={{ flex: 1 }}>
-            <Text strong className="typography-label-primary">操作提示：</Text>
-            <ul style={{ marginTop: 8, paddingLeft: 20 }}>
-              {currentStepConfig.tips.map((tip, index) => (
-                <li key={index} style={{ marginBottom: 4 }}>
-                  <Text className="typography-body-secondary">{tip}</Text>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <Divider style={{ margin: '12px 0' }} />
+
+      {/* 要求和提示 */}
+      <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <Text strong className="typography-label-primary">完成要求：</Text>
+          <ul style={{ marginTop: 4, paddingLeft: 20 }}>
+            {currentStepConfig.requirements.map((req, index) => (
+              <li key={index} style={{ marginBottom: 2 }}>
+                <Text className="typography-body-secondary">{req}</Text>
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <div style={{ flex: 1 }}>
+          <Text strong className="typography-label-primary">操作提示：</Text>
+          <ul style={{ marginTop: 4, paddingLeft: 20 }}>
+            {currentStepConfig.tips.map((tip, index) => (
+              <li key={index} style={{ marginBottom: 2 }}>
+                <Text className="typography-body-secondary">{tip}</Text>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
@@ -1722,6 +1752,8 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
           style={{ marginTop: 16 }}
         />
       )}
+        </div>
+      </div>
 
       {/* 异常详情模态框 */}
       <Modal
@@ -1829,4 +1861,4 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
       />
     </Card>
   );
-}; 
+}
