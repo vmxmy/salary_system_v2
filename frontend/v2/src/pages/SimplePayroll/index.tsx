@@ -11,6 +11,7 @@ import { QuickActions } from './components/QuickActions';
 import { EmptyState } from './components/EmptyState';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
 import { PayrollDataModal } from './components/PayrollDataModal';
+import { PayrollContextBar } from './components/PayrollContextBar';
 import './styles-modern.less';
 
 const { Header, Content } = Layout;
@@ -67,6 +68,25 @@ const SimplePayrollPage: React.FC = () => {
           <p className="header-subtitle">{t('simplePayroll:subtitle')}</p>
         </div>
       </Header>
+
+      {/* Fixed Context Bar */}
+      <PayrollContextBar
+        currentPeriod={currentPeriod || null}
+        currentVersion={currentVersion || null}
+        onPeriodChange={() => {
+          // 触发期间切换逻辑
+          // 这里可以打开期间选择器或执行其他操作
+          console.log('切换薪资周期');
+        }}
+        onVersionChange={() => {
+          // 触发版本切换逻辑
+          console.log('切换工资运行版本');
+        }}
+        onSettings={() => {
+          // 打开设置面板
+          console.log('打开设置');
+        }}
+      />
 
       {/* Main Content Area */}
       <Content className="payroll-content">

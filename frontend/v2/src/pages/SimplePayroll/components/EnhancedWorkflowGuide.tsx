@@ -1715,7 +1715,7 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
         />
       )}
 
-      <Divider style={{ margin: '12px 0' }} />
+      <Divider style={{ margin: '16px 0' }} />
 
       {/* 要求和提示 */}
       <div style={{ display: 'flex', gap: 12 }}>
