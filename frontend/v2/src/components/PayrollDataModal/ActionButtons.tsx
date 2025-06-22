@@ -106,15 +106,6 @@ export const ToolbarActions = ({
       onClick={onOpenPresets}
     >
       预设报表管理
-    </Button>,
-    <Button
-      key="refresh"
-      icon={<ReloadOutlined />}
-      onClick={onRefresh}
-      loading={isRefreshing}
-      title="刷新"
-    >
-      刷新
     </Button>
   ];
 

@@ -401,77 +401,108 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
             <Text type="secondary">加载中...</Text>
           </div>
         ) : pieData.length > 0 && pieData.some(item => item.value > 0) ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                outerRadius={60}
-                innerRadius={40}
-                paddingAngle={2}
-                dataKey="value"
-                onClick={(data) => {
-                  const originalType = data.find((t: any) => t.typeName === data.fullName);
-                  if (originalType && onTypeClick) {
-                    onTypeClick(originalType);
-                  }
-                }}
-                style={{ cursor: onTypeClick ? 'pointer' : 'default' }}
-              >
-                {pieData.map((entry, index) => {
-                  // 定义固定的颜色数组
-                  const COLORS = [
-                    '#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', 
-                    '#eb2f96', '#2f54eb', '#fa8c16', '#a0d911', '#1890ff', '#fa541c', 
-                    '#08979c', '#531dab', '#7cb305', '#c41d7f'
-                  ];
-                  
-                  console.log(`渲染饼图扇区 ${index}:`, {
-                    typeName: entry.fullName,
-                    assignedColor: entry.color,
-                    fallbackColor: COLORS[index % COLORS.length]
-                  });
-                  
-                  // 直接使用固定颜色数组，不依赖entry.color
-                  return (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                    />
-                  );
-                })}
-              </Pie>
-              <RechartsTooltip content={renderTooltip} />
-              
-              {/* 在图表中心添加总人数 */}
-              <text 
-                x="50%" 
-                y="48%" 
-                textAnchor="middle" 
-                dominantBaseline="middle" 
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  fill: '#1677ff'
-                }}
-              >
-                {totalEmployees}
-              </text>
-              <text 
-                x="50%" 
-                y="58%" 
-                textAnchor="middle" 
-                dominantBaseline="middle" 
-                style={{
-                  fontSize: '10px',
-                  fill: '#8c8c8c'
-                }}
-              >
-                总人数
-              </text>
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="chart-with-stats">
+            {/* 左侧：正编 */}
+            {personnelStats.data && Array.isArray(personnelStats.data.categories) && personnelStats.data.categories.length > 0 && (() => {
+              const regular = personnelStats.data.categories.find(cat => cat.personnel_category === '正编');
+              return regular ? (
+                <div className="personnel-stat-item left">
+                  <div className="stat-header">
+                    <BankOutlined className="stat-icon primary" />
+                    <Text className="stat-label">正编 {regular.employee_count}人</Text>
+                  </div>
+                  <div className="stat-details">
+                    <Text className="detail-text">应发:{formatAmount(regular.gross_pay_total, false)}</Text>
+                    <Text className="detail-text">实发:{formatAmount(regular.net_pay_total, false)}</Text>                     
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            
+            {/* 中间：饼图 */}
+            <ResponsiveContainer width="60%" height="100%" aspect={1}>
+              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="80%"
+                  innerRadius="55%"
+                  paddingAngle={2}
+                  dataKey="value"
+                  onClick={(data) => {
+                    const originalType = data.find((t: any) => t.typeName === data.fullName);
+                    if (originalType && onTypeClick) {
+                      onTypeClick(originalType);
+                    }
+                  }}
+                  style={{ cursor: onTypeClick ? 'pointer' : 'default' }}
+                >
+                  {pieData.map((entry, index) => {
+                    // 定义固定的颜色数组
+                    const COLORS = [
+                      '#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', 
+                      '#eb2f96', '#2f54eb', '#fa8c16', '#a0d911', '#1890ff', '#fa541c', 
+                      '#08979c', '#531dab', '#7cb305', '#c41d7f'
+                    ];
+                    
+                    // 直接使用固定颜色数组，不依赖entry.color
+                    return (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                      />
+                    );
+                  })}
+                </Pie>
+                <RechartsTooltip content={renderTooltip} />
+                
+                {/* 在图表中心添加总人数 */}
+                <text 
+                  x="50%" 
+                  y="48%" 
+                  textAnchor="middle" 
+                  dominantBaseline="middle" 
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    fill: '#1677ff'
+                  }}
+                >
+                  {totalEmployees}
+                </text>
+                <text 
+                  x="50%" 
+                  y="58%" 
+                  textAnchor="middle" 
+                  dominantBaseline="middle" 
+                  style={{
+                    fontSize: '10px',
+                    fill: '#8c8c8c'
+                  }}
+                >
+                  总人数
+                </text>
+              </PieChart>
+            </ResponsiveContainer>
+            
+            {/* 右侧：聘用 */}
+            {personnelStats.data && Array.isArray(personnelStats.data.categories) && personnelStats.data.categories.length > 0 && (() => {
+              const contract = personnelStats.data.categories.find(cat => cat.personnel_category === '聘用');
+              return contract ? (
+                <div className="personnel-stat-item right">
+                  <div className="stat-header">
+                    <TeamOutlined className="stat-icon secondary" />
+                    <Text className="stat-label">聘用 {contract.employee_count}人</Text>
+                  </div>
+                  <div className="stat-details">
+                    <Text className="detail-text">应发:{formatAmount(contract.gross_pay_total, false)}</Text>
+                    <Text className="detail-text">实发:{formatAmount(contract.net_pay_total, false)}</Text>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+          </div>
         ) : (
           <div className="empty-chart">
             <PieChartOutlined className="empty-icon" />
@@ -480,109 +511,32 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
         )}
       </div>
 
-      {/* 人员身份统计信息 */}
-      <div className="mini-card-summary">
-        {personnelStats.loading ? (
-          <div className="summary-loading">
-            <Spin size="small" />
-            <Text type="secondary">加载统计中...</Text>
-          </div>
-        ) : personnelStats.data && Array.isArray(personnelStats.data.categories) && personnelStats.data.categories.length > 0 ? (
-          <div className="personnel-stats-row">
-            {(() => {
-              console.log('🔍 [MiniEmployeeTypeCard] 渲染状态栏，当前数据:', {
-                hasData: !!personnelStats.data,
-                categories: personnelStats.data?.categories,
-                categoriesLength: personnelStats.data?.categories?.length
-              });
-              
-              const regular = personnelStats.data.categories.find(cat => cat.personnel_category === '正编');
-              const contract = personnelStats.data.categories.find(cat => cat.personnel_category === '聘用');
-              
-              console.log('🔍 [MiniEmployeeTypeCard] 找到的编制数据:', {
-                regular: regular ? { 
-                  count: regular.employee_count, 
-                  netPay: regular.net_pay_total 
-                } : '未找到',
-                contract: contract ? { 
-                  count: contract.employee_count, 
-                  netPay: contract.net_pay_total 
-                } : '未找到'
-              });
-              
-              return (
-                <>
-                  {/* 左侧：正编 */}
-                  <div className="personnel-stat-item left">
-                    {regular ? (
-                      <>
-                        <div className="stat-header">
-                          <BankOutlined className="stat-icon primary" />
-                          <Text className="stat-label">正编 {regular.employee_count}人</Text>
-                        </div>
-                        <div className="stat-details">
-                          <Text className="detail-text">应发:{formatAmount(regular.gross_pay_total, false)}</Text>
-                          <Text className="detail-text">实发:{formatAmount(regular.net_pay_total, false)}</Text>                     
-                        </div>
-                      </>
-                    ) : (
-                      <div className="stat-empty">
-                        <Text type="secondary">正编</Text>
-                        <Text type="secondary">暂无数据</Text>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 右侧：聘用 */}
-                  <div className="personnel-stat-item right">
-                    {contract ? (
-                      <>
-                        <div className="stat-header">
-                          <TeamOutlined className="stat-icon secondary" />
-                          <Text className="stat-label">聘用 {contract.employee_count}人</Text>
-                        </div>
-                        <div className="stat-details">
-                          <Text className="detail-text">应发:{formatAmount(contract.gross_pay_total, false)}</Text>
-                          <Text className="detail-text">实发:{formatAmount(contract.net_pay_total, false)}</Text>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="stat-empty">
-                        <Text type="secondary">聘用</Text>
-                        <Text type="secondary">暂无数据</Text>
-                      </div>
-                    )}
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        ) : (
-          <div className="personnel-stats-empty">
-            <UserOutlined className="empty-icon" />
-            <Text type="secondary">暂无编制统计数据</Text>
-            <Tooltip title="数据获取情况">
-              <Button 
-                type="text" 
-                icon={<InfoCircleOutlined />} 
-                size="small" 
-                onClick={() => {
-                  console.log('📊 [MiniEmployeeTypeCard] 调试数据情况:', {
-                    periodId,
-                    loading: personnelStats.loading,
-                    hasData: !!personnelStats.data,
-                    hasCategories: !!personnelStats.data?.categories,
-                    categoriesLength: personnelStats.data?.categories?.length || 0,
-                    categoriesIsArray: Array.isArray(personnelStats.data?.categories),
-                    categories: personnelStats.data?.categories
-                  });
-                  message.info(`期间ID: ${periodId || '未设置'}`);
-                }}
-              />
-            </Tooltip>
-          </div>
-        )}
-      </div>
+      {/* 人员身份统计信息 - 已移至图表两侧 */}
+      {!personnelStats.data && (
+        <div className="mini-card-summary">
+          {personnelStats.loading ? (
+            <div className="summary-loading">
+              <Spin size="small" />
+              <Text type="secondary">加载统计中...</Text>
+            </div>
+          ) : (
+            <div className="personnel-stats-empty">
+              <UserOutlined className="empty-icon" />
+              <Text type="secondary">暂无编制统计数据</Text>
+              <Tooltip title="数据获取情况">
+                <Button 
+                  type="text" 
+                  icon={<InfoCircleOutlined />} 
+                  size="small" 
+                  onClick={() => {
+                    message.info(`期间ID: ${periodId || '未设置'}`);
+                  }}
+                />
+              </Tooltip>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
