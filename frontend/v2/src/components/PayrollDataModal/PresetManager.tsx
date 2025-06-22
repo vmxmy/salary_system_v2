@@ -584,6 +584,12 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
           dataSource={presets}
           loading={loading}
           renderItem={(preset) => renderPresetItem(preset)}
+          size="small"
+          style={{ 
+            border: '1px solid #f0f0f0',
+            borderRadius: '6px',
+            backgroundColor: '#fafafa'
+          }}
         />
       );
     }
@@ -609,6 +615,11 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
                 dataSource={groupedPresets[category]}
                 renderItem={(preset) => renderPresetItem(preset)}
                 size="small"
+                style={{ 
+                  border: '1px solid #f0f0f0',
+                  borderRadius: '6px',
+                  backgroundColor: '#fafafa'
+                }}
               />
             )
           };
@@ -617,64 +628,92 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     );
   };
 
-  // 渲染单个预设项
+  // 渲染单个预设项 - 紧凑型布局
   const renderPresetItem = (preset: PayrollDataModalPreset) => (
     <List.Item
       key={preset.id}
-      actions={[
-        <Button
-          key="apply"
-          type="primary"
-          size="small"
-          icon={<EyeOutlined />}
-          onClick={() => handleApplyPreset(preset)}
-        >
-          {t('payroll:presets.apply')}
-        </Button>,
-        renderPresetActions(preset)
-      ]}
+      style={{ padding: '8px 12px' }}
     >
-      <List.Item.Meta
-        title={
-          <Space>
-            <span>{preset.name}</span>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        width: '100%',
+        gap: '12px'
+      }}>
+        {/* 左侧：预设信息 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            marginBottom: '4px',
+            flexWrap: 'wrap'
+          }}>
+            <Text strong style={{ fontSize: '14px' }}>{preset.name}</Text>
             {defaultPreset?.id === preset.id && (
-              <Tag color="gold" icon={<StarFilled />}>
-                {t('payroll:presets.default')}
-              </Tag>
-            )}
-            {preset.isPublic && (
-              <Tag color="blue">
-                {t('payroll:presets.public')}
-              </Tag>
+              <StarFilled style={{ color: '#faad14', fontSize: '12px' }} />
             )}
             {preset.category && (
-              <Tag color={availableGroups.find(g => g.name === preset.category)?.color || 'default'}>
+              <Tag 
+                color={availableGroups.find(g => g.name === preset.category)?.color || 'default'}
+                style={{ fontSize: '11px', margin: 0, padding: '1px 4px' }}
+              >
                 {preset.category}
               </Tag>
             )}
-          </Space>
-        }
-        description={
-          <div>
-            {preset.description && (
-              <Text type="secondary">{preset.description}</Text>
+            {preset.isPublic && (
+              <Tag color="blue" style={{ fontSize: '11px', margin: 0, padding: '1px 4px' }}>
+                公开
+              </Tag>
             )}
-            <div style={{ marginTop: 4 }}>
-              <Space size="small">
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  <ClockCircleOutlined /> {t('payroll:presets.usage_count')}: {preset.usageCount || 0}
-                </Text>
-                {preset.lastUsedAt && (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {t('payroll:presets.last_used')}: {new Date(preset.lastUsedAt).toLocaleDateString()}
-                  </Text>
-                )}
-              </Space>
-            </div>
           </div>
-        }
-      />
+          
+          {/* 描述和统计信息 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {preset.description && (
+              <Text 
+                type="secondary" 
+                style={{ 
+                  fontSize: '12px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '200px'
+                }}
+                title={preset.description}
+              >
+                {preset.description}
+              </Text>
+            )}
+            <Text type="secondary" style={{ fontSize: '11px' }}>
+              使用次数: {preset.usageCount || 0}
+            </Text>
+            {preset.lastUsedAt && (
+              <Text type="secondary" style={{ fontSize: '11px' }}>
+                最后使用: {new Date(preset.lastUsedAt).toLocaleDateString('zh-CN', { 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </Text>
+            )}
+          </div>
+        </div>
+
+        {/* 右侧：操作按钮 */}
+        <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+          <Button
+            type="primary"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleApplyPreset(preset)}
+            style={{ fontSize: '12px' }}
+          >
+            应用
+          </Button>
+          {renderPresetActions(preset)}
+        </div>
+      </div>
     </List.Item>
   );
 

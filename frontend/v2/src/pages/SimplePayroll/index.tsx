@@ -86,6 +86,7 @@ const SimplePayrollPage: React.FC = () => {
           // 打开设置面板
           console.log('打开设置');
         }}
+        onDateChange={handleDateChange}
       />
 
       {/* Main Content Area */}
@@ -107,7 +108,6 @@ const SimplePayrollPage: React.FC = () => {
               auditSummary={auditSummary}
               auditLoading={auditLoading}
               resetLoadingStates={resetLoadingStates}
-              handleDateChange={handleDateChange}
             />
 
             {/* Main Content Grid */}

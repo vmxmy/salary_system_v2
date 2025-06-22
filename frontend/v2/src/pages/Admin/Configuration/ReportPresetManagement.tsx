@@ -156,40 +156,45 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
     deleteMutation.mutate(id);
   };
 
-  // 表格列定义
+  // 表格列定义 - 紧凑型一行布局
   const columns = [
     {
-      title: '预设名称',
-      dataIndex: 'name',
-      key: 'name',
-      width: 150,
-      render: (text: string) => <Text strong>{text}</Text>,
-    },
-    {
-      title: '分类',
-      dataIndex: 'category',
-      key: 'category',
-      width: 100,
-      render: (category: string) => category ? <Tag color="blue">{category}</Tag> : '-',
-    },
-    {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-      render: (text: string) => (
-        <Tooltip title={text}>
-          <Text ellipsis className={styles.tableMaxWidth}>
-            {text || '-'}
+      title: '预设信息',
+      key: 'preset_info',
+      width: 350,
+      render: (_: any, record: ReportConfigPreset) => (
+        <div className={styles.compactPresetInfo}>
+          <div className={styles.compactPresetTitle}>
+            <Text strong className={styles.compactPresetName}>{record.name}</Text>
+            {record.category && (
+              <Tag color="blue" className={styles.compactPresetCategory}>
+                {record.category}
+              </Tag>
+            )}
+            <Badge
+              status={record.is_active ? 'success' : 'default'}
+              text=""
+              style={{ marginLeft: '4px' }}
+            />
+            <Tag color={record.is_public ? 'green' : 'default'}>
+              {record.is_public ? '公开' : '私有'}
+            </Tag>
+          </div>
+          <Text 
+            type="secondary" 
+            ellipsis={{ tooltip: record.description }} 
+            className={styles.compactPresetDescription}
+          >
+            {record.description || '暂无描述'}
           </Text>
-        </Tooltip>
+        </div>
       ),
     },
     {
-      title: '包含报表类型',
+      title: '报表类型',
       dataIndex: 'report_types',
       key: 'report_types',
-      width: 200,
+      width: 250,
       render: (types: string[]) => {
         // 根据代码获取中文名称的函数
         const getReportTypeName = (code: string) => {
@@ -201,15 +206,17 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
         const typeNames = types?.map(getReportTypeName) || [];
         
         return (
-          <div>
-            {typeNames.slice(0, 3).map((name, index) => (
-              <Tag key={types?.[index] || index} style={{ marginBottom: 2 }}>
+          <div className={styles.compactReportTypes}>
+            {typeNames.slice(0, 2).map((name, index) => (
+              <Tag key={types?.[index] || index} className={styles.compactReportTypeTag}>
                 {name}
               </Tag>
             ))}
-            {typeNames.length > 3 && (
-              <Tooltip title={typeNames.slice(3).join(', ')}>
-                <Tag>+{typeNames.length - 3}</Tag>
+            {typeNames.length > 2 && (
+              <Tooltip title={typeNames.slice(2).join('、')}>
+                <Tag className={styles.compactReportTypeTag}>
+                  +{typeNames.length - 2}
+                </Tag>
               </Tooltip>
             )}
           </div>
@@ -217,48 +224,44 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
       },
     },
     {
-      title: '状态',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      width: 80,
-      render: (isActive: boolean) => (
-        <Badge
-          status={isActive ? 'success' : 'default'}
-          text={isActive ? '激活' : '禁用'}
-        />
-      ),
-    },
-    {
-      title: '公开',
-      dataIndex: 'is_public',
-      key: 'is_public',
-      width: 80,
-      render: (isPublic: boolean) => (
-        <Tag color={isPublic ? 'green' : 'default'}>
-          {isPublic ? '公开' : '私有'}
-        </Tag>
-      ),
-    },
-    {
-      title: '使用次数',
-      dataIndex: 'usage_count',
-      key: 'usage_count',
-      width: 80,
-      render: (count: number) => <Text>{count || 0}</Text>,
-    },
-    {
-      title: '最后使用',
-      dataIndex: 'last_used_at',
-      key: 'last_used_at',
+      title: '使用统计',
+      key: 'usage_stats',
       width: 120,
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
+      render: (_: any, record: ReportConfigPreset) => (
+        <div className={styles.compactUsageStats}>
+          <Text className={styles.compactUsageCount}>
+            <span className={styles.compactUsageCountNumber}>{record.usage_count || 0}</span> 次使用
+          </Text>
+          <Text type="secondary" className={styles.compactLastUsed}>
+            {record.last_used_at ? new Date(record.last_used_at).toLocaleDateString('zh-CN', { 
+              month: 'short', 
+              day: 'numeric' 
+            }) : '未使用'}
+          </Text>
+        </div>
+      ),
+    },
+    {
+      title: '状态',
+      key: 'status',
+      width: 80,
+      render: (_: any, record: ReportConfigPreset) => (
+        <div className={styles.compactStatus}>
+          <Badge
+            status={record.is_active ? 'success' : 'default'}
+            text={record.is_active ? '激活' : '禁用'}
+            className={styles.compactStatusBadge}
+          />
+        </div>
+      ),
     },
     {
       title: '操作',
       key: 'action',
-      width: 150,
+      width: 120,
+      fixed: 'right' as const,
       render: (_: any, record: ReportConfigPreset) => (
-        <Space size="small">
+        <div className={styles.compactActions}>
           <Tooltip title="查看详情">
             <Button
               type="text"
@@ -290,7 +293,7 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
               />
             </Tooltip>
           </Popconfirm>
-        </Space>
+        </div>
       ),
     },
   ];
@@ -360,20 +363,23 @@ const ReportPresetManagement: React.FC<ReportPresetManagementProps> = () => {
           </Col>
         </Row>
 
-        {/* 表格 */}
+        {/* 表格 - 紧凑型布局 */}
         <Table
           columns={columns}
           dataSource={presets}
           rowKey="id"
           loading={isLoading}
+          size="small"
           pagination={{
             total: presets?.length || 0,
-            pageSize: 20,
+            pageSize: 25,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total) => `共 ${total} 条记录`,
+            pageSizeOptions: ['10', '25', '50', '100'],
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 920 }}
+          rowClassName={() => 'compact-row'}
         />
       </Card>
 

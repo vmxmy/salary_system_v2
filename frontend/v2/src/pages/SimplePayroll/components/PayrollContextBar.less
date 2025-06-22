@@ -100,6 +100,46 @@
         background: rgba(24, 144, 255, 0.1);
       }
     }
+
+    // 薪资周期操作区域
+    .period-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+
+      .period-date-picker {
+        .ant-picker {
+          font-size: 11px;
+          height: 20px;
+          padding: 0 4px;
+          border-radius: 3px;
+          min-width: 90px;
+          border-color: #1890ff;
+
+          .ant-picker-input > input {
+            font-size: 11px;
+            color: #1890ff;
+            font-weight: 500;
+          }
+
+          .ant-picker-suffix {
+            font-size: 9px;
+            color: #1890ff;
+          }
+
+          &:hover {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+          }
+
+          &.ant-picker-focused {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+          }
+        }
+      }
+    }
   }
 
   // 分割线
@@ -137,12 +177,24 @@
       }
     }
 
-    .progress-text {
-      font-size: 11px;
-      color: #595959;
-      font-weight: 500;
-      min-width: 28px;
-      text-align: center;
+    .progress-detail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+
+      .progress-text {
+        font-size: 11px;
+        color: #595959;
+        font-weight: 500;
+        line-height: 1;
+      }
+
+      .progress-step {
+        font-size: 9px;
+        color: #8c8c8c;
+        line-height: 1;
+      }
     }
   }
 
@@ -159,6 +211,7 @@
       background: rgba(24, 144, 255, 0.1);
     }
   }
+
 
   // 响应式设计
   @media (max-width: 1200px) {
@@ -217,6 +270,7 @@
       }
     }
 
+
     .context-divider {
       display: none;
     }
@@ -234,6 +288,23 @@
 
         .context-value {
           font-size: 14px;
+        }
+      }
+
+      .period-actions {
+        flex-direction: row;
+        gap: 6px;
+        align-items: center;
+
+        .period-date-picker {
+          .ant-picker {
+            min-width: 80px;
+          }
+        }
+
+        .context-action {
+          font-size: 11px;
+          padding: 1px 4px;
         }
       }
     }

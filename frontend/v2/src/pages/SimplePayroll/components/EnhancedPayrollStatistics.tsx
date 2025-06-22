@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Button, Row, Col, Space, Divider, message, DatePicker, Tooltip } from 'antd';
+import { Button, Row, Col, Space, Divider, message, Tooltip } from 'antd';
 import { StatisticCard } from '@ant-design/pro-components';
 import { DollarOutlined, CalendarOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -30,8 +30,6 @@ interface EnhancedPayrollStatisticsProps {
   } | null;
   auditLoading: boolean;
   resetLoadingStates: () => void;
-  // 新增日期选择器相关props
-  handleDateChange: (year: number, month: number) => void;
 }
 
 export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps> = ({
@@ -43,8 +41,7 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
   dataIntegrityStats,
   auditSummary,
   auditLoading,
-  resetLoadingStates,
-  handleDateChange
+  resetLoadingStates
 }) => {
   console.log('🌟🌟🌟 [EnhancedPayrollStatistics] 组件渲染开始 🌟🌟🌟');
   console.log('🌟 [EnhancedPayrollStatistics] selectedVersionId:', selectedVersionId);
@@ -405,54 +402,6 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
     // TODO: 实现重新加载对应时间范围的数据
   };
 
-  // 自定义单元格渲染器
-  const cellRender = (current: string | number | Dayjs) => {
-    const date = dayjs.isDayjs(current) ? current : dayjs(current);
-    const year = date.year();
-    const month = date.month() + 1;
-    const key = `${year}-${month}`;
-    const data = monthlyData?.get(key);
-
-    const hasPayrollRun = data?.has_payroll_run;
-    const notCalculatedCount = data?.record_status_summary?.not_calculated || 0;
-    const pendingAuditCount = data?.record_status_summary?.pending_audit || 0;
-
-    let dotColor = '';
-    // 状态优先级：待审计 > 未计算
-    if (pendingAuditCount > 0) dotColor = 'lightblue';
-    else if (notCalculatedCount > 0) dotColor = 'lightyellow';
-    
-    let tooltipTitle = `${year}年${month}月`;
-    if(hasPayrollRun) tooltipTitle += ' (有薪资运行)';
-    if(notCalculatedCount > 0) tooltipTitle += ` | 未计算: ${notCalculatedCount}`;
-    if(pendingAuditCount > 0) tooltipTitle += ` | 待审计: ${pendingAuditCount}`;
-
-    return (
-      <Tooltip title={tooltipTitle}>
-      <div 
-          className="ant-picker-cell-inner"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-            backgroundColor: hasPayrollRun ? '#e6ffed' : 'transparent', // 浅绿色背景
-            borderRadius: '4px'
-        }}
-      >
-        {date.format('MM')}月
-          {dotColor && (
-            <div 
-              className="payroll-status-indicator"
-              style={{ backgroundColor: dotColor }} 
-            />
-        )}
-      </div>
-      </Tooltip>
-    );
-  };
 
   if (!selectedVersionId) {
     return null;
@@ -485,46 +434,6 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
         style={{ marginBottom: 6 }}
       >
         <Row gutter={[8, 8]} justify="space-between" align="stretch">
-          {/* 日期选择器卡片 */}
-          <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
-            <StatisticCard
-              statistic={{
-                title: '薪资发放期间',
-                value: currentPeriod ? dayjs(currentPeriod.start_date).format('YYYY年MM月') : dayjs().format('YYYY年MM月'),
-                valueStyle: { color: '#1890ff', fontSize: '16px', fontWeight: 'bold' }
-              }}
-              chart={
-                <div style={{ padding: '3px 0' }}>
-                  <DatePicker
-                    picker="month"
-                    value={currentPeriod ? dayjs(currentPeriod.start_date) : dayjs()}
-                    onChange={(date) => {
-                      if (date) {
-                        handleDateChange(date.year(), date.month() + 1);
-                      }
-                    }}
-                    style={{ width: '100%', marginBottom: '2px' }}
-                    format="YYYY年MM月"
-                    placeholder="选择月份"
-                    allowClear={false}
-                    className="custom-date-picker"
-                    cellRender={cellRender}
-                    size="small"
-                  />
-                  {currentPeriod && (
-                    <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.1' }}>
-                      <div style={{ marginBottom: '1px' }}>
-                        状态: <span style={{ color: currentPeriod.status_name === '活跃' ? '#52c41a' : '#fa8c16' }}>
-                          {currentPeriod.status_name}
-                        </span>
-                      </div>
-                      <div>{currentPeriod.frequency_name}</div>
-                    </div>
-                  )}
-                </div>
-              }
-            />
-          </Col>
           {/* 工资记录数量卡片 */}
           <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
             <StatisticCard

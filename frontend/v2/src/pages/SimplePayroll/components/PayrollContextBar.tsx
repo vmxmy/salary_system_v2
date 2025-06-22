@@ -1,5 +1,5 @@
 import React from 'react';
-import { Space, Button, Tag, Progress, Typography, Divider, Affix, Tooltip } from 'antd';
+import { Space, Button, Tag, Progress, Typography, Divider, Affix, Tooltip, DatePicker } from 'antd';
 import { 
   CalendarOutlined, 
   FileTextOutlined, 
@@ -20,6 +20,7 @@ interface PayrollContextBarProps {
   onPeriodChange?: () => void;
   onVersionChange?: () => void;
   onSettings?: () => void;
+  onDateChange?: (year: number, month: number) => void;
 }
 
 export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
@@ -27,24 +28,42 @@ export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
   currentVersion,
   onPeriodChange,
   onVersionChange,
-  onSettings
+  onSettings,
+  onDateChange
 }) => {
-  // 获取进度百分比
+  // 根据真实工作流程步骤获取进度百分比
   const getProgress = () => {
     if (!currentVersion) return 0;
-    const statusMap: Record<string, number> = {
-      'DRAFT': 20,
-      '草稿': 20,
-      'PRUN_CALCULATED': 40,
-      '已计算': 40,
-      'IN_REVIEW': 60,
-      '审核中': 60,
-      'APPROVED_FOR_PAYMENT': 80,
-      '批准支付': 80,
-      'PAID': 100,
-      '已支付': 100
-    };
-    return statusMap[currentVersion.status_name] || 0;
+    
+    // 基于真实的工作流程步骤计算进度
+    const stepProgress = getCurrentStepFromStatus(currentVersion.status_name);
+    const totalSteps = 5; // 总共5个步骤：数据准备、审核检查、审核批准、支付准备、完成归档
+    
+    // 将步骤转换为百分比，每个步骤完成后增加20%
+    return Math.round(((stepProgress + 1) / totalSteps) * 100);
+  };
+
+  // 根据状态名称获取当前步骤（与工作流程保持一致）
+  const getCurrentStepFromStatus = (statusName?: string): number => {
+    switch (statusName) {
+      case 'DRAFT':
+      case '草稿':
+        return 0; // 数据准备（20%）
+      case 'PRUN_CALCULATED':
+      case '已计算':
+        return 1; // 审核检查（40%）
+      case 'IN_REVIEW':
+      case '审核中':
+        return 2; // 审核批准（60%）
+      case 'APPROVED_FOR_PAYMENT':
+      case '批准支付':
+        return 3; // 支付准备（80%）
+      case 'PAID':
+      case '已支付':
+        return 4; // 完成归档（100%）
+      default:
+        return 0;
+    }
   };
 
   // 获取状态颜色
@@ -80,6 +99,29 @@ export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
     return `版本 ${version.version_number || '1.0'}`;
   };
 
+  // 获取当前步骤名称
+  const getCurrentStepName = (statusName?: string): string => {
+    switch (statusName) {
+      case 'DRAFT':
+      case '草稿':
+        return '数据准备';
+      case 'PRUN_CALCULATED':
+      case '已计算':
+        return '审核检查';
+      case 'IN_REVIEW':
+      case '审核中':
+        return '审核批准';
+      case 'APPROVED_FOR_PAYMENT':
+      case '批准支付':
+        return '支付准备';
+      case 'PAID':
+      case '已支付':
+        return '完成归档';
+      default:
+        return '数据准备';
+    }
+  };
+
   return (
     <Affix offsetTop={0}>
       <div className="payroll-context-bar">
@@ -91,21 +133,24 @@ export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
                 <CalendarOutlined className="context-icon period-icon" />
                 <div className="context-info">
                   <Text strong className="context-label">薪资周期</Text>
-                  <Text className="context-value">
-                    {formatPeriod(currentPeriod)}
-                  </Text>
                 </div>
-                {onPeriodChange && (
-                  <Button 
-                    size="small" 
-                    type="text" 
-                    icon={<SwapOutlined />}
-                    onClick={onPeriodChange}
-                    className="context-action"
-                  >
-                    切换
-                  </Button>
-                )}
+                <div className="period-actions">
+                  {/* 日期选择器 */}
+                  <DatePicker
+                    picker="month"
+                    format="YYYY年MM月"
+                    placeholder="选择月份"
+                    size="small"
+                    value={currentPeriod?.start_date ? dayjs(currentPeriod.start_date) : null}
+                    onChange={(date) => {
+                      if (date && onDateChange) {
+                        onDateChange(date.year(), date.month() + 1);
+                      }
+                    }}
+                    className="period-date-picker"
+                    allowClear={false}
+                  />
+                </div>
               </Space>
 
               <Divider type="vertical" className="context-divider" />
@@ -150,19 +195,23 @@ export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
                   <Space align="center">
                     <ClockCircleOutlined className="context-icon progress-icon" />
                     <div className="progress-info">
-                      <Text className="progress-label">流程进度</Text>
+                      <Text className="progress-label">{getCurrentStepName(currentVersion.status_name)}</Text>
                       <Progress 
                         percent={getProgress()} 
                         size="small"
                         showInfo={false}
                         strokeColor={{
                           '0%': '#108ee9',
+                          '50%': '#52c41a',
                           '100%': '#87d068',
                         }}
                         className="progress-bar"
                       />
                     </div>
-                    <Text className="progress-text">{getProgress()}%</Text>
+                    <div className="progress-detail">
+                      <Text className="progress-text">{getProgress()}%</Text>
+                      <Text className="progress-step">第{getCurrentStepFromStatus(currentVersion.status_name) + 1}/5步</Text>
+                    </div>
                   </Space>
                 </div>
               )}

@@ -560,4 +560,111 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 紧凑型表格样式 */
+.compactTableRow {
+  /* 紧凑型行样式 */
+}
+
+/* 紧凑型预设信息显示 */
+.compactPresetInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compactPresetTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.compactPresetName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.compactPresetCategory {
+  font-size: 11px;
+}
+
+.compactPresetDescription {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 紧凑型报表类型标签 */
+.compactReportTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: 230px;
+}
+
+.compactReportTypeTag {
+  margin: 1px;
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* 紧凑型使用统计 */
+.compactUsageStats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.compactUsageCount {
+  font-size: 12px;
+}
+
+.compactUsageCountNumber {
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.compactLastUsed {
+  font-size: 11px;
+  color: #999;
+}
+
+/* 紧凑型状态显示 */
+.compactStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.compactStatusBadge {
+  font-size: 11px;
+}
+
+/* 表格行紧凑样式 */
+:global(.compact-row) td {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  vertical-align: top !important;
+}
+
+/* 表格小标签样式 */
+:global(.ant-tag-small) {
+  font-size: 11px;
+  padding: 1px 4px;
+  line-height: 1.2;
+}
+
+/* 紧凑型按钮组 */
+.compactActions {
+  display: flex;
+  gap: 2px;
 } 

@@ -92,7 +92,7 @@ export const defaultProLayoutSettings: Partial<ProSettings> = {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: '人事管理系统',
+  title: '工资报表助手',
   navTheme: 'light',
   splitMenus: false,
   menu: {

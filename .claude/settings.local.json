@@ -28,7 +28,8 @@
       "Bash(cp:*)",
       "Bash(mv:*)",
       "Bash(ls:*)",
-      "Bash(npm:*)"
+      "Bash(npm:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }
