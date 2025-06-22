@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import { message, Upload } from 'antd';
 import type { UploadProps } from 'antd';
-import * as XLSX from 'xlsx';
+// ExcelJS将通过动态导入使用
 import { useTranslation } from 'react-i18next';
 
 const { Dragger } = Upload;
@@ -34,40 +34,62 @@ const UniversalDataUpload: React.FC<UniversalDataUploadProps> = ({ onDataParsed,
       onLoadingChange(true);
       setFileName((file as File).name);
       try {
-        const reader = new FileReader();
-        reader.onload = (e: ProgressEvent<FileReader>) => {
-          try {
-            const data = e.target?.result;
-            const workbook = XLSX.read(data, { type: 'array', codepage: 65001 });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const json: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
-            
-            if (json.length > 0) {
-              const headers = json[0];
-              const rows = json.slice(1);
-              onDataParsed(headers, rows);
-              if (onSuccess) onSuccess('ok');
+        // 动态导入ExcelJS
+        const ExcelJS = await import('exceljs');
+        
+        const fileObj = file as File;
+        let json: any[][] = [];
+        
+        // 判断文件类型
+        if (fileObj.type === 'text/csv' || fileObj.name.toLowerCase().endsWith('.csv')) {
+          // CSV文件处理
+          const text = await fileObj.text();
+          const lines = text.split('\n').filter(line => line.trim());
+          json = lines.map(line => {
+            // 简单的CSV解析，支持逗号和制表符分隔
+            if (line.includes('\t')) {
+              return line.split('\t');
             } else {
-              const errorMsg = t('payroll:bulk_import.upload.empty_file');
-              message.error(errorMsg);
-              if (onError) onError(new Error(errorMsg));
+              return line.split(',');
             }
-          } catch (err) {
-            console.error('File parsing error:', err);
-            const errorMsg = t('payroll:bulk_import.upload.parse_error');
-            message.error(errorMsg);
-            if(onError) onError(err instanceof Error ? err : new Error(String(err)));
-          } finally {
-            onLoadingChange(false);
+          });
+        } else {
+          // Excel文件处理
+          const workbook = new ExcelJS.Workbook();
+          const arrayBuffer = await fileObj.arrayBuffer();
+          await workbook.xlsx.load(arrayBuffer);
+          
+          // 获取第一个工作表
+          const worksheet = workbook.getWorksheet(1);
+          if (!worksheet) {
+            throw new Error('Excel文件中没有找到工作表');
           }
-        };
-        reader.readAsArrayBuffer(file as Blob);
+          
+          // 将工作表转换为JSON数组
+          json = [];
+          worksheet.eachRow((row, rowNumber) => {
+            const rowData = row.values as any[];
+            // ExcelJS的row.values第一个元素是undefined，需要去掉
+            json.push(rowData.slice(1));
+          });
+        }
+        
+        if (json.length > 0) {
+          const headers = json[0];
+          const rows = json.slice(1);
+          onDataParsed(headers, rows);
+          if (onSuccess) onSuccess('ok');
+        } else {
+          const errorMsg = t('payroll:bulk_import.upload.empty_file');
+          message.error(errorMsg);
+          if (onError) onError(new Error(errorMsg));
+        }
       } catch (err) {
-        console.error('File reading error:', err);
-        const errorMsg = t('payroll:bulk_import.upload.read_error');
+        console.error('File processing error:', err);
+        const errorMsg = t('payroll:bulk_import.upload.parse_error');
         message.error(errorMsg);
         if(onError) onError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
         onLoadingChange(false);
       }
     },

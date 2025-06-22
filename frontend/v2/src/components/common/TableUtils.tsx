@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Button, Input, Space, Dropdown, Checkbox, Tooltip, Divider, App, Menu } from 'antd';
 import { SearchOutlined, DownloadOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons';
 import type { InputRef } from 'antd';
@@ -233,13 +233,29 @@ const handleReset = (
 
 /**
  * 创建表格的搜索和排序状态及函数的钩子
+ * @param searchableFields 可搜索的字段列表（可选）
  * @returns 返回表格搜索所需的状态和函数
  */
-export const useTableSearch = () => {
+export const useTableSearch = (searchableFields?: string[]) => {
   const [searchText, setSearchText] = useState<string>('');
   const [searchedColumn, setSearchedColumn] = useState<string>('');
   const searchInput = useRef<InputRef>(null);
   const { t } = useTranslation(['common', 'components']);
+
+  // 添加searchProps属性，用于在表格组件中使用
+  const searchProps = useMemo(() => {
+    if (!searchableFields || searchableFields.length === 0) {
+      return {};
+    }
+
+    return {
+      searchText,
+      searchInput,
+      onSearch: (value: string) => {
+        setSearchText(value);
+      }
+    };
+  }, [searchText, searchableFields]);
 
   const getColumnSearch = <T extends object>(dataIndex: keyof T): ColumnType<T> =>
     getColumnSearchProps<T>(
@@ -264,6 +280,7 @@ export const useTableSearch = () => {
     setSearchedColumn,
     searchInput,
     getColumnSearch,
+    searchProps,
   };
 };
 
@@ -346,8 +363,8 @@ export const useTableExport = <T extends object>(
     }
 
     try {
-      // 动态导入XLSX
-      const XLSX = await import('xlsx');
+      // 使用ExcelJS替代xlsx包
+      const ExcelJS = await import('exceljs');
 
       const dataToExport = dataSource.map(item => {
         const row: Record<string, any> = {};
@@ -373,10 +390,29 @@ export const useTableExport = <T extends object>(
         return row;
       });
 
-      const ws = XLSX.utils.json_to_sheet(dataToExport, { header: withHeader ? Object.keys(dataToExport[0] || {}) : [] });
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      XLSX.writeFile(wb, `${filename}.xlsx`);
+      // 使用ExcelJS创建工作簿
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(sheetName);
+      
+      if (dataToExport.length > 0) {
+        const headers = Object.keys(dataToExport[0]);
+        if (withHeader) {
+          worksheet.addRow(headers);
+        }
+        dataToExport.forEach(row => {
+          worksheet.addRow(headers.map(key => row[key]));
+        });
+      }
+      
+      // 导出文件
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filename}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
       if (isMounted.current) { // 检查是否挂载
         message.success(successMessage);
       }
@@ -386,6 +422,9 @@ export const useTableExport = <T extends object>(
       }
     }
   };
+
+  // 添加导出到Excel的函数作为别名，用于兼容性
+  const exportToExcel = clientExportToExcel;
 
   const ExportButton: React.FC = () => {
     const handleMenuClick = async (e: { key: string }) => {
@@ -463,7 +502,8 @@ export const useTableExport = <T extends object>(
 
   return {
     ExportButton,
-    clientExportToExcel, // 暴露给外部方便直接调用
+    clientExportToExcel,
+    exportToExcel, // 添加exportToExcel作为clientExportToExcel的别名
   };
 };
 

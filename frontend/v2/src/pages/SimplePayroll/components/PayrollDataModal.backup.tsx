@@ -1302,78 +1302,82 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
       }
 
       // 创建工作表
-      import('xlsx').then((XLSX) => {
-        // 创建工作表
-        const ws = XLSX.utils.json_to_sheet(exportData);
+      import('exceljs').then(async (ExcelJS) => {
+        // 创建工作簿
+        const workbook = new ExcelJS.Workbook();
         
-        // 获取工作表范围
-        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+        // 设置工作簿属性
+        workbook.creator = 'Salary System';
+        workbook.created = new Date();
+        workbook.title = '薪资数据导出';
+        workbook.subject = '薪资数据';
         
-        // 为所有数字列设置统一的数字格式（2位小数）
+        // 添加工作表
+        const worksheet = workbook.addWorksheet('薪资数据');
+        
+        // 获取表头
         const headers = Object.keys(exportData[0]);
         
-        // 遍历所有单元格，设置基本格式
+        // 设置表头
+        worksheet.addRow(headers);
+        
+        // 设置表头样式
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E0E0' }
+        };
+        
+        // 统计计数器
         let numberCellCount = 0;
         let textCellCount = 0;
         let nullCellCount = 0;
         
-        for (let row = 0; row <= range.e.r; row++) {
-          for (let col = 0; col <= range.e.c; col++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            const cell = ws[cellAddress];
+        // 添加数据行
+        exportData.forEach((rowData, rowIndex) => {
+          const row = worksheet.addRow(Object.values(rowData));
+          
+          // 设置数据格式
+          headers.forEach((header, colIndex) => {
+            const cell = row.getCell(colIndex + 1);
+            const cellValue = rowData[header];
             
-            if (cell) {
-              // 表头行使用文本格式
-              if (row === 0) {
-                cell.t = 's';
-                continue;
+            if (typeof cellValue === 'number' && !isNaN(cellValue) && isFinite(cellValue)) {
+              // 数字类型：设置千分位分隔符 + 2位小数
+              cell.numFmt = '#,##0.00';
+              numberCellCount++;
+              
+              // 调试：记录数字单元格
+              if (rowIndex === 0) { // 只记录第一行数据
+                console.log(`🔢 [数字单元格] ${header}: ${cellValue} (${typeof cellValue})`);
               }
+            } else if (typeof cellValue === 'string' && !isNaN(parseFloat(cellValue)) && isFinite(parseFloat(cellValue))) {
+              // 字符串数字：转换为数字并设置格式
+              cell.value = parseFloat(cellValue);
+              cell.numFmt = '#,##0.00';
+              numberCellCount++;
               
-              // 数据行：根据原始数据类型设置格式
-              const cellValue = cell.v;
+              // 调试：记录转换的数字单元格
+              if (rowIndex === 0) { // 只记录第一行数据
+                console.log(`🔄 [转换数字单元格] ${header}: "${cellValue}" -> ${parseFloat(cellValue)} (string->number)`);
+              }
+            } else if (cellValue === null || cellValue === undefined) {
+              // 空值处理
+              cell.value = '';
+              nullCellCount++;
+            } else {
+              // 其他类型保持原样
+              textCellCount++;
               
-              if (typeof cellValue === 'number' && !isNaN(cellValue) && isFinite(cellValue)) {
-                // 数字类型：设置千分位分隔符 + 2位小数
-                cell.z = '#,##0.00';
-                cell.t = 'n';
-                numberCellCount++;
-                
-                // 调试：记录数字单元格
-                if (row === 1) { // 只记录第一行数据
-                  const colHeader = headers[col];
-                  console.log(`🔢 [数字单元格] ${colHeader}: ${cellValue} (${typeof cellValue})`);
-                }
-              } else if (typeof cellValue === 'string' && !isNaN(parseFloat(cellValue)) && isFinite(parseFloat(cellValue))) {
-                // 字符串数字：转换为数字并设置格式
-                  cell.v = parseFloat(cellValue);
-                cell.z = '#,##0.00';
-                cell.t = 'n';
-                numberCellCount++;
-                
-                // 调试：记录转换的数字单元格
-                if (row === 1) { // 只记录第一行数据
-                  const colHeader = headers[col];
-                  console.log(`🔄 [转换数字单元格] ${colHeader}: "${cellValue}" -> ${parseFloat(cellValue)} (string->number)`);
-                }
-              } else if (cellValue === null || cellValue === undefined) {
-                // 空值处理
-                cell.v = '';
-                cell.t = 's';
-                nullCellCount++;
-              } else {
-                // 其他类型保持原样
-                cell.t = 's';
-                textCellCount++;
-                
-                // 调试：记录文本单元格
-                if (row === 1) { // 只记录第一行数据
-                  const colHeader = headers[col];
-                  console.log(`📝 [文本单元格] ${colHeader}: ${cellValue} (${typeof cellValue})`);
-                }
+              // 调试：记录文本单元格
+              if (rowIndex === 0) { // 只记录第一行数据
+                console.log(`📝 [文本单元格] ${header}: ${cellValue} (${typeof cellValue})`);
               }
             }
-          }
-        }
+          });
+        });
         
         console.log('📊 [Excel格式化统计]:', {
           数字单元格数量: numberCellCount,
@@ -1383,28 +1387,14 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         });
         
         // 设置列宽 - 基于内容长度自动调整
-        const colWidths = headers.map(header => {
+        headers.forEach((header, index) => {
           const maxLength = Math.max(
             header.length,
             ...exportData.slice(0, 100).map(row => String(row[header] || '').length)
           );
-          return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
+          const width = Math.min(Math.max(maxLength + 2, 10), 50);
+          worksheet.getColumn(index + 1).width = width;
         });
-        ws['!cols'] = colWidths;
-        
-        // 创建工作簿
-        const wb = XLSX.utils.book_new();
-        
-        // 设置工作簿属性
-        wb.Props = {
-          Title: '薪资数据导出',
-          Subject: '薪资数据',
-          Author: 'Salary System',
-          CreatedDate: new Date()
-        };
-        
-        // 添加工作表
-        XLSX.utils.book_append_sheet(wb, ws, '薪资数据');
         
         // 生成安全的文件名（避免特殊字符）
         const now = new Date();
@@ -1474,11 +1464,20 @@ export const PayrollDataModal: React.FC<PayrollDataModalProps> = ({
         console.log('🔍 [导出Excel] 最终文件名:', safeFileName);
         
         // 导出文件
-        XLSX.writeFile(wb, safeFileName, { 
-          bookType: 'xlsx',
-          type: 'buffer',
-          compression: false // 关闭压缩以避免兼容性问题
+        const buffer = await workbook.xlsx.writeBuffer();
+        
+        // 创建下载链接
+        const blob = new Blob([buffer], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = safeFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
         
         message.success(`导出成功！共导出 ${filteredDataSource.length} 条记录`);
       }).catch((error) => {

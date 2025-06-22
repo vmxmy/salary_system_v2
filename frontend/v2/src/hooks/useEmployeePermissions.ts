@@ -124,5 +124,6 @@ export const useEmployeePermissions = () => {
     hasPermission,
     hasAnyPermission,
     userPermissions,
+    permissions: employeePermissions, // Add permissions as an alias to employeePermissions for compatibility
   };
 }; 

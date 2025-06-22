@@ -325,10 +325,11 @@ const DataUpload: React.FC<DataUploadProps> = ({
         throw new Error('不支持的文件格式，请上传 .xlsx、.xls 或 .csv 文件');
       }
       
-      // 动态导入xlsx库
-      const XLSX = await import('xlsx');
+      // 动态导入ExcelJS库
+      const ExcelJS = await import('exceljs');
       
       let workbook;
+      let jsonData: any[][];
       
       // 根据文件类型处理不同的编码
       if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
@@ -352,31 +353,36 @@ const DataUpload: React.FC<DataUploadProps> = ({
           });
         }
         
-        // 使用XLSX解析CSV文本
-        workbook = XLSX.read(csvText, { 
-          type: 'string',
-          raw: true // 保持原始数据格式
+        // 对于CSV文件，直接解析为二维数组
+        const lines = csvText.split('\n').filter(line => line.trim());
+        jsonData = lines.map(line => {
+          // 简单的CSV解析，支持逗号和制表符分隔
+          if (line.includes('\t')) {
+            return line.split('\t');
+          } else {
+            return line.split(',');
+          }
         });
       } else {
-        // Excel文件正常处理
+        // Excel文件使用ExcelJS处理
+        workbook = new ExcelJS.Workbook();
         const arrayBuffer = await file.arrayBuffer();
-        workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        await workbook.xlsx.load(arrayBuffer);
+        
+        // 获取第一个工作表
+        const worksheet = workbook.getWorksheet(1);
+        if (!worksheet) {
+          throw new Error('Excel文件中没有找到工作表');
+        }
+        
+        // 将工作表转换为JSON数组
+        jsonData = [];
+        worksheet.eachRow((row, rowNumber) => {
+          const rowData = row.values as any[];
+          // ExcelJS的row.values第一个元素是undefined，需要去掉
+          jsonData.push(rowData.slice(1));
+        });
       }
-      
-      // 获取第一个工作表
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) {
-        throw new Error('Excel文件中没有找到工作表');
-      }
-      
-      const worksheet = workbook.Sheets[sheetName];
-      
-      // 将工作表转换为JSON数组
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
-        header: 1, // 使用数组格式而不是对象格式
-        defval: '', // 空单元格默认值
-        raw: true // 🔧 修复：保留原始值，避免身份证号等长数字被转换导致精度丢失
-      });
       
       console.log('📊 解析的原始数据:', jsonData);
       

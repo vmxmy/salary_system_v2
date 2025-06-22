@@ -1,0 +1,521 @@
+// =============================================================================
+// 🛠️ 现代化工具类库 (Modern Utility Classes)
+// =============================================================================
+// 补充完整的工具类，确保样式系统全面覆盖
+
+@import './modern-design-system.less';
+
+// =============================================================================
+// 🎨 颜色工具类 (Color Utilities)
+// =============================================================================
+
+// 文字颜色
+.text-primary { color: @text-primary !important; }
+.text-secondary { color: @text-secondary !important; }
+.text-tertiary { color: @text-tertiary !important; }
+.text-quaternary { color: @text-quaternary !important; }
+.text-inverse { color: @text-inverse !important; }
+.text-accent { color: @text-accent !important; }
+
+// 语义化文字颜色
+.text-success { color: @success-600 !important; }
+.text-warning { color: @warning-600 !important; }
+.text-error { color: @error-600 !important; }
+.text-info { color: @info-600 !important; }
+
+// 背景颜色
+.bg-primary { background-color: @bg-primary !important; }
+.bg-secondary { background-color: @bg-secondary !important; }
+.bg-tertiary { background-color: @bg-tertiary !important; }
+.bg-accent { background-color: @bg-accent !important; }
+
+// 语义化背景颜色
+.bg-success-light { background-color: @success-50 !important; }
+.bg-warning-light { background-color: @warning-50 !important; }
+.bg-error-light { background-color: @error-50 !important; }
+.bg-info-light { background-color: @info-50 !important; }
+
+// 边框颜色
+.border-light { border-color: @border-light !important; }
+.border-default { border-color: @border-default !important; }
+.border-medium { border-color: @border-medium !important; }
+.border-strong { border-color: @border-strong !important; }
+
+// =============================================================================
+// 📏 间距工具类 (Spacing Utilities)
+// =============================================================================
+
+// Margin 工具类
+.m-0 { margin: 0 !important; }
+.m-1 { margin: @space-1 !important; }
+.m-2 { margin: @space-2 !important; }
+.m-3 { margin: @space-3 !important; }
+.m-4 { margin: @space-4 !important; }
+.m-5 { margin: @space-5 !important; }
+.m-6 { margin: @space-6 !important; }
+.m-8 { margin: @space-8 !important; }
+.m-10 { margin: @space-10 !important; }
+.m-12 { margin: @space-12 !important; }
+.m-16 { margin: @space-16 !important; }
+
+// Margin Top
+.mt-0 { margin-top: 0 !important; }
+.mt-1 { margin-top: @space-1 !important; }
+.mt-2 { margin-top: @space-2 !important; }
+.mt-3 { margin-top: @space-3 !important; }
+.mt-4 { margin-top: @space-4 !important; }
+.mt-5 { margin-top: @space-5 !important; }
+.mt-6 { margin-top: @space-6 !important; }
+.mt-8 { margin-top: @space-8 !important; }
+
+// Margin Bottom
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: @space-1 !important; }
+.mb-2 { margin-bottom: @space-2 !important; }
+.mb-3 { margin-bottom: @space-3 !important; }
+.mb-4 { margin-bottom: @space-4 !important; }
+.mb-5 { margin-bottom: @space-5 !important; }
+.mb-6 { margin-bottom: @space-6 !important; }
+.mb-8 { margin-bottom: @space-8 !important; }
+
+// Margin Left & Right
+.ml-0 { margin-left: 0 !important; }
+.ml-1 { margin-left: @space-1 !important; }
+.ml-2 { margin-left: @space-2 !important; }
+.ml-3 { margin-left: @space-3 !important; }
+.ml-4 { margin-left: @space-4 !important; }
+.ml-6 { margin-left: @space-6 !important; }
+
+.mr-0 { margin-right: 0 !important; }
+.mr-1 { margin-right: @space-1 !important; }
+.mr-2 { margin-right: @space-2 !important; }
+.mr-3 { margin-right: @space-3 !important; }
+.mr-4 { margin-right: @space-4 !important; }
+.mr-6 { margin-right: @space-6 !important; }
+
+// Margin X & Y
+.mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
+.mx-1 { margin-left: @space-1 !important; margin-right: @space-1 !important; }
+.mx-2 { margin-left: @space-2 !important; margin-right: @space-2 !important; }
+.mx-3 { margin-left: @space-3 !important; margin-right: @space-3 !important; }
+.mx-4 { margin-left: @space-4 !important; margin-right: @space-4 !important; }
+.mx-6 { margin-left: @space-6 !important; margin-right: @space-6 !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+.my-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
+.my-1 { margin-top: @space-1 !important; margin-bottom: @space-1 !important; }
+.my-2 { margin-top: @space-2 !important; margin-bottom: @space-2 !important; }
+.my-3 { margin-top: @space-3 !important; margin-bottom: @space-3 !important; }
+.my-4 { margin-top: @space-4 !important; margin-bottom: @space-4 !important; }
+.my-6 { margin-top: @space-6 !important; margin-bottom: @space-6 !important; }
+
+// Padding 工具类
+.p-0 { padding: 0 !important; }
+.p-1 { padding: @space-1 !important; }
+.p-2 { padding: @space-2 !important; }
+.p-3 { padding: @space-3 !important; }
+.p-4 { padding: @space-4 !important; }
+.p-5 { padding: @space-5 !important; }
+.p-6 { padding: @space-6 !important; }
+.p-8 { padding: @space-8 !important; }
+
+// Padding Top
+.pt-0 { padding-top: 0 !important; }
+.pt-1 { padding-top: @space-1 !important; }
+.pt-2 { padding-top: @space-2 !important; }
+.pt-3 { padding-top: @space-3 !important; }
+.pt-4 { padding-top: @space-4 !important; }
+.pt-6 { padding-top: @space-6 !important; }
+
+// Padding Bottom
+.pb-0 { padding-bottom: 0 !important; }
+.pb-1 { padding-bottom: @space-1 !important; }
+.pb-2 { padding-bottom: @space-2 !important; }
+.pb-3 { padding-bottom: @space-3 !important; }
+.pb-4 { padding-bottom: @space-4 !important; }
+.pb-6 { padding-bottom: @space-6 !important; }
+
+// Padding X & Y
+.px-0 { padding-left: 0 !important; padding-right: 0 !important; }
+.px-1 { padding-left: @space-1 !important; padding-right: @space-1 !important; }
+.px-2 { padding-left: @space-2 !important; padding-right: @space-2 !important; }
+.px-3 { padding-left: @space-3 !important; padding-right: @space-3 !important; }
+.px-4 { padding-left: @space-4 !important; padding-right: @space-4 !important; }
+.px-6 { padding-left: @space-6 !important; padding-right: @space-6 !important; }
+
+.py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+.py-1 { padding-top: @space-1 !important; padding-bottom: @space-1 !important; }
+.py-2 { padding-top: @space-2 !important; padding-bottom: @space-2 !important; }
+.py-3 { padding-top: @space-3 !important; padding-bottom: @space-3 !important; }
+.py-4 { padding-top: @space-4 !important; padding-bottom: @space-4 !important; }
+.py-6 { padding-top: @space-6 !important; padding-bottom: @space-6 !important; }
+
+// =============================================================================
+// 📐 布局工具类 (Layout Utilities)
+// =============================================================================
+
+// Display
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+.d-grid { display: grid !important; }
+
+// Flexbox 布局
+.flex-1 { flex: 1 !important; }
+.flex-auto { flex: auto !important; }
+.flex-none { flex: none !important; }
+
+.flex-row { flex-direction: row !important; }
+.flex-col { flex-direction: column !important; }
+.flex-row-reverse { flex-direction: row-reverse !important; }
+.flex-col-reverse { flex-direction: column-reverse !important; }
+
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.flex-wrap-reverse { flex-wrap: wrap-reverse !important; }
+
+// Justify Content
+.justify-start { justify-content: flex-start !important; }
+.justify-end { justify-content: flex-end !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-around { justify-content: space-around !important; }
+.justify-evenly { justify-content: space-evenly !important; }
+
+// Align Items
+.items-start { align-items: flex-start !important; }
+.items-end { align-items: flex-end !important; }
+.items-center { align-items: center !important; }
+.items-baseline { align-items: baseline !important; }
+.items-stretch { align-items: stretch !important; }
+
+// Align Self
+.self-auto { align-self: auto !important; }
+.self-start { align-self: flex-start !important; }
+.self-end { align-self: flex-end !important; }
+.self-center { align-self: center !important; }
+.self-stretch { align-self: stretch !important; }
+
+// Gap
+.gap-0 { gap: 0 !important; }
+.gap-1 { gap: @space-1 !important; }
+.gap-2 { gap: @space-2 !important; }
+.gap-3 { gap: @space-3 !important; }
+.gap-4 { gap: @space-4 !important; }
+.gap-6 { gap: @space-6 !important; }
+
+// Position
+.relative { position: relative !important; }
+.absolute { position: absolute !important; }
+.fixed { position: fixed !important; }
+.sticky { position: sticky !important; }
+
+// =============================================================================
+// 📝 文字工具类 (Typography Utilities)
+// =============================================================================
+
+// 文字对齐
+.text-left { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.text-justify { text-align: justify !important; }
+
+// 字体大小
+.text-xs { font-size: @font-size-xs !important; }
+.text-sm { font-size: @font-size-sm !important; }
+.text-base { font-size: @font-size-base !important; }
+.text-lg { font-size: @font-size-lg !important; }
+.text-xl { font-size: @font-size-xl !important; }
+.text-2xl { font-size: @font-size-2xl !important; }
+.text-3xl { font-size: @font-size-3xl !important; }
+.text-4xl { font-size: @font-size-4xl !important; }
+
+// 字体重量
+.font-light { font-weight: @font-weight-light !important; }
+.font-normal { font-weight: @font-weight-normal !important; }
+.font-medium { font-weight: @font-weight-medium !important; }
+.font-semibold { font-weight: @font-weight-semibold !important; }
+.font-bold { font-weight: @font-weight-bold !important; }
+.font-extrabold { font-weight: @font-weight-extrabold !important; }
+
+// 行高
+.leading-tight { line-height: @line-height-tight !important; }
+.leading-normal { line-height: @line-height-normal !important; }
+.leading-relaxed { line-height: @line-height-relaxed !important; }
+
+// 文字装饰
+.underline { text-decoration: underline !important; }
+.no-underline { text-decoration: none !important; }
+.line-through { text-decoration: line-through !important; }
+
+// 文字变换
+.uppercase { text-transform: uppercase !important; }
+.lowercase { text-transform: lowercase !important; }
+.capitalize { text-transform: capitalize !important; }
+.normal-case { text-transform: none !important; }
+
+// 文字溢出
+.truncate {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.text-ellipsis { text-overflow: ellipsis !important; }
+.text-clip { text-overflow: clip !important; }
+
+// 空白处理
+.whitespace-normal { white-space: normal !important; }
+.whitespace-nowrap { white-space: nowrap !important; }
+.whitespace-pre { white-space: pre !important; }
+.whitespace-pre-line { white-space: pre-line !important; }
+.whitespace-pre-wrap { white-space: pre-wrap !important; }
+
+// =============================================================================
+// 🎭 视觉效果工具类 (Visual Effects Utilities)
+// =============================================================================
+
+// 边框
+.border { border: 1px solid @border-default !important; }
+.border-0 { border: 0 !important; }
+.border-t { border-top: 1px solid @border-default !important; }
+.border-r { border-right: 1px solid @border-default !important; }
+.border-b { border-bottom: 1px solid @border-default !important; }
+.border-l { border-left: 1px solid @border-default !important; }
+
+// 圆角
+.rounded-none { border-radius: 0 !important; }
+.rounded-sm { border-radius: @radius-sm !important; }
+.rounded { border-radius: @radius-base !important; }
+.rounded-md { border-radius: @radius-md !important; }
+.rounded-lg { border-radius: @radius-lg !important; }
+.rounded-xl { border-radius: @radius-xl !important; }
+.rounded-2xl { border-radius: @radius-2xl !important; }
+.rounded-full { border-radius: @radius-full !important; }
+
+// 阴影
+.shadow-none { box-shadow: none !important; }
+.shadow-sm { box-shadow: @shadow-sm !important; }
+.shadow { box-shadow: @shadow-base !important; }
+.shadow-md { box-shadow: @shadow-md !important; }
+.shadow-lg { box-shadow: @shadow-lg !important; }
+.shadow-xl { box-shadow: @shadow-xl !important; }
+
+// 语义化阴影
+.shadow-primary { box-shadow: @shadow-primary !important; }
+.shadow-success { box-shadow: @shadow-success !important; }
+.shadow-warning { box-shadow: @shadow-warning !important; }
+.shadow-error { box-shadow: @shadow-error !important; }
+
+// 透明度
+.opacity-0 { opacity: 0 !important; }
+.opacity-25 { opacity: 0.25 !important; }
+.opacity-50 { opacity: 0.5 !important; }
+.opacity-75 { opacity: 0.75 !important; }
+.opacity-100 { opacity: 1 !important; }
+
+// 溢出
+.overflow-auto { overflow: auto !important; }
+.overflow-hidden { overflow: hidden !important; }
+.overflow-visible { overflow: visible !important; }
+.overflow-scroll { overflow: scroll !important; }
+
+.overflow-x-auto { overflow-x: auto !important; }
+.overflow-x-hidden { overflow-x: hidden !important; }
+.overflow-x-scroll { overflow-x: scroll !important; }
+
+.overflow-y-auto { overflow-y: auto !important; }
+.overflow-y-hidden { overflow-y: hidden !important; }
+.overflow-y-scroll { overflow-y: scroll !important; }
+
+// Z-Index
+.z-0 { z-index: 0 !important; }
+.z-10 { z-index: 10 !important; }
+.z-20 { z-index: 20 !important; }
+.z-30 { z-index: 30 !important; }
+.z-40 { z-index: 40 !important; }
+.z-50 { z-index: 50 !important; }
+
+// =============================================================================
+// 🎯 交互状态工具类 (Interaction State Utilities)
+// =============================================================================
+
+// 鼠标样式
+.cursor-auto { cursor: auto !important; }
+.cursor-default { cursor: default !important; }
+.cursor-pointer { cursor: pointer !important; }
+.cursor-wait { cursor: wait !important; }
+.cursor-text { cursor: text !important; }
+.cursor-move { cursor: move !important; }
+.cursor-help { cursor: help !important; }
+.cursor-not-allowed { cursor: not-allowed !important; }
+
+// 用户选择
+.select-none { user-select: none !important; }
+.select-text { user-select: text !important; }
+.select-all { user-select: all !important; }
+.select-auto { user-select: auto !important; }
+
+// 指针事件
+.pointer-events-none { pointer-events: none !important; }
+.pointer-events-auto { pointer-events: auto !important; }
+
+// =============================================================================
+// 🔥 动画工具类 (Animation Utilities)
+// =============================================================================
+
+// 过渡
+.transition-none { transition: none !important; }
+.transition-all { transition: all @duration-base @ease-out !important; }
+.transition-colors { transition: color @duration-base @ease-out, background-color @duration-base @ease-out, border-color @duration-base @ease-out !important; }
+.transition-opacity { transition: opacity @duration-base @ease-out !important; }
+.transition-shadow { transition: box-shadow @duration-base @ease-out !important; }
+.transition-transform { transition: transform @duration-base @ease-out !important; }
+
+// 过渡时长
+.duration-fast { transition-duration: @duration-fast !important; }
+.duration-base { transition-duration: @duration-base !important; }
+.duration-slow { transition-duration: @duration-slow !important; }
+
+// 缓动函数
+.ease-linear { transition-timing-function: linear !important; }
+.ease-in { transition-timing-function: @ease-in !important; }
+.ease-out { transition-timing-function: @ease-out !important; }
+.ease-in-out { transition-timing-function: @ease-in-out !important; }
+
+// 变换
+.transform { transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+.transform-none { transform: none !important; }
+
+// 常用动画类
+.hover-lift {
+  transition: all @duration-base @ease-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: @shadow-md;
+  }
+}
+
+.hover-scale {
+  transition: all @duration-base @ease-out;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.hover-glow {
+  transition: all @duration-base @ease-out;
+  
+  &:hover {
+    box-shadow: @shadow-primary;
+  }
+}
+
+// =============================================================================
+// 📱 响应式工具类 (Responsive Utilities)
+// =============================================================================
+
+// 显示/隐藏
+.hidden { display: none !important; }
+.visible { visibility: visible !important; }
+.invisible { visibility: hidden !important; }
+
+// 响应式显示控制
+@media (max-width: 767px) {
+  .hidden-xs { display: none !important; }
+  .visible-xs { display: block !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hidden-sm { display: none !important; }
+  .visible-sm { display: block !important; }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .hidden-md { display: none !important; }
+  .visible-md { display: block !important; }
+}
+
+@media (min-width: 1280px) {
+  .hidden-lg { display: none !important; }
+  .visible-lg { display: block !important; }
+}
+
+// 宽度
+.w-auto { width: auto !important; }
+.w-full { width: 100% !important; }
+.w-screen { width: 100vw !important; }
+.w-0 { width: 0 !important; }
+.w-1 { width: @space-1 !important; }
+.w-2 { width: @space-2 !important; }
+.w-3 { width: @space-3 !important; }
+.w-4 { width: @space-4 !important; }
+.w-5 { width: @space-5 !important; }
+.w-6 { width: @space-6 !important; }
+.w-8 { width: @space-8 !important; }
+.w-10 { width: @space-10 !important; }
+.w-12 { width: @space-12 !important; }
+
+// 高度
+.h-auto { height: auto !important; }
+.h-full { height: 100% !important; }
+.h-screen { height: 100vh !important; }
+.h-0 { height: 0 !important; }
+.h-1 { height: @space-1 !important; }
+.h-2 { height: @space-2 !important; }
+.h-3 { height: @space-3 !important; }
+.h-4 { height: @space-4 !important; }
+.h-5 { height: @space-5 !important; }
+.h-6 { height: @space-6 !important; }
+.h-8 { height: @space-8 !important; }
+.h-10 { height: @space-10 !important; }
+.h-12 { height: @space-12 !important; }
+
+// 最小/最大宽高
+.min-w-0 { min-width: 0 !important; }
+.min-w-full { min-width: 100% !important; }
+.min-h-0 { min-height: 0 !important; }
+.min-h-full { min-height: 100% !important; }
+.min-h-screen { min-height: 100vh !important; }
+
+.max-w-none { max-width: none !important; }
+.max-w-xs { max-width: 20rem !important; }
+.max-w-sm { max-width: 24rem !important; }
+.max-w-md { max-width: 28rem !important; }
+.max-w-lg { max-width: 32rem !important; }
+.max-w-xl { max-width: 36rem !important; }
+.max-w-2xl { max-width: 42rem !important; }
+.max-w-3xl { max-width: 48rem !important; }
+.max-w-4xl { max-width: 56rem !important; }
+.max-w-5xl { max-width: 64rem !important; }
+.max-w-6xl { max-width: 72rem !important; }
+.max-w-7xl { max-width: 80rem !important; }
+.max-w-full { max-width: 100% !important; }
+
+// =============================================================================
+// 🎯 专用工具类 (Specialized Utilities)
+// =============================================================================
+
+// 屏幕阅读器
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// 打印优化
+@media print {
+  .print-hidden { display: none !important; }
+  .print-visible { display: block !important; }
+}

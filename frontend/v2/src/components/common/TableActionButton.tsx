@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons';
 
 interface TableActionButtonProps extends ButtonProps {
-  actionType: 'edit' | 'delete' | 'add' | 'view' | 'upload' | 'download' | 'approve' | 'copy' | 'print' | 'calculate';
+  actionType?: 'edit' | 'delete' | 'add' | 'view' | 'upload' | 'download' | 'approve' | 'copy' | 'print' | 'calculate';
   tooltipTitle?: string;
 }
 

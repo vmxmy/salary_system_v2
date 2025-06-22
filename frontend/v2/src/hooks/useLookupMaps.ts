@@ -50,6 +50,7 @@ export interface UseLookupsResult {
   rawLookups: RawLookups | null;
   loadingLookups: boolean;
   errorLookups: any;
+  loading: boolean;
 }
 
 const createFlatMapFromTree = (
@@ -227,5 +228,5 @@ export const useLookupMaps = (): UseLookupsResult => {
     };
   }, []); // 仅在组件挂载时执行一次
 
-  return { lookupMaps, rawLookups, loadingLookups, errorLookups };
+  return { lookupMaps, rawLookups, loadingLookups, errorLookups, loading: loadingLookups };
 };

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { message } from 'antd';
 import { type ProColumns } from '@ant-design/pro-components';
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 // 导入工具函数

@@ -7,7 +7,7 @@ export interface ModernCardProps extends Omit<CardProps, 'className'> {
   /** 自定义类名 */
   className?: string;
   /** 卡片变体 */
-  variant?: 'default' | 'compact' | 'elevated' | 'bordered';
+  variant?: 'outlined' | 'borderless';
   /** 是否启用悬停效果 */
   hoverable?: boolean;
   /** 是否显示加载状态 */
@@ -28,7 +28,7 @@ export interface ModernCardProps extends Omit<CardProps, 'className'> {
  */
 export const ModernCard: React.FC<ModernCardProps> = ({
   className = '',
-  variant = 'default',
+  variant = 'outlined',
   hoverable = true,
   loading = false,
   icon,

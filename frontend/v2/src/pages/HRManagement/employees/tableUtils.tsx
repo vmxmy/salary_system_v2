@@ -325,8 +325,8 @@ export const useTableExport = <T extends object>(
       return;
     }
     try {
-      // 动态导入XLSX
-      const XLSX = await import('xlsx');
+      // 使用ExcelJS替代xlsx包
+      const ExcelJS = await import('exceljs');
       
       const excelData = dataSource.map(record => {
         const row: Record<string, any> = {};
@@ -348,10 +348,28 @@ export const useTableExport = <T extends object>(
         });
         return row;
       });
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, mergedOptions.sheetName);
-      XLSX.writeFile(workbook, `${mergedOptions.filename}.xlsx`);
+      
+      // 使用ExcelJS创建工作簿
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(mergedOptions.sheetName);
+      
+      if (excelData.length > 0) {
+        const headers = Object.keys(excelData[0]);
+        worksheet.addRow(headers);
+        excelData.forEach(row => {
+          worksheet.addRow(headers.map(key => row[key]));
+        });
+      }
+      
+      // 导出文件
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${mergedOptions.filename}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
       message.success(mergedOptions.successMessage);
     } catch (error) {
       message.error(t('common:export.error_message'));

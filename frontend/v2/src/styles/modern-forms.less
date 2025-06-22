@@ -1,0 +1,664 @@
+// =============================================================================
+// 📝 现代化表单样式 (Modern Form Styles)
+// =============================================================================
+// 专门针对表单组件的现代化样式优化
+
+@import './modern-design-system.less';
+
+// =============================================================================
+// 🔸 基础表单样式 (Basic Form Styles)
+// =============================================================================
+
+.ant-form {
+  font-family: @font-family-primary;
+  
+  // 表单项间距优化
+  .ant-form-item {
+    margin-bottom: @space-6;
+    
+    // 标签样式
+    .ant-form-item-label {
+      padding-bottom: @space-2;
+      
+      > label {
+        .typography-caption-strong();
+        color: @text-secondary;
+        height: auto;
+        
+        &.ant-form-item-required {
+          &::before {
+            color: @error-500;
+            font-size: @font-size-sm;
+          }
+        }
+      }
+    }
+    
+    // 控件包装器
+    .ant-form-item-control {
+      .ant-form-item-control-input {
+        min-height: 40px;
+        
+        .ant-form-item-control-input-content {
+          // 确保输入控件对齐
+        }
+      }
+    }
+    
+    // 错误提示样式
+    .ant-form-item-explain-error {
+      .typography-caption();
+      color: @error-600;
+      margin-top: @space-1;
+      display: flex;
+      align-items: center;
+      gap: @space-1;
+      
+      .anticon {
+        font-size: @font-size-xs;
+      }
+    }
+    
+    // 帮助文本样式
+    .ant-form-item-extra {
+      .typography-caption();
+      color: @text-tertiary;
+      margin-top: @space-1;
+    }
+    
+    // 紧凑模式
+    &.ant-form-item-compact {
+      margin-bottom: @space-4;
+    }
+  }
+  
+  // 表单布局优化
+  &.ant-form-horizontal {
+    .ant-form-item {
+      .ant-form-item-label {
+        text-align: left;
+        
+        > label {
+          height: 40px;
+          line-height: 40px;
+        }
+      }
+    }
+  }
+  
+  &.ant-form-vertical {
+    .ant-form-item {
+      .ant-form-item-label {
+        padding-bottom: @space-2;
+        
+        > label {
+          padding: 0;
+        }
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🔸 输入控件现代化 (Modern Input Controls)
+// =============================================================================
+
+// 基础输入框
+.ant-input {
+  border-radius: @radius-md !important;
+  border-color: @border-default !important;
+  padding: @space-3 @space-4 !important;
+  font-size: @font-size-sm !important;
+  line-height: @line-height-normal !important;
+  transition: all @duration-base @ease-out !important;
+  
+  &::placeholder {
+    color: @text-quaternary;
+    font-style: italic;
+  }
+  
+  &:hover {
+    border-color: @primary-300 !important;
+  }
+  
+  &:focus,
+  &.ant-input-focused {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+  
+  &.ant-input-disabled {
+    background: @neutral-100 !important;
+    color: @text-quaternary !important;
+    cursor: not-allowed;
+  }
+  
+  // 输入框尺寸变体
+  &.ant-input-lg {
+    padding: @space-4 @space-5 !important;
+    font-size: @font-size-base !important;
+    min-height: 48px !important;
+  }
+  
+  &.ant-input-sm {
+    padding: @space-2 @space-3 !important;
+    font-size: @font-size-xs !important;
+    min-height: 32px !important;
+  }
+}
+
+// 文本域
+.ant-input {
+  &.ant-input {
+    resize: vertical;
+    min-height: 80px;
+    
+    &:focus {
+      box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+    }
+  }
+}
+
+// 输入组合
+.ant-input-group {
+  .ant-input-group-addon {
+    background: @bg-secondary;
+    border-color: @border-default;
+    color: @text-secondary;
+    border-radius: @radius-md;
+    
+    .anticon {
+      color: @text-tertiary;
+    }
+  }
+}
+
+// 搜索输入框
+.ant-input-search {
+  .ant-input-search-button {
+    background: @primary-500 !important;
+    border-color: @primary-500 !important;
+    border-radius: 0 @radius-md @radius-md 0 !important;
+    
+    &:hover {
+      background: @primary-600 !important;
+      border-color: @primary-600 !important;
+    }
+    
+    .anticon {
+      color: @text-inverse;
+    }
+  }
+}
+
+// =============================================================================
+// 🔸 选择器现代化 (Modern Selectors)
+// =============================================================================
+
+// 下拉选择器
+.ant-select {
+  .ant-select-selector {
+    border-radius: @radius-md !important;
+    border-color: @border-default !important;
+    padding: @space-2 @space-4 !important;
+    min-height: 40px !important;
+    transition: all @duration-base @ease-out !important;
+    
+    .ant-select-selection-search-input {
+      height: 36px !important;
+      font-size: @font-size-sm !important;
+    }
+    
+    .ant-select-selection-item {
+      .typography-body();
+      color: @text-primary;
+      line-height: 36px !important;
+    }
+    
+    .ant-select-selection-placeholder {
+      color: @text-quaternary;
+      font-style: italic;
+      line-height: 36px !important;
+    }
+  }
+  
+  &:hover .ant-select-selector {
+    border-color: @primary-300 !important;
+  }
+  
+  &.ant-select-focused .ant-select-selector {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+  
+  &.ant-select-disabled .ant-select-selector {
+    background: @neutral-100 !important;
+    color: @text-quaternary !important;
+  }
+  
+  // 选择器箭头
+  .ant-select-arrow {
+    color: @text-tertiary;
+    
+    .anticon {
+      transition: transform @duration-base @ease-out;
+    }
+  }
+  
+  &.ant-select-open .ant-select-arrow .anticon {
+    transform: rotate(180deg);
+  }
+  
+  // 多选标签
+  .ant-select-selection-item {
+    background: @primary-50;
+    border: 1px solid @primary-200;
+    border-radius: @radius-base;
+    color: @primary-700;
+    font-size: @font-size-xs;
+    
+    .ant-select-selection-item-remove {
+      color: @primary-500;
+      
+      &:hover {
+        color: @primary-700;
+      }
+    }
+  }
+}
+
+// 下拉面板
+.ant-select-dropdown {
+  border-radius: @radius-lg !important;
+  box-shadow: @shadow-lg !important;
+  border: 1px solid @border-default !important;
+  
+  .ant-select-item {
+    padding: @space-3 @space-4 !important;
+    .typography-body();
+    transition: all @duration-base @ease-out !important;
+    
+    &:hover {
+      background: @bg-secondary !important;
+    }
+    
+    &.ant-select-item-option-selected {
+      background: @primary-50 !important;
+      color: @primary-700 !important;
+      font-weight: @font-weight-medium !important;
+    }
+  }
+  
+  .ant-select-item-empty {
+    .typography-caption();
+    color: @text-tertiary;
+    text-align: center;
+    padding: @space-8 !important;
+  }
+}
+
+// =============================================================================
+// 🔸 日期选择器现代化 (Modern Date Pickers)
+// =============================================================================
+
+.ant-picker {
+  border-radius: @radius-md !important;
+  border-color: @border-default !important;
+  padding: @space-3 @space-4 !important;
+  min-height: 40px !important;
+  transition: all @duration-base @ease-out !important;
+  
+  .ant-picker-input {
+    > input {
+      .typography-body();
+      color: @text-primary;
+      
+      &::placeholder {
+        color: @text-quaternary;
+        font-style: italic;
+      }
+    }
+  }
+  
+  .ant-picker-suffix {
+    color: @text-tertiary;
+  }
+  
+  &:hover {
+    border-color: @primary-300 !important;
+  }
+  
+  &.ant-picker-focused {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+  
+  // 范围选择器
+  &.ant-picker-range {
+    .ant-picker-separator {
+      color: @text-tertiary;
+    }
+    
+    .ant-picker-range-separator .ant-picker-separator {
+      color: @text-tertiary;
+    }
+  }
+}
+
+// 日期面板
+.ant-picker-dropdown {
+  .ant-picker-panel {
+    border-radius: @radius-lg;
+    box-shadow: @shadow-lg;
+    border: 1px solid @border-default;
+    
+    .ant-picker-header {
+      border-bottom-color: @border-light;
+      
+      .ant-picker-header-view {
+        .typography-heading-3();
+        color: @text-primary;
+      }
+    }
+    
+    .ant-picker-content {
+      th {
+        .typography-caption-strong();
+        color: @text-secondary;
+      }
+      
+      td {
+        .ant-picker-cell-inner {
+          border-radius: @radius-base;
+          transition: all @duration-base @ease-out;
+          
+          &:hover {
+            background: @primary-50;
+            color: @primary-700;
+          }
+        }
+        
+        &.ant-picker-cell-selected .ant-picker-cell-inner {
+          background: @primary-500;
+          color: @text-inverse;
+        }
+        
+        &.ant-picker-cell-today .ant-picker-cell-inner {
+          border-color: @primary-400;
+        }
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🔸 开关和复选框现代化 (Modern Switches & Checkboxes)
+// =============================================================================
+
+// 开关
+.ant-switch {
+  background: @neutral-300 !important;
+  border-radius: @radius-full !important;
+  transition: all @duration-base @ease-out !important;
+  
+  &:hover {
+    background: @neutral-400 !important;
+  }
+  
+  &.ant-switch-checked {
+    background: @primary-500 !important;
+    
+    &:hover {
+      background: @primary-600 !important;
+    }
+  }
+  
+  .ant-switch-handle {
+    &::before {
+      border-radius: @radius-full;
+      box-shadow: @shadow-sm;
+    }
+  }
+  
+  &.ant-switch-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// 复选框
+.ant-checkbox {
+  .ant-checkbox-inner {
+    border-radius: @radius-sm !important;
+    border-color: @border-medium !important;
+    transition: all @duration-base @ease-out !important;
+    
+    &:hover {
+      border-color: @primary-400 !important;
+    }
+  }
+  
+  &.ant-checkbox-checked {
+    .ant-checkbox-inner {
+      background-color: @primary-500 !important;
+      border-color: @primary-500 !important;
+    }
+  }
+  
+  &.ant-checkbox-indeterminate {
+    .ant-checkbox-inner {
+      background-color: @primary-500 !important;
+      border-color: @primary-500 !important;
+    }
+  }
+  
+  .ant-checkbox-input:focus + .ant-checkbox-inner {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+  
+  + span {
+    .typography-body();
+    color: @text-primary;
+    padding-left: @space-2;
+  }
+}
+
+// 单选框
+.ant-radio {
+  .ant-radio-inner {
+    border-color: @border-medium !important;
+    transition: all @duration-base @ease-out !important;
+    
+    &:hover {
+      border-color: @primary-400 !important;
+    }
+  }
+  
+  &.ant-radio-checked {
+    .ant-radio-inner {
+      border-color: @primary-500 !important;
+      
+      &::after {
+        background-color: @primary-500 !important;
+      }
+    }
+  }
+  
+  .ant-radio-input:focus + .ant-radio-inner {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+  
+  + span {
+    .typography-body();
+    color: @text-primary;
+    padding-left: @space-2;
+  }
+}
+
+// =============================================================================
+// 🔸 表单按钮组 (Form Button Groups)
+// =============================================================================
+
+.ant-form-item {
+  .ant-form-item-control-input-content {
+    .ant-btn-group {
+      .ant-btn + .ant-btn {
+        margin-left: @space-3;
+      }
+    }
+    
+    // 表单底部按钮
+    .form-actions {
+      display: flex;
+      gap: @space-3;
+      justify-content: flex-end;
+      padding-top: @space-6;
+      border-top: 1px solid @border-light;
+      margin-top: @space-6;
+      
+      &.form-actions-left {
+        justify-content: flex-start;
+      }
+      
+      &.form-actions-center {
+        justify-content: center;
+      }
+      
+      &.form-actions-between {
+        justify-content: space-between;
+      }
+      
+      .ant-btn {
+        min-width: 80px;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 📱 表单响应式优化 (Form Responsive Optimizations)
+// =============================================================================
+
+@media (max-width: 768px) {
+  .ant-form {
+    .ant-form-item {
+      margin-bottom: @space-4;
+      
+      // 移动端标签样式
+      .ant-form-item-label {
+        padding-bottom: @space-1;
+        
+        > label {
+          font-size: @font-size-sm;
+        }
+      }
+      
+      // 移动端控件优化
+      .ant-form-item-control {
+        .ant-form-item-control-input {
+          min-height: 44px; // 触控优化
+        }
+      }
+    }
+    
+    // 移动端水平布局调整
+    &.ant-form-horizontal {
+      .ant-form-item {
+        .ant-form-item-label {
+          > label {
+            height: 44px;
+            line-height: 44px;
+          }
+        }
+      }
+    }
+  }
+  
+  // 移动端输入控件
+  .ant-input,
+  .ant-select .ant-select-selector,
+  .ant-picker {
+    min-height: 44px !important;
+    font-size: @font-size-base !important;
+  }
+  
+  // 移动端表单按钮
+  .ant-form-item .form-actions {
+    flex-direction: column-reverse;
+    gap: @space-2;
+    
+    .ant-btn {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+}
+
+// =============================================================================
+// 🌙 表单暗色模式 (Form Dark Mode)
+// =============================================================================
+
+[data-theme="dark"] {
+  .ant-form {
+    .ant-form-item {
+      .ant-form-item-label > label {
+        color: @neutral-300;
+      }
+      
+      .ant-form-item-explain-error {
+        color: @error-400;
+      }
+      
+      .ant-form-item-extra {
+        color: @neutral-400;
+      }
+    }
+  }
+  
+  // 暗色模式输入控件
+  .ant-input {
+    background: @neutral-800 !important;
+    border-color: @neutral-600 !important;
+    color: @neutral-100 !important;
+    
+    &::placeholder {
+      color: @neutral-500;
+    }
+    
+    &:hover {
+      border-color: @primary-400 !important;
+    }
+    
+    &:focus {
+      border-color: @primary-500 !important;
+      box-shadow: 0 0 0 3px fade(@primary-500, 20%) !important;
+    }
+  }
+  
+  // 暗色模式选择器
+  .ant-select .ant-select-selector {
+    background: @neutral-800 !important;
+    border-color: @neutral-600 !important;
+    color: @neutral-100 !important;
+  }
+  
+  .ant-select-dropdown {
+    background: @neutral-800 !important;
+    border-color: @neutral-600 !important;
+    
+    .ant-select-item {
+      color: @neutral-100 !important;
+      
+      &:hover {
+        background: @neutral-700 !important;
+      }
+      
+      &.ant-select-item-option-selected {
+        background: @primary-900 !important;
+        color: @primary-300 !important;
+      }
+    }
+  }
+}
