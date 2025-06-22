@@ -69,6 +69,13 @@ export type {
   DeleteConfirmConfig 
 } from './ListPage';
 
+// 现代化设计系统组件
+export { default as ModernPageTemplate } from './ModernPageTemplate';
+export type { ModernPageTemplateProps } from './ModernPageTemplate';
+
+export { default as ModernCard } from './ModernCard';
+export type { ModernCardProps } from './ModernCard';
+
 // 现有组件（保持向后兼容）
 export { default as TableTextConverter } from './TableTextConverter';
 export { default as EmployeeName } from './EmployeeName';

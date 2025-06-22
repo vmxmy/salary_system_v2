@@ -1,0 +1,796 @@
+// =============================================================================
+// 🎨 现代化设计系统 - 统一样式规范 (Modern Design System - Unified Style Guide)
+// =============================================================================
+// 基于 SimplePayroll 页面的成功设计模式，为整个项目提供统一的现代化样式
+// 设计理念: 简洁、现代、高效、可访问
+
+// =============================================================================
+// 📝 导入字体系统 (Typography Import)
+// =============================================================================
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+// =============================================================================
+// 🌈 色彩系统 (Color System)
+// =============================================================================
+
+// 主色调 - 现代深蓝商务色
+@primary-50: #eff6ff;
+@primary-100: #dbeafe;
+@primary-200: #bfdbfe;
+@primary-300: #93c5fd;
+@primary-400: #60a5fa;
+@primary-500: #3b82f6;  // 主色
+@primary-600: #2563eb;
+@primary-700: #1d4ed8;
+@primary-800: #1e40af;
+@primary-900: #1e3a8a;
+
+// 中性色 - 现代灰度系统
+@neutral-50: #f9fafb;
+@neutral-100: #f3f4f6;
+@neutral-200: #e5e7eb;
+@neutral-300: #d1d5db;
+@neutral-400: #9ca3af;
+@neutral-500: #6b7280;
+@neutral-600: #4b5563;
+@neutral-700: #374151;
+@neutral-800: #1f2937;
+@neutral-900: #111827;
+
+// 功能色 - 语义化状态色
+@success-50: #ecfdf5;
+@success-500: #10b981;
+@success-600: #059669;
+
+@warning-50: #fffbeb;
+@warning-500: #f59e0b;
+@warning-600: #d97706;
+
+@error-50: #fef2f2;
+@error-500: #ef4444;
+@error-600: #dc2626;
+
+@info-50: #eff6ff;
+@info-500: #3b82f6;
+@info-600: #2563eb;
+
+// 背景色系统
+@bg-primary: #ffffff;
+@bg-secondary: #f9fafb;
+@bg-tertiary: #f3f4f6;
+@bg-accent: #eff6ff;
+
+// 文字色系统
+@text-primary: #111827;
+@text-secondary: #374151;
+@text-tertiary: #6b7280;
+@text-quaternary: #9ca3af;
+@text-inverse: #ffffff;
+@text-accent: #3b82f6;
+
+// 边框色系统
+@border-light: #f3f4f6;
+@border-default: #e5e7eb;
+@border-medium: #d1d5db;
+@border-strong: #9ca3af;
+
+// =============================================================================
+// 📝 字体系统 (Typography System)
+// =============================================================================
+
+// 字体族定义
+@font-family-primary: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+@font-family-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+// 字体大小系统 (基于1.25倍比率)
+@font-size-xs: 12px;
+@font-size-sm: 14px;
+@font-size-base: 16px;
+@font-size-lg: 18px;
+@font-size-xl: 20px;
+@font-size-2xl: 24px;
+@font-size-3xl: 30px;
+@font-size-4xl: 36px;
+
+// 字重系统
+@font-weight-light: 300;
+@font-weight-normal: 400;
+@font-weight-medium: 500;
+@font-weight-semibold: 600;
+@font-weight-bold: 700;
+@font-weight-extrabold: 800;
+
+// 行高系统
+@line-height-tight: 1.25;
+@line-height-normal: 1.5;
+@line-height-relaxed: 1.75;
+
+// =============================================================================
+// 📐 空间系统 (Spacing System)
+// =============================================================================
+
+// 基于8px网格的空间系统
+@space-1: 4px;
+@space-2: 8px;
+@space-3: 12px;
+@space-4: 16px;
+@space-5: 20px;
+@space-6: 24px;
+@space-8: 32px;
+@space-10: 40px;
+@space-12: 48px;
+@space-16: 64px;
+@space-20: 80px;
+@space-24: 96px;
+
+// =============================================================================
+// 🎭 阴影系统 (Shadow System)
+// =============================================================================
+
+@shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+@shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+@shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+@shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+@shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// 彩色阴影
+@shadow-primary: 0 4px 14px 0 rgba(59, 130, 246, 0.15);
+@shadow-success: 0 4px 14px 0 rgba(16, 185, 129, 0.15);
+@shadow-warning: 0 4px 14px 0 rgba(245, 158, 11, 0.15);
+@shadow-error: 0 4px 14px 0 rgba(239, 68, 68, 0.15);
+
+// =============================================================================
+// 🔘 圆角系统 (Border Radius System)
+// =============================================================================
+
+@radius-sm: 4px;
+@radius-base: 6px;
+@radius-md: 8px;
+@radius-lg: 12px;
+@radius-xl: 16px;
+@radius-2xl: 20px;
+@radius-full: 9999px;
+
+// =============================================================================
+// ⚡ 动画系统 (Animation System)
+// =============================================================================
+
+@duration-fast: 150ms;
+@duration-base: 200ms;
+@duration-slow: 300ms;
+
+@ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+@ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+@ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
+
+// =============================================================================
+// 🎯 排版样式类 (Typography Classes)
+// =============================================================================
+
+.typography-display-1 {
+  font-family: @font-family-primary;
+  font-size: @font-size-4xl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  letter-spacing: -0.025em;
+}
+
+.typography-display-2 {
+  font-family: @font-family-primary;
+  font-size: @font-size-3xl;
+  font-weight: @font-weight-bold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+  letter-spacing: -0.025em;
+}
+
+.typography-heading-1 {
+  font-family: @font-family-primary;
+  font-size: @font-size-2xl;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+}
+
+.typography-heading-2 {
+  font-family: @font-family-primary;
+  font-size: @font-size-xl;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-tight;
+  color: @text-primary;
+}
+
+.typography-heading-3 {
+  font-family: @font-family-primary;
+  font-size: @font-size-lg;
+  font-weight: @font-weight-semibold;
+  line-height: @line-height-normal;
+  color: @text-primary;
+}
+
+.typography-body {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-primary;
+}
+
+.typography-body-secondary {
+  font-family: @font-family-primary;
+  font-size: @font-size-base;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-secondary;
+}
+
+.typography-caption {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-normal;
+  line-height: @line-height-normal;
+  color: @text-tertiary;
+}
+
+.typography-caption-strong {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-medium;
+  line-height: @line-height-normal;
+  color: @text-secondary;
+}
+
+// =============================================================================
+// 🏗️ 布局系统 (Layout System)
+// =============================================================================
+
+// 现代页面布局容器
+.modern-page-container {
+  min-height: 100vh;
+  background-color: @bg-secondary;
+  font-family: @font-family-primary;
+}
+
+// 页面头部
+.modern-page-header {
+  background-color: @bg-primary;
+  padding: @space-6 @space-8;
+  border-bottom: 1px solid @border-default;
+  margin-bottom: @space-6;
+  
+  .header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    
+    .page-title {
+      .typography-display-2();
+      margin: 0 0 @space-2 0;
+    }
+    
+    .page-subtitle {
+      .typography-body-secondary();
+      margin: 0;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    padding: @space-4 @space-6;
+    margin-bottom: @space-4;
+    
+    .header-content {
+      .page-title {
+        font-size: @font-size-2xl;
+      }
+    }
+  }
+}
+
+// 主内容区域
+.modern-page-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 @space-6 @space-6;
+  
+  @media (max-width: 768px) {
+    padding: 0 @space-4 @space-4;
+  }
+}
+
+// =============================================================================
+// 🎯 卡片系统 (Card System)
+// =============================================================================
+
+.modern-card {
+  background: @bg-primary;
+  border: 1px solid @border-default;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-sm;
+  transition: all @duration-base @ease-out;
+  overflow: hidden;
+  
+  &:hover {
+    border-color: @border-medium;
+    box-shadow: @shadow-md;
+    transform: translateY(-1px);
+  }
+  
+  .card-header {
+    padding: @space-6;
+    border-bottom: 1px solid @border-light;
+    background: @bg-secondary;
+    
+    .card-title {
+      .typography-heading-3();
+      margin: 0 0 @space-1 0;
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      
+      .card-icon {
+        color: @text-accent;
+        font-size: @font-size-lg;
+      }
+    }
+    
+    .card-subtitle {
+      .typography-caption();
+      margin: 0;
+    }
+  }
+  
+  .card-content {
+    padding: @space-6;
+  }
+  
+  .card-footer {
+    padding: @space-4 @space-6;
+    border-top: 1px solid @border-light;
+    background: @bg-secondary;
+    
+    .card-actions {
+      display: flex;
+      gap: @space-3;
+      justify-content: flex-end;
+    }
+  }
+  
+  // 紧凑型卡片
+  &.compact {
+    .card-header {
+      padding: @space-4 @space-5;
+    }
+    
+    .card-content {
+      padding: @space-4 @space-5;
+    }
+    
+    .card-footer {
+      padding: @space-3 @space-5;
+    }
+  }
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    .card-header,
+    .card-content {
+      padding: @space-4;
+    }
+    
+    .card-footer {
+      padding: @space-3 @space-4;
+    }
+  }
+}
+
+// =============================================================================
+// 🎮 按钮系统 (Button System)
+// =============================================================================
+
+.modern-button {
+  font-family: @font-family-primary;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-medium;
+  line-height: 1;
+  border-radius: @radius-md;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all @duration-base @ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: @space-2;
+  text-decoration: none;
+  
+  // 尺寸变体
+  &.size-sm {
+    padding: @space-2 @space-3;
+    font-size: @font-size-xs;
+    min-height: 32px;
+  }
+  
+  &.size-md {
+    padding: @space-3 @space-4;
+    font-size: @font-size-sm;
+    min-height: 40px;
+  }
+  
+  &.size-lg {
+    padding: @space-4 @space-6;
+    font-size: @font-size-base;
+    min-height: 48px;
+  }
+  
+  // 主要按钮
+  &.variant-primary {
+    background: @primary-500;
+    color: @text-inverse;
+    border-color: @primary-500;
+    box-shadow: @shadow-sm;
+    
+    &:hover {
+      background: @primary-600;
+      border-color: @primary-600;
+      box-shadow: @shadow-primary;
+      transform: translateY(-1px);
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: @shadow-sm;
+    }
+  }
+  
+  // 次要按钮
+  &.variant-secondary {
+    background: @bg-primary;
+    color: @text-primary;
+    border-color: @border-default;
+    box-shadow: @shadow-sm;
+    
+    &:hover {
+      background: @bg-secondary;
+      border-color: @primary-300;
+      color: @primary-600;
+      box-shadow: @shadow-md;
+      transform: translateY(-1px);
+    }
+  }
+  
+  // 幽灵按钮
+  &.variant-ghost {
+    background: transparent;
+    color: @primary-600;
+    border-color: transparent;
+    
+    &:hover {
+      background: @primary-50;
+      color: @primary-700;
+    }
+  }
+  
+  // 危险按钮
+  &.variant-danger {
+    background: @error-500;
+    color: @text-inverse;
+    border-color: @error-500;
+    box-shadow: @shadow-sm;
+    
+    &:hover {
+      background: @error-600;
+      border-color: @error-600;
+      box-shadow: @shadow-error;
+      transform: translateY(-1px);
+    }
+  }
+  
+  // 禁用状态
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: @shadow-sm !important;
+  }
+}
+
+// =============================================================================
+// 🔥 Ant Design 现代化覆盖 (Modern Ant Design Overrides)
+// =============================================================================
+
+// 全局字体覆盖
+.ant-typography,
+.ant-card,
+.ant-btn,
+.ant-input,
+.ant-select,
+.ant-table,
+.ant-form,
+.ant-menu,
+.ant-dropdown,
+.ant-modal,
+.ant-drawer,
+.ant-notification,
+.ant-message,
+.ant-alert,
+.ant-tag,
+.ant-badge,
+.ant-tooltip,
+.ant-popover,
+.ant-pro-card,
+.ant-pro-table,
+.ant-pro-form,
+.ant-statistic {
+  font-family: @font-family-primary !important;
+}
+
+// 现代化卡片样式
+.ant-card {
+  border-radius: @radius-lg !important;
+  border-color: @border-default !important;
+  box-shadow: @shadow-sm !important;
+  transition: all @duration-base @ease-out !important;
+  
+  &:hover {
+    border-color: @border-medium !important;
+    box-shadow: @shadow-md !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .ant-card-head {
+    background: @bg-secondary !important;
+    border-bottom-color: @border-light !important;
+    padding: @space-4 @space-6 !important;
+    
+    .ant-card-head-title {
+      .typography-heading-3();
+      font-weight: @font-weight-semibold !important;
+    }
+  }
+  
+  .ant-card-body {
+    padding: @space-6 !important;
+  }
+}
+
+// 现代化按钮样式
+.ant-btn {
+  border-radius: @radius-md !important;
+  font-weight: @font-weight-medium !important;
+  transition: all @duration-base @ease-out !important;
+  box-shadow: @shadow-sm !important;
+  
+  &:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: @shadow-md !important;
+  }
+  
+  &.ant-btn-primary {
+    background: @primary-500 !important;
+    border-color: @primary-500 !important;
+    
+    &:hover {
+      background: @primary-600 !important;
+      border-color: @primary-600 !important;
+      box-shadow: @shadow-primary !important;
+    }
+  }
+  
+  &.ant-btn-default {
+    background: @bg-primary !important;
+    border-color: @border-default !important;
+    color: @text-primary !important;
+    
+    &:hover {
+      background: @bg-secondary !important;
+      border-color: @primary-300 !important;
+      color: @primary-600 !important;
+    }
+  }
+}
+
+// 现代化输入框样式
+.ant-input,
+.ant-select-selector,
+.ant-picker {
+  border-radius: @radius-md !important;
+  border-color: @border-default !important;
+  transition: all @duration-base @ease-out !important;
+  font-size: @font-size-sm !important;
+  
+  &:hover {
+    border-color: @primary-300 !important;
+  }
+  
+  &:focus,
+  &.ant-input-focused,
+  &.ant-select-focused,
+  &.ant-picker-focused {
+    border-color: @primary-500 !important;
+    box-shadow: 0 0 0 3px fade(@primary-500, 15%) !important;
+  }
+}
+
+// 现代化表格样式
+.ant-table {
+  .ant-table-thead > tr > th {
+    background: @bg-secondary !important;
+    border-bottom-color: @border-default !important;
+    color: @text-secondary !important;
+    font-weight: @font-weight-semibold !important;
+    font-size: @font-size-sm !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    border-bottom-color: @border-light !important;
+    color: @text-primary !important;
+    font-size: @font-size-sm !important;
+  }
+  
+  .ant-table-tbody > tr:hover > td {
+    background: @bg-secondary !important;
+  }
+}
+
+// 现代化标签样式
+.ant-tag {
+  border-radius: @radius-base !important;
+  font-size: @font-size-xs !important;
+  font-weight: @font-weight-medium !important;
+  border: none !important;
+  
+  &.ant-tag-success {
+    background: @success-50 !important;
+    color: @success-600 !important;
+  }
+  
+  &.ant-tag-warning {
+    background: @warning-50 !important;
+    color: @warning-600 !important;
+  }
+  
+  &.ant-tag-error {
+    background: @error-50 !important;
+    color: @error-600 !important;
+  }
+  
+  &.ant-tag-blue {
+    background: @info-50 !important;
+    color: @info-600 !important;
+  }
+}
+
+// 现代化Pro组件样式
+.ant-pro-card {
+  border-radius: @radius-lg !important;
+  box-shadow: @shadow-sm !important;
+  transition: all @duration-base @ease-out !important;
+  
+  &:hover {
+    box-shadow: @shadow-md !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .ant-pro-card-header {
+    padding: @space-4 @space-6 !important;
+    background: @bg-secondary !important;
+  }
+  
+  .ant-pro-card-body {
+    padding: @space-6 !important;
+  }
+}
+
+// =============================================================================
+// 🎯 通用工具类 (Utility Classes)
+// =============================================================================
+
+// 间距工具类
+.m-0 { margin: 0 !important; }
+.m-1 { margin: @space-1 !important; }
+.m-2 { margin: @space-2 !important; }
+.m-3 { margin: @space-3 !important; }
+.m-4 { margin: @space-4 !important; }
+.m-6 { margin: @space-6 !important; }
+.m-8 { margin: @space-8 !important; }
+
+.p-0 { padding: 0 !important; }
+.p-1 { padding: @space-1 !important; }
+.p-2 { padding: @space-2 !important; }
+.p-3 { padding: @space-3 !important; }
+.p-4 { padding: @space-4 !important; }
+.p-6 { padding: @space-6 !important; }
+.p-8 { padding: @space-8 !important; }
+
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: @space-1 !important; }
+.mb-2 { margin-bottom: @space-2 !important; }
+.mb-3 { margin-bottom: @space-3 !important; }
+.mb-4 { margin-bottom: @space-4 !important; }
+.mb-6 { margin-bottom: @space-6 !important; }
+.mb-8 { margin-bottom: @space-8 !important; }
+
+// 布局工具类
+.d-flex { display: flex !important; }
+.d-block { display: block !important; }
+.d-none { display: none !important; }
+
+.justify-start { justify-content: flex-start !important; }
+.justify-center { justify-content: center !important; }
+.justify-end { justify-content: flex-end !important; }
+.justify-between { justify-content: space-between !important; }
+
+.items-start { align-items: flex-start !important; }
+.items-center { align-items: center !important; }
+.items-end { align-items: flex-end !important; }
+
+.flex-1 { flex: 1 !important; }
+.flex-col { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+
+// 文字对齐
+.text-left { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+
+// 动画工具类
+.fade-in {
+  animation: fadeIn @duration-slow @ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =============================================================================
+// 📱 响应式断点 (Responsive Breakpoints)
+// =============================================================================
+
+// 移动端优化
+@media (max-width: 768px) {
+  // 触控优化 - 最小触控目标44px
+  .modern-button,
+  .ant-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  // 移动端间距优化
+  .modern-card {
+    margin-bottom: @space-4;
+  }
+  
+  // 移动端字体优化
+  .typography-display-1 {
+    font-size: @font-size-3xl;
+  }
+  
+  .typography-display-2 {
+    font-size: @font-size-2xl;
+  }
+  
+  .typography-heading-1 {
+    font-size: @font-size-xl;
+  }
+}
+
+// 平板优化
+@media (min-width: 769px) and (max-width: 1024px) {
+  .modern-page-content {
+    max-width: 100%;
+    padding: 0 @space-4 @space-4;
+  }
+}
+
+// 大屏优化
+@media (min-width: 1025px) {
+  .modern-page-content {
+    max-width: 1400px;
+  }
+}

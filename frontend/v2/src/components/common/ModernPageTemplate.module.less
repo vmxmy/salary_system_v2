@@ -1,0 +1,268 @@
+// ModernPageTemplate 组件样式
+// 使用统一的现代化设计系统
+
+@import '../../styles/modern-design-system.less';
+
+.modern-page-container {
+  min-height: 100vh;
+  background-color: @bg-secondary;
+  font-family: @font-family-primary;
+  
+  // 移除 Ant Design Layout 默认样式
+  &.ant-layout {
+    background: @bg-secondary;
+  }
+}
+
+.modern-page-header {
+  background-color: @bg-primary;
+  padding: @space-6 0;
+  border-bottom: 1px solid @border-default;
+  margin-bottom: @space-6;
+  
+  // 移除 Ant Design Header 默认样式
+  &.ant-layout-header {
+    height: auto;
+    line-height: normal;
+    padding: @space-6 0;
+    background: @bg-primary;
+  }
+  
+  .header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 @space-6;
+    
+    &.full-width {
+      max-width: none;
+      padding: 0 @space-8;
+    }
+    
+    // 面包屑导航
+    .breadcrumb-nav {
+      margin-bottom: @space-4;
+      
+      .breadcrumb-item {
+        display: inline-flex;
+        align-items: center;
+        .typography-caption();
+        
+        .breadcrumb-link {
+          color: @text-accent;
+          text-decoration: none;
+          transition: color @duration-base @ease-out;
+          
+          &:hover {
+            color: @primary-700;
+            text-decoration: underline;
+          }
+        }
+        
+        .breadcrumb-text {
+          color: @text-tertiary;
+        }
+        
+        .breadcrumb-separator {
+          margin: 0 @space-2;
+          color: @text-quaternary;
+        }
+      }
+    }
+    
+    // 标题区域
+    .title-section {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: @space-6;
+      
+      .title-content {
+        flex: 1;
+        
+        .page-title {
+          .typography-display-2();
+          margin: 0 0 @space-2 0;
+          color: @text-primary;
+        }
+        
+        .page-subtitle {
+          .typography-body-secondary();
+          margin: 0;
+          max-width: 600px;
+        }
+      }
+      
+      .header-extra {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: @space-3;
+        
+        // 确保按钮等控件对齐
+        > * {
+          align-self: flex-start;
+        }
+      }
+    }
+  }
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    padding: @space-4 0;
+    margin-bottom: @space-4;
+    
+    &.ant-layout-header {
+      padding: @space-4 0;
+    }
+    
+    .header-content {
+      padding: 0 @space-4;
+      
+      &.full-width {
+        padding: 0 @space-4;
+      }
+      
+      .breadcrumb-nav {
+        margin-bottom: @space-3;
+      }
+      
+      .title-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: @space-4;
+        
+        .title-content {
+          .page-title {
+            font-size: @font-size-2xl;
+            line-height: @line-height-tight;
+          }
+        }
+        
+        .header-extra {
+          align-self: stretch;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+        }
+      }
+    }
+  }
+  
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .header-content {
+      padding: 0 @space-4;
+      
+      &.full-width {
+        padding: 0 @space-6;
+      }
+    }
+  }
+}
+
+.modern-page-content {
+  // 移除 Ant Design Content 默认样式
+  &.ant-layout-content {
+    padding: 0;
+    background: transparent;
+  }
+  
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 @space-6 @space-6;
+  
+  &.full-width {
+    max-width: none;
+    padding: 0 @space-8 @space-8;
+  }
+  
+  .content-wrapper {
+    // 确保内容区域的样式一致性
+    .fade-in();
+  }
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    padding: 0 @space-4 @space-4;
+    
+    &.full-width {
+      padding: 0 @space-4 @space-4;
+    }
+  }
+  
+  @media (min-width: 769px) and (max-width: 1024px) {
+    padding: 0 @space-4 @space-4;
+    
+    &.full-width {
+      padding: 0 @space-6 @space-6;
+    }
+  }
+}
+
+// 页面加载动画
+.content-wrapper {
+  animation: contentFadeIn @duration-slow @ease-out;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 暗色模式支持
+[data-theme="dark"] {
+  .modern-page-container {
+    background-color: @neutral-900;
+    
+    &.ant-layout {
+      background: @neutral-900;
+    }
+  }
+  
+  .modern-page-header {
+    background-color: @neutral-800;
+    border-bottom-color: @neutral-700;
+    
+    &.ant-layout-header {
+      background: @neutral-800;
+    }
+    
+    .header-content {
+      .title-section {
+        .title-content {
+          .page-title {
+            color: @neutral-100;
+          }
+          
+          .page-subtitle {
+            color: @neutral-300;
+          }
+        }
+      }
+      
+      .breadcrumb-nav {
+        .breadcrumb-item {
+          .breadcrumb-link {
+            color: @primary-400;
+            
+            &:hover {
+              color: @primary-300;
+            }
+          }
+          
+          .breadcrumb-text {
+            color: @neutral-400;
+          }
+          
+          .breadcrumb-separator {
+            color: @neutral-500;
+          }
+        }
+      }
+    }
+  }
+}

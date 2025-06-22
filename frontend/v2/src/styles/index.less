@@ -1,9 +1,122 @@
-// 主样式文件 - 导入基础样式
-@import './global.less';
-@import './utilities.less'; // 导入工具类样式
+// 主样式文件 - 统一现代化设计系统
+// =============================================================================
+// 🎨 现代化设计系统导入顺序 (Modern Design System Import Order)
+// =============================================================================
 
-// 根元素样式
+// 1. 现代化设计系统 - 核心样式 (最高优先级)
+@import './modern-design-system.less';
+
+// 2. 原有基础样式 (向后兼容)
+@import './global.less';
+@import './utilities.less';
+
+// 3. 组件特定样式
+@import './components.less';
+@import './layout.less';
+
+// 4. 主题和变量覆盖
+@import './theme.less';
+
+// =============================================================================
+// 🌐 全局应用样式 (Global Application Styles)
+// =============================================================================
+
+// 根元素样式 - 应用现代化设计系统
 #root {
   min-height: 100vh;
   width: 100%;
+  font-family: @font-family-primary;
+  background-color: @bg-secondary;
+  color: @text-primary;
+  
+  // 平滑滚动
+  scroll-behavior: smooth;
+}
+
+// 全局重置 - 确保现代化样式优先级
+* {
+  box-sizing: border-box;
+}
+
+// 全局字体应用
+body {
+  font-family: @font-family-primary !important;
+  background-color: @bg-secondary;
+  color: @text-primary;
+  line-height: @line-height-normal;
+  font-size: @font-size-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Ant Design 全局组件字体统一
+.ant-app,
+.ant-layout,
+.ant-layout-content,
+.ant-layout-header,
+.ant-layout-footer,
+.ant-layout-sider {
+  font-family: @font-family-primary !important;
+}
+
+// 确保所有文本元素使用统一字体
+h1, h2, h3, h4, h5, h6,
+p, span, div, a, button,
+input, select, textarea,
+.ant-typography {
+  font-family: @font-family-primary !important;
+}
+
+// =============================================================================
+// 🎯 现代化页面过渡动画 (Modern Page Transitions)
+// =============================================================================
+
+// 页面切换动画
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all @duration-slow @ease-out;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all @duration-base @ease-in;
+}
+
+// =============================================================================
+// 📱 响应式全局优化 (Responsive Global Optimizations)
+// =============================================================================
+
+// 移动端优化
+@media (max-width: 768px) {
+  body {
+    font-size: @font-size-sm;
+  }
+  
+  // 移动端触控优化
+  button,
+  .ant-btn,
+  .ant-select,
+  .ant-input,
+  .ant-picker {
+    min-height: 44px !important;
+  }
+}
+
+// 高分辨率屏幕优化
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
 }

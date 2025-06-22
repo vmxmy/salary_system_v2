@@ -1,0 +1,340 @@
+// ModernCard 组件样式
+// 应用统一的现代化设计系统
+
+@import '../../styles/modern-design-system.less';
+
+.modern-card {
+  &.ant-card {
+    border-radius: @radius-lg !important;
+    border-color: @border-default !important;
+    box-shadow: @shadow-sm !important;
+    transition: all @duration-base @ease-out !important;
+    overflow: hidden;
+    
+    // 悬停效果
+    &.hoverable:hover {
+      border-color: @border-medium !important;
+      box-shadow: @shadow-md !important;
+      transform: translateY(-1px) !important;
+    }
+    
+    // 卡片头部
+    .ant-card-head {
+      background: @bg-secondary !important;
+      border-bottom-color: @border-light !important;
+      border-radius: @radius-lg @radius-lg 0 0 !important;
+      
+      .ant-card-head-wrapper {
+        padding: @space-4 @space-6 !important;
+        
+        .ant-card-head-title {
+          padding: 0 !important;
+          font-size: inherit !important;
+          line-height: inherit !important;
+          
+          .card-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: @space-2;
+            
+            .card-icon {
+              color: @text-accent;
+              font-size: @font-size-lg;
+              display: flex;
+              align-items: center;
+            }
+            
+            .card-title-text {
+              .typography-heading-3();
+              margin: 0;
+              font-weight: @font-weight-semibold;
+            }
+          }
+        }
+        
+        .ant-card-extra {
+          padding: 0 !important;
+          
+          .card-subtitle {
+            .typography-caption();
+            margin: 0;
+            color: @text-tertiary;
+          }
+        }
+      }
+    }
+    
+    // 卡片主体
+    .ant-card-body {
+      padding: @space-6 !important;
+      
+      .card-content-wrapper {
+        // 内容样式继承父级
+      }
+      
+      .card-actions {
+        margin-top: @space-4;
+        padding-top: @space-4;
+        border-top: 1px solid @border-light;
+        display: flex;
+        gap: @space-3;
+        justify-content: flex-end;
+        align-items: center;
+        
+        // 确保按钮等控件样式一致
+        > * {
+          margin: 0;
+        }
+      }
+    }
+    
+    // 变体样式
+    &.variant-compact {
+      .ant-card-head .ant-card-head-wrapper {
+        padding: @space-3 @space-4 !important;
+        
+        .ant-card-head-title .card-title-wrapper .card-title-text {
+          font-size: @font-size-base;
+        }
+      }
+      
+      .ant-card-body {
+        padding: @space-4 !important;
+        
+        .card-actions {
+          margin-top: @space-3;
+          padding-top: @space-3;
+        }
+      }
+    }
+    
+    &.variant-elevated {
+      box-shadow: @shadow-md !important;
+      
+      &.hoverable:hover {
+        box-shadow: @shadow-lg !important;
+        transform: translateY(-2px) !important;
+      }
+    }
+    
+    &.variant-bordered {
+      border-width: 2px !important;
+      
+      &.hoverable:hover {
+        border-color: @primary-300 !important;
+      }
+    }
+    
+    // 加载状态
+    &.loading {
+      .ant-card-body {
+        .card-content-wrapper {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+      }
+    }
+    
+    // 响应式优化
+    @media (max-width: 768px) {
+      .ant-card-head .ant-card-head-wrapper {
+        padding: @space-3 @space-4 !important;
+        
+        .ant-card-head-title .card-title-wrapper {
+          .card-title-text {
+            font-size: @font-size-base;
+          }
+        }
+      }
+      
+      .ant-card-body {
+        padding: @space-4 !important;
+        
+        .card-actions {
+          flex-direction: column;
+          align-items: stretch;
+          gap: @space-2;
+          
+          > * {
+            width: 100%;
+          }
+        }
+      }
+      
+      &.variant-compact {
+        .ant-card-head .ant-card-head-wrapper {
+          padding: @space-2 @space-3 !important;
+        }
+        
+        .ant-card-body {
+          padding: @space-3 !important;
+        }
+      }
+    }
+  }
+}
+
+// 无标题卡片样式优化
+.modern-card.ant-card .ant-card-body {
+  &:first-child {
+    border-radius: @radius-lg !important;
+  }
+}
+
+.modern-card.ant-card:not(.ant-card-head) {
+  .ant-card-body {
+    border-radius: @radius-lg !important;
+  }
+}
+
+// 暗色模式支持
+[data-theme="dark"] {
+  .modern-card.ant-card {
+    background: @neutral-800 !important;
+    border-color: @neutral-700 !important;
+    
+    &.hoverable:hover {
+      border-color: @neutral-600 !important;
+    }
+    
+    .ant-card-head {
+      background: @neutral-900 !important;
+      border-bottom-color: @neutral-700 !important;
+      
+      .ant-card-head-wrapper {
+        .ant-card-head-title .card-title-wrapper {
+          .card-icon {
+            color: @primary-400;
+          }
+          
+          .card-title-text {
+            color: @neutral-100;
+          }
+        }
+        
+        .ant-card-extra .card-subtitle {
+          color: @neutral-400;
+        }
+      }
+    }
+    
+    .ant-card-body {
+      .card-actions {
+        border-top-color: @neutral-700;
+      }
+    }
+    
+    &.variant-bordered {
+      border-color: @neutral-600 !important;
+      
+      &.hoverable:hover {
+        border-color: @primary-500 !important;
+      }
+    }
+  }
+}
+
+// 特殊效果 - 渐变边框（可选）
+.modern-card.gradient-border {
+  position: relative;
+  background: linear-gradient(@bg-primary, @bg-primary) padding-box,
+              linear-gradient(135deg, @primary-200, @primary-500, @primary-700) border-box;
+  border: 2px solid transparent;
+}
+
+// 统计卡片特殊样式
+.modern-card.statistic-card {
+  &.ant-card {
+    text-align: center;
+    
+    .ant-card-body {
+      padding: @space-5 @space-4 !important;
+      
+      .card-content-wrapper {
+        .statistic-value {
+          .typography-number-large();
+          color: @text-primary;
+          margin-bottom: @space-1;
+        }
+        
+        .statistic-label {
+          .typography-caption();
+          color: @text-tertiary;
+          margin: 0;
+        }
+        
+        .statistic-change {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: @space-1;
+          margin-top: @space-2;
+          
+          .change-value {
+            .typography-caption();
+            font-weight: @font-weight-medium;
+          }
+          
+          .change-icon {
+            font-size: @font-size-xs;
+          }
+          
+          &.positive {
+            color: @success-600;
+          }
+          
+          &.negative {
+            color: @error-600;
+          }
+          
+          &.neutral {
+            color: @text-tertiary;
+          }
+        }
+      }
+    }
+    
+    // 主题变体
+    &.theme-success {
+      .ant-card-head {
+        background: linear-gradient(135deg, @success-50 0%, @neutral-50 100%) !important;
+        
+        .card-icon {
+          color: @success-500 !important;
+        }
+      }
+      
+      .statistic-value {
+        color: @success-600 !important;
+      }
+    }
+    
+    &.theme-warning {
+      .ant-card-head {
+        background: linear-gradient(135deg, @warning-50 0%, @neutral-50 100%) !important;
+        
+        .card-icon {
+          color: @warning-500 !important;
+        }
+      }
+      
+      .statistic-value {
+        color: @warning-600 !important;
+      }
+    }
+    
+    &.theme-error {
+      .ant-card-head {
+        background: linear-gradient(135deg, @error-50 0%, @neutral-50 100%) !important;
+        
+        .card-icon {
+          color: @error-500 !important;
+        }
+      }
+      
+      .statistic-value {
+        color: @error-600 !important;
+      }
+    }
+  }
+}
