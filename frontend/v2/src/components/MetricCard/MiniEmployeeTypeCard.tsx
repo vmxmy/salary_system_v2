@@ -537,6 +537,35 @@ export const MiniEmployeeTypeCard: React.FC<MiniEmployeeTypeCardProps> = ({
           )}
         </div>
       )}
+
+      {/* 总薪资摘要栏 */}
+      {personnelStats.data && personnelStats.data.summary && (
+        <div className="mini-card-summary">
+          <div className="personnel-stats-row">
+            {/* 左侧：总应发 */}
+            <div className="personnel-stat-item left">
+              <div className="stat-header">
+                <DollarCircleOutlined className="stat-icon primary" />
+                <Text className="stat-label">总应发</Text>
+              </div>
+              <div className="stat-details">
+                <Text className="detail-text">{formatAmount(personnelStats.data.summary.total_gross_pay, false)}</Text>
+              </div>
+            </div>
+
+            {/* 右侧：总实发 */}
+            <div className="personnel-stat-item right">
+              <div className="stat-header">
+                <DollarCircleOutlined className="stat-icon secondary" />
+                <Text className="stat-label">总实发</Text>
+              </div>
+              <div className="stat-details">
+                <Text className="detail-text">{formatAmount(personnelStats.data.summary.total_net_pay, false)}</Text>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
