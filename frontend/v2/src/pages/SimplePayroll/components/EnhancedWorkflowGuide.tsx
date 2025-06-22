@@ -1162,15 +1162,6 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
             onClick: handleRunAudit
           },
           {
-            key: 'run_advanced_audit',
-            label: '高级审核',
-            type: 'dashed',
-            icon: <AuditOutlined />,
-            disabled: !canExecuteStep(1, currentStepIndex),
-            loading: loading.run_advanced_audit,
-            onClick: handleRunAdvancedAudit
-          },
-          {
             key: 'go_back_step',
             label: '退回上一步',
             type: 'default',

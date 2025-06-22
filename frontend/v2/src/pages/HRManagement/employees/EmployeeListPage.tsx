@@ -222,6 +222,15 @@ const EmployeeListPage: React.FC = () => {
     canExport,
   } = useEmployeePermissions();
 
+  // 调试权限状态
+  console.log('🔍 [Debug] 员工权限状态:', {
+    canViewDetail,
+    canUpdate,
+    canDelete,
+    canCreate,
+    canExport
+  });
+
   const [allEmployees, setAllEmployees] = useState<EmployeeBasic[]>([]); 
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
