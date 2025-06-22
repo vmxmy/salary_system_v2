@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { type ProColumns } from '@ant-design/pro-components';
 import { processValue, extractTextFromRender, cleanValue, isStringOnlyField } from '../utils/payrollDataUtils';
@@ -69,16 +69,20 @@ export const generateExportFilename = (
 };
 
 /**
- * 处理导出数据 - 严格按照表格显示的列顺序和格式
+ * 使用ExcelJS处理导出数据 - 严格按照表格显示的列顺序和格式
  */
-export const processExportData = (
+export const processExportDataWithExcelJS = (
   data: PayrollData[],
   columns: ProColumns<PayrollData>[]
-): { headers: string[]; processedData: any[]; stats: { recordCount: number; columnCount: number } } => {
-  console.log('📊 [Export] 开始处理导出数据', {
+): { 
+  orderedColumns: Array<{ header: string; key: string; width: number; column: ProColumns<PayrollData> }>; 
+  processedData: any[]; 
+  stats: { recordCount: number; columnCount: number } 
+} => {
+  console.log('📊 [ExcelJS Export] 开始处理导出数据', {
     dataCount: data.length,
     totalColumns: columns.length,
-    columnTitles: columns.map(col => col.title).slice(0, 10) // 显示前10列标题
+    columnTitles: columns.map(col => col.title).slice(0, 10)
   });
 
   // 🎯 严格按照传入的列顺序，移除 action 列和隐藏列
@@ -88,7 +92,7 @@ export const processExportData = (
     const result = !isActionColumn && !isHidden;
     
     if (!result) {
-      console.log('📊 [Export] 跳过列:', col.title, { 
+      console.log('📊 [ExcelJS Export] 跳过列:', col.title, { 
         isActionColumn, 
         isHidden, 
         key: col.key, 
@@ -99,78 +103,59 @@ export const processExportData = (
     return result;
   });
 
-  console.log('📊 [Export] 可导出列数:', exportColumns.length);
-  console.log('📊 [Export] 导出列详情:', exportColumns.map((col, index) => ({
+  console.log('📊 [ExcelJS Export] 原始导出列顺序:', exportColumns.map((col, index) => ({
     index,
-    title: col.title,
-    dataIndex: col.dataIndex,
-    key: col.key,
-    fixed: col.fixed,
-    hideInTable: col.hideInTable
-  })));
-
-  // 🎯 额外检查：确保员工姓名列在最前面（因为它有fixed: 'left'）
-  const hasEmployeeNameColumn = exportColumns.some(col => 
-    col.fixed === 'left' && (
-      col.title === '员工姓名' || 
-      col.dataIndex === '员工姓名' || 
-      col.dataIndex === 'employee_name'
-    )
-  );
-  
-  if (hasEmployeeNameColumn) {
-    console.log('📊 [Export] 检测到员工姓名列有固定属性，当前顺序应该正确');
-  }
-
-  // 🎯 确保遵循ProTable的列排序逻辑（固定列在前）
-  // ProTable会将fixed: 'left'的列排在最前面，fixed: 'right'的列排在最后面
-  const sortedExportColumns = [...exportColumns].sort((a, b) => {
-    // 左固定列排在最前面
-    if (a.fixed === 'left' && b.fixed !== 'left') return -1;
-    if (b.fixed === 'left' && a.fixed !== 'left') return 1;
-    
-    // 右固定列排在最后面（但由于我们已经过滤掉了action列，这里应该不会有）
-    if (a.fixed === 'right' && b.fixed !== 'right') return 1;
-    if (b.fixed === 'right' && a.fixed !== 'right') return -1;
-    
-    // 其他列保持原有顺序
-    return 0;
-  });
-
-  // 🎯 严格按照排序后的列顺序生成表头
-  const headers = sortedExportColumns.map(col => col.title as string);
-
-  console.log('📊 [Export] 排序后的导出列:', sortedExportColumns.map(col => ({
     title: col.title,
     fixed: col.fixed
   })));
-  console.log('📊 [Export] 最终表头顺序:', headers);
 
-  // 🎯 处理数据 - 使用与表格完全相同的渲染逻辑
-  const processedData = data.map((record, index) => {
+  // 🎯 重要：保持数组的原始顺序，不进行任何排序！
+  // 因为 columns 已经是按照表格显示顺序传入的
+  const orderedColumns = exportColumns.map((col, index) => {
+    const header = col.title as string;
+    const key = `col_${index}`; // 使用索引作为key确保顺序
+    
+    // 根据标题计算列宽
+    let width = Math.max(header.length * 2, 12); // 基础宽度
+    if (header.includes('姓名')) width = Math.max(width, 15);
+    if (header.includes('编号')) width = Math.max(width, 18);
+    if (header.includes('金额') || header.includes('工资') || header.includes('合计')) width = Math.max(width, 16);
+    
+    return {
+      header,
+      key,
+      width,
+      column: col
+    };
+  });
+
+  console.log('📊 [ExcelJS Export] 最终列配置顺序:', orderedColumns.map((col, index) => ({
+    index,
+    header: col.header,
+    key: col.key,
+    fixed: col.column.fixed
+  })));
+
+  // 🎯 处理数据 - 按照列的精确顺序
+  const processedData = data.map((record, rowIndex) => {
     const row: any = {};
     
-    sortedExportColumns.forEach((col, colIndex) => {
+    orderedColumns.forEach((colConfig, colIndex) => {
+      const col = colConfig.column;
       const fieldName = col.dataIndex as string;
       const rawValue = (record as any)[fieldName];
-      const headerName = col.title as string;
       
       try {
-        // 🎯 使用完全相同的处理逻辑确保格式一致
         let processedValue: any;
         
         if (col.render && typeof col.render === 'function') {
           // 调用列的渲染函数获取格式化结果
-          const renderResult = col.render(rawValue, record, index, {} as any, {} as any);
-          
-          // 提取文本内容
+          const renderResult = col.render(rawValue, record, rowIndex, {} as any, {} as any);
           const textContent = extractTextFromRender(renderResult);
           
-          // 对于数字字段，尝试保持数字格式用于Excel排序
-          const fieldName = col.dataIndex as string;
+          // 对于数字字段，尝试保持数字格式
           if (fieldName && !isStringOnlyField(fieldName)) {
-            // 尝试提取数字
-            const cleanText = textContent.replace(/[,\s]/g, ''); // 移除千分位分隔符和空格
+            const cleanText = textContent.replace(/[,\s]/g, '');
             const numValue = parseFloat(cleanText);
             if (!isNaN(numValue) && isFinite(numValue) && cleanText !== 'N/A' && cleanText !== '-') {
               processedValue = numValue;
@@ -178,161 +163,152 @@ export const processExportData = (
               processedValue = textContent || '-';
             }
           } else {
-            // 字符串字段直接使用文本内容
             processedValue = textContent || '-';
           }
         } else {
-          // 没有渲染函数，直接处理原始值
-          processedValue = processValue(rawValue, col, record, index);
+          processedValue = processValue(rawValue, col, record, rowIndex);
         }
         
-        // 🎯 按照表头名称设置值，确保顺序一致
-        row[headerName] = processedValue;
+        // 🎯 关键：使用列的key（基于索引）确保顺序
+        row[colConfig.key] = processedValue;
         
       } catch (error) {
-        console.warn(`[Export] 处理第${index}行第${colIndex}列失败:`, error);
-        row[headerName] = '-';
+        console.warn(`[ExcelJS Export] 处理第${rowIndex}行第${colIndex}列失败:`, error);
+        row[colConfig.key] = '-';
       }
     });
     
     return row;
   });
 
-  console.log('✅ [Export] 数据处理完成', {
+  console.log('✅ [ExcelJS Export] 数据处理完成', {
     processedRows: processedData.length,
-    sampleRow: processedData[0] ? Object.keys(processedData[0]) : []
+    columnsCount: orderedColumns.length,
+    sampleRowKeys: processedData[0] ? Object.keys(processedData[0]) : []
   });
 
   return {
-    headers,
+    orderedColumns,
     processedData,
     stats: {
       recordCount: data.length,
-      columnCount: sortedExportColumns.length
+      columnCount: orderedColumns.length
     }
   };
 };
 
 /**
- * 设置Excel列宽
+ * 使用ExcelJS创建工作簿 - 严格保持列顺序
  */
-export const calculateColumnWidths = (
-  headers: string[],
-  data: any[],
-  options: { autoWidth: boolean; maxColumnWidth: number }
-): XLSX.ColInfo[] => {
-  if (!options.autoWidth) {
-    return headers.map(() => ({ wch: 15 }));
-  }
-
-  return headers.map(header => {
-    // 计算标题长度
-    const titleLength = header.length;
-    
-    // 计算数据的最大长度（取前100行样本）
-    const sampleData = data.slice(0, 100);
-    const maxDataLength = Math.max(
-      ...sampleData.map(row => {
-        const value = row[header];
-        return value ? String(value).length : 0;
-      })
-    );
-    
-    // 取标题和数据的最大长度，加上一些边距
-    const calculatedWidth = Math.max(titleLength, maxDataLength) + 2;
-    
-    // 限制最大宽度
-    const finalWidth = Math.min(calculatedWidth, options.maxColumnWidth);
-    
-    return { wch: Math.max(finalWidth, 8) }; // 最小宽度为8
-  });
-};
-
-/**
- * 创建Excel工作簿 - 严格保持列顺序
- */
-export const createWorkbook = (
-  headers: string[],
+export const createWorkbookWithExcelJS = async (
+  orderedColumns: Array<{ header: string; key: string; width: number; column: ProColumns<PayrollData> }>,
   data: any[],
   options: Required<ExportOptions>
-): XLSX.WorkBook => {
-  console.log('📊 [Excel] 创建工作簿', {
-    headers: headers,
+): Promise<ExcelJS.Workbook> => {
+  console.log('📊 [ExcelJS] 创建工作簿', {
+    columnsCount: orderedColumns.length,
     dataCount: data.length,
-    includeHeaders: options.includeHeaders
+    sheetName: options.sheetName
   });
 
   // 创建工作簿
-  const workbook = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Payroll System';
+  workbook.lastModifiedBy = 'Payroll System';
+  workbook.created = new Date();
+  workbook.modified = new Date();
+
+  // 添加工作表
+  const worksheet = workbook.addWorksheet(options.sheetName);
+
+  // 🎯 严格按照顺序设置列配置
+  console.log('📊 [ExcelJS] 设置列配置，严格保持顺序:', orderedColumns.map(col => col.header));
   
-  // 🎯 严格按照headers的顺序创建工作表数据
-  const worksheetData: any[][] = [];
+  worksheet.columns = orderedColumns.map(col => ({
+    header: col.header,
+    key: col.key,
+    width: col.width
+  }));
+
+  // 🎯 设置表头样式
+  const headerRow = worksheet.getRow(1);
+  headerRow.height = 25;
+  headerRow.font = { bold: true, size: 12 };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' }
+  };
+  headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
   
-  // 添加表头行
-  if (options.includeHeaders) {
-    worksheetData.push([...headers]); // 创建副本确保顺序
-  }
+  // 添加边框
+  headerRow.eachCell((cell) => {
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+  });
+
+  // 🎯 按照严格的列顺序添加数据
+  console.log('📊 [ExcelJS] 开始添加数据行，列顺序:', orderedColumns.map(col => col.key));
   
-  // 🎯 按照headers的确切顺序添加数据行
-  data.forEach(row => {
-    const dataRow: any[] = [];
-    headers.forEach(header => {
-      const cellValue = row[header];
-      // 确保单元格值的格式正确
-      if (cellValue === null || cellValue === undefined) {
-        dataRow.push('-');
-      } else if (typeof cellValue === 'number') {
-        // 保持数字格式用于Excel排序和计算
-        dataRow.push(cellValue);
-      } else {
-        // 字符串值
-        dataRow.push(String(cellValue));
+  data.forEach((rowData, rowIndex) => {
+    const excelRow: any = {};
+    
+    // 🎯 关键：严格按照orderedColumns的顺序设置每个单元格
+    orderedColumns.forEach((colConfig) => {
+      const value = rowData[colConfig.key];
+      excelRow[colConfig.key] = value;
+    });
+    
+    const addedRow = worksheet.addRow(excelRow);
+    
+    // 设置数据行样式
+    addedRow.eachCell((cell, colNumber) => {
+      const colConfig = orderedColumns[colNumber - 1];
+      
+      if (colConfig) {
+        // 根据数据类型设置对齐方式
+        if (typeof cell.value === 'number') {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          // 对于数字，设置数字格式
+          if (colConfig.column.dataIndex && !isStringOnlyField(colConfig.column.dataIndex as string)) {
+            cell.numFmt = '#,##0.00'; // 千分位分隔符，2位小数
+          }
+        } else {
+          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        }
+        
+        // 添加边框
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       }
     });
-    worksheetData.push(dataRow);
   });
-  
-  console.log('📊 [Excel] 工作表数据创建完成', {
-    totalRows: worksheetData.length,
-    sampleHeaderRow: worksheetData[0],
-    sampleDataRow: worksheetData[1]
+
+  // 自动调整行高
+  worksheet.eachRow((row) => {
+    if (row.number > 1) { // 跳过表头行
+      row.height = 20;
+    }
   });
-  
-  // 创建工作表
-  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-  
-  // 🎯 设置列宽 - 改进的自动列宽计算
-  if (options.autoWidth) {
-    worksheet['!cols'] = calculateColumnWidths(headers, data, {
-      autoWidth: options.autoWidth,
-      maxColumnWidth: options.maxColumnWidth
-    });
-  }
-  
-  // 🎯 设置表头行样式
-  if (options.includeHeaders && worksheetData.length > 0) {
-    worksheet['!rows'] = [];
-    worksheet['!rows'][0] = { hpt: 25, hpx: 25 }; // 表头行高
-    
-    // 设置表头单元格样式（加粗）
-    headers.forEach((header, colIndex) => {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-      if (!worksheet[cellAddress]) worksheet[cellAddress] = {};
-      if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
-      worksheet[cellAddress].s.font = { bold: true };
-    });
-  }
-  
-  // 添加工作表到工作簿
-  XLSX.utils.book_append_sheet(workbook, worksheet, options.sheetName);
-  
-  console.log('✅ [Excel] 工作簿创建完成');
-  
+
+  console.log('✅ [ExcelJS] 工作簿创建完成', {
+    totalRows: worksheet.rowCount,
+    totalColumns: worksheet.columnCount
+  });
+
   return workbook;
 };
 
 /**
- * 导出到Excel文件
+ * 使用ExcelJS导出到Excel文件 - 严格保持列顺序
  */
 export const exportToExcel = async (
   data: PayrollData[],
@@ -355,26 +331,28 @@ export const exportToExcel = async (
       )
     };
 
-    // 处理数据
-    const { headers, processedData, stats } = processExportData(data, columns);
+    console.log('📤 [ExcelJS Export] 开始导出', {
+      filename: options.filename,
+      dataCount: data.length,
+      columnsCount: columns.length
+    });
+
+    // 🎯 使用新的ExcelJS处理函数
+    const { orderedColumns, processedData, stats } = processExportDataWithExcelJS(data, columns);
     
     if (processedData.length === 0) {
       message.warning({ content: '没有数据可导出', key: 'export' });
       return { success: false, error: '没有数据可导出' };
     }
 
-    // 创建工作簿
-    const workbook = createWorkbook(headers, processedData, options);
+    // 🎯 使用ExcelJS创建工作簿
+    const workbook = await createWorkbookWithExcelJS(orderedColumns, processedData, options);
 
-    // 生成二进制数据
-    const excelBuffer = XLSX.write(workbook, { 
-      bookType: 'xlsx', 
-      type: 'array',
-      compression: true
-    });
+    // 🎯 生成Excel文件Buffer
+    const buffer = await workbook.xlsx.writeBuffer();
 
     // 创建Blob并下载
-    const blob = new Blob([excelBuffer], { 
+    const blob = new Blob([buffer], { 
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
     });
     
@@ -387,6 +365,12 @@ export const exportToExcel = async (
       duration: 5
     });
 
+    console.log('✅ [ExcelJS Export] 导出成功', {
+      filename: options.filename,
+      recordCount: stats.recordCount,
+      columnCount: stats.columnCount
+    });
+
     return {
       success: true,
       filename: options.filename,
@@ -395,7 +379,7 @@ export const exportToExcel = async (
     };
 
   } catch (error) {
-    console.error('导出Excel失败:', error);
+    console.error('❌ [ExcelJS Export] 导出失败:', error);
     
     const errorMessage = error instanceof Error ? error.message : '未知错误';
     message.error({ 
@@ -412,7 +396,7 @@ export const exportToExcel = async (
 };
 
 /**
- * 导出选中行数据
+ * 导出选中行数据 - 使用ExcelJS
  */
 export const exportSelectedRows = async (
   selectedRows: PayrollData[],
@@ -424,6 +408,11 @@ export const exportSelectedRows = async (
     message.warning('请先选择要导出的数据行');
     return { success: false, error: '没有选中任何数据' };
   }
+
+  console.log('📤 [ExcelJS BatchExport] 批量导出选中行', {
+    selectedRowsCount: selectedRows.length,
+    presetName: customOptions?.presetName
+  });
 
   const options = {
     ...customOptions,
@@ -439,7 +428,7 @@ export const exportSelectedRows = async (
 };
 
 /**
- * 批量导出多个工作表
+ * 使用ExcelJS批量导出多个工作表
  */
 export const exportMultipleSheets = async (
   sheets: Array<{
@@ -452,41 +441,90 @@ export const exportMultipleSheets = async (
   try {
     message.loading({ content: '正在生成多表格Excel文件...', key: 'export' });
 
+    console.log('📤 [ExcelJS MultiSheet] 开始多表格导出', {
+      sheetsCount: sheets.length,
+      filename
+    });
+
     // 创建工作簿
-    const workbook = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Payroll System';
+    workbook.lastModifiedBy = 'Payroll System';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+
     let totalRecords = 0;
     let totalColumns = 0;
 
     // 处理每个工作表
     for (const sheet of sheets) {
-      const { headers, processedData, stats } = processExportData(sheet.data, sheet.columns);
+      console.log(`📄 [ExcelJS MultiSheet] 处理工作表: ${sheet.name}`);
+      
+      const { orderedColumns, processedData, stats } = processExportDataWithExcelJS(sheet.data, sheet.columns);
       
       if (processedData.length > 0) {
-        const options: Required<ExportOptions> = {
-          ...defaultExportOptions,
-          sheetName: sheet.name,
-          filename: ''
+        // 添加工作表
+        const worksheet = workbook.addWorksheet(sheet.name);
+
+        // 设置列配置
+        worksheet.columns = orderedColumns.map(col => ({
+          header: col.header,
+          key: col.key,
+          width: col.width
+        }));
+
+        // 设置表头样式
+        const headerRow = worksheet.getRow(1);
+        headerRow.height = 25;
+        headerRow.font = { bold: true, size: 12 };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E0E0' }
         };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
-        // 创建工作表数据
-        const worksheetData = [headers, ...processedData.map(row => headers.map(header => row[header]))];
-        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-
-        // 设置列宽
-        worksheet['!cols'] = calculateColumnWidths(headers, processedData, {
-          autoWidth: true,
-          maxColumnWidth: 50
+        // 添加数据
+        processedData.forEach((rowData) => {
+          const excelRow: any = {};
+          orderedColumns.forEach((colConfig) => {
+            excelRow[colConfig.key] = rowData[colConfig.key];
+          });
+          worksheet.addRow(excelRow);
         });
 
-        // 添加到工作簿
-        XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name);
+        // 设置样式
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return; // 跳过表头
+          
+          row.eachCell((cell, colNumber) => {
+            const colConfig = orderedColumns[colNumber - 1];
+            if (colConfig) {
+              if (typeof cell.value === 'number') {
+                cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                if (colConfig.column.dataIndex && !isStringOnlyField(colConfig.column.dataIndex as string)) {
+                  cell.numFmt = '#,##0.00';
+                }
+              } else {
+                cell.alignment = { horizontal: 'left', vertical: 'middle' };
+              }
+              
+              cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+              };
+            }
+          });
+        });
         
         totalRecords += stats.recordCount;
         totalColumns += stats.columnCount;
       }
     }
 
-    if (workbook.SheetNames.length === 0) {
+    if (workbook.worksheets.length === 0) {
       message.warning({ content: '没有数据可导出', key: 'export' });
       return { success: false, error: '没有数据可导出' };
     }
@@ -495,13 +533,8 @@ export const exportMultipleSheets = async (
     const exportFilename = filename || generateExportFilename(undefined, '默认预设', '多表格数据');
 
     // 导出文件
-    const excelBuffer = XLSX.write(workbook, { 
-      bookType: 'xlsx', 
-      type: 'array',
-      compression: true
-    });
-
-    const blob = new Blob([excelBuffer], { 
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { 
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
     });
     
@@ -513,6 +546,12 @@ export const exportMultipleSheets = async (
       duration: 5
     });
 
+    console.log('✅ [ExcelJS MultiSheet] 多表格导出成功', {
+      filename: exportFilename,
+      totalRecords,
+      totalColumns
+    });
+
     return {
       success: true,
       filename: exportFilename,
@@ -521,7 +560,7 @@ export const exportMultipleSheets = async (
     };
 
   } catch (error) {
-    console.error('多表格导出失败:', error);
+    console.error('❌ [ExcelJS MultiSheet] 多表格导出失败:', error);
     
     const errorMessage = error instanceof Error ? error.message : '未知错误';
     message.error({ 
@@ -538,7 +577,7 @@ export const exportMultipleSheets = async (
 };
 
 /**
- * 验证导出数据
+ * 验证导出数据 - 兼容ExcelJS
  */
 export const validateExportData = (
   data: PayrollData[],
@@ -554,7 +593,12 @@ export const validateExportData = (
     errors.push('列配置为空');
   }
 
-  const visibleColumns = columns.filter(col => !col.hideInTable);
+  const visibleColumns = columns.filter(col => {
+    const isActionColumn = col.key === 'action' || col.dataIndex === 'action' || col.title === '操作';
+    const isHidden = col.hideInTable === true;
+    return !isActionColumn && !isHidden;
+  });
+  
   if (visibleColumns.length === 0) {
     errors.push('没有可见的列');
   }
@@ -570,6 +614,13 @@ export const validateExportData = (
       errors.push(`缺少字段：${missingFields.map(col => col.title).join(', ')}`);
     }
   }
+
+  console.log('📊 [Export Validation] 验证结果:', {
+    isValid: errors.length === 0,
+    errors,
+    dataCount: data?.length || 0,
+    visibleColumnsCount: visibleColumns.length
+  });
 
   return {
     isValid: errors.length === 0,
