@@ -59,12 +59,6 @@ export const menuData: AppMenuDataItem[] = [
     icon: <CalculatorOutlined />,
   },
   {
-    name: '报表管理',
-    titleKey: 'admin.reportConfig',
-    path: '/admin/report-config',
-    icon: <BarChartOutlined />,
-  },
-  {
     name: '薪资管理',
     titleKey: 'payroll.title',
     path: '/finance/payroll',
@@ -114,6 +108,12 @@ export const menuData: AppMenuDataItem[] = [
         titleKey: 'hr.employees',
         path: '/hr/employees',
         icon: <UserOutlined />,
+      },
+      {
+        name: '员工列表 (新版)',
+        titleKey: 'hr.employeesUniversal',
+        path: '/hr/employees/universal',
+        icon: <ControlOutlined />,
       },
       {
         name: '新增员工',

@@ -17,7 +17,10 @@
     padding: @space-5 @space-6;
     
     .ant-drawer-title {
-      .typography-heading-2();
+      font-family: @font-family-primary;
+      font-size: @font-size-xl;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-tight;
       color: @text-primary;
       margin: 0;
     }
@@ -71,7 +74,10 @@
     margin-bottom: 0;
     
     .ant-pro-table-list-toolbar-title {
-      .typography-heading-3();
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
       color: @text-primary;
     }
     
@@ -133,13 +139,19 @@
     }
     
     .ant-notification-notice-message {
-      .typography-heading-3();
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
       color: @text-primary;
       margin-bottom: @space-1;
     }
     
     .ant-notification-notice-description {
-      .typography-body();
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
       color: @text-secondary;
     }
     
@@ -185,7 +197,11 @@
       padding: @space-3 @space-4;
       
       .ant-message-custom-content {
-        .typography-body();
+        font-family: @font-family-primary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
+        color: @text-primary;
         
         .anticon {
           margin-right: @space-2;
@@ -233,13 +249,19 @@
       }
       
       .ant-upload-text {
-        .typography-heading-3();
+        font-family: @font-family-primary;
+        font-size: @font-size-lg;
+        font-weight: @font-weight-semibold;
+        line-height: @line-height-normal;
         color: @text-primary;
         margin-bottom: @space-2;
       }
       
       .ant-upload-hint {
-        .typography-caption();
+        font-family: @font-family-primary;
+        font-size: @font-size-sm;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
         color: @text-tertiary;
       }
     }
@@ -261,7 +283,10 @@
       }
       
       .ant-upload-list-item-name {
-        .typography-body();
+        font-family: @font-family-primary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
         color: @text-primary;
       }
       
@@ -295,7 +320,10 @@
     }
     
     .ant-steps-item-title {
-      .typography-body();
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
       color: @text-primary;
       
       &::after {
@@ -304,7 +332,10 @@
     }
     
     .ant-steps-item-description {
-      .typography-caption();
+      font-family: @font-family-primary;
+      font-size: @font-size-sm;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
       color: @text-tertiary;
     }
     
@@ -346,20 +377,30 @@
   font-family: @font-family-primary;
   
   .ant-statistic-title {
-    .typography-caption-strong();
+    font-family: @font-family-primary;
+    font-size: @font-size-sm;
+    font-weight: @font-weight-medium;
+    line-height: @line-height-normal;
     color: @text-secondary;
     margin-bottom: @space-2;
   }
   
   .ant-statistic-content {
     .ant-statistic-content-value {
-      .typography-number-large();
-      color: @text-primary;
+      font-family: @font-family-primary;
+      font-size: @font-size-3xl;
       font-weight: @font-weight-bold;
+      line-height: @line-height-tight;
+      color: @text-primary;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.025em;
     }
     
     .ant-statistic-content-suffix {
-      .typography-body();
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
       color: @text-tertiary;
       margin-left: @space-1;
     }
@@ -393,7 +434,10 @@
     border: 1px solid @border-default;
     
     .ant-popover-title {
-      .typography-heading-3();
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
       color: @text-primary;
       border-bottom-color: @border-light;
       padding: @space-4;
@@ -403,7 +447,10 @@
       padding: @space-4;
       
       .ant-popover-message {
-        .typography-body();
+        font-family: @font-family-primary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
         color: @text-primary;
       }
       
@@ -443,7 +490,10 @@
   }
   
   .ant-progress-text {
-    .typography-caption-strong();
+    font-family: @font-family-primary;
+    font-size: @font-size-sm;
+    font-weight: @font-weight-medium;
+    line-height: @line-height-normal;
     color: @text-primary;
   }
   
@@ -473,7 +523,10 @@
   }
   
   .ant-empty-description {
-    .typography-body();
+    font-family: @font-family-primary;
+    font-size: @font-size-base;
+    font-weight: @font-weight-normal;
+    line-height: @line-height-normal;
     color: @text-tertiary;
     margin-bottom: @space-4;
   }
@@ -499,13 +552,20 @@
     }
     
     .empty-title {
-      .typography-heading-3();
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
       color: @text-secondary;
       margin-bottom: @space-2;
     }
     
     .empty-description {
-      .typography-body-secondary();
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
+      color: @text-secondary;
       margin-bottom: @space-6;
       max-width: 400px;
       margin-left: auto;
@@ -522,12 +582,19 @@
   font-family: @font-family-primary;
   
   .ant-alert-message {
-    .typography-body();
+    font-family: @font-family-primary;
+    font-size: @font-size-base;
     font-weight: @font-weight-medium;
+    line-height: @line-height-normal;
+    color: @text-primary;
   }
   
   .ant-alert-description {
-    .typography-caption();
+    font-family: @font-family-primary;
+    font-size: @font-size-sm;
+    font-weight: @font-weight-normal;
+    line-height: @line-height-normal;
+    color: @text-tertiary;
     margin-top: @space-1;
   }
   
@@ -703,5 +770,26 @@
     }
   }
   
-  // 其他组件的暗色模式样式...
+  // Tabs 组件现代化
+  .ant-tabs .ant-tabs-tab {
+    background: @neutral-800;
+    border-color: @neutral-700;
+    
+    .ant-tabs-tab-btn {
+      color: @neutral-300;
+    }
+    
+    &.ant-tabs-tab-active {
+      background: @primary-600;
+      border-color: @primary-500;
+      
+      .ant-tabs-tab-btn {
+        color: @neutral-100;
+      }
+    }
+  }
+  
+  .ant-tabs-content-holder {
+    background: @neutral-800;
+  }
 }

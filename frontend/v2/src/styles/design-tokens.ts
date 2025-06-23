@@ -201,9 +201,9 @@ export const designTokens = {
   typography: {
     // 字体族
     fontFamily: {
-      primary: "'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif",
+      primary: "'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif",
       mono: "'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
-      fallback: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+      fallback: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif"
     },
 
     // 字号系统 (基于1.25倍比率)

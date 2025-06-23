@@ -1,0 +1,31 @@
+{
+  "admin": {
+    "permissions": "Permission Management",
+    "reportConfig": "Report Configuration Management",
+    "roles": "Role Management",
+    "systemSettings": "System Settings",
+    "title": "System Management",
+    "users": "User Management"
+  },
+  "home": "Home",
+  "hr": {
+    "employees": "Employee Records",
+    "employeesNew": "Create Employee",
+    "myLeave": "",
+    "title": "Employee Management"
+  },
+  "organization": {
+    "departments": "Department Management",
+    "personnelCategories": "Personnel Categories",
+    "positions": "Actual Positions",
+    "title": "Organization Structure"
+  },
+  "payroll": {
+    "bulkImport": "Payroll Bulk Import",
+    "components": "Payroll Components",
+    "entry": "Payroll Entry",
+    "periods": "Payroll Periods",
+    "runs": "Payroll Runs",
+    "title": "Payroll Management"
+  }
+}

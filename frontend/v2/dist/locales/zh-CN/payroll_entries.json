@@ -1,0 +1,9 @@
+{
+  "confirm_delete_title": "确认删除",
+  "delete_failure": "薪资条目删除失败",
+  "delete_success": "薪资条目删除成功",
+  "export_button_text": "导出Excel",
+  "export_filename_prefix": "薪资条目",
+  "export_sheet_name": "薪资条目",
+  "export_success_message": "薪资条目导出成功"
+}

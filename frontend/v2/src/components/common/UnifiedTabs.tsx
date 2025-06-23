@@ -38,7 +38,7 @@ const StyledTabs = styled(Tabs)`
   /* 统一标签页字体样式，确保在所有位置显示一致 */
   .ant-tabs-tab-btn {
     font-size: 16px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif;
     line-height: 1.5;
   }
   

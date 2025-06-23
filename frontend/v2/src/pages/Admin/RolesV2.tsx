@@ -233,7 +233,7 @@ const RolesPageV2: React.FC = () => {
         exportConfig={{
           filenamePrefix: t('role:export_filename_prefix'),
           sheetName: t('role:export_sheet_name'),
-          buttonText: t('common:export.button_text'),
+          buttonText: "导出Excel",
           successMessage: t('common:export.success_message'),
         }}
         lookupErrorMessageKey="common:message.data_loading_error"

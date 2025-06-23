@@ -25,7 +25,6 @@ import {
   UploadOutlined,
   EditOutlined,
   DatabaseOutlined,
-  BarChartOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
@@ -309,13 +308,6 @@ const MainLayout: React.FC = () => {
     
     // 1. 仪表盘已删除，直接从报表管理开始
 
-    // 2. 报表管理 - 第二个入口
-    // 临时移除权限检查，直接显示菜单项
-    coreBusinessItems.push({
-      key: '/admin/report-config',
-      icon: <BarChartOutlined />,
-      label: <Link to="/admin/report-config">{t('menu:admin.reportConfig', { defaultValue: 'Report Management' })}</Link>,
-    });
 
 
 

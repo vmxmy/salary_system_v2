@@ -1,0 +1,720 @@
+{
+  "absent": "",
+  "absent_days": "",
+  "activate": "",
+  "active": "",
+  "actual_work_days": "",
+  "annual_leave": "",
+  "attendance_date": "",
+  "attendance_management": "",
+  "attendance_period": "",
+  "attendance_periods": "",
+  "attendance_records": "",
+  "attendance_rules": "",
+  "auto____2028e7": " (统计)",
+  "auto____e7a1ae": "确定要删除选中的项目吗？此操作不可撤销。",
+  "auto____e896aa": "薪资审核详情页 (占位符)",
+  "auto___e29c85": "✅ 净工资验证通过",
+  "auto___e29d8c": "❌ 禁用",
+  "auto___e69c8d": "服务器内部错误，请稍后重试或联系管理员",
+  "auto___e69d83": "权限不足，无法获取薪资字段定义",
+  "auto___e6ada3": "正在加载组件定义...",
+  "auto___e7bc96": "编码已存在，请使用不同的编码",
+  "auto___e88eb7": "获取工资条目数据失败:",
+  "auto___e8afb7": "请求数据格式错误，请检查输入内容",
+  "auto__earningcomponents_0_name__e5b7b2": "已自动添加默认收入项: ${earningComponents[0].name}",
+  "auto__returneddata_net_pay__e58780": "净工资: ${returnedData.net_pay}",
+  "auto__returneddata_total_deductions__e680bb": "总扣缴: ${returnedData.total_deductions}, ",
+  "auto__returneddata_total_earnings__e680bb": "总收入: ${returnedData.total_earnings}, ",
+  "auto__statusid__e69caa": "未知状态(${statusId})",
+  "auto_api__415049": "API响应元数据:",
+  "auto_calculate": "",
+  "auto_excel_e5afbc": "Export Excel",
+  "auto_id_entrydetails_payroll_period_id__e591a8": "周期ID: ${entryDetails.payroll_period_id}",
+  "auto_id_run_payroll_period_id__e591a8": "周期ID: ${run.payroll_period_id}",
+  "auto_text_e4b88d": "不计税",
+  "auto_text_e4b8b4": "临聘",
+  "auto_text_e585ac": "公积金",
+  "auto_text_e58aa0": "加班费",
+  "auto_text_e58f96": "取消",
+  "auto_text_e59088": "合同",
+  "auto_text_e59198": "员工姓名",
+  "auto_text_e59ca8": "在编",
+  "auto_text_e59fba": "基本工资",
+  "auto_text_e5a596": "奖金",
+  "auto_text_e5b297": "岗位津贴",
+  "auto_text_e5b7b2": "已计算",
+  "auto_text_e689b9": "批量删除",
+  "auto_text_e69caa": "未知",
+  "auto_text_e6b4be": "派遣",
+  "auto_text_e7949f": "生效日期",
+  "auto_text_e7a1ae": "确认批量删除",
+  "auto_text_e7a4be": "社会保险",
+  "auto_text_e7bb93": "结束日期",
+  "auto_text_e7bba9": "绩效奖金",
+  "auto_text_e7bc96": "auto_text_e7bc96",
+  "auto_text_e88198": "聘用",
+  "auto_text_e896aa": "Export Successful",
+  "auto_text_e8aea1": "计税",
+  "auto_text_e8afb7": "请先在表格转换器中完成数据转换",
+  "basic_salary": "",
+  "batch_delete_button_text": "",
+  "batch_delete_failed": "",
+  "batch_delete_success": "",
+  "batch_import": {
+    "button": {
+      "start_again": "Start Again",
+      "view_entries": "View Entries"
+    },
+    "error_api_not_found": "API Not Found",
+    "error_fetch_components": "Failed to fetch components",
+    "error_permission_denied": "Permission Denied",
+    "field_categories": {
+      "base": "Base Information",
+      "calculated": "Calculated Items",
+      "deduction": "Deduction Items",
+      "earning": "Earning Items",
+      "other": "Other Fields",
+      "stat": "Statistical Items"
+    },
+    "result": {
+      "created_entries_preview": "Preview of created entries:",
+      "entry_item": "ID: {{id}} - {{employeeName}} (Net Pay: {{amount}})",
+      "error_alert_desc": "Please check the errors below and correct the data before reimporting.",
+      "error_alert_title": "Errors occurred during import",
+      "error_details_title": "Error Details",
+      "error_table": {
+        "employee_id": "Employee ID",
+        "error_message": "Error Message",
+        "index": "Index"
+      },
+      "failure_subtitle_one": "The record failed to import.",
+      "failure_subtitle_other": "All {{count}} records failed to import.",
+      "failure_suggestion": "Import Failed Completely",
+      "failure_suggestion_desc": "Please check your data format and content, ensure employee information is correct. Correct and try again.",
+      "failure_title": "Import Failed",
+      "more_entries_one": "...and 1 more record",
+      "more_entries_other": "...and {{count}} more records",
+      "next_steps_title": "Next Steps",
+      "no_result": "No import result",
+      "partial_subtitle": "Successfully imported {{success}} records, {{error}} records failed.",
+      "partial_suggestion": "Partial Import Success",
+      "partial_suggestion_desc": "Some records were successfully imported. You can check the error details and reimport the failed records after correction.",
+      "partial_title": "Partial Import Success",
+      "statistics": {
+        "failed": "Failed Records",
+        "successful": "Successful Records",
+        "total_processed": "Total Processed"
+      },
+      "success_alert_desc_one": "Successfully imported 1 record.",
+      "success_alert_desc_other": "Successfully imported {{count}} records.",
+      "success_alert_title": "Import Successful",
+      "success_details_title_one": "Successfully imported 1 record",
+      "success_details_title_other": "Successfully imported {{count}} records",
+      "success_subtitle_one": "The record has been successfully imported.",
+      "success_subtitle_other": "All {{count}} records have been successfully imported.",
+      "success_suggestion": "All data has been successfully imported. You can view the imported entries or start a new import.",
+      "success_title": "Import Successful"
+    },
+    "step": {
+      "result": "Import Result",
+      "result_subtitle": "View detailed results of the import operation"
+    }
+  },
+  "break_duration": "",
+  "bulk_import": {
+    "upload": {
+      "drag_or_click": "Click or drag file to this area to upload",
+      "empty_file": "",
+      "hint": "Support Excel (.xls, .xlsx) files. Please ensure file encoding is UTF-8.",
+      "invalid_file_type": "",
+      "parse_error": "",
+      "read_error": "",
+      "selected_file": "Selected file:"
+    }
+  },
+  "calculate": "Calculate",
+  "calculating": "",
+  "calculation_config": {
+    "add_tax_bracket": "",
+    "additional_deductions": "",
+    "base_calculation_method": "",
+    "basic_info": "",
+    "basic_salary": "",
+    "child_deduction": "",
+    "config_name": "",
+    "create_rule_set": "",
+    "create_social_insurance_config": "",
+    "create_tax_config": "",
+    "custom": "",
+    "description": "",
+    "description_placeholder": "",
+    "edit_rule_set": "",
+    "edit_social_insurance_config": "",
+    "edit_tax_config": "",
+    "effective_date": "",
+    "elderly_deduction": "",
+    "expiry_date": "",
+    "gross_salary": "",
+    "housing_fund": "",
+    "housing_fund_base_limits": "",
+    "housing_fund_base_max": "",
+    "housing_fund_base_min": "",
+    "housing_fund_employee_rate": "",
+    "housing_fund_employer_rate": "",
+    "housing_fund_rate": "",
+    "injury_employer_rate": "",
+    "injury_insurance": "",
+    "injury_insurance_note": "",
+    "injury_rate": "",
+    "insurance_base_limits": "",
+    "insurance_rates": "",
+    "maternity_employer_rate": "",
+    "maternity_insurance": "",
+    "maternity_insurance_note": "",
+    "max_amount": "",
+    "medical_base_limits": "",
+    "medical_base_max": "",
+    "medical_base_min": "",
+    "medical_employee_rate": "",
+    "medical_employer_rate": "",
+    "medical_insurance": "",
+    "min_amount": "",
+    "occupational_pension": "Occupational Pension",
+    "occupational_pension_employee_rate": "Employee Occupational Pension Rate",
+    "occupational_pension_employer_rate": "Employer Occupational Pension Rate",
+    "page_title": "",
+    "pension_base_limits": "",
+    "pension_base_max": "",
+    "pension_base_min": "",
+    "pension_employee_rate": "",
+    "pension_employer_rate": "",
+    "pension_insurance": "",
+    "pension_rate": "",
+    "quick_deduction": "",
+    "region": "",
+    "rule_set_activated": "",
+    "rule_set_deactivated": "",
+    "rule_set_name": "",
+    "rule_set_name_placeholder": "",
+    "rule_sets": "",
+    "rules_count": "",
+    "serious_illness_employee_rate": "Employee Serious Illness Insurance Rate",
+    "serious_illness_employer_rate": "Employer Serious Illness Insurance Rate",
+    "serious_illness_insurance": "Serious Illness Insurance",
+    "social_insurance": "",
+    "standard_deduction": "",
+    "tax_brackets": "",
+    "tax_brackets_count": "",
+    "tax_brackets_required": "",
+    "tax_config": "",
+    "tax_rate": "",
+    "tax_year": "",
+    "total_salary": "",
+    "unemployment_base_limits": "",
+    "unemployment_base_max": "",
+    "unemployment_base_min": "",
+    "unemployment_employee_rate": "",
+    "unemployment_employer_rate": "",
+    "unemployment_insurance": "",
+    "unemployment_rate": "",
+    "unlimited": ""
+  },
+  "calculation_failed": "Calculation failed",
+  "calculation_preview": {
+    "all_employees": "",
+    "async_mode": "",
+    "calculation_mode": "",
+    "calculation_time": "",
+    "confirm_calculation": "",
+    "confirm_failed": "",
+    "employee_count": "",
+    "load_failed": "",
+    "preview_description": "",
+    "preview_notice": "",
+    "summary": "",
+    "sync_mode": "",
+    "title": "",
+    "total_employees": "",
+    "total_gross_salary": "",
+    "total_housing_fund_employee": "",
+    "total_housing_fund_employer": "",
+    "total_net_salary": "",
+    "total_social_insurance_employee": "",
+    "total_social_insurance_employer": "",
+    "total_tax": ""
+  },
+  "calculation_success": "Calculation successful",
+  "check_in_time": "",
+  "check_out_time": "",
+  "confirm_batch_delete_content": "",
+  "confirm_batch_delete_title": "",
+  "confirm_delete_content": "Are you sure you want to delete this payroll run? This action cannot be undone.",
+  "confirm_delete_daily_record": "",
+  "confirm_delete_daily_record_content": "",
+  "confirm_delete_period": "",
+  "confirm_delete_period_content": "",
+  "confirm_delete_record": "",
+  "confirm_delete_record_content": "",
+  "confirm_delete_rule": "",
+  "confirm_delete_rule_content": "",
+  "confirm_delete_title": "Confirm Delete",
+  "confirm_mark_as_paid_content": "Are you sure you want to mark this payroll run as paid?",
+  "confirm_mark_as_paid_title": "Confirm Mark as Paid",
+  "create_attendance_period": "",
+  "create_attendance_record": "",
+  "create_attendance_rule": "",
+  "create_daily_record": "",
+  "create_failed": "",
+  "create_payroll_run": "",
+  "create_success": "",
+  "daily_attendance": "",
+  "dataPreview": {
+    "dataPreviewCard": {
+      "alert": {
+        "description": "The table below shows validated records. Please review to ensure data accuracy.",
+        "message": "Preview Instructions"
+      },
+      "subtitle_one": "",
+      "subtitle_other": "",
+      "title": "Data Preview"
+    },
+    "errorsTable": {
+      "alert": {
+        "description_one": "",
+        "description_other": "",
+        "message": "Data validation errors found"
+      },
+      "columns": {
+        "employeeInfo": "Employee Info",
+        "grossPay": "Gross Pay",
+        "index": "Index",
+        "netPay": "Net Pay",
+        "validationErrors": "Validation Errors"
+      },
+      "errorCount_one": "",
+      "errorCount_other": "",
+      "title_one": "",
+      "title_other": ""
+    },
+    "importButton": {
+      "error": {
+        "description": "Data errors exist, please return to mapping step to correct and re-validate.",
+        "message": "Cannot Import"
+      },
+      "hasErrors": "Errors exist, cannot import",
+      "info": {
+        "description": "You can directly import valid records, or return to mapping step to correct data before importing.",
+        "message": "Operation Tips"
+      },
+      "noValidRecords": "No valid records to import",
+      "startImport_one": "",
+      "startImport_other": "",
+      "success": {
+        "description_one": "",
+        "description_other": "",
+        "message": "Overwrite Mode Notice"
+      }
+    },
+    "originalValue": "Original Value",
+    "overwriteModeDescriptions": {
+      "adjustmentsOnly": "Only update adjustment amounts, not affecting basic salary.",
+      "all": "Completely replace existing records with data from import file.",
+      "existingOnly": "Only update employee records that already exist in the system.",
+      "fullMonth": "Delete all records for the month, then import fresh data.",
+      "incremental": "Add imported amounts to existing data.",
+      "none": "Do not import any data that conflicts with existing records.",
+      "socialInsuranceOnly": "Only update social insurance related fields.",
+      "taxOnly": "Only update personal income tax related fields."
+    },
+    "overwriteModes": {
+      "adjustmentsOnly": "Adjustments Only",
+      "all": "Full Overwrite",
+      "existingOnly": "Existing Records Only",
+      "fullMonth": "Full Month Override",
+      "incremental": "Incremental Update",
+      "none": "No Overwrite",
+      "socialInsuranceOnly": "Social Insurance Only",
+      "taxOnly": "Tax Only"
+    },
+    "previewTable": {
+      "columns": {
+        "employeeInfo": "Employee Info",
+        "index": "Index",
+        "validationStatus": "Validation Status"
+      }
+    },
+    "settingsCard": {
+      "overwriteMode": {
+        "label": "Overwrite Mode"
+      },
+      "sendNotification": {
+        "label": "Send Completion Notification"
+      },
+      "skipInvalidRecords": {
+        "label": "Skip Invalid Records"
+      },
+      "title": "Import Settings"
+    },
+    "summaryCard": {
+      "selectedPeriod": "Selected Payroll Period",
+      "title": "Data Validation Results",
+      "totalAmount": "Total Amount",
+      "totalRecords": "Total Records",
+      "validationProgress": "Validation Progress"
+    },
+    "validationStatus": {
+      "error": "Error",
+      "valid": "Valid",
+      "warning": "Warning"
+    }
+  },
+  "date_range": "",
+  "deactivate": "",
+  "delete_failed": "Delete failed",
+  "delete_success": "Delete successful",
+  "early_leave": "",
+  "early_leave_count": "",
+  "early_leave_threshold": "",
+  "edit_attendance_period": "",
+  "edit_attendance_record": "",
+  "edit_attendance_rule": "",
+  "edit_daily_record": "",
+  "edit_payroll_run": "",
+  "employee": "",
+  "employee_count": "",
+  "employee_id_placeholder": "",
+  "employee_name": "",
+  "end_date": "",
+  "entries_table": {
+    "column": {
+      "actions": "Actions",
+      "department": "Department",
+      "employee_id": "Employee ID",
+      "employee_name": "Employee Name",
+      "gross_pay": "Gross Pay",
+      "net_pay": "Net Pay",
+      "personnel_category": "Personnel Category",
+      "status": "Status",
+      "total_deductions": "Total Deductions"
+    },
+    "modal": {
+      "amount": "Amount",
+      "component_name": "Component Name",
+      "notes": "Notes"
+    },
+    "status": {
+      "active": "Active"
+    }
+  },
+  "entry_detail_modal": {
+    "basic_info_title": "Basic Information",
+    "created_at": "Created At",
+    "deductions_details_title": "Deductions Details",
+    "deductions_table": {
+      "amount": "Amount",
+      "component_name": "Component Name",
+      "description": "Description"
+    },
+    "department": "Department",
+    "earnings_details_title": "Earnings Details",
+    "earnings_table": {
+      "amount": "Amount",
+      "component_name": "Component Name",
+      "description": "Description"
+    },
+    "employee_id": "Employee ID",
+    "employee_name": "Employee Name",
+    "error_fetch_details": "",
+    "error_prefix": "",
+    "gross_pay": "Gross Pay",
+    "loading": "Loading...",
+    "net_pay": "Net Pay",
+    "not_found": "Payroll entry not found",
+    "notes": "",
+    "payroll_period": "Payroll Period",
+    "personnel_category": "Personnel Category",
+    "salary_summary_title": "Salary Summary",
+    "status": "Status",
+    "time_info_title": "Time Information",
+    "title": "Payroll Entry Details",
+    "total_deductions": "Total Deductions",
+    "updated_at": "Updated At"
+  },
+  "entry_form": {
+    "error": {
+      "invalid_deductions": "",
+      "invalid_earnings": "",
+      "no_earnings": ""
+    },
+    "error_fetch_employee": "",
+    "label": {
+      "actual_position": "Actual Position",
+      "department": "Department",
+      "employee": "Employee",
+      "employee_id": "Employee ID",
+      "employee_name": "Employee Name",
+      "personnel_category": "Personnel Category",
+      "remarks": "Remarks"
+    },
+    "message": {
+      "component_already_exists": "Component already exists",
+      "create_success": "Payroll entry created successfully",
+      "update_success": "Payroll entry updated successfully",
+      "update_success_no_data": "Update successful, no data changes"
+    },
+    "placeholder": {
+      "select_employee": "Please select an employee"
+    },
+    "section": {
+      "employee_info": "Employee Information"
+    },
+    "title_create": "Create Payroll Entry",
+    "title_edit": "Edit Payroll Entry",
+    "validation": {
+      "employee_required": "Please select an employee",
+      "failed": "",
+      "status_required": "Please select a status"
+    }
+  },
+  "entry_page": {
+    "message": {
+      "operation_success": "Operation successful"
+    },
+    "title": "Payroll Entry"
+  },
+  "entry_status": {
+    "approved": "approved",
+    "draft": "draft",
+    "submitted": "submitted"
+  },
+  "error_delete_conflict_associated_data": "",
+  "export_bank_file": "",
+  "export_failed": "",
+  "export_success": "",
+  "exporting": "",
+  "gross_salary": "",
+  "housing_fund_employee": "",
+  "id": "",
+  "inactive": "",
+  "is_absent": "",
+  "is_active": "",
+  "is_early_leave": "",
+  "is_late": "",
+  "late": "",
+  "late_count": "",
+  "late_threshold": "",
+  "leave_days": "",
+  "leave_type": "",
+  "mark_as_paid": "",
+  "mark_as_paid_failed": "",
+  "mark_as_paid_success": "",
+  "maternity_leave": "",
+  "net_salary": "",
+  "no_payroll_period": "Payroll period information not found, cannot perform calculation.",
+  "no_selection_message": "",
+  "normal": "",
+  "notes": "",
+  "notes_placeholder": "",
+  "overtime_hours": "",
+  "overtime_threshold": "",
+  "payroll": {
+    "entry_form": {
+      "actions": {
+        "update_payment_base": ""
+      },
+      "error_fetch_default_payroll_run": "",
+      "error_fetch_latest_data": "",
+      "label": {
+        "amount": "",
+        "housing_fund_base": "",
+        "net_pay": "",
+        "social_insurance_base": "",
+        "status": "",
+        "total_deductions": "",
+        "total_earnings": ""
+      },
+      "no_deductions_components": "",
+      "no_earnings_components": "",
+      "placeholder": {
+        "enter_housing_fund_base": "",
+        "enter_social_insurance_base": "",
+        "select_deductions_component": "",
+        "select_earnings_component": ""
+      },
+      "section": {
+        "deductions": "",
+        "earnings": "",
+        "summary": ""
+      },
+      "total": "",
+      "warning_no_payroll_run_found": ""
+    }
+  },
+  "payroll_entries_table": {
+    "column": {
+      "deductions": "deductions",
+      "employeeId": "employeeId",
+      "employeeName": "employeeName",
+      "grossPay": "grossPay",
+      "netPay": "netPay",
+      "status": "status"
+    },
+    "error_fetch": "error_fetch",
+    "loading_employee_names": "loading_employee_names",
+    "message": {
+      "edit_entry_todo": "edit_entry_todo"
+    },
+    "spin_loading_entries": "spin_loading_entries",
+    "tooltip_edit_entry": "tooltip_edit_entry",
+    "tooltip_view_details": "tooltip_view_details",
+    "total_entries_one": "total_entries",
+    "total_entries_other": "total_entries"
+  },
+  "payroll_period": "",
+  "payroll_period_selector": {
+    "title": ""
+  },
+  "payroll_runs": "",
+  "pdf_export_not_supported": "",
+  "period_name": "",
+  "period_name_placeholder": "",
+  "period_not_found": "",
+  "period_status": {
+    "active": "active",
+    "archived": "archived",
+    "closed": "closed",
+    "planned": "planned"
+  },
+  "periods_page": {
+    "error_fetch_periods": ""
+  },
+  "personal_leave": "",
+  "rule_name": "",
+  "rule_name_placeholder": "",
+  "run_date": "",
+  "run_status": {
+    "completed": "completed",
+    "draft": "draft",
+    "paid": "paid",
+    "processing": "processing"
+  },
+  "runs_page": {
+    "form": {
+      "placeholder": {
+        "payroll_period": ""
+      }
+    }
+  },
+  "select_attendance_period": "",
+  "select_leave_type": "",
+  "select_payroll_period": "",
+  "select_status": "",
+  "sick_leave": "",
+  "social_insurance_employee": "",
+  "start_date": "",
+  "status": {
+    "draft": "draft",
+    "finalized": "finalized",
+    "paid": "paid"
+  },
+  "status_update_failed": "",
+  "status_updated": "",
+  "tax_amount": "",
+  "total_employees_tooltip": "",
+  "update_failed": "",
+  "update_success": "",
+  "work_days": "",
+  "work_end_time": "",
+  "work_hours": "",
+  "work_start_time": "",
+  "workflow": {
+    "messages": {
+      "operation_failed": "Operation failed",
+      "operation_success": "Operation successful"
+    },
+    "steps": {
+      "auto_calculation": {
+        "average_stats": "",
+        "avg_gross_pay": "",
+        "avg_net_pay": "",
+        "calculation_completed_at": "",
+        "calculation_engine": "",
+        "current_employee": "",
+        "deduction_rate": "",
+        "employee_count": "",
+        "engine_version": "",
+        "estimated_time": "",
+        "export_bank": "",
+        "export_detail": "",
+        "export_summary": "",
+        "module_allowance": "",
+        "module_basic": "",
+        "module_overtime": "",
+        "module_social_insurance": "",
+        "module_summary": "",
+        "module_tax": "",
+        "modules_label": "",
+        "params_title": "",
+        "progress_title": "",
+        "result_summary_title": "",
+        "run_id": "",
+        "selected_cycle": "",
+        "status": "",
+        "task_id": "",
+        "tax_stats": "",
+        "tech_async": "",
+        "tech_async_desc": "",
+        "tech_audit": "",
+        "tech_audit_desc": "",
+        "tech_precision": "",
+        "tech_precision_desc": "",
+        "tech_validation": "",
+        "tech_validation_desc": "",
+        "technical_info_title": "",
+        "total_deductions": "",
+        "total_employees": "",
+        "total_gross_pay": "",
+        "total_net_pay": "",
+        "total_tax": "",
+        "validation_desc": "",
+        "validation_success": ""
+      },
+      "data_review": {
+        "data_initialization": {
+          "bulk_import": "Import via Bulk Import Page",
+          "copy_confirm_content": "Are you sure you want to copy last month's payroll data to current period?",
+          "copy_confirm_title": "Confirm Copy Last Month Data",
+          "copy_last_month": "Copy Last Month Data",
+          "no_data_message": "No data found for current payroll period. Please select data initialization method:",
+          "no_data_title": "",
+          "title": "Data Initialization"
+        },
+        "form": {
+          "payroll_period": "Payroll Period",
+          "payroll_period_placeholder": "",
+          "review_comments": "",
+          "review_comments_placeholder": "",
+          "review_comments_required": "",
+          "review_result": "Review Result",
+          "review_result_adjust": "",
+          "review_result_conditional": "Conditional Pass",
+          "review_result_fail": "Fail",
+          "review_result_pass": "Pass",
+          "review_result_required": ""
+        },
+        "review_points": {
+          "attendance_data": "Attendance data accuracy",
+          "attendance_data_desc": "",
+          "calculation_rules": "Calculation rules validity",
+          "calculation_rules_desc": "",
+          "component_config": "Payroll component configuration correctness",
+          "component_config_desc": "",
+          "employee_data": "Employee basic information completeness",
+          "employee_data_desc": "",
+          "title": "Review Points"
+        }
+      }
+    }
+  }
+}

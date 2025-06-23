@@ -59,9 +59,9 @@ export default tseslint.config(
       'react/prop-types': 'off', 
       'react/react-in-jsx-scope': 'off', 
 
-      // React Hooks rules
+      // React Hooks rules - 严格检测无限循环风险
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'error', // 升级为error级别，强制检查依赖数组
       
       // Consider adding recommended rule sets later, e.g.:
       // ...tseslint.configs.recommended.rules, 

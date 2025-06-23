@@ -1,0 +1,271 @@
+{
+  "common": {
+    "no_employee_found": "",
+    "select_employee": ""
+  },
+  "detail_page": {
+    "alert": {
+      "description_employee_not_selected_or_found": ""
+    },
+    "basic_info_tab": {
+      "label_actual_position": "",
+      "label_department": "",
+      "label_dob": "",
+      "label_education_level": "",
+      "label_email": "",
+      "label_employee_id": "",
+      "label_employee_status": "",
+      "label_employment_type": "",
+      "label_first_name": "",
+      "label_full_name": "",
+      "label_gender": "",
+      "label_hire_date": "",
+      "label_job_title": "",
+      "label_last_name": "",
+      "label_marital_status": "",
+      "label_mobile_phone": "",
+      "label_notes": "",
+      "label_political_status": "",
+      "label_residential_address": ""
+    },
+    "common_value": {
+      "dash": "",
+      "loading_basic_info": "",
+      "zero_decimal": ""
+    },
+    "compensation_tab": {
+      "button_add_record": "",
+      "default_currency": "",
+      "delete_confirm": {
+        "content": "",
+        "content_table": ""
+      },
+      "message": {
+        "add_permission_denied": "",
+        "add_success": "",
+        "delete_failed": "",
+        "delete_success": "",
+        "get_history_failed_retry": "",
+        "save_failed": "",
+        "update_success": ""
+      },
+      "modal": {
+        "loading_options": "",
+        "message_load_lookups_failed": "",
+        "placeholder_select_pay_frequency": "",
+        "title_add": "",
+        "title_edit": "",
+        "validation_allowances_number": "",
+        "validation_basic_salary_required": "",
+        "validation_currency_required": "",
+        "validation_effective_date_required": "",
+        "validation_pay_frequency_required": ""
+      },
+      "table": {
+        "column_allowances": "",
+        "column_basic_salary": "",
+        "column_change_reason": "",
+        "column_currency": "",
+        "column_effective_date": "",
+        "column_pay_frequency": "",
+        "column_total_salary": ""
+      },
+      "table_title": "",
+      "tooltip_delete_record": "",
+      "tooltip_edit_record": ""
+    },
+    "contracts_tab": {
+      "button_add_contract": "",
+      "delete_confirm": {
+        "content": "",
+        "title_popconfirm": ""
+      },
+      "loading": "",
+      "message": {
+        "add_failed": "",
+        "add_success": "",
+        "delete_failed": "",
+        "delete_success": "",
+        "get_contracts_failed_retry": "",
+        "update_failed": "",
+        "update_success": ""
+      },
+      "modal": {
+        "loading_options": "",
+        "message_load_lookups_failed": "",
+        "placeholder_select_contract_type": "",
+        "placeholder_select_status": "",
+        "title_add": "",
+        "title_edit": "",
+        "validation_contract_number_required": "",
+        "validation_contract_type_required": "",
+        "validation_end_date_after_start_date": "",
+        "validation_end_date_required": "",
+        "validation_start_date_required": "",
+        "validation_status_required": ""
+      },
+      "table": {
+        "column_contract_number": "",
+        "column_contract_type": "",
+        "column_end_date": "",
+        "column_start_date": "",
+        "column_status": ""
+      },
+      "tooltip_delete_contract": "",
+      "tooltip_edit_contract": ""
+    },
+    "job_history_tab": {
+      "button_add_history": "",
+      "delete_confirm": {
+        "content": "",
+        "content_table": ""
+      },
+      "loading_history": "",
+      "message": {
+        "add_success": "",
+        "delete_failed": "",
+        "delete_success": "",
+        "get_history_failed": "",
+        "get_history_failed_retry": "",
+        "update_success": ""
+      },
+      "modal": {
+        "message_load_job_titles_failed": "",
+        "message_load_lookups_failed": "",
+        "placeholder_input_salary": "",
+        "placeholder_select_department": "",
+        "placeholder_select_employment_type": "",
+        "placeholder_select_job_title": "",
+        "title_add": "",
+        "title_edit": "",
+        "validation_department_required": "",
+        "validation_effective_date_required": "",
+        "validation_employment_type_required": "",
+        "validation_job_title_required": ""
+      },
+      "table": {
+        "column_department": "",
+        "column_employment_type": "",
+        "column_job_title": "",
+        "column_salary": "",
+        "column_start_date": ""
+      },
+      "table_title": "",
+      "tooltip_delete_history_param": "",
+      "tooltip_edit_history_param": ""
+    },
+    "job_info_tab": {
+      "label_actual_position": "",
+      "label_department": "",
+      "label_employment_type": "",
+      "label_hire_date": "",
+      "label_personnel_category": "",
+      "label_probation_end_date": "",
+      "label_reports_to": "",
+      "label_seniority": "",
+      "label_work_location": "",
+      "loading": "",
+      "no_data": "",
+      "reports_to_id_prefix": "",
+      "seniority_month": "",
+      "seniority_year": "",
+      "title": ""
+    },
+    "tabs": {
+      "basic_info": ""
+    }
+  },
+  "employee_id_format": "",
+  "form_card": {
+    "title_basic_info": "",
+    "title_contact_bank_info": "",
+    "title_position_contract_info": ""
+  },
+  "form_label": {
+    "avatar": "",
+    "bank_account_number": "",
+    "bank_name": "",
+    "contract_type": "",
+    "emergency_contact_name": "",
+    "emergency_contact_phone": "",
+    "ethnicity": "",
+    "home_address": "",
+    "id_number": "",
+    "nationality": ""
+  },
+  "form_placeholder": {
+    "contract_type": "",
+    "marital_status": "",
+    "political_status": ""
+  },
+  "list_page": {
+    "create_employee": "",
+    "delete_confirm": {
+      "cancel_text": "",
+      "content": "",
+      "ok_text": "",
+      "title": ""
+    },
+    "filter_form": {
+      "label": {
+        "actual_position": "",
+        "contract_type": "",
+        "department": "",
+        "education_level": "",
+        "employee_code": "",
+        "employment_type": "",
+        "first_work_date_range": "",
+        "gender": "",
+        "hire_date_range": "",
+        "id_number": "",
+        "job_position_level": "",
+        "marital_status": "",
+        "name": "",
+        "pay_frequency": "",
+        "personnel_category": "",
+        "political_status": "",
+        "status": ""
+      },
+      "placeholder": {
+        "actual_position": "",
+        "contract_type": "",
+        "department": "",
+        "education_level": "",
+        "employee_code": "",
+        "employment_type": "",
+        "gender": "",
+        "id_number": "",
+        "job_position_level": "",
+        "job_title": "",
+        "marital_status": "",
+        "name": "",
+        "pay_frequency": "",
+        "personnel_category": "",
+        "political_status": "",
+        "status": ""
+      }
+    },
+    "message": {
+      "delete_employee_failed": "",
+      "delete_employee_success": "",
+      "get_employees_failed": "",
+      "get_employees_failed_empty_response": ""
+    },
+    "name_not_set": "",
+    "page_title": "",
+    "table": {
+      "column": {
+        "action": "",
+        "actual_position": "",
+        "department": "",
+        "email": "",
+        "employee_code": "",
+        "full_name": "",
+        "hire_date": "",
+        "personnel_category": "",
+        "phone_number": "",
+        "status": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "button": {
+    "add_child_department_tooltip": "添加子部门",
+    "create_top_level_department": "新建顶级部门"
+  },
+  "message": {
+    "create_success": "部门创建成功",
+    "delete_success": "部门删除成功",
+    "error": {
+      "delete_in_use_or_has_children": "部门可能正在使用中或包含子部门",
+      "unknown": "未知错误"
+    },
+    "fetch_all_flat_error": "获取所有部门列表失败 (用于选择器)",
+    "fetch_list_error": "获取部门列表失败",
+    "update_success": "部门更新成功"
+  },
+  "modal": {
+    "department_form": {
+      "label": {
+        "code": "部门代码",
+        "description": "描述",
+        "effective_date": "生效日期",
+        "end_date": "失效日期",
+        "is_active": "是否激活",
+        "manager": "部门负责人",
+        "name": "部门名称",
+        "parent_department": "上级部门"
+      },
+      "placeholder": {
+        "manager": "请选择部门负责人",
+        "parent_department": "选择上级部门 (留空则为根部门)"
+      },
+      "title": {
+        "create": "新建部门",
+        "edit": "编辑部门"
+      },
+      "validation": {
+        "code_required": "请输入部门代码!",
+        "effective_date_required": "请选择生效日期!",
+        "name_required": "请输入部门名称!"
+      }
+    }
+  },
+  "pagination": {
+    "total": "共 {total} 条"
+  },
+  "popconfirm": {
+    "delete": {
+      "cancel_text": "否",
+      "description": "删除部门也会删除其所有子部门，并可能影响关联员工。",
+      "ok_text": "是",
+      "title": "确定删除此部门吗？"
+    }
+  },
+  "table": {
+    "column": {
+      "actions": "操作",
+      "code": "部门代码",
+      "effective_date": "生效日期",
+      "id": "ID",
+      "is_active": "激活",
+      "name": "部门名称",
+      "parent_department_id": "上级部门ID",
+      "value_na_or_dash": "-"
+    },
+    "filter": {
+      "active": "激活",
+      "inactive": "未激活"
+    }
+  },
+  "title": "部门管理",
+  "tooltip": {
+    "delete_department": "删除部门",
+    "edit_department": "编辑部门"
+  }
+}

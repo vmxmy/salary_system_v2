@@ -526,11 +526,11 @@ export const useColumnControl = <T extends object>(
   const { t } = useTranslation(['common']);
 
   const defaultOptions: ColumnControlOptions = {
-    storageKeyPrefix: 'table_columns',
+    storageKeyPrefix: 'employee_table_columns',
     showReset: true,
-    buttonText: t('common:column_control.button_text'),
-    tooltipTitle: t('common:column_control.tooltip_title'),
-    dropdownTitle: t('common:column_control.dropdown_title'),
+    buttonText: "列设置",
+    tooltipTitle: "配置可见列",
+    dropdownTitle: "选择列",
     resetText: t('common:button.reset'),
     requiredColumns: [],
   };

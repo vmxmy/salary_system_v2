@@ -1,0 +1,32 @@
+{
+  "actual_position_management": {
+    "form": {
+      "field": {
+        "code": "职务代码",
+        "description": "职务描述",
+        "is_active": "是否激活",
+        "name": "职务名称"
+      },
+      "validation": {
+        "name_required": "职务名称不能为空"
+      }
+    },
+    "modal": {
+      "create_title": "新增实际职务",
+      "edit_title": "编辑实际职务"
+    }
+  },
+  "position": {
+    "button": {
+      "add": "新增职位"
+    },
+    "form": {
+      "effective_date": "生效日期",
+      "end_date": "失效日期",
+      "validation": {
+        "effective_date_required": "请输入生效日期"
+      }
+    },
+    "title": "实际职位管理"
+  }
+}

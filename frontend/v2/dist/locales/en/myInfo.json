@@ -1,0 +1,94 @@
+{
+  "title": "My Information",
+  "subtitle": "Manage your personal and work information",
+  "loading": "Loading...",
+  "error": "Load Failed",
+  "edit": "Edit",
+  "save": "Save",
+  "cancel": "Cancel",
+  "basicInfo": "Basic Information",
+  "sectionTitles": {
+    "bank": "Banking Information",
+    "contact": "Contact Information",
+    "emergency": "Emergency Contact",
+    "employment": "Employment Information",
+    "personal": "Personal Information"
+  },
+  "tabTitles": {
+    "employment": "Employment",
+    "financialOther": "Financial & Other",
+    "personalContact": "Personal & Contact"
+  },
+  "tabs": {
+    "basic": {
+      "title": "Basic Information",
+      "personalInfo": "Personal Information"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "contactInfo": "Contact Information",
+      "emergencyContact": "Emergency Contact"
+    },
+    "work": {
+      "title": "Work Information",
+      "currentPosition": "Current Position",
+      "workHistory": "Work History"
+    },
+    "education": {
+      "title": "Education Background",
+      "background": "Education Background",
+      "salaryInfo": "Salary Information"
+    }
+  },
+  "fields": {
+    "name": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "employeeCode": "Employee Code",
+    "employeeNumber": "Employee Number",
+    "gender": "Gender",
+    "phoneNumber": "Phone Number",
+    "email": "Email",
+    "idNumber": "ID Number",
+    "birthDate": "Birth Date",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "ethnicity": "Ethnicity",
+    "hireDate": "Hire Date",
+    "firstWorkDate": "First Work Date",
+    "currentPositionStartDate": "Current Position Start Date",
+    "careerPositionLevelDate": "Career Position Level Date",
+    "interruptedServiceYears": "Interrupted Service Years",
+    "department": "Department",
+    "position": "Position",
+    "jobTitle": "Job Title",
+    "employmentType": "Employment Type",
+    "personnelCategory": "Personnel Category",
+    "jobPositionLevel": "Job Position Level",
+    "educationLevel": "Education Level",
+    "maritalStatus": "Marital Status",
+    "politicalStatus": "Political Status",
+    "salaryLevel": "Salary Level",
+    "salaryGrade": "Salary Grade",
+    "refSalaryLevel": "Reference Salary Level",
+    "socialSecurityClientNumber": "Social Security Client Number",
+    "status": "Status",
+    "homeAddress": "Home Address",
+    "emergencyContactName": "Emergency Contact Name",
+    "emergencyContactPhone": "Emergency Contact Phone"
+  },
+  "completeness": {
+    "title": "Information Completeness",
+    "warning": "Information Incomplete",
+    "description": "Your personal information is incomplete, please complete it as soon as possible",
+    "action": "Complete Information",
+    "missing": "Missing",
+    "fields": "fields"
+  },
+  "actions": {
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "usernameLabel": "Username"
+}

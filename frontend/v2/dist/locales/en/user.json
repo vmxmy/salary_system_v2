@@ -1,0 +1,89 @@
+{
+  "form": {
+    "confirm_password": {
+      "label": "Confirm Password",
+      "validation": {
+        "match": "Passwords do not match!",
+        "required": "Please enter password again!"
+      }
+    },
+    "label": {
+      "employee_first_name": "Employee First Name",
+      "employee_id_card": "ID Card Number",
+      "employee_last_name": "Employee Last Name"
+    },
+    "password": {
+      "label": "Password",
+      "validation": {
+        "required": "Please enter password!"
+      }
+    },
+    "placeholder": {
+      "employee_first_name": "Please enter employee first name",
+      "employee_id_card": "Please enter employee ID card number",
+      "employee_last_name": "Please enter employee last name"
+    },
+    "roles": {
+      "label": "Assign Roles (Optional)",
+      "placeholder": "Please select roles",
+      "validation": {
+        "required": "Please select at least one role!"
+      }
+    },
+    "section": {
+      "employee_association": "Employee Association"
+    },
+    "status": {
+      "label": "Status"
+    },
+    "status_switch": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "tooltip": {
+      "employee_id_card_for_association": "Enter employee's first name, last name, and ID card number to attempt to associate an employee record. Leave blank to not associate or attempt to disassociate an existing user."
+    },
+    "username": {
+      "label": "Username",
+      "validation": {
+        "required": "Please enter username!"
+      }
+    }
+  },
+  "message": {
+    "create_user_error": {
+      "default": "Failed to create user, please check input or contact administrator."
+    },
+    "create_user_success": "User \"{username}\" created successfully!",
+    "fetch_roles_error": "Failed to load role list",
+    "update_user_error": {
+      "default": "Failed to update user."
+    },
+    "update_user_success": "User \"{username}\" updated successfully!"
+  },
+  "modal": {
+    "title": {
+      "create_user": "Create User",
+      "edit_user": "Edit User"
+    }
+  },
+  "table": {
+    "column": {
+      "created_at": "Created At",
+      "employee_id": "Associated Employee ID",
+      "id": "ID",
+      "is_active": "",
+      "roles": "Roles",
+      "username": "Username"
+    },
+    "value": {
+      "active": "",
+      "inactive": "",
+      "not_applicable": "Not Applicable"
+    }
+  },
+  "tooltip": {
+    "delete_user": "Delete User",
+    "edit_user": "Edit User"
+  }
+}

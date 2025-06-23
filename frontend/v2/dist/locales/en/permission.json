@@ -1,0 +1,59 @@
+{
+  "form": {
+    "button": {
+      "create": "Create",
+      "save_changes": "Save Changes"
+    },
+    "label": {
+      "code": "Permission Code",
+      "description": "Permission Description"
+    },
+    "placeholder": {
+      "code": "e.g. user:create or payroll:view_all",
+      "description": "Please enter the description for the permission"
+    },
+    "title": {
+      "create": "Create Permission",
+      "edit": "Edit Permission"
+    },
+    "validation": {
+      "code_required": "Please enter permission code!"
+    }
+  },
+  "list_page": {
+    "button": {
+      "create_permission": "Create Permission"
+    },
+    "message": {
+      "create_error_prefix": "Failed to create permission: ",
+      "create_success": "Permission \"{permissionCode}\" created successfully.",
+      "delete_error_prefix": "Failed to delete permission ID {permissionId}: ",
+      "delete_success": "Permission ID {permissionId} deleted successfully.",
+      "load_list_error_prefix": "Failed to load permission list: ",
+      "update_error_prefix": "Failed to update permission: ",
+      "update_success": "Permission \"{permissionCode}\" updated successfully."
+    },
+    "modal": {
+      "confirm_delete": {
+        "cancel_text": "Cancel",
+        "content": "This action cannot be undone.",
+        "ok_text": "Confirm Delete",
+        "title": "Are you sure you want to delete permission \"{permissionCode}\"?"
+      }
+    },
+    "table": {
+      "column": {
+        "actions": "Actions",
+        "code": "Permission Code",
+        "description": "Permission Description",
+        "id": "ID"
+      },
+      "title": ""
+    },
+    "title": "Permission Management",
+    "tooltip": {
+      "delete_permission": "Delete Permission",
+      "edit_permission": "Edit Permission"
+    }
+  }
+}

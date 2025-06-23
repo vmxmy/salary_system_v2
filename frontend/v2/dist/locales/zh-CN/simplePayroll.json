@@ -1,0 +1,123 @@
+{
+  "common": {
+    "entries": "条"
+  },
+  "controls": {
+    "period": "工资期间",
+    "selectPeriod": "请选择工资期间",
+    "title": "核心控制"
+  },
+  "emptyState": {
+    "message": "选择或创建一个工资期间后，您可以在此管理工资单。",
+    "title": "请选择一个工资期间"
+  },
+  "errors": {
+    "copyFailed": "复制工资数据失败",
+    "createFailed": "创建工资数据失败",
+    "fetchPeriodFailed": "查找或创建工资期间失败",
+    "fetchSourcePeriods": "获取可复制期间失败"
+  },
+  "excel": {
+    "columns": {
+      "basicSalary": "基本工资",
+      "department": "部门",
+      "employeeCode": "员工编号",
+      "employeeName": "姓名",
+      "grossPay": "应发合计",
+      "netPay": "实发合计"
+    },
+    "continueValidation": "继续验证",
+    "downloadTemplate": "下载导入模板",
+    "dragUpload": "点击或拖拽文件到此区域上传",
+    "importFailed": "导入失败",
+    "importing": "正在导入数据...",
+    "importProgress": "导入进度：{{progress}}%",
+    "importSuccess": "导入成功",
+    "previewDescription_other": "",
+    "readyToImport_other": "",
+    "startImport": "开始导入",
+    "steps": {
+      "import": "执行导入",
+      "preview": "数据预览",
+      "upload": "上传文件",
+      "validate": "数据验证"
+    },
+    "templateDownloadStarted": "模板下载已开始",
+    "title": "Excel导入工资数据",
+    "uploadFailed": "文件上传失败",
+    "uploadHint": "支持 .xlsx, .xls 格式，文件大小不超过10MB",
+    "uploadSuccess": "文件上传成功",
+    "uploadTips": {
+      "encoding": "请使用UTF-8编码保存文件",
+      "format": "支持Excel格式文件（.xlsx, .xls）",
+      "size": "文件大小不超过10MB",
+      "title": "上传要求"
+    },
+    "validation": {
+      "grossPayMismatch": "第{{row}}行：应发合计计算不匹配",
+      "missingEmployeeCode": "第{{row}}行：缺少员工编号",
+      "missingEmployeeName": "第{{row}}行：缺少员工姓名",
+      "negativeBasicSalary": "第{{row}}行：基本工资不能为负数",
+      "netPayMismatch": "第{{row}}行：实发合计计算不匹配"
+    },
+    "validationErrors_other": "",
+    "validationPassed": "数据验证通过",
+    "validationRequired": "请先验证数据",
+    "validationWarnings_other": ""
+  },
+  "generate": {
+    "copyModal": {
+      "confirm": "开始复制",
+      "description": "备注说明",
+      "descriptionPlaceholder": "请输入复制操作的备注说明（可选）",
+      "periodInfo": "{{runs}}个版本, 状态: {{status}}",
+      "sourcePeriod": "选择源期间",
+      "sourcePeriodPlaceholder": "请选择要复制数据的期间",
+      "sourcePeriodRequired": "请选择要复制的源期间",
+      "title": "复制上月工资数据"
+    },
+    "copyPrevious": "复制上月数据",
+    "description": "通过Excel导入、复制上月数据或手动创建工资数据",
+    "downloadTemplate": "下载导入模板",
+    "excelImport": "Excel导入",
+    "manualCreate": {
+      "button": "手动创建",
+      "content": "确定要为当前期间手动创建空的工资数据吗？",
+      "title": "手动创建工资数据"
+    },
+    "noPeriodSelected": "请先选择期间",
+    "title": "生成工资"
+  },
+  "messages": {
+    "copySuccess": "复制工资数据成功",
+    "createSuccess": "创建工资数据成功"
+  },
+  "quickActions": {
+    "addEmployee": "添加员工",
+    "addPayrollRecord": "添加工资记录",
+    "bulkImport": "批量导入数据",
+    "copyLastMonth": "复制上月数据",
+    "importTaxData": "导入个税数据",
+    "importTaxDataMessage": "导入个税数据功能待实现",
+    "title": "快捷操作"
+  },
+  "reports": {
+    "currentPeriod": "当前期间",
+    "customGenerate": "自定义报表",
+    "description": "快速生成各类工资报表，支持多种格式导出",
+    "generateCompleted": "报表生成完成",
+    "generateFailed": "报表生成失败",
+    "noVersionSelected": "请先选择要生成报表的工资运行",
+    "quickGenerate": {
+      "salaryTable": "工资总表",
+      "taxDeclaration": "个税申报表"
+    },
+    "readyToGenerate": "准备就绪",
+    "selectPeriodFirst": "请先选择工资期间",
+    "selectPeriodHint": "请先选择期间",
+    "title": "一键报表",
+    "version": "版本"
+  },
+  "subtitle": "专注三大核心功能：生成工资、审核工资、一键报表",
+  "title": "极简工资报表系统"
+}

@@ -1,0 +1,276 @@
+{
+  "name": "姓名",
+  "department": "部门",
+  "personnel_category": "人员类别",
+  "root_personnel_category": "编制",
+  "position": "职位",
+  "common": {
+    "no_employee_found": "",
+    "select_employee": ""
+  },
+  "detail_page": {
+    "alert": {
+      "description_employee_not_selected_or_found": ""
+    },
+    "basic_info_tab": {
+      "label_actual_position": "",
+      "label_department": "",
+      "label_dob": "",
+      "label_education_level": "",
+      "label_email": "",
+      "label_employee_id": "",
+      "label_employee_status": "",
+      "label_employment_type": "",
+      "label_first_name": "",
+      "label_full_name": "",
+      "label_gender": "性别",
+      "label_hire_date": "",
+      "label_job_title": "",
+      "label_last_name": "",
+      "label_marital_status": "",
+      "label_mobile_phone": "",
+      "label_notes": "",
+      "label_political_status": "",
+      "label_residential_address": ""
+    },
+    "common_value": {
+      "dash": "",
+      "loading_basic_info": "",
+      "zero_decimal": ""
+    },
+    "compensation_tab": {
+      "button_add_record": "",
+      "default_currency": "",
+      "delete_confirm": {
+        "content": "",
+        "content_table": ""
+      },
+      "message": {
+        "add_permission_denied": "",
+        "add_success": "",
+        "delete_failed": "",
+        "delete_success": "",
+        "get_history_failed_retry": "",
+        "save_failed": "",
+        "update_success": ""
+      },
+      "modal": {
+        "loading_options": "",
+        "message_load_lookups_failed": "",
+        "placeholder_select_pay_frequency": "",
+        "title_add": "",
+        "title_edit": "",
+        "validation_allowances_number": "",
+        "validation_basic_salary_required": "",
+        "validation_currency_required": "",
+        "validation_effective_date_required": "",
+        "validation_pay_frequency_required": ""
+      },
+      "table": {
+        "column_allowances": "",
+        "column_basic_salary": "",
+        "column_change_reason": "",
+        "column_currency": "",
+        "column_effective_date": "",
+        "column_pay_frequency": "",
+        "column_total_salary": ""
+      },
+      "table_title": "",
+      "tooltip_delete_record": "",
+      "tooltip_edit_record": ""
+    },
+    "contracts_tab": {
+      "button_add_contract": "",
+      "delete_confirm": {
+        "content": "",
+        "title_popconfirm": ""
+      },
+      "loading": "",
+      "message": {
+        "add_failed": "",
+        "add_success": "",
+        "delete_failed": "",
+        "delete_success": "",
+        "get_contracts_failed_retry": "",
+        "update_failed": "",
+        "update_success": ""
+      },
+      "modal": {
+        "loading_options": "",
+        "message_load_lookups_failed": "",
+        "placeholder_select_contract_type": "",
+        "placeholder_select_status": "",
+        "title_add": "",
+        "title_edit": "",
+        "validation_contract_number_required": "",
+        "validation_contract_type_required": "",
+        "validation_end_date_after_start_date": "",
+        "validation_end_date_required": "",
+        "validation_start_date_required": "",
+        "validation_status_required": ""
+      },
+      "table": {
+        "column_contract_number": "",
+        "column_contract_type": "",
+        "column_end_date": "",
+        "column_start_date": "",
+        "column_status": ""
+      },
+      "tooltip_delete_contract": "",
+      "tooltip_edit_contract": ""
+    },
+    "job_history_tab": {
+      "button_add_history": "",
+      "delete_confirm": {
+        "content": "",
+        "content_table": ""
+      },
+      "loading_history": "",
+      "message": {
+        "add_success": "",
+        "delete_failed": "",
+        "delete_success": "",
+        "get_history_failed": "",
+        "get_history_failed_retry": "",
+        "update_success": ""
+      },
+      "modal": {
+        "message_load_job_titles_failed": "",
+        "message_load_lookups_failed": "",
+        "placeholder_input_salary": "",
+        "placeholder_select_department": "",
+        "placeholder_select_employment_type": "",
+        "placeholder_select_job_title": "",
+        "title_add": "",
+        "title_edit": "",
+        "validation_department_required": "",
+        "validation_effective_date_required": "",
+        "validation_employment_type_required": "",
+        "validation_job_title_required": ""
+      },
+      "table": {
+        "column_department": "",
+        "column_employment_type": "",
+        "column_job_title": "",
+        "column_salary": "",
+        "column_start_date": ""
+      },
+      "table_title": "",
+      "tooltip_delete_history_param": "",
+      "tooltip_edit_history_param": ""
+    },
+    "job_info_tab": {
+      "label_actual_position": "",
+      "label_department": "",
+      "label_employment_type": "",
+      "label_hire_date": "",
+      "label_personnel_category": "",
+      "label_probation_end_date": "",
+      "label_reports_to": "",
+      "label_seniority": "",
+      "label_work_location": "",
+      "loading": "",
+      "no_data": "",
+      "reports_to_id_prefix": "",
+      "seniority_month": "",
+      "seniority_year": "",
+      "title": ""
+    },
+    "tabs": {
+      "basic_info": ""
+    }
+  },
+  "employee_id_format": "员工编号格式",
+  "form_card": {
+    "title_basic_info": "",
+    "title_contact_bank_info": "",
+    "title_position_contract_info": ""
+  },
+  "form_label": {
+    "avatar": "",
+    "bank_account_number": "",
+    "bank_name": "",
+    "contract_type": "",
+    "emergency_contact_name": "",
+    "emergency_contact_phone": "",
+    "ethnicity": "",
+    "home_address": "",
+    "id_number": "",
+    "nationality": ""
+  },
+  "form_placeholder": {
+    "contract_type": "",
+    "marital_status": "",
+    "political_status": ""
+  },
+  "list_page": {
+    "create_employee": "新建员工",
+    "delete_confirm": {
+      "cancel_text": "取消",
+      "content": "确定要删除这个员工吗？此操作不可撤销。",
+      "ok_text": "确定删除",
+      "title": "确认删除"
+    },
+    "filter_form": {
+      "label": {
+        "actual_position": "实际职务",
+        "contract_type": "合同类型",
+        "department": "部门",
+        "education_level": "学历",
+        "employee_code": "员工编号",
+        "employment_type": "雇佣类型",
+        "first_work_date_range": "首次工作日期范围",
+        "gender": "性别",
+        "hire_date_range": "入职日期范围",
+        "id_number": "身份证号",
+        "job_position_level": "职务级别",
+        "marital_status": "婚姻状况",
+        "name": "姓名",
+        "pay_frequency": "薪资频率",
+        "personnel_category": "人员类别",
+        "political_status": "政治面貌",
+        "status": "状态"
+      },
+      "placeholder": {
+        "actual_position": "请选择实际职务",
+        "contract_type": "请选择合同类型",
+        "department": "请选择部门",
+        "education_level": "请选择学历",
+        "employee_code": "请输入员工编号",
+        "employment_type": "请选择雇佣类型",
+        "gender": "请选择性别",
+        "id_number": "请输入身份证号",
+        "job_position_level": "请选择职务级别",
+        "job_title": "请选择职位",
+        "marital_status": "请选择婚姻状况",
+        "name": "请输入姓名",
+        "pay_frequency": "请选择薪资频率",
+        "personnel_category": "请选择人员类别",
+        "political_status": "请选择政治面貌",
+        "status": "请选择状态"
+      }
+    },
+    "message": {
+      "delete_employee_failed": "删除员工失败",
+      "delete_employee_success": "删除员工成功",
+      "get_employees_failed": "获取员工列表失败",
+      "get_employees_failed_empty_response": "获取员工列表失败，响应为空"
+    },
+    "name_not_set": "未设置姓名",
+    "page_title": "员工列表",
+    "table": {
+      "column": {
+        "action": "操作",
+        "actual_position": "实际职务",
+        "department": "部门",
+        "email": "邮箱",
+        "employee_code": "员工编号",
+        "full_name": "姓名",
+        "hire_date": "入职日期",
+        "personnel_category": "人员类别",
+        "phone_number": "电话",
+        "status": "状态"
+      }
+    }
+  }
+}

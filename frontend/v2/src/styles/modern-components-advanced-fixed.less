@@ -1,0 +1,774 @@
+// =============================================================================
+// 🎯 现代化高级组件样式 (Modern Advanced Components) - FIXED VERSION
+// =============================================================================
+// 补充现代化设计系统中缺失的关键组件样式
+
+@import './modern-design-system.less';
+
+// =============================================================================
+// 🔥 关键缺失组件样式 (Critical Missing Components)
+// =============================================================================
+
+// 1. Drawer 现代化样式 - 大量使用的侧边栏
+.ant-drawer {
+  .ant-drawer-header {
+    background: @bg-primary;
+    border-bottom: 1px solid @border-light;
+    padding: @space-5 @space-6;
+    
+    .ant-drawer-title {
+      font-family: @font-family-primary;
+      font-size: @font-size-xl;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-tight;
+      color: @text-primary;
+      margin: 0;
+    }
+    
+    .ant-drawer-close {
+      color: @text-tertiary;
+      font-size: @font-size-lg;
+      transition: all @duration-base @ease-out;
+      
+      &:hover {
+        color: @text-primary;
+        background: @neutral-100;
+        border-radius: @radius-base;
+      }
+    }
+  }
+  
+  .ant-drawer-body {
+    background: @bg-secondary;
+    padding: @space-6;
+    font-family: @font-family-primary;
+  }
+  
+  .ant-drawer-footer {
+    background: @bg-primary;
+    border-top: 1px solid @border-light;
+    padding: @space-4 @space-6;
+    
+    .ant-btn + .ant-btn {
+      margin-left: @space-3;
+    }
+  }
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    .ant-drawer-header,
+    .ant-drawer-body,
+    .ant-drawer-footer {
+      padding-left: @space-4;
+      padding-right: @space-4;
+    }
+  }
+}
+
+// 2. ProTable 高级样式 - 核心数据展示组件
+.ant-pro-table {
+  .ant-pro-table-list-toolbar {
+    background: @bg-primary;
+    padding: @space-4 @space-6;
+    border-bottom: 1px solid @border-light;
+    margin-bottom: 0;
+    
+    .ant-pro-table-list-toolbar-title {
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
+      color: @text-primary;
+    }
+    
+    .ant-pro-table-list-toolbar-right {
+      .ant-btn + .ant-btn {
+        margin-left: @space-2;
+      }
+    }
+  }
+  
+  .ant-pro-table-search {
+    background: @bg-secondary;
+    padding: @space-4 @space-6;
+    border-radius: @radius-lg @radius-lg 0 0;
+    
+    .ant-form-item {
+      margin-bottom: @space-3;
+    }
+  }
+  
+  // 表格容器
+  .ant-table-wrapper {
+    border: 1px solid @border-default;
+    border-radius: 0 0 @radius-lg @radius-lg;
+    overflow: hidden;
+  }
+  
+  // 分页样式
+  .ant-pagination {
+    padding: @space-4 @space-6;
+    background: @bg-primary;
+    border-top: 1px solid @border-light;
+    
+    .ant-pagination-item {
+      border-color: @border-default;
+      
+      &:hover {
+        border-color: @primary-500;
+      }
+      
+      &.ant-pagination-item-active {
+        background: @primary-500;
+        border-color: @primary-500;
+      }
+    }
+  }
+}
+
+// 3. 通知和消息样式 - 用户反馈
+.ant-notification {
+  .ant-notification-notice {
+    border-radius: @radius-lg;
+    box-shadow: @shadow-lg;
+    border: 1px solid @border-default;
+    
+    .ant-notification-notice-icon {
+      font-size: @font-size-xl;
+      margin-top: @space-1;
+    }
+    
+    .ant-notification-notice-message {
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
+      color: @text-primary;
+      margin-bottom: @space-1;
+    }
+    
+    .ant-notification-notice-description {
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
+      color: @text-secondary;
+    }
+    
+    &.ant-notification-notice-success {
+      border-left: 4px solid @success-500;
+      
+      .ant-notification-notice-icon {
+        color: @success-500;
+      }
+    }
+    
+    &.ant-notification-notice-error {
+      border-left: 4px solid @error-500;
+      
+      .ant-notification-notice-icon {
+        color: @error-500;
+      }
+    }
+    
+    &.ant-notification-notice-warning {
+      border-left: 4px solid @warning-500;
+      
+      .ant-notification-notice-icon {
+        color: @warning-500;
+      }
+    }
+    
+    &.ant-notification-notice-info {
+      border-left: 4px solid @info-500;
+      
+      .ant-notification-notice-icon {
+        color: @info-500;
+      }
+    }
+  }
+}
+
+.ant-message {
+  .ant-message-notice {
+    .ant-message-notice-content {
+      border-radius: @radius-lg;
+      box-shadow: @shadow-md;
+      padding: @space-3 @space-4;
+      
+      .ant-message-custom-content {
+        font-family: @font-family-primary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
+        color: @text-primary;
+        
+        .anticon {
+          margin-right: @space-2;
+          font-size: @font-size-lg;
+        }
+      }
+      
+      &.ant-message-success .ant-message-custom-content {
+        background: @success-50;
+        color: @success-600;
+        border: 1px solid @success-200;
+      }
+      
+      &.ant-message-error .ant-message-custom-content {
+        background: @error-50;
+        color: @error-600;
+        border: 1px solid @error-200;
+      }
+    }
+  }
+}
+
+// 4. Upload 组件样式 - 批量导入功能
+.ant-upload {
+  &.ant-upload-drag {
+    border: 2px dashed @border-medium;
+    border-radius: @radius-lg;
+    background: @bg-secondary;
+    transition: all @duration-base @ease-out;
+    
+    &:hover {
+      border-color: @primary-400;
+      background: @primary-50;
+    }
+    
+    .ant-upload-drag-container {
+      padding: @space-8;
+      
+      .ant-upload-drag-icon {
+        .anticon {
+          font-size: 48px;
+          color: @primary-400;
+          margin-bottom: @space-4;
+        }
+      }
+      
+      .ant-upload-text {
+        font-family: @font-family-primary;
+        font-size: @font-size-lg;
+        font-weight: @font-weight-semibold;
+        line-height: @line-height-normal;
+        color: @text-primary;
+        margin-bottom: @space-2;
+      }
+      
+      .ant-upload-hint {
+        font-family: @font-family-primary;
+        font-size: @font-size-sm;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
+        color: @text-tertiary;
+      }
+    }
+    
+    &.ant-upload-drag-hover {
+      border-color: @primary-500;
+      background: @primary-50;
+    }
+  }
+  
+  .ant-upload-list {
+    .ant-upload-list-item {
+      border-radius: @radius-md;
+      border-color: @border-default;
+      padding: @space-3;
+      
+      &:hover {
+        background: @bg-secondary;
+      }
+      
+      .ant-upload-list-item-name {
+        font-family: @font-family-primary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
+        color: @text-primary;
+      }
+      
+      .ant-upload-list-item-card-actions {
+        .anticon {
+          color: @text-tertiary;
+          
+          &:hover {
+            color: @text-primary;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 5. Steps 组件样式 - 工作流程
+.ant-steps {
+  font-family: @font-family-primary;
+  
+  .ant-steps-item {
+    .ant-steps-item-icon {
+      border-color: @border-medium;
+      background: @bg-primary;
+      
+      .ant-steps-icon {
+        color: @text-tertiary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-medium;
+      }
+    }
+    
+    .ant-steps-item-title {
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
+      color: @text-primary;
+      
+      &::after {
+        background: @border-light;
+      }
+    }
+    
+    .ant-steps-item-description {
+      font-family: @font-family-primary;
+      font-size: @font-size-sm;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
+      color: @text-tertiary;
+    }
+    
+    &.ant-steps-item-active {
+      .ant-steps-item-icon {
+        background: @primary-500;
+        border-color: @primary-500;
+        
+        .ant-steps-icon {
+          color: @text-inverse;
+        }
+      }
+      
+      .ant-steps-item-title {
+        color: @primary-600;
+        font-weight: @font-weight-medium;
+      }
+    }
+    
+    &.ant-steps-item-finish {
+      .ant-steps-item-icon {
+        background: @success-500;
+        border-color: @success-500;
+        
+        .ant-steps-icon {
+          color: @text-inverse;
+        }
+      }
+      
+      .ant-steps-item-title {
+        color: @success-600;
+      }
+    }
+  }
+}
+
+// 6. Statistic 组件样式 - 仪表板指标
+.ant-statistic {
+  font-family: @font-family-primary;
+  
+  .ant-statistic-title {
+    font-family: @font-family-primary;
+    font-size: @font-size-sm;
+    font-weight: @font-weight-medium;
+    line-height: @line-height-normal;
+    color: @text-secondary;
+    margin-bottom: @space-2;
+  }
+  
+  .ant-statistic-content {
+    .ant-statistic-content-value {
+      font-family: @font-family-primary;
+      font-size: @font-size-3xl;
+      font-weight: @font-weight-bold;
+      line-height: @line-height-tight;
+      color: @text-primary;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.025em;
+    }
+    
+    .ant-statistic-content-suffix {
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
+      color: @text-tertiary;
+      margin-left: @space-1;
+    }
+  }
+  
+  // 统计卡片变体
+  &.statistic-success {
+    .ant-statistic-content-value {
+      color: @success-600;
+    }
+  }
+  
+  &.statistic-warning {
+    .ant-statistic-content-value {
+      color: @warning-600;
+    }
+  }
+  
+  &.statistic-error {
+    .ant-statistic-content-value {
+      color: @error-600;
+    }
+  }
+}
+
+// 7. Popover 和 Popconfirm 样式
+.ant-popover {
+  .ant-popover-inner {
+    border-radius: @radius-lg;
+    box-shadow: @shadow-lg;
+    border: 1px solid @border-default;
+    
+    .ant-popover-title {
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
+      color: @text-primary;
+      border-bottom-color: @border-light;
+      padding: @space-4;
+    }
+    
+    .ant-popover-inner-content {
+      padding: @space-4;
+      
+      .ant-popover-message {
+        font-family: @font-family-primary;
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        line-height: @line-height-normal;
+        color: @text-primary;
+      }
+      
+      .ant-popover-buttons {
+        margin-top: @space-3;
+        
+        .ant-btn + .ant-btn {
+          margin-left: @space-2;
+        }
+      }
+    }
+  }
+  
+  .ant-popover-arrow {
+    &::before {
+      background: @bg-primary;
+      border-color: @border-default;
+    }
+  }
+}
+
+// 8. Progress 组件样式
+.ant-progress {
+  .ant-progress-line {
+    .ant-progress-outer {
+      .ant-progress-inner {
+        background: @neutral-200;
+        border-radius: @radius-full;
+        
+        .ant-progress-bg {
+          background: linear-gradient(90deg, @primary-400, @primary-600);
+          border-radius: @radius-full;
+          transition: all @duration-base @ease-out;
+        }
+      }
+    }
+  }
+  
+  .ant-progress-text {
+    font-family: @font-family-primary;
+    font-size: @font-size-sm;
+    font-weight: @font-weight-medium;
+    line-height: @line-height-normal;
+    color: @text-primary;
+  }
+  
+  &.ant-progress-status-success {
+    .ant-progress-bg {
+      background: linear-gradient(90deg, @success-400, @success-600) !important;
+    }
+  }
+  
+  &.ant-progress-status-exception {
+    .ant-progress-bg {
+      background: linear-gradient(90deg, @error-400, @error-600) !important;
+    }
+  }
+}
+
+// 9. Empty 状态样式
+.ant-empty {
+  .ant-empty-image {
+    margin-bottom: @space-4;
+    
+    svg {
+      width: 64px;
+      height: 64px;
+      opacity: 0.8;
+    }
+  }
+  
+  .ant-empty-description {
+    font-family: @font-family-primary;
+    font-size: @font-size-base;
+    font-weight: @font-weight-normal;
+    line-height: @line-height-normal;
+    color: @text-tertiary;
+    margin-bottom: @space-4;
+  }
+  
+  .ant-empty-footer {
+    .ant-btn {
+      margin-top: @space-2;
+    }
+  }
+  
+  // 现代化空状态卡片
+  &.modern-empty {
+    padding: @space-12 @space-8;
+    background: @bg-secondary;
+    border-radius: @radius-lg;
+    border: 1px solid @border-light;
+    text-align: center;
+    
+    .empty-icon {
+      font-size: 48px;
+      color: @text-quaternary;
+      margin-bottom: @space-4;
+    }
+    
+    .empty-title {
+      font-family: @font-family-primary;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      line-height: @line-height-normal;
+      color: @text-secondary;
+      margin-bottom: @space-2;
+    }
+    
+    .empty-description {
+      font-family: @font-family-primary;
+      font-size: @font-size-base;
+      font-weight: @font-weight-normal;
+      line-height: @line-height-normal;
+      color: @text-secondary;
+      margin-bottom: @space-6;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+// 10. Alert 组件现代化
+.ant-alert {
+  border: none;
+  border-radius: @radius-lg;
+  padding: @space-4;
+  font-family: @font-family-primary;
+  
+  .ant-alert-message {
+    font-family: @font-family-primary;
+    font-size: @font-size-base;
+    font-weight: @font-weight-medium;
+    line-height: @line-height-normal;
+    color: @text-primary;
+  }
+  
+  .ant-alert-description {
+    font-family: @font-family-primary;
+    font-size: @font-size-sm;
+    font-weight: @font-weight-normal;
+    line-height: @line-height-normal;
+    color: @text-tertiary;
+    margin-top: @space-1;
+  }
+  
+  .ant-alert-icon {
+    font-size: @font-size-lg;
+    margin-right: @space-3;
+  }
+  
+  &.ant-alert-success {
+    background: @success-50;
+    border-left: 4px solid @success-500;
+    
+    .ant-alert-message {
+      color: @success-700;
+    }
+    
+    .ant-alert-description {
+      color: @success-600;
+    }
+    
+    .ant-alert-icon {
+      color: @success-500;
+    }
+  }
+  
+  &.ant-alert-info {
+    background: @info-50;
+    border-left: 4px solid @info-500;
+    
+    .ant-alert-message {
+      color: @info-700;
+    }
+    
+    .ant-alert-description {
+      color: @info-600;
+    }
+    
+    .ant-alert-icon {
+      color: @info-500;
+    }
+  }
+  
+  &.ant-alert-warning {
+    background: @warning-50;
+    border-left: 4px solid @warning-500;
+    
+    .ant-alert-message {
+      color: @warning-700;
+    }
+    
+    .ant-alert-description {
+      color: @warning-600;
+    }
+    
+    .ant-alert-icon {
+      color: @warning-500;
+    }
+  }
+  
+  &.ant-alert-error {
+    background: @error-50;
+    border-left: 4px solid @error-500;
+    
+    .ant-alert-message {
+      color: @error-700;
+    }
+    
+    .ant-alert-description {
+      color: @error-600;
+    }
+    
+    .ant-alert-icon {
+      color: @error-500;
+    }
+  }
+}
+
+// =============================================================================
+// 📱 移动端优化 (Mobile Optimizations)
+// =============================================================================
+
+@media (max-width: 768px) {
+  // Drawer 移动端优化
+  .ant-drawer {
+    .ant-drawer-header {
+      padding: @space-4;
+    }
+    
+    .ant-drawer-body {
+      padding: @space-4;
+    }
+  }
+  
+  // ProTable 移动端优化
+  .ant-pro-table {
+    .ant-pro-table-list-toolbar,
+    .ant-pro-table-search {
+      padding: @space-3 @space-4;
+    }
+  }
+  
+  // Upload 移动端优化
+  .ant-upload.ant-upload-drag {
+    .ant-upload-drag-container {
+      padding: @space-6;
+      
+      .ant-upload-drag-icon .anticon {
+        font-size: 36px;
+      }
+    }
+  }
+  
+  // Steps 移动端优化
+  .ant-steps {
+    .ant-steps-item {
+      .ant-steps-item-title {
+        font-size: @font-size-sm;
+      }
+      
+      .ant-steps-item-description {
+        font-size: @font-size-xs;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// 🌙 暗色模式支持 (Dark Mode Support)
+// =============================================================================
+
+[data-theme="dark"] {
+  // Drawer 暗色模式
+  .ant-drawer {
+    .ant-drawer-header {
+      background: @neutral-800;
+      border-bottom-color: @neutral-700;
+      
+      .ant-drawer-title {
+        color: @neutral-100;
+      }
+      
+      .ant-drawer-close {
+        color: @neutral-400;
+        
+        &:hover {
+          color: @neutral-100;
+          background: @neutral-700;
+        }
+      }
+    }
+    
+    .ant-drawer-body {
+      background: @neutral-900;
+    }
+    
+    .ant-drawer-footer {
+      background: @neutral-800;
+      border-top-color: @neutral-700;
+    }
+  }
+  
+  // 通知暗色模式
+  .ant-notification .ant-notification-notice {
+    background: @neutral-800;
+    border-color: @neutral-700;
+    
+    .ant-notification-notice-message {
+      color: @neutral-100;
+    }
+    
+    .ant-notification-notice-description {
+      color: @neutral-300;
+    }
+  }
+  
+  // 其他组件的暗色模式样式...
+}

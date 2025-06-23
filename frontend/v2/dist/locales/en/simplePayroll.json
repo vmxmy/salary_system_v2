@@ -1,0 +1,127 @@
+{
+  "common": {
+    "entries": ""
+  },
+  "controls": {
+    "period": "",
+    "selectPeriod": "",
+    "title": ""
+  },
+  "emptyState": {
+    "message": "",
+    "title": ""
+  },
+  "errors": {
+    "copyFailed": "",
+    "createFailed": "",
+    "fetchPeriodFailed": "",
+    "fetchSourcePeriods": ""
+  },
+  "excel": {
+    "columns": {
+      "basicSalary": "",
+      "department": "",
+      "employeeCode": "",
+      "employeeName": "",
+      "grossPay": "",
+      "netPay": ""
+    },
+    "continueValidation": "",
+    "downloadTemplate": "",
+    "dragUpload": "",
+    "importFailed": "",
+    "importing": "",
+    "importProgress": "",
+    "importSuccess": "",
+    "previewDescription_one": "",
+    "previewDescription_other": "",
+    "readyToImport_one": "",
+    "readyToImport_other": "",
+    "startImport": "",
+    "steps": {
+      "import": "",
+      "preview": "",
+      "upload": "",
+      "validate": ""
+    },
+    "templateDownloadStarted": "",
+    "title": "",
+    "uploadFailed": "",
+    "uploadHint": "",
+    "uploadSuccess": "",
+    "uploadTips": {
+      "encoding": "",
+      "format": "",
+      "size": "",
+      "title": ""
+    },
+    "validation": {
+      "grossPayMismatch": "",
+      "missingEmployeeCode": "",
+      "missingEmployeeName": "",
+      "negativeBasicSalary": "",
+      "netPayMismatch": ""
+    },
+    "validationErrors_one": "",
+    "validationErrors_other": "",
+    "validationPassed": "",
+    "validationRequired": "",
+    "validationWarnings_one": "",
+    "validationWarnings_other": ""
+  },
+  "generate": {
+    "copyModal": {
+      "confirm": "",
+      "description": "",
+      "descriptionPlaceholder": "",
+      "periodInfo": "",
+      "sourcePeriod": "",
+      "sourcePeriodPlaceholder": "",
+      "sourcePeriodRequired": "",
+      "title": ""
+    },
+    "copyPrevious": "",
+    "description": "",
+    "downloadTemplate": "",
+    "excelImport": "",
+    "manualCreate": {
+      "button": "",
+      "content": "",
+      "title": ""
+    },
+    "noPeriodSelected": "",
+    "title": ""
+  },
+  "messages": {
+    "copySuccess": "",
+    "createSuccess": ""
+  },
+  "quickActions": {
+    "addEmployee": "Add Employee",
+    "addPayrollRecord": "Add Payroll Record",
+    "bulkImport": "",
+    "copyLastMonth": "",
+    "importTaxData": "",
+    "importTaxDataMessage": "",
+    "title": ""
+  },
+  "reports": {
+    "currentPeriod": "",
+    "customGenerate": "",
+    "description": "",
+    "generateCompleted": "",
+    "generateFailed": "",
+    "noVersionSelected": "",
+    "quickGenerate": {
+      "salaryTable": "",
+      "taxDeclaration": ""
+    },
+    "readyToGenerate": "",
+    "selectPeriodFirst": "",
+    "selectPeriodHint": "",
+    "title": "",
+    "version": ""
+  },
+  "subtitle": "",
+  "title": ""
+}

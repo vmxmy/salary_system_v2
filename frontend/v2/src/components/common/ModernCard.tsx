@@ -17,7 +17,7 @@ export interface ModernCardProps extends Omit<CardProps, 'className'> {
   /** 卡片副标题 */
   subtitle?: string;
   /** 底部操作区内容 */
-  actions?: React.ReactNode;
+  actions?: React.ReactNode[];
   /** 是否使用现代化样式 */
   modern?: boolean;
 }

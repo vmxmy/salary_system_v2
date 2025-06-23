@@ -346,11 +346,11 @@ export const useTableExport = <T extends object>(
     filename = t('common:export.defaultFilename'), // 使用翻译键
     sheetName = t('common:export.defaultSheetName'), // 使用翻译键
     withHeader = true,
-    buttonText = t('common:export.exportButton'), // 使用翻译键
-    successMessage = t('common:export.exportSuccess'), // 使用翻译键
+    buttonText = "导出Excel", // 使用翻译键
+    successMessage = t('common:export.success_message'), // 使用翻译键
     supportedFormats = ['excel'], // 默认支持Excel
     onExportRequest,
-    dropdownButtonText = t('common:export.export'), // 下拉按钮文本
+    dropdownButtonText = "导出", // 下拉按钮文本
   } = options || {};
 
   // 客户端导出到Excel的函数
@@ -591,9 +591,9 @@ export const useColumnControl = <T extends object>(
   const defaultOptions: ColumnControlOptions = {
     storageKeyPrefix: 'table_columns',
     showReset: true,
-    buttonText: t('common:column_control.button_text', 'Column Settings'),
-    tooltipTitle: t('common:column_control.tooltip_title', 'Configure Visible Columns'),
-    dropdownTitle: t('common:column_control.dropdown_title', 'Select Columns'),
+    buttonText: "列设置",
+    tooltipTitle: "配置可见列",
+    dropdownTitle: "选择列",
     resetText: t('common:button.reset', 'Reset'),
     requiredColumns: [],
   };

@@ -446,7 +446,7 @@ const PayrollRunsPageV2: React.FC = () => {
         exportConfig={{
           filenamePrefix: 'payroll_runs',
           sheetName: 'PayrollRuns',
-          buttonText: t('common:export'),
+          buttonText: t('common:export.export'),
           successMessage: t('common:export_success'),
         }}
         lookupErrorMessageKey="common:lookup_load_failed"

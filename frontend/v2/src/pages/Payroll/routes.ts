@@ -3,8 +3,12 @@ import { Navigate } from 'react-router-dom';
 import type { AppRouteObject } from '../../router/routes'; // Assuming AppRouteObject is exported from main router
 // import i18n from '../../i18n'; // 移除此导入
 import PayrollPeriodsPageV2 from './pages/PayrollPeriodsPageV2';
+import PayrollPeriodsPageModern from './pages/PayrollPeriodsPageModern';
 import PayrollRunsPageV2 from './pages/PayrollRunsPageV2';
+import PayrollRunsPageModern from './pages/PayrollRunsPageModern';
 import PayrollRunDetailPage from './pages/PayrollRunDetailPage';
+import PayrollRunDetailPageModern from './pages/PayrollRunDetailPageModern';
+import PayrollCalculationConfigPageModern from './pages/PayrollCalculationConfigPageModern';
 import PayrollEntryPage from './pages/PayrollEntryPage';
 
 import UniversalImportPage from './pages/PayrollBulkImportPage/UniversalImportPage';
@@ -39,7 +43,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'periods',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Periods...') }, React.createElement(PayrollPeriodsPageV2)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Periods...') }, React.createElement(PayrollPeriodsPageModern)),
     meta: {
       title: 'pageTitle:payroll_periods', // 修改为使用pageTitle命名空间
       requiredPermissions: [P_PAYROLL_PERIOD_VIEW],
@@ -55,7 +59,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'runs',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPageV2)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Payroll Runs...') }, React.createElement(PayrollRunsPageModern)),
     meta: {
       title: 'payroll:page_title.payroll_runs', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW],
@@ -63,7 +67,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'runs/:runId',
-    element: React.createElement(PayrollRunDetailPage),
+    element: React.createElement(PayrollRunDetailPageModern),
     meta: {
       title: 'payroll:page_title.payroll_run_detail', // 使用静态翻译键
       requiredPermissions: [P_PAYROLL_RUN_VIEW], 
@@ -97,7 +101,7 @@ export const payrollRoutes: AppRouteObject[] = [
   },
   {
     path: 'calculation-config',
-    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Calculation Config...') }, React.createElement(PayrollCalculationConfigPage)),
+    element: React.createElement(React.Suspense, { fallback: React.createElement('div', null, 'Loading Calculation Config...') }, React.createElement(PayrollCalculationConfigPageModern)),
     meta: {
       title: 'payroll:calculation_config.page_title', // 薪资计算配置页面标题
       requiredPermissions: [P_PAYROLL_COMPONENT_VIEW], // 暂时使用组件查看权限，后续可以添加专门的权限

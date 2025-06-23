@@ -1,0 +1,49 @@
+{
+  "employee": {
+    "employee_id_format": "Employee ID Format"
+  },
+
+  "payroll": {
+    "status": {
+      "payroll_entry_status": {
+        "draft": "Draft"
+      }
+    },
+    "runs_page": {
+      "form": {
+        "placeholder": {
+          "payroll_period": "Please select payroll period"
+        }
+      }
+    }
+  },
+  "report": {
+    "report_title": "Report Title",
+    "report_description_content_placeholder": "Please enter report description"
+  },
+  "admin": {
+    "auto_text_e4bba3": "Type",
+    "auto_text_e5908d": "Name",
+    "auto_text_e698be": "Display Name",
+    "auto_text_e580bc": "Value",
+    "auto_text_e68f8f": "Description",
+    "auto_text_e68e92": "Sort",
+    "auto_text_e78ab6": "Status",
+    "auto_text_e6938d": "Operation",
+    "auto_text_e696b0": "New",
+    "auto_text_e7bc96": "Edit",
+    "auto_text_e7a1ae": "Confirm",
+    "auto_text_e58f96": "Cancel",
+    "auto_text_e588a0": "Delete",
+    "auto_text_e8818c": "Position",
+    "auto_text_e99d9e": "Inactive",
+    "auto_text_e6b4bb": "Active",
+    "auto_text_e8afb7": "Please input",
+    "auto__first_level_researcher_e4be8b": "First Level Researcher (Example)",
+    "auto___e4be8b": "(Example)",
+    "auto_text_e689b9": "Batch",
+    "auto____e7a1ae": "Confirm",
+    "auto_excel_e5afbc": "Export Excel",
+    "auto_text_e794a8": "User"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "common": {
+    "actions": "操作",
+    "active": "活跃",
+    "delete": "删除",
+    "description": "描述",
+    "edit": "编辑",
+    "error": {
+      "fetch": "获取数据失败"
+    },
+    "inactive": "非活跃",
+    "loading": "正在加载...",
+    "no": "否",
+    "status": "状态",
+    "validation": {
+      "required": "此项为必填项"
+    },
+    "view": "查看",
+    "yes": "是"
+  },
+  "payroll_components": {
+    "add": "添加",
+    "code": "代码",
+    "create_failed": "创建失败",
+    "create_success": "创建成功",
+    "edit": "编辑",
+    "is_housing_fund_base": "是否为住房公积金基数",
+    "is_social_security_base": "是否为社保基数",
+    "is_taxable": "是否应税",
+    "name": "名称",
+    "options": "选项设置",
+    "placeholders": {
+      "type": "请选择类型"
+    },
+    "sort_order": "排序",
+    "title": "薪资组件管理",
+    "type": "类型",
+    "update_failed": "更新失败",
+    "update_success": "更新成功"
+  },
+  "导出Excel": "导出Excel",
+  "导出成功": "导出成功"
+}

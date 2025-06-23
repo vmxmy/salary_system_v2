@@ -1,0 +1,46 @@
+{
+  "api_field_column_title": "API字段",
+  "api_fields": {
+    "deductions_fund_amount": "住房公积金",
+    "deductions_insurance_amount": "社会保险",
+    "deductions_tax_amount": "个人所得税",
+    "department_name": "部门",
+    "earnings_allowance_amount": "津贴",
+    "earnings_basic_amount": "基本工资",
+    "earnings_bonus_amount": "奖金",
+    "earnings_overtime_amount": "加班费",
+    "employee_id": "员工ID",
+    "employee_name": "员工姓名",
+    "net_pay": "净工资",
+    "position_name": "职位",
+    "remarks": "备注",
+    "status_lookup_value_name": "状态",
+    "total_deductions": "总扣款",
+    "total_earnings": "总收入"
+  },
+  "convert_to_json_button": "转换为JSON",
+  "data_type_column_title": "数据类型",
+  "error_message": {
+    "parse_failed": "解析表格文本失败。请检查格式。"
+  },
+  "field_mapping_card_title": "字段映射",
+  "field_type_keywords": {
+    "allowance": "津贴",
+    "amount": "金额",
+    "bonus": "奖金",
+    "date": "日期",
+    "deduction": "扣款",
+    "income": "收入",
+    "public": "公",
+    "salary": "工资",
+    "social": "社",
+    "tax": "税",
+    "time": "时间"
+  },
+  "ignore_field_option": "忽略此字段",
+  "json_result_card_title": "JSON结果",
+  "parse_table_button": "解析表格",
+  "placeholder": "请在此处粘贴您的薪资数据（例如，来自Excel或CSV）。\n示例：\n员工ID,员工姓名,部门,职位,总收入,总扣款,净工资\n101,张三,人力资源部,经理,5000,500,4500\n102,李四,财务部,会计,4000,400,3600",
+  "table_field_column_title": "表格字段",
+  "title": "薪资表格文本转换器"
+}

@@ -69,6 +69,18 @@ const SEARCH_MODE_CONFIG = {
     icon: <FilterOutlined />,
     color: 'purple',
     description: '支持数值范围搜索，如: 实发合计>10000'
+  },
+  [SearchMode.REGEX]: {
+    label: '正则表达式',
+    icon: <FilterOutlined />,
+    color: 'red',
+    description: '支持正则表达式搜索'
+  },
+  [SearchMode.SMART]: {
+    label: '智能分析',
+    icon: <ThunderboltOutlined />,
+    color: 'cyan',
+    description: '基于AI的智能搜索分析'
   }
 };
 

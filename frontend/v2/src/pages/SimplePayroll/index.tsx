@@ -12,7 +12,7 @@ import { EmptyState } from './components/EmptyState';
 import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
 import { PayrollDataModal } from './components/PayrollDataModal';
 import { PayrollContextBar } from './components/PayrollContextBar';
-import './styles-modern.less';
+// 现代化设计系统样式已通过主样式文件全局导入
 
 const { Header, Content } = Layout;
 

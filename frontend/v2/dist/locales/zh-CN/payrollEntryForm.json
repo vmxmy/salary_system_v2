@@ -1,0 +1,61 @@
+{
+  "total": "总计",
+  "no_earnings_components": "没有可用的应发项",
+  "no_deductions_components": "没有可用的扣款项",
+  "section": {
+    "earnings": "应发项",
+    "deductions": "扣款项",
+    "summary": "汇总",
+    "employee_info": "员工信息"
+  },
+  "placeholder": {
+    "select_earnings_component": "选择应发项",
+    "select_earning_component": "选择应发项",
+    "select_deductions_component": "选择扣款项",
+    "select_deduction_component": "选择扣款项",
+    "select_employee": "请选择员工",
+    "enter_social_insurance_base": "请输入社保基数",
+    "enter_housing_fund_base": "请输入公积金基数"
+  },
+  "label": {
+    "add_earning": "添加应发项",
+    "add_deduction": "添加扣款项",
+    "total_earnings": "应发总额",
+    "total_deductions": "扣款总额",
+    "net_pay": "实发合计",
+    "status": "状态",
+    "amount": "金额",
+    "social_insurance_base": "社保基数",
+    "housing_fund_base": "公积金基数",
+    "occupational_pension_base": "职业年金基数",
+    "employee": "员工",
+    "employee_id": "员工ID",
+    "employee_name": "员工姓名",
+    "department": "部门",
+    "actual_position": "实际职务",
+    "personnel_category": "人员类别",
+    "remarks": "备注"
+  },
+  "actions": {
+    "update_payment_base": "更新缴费基数"
+  },
+  "validation": {
+    "employee_required": "请选择员工",
+    "status_required": "状态为必填项",
+    "failed": "验证失败"
+  },
+  "message": {
+    "component_already_exists": "该薪资项已存在",
+    "create_success": "工资条目创建成功",
+    "update_success": "工资条目更新成功",
+    "update_success_no_data": "更新成功，但无数据变化"
+  },
+  "error": {
+    "invalid_deductions": "扣款项数据无效",
+    "invalid_earnings": "应发项数据无效",
+    "no_earnings": "必须至少有一个应发项",
+    "fetch_employee": "获取员工信息失败"
+  },
+  "title_create": "创建工资条目",
+  "title_edit": "编辑工资条目"
+} 

@@ -1,0 +1,9 @@
+{
+  "message": {
+    "confirm_delete": "",
+    "delete_failed": "",
+    "delete_failed_prefix": "",
+    "delete_success": "",
+    "fetch_list_failed": ""
+  }
+}

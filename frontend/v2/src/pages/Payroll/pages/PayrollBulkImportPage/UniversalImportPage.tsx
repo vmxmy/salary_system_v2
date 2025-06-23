@@ -747,7 +747,7 @@ const UniversalImportPage: React.FC = () => {
       }
       case 4:
         if (!processedData || !validationResults || !selectedModeConfig) {
-           return <p>数据或配置丢失，或尚未验证</p>
+           return <p>{t('common:errors.data_missing_or_not_validated')}</p>
         }
         return (
           <DataPreview 
@@ -777,7 +777,7 @@ const UniversalImportPage: React.FC = () => {
           />
         );
       default:
-        return <p>未知步骤</p>;
+        return <p>{t('common:errors.unknown_step')}</p>;
     }
   };
 

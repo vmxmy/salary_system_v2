@@ -1,0 +1,87 @@
+{
+  "payroll_period_detail_page": {
+    "basic_info": "",
+    "field_end_date": "",
+    "field_frequency": "",
+    "field_id": "",
+    "field_name": "",
+    "field_pay_date": "",
+    "field_start_date": "",
+    "field_status": "",
+    "related_entries_title": "",
+    "title": ""
+  },
+  "payroll_period_form": {
+    "button": {
+      "cancel": "Cancel",
+      "create_period": "Create Period",
+      "save_changes": "Save Changes"
+    },
+    "label": {
+      "end_date": "End Date",
+      "frequency": "Frequency",
+      "name": "Name",
+      "pay_date": "Pay Date",
+      "start_date": "Start Date",
+      "status": "Status"
+    },
+    "placeholder": {
+      "frequency": "Select frequency",
+      "name": "Enter payroll period name",
+      "status": "Select status"
+    },
+    "validation": {
+      "end_date_before_start_date": "End date cannot be before start date!",
+      "end_date_required": "Please select an end date!",
+      "frequency_required": "Please select a frequency!",
+      "name_required": "Please enter a name for the payroll period!",
+      "pay_date_required": "Please select a pay date!",
+      "start_date_required": "Please select a start date!",
+      "status_required": "Please select a status!"
+    }
+  },
+  "payroll_period_status": {
+    "closed": "Closed",
+    "open": "Open",
+    "planned": "Planned"
+  },
+  "payroll_periods_page": {
+    "batch_delete_button_text": "Batch Delete",
+    "batch_delete_failure": "Batch delete failed: {error}",
+    "batch_delete_success": "Batch delete successful!",
+    "confirm_batch_delete_content": "Are you sure you want to delete the selected payroll periods?",
+    "confirm_batch_delete_title": "Confirm Batch Delete",
+    "delete_failure": "Failed to delete payroll period",
+    "delete_success": "Payroll period deleted successfully",
+    "export_button_text": "Export Excel",
+    "export_filename_prefix": "Payroll_Periods_",
+    "export_sheet_name": "Period Data",
+    "export_success_message": "Export successful",
+    "message": {
+      "create_failed": "Failed to create payroll period.",
+      "create_success": "Payroll period created successfully!",
+      "update_failed": "Failed to update payroll period.",
+      "update_success": "Payroll period updated successfully!"
+    },
+    "no_selection_message": "Please select at least one record",
+    "table": {
+      "column_end_date": "End Date",
+      "column_frequency": "Frequency",
+      "column_id": "ID",
+      "column_pay_date": "Pay Date",
+      "column_period_name": "Period Name",
+      "column_start_date": "Start Date",
+      "column_status": "Status"
+    }
+  },
+  "table": {
+    "column_employee_count": "Employee Count",
+    "status": {
+      "no_data": "No Data"
+    },
+    "tooltip": {
+      "employee_count_has_data": "Employee count available",
+      "employee_count_no_data": "No employee data"
+    }
+  }
+}

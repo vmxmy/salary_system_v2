@@ -1,0 +1,33 @@
+{
+  "home": "首页",
+  "simplePayroll": {
+    "title": "简单工资"
+  },
+  "admin": {
+    "reportConfig": "报表管理",
+    "title": "系统管理",
+    "users": "用户管理",
+    "roles": "角色管理",
+    "permissions": "权限管理",
+    "systemSettings": "系统配置"
+  },
+  "payroll": {
+    "title": "薪资管理",
+    "periods": "工资期间",
+    "runs": "工资运行",
+    "entry": "工资条目",
+    "bulkImport": "批量导入",
+    "components": "薪资组件",
+    "calculationConfig": "计算规则配置"
+  },
+  "hr": {
+    "title": "员工管理",
+    "employees": "员工列表",
+    "employeesNew": "新增员工",
+    "bulkImport": "批量导入"
+  },
+  "organization": {
+    "title": "组织架构",
+    "managementV2": "组织管理"
+  }
+}

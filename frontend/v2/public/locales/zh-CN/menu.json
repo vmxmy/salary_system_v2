@@ -23,6 +23,7 @@
   "hr": {
     "title": "员工管理",
     "employees": "员工列表",
+    "employeesUniversal": "员工列表 (新版)",
     "employeesNew": "新增员工",
     "bulkImport": "批量导入"
   },

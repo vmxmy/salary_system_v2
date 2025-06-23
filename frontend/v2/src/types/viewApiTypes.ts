@@ -3,7 +3,7 @@ import type { Dayjs } from 'dayjs';
 // Assuming PageMeta is reusable from HRManagement types, adjust if it's defined elsewhere or differently for views
 import type { PageMeta } from '../pages/HRManagement/types'; 
 
-export interface EmployeeBasic {
+export interface EmployeeBasic extends Record<string, unknown> {
   id: number;
   employee_code: string;
   full_name: string; 

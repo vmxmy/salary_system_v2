@@ -1,0 +1,77 @@
+{
+  "payroll_run_detail_page": {
+    "alert_error_prefix": "",
+    "alert_not_found": "",
+    "breadcrumb_current_page": "",
+    "breadcrumb_runs_management": "",
+    "button_back_to_list": "",
+    "card_title": "",
+    "desc_label_created_at": "",
+    "desc_label_created_by": "",
+    "desc_label_employee_count": "",
+    "desc_label_id": "",
+    "desc_label_notes": "",
+    "desc_label_paid_at": "",
+    "desc_label_payroll_period": "",
+    "desc_label_run_date": "",
+    "desc_label_status": "",
+    "desc_label_updated_at": "",
+    "error_fetch_details": "",
+    "error_invalid_run_id": "",
+    "error_no_run_id_provided": "",
+    "section_title_entries": "",
+    "spin_loading": "",
+    "value_na": "",
+    "value_no_notes": "",
+    "value_not_paid": "",
+    "value_period_id_prefix": ""
+  },
+  "payroll_run_form": {
+    "button": {
+      "cancel": "",
+      "create_run": "",
+      "save_changes": "Save Changes"
+    },
+    "label": {
+      "employee_ids": "Employee ID Range",
+      "notes": "Notes",
+      "payroll_period": "Payroll Period",
+      "run_date": "Run Date",
+      "status_create_mode": "",
+      "status_edit_mode": "Status"
+    },
+    "placeholder": {
+      "employee_ids": "Enter employee IDs, separated by commas (e.g. 101,102,105). Leave blank to include all applicable employees.",
+      "notes": "Enter any notes about this calculation (optional)",
+      "payroll_period": "",
+      "status": ""
+    },
+    "tooltip": {
+      "employee_ids": ""
+    },
+    "validation": {
+      "payroll_period_required": "",
+      "run_date_required": "",
+      "status_required": ""
+    }
+  },
+  "run_detail_page": {
+    "value": {
+      "period_id_prefix": "ID: "
+    }
+  },
+  "runs_page": {
+    "error": {
+      "create_failed": "Failed to create calculation run",
+      "update_failed": "Failed to update calculation run"
+    },
+    "message": {
+      "create_success": "Payroll calculation run created successfully!",
+      "update_success": "Payroll calculation run updated successfully!"
+    },
+    "modal_title": {
+      "create": "Create New Payroll Calculation Run",
+      "edit": "Edit Payroll Calculation Run"
+    }
+  }
+}

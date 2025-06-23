@@ -1,0 +1,113 @@
+{
+  "batch_report": {
+    "tab_title": "批量报表"
+  },
+  "data_source": {
+    "action": {
+      "sync_structure": "同步结构",
+      "view_fields": "查看字段"
+    },
+    "basic_info_title": "基本信息",
+    "column": {
+      "actions": "操作",
+      "connection_type": "连接类型",
+      "last_sync": "最后同步",
+      "name": "名称",
+      "status": "状态",
+      "sync_status": "同步状态",
+      "table_name": "表名"
+    },
+    "create_success": "",
+    "create_title": "新建数据源",
+    "delete_confirm_content": "",
+    "delete_confirm_impact": "删除后，与该数据源相关的报表和配置可能无法正常工作。",
+    "delete_confirm_title": "确认删除数据源？",
+    "delete_error": "",
+    "delete_success": "",
+    "description_text": "管理系统中的数据源，包括数据库表、视图等，用于报表生成和数据分析。",
+    "detail_page_title": "数据源详情",
+    "edit_title": "",
+    "field_column": {
+      "alias": "别名",
+      "comment": "注释",
+      "default_value": "默认值",
+      "description": "描述",
+      "name": "字段名",
+      "nullable": "可空",
+      "type": "类型",
+      "visible": "可见"
+    },
+    "fields_list_title": "字段列表",
+    "form": {
+      "active_status_label": "启用状态",
+      "category_label": "分类",
+      "category_placeholder": "例如: HR, Finance",
+      "code_label": "数据源编码",
+      "code_placeholder": "例如: ds_employees",
+      "code_required": "请输入数据源编码",
+      "connection_type_label": "连接类型",
+      "description_label": "描述",
+      "description_placeholder": "请输入数据源描述",
+      "name_label": "数据源名称",
+      "name_placeholder": "例如: 员工主数据",
+      "name_required": "请输入数据源名称",
+      "schema_name_label": "Schema名称",
+      "schema_name_placeholder": "例如: public",
+      "schema_name_required": "请输入Schema名称",
+      "source_type_label": "数据源类型",
+      "source_type_placeholder": "请选择类型",
+      "source_type_required": "请选择数据源类型",
+      "table_name_label": "",
+      "table_name_placeholder": "",
+      "table_name_required": "",
+      "view_name_label": "",
+      "view_name_placeholder": "",
+      "view_name_required": ""
+    },
+    "load_detail_error": "",
+    "load_error": "",
+    "load_preview_error": "",
+    "loading_structure": "正在加载表格结构...",
+    "new_data_source": "新建数据源",
+    "preview_table_title": "",
+    "save_error": "",
+    "search_placeholder": "搜索数据源名称或编码",
+    "select_status_placeholder": "选择状态",
+    "source_type": {
+      "query": "自定义查询 (暂不支持)",
+      "table": "表格",
+      "view": "视图"
+    },
+    "status": {
+      "failed": "失败",
+      "pending": "待处理",
+      "success": "成功"
+    },
+    "sync_error": "",
+    "sync_success": "",
+    "tab_title": "数据源",
+    "tabs": {
+      "preview": "数据预览",
+      "structure": "结构信息"
+    },
+    "title": "数据源管理",
+    "update_success": ""
+  },
+  "report_preset": {
+    "tab_title": "报表预设"
+  },
+  "report_type": {
+    "column": {
+      "category": "分类",
+      "data_source": "数据源",
+      "name": "名称"
+    },
+    "delete_confirm_title": "确认删除报表类型？",
+    "delete_success": "",
+    "load_error": "",
+    "load_fields_error": "",
+    "new_button": "新建报表类型",
+    "search_placeholder": "搜索报表类型名称或编码",
+    "tab_title": "报表类型"
+  }
+}

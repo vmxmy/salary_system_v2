@@ -1,0 +1,27 @@
+{
+  "actions": {
+    "viewDetails": "View Details"
+  },
+  "column": {
+    "actions": "Actions",
+    "employeeName": "Employee Name",
+    "netPay": "Net Pay",
+    "paymentDate": "Payment Date",
+    "payrollPeriod": "Payroll Period",
+    "runDate": "Run Date",
+    "status": "Status"
+  },
+  "fetchError": "Failed to fetch payslips. Please try again later.",
+  "noEmployeeIdError": "Employee ID not found. Cannot fetch payslips.",
+  "pagination": {
+    "show_total_text": "Showing {range0}-{range1} of {total} items"
+  },
+  "periodIdPrefix": "Period ID: ",
+  "status": {
+    "draft": "Draft",
+    "finalized": "Finalized",
+    "paid": "Paid",
+    "pendingPayment": "Pending Payment"
+  },
+  "title": "My Payslips"
+}

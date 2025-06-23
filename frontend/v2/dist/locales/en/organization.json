@@ -1,0 +1,32 @@
+{
+  "actual_position_management": {
+    "form": {
+      "field": {
+        "code": "Position Code",
+        "description": "Description",
+        "is_active": "Is Active",
+        "name": "Position Name"
+      },
+      "validation": {
+        "name_required": "Position name is required"
+      }
+    },
+    "modal": {
+      "create_title": "New Position",
+      "edit_title": "Edit Position"
+    }
+  },
+  "position": {
+    "button": {
+      "add": "Add Position"
+    },
+    "form": {
+      "effective_date": "Effective Date",
+      "end_date": "End Date",
+      "validation": {
+        "effective_date_required": "Effective date is required"
+      }
+    },
+    "title": "Position Management"
+  }
+}

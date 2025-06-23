@@ -1,0 +1,22 @@
+{
+  "description_lines_placeholder": "",
+  "field": {
+    "category": "Category",
+    "createdAt": "Created At",
+    "lastUsedAt": "Last Used At",
+    "usageCount": "Usage Count"
+  },
+  "report_description_content_placeholder": "",
+  "report_description_lines": "",
+  "report_title": "",
+  "report_title_placeholder": "",
+  "status_draft_message": "Report is in draft status. Data cannot be displayed.",
+  "status_error_message": "SQL execution failed. Data cannot be displayed.",
+  "unknown_status_message": "Report view status is abnormal. Data cannot be displayed.",
+  " Export Excel": "Export Excel",
+  " Export Success": "Export Success",
+  "title": "Title",
+  "list": {
+    "create_button": "Create"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "button": {
+    "add_child_department_tooltip": "Add Child Department",
+    "create_top_level_department": ""
+  },
+  "message": {
+    "create_success": "Department created successfully",
+    "delete_success": "Department deleted successfully",
+    "error": {
+      "delete_in_use_or_has_children": "Department may be in use or has child departments",
+      "unknown": "Unknown error"
+    },
+    "fetch_all_flat_error": "Failed to get all department list (for selector)",
+    "fetch_list_error": "Failed to get department list",
+    "update_success": "Department updated successfully"
+  },
+  "modal": {
+    "department_form": {
+      "label": {
+        "code": "Department Code",
+        "description": "Description",
+        "effective_date": "Effective Date",
+        "end_date": "End Date",
+        "is_active": "Is Active",
+        "manager": "",
+        "name": "Department Name",
+        "parent_department": "Parent Department"
+      },
+      "placeholder": {
+        "manager": "",
+        "parent_department": "Select parent department (leave blank for root department)"
+      },
+      "title": {
+        "create": "Create Department",
+        "edit": "Edit Department"
+      },
+      "validation": {
+        "code_required": "Please enter department code!",
+        "effective_date_required": "Please select effective date!",
+        "name_required": "Please enter department name!"
+      }
+    }
+  },
+  "pagination": {
+    "total": ""
+  },
+  "popconfirm": {
+    "delete": {
+      "cancel_text": "No",
+      "description": "Deleting a department will also delete all its child departments and may affect associated employees.",
+      "ok_text": "Yes",
+      "title": "Are you sure you want to delete this department?"
+    }
+  },
+  "table": {
+    "column": {
+      "actions": "Actions",
+      "code": "Department Code",
+      "effective_date": "Effective Date",
+      "id": "ID",
+      "is_active": "Active",
+      "name": "Department Name",
+      "parent_department_id": "Parent Department ID",
+      "value_na_or_dash": "-"
+    },
+    "filter": {
+      "active": "",
+      "inactive": ""
+    }
+  },
+  "title": "Department Management",
+  "tooltip": {
+    "delete_department": "Delete Department",
+    "edit_department": "Edit Department"
+  }
+}

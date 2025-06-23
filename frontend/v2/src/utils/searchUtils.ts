@@ -27,7 +27,9 @@ export enum SearchMode {
   FUZZY = 'fuzzy',
   EXACT = 'exact',
   RANGE = 'range',
-  AUTO = 'auto'
+  AUTO = 'auto',
+  REGEX = 'regex',
+  SMART = 'smart'
 }
 
 // 默认配置

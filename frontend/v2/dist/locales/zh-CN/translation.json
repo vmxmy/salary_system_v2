@@ -1,0 +1,50 @@
+{
+  "employee": {
+    "employee_id_format": "员工ID格式"
+  },
+
+  "payroll": {
+    "status": {
+      "payroll_entry_status": {
+        "draft": "草稿"
+      }
+    },
+    "runs_page": {
+      "form": {
+        "placeholder": {
+          "payroll_period": "请选择薪资周期"
+        }
+      }
+    }
+  },
+  "report": {
+    "report_title": "报表标题",
+    "report_description_content_placeholder": "请输入报表描述"
+  },
+  "admin": {
+    "auto_text_e4bba3": "类型",
+    "auto_text_e5908d": "名称",
+    "auto_text_e698be": "显示名称",
+    "auto_text_e580bc": "值",
+    "auto_text_e68f8f": "描述",
+    "auto_text_e68e92": "排序",
+    "auto_text_e78ab6": "状态",
+    "auto_text_e6938d": "操作",
+    "auto_text_e696b0": "新建",
+    "auto_text_e7bc96": "编辑",
+    "auto_text_e7a1ae": "确定",
+    "auto_text_e58f96": "取消",
+    "auto_text_e588a0": "删除",
+    "auto_text_e8818c": "职务",
+    "auto_text_e99d9e": "非活跃",
+    "auto_text_e6b4bb": "活跃",
+    "auto_text_e8afb7": "请输入",
+    "auto__first_level_researcher_e4be8b": "一级调研员 (示例)",
+    "auto___e4be8b": "(示例)",
+    "auto_text_e689b9": "批量",
+    "auto____e7a1ae": "确认",
+    "auto_excel_e5afbc": "导出Excel",
+    "auto_text_e794a8": "用户",
+    "reportConfig": "报表管理"
+  }
+}

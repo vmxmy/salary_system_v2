@@ -4,11 +4,12 @@ import type { AppRouteObject } from '../../router/routes'; // Corrected: AppRout
 // 不要在模块级别导入 i18n 并直接调用 t() 函数
 // import i18n from '../../i18n'; // Import i18n instance
 
-// 使用动态导入替代静态导入，避免与路由中的动态导入冲突
-const EmployeeListPage = React.lazy(() => import('./employees/EmployeeListPage'));
-const CreateEmployeePage = React.lazy(() => import('./employees/CreateEmployeePage'));
-const EditEmployeePage = React.lazy(() => import('./employees/EditEmployeePage'));
-const EmployeeDetailPage = React.lazy(() => import('./employees/EmployeeDetailPage'));
+// 使用现代化版本的员工列表页面
+const EmployeeListPage = React.lazy(() => import('./employees/EmployeeListPageModern'));
+const EmployeeListPageUniversal = React.lazy(() => import('./employees/EmployeeListPageUniversal'));
+const CreateEmployeePage = React.lazy(() => import('./employees/CreateEmployeePageModern'));
+const EditEmployeePage = React.lazy(() => import('./employees/EditEmployeePageModern'));
+const EmployeeDetailPage = React.lazy(() => import('./employees/EmployeeDetailPageModern'));
 
 // Placeholders for page components - will be replaced with actual imports later
 const CreateEmployeePagePlaceholder = () => React.createElement('div', null, 'pageTitle:create_employee_placeholder');
@@ -27,6 +28,19 @@ export const hrManagementRoutes: AppRouteObject[] = [
     meta: {
       title: 'employee:list_page.page_title', // 使用静态翻译键
       requiredPermissions: ['employee:list'], // Changed from permission to requiredPermissions
+      hideInBreadcrumbIfParentOfNext: true,
+    },
+  },
+  {
+    path: 'employees/universal',
+    element: React.createElement(
+      React.Suspense,
+      { fallback: React.createElement('div', { className: 'page-loading-suspense' }, 'Loading Universal Employee List...') },
+      React.createElement(EmployeeListPageUniversal)
+    ),
+    meta: {
+      title: 'employee:universal_list_page.page_title', // 新版员工列表页面标题
+      requiredPermissions: ['employee:list'], // 相同的权限要求
       hideInBreadcrumbIfParentOfNext: true,
     },
   },

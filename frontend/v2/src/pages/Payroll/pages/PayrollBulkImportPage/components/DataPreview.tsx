@@ -551,7 +551,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
                 <Switch 
                   checked={importSettings.skipInvalidRecords}
                   onChange={(checked) => onSettingsChange({...importSettings, skipInvalidRecords: checked})}
-                /> 跳过无效记录
+                /> {t('dataPreview.settingsCard.skipInvalidRecords.text')}
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -559,7 +559,7 @@ const DataPreview: React.FC<DataPreviewProps> = ({
                 <Switch 
                   checked={importSettings.sendNotification}
                   onChange={(checked) => onSettingsChange({...importSettings, sendNotification: checked})}
-                /> 发送完成通知
+                /> {t('dataPreview.settingsCard.sendNotification.text')}
               </Form.Item>
             </Col>
           </Row>
@@ -601,14 +601,14 @@ const DataPreview: React.FC<DataPreviewProps> = ({
                   {progress.message}
                 </div>
                 <div style={{ fontSize: '12px', color: '#999' }}>
-                  {progress.stage === 'validating' && '正在验证数据完整性和员工信息...'}
-                  {progress.stage === 'importing' && '正在写入数据库，请耐心等待...'}
-                  {progress.stage === 'completed' && '处理完成！'}
-                  {!progress.stage && '准备中...'}
+                  {progress.stage === 'validating' && t('dataPreview.progress.validating')}
+                  {progress.stage === 'importing' && t('dataPreview.progress.importing')}
+                  {progress.stage === 'completed' && t('dataPreview.progress.completed')}
+                  {!progress.stage && t('dataPreview.progress.preparing')}
                 </div>
                 {progress.total > 100 && (
                   <div style={{ fontSize: '11px', color: '#ccc', marginTop: 4 }}>
-                    大批量数据处理可能需要几分钟时间
+                    {t('dataPreview.progress.large_batch_hint')}
                   </div>
                 )}
               </div>

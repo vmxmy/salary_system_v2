@@ -1,0 +1,67 @@
+{
+  "batch_delete_button_other": "批量删除 ({count} 项)",
+  "batch_delete_confirm_content_other": "您确定要删除选中的 {count} 个角色吗？此操作不可撤销。",
+  "batch_delete_confirm_title": "确认批量删除",
+  "batch_delete_failed": "批量删除失败",
+  "batch_delete_success_other": "成功删除 {count} 个角色",
+  "export_filename_prefix": "角色",
+  "export_sheet_name": "角色",
+  "export_excel": "导出Excel",
+  "export_success": "导出成功",
+  "message": {
+    "create_role_error": "创建角色失败",
+    "create_role_error_name_code_required": "角色名称和代码是必填项。",
+    "create_role_success": "角色创建成功",
+    "delete_role_error": "删除角色失败",
+    "delete_role_success": "角色删除成功",
+    "fetch_permissions_error": "加载权限列表失败",
+    "fetch_roles_error": "加载角色列表失败",
+    "update_role_error": "更新角色失败",
+    "update_role_success": "角色更新成功"
+  },
+  "modal": {
+    "confirm_delete": {
+      "cancel_text": "取消",
+      "content": "确定要删除角色 \"{roleName}\"? 此操作不可撤销。",
+      "ok_text": "删除",
+      "title": "确认删除"
+    },
+    "role_form": {
+      "label": {
+        "code": "角色代码",
+        "name": "角色名称",
+        "permissions": "分配权限"
+      },
+      "title": {
+        "create": "新建角色",
+        "edit": "编辑角色"
+      },
+      "validation": {
+        "code_required": "请输入角色代码!",
+        "name_required": "请输入角色名称!"
+      }
+    }
+  },
+  "page_title": "角色管理",
+  "table": {
+    "column": {
+      "actions": "操作",
+      "code": "角色代码",
+      "id": "ID",
+      "name": "角色名称",
+      "permissions": "权限"
+    }
+  },
+  "tooltip": {
+    "delete_role": "删除角色",
+    "edit_role": "编辑角色"
+  },
+  "title": "角色管理",
+  "button": {
+    "create_role": "创建角色"
+  },
+  "export": {
+    "button_text": "导出Excel",
+    "success_message": "导出成功"
+  }
+}

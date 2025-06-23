@@ -67,7 +67,7 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
   // 如果没有提供tooltipTitle，根据actionType生成默认提示
   const { t } = useTranslation(['common', 'components']);
 
-  const defaultTooltip: Record<TableActionButtonProps['actionType'], string> = {
+  const defaultTooltip: Record<NonNullable<TableActionButtonProps['actionType']>, string> = {
     edit: 'common:edit',
     delete: 'common:delete',
     add: 'common:add',
@@ -80,7 +80,7 @@ const TableActionButton: React.FC<TableActionButtonProps> = ({
     calculate: 'common:calculate', // Added default tooltip for calculate
   };
   
-  const finalTooltipTitle = tooltipTitle || t(defaultTooltip[actionType]);
+  const finalTooltipTitle = tooltipTitle || (actionType ? t(defaultTooltip[actionType]) : '');
   
   // 如果是删除按钮，自动添加danger属性
   const isDanger = actionType === 'delete';

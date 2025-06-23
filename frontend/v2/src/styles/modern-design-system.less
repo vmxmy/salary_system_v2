@@ -7,7 +7,7 @@
 // =============================================================================
 // 📝 导入字体系统 (Typography Import)
 // =============================================================================
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700;800&display=swap');
 
 // =============================================================================
 // 🌈 色彩系统 (Color System)
@@ -39,26 +39,39 @@
 
 // 功能色 - 语义化状态色
 @success-50: #ecfdf5;
+@success-200: #a7f3d0;
+@success-400: #34d399;
 @success-500: #10b981;
 @success-600: #059669;
+@success-700: #047857;
 
 @warning-50: #fffbeb;
+@warning-400: #fbbf24;
 @warning-500: #f59e0b;
 @warning-600: #d97706;
+@warning-700: #b45309;
 
 @error-50: #fef2f2;
+@error-200: #fecaca;
+@error-400: #f87171;
 @error-500: #ef4444;
 @error-600: #dc2626;
+@error-700: #b91c1c;
 
 @info-50: #eff6ff;
+@info-400: #60a5fa;
 @info-500: #3b82f6;
 @info-600: #2563eb;
+@info-700: #1d4ed8;
 
 // 背景色系统
 @bg-primary: #ffffff;
 @bg-secondary: #f9fafb;
 @bg-tertiary: #f3f4f6;
 @bg-accent: #eff6ff;
+
+// 组件专用变量
+@menu-item-active-bg: #eff6ff;
 
 // 文字色系统
 @text-primary: #111827;
@@ -79,7 +92,7 @@
 // =============================================================================
 
 // 字体族定义
-@font-family-primary: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+@font-family-primary: 'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif;
 @font-family-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
 // 字体大小系统 (基于1.25倍比率)
@@ -677,6 +690,68 @@
   
   .ant-pro-card-body {
     padding: @space-6 !important;
+  }
+}
+
+// 现代化Tabs样式
+.ant-tabs {
+  &.modern-tabs {
+    .ant-tabs-nav {
+      margin-bottom: @space-6 !important;
+      
+      .ant-tabs-nav-wrap {
+        .ant-tabs-nav-list {
+          .ant-tabs-tab {
+            padding: @space-3 @space-4 !important;
+            margin-right: @space-2 !important;
+            border-radius: @radius-md @radius-md 0 0 !important;
+            border: 1px solid @border-default !important;
+            background: @bg-secondary !important;
+            transition: all @duration-base @ease-out !important;
+            
+            .ant-tabs-tab-btn {
+              font-weight: @font-weight-medium !important;
+              color: @text-secondary !important;
+              font-size: @font-size-sm !important;
+            }
+            
+            &:hover {
+              background: @bg-primary !important;
+              border-color: @primary-300 !important;
+              
+              .ant-tabs-tab-btn {
+                color: @primary-600 !important;
+              }
+            }
+            
+            &.ant-tabs-tab-active {
+              background: @bg-primary !important;
+              border-color: @primary-500 !important;
+              border-bottom-color: @bg-primary !important;
+              
+              .ant-tabs-tab-btn {
+                color: @primary-600 !important;
+                font-weight: @font-weight-semibold !important;
+              }
+            }
+          }
+        }
+        
+        .ant-tabs-ink-bar {
+          background: @primary-500 !important;
+          height: 3px !important;
+          border-radius: @radius-full !important;
+        }
+      }
+    }
+    
+    .ant-tabs-content-holder {
+      .ant-tabs-content {
+        .ant-tabs-tabpane {
+          padding: @space-4 0 !important;
+        }
+      }
+    }
   }
 }
 

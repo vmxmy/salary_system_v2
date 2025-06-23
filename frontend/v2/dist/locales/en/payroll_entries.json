@@ -1,0 +1,9 @@
+{
+  "confirm_delete_title": "Confirm Delete",
+  "delete_failure": "Failed to delete payroll entry",
+  "delete_success": "Payroll entry deleted successfully",
+  "export_button_text": "Export Excel",
+  "export_filename_prefix": "PayrollEntries",
+  "export_sheet_name": "Payroll Entries",
+  "export_success_message": "Payroll entries exported successfully"
+}

@@ -124,23 +124,6 @@ export const routes: AppRouteObject[] = [
           { path: 'permissions', element: <PermissionListPageV2 />, meta: { title: 'menu:admin.permissions', requiredPermissions: ['permission:list'] } },
           { path: 'config', element: <ConfigPage />, meta: { title: 'menu:admin.systemSettings', requiredPermissions: ['config:view'] } },
           {
-            path: 'report-config',
-            element: <Outlet />,
-            meta: { title: 'menu:admin.reportConfig', requiredPermissions: ['report:manage'], hideInBreadcrumbIfParentOfNext: true },
-            children: [
-              {
-                index: true,
-                element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Report Config...</div>}>{React.createElement(lazy(() => import('../pages/Admin/Configuration/ReportConfigManagement')))}</React.Suspense>,
-                meta: { title: 'menu:admin.reportConfig' } // Keep parent title
-              },
-              {
-                path: ':dataSourceId',
-                element: <React.Suspense fallback={<div className="page-loading-suspense">Loading Data Source Details...</div>}>{React.createElement(lazy(() => import('../pages/Admin/DataSources/DataSourceDetailPage')))}</React.Suspense>,
-                meta: { title: 'menu:admin.dataSourceDetail' } // Example title, adjust as needed
-              }
-            ]
-          },
-          {
             path: 'organization',
             element: <Outlet />,
             meta: { title: 'menu:organization.title', requiredPermissions: ['department:list'] },

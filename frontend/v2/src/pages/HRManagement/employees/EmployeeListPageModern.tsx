@@ -81,7 +81,6 @@ const EmployeeListPageModern: React.FC = () => {
   const { lookupMaps, loading: lookupLoading } = useLookupMaps();
   const { permissions } = useEmployeePermissions();
   const { searchProps } = useTableSearch(['full_name', 'employee_code', 'department_name', 'position_name']);
-  const { exportToExcel } = useTableExport();
 
   // 获取员工数据
   const fetchEmployees = useCallback(async () => {
@@ -91,19 +90,22 @@ const EmployeeListPageModern: React.FC = () => {
       const query: EmployeeBasicQuery = {
         page: pagination.current || 1,
         size: pagination.pageSize || 10,
-        sort_by: sorter.field,
-        sort_order: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
+        sortBy: sorter.field,
+        sortOrder: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
         ...filters,
       };
 
-      const response = await employeeService.getEmployeeBasics(query);
+      // 使用专门的视图接口获取基本员工信息
+      const employees = await employeeService.getEmployeesFromView(query);
       
-      setEmployees(response.data || []);
+      setEmployees(employees || []);
+      // 注意：getEmployeesFromView 返回的是数组，可能需要单独获取分页信息
+      // 这里暂时设置一个大的总数，实际应该从API获取准确的分页信息
       setPagination(prev => ({
         ...prev,
-        total: response.total || 0,
-        current: response.page || 1,
-        pageSize: response.size || 10,
+        total: employees?.length || 0,
+        current: pagination.current || 1,
+        pageSize: pagination.pageSize || 10,
       }));
     } catch (error) {
       console.error('Failed to fetch employees:', error);
@@ -130,7 +132,7 @@ const EmployeeListPageModern: React.FC = () => {
     setPagination(newPagination);
     setSorter({
       field: primarySorter?.field as string,
-      order: primarySorter?.order,
+      order: primarySorter?.order === null ? undefined : primarySorter?.order,
     });
   }, []);
 
@@ -149,25 +151,14 @@ const EmployeeListPageModern: React.FC = () => {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  // 导出数据
-  const handleExport = useCallback(async () => {
-    try {
-      const allEmployees = await employeeService.getEmployeeBasics({ size: 10000 });
-      exportToExcel(allEmployees.data || [], 'employees');
-      message.success(t('common:exportSuccess'));
-    } catch (error) {
-      console.error('Export failed:', error);
-      message.error(t('common:exportError'));
-    }
-  }, [exportToExcel, t]);
 
   // 员工操作
   const handleView = useCallback((record: EmployeeBasic) => {
-    navigate(`/hr/employees/${record.employee_id}`);
+    navigate(`/hr/employees/${record.id}`);
   }, [navigate]);
 
   const handleEdit = useCallback((record: EmployeeBasic) => {
-    navigate(`/hr/employees/${record.employee_id}/edit`);
+    navigate(`/hr/employees/${record.id}/edit`);
   }, [navigate]);
 
   const handleDelete = useCallback(async (record: EmployeeBasic) => {
@@ -179,7 +170,7 @@ const EmployeeListPageModern: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          await employeeService.deleteEmployee(record.employee_id);
+          await employeeService.deleteEmployee(record.id.toString());
           message.success(t('employee:deleteSuccess'));
           fetchEmployees();
         } catch (error) {
@@ -199,7 +190,7 @@ const EmployeeListPageModern: React.FC = () => {
       width: 120,
       sorter: true,
       ...searchProps,
-      render: (text: string) => (
+      render: (text: string | React.ReactNode) => (
         <span className="typography-caption-strong">
           {text}
         </span>
@@ -212,13 +203,13 @@ const EmployeeListPageModern: React.FC = () => {
       width: 150,
       sorter: true,
       ...searchProps,
-      render: (text: string, record: EmployeeBasic) => (
+      render: (text: string | React.ReactNode, record: EmployeeBasic) => (
         <Space>
           <UserOutlined className="text-accent" />
           <Highlighter
             highlightClassName="bg-yellow-200"
             searchWords={[searchText]}
-            textToHighlight={text || ''}
+            textToHighlight={String(text || '')}
             className="typography-body font-medium"
           />
         </Space>
@@ -231,7 +222,7 @@ const EmployeeListPageModern: React.FC = () => {
       width: 150,
       sorter: true,
       ...searchProps,
-      render: (text: string) => (
+      render: (text: string | React.ReactNode) => (
         <Space>
           <TeamOutlined className="text-accent" />
           <span className="typography-body">{text}</span>
@@ -245,7 +236,7 @@ const EmployeeListPageModern: React.FC = () => {
       width: 150,
       sorter: true,
       ...searchProps,
-      render: (text: string) => (
+      render: (text: string | React.ReactNode) => (
         <span className="typography-body">{text}</span>
       ),
     },
@@ -255,7 +246,7 @@ const EmployeeListPageModern: React.FC = () => {
       key: 'employee_status',
       width: 100,
       sorter: true,
-      render: (status: string) => {
+      render: (status: string | React.ReactNode) => {
         const statusConfig = {
           '在职': { color: 'success', text: t('employee:statusActive') },
           '离职': { color: 'error', text: t('employee:statusInactive') },
@@ -273,7 +264,7 @@ const EmployeeListPageModern: React.FC = () => {
       },
     },
     {
-      title: t('common:actions'),
+      title: t('common:column.actions'),
       key: 'actions',
       width: 160,
       fixed: 'right',
@@ -287,7 +278,7 @@ const EmployeeListPageModern: React.FC = () => {
             size="small"
             className="modern-button variant-ghost size-sm"
           />
-          {permissions.canEdit && (
+          {permissions.canUpdate && (
             <TableActionButton
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
@@ -311,6 +302,20 @@ const EmployeeListPageModern: React.FC = () => {
     },
   ];
 
+  // Table export hook
+  const { exportToExcel } = useTableExport(employees, columns as any);
+
+  // 导出数据
+  const handleExport = useCallback(async () => {
+    try {
+      await exportToExcel();
+      message.success(t('common:exportSuccess'));
+    } catch (error) {
+      console.error('Export failed:', error);
+      message.error(t('common:exportError'));
+    }
+  }, [exportToExcel, t]);
+
   // 页面头部额外内容
   const headerExtra = (
     <Space>
@@ -327,7 +332,7 @@ const EmployeeListPageModern: React.FC = () => {
         onClick={handleExport}
         className="modern-button variant-secondary"
       >
-        {t('common:export')}
+        {t('common:export.export')}
       </Button>
       {permissions.canCreate && (
         <Button
@@ -361,7 +366,7 @@ const EmployeeListPageModern: React.FC = () => {
       <ModernCard
         title={t('common:searchAndFilter')}
         icon={<SearchOutlined />}
-        variant="compact"
+        variant="outlined"
         className="mb-6"
       >
         <Row gutter={[16, 16]}>
@@ -382,10 +387,10 @@ const EmployeeListPageModern: React.FC = () => {
             <Select
               placeholder={t('employee:selectDepartment')}
               allowClear
-              options={lookupMaps.departments?.map(dept => ({
+              options={lookupMaps?.departmentMap ? Object.values(lookupMaps.departmentMap).map((dept: any) => ({
                 label: dept.name,
                 value: dept.id,
-              }))}
+              })) : []}
               onChange={(value) => {
                 setFilters(prev => ({
                   ...prev,
