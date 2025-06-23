@@ -1,0 +1,13 @@
+{
+  "models": {
+    "main": "claude-3-5-sonnet-20241022",
+    "research": "perplexity-llama-3.1-sonar-large-128k-online",
+    "fallback": "gpt-4o-mini"
+  },
+  "features": {
+    "research": true,
+    "expansion": true,
+    "complexity_analysis": true
+  }
+}
+EOF < /dev/null

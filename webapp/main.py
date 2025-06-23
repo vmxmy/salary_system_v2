@@ -111,6 +111,10 @@ from webapp.v2.routers import security_router as v2_security_router
 from webapp.v2.routers.auth import router as v2_auth_router
 from webapp.v2.routers.reports import router as v2_reports_router
 from webapp.v2.routers import calculation_config_router as v2_calculation_config_router
+# Import new V2 system routers
+from webapp.v2.routers.system import router as v2_system_router
+from webapp.v2.routers.debug import router as v2_debug_router  
+from webapp.v2.routers.utilities import router as v2_utilities_router
 # from webapp.v2.routers import payroll_calculation_router as v2_payroll_calculation_router  # 已删除复杂计算引擎
 from webapp.v2.routers import attendance_router as v2_attendance_router
 from webapp.v2.routers.table_config import router as v2_table_config_router
@@ -219,40 +223,12 @@ else:
 # --- DELETE get_units, update_unit, update_department ---
 # (These functions are likely unused placeholders or old code)
 
-# --- Endpoints start here ---
-
-@app.get("/")
-async def read_root():
-    """Root endpoint providing a welcome message."""
-    return {"message": "Welcome to the Salary Information Management System API"}
-
-@app.get("/health", tags=["System"])
-async def health_check():
-    """健康检查端点，用于Docker容器的健康检查"""
-    try:
-        # 简单的数据库连接检查
-        from sqlalchemy import text
-        from webapp.database import engine
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-        
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "database": "connected",
-            "version": settings.API_VERSION
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={
-                "status": "unhealthy",
-                "timestamp": datetime.now().isoformat(),
-                "error": str(e),
-                "version": settings.API_VERSION
-            }
-        )
+# --- V1 Endpoints have been migrated to V2 ---
+# Original endpoints moved to:
+# GET /          -> GET /v2/system/info  
+# GET /health    -> GET /v2/system/health
+# GET /converter -> GET /v2/utilities/converter
+# GET /api/debug/field-config/{key} -> GET /v2/debug/field-config/{key}
 
 # --- 以下端点已移至salary_data.py路由器 ---
 # @app.get("/api/salary_data/pay_periods", response_model=PayPeriodsResponse)
@@ -263,24 +239,8 @@ async def health_check():
 # @app.get("/api/units", response_model=List[str])
 # @app.get("/api/departments-list", response_model=List[DepartmentInfo])
 
-# --- Serve HTML Frontend --- # New Section
-
-@app.get("/converter", response_class=HTMLResponse)
-async def get_converter_page():
-    """Serves the Excel to CSV converter HTML page."""
-    html_file_path = os.path.join(os.path.dirname(__file__), "converter.html")
-    if not os.path.exists(html_file_path):
-        # Log this error
-        logger.error(f"Frontend HTML file not found at: {html_file_path}") # Changed to logger.error
-        raise HTTPException(status_code=404, detail="Converter page not found.")
-    try:
-        with open(html_file_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
-        return HTMLResponse(content=html_content)
-    except Exception as e:
-        # 修复print参数错误
-        logger.error(f"Error reading HTML file {html_file_path}: {e}") # Changed to logger.error
-        raise HTTPException(status_code=500, detail="Could not load converter page.")
+# --- HTML Frontend Endpoints Migrated to V2 ---
+# GET /converter -> GET /v2/utilities/converter
 
 # --- File Conversion Endpoint --- # New Section
 
@@ -306,52 +266,8 @@ if __name__ == "__main__":
     logger.info(f"Starting Uvicorn server on http://{host}:{port} with reload={reload_uvicorn}...")
     uvicorn.run("webapp.main:app", host=host, port=port, reload=reload_uvicorn)
 
-# === NEW DEBUGGING ENDPOINT ===
-@app.get("/api/debug/field-config/{employee_type_key}",
-         response_model=List[Dict[str, Any]], # Return a list of row dictionaries
-         tags=["Debugging"],
-         summary="Fetch raw field config from DB for a type key")
-async def debug_get_field_config(
-    employee_type_key: str,
-    db: Session = Depends(get_db)
-):
-    """Debug endpoint to directly query the field configuration for a given employee type key."""
-    # Corrected query to use field_db_name and core schema
-    query = text("""
-        SELECT
-            etfr.employee_type_key,
-            etfr.field_db_name,
-            etfr.is_required,
-            sfm.source_name,
-            sfm.target_name
-        FROM core.employee_type_field_rules etfr
-        JOIN core.salary_field_mappings sfm ON etfr.field_db_name = sfm.target_name
-        WHERE etfr.employee_type_key = :employee_type_key;
-    """ )
-    params = {"employee_type_key": employee_type_key}
-    logger.info(f"[DEBUG] Executing query for field config of type: {employee_type_key}")
-    try:
-        result = db.execute(query, params)
-        rows = result.mappings().all()
-        logger.info(f"[DEBUG] Found {len(rows)} config rows for type '{employee_type_key}'.")
-        if not rows:
-            # Return empty list if no rows found
-            return []
-        # Convert RowMapping objects to plain dicts for the response
-        # Pydantic should handle this with response_model, but being explicit is safe
-        return [dict(row) for row in rows]
-    except SQLAlchemyError as e:
-        logger.error(f"[DEBUG] Database error fetching field config for '{employee_type_key}': {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error querying field config for {employee_type_key}: {e}"
-        )
-    except Exception as e:
-        logger.error(f"[DEBUG] Unexpected error fetching field config for '{employee_type_key}': {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error querying field config for {employee_type_key}: {e}"
-        )
+# === DEBUG ENDPOINTS MIGRATED TO V2 ===
+# GET /api/debug/field-config/{employee_type_key} -> GET /v2/debug/field-config/{employee_type_key}
 
 # 注册路由 - 清理旧的注册，并使用新的方式
 
@@ -376,17 +292,17 @@ app.include_router(
 )
 app.include_router(
     v2_employees_router,
-    prefix=settings.API_V2_PREFIX,
+    prefix=f"{settings.API_V2_PREFIX}/employees",
     tags=["Employees"]
 )
 app.include_router(
     v2_departments_router,
-    prefix=settings.API_V2_PREFIX,
+    prefix=f"{settings.API_V2_PREFIX}/departments",
     tags=["Departments"]
 )
 app.include_router(
     v2_personnel_categories_router,
-    prefix=settings.API_V2_PREFIX,
+    prefix=f"{settings.API_V2_PREFIX}/personnel-categories",
     tags=["Personnel Categories"]
 )
 app.include_router(
@@ -428,7 +344,7 @@ app.include_router(
 # Include the new positions router
 app.include_router(
     v2_positions_router,
-    prefix=settings.API_V2_PREFIX,
+    prefix=f"{settings.API_V2_PREFIX}/positions",
     tags=["Positions V2"]
 )
 
@@ -521,6 +437,25 @@ app.include_router(
     v2_debug_fast_router,
     prefix=settings.API_V2_PREFIX,
     tags=["调试性能接口"]
+)
+
+# Include the new V2 system management routers
+app.include_router(
+    v2_system_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["System Management"]
+)
+
+app.include_router(
+    v2_debug_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Debug Tools"]
+)
+
+app.include_router(
+    v2_utilities_router,
+    prefix=settings.API_V2_PREFIX,
+    tags=["Utilities"]
 )
 
 # --- Removed API Routers with /api/v1 prefix ---

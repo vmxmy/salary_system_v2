@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, message, Modal, Space, Tooltip, Input, Select, Row, Col } from 'antd';
+import { Button, message, Modal, Space, Input, Select, Row, Col } from 'antd';
 import { 
   PlusOutlined, 
   DownloadOutlined, 
@@ -20,15 +20,15 @@ import ModernCard from '../../../components/common/ModernCard';
 import OrganizationManagementTableTemplate from '../../../components/common/OrganizationManagementTableTemplate';
 
 import type { SorterResult } from 'antd/es/table/interface';
-import type { TablePaginationConfig, FilterValue, TableCurrentDataSource } from 'antd/es/table/interface';
+import type { TablePaginationConfig, FilterValue } from 'antd/es/table/interface';
 import type { ProColumns } from '@ant-design/pro-components';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import { employeeService } from '../../../services/employeeService';
-import { stringSorter, numberSorter, dateSorter, useTableSearch, useTableExport } from '../../../components/common/TableUtils';
-import type { Dayjs } from 'dayjs';
+import { useTableSearch, useTableExport } from '../../../components/common/TableUtils';
 import Highlighter from 'react-highlight-words';
 import TableActionButton from '../../../components/common/TableActionButton';
 import { useEmployeePermissions } from '../../../hooks/useEmployeePermissions';
+import { useRenderCount } from '../../../hooks/useRenderCount';
 
 // Import types for view-based employee fetching
 import type { 
@@ -81,44 +81,100 @@ const EmployeeListPageModern: React.FC = () => {
   const { lookupMaps, loading: lookupLoading } = useLookupMaps();
   const { permissions } = useEmployeePermissions();
   const { searchProps } = useTableSearch(['full_name', 'employee_code', 'department_name', 'position_name']);
+  
+  // 渲染监控 - 检测无限循环
+  const { renderCount, isExcessive } = useRenderCount({
+    componentName: 'EmployeeListPageModern',
+    warningThreshold: 5,
+    enableLogging: true,
+  });
 
-  // 获取员工数据
-  const fetchEmployees = useCallback(async () => {
+  // 如果检测到过度渲染，记录详细信息
+  if (isExcessive) {
+    console.warn(`🔄 EmployeeListPageModern 渲染次数异常: ${renderCount}次`);
+  }
+
+  // 获取员工数据 - 移除循环依赖
+  const fetchEmployees = useCallback(async (queryParams?: Partial<EmployeeBasicQuery>) => {
     try {
       setLoading(true);
       
       const query: EmployeeBasicQuery = {
-        page: pagination.current || 1,
-        size: pagination.pageSize || 10,
-        sortBy: sorter.field,
-        sortOrder: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
+        page: queryParams?.page || pagination.current || 1,
+        size: queryParams?.size || pagination.pageSize || 10,
+        sortBy: queryParams?.sortBy || sorter.field,
+        sortOrder: queryParams?.sortOrder || (sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined),
         ...filters,
+        ...queryParams,
       };
 
       // 使用专门的视图接口获取基本员工信息
       const employees = await employeeService.getEmployeesFromView(query);
       
       setEmployees(employees || []);
-      // 注意：getEmployeesFromView 返回的是数组，可能需要单独获取分页信息
-      // 这里暂时设置一个大的总数，实际应该从API获取准确的分页信息
-      setPagination(prev => ({
-        ...prev,
+      // 返回数据而不是直接更新分页状态，避免循环依赖
+      return {
+        data: employees || [],
         total: employees?.length || 0,
-        current: pagination.current || 1,
-        pageSize: pagination.pageSize || 10,
-      }));
+        page: query.page,
+        size: query.size,
+      };
     } catch (error) {
       console.error('Failed to fetch employees:', error);
       message.error(t('common:fetchError'));
+      return {
+        data: [],
+        total: 0,
+        page: pagination.current || 1,
+        size: pagination.pageSize || 10,
+      };
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, sorter, filters, t]);
+  }, [t, sorter.field, sorter.order, filters]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 有意省略pagination依赖避免循环，通过参数传递动态值
 
-  // 初始化数据
+  // 初始化数据加载
   useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
+    const loadInitialData = async () => {
+      const result = await fetchEmployees();
+      if (result) {
+        setPagination(prev => ({
+          ...prev,
+          total: result.total,
+          current: result.page,
+          pageSize: result.size,
+        }));
+      }
+    };
+    loadInitialData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // 只在组件挂载时执行一次，fetchEmployees稳定不会变化
+
+  // 监听查询参数变化，重新获取数据
+  useEffect(() => {
+    const loadDataWithParams = async () => {
+      const result = await fetchEmployees({
+        page: pagination.current,
+        size: pagination.pageSize,
+        sortBy: sorter.field,
+        sortOrder: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
+      });
+      if (result) {
+        // 只更新总数，保持当前页码和页面大小
+        setPagination(prev => ({
+          ...prev,
+          total: result.total,
+        }));
+      }
+    };
+
+    // 避免初始加载时重复执行
+    if (pagination.current !== 1 || pagination.pageSize !== 10 || sorter.field || Object.keys(filters).length > 0) {
+      loadDataWithParams();
+    }
+  }, [pagination.current, pagination.pageSize, sorter.field, sorter.order, filters, fetchEmployees]); // eslint-disable-line react-hooks/exhaustive-deps
+  // fetchEmployees依赖已优化，不会导致无限循环
 
   // 表格变化处理
   const handleTableChange = useCallback((
@@ -147,9 +203,21 @@ const EmployeeListPageModern: React.FC = () => {
   }, []);
 
   // 刷新数据
-  const handleRefresh = useCallback(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
+  const handleRefresh = useCallback(async () => {
+    const result = await fetchEmployees({
+      page: pagination.current,
+      size: pagination.pageSize,
+      sortBy: sorter.field,
+      sortOrder: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
+    });
+    if (result) {
+      setPagination(prev => ({
+        ...prev,
+        total: result.total,
+      }));
+    }
+  }, [fetchEmployees, pagination.current, pagination.pageSize, sorter.field, sorter.order]); // eslint-disable-line react-hooks/exhaustive-deps
+  // pagination对象引用稳定，不会导致无限循环
 
 
   // 员工操作
@@ -172,14 +240,27 @@ const EmployeeListPageModern: React.FC = () => {
         try {
           await employeeService.deleteEmployee(record.id.toString());
           message.success(t('employee:deleteSuccess'));
-          fetchEmployees();
+          // 刷新数据
+          const result = await fetchEmployees({
+            page: pagination.current,
+            size: pagination.pageSize,
+            sortBy: sorter.field,
+            sortOrder: sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined,
+          });
+          if (result) {
+            setPagination(prev => ({
+              ...prev,
+              total: result.total,
+            }));
+          }
         } catch (error) {
           console.error('Delete failed:', error);
           message.error(t('employee:deleteError'));
         }
       },
     });
-  }, [t, fetchEmployees]);
+  }, [t, fetchEmployees, pagination.current, pagination.pageSize, sorter.field, sorter.order]); // eslint-disable-line react-hooks/exhaustive-deps
+  // pagination对象引用稳定，依赖已优化
 
   // 表格列定义
   const columns: ProColumns<EmployeeBasic>[] = [
@@ -362,85 +443,88 @@ const EmployeeListPageModern: React.FC = () => {
       showBreadcrumb
       breadcrumbItems={breadcrumbItems}
     >
-      {/* 搜索和筛选区域 */}
-      <ModernCard
-        title={t('common:searchAndFilter')}
-        icon={<SearchOutlined />}
-        variant="outlined"
-        className="mb-6"
-      >
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input.Search
-              placeholder={t('employee:searchPlaceholder')}
-              allowClear
-              onSearch={handleSearch}
-              onChange={(e) => {
-                if (!e.target.value) {
-                  handleSearch('');
-                }
-              }}
-              className="w-full"
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Select
-              placeholder={t('employee:selectDepartment')}
-              allowClear
-              options={lookupMaps?.departmentMap ? Object.values(lookupMaps.departmentMap).map((dept: any) => ({
-                label: dept.name,
-                value: dept.id,
-              })) : []}
-              onChange={(value) => {
-                setFilters(prev => ({
-                  ...prev,
-                  department_name_contains: value || undefined,
-                }));
-                setPagination(prev => ({ ...prev, current: 1 }));
-              }}
-              className="w-full"
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Select
-              placeholder={t('employee:selectStatus')}
-              allowClear
-              options={[
-                { label: t('employee:statusActive'), value: '在职' },
-                { label: t('employee:statusInactive'), value: '离职' },
-                { label: t('employee:statusProbation'), value: '试用' },
-              ]}
-              onChange={(value) => {
-                setFilters(prev => ({
-                  ...prev,
-                  employee_status_equals: value || undefined,
-                }));
-                setPagination(prev => ({ ...prev, current: 1 }));
-              }}
-              className="w-full"
-            />
-          </Col>
-        </Row>
-      </ModernCard>
+      {/* 添加上边距，防止指标卡覆盖标题和按钮 */}
+      <div style={{ marginTop: '24px' }}>
+        {/* 搜索和筛选区域 */}
+        <ModernCard
+          title={t('common:searchAndFilter')}
+          icon={<SearchOutlined />}
+          variant="outlined"
+          className="mb-6"
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Input.Search
+                placeholder={t('employee:searchPlaceholder')}
+                allowClear
+                onSearch={handleSearch}
+                onChange={(e) => {
+                  if (!e.target.value) {
+                    handleSearch('');
+                  }
+                }}
+                className="w-full"
+              />
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Select
+                placeholder={t('employee:selectDepartment')}
+                allowClear
+                options={lookupMaps?.departmentMap ? Object.values(lookupMaps.departmentMap).map((dept: any) => ({
+                  label: dept.name,
+                  value: dept.id,
+                })) : []}
+                onChange={(value) => {
+                  setFilters(prev => ({
+                    ...prev,
+                    department_name_contains: value || undefined,
+                  }));
+                  setPagination(prev => ({ ...prev, current: 1 }));
+                }}
+                className="w-full"
+              />
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Select
+                placeholder={t('employee:selectStatus')}
+                allowClear
+                options={[
+                  { label: t('employee:statusActive'), value: '在职' },
+                  { label: t('employee:statusInactive'), value: '离职' },
+                  { label: t('employee:statusProbation'), value: '试用' },
+                ]}
+                onChange={(value) => {
+                  setFilters(prev => ({
+                    ...prev,
+                    employee_status_equals: value || undefined,
+                  }));
+                  setPagination(prev => ({ ...prev, current: 1 }));
+                }}
+                className="w-full"
+              />
+            </Col>
+          </Row>
+        </ModernCard>
 
-      {/* 数据表格 */}
-      <ModernCard>
-        <OrganizationManagementTableTemplate<EmployeeBasic>
-          columns={columns}
-          dataSource={employees}
-          loading={loading || lookupLoading}
-          pagination={pagination}
-          onChange={handleTableChange}
-          rowKey="employee_id"
-          rowSelection={{
-            selectedRowKeys,
-            onChange: setSelectedRowKeys,
-            preserveSelectedRowKeys: true,
-          }}
-          scroll={{ x: 1000 }}
-          size="small"
-        />
-      </ModernCard>
+        {/* 数据表格 */}
+        <ModernCard>
+          <OrganizationManagementTableTemplate<EmployeeBasic>
+            columns={columns}
+            dataSource={employees}
+            loading={loading || lookupLoading}
+            pagination={pagination}
+            onChange={handleTableChange}
+            rowKey="employee_id"
+            rowSelection={{
+              selectedRowKeys,
+              onChange: setSelectedRowKeys,
+              preserveSelectedRowKeys: true,
+            }}
+            scroll={{ x: 1000 }}
+            size="small"
+          />
+        </ModernCard>
+      </div>
     </ModernPageTemplate>
   );
 };

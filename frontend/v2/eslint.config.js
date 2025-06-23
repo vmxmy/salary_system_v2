@@ -63,6 +63,16 @@ export default tseslint.config(
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error', // 升级为error级别，强制检查依赖数组
       
+      // 额外的React规则来防止无限循环
+      'react/no-direct-mutation-state': 'error',
+      'react/no-did-update-set-state': 'error',
+      'react/no-will-update-set-state': 'error',
+      'react/void-dom-elements-no-children': 'error',
+      
+      // TypeScript规则帮助检测对象引用问题
+      '@typescript-eslint/prefer-readonly': 'warn',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error'
+      
       // Consider adding recommended rule sets later, e.g.:
       // ...tseslint.configs.recommended.rules, 
       // ...pluginReact.configs.recommended.rules, 

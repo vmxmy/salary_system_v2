@@ -5,8 +5,9 @@ import { AppstoreOutlined, PlusOutlined, DollarOutlined, ReloadOutlined, EyeOutl
 import { useTranslation } from 'react-i18next';
 import { simplePayrollApi } from '../services/simplePayrollApi';
 import PayrollEntryFormModal from '../../Payroll/components/PayrollEntryFormModal';
-import { employeeManagementApi } from '../../EmployeeManagement/services/employeeManagementApi';
-import type { CreateEmployeeData } from '../../EmployeeManagement/types';
+import { employeeService } from '../../../services/employeeService';
+import { lookupService } from '../../../services/lookupService';
+import type { CreateEmployeePayload } from '../../HRManagement/types';
 import styles from './QuickActions.module.css';
 
 const { Option } = Select;
@@ -45,12 +46,12 @@ const QuickEmployeeCreateModal: React.FC<{
           setLoading(true);
           try {
             const [departmentsData, personnelCategoriesData, positionsData, jobPositionLevelData, genderData, statusData] = await Promise.all([
-              employeeManagementApi.getDepartments(),
-              employeeManagementApi.getPersonnelCategories(),
-              employeeManagementApi.getPositions(),
-              employeeManagementApi.getLookupValues('JOB_POSITION_LEVEL'),
-              employeeManagementApi.getLookupValues('GENDER'),
-              employeeManagementApi.getLookupValues('EMPLOYEE_STATUS'),
+              employeeService.getDepartmentsLookup(),
+              employeeService.getPersonnelCategoriesLookup(),
+              lookupService.getPositionsLookup(),
+              employeeService.getLookupValues('JOB_POSITION_LEVEL'),
+              employeeService.getLookupValues('GENDER'),
+              employeeService.getLookupValues('EMPLOYEE_STATUS'),
             ]);
             setDepartments(departmentsData);
             setPersonnelCategories(personnelCategoriesData);
@@ -72,7 +73,7 @@ const QuickEmployeeCreateModal: React.FC<{
   // 处理部门变化，更新人员类别选项
   const handleDepartmentChange = async (departmentId: number) => {
     try {
-      const personnelCategoriesData = await employeeManagementApi.getPersonnelCategories(departmentId);
+      const personnelCategoriesData = await employeeService.getPersonnelCategoriesLookup(departmentId);
       setPersonnelCategories(personnelCategoriesData);
       // 清空人员类别选择
       form.setFieldValue('personnel_category_id', undefined);
@@ -87,7 +88,7 @@ const QuickEmployeeCreateModal: React.FC<{
       const values = await form.validateFields();
       setSubmitting(true);
 
-              const submitData: CreateEmployeeData = {
+              const submitData: CreateEmployeePayload = {
           first_name: values.first_name,
           last_name: values.last_name,
           employee_code: values.employee_code,
@@ -103,7 +104,7 @@ const QuickEmployeeCreateModal: React.FC<{
           is_active: true,
         };
 
-      await employeeManagementApi.createEmployee(submitData);
+      await employeeService.createEmployee(submitData);
       message.success('员工创建成功');
       form.resetFields();
       onSuccess();

@@ -8,7 +8,8 @@ import os
 
 # 获取API地址，默认为localhost:8080
 API_URL = os.environ.get('API_URL', 'http://localhost:8080')
-HEALTH_ENDPOINT = f"{API_URL}/health"
+# 更新为V2健康检查端点
+HEALTH_ENDPOINT = f"{API_URL}/v2/system/health"
 
 try:
     # 尝试请求健康检查端点

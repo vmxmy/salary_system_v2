@@ -19,6 +19,8 @@
   padding: @space-6 0;
   border-bottom: 1px solid @border-default;
   margin-bottom: @space-6;
+  position: relative;
+  z-index: 10;
   
   // 移除 Ant Design Header 默认样式
   &.ant-layout-header {
@@ -75,6 +77,7 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: @space-6;
+      position: relative;
       
       .title-content {
         flex: 1;
@@ -168,6 +171,8 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 @space-6 @space-6;
+  position: relative;
+  z-index: 1;
   
   &.full-width {
     max-width: none;

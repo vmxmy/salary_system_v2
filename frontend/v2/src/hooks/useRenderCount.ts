@@ -228,14 +228,17 @@ export const renderMonitor = RenderMonitor.getInstance();
 export const useRenderMonitor = (options: RenderCountOptions): RenderCountResult => {
   const result = useRenderCount(options);
   
-  // 定期更新全局监控器
+  // 定期更新全局监控器 - 修复无限循环：移除result依赖
+  const getStatsRef = useRef(result.getStats);
+  getStatsRef.current = result.getStats;
+
   useEffect(() => {
     const interval = setInterval(() => {
-      renderMonitor.registerComponent(result.getStats());
+      renderMonitor.registerComponent(getStatsRef.current());
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [result]);
+  }, []); // 移除result依赖，使用ref保存最新函数引用
   
   return result;
 };

@@ -76,6 +76,12 @@ export type { ModernPageTemplateProps } from './ModernPageTemplate';
 export { default as ModernCard } from './ModernCard';
 export type { ModernCardProps } from './ModernCard';
 
+export { default as ModernButton } from './ModernButton';
+export type { ModernButtonProps } from './ModernButton';
+
+export { default as ModernButtonGroup } from './ModernButtonGroup';
+export type { ModernButtonGroupProps } from './ModernButtonGroup';
+
 // 现有组件（保持向后兼容）
 export { default as TableTextConverter } from './TableTextConverter';
 export { default as EmployeeName } from './EmployeeName';

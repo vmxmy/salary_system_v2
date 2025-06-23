@@ -13,7 +13,6 @@ from ..utils import create_error_response # Added for standardized error respons
 from ..models.hr import Position as PositionModel # 导入ORM模型
 
 router = APIRouter(
-    prefix="/positions",
     tags=["Positions"],
 )
 

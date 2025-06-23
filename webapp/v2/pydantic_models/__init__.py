@@ -4,4 +4,5 @@ from .config import *
 from .hr import *
 from .payroll import *
 from .security import *
+from .system import *
 from .test_models import TestResponse

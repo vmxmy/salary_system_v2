@@ -196,3 +196,7 @@ The application uses a comprehensive modern design system:
 - React Query provides intelligent caching
 - Production builds remove console statements
 - Terser minification with optimizations
+
+## Memories
+
+- 默认服务已启动,并开启了热加载模式,不需要重复启动.

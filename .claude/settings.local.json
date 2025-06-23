@@ -29,8 +29,28 @@
       "Bash(mv:*)",
       "Bash(ls:*)",
       "Bash(npm:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(npx playwright:*)",
+      "Bash(mkdir:*)",
+      "Bash(apt list:*)",
+      "Bash(npx tsc:*)",
+      "Bash(task-master:*)",
+      "Bash(mcp-server-postgres:*)",
+      "Bash(mcp-server-github:*)",
+      "Bash(touch:*)",
+      "Bash(test:*)",
+      "mcp__playwright__init-browser",
+      "Bash(export DISPLAY=:0)",
+      "Bash(xvfb-run:*)",
+      "Bash(awk:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright",
+    "task-master-ai",
+    "github",
+    "postgres"
+  ]
 }

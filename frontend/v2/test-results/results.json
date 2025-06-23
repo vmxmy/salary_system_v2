@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 6
+      "actualWorkers": 2
     },
     "preserveOutput": "always",
     "reporter": [
@@ -41,7 +41,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "chromium",
         "name": "chromium",
@@ -57,7 +57,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "firefox",
         "name": "firefox",
@@ -73,7 +73,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "webkit",
         "name": "webkit",
@@ -89,7 +89,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -105,7 +105,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
@@ -121,7 +121,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "iPad",
         "name": "iPad",
@@ -137,7 +137,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 2
         },
         "id": "iPad Landscape",
         "name": "iPad Landscape",
@@ -158,20 +158,20 @@
   },
   "suites": [
     {
-      "title": "modern-design-validation.spec.ts",
-      "file": "modern-design-validation.spec.ts",
+      "title": "employee-detail-loop-test.spec.ts",
+      "file": "employee-detail-loop-test.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Modern Design System Validation",
-          "file": "modern-design-validation.spec.ts",
-          "line": 10,
+          "title": "Employee Detail Page Loop Detection",
+          "file": "employee-detail-loop-test.spec.ts",
+          "line": 7,
           "column": 6,
           "specs": [
             {
-              "title": "should access SimplePayroll page and verify modern components",
+              "title": "should not have infinite loops in employee detail page (Modern)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -186,31 +186,223 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 10440,
+                      "duration": 22219,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "✓ Found 3 elements matching .ant-card\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/auth.ts\n"
                         },
                         {
-                          "text": "✓ Found 2 elements matching .ant-layout\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/apiClient.ts\n"
                         },
                         {
-                          "text": "✓ Found 36 elements matching .ant-typography\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/departments.ts\n"
                         },
                         {
-                          "text": "✓ Found 21 elements matching button\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/personnelCategories.ts\n"
                         },
                         {
-                          "text": "✓ Found 8 elements matching h1, h2, h3\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/positions.ts\n"
                         },
                         {
-                          "text": "✓ SimplePayroll page validated with 5 modern element types found\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/roles.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/permissions.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/users.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/index.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/config.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/optimizedApi.ts\n"
+                        },
+                        {
+                          "text": "Console warning: useDraggable: Container for initialSnapArea has zero width or height. Cannot calculate relative center from snap area. Falling back to initialRelativeCenter or undefined.\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Navigation failed, trying direct URL approach...\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/auth.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/apiClient.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/departments.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/personnelCategories.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/positions.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/users.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/roles.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/permissions.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/index.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/config.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/optimizedApi.ts\n"
+                        },
+                        {
+                          "text": "Console warning: useDraggable: Container for initialSnapArea has zero width or height. Cannot calculate relative center from snap area. Falling back to initialRelativeCenter or undefined.\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "=== Loop Detection Results ===\n"
+                        },
+                        {
+                          "text": "Page responsive: true\n"
+                        },
+                        {
+                          "text": "Total API endpoints: 11\n"
+                        },
+                        {
+                          "text": "Excessive requests detected: false\n"
+                        },
+                        {
+                          "text": "✅ Employee detail page test completed successfully. Page title: 高新区工资信息管理系统\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-06-22T13:58:31.515Z",
+                      "startTime": "2025-06-23T15:11:26.598Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -218,13 +410,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "e8201ec0dab3ffaf9cff-01d1f2562ef9e550a588",
-              "file": "modern-design-validation.spec.ts",
-              "line": 27,
+              "id": "00093100732e8770199f-7d6bf936831708d7bf31",
+              "file": "employee-detail-loop-test.spec.ts",
+              "line": 28,
               "column": 3
             },
             {
-              "title": "should test responsive design on different viewports",
+              "title": "should load employee detail page without console errors",
               "ok": true,
               "tags": [],
               "tests": [
@@ -239,22 +431,181 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 25118,
+                      "duration": 16610,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "✓ Mobile viewport (375x667) tested\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/auth.ts\n"
                         },
                         {
-                          "text": "✓ Tablet viewport (768x1024) tested\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/apiClient.ts\n"
                         },
                         {
-                          "text": "✓ Desktop viewport (1440x900) tested\n"
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/departments.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/personnelCategories.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/positions.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/users.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/roles.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/permissions.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/index.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/config.ts\n"
+                        },
+                        {
+                          "text": "API Request: GET http://10.10.10.11:5173/src/api/optimizedApi.ts\n"
+                        },
+                        {
+                          "text": "Console warning: useDraggable: Container for initialSnapArea has zero width or height. Cannot calculate relative center from snap area. Falling back to initialRelativeCenter or undefined.\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console error: Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console Errors:\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "  - Failed to load resource: net::ERR_CONNECTION_REFUSED\n"
+                        },
+                        {
+                          "text": "Console Warnings:\n"
+                        },
+                        {
+                          "text": "  - useDraggable: Container for initialSnapArea has zero width or height. Cannot calculate relative center from snap area. Falling back to initialRelativeCenter or undefined.\n"
+                        },
+                        {
+                          "text": "✅ Console error check completed. Found 20 errors, 1 warnings.\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-06-22T13:58:31.514Z",
+                      "startTime": "2025-06-23T15:11:26.599Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -262,197 +613,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "e8201ec0dab3ffaf9cff-29a2dbbb3792276a2426",
-              "file": "modern-design-validation.spec.ts",
-              "line": 74,
-              "column": 3
-            },
-            {
-              "title": "should verify multiple pages are accessible",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 18509,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ SimplePayroll page accessible: http://10.10.10.11:5173/simple-payroll\n"
-                        },
-                        {
-                          "text": "  └─ Found 23 interactive elements\n"
-                        },
-                        {
-                          "text": "✓ PayrollRuns page accessible: http://10.10.10.11:5173/payroll/runs\n"
-                        },
-                        {
-                          "text": "  └─ Found 7 interactive elements\n"
-                        },
-                        {
-                          "text": "✓ Employees page accessible: http://10.10.10.11:5173/hr/employees\n"
-                        },
-                        {
-                          "text": "  └─ Found 61 interactive elements\n"
-                        },
-                        {
-                          "text": "✓ Users page accessible: http://10.10.10.11:5173/admin/users\n"
-                        },
-                        {
-                          "text": "  └─ Found 22 interactive elements\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-06-22T13:58:31.507Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e8201ec0dab3ffaf9cff-9b2b7db0a9b05b35ec92",
-              "file": "modern-design-validation.spec.ts",
-              "line": 106,
-              "column": 3
-            },
-            {
-              "title": "should verify touch targets are properly sized on mobile",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 9442,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ Button 1: 44x44px (meets touch target requirements)\n"
-                        },
-                        {
-                          "text": "✓ Button 2: 66x44px (meets touch target requirements)\n"
-                        },
-                        {
-                          "text": "✓ Button 3: 32x44px (meets touch target requirements)\n"
-                        },
-                        {
-                          "text": "✓ Tested 3 buttons for touch target compliance\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-06-22T13:58:31.529Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e8201ec0dab3ffaf9cff-380a675d4d9b31486ac3",
-              "file": "modern-design-validation.spec.ts",
-              "line": 140,
-              "column": 3
-            },
-            {
-              "title": "should verify page load performance",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 10061,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ Page loaded in 3756ms (under 10s threshold)\n"
-                        },
-                        {
-                          "text": "✓ Found 23 interactive elements after load\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-06-22T13:58:31.536Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e8201ec0dab3ffaf9cff-3219995f9015c8c7a89f",
-              "file": "modern-design-validation.spec.ts",
-              "line": 172,
-              "column": 3
-            },
-            {
-              "title": "should test navigation between pages",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "passed",
-                      "duration": 11148,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ Navigation successful to: http://10.10.10.11:5173/simple-payroll\n"
-                        },
-                        {
-                          "text": "✓ Found 1 navigation links\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-06-22T13:58:31.538Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e8201ec0dab3ffaf9cff-83531ff7462f9905365a",
-              "file": "modern-design-validation.spec.ts",
-              "line": 195,
+              "id": "00093100732e8770199f-f8c1d242665c1a02e5c6",
+              "file": "employee-detail-loop-test.spec.ts",
+              "line": 151,
               "column": 3
             }
           ]
@@ -462,9 +625,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-06-22T13:58:30.879Z",
-    "duration": 25912.376,
-    "expected": 6,
+    "startTime": "2025-06-23T15:11:26.228Z",
+    "duration": 22706.652000000002,
+    "expected": 2,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

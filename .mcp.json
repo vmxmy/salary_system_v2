@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "playwright-mcp",
+      "args": [],
+      "env": {
+        "NODE_ENV": "development",
+        "PLAYWRIGHT_HEADLESS": "true"
+      }
+    },
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
+        "XAI_API_KEY": "${XAI_API_KEY}",
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
+        "AZURE_OPENAI_API_KEY": "${AZURE_OPENAI_API_KEY}",
+        "OLLAMA_API_KEY": "${OLLAMA_API_KEY}"
+      }
+    },
+    "github": {
+      "command": "mcp-server-github",
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "postgres": {
+      "command": "mcp-server-postgres",
+      "args": ["postgresql://salary_system_v2:810705@100.65.7.42:5432/salary_system_v2"],
+      "env": {}
+    }
+  }
+}

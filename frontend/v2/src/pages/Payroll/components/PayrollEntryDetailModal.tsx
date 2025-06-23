@@ -5,7 +5,6 @@ import type { PayrollEntry, ApiSingleResponse, PayrollItemDetail } from '../type
 import { useTranslation } from 'react-i18next';
 import usePayrollConfigStore from '../../../store/payrollConfigStore';
 import { employeeService } from '../../../services/employeeService'; // 引入员工服务
-import { employeeManagementApi } from '../../../pages/EmployeeManagement/services/employeeManagementApi';
 import EmployeeName from '../../../components/common/EmployeeName';
 import dayjs from 'dayjs';
 import { getPayrollEntryStatusInfo } from '../utils/payrollUtils';
@@ -94,7 +93,7 @@ const PayrollEntryDetailModal: React.FC<PayrollEntryDetailModalProps> = ({ entry
     setLoadingEmployeeInfo(true);
     
     try {
-      const employee = await employeeManagementApi.getEmployeeById(String(employeeId));
+      const employee = await employeeService.getEmployeeByIdFromView(String(employeeId));
       if (employee) {
         const info = {
           firstName: employee.first_name,

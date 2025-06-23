@@ -1,0 +1,290 @@
+// ModernButton 组件样式
+// 基于简单工资页面的按钮风格建立的统一样式标准
+
+@import '../../styles/modern-design-system.less';
+
+// 基础按钮样式
+.modern-button {
+  // 基础样式重置
+  &.ant-btn {
+    border-radius: @radius-base;
+    font-weight: @font-weight-medium;
+    transition: all @duration-base @ease-out;
+    box-shadow: none;
+    
+    // 确保图标和文字对齐
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: @space-2;
+    
+    // 默认高度（基于简单工资页面的 middle size）
+    &.ant-btn-middle {
+      height: 36px;
+      padding: 0 @space-4;
+      font-size: @font-size-base;
+    }
+    
+    // 小尺寸
+    &.ant-btn-small {
+      height: 32px;
+      padding: 0 @space-3;
+      font-size: @font-size-sm;
+    }
+    
+    // 大尺寸
+    &.ant-btn-large {
+      height: 40px;
+      padding: 0 @space-5;
+      font-size: @font-size-lg;
+    }
+    
+    // 图标样式
+    .anticon {
+      font-size: inherit;
+      + span {
+        margin-left: 0; // 使用 gap 替代
+      }
+    }
+  }
+  
+  // Primary 变体 - 主要操作
+  &.modern-button-primary {
+    &.ant-btn-primary {
+      background-color: @primary-600;
+      border-color: @primary-600;
+      color: #ffffff;
+      
+      &:hover:not(:disabled) {
+        background-color: @primary-700;
+        border-color: @primary-700;
+      }
+      
+      &:active:not(:disabled) {
+        background-color: @primary-800;
+        border-color: @primary-800;
+      }
+      
+      &:focus {
+        background-color: @primary-600;
+        border-color: @primary-600;
+        box-shadow: 0 0 0 2px fade(@primary-600, 20%);
+      }
+    }
+  }
+  
+  // Secondary 变体 - 次要操作
+  &.modern-button-secondary {
+    &.ant-btn-default {
+      background-color: @bg-primary;
+      border-color: @border-default;
+      color: @text-primary;
+      
+      &:hover:not(:disabled) {
+        background-color: @bg-secondary;
+        border-color: @border-medium;
+        color: @primary-600;
+      }
+      
+      &:active:not(:disabled) {
+        background-color: @bg-tertiary;
+        border-color: @border-strong;
+      }
+      
+      &:focus {
+        border-color: @primary-300;
+        box-shadow: 0 0 0 2px fade(@primary-600, 10%);
+      }
+    }
+  }
+  
+  // Outline 变体 - 边框按钮
+  &.modern-button-outline {
+    &.ant-btn-default {
+      background-color: transparent;
+      border-color: @primary-600;
+      color: @primary-600;
+      
+      &:hover:not(:disabled) {
+        background-color: fade(@primary-600, 5%);
+        border-color: @primary-700;
+        color: @primary-700;
+      }
+      
+      &:active:not(:disabled) {
+        background-color: fade(@primary-600, 10%);
+        border-color: @primary-800;
+        color: @primary-800;
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 2px fade(@primary-600, 20%);
+      }
+    }
+  }
+  
+  // Ghost 变体 - 幽灵按钮
+  &.modern-button-ghost {
+    &.ant-btn-text {
+      background-color: transparent;
+      border-color: transparent;
+      color: @text-primary;
+      padding: 0 @space-3;
+      
+      &:hover:not(:disabled) {
+        background-color: @bg-secondary;
+        color: @primary-600;
+      }
+      
+      &:active:not(:disabled) {
+        background-color: @bg-tertiary;
+      }
+      
+      &:focus {
+        background-color: transparent;
+      }
+    }
+  }
+  
+  // Danger 变体 - 危险操作
+  &.modern-button-danger {
+    &.ant-btn-primary.ant-btn-dangerous {
+      background-color: @error-600;
+      border-color: @error-600;
+      
+      &:hover:not(:disabled) {
+        background-color: @error-700;
+        border-color: @error-700;
+      }
+      
+      &:active:not(:disabled) {
+        background-color: @error-800;
+        border-color: @error-800;
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 2px fade(@error-600, 20%);
+      }
+    }
+  }
+  
+  // 块级按钮样式（全宽）
+  &.modern-button-block {
+    &.ant-btn-block {
+      width: 100%;
+    }
+  }
+  
+  // 加载状态
+  &.ant-btn-loading {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+  
+  // 禁用状态
+  &.ant-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      opacity: 0.5;
+    }
+  }
+}
+
+// 响应式样式
+@media (max-width: 768px) {
+  .modern-button {
+    &.ant-btn {
+      // 移动端增加按钮高度，便于触控
+      &.ant-btn-middle {
+        height: 40px;
+      }
+      
+      &.ant-btn-large {
+        height: 44px;
+      }
+    }
+  }
+}
+
+// 暗色模式支持
+[data-theme="dark"] {
+  .modern-button {
+    // Primary 变体
+    &.modern-button-primary {
+      &.ant-btn-primary {
+        background-color: @primary-500;
+        border-color: @primary-500;
+        
+        &:hover:not(:disabled) {
+          background-color: @primary-400;
+          border-color: @primary-400;
+        }
+      }
+    }
+    
+    // Secondary 变体
+    &.modern-button-secondary {
+      &.ant-btn-default {
+        background-color: @neutral-800;
+        border-color: @neutral-700;
+        color: @neutral-100;
+        
+        &:hover:not(:disabled) {
+          background-color: @neutral-700;
+          border-color: @neutral-600;
+          color: @primary-400;
+        }
+      }
+    }
+    
+    // Outline 变体
+    &.modern-button-outline {
+      &.ant-btn-default {
+        border-color: @primary-400;
+        color: @primary-400;
+        
+        &:hover:not(:disabled) {
+          background-color: fade(@primary-400, 10%);
+          border-color: @primary-300;
+          color: @primary-300;
+        }
+      }
+    }
+    
+    // Ghost 变体
+    &.modern-button-ghost {
+      &.ant-btn-text {
+        color: @neutral-100;
+        
+        &:hover:not(:disabled) {
+          background-color: @neutral-800;
+          color: @primary-400;
+        }
+      }
+    }
+  }
+}
+
+// 按钮组样式
+.modern-button-group {
+  display: inline-flex;
+  gap: @space-3;
+  
+  // 垂直排列
+  &.vertical {
+    flex-direction: column;
+    width: 100%;
+    
+    .modern-button {
+      width: 100%;
+    }
+  }
+  
+  // 水平排列
+  &.horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

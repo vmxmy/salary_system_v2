@@ -21,7 +21,6 @@ from ..utils import create_error_response
 from ..models.hr import PersonnelCategory, Employee
 
 router = APIRouter(
-    prefix="/personnel-categories",
     tags=["Personnel Categories"],
 )
 

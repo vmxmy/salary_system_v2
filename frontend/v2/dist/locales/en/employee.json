@@ -267,5 +267,8 @@
         "status": ""
       }
     }
+  },
+  "universal_list_page": {
+    "page_title": "Employee List (Universal)"
   }
 }

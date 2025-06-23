@@ -10,6 +10,7 @@
   "home": "Home",
   "hr": {
     "employees": "Employee Records",
+    "employeesUniversal": "Employee Records (Universal)",
     "employeesNew": "Create Employee",
     "myLeave": "",
     "title": "Employee Management"

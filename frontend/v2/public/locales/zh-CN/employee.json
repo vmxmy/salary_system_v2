@@ -275,5 +275,15 @@
   },
   "universal_list_page": {
     "page_title": "员工列表 (新版)"
-  }
+  },
+  "editEmployee": "编辑员工",
+  "loading": "加载中...",
+  "employeeManagement": "员工管理",
+  "employeeCode": "员工编号",
+  "editEmployeeInformation": "编辑员工信息",
+  "editEmployeeFormPlaceholder": "员工编辑表单将在此处显示",
+  "createEmployee": "创建员工",
+  "createEmployeeDescription": "填写以下表单以创建新员工",
+  "employeeInformation": "员工信息",
+  "createEmployeeFormPlaceholder": "员工创建表单将在此处显示"
 }

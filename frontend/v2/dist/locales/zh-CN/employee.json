@@ -272,5 +272,8 @@
         "status": "状态"
       }
     }
+  },
+  "universal_list_page": {
+    "page_title": "员工列表 (新版)"
   }
 }

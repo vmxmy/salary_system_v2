@@ -213,7 +213,18 @@
     },
     "unknown": "",
     "unknownEmployee": "",
-    "yes": ""
+    "yes": "",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "update": "Update",
+    "home": "Home",
+    "hrManagement": "HR Management",
+    "notSet": "Not Set",
+    "create": "Create",
+    "description": "Description",
+    "refresh": "Refresh",
+    "items": "items"
   },
   "common_value": {
     "zero_decimal": ""

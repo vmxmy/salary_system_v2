@@ -21,6 +21,17 @@
         "AZURE_OPENAI_API_KEY": "${AZURE_OPENAI_API_KEY}",
         "OLLAMA_API_KEY": "${OLLAMA_API_KEY}"
       }
+    },
+    "github": {
+      "command": "mcp-server-github",
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "postgres": {
+      "command": "mcp-server-postgres",
+      "args": ["postgresql://salary_system_v2:810705@100.65.7.42:5432/salary_system_v2"],
+      "env": {}
     }
   }
 }

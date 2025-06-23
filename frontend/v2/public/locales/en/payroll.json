@@ -716,5 +716,22 @@
         }
       }
     }
-  }
+  },
+  "total_runs": "Total Runs",
+  "pending_runs": "Pending Runs",
+  "completed_runs": "Completed Runs",
+  "total_employees_processed": "Total Employees Processed",
+  "create_run": "Create Run",
+  "select_period": "Select Period",
+  "run_description_placeholder": "Enter run description",
+  "frequency": "Frequency",
+  "period_range": "Period Range",
+  "runs_count": "Runs Count",
+  "total_periods": "Total Periods",
+  "active_periods": "Active Periods",
+  "pending_periods": "Pending Periods",
+  "total_runs_created": "Total Runs Created",
+  "payroll_periods": "Payroll Periods",
+  "create_period": "Create Period",
+  "associated_runs": "Associated Runs"
 }

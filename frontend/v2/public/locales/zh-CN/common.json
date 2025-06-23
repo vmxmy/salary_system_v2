@@ -213,7 +213,16 @@
     "noData": "暂无数据",
     "refreshError": "刷新失败",
     "refreshSuccess": "刷新成功",
-    "pagination": "显示第 {rangeStart}-{rangeEnd} 条，共 {total} 条"
+    "pagination": "显示第 {rangeStart}-{rangeEnd} 条，共 {total} 条",
+    "of": "共",
+    "items": "条",
+    "filter": "筛选",
+    "presets": "预设",
+    "export": "导出",
+    "export_selected": "导出选中",
+    "clear_selection": "清除选择",
+    "selected_count": "已选择 {count} 项",
+    "search_placeholder": "搜索..."
   },
   "column_control": {
     "button_text": "列设置",
@@ -227,17 +236,28 @@
     },
     "employeeCode": "员工编号",
     "idNumber": "身份证号",
-    "no": "",
+    "no": "否",
     "none": "无",
-    "notApplicable": "",
-    "permission_denied_action": "",
-    "statusOptionsLoadFailed": "",
+    "notApplicable": "不适用",
+    "permission_denied_action": "无权限执行此操作",
+    "statusOptionsLoadFailed": "状态选项加载失败",
     "table": {
-      "pagination": ""
+      "pagination": "显示第 {rangeStart}-{rangeEnd} 条，共 {total} 条"
     },
-    "unknown": "",
+    "unknown": "未知",
     "unknownEmployee": "未知员工",
-    "yes": ""
+    "yes": "是",
+    "cancel": "取消",
+    "close": "关闭",
+    "save": "保存",
+    "update": "更新",
+    "home": "首页",
+    "hrManagement": "人力资源管理",
+    "notSet": "未设置",
+    "create": "创建",
+    "description": "描述",
+    "refresh": "刷新",
+    "items": "项"
   },
   "common_value": {
     "zero_decimal": ""
@@ -453,7 +473,8 @@
     "error_fetch_runs": ""
   },
   "search": {
-    "placeholder": "搜索{{field}}"
+    "placeholder": "搜索{{field}}",
+    "title": "智能搜索"
   },
   "sider": {
     "title": {
@@ -529,5 +550,30 @@
   "tax": "税务",
   "tax_id": "税号",
   "tax_information": "税务信息",
-  "lookup_loading": "正在加载数据..."
+  "lookup_loading": "正在加载数据...",
+  "preset": {
+    "save_title": "保存预设配置",
+    "edit_title": "编辑预设配置",
+    "name": "预设名称",
+    "name_required": "请输入预设名称",
+    "name_too_long": "名称不能超过50个字符",
+    "name_placeholder": "请输入预设名称",
+    "description": "描述",
+    "description_placeholder": "请输入预设描述(可选)",
+    "category": "分类",
+    "category_placeholder": "选择分类(可选)",
+    "set_as_default": "设为默认",
+    "make_public": "公开共享",
+    "update_success": "预设更新成功",
+    "save_current": "保存当前配置",
+    "search_placeholder": "搜索预设名称或描述...",
+    "filter_category": "按分类筛选",
+    "total_count": "总预设数",
+    "favorite_count": "收藏数",
+    "default_count": "默认预设",
+    "category_count": "分类数",
+    "no_presets": "暂无预设配置",
+    "default": "默认",
+    "saved": "已保存预设"
+  }
 }

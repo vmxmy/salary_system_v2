@@ -97,19 +97,20 @@ export function useUniversalDataQuery<T = any>(
           const cleanedItem = { ...item };
           
           // Remove React elements and functions
-          Object.keys(cleanedItem).forEach(key => {
-            const value = cleanedItem[key];
+          const record = cleanedItem as Record<string, any>;
+          Object.keys(record).forEach(key => {
+            const value = record[key];
             if (typeof value === 'object' && value !== null) {
               // Check for React elements
               const isReactElement = (value as any).$$typeof || (value as any).$typeof || 
                                    ((value as any).type && (value as any).props);
               if (isReactElement) {
                 console.warn(`🧹 [UniversalQuery] Removing React element from ${queryKey}[${index}].${key}`);
-                cleanedItem[key] = '[React Element Removed]';
+                record[key] = '[React Element Removed]';
               }
             } else if (typeof value === 'function') {
               console.warn(`🧹 [UniversalQuery] Removing function from ${queryKey}[${index}].${key}`);
-              cleanedItem[key] = '[Function Removed]';
+              record[key] = '[Function Removed]';
             }
           });
           

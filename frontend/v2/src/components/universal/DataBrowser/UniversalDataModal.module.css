@@ -1,0 +1,25 @@
+/* UniversalDataModal 组件样式 */
+
+/* 搜索面板区域 */
+.searchPanelContainer {
+  margin-bottom: 16px;
+}
+
+/* 表格容器 */
+.tableContainer {
+  margin-top: 0;
+  clear: both;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .searchPanelContainer {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .searchPanelContainer {
+    margin-bottom: 8px;
+  }
+}

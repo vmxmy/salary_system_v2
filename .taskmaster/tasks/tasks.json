@@ -1,0 +1,76 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "React无限循环渲染问题排查和修复体系建设",
+        "description": "建立系统性的React无限循环检测、分析、修复、验证和预防体系，解决UniversalDataModal组件及相关钩子的渲染循环问题。",
+        "details": "1. **检测阶段**:\n   - 集成React DevTools Profiler进行性能监控\n   - 实现自定义useRenderCount钩子追踪组件渲染次数\n   - 配置ESLint规则检测依赖数组问题\n   - 设置浏览器控制台警告机制\n\n2. **分析阶段**:\n   - 分析UniversalDataModal.tsx中searchResults处理逻辑，每次渲染创建新Set对象导致的无限循环\n   - 检查EmployeeListPageUniversal.tsx中queryFn函数引用不稳定问题\n   - 审查useUniversalSearch.ts和useUniversalDataProcessing.tsx钩子依赖\n   - 绘制渲染循环调用链：UniversalDataModal → ModernPageTemplate → EmployeeListPageUniversal → UniversalDataModal\n\n3. **修复阶段**:\n   - 使用useMemo优化searchResults Set对象创建\n   - 使用useCallback稳定queryFn函数引用\n   - 完善所有useEffect和useMemo的依赖数组\n   - 实现对象引用稳定化策略\n\n4. **验证阶段**:\n   - 创建专门的E2E测试验证无限循环修复\n   - 使用React DevTools验证渲染次数正常\n   - 性能基准测试确保修复效果\n\n5. **预防阶段**:\n   - 建立代码审查检查清单\n   - 创建钩子使用最佳实践文档\n   - 配置CI/CD流水线自动检测\n   - 实施团队培训和知识分享",
+        "testStrategy": "1. 使用React DevTools Profiler记录修复前后的渲染性能对比\n2. 编写Playwright E2E测试，验证组件在各种交互场景下不会出现无限循环\n3. 创建单元测试验证useCallback和useMemo的依赖正确性\n4. 使用自定义useRenderCount钩子监控关键组件渲染次数\n5. 在开发环境设置严格模式，确保组件渲染行为一致\n6. 配置性能监控阈值，超过预期渲染次数时自动报警\n7. 代码审查时强制检查所有新增钩子的依赖数组完整性",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "集成React无限循环检测工具和监控机制",
+            "description": "集成React DevTools Profiler进行性能监控，实现自定义useRenderCount钩子追踪组件渲染次数，配置ESLint规则检测依赖数组问题，设置浏览器控制台警告机制",
+            "dependencies": [],
+            "details": "1. 安装并配置React DevTools Profiler API集成\n2. 创建useRenderCount自定义钩子，追踪组件渲染次数并在超过阈值时发出警告\n3. 配置ESLint插件react-hooks/exhaustive-deps规则\n4. 实现console.warn机制检测异常渲染频率\n5. 创建性能监控面板显示实时渲染统计",
+            "status": "done",
+            "testStrategy": "单元测试验证useRenderCount钩子功能，集成测试验证ESLint规则生效，手动测试验证控制台警告机制"
+          },
+          {
+            "id": 2,
+            "title": "深度分析无限循环根本原因和调用链路",
+            "description": "分析UniversalDataModal.tsx中searchResults处理逻辑，检查EmployeeListPageUniversal.tsx中queryFn函数引用不稳定问题，审查相关钩子依赖，绘制完整的渲染循环调用链",
+            "dependencies": [
+              1
+            ],
+            "details": "1. 使用React DevTools Profiler分析UniversalDataModal组件渲染原因\n2. 检查searchResults Set对象每次渲染重新创建的问题\n3. 分析EmployeeListPageUniversal中queryFn函数引用变化原因\n4. 审查useUniversalSearch.ts和useUniversalDataProcessing.tsx钩子的依赖数组\n5. 绘制详细的组件渲染调用链路图\n6. 识别所有导致重渲染的状态变更点",
+            "status": "in-progress",
+            "testStrategy": "使用React DevTools记录分析报告，创建渲染调用链路文档，验证问题定位准确性"
+          },
+          {
+            "id": 3,
+            "title": "实施核心组件无限循环修复方案",
+            "description": "使用useMemo优化searchResults Set对象创建，使用useCallback稳定queryFn函数引用，完善所有useEffect和useMemo的依赖数组，实现对象引用稳定化策略",
+            "dependencies": [
+              2
+            ],
+            "details": "1. 在UniversalDataModal中使用useMemo包装searchResults Set创建逻辑\n2. 在EmployeeListPageUniversal中使用useCallback稳定queryFn函数引用\n3. 修复useUniversalSearch.ts中缺失或不准确的依赖数组\n4. 修复useUniversalDataProcessing.tsx中的依赖数组问题\n5. 实现深度比较策略避免对象引用变化导致的重渲染\n6. 添加React.memo包装纯组件优化渲染性能",
+            "status": "pending",
+            "testStrategy": "单元测试验证useMemo和useCallback修复效果，组件测试验证渲染次数减少，集成测试验证整体功能正常"
+          },
+          {
+            "id": 4,
+            "title": "创建专项E2E测试验证修复效果",
+            "description": "创建专门的E2E测试验证无限循环修复效果，使用React DevTools验证渲染次数正常，进行性能基准测试确保修复效果",
+            "dependencies": [
+              3
+            ],
+            "details": "1. 创建loop-fix-validation.spec.ts E2E测试文件\n2. 实现渲染次数监控的测试用例\n3. 创建性能基准测试，对比修复前后的渲染性能\n4. 使用Playwright集成React DevTools进行自动化性能检测\n5. 创建回归测试防止无限循环问题复现\n6. 验证所有相关页面和组件的渲染稳定性",
+            "status": "pending",
+            "testStrategy": "E2E测试验证渲染循环已修复，性能测试验证渲染效率提升，回归测试确保功能完整性"
+          },
+          {
+            "id": 5,
+            "title": "建立无限循环预防机制和团队规范",
+            "description": "建立代码审查检查清单，创建React钩子使用最佳实践文档，配置CI/CD流水线自动检测，实施团队培训和知识分享",
+            "dependencies": [
+              4
+            ],
+            "details": "1. 创建React无限循环预防检查清单文档\n2. 编写React Hooks最佳实践指南，包含依赖数组、useMemo、useCallback使用规范\n3. 配置GitHub Actions检测潜在的无限循环问题\n4. 集成ESLint规则到CI/CD流水线，阻止包含循环风险的代码合并\n5. 创建团队培训材料和案例分享文档\n6. 建立定期代码审查机制，重点关注钩子使用规范",
+            "status": "pending",
+            "testStrategy": "验证CI/CD检测机制有效性，测试ESLint规则覆盖率，评估团队培训效果和规范执行情况"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-22T16:29:34.613Z",
+      "updated": "2025-06-22T16:41:45.146Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

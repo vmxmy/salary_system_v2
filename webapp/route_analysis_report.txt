@@ -1,0 +1,615 @@
+FastAPI 路由重复检测报告
+==================================================
+生成时间: 2025-06-24 05:57:09
+项目路径: /home/laoxu/projects/salary_system_v2/webapp
+
+重复路由详情:
+------------------------------
+
+重复路由: POST /v2/generate
+  1. v2/routers/batch_reports.py:30 (函数: create_batch_report_generation)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/simple_payroll.py:248 (函数: generate_payroll)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2
+  1. v2/routers/positions.py:21 (函数: get_all_positions)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/personnel_categories.py:30 (函数: get_personnel_categories)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/departments.py:28 (函数: get_departments)
+     路由器: router, 前缀: '/v2'
+  4. v2/routers/employees.py:32 (函数: get_employees)
+     路由器: router, 前缀: '/v2'
+  5. v2/routers/reports/calculated_fields.py:17 (函数: get_calculated_fields)
+     路由器: router, 前缀: '/v2'
+  6. v2/routers/reports/data_sources.py:26 (函数: get_data_sources)
+     路由器: router, 前缀: '/v2'
+  7. v2/routers/reports/templates.py:19 (函数: get_report_templates)
+     路由器: router, 前缀: '/v2'
+  8. v2/routers/config/system_parameter_router.py:27 (函数: get_system_parameters)
+     路由器: router, 前缀: '/v2'
+  9. v2/routers/config/payroll_component_router.py:28 (函数: get_payroll_components)
+     路由器: router, 前缀: '/v2'
+  10. v2/routers/config/tax_bracket_router.py:27 (函数: get_tax_brackets)
+     路由器: router, 前缀: '/v2'
+  11. v2/routers/config/social_security_rate_router.py:27 (函数: get_social_security_rates)
+     路由器: router, 前缀: '/v2'
+
+重复路由: POST /v2
+  1. v2/routers/positions.py:68 (函数: create_position)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/personnel_categories.py:226 (函数: create_personnel_category)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/departments.py:140 (函数: create_department)
+     路由器: router, 前缀: '/v2'
+  4. v2/routers/employees.py:243 (函数: create_employee)
+     路由器: router, 前缀: '/v2'
+  5. v2/routers/reports/calculated_fields.py:55 (函数: create_calculated_field)
+     路由器: router, 前缀: '/v2'
+  6. v2/routers/reports/data_sources.py:71 (函数: create_data_source)
+     路由器: router, 前缀: '/v2'
+  7. v2/routers/reports/templates.py:58 (函数: create_report_template)
+     路由器: router, 前缀: '/v2'
+  8. v2/routers/config/system_parameter_router.py:112 (函数: create_system_parameter)
+     路由器: router, 前缀: '/v2'
+  9. v2/routers/config/payroll_component_router.py:100 (函数: create_payroll_component)
+     路由器: router, 前缀: '/v2'
+  10. v2/routers/config/tax_bracket_router.py:107 (函数: create_tax_bracket)
+     路由器: router, 前缀: '/v2'
+  11. v2/routers/config/social_security_rate_router.py:110 (函数: create_social_security_rate)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/public
+  1. v2/routers/positions.py:124 (函数: get_positions_public)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/positions.py:381 (函数: get_positions_public)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/personnel_categories.py:371 (函数: get_personnel_categories_public)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/users/{user_id}
+  1. v2/routers/security.py:93 (函数: get_user)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views_optimized.py:25 (函数: get_user_optimized)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/permissions
+  1. v2/routers/security.py:711 (函数: get_permissions)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/debug.py:143 (函数: test_permissions)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/templates
+  1. v2/routers/utilities.py:198 (函数: get_templates)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/config/report_definition_router.py:31 (函数: get_report_templates)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/periods
+  1. v2/routers/attendance.py:28 (函数: get_attendance_periods)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/simple_payroll.py:61 (函数: get_payroll_periods)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/payroll_v2.py:31 (函数: get_payroll_periods_v2)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/payroll-periods
+  1. v2/routers/payroll.py:36 (函数: get_payroll_periods)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views.py:287 (函数: get_payroll_periods_detail)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/payroll-periods/{period_id}
+  1. v2/routers/payroll.py:101 (函数: get_payroll_period)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views.py:342 (函数: get_payroll_period_detail)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/payroll-runs
+  1. v2/routers/payroll.py:287 (函数: get_payroll_runs)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views.py:388 (函数: get_payroll_runs_detail)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/payroll-entries
+  1. v2/routers/payroll.py:657 (函数: get_payroll_entries)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views.py:669 (函数: get_payroll_entries_detailed)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/payroll-component-definitions
+  1. v2/routers/payroll.py:1124 (函数: get_payroll_component_definitions)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views_optimized.py:65 (函数: get_payroll_component_definitions_optimized)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/periods/{period_id}
+  1. v2/routers/simple_payroll.py:103 (函数: get_payroll_period)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/payroll_v2.py:88 (函数: get_payroll_period_v2)
+     路由器: router, 前缀: '/v2'
+
+重复路由: POST /v2/reports/generate
+  1. v2/routers/simple_payroll.py:1589 (函数: generate_reports)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/simple_payroll.py:1637 (函数: generate_report)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/departments
+  1. v2/routers/simple_payroll.py:1662 (函数: get_departments)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/hr_v2.py:99 (函数: get_departments)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/views_optimized.py:229 (函数: get_departments_optimized)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/personnel-categories
+  1. v2/routers/simple_payroll.py:1683 (函数: get_personnel_categories)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/hr_v2.py:187 (函数: get_personnel_categories)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/views_optimized.py:259 (函数: get_personnel_categories_optimized)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/health
+  1. v2/routers/simple_payroll.py:1771 (函数: health_check)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/system.py:59 (函数: health_check)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/views_optimized.py:470 (函数: health_check)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/dashboard
+  1. v2/routers/payroll_v2.py:375 (函数: get_payroll_dashboard_v2)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/hr_v2.py:264 (函数: get_hr_dashboard)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/employees
+  1. v2/routers/hr_v2.py:21 (函数: get_employees)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/views.py:456 (函数: get_employees_basic)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/types
+  1. v2/routers/lookup.py:27 (函数: get_lookup_types)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/report_config_management.py:75 (函数: get_report_type_definitions)
+     路由器: router, 前缀: '/v2'
+
+重复路由: POST /v2/types
+  1. v2/routers/lookup.py:120 (函数: create_lookup_type)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/report_config_management.py:147 (函数: create_report_type_definition)
+     路由器: router, 前缀: '/v2'
+
+重复路由: PUT /v2/fields/{field_id}
+  1. v2/routers/report_config_management.py:460 (函数: update_report_field_definition)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/reports/templates.py:141 (函数: update_template_field)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/config/report_definition_router.py:199 (函数: update_report_field)
+     路由器: router, 前缀: '/v2'
+
+重复路由: DELETE /v2/fields/{field_id}
+  1. v2/routers/report_config_management.py:489 (函数: delete_report_field_definition)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/reports/templates.py:155 (函数: delete_template_field)
+     路由器: router, 前缀: '/v2'
+  3. v2/routers/config/report_definition_router.py:224 (函数: delete_report_field)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/data-sources
+  1. v2/routers/report_config_management.py:914 (函数: get_data_sources)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/config/report_definition_router.py:353 (函数: get_report_data_sources)
+     路由器: router, 前缀: '/v2'
+
+重复路由: POST /v2/data-sources
+  1. v2/routers/report_config_management.py:1029 (函数: create_data_source)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/config/report_definition_router.py:378 (函数: create_report_data_source)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/lookup-values-public
+  1. v2/routers/views_optimized.py:153 (函数: get_lookup_values_public_optimized)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/config/lookup_router.py:374 (函数: get_lookup_values_public_endpoint)
+     路由器: router, 前缀: '/v2'
+
+重复路由: GET /v2/lookup-types
+  1. v2/routers/views_optimized.py:201 (函数: get_lookup_types_optimized)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/config/lookup_router.py:109 (函数: get_lookup_types_endpoint)
+     路由器: router, 前缀: '/v2'
+
+重复路由: POST /v2/fields
+  1. v2/routers/reports/templates.py:131 (函数: create_template_field)
+     路由器: router, 前缀: '/v2'
+  2. v2/routers/config/report_definition_router.py:176 (函数: create_report_field)
+     路由器: router, 前缀: '/v2'
+
+
+所有路由列表:
+------------------------------
+DELETE /v2/calculated-fields/{field_id}         v2/routers/config/report_definition_router.py:328
+DELETE /v2/calculation-logs                     v2/routers/payroll.py:1408
+DELETE /v2/daily-records/{daily_record_id}      v2/routers/attendance.py:227
+DELETE /v2/data-sources/{data_source_id_or_code} v2/routers/report_config_management.py:1082
+DELETE /v2/data-sources/{source_id}             v2/routers/config/report_definition_router.py:416
+DELETE /v2/fields/{field_id}                    v2/routers/report_config_management.py:489
+DELETE /v2/fields/{field_id}                    v2/routers/reports/templates.py:155
+DELETE /v2/fields/{field_id}                    v2/routers/config/report_definition_router.py:224
+DELETE /v2/groups/{group_id}                    v2/routers/config/user_preferences_router.py:836
+DELETE /v2/lookup-types/{type_id}               v2/routers/config/lookup_router.py:169
+DELETE /v2/lookup-values/{value_id}             v2/routers/config/lookup_router.py:354
+DELETE /v2/payroll-component-definitions/{component_id} v2/routers/payroll.py:1285
+DELETE /v2/payroll-data-modal/{preset_id}       v2/routers/config/user_preferences_router.py:302
+DELETE /v2/payroll-data/{period_id}             v2/routers/simple_payroll.py:2563
+DELETE /v2/payroll-entries/{entry_id}           v2/routers/payroll.py:958
+DELETE /v2/payroll-periods/{period_id}          v2/routers/payroll.py:234
+DELETE /v2/payroll-runs/{run_id}                v2/routers/payroll.py:539
+DELETE /v2/periods/{period_id}                  v2/routers/attendance.py:89
+DELETE /v2/permissions/{permission_id}          v2/routers/security.py:896
+DELETE /v2/presets/{preset_id}                  v2/routers/report_config_management.py:725
+DELETE /v2/records/{record_id}                  v2/routers/attendance.py:157
+DELETE /v2/roles/{role_id}                      v2/routers/security.py:545
+DELETE /v2/roles/{role_id}/permissions/{permission_id} v2/routers/security.py:629
+DELETE /v2/rules/{rule_id}                      v2/routers/attendance.py:294
+DELETE /v2/salary-configs/delete-insurance-base/{period_id} v2/routers/simple_payroll.py:3156
+DELETE /v2/tasks/{task_id}                      v2/routers/batch_reports.py:350
+DELETE /v2/tax-configs/{config_id}              v2/routers/calculation_config.py:426
+DELETE /v2/templates/{template_id}              v2/routers/config/report_definition_router.py:128
+DELETE /v2/types/{lookup_type_id}               v2/routers/lookup.py:212
+DELETE /v2/types/{type_id}                      v2/routers/report_config_management.py:210
+DELETE /v2/users/{user_id}                      v2/routers/security.py:232
+DELETE /v2/values/{lookup_value_id}             v2/routers/lookup.py:515
+DELETE /v2/{bracket_id}                         v2/routers/config/tax_bracket_router.py:185
+DELETE /v2/{component_id}                       v2/routers/config/payroll_component_router.py:184
+DELETE /v2/{data_source_id}                     v2/routers/reports/data_sources.py:109
+DELETE /v2/{department_id}                      v2/routers/departments.py:232
+DELETE /v2/{employee_id}                        v2/routers/employees.py:419
+DELETE /v2/{field_id}                           v2/routers/reports/calculated_fields.py:79
+DELETE /v2/{parameter_id}                       v2/routers/config/system_parameter_router.py:225
+DELETE /v2/{personnel_category_id}              v2/routers/personnel_categories.py:318
+DELETE /v2/{position_id}                        v2/routers/positions.py:294
+DELETE /v2/{rate_id}                            v2/routers/config/social_security_rate_router.py:188
+DELETE /v2/{template_id}                        v2/routers/reports/templates.py:82
+GET    /v2                                      v2/routers/positions.py:21
+GET    /v2                                      v2/routers/personnel_categories.py:30
+GET    /v2                                      v2/routers/departments.py:28
+GET    /v2                                      v2/routers/employees.py:32
+GET    /v2                                      v2/routers/reports/calculated_fields.py:17
+GET    /v2                                      v2/routers/reports/data_sources.py:26
+GET    /v2                                      v2/routers/reports/templates.py:19
+GET    /v2                                      v2/routers/config/system_parameter_router.py:27
+GET    /v2                                      v2/routers/config/payroll_component_router.py:28
+GET    /v2                                      v2/routers/config/tax_bracket_router.py:27
+GET    /v2                                      v2/routers/config/social_security_rate_router.py:27
+GET    /v2/analysis/payroll-summary             v2/routers/views.py:877
+GET    /v2/analysis/summary                     v2/routers/payroll_v2.py:312
+GET    /v2/analytics/department-costs/{period_id} v2/routers/simple_payroll.py:3515
+GET    /v2/analytics/employee-types/{period_id} v2/routers/simple_payroll.py:3559
+GET    /v2/analytics/salary-trends              v2/routers/simple_payroll.py:3603
+GET    /v2/audit/summary/{payroll_run_id}       v2/routers/simple_payroll.py:835
+GET    /v2/audit/{payroll_run_id}/anomalies     v2/routers/simple_payroll.py:887
+GET    /v2/available-views                      v2/routers/reports/optimization.py:118
+GET    /v2/batch-report-presets                 v2/routers/report_config_management.py:573
+GET    /v2/batch-report-types                   v2/routers/report_config_management.py:513
+GET    /v2/calculated-fields                    v2/routers/config/report_definition_router.py:253
+GET    /v2/calculation-engine/progress/{task_id} v2/routers/simple_payroll.py:2173
+GET    /v2/calculation-logs                     v2/routers/payroll.py:1303
+GET    /v2/check-existing-data/{period_id}      v2/routers/simple_payroll.py:293
+GET    /v2/check-existing-insurance-base/{period_id} v2/routers/simple_payroll.py:2704
+GET    /v2/columns/{table_id}                   v2/routers/table_config.py:126
+GET    /v2/components                           v2/routers/payroll_v2.py:256
+GET    /v2/comprehensive-payroll-data           v2/routers/views.py:1141
+GET    /v2/converter                            v2/routers/utilities.py:31
+GET    /v2/daily-records                        v2/routers/attendance.py:173
+GET    /v2/dashboard                            v2/routers/payroll_v2.py:375
+GET    /v2/dashboard                            v2/routers/hr_v2.py:264
+GET    /v2/data-integrity-stats/{period_id}     v2/routers/simple_payroll.py:2829
+GET    /v2/data-sources                         v2/routers/report_config_management.py:914
+GET    /v2/data-sources                         v2/routers/config/report_definition_router.py:353
+GET    /v2/data-sources/dynamic-scan            v2/routers/report_config_management.py:844
+GET    /v2/data-sources/{data_source_id_or_code} v2/routers/report_config_management.py:1018
+GET    /v2/data-sources/{data_source_id_or_code}/fields v2/routers/report_config_management.py:1103
+GET    /v2/data-sources/{data_source_id_or_code}/preview v2/routers/report_config_management.py:1219
+GET    /v2/data-sources/{data_source_id}/suggestions v2/routers/reports/optimization.py:41
+GET    /v2/data/{payroll_entry_id}              v2/routers/reports/payroll_modals.py:16
+GET    /v2/database                             v2/routers/debug.py:74
+GET    /v2/db-count-test                        v2/routers/debug_fast.py:51
+GET    /v2/db-simple                            v2/routers/debug_fast.py:26
+GET    /v2/departments                          v2/routers/simple_payroll.py:1662
+GET    /v2/departments                          v2/routers/hr_v2.py:99
+GET    /v2/departments                          v2/routers/views_optimized.py:229
+GET    /v2/departments-ultra-simple             v2/routers/debug_fast.py:108
+GET    /v2/departments/hierarchy                v2/routers/hr_v2.py:124
+GET    /v2/departments/tree                     v2/routers/hr_v2.py:142
+GET    /v2/download/{filename}                  v2/routers/utilities.py:269
+GET    /v2/employee-salary-history              v2/routers/payroll_v2.py:411
+GET    /v2/employee-salary-trend/{employee_id}  v2/routers/payroll_v2.py:474
+GET    /v2/employee-stats                       v2/routers/personnel_categories.py:138
+GET    /v2/employees                            v2/routers/hr_v2.py:21
+GET    /v2/employees                            v2/routers/views.py:456
+GET    /v2/employees/search                     v2/routers/hr_v2.py:52
+GET    /v2/employees/statistics                 v2/routers/hr_v2.py:81
+GET    /v2/employees/{employee_id}              v2/routers/views.py:541
+GET    /v2/entries                              v2/routers/payroll_v2.py:192
+GET    /v2/environment                          v2/routers/debug.py:181
+GET    /v2/executions                           v2/routers/reports/queries.py:20
+GET    /v2/executions/{execution_id}            v2/routers/reports/queries.py:44
+GET    /v2/field-config/{employee_type_key}     v2/routers/debug.py:28
+GET    /v2/file-info/{filename}                 v2/routers/utilities.py:367
+GET    /v2/files                                v2/routers/batch_reports.py:419
+GET    /v2/generators                           v2/routers/report_config_management.py:777
+GET    /v2/groups                               v2/routers/config/user_preferences_router.py:633
+GET    /v2/groups/stats                         v2/routers/config/user_preferences_router.py:895
+GET    /v2/health                               v2/routers/simple_payroll.py:1771
+GET    /v2/health                               v2/routers/system.py:59
+GET    /v2/health                               v2/routers/views_optimized.py:470
+GET    /v2/info                                 v2/routers/system.py:27
+GET    /v2/logs                                 v2/routers/debug.py:225
+GET    /v2/lookup-types                         v2/routers/views_optimized.py:201
+GET    /v2/lookup-types                         v2/routers/config/lookup_router.py:109
+GET    /v2/lookup-types/{type_id_or_code}       v2/routers/config/lookup_router.py:126
+GET    /v2/lookup-values                        v2/routers/config/lookup_router.py:208
+GET    /v2/lookup-values-public                 v2/routers/views_optimized.py:153
+GET    /v2/lookup-values-public                 v2/routers/config/lookup_router.py:374
+GET    /v2/lookup-values/{value_id}             v2/routers/config/lookup_router.py:317
+GET    /v2/lookup/data                          v2/routers/config_v2.py:77
+GET    /v2/lookup/types                         v2/routers/config_v2.py:22
+GET    /v2/lookup/values/{type_code}            v2/routers/config_v2.py:49
+GET    /v2/metrics                              v2/routers/system.py:145
+GET    /v2/monthly-summary                      v2/routers/simple_payroll.py:3637
+GET    /v2/organization/distribution            v2/routers/hr_v2.py:228
+GET    /v2/organization/overview                v2/routers/hr_v2.py:210
+GET    /v2/payroll-calculations                 v2/routers/views.py:1232
+GET    /v2/payroll-component-definitions        v2/routers/payroll.py:1124
+GET    /v2/payroll-component-definitions        v2/routers/views_optimized.py:65
+GET    /v2/payroll-component-definitions/{component_id} v2/routers/payroll.py:1156
+GET    /v2/payroll-component-types              v2/routers/config/lookup_router.py:32
+GET    /v2/payroll-components                   v2/routers/views.py:604
+GET    /v2/payroll-components-usage             v2/routers/views.py:802
+GET    /v2/payroll-data-modal                   v2/routers/config/user_preferences_router.py:35
+GET    /v2/payroll-data-modal/default           v2/routers/config/user_preferences_router.py:346
+GET    /v2/payroll-entries                      v2/routers/payroll.py:657
+GET    /v2/payroll-entries                      v2/routers/views.py:669
+GET    /v2/payroll-entries/{entry_id}           v2/routers/payroll.py:785
+GET    /v2/payroll-periods                      v2/routers/payroll.py:36
+GET    /v2/payroll-periods                      v2/routers/views.py:287
+GET    /v2/payroll-periods/{period_id}          v2/routers/payroll.py:101
+GET    /v2/payroll-periods/{period_id}          v2/routers/views.py:342
+GET    /v2/payroll-runs                         v2/routers/payroll.py:287
+GET    /v2/payroll-runs                         v2/routers/views.py:388
+GET    /v2/payroll-runs/{run_id}                v2/routers/payroll.py:347
+GET    /v2/payroll-runs/{run_id}/bank-export    v2/routers/payroll.py:591
+GET    /v2/payroll/components                   v2/routers/config_v2.py:107
+GET    /v2/performance                          v2/routers/debug.py:108
+GET    /v2/period/{period_id}                   v2/routers/reports/payroll_modals.py:695
+GET    /v2/periods                              v2/routers/attendance.py:28
+GET    /v2/periods                              v2/routers/simple_payroll.py:61
+GET    /v2/periods                              v2/routers/payroll_v2.py:31
+GET    /v2/periods-ultra-simple                 v2/routers/debug_fast.py:76
+GET    /v2/periods/{period_id}                  v2/routers/simple_payroll.py:103
+GET    /v2/periods/{period_id}                  v2/routers/payroll_v2.py:88
+GET    /v2/permissions                          v2/routers/security.py:711
+GET    /v2/permissions                          v2/routers/debug.py:143
+GET    /v2/permissions/{permission_id}          v2/routers/security.py:763
+GET    /v2/personnel-categories                 v2/routers/simple_payroll.py:1683
+GET    /v2/personnel-categories                 v2/routers/hr_v2.py:187
+GET    /v2/personnel-categories                 v2/routers/views_optimized.py:259
+GET    /v2/personnel-category-stats             v2/routers/simple_payroll.py:3673
+GET    /v2/ping                                 v2/routers/debug_fast.py:17
+GET    /v2/positions                            v2/routers/hr_v2.py:160
+GET    /v2/presets                              v2/routers/report_config_management.py:613
+GET    /v2/presets/{preset_id}                  v2/routers/report_config_management.py:649
+GET    /v2/public                               v2/routers/positions.py:124
+GET    /v2/public                               v2/routers/positions.py:381
+GET    /v2/public                               v2/routers/personnel_categories.py:371
+GET    /v2/records                              v2/routers/attendance.py:105
+GET    /v2/report-presets                       v2/routers/batch_reports.py:490
+GET    /v2/report-types                         v2/routers/batch_reports.py:459
+GET    /v2/reports/available                    v2/routers/simple_payroll.py:1568
+GET    /v2/reports/templates                    v2/routers/simple_payroll.py:1617
+GET    /v2/roles                                v2/routers/security.py:360
+GET    /v2/roles/{role_id}                      v2/routers/security.py:412
+GET    /v2/roles/{role_id}/permissions          v2/routers/security.py:673
+GET    /v2/rule-sets                            v2/routers/calculation_config.py:295
+GET    /v2/rules                                v2/routers/attendance.py:245
+GET    /v2/runs                                 v2/routers/payroll_v2.py:136
+GET    /v2/salary-base-summary                  v2/routers/views.py:1345
+GET    /v2/salary-configs/employee/{employee_id}/period/{period_id} v2/routers/simple_payroll.py:2966
+GET    /v2/salary-statistics                    v2/routers/payroll_v2.py:518
+GET    /v2/simple-payroll/versions              v2/routers/views_optimized.py:293
+GET    /v2/social-insurance-comprehensive       v2/routers/calculation_config.py:18
+GET    /v2/stats                                v2/routers/reports/optimization.py:16
+GET    /v2/stats/overview                       v2/routers/simple_payroll.py:1704
+GET    /v2/stats/summary                        v2/routers/views.py:938
+GET    /v2/status                               v2/routers/system.py:187
+GET    /v2/tasks                                v2/routers/batch_reports.py:80
+GET    /v2/tasks/{task_id}                      v2/routers/batch_reports.py:120
+GET    /v2/tasks/{task_id}/download             v2/routers/batch_reports.py:237
+GET    /v2/tasks/{task_id}/download-file        v2/routers/batch_reports.py:288
+GET    /v2/tasks/{task_id}/items                v2/routers/batch_reports.py:192
+GET    /v2/tasks/{task_id}/progress             v2/routers/batch_reports.py:156
+GET    /v2/tax-configs                          v2/routers/calculation_config.py:241
+GET    /v2/tax-configs/{config_id}              v2/routers/calculation_config.py:305
+GET    /v2/templates                            v2/routers/utilities.py:198
+GET    /v2/templates                            v2/routers/config/report_definition_router.py:31
+GET    /v2/templates/{template_id}              v2/routers/config/report_definition_router.py:63
+GET    /v2/templates/{template_id}/fields       v2/routers/config/report_definition_router.py:153
+GET    /v2/tree                                 v2/routers/personnel_categories.py:88
+GET    /v2/types                                v2/routers/lookup.py:27
+GET    /v2/types                                v2/routers/report_config_management.py:75
+GET    /v2/types/{lookup_type_id}               v2/routers/lookup.py:79
+GET    /v2/types/{type_id}                      v2/routers/report_config_management.py:119
+GET    /v2/types/{type_id}/available-fields     v2/routers/report_config_management.py:364
+GET    /v2/types/{type_id}/fields               v2/routers/report_config_management.py:330
+GET    /v2/types/{type_id}/preview              v2/routers/report_config_management.py:240
+GET    /v2/users                                v2/routers/security.py:34
+GET    /v2/users/{user_id}                      v2/routers/security.py:93
+GET    /v2/users/{user_id}                      v2/routers/views_optimized.py:25
+GET    /v2/users/{user_id}/roles                v2/routers/security.py:322
+GET    /v2/validation/integrity                 v2/routers/hr_v2.py:246
+GET    /v2/values                               v2/routers/lookup.py:255
+GET    /v2/values/{lookup_value_id}             v2/routers/lookup.py:382
+GET    /v2/version                              v2/routers/system.py:109
+GET    /v2/versions                             v2/routers/simple_payroll.py:140
+GET    /v2/versions/{version_id}                v2/routers/simple_payroll.py:170
+GET    /v2/view-fields                          v2/routers/payroll.py:1179
+GET    /v2/{bracket_id}                         v2/routers/config/tax_bracket_router.py:73
+GET    /v2/{component_id}                       v2/routers/config/payroll_component_router.py:66
+GET    /v2/{data_source_id}                     v2/routers/reports/data_sources.py:53
+GET    /v2/{data_source_id}/access-logs         v2/routers/reports/data_sources.py:207
+GET    /v2/{data_source_id}/preview             v2/routers/reports/data_sources.py:232
+GET    /v2/{data_source_id}/statistics          v2/routers/reports/data_sources.py:184
+GET    /v2/{department_id}                      v2/routers/departments.py:99
+GET    /v2/{employee_id}                        v2/routers/employees.py:181
+GET    /v2/{field_id}                           v2/routers/reports/calculated_fields.py:42
+GET    /v2/{parameter_id}                       v2/routers/config/system_parameter_router.py:71
+GET    /v2/{personnel_category_id}              v2/routers/personnel_categories.py:185
+GET    /v2/{position_id}                        v2/routers/positions.py:185
+GET    /v2/{rate_id}                            v2/routers/config/social_security_rate_router.py:76
+GET    /v2/{template_id}                        v2/routers/reports/templates.py:45
+GET    /v2/{template_id}/fields                 v2/routers/reports/templates.py:96
+PATCH  /v2/payroll-entries/{entry_id}           v2/routers/payroll.py:867
+PATCH  /v2/payroll-runs/{run_id}                v2/routers/payroll.py:487
+POST   /v2                                      v2/routers/positions.py:68
+POST   /v2                                      v2/routers/personnel_categories.py:226
+POST   /v2                                      v2/routers/departments.py:140
+POST   /v2                                      v2/routers/employees.py:243
+POST   /v2                                      v2/routers/reports/calculated_fields.py:55
+POST   /v2                                      v2/routers/reports/data_sources.py:71
+POST   /v2                                      v2/routers/reports/templates.py:58
+POST   /v2                                      v2/routers/config/system_parameter_router.py:112
+POST   /v2                                      v2/routers/config/payroll_component_router.py:100
+POST   /v2                                      v2/routers/config/tax_bracket_router.py:107
+POST   /v2                                      v2/routers/config/social_security_rate_router.py:110
+POST   /v2/audit/advanced-check/{payroll_run_id} v2/routers/simple_payroll.py:1522
+POST   /v2/audit/auto-fix                       v2/routers/simple_payroll.py:1035
+POST   /v2/audit/check/{payroll_run_id}         v2/routers/simple_payroll.py:862
+POST   /v2/audit/ignore                         v2/routers/simple_payroll.py:935
+POST   /v2/audit/update-status                  v2/routers/simple_payroll.py:1075
+POST   /v2/bank-file/generate                   v2/routers/simple_payroll.py:1200
+POST   /v2/batch-adjust                         v2/routers/simple_payroll.py:594
+POST   /v2/batch-adjustment/execute             v2/routers/simple_payroll.py:1823
+POST   /v2/batch-adjustment/preview             v2/routers/simple_payroll.py:1784
+POST   /v2/batch-data                           v2/routers/reports/payroll_modals.py:241
+POST   /v2/batch-import                         v2/routers/employees.py:519
+POST   /v2/batch-lookup                         v2/routers/views_optimized.py:323
+POST   /v2/batch-validate                       v2/routers/employees.py:462
+POST   /v2/bulk                                 v2/routers/employees.py:284
+POST   /v2/cache/clear                          v2/routers/debug.py:274
+POST   /v2/calculated-fields                    v2/routers/config/report_definition_router.py:285
+POST   /v2/calculation-engine/integrated-run    v2/routers/simple_payroll.py:2227
+POST   /v2/calculation-engine/run               v2/routers/simple_payroll.py:635
+POST   /v2/cleanup-expired                      v2/routers/batch_reports.py:388
+POST   /v2/columns/{table_id}                   v2/routers/table_config.py:194
+POST   /v2/copy-previous                        v2/routers/simple_payroll.py:323
+POST   /v2/daily-records                        v2/routers/attendance.py:193
+POST   /v2/data-sources                         v2/routers/report_config_management.py:1029
+POST   /v2/data-sources                         v2/routers/config/report_definition_router.py:378
+POST   /v2/data-sources/preview-multi           v2/routers/reports/optimization.py:139
+POST   /v2/data-sources/{data_source_id_or_code}/sync-fields v2/routers/report_config_management.py:1199
+POST   /v2/detect-fields                        v2/routers/reports/data_sources.py:146
+POST   /v2/employees/batch-lookup               v2/routers/views_optimized.py:370
+POST   /v2/excel-to-csv                         v2/routers/utilities.py:109
+POST   /v2/executions                           v2/routers/reports/queries.py:57
+POST   /v2/export                               v2/routers/utilities.py:313
+POST   /v2/fields                               v2/routers/reports/templates.py:131
+POST   /v2/fields                               v2/routers/config/report_definition_router.py:176
+POST   /v2/generate                             v2/routers/batch_reports.py:30
+POST   /v2/generate                             v2/routers/simple_payroll.py:248
+POST   /v2/generators/auto-infer                v2/routers/report_config_management.py:805
+POST   /v2/groups                               v2/routers/config/user_preferences_router.py:681
+POST   /v2/lookup-types                         v2/routers/config/lookup_router.py:94
+POST   /v2/lookup-values                        v2/routers/config/lookup_router.py:189
+POST   /v2/payroll-component-definitions        v2/routers/payroll.py:1237
+POST   /v2/payroll-data-modal                   v2/routers/config/user_preferences_router.py:95
+POST   /v2/payroll-data-modal/{preset_id}/apply v2/routers/config/user_preferences_router.py:396
+POST   /v2/payroll-data-modal/{preset_id}/duplicate v2/routers/config/user_preferences_router.py:466
+POST   /v2/payroll-data-modal/{preset_id}/set-default v2/routers/config/user_preferences_router.py:570
+POST   /v2/payroll-entries                      v2/routers/payroll.py:828
+POST   /v2/payroll-entries/batch-check-existing v2/routers/views_optimized.py:426
+POST   /v2/payroll-entries/bulk                 v2/routers/payroll.py:1066
+POST   /v2/payroll-entries/bulk/validate        v2/routers/payroll.py:1010
+POST   /v2/payroll-periods                      v2/routers/payroll.py:142
+POST   /v2/payroll-runs                         v2/routers/payroll.py:395
+POST   /v2/periods                              v2/routers/attendance.py:45
+POST   /v2/permissions                          v2/routers/security.py:804
+POST   /v2/presets                              v2/routers/report_config_management.py:672
+POST   /v2/preview-multi                        v2/routers/reports/data_sources.py:287
+POST   /v2/query                                v2/routers/reports/queries.py:67
+POST   /v2/query-fast                           v2/routers/reports/queries.py:121
+POST   /v2/records                              v2/routers/attendance.py:125
+POST   /v2/reports/generate                     v2/routers/simple_payroll.py:1589
+POST   /v2/reports/generate                     v2/routers/simple_payroll.py:1637
+POST   /v2/roles                                v2/routers/security.py:453
+POST   /v2/roles/{role_id}/permissions          v2/routers/security.py:586
+POST   /v2/rules                                v2/routers/attendance.py:262
+POST   /v2/salary-configs/batch-update          v2/routers/simple_payroll.py:539
+POST   /v2/salary-configs/batch-update-bases    v2/routers/simple_payroll.py:3348
+POST   /v2/salary-configs/batch-update-insurance-bases-only v2/routers/simple_payroll.py:3429
+POST   /v2/salary-configs/batch-validate        v2/routers/simple_payroll.py:3267
+POST   /v2/salary-configs/copy                  v2/routers/simple_payroll.py:429
+POST   /v2/salary-configs/copy-insurance-base   v2/routers/simple_payroll.py:484
+POST   /v2/social-insurance-comprehensive       v2/routers/calculation_config.py:116
+POST   /v2/social-insurance/calculate           v2/routers/simple_payroll.py:1870
+POST   /v2/social-insurance/integrate           v2/routers/simple_payroll.py:2004
+POST   /v2/tax-configs                          v2/routers/calculation_config.py:346
+POST   /v2/templates                            v2/routers/config/report_definition_router.py:85
+POST   /v2/test-connection                      v2/routers/reports/data_sources.py:128
+POST   /v2/test-formula                         v2/routers/reports/calculated_fields.py:92
+POST   /v2/test-view-performance                v2/routers/reports/optimization.py:71
+POST   /v2/token                                v2/routers/auth.py:27
+POST   /v2/types                                v2/routers/lookup.py:120
+POST   /v2/types                                v2/routers/report_config_management.py:147
+POST   /v2/types/{type_id}/fields               v2/routers/report_config_management.py:434
+POST   /v2/usage/preset/{preset_id}             v2/routers/report_config_management.py:751
+POST   /v2/users                                v2/routers/security.py:135
+POST   /v2/users/{user_id}/roles                v2/routers/security.py:274
+POST   /v2/values                               v2/routers/lookup.py:423
+POST   /v2/{data_source_id}/sync-fields         v2/routers/reports/data_sources.py:156
+PUT    /v2/calculated-fields/{field_id}         v2/routers/config/report_definition_router.py:303
+PUT    /v2/daily-records/{daily_record_id}      v2/routers/attendance.py:206
+PUT    /v2/data-sources/{data_source_id_or_code} v2/routers/report_config_management.py:1053
+PUT    /v2/data-sources/{source_id}             v2/routers/config/report_definition_router.py:392
+PUT    /v2/fields/{field_id}                    v2/routers/report_config_management.py:460
+PUT    /v2/fields/{field_id}                    v2/routers/reports/templates.py:141
+PUT    /v2/fields/{field_id}                    v2/routers/config/report_definition_router.py:199
+PUT    /v2/groups/reorder                       v2/routers/config/user_preferences_router.py:960
+PUT    /v2/groups/{group_id}                    v2/routers/config/user_preferences_router.py:749
+PUT    /v2/lookup-types/{type_id}               v2/routers/config/lookup_router.py:149
+PUT    /v2/lookup-values/{value_id}             v2/routers/config/lookup_router.py:334
+PUT    /v2/payroll-component-definitions/{component_id} v2/routers/payroll.py:1260
+PUT    /v2/payroll-data-modal/{preset_id}       v2/routers/config/user_preferences_router.py:190
+PUT    /v2/payroll-entries/{entry_id}           v2/routers/payroll.py:905
+PUT    /v2/payroll-periods/{period_id}          v2/routers/payroll.py:181
+PUT    /v2/payroll-runs/{run_id}                v2/routers/payroll.py:434
+PUT    /v2/periods/{period_id}                  v2/routers/attendance.py:70
+PUT    /v2/permissions/{permission_id}          v2/routers/security.py:843
+PUT    /v2/presets/{preset_id}                  v2/routers/report_config_management.py:695
+PUT    /v2/records/{record_id}                  v2/routers/attendance.py:138
+PUT    /v2/roles/{role_id}                      v2/routers/security.py:492
+PUT    /v2/rules/{rule_id}                      v2/routers/attendance.py:275
+PUT    /v2/salary-configs/employee/{employee_id}/period/{period_id} v2/routers/simple_payroll.py:3049
+PUT    /v2/social-insurance-comprehensive/{config_id} v2/routers/calculation_config.py:172
+PUT    /v2/tax-configs/{config_id}              v2/routers/calculation_config.py:378
+PUT    /v2/templates/{template_id}              v2/routers/config/report_definition_router.py:103
+PUT    /v2/types/{lookup_type_id}               v2/routers/lookup.py:159
+PUT    /v2/types/{type_id}                      v2/routers/report_config_management.py:175
+PUT    /v2/users/{user_id}                      v2/routers/security.py:179
+PUT    /v2/values/{lookup_value_id}             v2/routers/lookup.py:462
+PUT    /v2/{bracket_id}                         v2/routers/config/tax_bracket_router.py:140
+PUT    /v2/{component_id}                       v2/routers/config/payroll_component_router.py:134
+PUT    /v2/{data_source_id}                     v2/routers/reports/data_sources.py:89
+PUT    /v2/{department_id}                      v2/routers/departments.py:179
+PUT    /v2/{employee_id}                        v2/routers/employees.py:361
+PUT    /v2/{field_id}                           v2/routers/reports/calculated_fields.py:65
+PUT    /v2/{parameter_id}                       v2/routers/config/system_parameter_router.py:145
+PUT    /v2/{personnel_category_id}              v2/routers/personnel_categories.py:265
+PUT    /v2/{position_id}                        v2/routers/positions.py:218
+PUT    /v2/{rate_id}                            v2/routers/config/social_security_rate_router.py:143
+PUT    /v2/{template_id}                        v2/routers/reports/templates.py:68

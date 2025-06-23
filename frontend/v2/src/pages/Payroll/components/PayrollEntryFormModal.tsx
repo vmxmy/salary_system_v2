@@ -24,7 +24,6 @@ import type { PayrollEntry, PayrollItemDetail, PayrollComponentDefinition, Payro
 import { updatePayrollEntryDetails, getPayrollEntryById, createPayrollEntry, getPayrollRuns } from '../services/payrollApi';
 import usePayrollConfigStore from '../../../store/payrollConfigStore';
 import { employeeService } from '../../../services/employeeService';
-import { employeeManagementApi } from '../../../pages/EmployeeManagement/services/employeeManagementApi';
 import { PAYROLL_ENTRY_STATUS_OPTIONS } from '../utils/payrollUtils';
 import EmployeeSelect from '../../../components/common/EmployeeSelect';
 import type { Employee } from '../../HRManagement/types';
@@ -425,7 +424,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const fetchEmployeeDetails = useCallback(async (employeeId: number) => {
     setLoading(true);
     try {
-      const employee = await employeeManagementApi.getEmployeeById(String(employeeId));
+      const employee = await employeeService.getEmployeeByIdFromView(String(employeeId));
       setEmployeeDetails(employee);
       
       // 设置表单中的员工姓名和部门

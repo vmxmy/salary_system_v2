@@ -879,5 +879,22 @@
   },
   "calculation_rule": "计算规则",
   "calculation_rule_set": "薪资计算规则集",
-  "calculation_rule_sets": "薪资计算规则集"
+  "calculation_rule_sets": "薪资计算规则集",
+  "total_runs": "审核总数",
+  "pending_runs": "待处理审核",
+  "completed_runs": "已完成审核",
+  "total_employees_processed": "已处理员工总数",
+  "create_run": "创建审核",
+  "select_period": "选择周期",
+  "run_description_placeholder": "请输入审核描述",
+  "frequency": "频率",
+  "period_range": "周期范围",
+  "runs_count": "审核数量",
+  "total_periods": "周期总数",
+  "active_periods": "活跃周期",
+  "pending_periods": "待处理周期",
+  "total_runs_created": "已创建审核总数",
+  "payroll_periods": "薪资周期",
+  "create_period": "创建周期",
+  "associated_runs": "关联审核"
 }

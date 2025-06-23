@@ -104,12 +104,6 @@ export const menuData: AppMenuDataItem[] = [
     icon: <TeamOutlined />,
     children: [
       {
-        name: '员工列表',
-        titleKey: 'hr.employees',
-        path: '/hr/employees',
-        icon: <UserOutlined />,
-      },
-      {
         name: '员工列表 (新版)',
         titleKey: 'hr.employeesUniversal',
         path: '/hr/employees/universal',
@@ -121,7 +115,6 @@ export const menuData: AppMenuDataItem[] = [
         path: '/hr/employees/new',
         icon: <UserAddOutlined />,
       },
-
     ],
   },
   {

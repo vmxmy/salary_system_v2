@@ -1,4 +1,631 @@
-src/pages/HRManagement/employees/EmployeeListPage.tsx:60: placeholder="搜索姓名"
-src/pages/HRManagement/routes.ts:14: const CreateEmployeePagePlaceholder = () => React.createElement('div', null, '新建员工页');
-src/pages/HRManagement/routes.ts:15: const EditEmployeePagePlaceholder = () => React.createElement('div', null, '编辑员工页');
-src/pages/HRManagement/routes.ts:16: const EmployeeDetailPagePlaceholder = () => React.createElement('div', null, '员工详情页');
+src/components/BatchReportExport/BatchReportExportV2.tsx:186: label="任务名称"
+src/components/BatchReportExport/BatchReportExportV2.tsx:189: <Input placeholder="请输入任务名称" />
+src/components/BatchReportExport/BatchReportExportV2.tsx:195: label="薪资周期"
+src/components/BatchReportExport/BatchReportExportV2.tsx:198: <Select placeholder="请选择薪资周期" loading={periodsLoading}>
+src/components/BatchReportExport/BatchReportExportV2.tsx:210: label="任务描述"
+src/components/BatchReportExport/BatchReportExportV2.tsx:214: placeholder="请输入任务描述（可选）"
+src/components/BatchReportExport/BatchReportExportV2.tsx:321: label="部门筛选"
+src/components/BatchReportExport/BatchReportExportV2.tsx:326: placeholder="请选择部门（可多选）"
+src/components/BatchReportExport/BatchReportExportV2.tsx:342: label="员工筛选"
+src/components/BatchReportExport/BatchReportExportV2.tsx:347: placeholder="请选择员工（可多选）"
+src/components/BatchReportExport/BatchReportExportV2.tsx:383: label="导出格式"
+src/components/BatchReportExport/BatchReportExportV2.tsx:395: label="自动清理时间"
+src/components/BatchReportExport/index.tsx:214: label="任务名称"
+src/components/BatchReportExport/index.tsx:217: <Input placeholder="请输入任务名称" />
+src/components/BatchReportExport/index.tsx:223: label="薪资周期"
+src/components/BatchReportExport/index.tsx:226: <Select placeholder="请选择薪资周期" loading={periodsLoading}>
+src/components/BatchReportExport/index.tsx:238: label="任务描述"
+src/components/BatchReportExport/index.tsx:242: placeholder="请输入任务描述（可选）"
+src/components/BatchReportExport/index.tsx:343: label="部门筛选"
+src/components/BatchReportExport/index.tsx:348: placeholder="请选择部门（可多选）"
+src/components/BatchReportExport/index.tsx:364: label="员工筛选"
+src/components/BatchReportExport/index.tsx:369: placeholder="请选择员工（可多选）"
+src/components/BatchReportExport/index.tsx:395: label="导出格式"
+src/components/BatchReportExport/index.tsx:407: label="自动清理时间"
+src/components/BatchReportExport/index.tsx:473: <Descriptions.Item label="报表代码">{previewReportType.code}</Descriptions.Item>
+src/components/BatchReportExport/index.tsx:474: <Descriptions.Item label="报表名称">{previewReportType.name}</Descriptions.Item>
+src/components/BatchReportExport/index.tsx:475: <Descriptions.Item label="类别">{previewReportType.category || '-'}</Descriptions.Item>
+src/components/BatchReportExport/index.tsx:476: <Descriptions.Item label="状态">
+src/components/BatchReportExport/index.tsx:481: <Descriptions.Item label="描述" span={2}>
+src/components/BatchReportExport/index.tsx:485: <Descriptions.Item label="数据源" span={2}>
+src/components/BatchReportExport/index.tsx:490: <Descriptions.Item label="使用次数">{previewReportType.usage_count}</Descriptions.Item>
+src/components/BatchReportExport/index.tsx:493: <Descriptions.Item label="最后使用时间">
+src/components/PayrollDataModal/FilterConfigPanel.tsx:546: placeholder="例如：*工资*、*保险*、*金额*（使用*通配符）"
+src/components/PayrollDataModal/FilterConfigPanel.tsx:553: maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
+src/components/PayrollDataModal/FilterConfigPanel.tsx:657: <label>排除模式（支持通配符 * 和 ?）：</label>
+src/components/PayrollDataModal/FilterConfigPanel.tsx:664: placeholder="例如：*id、*时间、*日期"
+src/components/PayrollDataModal/FilterConfigPanel.tsx:671: maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
+src/components/PayrollDataModal/FilterConfigPanel.tsx:722: placeholder="无限制"
+src/components/PayrollDataModal/FilterConfigPanel.tsx:806: placeholder="选择字段排序到前面"
+src/components/PayrollDataModal/GlobalSearch.tsx:92: placeholder = '搜索员工姓名、编号、部门、职位...',
+src/components/PayrollDataModal/PresetSaveModal.tsx:282: label="预设名称"
+src/components/PayrollDataModal/PresetSaveModal.tsx:290: placeholder="为此预设配置起个名字..."
+src/components/PayrollDataModal/PresetSaveModal.tsx:297: <Form.Item name="description" label="描述（可选）">
+src/components/PayrollDataModal/PresetSaveModal.tsx:300: placeholder="描述此预设的用途和特点..."
+src/components/PayrollDataModal/PresetSaveModal.tsx:306: <Form.Item name="category" label="分组">
+src/components/PayrollDataModal/PresetSaveModal.tsx:308: placeholder="选择分组（可选）"
+src/components/PayrollDataModal/PresetSaveModal.tsx:360: placeholder="搜索预设名称、描述..."
+src/components/PayrollDataModal/ProFormGlobalSearch.tsx:95: placeholder = '搜索员工姓名、编号、部门、职位... 或 实发合计>10000',
+src/components/PayrollDataModal/SearchPanel.tsx:47: placeholder = "搜索员工姓名、编号、部门、职位...",
+src/components/ReactQueryDebugger.tsx:45: <Descriptions.Item label="总查询数">{stats.total}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:46: <Descriptions.Item label="成功">{stats.success}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:47: <Descriptions.Item label="错误">{stats.error}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:48: <Descriptions.Item label="进行中">{stats.pending}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:52: <Descriptions.Item label="过期">{stats.stale}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:53: <Descriptions.Item label="获取中">{stats.fetching}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:54: <Descriptions.Item label="暂停">{stats.paused}</Descriptions.Item>
+src/components/ReactQueryDebugger.tsx:55: <Descriptions.Item label="非活跃">{stats.inactive}</Descriptions.Item>
+src/components/universal/DataBrowser/AdvancedColumnManager.tsx:508: placeholder={t('filter.pattern_placeholder', { defaultValue: '输入模式，如: *name*' })}
+src/components/universal/DataBrowser/AdvancedColumnManager.tsx:522: placeholder={t('filter.exclude_placeholder', { defaultValue: '输入要排除的模式' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:151: label={t('preset.name', { defaultValue: '预设名称' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:158: <Input placeholder={t('preset.name_placeholder', { defaultValue: '请输入预设名称' })} />
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:162: label={t('preset.description', { defaultValue: '描述' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:167: placeholder={t('preset.description_placeholder', { defaultValue: '请输入预设描述(可选)' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:174: label={t('preset.category', { defaultValue: '分类' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:178: placeholder={t('preset.category_placeholder', { defaultValue: '选择分类(可选)' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:283: label={t('preset.name', { defaultValue: '预设名称' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:290: <Input placeholder={t('preset.name_placeholder', { defaultValue: '请输入预设名称' })} />
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:294: label={t('preset.description', { defaultValue: '描述' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:299: placeholder={t('preset.description_placeholder', { defaultValue: '请输入预设描述(可选)' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:306: label={t('preset.category', { defaultValue: '分类' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:310: placeholder={t('preset.category_placeholder', { defaultValue: '选择分类(可选)' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:563: placeholder={t('preset.search_placeholder', { defaultValue: '搜索预设名称或描述...' })}
+src/components/universal/DataBrowser/ConfigPresetManager.tsx:572: placeholder={t('preset.filter_category', { defaultValue: '按分类筛选' })}
+src/components/universal/DataBrowser/SmartSearchPanel.tsx:60: placeholder = "输入搜索关键词...",
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:990: <Form.Item name="code" label="报表编码" rules={[{ required: true, message: '请输入报表编码' }]}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:991: <Input placeholder="例如: salary_summary" disabled={editingType?.is_system} />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:995: <Form.Item name="name" label="报表名称" rules={[{ required: true, message: '请输入报表名称' }]}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:997: placeholder="例如: 薪资汇总表"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1006: <Form.Item name="category" label="报表分类">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1007: <Select placeholder="选择或输入分类" allowClear showSearch>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1016: <Form.Item name="sort_order" label="排序顺序">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1022: <Form.Item name="description" label="报表描述">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1023: <TextArea rows={3} placeholder="请输入报表的详细描述" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1028: <Form.Item name="is_active" label="是否启用" valuePropName="checked">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1033: <Form.Item name="is_system" label="系统内置" valuePropName="checked">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1069: <Form.Item name="data_source_id" label="数据源" rules={[{ required: true, message: '请选择数据源' }]}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1073: placeholder="请选择数据源"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1094: <Form.Item name="fields" label="可用字段">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1146: placeholder="选择要添加的字段"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1237: <Form.Item name="filter_enabled" label="启用筛选" valuePropName="checked">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1312: <label>字段</label>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1323: placeholder="选择字段"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1338: <label>操作符</label>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1343: placeholder="选择操作符"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1360: <label>筛选值</label>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1365: return <Input disabled placeholder="无需设置值" />;
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1373: placeholder="输入多个值"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1383: placeholder="最小值"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1397: placeholder="最大值"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1411: placeholder="输入筛选值"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1419: <label>选项</label>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1443: placeholder="条件描述（可选）"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1470: <Form.Item name="generator_class" label="生成器类名">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1471: <Input placeholder="例如: SalarySummaryGenerator" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1475: <Form.Item name="generator_module" label="生成器模块">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1476: <Input placeholder="例如: services.report_generators" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1485: <Form.Item name="required_permissions" label="所需权限">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1488: placeholder="用逗号分隔，例如: report:view, salary:view"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1492: <Form.Item name="allowed_roles" label="允许的角色">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1495: placeholder="用逗号分隔，例如: admin, hr_manager"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1503: <Form.Item name="template_config" label="模板配置 (JSON)">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1510: <Form.Item name="default_config" label="默认配置 (JSON)">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1517: <Form.Item name="validation_rules" label="验证规则 (JSON)">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1561: <Descriptions.Item label="报表代码">{previewRecord.code}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1562: <Descriptions.Item label="报表名称">{previewRecord.name}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1563: <Descriptions.Item label="类别">{previewRecord.category || '-'}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1564: <Descriptions.Item label="状态">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1569: <Descriptions.Item label="系统内置">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1574: <Descriptions.Item label="排序顺序">{previewRecord.sort_order}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1575: <Descriptions.Item label="描述" span={2}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1579: <Descriptions.Item label="生成器类名">{previewRecord.generator_class}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1582: <Descriptions.Item label="生成器模块">{previewRecord.generator_module}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1585: <Descriptions.Item label="数据源" span={2}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1590: <Descriptions.Item label="使用次数">{previewRecord.usage_count}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1593: <Descriptions.Item label="最后使用时间">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:1736: <Descriptions.Item label="筛选状态">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2046: label="字段名"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2052: <Input placeholder="例如: custom_field" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2058: label="显示名称"
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2061: <Input placeholder="例如: 自定义字段" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2066: <Form.Item name="field_alias" label="字段别名">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2067: <Input placeholder="可选，用于数据库查询" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2072: <Form.Item name="field_type" label="字段类型" rules={[{ required: true, message: '请选择字段类型' }]}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2073: <Select placeholder="选择字段类型">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2085: <Form.Item name="data_type" label="数据类型" rules={[{ required: true, message: '请选择数据类型' }]}>
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2086: <Select placeholder="选择数据类型">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2098: <Form.Item name="description" label="字段描述">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2099: <TextArea rows={2} placeholder="请输入字段描述" />
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2104: <Form.Item name="is_sortable" label="可排序" valuePropName="checked">
+src/pages/Admin/Configuration/ReportConfigManagement.tsx:2109: <Form.Item name="is_filterable" label="可筛选" valuePropName="checked">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:448: label="字段名"
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:454: <Input placeholder="例如: employee_name" />
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:460: label="显示名称"
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:463: <Input placeholder="例如: 员工姓名" />
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:469: <Form.Item label="字段来源">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:493: <Form.Item name="data_source" label="数据源">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:496: placeholder="选择数据源"
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:529: <Form.Item name="source_column" label="源字段">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:531: placeholder="选择源字段"
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:574: <Form.Item name="default_value" label="默认值">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:575: <Input placeholder="留空表示空值，或输入默认显示的内容" />
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:584: label="字段类型"
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:587: <Select placeholder="选择字段类型">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:604: label="数据类型"
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:607: <Select placeholder="选择数据类型">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:622: <Form.Item name="display_order" label="显示顺序">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:627: <Form.Item name="width" label="列宽">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:633: <Form.Item name="description" label="字段描述">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:634: <TextArea rows={2} placeholder="请输入字段描述" />
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:639: <Form.Item name="is_visible" label="可见" valuePropName="checked">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:644: <Form.Item name="is_required" label="必填" valuePropName="checked">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:649: <Form.Item name="is_sortable" label="可排序" valuePropName="checked">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:654: <Form.Item name="is_filterable" label="可筛选" valuePropName="checked">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:660: <Form.Item name="format_config" label="格式配置 (JSON)">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:667: <Form.Item name="validation_rules" label="验证规则 (JSON)">
+src/pages/Admin/Configuration/ReportFieldManagement.tsx:674: <Form.Item name="style_config" label="样式配置 (JSON)">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:343: placeholder="搜索预设名称或描述"
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:351: placeholder="选择分类"
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:414: label="预设名称"
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:417: <Input placeholder="例如: 完整月度报表" />
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:421: <Form.Item name="category" label="预设分类">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:422: <Input placeholder="例如: monthly" />
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:427: <Form.Item name="description" label="预设描述">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:428: <TextArea rows={3} placeholder="请输入预设描述" />
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:433: label="包含的报表类型"
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:451: <Form.Item name="default_config" label="默认配置 (JSON)">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:463: <Form.Item name="filter_config" label="筛选配置 (JSON)">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:474: <Form.Item name="export_config" label="导出配置 (JSON)">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:487: <Form.Item name="sort_order" label="排序顺序">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:492: <Form.Item name="is_active" label="是否激活" valuePropName="checked">
+src/pages/Admin/Configuration/ReportPresetManagement.tsx:497: <Form.Item name="is_public" label="是否公开" valuePropName="checked">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:457: placeholder="搜索名称、编码或描述"
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:466: placeholder="选择分类"
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:481: placeholder="选择状态"
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:540: label="报表类型编码"
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:546: <Input placeholder="例如: salary_summary" disabled={editingRecord?.is_system} />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:552: label="报表名称"
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:556: placeholder="例如: 薪资汇总表"
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:565: <Form.Item name="category" label="报表分类">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:566: <Input placeholder="例如: payroll" />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:570: <Form.Item name="sort_order" label="排序顺序">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:576: <Form.Item name="description" label="报表描述">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:577: <TextArea rows={3} placeholder="请输入报表描述" />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:582: <Form.Item name="generator_class" label="生成器类名">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:583: <Input placeholder="例如: SalarySummaryGenerator" />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:587: <Form.Item name="generator_module" label="生成器模块路径">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:588: <Input placeholder="例如: services.report_generators" />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:593: <Form.Item name="required_permissions" label="所需权限">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:594: <Input placeholder="用逗号分隔，例如: report:view, salary:view" />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:597: <Form.Item name="allowed_roles" label="允许的角色">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:598: <Input placeholder="用逗号分隔，例如: admin, hr_manager" />
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:601: <Form.Item name="template_config" label="模板配置 (JSON)">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:608: <Form.Item name="default_config" label="默认配置 (JSON)">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:615: <Form.Item name="validation_rules" label="验证规则 (JSON)">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:624: <Form.Item name="is_active" label="是否激活" valuePropName="checked">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:629: <Form.Item name="is_system" label="系统内置" valuePropName="checked">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:691: <Descriptions.Item label="报表代码">{previewRecord.code}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:692: <Descriptions.Item label="报表名称">{previewRecord.name}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:693: <Descriptions.Item label="类别">{previewRecord.category || '-'}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:694: <Descriptions.Item label="状态">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:699: <Descriptions.Item label="系统内置">
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:704: <Descriptions.Item label="排序顺序">{previewRecord.sort_order}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:705: <Descriptions.Item label="描述" span={2}>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:709: <Descriptions.Item label="生成器类名">{previewRecord.generator_class}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:712: <Descriptions.Item label="生成器模块">{previewRecord.generator_module}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:715: <Descriptions.Item label="数据源" span={2}>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:720: <Descriptions.Item label="使用次数">{previewRecord.usage_count}</Descriptions.Item>
+src/pages/Admin/Configuration/ReportTypeManagement.tsx:723: <Descriptions.Item label="最后使用时间">
+src/pages/Admin/DataSources.tsx:479: label={t('data_source.form.name_label', '数据源名称')}
+src/pages/Admin/DataSources.tsx:483: <Input placeholder={t('data_source.form.name_placeholder', '例如: 员工主数据')} />
+src/pages/Admin/DataSources.tsx:488: label={t('data_source.form.code_label', '数据源编码')}
+src/pages/Admin/DataSources.tsx:492: <Input placeholder={t('data_source.form.code_placeholder', '例如: ds_employees')} disabled={!!editingSource} />
+src/pages/Admin/DataSources.tsx:500: label={t('data_source.form.source_type_label', '数据源类型')}
+src/pages/Admin/DataSources.tsx:504: <Select placeholder={t('data_source.form.source_type_placeholder', '请选择类型')}>
+src/pages/Admin/DataSources.tsx:513: label={t('data_source.form.category_label', '分类')}
+src/pages/Admin/DataSources.tsx:516: <Input placeholder={t('data_source.form.category_placeholder', '例如: HR, Finance')} />
+src/pages/Admin/DataSources.tsx:524: label={t('data_source.form.connection_type_label', '连接类型')}
+src/pages/Admin/DataSources.tsx:566: label={t('data_source.form.view_name_label', '视图名称')}
+src/pages/Admin/DataSources.tsx:570: <Input placeholder={t('data_source.form.view_name_placeholder', '例如: v_employee_details')} />
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:582: label="职位代码"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:583: placeholder="请输入职位代码"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:587: label="职位名称"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:588: placeholder="请输入职位名称"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:593: label="上级职位"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:594: placeholder="请选择上级职位（可选）"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:605: label="描述"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:606: placeholder="请输入描述信息"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:611: label="生效日期"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:617: label="失效日期"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:618: placeholder="请选择失效日期（可选）"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:622: label="启用状态"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:651: label="职位代码"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:652: placeholder="请输入职位代码"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:656: label="职位名称"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:657: placeholder="请输入职位名称"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:662: label="上级职位"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:663: placeholder="请选择上级职位（可选）"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:674: label="描述"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:675: placeholder="请输入描述信息"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:680: label="生效日期"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:685: label="失效日期"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:686: placeholder="请选择失效日期（可选）"
+src/pages/Admin/Organization/ActualPositionPageV2.tsx:690: label="启用状态"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:377: <ProDescriptions.Item label="级别名称">
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:385: <ProDescriptions.Item label="级别代码">
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:388: <ProDescriptions.Item label="描述">
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:391: <ProDescriptions.Item label="排序">
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:397: <ProDescriptions.Item label="状态">
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:414: <ProDescriptions.Item label="关联员工数">
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:474: label="级别代码"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:475: placeholder="请输入级别代码"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:483: label="级别名称"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:484: placeholder="请输入级别名称"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:489: label="描述"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:490: placeholder="请输入描述信息"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:495: label="排序"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:496: placeholder="请输入排序数字"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:504: label="启用状态"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:531: label="级别代码"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:532: placeholder="请输入级别代码"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:540: label="级别名称"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:541: placeholder="请输入级别名称"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:546: label="描述"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:547: placeholder="请输入描述信息"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:552: label="排序"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:553: placeholder="请输入排序数字"
+src/pages/Admin/Organization/JobPositionLevelPageV2.tsx:560: label="启用状态"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:524: <ProDescriptions.Item label="分类名称">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:532: <ProDescriptions.Item label="分类代码">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:535: <ProDescriptions.Item label="描述">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:538: <ProDescriptions.Item label="生效日期">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:541: <ProDescriptions.Item label="失效日期">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:556: <ProDescriptions.Item label="层级深度">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:559: <ProDescriptions.Item label="父级分类">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:567: <ProDescriptions.Item label="子分类数量">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:579: <ProDescriptions.Item label="关联员工数">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:585: <ProDescriptions.Item label="状态">
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:652: label="身份代码"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:653: placeholder="请输入身份代码"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:658: label="身份名称"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:659: placeholder="请输入身份名称"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:664: label="上级分类"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:665: placeholder="请选择上级分类（可选）"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:680: label="描述"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:681: placeholder="请输入描述信息"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:686: label="生效日期"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:692: label="失效日期"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:693: placeholder="请选择失效日期（可选）"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:697: label="启用状态"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:727: label="身份代码"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:728: placeholder="请输入身份代码"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:733: label="身份名称"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:734: placeholder="请输入身份名称"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:739: label="上级分类"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:740: placeholder="请选择上级分类（可选）"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:755: label="描述"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:756: placeholder="请输入描述信息"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:761: label="生效日期"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:766: label="失效日期"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:767: placeholder="请选择失效日期（可选）"
+src/pages/Admin/Organization/PersonnelCategoriesPageV2.tsx:771: label="启用状态"
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:95: label="职务级别"
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:97: <Select placeholder="请选择职务级别" loading={loadingLookups} allowClear>
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:117: label="首次参加工作时间"
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:128: label="现职务开始时间"
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:136: label="职级确定时间"
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:147: label="工作间断年限"
+src/pages/HRManagement/components/EmployeeForm/PositionContractTab.tsx:156: placeholder="请输入工作间断年限"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:230: label="工号"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:232: placeholder="请输入工号（可选）"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:239: label="姓"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:241: placeholder="请输入姓"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:249: label="名"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:251: placeholder="请输入名"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:262: label="性别"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:265: placeholder="请选择性别"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:270: label="出生日期"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:272: placeholder="请选择出生日期"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:279: label="身份证号"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:281: placeholder="请输入身份证号"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:291: label="婚姻状况"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:294: placeholder="请选择婚姻状况"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:298: label="政治面貌"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:301: placeholder="请选择政治面貌"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:305: label="学历"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:308: placeholder="请选择学历"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:314: label="地址"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:315: placeholder="请输入详细地址"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:334: label="所属部门"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:368: placeholder="请选择部门"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:373: label="人员类别"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:406: placeholder="请选择人员类别"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:413: label="实际职务"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:420: placeholder="请选择实际职务"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:424: label="职务级别"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:427: placeholder="请选择职务级别"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:436: label="雇佣类型"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:439: placeholder="请选择雇佣类型"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:443: label="员工状态"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:446: placeholder="请选择员工状态"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:447: initialValue={rawLookups?.statusOptions?.find(status => status.label === '在职')?.value || 21} // 动态获取"在职"状态ID
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:451: label="入职日期"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:453: placeholder="请选择入职日期"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:464: label="首次参加工作时间"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:466: placeholder="请选择首次工作时间"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:473: label="现职务开始时间"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:475: placeholder="请选择职务开始时间"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:482: label="职级确定时间"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:484: placeholder="请选择职级确定时间"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:493: label="工作间断年限"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:495: placeholder="请输入工作间断年限"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:515: label="手机号码"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:517: placeholder="请输入手机号码"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:524: label="邮箱"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:526: placeholder="请输入邮箱地址"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:538: label="开户银行"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:540: placeholder="请输入开户银行"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:544: label="银行账号"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:546: placeholder="请输入银行账号"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:558: label="紧急联系人姓名"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:560: placeholder="请输入紧急联系人姓名"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:564: label="紧急联系人电话"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:566: placeholder="请输入紧急联系人电话"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:573: label="关系"
+src/pages/HRManagement/employees/CreateEmployeePage.tsx:575: placeholder="请输入与紧急联系人关系"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:310: label="工号"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:312: placeholder="请输入工号（可选）"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:316: label="姓"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:318: placeholder="请输入姓"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:323: label="名"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:325: placeholder="请输入名"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:333: label="性别"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:336: placeholder="请选择性别"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:340: label="出生日期"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:342: placeholder="请选择出生日期"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:346: label="身份证号"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:348: placeholder="请输入身份证号"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:355: label="婚姻状况"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:358: placeholder="请选择婚姻状况"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:362: label="政治面貌"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:365: placeholder="请选择政治面貌"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:369: label="学历"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:372: placeholder="请选择学历"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:378: label="地址"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:379: placeholder="请输入详细地址"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:401: label="所属部门"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:435: placeholder="请选择部门"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:440: label="人员类别"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:473: placeholder="请选择人员类别"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:480: label="实际职务"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:487: placeholder="请选择实际职务"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:491: label="职务级别"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:494: placeholder="请选择职务级别"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:503: label="雇佣类型"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:506: placeholder="请选择雇佣类型"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:510: label="员工状态"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:513: placeholder="请选择员工状态"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:517: label="入职日期"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:519: placeholder="请选择入职日期"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:527: label="首次参加工作时间"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:529: placeholder="请选择首次工作时间"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:533: label="现职务开始时间"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:535: placeholder="请选择职务开始时间"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:539: label="职级确定时间"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:541: placeholder="请选择职级确定时间"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:547: label="工作间断年限"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:549: placeholder="请输入工作间断年限"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:569: label="手机号码"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:571: placeholder="请输入手机号码"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:575: label="邮箱"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:577: placeholder="请输入邮箱地址"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:586: label="开户银行"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:588: placeholder="请输入开户银行"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:592: label="银行账号"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:594: placeholder="请输入银行账号"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:603: label="紧急联系人姓名"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:605: placeholder="请输入紧急联系人姓名"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:609: label="紧急联系人电话"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:611: placeholder="请输入紧急联系人电话"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:615: label="关系"
+src/pages/HRManagement/employees/EditEmployeePage.tsx:617: placeholder="请输入与紧急联系人关系"
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:163: <Descriptions.Item label="姓名">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:166: <Descriptions.Item label="员工编号">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:169: <Descriptions.Item label="身份证号">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:172: <Descriptions.Item label="性别">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:175: <Descriptions.Item label="出生日期">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:178: <Descriptions.Item label="国籍">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:181: <Descriptions.Item label="民族">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:184: <Descriptions.Item label="学历">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:187: <Descriptions.Item label="婚姻状况">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:190: <Descriptions.Item label="政治面貌">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:193: <Descriptions.Item label="员工状态">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:203: <Descriptions.Item label="邮箱">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:206: <Descriptions.Item label="手机号码">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:209: <Descriptions.Item label="家庭住址" span={2}>
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:212: <Descriptions.Item label="紧急联系人">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:215: <Descriptions.Item label="紧急联系电话">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:225: <Descriptions.Item label="开户银行">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:228: <Descriptions.Item label="银行账号">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:243: <Descriptions.Item label="所属部门">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:248: <Descriptions.Item label="人员类别">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:253: <Descriptions.Item label="实际职务">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:258: <Descriptions.Item label="职务级别">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:269: <Descriptions.Item label="入职日期">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:272: <Descriptions.Item label="工龄">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:275: <Descriptions.Item label="首次参加工作时间">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:278: <Descriptions.Item label="雇佣类型">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:281: <Descriptions.Item label="合同类型">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:284: <Descriptions.Item label="职级确定时间">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:287: <Descriptions.Item label="现职务开始时间">
+src/pages/HRManagement/employees/EmployeeDetailPage.tsx:290: <Descriptions.Item label="工作间断年限">
+src/pages/HRManagement/employees/EmployeeListPage.tsx:82: placeholder="搜索姓名"
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:293: <Descriptions.Item label="员工编号">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:296: <Descriptions.Item label="员工姓名">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:299: <Descriptions.Item label="部门名称">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:302: <Descriptions.Item label="职位名称">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:305: <Descriptions.Item label="人员类别">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:308: <Descriptions.Item label="编制">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:311: <Descriptions.Item label="薪资期间">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:314: <Descriptions.Item label="期间开始日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:317: <Descriptions.Item label="期间结束日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:335: <Descriptions.Item label="手机号码">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:338: <Descriptions.Item label="电子邮箱">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:341: <Descriptions.Item label="家庭地址">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:344: <Descriptions.Item label="紧急联系人">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:347: <Descriptions.Item label="紧急联系人电话">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:358: <Descriptions.Item label="身份证号">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:361: <Descriptions.Item label="性别">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:364: <Descriptions.Item label="出生日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:367: <Descriptions.Item label="民族">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:370: <Descriptions.Item label="政治面貌">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:373: <Descriptions.Item label="婚姻状况">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:376: <Descriptions.Item label="学历">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:379: <Descriptions.Item label="专业">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:390: <Descriptions.Item label="入职日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:393: <Descriptions.Item label="工作状态">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:396: <Descriptions.Item label="合同类型">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:399: <Descriptions.Item label="合同开始日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:402: <Descriptions.Item label="合同结束日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:405: <Descriptions.Item label="试用期结束日期">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:416: <Descriptions.Item label="社保账号">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:419: <Descriptions.Item label="公积金账号">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:422: <Descriptions.Item label="社保缴费基数">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:425: <Descriptions.Item label="公积金缴费基数">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:436: <Descriptions.Item label="银行名称">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:439: <Descriptions.Item label="银行账号">
+src/pages/Payroll/components/PayrollEntryDetailModal.tsx:442: <Descriptions.Item label="开户行">
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:286: <Input placeholder="请输入配置名称" />
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:295: <Input placeholder="请输入适用地区" />
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:621: placeholder="最低缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:634: placeholder="最高缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:652: placeholder="最低缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:665: placeholder="最高缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:683: placeholder="最低缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:696: placeholder="最高缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:714: placeholder="最低缴费基数"
+src/pages/Payroll/components/SocialInsuranceConfigManager.tsx:727: placeholder="最高缴费基数"
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:347: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.selected_cycle', '选定周期')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:360: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.employee_count', '参与员工数')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:364: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.run_id', '运行批次ID')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:368: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.calculation_engine', '计算引擎')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:500: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.status', '计算状态')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:508: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.task_id', '任务ID')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:629: label={t('payroll:workflow.steps.auto_calculation.modules_label', '计算模块选择')}
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:686: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.tech_precision', '计算精度')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:689: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.tech_async', '异步处理')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:692: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.tech_validation', '数据验证')}>
+src/pages/Payroll/components/WorkflowSteps/AutoCalculationStep.tsx:695: <ProDescriptions.Item label={t('payroll:workflow.steps.auto_calculation.tech_audit', '审计追踪')}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:996: <ProDescriptions.Item label="当前步骤">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1003: <ProDescriptions.Item label="薪资周期">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1006: <ProDescriptions.Item label="运行批次">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1026: <ProDescriptions.Item label={t('payroll:workflow.steps.data_review.review_points.employee_data', '员工基础信息完整性')}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1029: <ProDescriptions.Item label={t('payroll:workflow.steps.data_review.review_points.attendance_data', '考勤数据准确性')}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1032: <ProDescriptions.Item label={t('payroll:workflow.steps.data_review.review_points.component_config', '薪资组件配置正确性')}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1035: <ProDescriptions.Item label={t('payroll:workflow.steps.data_review.review_points.calculation_rules', '计算规则有效性')}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1051: placeholder={t('payroll:workflow.steps.data_review.form.payroll_period_placeholder', '请选择薪资周期')}
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1106: <ProDescriptions.Item label="总记录数">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1109: <ProDescriptions.Item label="完整数据">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1114: <ProDescriptions.Item label="警告数据">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1119: <ProDescriptions.Item label="不完整数据">
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1247: label={t('payroll:workflow.steps.data_review.form.review_comments', '审核备注')}
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1248: placeholder={t('payroll:workflow.steps.data_review.form.review_comments_placeholder', '请输入审核备注或说明')}
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1254: label={t('payroll:workflow.steps.data_review.form.review_result', '审核结果')}
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1299: <Form.Item label="员工姓名" name="employee_name" style={{ marginBottom: 8 }}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1304: <Form.Item label="部门" name="department_name" style={{ marginBottom: 8 }}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1309: <Form.Item label="职位" name="position_name" style={{ marginBottom: 8 }}>
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1362: placeholder="请输入金额"
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1420: placeholder="请输入金额"
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1479: label="验证备注"
+src/pages/Payroll/components/WorkflowSteps/DataReviewStep.tsx:1487: placeholder="请输入验证备注或调整说明..."
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:378: <ProDescriptions.Item label="总条目数">
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:381: <ProDescriptions.Item label="已复核">
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:386: <ProDescriptions.Item label="有异常">
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:391: <ProDescriptions.Item label="待复核">
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:467: label="复核结果"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:470: <Select placeholder="请选择复核结果">
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:478: label="异常类型"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:487: <Select placeholder="请选择异常类型">
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:497: label="复核备注"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:502: placeholder="请详细描述复核情况、发现的问题或处理建议..."
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:531: label="应发合计"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:544: label="扣款合计"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:557: label="实发合计"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:570: label="调整原因"
+src/pages/Payroll/components/WorkflowSteps/PayrollReviewStep.tsx:575: placeholder="请详细说明调整的原因和依据..."
+src/pages/Payroll/pages/CalculationLogsPage.tsx:327: placeholder="薪资运行ID"
+src/pages/Payroll/pages/CalculationLogsPage.tsx:335: placeholder="员工ID"
+src/pages/Payroll/pages/CalculationLogsPage.tsx:343: placeholder="组件代码"
+src/pages/Payroll/pages/CalculationLogsPage.tsx:351: placeholder="选择状态"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DataUpload.tsx:833: placeholder="请从Excel复制表格数据粘贴到此处..."
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:264: placeholder="请选择目标字段"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:278: <OptGroup label="👤 基础信息">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:286: <OptGroup label="💰 收入项目">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:294: <OptGroup label="📉 扣除项目">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:303: <OptGroup label="📊 计算结果">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:313: <OptGroup label="📈 统计项目">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:323: <OptGroup label="🏷️ 其他字段">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/DynamicMappingTable.tsx:332: <OptGroup label="🔧 特殊字段">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/FieldMapping.tsx:327: placeholder="选择一个系统字段进行映射"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportInputStep.tsx:356: placeholder="列名1,列名2,列名3&#10;数据1,数据2,数据3&#10;数据4,数据5,数据6"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportInputStep.tsx:398: placeholder='[{"字段1": "值1", "字段2": "值2"}, {"字段1": "值3", "字段2": "值4"}]'
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportPreviewStep.tsx:373: label="薪资周期"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportPreviewStep.tsx:374: placeholder="请选择薪资周期"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportPreviewStep.tsx:391: label="覆盖模式"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportPreviewStep.tsx:402: label="数据验证"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportPreviewStep.tsx:413: label="详细错误"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportSettings.tsx:47: <Form.Item label="选择薪资期间" required>
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportSettings.tsx:52: placeholder="请选择薪资期间"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/ImportSettings.tsx:60: <Form.Item label="跳过无效记录">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:688: placeholder="请选择目标字段"
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:703: <OptGroup label="👤 基础信息">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:713: <OptGroup label="💰 收入项目">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:723: <OptGroup label="📉 扣除项目">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:733: <OptGroup label="📊 计算结果">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:743: <OptGroup label="📈 统计项目">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:753: <OptGroup label="🏷️ 其他字段">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/MappingTable.tsx:763: <OptGroup label="🔧 特殊字段">
+src/pages/Payroll/pages/PayrollBulkImportPage/components/PayrollPeriodSelector.tsx:37: placeholder = "请选择薪资周期",
+src/pages/Payroll/pages/PayrollDashboardView.tsx:307: placeholder="选择薪资周期"
+src/pages/Payroll/pages/PerformanceTestPage.tsx:283: <ThunderboltOutlined /> API性能测试对比
+src/pages/SimplePayroll/components/PayrollContextBar.tsx:142: placeholder="选择月份"
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:789: placeholder="搜索员工姓名"
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2103: <label>包含模式（支持通配符 * 和 ?）：</label>
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2110: placeholder="例如：*工资*、保险*、*金额"
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2114: maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2162: <label>排除模式（支持通配符 * 和 ?）：</label>
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2169: placeholder="例如：*id、*时间、*日期"
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2173: maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}项...`}
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2234: placeholder="无限制"
+src/pages/SimplePayroll/components/PayrollDataModal.backup.tsx:2361: placeholder="搜索员工姓名、编号、部门、职位..."
+src/pages/SimplePayroll/components/PayrollDataModal.tsx:544: placeholder="搜索员工姓名、编号、部门、职位... 或 实发合计>10000"
+src/pages/SimplePayroll/components/QuickActions.tsx:152: label="姓"
+src/pages/SimplePayroll/components/QuickActions.tsx:155: <Input placeholder="请输入姓" />
+src/pages/SimplePayroll/components/QuickActions.tsx:161: label="名"
+src/pages/SimplePayroll/components/QuickActions.tsx:164: <Input placeholder="请输入名" />
+src/pages/SimplePayroll/components/QuickActions.tsx:173: label="员工编号"
+src/pages/SimplePayroll/components/QuickActions.tsx:175: <Input placeholder="请输入员工编号" />
+src/pages/SimplePayroll/components/QuickActions.tsx:181: label="性别"
+src/pages/SimplePayroll/components/QuickActions.tsx:184: <Select placeholder="请选择性别" loading={loading}>
+src/pages/SimplePayroll/components/QuickActions.tsx:199: label="邮箱"
+src/pages/SimplePayroll/components/QuickActions.tsx:202: <Input placeholder="请输入邮箱" />
+src/pages/SimplePayroll/components/QuickActions.tsx:208: label="电话号码"
+src/pages/SimplePayroll/components/QuickActions.tsx:210: <Input placeholder="请输入电话号码" />
+src/pages/SimplePayroll/components/QuickActions.tsx:219: label="入职日期"
+src/pages/SimplePayroll/components/QuickActions.tsx:222: <DatePicker style={{ width: '100%' }} placeholder="请选择入职日期" />
+src/pages/SimplePayroll/components/QuickActions.tsx:228: label="部门"
+src/pages/SimplePayroll/components/QuickActions.tsx:231: placeholder="请选择部门"
+src/pages/SimplePayroll/components/QuickActions.tsx:249: label="人员身份"
+src/pages/SimplePayroll/components/QuickActions.tsx:251: <Select placeholder="请选择人员身份" loading={loading}>
+src/pages/SimplePayroll/components/QuickActions.tsx:263: label="实际任职"
+src/pages/SimplePayroll/components/QuickActions.tsx:265: <Select placeholder="请选择实际任职" loading={loading}>
+src/pages/SimplePayroll/components/QuickActions.tsx:280: label="职务级别"
+src/pages/SimplePayroll/components/QuickActions.tsx:282: <Select placeholder="请选择职务级别" loading={loading}>
+src/pages/SimplePayroll/components/QuickActions.tsx:297: label="员工状态"
+src/pages/SimplePayroll/components/QuickActions.tsx:300: <Select placeholder="请选择员工状态" loading={loading}>
+src/pages/SimplePayroll/components/SmartCopyConfirmModal.tsx:132: <Descriptions.Item label="工资运行次数">
+src/pages/SimplePayroll/components/SmartCopyConfirmModal.tsx:135: <Descriptions.Item label="工资条目总数">
+src/pages/SimplePayroll/components/SmartCopyConfirmModal.tsx:158: <Descriptions.Item label="配置记录数">
+src/pages/SimplePayroll/components/SmartCopyConfirmModal.tsx:161: <Descriptions.Item label="涉及员工数">
+src/pages/SimplePayroll/components/TypographyDemo.tsx:63: <label className="typography-label-primary">主要标签文字</label>
+src/pages/SimplePayroll/components/TypographyDemo.tsx:70: <label className="typography-label-secondary">次要标签文字</label>
