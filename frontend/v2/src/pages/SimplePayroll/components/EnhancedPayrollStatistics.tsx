@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Button, Row, Col, Space, Divider, message, Tooltip } from 'antd';
+import { Button, Divider, message, Card } from 'antd';
 import { StatisticCard } from '@ant-design/pro-components';
 import { DollarOutlined, CalendarOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -13,6 +13,7 @@ import {
 import type { PayrollPeriodResponse, PayrollRunResponse } from '../types/simplePayroll';
 import type { PayrollStats, DataIntegrityStats } from '../hooks/usePayrollPageLogic';
 import { simplePayrollApi } from '../services/simplePayrollApi';
+import styles from '../styles/SimplePayrollStyles.module.less';
 
 interface EnhancedPayrollStatisticsProps {
   selectedVersionId?: number;
@@ -396,11 +397,6 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
     // TODO: 实现数据导出功能
   };
 
-  // 处理时间范围变化
-  const handleTimeRangeChange = (range: '6months' | '12months' | '24months') => {
-    console.log('切换时间范围:', range);
-    // TODO: 实现重新加载对应时间范围的数据
-  };
 
 
   if (!selectedVersionId) {
@@ -408,34 +404,40 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
   }
 
   return (
-    <div className="enhanced-payroll-statistics">
-      {/* 原有的基础统计卡片 */}
-        <div className="stats-grid sticky-stats">
-          <StatisticCard.Group
-        title={
-          <Space>
-            <DollarOutlined />
-            <span className="typography-title-tertiary">{currentPeriod?.name || ''} 工资统计概览</span>
-          </Space>
-        }
-        extra={
-          process.env.NODE_ENV === 'development' && payrollStats.loading ? (
-            <Button 
-              size="small" 
-              type="link" 
-              onClick={resetLoadingStates}
-              style={{ color: '#ff4d4f' }}
-            >
-              重置加载状态
-            </Button>
-          ) : null
-        }
-                loading={payrollStats.loading}
-        style={{ marginBottom: 6 }}
-      >
-        <Row gutter={[8, 8]} justify="space-between" align="stretch">
+    <div className={styles.enhancedPayrollStatistics}>
+      {/* 使用现代化卡片样式 */}
+      <Card className={`${styles.baseCard} ${styles.statsCard}`}>
+        <div className={`${styles.baseHeader} ${styles.statisticHeader}`}>
+          <div className={styles.headerTitle}>
+            <span className={`${styles.headerIcon} ${styles.blue}`}>
+              <DollarOutlined />
+            </span>
+            <span className={styles.headerText}>
+              {currentPeriod?.name || ''} 工资统计概览
+              {currentPeriod && (
+                <span className={styles.headerSubtext}>
+                  统计时间：{dayjs().format('YYYY-MM-DD HH:mm')}
+                </span>
+              )}
+            </span>
+          </div>
+          <div className={styles.headerExtra}>
+            {process.env.NODE_ENV === 'development' && payrollStats.loading && (
+              <Button 
+                size="small" 
+                type="link" 
+                onClick={resetLoadingStates}
+                icon={<InfoCircleOutlined />}
+              >
+                重置状态
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className={styles.statsCardContent}>
+        <div className={styles.responsiveStatsGrid}>
           {/* 工资记录数量卡片 */}
-          <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
+          <div className={styles.statsGridItem}>
             <StatisticCard
               statistic={{
                 title: '工资记录数量',
@@ -444,25 +446,25 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                 valueStyle: { color: '#722ed1' }
               }}
               chart={
-                <div style={{ padding: '1px 0' }}>
-                  <Divider style={{ margin: '1px 0' }} />
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
-                    社保: <span style={{ color: (dataIntegrityStats?.socialInsuranceBaseCount || 0) > 0 ? '#52c41a' : '#ff4d4f' }}>
+                <div className={styles.statisticChartContainer}>
+                  <Divider className={styles.statisticDivider} />
+                  <div className={styles.statisticChartItem}>
+                    社保: <span className={`${styles.statisticValue} ${(dataIntegrityStats?.socialInsuranceBaseCount || 0) > 0 ? styles.success : styles.error}`}>
                       {dataIntegrityStats?.socialInsuranceBaseCount || 0}
                     </span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
-                    公积金: <span style={{ color: (dataIntegrityStats?.housingFundBaseCount || 0) > 0 ? '#52c41a' : '#ff4d4f' }}>
+                  <div className={styles.statisticChartItem}>
+                    公积金: <span className={`${styles.statisticValue} ${(dataIntegrityStats?.housingFundBaseCount || 0) > 0 ? styles.success : styles.error}`}>
                       {dataIntegrityStats?.housingFundBaseCount || 0}
                     </span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
-                    职业年金: <span style={{ color: (dataIntegrityStats?.occupationalPensionBaseCount || 0) > 0 ? '#52c41a' : '#ff4d4f' }}>
+                  <div className={styles.statisticChartItem}>
+                    职业年金: <span className={`${styles.statisticValue} ${(dataIntegrityStats?.occupationalPensionBaseCount || 0) > 0 ? styles.success : styles.error}`}>
                       {dataIntegrityStats?.occupationalPensionBaseCount || 0}
                     </span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.1' }}>
-                    个税&gt;0: <span style={{ color: (dataIntegrityStats?.incomeTaxPositiveCount || 0) > 0 ? '#52c41a' : '#fa8c16' }}>
+                  <div className={`${styles.statisticChartItem} ${styles.lastItem}`}>
+                    个税&gt;0: <span className={`${styles.statisticValue} ${(dataIntegrityStats?.incomeTaxPositiveCount || 0) > 0 ? styles.success : styles.warning}`}>
                       {dataIntegrityStats?.incomeTaxPositiveCount || 0}
                     </span>
                   </div>
@@ -470,9 +472,9 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
               }
               loading={payrollStats.loading || dataIntegrityStats?.loading || false}
             />
-          </Col>
+          </div>
           {/* 财务信息卡片 */}
-          <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
+          <div className={styles.statsGridItem}>
             <StatisticCard
               statistic={{
                 title: '财务信息',
@@ -482,23 +484,23 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                 valueStyle: { color: '#52c41a', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
               }}
               chart={
-                <div style={{ padding: '1px 0' }}>
-                  <Divider style={{ margin: '1px 0' }} />
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    应发: <span style={{ color: '#52c41a', fontWeight: 'bold' }}>¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <div className={styles.statisticChartContainer}>
+                  <Divider className={styles.statisticDivider} />
+                  <div className={`${styles.statisticChartItem} ${styles.ellipsis}`}>
+                    应发: <span className={`${styles.statisticValue} ${styles.success} ${styles.bold}`}>¥{payrollStats.totalGrossPay.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    扣发: <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <div className={`${styles.statisticChartItem} ${styles.ellipsis}`}>
+                    扣发: <span className={`${styles.statisticValue} ${styles.error} ${styles.bold}`}>¥{payrollStats.totalDeductions.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    平均: <span style={{ fontWeight: 'bold' }}>¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}</span>
+                  <div className={`${styles.statisticChartItem} ${styles.ellipsis} ${styles.lastItem}`}>
+                    平均: <span className={`${styles.statisticValue} ${styles.bold}`}>¥{payrollStats.recordCount > 0 ? (payrollStats.totalNetPay / payrollStats.recordCount).toFixed(0) : '0'}</span>
                   </div>
                 </div>
               }
             />
-          </Col>
+          </div>
           {/* 版本状态卡片 */}
-          <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
+          <div className={styles.statsGridItem}>
             <StatisticCard
               statistic={{
                 title: '版本状态',
@@ -513,23 +515,23 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                 }
               }}
               chart={
-                <div style={{ padding: '1px 0' }}>
-                  <Divider style={{ margin: '1px 0' }} />
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
+                <div className={styles.statisticChartContainer}>
+                  <Divider className={styles.statisticDivider} />
+                  <div className={styles.statisticChartItem}>
                     创建: {currentVersion ? dayjs(currentVersion.initiated_at).format('MM-DD HH:mm') : '-'}
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
+                  <div className={styles.statisticChartItem}>
                     创建人: {currentVersion?.initiated_by_username || '-'}
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.1' }}>
+                  <div className={`${styles.statisticChartItem} ${styles.lastItem}`}>
                     频率: {currentPeriod?.frequency_name || '-'}
                   </div>
                 </div>
               }
             />
-          </Col>
+          </div>
           {/* 审核状态卡片 */}
-          <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={4} flex="1">
+          <div className={styles.statsGridItem}>
             <StatisticCard
               statistic={{
                 title: '审核状态',
@@ -543,30 +545,30 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                 }
               }}
               chart={
-                <div style={{ padding: '1px 0' }}>
-                  <Divider style={{ margin: '1px 0' }} />
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
-                    错误: <span style={{ color: (auditSummary?.error_count || 0) > 0 ? '#ff4d4f' : '#52c41a' }}>
+                <div className={styles.statisticChartContainer}>
+                  <Divider className={styles.statisticDivider} />
+                  <div className={styles.statisticChartItem}>
+                    错误: <span className={`${styles.statisticValue} ${(auditSummary?.error_count || 0) > 0 ? styles.error : styles.success}`}>
                       {auditSummary?.error_count || 0} 个
                     </span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', marginBottom: '1px', lineHeight: '1.1' }}>
-                    警告: <span style={{ color: (auditSummary?.warning_count || 0) > 0 ? '#fa8c16' : '#52c41a' }}>
+                  <div className={styles.statisticChartItem}>
+                    警告: <span className={`${styles.statisticValue} ${(auditSummary?.warning_count || 0) > 0 ? styles.warning : styles.success}`}>
                       {auditSummary?.warning_count || 0} 个
                     </span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.1' }}>
-                    可修复: <span style={{ color: (auditSummary?.auto_fixable_count || 0) > 0 ? '#1890ff' : '#52c41a' }}>
+                  <div className={`${styles.statisticChartItem} ${styles.lastItem}`}>
+                    可修复: <span className={`${styles.statisticValue} ${(auditSummary?.auto_fixable_count || 0) > 0 ? styles.primary : styles.success}`}>
                       {auditSummary?.auto_fixable_count || 0} 个
                     </span>
                   </div>
                 </div>
               }
             />
-          </Col>
-        </Row>
-          </StatisticCard.Group>
+          </div>
         </div>
+        </div>
+      </Card>
 
       {/* 合并的指标卡片 */}
       {selectedVersionId && (

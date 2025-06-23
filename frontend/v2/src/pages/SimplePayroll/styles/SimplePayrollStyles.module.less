@@ -1,0 +1,767 @@
+// SimplePayroll 统一样式管理
+// 所有卡片容器使用统一的圆角和样式
+
+// 基础卡片样式
+.baseCard {
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  overflow: hidden; // 确保子元素不会破坏圆角
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// 基础 Header 样式
+.baseHeader {
+  padding: 20px 24px;
+  background: linear-gradient(to bottom, #fafbfc 0%, #ffffff 100%);
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 64px;
+  
+  // 标题区域
+  .headerTitle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    
+    .headerIcon {
+      font-size: 24px;
+      color: #1890ff;
+      display: flex;
+      align-items: center;
+      
+      &.purple {
+        color: #722ed1;
+      }
+      
+      &.green {
+        color: #52c41a;
+      }
+      
+      &.orange {
+        color: #fa8c16;
+      }
+    }
+    
+    .headerText {
+      font-size: 18px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.85);
+      margin: 0;
+      line-height: 1.4;
+    }
+    
+    .headerSubtext {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.45);
+      margin-left: 8px;
+      font-weight: normal;
+    }
+  }
+  
+  // 额外内容区域
+  .headerExtra {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .headerBadge {
+      padding: 4px 12px;
+      background: #e6f7ff;
+      border: 1px solid #91d5ff;
+      border-radius: 16px;
+      font-size: 12px;
+      color: #1890ff;
+      font-weight: 500;
+      
+      &.success {
+        background: #f6ffed;
+        border-color: #b7eb8f;
+        color: #52c41a;
+      }
+      
+      &.warning {
+        background: #fffbe6;
+        border-color: #ffe58f;
+        color: #faad14;
+      }
+      
+      &.error {
+        background: #fff2e8;
+        border-color: #ffbb96;
+        color: #ff4d4f;
+      }
+    }
+  }
+  
+  // 紧凑模式
+  &.compact {
+    padding: 12px 20px;
+    min-height: 48px;
+    
+    .headerIcon {
+      font-size: 20px;
+    }
+    
+    .headerText {
+      font-size: 16px;
+    }
+  }
+  
+  // 透明背景模式
+  &.transparent {
+    background: transparent;
+    border-bottom: none;
+  }
+  
+  // 带操作按钮的 header
+  &.withActions {
+    .headerActions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      padding-left: 24px;
+    }
+  }
+}
+
+// 统计卡片样式
+.statisticCard {
+  .baseCard();
+  padding: 24px;
+  height: 100%;
+  
+  .ant-statistic-title {
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 14px;
+  }
+  
+  .ant-statistic-content {
+    color: rgba(0, 0, 0, 0.85);
+  }
+}
+
+// 统计卡片容器
+.statsCard {
+  margin-bottom: 24px;
+  
+  .statsCardContent {
+    padding: 16px 24px 24px;
+  }
+}
+
+// 响应式统计网格
+.responsiveStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+  
+  @media (min-width: 576px) {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  
+  @media (min-width: 1600px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .statsGridItem {
+    min-width: 0; // 防止内容溢出
+    
+    :global(.ant-pro-statistic-card) {
+      height: 100%;
+      
+      :global(.ant-pro-statistic-card-loading-content) {
+        height: 100%;
+      }
+    }
+  }
+}
+
+// 工作流指南卡片
+.workflowCard {
+  .baseCard();
+  padding: 24px;
+  margin-bottom: 16px;
+  
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// 操作卡片（生成工资单、生成报表等）
+.actionCard {
+  .baseCard();
+  position: relative;
+  height: 100%;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+  
+  .actionCardContent {
+    padding: 24px 32px 32px;
+    text-align: center;
+    
+    .actionDescription {
+      color: rgba(0, 0, 0, 0.65);
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+  }
+}
+
+// 数据展示卡片
+.dataCard {
+  .baseCard();
+  padding: 0;
+  
+  .dataCardHeader {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .dataCardBody {
+    padding: 24px;
+  }
+}
+
+// 快速操作卡片
+.quickActionCard {
+  .baseCard();
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-1px);
+  }
+  
+  .quickActionIcon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  
+  .quickActionText {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.85);
+  }
+}
+
+// 上下文栏卡片
+.contextBarCard {
+  .baseCard();
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  background-color: #fafafa;
+}
+
+// 空状态卡片
+.emptyStateCard {
+  .baseCard();
+  padding: 48px;
+  text-align: center;
+  
+  .emptyIcon {
+    font-size: 64px;
+    color: rgba(0, 0, 0, 0.25);
+    margin-bottom: 24px;
+  }
+  
+  .emptyText {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 16px;
+  }
+}
+
+// 模态框卡片样式
+.modalCard {
+  border-radius: 8px;
+  overflow: hidden;
+  
+  .modalCardHeader {
+    padding: 16px 24px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  
+  .modalCardBody {
+    padding: 24px;
+  }
+}
+
+// 合并的指标卡片样式
+.combinedMetricsCard {
+  .baseCard();
+  padding: 0;
+  margin-bottom: 24px;
+  
+  .metricsHeader {
+    .baseHeader();
+    padding: 16px 24px;
+    min-height: 56px;
+    
+    .metricsTitleWrapper {
+      .headerTitle();
+      
+      .metricsIcon {
+        .headerIcon();
+        font-size: 20px;
+      }
+      
+      .metricsTitle {
+        .headerText();
+        font-size: 16px;
+      }
+    }
+    
+    .metricsControls {
+      display: flex;
+      gap: 8px;
+      
+      .controlButton {
+        padding: 4px 8px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.3s;
+        
+        &:hover {
+          border-color: #1890ff;
+          color: #1890ff;
+        }
+      }
+    }
+  }
+  
+  .metricsContainer {
+    padding: 24px;
+    
+    .metricColumn {
+      text-align: center;
+    }
+  }
+}
+
+// 统计网格布局
+.statsGrid {
+  margin-bottom: 24px;
+  
+  &.stickyStats {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #f0f2f5;
+    padding: 16px 0;
+    margin: -16px -24px 24px;
+    padding: 16px 24px;
+  }
+}
+
+// 增强的工资统计容器
+.enhancedPayrollStatistics {
+  .statisticCard {
+    :global(.ant-statistic) {
+      .ant-statistic-title {
+        margin-bottom: 8px;
+        font-size: 12px;
+        
+        @media (min-width: 768px) {
+          font-size: 14px;
+        }
+      }
+      
+      .ant-statistic-content {
+        .ant-statistic-content-value {
+          font-size: 18px;
+          
+          @media (min-width: 768px) {
+            font-size: 20px;
+          }
+          
+          @media (min-width: 1200px) {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+  }
+  
+  // 确保 CombinedMetricsCard 也是响应式的
+  :global(.ant-card) {
+    margin-top: 16px;
+  }
+}
+
+// 统计卡片内部样式
+.statisticChartContainer {
+  padding: 1px 0;
+  
+  .statisticDivider {
+    margin: 1px 0;
+  }
+  
+  .statisticChartItem {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 1px;
+    line-height: 1.1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    &.lastItem {
+      margin-bottom: 0;
+    }
+    
+    &.ellipsis {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      
+      .statisticValue {
+        max-width: 60%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    
+    .statisticValue {
+      margin-left: 4px;
+      
+      &.success {
+        color: #52c41a;
+      }
+      
+      &.error {
+        color: #ff4d4f;
+      }
+      
+      &.warning {
+        color: #fa8c16;
+      }
+      
+      &.primary {
+        color: #1890ff;
+      }
+      
+      &.purple {
+        color: #722ed1;
+      }
+      
+      &.bold {
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+// 统计卡片值样式
+.statisticValueStyle {
+  &.purple {
+    color: #722ed1;
+  }
+  
+  &.green {
+    color: #52c41a;
+  }
+  
+  &.orange {
+    color: #fa8c16;
+  }
+  
+  &.blue {
+    color: #1890ff;
+  }
+  
+  &.red {
+    color: #ff4d4f;
+  }
+  
+  &.gray {
+    color: #8c8c8c;
+  }
+  
+  &.financial {
+    color: #52c41a;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// 重置按钮样式
+.resetButton {
+  color: #ff4d4f;
+  
+  &:hover {
+    color: #ff7875;
+  }
+}
+
+// 报告卡片样式
+.reportCard {
+  .baseCard();
+  height: 400px;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+  
+  .reportCardBody {
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .reportDescription {
+    margin-bottom: 16px;
+  }
+  
+  .reportAlert {
+    margin-bottom: 16px;
+  }
+  
+  .reportDivider {
+    margin: 8px 0;
+  }
+  
+  .reportActions {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .reportStatus {
+    margin-top: auto;
+    padding-top: 12px;
+    
+    .statusText {
+      font-size: 12px;
+      
+      &.secondary {
+        color: rgba(0, 0, 0, 0.45);
+      }
+      
+      &.warning {
+        color: #fa8c16;
+      }
+      
+      &.success {
+        color: #52c41a;
+      }
+    }
+  }
+}
+
+// 图标样式
+.iconPurple {
+  color: #722ed1;
+}
+
+// Control Card 样式
+.controlCard {
+  .baseCard();
+  margin-bottom: 16px;
+  
+  .controlCardContent {
+    padding: 24px;
+  }
+}
+
+// 版本信息文本
+.versionText {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+// 日期选择器单元格
+.datePickerCell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 文本样式
+.strongText {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+// 现代化卡片样式
+.modernCard {
+  :global(.ant-card-head) {
+    display: none; // 隐藏默认的 header，使用自定义的
+  }
+  
+  .modernCardBody {
+    padding: 24px;
+  }
+}
+
+// 特定场景的 Header 样式
+.statisticHeader {
+  .baseHeader();
+  .compact();
+  background: linear-gradient(to right, #f0f2f5 0%, #ffffff 100%);
+}
+
+.actionHeader {
+  .baseHeader();
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  
+  .headerIcon,
+  .headerText,
+  .headerSubtext {
+    color: #ffffff;
+  }
+  
+  .headerBadge {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+  }
+}
+
+.dataHeader {
+  .baseHeader();
+  .transparent();
+  padding-bottom: 0;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #e8e8e8, transparent);
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .baseCard {
+    border-radius: 8px;
+  }
+  
+  .baseHeader {
+    padding: 16px 20px;
+    min-height: 56px;
+    
+    .headerIcon {
+      font-size: 20px;
+    }
+    
+    .headerText {
+      font-size: 16px;
+    }
+    
+    .headerSubtext {
+      display: none; // 移动端隐藏副标题
+    }
+  }
+  
+  .actionCard {
+    padding: 24px;
+    
+    .actionIcon {
+      font-size: 36px;
+    }
+    
+    .actionTitle {
+      font-size: 16px;
+    }
+  }
+  
+  .dataCardHeader,
+  .dataCardBody {
+    padding: 16px;
+  }
+  
+  .reportCard {
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .modernCard {
+    .modernCardBody {
+      padding: 16px;
+    }
+  }
+}
+
+// 生成工资单卡片样式
+.generateCard {
+  .generateContent {
+    padding: 8px 0;
+    
+    .generateDescription {
+      color: rgba(0, 0, 0, 0.65);
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    
+    .primaryAction {
+      font-size: 16px;
+      height: 48px;
+      font-weight: 500;
+    }
+    
+    .secondaryActions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .helperActions {
+      text-align: center;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+    }
+    
+    .noPeriodAlert {
+      margin-top: 16px;
+    }
+  }
+}

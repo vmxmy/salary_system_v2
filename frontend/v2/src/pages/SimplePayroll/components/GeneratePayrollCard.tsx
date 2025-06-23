@@ -24,6 +24,7 @@ import type { PayrollPeriodResponse, PayrollGenerationRequest } from '../types/s
 import { simplePayrollApi } from '../services/simplePayrollApi';
 import { ExcelImportModal } from './ExcelImportModal';
 import SmartCopyConfirmModal from './SmartCopyConfirmModal';
+import styles from '../styles/SimplePayrollStyles.module.less';
 
 const { Text } = Typography;
 
@@ -203,28 +204,35 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
 
   return (
     <>
-      <Card 
-        title={
-          <Space>
-            <PlusOutlined />
-            {t('simplePayroll:generate.title')}
-          </Space>
-        }
-        className="simple-payroll-card"
-        extra={
-          currentPeriod && (
-            <span className="period-badge">
-              {currentPeriod.name}
+      <Card className={`${styles.baseCard} ${styles.actionCard}`}>
+        <div className={`${styles.baseHeader} ${styles.actionHeader}`}>
+          <div className={styles.headerTitle}>
+            <span className={`${styles.headerIcon} ${styles.purple}`}>
+              <PlusOutlined />
             </span>
-          )
-        }
-      >
-        <div className="card-content">
-          <p className="card-description">
+            <span className={styles.headerText}>
+              {t('simplePayroll:generate.title')}
+              {currentPeriod && (
+                <span className={styles.headerSubtext}>
+                  当前期间：{currentPeriod.name}
+                </span>
+              )}
+            </span>
+          </div>
+          {currentPeriod && (
+            <div className={styles.headerExtra}>
+              <span className={`${styles.headerBadge} ${styles.success}`}>
+                {currentPeriod.name}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className={styles.actionCardContent}>
+          <p className={styles.actionDescription}>
             {t('simplePayroll:generate.description')}
           </p>
 
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Space direction="vertical" size="middle" className="w-full">
             {/* Excel导入 */}
             <Button
               type="primary"
@@ -266,7 +274,7 @@ const GeneratePayrollCard: React.FC<GeneratePayrollCardProps> = ({
               type="link"
               icon={<DownloadOutlined />}
               onClick={downloadTemplate}
-              style={{ padding: 0 }}
+              className="p-0"
             >
               {t('simplePayroll:generate.downloadTemplate')}
             </Button>

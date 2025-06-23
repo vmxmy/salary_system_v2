@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Space, DatePicker, Typography, Tooltip } from 'antd';
-import { ProCard } from '@ant-design/pro-components';
+import { Space, DatePicker, Typography, Tooltip, Card } from 'antd';
 import { ControlOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import type { PayrollPeriodResponse } from '../types/simplePayroll';
 import { simplePayrollApi } from '../services/simplePayrollApi';
+import styles from '../styles/SimplePayrollStyles.module.less';
 
 const { Text } = Typography;
 
@@ -93,15 +93,7 @@ export const PayrollControls: React.FC<PayrollControlsProps> = ({
 
     return (
       <div 
-        className={`ant-picker-cell-inner ${hasEntries ? 'has-payroll-entries' : ''}`}
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className={`${styles.datePickerCell} ant-picker-cell-inner ${hasEntries ? 'has-payroll-entries' : ''}`}
         title={tooltipTitle}
       >
         {date.format('MM')}月
@@ -113,20 +105,22 @@ export const PayrollControls: React.FC<PayrollControlsProps> = ({
   };
 
   return (
-    <ProCard
-      title={
-        <Space>
-          <ControlOutlined />
-          {t('simplePayroll:controls.title')}
-        </Space>
-      }
-      bordered
-      style={{ marginBottom: 16 }}
-    >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+    <Card className={`${styles.baseCard} ${styles.controlCard}`}>
+      <div className={`${styles.baseHeader} ${styles.compact}`}>
+        <div className={styles.headerTitle}>
+          <span className={`${styles.headerIcon} ${styles.blue}`}>
+            <ControlOutlined />
+          </span>
+          <span className={styles.headerText}>
+            {t('simplePayroll:controls.title')}
+          </span>
+        </div>
+      </div>
+      <div className={styles.controlCardContent}>
+      <Space direction="vertical" className="w-full" size="middle">
         {/* 工资期间选择 */}
         <div>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>
+          <Text strong className={styles.strongText}>
             {t('simplePayroll:controls.period')}
             <span className="payroll-controls-hint">
               <span className="payroll-hint-dot" />
@@ -151,6 +145,7 @@ export const PayrollControls: React.FC<PayrollControlsProps> = ({
           />
         </div>
       </Space>
-    </ProCard>
+      </div>
+    </Card>
   );
 }; 

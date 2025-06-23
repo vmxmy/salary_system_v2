@@ -19,6 +19,7 @@ import type {
   PayrollPeriodResponse, 
   PayrollRunResponse
 } from '../types/simplePayroll';
+import styles from '../styles/SimplePayrollStyles.module.less';
 
 const { Text } = Typography;
 
@@ -54,20 +55,32 @@ const GenerateReportsCard: React.FC<GenerateReportsCardProps> = ({
   };
 
   return (
-    <Card
-      title={
-        <Space>
-          <BarChartOutlined style={{ color: '#722ed1' }} />
-          <span>{t('simplePayroll:reports.title')}</span>
-        </Space>
-      }
-      style={{ height: '400px' }}
-      styles={{ body: { padding: '16px' } }}
-      hoverable
-    >
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card className={`${styles.baseCard} ${styles.reportCard}`} hoverable>
+      <div className={`${styles.baseHeader} ${styles.dataHeader}`}>
+        <div className={styles.headerTitle}>
+          <span className={`${styles.headerIcon} ${styles.purple}`}>
+            <BarChartOutlined />
+          </span>
+          <span className={styles.headerText}>
+            {t('simplePayroll:reports.title')}
+            {selectedPeriod && selectedVersion && (
+              <span className={styles.headerSubtext}>
+                版本 v{selectedVersion.version_number}
+              </span>
+            )}
+          </span>
+        </div>
+        <div className={styles.headerExtra}>
+          {selectedPeriod && (
+            <span className={`${styles.headerBadge} ${selectedVersion ? 'success' : 'warning'}`}>
+              {selectedVersion ? '可生成' : '未选择版本'}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className={styles.reportCardBody}>
         {/* 功能描述 */}
-        <div style={{ marginBottom: '16px' }}>
+        <div className={styles.reportDescription}>
           <Text type="secondary">
             {t('simplePayroll:reports.description')}
           </Text>
@@ -82,7 +95,7 @@ const GenerateReportsCard: React.FC<GenerateReportsCardProps> = ({
                   {t('simplePayroll:reports.currentPeriod')}: {selectedPeriod.name}
                 </Text>
                 {selectedVersion && (
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                  <Text type="secondary" className={styles.versionText}>
                     {t('simplePayroll:reports.version')}: v{selectedVersion.version_number} 
                     ({selectedVersion.total_entries} {t('simplePayroll:common.entries')})
                   </Text>
@@ -91,14 +104,14 @@ const GenerateReportsCard: React.FC<GenerateReportsCardProps> = ({
             }
             type="info"
             showIcon
-            style={{ marginBottom: '16px' }}
+            className={styles.reportAlert}
           />
         )}
 
-        <Divider style={{ margin: '8px 0' }} />
+        <Divider className={styles.reportDivider} />
 
         {/* 快速生成按钮 */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className={styles.reportActions}>
           <Button
             type="primary"
             icon={<FileExcelOutlined />}
@@ -130,17 +143,17 @@ const GenerateReportsCard: React.FC<GenerateReportsCardProps> = ({
         </div>
 
         {/* 状态提示 */}
-        <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+        <div className={styles.reportStatus}>
           {!selectedPeriod ? (
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className={`${styles.statusText} ${styles.secondary}`}>
               {t('simplePayroll:reports.selectPeriodHint')}
             </Text>
           ) : !selectedVersion ? (
-            <Text type="warning" style={{ fontSize: '12px' }}>
+            <Text type="warning" className={`${styles.statusText} ${styles.warning}`}>
               ⚠️ {t('simplePayroll:reports.noVersionSelected')}
             </Text>
           ) : (
-            <Text type="success" style={{ fontSize: '12px' }}>
+            <Text type="success" className={`${styles.statusText} ${styles.success}`}>
               ✅ {t('simplePayroll:reports.readyToGenerate')}
             </Text>
           )}
