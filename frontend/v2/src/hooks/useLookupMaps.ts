@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { lookupService } from '../services/lookupService';
 import { employeeService } from '../services/employeeService';
 import type {
@@ -108,64 +108,10 @@ const createFlatMapFromTree = (
 };
 
 export const useLookupMaps = (): UseLookupsResult => {
-  const [rawData, setRawData] = useState<any>(null);
+  const [lookupMaps, setLookupMaps] = useState<LookupMaps | null>(null);
+  const [rawLookups, setRawLookups] = useState<RawLookups | null>(null);
   const [loadingLookups, setLoadingLookups] = useState<boolean>(true);
   const [errorLookups, setErrorLookups] = useState<any>(null);
-
-  // 使用 useMemo 缓存处理后的 lookup maps，避免不必要的重计算
-  const lookupMaps = useMemo<LookupMaps | null>(() => {
-    if (!rawData) return null;
-
-    const createMapFromArray = (items: LookupItem[]): Map<number, string> => {
-      const map = new Map(items.map(item => [Number(item.value), item.label]));
-      return map;
-    };
-
-    // 创建部门和人员身份映射表
-    const departmentMap = createFlatMapFromTree(rawData.departments);
-    const personnelCategoryMap = createFlatMapFromTree(rawData.personnelCategories);
-    
-    return {
-      genderMap: createMapFromArray(rawData.genders),
-      statusMap: createMapFromArray(rawData.statuses),
-      departmentMap,
-      personnelCategoryMap,
-      employmentTypeMap: createMapFromArray(rawData.empTypes),
-      contractTypeMap: createMapFromArray(rawData.contractTypesData),
-      educationLevelMap: createMapFromArray(rawData.eduLevels),
-      maritalStatusMap: createMapFromArray(rawData.maritals),
-      politicalStatusMap: createMapFromArray(rawData.politicals),
-      leaveTypeMap: createMapFromArray(rawData.leaveTypesData),
-      payFrequencyMap: createMapFromArray(rawData.payFrequencies),
-      positionMap: createFlatMapFromTree(rawData.positions),
-      jobPositionLevelMap: createMapFromArray(rawData.jobPositionLevels),
-      // 可选的contractStatusMap，如果contractStatusesData存在的话
-      ...(rawData.contractStatusesData ? { contractStatusMap: createMapFromArray(rawData.contractStatusesData) } : {})
-    };
-  }, [rawData]);
-
-  // 使用 useMemo 缓存原始数据，避免不必要的对象重创建
-  const rawLookups = useMemo<RawLookups | null>(() => {
-    if (!rawData) return null;
-
-    return {
-      genderOptions: rawData.genders,
-      statusOptions: rawData.statuses,
-      departmentOptions: rawData.departments,
-      personnelCategoryOptions: rawData.personnelCategories,
-      employmentTypeOptions: rawData.empTypes,
-      contractTypeOptions: rawData.contractTypesData,
-      educationLevelOptions: rawData.eduLevels,
-      maritalStatusOptions: rawData.maritals,
-      politicalStatusOptions: rawData.politicals,
-      leaveTypeOptions: rawData.leaveTypesData,
-      payFrequencyOptions: rawData.payFrequencies,
-      employeeStatuses: rawData.statuses, // 保持一致性
-      contractStatusOptions: rawData.contractStatusesData || [],
-      positionOptions: rawData.positions,
-      jobPositionLevelOptions: rawData.jobPositionLevels
-    };
-  }, [rawData]);
 
   useEffect(() => {
     let isMounted = true; // 添加组件挂载状态跟踪
@@ -210,29 +156,59 @@ export const useLookupMaps = (): UseLookupsResult => {
 
         if (!isMounted) return; // 再次检查，避免在异步操作后组件已卸载
 
-        console.log('🏢 部门数据:', departments);
-        console.log('👥 人员类别数据:', personnelCategories);
+        const createMapFromArray = (items: LookupItem[]): Map<number, string> => {
+          const map = new Map(items.map(item => [Number(item.value), item.label]));
+          console.log('🗺️ createMapFromArray:', { items, resultMap: map });
+          return map;
+        };
 
-        // 确保所有数据都获取完成后，设置原始数据
+        // 创建部门和人员身份映射表
+        const departmentMap = createFlatMapFromTree(departments);
+        const personnelCategoryMap = createFlatMapFromTree(personnelCategories);
+        
+        console.log('🏢 部门映射表:', departmentMap);
+        console.log('👥 人员类别映射表:', personnelCategoryMap);
+
+        // 确保所有映射表都创建完成后，创建最终的lookupMaps对象
         if (!isMounted) return; // 再次检查，避免在状态更新前组件已卸载
+
+        const newLookupMaps: LookupMaps = {
+          genderMap: createMapFromArray(genders),
+          statusMap: createMapFromArray(statuses),
+          departmentMap,
+          personnelCategoryMap,
+          employmentTypeMap: createMapFromArray(empTypes),
+          contractTypeMap: createMapFromArray(contractTypesData),
+          educationLevelMap: createMapFromArray(eduLevels),
+          maritalStatusMap: createMapFromArray(maritals),
+          politicalStatusMap: createMapFromArray(politicals),
+          leaveTypeMap: createMapFromArray(leaveTypesData),
+          payFrequencyMap: createMapFromArray(payFrequencies),
+          positionMap: createFlatMapFromTree(positions),
+          jobPositionLevelMap: createMapFromArray(jobPositionLevels),
+          // 可选的contractStatusMap，如果contractStatusesData存在的话
+          ...(contractStatusesData ? { contractStatusMap: createMapFromArray(contractStatusesData) } : {})
+        };
 
         // 在组件仍然挂载的情况下更新状态
         if (isMounted) {
-          setRawData({
-            genders,
-            statuses,
-            departments,
-            personnelCategories,
-            empTypes,
-            contractTypesData,
-            eduLevels,
-            maritals,
-            politicals,
-            leaveTypesData,
-            payFrequencies,
-            contractStatusesData,
-            positions,
-            jobPositionLevels
+          setLookupMaps(newLookupMaps);
+          setRawLookups({
+            genderOptions: genders,
+            statusOptions: statuses,
+            departmentOptions: departments,
+            personnelCategoryOptions: personnelCategories,
+            employmentTypeOptions: empTypes,
+            contractTypeOptions: contractTypesData,
+            educationLevelOptions: eduLevels,
+            maritalStatusOptions: maritals,
+            politicalStatusOptions: politicals,
+            leaveTypeOptions: leaveTypesData,
+            payFrequencyOptions: payFrequencies,
+            employeeStatuses: statuses, // 保持一致性，可能是之前的另一个引用
+            contractStatusOptions: contractStatusesData || [],
+            positionOptions: positions,
+            jobPositionLevelOptions: jobPositionLevels // 修正：使用jobPositionLevels数组
           });
           setLoadingLookups(false);
         }
@@ -252,11 +228,5 @@ export const useLookupMaps = (): UseLookupsResult => {
     };
   }, []); // 仅在组件挂载时执行一次
 
-  return { 
-    lookupMaps, 
-    rawLookups, 
-    loadingLookups, 
-    errorLookups, 
-    loading: loadingLookups 
-  };
+  return { lookupMaps, rawLookups, loadingLookups, errorLookups, loading: loadingLookups };
 };

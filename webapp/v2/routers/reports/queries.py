@@ -13,7 +13,7 @@ from ...pydantic_models.reports import (
 )
 from ...pydantic_models.common import PaginationResponse, PaginationMeta
 
-router = APIRouter(prefix="/queries", tags=["queries"])
+router = APIRouter(tags=["queries"])
 
 
 @router.get("/executions", response_model=PaginationResponse[ReportExecution])

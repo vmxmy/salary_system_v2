@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { type ProColumns } from '@ant-design/pro-components';
 import type { ColumnFilterConfig } from '../DataBrowser/AdvancedColumnManager';
 import { SearchMode } from '../../../utils/searchUtils';
@@ -344,12 +344,11 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
     }
   }, [visibleColumns, columnStats, filterConfig]);
 
-  // Generate ProColumns configuration - 使用稳定的函数引用避免循环
+  // Generate ProColumns configuration
   const generateColumns = useCallback((
     dataSource: any[], 
     currentFilterConfig: ColumnFilterConfig,
-    options: ColumnGenerationOptions = {},
-    currentSearchResults?: Set<number>
+    options: ColumnGenerationOptions = {}
   ): ProColumns<any>[] => {
     if (!dataSource || dataSource.length === 0) return [];
     
@@ -360,9 +359,6 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
       filterable = false,
       searchable = false
     } = options;
-
-    // 使用传入的搜索结果而不是闭包引用，避免依赖变化
-    const searchResultsToUse = currentSearchResults || searchResults;
 
     return sortedColumns.map(column => {
       const stats = columnStats[column];
@@ -379,8 +375,8 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
         render: (value: any, record: any, index: number) => {
           const formattedValue = formatValue(value, dataType);
           
-          // Highlight search results - 动态传入搜索结果，避免闭包依赖
-          if (searchResultsToUse && searchResultsToUse.has(index)) {
+          // Highlight search results
+          if (searchResults && searchResults.has(index)) {
             return (
               <span style={{ 
                 backgroundColor: '#fff2b8', 
@@ -407,7 +403,7 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
 
       return columnConfig;
     });
-  }, [sortedColumns, columnStats, searchResults]); // 包含完整依赖避免ESLint错误
+  }, [sortedColumns, columnStats, searchResults]);
 
   // Filter data based on search results
   const filteredDataSource = useMemo(() => {
@@ -421,26 +417,13 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
     return data;
   }, [data, searchResults]);
 
-  // Update current columns when dependencies change - 使用稳定的列生成逻辑
-  const generateColumnsRef = useRef(generateColumns);
-  generateColumnsRef.current = generateColumns;
-
+  // Update current columns when dependencies change
   useEffect(() => {
     if (autoGenerateColumns && data && data.length > 0) {
-      const newColumns = generateColumnsRef.current(data, filterConfig, {}, searchResults);
-      // 检查列是否真的有变化，避免不必要的状态更新
-      setCurrentColumnsState(prevColumns => {
-        if (prevColumns.length !== newColumns.length) return newColumns;
-        
-        const hasChanged = newColumns.some((col, index) => {
-          const prevCol = prevColumns[index];
-          return !prevCol || prevCol.dataIndex !== col.dataIndex || prevCol.title !== col.title;
-        });
-        
-        return hasChanged ? newColumns : prevColumns;
-      });
+      const newColumns = generateColumns(data, filterConfig);
+      setCurrentColumnsState(newColumns);
     }
-  }, [autoGenerateColumns, data, filterConfig, searchResults]); // 使用ref保持函数稳定
+  }, [autoGenerateColumns, data, filterConfig, generateColumns]);
 
   // Export functionality (simplified)
   const exportToExcel = useCallback(async (

@@ -179,11 +179,9 @@ export const SmartSearchPanel: React.FC<SmartSearchPanelProps> = ({
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         border: '1px solid #e8e8e8'
       }}
-      styles={{
-        body: {
-          padding: searchCardCollapsed ? 0 : 16,
-          display: searchCardCollapsed ? 'none' : 'block'
-        }
+      bodyStyle={{
+        padding: searchCardCollapsed ? 0 : 16,
+        display: searchCardCollapsed ? 'none' : 'block'
       }}
     >
       <Row gutter={[12, 8]} align="middle">
@@ -220,7 +218,7 @@ export const SmartSearchPanel: React.FC<SmartSearchPanelProps> = ({
               onChange={onSearchModeChange}
               size="small"
               style={{ width: 120 }}
-              popupRender={(menu) => (
+              dropdownRender={(menu) => (
                 <div>
                   {menu}
                   <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>

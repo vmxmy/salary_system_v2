@@ -50,11 +50,11 @@ const OrganizationManagementPageV2 = lazy(() => import('../pages/Admin/Organizat
 // Import EmployeeListPageV3
 const EmployeeListPageV3 = lazy(() => import('../pages/HRManagement/employees/EmployeeListPage'));
 
-// Import Employee Management Pages - Using HRManagement pages instead
-const EmployeeManagementPage = lazy(() => import('../pages/HRManagement/employees/EmployeeListPageModern'));
-const EmployeeDetailPage = lazy(() => import('../pages/HRManagement/employees/EmployeeDetailPageModern'));
-const CreateEmployeePage = lazy(() => import('../pages/HRManagement/employees/CreateEmployeePageModern'));
-const EditEmployeePage = lazy(() => import('../pages/HRManagement/employees/EditEmployeePageModern'));
+// Import Employee Management Pages
+const EmployeeManagementPage = lazy(() => import('../pages/EmployeeManagement/EmployeeManagementPage'));
+const EmployeeDetailPage = lazy(() => import('../pages/EmployeeManagement/EmployeeDetailPage'));
+const CreateEmployeePage = lazy(() => import('../pages/EmployeeManagement/CreateEmployeePage'));
+const EditEmployeePage = lazy(() => import('../pages/EmployeeManagement/EditEmployeePage'));
 
 
 // 移除 ReportTableDemo 导入

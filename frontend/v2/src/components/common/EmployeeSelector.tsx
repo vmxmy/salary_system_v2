@@ -288,7 +288,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       notFoundContent={loading ? <Spin size="small" /> : t('employee_selector.no_data')}
       onPopupScroll={handlePopupScroll}
       // tagRender={multiple ? (tagRender || defaultTagRender) : undefined}
-      popupRender={(menu) => (
+      dropdownRender={(menu) => (
         <div>
           {menu}
           {hasMore && (

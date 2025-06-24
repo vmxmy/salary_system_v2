@@ -1,10 +1,9 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { Modal, message, Button } from 'antd';
-// import { useRenderMonitor } from '../../../hooks/useRenderCount'; // 临时禁用
+import { useRenderMonitor } from '../../../hooks/useRenderCount';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
 import { SearchMode } from '../../../utils/searchUtils';
-import styles from './UniversalDataModal.module.css';
 
 // Import universal components that will be extracted from PayrollDataModal
 import { SmartSearchPanel } from './SmartSearchPanel';
@@ -132,14 +131,13 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
   const { t } = useTranslation(['common']);
   const actionRef = useRef<ActionType>(null);
   
-  // 渲染监控 - 临时禁用避免自身循环（调试用）
-  // TODO: 重新启用渲染监控，一旦修复了所有无限循环问题
-  // const { renderCount, isExcessive } = useRenderMonitor({
-  //   componentName: 'UniversalDataModal',
-  //   warningThreshold: 5,
-  //   enableLogging: true,
-  //   enableProfiling: true
-  // });
+  // 渲染监控 - 检测无限循环
+  const { renderCount, isExcessive } = useRenderMonitor({
+    componentName: 'UniversalDataModal',
+    warningThreshold: 5, // 降低阈值以便更早发现问题
+    enableLogging: true,
+    enableProfiling: true
+  });
 
   // State management
   const [columnManagerVisible, setColumnManagerVisible] = useState(false);
@@ -147,14 +145,8 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Data validation and cleaning - 仅在开发环境执行，避免生产性能问题
+  // Data validation and cleaning
   const validatedDataSource = useMemo(() => {
-    // 生产环境直接返回原始数据，避免性能开销
-    if (process.env.NODE_ENV === 'production') {
-      return dataSource;
-    }
-
-    // 开发环境进行数据验证
     console.log('🔍 [UniversalDataModal] Validating data source...');
     let reactElementCount = 0;
     
@@ -219,54 +211,45 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
     performance,
   } = useUniversalSearch(validatedDataSource, searchConfiguration);
 
-  // 修复无限循环：使用useMemo而不是useEffect + useState来避免状态更新循环
-  const processedSearchIndices = useMemo(() => {
-    // 如果没有搜索结果或正在搜索中，返回undefined
+  // 修复无限循环：使用useState保存处理过的搜索结果，而不是每次重新计算
+  const [processedSearchIndices, setProcessedSearchIndices] = useState<Set<number> | undefined>(undefined);
+  
+  // 仅当搜索结果真正变化时才更新processedSearchIndices
+  useEffect(() => {
+    // 如果没有搜索结果或正在搜索中，则跳过处理
     if (!searchResults || searchResults.length === 0 || isSearching) {
-      return undefined;
+      setProcessedSearchIndices(undefined);
+      return;
     }
     
-    const indices = searchResults
-      .map((r) => validatedDataSource.findIndex(item => item === r.item))
-      .filter(i => i !== -1);
-    
-    return indices.length > 0 ? new Set(indices) : undefined;
+    // 使用自定义key来避免每次都创建新的Set对象
+    setProcessedSearchIndices(prevIndices => {
+      const indices = searchResults
+        .map((r) => validatedDataSource.findIndex(item => item === r.item))
+        .filter(i => i !== -1);
+      
+      if (indices.length === 0) return undefined;
+      
+      const newIndices = new Set(indices);
+      
+      // 如果索引数量和内容相同，则保留之前的引用
+      if (prevIndices && prevIndices.size === newIndices.size && 
+          [...prevIndices].every(i => newIndices.has(i))) {
+        return prevIndices;
+      }
+      
+      return newIndices;
+    });
   }, [searchResults, validatedDataSource, isSearching]);
 
-  // Data processing - 使用useRef保存稳定的配置引用
-  const dataProcessingConfigRef = useRef({
+  // Data processing - 稳定对象引用避免无限循环
+  const dataProcessingConfig = useMemo(() => ({
     data: validatedDataSource,
     searchResults: processedSearchIndices,
     searchMode,
     filterConfig,
     autoGenerateColumns
-  });
-
-  // 只有在实际值变化时才更新配置
-  const dataProcessingConfig = useMemo(() => {
-    const newConfig = {
-      data: validatedDataSource,
-      searchResults: processedSearchIndices,
-      searchMode,
-      filterConfig,
-      autoGenerateColumns
-    };
-
-    // 检查是否有实际变化
-    const hasChanged = (
-      dataProcessingConfigRef.current.data !== newConfig.data ||
-      dataProcessingConfigRef.current.searchResults !== newConfig.searchResults ||
-      dataProcessingConfigRef.current.searchMode !== newConfig.searchMode ||
-      dataProcessingConfigRef.current.filterConfig !== newConfig.filterConfig ||
-      dataProcessingConfigRef.current.autoGenerateColumns !== newConfig.autoGenerateColumns
-    );
-
-    if (hasChanged) {
-      dataProcessingConfigRef.current = newConfig;
-    }
-
-    return dataProcessingConfigRef.current;
-  }, [validatedDataSource, processedSearchIndices, searchMode, filterConfig, autoGenerateColumns]);
+  }), [validatedDataSource, processedSearchIndices, searchMode, filterConfig, autoGenerateColumns]);
 
   const {
     filteredDataSource,
@@ -282,50 +265,10 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
     deletePreset,
   } = useUniversalPresets(queryKey || 'universal');
 
-  // Column generation - 使用useRef缓存，减少不必要的重新生成
-  const columnsRef = useRef<ProColumns<T>[]>([]);
-  const lastConfigRef = useRef<{
-    columns?: ProColumns<T>[];
-    hasData: boolean;
-    actionsLength: number;
-    autoGen: boolean;
-    filterConfig?: any;
-  }>({
-    columns: undefined,
-    hasData: false,
-    actionsLength: 0,
-    autoGen: false,
-    filterConfig: undefined,
-  });
-
+  // Column generation
   const dynamicColumns = useMemo(() => {
-    const hasData = filteredDataSource && filteredDataSource.length > 0;
-    const currentConfig = {
-      columns,
-      hasData,
-      actionsLength: actions.length,
-      autoGen: autoGenerateColumns,
-      filterConfig: filterConfiguration,
-    };
-
-    // 检查是否需要重新生成列
-    const needsRegeneration = (
-      lastConfigRef.current.columns !== currentConfig.columns ||
-      lastConfigRef.current.hasData !== currentConfig.hasData ||
-      lastConfigRef.current.actionsLength !== currentConfig.actionsLength ||
-      lastConfigRef.current.autoGen !== currentConfig.autoGen ||
-      lastConfigRef.current.filterConfig !== currentConfig.filterConfig
-    );
-
-    if (!needsRegeneration && columnsRef.current.length > 0) {
-      return columnsRef.current;
-    }
-
-    if (!hasData) {
-      const result = columns || [];
-      columnsRef.current = result;
-      lastConfigRef.current = currentConfig;
-      return result;
+    if (!filteredDataSource || filteredDataSource.length === 0) {
+      return columns || [];
     }
     
     // Use provided columns or generate dynamically
@@ -365,8 +308,6 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
       });
     }
     
-    columnsRef.current = finalColumns;
-    lastConfigRef.current = currentConfig;
     return finalColumns;
   }, [columns, filteredDataSource, filterConfiguration, generateDynamicColumns, actions, autoGenerateColumns, t]);
 
@@ -482,73 +423,54 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
       title={title}
       open={visible}
       onCancel={onClose}
-      width={typeof width === 'string' ? width : Math.min(width || 1200, window.innerWidth * 0.95)}
-      style={{ 
-        top: 20,
-        maxWidth: '95vw',
-        margin: '0 auto'
-      }}
+      width={width}
+      style={{ top: 20 }}
       footer={null}
       destroyOnClose
-      className={`universal-data-modal ${styles.universalDataModal || ''}`}
-      styles={{
-        body: { 
-          padding: '16px 24px 24px 24px',
-          maxHeight: '80vh',
-          overflowY: 'auto'
-        }
-      }}
     >
-      <div>
-        {/* Search Panel */}
-        {searchable && (
-          <div className={styles.searchPanelContainer || ''} style={{ marginBottom: '16px' }}>
-            <SmartSearchPanel
-              searchQuery={searchQuery}
-              searchResults={searchResults}
-              isSearching={isSearching}
-              searchMode={searchMode}
-              suggestions={suggestions}
-              totalResults={totalResults}
-              searchTime={searchTime}
-              isEmptyQuery={isEmptyQuery}
-              hasResults={hasResults}
-              performance={performance}
-              onSearch={search}
-              onClear={clearSearch}
-              onSearchModeChange={setSearchMode}
-              placeholder={searchConfig?.placeholder || t('table.search_placeholder')}
-              showPerformance={true}
-              searchModes={searchConfig?.searchModes}
-            />
-          </div>
-        )}
+      {/* Search Panel */}
+      {searchable && (
+        <SmartSearchPanel
+          searchQuery={searchQuery}
+          searchResults={searchResults}
+          isSearching={isSearching}
+          searchMode={searchMode}
+          suggestions={suggestions}
+          totalResults={totalResults}
+          searchTime={searchTime}
+          isEmptyQuery={isEmptyQuery}
+          hasResults={hasResults}
+          performance={performance}
+          onSearch={search}
+          onClear={clearSearch}
+          onSearchModeChange={setSearchMode}
+          placeholder={searchConfig?.placeholder || t('table.search_placeholder')}
+          showPerformance={true}
+          searchModes={searchConfig?.searchModes}
+        />
+      )}
 
-        {/* Column Manager */}
-        {filterable && (
-          <AdvancedColumnManager
-            visible={columnManagerVisible}
-            onClose={() => setColumnManagerVisible(false)}
-            filterConfig={filterConfiguration}
-            onFilterConfigChange={setFilterConfiguration}
-            dataSource={validatedDataSource}
-            columns={dynamicColumns}
-          />
-        )}
+      {/* Column Manager */}
+      {filterable && (
+        <AdvancedColumnManager
+          visible={columnManagerVisible}
+          onClose={() => setColumnManagerVisible(false)}
+          filterConfig={filterConfiguration}
+          onFilterConfigChange={setFilterConfiguration}
+          dataSource={validatedDataSource}
+          columns={dynamicColumns}
+        />
+      )}
 
-        {/* Data Table */}
-        <div className={styles.tableContainer || ''} style={{ marginTop: searchable ? '0' : '16px' }}>
-          <ProTable<T>
+      {/* Data Table */}
+      <ProTable<T>
         actionRef={actionRef}
         columns={dynamicColumns}
         dataSource={filteredDataSource}
         rowKey={rowKey}
         loading={loading}
         size="small"
-        scroll={{ 
-          x: 'max-content', 
-          y: Math.min(height || 400, window.innerHeight * 0.5) 
-        }}
+        scroll={{ x: 'max-content', y: height }}
         search={false}
         pagination={{
           showSizeChanger: true,
@@ -559,37 +481,19 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
           defaultPageSize: 20,
         }}
         toolbar={{
-          style: { 
-            padding: '12px 0',
-            marginBottom: '8px',
-            borderBottom: '1px solid #f0f0f0'
-          },
           actions: [
             ...(exportable ? [
-              <Button 
-                key="export" 
-                onClick={handleExport} 
-                loading={isExporting}
-                style={{ marginRight: '8px' }}
-              >
+              <Button key="export" onClick={handleExport} loading={isExporting}>
                 {t('table.export')}
               </Button>
             ] : []),
             ...(filterable ? [
-              <Button 
-                key="filter" 
-                onClick={() => setColumnManagerVisible(true)}
-                style={{ marginRight: '8px' }}
-              >
+              <Button key="filter" onClick={() => setColumnManagerVisible(true)}>
                 {t('table.filter')}
               </Button>
             ] : []),
             ...(presetEnabled ? [
-              <Button 
-                key="presets" 
-                onClick={() => setPresetManagerVisible(true)}
-                style={{ marginRight: '8px' }}
-              >
+              <Button key="presets" onClick={() => setPresetManagerVisible(true)}>
                 {t('table.presets')}
               </Button>
             ] : []),
@@ -628,27 +532,25 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
             listsHeight: 500,
           },
         }}
-          />
-        </div>
+      />
 
-        {/* Preset Manager */}
-        {presetEnabled && (
-          <ConfigPresetManager
-            visible={presetManagerVisible}
-            onClose={() => setPresetManagerVisible(false)}
-            currentConfig={{
-              filterConfig: filterConfiguration,
-              searchQuery,
-              searchMode
-            }}
-            presets={presets}
-            onApplyPreset={handleApplyPreset}
-            onSavePreset={handleSavePreset}
-            onDeletePreset={deletePreset}
-            categories={presetConfig?.categories}
-          />
-        )}
-      </div>
+      {/* Preset Manager */}
+      {presetEnabled && (
+        <ConfigPresetManager
+          visible={presetManagerVisible}
+          onClose={() => setPresetManagerVisible(false)}
+          currentConfig={{
+            filterConfig: filterConfiguration,
+            searchQuery,
+            searchMode
+          }}
+          presets={presets}
+          onApplyPreset={handleApplyPreset}
+          onSavePreset={handleSavePreset}
+          onDeletePreset={deletePreset}
+          categories={presetConfig?.categories}
+        />
+      )}
     </Modal>
   );
 };

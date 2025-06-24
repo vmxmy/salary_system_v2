@@ -43,7 +43,8 @@
       "Bash(export DISPLAY=:0)",
       "Bash(xvfb-run:*)",
       "Bash(awk:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(npx babel:*)"
     ],
     "deny": []
   },

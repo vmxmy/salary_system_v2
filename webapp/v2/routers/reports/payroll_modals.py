@@ -9,7 +9,7 @@ from ....auth import get_current_user
 from ...pydantic_models.payroll import PayrollModalData
 from ...pydantic_models.common import PaginationResponse, PaginationMeta
 
-router = APIRouter(prefix="/payroll-modal", tags=["payroll-modals"])
+router = APIRouter(tags=["payroll-modals"])
 
 
 @router.get("/data/{payroll_entry_id}", response_model=PayrollModalData)

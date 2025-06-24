@@ -22,7 +22,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/report-definitions",
     tags=["Configuration - Report Definitions"],
 )
 

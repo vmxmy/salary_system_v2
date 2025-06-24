@@ -19,7 +19,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/tax-brackets",
     tags=["Configuration - Tax Brackets"],
 )
 

@@ -25,15 +25,11 @@ export type {
 } from './DataBrowser/UniversalDataModal';
 
 export type {
+  ColumnFilterConfig,
   ColumnDataType,
   ColumnGenerationOptions,
   UniversalDataProcessingConfig
 } from './hooks/useUniversalDataProcessing';
-
-export type {
-  ColumnFilterConfig,
-  ColumnSortMode
-} from './DataBrowser/AdvancedColumnManager';
 
 export type {
   UniversalPreset

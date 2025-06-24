@@ -50,8 +50,7 @@ export const useUniversalSearch = <T extends Record<string, any>>(
   dataSource: T[],
   config: UniversalSearchConfig = {}
 ) => {
-  // 使用useMemo稳定化searchConfig对象，避免每次渲染都创建新对象
-  const searchConfig = useMemo(() => ({ ...defaultSearchConfig, ...config }), [config]);
+  const searchConfig = { ...defaultSearchConfig, ...config };
   
   // State management
   const [query, setQuery] = useState('');
@@ -367,26 +366,18 @@ export const useUniversalSearch = <T extends Record<string, any>>(
       .sort((a, b) => a.length - b.length); // Prefer shorter suggestions
   }, [dataSource, searchableFields, searchHistory, searchConfig]);
 
-  // Search results - 修复无限循环：移除useMemo中的状态更新
+  // Search results
   const searchResults = useMemo(() => {
     if (!debouncedQuery.trim()) {
       return [];
     }
 
-    return performSearch(debouncedQuery, searchMode);
-  }, [debouncedQuery, searchMode, performSearch]);
+    setIsSearching(true);
+    const results = performSearch(debouncedQuery, searchMode);
+    setIsSearching(false);
 
-  // 单独管理搜索状态 - 避免在useMemo中调用setState
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      setIsSearching(true);
-      // 使用短暂的延迟来显示加载状态，然后快速完成
-      const timer = setTimeout(() => setIsSearching(false), 50);
-      return () => clearTimeout(timer);
-    } else {
-      setIsSearching(false);
-    }
-  }, [debouncedQuery]);
+    return results;
+  }, [debouncedQuery, searchMode, performSearch]);
 
   // Update suggestions when query changes
   useEffect(() => {

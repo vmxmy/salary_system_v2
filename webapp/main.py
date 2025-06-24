@@ -101,7 +101,7 @@ from webapp.v2.routers import employees_router as v2_employees_router
 from webapp.v2.routers import departments_router as v2_departments_router
 from webapp.v2.routers import personnel_categories_router as v2_personnel_categories_router
 from webapp.v2.routers import positions_router as v2_positions_router
-from webapp.v2.routers import lookup_router as v2_lookup_router
+# from webapp.v2.routers import lookup_router as v2_lookup_router  # Now included in config_router
 from webapp.v2.routers import config_router as v2_config_router
 from webapp.v2.routers import config_v2_router as v2_config_v2_router
 from webapp.v2.routers import payroll_router as v2_payroll_router
@@ -305,11 +305,11 @@ app.include_router(
     prefix=f"{settings.API_V2_PREFIX}/personnel-categories",
     tags=["Personnel Categories"]
 )
-app.include_router(
-    v2_lookup_router,
-    prefix=settings.API_V2_PREFIX,
-    tags=["Lookup"]
-)
+# app.include_router(
+#     v2_lookup_router,
+#     prefix=settings.API_V2_PREFIX,
+#     tags=["Lookup"]
+# ) # Now included in config_router
 app.include_router(
     v2_config_router,
     prefix=settings.API_V2_PREFIX,

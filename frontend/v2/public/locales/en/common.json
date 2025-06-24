@@ -36,7 +36,7 @@
   "auto_text_e585bc": "",
   "auto_text_e5889d": "",
   "auto_text_e58d9a": "",
-  "auto_text_e58ebb": "",
+  "last_year": "",
   "auto_text_e58f8c": "",
   "auto_text_e59088": "",
   "auto_text_e59198": "",
@@ -51,7 +51,7 @@
   "auto_text_e697a0": "",
   "auto_text_e69c88": "",
   "auto_text_e69c8d": "",
-  "auto_text_e69cac": "",
+  "this_week": "",
   "auto_text_e69d83": "",
   "auto_text_e6af8f": "",
   "auto_text_e794a8": "",
@@ -65,11 +65,11 @@
   "auto_text_e8a792": "",
   "auto_text_e8af95": "",
   "auto_text_e8bf94": "",
-  "auto_text_e983a8": "",
+  "department": "",
   "auto_text_e99480": "",
   "auto_text_e999aa": "",
   "auto_text_e9a1b9": "",
-  "auto_text_e9ab98": "",
+  "high": "",
   "back": "",
   "batch_delete": "",
   "batch_import": {
@@ -505,5 +505,8 @@
   },
   "view": "",
   "visible": "Visible",
-  "yes": "yes"
+  "yes": "yes",
+  "auto___e88eb7": "",
+  "auto___e6a0b9": "",
+  "auto_____e29aa0": ""
 }

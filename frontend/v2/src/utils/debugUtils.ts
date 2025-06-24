@@ -13,7 +13,7 @@ export const isDev = process.env.NODE_ENV === 'development';
  * 在React DevTools Profiler中显示详细的渲染信息
  */
 export const useRenderTrace = (
-  componentName: string, 
+
   props?: Record<string, any>,
   options: {
     logRenders?: boolean;
@@ -41,14 +41,12 @@ export const useRenderTrace = (
     if (logRenders) {
       console.log(`🔄 [RenderTrace] ${componentName} render #${renderCount.current}`, {
         timeSinceLastRender: `${timeSinceLastRender}ms`,
-        timestamp: new Date().toISOString()
-      });
+
     }
 
     if (logTimings && timeSinceLastRender < 100) {
       console.warn(`⚡ [RenderTrace] ${componentName} 快速重渲染! 间隔: ${timeSinceLastRender}ms`);
     }
-  });
 
   // 追踪Props变化
   useEffect(() => {
@@ -64,8 +62,7 @@ export const useRenderTrace = (
               curr: props[key]
             };
           }
-        });
-        
+
         if (Object.keys(changedProps).length > 0) {
           console.log(`📝 [RenderTrace] ${componentName} props changed:`, changedProps);
         }
@@ -86,7 +83,7 @@ export const useRenderTrace = (
  * 帮助识别导致Hook重复执行的依赖项
  */
 export const useDependencyTrace = (
-  hookName: string,
+
   dependencies: any[],
   options: {
     logChanges?: boolean;
@@ -123,8 +120,7 @@ export const useDependencyTrace = (
             changedIndices,
             changeCount: changeCountRef.current,
             timeSinceLastChange: `${timeSinceLastChange}ms`,
-            newValues: changedIndices.map(i => dependencies[i])
-          });
+
         }
 
         if (warnOnFrequentChanges && timeSinceLastChange < 100) {
@@ -172,8 +168,7 @@ export const usePerformanceMonitor = (componentName: string) => {
         console.warn(`🐌 [Performance] ${componentName} 渲染时间: ${renderDuration.toFixed(2)}ms`);
       }
     }
-  });
-  
+
   return {
     componentName,
     getCurrentRenderDuration: () => performance.now() - renderStartTime.current
@@ -185,7 +180,7 @@ export const usePerformanceMonitor = (componentName: string) => {
  * 在window对象上暴露调试信息
  */
 class DebugManager {
-  private componentStats = new Map<string, {
+  private readonly componentStats = new Map<string, {
     renderCount: number;
     lastRenderTime: number;
     averageRenderTime: number;
@@ -238,9 +233,8 @@ if (isDev && typeof window !== 'undefined') {
   (window as any).__RENDER_DEBUG__ = {
     getStats: () => debugManager.getStats(),
     getTopSlow: (limit?: number) => debugManager.getTopSlowComponents(limit),
-    getMostActive: (limit?: number) => debugManager.getMostActiveComponents(limit),
-    reset: () => debugManager.reset(),
-    
+
+
     // 辅助函数
     highlightComponent: (componentName: string) => {
       console.log(`🎯 [Debug] 正在监控组件: ${componentName}`);

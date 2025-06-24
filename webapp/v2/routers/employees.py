@@ -23,7 +23,6 @@ from webapp import auth
 from webapp.v2 import utils
 
 router = APIRouter(
-    prefix="/employees",
     tags=["Employees"],
 )
 

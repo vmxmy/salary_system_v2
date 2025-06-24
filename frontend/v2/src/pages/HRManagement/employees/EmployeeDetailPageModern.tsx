@@ -43,7 +43,6 @@ import { employeeService } from '../../../services/employeeService';
 import type { Employee } from '../types';
 import { useLookupMaps } from '../../../hooks/useLookupMaps';
 import { useEmployeePermissions } from '../../../hooks/useEmployeePermissions';
-import { useRenderCount } from '../../../hooks/useRenderCount';
 
 // 简化的Tab组件
 const TabPlaceholder: React.FC<{ title: string }> = ({ title }) => (
@@ -74,18 +73,6 @@ const EmployeeDetailPageModern: React.FC = () => {
   // Hooks
   const { lookupMaps, loading: lookupsLoading } = useLookupMaps();
   const { permissions } = useEmployeePermissions();
-  
-  // 渲染监控 - 检测无限循环
-  const { renderCount, isExcessive } = useRenderCount({
-    componentName: 'EmployeeDetailPageModern',
-    warningThreshold: 5,
-    enableLogging: true,
-  });
-
-  // 如果检测到过度渲染，记录详细信息
-  if (isExcessive) {
-    console.warn(`🔄 EmployeeDetailPageModern 渲染次数异常: ${renderCount}次, employeeId: ${employeeId}`);
-  }
 
   // 初始化数据 - 直接在useEffect中处理，避免嵌套依赖
   useEffect(() => {

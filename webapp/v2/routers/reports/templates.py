@@ -12,7 +12,7 @@ from ...pydantic_models.reports import (
 )
 from ...pydantic_models.common import PaginationResponse, PaginationMeta
 
-router = APIRouter(prefix="/templates", tags=["templates"])
+router = APIRouter(tags=["templates"])
 
 
 @router.get("", response_model=PaginationResponse[ReportTemplateListItem])

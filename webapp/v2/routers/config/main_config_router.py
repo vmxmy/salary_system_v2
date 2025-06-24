@@ -40,10 +40,10 @@ router = APIRouter(
 )
 
 # Include new routers
-router.include_router(system_parameter_router)
-router.include_router(payroll_component_router)
-router.include_router(tax_bracket_router)
-router.include_router(social_security_rate_router)
-router.include_router(lookup_router)
-router.include_router(report_definition_router)
-router.include_router(user_preferences_router)
+router.include_router(system_parameter_router, prefix="/parameters")
+router.include_router(payroll_component_router, prefix="/payroll-component-definitions")
+router.include_router(tax_bracket_router, prefix="/tax-brackets")
+router.include_router(social_security_rate_router, prefix="/social-security-rates")
+router.include_router(lookup_router, prefix="")
+router.include_router(report_definition_router, prefix="/report-definitions")
+router.include_router(user_preferences_router, prefix="/user-preferences")

@@ -19,7 +19,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/social-security-rates",
     tags=["Configuration - Social Security Rates"],
 )
 

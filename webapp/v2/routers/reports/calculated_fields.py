@@ -10,7 +10,7 @@ from ...pydantic_models.reports import (
 )
 from ...pydantic_models.common import PaginationResponse, PaginationMeta
 
-router = APIRouter(prefix="/calculated-fields", tags=["calculated-fields"])
+router = APIRouter(tags=["calculated-fields"])
 
 
 @router.get("", response_model=PaginationResponse[ReportCalculatedField])

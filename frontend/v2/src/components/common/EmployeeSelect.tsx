@@ -5,6 +5,7 @@ import { employeeService } from '../../services/employeeService';
 import type { Employee } from '../../pages/HRManagement/types';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
+import { employeeManagementApi } from '../../pages/EmployeeManagement/services/employeeManagementApi';
 
 const { Text } = Typography;
 
@@ -55,7 +56,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
     if (value && (!selectedEmployee || selectedEmployee.id !== value)) {
       const fetchEmployee = async () => {
         try {
-          const employee = await employeeService.getEmployeeByIdFromView(String(value));
+          const employee = await employeeManagementApi.getEmployeeById(String(value));
           if (employee) {
             setSelectedEmployee(employee);
           }
@@ -84,7 +85,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
           if (!emp.departmentName && !(emp as any).department_name && 
               (!emp.personnelCategoryName || !emp.actual_position_name)) {
             try {
-              const details = await employeeService.getEmployeeByIdFromView(String(emp.id));
+              const details = await employeeManagementApi.getEmployeeById(String(emp.id));
               return details || emp;
             } catch (err) {
               return emp;
@@ -166,7 +167,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
   }, [employees, showEmployeeCode]);
 
   // 自定义下拉内容
-  const popupRender = (menu: React.ReactElement) => {
+  const dropdownRender = (menu: React.ReactElement) => {
     return (
       <div>
         {loading ? (
@@ -217,7 +218,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       className={className}
       size={size}
       optionLabelProp="label"
-      popupRender={popupRender}
+      dropdownRender={dropdownRender}
       {...restProps}
     />
   );

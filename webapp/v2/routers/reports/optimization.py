@@ -9,7 +9,7 @@ from ...models.security import User
 from ....auth import get_current_user
 from ...crud.reports import ReportDataSourceCRUD
 
-router = APIRouter(prefix="/optimization", tags=["optimization"])
+router = APIRouter(tags=["optimization"])
 
 
 @router.get("/stats")

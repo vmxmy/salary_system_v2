@@ -26,7 +26,7 @@ from ...pydantic_models.user_preferences import (
 from ...utils.auth import get_current_user
 from ...utils.logging_utils import log_api_call
 
-router = APIRouter(prefix="/user-preferences", tags=["用户偏好设置"])
+router = APIRouter(tags=["用户偏好设置"])
 
 # 预设类型常量
 PAYROLL_DATA_MODAL_PRESET = "payroll_data_modal_preset"

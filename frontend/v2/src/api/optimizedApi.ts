@@ -144,10 +144,10 @@ export const batchLookupOptimized = async (lookupTypes: string[]) => {
 // ==================== 健康检查接口 ====================
 
 /**
- * 健康检查接口 - 已迁移到V2系统管理API
+ * 健康检查接口
  */
 export const healthCheck = async () => {
-  const response = await apiClient.get<OptimizedResponse<any>>('/system/health');
+  const response = await apiClient.get<OptimizedResponse<any>>('/views-optimized/health');
   return response.data;
 };
 

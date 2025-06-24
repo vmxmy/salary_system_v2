@@ -20,7 +20,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/payroll-component-definitions",
     tags=["Configuration - Payroll Components"],
 )
 

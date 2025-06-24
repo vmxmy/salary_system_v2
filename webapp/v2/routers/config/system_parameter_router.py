@@ -18,7 +18,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/parameters", # Prefix for this specific router
     tags=["Configuration - System Parameters"],
 )
 

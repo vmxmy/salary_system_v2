@@ -4,10 +4,7 @@ import {
   Space, 
   Typography, 
   Modal, 
-  Select, 
-  Input, 
   message,
-  Spin,
   Alert,
   Form
 } from 'antd';
@@ -15,14 +12,10 @@ import {
   PlusOutlined, 
   CopyOutlined, 
   CloudUploadOutlined,
-  ExclamationCircleOutlined,
   DownloadOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { PayrollPeriodResponse, PayrollGenerationRequest } from '../types/simplePayroll';
-import { simplePayrollApi } from '../services/simplePayrollApi';
-import { ExcelImportModal } from './ExcelImportModal';
-import SmartCopyConfirmModal from './SmartCopyConfirmModal';
+import type { PayrollPeriodResponse } from '../types/simplePayroll';
 import ModernCard from './ModernCard';
 import styles from '../styles/SimplePayrollStyles.module.less';
 
