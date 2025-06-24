@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from datetime import datetime, date
+from decimal import Decimal
 import json
 import logging
 
@@ -719,9 +720,9 @@ async def run_calculation_engine(
         success_count = 0
         error_count = 0
         errors = []
-        total_gross_pay = 0
-        total_deductions = 0
-        total_net_pay = 0
+        total_gross_pay = Decimal('0')
+        total_deductions = Decimal('0')
+        total_net_pay = Decimal('0')
         
         logger.info(f"开始计算 {len(entries)} 条工资记录...")
         
@@ -744,9 +745,9 @@ async def run_calculation_engine(
                 entry.calculation_log = result["calculation_log"]
                 
                 # 累计统计
-                total_gross_pay += float(result["gross_pay"])
-                total_deductions += float(result["total_deductions"])
-                total_net_pay += float(result["net_pay"])
+                total_gross_pay += Decimal(str(result["gross_pay"]))
+                total_deductions += Decimal(str(result["total_deductions"]))
+                total_net_pay += Decimal(str(result["net_pay"]))
                 
                 success_count += 1
                 
@@ -1273,7 +1274,7 @@ async def generate_bank_file(
         
         # 生成银行文件内容
         bank_records = []
-        total_amount = 0
+        total_amount = Decimal('0')
         total_count = 0
         
         for entry, employee, bank_account_info in entries_data:
@@ -1295,14 +1296,14 @@ async def generate_bank_file(
                 "employee_name": employee_full_name,
                 "bank_account": bank_account,
                 "bank_name": bank_name or "未知银行",
-                "amount": float(entry.net_pay),
+                "amount": float(entry.net_pay),  # 保持 float 用于JSON序列化
                 "currency": "CNY",
                 "purpose": f"{payroll_run.payroll_period.name if payroll_run.payroll_period else ''}工资",
                 "remark": f"工资发放-{employee.employee_code}"
             }
             
             bank_records.append(bank_record)
-            total_amount += float(entry.net_pay)
+            total_amount += entry.net_pay
             total_count += 1
         
         # 根据银行类型生成不同格式的文件内容
@@ -1310,7 +1311,7 @@ async def generate_bank_file(
             bank_type=bank_type,
             file_format=file_format,
             records=bank_records,
-            total_amount=total_amount,
+            total_amount=float(total_amount),  # 转换为float用于文件生成
             total_count=total_count,
             payroll_run=payroll_run
         )
@@ -1327,7 +1328,7 @@ async def generate_bank_file(
             "file_format": file_format,
             "bank_type": bank_type,
             "total_records": total_count,
-            "total_amount": total_amount,
+            "total_amount": float(total_amount),  # 转换为float用于JSON序列化
             "summary": {
                 "payroll_run_id": payroll_run_id,
                 "period_name": period_name,
