@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { message } from 'antd';
 import dayjs from 'dayjs';
 import type { UniversalPreset } from '../DataBrowser/ConfigPresetManager';
@@ -390,7 +390,8 @@ export const useUniversalPresets = (
     loadPresets();
   }, [loadPresets]);
 
-  return {
+  // 使用 useMemo 包裹返回对象，确保引用稳定性
+  return useMemo(() => ({
     // State
     presets,
     loading,
@@ -415,7 +416,12 @@ export const useUniversalPresets = (
     // Utilities
     loadPresets,
     generatePresetId
-  };
+  }), [
+    presets, loading, error,
+    savePreset, updatePreset, deletePreset, applyPreset, toggleFavorite,
+    getPreset, getPresetsByCategory, getDefaultPreset,
+    exportPresets, importPresets, loadPresets, generatePresetId
+  ]);
 };
 
 export default useUniversalPresets;

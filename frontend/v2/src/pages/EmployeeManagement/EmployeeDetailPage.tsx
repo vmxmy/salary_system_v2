@@ -144,7 +144,7 @@ const EmployeeDetailPage: React.FC = () => {
             {employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString() : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="性别">
-            {employee.gender_lookup_value_id || '-'}
+            {employee.gender || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="国籍">
             {employee.nationality || '-'}
@@ -153,13 +153,13 @@ const EmployeeDetailPage: React.FC = () => {
             {employee.ethnicity || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="婚姻状况">
-            {employee.marital_status_lookup_value_id || '-'}
+            {employee.marital_status || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="政治面貌">
-            {employee.political_status_lookup_value_id || '-'}
+            {employee.political_status || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="教育水平">
-            {employee.education_level_lookup_value_id || '-'}
+            {employee.education_level || '-'}
           </Descriptions.Item>
         </Descriptions>
       </Card>
@@ -221,24 +221,24 @@ const EmployeeDetailPage: React.FC = () => {
             {employee.first_work_date ? new Date(employee.first_work_date).toLocaleDateString() : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="员工状态">
-            <Tag color={getStatusColor(employee.status_lookup_value_id?.toString() || '')}>
-              {employee.status_lookup_value_id || '-'}
+            <Tag color={getStatusColor(employee.status || '')}>
+              {employee.status || '-'}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="雇佣类型">
-            {employee.employment_type_lookup_value_id || '-'}
+            {employee.employment_type || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="合同类型">
-            {employee.contract_type_lookup_value_id || '-'}
+            {employee.contract_type || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="部门">
-            {employee.department_name || '-'}
+            {employee.departmentName || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="人员类别">
-            {employee.personnel_category_name || '-'}
+            {employee.personnelCategoryName || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="职位">
-            {employee.position_name || '-'}
+            {employee.actualPositionName || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="当前职位开始日期">
             {employee.current_position_start_date ? new Date(employee.current_position_start_date).toLocaleDateString() : '-'}

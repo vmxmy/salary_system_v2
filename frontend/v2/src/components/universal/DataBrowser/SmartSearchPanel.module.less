@@ -1,0 +1,383 @@
+@import '../../../styles/modern-design-system.less';
+
+// =============================================================================
+// 🔍 Smart Search Panel - Modern Design System
+// =============================================================================
+
+.smartSearchCard {
+  border-radius: @radius-lg;
+  border: 1px solid @border-light;
+  box-shadow: @shadow-sm;
+  margin-bottom: @space-4;
+  transition: all @duration-base @ease-out;
+  
+  &:hover {
+    border-color: @border-medium;
+    box-shadow: @shadow-md;
+  }
+
+  :global {
+    .ant-card-head {
+      background: @bg-primary;
+      border-bottom: 1px solid @border-light;
+      padding: @space-3 @space-4;
+      min-height: auto;
+    }
+
+    .ant-card-body {
+      padding: @space-4;
+    }
+  }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: @space-3;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: @space-2;
+  flex: 1;
+  min-width: 0;
+  
+  .searchIcon {
+    color: @primary-500;
+    font-size: @font-size-lg;
+    flex-shrink: 0;
+  }
+  
+  .title {
+    .typography-heading-4();
+    margin: 0;
+    font-weight: @font-weight-medium;
+    color: @text-primary;
+  }
+}
+
+.performanceIndicator {
+  display: flex;
+  align-items: center;
+  gap: @space-1;
+  
+  :global {
+    .ant-tag {
+      margin: 0;
+      border-radius: @radius-base;
+      font-size: @font-size-xs;
+      padding: 0 @space-2;
+      height: 20px;
+      line-height: 18px;
+      
+      &.resultTag {
+        background: @info-50;
+        color: @info-700;
+        border: 1px solid @info-200;
+      }
+      
+      &.timeTag {
+        background: @neutral-100;
+        color: @text-tertiary;
+        font-size: 11px;
+      }
+    }
+  }
+  
+  .performanceIcon {
+    color: @success-500;
+    margin-left: @space-1;
+  }
+}
+
+.collapseButton {
+  :global(.ant-btn) {
+    padding: 0 @space-2;
+    height: 24px;
+    min-width: 24px;
+    border-radius: @radius-base;
+    
+    &:hover {
+      background: @bg-secondary;
+      border-color: @border-medium;
+    }
+  }
+}
+
+.searchContent {
+  display: flex;
+  gap: @space-3;
+  align-items: flex-start;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: @space-2;
+  }
+}
+
+.searchInputWrapper {
+  flex: 1;
+  min-width: 0;
+  
+  .searchInputContainer {
+    width: 100%;
+  }
+  
+  :global {
+    .ant-input-search {
+      .ant-input {
+        border-radius: @radius-md;
+        font-size: @font-size-sm;
+        padding: @space-2 @space-3;
+        
+        &:hover {
+          border-color: @primary-300;
+        }
+        
+        &:focus {
+          border-color: @primary-500;
+          box-shadow: 0 0 0 3px fade(@primary-500, 15%);
+        }
+      }
+      
+      .ant-input-search-button {
+        border-radius: 0 @radius-md @radius-md 0;
+        background: @primary-500;
+        border-color: @primary-500;
+        
+        &:hover {
+          background: @primary-600;
+          border-color: @primary-600;
+        }
+      }
+    }
+  }
+}
+
+.searchControls {
+  display: flex;
+  align-items: center;
+  gap: @space-2;
+  flex-shrink: 0;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.searchModeSelector {
+  :global(.ant-select) {
+    min-width: 120px;
+    
+    .ant-select-selector {
+      border-radius: @radius-md;
+      font-size: @font-size-sm;
+      padding: 0 @space-3;
+      height: 32px;
+      
+      &:hover {
+        border-color: @primary-300;
+      }
+    }
+    
+    &.ant-select-focused {
+      .ant-select-selector {
+        border-color: @primary-500;
+        box-shadow: 0 0 0 3px fade(@primary-500, 15%);
+      }
+    }
+  }
+}
+
+.searchModeTip {
+  padding: @space-2;
+  border-top: 1px solid @border-light;
+  background: @bg-secondary;
+  
+  .tipContent {
+    display: flex;
+    align-items: center;
+    gap: @space-1;
+    font-size: @font-size-xs;
+    color: @text-tertiary;
+    
+    .tipIcon {
+      color: @primary-400;
+    }
+  }
+}
+
+.suggestions {
+  margin-top: @space-2;
+  
+  .suggestionLabel {
+    font-size: @font-size-xs;
+    color: @text-tertiary;
+    margin-right: @space-2;
+    font-weight: @font-weight-medium;
+  }
+  
+  .suggestionTags {
+    display: inline-flex;
+    gap: @space-1;
+    flex-wrap: wrap;
+    
+    :global(.ant-tag) {
+      cursor: pointer;
+      margin: 2px 0;
+      padding: 0 @space-2;
+      height: 22px;
+      line-height: 20px;
+      border-radius: @radius-full;
+      background: @primary-50;
+      color: @primary-700;
+      border: 1px solid @primary-200;
+      font-size: @font-size-xs;
+      transition: all @duration-fast @ease-out;
+      
+      &:hover {
+        background: @primary-100;
+        border-color: @primary-300;
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+.searchTips {
+  margin-top: @space-2;
+  padding: @space-2;
+  background: @bg-secondary;
+  border-radius: @radius-base;
+  
+  .tipsList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    .tipItem {
+      font-size: @font-size-xs;
+      color: @text-tertiary;
+      line-height: 1.4;
+      
+      .tipEmoji {
+        margin-right: @space-1;
+      }
+    }
+  }
+}
+
+.searchResult {
+  margin-top: @space-3;
+  
+  &.success {
+    padding: @space-2 @space-3;
+    background: @success-50;
+    border: 1px solid @success-200;
+    border-radius: @radius-md;
+    
+    .resultContent {
+      display: flex;
+      align-items: center;
+      gap: @space-2;
+      font-size: @font-size-sm;
+      color: @success-700;
+      
+      .resultIcon {
+        color: @success-500;
+        font-size: @font-size-base;
+      }
+      
+      .resultText {
+        .resultCount {
+          font-weight: @font-weight-semibold;
+          color: @success-800;
+        }
+        
+        .resultTime {
+          color: @success-600;
+          margin-left: @space-1;
+        }
+        
+        .performanceText {
+          color: @success-500;
+          margin-left: @space-2;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          
+          .performanceIcon {
+            font-size: @font-size-sm;
+          }
+        }
+      }
+    }
+  }
+  
+  &.noResults {
+    padding: @space-3;
+    background: @warning-50;
+    border: 1px solid @warning-200;
+    border-radius: @radius-md;
+    
+    .noResultsContent {
+      .noResultsHeader {
+        display: flex;
+        align-items: center;
+        gap: @space-2;
+        font-size: @font-size-sm;
+        color: @warning-700;
+        margin-bottom: @space-2;
+        
+        .warningIcon {
+          color: @warning-500;
+          font-size: @font-size-base;
+        }
+      }
+      
+      .suggestionsList {
+        padding-left: @space-5;
+        font-size: @font-size-xs;
+        color: @warning-600;
+        line-height: 1.6;
+        
+        li {
+          margin-bottom: 2px;
+        }
+      }
+    }
+  }
+}
+
+// Collapsed state
+.collapsed {
+  :global {
+    .ant-card-body {
+      display: none !important;
+    }
+  }
+}
+
+// Loading state
+.loading {
+  :global {
+    .ant-input-search-button {
+      .anticon-search {
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

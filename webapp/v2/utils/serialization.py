@@ -111,9 +111,35 @@ class CustomJSONB(TypeDecorator):
     def process_bind_param(self, value, dialect):
         """Process the value for binding to a database query (Python -> DB)."""
         if value is not None:
+            # 调试日志：跟踪JSONB转换过程
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            # 检查是否包含手动调整数据
+            if isinstance(value, dict):
+                manual_components = []
+                for key, val in value.items():
+                    if isinstance(val, dict) and val.get('is_manual'):
+                        manual_components.append(key)
+                if manual_components:
+                    logger.info(f"🔧 [CustomJSONB] 转换前包含手动调整组件: {manual_components}")
+            
             # 不要在这里进行JSON序列化！PostgreSQL的JSONB会自动处理
             # 只需要确保Decimal等类型被转换为JSON兼容的类型
-            return self._convert_for_jsonb(value)
+            converted = self._convert_for_jsonb(value)
+            
+            # 检查转换后的数据
+            if isinstance(converted, dict):
+                manual_components_after = []
+                for key, val in converted.items():
+                    if isinstance(val, dict) and val.get('is_manual'):
+                        manual_components_after.append(key)
+                if manual_components_after:
+                    logger.info(f"✅ [CustomJSONB] 转换后保留手动调整组件: {manual_components_after}")
+                elif any(isinstance(val, dict) and val.get('is_manual') for val in value.values() if isinstance(value, dict)):
+                    logger.warning(f"❌ [CustomJSONB] 手动调整数据在转换中丢失！")
+            
+            return converted
         return value
 
     def _convert_for_jsonb(self, obj):
@@ -122,10 +148,21 @@ class CustomJSONB(TypeDecorator):
             return float(obj)
         elif isinstance(obj, (datetime, date)):
             return obj.isoformat()
+        elif isinstance(obj, bool):
+            return obj  # 确保布尔值保持为布尔值
         elif isinstance(obj, int):
             return obj  # 保持整数不变，特别重要对于公积金进位后的整数
         elif isinstance(obj, dict):
-            return {key: self._convert_for_jsonb(value) for key, value in obj.items()}
+            result = {}
+            for key, value in obj.items():
+                converted_value = self._convert_for_jsonb(value)
+                result[key] = converted_value
+                # 调试特定字段
+                if key == 'is_manual' and value is not None:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.info(f"🔧 [CustomJSONB] 转换 is_manual: {value} ({type(value)}) -> {converted_value} ({type(converted_value)})")
+            return result
         elif isinstance(obj, list):
             return [self._convert_for_jsonb(item) for item in obj]
         elif isinstance(obj, tuple):
@@ -136,14 +173,36 @@ class CustomJSONB(TypeDecorator):
     def process_result_value(self, value, dialect):
         """Process the value received from the database (DB -> Python)."""
         if value is not None:
+            # 调试日志：跟踪JSONB读取过程
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            # 检查是否包含手动调整数据（读取时）
+            if isinstance(value, dict):
+                manual_components = []
+                for key, val in value.items():
+                    if isinstance(val, dict) and val.get('is_manual'):
+                        manual_components.append(key)
+                if manual_components:
+                    logger.info(f"🔧 [CustomJSONB读取] 从数据库读取到手动调整组件: {manual_components}")
+                    
+                    # 详细检查住房公积金数据
+                    housing_data = value.get('HOUSING_FUND_PERSONAL', {})
+                    if isinstance(housing_data, dict) and housing_data.get('is_manual'):
+                        logger.info(f"🔧 [CustomJSONB读取] HOUSING_FUND_PERSONAL 手动调整数据: {housing_data}")
+            
             # PostgreSQL JSONB values are already parsed by psycopg2/SQLAlchemy
             # 如果是字符串（说明是旧的双重编码数据），尝试解析
             if isinstance(value, str):
                 try:
-                    return json.loads(value)
+                    parsed = json.loads(value)
+                    logger.info(f"🔧 [CustomJSONB读取] 解析字符串格式数据")
+                    return parsed
                 except (json.JSONDecodeError, TypeError):
+                    logger.warning(f"🔧 [CustomJSONB读取] 字符串解析失败，返回原值")
                     return value
             # 如果已经是dict/list，直接返回
+            logger.info(f"🔧 [CustomJSONB读取] 直接返回dict/list格式数据")
             return value
         return value
 

@@ -54,7 +54,7 @@ test.describe('Employee Detail Page Loop Detection', () => {
       await page.waitForTimeout(1000);
       
       // 点击员工列表(新版)
-      await page.click('text="员工列表 (新版)"', { timeout: 5000 });
+      await page.click('text="员工管理"', { timeout: 5000 });
       await page.waitForLoadState('networkidle');
       
       // 等待表格加载

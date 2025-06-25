@@ -9,8 +9,6 @@ import {
   message, 
   App, 
   Typography,
-  Row,
-  Col,
   Descriptions,
 } from 'antd';
 import { 
@@ -27,7 +25,9 @@ import { ProTable } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
-import ModernPageTemplate from '../../../components/common/ModernPageTemplate';
+// Layout components
+import { PageLayout, FlexLayout, GridLayout, Box } from '../../../components/Layout';
+
 import ModernCard from '../../../components/common/ModernCard';
 import TableActionButton from '../../../components/common/TableActionButton';
 import StatusTag from '../../../components/common/StatusTag';
@@ -115,7 +115,7 @@ const PayrollPeriodsPageModern: React.FC = () => {
       key: 'period_range',
       width: 200,
       render: (_, record) => (
-        <div>
+        <Box>
           <Text className="typography-body">
             {dayjs(record.start_date).format('YYYY-MM-DD')}
           </Text>
@@ -127,7 +127,7 @@ const PayrollPeriodsPageModern: React.FC = () => {
           <Text type="secondary" className="typography-caption">
             {dayjs(record.end_date).diff(dayjs(record.start_date), 'day') + 1} 天
           </Text>
-        </div>
+        </Box>
       ),
       sorter: (a, b) => dayjs(a.start_date).unix() - dayjs(b.start_date).unix(),
     },
@@ -149,153 +149,157 @@ const PayrollPeriodsPageModern: React.FC = () => {
       title: t('payroll:runs_count'),
       key: 'runs_count',
       width: 100,
-      align: 'center',
       render: (_, record) => (
-        <Tooltip title={t('payroll:associated_runs')}>
-          <Space>
-            <DatabaseOutlined style={{ color: 'var(--color-info)' }} />
-            <Text strong style={{ color: 'var(--color-info)' }}>
-              {(record as any).runs_count || 0}
-            </Text>
-          </Space>
+        <Tooltip title={t('payroll:view_runs')}>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => navigate(`/payroll/periods/${record.id}`)}
+          >
+            {(record as any).runs_count || 0} 个
+          </Button>
         </Tooltip>
       ),
     },
     {
-      title: t('common:action.title'),
-      key: 'actions',
-      width: 200,
+      title: t('common:label.action'),
+      key: 'action',
       fixed: 'right',
+      width: 200,
       render: (_, record) => (
-        <Space size="small">
+        <Space>
           <TableActionButton
-            actionType="view"
-            onClick={() => handleViewDetails(record.id.toString())}
-            tooltipTitle={t('common:view')}
+            icon={<FileAddOutlined />}
+            tooltip={t('payroll:create_run')}
+            onClick={() => navigate(`/payroll/periods/${record.id}/runs/create`)}
+            disabled={!permissions.canCreate}
           />
-          {permissions.canUpdate && (
-            <TableActionButton
-              actionType="edit"
-              onClick={() => handleEdit(record)}
-              tooltipTitle={t('common:edit')}
-            />
-          )}
-          {permissions.canDelete && (
-            <TableActionButton
-              actionType="delete"
-              onClick={() => handleDelete(record.id.toString())}
-              tooltipTitle={t('common:delete')}
-              danger
-            />
-          )}
+          <TableActionButton
+            type="primary"
+            onClick={() => handleEdit(record)}
+            disabled={!permissions.canUpdate}
+          >
+            {t('common:action.edit')}
+          </TableActionButton>
+          <TableActionButton
+            danger
+            onClick={() => handleDelete(record)}
+            disabled={!permissions.canDelete}
+          >
+            {t('common:action.delete')}
+          </TableActionButton>
         </Space>
       ),
     },
-  ], [t, lookupMaps, statusOptions, permissions]);
+  ], [t, statusOptions, permissions, navigate]);
 
-  // 数据加载
+  // 加载数据
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [periodsResponse, statusOptionsData] = await Promise.all([
-        getPayrollPeriods(),
-        getPayrollPeriodStatusOptions(),
-      ]);
+      const { items } = await getPayrollPeriods();
       
-      const periodsData = Array.isArray(periodsResponse) ? periodsResponse : (periodsResponse as any).data || [];
-      
-      // 为每个周期添加关联的运行次数
-      const periodsWithRunCount = await Promise.all(
-        periodsData.map(async (period: any) => {
+      // 为每个周期加载运行数据
+      const periodsWithRuns = await Promise.all(
+        items.map(async (period) => {
           try {
-            const runsResponse = await getPayrollRuns({ period_id: period.id });
-            const runsData = Array.isArray(runsResponse) ? runsResponse : (runsResponse as any).data || [];
-            return { ...period, runs_count: runsData.length };
+            const runs = await getPayrollRuns(period.id);
+            return { ...period, runs_count: runs.items.length };
           } catch {
             return { ...period, runs_count: 0 };
           }
         })
       );
-
-      setPeriods(periodsWithRunCount);
-      setStatusOptions(statusOptionsData);
-    } catch (error: any) {
-      message.error(t('common:errors.fetch_failed'));
-      console.error('Failed to load payroll periods:', error);
+      
+      setPeriods(periodsWithRuns);
+    } catch (error) {
+      message.error(t('common:message.load_failed'));
+      console.error('Load payroll periods failed:', error);
     } finally {
       setLoading(false);
     }
-  }, [message, t]);
+  }, [t, message]);
+
+  // 加载状态选项
+  const loadStatusOptions = useCallback(async () => {
+    try {
+      const options = await getPayrollPeriodStatusOptions();
+      setStatusOptions(options);
+    } catch (error) {
+      console.error('Failed to load status options:', error);
+    }
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    loadStatusOptions();
+  }, [loadData, loadStatusOptions]);
 
-  // 事件处理函数
-  const handleCreate = () => {
+  // 事件处理
+  const handleCreate = useCallback(() => {
     setEditingPeriod(null);
     setModalVisible(true);
-  };
+  }, []);
 
-  const handleEdit = (period: PayrollPeriod) => {
+  const handleEdit = useCallback((period: PayrollPeriod) => {
     setEditingPeriod(period);
     setModalVisible(true);
-  };
+  }, []);
 
-  const handleViewDetails = (periodId: string) => {
-    navigate(`/payroll/periods/${periodId}`);
-  };
-
-  const handleDelete = (periodId: string) => {
+  const handleDelete = useCallback((period: PayrollPeriod) => {
     modal.confirm({
-      title: t('common:confirm_delete'),
-      content: t('payroll:confirm_delete_period'),
+      title: t('common:confirm.delete_title'),
+      content: t('payroll:confirm_delete_period', { name: period.name }),
+      okText: t('common:action.confirm'),
+      cancelText: t('common:action.cancel'),
+      okButtonProps: { danger: true },
       onOk: async () => {
         try {
-          await deletePayrollPeriod(parseInt(periodId));
-          message.success(t('common:delete_success'));
+          await deletePayrollPeriod(period.id);
+          message.success(t('common:message.delete_success'));
           loadData();
         } catch (error: any) {
-          message.error(t('common:delete_failed'));
+          if (error.response?.data?.detail) {
+            message.error(error.response.data.detail);
+          } else {
+            message.error(t('common:message.delete_failed'));
+          }
         }
       },
     });
-  };
+  }, [t, message, modal, loadData]);
 
-  const handleModalSuccess = () => {
+  const handleModalSuccess = useCallback(() => {
     setModalVisible(false);
+    setEditingPeriod(null);
     loadData();
-  };
+  }, [loadData]);
 
-  // 统计数据
+  // 计算统计信息
   const statistics = useMemo(() => {
-    const total = periods.length;
-    const active = periods.filter(period => {
-      const statusOption = statusOptions.find((opt: any) => opt.value === period.status_lookup_value_id);
-      return (statusOption as any)?.type === 'success';
+    const activeCount = periods.filter(p => {
+      const status = statusOptions.find((opt: any) => opt.value === p.status_lookup_value_id);
+      return status && (status as any).type === 'success';
     }).length;
-    const pending = periods.filter(period => {
-      const statusOption = statusOptions.find((opt: any) => opt.value === period.status_lookup_value_id);
-      return (statusOption as any)?.type === 'processing';
-    }).length;
-    const totalRuns = periods.reduce((sum, period) => sum + ((period as any).runs_count || 0), 0);
+
+    const totalRuns = periods.reduce((sum, p) => sum + ((p as any).runs_count || 0), 0);
 
     return [
       {
         title: t('payroll:total_periods'),
-        value: total,
+        value: periods.length,
         icon: <CalendarOutlined />,
         color: 'var(--color-primary)',
       },
       {
         title: t('payroll:active_periods'),
-        value: active,
+        value: activeCount,
         icon: <CheckCircleOutlined />,
         color: 'var(--color-success)',
       },
       {
-        title: t('payroll:pending_periods'),
-        value: pending,
+        title: t('payroll:processing_periods'),
+        value: periods.length - activeCount,
         icon: <PlayCircleOutlined />,
         color: 'var(--color-warning)',
       },
@@ -308,39 +312,55 @@ const PayrollPeriodsPageModern: React.FC = () => {
     ];
   }, [periods, statusOptions, t]);
 
+  // 页面操作按钮
+  const headerActions = permissions.canCreate ? (
+    <Button
+      type="primary"
+      icon={<PlusOutlined />}
+      onClick={handleCreate}
+      className="modern-button"
+    >
+      {t('payroll:create_period')}
+    </Button>
+  ) : undefined;
+
   return (
-    <ModernPageTemplate
+    <PageLayout
       title={t('payroll:payroll_periods')}
-      headerExtra={
-        permissions.canCreate ? (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-            className="modern-button"
-          >
-            {t('payroll:create_period')}
-          </Button>
-        ) : undefined
-      }
+      actions={headerActions}
+      showCard={false}
     >
       {/* 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {statistics.map((stat, index) => (
-          <Col xs={24} sm={12} lg={6} key={index}>
+      <Box mb="6">
+        <GridLayout
+          columns={4}
+          gap="4"
+          colsSm={2}
+          colsMd={2}
+          colsLg={4}
+        >
+          {statistics.map((stat, index) => (
             <ModernCard
+              key={index}
               title={stat.title}
               icon={stat.icon}
             >
-              <div className="statistic-content">
-                <div className="statistic-value" style={{ color: stat.color }}>
+              <FlexLayout align="center" justify="center" p="4">
+                <Box
+                  className="statistic-value"
+                  style={{ 
+                    color: stat.color,
+                    fontSize: '2rem',
+                    fontWeight: 600
+                  }}
+                >
                   {stat.value}
-                </div>
-              </div>
+                </Box>
+              </FlexLayout>
             </ModernCard>
-          </Col>
-        ))}
-      </Row>
+          ))}
+        </GridLayout>
+      </Box>
 
       {/* 主表格 */}
       <ModernCard>
@@ -383,7 +403,7 @@ const PayrollPeriodsPageModern: React.FC = () => {
         onClose={() => setModalVisible(false)}
         onSuccess={handleModalSuccess}
       />
-    </ModernPageTemplate>
+    </PageLayout>
   );
 };
 

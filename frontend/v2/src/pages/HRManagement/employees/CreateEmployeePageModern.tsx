@@ -1,12 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message, Space, Alert, Button } from 'antd';
+import { message, Space, Alert, Button, Form } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
 // 现代化组件
 import ModernPageTemplate from '../../../components/common/ModernPageTemplate';
 import ModernCard from '../../../components/common/ModernCard';
+import EmployeeForm from '../../../components/employee/EmployeeForm';
 
 // 服务和类型
 import { employeeService } from '../../../services/employeeService';
@@ -23,6 +24,7 @@ interface EmployeeFormData {
 const CreateEmployeePageModern: React.FC = () => {
   const { t } = useTranslation(['employee', 'common']);
   const navigate = useNavigate();
+  const formRef = useRef<any>(null);
   
   // State management
   const [loading, setLoading] = useState(false);
@@ -34,10 +36,19 @@ const CreateEmployeePageModern: React.FC = () => {
       setLoading(true);
       setError(null);
       
+      console.log('📤 提交员工数据:', formData);
       const newEmployee = await employeeService.createEmployee(formData as any);
+      console.log('✅ 员工创建成功，返回数据:', newEmployee);
       
       message.success(t('employee:createSuccess'));
-      navigate(`/hr/employees/${newEmployee.id}`);
+      
+      // 检查返回的员工数据是否包含ID
+      if (newEmployee && newEmployee.id) {
+        navigate(`/hr/employees/${newEmployee.id}`);
+      } else {
+        console.warn('⚠️ 创建成功但没有返回员工ID，跳转到员工列表页');
+        navigate('/hr/employees');
+      }
     } catch (error) {
       console.error('Failed to create employee:', error);
       const errorMessage = error instanceof Error ? error.message : t('employee:createError');
@@ -47,6 +58,11 @@ const CreateEmployeePageModern: React.FC = () => {
       setLoading(false);
     }
   }, [t, navigate]);
+
+  // 处理保存按钮点击
+  const handleSaveClick = useCallback(() => {
+    formRef.current?.submit();
+  }, []);
 
   // 处理返回操作
   const handleBack = useCallback(() => {
@@ -101,20 +117,32 @@ const CreateEmployeePageModern: React.FC = () => {
         title={t('employee:employeeInformation')}
         icon={<UserAddOutlined />}
         variant="outlined"
-      >
-        <div className="p-6">
-          <p className="typography-body text-secondary">
-            {t('employee:createEmployeeFormPlaceholder', '员工创建表单将在此处显示')}
-          </p>
-          <Space className="mt-4">
-            <Button onClick={handleBack} className="modern-button variant-secondary">
+        extra={
+          <Space>
+            <Button 
+              onClick={handleBack} 
+              className="modern-button variant-secondary"
+            >
               {t('common:cancel')}
             </Button>
-            <Button type="primary" loading={loading} className="modern-button variant-primary">
+            <Button 
+              type="primary" 
+              loading={loading} 
+              onClick={handleSaveClick}
+              icon={<SaveOutlined />}
+              className="modern-button variant-primary"
+            >
               {t('common:save')}
             </Button>
           </Space>
-        </div>
+        }
+      >
+        <EmployeeForm
+          ref={formRef}
+          onSubmit={handleSubmit}
+          loading={loading}
+          mode="create"
+        />
       </ModernCard>
     </ModernPageTemplate>
   );

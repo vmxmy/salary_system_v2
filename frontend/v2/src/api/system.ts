@@ -8,26 +8,25 @@ import apiClient from './apiClient';
 
 // 基础响应类型
 interface ApiResponse<T> {
-
-
-
+  data?: T;
+  success?: boolean;
+  message?: string;
   error?: string;
 }
 
 // ==================== 系统信息类型定义 ====================
 
 export interface SystemInfo {
-
-
-
-
-
-
-
+  name?: string;
+  version?: string;
+  environment?: string;
+  uptime?: number;
+  timestamp?: string;
+  server_id?: string;
 }
 
 export interface DatabaseStatus {
-
+  status?: string;
   connection_pool_size?: number;
   active_connections?: number;
   response_time_ms?: number;
@@ -42,20 +41,20 @@ export interface SystemMetrics {
 }
 
 export interface HealthCheck {
-
-
-
-
-
+  status?: string;
+  timestamp?: string;
+  uptime?: number;
+  database?: DatabaseStatus;
+  version?: string;
   metrics?: SystemMetrics;
   details?: Record<string, any>;
 }
 
 export interface VersionInfo {
-
-
+  app_version?: string;
+  api_version?: string;
   database_version?: string;
-
+  python_version?: string;
   build_date?: string;
   git_commit?: string;
   dependencies?: Record<string, string>;
@@ -64,15 +63,15 @@ export interface VersionInfo {
 // ==================== 调试相关类型 ====================
 
 export interface DebugFieldConfig {
-
-
-
+  field_name?: string;
+  field_type?: string;
+  required?: boolean;
   source_name?: string;
   target_name?: string;
 }
 
 export interface DatabaseDiagnostic {
-
+  status?: string;
   pool_info: Record<string, any>;
   query_performance?: Record<string, any>;
   slow_queries?: Array<Record<string, any>>;
@@ -90,25 +89,25 @@ export interface PerformanceMetrics {
 export interface PermissionTest {
   user_id?: number;
   username?: string;
-
-
+  role?: string;
+  permissions?: string[];
   test_results: Record<string, boolean>;
 }
 
 // ==================== 工具类相关类型 ====================
 
 export interface TemplateInfo {
-
-
-
-
+  name?: string;
+  path?: string;
+  type?: string;
+  description?: string;
   size?: number;
   last_modified?: string;
 }
 
 export interface ExcelConversionResult {
-
-
+  success?: boolean;
+  message?: string;
   output_file?: string;
   download_url?: string;
   records_count?: number;
@@ -179,7 +178,8 @@ export const getDatabaseDiagnostic = async (): Promise<ApiResponse<DatabaseDiagn
  */
 export const getPerformanceMetrics = async (timeRange: string = '1h'): Promise<ApiResponse<PerformanceMetrics>> => {
   const response = await apiClient.get<ApiResponse<PerformanceMetrics>>('/debug/performance', {
-
+    params: { time_range: timeRange }
+  });
   return response.data;
 };
 
@@ -188,7 +188,8 @@ export const getPerformanceMetrics = async (timeRange: string = '1h'): Promise<A
  */
 export const testPermissions = async (userId?: number): Promise<ApiResponse<PermissionTest>> => {
   const response = await apiClient.get<ApiResponse<PermissionTest>>('/debug/permissions', {
-
+    params: userId ? { user_id: userId } : undefined
+  });
   return response.data;
 };
 
@@ -206,7 +207,7 @@ export const getEnvironmentInfo = async (): Promise<ApiResponse<Record<string, a
 export const getRecentLogs = async (level: string = 'ERROR', lines: number = 50): Promise<ApiResponse<any[]>> => {
   const response = await apiClient.get<ApiResponse<any[]>>('/debug/logs', {
     params: { level, lines }
-
+  });
   return response.data;
 };
 
@@ -215,7 +216,8 @@ export const getRecentLogs = async (level: string = 'ERROR', lines: number = 50)
  */
 export const clearCache = async (cacheType: string = 'all'): Promise<ApiResponse<Record<string, any>>> => {
   const response = await apiClient.post<ApiResponse<Record<string, any>>>('/debug/cache/clear', null, {
-
+    params: { cache_type: cacheType }
+  });
   return response.data;
 };
 
@@ -227,7 +229,8 @@ export const clearCache = async (cacheType: string = 'all'): Promise<ApiResponse
  */
 export const getConverterPage = async (): Promise<string> => {
   const response = await apiClient.get<string>('/utilities/converter', {
-
+    responseType: 'text'
+  });
   return response.data;
 };
 
@@ -235,8 +238,8 @@ export const getConverterPage = async (): Promise<string> => {
  * Excel文件转CSV格式
  */
 export const convertExcelToCsv = async (
-
-
+  file: File,
+  options: {
     sheet_name?: string;
     include_headers?: boolean;
   } = {}
@@ -252,7 +255,11 @@ export const convertExcelToCsv = async (
     `/utilities/excel-to-csv?${params.toString()}`, 
     formData,
     {
-
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    }
+  );
   return response.data;
 };
 
@@ -261,7 +268,8 @@ export const convertExcelToCsv = async (
  */
 export const getTemplates = async (category?: string): Promise<ApiResponse<TemplateInfo[]>> => {
   const response = await apiClient.get<ApiResponse<TemplateInfo[]>>('/utilities/templates', {
-
+    params: category ? { category } : undefined
+  });
   return response.data;
 };
 
@@ -270,7 +278,8 @@ export const getTemplates = async (category?: string): Promise<ApiResponse<Templ
  */
 export const downloadFile = async (filename: string): Promise<Blob> => {
   const response = await apiClient.get(`/utilities/download/${filename}`, {
-
+    responseType: 'blob'
+  });
   return response.data;
 };
 
@@ -278,12 +287,13 @@ export const downloadFile = async (filename: string): Promise<Blob> => {
  * 数据导出工具
  */
 export const exportData = async (
-
+  exportType: string,
+  format: string,
   filters?: string
 ): Promise<ApiResponse<Record<string, any>>> => {
   const response = await apiClient.post<ApiResponse<Record<string, any>>>('/utilities/export', null, {
     params: { export_type: exportType, format, filters }
-
+  });
   return response.data;
 };
 
@@ -308,16 +318,16 @@ export const checkSystemOverallStatus = async () => {
     ]);
     
     return {
-
-
-
+      systemInfo,
+      healthCheck,
+      isHealthy: healthCheck.data?.status === 'healthy'
     };
   } catch (error) {
     console.error('Error:', error);
   
     return {
-
-
+      error: true,
+      message: 'System check failed'
     };
   }
 };
@@ -336,11 +346,11 @@ export const getFullSystemDiagnostic = async () => {
     ]);
     
     return {
-
-
-
-
-
+      systemInfo,
+      healthCheck,
+      versionInfo,
+      performanceMetrics,
+      dbDiagnostic
     };
   } catch (error) {
     console.error('Error:', error);

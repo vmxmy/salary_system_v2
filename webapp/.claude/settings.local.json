@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(rg:*)",
+      "mcp__postgres__query",
+      "Bash(curl:*)",
+      "Bash(mkdir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npx tsc:*)",
+      "Bash(chmod:*)"
+    ],
+    "deny": []
+  }
+}

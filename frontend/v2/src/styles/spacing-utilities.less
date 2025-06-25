@@ -1,0 +1,142 @@
+@import './variables.less';
+
+// 间距工具类
+// 基于设计系统的间距值生成实用工具类
+
+// 生成内边距工具类
+.generate-padding-utilities(@property, @prefix) {
+  .@{prefix}-0 { @{property}: @spacing-0 !important; }
+  .@{prefix}-1 { @{property}: @spacing-1 !important; }
+  .@{prefix}-2 { @{property}: @spacing-2 !important; }
+  .@{prefix}-3 { @{property}: @spacing-3 !important; }
+  .@{prefix}-4 { @{property}: @spacing-4 !important; }
+  .@{prefix}-5 { @{property}: @spacing-5 !important; }
+  .@{prefix}-6 { @{property}: @spacing-6 !important; }
+  .@{prefix}-8 { @{property}: @spacing-8 !important; }
+  .@{prefix}-10 { @{property}: @spacing-10 !important; }
+  .@{prefix}-12 { @{property}: @spacing-12 !important; }
+  .@{prefix}-16 { @{property}: @spacing-16 !important; }
+  .@{prefix}-20 { @{property}: @spacing-20 !important; }
+  .@{prefix}-24 { @{property}: @spacing-24 !important; }
+}
+
+// 生成外边距工具类
+.generate-margin-utilities(@property, @prefix) {
+  .@{prefix}-0 { @{property}: @spacing-0 !important; }
+  .@{prefix}-1 { @{property}: @spacing-1 !important; }
+  .@{prefix}-2 { @{property}: @spacing-2 !important; }
+  .@{prefix}-3 { @{property}: @spacing-3 !important; }
+  .@{prefix}-4 { @{property}: @spacing-4 !important; }
+  .@{prefix}-5 { @{property}: @spacing-5 !important; }
+  .@{prefix}-6 { @{property}: @spacing-6 !important; }
+  .@{prefix}-8 { @{property}: @spacing-8 !important; }
+  .@{prefix}-10 { @{property}: @spacing-10 !important; }
+  .@{prefix}-12 { @{property}: @spacing-12 !important; }
+  .@{prefix}-16 { @{property}: @spacing-16 !important; }
+  .@{prefix}-20 { @{property}: @spacing-20 !important; }
+  .@{prefix}-24 { @{property}: @spacing-24 !important; }
+  .@{prefix}-auto { @{property}: auto !important; }
+}
+
+// 内边距工具类
+.generate-padding-utilities(padding, p);
+.generate-padding-utilities(padding-top, pt);
+.generate-padding-utilities(padding-right, pr);
+.generate-padding-utilities(padding-bottom, pb);
+.generate-padding-utilities(padding-left, pl);
+
+// X轴内边距（左右）
+.px-0 { padding-left: @spacing-0 !important; padding-right: @spacing-0 !important; }
+.px-1 { padding-left: @spacing-1 !important; padding-right: @spacing-1 !important; }
+.px-2 { padding-left: @spacing-2 !important; padding-right: @spacing-2 !important; }
+.px-3 { padding-left: @spacing-3 !important; padding-right: @spacing-3 !important; }
+.px-4 { padding-left: @spacing-4 !important; padding-right: @spacing-4 !important; }
+.px-5 { padding-left: @spacing-5 !important; padding-right: @spacing-5 !important; }
+.px-6 { padding-left: @spacing-6 !important; padding-right: @spacing-6 !important; }
+.px-8 { padding-left: @spacing-8 !important; padding-right: @spacing-8 !important; }
+
+// Y轴内边距（上下）
+.py-0 { padding-top: @spacing-0 !important; padding-bottom: @spacing-0 !important; }
+.py-1 { padding-top: @spacing-1 !important; padding-bottom: @spacing-1 !important; }
+.py-2 { padding-top: @spacing-2 !important; padding-bottom: @spacing-2 !important; }
+.py-3 { padding-top: @spacing-3 !important; padding-bottom: @spacing-3 !important; }
+.py-4 { padding-top: @spacing-4 !important; padding-bottom: @spacing-4 !important; }
+.py-5 { padding-top: @spacing-5 !important; padding-bottom: @spacing-5 !important; }
+.py-6 { padding-top: @spacing-6 !important; padding-bottom: @spacing-6 !important; }
+.py-8 { padding-top: @spacing-8 !important; padding-bottom: @spacing-8 !important; }
+
+// 外边距工具类
+.generate-margin-utilities(margin, m);
+.generate-margin-utilities(margin-top, mt);
+.generate-margin-utilities(margin-right, mr);
+.generate-margin-utilities(margin-bottom, mb);
+.generate-margin-utilities(margin-left, ml);
+
+// X轴外边距（左右）
+.mx-0 { margin-left: @spacing-0 !important; margin-right: @spacing-0 !important; }
+.mx-1 { margin-left: @spacing-1 !important; margin-right: @spacing-1 !important; }
+.mx-2 { margin-left: @spacing-2 !important; margin-right: @spacing-2 !important; }
+.mx-3 { margin-left: @spacing-3 !important; margin-right: @spacing-3 !important; }
+.mx-4 { margin-left: @spacing-4 !important; margin-right: @spacing-4 !important; }
+.mx-5 { margin-left: @spacing-5 !important; margin-right: @spacing-5 !important; }
+.mx-6 { margin-left: @spacing-6 !important; margin-right: @spacing-6 !important; }
+.mx-8 { margin-left: @spacing-8 !important; margin-right: @spacing-8 !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+// Y轴外边距（上下）
+.my-0 { margin-top: @spacing-0 !important; margin-bottom: @spacing-0 !important; }
+.my-1 { margin-top: @spacing-1 !important; margin-bottom: @spacing-1 !important; }
+.my-2 { margin-top: @spacing-2 !important; margin-bottom: @spacing-2 !important; }
+.my-3 { margin-top: @spacing-3 !important; margin-bottom: @spacing-3 !important; }
+.my-4 { margin-top: @spacing-4 !important; margin-bottom: @spacing-4 !important; }
+.my-5 { margin-top: @spacing-5 !important; margin-bottom: @spacing-5 !important; }
+.my-6 { margin-top: @spacing-6 !important; margin-bottom: @spacing-6 !important; }
+.my-8 { margin-top: @spacing-8 !important; margin-bottom: @spacing-8 !important; }
+.my-auto { margin-top: auto !important; margin-bottom: auto !important; }
+
+// 间距（gap）工具类 - 用于 Flexbox 和 Grid
+.gap-0 { gap: @spacing-0 !important; }
+.gap-1 { gap: @spacing-1 !important; }
+.gap-2 { gap: @spacing-2 !important; }
+.gap-3 { gap: @spacing-3 !important; }
+.gap-4 { gap: @spacing-4 !important; }
+.gap-5 { gap: @spacing-5 !important; }
+.gap-6 { gap: @spacing-6 !important; }
+.gap-8 { gap: @spacing-8 !important; }
+
+// 行间距
+.row-gap-0 { row-gap: @spacing-0 !important; }
+.row-gap-1 { row-gap: @spacing-1 !important; }
+.row-gap-2 { row-gap: @spacing-2 !important; }
+.row-gap-3 { row-gap: @spacing-3 !important; }
+.row-gap-4 { row-gap: @spacing-4 !important; }
+.row-gap-5 { row-gap: @spacing-5 !important; }
+.row-gap-6 { row-gap: @spacing-6 !important; }
+.row-gap-8 { row-gap: @spacing-8 !important; }
+
+// 列间距
+.column-gap-0 { column-gap: @spacing-0 !important; }
+.column-gap-1 { column-gap: @spacing-1 !important; }
+.column-gap-2 { column-gap: @spacing-2 !important; }
+.column-gap-3 { column-gap: @spacing-3 !important; }
+.column-gap-4 { column-gap: @spacing-4 !important; }
+.column-gap-5 { column-gap: @spacing-5 !important; }
+.column-gap-6 { column-gap: @spacing-6 !important; }
+.column-gap-8 { column-gap: @spacing-8 !important; }
+
+// 空间工具类（用于 Ant Design Space 组件的替代）
+.space-x-1 > * + * { margin-left: @spacing-1; }
+.space-x-2 > * + * { margin-left: @spacing-2; }
+.space-x-3 > * + * { margin-left: @spacing-3; }
+.space-x-4 > * + * { margin-left: @spacing-4; }
+.space-x-5 > * + * { margin-left: @spacing-5; }
+.space-x-6 > * + * { margin-left: @spacing-6; }
+.space-x-8 > * + * { margin-left: @spacing-8; }
+
+.space-y-1 > * + * { margin-top: @spacing-1; }
+.space-y-2 > * + * { margin-top: @spacing-2; }
+.space-y-3 > * + * { margin-top: @spacing-3; }
+.space-y-4 > * + * { margin-top: @spacing-4; }
+.space-y-5 > * + * { margin-top: @spacing-5; }
+.space-y-6 > * + * { margin-top: @spacing-6; }
+.space-y-8 > * + * { margin-top: @spacing-8; }

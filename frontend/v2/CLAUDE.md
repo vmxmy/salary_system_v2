@@ -200,3 +200,4 @@ The application uses a comprehensive modern design system:
 ## Memories
 
 - 默认服务已启动,并开启了热加载模式,不需要重复启动.
+- 使用中文输出

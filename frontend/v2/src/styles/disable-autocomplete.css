@@ -1,0 +1,109 @@
+/* 
+ * 完全禁用自动填充的额外CSS措施
+ */
+
+/* 使输入框在页面加载时保持只读状态 */
+input[readonly] {
+  cursor: text !important;
+  background-color: #fff !important;
+}
+
+/* 确保只读状态下的样式正常 */
+.ant-input[readonly],
+.ant-input-affix-wrapper input[readonly] {
+  cursor: text !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+  background-color: #fff !important;
+}
+
+/* 隐藏Chrome的密码管理图标 */
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-textfield-decoration-container {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: -9999px !important;
+}
+
+/* 禁用Edge的密码显示按钮 */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}
+
+/* 防止表单记住值 */
+form {
+  autocomplete: off !important;
+}
+
+/* 确保所有input都不会被自动填充 */
+input {
+  autocomplete: new-password !important;
+}
+
+/* 特别处理用户名和密码字段 */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"] {
+  autocomplete: new-password !important;
+  -webkit-autocomplete: new-password !important;
+}
+
+/* 移除自动填充的建议下拉框 */
+input::-webkit-autofill-dropdown-arrow {
+  display: none !important;
+}
+
+/* 确保Ant Design的Input组件也受到影响 */
+.ant-input,
+.ant-input-password input,
+.ant-select-selection-search-input {
+  autocomplete: new-password !important;
+}
+
+/* 防止浏览器记住表单数据 */
+.login-form input,
+.ant-form input {
+  autocomplete: new-password !important;
+}
+
+/* 使用伪类来进一步防止自动填充 */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* 隐藏浏览器生成的自动填充建议 */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  display: none !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: -9999px !important;
+}
+
+/* 强制清空自动填充的值 */
+input:-webkit-autofill {
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* 延迟显示文字，避免自动填充 */
+input:not(:focus):-webkit-autofill {
+  -webkit-text-fill-color: transparent !important;
+  transition: color 0.2s ease-in-out !important;
+}
+
+input:focus {
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+}
+
+/* 特别处理登录表单 */
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  color: rgba(0, 0, 0, 0.88) !important;
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+}

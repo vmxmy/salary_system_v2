@@ -166,27 +166,29 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
     });
   }, [employees, showEmployeeCode]);
 
-  // 自定义下拉内容
-  const dropdownRender = (menu: React.ReactElement) => {
-    return (
-      <div>
-        {loading ? (
-          <div style={{ padding: '8px', textAlign: 'center' }}>
-            <Spin size="small" />
-            <div style={{ marginTop: '8px' }}>t('common:status.loading')</div>
-          </div>
-        ) : employees.length === 0 ? (
-          <Empty 
-            image={Empty.PRESENTED_IMAGE_SIMPLE} 
-            description={searchText ? t('employee:common.no_employee_found') : '暂无员工数据'}
-            style={{ padding: '16px' }}
-          />
-        ) : (
-          menu
-        )}
-      </div>
-    );
-  };
+  // 处理未找到内容的显示
+  const notFoundContent = useMemo(() => {
+    if (loading) {
+      return (
+        <div style={{ padding: '8px', textAlign: 'center' }}>
+          <Spin size="small" />
+          <div style={{ marginTop: '8px' }}>{t('common:status.loading')}</div>
+        </div>
+      );
+    }
+    
+    if (employees.length === 0) {
+      return (
+        <Empty 
+          image={Empty.PRESENTED_IMAGE_SIMPLE} 
+          description={searchText ? t('employee:common.no_employee_found') : '暂无员工数据'}
+          style={{ padding: '16px' }}
+        />
+      );
+    }
+    
+    return null;
+  }, [loading, employees.length, searchText, t]);
 
   // 转换原生Select的onChange事件处理
   const internalChangeHandler: SelectProps<number, EmployeeOption>['onChange'] = (value, option) => {
@@ -209,7 +211,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       onChange={internalChangeHandler}
       onSearch={handleSearch}
       filterOption={false}
-      notFoundContent={null}
+      notFoundContent={notFoundContent}
       options={options}
       loading={loading}
       disabled={disabled}
@@ -218,7 +220,6 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({
       className={className}
       size={size}
       optionLabelProp="label"
-      dropdownRender={dropdownRender}
       {...restProps}
     />
   );

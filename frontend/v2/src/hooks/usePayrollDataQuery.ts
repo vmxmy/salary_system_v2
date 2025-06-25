@@ -64,8 +64,8 @@ export function usePayrollDataQuery(
       console.log('🔄 [usePayrollDataQuery] 开始获取薪资数据', { filters });
       
       try {
-        // 使用批量模态框API
-        const response = await apiClient.get(`/reports/payroll-modal/period/${filters.periodId}?limit=${filters.size || 100}`);
+        // 使用批量模态框API - V2路由
+        const response = await apiClient.get(`/reports/payroll-modals/period/${filters.periodId}?limit=${filters.size || 100}`);
         const modalDataList = response.data;
         
         // 增强的React元素检测和清理函数 - 移到前面

@@ -118,12 +118,13 @@ export const useEmployeePermissions = () => {
     return true;
   };
 
-  return {
+  // 使用 useMemo 包裹返回对象，确保引用稳定性
+  return useMemo(() => ({
     ...employeePermissions,
     // 提供原始权限检查方法，用于特殊情况
     hasPermission,
     hasAnyPermission,
     userPermissions,
     permissions: employeePermissions, // Add permissions as an alias to employeePermissions for compatibility
-  };
+  }), [employeePermissions, hasPermission, hasAnyPermission, userPermissions]);
 }; 

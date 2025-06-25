@@ -1,0 +1,13 @@
+@import '../../styles/variables.less';
+
+// Box 组件基础样式
+.layout-box {
+  // 确保 box-sizing 为 border-box
+  box-sizing: border-box;
+  
+  // 重置一些默认样式
+  &:before,
+  &:after {
+    box-sizing: inherit;
+  }
+}

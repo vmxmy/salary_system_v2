@@ -1,0 +1,30 @@
+@import '../../styles/variables.less';
+@import '../../styles/breakpoints.less';
+
+// FlexLayout 组件样式
+.flex-layout {
+  // 基础 flex 容器样式已通过 Box 组件的 display: flex 设置
+  
+  // 响应式辅助类
+  .mobile({
+    &--mobile-column {
+      flex-direction: column !important;
+    }
+    
+    &--mobile-wrap {
+      flex-wrap: wrap !important;
+    }
+  });
+  
+  .tablet({
+    &--tablet-row {
+      flex-direction: row !important;
+    }
+  });
+  
+  .desktop({
+    &--desktop-nowrap {
+      flex-wrap: nowrap !important;
+    }
+  });
+}

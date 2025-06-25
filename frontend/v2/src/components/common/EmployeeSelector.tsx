@@ -288,21 +288,20 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       notFoundContent={loading ? <Spin size="small" /> : t('employee_selector.no_data')}
       onPopupScroll={handlePopupScroll}
       // tagRender={multiple ? (tagRender || defaultTagRender) : undefined}
-      dropdownRender={(menu) => (
-        <div>
+      dropdownRender={hasMore ? (menu) => (
+        <>
           {menu}
-          {hasMore && (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '8px', 
-              color: '#999',
-              fontSize: '12px'
-            }}>
-              {loading ?      t('components:auto___e58aa0'): t('components:auto_text_e6bb9a')}
-            </div>
-          )}
-        </div>
-      )}
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '8px', 
+            color: '#999',
+            fontSize: '12px',
+            borderTop: '1px solid #f0f0f0'
+          }}>
+            {loading ? t('components:auto___e58aa0') : t('components:auto_text_e6bb9a')}
+          </div>
+        </>
+      ) : undefined}
     >
       {employees.map(employee => (
         <Option 

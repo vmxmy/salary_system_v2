@@ -1,16 +1,9 @@
 """
-简单工资计算引擎模块
+集成工资计算引擎模块
 
-只提供基础的工资计算服务，使用简单计算器。
+提供完整的工资计算服务，包括社保和集成计算器。
 """
 
-from .simple_calculator import (
-    SimplePayrollCalculator,
-    CalculationResult,
-    CalculationStatus,
-    ComponentType,
-    CalculationComponent
-)
 from .social_insurance_calculator import (
     SocialInsuranceCalculator,
     SocialInsuranceComponent,
@@ -20,7 +13,10 @@ from .social_insurance_calculator import (
 )
 from .integrated_calculator import (
     IntegratedPayrollCalculator,
-    IntegratedCalculationResult
+    IntegratedCalculationResult,
+    CalculationStatus,
+    ComponentType,
+    CalculationComponent
 )
 from .exceptions import (
     PayrollCalculationError,
@@ -29,13 +25,10 @@ from .exceptions import (
 )
 
 # 版本信息
-__version__ = '2.0.0-simple'
+__version__ = '2.0.0-integrated'
 
 # 导出的主要类和函数
 __all__ = [
-    # 简单计算器
-    'SimplePayrollCalculator',
-    
     # 社保计算器
     'SocialInsuranceCalculator',
     'SocialInsuranceComponent',
@@ -48,7 +41,6 @@ __all__ = [
     'IntegratedCalculationResult',
     
     # 数据模型
-    'CalculationResult',
     'CalculationStatus',
     'ComponentType',
     'CalculationComponent',

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Space, Tag, Button, Select, Tooltip, Input } from 'antd';
-import { SearchOutlined, DownOutlined, UpOutlined, ClearOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Space, Tag, Button, Select, Input } from 'antd';
+import { SearchOutlined, DownOutlined, UpOutlined, ClearOutlined, CheckOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { SearchMode } from '../../../utils/searchUtils';
+import styles from './SmartSearchPanel.module.less';
 
 const { Option } = Select;
 
@@ -87,20 +88,23 @@ export const SmartSearchPanel: React.FC<SmartSearchPanelProps> = ({
     if (!showTips || !isEmptyQuery) return null;
 
     const tips = [
-      '💡 支持多关键词搜索，用空格分隔',
+      '支持多关键词搜索，用空格分隔'
     ];
 
     if (supportExpressions) {
-      tips.push('🔢 支持条件表达式，如: salary>10000');
+      tips.push('支持条件表达式，如: salary>10000');
     }
 
     return (
-      <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
-        <Space direction="vertical" size={0}>
+      <div className={styles.searchTips}>
+        <div className={styles.tipsList}>
           {tips.map((tip, index) => (
-            <span key={index}>{tip}</span>
+            <div key={index} className={styles.tipItem}>
+              <span className={styles.tipEmoji}>💡</span>
+              {tip}
+            </div>
           ))}
-        </Space>
+        </div>
       </div>
     );
   };
@@ -109,17 +113,17 @@ export const SmartSearchPanel: React.FC<SmartSearchPanelProps> = ({
     if (!showPerformance || isEmptyQuery) return null;
 
     return (
-      <Space size={4}>
-        <Tag color="blue" style={{ margin: 0 }}>
+      <div className={styles.performanceIndicator}>
+        <Tag className={styles.resultTag}>
           {totalResults} 条结果
-          {performance.isOptimal && <span style={{ color: '#52c41a' }}> ⚡</span>}
+          {performance.isOptimal && <span className={styles.performanceIcon}> ⚡</span>}
         </Tag>
         {searchTime > 0 && (
-          <Tag color="default" style={{ margin: 0, fontSize: '11px' }}>
+          <Tag className={styles.timeTag}>
             {searchTime}ms
           </Tag>
         )}
-      </Space>
+      </div>
     );
   };
 
@@ -127,103 +131,79 @@ export const SmartSearchPanel: React.FC<SmartSearchPanelProps> = ({
     if (!suggestions || suggestions.length === 0 || !isEmptyQuery) return null;
 
     return (
-      <div style={{ marginTop: 8 }}>
-        <span style={{ fontSize: '12px', color: '#666', marginRight: 8 }}>建议搜索:</span>
-        <Space size={4} wrap>
+      <div className={styles.suggestions}>
+        <span className={styles.suggestionLabel}>热门搜索:</span>
+        <div className={styles.suggestionTags}>
           {suggestions.slice(0, 5).map((suggestion, index) => (
             <Tag
               key={index}
-              style={{ cursor: 'pointer', margin: '2px 0' }}
               onClick={() => handleSearch(suggestion)}
             >
               {suggestion}
             </Tag>
           ))}
-        </Space>
+        </div>
       </div>
     );
   };
 
   return (
     <Card 
+      className={`${styles.smartSearchCard} ${searchCardCollapsed ? styles.collapsed : ''} ${isSearching ? styles.loading : ''}`}
       title={
-        <Row justify="space-between" align="middle" wrap={false}>
-          <Col flex="auto">
-            <Space wrap size={4} align="center">
-              <SearchOutlined />
-              <span>{t('search.title', { defaultValue: '智能搜索' })}</span>
-              {renderPerformanceIndicator()}
-            </Space>
-          </Col>
+        <div className={styles.cardHeader}>
+          <div className={styles.headerLeft}>
+            <SearchOutlined className={styles.searchIcon} />
+            <h4 className={styles.title}>
+              {t('search.title', { defaultValue: '智能搜索' })}
+            </h4>
+            {renderPerformanceIndicator()}
+          </div>
           {collapsible && (
-            <Col flex="none">
+            <div className={styles.collapseButton}>
               <Button 
                 type="text" 
                 size="small"
                 onClick={() => setSearchCardCollapsed(!searchCardCollapsed)}
                 icon={searchCardCollapsed ? <DownOutlined /> : <UpOutlined />}
-                style={{ 
-                  fontSize: '12px',
-                  padding: '0 4px',
-                  height: '24px',
-                  lineHeight: '22px'
-                }}
               />
-            </Col>
+            </div>
           )}
-        </Row>
+        </div>
       }
       size="small"
-      style={{ 
-        marginBottom: 16,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        border: '1px solid #e8e8e8'
-      }}
-      bodyStyle={{
-        padding: searchCardCollapsed ? 0 : 16,
-        display: searchCardCollapsed ? 'none' : 'block'
-      }}
     >
-      <Row gutter={[12, 8]} align="middle">
-        <Col flex="auto">
-          <Input.Search
-            placeholder={placeholder}
-            value={localSearchQuery}
-            onChange={(e) => setLocalSearchQuery(e.target.value)}
-            onSearch={handleSearch}
-            loading={isSearching}
-            allowClear
-            onClear={handleClear}
-            style={{ width: '100%' }}
-            suffix={
-              <Space size={4}>
-                {searchQuery && (
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<ClearOutlined />}
-                    onClick={handleClear}
-                    style={{ fontSize: '12px', padding: 0, width: 16, height: 16 }}
-                  />
-                )}
-              </Space>
-            }
-          />
-        </Col>
+      <div className={styles.searchContent}>
+        <div className={styles.searchInputWrapper}>
+          <div className={styles.searchInputContainer}>
+            <Input.Search
+              placeholder={placeholder}
+              value={localSearchQuery}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+              onSearch={handleSearch}
+              loading={isSearching}
+              allowClear
+              onClear={handleClear}
+              size="small"
+              enterButton={<SearchOutlined />}
+            />
+          </div>
+          {renderSuggestions()}
+          {renderSearchTips()}
+        </div>
         
-        <Col flex="none">
-          <Space size={8}>
+        <div className={styles.searchControls}>
+          <div className={styles.searchModeSelector}>
             <Select
               value={searchMode}
               onChange={onSearchModeChange}
               size="small"
-              style={{ width: 120 }}
               dropdownRender={(menu) => (
                 <div>
                   {menu}
-                  <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
-                    <div style={{ fontSize: '12px', color: '#666' }}>
-                      <QuestionCircleOutlined style={{ marginRight: 4 }} />
+                  <div className={styles.searchModeTip}>
+                    <div className={styles.tipContent}>
+                      <InfoCircleOutlined className={styles.tipIcon} />
                       选择合适的搜索模式
                     </div>
                   </div>
@@ -233,72 +213,51 @@ export const SmartSearchPanel: React.FC<SmartSearchPanelProps> = ({
               {SEARCH_MODE_OPTIONS
                 .filter(option => searchModes.includes(option.value))
                 .map(option => (
-                  <Option key={option.value} value={option.value}>
-                    <Tooltip title={option.tip} placement="left">
-                      {option.label}
-                    </Tooltip>
+                  <Option key={option.value} value={option.value} title={option.tip}>
+                    {option.label}
                   </Option>
                 ))}
             </Select>
-            
-            <div style={{ fontSize: '12px', color: '#666', minWidth: 80 }}>
-              {getSearchModeDisplay()}
-            </div>
-          </Space>
-        </Col>
-      </Row>
-
-      {/* Search tips when no query */}
-      {renderSearchTips()}
-
-      {/* Search suggestions */}
-      {renderSuggestions()}
+          </div>
+        </div>
+      </div>
 
       {/* Search results summary */}
       {!isEmptyQuery && hasResults && (
-        <div style={{ 
-          marginTop: 12, 
-          padding: '8px 12px', 
-          backgroundColor: '#f6ffed', 
-          border: '1px solid #b7eb8f',
-          borderRadius: 4,
-          fontSize: '12px'
-        }}>
-          <Space align="center">
-            <span style={{ color: '#52c41a' }}>✓</span>
-            <span>
-              找到 {totalResults} 条匹配结果
-              {searchTime > 0 && ` (${searchTime}ms)`}
-              {performance.isOptimal && (
-                <span style={{ color: '#52c41a', marginLeft: 4 }}>
-                  ⚡ 性能优化
+        <div className={`${styles.searchResult} ${styles.success}`}>
+          <div className={styles.resultContent}>
+            <CheckOutlined className={styles.resultIcon} />
+            <div className={styles.resultText}>
+              找到 <span className={styles.resultCount}>{totalResults}</span> 条匹配结果
+              {searchTime > 0 && (
+                <span className={styles.resultTime}>
+                  ({searchTime}ms)
                 </span>
               )}
-            </span>
-          </Space>
+              {performance.isOptimal && (
+                <span className={styles.performanceText}>
+                  <span className={styles.performanceIcon}>⚡</span>
+                  性能优化
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
       {/* No results message */}
       {!isEmptyQuery && !hasResults && !isSearching && (
-        <div style={{ 
-          marginTop: 12, 
-          padding: '8px 12px', 
-          backgroundColor: '#fff2e8', 
-          border: '1px solid #ffd591',
-          borderRadius: 4,
-          fontSize: '12px'
-        }}>
-          <Space align="center">
-            <span style={{ color: '#fa8c16' }}>⚠</span>
-            <span>
-              未找到匹配的结果，请尝试:
-            </span>
-          </Space>
-          <div style={{ marginTop: 4, paddingLeft: 20 }}>
-            • 检查关键词拼写<br />
-            • 使用更简短的关键词<br />
-            • 尝试不同的搜索模式
+        <div className={`${styles.searchResult} ${styles.noResults}`}>
+          <div className={styles.noResultsContent}>
+            <div className={styles.noResultsHeader}>
+              <InfoCircleOutlined className={styles.warningIcon} />
+              <span>未找到匹配的结果，请尝试:</span>
+            </div>
+            <ul className={styles.suggestionsList}>
+              <li>检查关键词拼写</li>
+              <li>使用更简短的关键词</li>
+              <li>切换不同的搜索模式</li>
+            </ul>
           </div>
         </div>
       )}

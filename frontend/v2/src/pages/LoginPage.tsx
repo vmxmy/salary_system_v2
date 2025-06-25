@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Typography, Alert, Row, Col, Card, Spin } from 'antd';
+import { Form, Checkbox, Typography, Alert, Row, Col, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
@@ -8,6 +8,13 @@ import { login, clearLoginError } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store';
 import type { LoginCredentials } from '../api/auth'; // 确保 LoginCredentials 在 api/auth.ts 中定义并导出
 import hyperchainLogoPath from '../assets/images/hyperchainLogo.svg'; // Import the logo
+import { ModernCard } from '../components/common/ModernCard';
+import { ModernButton } from '../components/common/ModernButton';
+import { ModernInput, ModernPassword } from '../components/common/ModernInput';
+import StandardForm from '../components/common/StandardForm';
+import styles from './LoginPage.module.css';
+import '../components/common/LoginInputOverride.css';
+import { useDisableFormAutocomplete, createDecoyForm } from '../hooks/useDisableAutocomplete';
 
 const { Title } = Typography;
 
@@ -23,9 +30,35 @@ const LoginPage: React.FC = () => {
   const loginError = useSelector((state: RootState) => state.auth.loginError);
   
   const [form] = Form.useForm();
+  
+  // 生成唯一的输入框ID
+  const [inputIds] = useState({
+    username: `username_${Math.random().toString(36).substr(2, 9)}`,
+    password: `password_${Math.random().toString(36).substr(2, 9)}`
+  });
 
   const isAuthenticated = !!authToken;
   const from = location.state?.from?.pathname || '/simple-payroll';
+
+  // 禁用登录表单的自动填充
+  useDisableFormAutocomplete('.login-form');
+  
+  // 创建诱饵表单并清理浏览器记住的数据
+  useEffect(() => {
+    createDecoyForm();
+    
+    // 清空输入框的值
+    const timer = setTimeout(() => {
+      if (form) {
+        form.setFieldsValue({
+          username: '',
+          password: ''
+        });
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [form]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -39,77 +72,105 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, dispatch, location.key]);
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: { username: string; password: string; remember?: boolean }) => {
     const credentials: LoginCredentials = {
-      username: values.username,
+      username: values.username.trim(),
       password: values.password,
     };
     dispatch(login(credentials));
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo: unknown) => {
+    console.error('Login form validation failed:', errorInfo);
   };
 
   if (!ready) {
-    return <Spin tip={t('common:loading.generic_loading_text')} size="large" style={{ display: 'block', marginTop: '50px' }}><div style={{ padding: 50 }} /></Spin>;
+    return <Spin tip={t('common:loading.generic_loading_text')} size="large"><div /></Spin>;
   }
 
   return (
-    <Row justify="center" align="middle" style={{ minHeight: '100vh' /* Removed background: '#f0f2f5' */ }}>
+    <Row justify="center" align="middle" className={styles.loginContainer}>
       <Col xs={20} sm={16} md={12} lg={8} xl={6}>
-        <Card variant="outlined" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' /* REMOVE position: 'relative' */ }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' /* REMOVE marginTop: '40px' */ }}>
-            {/* Changed logo to a text placeholder */}
-            <img src={hyperchainLogoPath} alt="App Logo" style={{ height: '50px', marginBottom: '20px' }} />
-            <Title level={2} style={{ marginBottom: '24px' /* Added margin below title */ }}>{t('login_page_title', { ns: 'auth' })}</Title>
+        <ModernCard variant="outlined" className={styles.loginCard}>
+          <div className={styles.loginHeader}>
+            <img src={hyperchainLogoPath} alt="App Logo" className={styles.loginLogo} />
+            <Title level={2} className={styles.loginTitle}>{t('login_page_title', { ns: 'auth' })}</Title>
           </div>
-          <Form
+          <StandardForm
             form={form}
-            name="login"
+            name={`login_${Date.now()}`}
             initialValues={{ remember: true }}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
             autoComplete="off"
-            layout="vertical"
+            className={`${styles.loginForm} login-form`}
           >
             <Form.Item
               label={t('username_label', { ns: 'common' })}
               name="username"
-              rules={[{ required: true, message: t('username_required_message', { ns: 'auth' }) }]}
-              style={{ marginBottom: '20px' }} // Adjusted spacing
+              rules={[
+                { required: true, message: t('username_required_message', { ns: 'auth' }) },
+                { type: 'string', min: 2, max: 50, message: '用户名长度必须在2-50字符之间' },
+                { pattern: /^[a-zA-Z0-9_-]+$/, message: '用户名只能包含字母、数字、下划线和连字符' }
+              ]}
             >
-              <Input prefix={<UserOutlined />} size="large" autoComplete="username" /* Removed placeholder */ />
+              <ModernInput 
+                prefix={<UserOutlined aria-hidden="true" />} 
+                size="large" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                variant="outlined"
+                placeholder=""
+                maxLength={50}
+                name={inputIds.username}
+                id={inputIds.username}
+              />
             </Form.Item>
 
             <Form.Item
               label={t('password_label', { ns: 'common' })}
               name="password"
-              rules={[{ required: true, message: t('password_required_message', { ns: 'auth' }) }]}
-              style={{ marginBottom: '12px' }} // Adjusted spacing
+              rules={[
+                { required: true, message: t('password_required_message', { ns: 'auth' }) }
+              ]}
             >
-              <Input.Password prefix={<LockOutlined />} size="large" autoComplete="current-password" /* Removed placeholder */ />
+              <ModernPassword 
+                prefix={<LockOutlined aria-hidden="true" />} 
+                size="large" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                variant="outlined"
+                placeholder=""
+                maxLength={128}
+                name={inputIds.password}
+                id={inputIds.password}
+              />
             </Form.Item>
 
-            <Form.Item name="remember" valuePropName="checked">
+            <Form.Item name="remember" valuePropName="checked" className={styles.rememberMe}>
               <Checkbox>{t('remember_me_checkbox', { ns: 'common' })}</Checkbox>
             </Form.Item>
 
             {loginError && (
-              <Form.Item>
+              <Form.Item className={styles.loginError}>
                 <Alert 
                   message={t('auth:error.login_failed')} 
                   description={
                     loginError && typeof loginError === 'string' && loginError.includes(t('common:auto_text_e69c8d')) ? (
                       <>
                         <div>{loginError}</div>
-                        <div style={{ marginTop: 8 }}>
-                          <Button
-                            type="link"
+                        <div>
+                          <ModernButton
+                            variant="ghost"
                             size="small"
                             onClick={() => window.location.reload()}
                           >
                             {t('common:button.refresh_and_retry')}
-                          </Button>
+                          </ModernButton>
                         </div>
                       </>
                     ) : loginError
@@ -123,12 +184,19 @@ const LoginPage: React.FC = () => {
             )}
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" loading={isLoadingUser} style={{ width: '100%' }} size="large" shape="round">
+              <ModernButton 
+                variant="primary" 
+                htmlType="submit" 
+                loading={isLoadingUser} 
+                size="large" 
+                fullWidth
+                className={styles.loginButton}
+              >
                 {t('login_button', { ns: 'common' })}
-              </Button>
+              </ModernButton>
             </Form.Item>
-          </Form>
-        </Card>
+          </StandardForm>
+        </ModernCard>
       </Col>
     </Row>
   );

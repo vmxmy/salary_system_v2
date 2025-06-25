@@ -50,13 +50,13 @@ export function useUniversalDataQuery<T = any>(
   // Default options optimized for data browsing
   const defaultOptions: UniversalQueryOptions<T> = {
     enabled: true,
-    staleTime: 30 * 1000,      // 30 seconds
-    gcTime: 5 * 60 * 1000,     // 5 minutes (React Query v5)
-    cacheTime: 5 * 60 * 1000,  // 5 minutes (backward compatibility)
+    staleTime: 5 * 60 * 1000,      // 5 minutes (原30秒)
+    gcTime: 10 * 60 * 1000,        // 10 minutes (原5分钟)
+    cacheTime: 10 * 60 * 1000,     // 10 minutes (backward compatibility)
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     refetchOnWindowFocus: false,
-    refetchOnReconnect: 'always',
+    refetchOnReconnect: false,     // 设置为false，避免网络波动导致刷新
   };
 
   // Merge options
@@ -98,18 +98,18 @@ export function useUniversalDataQuery<T = any>(
           
           // Remove React elements and functions
           Object.keys(cleanedItem).forEach(key => {
-            const value = cleanedItem[key];
+            const value = (cleanedItem as Record<string, any>)[key];
             if (typeof value === 'object' && value !== null) {
               // Check for React elements
               const isReactElement = (value as any).$$typeof || (value as any).$typeof || 
                                    ((value as any).type && (value as any).props);
               if (isReactElement) {
                 console.warn(`🧹 [UniversalQuery] Removing React element from ${queryKey}[${index}].${key}`);
-                cleanedItem[key] = '[React Element Removed]';
+                (cleanedItem as Record<string, any>)[key] = '[React Element Removed]';
               }
             } else if (typeof value === 'function') {
               console.warn(`🧹 [UniversalQuery] Removing function from ${queryKey}[${index}].${key}`);
-              cleanedItem[key] = '[Function Removed]';
+              (cleanedItem as Record<string, any>)[key] = '[Function Removed]';
             }
           });
           

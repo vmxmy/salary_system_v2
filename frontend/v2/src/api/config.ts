@@ -26,4 +26,12 @@ export const getPayrollComponentTypes = async (): Promise<PaginatedResponse<Look
   });
   console.log('✅ getPayrollComponentTypes response:', response.data);
   return response.data;
-} 
+}
+
+// 导出 configApi 对象
+export const configApi = {
+  getLookupValues: async (params: { lookup_type_code: string; page?: number; size?: number }) => {
+    const response = await apiClient.get(`/config/lookup-values-public`, { params });
+    return response;
+  }
+}; 

@@ -1,0 +1,403 @@
+// ModernInput 组件样式
+// 基于统一设计系统的输入框样式
+
+@import '../../styles/modern-design-system.less';
+
+// 输入框包装器
+.input-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+// 基础输入框样式
+.modern-input {
+  &.ant-input,
+  &.ant-input-affix-wrapper {
+    border-radius: @radius-base;
+    transition: all @duration-base @ease-out;
+    font-family: @font-family-primary;
+    display: flex;
+    align-items: center;
+    
+    // 大小变体
+    &.size-small {
+      height: 32px;
+      padding: 0 @space-3;
+      font-size: @font-size-sm;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      
+      input {
+        height: 100%;
+        line-height: 1.5;
+        font-size: @font-size-sm;
+      }
+    }
+    
+    &.size-middle {
+      height: 36px;
+      padding: 0 @space-4;
+      font-size: @font-size-base;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      
+      input {
+        height: 100%;
+        line-height: 1.5;
+        font-size: @font-size-base;
+      }
+    }
+    
+    &.size-large {
+      height: 44px;
+      padding: 0 @space-5;
+      font-size: @font-size-lg;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      
+      input {
+        height: 100%;
+        line-height: 1.5;
+        font-size: @font-size-lg;
+      }
+    }
+    
+    // 样式变体
+    &.variant-outlined {
+      background-color: @bg-primary;
+      border: 1px solid @border-default;
+      color: @text-primary;
+      
+      &:hover {
+        border-color: @border-medium;
+      }
+      
+      &:focus,
+      &.ant-input-focused {
+        border-color: @primary-500;
+        box-shadow: 0 0 0 2px fade(@primary-500, 10%);
+        outline: none;
+      }
+    }
+    
+    &.variant-filled {
+      background-color: @bg-secondary;
+      border: 1px solid transparent;
+      color: @text-primary;
+      
+      &:hover {
+        background-color: @bg-tertiary;
+      }
+      
+      &:focus,
+      &.ant-input-focused {
+        background-color: @bg-primary;
+        border-color: @primary-500;
+        box-shadow: 0 0 0 2px fade(@primary-500, 10%);
+      }
+    }
+    
+    &.variant-borderless {
+      background-color: transparent;
+      border: none;
+      color: @text-primary;
+      
+      &:hover {
+        background-color: @bg-secondary;
+      }
+      
+      &:focus,
+      &.ant-input-focused {
+        background-color: @bg-secondary;
+        box-shadow: none;
+      }
+    }
+    
+    // 错误状态
+    &.error {
+      border-color: @error-500 !important;
+      
+      &:focus,
+      &.ant-input-focused {
+        border-color: @error-500 !important;
+        box-shadow: 0 0 0 2px fade(@error-500, 10%) !important;
+      }
+    }
+    
+    // 禁用状态
+    &:disabled,
+    &.ant-input-disabled {
+      background-color: @bg-tertiary;
+      border-color: @border-light;
+      color: @text-quaternary;
+      cursor: not-allowed;
+      
+      &:hover {
+        border-color: @border-light;
+      }
+    }
+    
+    // 前缀和后缀图标样式
+    .ant-input-prefix,
+    .ant-input-suffix {
+      color: @text-tertiary;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .anticon {
+        font-size: inherit;
+        transition: color @duration-base @ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    
+    // 聚焦时图标颜色
+    &:focus .ant-input-prefix .anticon,
+    &.ant-input-focused .ant-input-prefix .anticon {
+      color: @primary-500;
+    }
+    
+    // Placeholder 样式
+    input::placeholder {
+      color: @text-quaternary;
+      font-size: inherit;
+      line-height: inherit;
+      opacity: 1;
+    }
+    
+    // 确保内部输入框样式
+    .ant-input {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      height: 100% !important;
+      line-height: 1.5 !important;
+      
+      &::placeholder {
+        color: @text-quaternary;
+        font-size: inherit;
+        line-height: 1.5;
+        opacity: 1;
+        position: relative;
+        top: 0;
+      }
+    }
+    
+    // 清除按钮样式
+    .ant-input-clear-icon {
+      color: @text-quaternary;
+      font-size: 12px;
+      
+      &:hover {
+        color: @text-tertiary;
+      }
+    }
+  }
+  
+  // 密码输入框特殊处理
+  &.ant-input-affix-wrapper-lg {
+    .ant-input {
+      height: 100% !important;
+      line-height: 1.5 !important;
+      font-size: @font-size-lg !important;
+    }
+  }
+  
+  &.ant-input-affix-wrapper {
+    // 确保容器正确对齐
+    display: flex !important;
+    align-items: center !important;
+    
+    .ant-input {
+      border: none !important;
+      background: transparent !important;
+      flex: 1 !important;
+      height: 100% !important;
+      line-height: 1.5 !important;
+      display: flex !important;
+      align-items: center !important;
+      
+      &:focus {
+        box-shadow: none !important;
+      }
+      
+      &::placeholder {
+        color: @text-quaternary;
+        font-size: inherit;
+        line-height: 1.5;
+        opacity: 1;
+      }
+    }
+    
+    // 密码输入框的显示/隐藏按钮
+    .ant-input-suffix {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      
+      .ant-input-password-icon {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: @text-tertiary;
+        cursor: pointer;
+        transition: color @duration-base @ease-out;
+        
+        &:hover {
+          color: @text-secondary;
+        }
+      }
+    }
+  }
+}
+
+// 错误信息样式
+.error-message {
+  margin-top: @space-1;
+  color: @error-500;
+  font-size: @font-size-sm;
+  line-height: 1.4;
+}
+
+// 登录页面专用样式（覆盖全局form-controls.css）
+:global(.login-form) {
+  .modern-input {
+    &.ant-input-affix-wrapper-lg,
+    &.ant-input-lg {
+      height: 44px !important;
+      padding: 0 @space-5 !important;
+      font-size: @font-size-lg !important;
+      line-height: 1.5 !important;
+      display: flex !important;
+      align-items: center !important;
+      
+      .ant-input {
+        height: 100% !important;
+        line-height: 1.5 !important;
+        font-size: @font-size-lg !important;
+        display: flex !important;
+        align-items: center !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        
+        &::placeholder {
+          line-height: 1.5 !important;
+          font-size: @font-size-lg !important;
+        }
+      }
+    }
+  }
+}
+
+// 更强的全局覆盖（针对所有现代化输入框）
+:global(.modern-input.ant-input-affix-wrapper-lg .ant-input) {
+  height: 100% !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  
+  &::placeholder {
+    line-height: 1.5 !important;
+  }
+}
+
+:global(.modern-input.ant-input-lg) {
+  height: 44px !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  
+  &::placeholder {
+    line-height: 1.5 !important;
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .modern-input {
+    &.ant-input,
+    &.ant-input-affix-wrapper {
+      // 移动端增加输入框高度，便于触控
+      &.size-middle {
+        height: 40px;
+        padding: 0 @space-4;
+      }
+      
+      &.size-large {
+        height: 48px;
+        padding: 0 @space-5;
+      }
+    }
+  }
+}
+
+// 暗色模式支持
+[data-theme="dark"] {
+  .modern-input {
+    &.ant-input,
+    &.ant-input-affix-wrapper {
+      &.variant-outlined {
+        background-color: @neutral-800;
+        border-color: @neutral-700;
+        color: @neutral-100;
+        
+        &:hover {
+          border-color: @neutral-600;
+        }
+        
+        &:focus,
+        &.ant-input-focused {
+          border-color: @primary-400;
+          box-shadow: 0 0 0 2px fade(@primary-400, 10%);
+        }
+      }
+      
+      &.variant-filled {
+        background-color: @neutral-700;
+        color: @neutral-100;
+        
+        &:hover {
+          background-color: @neutral-600;
+        }
+        
+        &:focus,
+        &.ant-input-focused {
+          background-color: @neutral-800;
+          border-color: @primary-400;
+          box-shadow: 0 0 0 2px fade(@primary-400, 10%);
+        }
+      }
+      
+      &:disabled,
+      &.ant-input-disabled {
+        background-color: @neutral-900;
+        border-color: @neutral-800;
+        color: @neutral-500;
+      }
+      
+      .ant-input-prefix,
+      .ant-input-suffix {
+        color: @neutral-400;
+      }
+      
+      &:focus .ant-input-prefix .anticon,
+      &.ant-input-focused .ant-input-prefix .anticon {
+        color: @primary-400;
+      }
+    }
+  }
+  
+  .error-message {
+    color: @error-400;
+  }
+}

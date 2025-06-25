@@ -304,6 +304,77 @@ def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool
     
     # 如果找到了entry
     if entry:
+        # 添加调试日志
+        logger.info(f"🔍 [get_payroll_entry] 获取条目 {entry_id} 的原始数据")
+        if entry.deductions_details:
+            # 检查五险一金的手动调整信息
+            social_insurance_codes = [
+                'PENSION_PERSONAL_AMOUNT',
+                'MEDICAL_PERSONAL_AMOUNT',
+                'UNEMPLOYMENT_PERSONAL_AMOUNT',
+                'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
+                'HOUSING_FUND_PERSONAL'
+            ]
+            
+            logger.info(f"🔍 [get_payroll_entry] 原始扣除详情总数: {len(entry.deductions_details)} 项")
+            logger.info(f"🔍 [get_payroll_entry] 原始扣除详情完整数据: {entry.deductions_details}")
+            
+            # 直接查询数据库验证数据一致性 - 强制执行
+            logger.info(f"🔍 [get_payroll_entry] 开始数据库一致性检查...")
+            try:
+                from sqlalchemy import text
+                raw_result = db.execute(
+                    text("SELECT deductions_details FROM payroll.payroll_entries WHERE id = :entry_id"),
+                    {"entry_id": entry_id}
+                ).fetchone()
+                
+                if raw_result:
+                    raw_deductions = raw_result[0]
+                    logger.info(f"🔍 [get_payroll_entry] 数据库直接查询结果: {raw_deductions}")
+                    
+                    # 检查数据库中的手动调整数据
+                    medical_from_db = raw_deductions.get('MEDICAL_PERSONAL_AMOUNT', {})
+                    housing_from_db = raw_deductions.get('HOUSING_FUND_PERSONAL', {})
+                    
+                    logger.info(f"🔍 [get_payroll_entry] 数据库中 MEDICAL_PERSONAL_AMOUNT: {medical_from_db}")
+                    logger.info(f"🔍 [get_payroll_entry] 数据库中 HOUSING_FUND_PERSONAL: {housing_from_db}")
+                    
+                    # 检查数据库中是否有手动调整标记
+                    if isinstance(medical_from_db, dict) and medical_from_db.get('is_manual'):
+                        logger.info(f"✅ [get_payroll_entry] 数据库中 MEDICAL 包含手动调整: is_manual={medical_from_db.get('is_manual')}")
+                    else:
+                        logger.warning(f"❌ [get_payroll_entry] 数据库中 MEDICAL 缺少手动调整标记")
+                        
+                    if isinstance(housing_from_db, dict) and housing_from_db.get('is_manual'):
+                        logger.info(f"✅ [get_payroll_entry] 数据库中 HOUSING_FUND 包含手动调整: is_manual={housing_from_db.get('is_manual')}")
+                    else:
+                        logger.warning(f"❌ [get_payroll_entry] 数据库中 HOUSING_FUND 缺少手动调整标记")
+                    
+                    # 对比SQLAlchemy对象和原始数据库查询的差异
+                    medical_from_orm = entry.deductions_details.get('MEDICAL_PERSONAL_AMOUNT', {})
+                    
+                    logger.info(f"🔍 [get_payroll_entry] 对比 MEDICAL_PERSONAL_AMOUNT:")
+                    logger.info(f"  SQLAlchemy对象: {medical_from_orm}")
+                    logger.info(f"  数据库直查: {medical_from_db}")
+                    
+                    if medical_from_orm != medical_from_db:
+                        logger.error(f"❌ [get_payroll_entry] 数据不一致！SQLAlchemy和数据库查询结果不同！")
+                        logger.error(f"   可能原因：CustomJSONB转换问题或SQLAlchemy缓存问题")
+                    else:
+                        logger.info(f"✅ [get_payroll_entry] SQLAlchemy对象与数据库查询一致")
+                else:
+                    logger.error(f"❌ [get_payroll_entry] 数据库查询失败：未找到条目 {entry_id}")
+            except Exception as e:
+                logger.error(f"❌ [get_payroll_entry] 数据库一致性检查异常: {e}")
+                import traceback
+                logger.error(f"❌ [get_payroll_entry] 异常详情: {traceback.format_exc()}")
+            
+            for code in social_insurance_codes:
+                if code in entry.deductions_details:
+                    field_data = entry.deductions_details[code]
+                    logger.info(f"💰 [后端原始数据] {code}: {field_data}")
+                    if isinstance(field_data, dict) and field_data.get('is_manual'):
+                        logger.info(f"✅ [get_payroll_entry] {code} 包含手动调整标记")
         # 处理员工姓名
         if include_employee_details and entry.employee:
             # 合并姓和名为全名，添加空格分隔
@@ -365,24 +436,65 @@ def get_payroll_entry(db: Session, entry_id: int, include_employee_details: bool
 
         # 修改 deductions_details，从 component_map 获取 name
         if entry.deductions_details and isinstance(entry.deductions_details, dict):
+            logger.info(f"🔧 [CRUD修复] 处理扣除详情，原始数据包含 {len(entry.deductions_details)} 项")
             new_deductions_details = {}
             for code, amount_val in entry.deductions_details.items():
                 # amount_val 可能是 amount 数字，或罕见情况下是 {name: 'xxx', amount: 123}
                 actual_amount = 0
                 name_from_db_if_complex = code
 
-                if isinstance(amount_val, dict): # 虽然当前deductions是 code: amount 结构
+                if isinstance(amount_val, dict): # 完整的对象格式，保留所有字段
                     actual_amount = amount_val.get('amount', 0)
                     name_from_db_if_complex = amount_val.get('name', code)
+                    # 保留所有原始字段，包括手动调整相关字段
+                    component_name = component_map.get(code, name_from_db_if_complex)
+                    new_deductions_details[code] = {
+                        **amount_val,  # 保留所有原始字段
+                        "name": component_name,  # 更新name字段
+                        "amount": actual_amount  # 确保amount字段正确
+                    }
+                    
+                    # 调试日志：检查手动调整字段是否保留
+                    if code in ['HOUSING_FUND_PERSONAL', 'PENSION_PERSONAL_AMOUNT', 'MEDICAL_PERSONAL_AMOUNT']:
+                        logger.info(f"🔧 [CRUD修复] {code} 字段处理:")
+                        logger.info(f"  原始数据: {amount_val}")
+                        logger.info(f"  处理后数据: {new_deductions_details[code]}")
+                        logger.info(f"  is_manual 保留状态: {new_deductions_details[code].get('is_manual', 'NOT_FOUND')}")
                 elif isinstance(amount_val, (int, float)):
                     actual_amount = amount_val
-
-                component_name = component_map.get(code, name_from_db_if_complex) 
-                new_deductions_details[code] = {
-                    "name": component_name,
-                    "amount": actual_amount
-                }
+                    component_name = component_map.get(code, name_from_db_if_complex) 
+                    new_deductions_details[code] = {
+                        "name": component_name,
+                        "amount": actual_amount
+                    }
             entry.deductions_details = new_deductions_details
+            
+            # 最终验证
+            social_insurance_codes = ['HOUSING_FUND_PERSONAL', 'PENSION_PERSONAL_AMOUNT', 'MEDICAL_PERSONAL_AMOUNT']
+            for code in social_insurance_codes:
+                if code in new_deductions_details:
+                    final_data = new_deductions_details[code]
+                    if isinstance(final_data, dict) and final_data.get('is_manual'):
+                        logger.info(f"✅ [CRUD修复] {code} 手动调整字段已保留: is_manual={final_data.get('is_manual')}")
+    
+    # 最终检查：返回前验证手动调整数据
+    if entry and entry.deductions_details:
+        medical_final = entry.deductions_details.get('MEDICAL_PERSONAL_AMOUNT', {})
+        housing_final = entry.deductions_details.get('HOUSING_FUND_PERSONAL', {})
+        
+        logger.info(f"🔍 [get_payroll_entry] 返回前最终检查:")
+        logger.info(f"  MEDICAL_PERSONAL_AMOUNT: {medical_final}")
+        logger.info(f"  HOUSING_FUND_PERSONAL: {housing_final}")
+        
+        if isinstance(medical_final, dict) and medical_final.get('is_manual'):
+            logger.info(f"✅ [get_payroll_entry] MEDICAL 手动调整数据保留")
+        else:
+            logger.warning(f"❌ [get_payroll_entry] MEDICAL 手动调整数据丢失")
+            
+        if isinstance(housing_final, dict) and housing_final.get('is_manual'):
+            logger.info(f"✅ [get_payroll_entry] HOUSING_FUND 手动调整数据保留")
+        else:
+            logger.warning(f"❌ [get_payroll_entry] HOUSING_FUND 手动调整数据丢失")
             
     return entry
 
@@ -605,15 +717,72 @@ def patch_payroll_entry(db: Session, entry_id: int, entry_data: PayrollEntryPatc
             component_name = component_map.get(code)
             if component_name is None:
                 raise ValueError(f"无效的扣除项代码(PATCH): {code}")
-            processed_deductions_patch[code] = {"name": component_name, "amount": float(item_input['amount'])}
+            
+            # 构建基本数据
+            processed_item = {"name": component_name, "amount": float(item_input['amount'])}
+            
+            # 保留手动调整信息（如果存在）
+            if isinstance(item_input, dict):
+                # 保留所有手动调整相关字段
+                manual_fields = ['is_manual', 'manual_at', 'manual_by', 'manual_reason', 'auto_calculated']
+                for field in manual_fields:
+                    if field in item_input:
+                        processed_item[field] = item_input[field]
+                        
+                # 调试日志：记录手动调整信息处理
+                if item_input.get('is_manual'):
+                    logger.info(f"🔧 [CRUD处理] 保留{code}的手动调整信息: is_manual={item_input.get('is_manual')}, manual_at={item_input.get('manual_at')}")
+            
+            processed_deductions_patch[code] = processed_item
 
         current_deductions = getattr(db_payroll_entry, "deductions_details", {}) or {}
+        
+        # 调试：显示处理前的数据
+        logger.info(f"🔍 [CRUD调试] 处理前 current_deductions: {current_deductions}")
+        logger.info(f"🔍 [CRUD调试] 处理前 processed_deductions_patch: {processed_deductions_patch}")
+        
         # 确保现有数据也转换为float
         current_deductions = convert_decimals_to_float(current_deductions)
-        current_deductions.update(processed_deductions_patch) # Merge
+        logger.info(f"🔍 [CRUD调试] convert_decimals_to_float后: {current_deductions}")
+        
+        # 智能合并：保留现有的手动调整信息
+        for code, new_data in processed_deductions_patch.items():
+            if code in current_deductions:
+                # 如果现有数据有手动调整信息，保留它
+                existing_data = current_deductions[code]
+                if isinstance(existing_data, dict) and existing_data.get('is_manual'):
+                    # 保留手动调整信息，只更新金额和名称
+                    logger.info(f"🔧 [智能合并] 保留{code}的现有手动调整信息")
+                    merged_data = existing_data.copy()
+                    merged_data.update({
+                        'name': new_data['name'],
+                        'amount': new_data['amount']
+                    })
+                    # 保留新数据中的手动调整信息（如果有的话）
+                    manual_fields = ['is_manual', 'manual_at', 'manual_by', 'manual_reason', 'auto_calculated']
+                    for field in manual_fields:
+                        if field in new_data:
+                            merged_data[field] = new_data[field]
+                    current_deductions[code] = merged_data
+                else:
+                    # 没有手动调整信息，直接覆盖
+                    current_deductions[code] = new_data
+            else:
+                # 新字段，直接添加
+                current_deductions[code] = new_data
+                
+        logger.info(f"🔍 [CRUD调试] 智能合并后: {current_deductions}")
+        
         # 再次确保合并后的数据也完全转换为float
         current_deductions = convert_decimals_to_float(current_deductions)
+        logger.info(f"🔍 [CRUD调试] 最终转换后: {current_deductions}")
+        
         setattr(db_payroll_entry, "deductions_details", current_deductions)
+        
+        # 强制SQLAlchemy检测JSONB字段变化
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(db_payroll_entry, 'deductions_details')
+        
         update_values.pop("deductions_details")
         changed_fields = True
 

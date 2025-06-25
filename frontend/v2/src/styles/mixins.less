@@ -109,35 +109,35 @@
 
 // 媒体查询 - 小屏幕
 .screen-xs() {
-  @media (max-width: @screen-xs) {
+  @media (max-width: @screen-xs-max) {
     @content();
   }
 }
 
 // 媒体查询 - 中小屏幕
 .screen-sm() {
-  @media (min-width: @screen-sm) {
+  @media (min-width: @screen-sm-min) {
     @content();
   }
 }
 
 // 媒体查询 - 中等屏幕
 .screen-md() {
-  @media (min-width: @screen-md) {
+  @media (min-width: @screen-md-min) {
     @content();
   }
 }
 
 // 媒体查询 - 大屏幕
 .screen-lg() {
-  @media (min-width: @screen-lg) {
+  @media (min-width: @screen-lg-min) {
     @content();
   }
 }
 
 // 媒体查询 - 超大屏幕
 .screen-xl() {
-  @media (min-width: @screen-xl) {
+  @media (min-width: @screen-xl-min) {
     @content();
   }
 }

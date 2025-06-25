@@ -4,6 +4,9 @@
  * 参考: Stripe Dashboard, Linear, Notion 等现代企业级应用
  */
 
+// 导入统一的 z-index 管理系统
+import { zIndex } from './z-index';
+
 export const designTokens = {
   // =============================================================================
   // 🎨 色彩系统 (Color System)
@@ -349,6 +352,8 @@ export const designTokens = {
   // =============================================================================
   // 🎚️ Z轴层级系统 (Z-Index System)
   // =============================================================================
+  // 注意：这里的定义已废弃，请使用 /styles/z-index.ts 中的定义
+  // 保留此处仅为向后兼容，将在下个版本中移除
   zIndex: {
     hide: -1,
     auto: 'auto',
@@ -360,9 +365,10 @@ export const designTokens = {
     overlay: 1300,
     modal: 1400,
     popover: 1500,
-    skipLink: 1600,
-    toast: 1700,
-    tooltip: 1800
+    tableColumnSetting: 1600, // 表格列设置弹窗
+    skipLink: 1700,
+    toast: 1800,
+    tooltip: 1900
   }
 } as const;
 
@@ -435,5 +441,8 @@ export const generateCSSVariables = (): string => {
 
   return lightVars + darkVars;
 };
+
+// 导出 z-index 系统以便直接使用
+export { zIndex };
 
 export default designTokens;

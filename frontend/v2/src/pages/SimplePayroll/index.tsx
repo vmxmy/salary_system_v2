@@ -1,8 +1,10 @@
 import React from 'react';
-import { Layout, Spin, Affix } from 'antd';
+import { Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
+// Layout components
+import { PageLayout, FlexLayout, GridLayout, Box } from '../../components/Layout';
 
 // 引入拆分后的组件和Hook
 import { usePayrollPageLogic } from './hooks/usePayrollPageLogic';
@@ -13,8 +15,6 @@ import { EnhancedWorkflowGuide } from './components/EnhancedWorkflowGuide';
 import { PayrollDataModal } from './components/PayrollDataModal';
 import { PayrollContextBar } from './components/PayrollContextBar';
 // 现代化设计系统样式已通过主样式文件全局导入
-
-const { Header, Content } = Layout;
 
 const SimplePayrollPage: React.FC = () => {
   const { t } = useTranslation(['simplePayroll', 'common']);
@@ -60,44 +60,53 @@ const SimplePayrollPage: React.FC = () => {
     : '未选择';
 
   return (
-    <Layout className="simple-payroll-modern">
-      {/* Page Header Area */}
-      <Header className="payroll-header">
-        <div className="header-content">
-          <h1 className="header-title">{t('simplePayroll:title')}</h1>
-          <p className="header-subtitle">{t('simplePayroll:subtitle')}</p>
-        </div>
-      </Header>
-
-      {/* Fixed Context Bar */}
-      <PayrollContextBar
-        currentPeriod={currentPeriod || null}
-        currentVersion={currentVersion || null}
-        onPeriodChange={() => {
-          // 触发期间切换逻辑
-          // 这里可以打开期间选择器或执行其他操作
-          console.log('切换薪资周期');
+    <PageLayout
+      title={t('simplePayroll:title')}
+      subtitle={t('simplePayroll:subtitle')}
+      showCard={false}
+      fullWidth={true}
+    >
+      {/* Fixed Context Bar - 使用 sticky 定位替代 Affix */}
+      <Box
+        position="sticky"
+        style={{
+          top: 0,
+          zIndex: 100,
+          marginBottom: '24px',
+          marginLeft: '-24px',
+          marginRight: '-24px',
+          marginTop: '-24px'
         }}
-        onVersionChange={() => {
-          // 触发版本切换逻辑
-          console.log('切换工资运行版本');
-        }}
-        onSettings={() => {
-          // 打开设置面板
-          console.log('打开设置');
-        }}
-        onDateChange={handleDateChange}
-      />
+      >
+        <PayrollContextBar
+          currentPeriod={currentPeriod || null}
+          currentVersion={currentVersion || null}
+          onPeriodChange={() => {
+            // 触发期间切换逻辑
+            // 这里可以打开期间选择器或执行其他操作
+            console.log('切换薪资周期');
+          }}
+          onVersionChange={() => {
+            // 触发版本切换逻辑
+            console.log('切换工资运行版本');
+          }}
+          onSettings={() => {
+            // 打开设置面板
+            console.log('打开设置');
+          }}
+          onDateChange={handleDateChange}
+        />
+      </Box>
 
       {/* Main Content Area */}
-      <Content className="payroll-content">
-        {periodsLoading ? (
-          <div className="loading-container">
-            <Spin size="large" />
-          </div>
-        ) : (
-          <>
-            {/* Enhanced Statistics Section */}
+      {periodsLoading ? (
+        <FlexLayout justify="center" align="center" style={{ minHeight: '400px' }}>
+          <Spin size="large" />
+        </FlexLayout>
+      ) : (
+        <Box>
+          {/* Enhanced Statistics Section */}
+          <Box mb="6">
             <EnhancedPayrollStatistics
               selectedVersionId={selectedVersionId}
               currentPeriod={currentPeriod}
@@ -109,52 +118,58 @@ const SimplePayrollPage: React.FC = () => {
               auditLoading={auditLoading}
               resetLoadingStates={resetLoadingStates}
             />
+          </Box>
 
-            {/* Main Content Grid */}
-            <div className="main-grid">
-              {/* Sidebar Controls */}
-              <div className="sidebar-controls">
-                <QuickActions
-                  selectedPeriodId={selectedPeriodId}
-                  selectedVersionId={selectedVersionId}
-                  handleNavigateToBulkImport={handleNavigateToBulkImport}
-                  handleImportTaxData={handleImportTaxData}
-                  setPayrollDataModalVisible={setPayrollDataModalVisible}
+          {/* Main Content Grid */}
+          <GridLayout
+            columns="300px 1fr"
+            gap="6"
+            colsSm={1}
+            colsMd={1}
+            colsLg={2}
+          >
+            {/* Sidebar Controls */}
+            <Box>
+              <QuickActions
+                selectedPeriodId={selectedPeriodId}
+                selectedVersionId={selectedVersionId}
+                handleNavigateToBulkImport={handleNavigateToBulkImport}
+                handleImportTaxData={handleImportTaxData}
+                setPayrollDataModalVisible={setPayrollDataModalVisible}
+                onRefresh={handleRefresh}
+                onRefreshAfterDelete={handleRefreshAfterDelete}
+              />
+            </Box>
+
+            {/* Main Workspace */}
+            <Box>
+              {!selectedPeriodId ? (
+                <EmptyState />
+              ) : (
+                <EnhancedWorkflowGuide 
+                  selectedPeriod={currentPeriod || null}
+                  selectedVersion={currentVersion || null}
+                  auditSummary={auditSummary}
                   onRefresh={handleRefresh}
-                  onRefreshAfterDelete={handleRefreshAfterDelete}
+                  onAuditRefresh={handleAuditRefresh}
+                  onVersionRefresh={handleVersionRefresh}
+                  onDeleteVersion={handleDeleteVersion}
                 />
-              </div>
-
-              {/* Main Workspace */}
-              <div className="main-workspace">
-                {!selectedPeriodId ? (
-                  <EmptyState />
-                ) : (
-                  <EnhancedWorkflowGuide 
-                    selectedPeriod={currentPeriod || null}
-                    selectedVersion={currentVersion || null}
-                    auditSummary={auditSummary}
-                    onRefresh={handleRefresh}
-                    onAuditRefresh={handleAuditRefresh}
-                    onVersionRefresh={handleVersionRefresh}
-                    onDeleteVersion={handleDeleteVersion}
-                  />
-                )}
-              </div>
-            </div>
-          </>
-        )}
-      </Content>
+              )}
+            </Box>
+          </GridLayout>
+        </Box>
+      )}
 
       {/* 工资数据浏览模态框 */}
       <PayrollDataModal
         visible={payrollDataModalVisible}
         onClose={() => setPayrollDataModalVisible(false)}
-        periodId={selectedPeriodId || 0}
-        periodName={currentPeriod?.name}
+        periodId={selectedPeriodId}
+        versionId={selectedVersionId}
       />
-    </Layout>
+    </PageLayout>
   );
 };
 
-export default SimplePayrollPage; 
+export default SimplePayrollPage;

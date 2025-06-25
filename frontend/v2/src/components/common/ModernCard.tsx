@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from 'antd';
 import type { CardProps } from 'antd';
-import './ModernCard.module.less';
+import styles from './ModernCard.module.less';
 
 export interface ModernCardProps extends Omit<CardProps, 'className'> {
   /** 自定义类名 */
@@ -40,10 +40,10 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   ...restProps
 }) => {
   const cardClassName = [
-    modern ? 'modern-card' : '',
-    `variant-${variant}`,
-    hoverable ? 'hoverable' : '',
-    loading ? 'loading' : '',
+    modern ? styles['modern-card'] : '',
+    styles[`variant-${variant}`],
+    hoverable ? styles['hoverable'] : '',
+    loading ? styles['loading'] : '',
     className
   ].filter(Boolean).join(' ');
 
@@ -52,9 +52,9 @@ export const ModernCard: React.FC<ModernCardProps> = ({
     if (!title && !icon) return undefined;
     
     return (
-      <div className="card-title-wrapper">
-        {icon && <span className="card-icon">{icon}</span>}
-        {title && <span className="card-title-text">{title}</span>}
+      <div className={styles['card-title-wrapper']}>
+        {icon && <span className={styles['card-icon']}>{icon}</span>}
+        {title && <span className={styles['card-title-text']}>{title}</span>}
       </div>
     );
   };
@@ -63,7 +63,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   const renderExtra = () => {
     if (subtitle) {
       return (
-        <div className="card-subtitle">
+        <div className={styles['card-subtitle']}>
           {subtitle}
         </div>
       );
@@ -80,13 +80,13 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       loading={loading}
     >
       {/* 主要内容 */}
-      <div className="card-content-wrapper">
+      <div className={styles['card-content-wrapper']}>
         {children}
       </div>
       
       {/* 底部操作区 */}
       {actions && (
-        <div className="card-actions">
+        <div className={styles['card-actions']}>
           {actions}
         </div>
       )}

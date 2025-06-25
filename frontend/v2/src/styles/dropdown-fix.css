@@ -1,0 +1,117 @@
+/* 
+ * 下拉框层叠问题修复
+ * 统一管理所有下拉组件的z-index层级
+ */
+
+/* 基础下拉组件层级 */
+.ant-select-dropdown,
+.ant-dropdown,
+.ant-tooltip {
+  z-index: 1000 !important;
+}
+
+/* Popover 组件层级 */
+.ant-popover {
+  z-index: 1500 !important;
+}
+
+/* Modal 层级 */
+.ant-modal-mask {
+  z-index: 1400 !important;
+}
+
+.ant-modal-wrap {
+  z-index: 1400 !important;
+}
+
+/* 表格列设置弹窗特殊处理 */
+.ant-popover.ant-pro-table-column-setting-overlay {
+  z-index: 1600 !important;
+}
+
+/* 搜索组件下拉框 */
+.ant-select-dropdown.ant-select-dropdown-placement-bottomLeft,
+.ant-select-dropdown.ant-select-dropdown-placement-bottomRight {
+  z-index: 1100 !important;
+}
+
+/* 确保下拉框内容不被遮挡 */
+.ant-select-dropdown .ant-select-item {
+  z-index: auto;
+  position: relative;
+}
+
+/* 多级下拉菜单 */
+.ant-dropdown-menu-submenu-popup {
+  z-index: 1200 !important;
+}
+
+/* 日期选择器 */
+.ant-picker-dropdown {
+  z-index: 1100 !important;
+}
+
+/* 级联选择器 */
+.ant-cascader-dropdown {
+  z-index: 1100 !important;
+}
+
+/* 自动完成组件 */
+.ant-select-dropdown.ant-select-auto-complete-dropdown {
+  z-index: 1100 !important;
+}
+
+/* 确保在Modal内的下拉框有更高层级 */
+.ant-modal .ant-select-dropdown,
+.ant-modal .ant-dropdown,
+.ant-modal .ant-picker-dropdown {
+  z-index: 1450 !important;
+}
+
+/* ProTable相关组件层级 */
+.ant-pro-table-dropdown {
+  z-index: 1200 !important;
+}
+
+/* 防止下拉框被其他元素遮挡 */
+.ant-select-open .ant-select-selector {
+  z-index: auto;
+}
+
+/* 修复多选下拉框的层级问题 */
+.ant-select-multiple .ant-select-dropdown {
+  z-index: 1100 !important;
+}
+
+/* 搜索建议下拉框 */
+.ant-select-dropdown[data-search-suggestion] {
+  z-index: 1150 !important;
+}
+
+/* 确保下拉箭头不被遮挡 */
+.ant-select-arrow {
+  z-index: auto;
+  position: relative;
+}
+
+/* 修复下拉框动画期间的层级问题 */
+.ant-select-dropdown.ant-slide-up-enter,
+.ant-select-dropdown.ant-slide-up-leave {
+  z-index: 1100 !important;
+}
+
+/* 特殊场景：在拖拽过程中的下拉框 */
+.ant-select-dropdown.ant-select-dropdown-hidden {
+  z-index: -1 !important;
+}
+
+/* 调试模式：高亮显示层级问题 */
+.debug-z-index .ant-select-dropdown {
+  border: 2px solid red !important;
+  background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.debug-z-index .ant-popover {
+  border: 2px solid blue !important;
+  background: rgba(0, 0, 255, 0.1) !important;
+}

@@ -1355,4 +1355,56 @@ export const simplePayrollApi = {
     logResponse(response);
     return response.data;
   },
+
+  /**
+   * 🔧 手动调整工资条目的扣除项
+   */
+  manuallyAdjustDeduction: async (entryId: number, params: {
+    component_code: string;
+    amount: number;
+    reason?: string;
+  }): Promise<ApiResponse<{
+    success: boolean;
+    entry_id: number;
+    component_code: string;
+    previous_amount: number;
+    new_amount: number;
+    is_manual: boolean;
+    manual_at: string;
+    manual_by: string;
+  }>> => {
+    console.log('🔧 [simplePayrollApi.manuallyAdjustDeduction] 发起手动调整请求:', {
+      url: `${API_BASE}/manual-adjustment/${entryId}`,
+      entryId,
+      params
+    });
+    
+    try {
+      // 使用Query参数而不是请求体
+      const response = await apiClient.post(`${API_BASE}/manual-adjustment/${entryId}`, null, {
+        params: {
+          component_code: params.component_code,
+          amount: params.amount,
+          reason: params.reason
+        }
+      });
+      
+      console.log('✅ [simplePayrollApi.manuallyAdjustDeduction] 请求成功:', {
+        status: response.status,
+        responseData: response.data
+      });
+      
+      logResponse(response);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [simplePayrollApi.manuallyAdjustDeduction] 请求失败:', {
+        entryId,
+        params,
+        error: error.message,
+        status: error.response?.status,
+        responseData: error.response?.data
+      });
+      throw error;
+    }
+  },
 }; 

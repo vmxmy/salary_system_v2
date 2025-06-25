@@ -30,7 +30,7 @@
     },
     "postgres": {
       "command": "mcp-server-postgres",
-      "args": ["postgresql://salary_system_v2:810705@100.65.7.42:5432/salary_system_v2"],
+      "args": ["postgresql://postgres:810705@localhost:5432/salary_system_v2"],
       "env": {}
     }
   }

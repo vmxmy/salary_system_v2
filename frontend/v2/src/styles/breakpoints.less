@@ -1,0 +1,161 @@
+// 响应式断点变量 (基于 breakpoints.ts)
+// 注意：请使用 breakpoints.ts 中的定义，这里仅为 LESS 兼容
+
+// 断点最小值
+@screen-xs-min: 0px;
+@screen-sm-min: 576px;
+@screen-md-min: 768px;
+@screen-lg-min: 992px;
+@screen-xl-min: 1200px;
+@screen-xxl-min: 1600px;
+
+// 断点最大值
+@screen-xs-max: 575px;
+@screen-sm-max: 767px;
+@screen-md-max: 991px;
+@screen-lg-max: 1199px;
+@screen-xl-max: 1599px;
+
+// 设备类型断点
+@screen-mobile-max: @screen-md-max;
+@screen-tablet-min: @screen-md-min;
+@screen-tablet-max: @screen-xl-max;
+@screen-desktop-min: @screen-xl-min;
+
+// 媒体查询 Mixins
+.xs-only(@rules) {
+  @media (max-width: @screen-xs-max) {
+    @rules();
+  }
+}
+
+.sm-only(@rules) {
+  @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    @rules();
+  }
+}
+
+.md-only(@rules) {
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+    @rules();
+  }
+}
+
+.lg-only(@rules) {
+  @media (min-width: @screen-lg-min) and (max-width: @screen-lg-max) {
+    @rules();
+  }
+}
+
+.xl-only(@rules) {
+  @media (min-width: @screen-xl-min) and (max-width: @screen-xl-max) {
+    @rules();
+  }
+}
+
+.xxl-only(@rules) {
+  @media (min-width: @screen-xxl-min) {
+    @rules();
+  }
+}
+
+// 最小宽度 Mixins
+.sm-up(@rules) {
+  @media (min-width: @screen-sm-min) {
+    @rules();
+  }
+}
+
+.md-up(@rules) {
+  @media (min-width: @screen-md-min) {
+    @rules();
+  }
+}
+
+.lg-up(@rules) {
+  @media (min-width: @screen-lg-min) {
+    @rules();
+  }
+}
+
+.xl-up(@rules) {
+  @media (min-width: @screen-xl-min) {
+    @rules();
+  }
+}
+
+.xxl-up(@rules) {
+  @media (min-width: @screen-xxl-min) {
+    @rules();
+  }
+}
+
+// 最大宽度 Mixins
+.xs-down(@rules) {
+  @media (max-width: @screen-xs-max) {
+    @rules();
+  }
+}
+
+.sm-down(@rules) {
+  @media (max-width: @screen-sm-max) {
+    @rules();
+  }
+}
+
+.md-down(@rules) {
+  @media (max-width: @screen-md-max) {
+    @rules();
+  }
+}
+
+.lg-down(@rules) {
+  @media (max-width: @screen-lg-max) {
+    @rules();
+  }
+}
+
+.xl-down(@rules) {
+  @media (max-width: @screen-xl-max) {
+    @rules();
+  }
+}
+
+// 设备类型 Mixins
+.mobile(@rules) {
+  @media (max-width: @screen-mobile-max) {
+    @rules();
+  }
+}
+
+.tablet(@rules) {
+  @media (min-width: @screen-tablet-min) and (max-width: @screen-tablet-max) {
+    @rules();
+  }
+}
+
+.desktop(@rules) {
+  @media (min-width: @screen-desktop-min) {
+    @rules();
+  }
+}
+
+// 方向 Mixins
+.portrait(@rules) {
+  @media (orientation: portrait) {
+    @rules();
+  }
+}
+
+.landscape(@rules) {
+  @media (orientation: landscape) {
+    @rules();
+  }
+}
+
+// 高分辨率屏幕 Mixin
+.retina(@rules) {
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    @rules();
+  }
+}

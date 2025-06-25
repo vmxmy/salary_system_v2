@@ -1,0 +1,140 @@
+/* 
+ * Ant Design Select 组件完全重置
+ * 解决多层边框问题的终极方案
+ */
+
+/* Step 1: 完全重置下拉框样式 */
+.ant-select-dropdown {
+  /* 只保留必要的阴影 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  /* 统一圆角 */
+  border-radius: 4px !important;
+  /* 移除所有边框 */
+  border: none !important;
+  outline: none !important;
+  /* 确保背景色 */
+  background: #ffffff !important;
+  /* 避免内容溢出 */
+  overflow: hidden !important;
+  /* 移除内边距 */
+  padding: 4px 0 !important;
+}
+
+/* Step 2: 清理所有内部容器 */
+.ant-select-dropdown > *,
+.ant-select-dropdown-content,
+.ant-select-dropdown .rc-virtual-list,
+.ant-select-dropdown .rc-virtual-list-holder,
+.ant-select-dropdown .rc-virtual-list-holder-inner,
+.ant-select-dropdown .ant-select-item-empty {
+  /* 移除所有边框和阴影 */
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  /* 统一背景 */
+  background: transparent !important;
+}
+
+/* Step 3: 重置选项样式 */
+.ant-select-item {
+  /* 移除边框 */
+  border: none !important;
+  /* 简单的内边距 */
+  padding: 5px 12px !important;
+  /* 移除圆角 */
+  border-radius: 0 !important;
+  /* 清晰的分隔 */
+  margin: 0 !important;
+}
+
+/* Step 4: 处理特殊情况 */
+/* 搜索框 */
+.ant-select-dropdown .ant-select-search {
+  border: none !important;
+  background: transparent !important;
+  padding: 4px 8px !important;
+  margin: 0 !important;
+}
+
+.ant-select-dropdown .ant-select-search-input-wrapper {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.ant-select-dropdown .ant-select-search-input {
+  border: 1px solid #e8e8e8 !important;
+  background: #fafafa !important;
+  padding: 4px 8px !important;
+  border-radius: 2px !important;
+  margin: 0 !important;
+}
+
+/* 空状态 */
+.ant-select-dropdown .ant-empty {
+  margin: 16px !important;
+  padding: 0 !important;
+}
+
+/* Step 5: 选择器输入框优化 */
+.ant-select-selector {
+  border: 1px solid #d9d9d9 !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+}
+
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: #40a9ff !important;
+}
+
+.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border-color: #40a9ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Step 6: 移除所有可能的伪元素 */
+.ant-select-dropdown::before,
+.ant-select-dropdown::after,
+.ant-select-dropdown > *::before,
+.ant-select-dropdown > *::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Step 7: 特殊处理内嵌的div */
+.ant-select-dropdown > div:first-child {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* Step 8: 确保没有双重滚动条 */
+.ant-select-dropdown .rc-virtual-list-scrollbar {
+  display: block !important;
+  width: 8px !important;
+}
+
+.ant-select-dropdown .rc-virtual-list-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Step 9: 修复可能的层级问题 */
+.ant-select-dropdown {
+  z-index: 1050 !important;
+}
+
+/* Step 10: 最终保险 - 使用通配符清理 */
+.ant-select-dropdown * {
+  box-sizing: border-box !important;
+}
+
+/* 确保样式优先级 */
+body .ant-select-dropdown {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border: none !important;
+}
+
+/* 移除加载状态的额外样式 */
+.ant-select-dropdown .ant-spin-container {
+  border: none !important;
+  box-shadow: none !important;
+}

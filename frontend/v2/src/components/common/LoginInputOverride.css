@@ -1,0 +1,74 @@
+/* 
+ * 登录页面输入框样式强制覆盖
+ * 解决全局form-controls.css导致的文字靠底部问题
+ */
+
+/* 最高优先级覆盖 - 针对大尺寸输入框 */
+.login-form .modern-input.ant-input-affix-wrapper-lg {
+  height: 44px !important;
+  padding: 0 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  line-height: 1.5 !important;
+  font-size: 18px !important;
+}
+
+.login-form .modern-input.ant-input-affix-wrapper-lg .ant-input {
+  height: 100% !important;
+  line-height: 1.5 !important;
+  font-size: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.login-form .modern-input.ant-input-lg {
+  height: 44px !important;
+  padding: 0 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  line-height: 1.5 !important;
+  font-size: 18px !important;
+}
+
+/* Placeholder 样式强制覆盖 */
+.login-form .modern-input.ant-input::placeholder,
+.login-form .modern-input.ant-input-affix-wrapper-lg .ant-input::placeholder {
+  line-height: 1.5 !important;
+  font-size: 18px !important;
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* 前缀图标对齐 */
+.login-form .modern-input .ant-input-prefix {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 8px !important;
+  color: #6b7280 !important;
+}
+
+.login-form .modern-input .ant-input-suffix {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 8px !important;
+  color: #6b7280 !important;
+}
+
+/* 密码框显示/隐藏图标 */
+.login-form .modern-input .ant-input-password-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #6b7280 !important;
+  cursor: pointer !important;
+}
+
+.login-form .modern-input .ant-input-password-icon:hover {
+  color: #374151 !important;
+}

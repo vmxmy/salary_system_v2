@@ -141,7 +141,7 @@ export interface PayrollModalData {
  * @returns 薪资模态框数据
  */
 export const getPayrollModalData = async (payrollEntryId: number): Promise<PayrollModalData> => {
-  const response = await apiClient.get(`/reports/payroll-modal/data/${payrollEntryId}`);
+  const response = await apiClient.get(`/reports/payroll-modals/data/${payrollEntryId}`);
   return response.data;
 };
 

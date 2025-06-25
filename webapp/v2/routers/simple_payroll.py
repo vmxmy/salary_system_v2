@@ -47,7 +47,7 @@ from ..services.simple_payroll.employee_salary_config_service import EmployeeSal
 from ..services.simple_payroll.analytics_service import PayrollAnalyticsService
 from ..models.config import LookupValue
 from ..models.payroll import PayrollEntry, PayrollRun, PayrollPeriod
-from ..payroll_engine.simple_calculator import CalculationStatus
+from ..payroll_engine.integrated_calculator import CalculationStatus
 from ..crud import simple_payroll as crud_simple_payroll
 
 logger = logging.getLogger(__name__)
@@ -649,6 +649,7 @@ async def run_calculation_engine(
         payroll_run_id = request.get("payroll_run_id")
         recalculate_all = request.get("recalculate_all", True)
         employee_ids = request.get("employee_ids")
+        preserve_manual_adjustments = request.get("preserve_manual_adjustments", True)
         
         if not payroll_run_id:
             raise HTTPException(
@@ -660,8 +661,8 @@ async def run_calculation_engine(
                 )
             )
         
-        # 导入简化版计算引擎
-        from ..payroll_engine.simple_calculator import SimplePayrollCalculator
+        # 导入集成计算引擎
+        from ..payroll_engine.integrated_calculator import IntegratedPayrollCalculator
         from ..models import PayrollEntry, Employee, PayrollRun
         from sqlalchemy import and_, text
         
@@ -694,7 +695,7 @@ async def run_calculation_engine(
         
         logger.info(f"工资运行状态检查: ID={payroll_run_id}, 状态={current_status_name}({current_status_code})")
         
-        calculator = SimplePayrollCalculator(db)
+        calculator = IntegratedPayrollCalculator(db)
         
         # 获取需要计算的工资条目
         query = db.query(PayrollEntry).filter(PayrollEntry.payroll_run_id == payroll_run_id)
@@ -731,23 +732,37 @@ async def run_calculation_engine(
                 logger.info(f"计算进度: {i}/{len(entries)}")
             try:
                 # 使用现有的earnings_details和deductions_details进行计算
-                result = calculator.calculate_payroll_entry(
+                # 集成计算引擎会自动检测和保护手动调整的值
+                result = calculator.calculate_employee_payroll(
                     employee_id=entry.employee_id,
                     payroll_run_id=entry.payroll_run_id,
                     earnings_data=entry.earnings_details or {},
-                    deductions_data=entry.deductions_details or {}
+                    deductions_data=entry.deductions_details or {},
+                    calculation_period=payroll_run.payroll_period.start_date if payroll_run.payroll_period else None,
+                    include_social_insurance=True,
+                    existing_deductions_details=entry.deductions_details or {}
                 )
                 
                 # 更新数据库记录
-                entry.gross_pay = result["gross_pay"]
-                entry.total_deductions = result["total_deductions"]
-                entry.net_pay = result["net_pay"]
-                entry.calculation_log = result["calculation_log"]
+                entry.gross_pay = result.gross_pay
+                entry.total_deductions = result.total_deductions
+                entry.net_pay = result.net_pay
+                entry.calculation_log = result.calculation_details
+                
+                # 更新扣除详情（如果有）
+                if hasattr(result, 'updated_deductions_details') and result.updated_deductions_details:
+                    current_deductions = entry.deductions_details or {}
+                    current_deductions.update(result.updated_deductions_details)
+                    entry.deductions_details = current_deductions
+                    
+                    # 标记JSONB字段已修改
+                    from sqlalchemy.orm.attributes import flag_modified
+                    flag_modified(entry, 'deductions_details')
                 
                 # 累计统计
-                total_gross_pay += Decimal(str(result["gross_pay"]))
-                total_deductions += Decimal(str(result["total_deductions"]))
-                total_net_pay += Decimal(str(result["net_pay"]))
+                total_gross_pay += result.gross_pay
+                total_deductions += result.total_deductions
+                total_net_pay += result.net_pay
                 
                 success_count += 1
                 
@@ -824,6 +839,143 @@ async def run_calculation_engine(
             detail=create_error_response(
                 status_code=500,
                 message="计算引擎执行失败",
+                details=str(e)
+            )
+        )
+
+# =============================================================================
+# 手动调整功能
+# =============================================================================
+
+@router.post("/manual-adjustment/{entry_id}")
+async def manual_adjust_deduction(
+    entry_id: int,
+    component_code: str = Query(..., description="扣除项代码"),
+    amount: Decimal = Query(..., description="调整后的金额"),
+    reason: Optional[str] = Query(None, description="调整原因"),
+    db: Session = Depends(get_db_v2),
+    current_user = Depends(require_permissions(["payroll_entry:edit"]))
+):
+    """
+    手动调整工资条目中的扣除项
+    
+    通过在 JSONB 中添加 is_manual 标记来保护手动调整的值
+    """
+    try:
+        # 获取工资条目
+        entry = db.query(PayrollEntry).filter(PayrollEntry.id == entry_id).first()
+        if not entry:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="工资条目不存在"
+            )
+        
+        # 获取当前的扣除详情
+        deductions_details = entry.deductions_details or {}
+        
+        logger.info(f"🔍 [手动调整] 原始扣除详情类型: {type(deductions_details)}")
+        logger.info(f"🔍 [手动调整] 原始扣除详情内容: {deductions_details}")
+        
+        # 获取原始值
+        original_amount = None
+        if component_code in deductions_details:
+            original_data = deductions_details[component_code]
+            logger.info(f"🔍 [手动调整] 组件 {component_code} 原始数据: {original_data} (类型: {type(original_data)})")
+            if isinstance(original_data, dict):
+                original_amount = original_data.get('amount', 0)
+            else:
+                original_amount = original_data
+        
+        # 更新扣除项，添加手动调整标记
+        deductions_details[component_code] = {
+            'name': deductions_details.get(component_code, {}).get('name', component_code),
+            'amount': float(amount),
+            'is_manual': True,
+            'manual_at': datetime.now().isoformat(),
+            'manual_by': current_user.username,
+            'manual_reason': reason,
+            'auto_calculated': original_amount  # 保留自动计算的值
+        }
+        
+        # 更新条目 - 强制SQLAlchemy检测变化
+        from sqlalchemy.orm.attributes import flag_modified
+        entry.deductions_details = deductions_details
+        flag_modified(entry, 'deductions_details')  # 强制标记字段已修改
+        
+        logger.info(f"🔧 [手动调整] 强制标记 deductions_details 字段已修改")
+        
+        # 添加保存前的验证日志
+        logger.info(f"💾 [手动调整] 准备保存到数据库: entry_id={entry_id}")
+        logger.info(f"💾 [手动调整] 扣除项 {component_code} 更新后数据: {deductions_details[component_code]}")
+        logger.info(f"💾 [手动调整] 完整扣除详情: {deductions_details}")
+        
+        # 验证SQLAlchemy对象的属性
+        logger.info(f"💾 [手动调整] SQLAlchemy对象deductions_details属性: {entry.deductions_details}")
+        logger.info(f"💾 [手动调整] SQLAlchemy对象中 {component_code}: {entry.deductions_details.get(component_code, 'NOT_FOUND')}")
+        
+        # 重新计算汇总
+        total_deductions = Decimal('0')
+        for key, value in deductions_details.items():
+            if isinstance(value, dict) and 'amount' in value:
+                total_deductions += Decimal(str(value['amount']))
+        
+        entry.total_deductions = total_deductions
+        entry.net_pay = entry.gross_pay - total_deductions
+        
+        # 提交更改
+        db.commit()
+        
+        # 先直接查询数据库验证数据是否正确保存
+        logger.info(f"🔍 [手动调整] 直接查询数据库验证...")
+        from sqlalchemy import text
+        raw_result = db.execute(
+            text("SELECT deductions_details FROM payroll.payroll_entries WHERE id = :entry_id"),
+            {"entry_id": entry_id}
+        ).fetchone()
+        if raw_result:
+            raw_deductions = raw_result[0]
+            raw_housing_fund = raw_deductions.get(component_code, {}) if raw_deductions else {}
+            logger.info(f"🔍 [手动调整] 数据库原始数据: {raw_housing_fund}")
+            logger.info(f"🔍 [手动调整] 数据库原始 is_manual: {raw_housing_fund.get('is_manual', 'NOT_FOUND')}")
+        
+        # 然后测试 refresh 是否会破坏数据
+        logger.info(f"🔄 [手动调整] 执行 db.refresh() 前...")
+        db.refresh(entry)
+        logger.info(f"🔄 [手动调整] 执行 db.refresh() 后...")
+        
+        saved_data = entry.deductions_details.get(component_code, {})
+        logger.info(f"✅ [手动调整] refresh后验证: {component_code} = {saved_data}")
+        logger.info(f"✅ [手动调整] refresh后 is_manual 状态: {saved_data.get('is_manual', 'NOT_FOUND')}")
+        
+        logger.info(f"手动调整成功: entry_id={entry_id}, component={component_code}, "
+                   f"original={original_amount}, adjusted={amount}, user={current_user.username}")
+        
+        return DataResponse(
+            data={
+                "entry_id": entry_id,
+                "component_code": component_code,
+                "original_amount": original_amount,
+                "adjusted_amount": float(amount),
+                "new_total_deductions": float(total_deductions),
+                "new_net_pay": float(entry.net_pay),
+                "is_manual": True,
+                "manual_at": datetime.now().isoformat(),
+                "manual_by": current_user.username,
+                "manual_reason": reason
+            },
+            message="手动调整成功"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"手动调整失败: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                status_code=500,
+                message="手动调整失败",
                 details=str(e)
             )
         )
@@ -2420,10 +2572,15 @@ async def run_integrated_calculation_engine(
                 
                 for key, value in entry.deductions_details.items():
                     if key in social_insurance_fields_to_clear:
-                        removed_fields.append(key)
-                        # 🔍 计算被移除字段的金额
-                        if isinstance(value, dict) and 'amount' in value:
-                            removed_amount += value.get('amount', 0)
+                        # 🔒 检查是否为手动调整项目
+                        if isinstance(value, dict) and value.get('is_manual'):
+                            logger.info(f"🔒 [保护手动调整] 员工 {entry.employee_id} 的 {key} 已手动调整，保留不清除")
+                            cleaned_deductions[key] = value  # 保留手动调整的数据
+                        else:
+                            removed_fields.append(key)
+                            # 🔍 计算被移除字段的金额
+                            if isinstance(value, dict) and 'amount' in value:
+                                removed_amount += value.get('amount', 0)
                     else:
                         cleaned_deductions[key] = value
                 

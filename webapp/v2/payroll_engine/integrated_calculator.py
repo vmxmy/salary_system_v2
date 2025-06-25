@@ -14,9 +14,35 @@ from datetime import date, datetime
 from dataclasses import dataclass
 import logging
 
-from .simple_calculator import SimplePayrollCalculator, CalculationResult, CalculationStatus, CalculationComponent, ComponentType
 from .social_insurance_calculator import SocialInsuranceCalculator, SocialInsuranceResult
 from ..models import PayrollEntry
+from enum import Enum
+from dataclasses import dataclass
+
+# 从simple_calculator移植过来的必要类
+class CalculationStatus(Enum):
+    """计算状态枚举"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class ComponentType(Enum):
+    """薪资组件类型枚举"""
+    EARNING = "EARNING"
+    PERSONAL_DEDUCTION = "PERSONAL_DEDUCTION"
+    EMPLOYER_DEDUCTION = "EMPLOYER_DEDUCTION"
+    OTHER = "OTHER"
+
+@dataclass
+class CalculationComponent:
+    """计算组件结果"""
+    component_code: str
+    component_name: str
+    component_type: ComponentType
+    amount: Decimal
+    formula: Optional[str] = None
+    rate: Optional[float] = None
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +89,54 @@ class IntegratedPayrollCalculator:
     
     def __init__(self, db: Session):
         self.db = db
-        self.simple_calculator = SimplePayrollCalculator(db)
         self.social_insurance_calculator = SocialInsuranceCalculator(db)
+    
+    def _detect_manual_adjustments(self, existing_deductions_details: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        检测手动调整项目
+        
+        Args:
+            existing_deductions_details: 现有扣除详情
+            
+        Returns:
+            Dict[str, Any]: 手动调整项目字典 {component_code: component_data}
+        """
+        logger.info(f"🔍 [手动调整检测] 开始检测，输入数据: {existing_deductions_details}")
+        manual_adjustments = {}
+        
+        # 检查五险一金相关的手动调整
+        social_insurance_codes = [
+            'PENSION_PERSONAL_AMOUNT',
+            'MEDICAL_PERSONAL_AMOUNT', 
+            'UNEMPLOYMENT_PERSONAL_AMOUNT',
+            'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
+            'HOUSING_FUND_PERSONAL'
+        ]
+        
+        logger.info(f"🔍 [手动调整检测] 检查 {len(social_insurance_codes)} 个社保项目")
+        
+        for code in social_insurance_codes:
+            if code in existing_deductions_details:
+                component_data = existing_deductions_details[code]
+                logger.info(f"🔍 [手动调整检测] {code} 存在，数据: {component_data}")
+                logger.info(f"🔍 [手动调整检测] {code} 类型: {type(component_data)}")
+                
+                if isinstance(component_data, dict):
+                    is_manual_value = component_data.get('is_manual')
+                    logger.info(f"🔍 [手动调整检测] {code} is_manual值: {is_manual_value} (类型: {type(is_manual_value)})")
+                    
+                    if is_manual_value:
+                        manual_adjustments[code] = component_data
+                        logger.info(f"✅ [手动调整检测] {code} 确认为手动调整: amount={component_data.get('amount')}, manual_at={component_data.get('manual_at')}")
+                    else:
+                        logger.info(f"❌ [手动调整检测] {code} 不是手动调整 (is_manual={is_manual_value})")
+                else:
+                    logger.info(f"❌ [手动调整检测] {code} 不是字典格式，跳过")
+            else:
+                logger.info(f"❌ [手动调整检测] {code} 不存在于现有数据中")
+        
+        logger.info(f"🔍 [手动调整检测] 最终结果: 发现 {len(manual_adjustments)} 个手动调整项目: {list(manual_adjustments.keys())}")
+        return manual_adjustments
     
     def calculate_employee_payroll(
         self,
@@ -73,14 +145,16 @@ class IntegratedPayrollCalculator:
         earnings_data: Dict[str, Any],
         deductions_data: Dict[str, Any],
         calculation_period: Optional[date] = None,
-        include_social_insurance: bool = True
+        include_social_insurance: bool = True,
+        existing_deductions_details: Optional[Dict[str, Any]] = None
     ) -> IntegratedCalculationResult:
         """
         计算员工完整薪资（正确顺序：先算五险一金，再算合计）
         
         计算顺序：
         1. 五险一金计算（个人和单位扣缴）
-        2. 汇总计算（应发、扣发、实发、单位成本）
+        2. 手动调整检测（如果is_manual=true，保留原数据）
+        3. 汇总计算（应发、扣发、实发、单位成本）
         
         Args:
             employee_id: 员工ID
@@ -89,6 +163,7 @@ class IntegratedPayrollCalculator:
             deductions_data: 其他扣除数据（已知输入，不含社保）
             calculation_period: 计算期间（可选）
             include_social_insurance: 是否包含社保计算
+            existing_deductions_details: 现有扣除详情（用于检测手动调整）
             
         Returns:
             IntegratedCalculationResult: 集成计算结果
@@ -99,6 +174,16 @@ class IntegratedPayrollCalculator:
             logger.info(f"📊 [输入数据] 扣除数据: {deductions_data}")
             logger.info(f"📊 [输入数据] 计算期间: {calculation_period}")
             logger.info(f"📊 [输入数据] 包含社保: {include_social_insurance}")
+            logger.info(f"📊 [输入数据] 现有扣除详情: {existing_deductions_details is not None}")
+            
+            # 检测手动调整项目
+            manual_adjustments = {}
+            if existing_deductions_details:
+                manual_adjustments = self._detect_manual_adjustments(existing_deductions_details)
+                if manual_adjustments:
+                    logger.info(f"🔒 [手动调整检测] 发现 {len(manual_adjustments)} 个手动调整项目: {list(manual_adjustments.keys())}")
+                else:
+                    logger.info(f"✅ [手动调整检测] 未发现手动调整项目，可正常覆盖计算")
             
             # 创建集成结果对象
             result = IntegratedCalculationResult(
@@ -236,17 +321,30 @@ class IntegratedPayrollCalculator:
             
             # 第三步：更新扣除详情中的社保公积金金额（应用进位规则后的金额）
             # 🎯 新规则：保存个人和单位扣缴项目到详情中，但只有个人部分计入扣发合计
+            # 🔒 手动调整保护：如果项目已手动调整，保留原数据不覆盖
             updated_deductions_details = {}
             if hasattr(result, 'social_insurance_components') and result.social_insurance_components:
                 for component in result.social_insurance_components:
                     if component.insurance_type == "HOUSING_FUND":
-                        # 🏠 公积金使用进位处理后的金额 - 保存个人和单位部分
-                        updated_deductions_details["HOUSING_FUND_PERSONAL"] = {
-                            "amount": int(component.employee_amount),  # 进位后应该是整数，直接转int
-                            "name": "住房公积金个人应缴费额",
-                            "rate": float(component.employee_rate),
-                            "type": "PERSONAL_DEDUCTION"
-                        }
+                        personal_key = "HOUSING_FUND_PERSONAL"
+                        employer_key = "HOUSING_FUND_EMPLOYER"
+                        
+                        # 检查个人公积金是否手动调整
+                        if personal_key in manual_adjustments:
+                            logger.info(f"🔒 [手动调整保护] {personal_key} 已手动调整，保留原数据不覆盖")
+                            # 保留手动调整的完整数据
+                            updated_deductions_details[personal_key] = manual_adjustments[personal_key].copy()
+                        else:
+                            # 🏠 公积金使用进位处理后的金额 - 保存个人部分
+                            updated_deductions_details[personal_key] = {
+                                "amount": int(component.employee_amount),  # 进位后应该是整数，直接转int
+                                "name": "住房公积金个人应缴费额",
+                                "rate": float(component.employee_rate),
+                                "type": "PERSONAL_DEDUCTION"
+                            }
+                            logger.info(f"💰 [自动计算] {personal_key} 使用计算引擎结果: {int(component.employee_amount)}")
+                        
+                        # 单位部分总是更新（不涉及手动调整）
                         updated_deductions_details["HOUSING_FUND_EMPLOYER"] = {
                             "amount": int(component.employer_amount),  # 进位后应该是整数，直接转int
                             "name": "住房公积金单位应缴费额",
@@ -258,12 +356,22 @@ class IntegratedPayrollCalculator:
                         personal_key = f"{component.insurance_type}_PERSONAL_AMOUNT"
                         employer_key = f"{component.insurance_type}_EMPLOYER_AMOUNT"
                         
-                        updated_deductions_details[personal_key] = {
-                            "amount": float(component.employee_amount),
-                            "name": f"{component.component_name}个人应缴费额",
-                            "rate": float(component.employee_rate),
-                            "type": "PERSONAL_DEDUCTION"
-                        }
+                        # 检查个人险种是否手动调整
+                        if personal_key in manual_adjustments:
+                            logger.info(f"🔒 [手动调整保护] {personal_key} 已手动调整，保留原数据不覆盖")
+                            # 保留手动调整的完整数据
+                            updated_deductions_details[personal_key] = manual_adjustments[personal_key].copy()
+                        else:
+                            # 使用计算引擎结果
+                            updated_deductions_details[personal_key] = {
+                                "amount": float(component.employee_amount),
+                                "name": f"{component.component_name}个人应缴费额",
+                                "rate": float(component.employee_rate),
+                                "type": "PERSONAL_DEDUCTION"
+                            }
+                            logger.info(f"💰 [自动计算] {personal_key} 使用计算引擎结果: {float(component.employee_amount)}")
+                        
+                        # 单位部分总是更新（不涉及手动调整）
                         updated_deductions_details[employer_key] = {
                             "amount": float(component.employer_amount),
                             "name": f"{component.component_name}单位应缴费额",
@@ -352,13 +460,18 @@ class IntegratedPayrollCalculator:
         
         for entry in payroll_entries:
             try:
+                # 调试：检查数据库中的实际数据
+                logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 数据库中的deductions_details: {entry.deductions_details}")
+                logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 是否包含HOUSING_FUND_PERSONAL: {'HOUSING_FUND_PERSONAL' in (entry.deductions_details or {})}")
+                
                 result = self.calculate_employee_payroll(
                     employee_id=entry.employee_id,
                     payroll_run_id=entry.payroll_run_id,
                     earnings_data=entry.earnings_details or {},
                     deductions_data=entry.deductions_details or {},
                     calculation_period=calculation_period,
-                    include_social_insurance=include_social_insurance
+                    include_social_insurance=include_social_insurance,
+                    existing_deductions_details=entry.deductions_details or {}
                 )
                 results.append(result)
                 
@@ -444,6 +557,9 @@ class IntegratedPayrollCalculator:
             # 更新扣除详情（只加入个人缴费部分）
             current_deductions = entry.deductions_details or {}
             
+            # 检测现有的手动调整项目
+            manual_adjustments = self._detect_manual_adjustments(current_deductions)
+            
             # 添加个人社保扣除
             if social_insurance_employee > 0:
                 current_deductions["SOCIAL_INSURANCE_PERSONAL"] = {
@@ -451,11 +567,17 @@ class IntegratedPayrollCalculator:
                     "name": "社保(个人)"
                 }
             
+            # 检查公积金是否手动调整
             if housing_fund_employee > 0:
-                current_deductions["HOUSING_FUND_PERSONAL"] = {
-                    "amount": float(housing_fund_employee),
-                    "name": "公积金(个人)"
-                }
+                if "HOUSING_FUND_PERSONAL" in manual_adjustments:
+                    logger.info(f"🔒 [手动调整保护] HOUSING_FUND_PERSONAL 已手动调整，保留原数据不覆盖")
+                    # 保留手动调整的数据，不覆盖
+                else:
+                    current_deductions["HOUSING_FUND_PERSONAL"] = {
+                        "amount": float(housing_fund_employee),
+                        "name": "公积金(个人)"
+                    }
+                    logger.info(f"💰 [自动计算] HOUSING_FUND_PERSONAL 使用计算引擎结果: {float(housing_fund_employee)}")
             
             # 重新计算总扣除和实发
             personal_social_insurance_total = social_insurance_employee + housing_fund_employee

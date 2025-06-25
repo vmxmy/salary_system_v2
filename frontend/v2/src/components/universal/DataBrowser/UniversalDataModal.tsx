@@ -181,16 +181,20 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
   }, [dataSource]);
 
   // Search functionality - 确保对象引用稳定  
+  const searchableFieldsArray = useMemo(() => {
+    return searchConfig?.searchableFields ? 
+      searchConfig.searchableFields.map(field => field.key as string) : [];
+  }, [searchConfig?.searchableFields]);
+
   const searchConfiguration = useMemo(() => ({
-    searchableFields: searchConfig?.searchableFields ? 
-      searchConfig.searchableFields.map(field => field.key as string) : [],
+    searchableFields: searchableFieldsArray,
     threshold: 0.3,
     debounceDelay: searchConfig?.debounceMs || 300,
     enableSuggestions: true,
     maxSuggestions: 5,
     supportExpressions: searchConfig?.supportExpressions || false,
   }), [
-    searchConfig?.searchableFields, 
+    searchableFieldsArray, 
     searchConfig?.debounceMs, 
     searchConfig?.supportExpressions
   ]);
@@ -211,45 +215,31 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
     performance,
   } = useUniversalSearch(validatedDataSource, searchConfiguration);
 
-  // 修复无限循环：使用useState保存处理过的搜索结果，而不是每次重新计算
-  const [processedSearchIndices, setProcessedSearchIndices] = useState<Set<number> | undefined>(undefined);
-  
-  // 仅当搜索结果真正变化时才更新processedSearchIndices
-  useEffect(() => {
-    // 如果没有搜索结果或正在搜索中，则跳过处理
+  // 使用 useMemo 代替 useState + useEffect，避免潜在的无限循环
+  const processedSearchIndices = useMemo(() => {
+    // 如果没有搜索结果或正在搜索中，则返回 undefined
     if (!searchResults || searchResults.length === 0 || isSearching) {
-      setProcessedSearchIndices(undefined);
-      return;
+      return undefined;
     }
     
-    // 使用自定义key来避免每次都创建新的Set对象
-    setProcessedSearchIndices(prevIndices => {
-      const indices = searchResults
-        .map((r) => validatedDataSource.findIndex(item => item === r.item))
-        .filter(i => i !== -1);
-      
-      if (indices.length === 0) return undefined;
-      
-      const newIndices = new Set(indices);
-      
-      // 如果索引数量和内容相同，则保留之前的引用
-      if (prevIndices && prevIndices.size === newIndices.size && 
-          [...prevIndices].every(i => newIndices.has(i))) {
-        return prevIndices;
-      }
-      
-      return newIndices;
-    });
+    // 计算搜索结果在原始数据中的索引
+    const indices = searchResults
+      .map((r) => validatedDataSource.findIndex(item => item === r.item))
+      .filter(i => i !== -1);
+    
+    return indices.length > 0 ? new Set(indices) : undefined;
   }, [searchResults, validatedDataSource, isSearching]);
 
   // Data processing - 稳定对象引用避免无限循环
+  const stableFilterConfig = useMemo(() => filterConfig, [JSON.stringify(filterConfig)]);
+  
   const dataProcessingConfig = useMemo(() => ({
     data: validatedDataSource,
     searchResults: processedSearchIndices,
     searchMode,
-    filterConfig,
+    filterConfig: stableFilterConfig,
     autoGenerateColumns
-  }), [validatedDataSource, processedSearchIndices, searchMode, filterConfig, autoGenerateColumns]);
+  }), [validatedDataSource, processedSearchIndices, searchMode, stableFilterConfig, autoGenerateColumns]);
 
   const {
     filteredDataSource,
@@ -402,21 +392,28 @@ export const UniversalDataModal = <T extends Record<string, unknown> = Record<st
     message.success(`${t('preset.saved')}: ${name}`);
   }, [filterConfiguration, searchQuery, searchMode, savePreset, title, t]);
 
-  // Row selection
+  // Handle row selection change - 稳定化函数引用
+  const handleRowSelectionChange = useCallback((selectedRowKeys: React.Key[], selectedRows: T[]) => {
+    setSelectedRows(selectedRows);
+    onRowSelect?.(selectedRows);
+  }, [onRowSelect]);
+
+  // Row selection - 稳定化 selectedRowKeys
+  const selectedRowKeys = useMemo(() => {
+    return selectedRows.map((row: T) => 
+      typeof rowKey === 'function' ? rowKey(row) : (row as Record<string, unknown>)[rowKey] as React.Key
+    );
+  }, [selectedRows, rowKey]);
+
   const rowSelection = useMemo(() => {
     if (!selectable) return undefined;
     
     return {
       type: 'checkbox' as const,
-      selectedRowKeys: selectedRows.map((row: T) => 
-        typeof rowKey === 'function' ? rowKey(row) : (row as Record<string, unknown>)[rowKey] as React.Key
-      ),
-      onChange: (selectedRowKeys: React.Key[], selectedRows: T[]) => {
-        setSelectedRows(selectedRows);
-        onRowSelect?.(selectedRows);
-      },
+      selectedRowKeys,
+      onChange: handleRowSelectionChange,
     };
-  }, [selectable, selectedRows, rowKey, onRowSelect]);
+  }, [selectable, selectedRowKeys, handleRowSelectionChange]);
 
   return (
     <Modal

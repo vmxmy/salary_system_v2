@@ -18,7 +18,7 @@ from ..models import (
     PayrollEntry, LookupValue, LookupType
 )
 from ..pydantic_models.payroll_calculation import CalculationSummary, CalculationStatusEnum
-from ..payroll_engine.simple_calculator import ComponentType, CalculationResult, CalculationStatus, CalculationComponent
+from ..payroll_engine.integrated_calculator import ComponentType, CalculationStatus, CalculationComponent, IntegratedCalculationResult
 
 
 logger = logging.getLogger(__name__)

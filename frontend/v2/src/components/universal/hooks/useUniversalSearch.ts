@@ -216,12 +216,7 @@ export const useUniversalSearch = <T extends Record<string, any>>(
           .map(({ item, score }) => ({ item, score }));
         
         const endTime = window.performance.now();
-        setPerformance({
-          isOptimal: true,
-          duration: endTime - startTime,
-          resultsCount: results.length,
-          mode: SearchMode.EXACT
-        });
+        // Performance will be tracked separately to avoid state updates in callbacks
         
         return results;
       }
@@ -320,17 +315,10 @@ export const useUniversalSearch = <T extends Record<string, any>>(
     results.sort((a, b) => b.score - a.score);
 
     const endTime = window.performance.now();
-    const duration = endTime - startTime;
-    
-    setPerformance({
-      isOptimal: duration < 100 && results.length < 1000,
-      duration,
-      resultsCount: results.length,
-      mode
-    });
+    // Performance will be tracked separately to avoid state updates in callbacks
 
     return results;
-  }, [dataSource, searchableFields, searchConfig, parseExpression, evaluateExpression, fuzzySearch]);
+  }, [dataSource, searchableFields, searchConfig.supportExpressions, searchConfig.caseSensitive, searchConfig.threshold, parseExpression, evaluateExpression, fuzzySearch]);
 
   // Generate search suggestions
   const generateSuggestions = useCallback((queryStr: string): string[] => {
@@ -364,20 +352,43 @@ export const useUniversalSearch = <T extends Record<string, any>>(
     return Array.from(suggestions)
       .slice(0, searchConfig.maxSuggestions)
       .sort((a, b) => a.length - b.length); // Prefer shorter suggestions
-  }, [dataSource, searchableFields, searchHistory, searchConfig]);
+  }, [dataSource, searchableFields, searchHistory, searchConfig.enableSuggestions, searchConfig.maxSuggestions]);
 
-  // Search results
-  const searchResults = useMemo(() => {
+  // Search results state
+  const [searchResults, setSearchResults] = useState<SearchResult<T>[]>([]);
+
+  // Perform search with proper side effect handling
+  useEffect(() => {
     if (!debouncedQuery.trim()) {
-      return [];
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
     }
 
     setIsSearching(true);
-    const results = performSearch(debouncedQuery, searchMode);
-    setIsSearching(false);
+    
+    // Use setTimeout to avoid blocking the UI and prevent immediate state update conflicts
+    const searchTimeout = setTimeout(() => {
+      try {
+        const results = performSearch(debouncedQuery, searchMode);
+        setSearchResults(results);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 0);
 
-    return results;
+    return () => clearTimeout(searchTimeout);
   }, [debouncedQuery, searchMode, performSearch]);
+
+  // Track performance metrics separately - simplified to avoid complex dependencies
+  useEffect(() => {
+    setPerformance(prev => ({
+      ...prev,
+      resultsCount: searchResults.length,
+      mode: searchMode,
+      isOptimal: searchResults.length < 1000
+    }));
+  }, [searchResults.length, searchMode]);
 
   // Update suggestions when query changes
   useEffect(() => {
@@ -387,7 +398,7 @@ export const useUniversalSearch = <T extends Record<string, any>>(
     } else {
       setSuggestions([]);
     }
-  }, [query, generateSuggestions]);
+  }, [query, dataSource, searchableFields, searchHistory, searchConfig.enableSuggestions, searchConfig.maxSuggestions]);
 
   // Search function
   const search = useCallback((searchQuery: string) => {
@@ -415,7 +426,8 @@ export const useUniversalSearch = <T extends Record<string, any>>(
   const totalResults = searchResults.length;
   const searchTime = performance.duration;
 
-  return {
+  // 使用 useMemo 包裹返回对象，确保引用稳定性
+  return useMemo(() => ({
     // State
     query,
     results: searchResults,
@@ -440,7 +452,12 @@ export const useUniversalSearch = <T extends Record<string, any>>(
     // Configuration
     searchableFields,
     searchHistory
-  };
+  }), [
+    query, searchResults, isSearching, searchMode, suggestions,
+    totalResults, searchTime, isEmptyQuery, hasResults, performance,
+    search, clearSearch, setSearchMode, parseExpression, 
+    searchableFields, searchHistory
+  ]);
 };
 
 export default useUniversalSearch;

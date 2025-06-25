@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(rg:*)",
+      "Bash(npm run i18n:scan:*)",
+      "Bash(npm run lint)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "playwright",
+    "task-master-ai",
+    "github",
+    "postgres"
+  ]
+}

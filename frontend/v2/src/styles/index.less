@@ -5,19 +5,22 @@
 
 // 1. 现代化设计系统 - 核心样式 (最高优先级)
 @import './modern-design-system.less';
-@import './modern-components-advanced.less';
-@import './modern-forms.less';
+// @import './modern-components-advanced.less'; // 暂时禁用，恢复 antd 默认组件样式
+// @import './modern-forms.less'; // 暂时禁用，恢复 antd 默认表单样式
 @import './modern-utilities.less';
 
 // 2. 原有基础样式 (向后兼容)
 @import './global.less';
 @import './utilities.less';
 
-// 3. 组件特定样式
+// 3. 间距工具类
+@import './spacing-utilities.less';
+
+// 4. 组件特定样式
 @import './components.less';
 @import './layout.less';
 
-// 4. 主题和变量覆盖
+// 5. 主题和变量覆盖
 @import './theme.less';
 
 // =============================================================================

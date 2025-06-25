@@ -393,31 +393,31 @@
 
 // ===== 响应式工具类 =====
 // 响应式显示
-@media (max-width: @screen-xs) {
+@media (max-width: @screen-xs-max) {
   .hidden-xs {
     display: none !important;
   }
 }
 
-@media (min-width: @screen-sm) and (max-width: @screen-md - 1px) {
+@media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
   .hidden-sm {
     display: none !important;
   }
 }
 
-@media (min-width: @screen-md) and (max-width: @screen-lg - 1px) {
+@media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
   .hidden-md {
     display: none !important;
   }
 }
 
-@media (min-width: @screen-lg) and (max-width: @screen-xl - 1px) {
+@media (min-width: @screen-lg-min) and (max-width: @screen-lg-max) {
   .hidden-lg {
     display: none !important;
   }
 }
 
-@media (min-width: @screen-xl) {
+@media (min-width: @screen-xl-min) {
   .hidden-xl {
     display: none !important;
   }
@@ -425,31 +425,31 @@
 
 // 仅在特定屏幕显示
 .visible-xs {
-  @media (min-width: @screen-sm) {
+  @media (min-width: @screen-sm-min) {
     display: none !important;
   }
 }
 
 .visible-sm {
-  @media (max-width: @screen-xs), (min-width: @screen-md) {
+  @media (max-width: @screen-xs-max), (min-width: @screen-md-min) {
     display: none !important;
   }
 }
 
 .visible-md {
-  @media (max-width: @screen-sm), (min-width: @screen-lg) {
+  @media (max-width: @screen-sm-max), (min-width: @screen-lg-min) {
     display: none !important;
   }
 }
 
 .visible-lg {
-  @media (max-width: @screen-md), (min-width: @screen-xl) {
+  @media (max-width: @screen-md-max), (min-width: @screen-xl-min) {
     display: none !important;
   }
 }
 
 .visible-xl {
-  @media (max-width: @screen-lg) {
+  @media (max-width: @screen-lg-max) {
     display: none !important;
   }
 }

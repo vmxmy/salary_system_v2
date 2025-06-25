@@ -798,7 +798,7 @@ export const getPayrollData = async (filters: {
       throw new Error('Period ID is required');
     }
     
-    const url = `/reports/payroll-modal/period/${periodId}?${params.toString()}`;
+    const url = `/reports/payroll-modals/period/${periodId}?${params.toString()}`;
     const response = await apiClient.get(url);
     
     console.log('✅ [getPayrollData] API响应成功', {

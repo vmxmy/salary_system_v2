@@ -76,6 +76,11 @@ export interface PayrollItemDetail {
   currency?: string;    // e.g., "CNY"
   description?: string; // Optional description for the item
   allowNegative?: boolean; // 是否允许负值
+  is_manual?: boolean;  // 是否手动调整
+  manual_at?: string;   // 手动调整时间
+  manual_by?: string;   // 手动调整人
+  manual_reason?: string; // 手动调整原因
+  auto_calculated?: number; // 自动计算的原始值
   // Add other common fields if any, like type, category, etc.
 }
 

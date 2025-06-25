@@ -119,12 +119,21 @@ export const employeeService = {
 
   async createEmployee(employeeData: CreateEmployeePayload): Promise<Employee> {
     try {
-      const response = await apiClient.post<Employee>('/employees/', employeeData);
-      return response.data;
-    } catch (error: any) {
-      if (error.response && error.response.data && error.response.data.detail) {
-      } else if (error.response && error.response.data) {
+      const response = await apiClient.post<any>('/employees/', employeeData);
+      console.log('🔍 员工创建API原始响应:', response);
+      
+      // 根据后端分析，响应格式是 { data: Employee }
+      if (response.data && response.data.data) {
+        // 如果数据在 data.data 中
+        return response.data.data;
+      } else if (response.data) {
+        // 如果数据直接在 data 中
+        return response.data;
+      } else {
+        throw new Error('Invalid response format');
       }
+    } catch (error: any) {
+      console.error('❌ 员工创建API错误:', error);
       // Propagate a more structured error or a user-friendly message
       const errorMessage = error.response?.data?.detail?.[0]?.msg || error.response?.data?.detail || 'Failed to create employee';
       throw new Error(errorMessage);

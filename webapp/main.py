@@ -408,13 +408,7 @@ app.include_router(
 
 # Simple payroll audit functionality is now integrated into simple_payroll.py
 
-# Include the simple payroll test router
-from webapp.v2.routers.simple_payroll_test import router as v2_simple_payroll_test_router
-app.include_router(
-    v2_simple_payroll_test_router,
-    prefix=settings.API_V2_PREFIX,
-    tags=["Simple Payroll Test"]
-)
+# Simple payroll test router has been removed
 
 # Include the batch reports router
 from webapp.v2.routers.batch_reports import router as v2_batch_reports_router

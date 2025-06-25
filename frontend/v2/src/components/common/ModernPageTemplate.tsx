@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout } from 'antd';
 import { useTranslation } from 'react-i18next';
-import './ModernPageTemplate.module.less';
+import styles from './ModernPageTemplate.module.less';
 
 const { Header, Content } = Layout;
 

@@ -270,5 +270,15 @@
   },
   "universal_list_page": {
     "page_title": "Employee List (Universal)"
-  }
+  },
+  "editEmployee": "Edit Employee",
+  "loading": "Loading...",
+  "employeeManagement": "Employee Management",
+  "employeeCode": "Employee Code",
+  "editEmployeeInformation": "Edit Employee Information",
+  "editEmployeeFormPlaceholder": "Employee edit form will be displayed here",
+  "createEmployee": "Create Employee",
+  "createEmployeeDescription": "Fill out the form below to create a new employee",
+  "employeeInformation": "Employee Information",
+  "createEmployeeFormPlaceholder": "Employee creation form will be displayed here"
 }

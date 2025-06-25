@@ -2,9 +2,9 @@ import React from 'react';
 import { Button } from 'antd';
 import type { ButtonProps } from 'antd';
 import classnames from 'classnames';
-import './ModernButton.module.less';
+import styles from './ModernButton.module.less';
 
-export interface ModernButtonProps extends ButtonProps {
+export interface ModernButtonProps extends Omit<ButtonProps, 'variant'> {
   /** 按钮变体样式 */
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   /** 是否为块级按钮（占满容器宽度） */
@@ -48,10 +48,10 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
 
   // 组合className
   const buttonClassName = classnames(
-    'modern-button',
-    `modern-button-${variant}`,
+    styles['modern-button'],
+    styles[`modern-button-${variant}`],
     {
-      'modern-button-block': fullWidth,
+      [styles['modern-button-block']]: fullWidth,
     },
     className
   );

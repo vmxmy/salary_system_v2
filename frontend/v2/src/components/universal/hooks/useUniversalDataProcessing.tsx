@@ -423,7 +423,7 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
       const newColumns = generateColumns(data, filterConfig);
       setCurrentColumnsState(newColumns);
     }
-  }, [autoGenerateColumns, data, filterConfig, generateColumns]);
+  }, [autoGenerateColumns, data, filterConfig]);
 
   // Export functionality (simplified)
   const exportToExcel = useCallback(async (
@@ -442,7 +442,12 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
     return Promise.resolve();
   }, []);
 
-  return {
+  // 稳定化detectColumnType函数引用
+  const detectColumnTypeForColumn = useCallback((column: string) => 
+    detectColumnType(data, column), [data]);
+
+  // 使用 useMemo 包裹返回对象，确保引用稳定性 - 只包含数据依赖，不包含函数依赖
+  return useMemo(() => ({
     // Processed data
     filteredDataSource,
     
@@ -464,10 +469,13 @@ export const useUniversalDataProcessing = (config: UniversalDataProcessingConfig
     exportToExcel,
     
     // Utilities
-    detectColumnType: (column: string) => detectColumnType(data, column),
+    detectColumnType: detectColumnTypeForColumn,
     categorizeColumn,
     formatValue
-  };
+  }), [
+    filteredDataSource, availableColumns, visibleColumns, sortedColumns,
+    currentColumnsState, columnStats, filterConfig
+  ]);
 };
 
 // Helper function to determine column importance (lower = more important)

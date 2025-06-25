@@ -21,6 +21,12 @@ import { createBrowserRouter } from 'react-router-dom'; // 导入 react-router-d
 import { routes } from './router/routes'; // 从 routes.tsx 导入路由配置数组
 import './styles/index.less'; // 只导入 index.less，它会再导入其他需要的样式
 import './styles/form-controls.css'; // 导入全局表单控件样式
+import './components/common/LoginInputOverride.css'; // 登录页面输入框样式覆盖
+// import './styles/dropdown-fix.css'; // 下拉框层叠问题修复 (暂时禁用，观察效果)
+// import './styles/select-optimization.css'; // Select组件优化样式 (暂时禁用，观察效果)
+// import './styles/select-reset.css'; // Select组件完全重置样式 (暂时禁用，观察效果)
+import './styles/autocomplete-fix.css'; // 修复浏览器自动填充蓝色背景
+import './styles/disable-autocomplete.css'; // 完全禁用自动填充
 
 // 在开发环境中导入调试工具
 if (import.meta.env.DEV) {

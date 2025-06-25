@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useRenderMonitor } from '../../../hooks/useRenderCount';
-import { Row, Col } from 'antd';
 import { StatisticCard } from '@ant-design/pro-components';
 import { 
   PlusOutlined, 
@@ -13,6 +12,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+// Layout components
+import { PageLayout, FlexLayout, GridLayout, Box } from '../../../components/Layout';
+
 // Universal components
 import UniversalDataModal from '../../../components/universal/DataBrowser/UniversalDataModal';
 import type { 
@@ -24,7 +26,6 @@ import type {
 } from '../../../components/universal/DataBrowser/UniversalDataModal';
 
 // Modern design components
-import ModernCard from '../../../components/common/ModernCard';
 import ModernButton from '../../../components/common/ModernButton';
 import ModernButtonGroup from '../../../components/common/ModernButtonGroup';
 
@@ -37,13 +38,41 @@ import { employeeService } from '../../../services/employeeService';
 import type { EmployeeBasic, EmployeeBasicQuery } from '../../../types/viewApiTypes';
 import { SearchMode } from '../../../utils/searchUtils';
 
+// 静态常量 - 移到组件外部确保引用稳定性
+const CATEGORY_SORT = ['基本信息', '联系信息', '职位信息', '其他信息'];
+
+const FILTER_PRESETS = [
+  {
+    name: '基本信息',
+    filters: { employee_status_equals: 'active' },
+    description: '显示在职员工的基本信息'
+  },
+  {
+    name: '联系方式',
+    filters: {},
+    description: '显示员工联系方式'
+  },
+  {
+    name: '职位信息',
+    filters: {},
+    description: '显示职位和部门信息'
+  },
+  {
+    name: '最近入职',
+    filters: {},
+    description: '显示最近30天入职的员工'
+  }
+];
+
+const PRESET_CATEGORIES = ['员工筛选', '部门视图', '状态筛选', '自定义配置'];
+
 /**
  * Universal Employee List Page
  * Demonstrates the power of the new universal data browsing system
  * by refactoring the employee list with minimal code
  */
 const EmployeeListPageUniversal: React.FC = () => {
-  const { } = useTranslation(['employee', 'common']);
+  const { t } = useTranslation(['employee', 'common']);
   const navigate = useNavigate();
   
   // 渲染监控 - 检测无限循环
@@ -70,176 +99,160 @@ const EmployeeListPageUniversal: React.FC = () => {
   
   // Debug log permissions
   console.log('🔍 [EmployeeListPageUniversal] permissions:', permissions);
-
-  // Data fetching with universal query hook
-  const {
-    data: employees = [],
-    isLoading,
-    // error,
-    // refetch
+  
+  // Use universal data query hook for employee data
+  const { 
+    data: employees = [], 
+    isLoading 
   } = useUniversalDataQuery(
-    'employees_universal',
-    () => employeeService.getEmployeesFromView(queryFilters),
+    'employees-list',
+    async () => {
+      const response = await employeeService.getEmployees(queryFilters);
+      return response.data || [];
+    },
     {
-      enabled: true,
-      staleTime: 30 * 1000,
-      gcTime: 5 * 60 * 1000,
+      enabled: permissions.canViewEmployees
     }
   );
 
-  // Employee statistics - 优化计算逻辑，减少重复计算
+  // Calculate statistics
   const employeeStats = useMemo(() => {
-    if (!employees || employees.length === 0) {
-      return { total: 0, active: 0, departments: 0, recentHires: 0, regular: 0, contract: 0 };
-    }
+    const stats = {
+      total: employees.length,
+      active: 0,
+      regular: 0,
+      contract: 0,
+      departments: new Set<string>(),
+      recentHires: 0
+    };
 
-    let activeCount = 0;
-    let recentHiresCount = 0;
-    let regularCount = 0;
-    let contractCount = 0;
-    const departmentSet = new Set<string>();
-    
-    // 计算30天前的日期，避免在循环中重复创建
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    // 单次遍历完成所有统计
+
     employees.forEach(emp => {
-      // 统计活跃员工
-      if (emp.employee_status === 'active') {
-        activeCount++;
-      }
+      const status = typeof emp.status === 'object' && emp.status ? emp.status.name : emp.status;
+      if (status === 'active') stats.active++;
       
-      // 统计部门数量
-      if (emp.department_name) {
-        departmentSet.add(emp.department_name);
-      }
+      const categoryName = emp.personnelCategoryName || emp.personnel_category_name || (emp.personnel_category && emp.personnel_category.name);
+      if (categoryName === '正编') stats.regular++;
+      if (categoryName === '聘用') stats.contract++;
       
-      // 统计正编和聘用员工
-      if (emp.personnel_category_name) {
-        if (emp.personnel_category_name.includes('正编') || emp.personnel_category_name.includes('正式')) {
-          regularCount++;
-        } else if (emp.personnel_category_name.includes('聘用') || emp.personnel_category_name.includes('合同')) {
-          contractCount++;
-        }
-      }
+      const deptName = emp.departmentName || emp.department_name || (emp.department && emp.department.name);
+      if (deptName) stats.departments.add(deptName);
       
-      // 统计近期入职
       if (emp.hire_date) {
-        let hireDate: Date;
-        if (typeof emp.hire_date === 'string' || typeof emp.hire_date === 'number') {
-          hireDate = new Date(emp.hire_date);
-        } else {
-          // Handle Dayjs or other date objects
-          hireDate = new Date((emp.hire_date as unknown as { toString: () => string }).toString());
-        }
-        if (hireDate > thirtyDaysAgo) {
-          recentHiresCount++;
-        }
+        const hireDate = new Date(emp.hire_date);
+        if (hireDate >= thirtyDaysAgo) stats.recentHires++;
       }
     });
 
     return {
-      total: employees.length,
-      active: activeCount,
-      departments: departmentSet.size,
-      recentHires: recentHiresCount,
-      regular: regularCount,
-      contract: contractCount
+      ...stats,
+      departments: stats.departments.size
     };
   }, [employees]);
 
-  // Search configuration for employees - 稳定化配置对象
-  const searchConfig = useMemo<SearchConfig<EmployeeBasic>>(() => ({
-    searchableFields: [
-      { key: 'full_name', label: '姓名', type: 'text' },
-      { key: 'employee_code', label: '员工编号', type: 'text' },
-      { key: 'department_name', label: '部门', type: 'text' },
-      { key: 'position_name', label: '职位', type: 'text' },
-      { key: 'phone_number', label: '电话', type: 'text' },
-      { key: 'email', label: '邮箱', type: 'text' },
-    ] as SearchableField<EmployeeBasic>[],
-    supportExpressions: true,
-    searchModes: [SearchMode.AUTO, SearchMode.EXACT, SearchMode.FUZZY, SearchMode.SMART],
-    placeholder: '搜索员工姓名、编号、部门、职位... 或使用表达式如 department_name=技术部',
-    debounceMs: 300
+  // 使用 useMemo 缓存复杂对象配置
+  const searchConfig = useMemo<SearchConfig>(() => ({
+    fields: [
+      { key: 'name', label: '姓名' },
+      { key: 'employee_code', label: '工号' },
+      { key: 'department_name', label: '部门' },
+      { key: 'position_name', label: '职位' },
+      { key: 'email', label: '邮箱' },
+      { key: 'phone', label: '电话' }
+    ] as SearchableField[],
+    placeholder: '搜索员工姓名、工号、部门...',
+    enablePinyin: true,
+    searchMode: SearchMode.FLEXIBLE,
+    highlightMatches: true
   }), []);
 
-  // Filter configuration for employees - memoized to prevent infinite loops
   const filterConfig = useMemo<FilterConfig>(() => ({
-    hideEmptyColumns: true,
-    hideZeroColumns: false,
-    categorySort: ['基本信息', '联系信息', '职位信息', '其他信息'],
-    presets: [
-      {
-        name: '基本信息',
-        filters: { employee_status_equals: 'active' },
-        description: '显示在职员工的基本信息'
+    fields: [
+      { 
+        key: 'status', 
+        label: '在职状态', 
+        type: 'select' as const, 
+        options: [
+          { label: '在职', value: 'active' },
+          { label: '离职', value: 'inactive' },
+          { label: '休假', value: 'on_leave' }
+        ] 
       },
-      {
-        name: '联系方式',
-        filters: {},
-        description: '显示员工联系方式'
+      { 
+        key: 'departmentName', 
+        label: '所属部门', 
+        type: 'select' as const 
       },
-      {
-        name: '职位信息',
-        filters: {},
-        description: '显示职位和部门信息'
+      { 
+        key: 'actualPositionName', 
+        label: '职位', 
+        type: 'search' as const 
       },
-      {
-        name: '最近入职',
-        filters: {},
-        description: '显示最近30天入职的员工'
+      { 
+        key: 'personnelCategoryName', 
+        label: '人员类别', 
+        type: 'select' as const,
+        options: [
+          { label: '正编', value: '正编' },
+          { label: '聘用', value: '聘用' },
+          { label: '临时', value: '临时' }
+        ]
+      },
+      { 
+        key: 'hire_date', 
+        label: '入职日期', 
+        type: 'dateRange' as const 
       }
-    ]
+    ],
+    presets: FILTER_PRESETS,
+    categorySort: CATEGORY_SORT
   }), []);
 
-  // Preset configuration - 稳定化预设配置
   const presetConfig = useMemo<PresetConfig>(() => ({
-    enabled: true,
-    categories: ['员工筛选', '部门视图', '状态筛选', '自定义配置']
+    categories: PRESET_CATEGORIES,
+    enableCustom: true,
+    enableSharing: false
   }), []);
 
-  // Action configuration - memoized to prevent infinite loops
-  const actions: ActionConfig<EmployeeBasic>[] = useMemo(() => [
-    {
-      key: 'view',
-      label: '查看详情',
-      icon: <EyeOutlined />,
-      onClick: (record: EmployeeBasic) => {
-        console.log('查看员工详情:', record);
-        navigate(`/hr/employees/${record.id}/detail`);
+  // 稳定化操作配置，避免不必要的重新渲染
+  const actionsConfig = useMemo<ActionConfig<EmployeeBasic>>(() => ({
+    rowActions: [
+      {
+        label: '查看',
+        icon: <EyeOutlined />,
+        onClick: (record) => navigate(`/hr/employees/${record.id}/detail`),
+        visible: (record) => permissions.canViewEmployees
       },
-      permission: 'canViewDetail'
-    },
-    {
-      key: 'edit',
-      label: '编辑',
-      icon: <EditOutlined />,
-      onClick: (record: EmployeeBasic) => {
-        console.log('编辑员工:', record);
-        navigate(`/hr/employees/${record.id}/edit`);
+      {
+        label: '编辑',
+        icon: <EditOutlined />,
+        onClick: (record) => navigate(`/hr/employees/${record.id}/edit`),
+        visible: (record) => permissions.canUpdateEmployees && (record.status === 'active' || (record.status && record.status.name === 'active'))
       },
-      permission: 'canUpdate'
-    },
-    {
-      key: 'delete',
-      label: '删除',
-      icon: <DeleteOutlined />,
-      onClick: (record: EmployeeBasic) => {
-        console.log('删除员工:', record);
-        // TODO: Implement delete functionality
-      },
-      permission: 'canDelete'
-    }
-  ].filter(action => !action.permission || permissions[action.permission as keyof typeof permissions]), [navigate, permissions]);
+      {
+        label: '删除',
+        icon: <DeleteOutlined />,
+        onClick: (record) => console.log('删除员工:', `${record.last_name || ''}${record.first_name || ''}`),
+        visible: (record) => permissions.canDeleteEmployees,
+        danger: true,
+        confirm: true,
+        confirmMessage: (record) => `确定要删除员工 ${record.last_name || ''}${record.first_name || ''} 吗？`
+      }
+    ],
+    batchActions: [
+      {
+        label: '批量导出',
+        icon: <DownloadOutlined />,
+        onClick: (selectedRows) => console.log('批量导出:', selectedRows.length, '条记录'),
+        visible: () => permissions.canExportEmployees
+      }
+    ],
+    toolbarActions: []
+  }), [navigate, permissions]);
 
-  // Handle row selection
-  const handleRowSelect = useCallback((selectedRows: EmployeeBasic[]) => {
-    console.log('选中的员工:', selectedRows);
-  }, []);
-
-  // Handle export
+  // Handle export - 稳定化函数引用
   const handleExport = useCallback((data: EmployeeBasic[]) => {
     console.log('导出员工数据:', data.length, '条记录');
   }, []);
@@ -249,6 +262,10 @@ const EmployeeListPageUniversal: React.FC = () => {
     navigate(`/hr/employees/${record.id}/detail`);
   }, [navigate]);
 
+  // Handle modal close - 稳定化函数引用
+  const handleModalClose = useCallback(() => {
+    setModalVisible(false);
+  }, []);
 
   // Page header actions
   const headerActions = (
@@ -280,100 +297,82 @@ const EmployeeListPageUniversal: React.FC = () => {
     </ModernButtonGroup>
   );
 
-  return (
-    <div style={{ padding: '24px' }}>
-      {/* 页面标题卡片 */}
-      <ModernCard style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]} justify="space-between" align="middle" wrap>
-          <Col xs={24} sm={24} md={12}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600 }}>员工管理</h1>
-            <p style={{ margin: '8px 0 0 0', color: '#666' }}>
-              现代化员工信息管理系统 - 基于通用数据浏览组件
-            </p>
-          </Col>
-          <Col xs={24} sm={24} md={12} className="header-actions-col">
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              {headerActions}
-            </div>
-          </Col>
-        </Row>
-      </ModernCard>
+  // Statistics cards data
+  const statisticsData = [
+    {
+      title: '员工总数',
+      value: employeeStats.total,
+      suffix: '人',
+      color: '#1890ff'
+    },
+    {
+      title: '在职员工',
+      value: employeeStats.active,
+      suffix: '人',
+      color: '#52c41a'
+    },
+    {
+      title: '正编员工',
+      value: employeeStats.regular,
+      suffix: '人',
+      color: '#13c2c2'
+    },
+    {
+      title: '聘用员工',
+      value: employeeStats.contract,
+      suffix: '人',
+      color: '#eb2f96'
+    },
+    {
+      title: '部门数量',
+      value: employeeStats.departments,
+      suffix: '个',
+      color: '#722ed1'
+    },
+    {
+      title: '最近入职',
+      value: employeeStats.recentHires,
+      suffix: '人',
+      color: '#fa8c16'
+    }
+  ];
 
-      {/* Employee Statistics Dashboard - Simplified */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <StatisticCard
-            statistic={{
-              title: '员工总数',
-              value: employeeStats.total,
-              suffix: '人',
-              valueStyle: { color: '#1890ff' }
-            }}
-            loading={isLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <StatisticCard
-            statistic={{
-              title: '在职员工',
-              value: employeeStats.active,
-              suffix: '人',
-              valueStyle: { color: '#52c41a' }
-            }}
-            loading={isLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <StatisticCard
-            statistic={{
-              title: '正编员工',
-              value: employeeStats.regular,
-              suffix: '人',
-              valueStyle: { color: '#13c2c2' }
-            }}
-            loading={isLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <StatisticCard
-            statistic={{
-              title: '聘用员工',
-              value: employeeStats.contract,
-              suffix: '人',
-              valueStyle: { color: '#eb2f96' }
-            }}
-            loading={isLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <StatisticCard
-            statistic={{
-              title: '部门数量',
-              value: employeeStats.departments,
-              suffix: '个',
-              valueStyle: { color: '#722ed1' }
-            }}
-            loading={isLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <StatisticCard
-            statistic={{
-              title: '最近入职',
-              value: employeeStats.recentHires,
-              suffix: '人',
-              valueStyle: { color: '#fa8c16' }
-            }}
-            loading={isLoading}
-          />
-        </Col>
-      </Row>
+  return (
+    <PageLayout
+      title="员工管理"
+      subtitle="现代化员工信息管理系统 - 基于通用数据浏览组件"
+      actions={headerActions}
+      showCard={false}
+    >
+      {/* Employee Statistics Dashboard */}
+      <Box mb="6">
+        <GridLayout
+          columns={6}
+          gap="4"
+          colsSm={2}
+          colsMd={3}
+          colsLg={6}
+        >
+          {statisticsData.map((stat, index) => (
+            <StatisticCard
+              key={index}
+              statistic={{
+                title: stat.title,
+                value: stat.value,
+                suffix: stat.suffix,
+                valueStyle: { color: stat.color }
+              }}
+              loading={isLoading}
+            />
+          ))}
+        </GridLayout>
+      </Box>
 
       {/* Universal Data Modal */}
       <UniversalDataModal<EmployeeBasic>
         title="员工信息浏览"
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={handleModalClose}
         dataSource={employees}
         loading={isLoading}
         
@@ -386,28 +385,105 @@ const EmployeeListPageUniversal: React.FC = () => {
         filterConfig={filterConfig}
         
         // Preset configuration
-        presetEnabled={true}
         presetConfig={presetConfig}
         
-        // Actions
-        actions={actions}
-        onRowSelect={handleRowSelect}
+        // Action configuration
+        actions={actionsConfig}
+        
+        // Column configuration
+        columns={[
+          { 
+            key: 'employee_code', 
+            title: '工号', 
+            width: 100,
+            fixed: 'left' as const,
+            sortable: true
+          },
+          { 
+            key: 'name', 
+            title: '姓名', 
+            width: 120,
+            fixed: 'left' as const,
+            highlight: true,
+            render: (value: any, record: EmployeeBasic) => {
+              return `${record.last_name || ''}${record.first_name || ''}`.trim() || '-';
+            }
+          },
+          { 
+            key: 'departmentName', 
+            title: '部门', 
+            width: 150,
+            ellipsis: true,
+            sortable: true
+          },
+          { 
+            key: 'actualPositionName', 
+            title: '职位', 
+            width: 150,
+            ellipsis: true
+          },
+          { 
+            key: 'personnelCategoryName', 
+            title: '人员类别', 
+            width: 100,
+            align: 'center' as const
+          },
+          { 
+            key: 'status', 
+            title: '在职状态', 
+            width: 100,
+            align: 'center' as const,
+            render: (value: any) => {
+              // Handle both value as string or as object
+              const statusValue = typeof value === 'object' && value ? value.name : value;
+              const statusMap: Record<string, { text: string; color: string }> = {
+                active: { text: '在职', color: '#52c41a' },
+                inactive: { text: '离职', color: '#f5222d' },
+                on_leave: { text: '休假', color: '#fa8c16' }
+              };
+              const status = statusMap[statusValue] || { text: statusValue || '-', color: '#666' };
+              return <span style={{ color: status.color }}>{status.text}</span>;
+            }
+          },
+          { 
+            key: 'hire_date', 
+            title: '入职日期', 
+            width: 120,
+            sortable: true
+          },
+          { 
+            key: 'email', 
+            title: '邮箱', 
+            width: 200,
+            ellipsis: true,
+            copyable: true
+          },
+          { 
+            key: 'phone', 
+            title: '电话', 
+            width: 130,
+            copyable: true
+          }
+        ]}
+        
+        // Features
+        enableExport={true}
         onExport={handleExport}
+        enableSelection={true}
+        enableColumnConfig={true}
+        enableDensity={true}
+        
+        // Events
         onRowDoubleClick={handleRowDoubleClick}
         
-        // Table configuration
-        rowKey="id"
-        selectable={true}
-        exportable={permissions.canExport}
-        
-        // Style configuration
-        width="95%"
-        height={650}
-        
-        // Advanced configuration
-        queryKey="employees_modal"
+        // Pagination
+        pagination={{
+          pageSize: 20,
+          showSizeChanger: true,
+          showTotal: (total) => `共 ${total} 条记录`
+        }}
       />
-    </div>
+    </PageLayout>
   );
 };
 

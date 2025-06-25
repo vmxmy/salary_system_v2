@@ -1,0 +1,133 @@
+/* 登录页面专用样式 - 使用统一的标准组件 */
+
+/* 强制覆盖全局form-controls.css样式，解决文字靠底部问题 */
+:global(.login-form .ant-input-affix-wrapper-lg .ant-input) {
+  height: 100% !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 18px !important;
+}
+
+:global(.login-form .ant-input-lg) {
+  height: 44px !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 18px !important;
+}
+
+:global(.login-form .ant-input-affix-wrapper-lg) {
+  height: 44px !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 20px !important;
+}
+
+/* 确保placeholder样式正确 */
+:global(.login-form .ant-input::placeholder) {
+  line-height: 1.5 !important;
+  font-size: 18px !important;
+  color: #9ca3af !important;
+}
+
+:global(.login-form .ant-input-affix-wrapper-lg .ant-input::placeholder) {
+  line-height: 1.5 !important;
+  font-size: 18px !important;
+  color: #9ca3af !important;
+}
+
+/* 前缀图标对齐 */
+:global(.login-form .ant-input-prefix) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 8px !important;
+}
+
+:global(.login-form .ant-input-suffix) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 8px !important;
+}
+
+/* 登录页面布局 */
+.loginContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* 登录表单头部 */
+.loginHeader {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.loginLogo {
+  height: 60px;
+  margin-bottom: 24px;
+}
+
+.loginTitle {
+  margin-bottom: 0;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* 登录表单 */
+.loginForm {
+  /* 标准组件会处理样式 */
+}
+
+/* 错误提示样式 */
+.loginError {
+  margin-bottom: 20px;
+}
+
+/* 记住我复选框 */
+.rememberMe {
+  margin-bottom: 24px;
+}
+
+.rememberMe .ant-checkbox-wrapper {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* 登录按钮容器 */
+.loginButton {
+  border-radius: 8px;
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+  .loginContainer {
+    padding: 16px;
+    background: #ffffff;
+  }
+  
+  .loginLogo {
+    height: 48px;
+    margin-bottom: 20px;
+  }
+  
+  .loginHeader {
+    margin-bottom: 24px;
+  }
+  
+  .loginTitle {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .loginContainer {
+    padding: 20px;
+  }
+  
+  .loginHeader {
+    margin-bottom: 28px;
+  }
+}

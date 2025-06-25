@@ -272,5 +272,6 @@
   "auto_text_e99d9e": "非活跃",
   "exclude_pattern_label": "排除模式（支持通配符 * 和 ?）：",
   "include_pattern_label": "包含模式（支持通配符 * 和 ?）：",
-  "include_pattern_help": "设置后仅显示匹配的列，例如 *工资* 显示所有包含工资的列"
+  "include_pattern_help": "设置后仅显示匹配的列，例如 *工资* 显示所有包含工资的列",
+  "auto__range_0_range_1___total__e7acac": "第 {range0}-{range1} 条，共 {total} 条"
 }

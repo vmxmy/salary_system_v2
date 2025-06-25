@@ -139,3 +139,5 @@ export default defineConfig({
     }
   }
 })
+
+// HMR full-reload trigger

@@ -264,6 +264,46 @@ export const getPayrollEntries = async (params?: {
 export const getPayrollEntryById = async (entryId: number): Promise<ApiSingleResponse<PayrollEntry>> => {
   try {
     const response = await apiClient.get<ApiSingleResponse<PayrollEntry>>(`${PAYROLL_ENTRIES_ENDPOINT}/${entryId}`);
+    
+    // 添加原始API响应日志
+    console.log('🌐 [API原始响应] getPayrollEntryById:', {
+      entryId,
+      status: response.status,
+      headers: response.headers,
+      data: response.data,
+      deductions_details_raw: response.data?.data?.deductions_details,
+      deductions_details_keys: response.data?.data?.deductions_details ? Object.keys(response.data.data.deductions_details) : null
+    });
+    
+    // 检查五险一金字段的手动调整信息
+    if (response.data?.data?.deductions_details) {
+      const socialInsuranceFields = [
+        'PENSION_PERSONAL_AMOUNT',
+        'MEDICAL_PERSONAL_AMOUNT', 
+        'UNEMPLOYMENT_PERSONAL_AMOUNT',
+        'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT',
+        'HOUSING_FUND_PERSONAL'
+      ];
+      
+      const manualAdjustmentInfo: Record<string, any> = {};
+      socialInsuranceFields.forEach(field => {
+        const fieldData = response.data.data.deductions_details[field];
+        if (fieldData) {
+          manualAdjustmentInfo[field] = {
+            raw_data: fieldData,
+            is_manual: fieldData.is_manual,
+            is_manual_type: typeof fieldData.is_manual,
+            manual_at: fieldData.manual_at,
+            manual_by: fieldData.manual_by,
+            manual_reason: fieldData.manual_reason,
+            amount: fieldData.amount
+          };
+        }
+      });
+      
+      console.log('🔍 [API响应] 五险一金手动调整信息:', manualAdjustmentInfo);
+    }
+    
     return response.data;
   } catch (error) {
     throw error;

@@ -5,7 +5,6 @@ import type { AppRouteObject } from '../../router/routes'; // Corrected: AppRout
 // import i18n from '../../i18n'; // Import i18n instance
 
 // 使用现代化版本的员工列表页面
-const EmployeeListPage = React.lazy(() => import('./employees/EmployeeListPageModern'));
 const EmployeeListPageUniversal = React.lazy(() => import('./employees/EmployeeListPageUniversal'));
 const CreateEmployeePage = React.lazy(() => import('./employees/CreateEmployeePageModern'));
 const EditEmployeePage = React.lazy(() => import('./employees/EditEmployeePageModern'));
@@ -23,10 +22,10 @@ export const hrManagementRoutes: AppRouteObject[] = [
     element: React.createElement(
       React.Suspense,
       { fallback: React.createElement('div', { className: 'page-loading-suspense' }, 'Loading Employee List...') },
-      React.createElement(EmployeeListPage)
+      React.createElement(EmployeeListPageUniversal)
     ),
     meta: {
-      title: 'employee:list_page.page_title', // 使用静态翻译键
+      title: 'employee:universal_list_page.page_title', // 使用新版员工列表页面
       requiredPermissions: ['employee:list'], // Changed from permission to requiredPermissions
       hideInBreadcrumbIfParentOfNext: true,
     },

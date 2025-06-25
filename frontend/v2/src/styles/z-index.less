@@ -1,0 +1,45 @@
+// Z-Index Variables (统一层级管理)
+// 基于 z-index.ts 的 LESS 变量定义
+// 注意：这个文件是自动生成的，请勿手动修改
+
+// 基础层级
+@z-index-base: 1;
+@z-index-dropdown: 50;
+
+// 固定元素
+@z-index-sticky: 100;
+@z-index-sticky-header: 101;
+@z-index-fixed-button: 150;
+
+// 遮罩层
+@z-index-backdrop: 200;
+@z-index-modal-backdrop: 499;
+
+// 侧边栏
+@z-index-drawer: 300;
+@z-index-drawer-mask: 299;
+@z-index-sidebar: 350;
+
+// 弹出层
+@z-index-popover: 400;
+@z-index-tooltip: 450;
+
+// 模态框
+@z-index-modal: 500;
+@z-index-modal-content: 501;
+
+// 消息提示
+@z-index-message: 600;
+@z-index-notification: 650;
+@z-index-toast: 610;
+
+// 加载状态
+@z-index-loading: 900;
+@z-index-loading-mask: 899;
+
+// 最高层级
+@z-index-maximum: 999;
+
+// 兼容旧版变量名（将在下个版本中移除）
+@z-index-table-column-setting: @z-index-popover;
+@z-index-skip-link: @z-index-maximum;

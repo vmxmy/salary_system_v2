@@ -1,5 +1,5 @@
 import React from 'react';
-import { Space, Button, Tag, Progress, Typography, Divider, Affix, Tooltip, DatePicker } from 'antd';
+import { Space, Button, Tag, Progress, Typography, Divider, Tooltip, DatePicker } from 'antd';
 import { 
   CalendarOutlined, 
   FileTextOutlined, 
@@ -123,11 +123,10 @@ export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
   };
 
   return (
-    <Affix offsetTop={0}>
-      <div className="payroll-context-bar">
-        <div className="context-content">
-          <div className="context-left">
-            <Space size="large">
+    <div className="payroll-context-bar">
+      <div className="context-content">
+        <div className="context-left">
+          <Space size="large">
               {/* 薪资周期 */}
               <Space className="context-section">
                 <CalendarOutlined className="context-icon period-icon" />
@@ -245,10 +244,9 @@ export const PayrollContextBar: React.FC<PayrollContextBarProps> = ({
                 </Button>
               )}
             </Space>
-          </div>
         </div>
       </div>
-    </Affix>
+    </div>
   );
 };
 

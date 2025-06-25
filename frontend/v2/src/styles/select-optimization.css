@@ -1,0 +1,249 @@
+/* 
+ * Select组件全局优化
+ * 解决下拉框多层嵌套视觉问题
+ */
+
+/* 重置下拉框容器样式 */
+.ant-select-dropdown {
+  /* 使用单一阴影，避免多重阴影造成的视觉分层 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 4px !important;
+  overflow: hidden;
+  /* 移除可能的边框 */
+  border: none !important;
+  background-color: #fff;
+}
+
+/* 移除下拉框内层容器的边框和内边距 */
+.ant-select-dropdown .rc-virtual-list,
+.ant-select-dropdown .rc-virtual-list-holder,
+.ant-select-dropdown .rc-virtual-list-holder-inner {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 移除选项容器的额外样式 */
+.ant-select-dropdown .ant-select-item-option-content {
+  padding: 0;
+}
+
+/* 确保下拉内容区域没有额外边框 */
+.ant-select-dropdown-content {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 优化选项的样式 */
+.ant-select-item {
+  padding: 5px 12px;
+  border-radius: 0;
+}
+
+.ant-select-item-option {
+  transition: background-color 0.2s;
+}
+
+/* 优化选项悬停效果 */
+.ant-select-item-option:hover {
+  background-color: #f5f5f5;
+}
+
+/* 选中项的样式 */
+.ant-select-item-option-selected {
+  background-color: #e6f7ff;
+  font-weight: 500;
+}
+
+/* 确保加载和空状态居中显示 */
+.ant-select-dropdown .ant-empty {
+  margin: 12px 0;
+}
+
+.ant-select-dropdown .ant-spin-nested-loading {
+  text-align: center;
+  padding: 12px;
+}
+
+/* 移除多余的内边距 */
+.ant-select-dropdown .ant-select-item-empty {
+  padding: 5px 12px;
+  color: rgba(0, 0, 0, 0.25);
+}
+
+/* 优化多选标签样式 */
+.ant-select-multiple .ant-select-selector {
+  padding: 1px 4px;
+}
+
+.ant-select-multiple .ant-select-selection-item {
+  margin: 2px 4px 2px 0;
+  padding: 0 8px;
+  border-radius: 2px;
+}
+
+/* 确保下拉框箭头对齐 */
+.ant-select-arrow {
+  right: 11px;
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+}
+
+/* 搜索输入框样式优化 - 移除额外边框 */
+.ant-select-dropdown .ant-select-search {
+  padding: 8px;
+  background: transparent;
+  border: none !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-select-dropdown .ant-select-search-input {
+  background: #fafafa;
+  border: 1px solid #e8e8e8 !important;
+  border-radius: 2px;
+  padding: 4px 8px;
+}
+
+/* 移除可能的伪元素边框 */
+.ant-select-dropdown::before,
+.ant-select-dropdown::after,
+.ant-select-dropdown-content::before,
+.ant-select-dropdown-content::after {
+  display: none !important;
+}
+
+/* 移除 Select 输入框的多重边框效果 */
+.ant-select-selector {
+  border: 1px solid #d9d9d9 !important;
+  box-shadow: none !important;
+}
+
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus,
+.ant-select-selector:hover {
+  border-color: #40a9ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* 确保下拉框展开时输入框样式一致 */
+.ant-select-open .ant-select-selector {
+  border-color: #40a9ff !important;
+}
+
+/* 移除下拉框内部的所有不必要边框 */
+.ant-select-dropdown .ant-select-tree,
+.ant-select-dropdown .ant-select-tree-list,
+.ant-select-dropdown .ant-select-tree-list-holder,
+.ant-select-dropdown .ant-select-tree-list-holder-inner {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 防止内容溢出 */
+.ant-select-dropdown {
+  max-height: 256px;
+}
+
+.ant-select-dropdown .rc-virtual-list-holder {
+  overflow-y: auto;
+  max-height: 256px;
+}
+
+/* 分组选项样式 */
+.ant-select-item-group {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+  padding: 5px 12px;
+}
+
+/* 禁用项样式 */
+.ant-select-item-option-disabled {
+  color: rgba(0, 0, 0, 0.25);
+  cursor: not-allowed;
+}
+
+/* 移除不必要的分隔线 */
+.ant-select-dropdown .ant-select-item + .ant-select-item {
+  border-top: none;
+}
+
+/* 确保下拉框动画流畅 */
+.ant-select-dropdown.ant-slide-up-enter.ant-slide-up-enter-active,
+.ant-select-dropdown.ant-slide-up-appear.ant-slide-up-appear-active {
+  animation-duration: 0.2s;
+}
+
+/* 响应式优化 - 移动端 */
+@media (max-width: 576px) {
+  .ant-select-dropdown {
+    max-width: calc(100vw - 32px);
+  }
+  
+  .ant-select-item {
+    padding: 8px 12px;
+  }
+}
+
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .ant-select-dropdown {
+    background-color: #1f1f1f;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .ant-select-item-option:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .ant-select-item-option-selected {
+    background-color: rgba(24, 144, 255, 0.16);
+  }
+}
+
+/* 调试模式 - 帮助识别额外边框来源 */
+.debug-select-borders .ant-select-dropdown {
+  border: 2px solid red !important;
+}
+
+.debug-select-borders .ant-select-dropdown-content {
+  border: 2px solid blue !important;
+}
+
+.debug-select-borders .rc-virtual-list {
+  border: 2px solid green !important;
+}
+
+.debug-select-borders .rc-virtual-list-holder {
+  border: 2px solid yellow !important;
+}
+
+.debug-select-borders .ant-select-item {
+  border: 1px solid purple !important;
+}
+
+/* 修复特定的 Ant Design 5.x 问题 */
+.ant-select-dropdown .ant-select-item-option-state {
+  display: none !important;
+}
+
+/* 确保下拉框的背景色一致 - 已修正选择器以避免影响选择器本身 */
+.ant-select-dropdown .ant-select-dropdown-content,
+.ant-select-dropdown .rc-virtual-list,
+.ant-select-dropdown .rc-virtual-list-holder {
+  background-color: #fff !important;
+}
+
+/* 移除所有内部容器的内边距 */
+.ant-select-dropdown > div {
+  padding: 0 !important;
+}
+
+/* 特别处理 rc-virtual-list 的滚动条区域 */
+.ant-select-dropdown .rc-virtual-list-scrollbar {
+  width: 8px !important;
+  background: transparent !important;
+}
+
+.ant-select-dropdown .rc-virtual-list-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px !important;
+}

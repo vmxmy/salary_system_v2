@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardProps } from 'antd';
+import { Card, type CardProps } from 'antd';
 import classNames from 'classnames';
 import styles from '../styles/SimplePayrollStyles.module.less';
 

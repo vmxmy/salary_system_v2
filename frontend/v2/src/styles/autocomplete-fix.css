@@ -1,0 +1,136 @@
+/* 
+ * 修复浏览器自动填充的蓝色背景问题
+ * 适用于所有输入框
+ */
+
+/* Chrome, Safari, Edge 自动填充样式重置 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  /* 使用 box-shadow 覆盖背景色 */
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
+  /* 保持文字颜色 */
+  -webkit-text-fill-color: #000000 !important;
+  /* 动画过渡，避免突兀 */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Ant Design 输入框的自动填充修复 */
+.ant-input:-webkit-autofill,
+.ant-input:-webkit-autofill:hover,
+.ant-input:-webkit-autofill:focus,
+.ant-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+  border-color: #d9d9d9 !important;
+}
+
+/* 聚焦状态下的自动填充样式 */
+.ant-input:-webkit-autofill:focus {
+  border-color: #4096ff !important;
+  border-inline-end-width: 1px !important;
+  outline: 0;
+  box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1), 0 0 0 1000px white inset !important;
+}
+
+/* 密码输入框的自动填充 */
+.ant-input-affix-wrapper input:-webkit-autofill,
+.ant-input-affix-wrapper input:-webkit-autofill:hover,
+.ant-input-affix-wrapper input:-webkit-autofill:focus,
+.ant-input-affix-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+}
+
+/* Form.Item 内的输入框自动填充 */
+.ant-form-item-control-input input:-webkit-autofill,
+.ant-form-item-control-input input:-webkit-autofill:hover,
+.ant-form-item-control-input input:-webkit-autofill:focus,
+.ant-form-item-control-input input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+}
+
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  .ant-input:-webkit-autofill,
+  .ant-input:-webkit-autofill:hover,
+  .ant-input:-webkit-autofill:focus,
+  .ant-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #141414 inset !important;
+    box-shadow: 0 0 0 1000px #141414 inset !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
+  }
+}
+
+/* Firefox 自动填充样式 */
+input:autofill,
+.ant-input:autofill {
+  background-color: white !important;
+  background-image: none !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+}
+
+/* 特别处理登录页面的输入框 */
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover,
+.login-form input:-webkit-autofill:focus,
+.login-form input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+  font-size: 14px !important;
+}
+
+/* 移除自动填充的默认黄色背景 */
+input:-internal-autofill-selected {
+  background-color: white !important;
+  background-image: none !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+}
+
+/* 确保占位符文字正常显示 */
+input:-webkit-autofill::placeholder,
+.ant-input:-webkit-autofill::placeholder {
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.25) !important;
+  color: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* 避免自动填充影响输入框高度 */
+input:-webkit-autofill,
+.ant-input:-webkit-autofill {
+  height: auto !important;
+  line-height: inherit !important;
+}
+
+/*
+ * 修复 Ant Design Select 组件内部 input 被自动填充时出现的样式问题
+ * 当表单设置初始值时，Select 内部的 input 可能会被识别为 autofill状态，
+ * 导致应用了全局的 input:-webkit-autofill 样式，出现一个难看的白色内框。
+ * 此规则专门重置该内框的样式，使其透明。
+ */
+.ant-select-selector input:-webkit-autofill,
+.ant-select-selector input:-webkit-autofill:hover,
+.ant-select-selector input:-webkit-autofill:focus,
+.ant-select-selector input:-webkit-autofill:active {
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}

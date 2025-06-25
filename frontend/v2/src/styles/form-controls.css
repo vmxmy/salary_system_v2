@@ -20,6 +20,22 @@
   border-radius: var(--form-control-border-radius);
 }
 
+/* 大尺寸输入框例外 */
+.ant-input-lg,
+.ant-input-affix-wrapper-lg {
+  height: 40px !important;
+  padding: 6.4px 15px !important;
+  font-size: 16px !important;
+  line-height: 1.5715 !important;
+}
+
+/* 大尺寸密码输入框 */
+.ant-input-affix-wrapper-lg .ant-input {
+  height: calc(40px - 2px) !important;
+  line-height: calc(40px - 2px) !important;
+  font-size: 16px !important;
+}
+
 /* 统一所有选择器高度 */
 .ant-select-selector {
   height: var(--form-control-height) !important;
@@ -65,7 +81,8 @@
 .ant-btn-lg {
   height: 40px !important;
   padding: 6.4px 15px !important;
-  font-size: 16px;
+  font-size: 16px !important;
+  line-height: 1.5715 !important;
 }
 
 /* ProForm 组件特殊处理 */

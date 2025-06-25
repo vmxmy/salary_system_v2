@@ -13,7 +13,7 @@ export const isDev = process.env.NODE_ENV === 'development';
  * 在React DevTools Profiler中显示详细的渲染信息
  */
 export const useRenderTrace = (
-
+  componentName: string,
   props?: Record<string, any>,
   options: {
     logRenders?: boolean;
@@ -40,13 +40,14 @@ export const useRenderTrace = (
 
     if (logRenders) {
       console.log(`🔄 [RenderTrace] ${componentName} render #${renderCount.current}`, {
-        timeSinceLastRender: `${timeSinceLastRender}ms`,
-
+        timeSinceLastRender: `${timeSinceLastRender}ms`
+      });
     }
 
     if (logTimings && timeSinceLastRender < 100) {
       console.warn(`⚡ [RenderTrace] ${componentName} 快速重渲染! 间隔: ${timeSinceLastRender}ms`);
     }
+  }, [componentName, logRenders, logTimings]);
 
   // 追踪Props变化
   useEffect(() => {
@@ -62,6 +63,7 @@ export const useRenderTrace = (
               curr: props[key]
             };
           }
+        });
 
         if (Object.keys(changedProps).length > 0) {
           console.log(`📝 [RenderTrace] ${componentName} props changed:`, changedProps);
@@ -83,7 +85,7 @@ export const useRenderTrace = (
  * 帮助识别导致Hook重复执行的依赖项
  */
 export const useDependencyTrace = (
-
+  hookName: string,
   dependencies: any[],
   options: {
     logChanges?: boolean;
@@ -119,8 +121,8 @@ export const useDependencyTrace = (
           console.log(`🔗 [DependencyTrace] ${hookName} dependencies changed:`, {
             changedIndices,
             changeCount: changeCountRef.current,
-            timeSinceLastChange: `${timeSinceLastChange}ms`,
-
+            timeSinceLastChange: `${timeSinceLastChange}ms`
+          });
         }
 
         if (warnOnFrequentChanges && timeSinceLastChange < 100) {
@@ -168,6 +170,7 @@ export const usePerformanceMonitor = (componentName: string) => {
         console.warn(`🐌 [Performance] ${componentName} 渲染时间: ${renderDuration.toFixed(2)}ms`);
       }
     }
+  }, [componentName]);
 
   return {
     componentName,
@@ -273,3 +276,8 @@ export const enableReactDevToolsIntegration = () => {
     }
   }
 };
+
+// 在开发环境下自动启用React DevTools集成
+if (isDev) {
+  enableReactDevToolsIntegration();
+}

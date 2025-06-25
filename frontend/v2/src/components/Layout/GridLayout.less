@@ -1,0 +1,37 @@
+@import '../../styles/variables.less';
+@import '../../styles/breakpoints.less';
+
+// GridLayout 组件样式
+.grid-layout {
+  // 基础 grid 容器样式已通过 Box 组件的 display: grid 设置
+  
+  // 响应式列数辅助类
+  // 生成响应式列数类
+  .generate-responsive-cols(@breakpoint, @prefix) {
+    .loop(@i) when (@i > 0) {
+      &--cols-@{prefix}-@{i} {
+        @media (min-width: @breakpoint) {
+          grid-template-columns: repeat(@i, 1fr);
+        }
+      }
+      .loop(@i - 1);
+    }
+    .loop(12); // 支持 1-12 列
+  }
+  
+  // 为每个断点生成类
+  .generate-responsive-cols(@screen-sm-min, sm);
+  .generate-responsive-cols(@screen-md-min, md);
+  .generate-responsive-cols(@screen-lg-min, lg);
+  .generate-responsive-cols(@screen-xl-min, xl);
+  .generate-responsive-cols(@screen-xxl-min, xxl);
+  
+  // 常用的网格模式
+  &--auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  
+  &--auto-fill {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}

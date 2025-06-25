@@ -578,5 +578,15 @@
   },
   "auto___e88eb7": "获取薪资周期失败:",
   "auto___e6a0b9": "根据部门获取员工失败:",
-  "auto_____e29aa0": "⚠️ 优化部门接口失败，降级到原接口:"
+  "auto_____e29aa0": "⚠️ 优化部门接口失败，降级到原接口:",
+  "refresh": "刷新",
+  "home": "首页",
+  "hrManagement": "人力资源管理",
+  "searchAndFilter": "搜索和筛选",
+  "export": {
+    "defaultFilename": "导出数据",
+    "defaultSheetName": "工作表"
+  },
+  "pleaseSelect": "请选择",
+  "save": "保存"
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { debounce } from 'lodash';
 import { 
   Modal, 
   Form, 
@@ -16,9 +17,11 @@ import {
   Space,
   App,
   Tabs,
-  Alert
+  Alert,
+  Checkbox,
+  Tooltip
 } from 'antd';
-import { PlusOutlined, EditOutlined, SaveOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, SaveOutlined, MinusCircleOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { PayrollEntry, PayrollItemDetail, PayrollComponentDefinition, PayrollEntryPatch, CreatePayrollEntryPayload, LookupValue, PayrollRun } from '../types/payrollTypes';
 import { updatePayrollEntryDetails, getPayrollEntryById, createPayrollEntry, getPayrollRuns } from '../services/payrollApi';
@@ -43,6 +46,15 @@ const ALLOW_NEGATIVE_COMPONENTS = [
   'REFUND_DEDUCTION_ADJUSTMENT', // 补扣退款调整
   'SOCIAL_INSURANCE_MAKEUP',     // 补扣社保
   'PERFORMANCE_BONUS_MAKEUP'     // 奖励绩效补扣发
+];
+
+// 五险一金个人扣缴项目代码
+const SOCIAL_INSURANCE_DEDUCTION_CODES = [
+  'PENSION_PERSONAL_AMOUNT',           // 养老保险(个人)
+  'MEDICAL_PERSONAL_AMOUNT',           // 医疗保险(个人)
+  'UNEMPLOYMENT_PERSONAL_AMOUNT',      // 失业保险(个人)
+  'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT', // 职业年金(个人)
+  'HOUSING_FUND_PERSONAL'              // 住房公积金(个人)
 ];
 
 // 测试函数，用于检查PATCH数据格式转换
@@ -89,7 +101,7 @@ interface PayrollEntryFormModalProps {
   payrollRunId?: number | null; // 添加可选的工资运行ID
   entry: PayrollEntry | null;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (shouldRefresh?: boolean) => void;
 }
 
 interface PayrollComponent {
@@ -121,6 +133,7 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [housingFundBase, setHousingFundBase] = useState<number>(0);
   const [occupationalPensionBase, setOccupationalPensionBase] = useState<number>(0);
   const [updatingInsuranceBase, setUpdatingInsuranceBase] = useState<boolean>(false);
+  const [adjustingItems, setAdjustingItems] = useState<Set<string>>(new Set()); // 正在调整的项目
   const { message: messageApi } = App.useApp();
   
   // 新增：模态框API数据状态
@@ -129,6 +142,27 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   const [activeTab, setActiveTab] = useState<string>('basic');
   
   const payrollConfig = usePayrollConfigStore();
+  
+  // 防抖的手动调整API调用
+  const debouncedManualAdjustment = useRef(
+    debounce(async (entryId: number, componentCode: string, amount: number, reason: string) => {
+      try {
+        const response = await simplePayrollApi.manuallyAdjustDeduction(entryId, {
+          component_code: componentCode,
+          amount: amount,
+          reason: reason
+        });
+        
+        if (response.data) {
+          console.log('手动调整金额已更新:', response.data);
+          // 不需要更新本地状态，因为值已经在输入框中改变了
+        }
+      } catch (error: any) {
+        console.error('更新手动调整金额失败:', error);
+        messageApi.error(`更新失败: ${error.response?.data?.detail || error.message}`);
+      }
+    }, 500)
+  ).current;
   
   // 加载动态状态选项
   useEffect(() => {
@@ -533,6 +567,23 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
           componentDefinitions: payrollConfig.componentDefinitions.map(c => ({ code: c.code, type: c.type }))
         });
         
+        // 特别打印五险一金的手动调整状态
+        if (entry.deductions_details) {
+          const socialInsuranceStatus = {};
+          SOCIAL_INSURANCE_DEDUCTION_CODES.forEach(code => {
+            const deduction = entry.deductions_details[code];
+            if (deduction) {
+              socialInsuranceStatus[code] = {
+                amount: deduction.amount,
+                is_manual: deduction.is_manual,
+                auto_calculated: deduction.auto_calculated,
+                manual_at: deduction.manual_at
+              };
+            }
+          });
+          console.log('🔍 [手动调整] 五险一金状态:', socialInsuranceStatus);
+        }
+        
         console.log('Deductions details raw:',
           Array.isArray(entry.deductions_details), 
           JSON.stringify(entry.deductions_details, null, 2)
@@ -620,29 +671,75 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         // 处理扣除项 - 改进的处理逻辑
         
         if (entry.deductions_details) {
+          console.log('🎯 [数据加载] 原始扣除项数据:', {
+            type: typeof entry.deductions_details,
+            isArray: Array.isArray(entry.deductions_details),
+            keys: !Array.isArray(entry.deductions_details) ? Object.keys(entry.deductions_details) : null,
+            raw_data: entry.deductions_details
+          });
           
           // 统一处理对象格式和数组格式
           let deductionsArray: Array<PayrollItemDetail> = [];
           
           if (typeof entry.deductions_details === 'object') {
             if (Array.isArray(entry.deductions_details)) {
-              // 已经是数组，直接使用
-              deductionsArray = [...entry.deductions_details];
+              // 已经是数组，确保包含所有必要字段
+              deductionsArray = entry.deductions_details.map(item => ({
+                name: item.name,
+                amount: item.amount || 0,
+                description: item.description || payrollConfig.componentDefinitions.find(c => c.code === item.name)?.description || '',
+                is_manual: Boolean(item.is_manual),
+                manual_at: item.manual_at,
+                manual_by: item.manual_by,
+                manual_reason: item.manual_reason,
+                auto_calculated: item.auto_calculated,
+                allowNegative: item.allowNegative
+              }));
             } else {
               // 对象格式，转换为数组
               deductionsArray = Object.entries(entry.deductions_details).map(([key, value]) => {
-                // 安全处理value
-                const amount = typeof value === 'number' 
-                  ? value 
-                  : (typeof value === 'object' && value !== null && 'amount' in value 
-                    ? (value as any).amount || 0 
-                    : 0);
-                
-                return {
-                  name: key,
-                  amount: amount,
-                  description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
-                };
+                // 处理不同格式的value
+                if (typeof value === 'number') {
+                  return {
+                    name: key,
+                    amount: value,
+                    description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+                  };
+                } else if (typeof value === 'object' && value !== null) {
+                  // 完整的对象格式，保留所有手动调整信息
+                  const valueObj = value as any;
+                  const itemData = {
+                    name: key,
+                    amount: valueObj.amount || 0,
+                    description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || '',
+                    is_manual: Boolean(valueObj.is_manual),
+                    manual_at: valueObj.manual_at,
+                    manual_by: valueObj.manual_by,
+                    manual_reason: valueObj.manual_reason,
+                    auto_calculated: valueObj.auto_calculated
+                  };
+                  
+                  // 调试日志
+                  if (SOCIAL_INSURANCE_DEDUCTION_CODES.includes(key)) {
+                    console.log(`[手动调整] 加载扣除项 ${key}:`, {
+                      raw_value: valueObj,
+                      is_manual_raw: valueObj.is_manual,
+                      is_manual_type: typeof valueObj.is_manual,
+                      is_manual_converted: itemData.is_manual,
+                      amount: itemData.amount,
+                      auto_calculated: itemData.auto_calculated,
+                      manual_at: itemData.manual_at
+                    });
+                  }
+                  
+                  return itemData;
+                } else {
+                  return {
+                    name: key,
+                    amount: 0,
+                    description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+                  };
+                }
               });
             }
           }
@@ -674,6 +771,35 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                   .map(item => item.name)
               );
             }
+            
+            // 调试：打印所有扣除项的手动调整状态
+            console.log('📋 [手动调整] 过滤前扣除项数量:', deductionsArray.length);
+            console.log('📋 [手动调整] 过滤后扣除项数量:', validDeductions.length);
+            console.log('📋 [手动调整] 所有扣除项状态:', validDeductions.map(item => ({
+              name: item.name,
+              is_manual: item.is_manual,
+              is_manual_type: typeof item.is_manual,
+              amount: item.amount,
+              auto_calculated: item.auto_calculated
+            })));
+            
+            // 特别检查五险一金的状态
+            const socialInsuranceItems = validDeductions.filter(item => 
+              SOCIAL_INSURANCE_DEDUCTION_CODES.includes(item.name)
+            );
+            console.log('🏦 [手动调整] 五险一金项目:', socialInsuranceItems);
+            
+            // 调试：设置状态前的数据
+            console.log('📝 [setDeductions] 即将设置的扣除项数据:', validDeductions);
+            console.log('📝 [setDeductions] 五险一金手动调整状态汇总:', 
+              validDeductions
+                .filter(item => SOCIAL_INSURANCE_DEDUCTION_CODES.includes(item.name))
+                .map(item => ({
+                  name: item.name,
+                  is_manual: item.is_manual,
+                  checked: Boolean(item.is_manual)
+                }))
+            );
             
             setDeductions(validDeductions);
           } else {
@@ -759,20 +885,53 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         
         if (typeof entry.deductions_details === 'object') {
           if (Array.isArray(entry.deductions_details)) {
-            deductionsArray = [...entry.deductions_details];
+            // 确保数组格式也保留手动调整信息
+            deductionsArray = entry.deductions_details.map(item => ({
+              name: item.name,
+              amount: item.amount || 0,
+              description: item.description || payrollConfig.componentDefinitions.find(c => c.code === item.name)?.description || '',
+              is_manual: Boolean(item.is_manual),
+              manual_at: item.manual_at,
+              manual_by: item.manual_by,
+              manual_reason: item.manual_reason,
+              auto_calculated: item.auto_calculated,
+              allowNegative: item.allowNegative
+            }));
+            
+            console.log('🔄 [第二次处理] 数组格式扣除项:', deductionsArray.filter(item => 
+              SOCIAL_INSURANCE_DEDUCTION_CODES.includes(item.name)
+            ).map(item => ({
+              name: item.name,
+              is_manual: item.is_manual,
+              amount: item.amount
+            })));
           } else {
             deductionsArray = Object.entries(entry.deductions_details).map(([key, value]) => {
-              const amount = typeof value === 'number' 
-                ? value 
-                : (typeof value === 'object' && value !== null && 'amount' in value 
-                  ? (value as any).amount || 0 
-                  : 0);
-              
-              return {
-                name: key,
-                amount: amount,
-                description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
-              };
+              if (typeof value === 'number') {
+                return {
+                  name: key,
+                  amount: value,
+                  description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+                };
+              } else if (typeof value === 'object' && value !== null) {
+                const valueObj = value as any;
+                return {
+                  name: key,
+                  amount: valueObj.amount || 0,
+                  description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || '',
+                  is_manual: Boolean(valueObj.is_manual),
+                  manual_at: valueObj.manual_at,
+                  manual_by: valueObj.manual_by,
+                  manual_reason: valueObj.manual_reason,
+                  auto_calculated: valueObj.auto_calculated
+                };
+              } else {
+                return {
+                  name: key,
+                  amount: 0,
+                  description: payrollConfig.componentDefinitions.find(c => c.code === key)?.description || ''
+                };
+              }
             });
           }
         }
@@ -789,6 +948,22 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         );
         
         console.log('✅ 过滤后的扣除项:', newDeductions);
+        
+        // 检查过滤后的五险一金手动调整状态
+        const filteredSocialInsurance = newDeductions.filter(item => 
+          SOCIAL_INSURANCE_DEDUCTION_CODES.includes(item.name)
+        );
+        console.log('🔍 [第二次处理] 过滤后的五险一金手动调整状态:', 
+          filteredSocialInsurance.map(item => ({
+            name: item.name,
+            is_manual: item.is_manual,
+            is_manual_type: typeof item.is_manual,
+            amount: item.amount,
+            auto_calculated: item.auto_calculated,
+            manual_at: item.manual_at
+          }))
+        );
+        
         setDeductions(newDeductions);
       }
       
@@ -860,13 +1035,31 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         }
       });
 
-      // 将 deductions数组 转换为 Dict[str, { amount: number }]
-      const formattedDeductionsDetails: Record<string, { amount: number }> = {};
+      // 将 deductions数组 转换为 Dict[str, { amount: number, ... }]，保留手动调整信息
+      const formattedDeductionsDetails: Record<string, any> = {};
       deductions.forEach(item => {
         // 确保amount是数字，且为有效值
         const amount = parseFloat(item.amount as any);
         if (!isNaN(amount)) {
-          formattedDeductionsDetails[item.name] = { amount };
+          // 基本数据
+          const deductionData: any = { amount };
+          
+          // 如果有手动调整信息，保留完整数据
+          console.log(`🔍 [保存检查] ${item.name}: is_manual=${item.is_manual}, type=${typeof item.is_manual}, Boolean=${Boolean(item.is_manual)}`);
+          if (item.is_manual) {
+            console.log(`✅ [保存] 保存${item.name}的手动调整信息`);
+            deductionData.is_manual = true;
+            deductionData.manual_at = item.manual_at;
+            deductionData.manual_by = item.manual_by;
+            deductionData.manual_reason = item.manual_reason;
+            if (item.auto_calculated !== undefined) {
+              deductionData.auto_calculated = item.auto_calculated;
+            }
+          } else {
+            console.log(`❌ [保存] ${item.name}的is_manual为false，不保存手动调整信息`);
+          }
+          
+          formattedDeductionsDetails[item.name] = deductionData;
         }
       });
 
@@ -894,6 +1087,33 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         total_deductions: totalDeductionsCalc,
         net_pay: netPayCalc
       };
+      
+      // 添加调试日志：检查提交时手动调整状态
+      console.log('🔍 [保存] 提交时deductions数组状态:', deductions.map(item => ({
+        name: item.name,
+        amount: item.amount,
+        is_manual: item.is_manual,
+        is_manual_type: typeof item.is_manual,
+        manual_at: item.manual_at,
+        auto_calculated: item.auto_calculated
+      })));
+      
+      console.log('🔍 [保存] 提交时formattedDeductionsDetails:', formattedDeductionsDetails);
+      
+      // 特别检查HOUSING_FUND_PERSONAL的完整数据
+      if (formattedDeductionsDetails.HOUSING_FUND_PERSONAL) {
+        console.log('🔍 [保存] HOUSING_FUND_PERSONAL完整数据:', formattedDeductionsDetails.HOUSING_FUND_PERSONAL);
+      }
+      
+      // 特别检查五险一金的状态
+      const socialInsuranceInSubmit = deductions.filter(item => 
+        SOCIAL_INSURANCE_DEDUCTION_CODES.includes(item.name)
+      );
+      console.log('🔍 [保存] 五险一金提交状态:', socialInsuranceInSubmit.map(item => ({
+        name: item.name,
+        is_manual: item.is_manual,
+        in_formatted_data: formattedDeductionsDetails[item.name]
+      })));
       
       // 添加日志记录即将提交的数据
       
@@ -939,8 +1159,31 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
         if (entry) {
           // 更新现有工资明细
           console.log('🔄 [PayrollEntryFormModal] Calling updatePayrollEntryDetails API...');
+          console.log('🔍 [API调用] 最终提交数据:', {
+            entry_id: entry.id,
+            submitData: cleanSubmitData,
+            deductions_details: cleanSubmitData.deductions_details,
+            housing_fund_in_submit: cleanSubmitData.deductions_details?.HOUSING_FUND_PERSONAL
+          });
+          
+          // 详细检查每个五险一金字段的提交数据
+          const socialInsuranceSubmitData = {};
+          SOCIAL_INSURANCE_DEDUCTION_CODES.forEach(code => {
+            if (cleanSubmitData.deductions_details && cleanSubmitData.deductions_details[code]) {
+              socialInsuranceSubmitData[code] = cleanSubmitData.deductions_details[code];
+            }
+          });
+          console.log('🔍 [API调用] 五险一金提交数据详情:', socialInsuranceSubmitData);
           const result = await updatePayrollEntryDetails(entry.id, cleanSubmitData);
           console.log('✅ [PayrollEntryFormModal] API call successful:', result);
+          
+          // 检查API返回的数据是否包含手动调整信息
+          if (result && result.data && result.data.deductions_details) {
+            console.log('🔍 [API响应] 返回的deductions_details:', result.data.deductions_details);
+            if (result.data.deductions_details.HOUSING_FUND_PERSONAL) {
+              console.log('🔍 [API响应] HOUSING_FUND_PERSONAL数据:', result.data.deductions_details.HOUSING_FUND_PERSONAL);
+            }
+          }
           
           if (result && result.data) {
             // 验证返回的数据中是否包含我们提交的更改
@@ -1051,11 +1294,205 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
   };
   
   // 处理扣缴项更新
-  const handleDeductionChange = (index: number, value: number) => {
+  const handleDeductionChange = async (index: number, value: number) => {
     const newDeductions = [...deductions];
-    newDeductions[index].amount = value;
+    const item = newDeductions[index];
+    item.amount = value;
+    
+    // 如果是手动调整项且有entry ID，使用防抖调用API更新
+    if (item.is_manual && entry && entry.id) {
+      debouncedManualAdjustment(entry.id, item.name, value, item.manual_reason || '手动调整金额');
+    }
+    
     setDeductions(newDeductions);
     updateTotals(earnings, newDeductions);
+  };
+
+  // 处理手动调整状态切换
+  const handleManualAdjustmentToggle = async (index: number, checked: boolean) => {
+    const item = deductions[index];
+    const itemKey = `${index}-${item.name}`;
+    
+    // 如果正在处理中，忽略
+    if (adjustingItems.has(itemKey)) {
+      return;
+    }
+    
+    // 如果是新创建的条目（没有entry），只更新本地状态
+    if (!entry || !entry.id) {
+      const newDeductions = [...deductions];
+      const newItem = newDeductions[index];
+      
+      if (checked) {
+        newItem.is_manual = true;
+        newItem.manual_at = new Date().toISOString();
+        newItem.manual_by = 'current_user';
+        if (newItem.auto_calculated === undefined) {
+          newItem.auto_calculated = newItem.amount;
+        }
+      } else {
+        newItem.is_manual = false;
+        if (newItem.auto_calculated !== undefined) {
+          newItem.amount = newItem.auto_calculated;
+        }
+        delete newItem.manual_at;
+        delete newItem.manual_by;
+        delete newItem.manual_reason;
+      }
+      
+      setDeductions(newDeductions);
+      updateTotals(earnings, newDeductions);
+      return;
+    }
+    
+    // 对于已存在的条目，调用API
+    setAdjustingItems(prev => new Set(prev).add(itemKey));
+    
+    if (checked) {
+      // 调用手动调整API
+      try {
+        console.log('📤 [手动调整] 发送请求:', {
+          entry_id: entry.id,
+          component_code: item.name,
+          amount: item.amount,
+          current_is_manual: item.is_manual,
+          timestamp: new Date().toISOString()
+        });
+        
+        const response = await simplePayrollApi.manuallyAdjustDeduction(entry.id, {
+          component_code: item.name,
+          amount: item.amount,
+          reason: '手动调整'
+        });
+        
+        console.log('📥 [手动调整] API响应完整数据:', {
+          status: response.status,
+          message: response.message,
+          data: response.data,
+          timestamp: new Date().toISOString()
+        });
+        
+        // 验证API响应数据完整性
+        if (response.data) {
+          console.log('🔍 [手动调整] 响应数据验证:', {
+            has_is_manual: 'is_manual' in response.data,
+            is_manual_value: response.data.is_manual,
+            is_manual_type: typeof response.data.is_manual,
+            has_manual_at: 'manual_at' in response.data,
+            manual_at_value: response.data.manual_at,
+            has_manual_by: 'manual_by' in response.data,
+            manual_by_value: response.data.manual_by,
+            component_code: response.data.component_code,
+            adjusted_amount: response.data.adjusted_amount,
+            original_amount: response.data.original_amount
+          });
+        } else {
+          console.warn('⚠️ [手动调整] API响应中没有data字段');
+        }
+        
+        if (response.data) {
+          messageApi.success('已标记为手动调整');
+          
+          // 更新本地状态（使用API返回的值）
+          const newDeductions = [...deductions];
+          const newItem = newDeductions[index];
+          
+          console.log('🔄 [手动调整] 更新前的本地状态:', {
+            name: newItem.name,
+            is_manual: newItem.is_manual,
+            is_manual_type: typeof newItem.is_manual,
+            amount: newItem.amount,
+            auto_calculated: newItem.auto_calculated,
+            manual_at: newItem.manual_at
+          });
+          
+          newItem.is_manual = response.data.is_manual;
+          newItem.manual_at = response.data.manual_at;
+          newItem.manual_by = response.data.manual_by;
+          newItem.manual_reason = response.data.manual_reason;
+          newItem.auto_calculated = response.data.original_amount || item.amount;
+          
+          console.log('✅ [手动调整] 更新后的本地状态:', {
+            name: newItem.name,
+            is_manual: newItem.is_manual,
+            is_manual_type: typeof newItem.is_manual,
+            amount: newItem.amount,
+            auto_calculated: newItem.auto_calculated,
+            manual_at: newItem.manual_at,
+            api_provided_is_manual: response.data.is_manual,
+            api_provided_is_manual_type: typeof response.data.is_manual
+          });
+          
+          setDeductions(newDeductions);
+          updateTotals(earnings, newDeductions);
+          
+          // 验证状态设置是否成功
+          setTimeout(() => {
+            console.log('🎯 [手动调整] 状态设置后验证 (setTimeout):', {
+              deductions_count: deductions.length,
+              target_item: deductions.find(d => d.name === item.name),
+              target_item_is_manual: deductions.find(d => d.name === item.name)?.is_manual,
+              all_social_insurance_manual_status: deductions
+                .filter(d => SOCIAL_INSURANCE_DEDUCTION_CODES.includes(d.name))
+                .map(d => ({ name: d.name, is_manual: d.is_manual }))
+            });
+          }, 100);
+          
+          // 不立即刷新，因为这会导致状态丢失
+          // 手动调整的状态已经在本地更新，不需要立即从服务器刷新
+        }
+      } catch (error: any) {
+        console.error('手动调整API调用失败:', error);
+        messageApi.error(`手动调整失败: ${error.response?.data?.detail || error.message}`);
+      } finally {
+        setAdjustingItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemKey);
+          return newSet;
+        });
+      }
+    } else {
+      // 取消手动调整 - 恢复自动计算值
+      try {
+        // 这里可以调用一个"取消手动调整"的API，或者直接更新为自动计算值
+        const newDeductions = [...deductions];
+        const newItem = newDeductions[index];
+        
+        if (newItem.auto_calculated !== undefined) {
+          // 调用API更新为自动计算值
+          const response = await simplePayrollApi.manuallyAdjustDeduction(entry.id, {
+            component_code: item.name,
+            amount: newItem.auto_calculated,
+            reason: '取消手动调整，恢复自动计算值'
+          });
+          
+          if (response.data) {
+            messageApi.success('已恢复为自动计算值');
+            
+            // 更新本地状态
+            newItem.is_manual = false;
+            newItem.amount = newItem.auto_calculated;
+            delete newItem.manual_at;
+            delete newItem.manual_by;
+            delete newItem.manual_reason;
+            
+            setDeductions(newDeductions);
+            updateTotals(earnings, newDeductions);
+            
+            // 不立即刷新，避免状态丢失
+          }
+        }
+      } catch (error: any) {
+        console.error('恢复自动计算值失败:', error);
+        messageApi.error(`恢复失败: ${error.response?.data?.detail || error.message}`);
+      } finally {
+        setAdjustingItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemKey);
+          return newSet;
+        });
+      }
+    }
   };
   
   // 更新总计
@@ -1418,14 +1855,40 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
             ) : (
               deductions.map((item, index) => {
                 const component = deductionComponents.find(comp => comp.code === item.name);
+                const isSocialInsuranceItem = SOCIAL_INSURANCE_DEDUCTION_CODES.includes(item.name);
+                
+                // 调试日志：复选框渲染时的状态
+                if (isSocialInsuranceItem) {
+                  console.log(`🔲 [复选框渲染] ${item.name}:`, {
+                    index,
+                    is_manual: item.is_manual,
+                    is_manual_type: typeof item.is_manual,
+                    is_manual_boolean: Boolean(item.is_manual),
+                    checked_value: Boolean(item.is_manual),
+                    amount: item.amount,
+                    auto_calculated: item.auto_calculated,
+                    manual_at: item.manual_at,
+                    full_item: item
+                  });
+                }
+                
                 return (
                   <Row key={`deduction-${index}`} gutter={16} style={{ marginBottom: 16 }}>
                     <Col span={12}>
-                      <Form.Item label={component?.name || item.name}>
+                      <Form.Item label={
+                        <span>
+                          {component?.name || item.name}
+                          {item.is_manual && (
+                            <Tooltip title={`手动调整于 ${new Date(item.manual_at || '').toLocaleString()}`}>
+                              <LockOutlined style={{ marginLeft: 8, color: '#1890ff' }} />
+                            </Tooltip>
+                          )}
+                        </span>
+                      }>
                         <Input value={item.name} disabled />
                       </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col span={isSocialInsuranceItem ? 10 : 12}>
                       <Form.Item label={t('label.amount')}>
                         <InputNumber
                           style={{ width: '100%' }}
@@ -1434,9 +1897,25 @@ const PayrollEntryFormModal: React.FC<PayrollEntryFormModalProps> = ({
                           precision={2}
                           value={item.amount}
                           onChange={(value) => handleDeductionChange(index, value as number)}
+                          addonAfter={item.is_manual ? <LockOutlined style={{ color: '#1890ff' }} /> : null}
                         />
                       </Form.Item>
                     </Col>
+                    {isSocialInsuranceItem && (
+                      <Col span={2}>
+                        <Form.Item label=" " colon={false}>
+                          <Tooltip title={item.is_manual ? '取消手动调整' : '手动调整'}>
+                            <Checkbox
+                              checked={Boolean(item.is_manual)}
+                              onChange={(e) => handleManualAdjustmentToggle(index, e.target.checked)}
+                              disabled={adjustingItems.has(`${index}-${item.name}`)}
+                            >
+                              手调
+                            </Checkbox>
+                          </Tooltip>
+                        </Form.Item>
+                      </Col>
+                    )}
                   </Row>
                 );
               })
