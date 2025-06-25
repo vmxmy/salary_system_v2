@@ -673,12 +673,48 @@ export const EnhancedWorkflowGuide: React.FC<EnhancedWorkflowGuideProps> = ({
               );
             }
             
-            // 添加五险一金重新计算提示
-            displayContent.push(
-              <div key="reminder" style={{ fontSize: '12px', color: '#ff4d4f', marginTop: '8px' }}>
-                注：所有五险一金金额已按标准规则重新计算
-              </div>
-            );
+            // 添加手动调整信息
+            const manual_adjustments = result.data.manual_adjustments;
+            if (manual_adjustments && manual_adjustments.total_items > 0) {
+              displayContent.push(
+                <div key="manual" style={{ fontSize: '12px', color: '#1890ff', marginTop: '8px' }}>
+                  🔒 已保护 {manual_adjustments.unique_employees} 位员工的 {manual_adjustments.total_items} 项手动调整数据
+                </div>
+              );
+              
+              // 显示具体的手动调整项目类型
+              if (manual_adjustments.item_types && manual_adjustments.item_types.length > 0) {
+                const itemTypeNames = manual_adjustments.item_types.map((type: string) => {
+                  const typeMap: Record<string, string> = {
+                    'PENSION_PERSONAL_AMOUNT': '养老保险',
+                    'MEDICAL_PERSONAL_AMOUNT': '医疗保险',
+                    'UNEMPLOYMENT_PERSONAL_AMOUNT': '失业保险',
+                    'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT': '职业年金',
+                    'HOUSING_FUND_PERSONAL': '住房公积金'
+                  };
+                  return typeMap[type] || type;
+                });
+                
+                displayContent.push(
+                  <div key="manual-types" style={{ fontSize: '11px', color: '#666', marginLeft: '16px', marginTop: '4px' }}>
+                    手动调整项：{itemTypeNames.join('、')}
+                  </div>
+                );
+              }
+              
+              displayContent.push(
+                <div key="reminder" style={{ fontSize: '12px', color: '#52c41a', marginTop: '8px' }}>
+                  ✅ 五险一金已重新计算，手动调整项已保护
+                </div>
+              );
+            } else {
+              // 添加五险一金重新计算提示
+              displayContent.push(
+                <div key="reminder" style={{ fontSize: '12px', color: '#ff4d4f', marginTop: '8px' }}>
+                  注：所有五险一金金额已按标准规则重新计算
+                </div>
+              );
+            }
             
             // 如果没有详细数据，显示基本成功信息
             if (displayContent.length === 1) {

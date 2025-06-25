@@ -2690,6 +2690,21 @@ async def run_integrated_calculation_engine(
         # 获取汇总信息并重新构造响应格式
         calculation_summary = integrated_calculator.get_calculation_summary(results)
         
+        # 统计手动调整的项目
+        manual_adjustments_count = 0
+        manual_adjustment_items = set()
+        manual_adjustment_employees = []
+        
+        for employee_id, original_deductions in original_deductions_details.items():
+            for key, value in original_deductions.items():
+                if isinstance(value, dict) and value.get('is_manual'):
+                    manual_adjustments_count += 1
+                    manual_adjustment_items.add(key)
+                    manual_adjustment_employees.append(employee_id)
+        
+        # 去重员工ID
+        unique_manual_employees = len(set(manual_adjustment_employees))
+        
         response_data = {
             "payroll_run_id": payroll_run_id,
             "total_processed": len(entries),
@@ -2700,6 +2715,11 @@ async def run_integrated_calculation_engine(
             "social_insurance_breakdown": calculation_summary.get('social_insurance_breakdown', {}),
             "cost_analysis": calculation_summary.get('cost_analysis', {}),
             "calculation_metadata": calculation_summary.get('calculation_metadata', {}),
+            "manual_adjustments": {
+                "total_items": manual_adjustments_count,
+                "unique_employees": unique_manual_employees,
+                "item_types": list(manual_adjustment_items)
+            },
             "payroll_run_updated": success_count > 0,
             "include_social_insurance": include_social_insurance,
             "calculation_period": calculation_period.isoformat(),
