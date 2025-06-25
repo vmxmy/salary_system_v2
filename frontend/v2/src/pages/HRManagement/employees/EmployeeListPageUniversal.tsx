@@ -154,18 +154,18 @@ const EmployeeListPageUniversal: React.FC = () => {
 
   // 使用 useMemo 缓存复杂对象配置
   const searchConfig = useMemo<SearchConfig>(() => ({
-    fields: [
-      { key: 'name', label: '姓名' },
-      { key: 'employee_code', label: '工号' },
-      { key: 'department_name', label: '部门' },
-      { key: 'position_name', label: '职位' },
-      { key: 'email', label: '邮箱' },
-      { key: 'phone', label: '电话' }
-    ] as SearchableField[],
+    searchableFields: [
+      { key: 'name' as keyof EmployeeBasic, label: '姓名', type: 'text' as const },
+      { key: 'employee_code' as keyof EmployeeBasic, label: '工号', type: 'text' as const },
+      { key: 'departmentName' as keyof EmployeeBasic, label: '部门', type: 'text' as const },
+      { key: 'actualPositionName' as keyof EmployeeBasic, label: '职位', type: 'text' as const },
+      { key: 'email' as keyof EmployeeBasic, label: '邮箱', type: 'text' as const },
+      { key: 'phone_number' as keyof EmployeeBasic, label: '电话', type: 'text' as const }
+    ] as SearchableField<EmployeeBasic>[],
     placeholder: '搜索员工姓名、工号、部门...',
-    enablePinyin: true,
-    searchMode: SearchMode.FLEXIBLE,
-    highlightMatches: true
+    supportExpressions: false,
+    searchModes: [SearchMode.FLEXIBLE, SearchMode.EXACT, SearchMode.FUZZY],
+    debounceMs: 300
   }), []);
 
   const filterConfig = useMemo<FilterConfig>(() => ({

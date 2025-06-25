@@ -463,11 +463,25 @@ export const EnhancedPayrollStatistics: React.FC<EnhancedPayrollStatisticsProps>
                       {dataIntegrityStats?.occupationalPensionBaseCount || 0}
                     </span>
                   </div>
-                  <div className={`${styles.statisticChartItem} ${styles.lastItem}`}>
+                  <div className={styles.statisticChartItem}>
                     个税&gt;0: <span className={`${styles.statisticValue} ${(dataIntegrityStats?.incomeTaxPositiveCount || 0) > 0 ? styles.success : styles.warning}`}>
                       {dataIntegrityStats?.incomeTaxPositiveCount || 0}
                     </span>
                   </div>
+                  {/* 手动调整信息 */}
+                  {dataIntegrityStats?.manualAdjustments && dataIntegrityStats.manualAdjustments.total_items > 0 && (
+                    <>
+                      <Divider className={styles.statisticDivider} />
+                      <div className={styles.statisticChartItem} style={{ color: '#1890ff' }}>
+                        🔒 手动调整: <span className={styles.statisticValue}>
+                          {dataIntegrityStats.manualAdjustments.total_items} 项
+                        </span>
+                      </div>
+                      <div className={`${styles.statisticChartItem} ${styles.lastItem}`} style={{ fontSize: '11px', color: '#666' }}>
+                        {dataIntegrityStats.manualAdjustments.employee_details.map((emp: any) => emp.name).join('、')}
+                      </div>
+                    </>
+                  )}
                 </div>
               }
               loading={payrollStats.loading || dataIntegrityStats?.loading || false}

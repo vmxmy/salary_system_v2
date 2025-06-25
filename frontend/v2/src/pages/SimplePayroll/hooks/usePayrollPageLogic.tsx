@@ -24,6 +24,16 @@ export interface DataIntegrityStats {
   occupationalPensionBaseCount: number;
   incomeTaxPositiveCount: number;
   loading: boolean;
+  manualAdjustments?: {
+    total_items: number;
+    unique_employees: number;
+    employee_details: Array<{
+      id: number;
+      name: string;
+      code: string;
+    }>;
+    adjustment_types: Record<string, number>;
+  };
 }
 
 export const usePayrollPageLogic = () => {
@@ -90,14 +100,19 @@ export const usePayrollPageLogic = () => {
       
       if (response.data) {
         const integrityData = response.data.data_integrity;
+        const manualAdjustments = response.data.manual_adjustments;
         setDataIntegrityStats({
           socialInsuranceBaseCount: integrityData.social_insurance_base_count || 0,
           housingFundBaseCount: integrityData.housing_fund_base_count || 0,
           occupationalPensionBaseCount: integrityData.occupational_pension_base_count || 0,
           incomeTaxPositiveCount: integrityData.income_tax_positive_count || 0,
-          loading: false
+          loading: false,
+          manualAdjustments: manualAdjustments || undefined
         });
         console.log('✅ [fetchDataIntegrityStats] 数据完整性统计获取成功');
+        if (manualAdjustments && manualAdjustments.total_items > 0) {
+          console.log('🔒 [fetchDataIntegrityStats] 手动调整统计:', manualAdjustments);
+        }
       } else {
         console.log('⚠️ [fetchDataIntegrityStats] 响应中没有数据');
         setDataIntegrityStats({

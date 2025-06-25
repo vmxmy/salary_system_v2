@@ -3107,6 +3107,51 @@ async def get_data_integrity_stats(
                 )
             ).count()
         
+        # 🎯 统计手动调整的记录
+        manual_adjustment_stats = {
+            "total_items": 0,
+            "unique_employees": 0,
+            "employee_details": [],
+            "adjustment_types": {}
+        }
+        
+        if payroll_runs:
+            # 查询所有工资条目的手动调整数据
+            entries = db.query(PayrollEntry).filter(
+                PayrollEntry.payroll_run_id.in_(payroll_run_ids)
+            ).all()
+            
+            manual_employees = set()
+            manual_employee_names = {}
+            adjustment_type_counts = {}
+            
+            for entry in entries:
+                if entry.deductions_details:
+                    for key, value in entry.deductions_details.items():
+                        if isinstance(value, dict) and value.get('is_manual'):
+                            manual_adjustment_stats["total_items"] += 1
+                            manual_employees.add(entry.employee_id)
+                            
+                            # 记录调整类型
+                            if key not in adjustment_type_counts:
+                                adjustment_type_counts[key] = 0
+                            adjustment_type_counts[key] += 1
+                            
+                            # 获取员工姓名
+                            if entry.employee_id not in manual_employee_names:
+                                from ..models.hr import Employee
+                                employee = db.query(Employee).filter(Employee.id == entry.employee_id).first()
+                                if employee:
+                                    manual_employee_names[entry.employee_id] = {
+                                        "id": employee.id,
+                                        "name": f"{employee.last_name or ''}{employee.first_name or ''}".strip() or employee.employee_code,
+                                        "code": employee.employee_code
+                                    }
+            
+            manual_adjustment_stats["unique_employees"] = len(manual_employees)
+            manual_adjustment_stats["employee_details"] = list(manual_employee_names.values())
+            manual_adjustment_stats["adjustment_types"] = adjustment_type_counts
+        
         result = {
             "period_id": period_id,
             "period_name": target_period.name,
@@ -3120,6 +3165,7 @@ async def get_data_integrity_stats(
                 "occupational_pension_base_count": occupational_pension_base_count,
                 "income_tax_positive_count": income_tax_positive_count
             },
+            "manual_adjustments": manual_adjustment_stats,
             "summary": {
                 "统计类型": "数据完整性统计",
                 "社保基数记录数": social_insurance_base_count,
