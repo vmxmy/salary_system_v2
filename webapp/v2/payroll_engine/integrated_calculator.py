@@ -448,7 +448,8 @@ class IntegratedPayrollCalculator:
         self,
         payroll_entries: List[PayrollEntry],
         calculation_period: Optional[date] = None,
-        include_social_insurance: bool = True
+        include_social_insurance: bool = True,
+        original_deductions_map: Optional[Dict[int, Dict[str, Any]]] = None
     ) -> List[IntegratedCalculationResult]:
         """
         批量计算薪资
@@ -457,6 +458,7 @@ class IntegratedPayrollCalculator:
             payroll_entries: 薪资条目列表
             calculation_period: 计算期间
             include_social_insurance: 是否包含社保计算
+            original_deductions_map: 原始扣除详情映射 {employee_id: deductions_details}
             
         Returns:
             List[IntegratedCalculationResult]: 计算结果列表
@@ -465,9 +467,20 @@ class IntegratedPayrollCalculator:
         
         for entry in payroll_entries:
             try:
-                # 调试：检查数据库中的实际数据
-                logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 数据库中的deductions_details: {entry.deductions_details}")
-                logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 是否包含HOUSING_FUND_PERSONAL: {'HOUSING_FUND_PERSONAL' in (entry.deductions_details or {})}")
+                # 使用原始扣除详情（如果提供）
+                original_deductions = None
+                if original_deductions_map and entry.employee_id in original_deductions_map:
+                    original_deductions = original_deductions_map[entry.employee_id]
+                    logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 使用原始扣除详情进行手动调整检测")
+                else:
+                    original_deductions = entry.deductions_details or {}
+                    logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 使用当前扣除详情")
+                
+                # 调试：检查数据
+                logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} 原始deductions_details包含 {len(original_deductions)} 个项目")
+                if 'HOUSING_FUND_PERSONAL' in original_deductions:
+                    housing_fund_data = original_deductions['HOUSING_FUND_PERSONAL']
+                    logger.info(f"🔍 [批量计算] 员工 {entry.employee_id} HOUSING_FUND_PERSONAL数据: {housing_fund_data}")
                 
                 result = self.calculate_employee_payroll(
                     employee_id=entry.employee_id,
@@ -476,7 +489,7 @@ class IntegratedPayrollCalculator:
                     deductions_data=entry.deductions_details or {},
                     calculation_period=calculation_period,
                     include_social_insurance=include_social_insurance,
-                    existing_deductions_details=entry.deductions_details or {}
+                    existing_deductions_details=original_deductions
                 )
                 results.append(result)
                 

@@ -2521,6 +2521,15 @@ async def run_integrated_calculation_engine(
                 message="计算任务已启动"
             )
         
+        # 🔒 保存原始的扣除详情，用于手动调整检测
+        original_deductions_details = {}
+        for entry in entries:
+            if entry.deductions_details:
+                # 深拷贝原始数据，避免被后续操作修改
+                original_deductions_details[entry.employee_id] = dict(entry.deductions_details)
+        
+        logger.info(f"📦 [保存原始数据] 已保存 {len(original_deductions_details)} 条员工的原始扣除详情")
+        
         # 🧹 第一步：清除所有薪资条目中的旧五险一金数据
         logger.info(f"🧹 [清除旧数据] 开始清除 {len(entries)} 条薪资记录中的旧五险一金数据")
         
@@ -2599,11 +2608,12 @@ async def run_integrated_calculation_engine(
         logger.info(f"🚀 [开始计算] 初始化集成计算器，开始重新计算五险一金")
         integrated_calculator = IntegratedPayrollCalculator(db)
         
-        # 批量计算
+        # 批量计算（传递原始扣除详情用于手动调整检测）
         results = integrated_calculator.batch_calculate_payroll(
             payroll_entries=entries,
             calculation_period=calculation_period,
-            include_social_insurance=include_social_insurance
+            include_social_insurance=include_social_insurance,
+            original_deductions_map=original_deductions_details
         )
         
         # 更新数据库记录
