@@ -87,22 +87,40 @@ const detectColumnType = (data: any[], columnKey: string): ColumnDataType => {
   return 'text';
 };
 
-const formatValue = (value: any, type: ColumnDataType): any => {
-  if (value == null) return '-';
+const formatValue = (value: any, type: ColumnDataType): string | number => {
+  if (value == null || value === '') return '-';
+  
+  // Always handle objects first to prevent React rendering errors
+  if (typeof value === 'object' && value !== null) {
+    // Check if it's a lookup object with name property
+    if ('name' in value && typeof value.name === 'string') {
+      return value.name;
+    }
+    // Check if it's a date object
+    if (value instanceof Date) {
+      return value.toLocaleDateString();
+    }
+    // For any other object, return a string representation
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '[Complex Object]';
+    }
+  }
   
   switch (type) {
     case 'number':
       const num = typeof value === 'number' ? value : Number(value);
-      if (isNaN(num)) return value;
+      if (isNaN(num)) return String(value);
       return num.toLocaleString();
     
     case 'date':
       try {
         const date = new Date(value);
-        if (isNaN(date.getTime())) return value;
+        if (isNaN(date.getTime())) return String(value);
         return date.toLocaleDateString();
       } catch {
-        return value;
+        return String(value);
       }
     
     case 'boolean':
@@ -114,16 +132,14 @@ const formatValue = (value: any, type: ColumnDataType): any => {
         if (['true', 'yes', '是', '1'].includes(lower)) return '是';
         if (['false', 'no', '否', '0'].includes(lower)) return '否';
       }
-      return value;
+      return String(value);
     
     case 'json':
-      if (typeof value === 'object') {
-        return '[JSON Object]';
-      }
-      return value;
+      return '[JSON Object]';
     
     default:
-      return value;
+      // Ensure we always return a string or number, never an object
+      return String(value);
   }
 };
 

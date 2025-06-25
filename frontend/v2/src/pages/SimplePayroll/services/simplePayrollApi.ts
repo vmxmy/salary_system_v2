@@ -1084,6 +1084,16 @@ export const simplePayrollApi = {
       occupational_pension_base_count: number;
       income_tax_positive_count: number;
     };
+    manual_adjustments: {
+      total_items: number;
+      unique_employees: number;
+      employee_details: Array<{
+        id: number;
+        name: string;
+        code: string;
+      }>;
+      adjustment_types: Record<string, number>;
+    };
     summary: {
       '统计类型': string;
       '社保基数记录数': number;
@@ -1104,7 +1114,8 @@ export const simplePayrollApi = {
       socialInsuranceBaseCount: response.data?.data?.data_integrity?.social_insurance_base_count,
       housingFundBaseCount: response.data?.data?.data_integrity?.housing_fund_base_count,
       occupationalPensionBaseCount: response.data?.data?.data_integrity?.occupational_pension_base_count,
-      incomeTaxPositiveCount: response.data?.data?.data_integrity?.income_tax_positive_count
+      incomeTaxPositiveCount: response.data?.data?.data_integrity?.income_tax_positive_count,
+      manualAdjustments: response.data?.data?.manual_adjustments
     });
     
     logResponse(response);

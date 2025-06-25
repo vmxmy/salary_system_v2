@@ -169,88 +169,41 @@ const EmployeeListPageUniversal: React.FC = () => {
   }), []);
 
   const filterConfig = useMemo<FilterConfig>(() => ({
-    fields: [
-      { 
-        key: 'status', 
-        label: '在职状态', 
-        type: 'select' as const, 
-        options: [
-          { label: '在职', value: 'active' },
-          { label: '离职', value: 'inactive' },
-          { label: '休假', value: 'on_leave' }
-        ] 
-      },
-      { 
-        key: 'departmentName', 
-        label: '所属部门', 
-        type: 'select' as const 
-      },
-      { 
-        key: 'actualPositionName', 
-        label: '职位', 
-        type: 'search' as const 
-      },
-      { 
-        key: 'personnelCategoryName', 
-        label: '人员类别', 
-        type: 'select' as const,
-        options: [
-          { label: '正编', value: '正编' },
-          { label: '聘用', value: '聘用' },
-          { label: '临时', value: '临时' }
-        ]
-      },
-      { 
-        key: 'hire_date', 
-        label: '入职日期', 
-        type: 'dateRange' as const 
-      }
-    ],
-    presets: FILTER_PRESETS,
-    categorySort: CATEGORY_SORT
+    hideEmptyColumns: true,
+    hideZeroColumns: false,
+    categorySort: CATEGORY_SORT,
+    presets: FILTER_PRESETS
   }), []);
 
   const presetConfig = useMemo<PresetConfig>(() => ({
-    categories: PRESET_CATEGORIES,
-    enableCustom: true,
-    enableSharing: false
+    enabled: true,
+    categories: PRESET_CATEGORIES
   }), []);
 
   // 稳定化操作配置，避免不必要的重新渲染
-  const actionsConfig = useMemo<ActionConfig<EmployeeBasic>>(() => ({
-    rowActions: [
-      {
-        label: '查看',
-        icon: <EyeOutlined />,
-        onClick: (record) => navigate(`/hr/employees/${record.id}/detail`),
-        visible: (record) => permissions.canViewEmployees
-      },
-      {
-        label: '编辑',
-        icon: <EditOutlined />,
-        onClick: (record) => navigate(`/hr/employees/${record.id}/edit`),
-        visible: (record) => permissions.canUpdateEmployees && (record.status === 'active' || (record.status && record.status.name === 'active'))
-      },
-      {
-        label: '删除',
-        icon: <DeleteOutlined />,
-        onClick: (record) => console.log('删除员工:', `${record.last_name || ''}${record.first_name || ''}`),
-        visible: (record) => permissions.canDeleteEmployees,
-        danger: true,
-        confirm: true,
-        confirmMessage: (record) => `确定要删除员工 ${record.last_name || ''}${record.first_name || ''} 吗？`
-      }
-    ],
-    batchActions: [
-      {
-        label: '批量导出',
-        icon: <DownloadOutlined />,
-        onClick: (selectedRows) => console.log('批量导出:', selectedRows.length, '条记录'),
-        visible: () => permissions.canExportEmployees
-      }
-    ],
-    toolbarActions: []
-  }), [navigate, permissions]);
+  const actionsConfig = useMemo(() => [
+    {
+      key: 'view',
+      label: '查看',
+      icon: <EyeOutlined />,
+      onClick: (record: EmployeeBasic) => navigate(`/hr/employees/${record.id}/detail`),
+      permission: 'canViewEmployees'
+    },
+    {
+      key: 'edit',
+      label: '编辑',
+      icon: <EditOutlined />,
+      onClick: (record: EmployeeBasic) => navigate(`/hr/employees/${record.id}/edit`),
+      permission: 'canUpdateEmployees'
+    },
+    {
+      key: 'delete',
+      label: '删除',
+      icon: <DeleteOutlined />,
+      onClick: (record: EmployeeBasic) => console.log('删除员工:', `${record.last_name || ''}${record.first_name || ''}`),
+      permission: 'canDeleteEmployees'
+    }
+  ], [navigate]);
 
   // Handle export - 稳定化函数引用
   const handleExport = useCallback((data: EmployeeBasic[]) => {
@@ -385,6 +338,7 @@ const EmployeeListPageUniversal: React.FC = () => {
         filterConfig={filterConfig}
         
         // Preset configuration
+        presetEnabled={true}
         presetConfig={presetConfig}
         
         // Action configuration
@@ -435,14 +389,22 @@ const EmployeeListPageUniversal: React.FC = () => {
             align: 'center' as const,
             render: (value: any) => {
               // Handle both value as string or as object
-              const statusValue = typeof value === 'object' && value ? value.name : value;
+              let statusValue: string = '';
+              if (typeof value === 'object' && value !== null && 'name' in value) {
+                statusValue = String(value.name);
+              } else if (typeof value === 'string') {
+                statusValue = value;
+              } else {
+                statusValue = String(value || '');
+              }
+              
               const statusMap: Record<string, { text: string; color: string }> = {
                 active: { text: '在职', color: '#52c41a' },
                 inactive: { text: '离职', color: '#f5222d' },
                 on_leave: { text: '休假', color: '#fa8c16' }
               };
               const status = statusMap[statusValue] || { text: statusValue || '-', color: '#666' };
-              return <span style={{ color: status.color }}>{status.text}</span>;
+              return React.createElement('span', { style: { color: status.color } }, status.text);
             }
           },
           { 
@@ -467,21 +429,12 @@ const EmployeeListPageUniversal: React.FC = () => {
         ]}
         
         // Features
-        enableExport={true}
+        exportable={true}
         onExport={handleExport}
-        enableSelection={true}
-        enableColumnConfig={true}
-        enableDensity={true}
+        selectable={true}
         
         // Events
         onRowDoubleClick={handleRowDoubleClick}
-        
-        // Pagination
-        pagination={{
-          pageSize: 20,
-          showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条记录`
-        }}
       />
     </PageLayout>
   );

@@ -7,6 +7,7 @@
       "Bash(ls:*)",
       "Bash(rg:*)",
       "Bash(npm run i18n:scan:*)",
+      "Bash(npm run lint)",
       "Bash(npm run lint)"
     ]
   },
