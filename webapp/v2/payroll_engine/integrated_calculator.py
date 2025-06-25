@@ -267,10 +267,55 @@ class IntegratedPayrollCalculator:
             else:
                 logger.info(f"💰 [个税] 未找到个人所得税数据，默认为 0")
 
-            # 2.2.2 计算个人五险一金合计
-            personal_social_insurance_total = result.social_insurance_employee + result.housing_fund_employee
-            logger.info(f"🏦 [个人社保公积金] 个人社保: {result.social_insurance_employee}")
-            logger.info(f"🏦 [个人社保公积金] 个人公积金: {result.housing_fund_employee}")
+            # 2.2.2 计算个人五险一金合计（需要考虑手动调整）
+            # 先使用自动计算的值
+            auto_social_insurance_employee = result.social_insurance_employee
+            auto_housing_fund_employee = result.housing_fund_employee
+            
+            # 检查是否有手动调整的五险一金
+            manual_social_insurance_total = Decimal('0.00')
+            manual_housing_fund_total = Decimal('0.00')
+            
+            # 计算实际使用的社保金额（考虑手动调整）
+            # 需要分别处理每个社保项目，因为可能只有部分项目被手动调整
+            actual_social_insurance_employee = Decimal('0.00')
+            actual_housing_fund_employee = Decimal('0.00')
+            
+            # 从现有扣除详情中读取五险一金的实际值（可能包含手动调整）
+            if existing_deductions_details:
+                # 社保项目
+                for code in ['PENSION_PERSONAL_AMOUNT', 'MEDICAL_PERSONAL_AMOUNT', 'UNEMPLOYMENT_PERSONAL_AMOUNT', 'OCCUPATIONAL_PENSION_PERSONAL_AMOUNT']:
+                    if code in existing_deductions_details:
+                        item_data = existing_deductions_details[code]
+                        if isinstance(item_data, dict) and 'amount' in item_data:
+                            amount = Decimal(str(item_data['amount']))
+                            actual_social_insurance_employee += amount
+                            if code in manual_adjustments:
+                                logger.info(f"🔒 [使用手动调整值] {code}: {amount}")
+                            else:
+                                logger.info(f"📊 [使用当前值] {code}: {amount}")
+                
+                # 公积金
+                if 'HOUSING_FUND_PERSONAL' in existing_deductions_details:
+                    fund_data = existing_deductions_details['HOUSING_FUND_PERSONAL']
+                    if isinstance(fund_data, dict) and 'amount' in fund_data:
+                        actual_housing_fund_employee = Decimal(str(fund_data['amount']))
+                        if 'HOUSING_FUND_PERSONAL' in manual_adjustments:
+                            logger.info(f"🔒 [使用手动调整值] HOUSING_FUND_PERSONAL: {actual_housing_fund_employee}")
+                        else:
+                            logger.info(f"📊 [使用当前值] HOUSING_FUND_PERSONAL: {actual_housing_fund_employee}")
+                else:
+                    # 如果现有数据中没有，使用自动计算的值
+                    actual_housing_fund_employee = auto_housing_fund_employee
+            else:
+                # 如果没有现有数据，使用自动计算的值
+                actual_social_insurance_employee = auto_social_insurance_employee
+                actual_housing_fund_employee = auto_housing_fund_employee
+            
+            personal_social_insurance_total = actual_social_insurance_employee + actual_housing_fund_employee
+            
+            logger.info(f"🏦 [个人社保公积金] 个人社保: {actual_social_insurance_employee} (自动: {auto_social_insurance_employee}, 手动: {manual_social_insurance_total})")
+            logger.info(f"🏦 [个人社保公积金] 个人公积金: {actual_housing_fund_employee} (自动: {auto_housing_fund_employee}, 手动: {manual_housing_fund_total})")
             logger.info(f"🏦 [个人社保公积金] 个人五险一金合计: {personal_social_insurance_total}")
 
             # 2.2.3 计算其他个人扣缴项目（补扣、调整等）
