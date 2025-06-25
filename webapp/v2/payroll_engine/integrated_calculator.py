@@ -179,11 +179,16 @@ class IntegratedPayrollCalculator:
             # 检测手动调整项目
             manual_adjustments = {}
             if existing_deductions_details:
+                logger.info(f"📊 [手动调整检测] 准备检测，existing_deductions_details包含 {len(existing_deductions_details)} 个项目")
                 manual_adjustments = self._detect_manual_adjustments(existing_deductions_details)
                 if manual_adjustments:
                     logger.info(f"🔒 [手动调整检测] 发现 {len(manual_adjustments)} 个手动调整项目: {list(manual_adjustments.keys())}")
+                    for key, value in manual_adjustments.items():
+                        logger.info(f"🔒 [手动调整详情] {key}: is_manual={value.get('is_manual')}, amount={value.get('amount')}, manual_at={value.get('manual_at')}")
                 else:
                     logger.info(f"✅ [手动调整检测] 未发现手动调整项目，可正常覆盖计算")
+            else:
+                logger.info(f"⚠️ [手动调整检测] existing_deductions_details为空，跳过手动调整检测")
             
             # 创建集成结果对象
             result = IntegratedCalculationResult(
