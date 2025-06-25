@@ -2396,8 +2396,7 @@ async def run_integrated_calculation_engine(
         from pathlib import Path
         import threading
         from datetime import datetime
-        from ..payroll_engine.integrated_calculator import IntegratedPayrollCalculator
-        from ..payroll_engine.simple_calculator import CalculationStatus
+        from ..payroll_engine.integrated_calculator import IntegratedPayrollCalculator, CalculationStatus
         from ..models.payroll import PayrollEntry, PayrollRun
         from ..models.hr import Employee
         from datetime import date
